@@ -157,7 +157,6 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         """Generate the new configuration."""
 
         agent_vars = self.service_spec.generate_agents()
-        agent_vars = self.get_deployment_network_configuration(agent_vars)
         image_name = self.service_spec.service.agent.name
 
         if dev_mode:

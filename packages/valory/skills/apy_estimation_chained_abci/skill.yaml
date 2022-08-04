@@ -15,21 +15,13 @@ fingerprint:
   handlers.py: bafybeibmzghvqekt7iymu6s6yn5tk7lpdmejba4n7dpsz2do3cgfqz7b2a
   models.py: bafybeifo2eoh5tx2uinqn7mxshvzqma2oc2vbm4u4tevpgsbtiyb5ybbre
 fingerprint_ignore_patterns: []
-connections:
-- valory/abci:0.1.0:bafybeiaqoaub5jverxutngxtbfcshucsg7fqkcrdgbjfdsrdbfntwyhawq
-- valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
-- valory/ledger:0.1.0:bafybeifxxshi4u3xyyllip5e3yafawywcwpvqxgnybchi5kj74zm4b4n2e
+connections: []
 contracts: []
-protocols:
-- open_aea/signing:1.0.0:bafybeieirkuq6azgis33bmukr5u2gx4chp5kswiw3wd5hbjsaukgwzmp5a
-- valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
-- valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
-- valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
-- valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
+protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeib62tcfpwhmnhaj7wz5i5h4eprdhffdk3q4a7xjc2odwlgsx5gapu
-- valory/apy_estimation_abci:0.1.0:bafybeiavoyh3hekov3bh3hie7j5jbz25kd2htrlc5dj76a52d64w3vfikm
-- valory/registration_abci:0.1.0:bafybeibu7crkvn3omxb3n7ioew2uc3nxikmhp4wikszh3juxlwi6cqgmkq
+- valory/abstract_round_abci:0.1.0:bafybeihrz2sqfxmv5wxhmwwmgybx47g33v7qh2p6ypvwqo7vft3xomcby4
+- valory/apy_estimation_abci:0.1.0:bafybeifjaz7y7hkrqrve5rfzj2hnybtcqggl4xzqxolhxyys5tste5rla4
+- valory/registration_abci:0.1.0:bafybeic34hhx3pmppa4etadhz5ejrg3jfqp2vggdiknlfbvs2loliihjcu
 behaviours:
   main:
     args: {}
@@ -200,7 +192,7 @@ dependencies:
   numpy:
     version: <1.22,>=1.21.4
   open-aea-cli-ipfs:
-    version: <2.0.0,>=1.13.0
+    version: <2.0.0,>=1.15.0
   optuna:
     version: <2.11,>=2.10.0
   pandas:

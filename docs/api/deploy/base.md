@@ -127,16 +127,6 @@ def populate_private_keys() -> "BaseDeploymentGenerator"
 
 Populate the private keys to the deployment.
 
-<a id="autonomy.deploy.base.BaseDeploymentGenerator.get_deployment_network_configuration"></a>
-
-#### get`_`deployment`_`network`_`configuration
-
-```python
-def get_deployment_network_configuration(agent_vars: List[Dict[str, Any]]) -> List
-```
-
-Retrieve the appropriate network configuration based on deployment & network.
-
 <a id="autonomy.deploy.base.BaseDeploymentGenerator.write_config"></a>
 
 #### write`_`config

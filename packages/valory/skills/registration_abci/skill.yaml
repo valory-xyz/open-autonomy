@@ -16,11 +16,16 @@ fingerprint:
   payloads.py: bafybeig6hh4vg2zjivr26xxbab54nn2xcragqlh7ff4s2sql24tchz3yia
   rounds.py: bafybeiezttdnozduijgnxhz5zciomvhidl6yonxsewtchzy4x6r2vyjk7i
 fingerprint_ignore_patterns: []
-connections: []
-contracts: []
-protocols: []
+connections:
+- valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
+contracts:
+- valory/service_registry:0.1.0:bafybeidtwbj7mwiskbbmsw43zzooivuq6nripdzn7yuoou66rq7spom54m
+protocols:
+- valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
+- valory/http:1.0.0:bafybeienmids6f5pcey2bnywmiup2faawqgmdhhz65qfciuhkntugztvpi
+- valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeib62tcfpwhmnhaj7wz5i5h4eprdhffdk3q4a7xjc2odwlgsx5gapu
+- valory/abstract_round_abci:0.1.0:bafybeihrz2sqfxmv5wxhmwwmgybx47g33v7qh2p6ypvwqo7vft3xomcby4
 behaviours:
   main:
     args: {}

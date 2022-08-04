@@ -49,6 +49,9 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviour,
     make_degenerate_behaviour,
 )
+from packages.valory.skills.abstract_round_abci.test_tools.base import (
+    FSMBehaviourBaseCase,
+)
 from packages.valory.skills.price_estimation_abci.behaviours import (
     EstimateBehaviour,
     ObserveBehaviour,
@@ -65,7 +68,6 @@ from packages.valory.skills.price_estimation_abci.rounds import (
 )
 
 from tests.conftest import ROOT_DIR
-from tests.test_skills.base import FSMBehaviourBaseCase
 
 
 DRAND_VALUE = {

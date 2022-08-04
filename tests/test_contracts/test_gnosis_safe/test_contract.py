@@ -21,11 +21,13 @@
 
 import binascii
 import secrets
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, cast
 from unittest import mock
 
 import pytest
+from aea.common import JSONLike
 from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumApi, EthereumCrypto
 from hexbytes import HexBytes
@@ -35,23 +37,24 @@ from web3.eth import Eth
 from web3.exceptions import SolidityError
 from web3.types import TxData
 
+from autonomy.test_tools.base_test_classes.contracts import (
+    BaseGanacheContractTest,
+    BaseHardhatGnosisContractTest,
+)
+from autonomy.test_tools.configurations import (
+    ETHEREUM_KEY_PATH_1,
+    ETHEREUM_KEY_PATH_2,
+    ETHEREUM_KEY_PATH_3,
+)
+from autonomy.test_tools.docker.base import skip_docker_tests
+from autonomy.test_tools.helpers.contracts import get_register_contract
+
 from packages.valory.contracts.gnosis_safe.contract import (
     GnosisSafeContract,
     SAFE_CONTRACT,
 )
 
-from tests.conftest import (
-    ETHEREUM_KEY_PATH_1,
-    ETHEREUM_KEY_PATH_2,
-    ETHEREUM_KEY_PATH_3,
-    ROOT_DIR,
-)
-from tests.helpers.contracts import get_register_contract
-from tests.helpers.docker.base import skip_docker_tests
-from tests.test_contracts.base import (
-    BaseGanacheContractTest,
-    BaseHardhatGnosisContractTest,
-)
+from tests.conftest import ROOT_DIR
 
 
 DEFAULT_GAS = 1000000
@@ -308,6 +311,77 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             self.contract.revert_reason(
                 self.ledger_api, "contract_address", cast(TxData, tx)
             )
+
+    def test_get_incoming_transfers(self) -> None:
+        """Run get_incoming txs."""
+        res = cast(
+            JSONLike,
+            self.contract.get_ingoing_transfers(
+                ledger_api=self.ledger_api,
+                contract_address=cast(str, self.contract_address),
+            ),
+        )
+        data = cast(List[JSONLike], res["data"])
+
+        assert len(data) == 0, "no transfers are made to the "
+
+        self.ledger_api.api.eth.send_transaction(
+            {
+                "to": self.contract_address,
+                "from": self.deployer_crypto.address,
+                "value": 10,
+            }
+        )
+
+        res = cast(
+            JSONLike,
+            self.contract.get_ingoing_transfers(
+                ledger_api=self.ledger_api,
+                contract_address=cast(str, self.contract_address),
+            ),
+        )
+        data = cast(List[JSONLike], res["data"])
+
+        time.sleep(1)
+
+        assert len(res) == 1, "one transfer should exist"
+        assert data[0]["amount"] == 10, "transfer amount should be 10"
+        assert (
+            data[0]["sender"] == self.deployer_crypto.address
+        ), f"{data[0]['sender']} should be the sender"
+        assert data[0]["blockNumber"] is not None, "tx is still pending"
+        assert (
+            self.ledger_api.api.eth.get_balance(self.contract_address) == 10
+        ), "incorrect balance"
+
+        prev_block = cast(int, data[0]["blockNumber"])
+
+        self.ledger_api.api.eth.send_transaction(
+            {
+                "to": self.contract_address,
+                "from": self.deployer_crypto.address,
+                "value": 100,
+            }
+        )
+
+        time.sleep(3)
+
+        res = self.contract.get_ingoing_transfers(
+            ledger_api=self.ledger_api,
+            contract_address=cast(str, self.contract_address),
+            from_block=hex(prev_block + 1),
+        )
+        data = cast(List[JSONLike], res["data"])
+
+        assert len(res) == 1, "one transfer should exist"
+        assert data[0]["amount"] == 100, "transfer amount should be 100"
+        assert (
+            data[0]["sender"] == self.deployer_crypto.address
+        ), f"{data[0]['sender']} should be the sender"
+        assert data[0]["blockNumber"] is not None, "tx is still pending"
+        assert (
+            self.ledger_api.api.eth.get_balance(self.contract_address) == 110
+        ), "incorrect balance"
 
 
 @skip_docker_tests

@@ -85,7 +85,6 @@ def generate_deployment(  # pylint: disable=too-many-arguments
         **{
             "type": type_of_deployment,
             "agents": service_spec.service.number_of_agents,
-            "network": service_spec.service.network,
             "size": len(deployment.output),
         }
     )

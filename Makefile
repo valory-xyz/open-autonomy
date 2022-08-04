@@ -11,7 +11,6 @@ clean-build:
 	rm -fr build/
 	rm -fr dist/
 	rm -fr .eggs/
-	rm -fr deployments/Dockerfiles/open_aea/packages
 	rm -fr pip-wheel-metadata
 	find . -name '*.egg-info' -exec rm -fr {} +
 	find . -name '*.egg' -exec rm -fr {} +
@@ -119,7 +118,7 @@ pylint:
 
 .PHONY: static
 static:
-	mypy autonomy packages/valory scripts deployments --disallow-untyped-defs
+	mypy autonomy packages/valory scripts --disallow-untyped-defs
 	mypy tests --disallow-untyped-defs
 
 .PHONY: package_checks
@@ -427,3 +426,7 @@ check_abci_specs:
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
 	echo "Successfully validated abcis!"
 
+
+AEA_AGENT:=valory/hello_world:latest:$(shell cat packages/hashes.csv | grep "agents/hello_world" | cut -d "," -f2 )
+release-images:
+	AEA_AGENT=${AEA_AGENT} skaffold build -p release && VERSION=latest AEA_AGENT=${AEA_AGENT} skaffold build -p release

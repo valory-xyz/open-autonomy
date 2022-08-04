@@ -27,21 +27,24 @@ import subprocess  # nosec
 import tempfile
 import time
 from pathlib import Path
-from typing import Callable, List
+from typing import Callable, Dict, List
 from unittest import mock
 
 import flask
 import pytest
 import requests
 
-from deployments.Dockerfiles.localnode.app import (  # type: ignore
+from autonomy.data.Dockerfiles.tendermint.app import (  # type: ignore
     CONFIG_OVERRIDE,
     create_app,
     get_defaults,
     load_genesis,
     override_config_toml,
 )
-from deployments.Dockerfiles.localnode.tendermint import TendermintNode  # type: ignore
+from autonomy.data.Dockerfiles.tendermint.tendermint import (
+    TendermintNode,  # type: ignore
+)
+from autonomy.data.Dockerfiles.tendermint.tendermint import TendermintParams
 
 
 ENCODING = "utf-8"
@@ -90,6 +93,9 @@ class BaseTendermintServerTest(BaseTendermintTest):
     app: flask.app.Flask
     app_context: flask.ctx.AppContext
     tendermint_node: TendermintNode
+    perform_monitoring = True
+    debug_tendermint = False
+    tm_status_endpoint = "http://localhost:26657/status"
 
     @classmethod
     def setup_class(cls) -> None:
@@ -98,7 +104,11 @@ class BaseTendermintServerTest(BaseTendermintTest):
         os.environ["PROXY_APP"] = "kvstore"
         os.environ["CREATE_EMPTY_BLOCKS"] = "true"
         os.environ["LOG_FILE"] = str(cls.path / "tendermint.log")
-        cls.app, cls.tendermint_node = create_app(cls.path / "tm_state")
+        cls.app, cls.tendermint_node = create_app(
+            dump_dir=cls.path / "tm_state",
+            perform_monitoring=cls.perform_monitoring,
+            debug=cls.debug_tendermint,
+        )
         cls.app.config["TESTING"] = True
         cls.app_context = cls.app.app_context()
         cls.app_context.push()
@@ -269,3 +279,86 @@ class TestTendermintLogMessages(BaseTendermintServerTest):
         assert not get_missing(before_stopping), get_logs()
         self.tendermint_node.stop()
         assert not get_missing(after_stopping), get_logs()
+
+
+def mock_get_node_command_kwargs() -> Dict:
+    """Get the node command kwargs"""
+    kwargs = {
+        "bufsize": 1,
+        "universal_newlines": True,
+    }
+
+    # Pipe stdout and stderr even if we're not going to read to provoke the buffer fill
+    kwargs["stdout"] = subprocess.PIPE
+    kwargs["stderr"] = subprocess.STDOUT
+
+    if platform.system() == "Windows":  # pragma: nocover
+        kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
+    else:
+        kwargs["preexec_fn"] = os.setsid  # type: ignore
+
+    return kwargs
+
+
+class TestTendermintBufferFailing(BaseTendermintServerTest):
+    """Test Tendermint buffer"""
+
+    perform_monitoring = False  # Setting this flag to False and not monitoring makes the buffer to fill and freeze Tendermint
+    debug_tendermint = True  # This will cause more logging -> faster failure
+
+    @classmethod
+    def setup_class(cls) -> None:
+        """Setup the test."""
+        with mock.patch.object(
+            TendermintParams,
+            "get_node_command_kwargs",
+            return_value=mock_get_node_command_kwargs(),
+        ):
+            super().setup_class()
+
+    @pytest.mark.skipif(
+        platform.system() == "Windows",
+        reason="Needs investigation. Could be: Tendermint process is not killed on teardown in Windows.",
+    )
+    @wait_for_node_to_run
+    def test_tendermint_buffer(self) -> None:
+        """Test Tendermint buffer"""
+
+        with pytest.raises(requests.exceptions.Timeout):
+            # Give the test 30 seconds for it to throw a timeout
+            for _ in range(30):
+                # If it hangs for 5 seconds, we assume it's not working.
+                # Increasing the timeout should have no effect,
+                # the node is unresponsive at this point.
+                requests.get(self.tm_status_endpoint, timeout=5)
+                time.sleep(1)
+
+    @classmethod
+    def teardown_class(cls) -> None:
+        """Teardown the test."""
+        # After the test, the node has hanged. We need to kill it and not stop it.
+        cls.tendermint_node._process.kill()
+        cls.app_context.pop()
+        shutil.rmtree(cls.tm_home, ignore_errors=True, onerror=readonly_handler)
+
+
+class TestTendermintBufferWorking(BaseTendermintServerTest):
+    """Test Tendermint buffer"""
+
+    perform_monitoring = True
+    debug_tendermint = True
+
+    @wait_for_node_to_run
+    def test_tendermint_buffer(self) -> None:
+        """Test Tendermint buffer"""
+
+        # Give the test 60 seconds for it to work
+        for _ in range(60):
+            try:
+                res = requests.get(self.tm_status_endpoint, timeout=5)
+                # We expect all responses to be OK
+                assert res.status_code == 200
+            except Exception as e:
+                raise AssertionError(e)
+
+            time.sleep(1)

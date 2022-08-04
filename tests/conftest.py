@@ -18,7 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Conftest module for Pytest."""
+import inspect
 import logging
+import os
 import socket
 import time
 from pathlib import Path
@@ -43,62 +45,41 @@ from aea_ledger_ethereum import (
 )
 from web3 import Web3
 
-from tests.helpers.constants import KEY_PAIRS
-from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
-from tests.helpers.contracts import get_register_contract
-from tests.helpers.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
-from tests.helpers.docker.base import launch_image, launch_many_containers
-from tests.helpers.docker.ganache import (
+from autonomy.test_tools.configurations import (
+    ETHEREUM_KEY_DEPLOYER,
+    GANACHE_CONFIGURATION,
+    KEY_PAIRS,
+)
+from autonomy.test_tools.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
+from autonomy.test_tools.docker.base import launch_image, launch_many_containers
+from autonomy.test_tools.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_CHAIN_ID,
     DEFAULT_GANACHE_PORT,
     GanacheDockerImage,
 )
-from tests.helpers.docker.gnosis_safe_net import (
+from autonomy.test_tools.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_ADDR,
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
-from tests.helpers.docker.tendermint import (
+from autonomy.test_tools.docker.tendermint import (
     DEFAULT_ABCI_HOST,
     DEFAULT_ABCI_PORT,
     DEFAULT_TENDERMINT_PORT,
     FlaskTendermintDockerImage,
     TendermintDockerImage,
 )
+from autonomy.test_tools.helpers.contracts import get_register_contract
 
 
-def get_key(key_path: Path) -> str:
-    """Returns key value from file.""" ""
-    return key_path.read_bytes().strip().decode()
-
-
-ROOT_DIR = _ROOT_DIR
-DATA_PATH = _ROOT_DIR / "tests" / "data"
-DEFAULT_AMOUNT = 1000000000000000000000
+CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
+ROOT_DIR = Path(CUR_PATH, "..").resolve().absolute()
 UNKNOWN_PROTOCOL_PUBLIC_ID = PublicId("unused", "unused", "1.0.0")
 
 NB_OWNERS = 4
 THRESHOLD = 1
 
-ETHEREUM_KEY_DEPLOYER = DATA_PATH / "ethereum_key_deployer.txt"
-ETHEREUM_KEY_PATH_1 = DATA_PATH / "ethereum_key_1.txt"
-ETHEREUM_KEY_PATH_2 = DATA_PATH / "ethereum_key_2.txt"
-ETHEREUM_KEY_PATH_3 = DATA_PATH / "ethereum_key_3.txt"
-ETHEREUM_KEY_PATH_4 = DATA_PATH / "ethereum_key_4.txt"
-
-ETHEREUM_ENCRYPTED_KEYS = DATA_PATH / "encrypted_keys.json"
-ETHEREUM_ENCRYPTION_PASSWORD = "much-secure"  # nosec
-
-GANACHE_CONFIGURATION = dict(
-    accounts_balances=[
-        (get_key(ETHEREUM_KEY_DEPLOYER), DEFAULT_AMOUNT),
-        (get_key(ETHEREUM_KEY_PATH_1), DEFAULT_AMOUNT),
-        (get_key(ETHEREUM_KEY_PATH_2), DEFAULT_AMOUNT),
-        (get_key(ETHEREUM_KEY_PATH_3), DEFAULT_AMOUNT),
-        (get_key(ETHEREUM_KEY_PATH_4), DEFAULT_AMOUNT),
-    ],
-)
 ETHEREUM_DEFAULT_LEDGER_CONFIG = {
     "address": f"{DEFAULT_GANACHE_ADDR}:{DEFAULT_GANACHE_PORT}",
     "chain_id": DEFAULT_GANACHE_CHAIN_ID,
@@ -110,8 +91,6 @@ ETHEREUM_DEFAULT_LEDGER_CONFIG = {
         "eip1559": DEFAULT_EIP1559_STRATEGY,
     },
 }
-
-ANY_ADDRESS = "0.0.0.0"  # nosec
 
 
 @pytest.fixture(scope="session")

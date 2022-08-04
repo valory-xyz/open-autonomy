@@ -156,6 +156,381 @@ async def read_until(n: int) -> bytes
 
 Wait until n bytes are read from the stream.
 
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer"></a>
+
+## ABCIApplicationServicer Objects
+
+```python
+class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer)
+```
+
+Implements the gRPC servicer (handler)
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(request_queue: asyncio.Queue, dialogues: AbciDialogues, target_skill: str)
+```
+
+Initializes the abci handler.
+
+**Arguments**:
+
+- `request_queue`: queue holding translated abci messages.
+- `dialogues`: dialogues
+- `target_skill`: target skill of messages
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.send"></a>
+
+#### send
+
+```python
+async def send(envelope: Envelope) -> Response
+```
+
+Returns response to the waiting request
+
+:param: envelope: Envelope to be returned
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.Echo"></a>
+
+#### Echo
+
+```python
+async def Echo(request: RequestEcho, context: grpc.ServicerContext) -> ResponseEcho
+```
+
+Handles "Echo" gRPC requests
+
+:param: request: The request from the Tendermint node
+:param: context: The request context
+
+**Returns**:
+
+the Echo response
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.Flush"></a>
+
+#### Flush
+
+```python
+async def Flush(request: RequestFlush, context: grpc.ServicerContext) -> ResponseFlush
+```
+
+Handles "Flush" gRPC requests
+
+:param: request: The request from the Tendermint node
+:param: context: The request context
+
+**Returns**:
+
+the Echo response
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.Info"></a>
+
+#### Info
+
+```python
+async def Info(request: RequestInfo, context: grpc.ServicerContext) -> ResponseInfo
+```
+
+Handles "Info" gRPC requests
+
+:param: request: The request from the Tendermint node
+:param: context: The request context
+
+**Returns**:
+
+the Echo response
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.SetOption"></a>
+
+#### SetOption
+
+```python
+async def SetOption(request: RequestSetOption, context: grpc.ServicerContext) -> ResponseSetOption
+```
+
+Handles "SetOption" gRPC requests
+
+:param: request: The request from the Tendermint node
+:param: context: The request context
+
+**Returns**:
+
+the Echo response
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.DeliverTx"></a>
+
+#### DeliverTx
+
+```python
+async def DeliverTx(request: RequestDeliverTx, context: grpc.ServicerContext) -> ResponseDeliverTx
+```
+
+Handles "DeliverTx" gRPC requests
+
+:param: request: The request from the Tendermint node
+:param: context: The request context
+
+**Returns**:
+
+the Echo response
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.CheckTx"></a>
+
+#### CheckTx
+
+```python
+async def CheckTx(request: RequestCheckTx, context: grpc.ServicerContext) -> ResponseCheckTx
+```
+
+Handles "CheckTx" gRPC requests
+
+:param: request: The request from the Tendermint node
+:param: context: The request context
+
+**Returns**:
+
+the Echo response
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.Query"></a>
+
+#### Query
+
+```python
+async def Query(request: RequestQuery, context: grpc.ServicerContext) -> ResponseQuery
+```
+
+Handles "Query" gRPC requests
+
+:param: request: The request from the Tendermint node
+:param: context: The request context
+
+**Returns**:
+
+the Echo response
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.Commit"></a>
+
+#### Commit
+
+```python
+async def Commit(request: RequestCommit, context: grpc.ServicerContext) -> ResponseCommit
+```
+
+Handles "Commit" gRPC requests
+
+:param: request: The request from the Tendermint node
+:param: context: The request context
+
+**Returns**:
+
+the Echo response
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.InitChain"></a>
+
+#### InitChain
+
+```python
+async def InitChain(request: RequestInitChain, context: grpc.ServicerContext) -> ResponseInitChain
+```
+
+Handles "InitChain" gRPC requests
+
+:param: request: The request from the Tendermint node
+:param: context: The request context
+
+**Returns**:
+
+the Echo response
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.BeginBlock"></a>
+
+#### BeginBlock
+
+```python
+async def BeginBlock(request: RequestBeginBlock, context: grpc.ServicerContext) -> ResponseBeginBlock
+```
+
+Handles "BeginBlock" gRPC requests
+
+:param: request: The request from the Tendermint node
+:param: context: The request context
+
+**Returns**:
+
+the Echo response
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.EndBlock"></a>
+
+#### EndBlock
+
+```python
+async def EndBlock(request: RequestEndBlock, context: grpc.ServicerContext) -> ResponseEndBlock
+```
+
+Handles "EndBlock" gRPC requests
+
+:param: request: The request from the Tendermint node
+:param: context: The request context
+
+**Returns**:
+
+the Echo response
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.ListSnapshots"></a>
+
+#### ListSnapshots
+
+```python
+async def ListSnapshots(request: RequestListSnapshots, context: grpc.ServicerContext) -> ResponseListSnapshots
+```
+
+Handles "ListSnapshots" gRPC requests
+
+:param: request: The request from the Tendermint node
+:param: context: The request context
+
+**Returns**:
+
+the Echo response
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.OfferSnapshot"></a>
+
+#### OfferSnapshot
+
+```python
+async def OfferSnapshot(request: RequestOfferSnapshot, context: grpc.ServicerContext) -> ResponseOfferSnapshot
+```
+
+Handles "OfferSnapshot" gRPC requests
+
+:param: request: The request from the Tendermint node
+:param: context: The request context
+
+**Returns**:
+
+the Echo response
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.LoadSnapshotChunk"></a>
+
+#### LoadSnapshotChunk
+
+```python
+async def LoadSnapshotChunk(request: RequestLoadSnapshotChunk, context: grpc.ServicerContext) -> ResponseLoadSnapshotChunk
+```
+
+Handles "LoadSnapshotChunk" gRPC requests
+
+:param: request: The request from the Tendermint node
+:param: context: The request context
+
+**Returns**:
+
+the Echo response
+
+<a id="packages.valory.connections.abci.connection.ABCIApplicationServicer.ApplySnapshotChunk"></a>
+
+#### ApplySnapshotChunk
+
+```python
+async def ApplySnapshotChunk(request: RequestApplySnapshotChunk, context: grpc.ServicerContext) -> ResponseApplySnapshotChunk
+```
+
+Handles "ApplySnapshotChunk" gRPC requests
+
+:param: request: The request from the Tendermint node
+:param: context: The request context
+
+**Returns**:
+
+the Echo response
+
+<a id="packages.valory.connections.abci.connection.GrpcServerChannel"></a>
+
+## GrpcServerChannel Objects
+
+```python
+class GrpcServerChannel()
+```
+
+gRPC server channel to handle incoming communication from the Tendermint node.
+
+<a id="packages.valory.connections.abci.connection.GrpcServerChannel.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(target_skill_id: PublicId, address: str, port: int, logger: Optional[Logger] = None)
+```
+
+Initialize the gRPC server.
+
+**Arguments**:
+
+- `target_skill_id`: the public id of the target skill.
+- `address`: the listen address.
+- `port`: the port to listen from.
+- `logger`: the logger.
+
+<a id="packages.valory.connections.abci.connection.GrpcServerChannel.is_stopped"></a>
+
+#### is`_`stopped
+
+```python
+@property
+def is_stopped() -> bool
+```
+
+Check that the channel is stopped.
+
+<a id="packages.valory.connections.abci.connection.GrpcServerChannel.connect"></a>
+
+#### connect
+
+```python
+async def connect(loop: AbstractEventLoop) -> None
+```
+
+Connect.
+
+**Arguments**:
+
+- `loop`: asyncio event loop
+
+<a id="packages.valory.connections.abci.connection.GrpcServerChannel.disconnect"></a>
+
+#### disconnect
+
+```python
+async def disconnect() -> None
+```
+
+Disconnect the channel
+
+<a id="packages.valory.connections.abci.connection.GrpcServerChannel.get_message"></a>
+
+#### get`_`message
+
+```python
+async def get_message() -> Envelope
+```
+
+Get a message from the queue.
+
+<a id="packages.valory.connections.abci.connection.GrpcServerChannel.send"></a>
+
+#### send
+
+```python
+async def send(envelope: Envelope) -> None
+```
+
+Send a message.
+
 <a id="packages.valory.connections.abci.connection.TcpServerChannel"></a>
 
 ## TcpServerChannel Objects
@@ -305,7 +680,7 @@ Tendermint node parameters.
 #### `__`init`__`
 
 ```python
-def __init__(proxy_app: str, rpc_laddr: str = DEFAULT_RPC_LISTEN_ADDRESS, p2p_laddr: str = DEFAULT_P2P_LISTEN_ADDRESS, p2p_seeds: Optional[List[str]] = None, consensus_create_empty_blocks: bool = True, home: Optional[str] = None)
+def __init__(proxy_app: str, rpc_laddr: str = DEFAULT_RPC_LISTEN_ADDRESS, p2p_laddr: str = DEFAULT_P2P_LISTEN_ADDRESS, p2p_seeds: Optional[List[str]] = None, consensus_create_empty_blocks: bool = True, home: Optional[str] = None, use_grpc: bool = False)
 ```
 
 Initialize the parameters to the Tendermint node.
@@ -318,6 +693,7 @@ Initialize the parameters to the Tendermint node.
 - `p2p_seeds`: P2P seeds.
 - `consensus_create_empty_blocks`: if true, Tendermint node creates empty blocks.
 - `home`: Tendermint's home directory.
+- `use_grpc`: Wheter to use a gRPC server, or TSP
 
 <a id="packages.valory.connections.abci.connection.TendermintParams.__str__"></a>
 
@@ -328,6 +704,27 @@ def __str__() -> str
 ```
 
 Get the string representation.
+
+<a id="packages.valory.connections.abci.connection.TendermintParams.build_node_command"></a>
+
+#### build`_`node`_`command
+
+```python
+def build_node_command(debug: bool = False) -> List[str]
+```
+
+Build the 'node' command.
+
+<a id="packages.valory.connections.abci.connection.TendermintParams.get_node_command_kwargs"></a>
+
+#### get`_`node`_`command`_`kwargs
+
+```python
+@staticmethod
+def get_node_command_kwargs(monitoring: bool = False) -> Dict
+```
+
+Get the node command kwargs
 
 <a id="packages.valory.connections.abci.connection.TendermintNode"></a>
 
@@ -369,7 +766,7 @@ Initialize Tendermint node.
 #### start
 
 ```python
-def start(start_monitoring: bool = False) -> None
+def start(start_monitoring: bool = False, debug: bool = False) -> None
 ```
 
 Start a Tendermint node process.
