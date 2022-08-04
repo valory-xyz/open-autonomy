@@ -20,16 +20,27 @@
 """Utils to support on-chain contract interactions."""
 
 
-from typing import Dict
+from typing import Dict, cast
 
 import requests
 import web3
 
 
-RPC_URL = "https://chain.staging.autonolas.tech"
-
 SERVICE_REGISTRY_ABI = "https://abi-server.staging.autonolas.tech/autonolas-registries/ServiceRegistry.json"
-SERVICE_ADDRESS = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
+CHAIN_CONFIG = {
+    "staging": {
+        "rpc": "https://chain.staging.autonolas.tech",
+        "address": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+    },
+    "mainnet": {
+        "rpc": "https://eth-rpc.gateway.pokt.network",
+        "address": "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA",
+    },
+    "testnet": {
+        "rpc": "https://goerli.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
+        "address": "0x1cEe30D08943EB58EFF84DD1AB44a6ee6FEff63a",
+    },
+}
 
 
 def get_abi(url: str) -> Dict:
@@ -39,26 +50,17 @@ def get_abi(url: str) -> Dict:
     return r.json().get("abi")
 
 
-class ServiceRegistry:  # pylint: disable=too-few-public-methods
-    """Class to represent on-chain service registry."""
-
-    abi_url = SERVICE_REGISTRY_ABI
-    address = SERVICE_ADDRESS
-
-    @classmethod
-    def resolve(cls, w3: web3.Web3, token_id: int) -> Dict:
-        """Resolve token ID."""
-
-        service_contract = w3.eth.contract(
-            address=cls.address, abi=get_abi(cls.abi_url)
-        )
-        url = service_contract.functions.tokenURI(token_id).call()
-        return requests.get(url).json()
-
-
-def resolve_token_id(token_id: int) -> Dict:
+def resolve_token_id(token_id: int, chain_type: str = "staging") -> Dict:
     """Resolve token id using on-chain contracts."""
+
     w3 = web3.Web3(
-        provider=web3.HTTPProvider(endpoint_uri=RPC_URL),
+        provider=web3.HTTPProvider(
+            endpoint_uri=cast(str, CHAIN_CONFIG.get(chain_type).get("rpc"))
+        ),
     )
-    return ServiceRegistry.resolve(w3, token_id)
+    address = cast(str, CHAIN_CONFIG.get(chain_type).get("address"))
+    service_contract = w3.eth.contract(
+        address=address, abi=get_abi(SERVICE_REGISTRY_ABI)
+    )
+    url = service_contract.functions.tokenURI(token_id).call()
+    return requests.get(url).json()

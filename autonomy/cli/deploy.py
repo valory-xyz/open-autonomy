@@ -21,6 +21,7 @@
 
 import os
 import shutil
+import sys
 from pathlib import Path
 from typing import Optional, cast
 
@@ -29,6 +30,7 @@ from aea.cli.utils.click_utils import password_option, registry_flag
 from aea.cli.utils.context import Context
 from aea.configurations.data_types import PublicId
 from aea.helpers.base import cd
+from compose.cli import main as docker_compose
 
 from autonomy.cli.fetch import fetch_service
 from autonomy.constants import DEFAULT_KEYS_FILE
@@ -141,16 +143,62 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
         raise click.ClickException(str(e)) from e
 
 
+@deploy_group.command(name="run")
+@click.option(
+    "--build-dir",
+    type=click.Path(),
+)
+@click.option("--no-recreate", is_flag=True, default=False)
+def run(build_dir: Path, no_recreate: bool) -> None:
+    """Run deployment."""
+    build_dir = Path(build_dir or Path.cwd()).absolute()
+    run_deployment(build_dir, no_recreate)
+
+
+def run_deployment(build_dir: Path, no_recreate: bool = False) -> None:
+    """Run deployment."""
+
+    project = docker_compose.project_from_options(build_dir, {})
+    commands = docker_compose.TopLevelCommand(project=project)
+    commands.up(
+        {
+            "--detach": False,
+            "--no-color": False,
+            "--quiet-pull": False,
+            "--no-deps": False,
+            "--force-recreate": not no_recreate,
+            "--always-recreate-deps": False,
+            "--no-recreate": no_recreate,
+            "--no-build": False,
+            "--no-start": False,
+            "--build": True,
+            "--abort-on-container-exit": False,
+            "--attach-dependencies": False,
+            "--timeout": None,
+            "--renew-anon-volumes": False,
+            "--remove-orphans": False,
+            "--exit-code-from": None,
+            "--scale": [],
+            "--no-log-prefix": False,
+            "SERVICE": None,
+        }
+    )
+
+
 @deploy_group.command(name="from-token")
 @click.argument("token_id", type=int)
 @click.argument("keys_file", type=click.Path())
+@click.option("--use-mainnet", "chain_type", flag_value="mainnet", default=False)
+@click.option("--use-staging", "chain_type", flag_value="staging", default=True)
+@click.option("--use-testnet", "chain_type", flag_value="testnet", default=False)
 @registry_flag()
 @click.pass_context
-def run_deployment(
+def run_deployment_from_token(
     click_context: click.Context,
     token_id: int,
     keys_file: Path,
     registry: str,
+    chain_type: str,
 ) -> None:
     """Run service deployment."""
 
@@ -158,19 +206,22 @@ def run_deployment(
     ctx.registry_type = registry
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
 
-    metadata = resolve_token_id(token_id)
+    metadata = resolve_token_id(token_id, chain_type)
     *_, service_hash = metadata["code_uri"].split("//")
     public_id = PublicId(author="valory", name="service", package_hash=service_hash)
     service_path = fetch_service(ctx, public_id)
+    build_dir = service_path / DEFAULT_ABCI_BUILD_DIR
 
     with cd(service_path):
         build_deployment(
             keys_file,
-            build_dir=service_path / DEFAULT_ABCI_BUILD_DIR,
+            build_dir=build_dir,
             deployment_type=DockerComposeGenerator.deployment_type,
             dev_mode=False,
             force_overwrite=True,
         )
+
+    run_deployment(build_dir)
 
 
 def build_deployment(  # pylint: disable=too-many-arguments
