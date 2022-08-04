@@ -64,6 +64,11 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndExecution):
             "value": "/dns/localhost/tcp/5001/http",
         },
         {
+            "dotted_path": f"{__args_prefix}.round_timeout_seconds",
+            "value": 200,
+            "type_": "float",
+        },
+        {
             "dotted_path": f"{__args_prefix}.optimizer.timeout",
             "value": 1,
         },
