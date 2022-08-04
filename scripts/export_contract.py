@@ -1,9 +1,19 @@
 import json
 from cookiecutter.main import cookiecutter
-from typing import Dict
+from typing import Dict, Tuple
+from datetime import date
+
+type_equivalence = {
+    "address": "str",
+    "uint256": "int",
+    "bytes32": "bytes",
+    "uint8": "int",
+    "bool": "bool",
+}
 
 
-def extract_functions_from_build(contract_build_path: str) -> Dict:
+
+def extract_functions_from_build(contract_build_path: str) -> Tuple[Dict, Dict]:
     with open(contract_build_path, "r") as abi_file:
         abi = json.load(abi_file)
 
@@ -12,8 +22,9 @@ def extract_functions_from_build(contract_build_path: str) -> Dict:
             abi["abi"]
         ))
 
-        functions = {f["name"]: f for f in functions}
-        return functions
+        read_functions = {f["name"]: {i["name"]: type_equivalence[i["type"]] for i in f["inputs"]} for f in functions if f["stateMutability"] == "view"}
+        write_functions = {f["name"]: {i["name"]: type_equivalence[i["type"]] for i in f["inputs"]} for f in functions if f["stateMutability"] not in ("view", "pure")}
+        return read_functions, write_functions
 
 
 def generate_package(project_config, output_dir) -> None:
@@ -32,16 +43,17 @@ def main():
     CONTRACT_BUILD_PATH = "/home/david/Descargas/IUniswapV2ERC20.json"
     OUTPUT_DIR = "/home/david/Descargas/"
 
-    functions = extract_functions_from_build(CONTRACT_BUILD_PATH)
+
+    read_functions, write_functions = extract_functions_from_build(CONTRACT_BUILD_PATH)
 
     project_config = {
         "project_slug": CONTRACT_NAME,
         "contract_name": CONTRACT_NAME,
         "contract_vendor": CONTRACT_VENDOR,
-        "functions": {
-            "functionA": {},
-            "functionB": {}
-        }
+        "class_name": "UniswapV2ERC20Contract",
+        "read_functions": read_functions,
+        "write_functions": write_functions,
+        "year": date.today().year,
     }
 
     generate_package(project_config, OUTPUT_DIR)
