@@ -482,6 +482,70 @@ def optimize_task_result() -> PoolToHyperParamsWithStatusType:
 
 
 @pytest.fixture
+def real_case_optimize_task_input_data() -> Tuple[
+    Dict[str, pd.DataFrame], Dict[str, Union[int, float]]
+]:
+    """Return the data of a real study case."""
+    return {
+        "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c.csv": pd.DataFrame(
+            [
+                111.461445,
+                107.979303,
+                59.260384,
+                61.635215,
+                68.136377,
+                50.218230,
+                50.202851,
+                96.122995,
+                68.271232,
+                59.680995,
+                36.138667,
+                47.796414,
+                55.010203,
+                40.105229,
+                21.002073,
+                28.977535,
+                37.321194,
+                28.802410,
+                27.808780,
+                21.119270,
+                13.091317,
+            ]
+        ),
+        "0x2a651563c9d3af67ae0388a5c8f89b867038089e.csv": pd.DataFrame(
+            [
+                45.703645,
+                73.281806,
+                20.795816,
+                22.243578,
+                26.931103,
+                19.613414,
+                6.793957,
+                21.360032,
+                11.589013,
+                13.953976,
+                13.047706,
+                14.760477,
+                14.140591,
+                8.636776,
+                5.664183,
+                7.707112,
+                14.682506,
+                14.546440,
+                6.362051,
+                10.935155,
+                3.263167,
+            ]
+        ),
+    }, {
+        "seed": 888812363,
+        "timeout": 1,
+        "n_trials": 2,
+        "alpha": 0.25,
+    }
+
+
+@pytest.fixture
 def optimize_task_result_empty() -> optuna.Study:
     """Create an empty result of the `OptimizeTask`.
 
