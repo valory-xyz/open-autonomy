@@ -46,7 +46,7 @@ DOCKER_COMPOSE_DATA = {
             "environment": [
                 "LOG_FILE=DUMMY",
                 "AEA_KEY=DUMMY",
-                "VALORY_APPLICATION=DUMMY",
+                "AGENT_ID=DUMMY",
                 "ABCI_HOST=DUMMY",
                 "MAX_PARTICIPANTS=DUMMY",
                 "TENDERMINT_URL=DUMMY",

@@ -49,7 +49,7 @@ AGENT_DATA = {
     "environment": [
         "LOG_FILE=/logs/aea_0.txt",
         "ID=0",
-        "VALORY_APPLICATION=valory/oracle:0.1.0:QmUTuBXUbgBjBbiLR3kmBxZXQowseu2mc6xR5MVuX8UyXJ",
+        "AGENT_ID=valory/oracle:0.1.0:QmUTuBXUbgBjBbiLR3kmBxZXQowseu2mc6xR5MVuX8UyXJ",
         "ABCI_HOST=abci0",
         "MAX_PARTICIPANTS=4",
         "TENDERMINT_URL=http://node0:26657",

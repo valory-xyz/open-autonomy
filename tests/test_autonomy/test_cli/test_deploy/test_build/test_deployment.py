@@ -29,8 +29,8 @@ import yaml
 from aea.configurations.constants import PACKAGES
 
 from autonomy.constants import (
+    AGENT_IMAGE_NAME,
     DEFAULT_BUILD_FOLDER,
-    OPEN_AEA_IMAGE_NAME,
     TENDERMINT_IMAGE_NAME,
 )
 from autonomy.deploy.constants import (
@@ -259,7 +259,7 @@ class TestBuildDeployment(BaseCliTest):
             )
             assert (
                 docker_compose["services"][f"abci{i}"]["image"]
-                == f"{OPEN_AEA_IMAGE_NAME}:hello_world-{version}"
+                == f"{AGENT_IMAGE_NAME}:{version}"
             )
 
     def test_versioning_kubernetes(
@@ -303,7 +303,7 @@ class TestBuildDeployment(BaseCliTest):
 
             assert (
                 resource["spec"]["template"]["spec"]["containers"][1]["image"]
-                == f"{OPEN_AEA_IMAGE_NAME}:hello_world-{version}"
+                == f"{AGENT_IMAGE_NAME}:hello_world-{version}"
             )
 
     def test_docker_compose_no_password(
