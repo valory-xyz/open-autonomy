@@ -19,7 +19,7 @@ Get ABI from provided URL
 #### resolve`_`token`_`id
 
 ```python
-def resolve_token_id(token_id: int, chain_type: str = "staging") -> Dict
+def resolve_token_id(token_id: int, chain_type: str = "staging", rpc_url: Optional[str] = None, service_contract_address: Optional[str] = None) -> Dict
 ```
 
 Resolve token id using on-chain contracts.

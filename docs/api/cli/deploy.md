@@ -112,8 +112,15 @@ Run deployment.
 @click.argument("keys_file", type=click.Path())
 @chain_selection_flag()
 @registry_flag()
+@click.option("--rpc", "rpc_url", type=str, help="Custom RPC URL")
+@click.option(
+    "--sca",
+    "service_contract_address",
+    type=str,
+    help="Service contract address for custom RPC URL.",
+)
 @click.pass_context
-def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, registry: str, chain_type: str) -> None
+def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, registry: str, chain_type: str, rpc_url: Optional[str], service_contract_address: Optional[str]) -> None
 ```
 
 Run service deployment.
