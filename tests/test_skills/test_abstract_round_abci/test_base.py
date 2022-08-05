@@ -1604,7 +1604,7 @@ class TestRoundSequence:
 
     @pytest.mark.parametrize("tm_height", (None, 1, 5))
     def test_last_round_transition_tm_height(self, tm_height: Optional[int]) -> None:
-        """Test 'last_round_transition_height' method."""
+        """Test 'last_round_transition_tm_height' method."""
         if tm_height is None:
             with pytest.raises(
                 ValueError,
