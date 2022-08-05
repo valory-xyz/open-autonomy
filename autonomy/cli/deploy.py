@@ -21,7 +21,6 @@
 
 import os
 import shutil
-import sys
 from pathlib import Path
 from typing import Optional, cast
 
@@ -33,6 +32,7 @@ from aea.helpers.base import cd
 from compose.cli import main as docker_compose
 
 from autonomy.cli.fetch import fetch_service
+from autonomy.cli.utils.click_utils import chain_selection_flag
 from autonomy.constants import DEFAULT_KEYS_FILE
 from autonomy.deploy.build import generate_deployment
 from autonomy.deploy.chain import resolve_token_id
@@ -158,6 +158,7 @@ def run(build_dir: Path, no_recreate: bool) -> None:
 def run_deployment(build_dir: Path, no_recreate: bool = False) -> None:
     """Run deployment."""
 
+    click.echo(f"Running build @ {build_dir}")
     project = docker_compose.project_from_options(build_dir, {})
     commands = docker_compose.TopLevelCommand(project=project)
     commands.up(
@@ -188,9 +189,7 @@ def run_deployment(build_dir: Path, no_recreate: bool = False) -> None:
 @deploy_group.command(name="from-token")
 @click.argument("token_id", type=int)
 @click.argument("keys_file", type=click.Path())
-@click.option("--use-mainnet", "chain_type", flag_value="mainnet", default=False)
-@click.option("--use-staging", "chain_type", flag_value="staging", default=True)
-@click.option("--use-testnet", "chain_type", flag_value="testnet", default=False)
+@chain_selection_flag()
 @registry_flag()
 @click.pass_context
 def run_deployment_from_token(
@@ -206,7 +205,9 @@ def run_deployment_from_token(
     ctx.registry_type = registry
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
 
+    click.echo(f"Building service deployment using token ID: {token_id}")
     metadata = resolve_token_id(token_id, chain_type)
+    click.echo("Service name: " + metadata["name"])
     *_, service_hash = metadata["code_uri"].split("//")
     public_id = PublicId(author="valory", name="service", package_hash=service_hash)
     service_path = fetch_service(ctx, public_id)
@@ -221,6 +222,7 @@ def run_deployment_from_token(
             force_overwrite=True,
         )
 
+    click.echo("Service build successful.")
     run_deployment(build_dir)
 
 

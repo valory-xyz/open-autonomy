@@ -20,25 +20,34 @@
 """Utils to support on-chain contract interactions."""
 
 
-from typing import Dict, cast
+import os
+from typing import Dict, Optional
 
 import requests
 import web3
 
 
 SERVICE_REGISTRY_ABI = "https://abi-server.staging.autonolas.tech/autonolas-registries/ServiceRegistry.json"
-CHAIN_CONFIG = {
+DEFAULT_STAGING_CHAIN = "https://chain.staging.autonolas.tech"
+
+CHAIN_CONFIG: Dict[str, Dict[str, Optional[str]]] = {
     "staging": {
-        "rpc": "https://chain.staging.autonolas.tech",
-        "address": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+        "rpc": os.environ.get("STAGING_CHAIN_RPC", DEFAULT_STAGING_CHAIN),
+        "address": os.environ.get(
+            "SERVICE_ADDRESS_STAGING", "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
+        ),
     },
-    "mainnet": {
-        "rpc": "https://eth-rpc.gateway.pokt.network",
-        "address": "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA",
+    "ethereum": {
+        "rpc": os.environ.get("ETHEREUM_CHAIN_RPC"),
+        "address": os.environ.get(
+            "SERVICE_ADDRESS_ETHEREUM", "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA"
+        ),
     },
-    "testnet": {
-        "rpc": "https://goerli.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
-        "address": "0x1cEe30D08943EB58EFF84DD1AB44a6ee6FEff63a",
+    "goerli": {
+        "rpc": os.environ.get("GOERLI_CHAIN_RPC"),
+        "address": os.environ.get(
+            "SERVICE_ADDRESS_GOERLI", "0x1cEe30D08943EB58EFF84DD1AB44a6ee6FEff63a"
+        ),
     },
 }
 
@@ -53,12 +62,25 @@ def get_abi(url: str) -> Dict:
 def resolve_token_id(token_id: int, chain_type: str = "staging") -> Dict:
     """Resolve token id using on-chain contracts."""
 
+    if chain_type not in CHAIN_CONFIG:
+        raise ValueError(f"{chain_type} Currently not supported.")
+
+    rpc_url = CHAIN_CONFIG.get(chain_type, {}).get("rpc")
+    if rpc_url is None:
+        raise ValueError(
+            f"RPC url for {chain_type} is not set, please set value for {chain_type.upper()}_CHAIN_RPC"
+        )
+
     w3 = web3.Web3(
-        provider=web3.HTTPProvider(
-            endpoint_uri=cast(str, CHAIN_CONFIG.get(chain_type).get("rpc"))
-        ),
+        provider=web3.HTTPProvider(endpoint_uri=rpc_url),
     )
-    address = cast(str, CHAIN_CONFIG.get(chain_type).get("address"))
+
+    address = CHAIN_CONFIG.get(chain_type, {}).get("address")
+    if address is None:
+        raise ValueError(
+            f"RPC url for {chain_type} is not set, please set value for SERVICE_ADDRESS_{chain_type.upper()}"
+        )
+
     service_contract = w3.eth.contract(
         address=address, abi=get_abi(SERVICE_REGISTRY_ABI)
     )
