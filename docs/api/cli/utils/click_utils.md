@@ -24,3 +24,13 @@ def abci_spec_format_flag(default: str = DFA.OutputFormats.YAML, mark_default: b
 
 Flags for abci spec outputs formats.
 
+<a id="autonomy.cli.utils.click_utils.chain_selection_flag"></a>
+
+#### chain`_`selection`_`flag
+
+```python
+def chain_selection_flag(default: str = "staging", mark_default: bool = True) -> Callable
+```
+
+Flags for abci spec outputs formats.
+
