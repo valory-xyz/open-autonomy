@@ -1,0 +1,7 @@
+{
+    "project_slug": "uniswap_v2_erc20_exported",
+    "build_path": "packages/valory/contracts/uniswap_v2_erc20/build/IUniswapV2ERC20.json",
+    "output_dir": "packages/valory/contracts/",
+    "contract_file_name": "IUniswapV2ERC20",
+    "contract_class_name": "UniswapV2ERC20Contract"
+}

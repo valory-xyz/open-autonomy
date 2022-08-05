@@ -1,8 +1,7 @@
 {
     "project_slug": "default_project_slug",
-    "contract_name": "default_contract_name",
-    "contract_vendor": "default_contract_vendor",
-    "class_name": "default_class_name",
+    "contract_file_name": "default_contract_file_name",
+    "contract_class_name": "default_class_name",
     "read_functions": {},
     "write_functions": {},
     "_jinja2_env_vars": {},

@@ -34,8 +34,8 @@ _logger = logging.getLogger(
 )
 
 # pylint: disable=too-many-arguments,invalid-name
-class {{cookiecutter.class_name}}(Contract):
-    """The {{cookiecutter.contract_name}} contract."""
+class {{cookiecutter.contract_class_name}}(Contract):
+    """The {{cookiecutter.contract_class_name}} contract."""
 
     contract_id = PUBLIC_ID
 
