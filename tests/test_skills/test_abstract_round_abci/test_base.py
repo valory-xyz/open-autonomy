@@ -1579,17 +1579,28 @@ class TestRoundSequence:
             ):
                 _ = self.round_sequence.last_round_transition_height
 
+    @pytest.mark.parametrize("last_round_transition_root_hash", (b"", b"test"))
     @pytest.mark.parametrize("round_count, reset_index", ((0, 0), (4, 2), (8, 1)))
     def test_last_round_transition_root_hash(
-        self, round_count: int, reset_index: int
+        self, last_round_transition_root_hash: bytes, round_count: int, reset_index: int
     ) -> None:
-        """Test 'last_round_transition_height' method."""
+        """Test 'last_round_transition_root_hash' method."""
+        self.round_sequence._last_round_transition_root_hash = (
+            last_round_transition_root_hash
+        )
         self.round_sequence.abci_app.synchronized_data.db.round_count = round_count  # type: ignore
         self.round_sequence.abci_app._reset_index = reset_index
-        assert (
-            self.round_sequence.last_round_transition_root_hash
-            == f"root:{round_count}reset:{reset_index}".encode("utf-8")
-        )
+
+        if last_round_transition_root_hash == b"":
+            assert (
+                self.round_sequence.last_round_transition_root_hash
+                == f"root:{round_count}reset:{reset_index}".encode("utf-8")
+            )
+        else:
+            assert (
+                self.round_sequence.last_round_transition_root_hash
+                == last_round_transition_root_hash
+            )
 
     @pytest.mark.parametrize("tm_height", (None, 1, 5))
     def test_last_round_transition_tm_height(self, tm_height: Optional[int]) -> None:
