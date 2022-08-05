@@ -119,8 +119,8 @@ def spooky_specs(_common_specs: SpecsType) -> SpecsType:
     return {
         **_common_specs,
         **{
+            "name": "spooky_subgraph",
             "api_id": "spookyswap",
-            "top_n_pools": 100,
             "chain_subgraph": "test",
             "bundle_id": 1,
             "url": "https://api.thegraph.com/subgraphs/name/eerieeight/spookyswap",
@@ -132,8 +132,9 @@ def spooky_specs(_common_specs: SpecsType) -> SpecsType:
 def uni_specs(spooky_specs: SpecsType) -> SpecsType:
     """Uniswap specs fixture."""
     uni_specs = spooky_specs.copy()
+    uni_specs["name"] = "uniswap_subgraph"
     uni_specs["api_id"] = "uniswap"
-    uni_specs["url"] = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
+    uni_specs["url"] = "https://api.thegraph.com/subgraphs/name/ianlapham/uniswapv2"
     return uni_specs
 
 
@@ -257,8 +258,20 @@ def eth_price_usd_raising_q(
     )
 
 
-@pytest.fixture
-def block_from_timestamp_q() -> str:
+@pytest.fixture(scope="session")
+def timestamp_gte() -> str:
+    """Get the timestamp_gte value."""
+    return str(_BLOCK_Q_PARAMS["given_timestamp"])
+
+
+@pytest.fixture(scope="session")
+def timestamp_lte() -> str:
+    """Get the timestamp_lte value."""
+    return str(_BLOCK_Q_PARAMS["given_timestamp"] + SAFE_BLOCK_TIME)
+
+
+@pytest.fixture(scope="session")
+def block_from_timestamp_q(timestamp_gte: str, timestamp_lte: str) -> str:
     """Query string to get a block from a timestamp."""
 
     return (
@@ -270,10 +283,10 @@ def block_from_timestamp_q() -> str:
             orderDirection: asc,
             where: {
                 timestamp_gte: """
-        + str(_BLOCK_Q_PARAMS["given_timestamp"])
+        + timestamp_gte
         + """,
                 timestamp_lte: """
-        + str(_BLOCK_Q_PARAMS["given_timestamp"] + SAFE_BLOCK_TIME)
+        + timestamp_lte
         + """
             }
         )
@@ -305,7 +318,13 @@ def expected_eth_block_from_timestamp() -> Dict[str, str]:
 
 
 @pytest.fixture
-def block_from_number_q() -> str:
+def given_number() -> str:
+    """The given number for the `block_from_number_q` query."""
+    return str(_BLOCK_Q_PARAMS["given_number"])
+
+
+@pytest.fixture
+def block_from_number_q(given_number: str) -> str:
     """Query string to get a block from a timestamp."""
 
     return (
@@ -317,7 +336,7 @@ def block_from_number_q() -> str:
             orderDirection: asc,
             where: {
                 number: """
-        + str(_BLOCK_Q_PARAMS["given_number"])
+        + given_number
         + """
             }
         )
@@ -416,6 +435,46 @@ def spooky_pairs_q() -> str:
 def uni_pairs_q() -> str:
     """Query to get data for a Uniswap pool at a specific block."""
     return _pairs_q("uni_id")
+
+
+def _existing_pairs_q(dex_id_name: str) -> str:
+    """Query to get ids for the pools corresponding to the `dex_id_name`."""
+
+    return (
+        """
+    {
+        pairs(
+            where: {id_in:
+            [\""""
+        + '","'.join([str(_PAIRS_Q_PARAMS[dex_id_name])])
+        + """"]},
+        ) {
+            id
+        }
+    }
+    """
+    )
+
+
+@pytest.fixture
+def spooky_existing_pairs_q() -> str:
+    """Query to get the id for a SpookySwap pool."""
+    return _existing_pairs_q("spooky_id")
+
+
+@pytest.fixture
+def uni_existing_pairs_q() -> str:
+    """Query to get the id for a Uniswap pool."""
+    return _existing_pairs_q("uni_id")
+
+
+@pytest.fixture(scope="session")
+def pairs_ids() -> Dict[str, List[str]]:
+    """Sample DEXs' pair ids for testing."""
+    return {
+        "uniswap_subgraph": [str(_PAIRS_Q_PARAMS["uni_id"])],
+        "spooky_subgraph": [str(_PAIRS_Q_PARAMS["spooky_id"])],
+    }
 
 
 @pytest.fixture

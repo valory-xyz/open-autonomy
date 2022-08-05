@@ -20,7 +20,7 @@ contracts: []
 protocols: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeihrz2sqfxmv5wxhmwwmgybx47g33v7qh2p6ypvwqo7vft3xomcby4
-- valory/apy_estimation_abci:0.1.0:bafybeier46sdx2jhvri33vro7l6zjsdmkk6p6efttzb2jvm5rubgab33wa
+- valory/apy_estimation_abci:0.1.0:bafybeiaq62stplwxv5yzz475pbhcg6hp2jnjz5olqbm2ssxa5gr5denoi4
 - valory/registration_abci:0.1.0:bafybeic34hhx3pmppa4etadhz5ejrg3jfqp2vggdiknlfbvs2loliihjcu
 behaviours:
   main:
@@ -113,8 +113,7 @@ models:
         window_size: null
       pair_ids:
         uniswap_subgraph:
-        - '0x5777d92f208679db4b9778590fa3cab3ac9e2168'
-        - '0xa374094527e1673a86de625aa59517c5de346d32'
+        - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
         spooky_subgraph:
         - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
         - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
@@ -184,7 +183,7 @@ models:
       response_key: data
       response_type: dict
       retries: 5
-      url: https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2
+      url: https://api.thegraph.com/subgraphs/name/ianlapham/uniswapv2
     class_name: UniswapSubgraph
 dependencies:
   joblib:

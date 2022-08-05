@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeiceds6hedhgipxihnl2qt7i2woxsn4fw5ue3evm4aqvknjfpwnbay
   __init__.py: bafybeif4et2adwa4mtx4clsfcpqk77w23kdq5642vulkddnrsxms6ngbma
-  behaviours.py: bafybeieirqt6xrvrasquyv5jzg4u2chrwpxlnfkk5aacq5eli2qc55f3c4
+  behaviours.py: bafybeidw3wj2w37ahpyaaydgzh7jvabgartksw36vu5jhpmziuftnq26me
   dialogues.py: bafybeig4tc4thbpsixmbn35kj7jim2gzd7cvxxu4u3xoeyxqzpumuhrdzm
   fsm_specification.yaml: bafybeid56g5zov7zb2hnauahbejn5k3ilymrbg2aihhybzvzwdhbbctexq
   handlers.py: bafybeibmzghvqekt7iymu6s6yn5tk7lpdmejba4n7dpsz2do3cgfqz7b2a
@@ -16,15 +16,15 @@ fingerprint:
   ml/forecasting.py: bafybeib54a6dzcjlilbkzcpgwrycbkjlrmzox33tas547r2v5hja2qm52m
   ml/optimization.py: bafybeicyfabutvdyfvv2u3b6sdxfr4c5f7vvgvba4snovy5atx3zuj3nha
   ml/preprocessing.py: bafybeieha65b5cslcyyjobjupebyqovod7aigohdidcawz5b6tlxqxpruq
-  models.py: bafybeidnamtnzmfqsdlh7l544b4ltndmdbapezv22p7zhdz5oyue4imw34
-  payloads.py: bafybeiaomj7i7ouzwzgs2un7w5vptkilmhrs3sk7hzapc6pswltjav3xea
+  models.py: bafybeih5vt5titu4fr5nqxztwqnlha45quoofaa6jhwslstatbuvwlnmd4
+  payloads.py: bafybeifsicq32ennlitfulqueposyxyk2om2jn5t3pxavwjix4t4shjtdi
   rounds.py: bafybeibaajmnddve5opvq6ijre2ssuxvutreqjqhr7wlqp44ztugo3f3hm
   tasks.py: bafybeihudp5vyhelqnl5eqakjpvuekaoamtbrghss4k2yysvkczspjbbia
   tools/__init__.py: bafybeid6nc7k2qjndgigeoxhtun27ih5wof3hl4j6fsijulttuwhjydyeu
   tools/etl.py: bafybeif52kzh46ebiu6s47hbgov6adz557ziv42xmh3j6ejgyyfqzh7pzq
   tools/general.py: bafybeiggrhs5pko3q4soobaj7vsimrlwixpfprrup7jtwzr3o6eh5ezuh4
   tools/io.py: bafybeiay2r3f2zsmiqt4xb47lm42tg3lhjbhknnmej3grifemc5eumongu
-  tools/queries.py: bafybeifjtuv4v7f3cp6eyf5vnirtd463yy4x3frzyudgg4xwdie7drk7bi
+  tools/queries.py: bafybeibz5ipezydyf6qwa7os54a5v6e5l34ja2sripiektufdltx4titcy
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
@@ -123,8 +123,7 @@ models:
         window_size: null
       pair_ids:
         uniswap_subgraph:
-        - '0x5777d92f208679db4b9778590fa3cab3ac9e2168'
-        - '0xa374094527e1673a86de625aa59517c5de346d32'
+        - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
         spooky_subgraph:
         - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
         - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
@@ -194,7 +193,7 @@ models:
       response_key: data
       response_type: dict
       retries: 5
-      url: https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2
+      url: https://api.thegraph.com/subgraphs/name/ianlapham/uniswapv2
     class_name: UniswapSubgraph
 dependencies:
   joblib:

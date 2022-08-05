@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test forecasting operations."""
+import platform
 import re
 from copy import deepcopy
 from typing import Any
@@ -282,7 +283,6 @@ class TestForecasting:
         )
         pd.testing.assert_frame_equal(estimates, expected_estimates)
 
-    @pytest.mark.skip  # Flaky because of pmdarima version
     def test_predict_safely(self) -> None:
         """
         Test `predict_safely`.
@@ -328,15 +328,18 @@ class TestForecasting:
         # Fit model with data.
         model.fit(y)
 
-        # Prove that the `pmdarima` would raise.
-        with pytest.raises(
-            ValueError,
-            match=re.escape(
-                "Input contains NaN, infinity or a value too large for dtype('float64')."
-            ),
-        ):
-            model.predict(steps_forward)
+        # issue not present in Mac
+        if platform.system() != "Darwin":
+            # Prove that the `pmdarima` would raise.
+            with pytest.raises(
+                ValueError,
+                match=re.escape("Input contains NaN"),
+            ):
+                model.predict(steps_forward)
 
-        # Prove that `predict_safely` works as intended.
-        y_hat = predict_safely(model, steps_forward)
-        assert np.isnan(y_hat)
+            # Prove that `predict_safely` works as intended.
+            y_hat = predict_safely(model, steps_forward)
+            assert np.isnan(y_hat)
+
+        else:
+            model.predict(steps_forward)

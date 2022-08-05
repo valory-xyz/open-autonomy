@@ -23,12 +23,14 @@ import json
 import os
 import re
 from abc import ABC
+from dataclasses import dataclass
 from multiprocessing.pool import AsyncResult
 from typing import (
     Any,
     Dict,
     Generator,
     Iterator,
+    List,
     Optional,
     Set,
     Tuple,
@@ -60,7 +62,12 @@ from packages.valory.skills.apy_estimation_abci.ml.optimization import (
 from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
     TrainTestSplitType,
 )
-from packages.valory.skills.apy_estimation_abci.models import APYParams, SharedState
+from packages.valory.skills.apy_estimation_abci.models import (
+    APYParams,
+    DEXSubgraph,
+    SharedState,
+    SubgraphsMixin,
+)
 from packages.valory.skills.apy_estimation_abci.payloads import (
     BatchPreparationPayload,
     EstimatePayload,
@@ -112,6 +119,7 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_number_q,
     block_from_timestamp_q,
     eth_price_usd_q,
+    existing_pairs_q,
     latest_block_q,
     pairs_q,
 )
@@ -152,31 +160,93 @@ class APYEstimationBaseBehaviour(BaseBehaviour, ABC):
 
 
 class FetchBehaviour(
-    APYEstimationBaseBehaviour
-):  # pylint: disable=too-many-instance-attributes
+    APYEstimationBaseBehaviour, SubgraphsMixin
+):  # pylint: disable=too-many-ancestors
     """Observe historical data."""
 
     behaviour_id = "fetch"
     matching_round = CollectHistoryRound
     batch = False
 
+    @dataclass
+    class Progress:
+        """A class to keep track of the download progress."""
+
+        timestamps_iterator: Optional[Iterator[int]] = None
+        current_timestamp: Optional[int] = None
+        dex_names_iterator: Optional[Iterator[str]] = None
+        current_dex_name: Optional[str] = None
+        n_fetched = 0
+        call_failed = False
+        initialized = False
+
+        @property
+        def can_continue(self) -> bool:
+            """Get if the fetching can continue."""
+            return all(
+                current is not None
+                for current in (
+                    self.current_timestamp,
+                    self.current_dex_name,
+                )
+            )
+
     def __init__(self, **kwargs: Any) -> None:
         """Initialize Behaviour."""
         super().__init__(**kwargs)
+        SubgraphsMixin.__init__(self)
         self._save_path = ""
-        self._spooky_api_specs: Dict[str, Any] = dict()
-        self._timestamps_iterator: Optional[Iterator[int]] = None
-        self._current_timestamp: Optional[int] = None
-        self._call_failed = False
+        self._progress = self.Progress()
+        self._progress.dex_names_iterator = iter(self.params.pair_ids)
         self._pairs_hist: ResponseItemType = []
         self._hist_hash: Optional[str] = None
         self._unit = ""
-        self._total_unit_amount = 0
+        self._target_per_pool = 0
+        self._target = 0
+        self._pairs_exist = False
 
     @property
-    def current_unit(self) -> int:
-        """Get the number of the currently downloaded unit."""
-        return int(len(self._pairs_hist) / len(self.params.pair_ids))
+    def current_pair_ids(self) -> List[str]:
+        """Get the current DEX's pair ids."""
+        if self._progress.initialized:
+            current_dex_name = cast(str, self._progress.current_dex_name)
+            return self.params.pair_ids[current_dex_name]
+        return []
+
+    @property
+    def current_dex(self) -> Union[DEXSubgraph, ApiSpecs]:
+        """Get the current DEX subgraph."""
+        if self._progress.initialized:
+            current_dex_name = cast(str, self._progress.current_dex_name)
+            return self.get_subgraph(current_dex_name)
+        return self.get_subgraph("default")
+
+    @property
+    def current_chain(self) -> ApiSpecs:
+        """Get the current block subgraph."""
+        return self.get_subgraph(self.current_dex.chain_subgraph_name)
+
+    @property
+    def currently_downloaded(self) -> int:
+        """Get the number of the currently downloaded unit, for the current pool."""
+        if self._progress.initialized:
+            return int(
+                (len(self._pairs_hist) - self._progress.n_fetched)
+                / len(self.current_pair_ids)
+            )
+        return 0
+
+    @property
+    def total_downloaded(self) -> int:
+        """Get the number of the downloaded unit, in total."""
+        return len(self._pairs_hist)
+
+    @property
+    def retries_exceeded(self) -> bool:
+        """If the retries have been exceeded for any subgraph."""
+        return any(
+            subgraph.is_retries_exceeded() for subgraph in self.utilized_subgraphs
+        )
 
     def setup(self) -> None:
         """Set the behaviour up."""
@@ -187,52 +257,102 @@ class FetchBehaviour(
             self.params.end = int(calendar.timegm(last_timestamp.timetuple()))
 
         self._unit = sec_to_unit(self.params.interval)
-        self._total_unit_amount = int(
+        self._target_per_pool = int(
             unit_amount_from_sec(self.params.end - self.params.start, self._unit)
         )
+        n_ids = sum(
+            (len(dex_pair_ids) for dex_pair_ids in self.params.pair_ids.values())
+        )
+        self._target = self._target_per_pool * n_ids
 
         filename = "historical_data"
-
         if self.batch:
             filename += f"_batch_{self.params.end}"
-            self._timestamps_iterator = iter((self.params.end,))
-        else:
-            self._timestamps_iterator = gen_unix_timestamps(
-                self.params.start, self.params.interval, self.params.end
-            )
 
         self._save_path = os.path.join(
             self.context.data_dir,
             f"{filename}_period_{self.synchronized_data.period_count}.json",
         )
 
-        self._spooky_api_specs = self.context.spooky_subgraph.get_spec()
-        available_specs = set(self._spooky_api_specs.keys())
-        needed_specs = {"method", "url", "headers"}
-        unwanted_specs = available_specs - (available_specs & needed_specs)
+    def _check_given_pairs(self) -> Generator[None, None, None]:
+        """Check if the pairs that the user placed in the config file exist on the corresponding subgraphs."""
+        existing_pairs: List[str] = []
+        given_pairs = []
+        for dex_name, pair_ids in self.params.pair_ids.items():
+            given_pairs.extend(pair_ids)
+            dex = self.get_subgraph(dex_name)
+            res_raw = yield from self.get_http_response(
+                content=existing_pairs_q(pair_ids),
+                **dex.get_spec(),
+            )
+            res = dex.process_response(res_raw)
 
-        for unwanted in unwanted_specs:
-            self._spooky_api_specs.pop(unwanted)
+            pairs = yield from self._handle_response(
+                res,
+                res_context="pool ids",
+                keys=("pairs",),
+                subgraph=dex,
+            )
 
-    def _set_current_timestamp(self) -> None:
-        """Set the timestamp for the current timestep in the async act."""
-        if not self._call_failed:
-            self._current_timestamp = next(
-                cast(Iterator[int], self._timestamps_iterator),
+            if pairs is not None:
+                pairs = cast(List[Dict[str, str]], pairs)
+                existing_pairs.extend(pair["id"] for pair in pairs)
+
+        non_existing_pairs = set(given_pairs) - set(existing_pairs)
+        if non_existing_pairs:
+            if not self._progress.call_failed:
+                self.context.logger.error(
+                    f"The given pair(s) {non_existing_pairs} do not exist at the corresponding subgraph(s)!"
+                )
+            return
+
+        self._pairs_exist = True
+
+    def _reset_timestamps_iterator(self) -> None:
+        """Reset the timestamps iterator."""
+        # end is set in the `setup` method and therefore cannot be `None` at this point
+        end = cast(int, self.params.end)
+
+        if self.batch:
+            self._progress.timestamps_iterator = iter((end,))
+        else:
+            self._progress.timestamps_iterator = gen_unix_timestamps(
+                self.params.start, self.params.interval, end
+            )
+
+    def _set_current_progress(self) -> None:
+        """Set the progress for the current timestep in the async act."""
+        if not self._progress.call_failed:
+            if (
+                self.currently_downloaded == 0
+                or self.currently_downloaded == self._target_per_pool
+                or self.batch
+            ):
+                self._progress.current_dex_name = next(
+                    cast(Iterator[str], self._progress.dex_names_iterator),
+                    None,
+                )
+                self._reset_timestamps_iterator()
+                self._progress.n_fetched = len(self._pairs_hist)
+
+            self._progress.current_timestamp = next(
+                cast(Iterator[int], self._progress.timestamps_iterator),
                 None,
             )
 
-        if self.context.spooky_subgraph.is_retries_exceeded():
+        if self.retries_exceeded:
             # We cannot continue if the data were not fetched.
             # It is going to make the agent fail in the next behaviour while looking for the historical data file.
             self.context.logger.error(
                 "Retries were exceeded while downloading the historical data!"
             )
             # This will result in using only the part of the data downloaded so far.
-            self._current_timestamp = None
+            self._progress.current_timestamp = None
+            self._progress.current_dex_name = None
             # manually call clean-up, as it is not called by the framework if a `StopIteration` is not raised
             self.clean_up()
 
+        self._progress.initialized = True
         # if none of the above (call failed and we can retry), the current timestamp will remain the same.
 
     def _handle_response(
@@ -258,7 +378,7 @@ class FetchBehaviour(
                 f"Could not get {res_context} from {subgraph.api_id}"
             )
 
-            self._call_failed = True
+            self._progress.call_failed = True
             subgraph.increment_retries()
             if sleep_on_fail:
                 yield from self.sleep(self.params.sleep_time)
@@ -270,7 +390,7 @@ class FetchBehaviour(
                 value = value[key]
 
         self.context.logger.info(f"Retrieved {res_context}: {value}.")
-        self._call_failed = False
+        self._progress.call_failed = False
         subgraph.reset_retries()
         return value
 
@@ -278,28 +398,26 @@ class FetchBehaviour(
         self, number: Optional[int] = None
     ) -> Generator[None, None, Optional[Dict[str, int]]]:
         """Fetch block."""
-        fantom_api_specs = self.context.fantom_subgraph.get_spec()
         if number is not None:
             query = block_from_number_q(number)
         else:
             query = (
                 latest_block_q()
                 if self.batch
-                else block_from_timestamp_q(cast(int, self._current_timestamp))
+                else block_from_timestamp_q(cast(int, self._progress.current_timestamp))
             )
+
         res_raw = yield from self.get_http_response(
-            method=fantom_api_specs["method"],
-            url=fantom_api_specs["url"],
-            headers=fantom_api_specs["headers"],
+            **self.current_chain.get_spec(),
             content=query,
         )
-        res = self.context.fantom_subgraph.process_response(res_raw)
+        res = self.current_chain.process_response(res_raw)
 
         fetched_block = yield from self._handle_response(
             res,
             res_context="block",
             keys=("blocks", 0),
-            subgraph=self.context.fantom_subgraph,
+            subgraph=self.current_chain,
         )
 
         return fetched_block
@@ -310,18 +428,18 @@ class FetchBehaviour(
         """Fetch ETH price for block."""
         res_raw = yield from self.get_http_response(
             content=eth_price_usd_q(
-                self.context.spooky_subgraph.bundle_id,
+                self.current_dex.bundle_id,
                 block["number"],
             ),
-            **self._spooky_api_specs,
+            **self.current_dex.get_spec(),
         )
-        res = self.context.spooky_subgraph.process_response(res_raw)
+        res = self.current_dex.process_response(res_raw)
 
         eth_price = yield from self._handle_response(
             res,
             res_context=f"ETH price for block {block}",
             keys=("bundles", 0, "ethPrice"),
-            subgraph=self.context.spooky_subgraph,
+            subgraph=self.current_dex,
             sleep_on_fail=False,
         )
 
@@ -331,12 +449,12 @@ class FetchBehaviour(
         self, res_raw: HttpMessage
     ) -> Generator[None, None, Optional[Tuple[Dict[str, int], float]]]:
         """Check if we received a non-indexed block error and try to get the ETH price for the latest indexed block."""
-        res = self.context.spooky_subgraph.process_non_indexed_error(res_raw)
+        res = self.current_dex.process_non_indexed_error(res_raw)
         latest_indexed_block_error = yield from self._handle_response(
             res,
             res_context="indexing error that will be attempted to be handled",
             keys=(0, "message"),
-            subgraph=self.context.spooky_subgraph,
+            subgraph=self.current_dex,
         )
         if latest_indexed_block_error is None:
             return None
@@ -388,26 +506,27 @@ class FetchBehaviour(
         return block, eth_price
 
     def _fetch_pairs(
-        self, block: Dict[str, int]
+        self,
+        block: Dict[str, int],
     ) -> Generator[None, None, Optional[ResponseItemType]]:
         """Fetch pool data for block."""
         res_raw = yield from self.get_http_response(
-            content=pairs_q(block["number"], self.params.pair_ids),
-            **self._spooky_api_specs,
+            content=pairs_q(block["number"], self.current_pair_ids),
+            **self.current_dex.get_spec(),
         )
-        res = self.context.spooky_subgraph.process_response(res_raw)
+        res = self.current_dex.process_response(res_raw)
 
         pairs = yield from self._handle_response(
             res,
             res_context=f"pool data for block {block}",
             keys=("pairs",),
-            subgraph=self.context.spooky_subgraph,
+            subgraph=self.current_dex,
         )
 
         return pairs
 
     def _fetch_batch(self) -> Generator[None, None, None]:
-        """Fetch a single batch of the historical data."""
+        """Fetch a single batch of the historical data, for the current DEX."""
         block = yield from self._fetch_block()
         if block is None:
             return
@@ -423,7 +542,7 @@ class FetchBehaviour(
 
         # Add extra fields to the pairs.
         for i in range(len(pairs)):  # pylint: disable=C0200
-            pairs[i]["forTimestamp"] = str(self._current_timestamp)
+            pairs[i]["forTimestamp"] = str(self._progress.current_timestamp)
             pairs[i]["blockNumber"] = str(block["number"])
             pairs[i]["blockTimestamp"] = str(block["timestamp"])
             pairs[i]["ethPrice"] = str(eth_price)
@@ -432,7 +551,8 @@ class FetchBehaviour(
 
         if not self.batch:
             self.context.logger.info(
-                f"Fetched {self._unit} {self.current_unit}/{self._total_unit_amount}."
+                f"Fetched {self._unit} {self.currently_downloaded}/{self._target_per_pool} "
+                f"from {self._progress.current_dex_name}."
             )
 
     def async_act(  # pylint: disable=too-many-locals,too-many-statements
@@ -448,20 +568,26 @@ class FetchBehaviour(
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour (set done event).
         """
-        self._set_current_timestamp()
+        if not self._progress.initialized:
+            yield from self._check_given_pairs()
+            if self._progress.call_failed and not self.retries_exceeded:
+                return
+
+        if self._pairs_exist:
+            self._set_current_progress()
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            if self._current_timestamp is not None:
+            if self._progress.can_continue:
                 yield from self._fetch_batch()
                 return
 
-            if self.current_unit == 0:
+            if self.total_downloaded == 0:
                 self.context.logger.error("Could not download any historical data!")
                 self._hist_hash = ""
 
             if (
-                self.current_unit > 0
-                and self.current_unit != self._total_unit_amount
+                self.total_downloaded > 0
+                and self.total_downloaded != self._target
                 and not self.batch
             ):
                 # Here, we continue without having all the pairs downloaded, because of a network issue.
@@ -469,7 +595,7 @@ class FetchBehaviour(
                     "Will continue with partially downloaded historical data!"
                 )
 
-            if self.current_unit > 0:
+            if self.total_downloaded > 0:
                 # Send the file to IPFS and get its hash.
                 self._hist_hash = self.send_to_ipfs(
                     self._save_path, self._pairs_hist, filetype=SupportedFiletype.JSON
@@ -494,8 +620,8 @@ class FetchBehaviour(
 
         It can be optionally implemented by the concrete classes.
         """
-        self.context.spooky_subgraph.reset_retries()
-        self.context.fantom_subgraph.reset_retries()
+        for subgraph in self.utilized_subgraphs:
+            subgraph.reset_retries()
 
 
 class FetchBatchBehaviour(FetchBehaviour):  # pylint: disable=too-many-ancestors
@@ -506,7 +632,9 @@ class FetchBatchBehaviour(FetchBehaviour):  # pylint: disable=too-many-ancestors
     batch = True
 
 
-class TransformBehaviour(APYEstimationBaseBehaviour):
+class TransformBehaviour(
+    APYEstimationBaseBehaviour
+):  # pylint: disable=too-many-ancestors
     """Transform historical data, i.e., convert them to a dataframe and calculate useful metrics, such as the APY."""
 
     behaviour_id = "transform"
