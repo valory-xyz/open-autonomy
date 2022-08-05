@@ -18,11 +18,12 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for the APY estimation app."""
-from abc import ABC
 from enum import Enum
 from typing import Any, Dict, Optional, Union, cast
 
-from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
+from packages.valory.skills.abstract_round_abci.base import (
+    BaseTxPayload as BaseAPYPayload,
+)
 
 
 class TransactionType(Enum):
@@ -45,14 +46,6 @@ class TransactionType(Enum):
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
         return self.value
-
-
-class BaseAPYPayload(BaseTxPayload, ABC):
-    """Base class for the simple abci demo."""
-
-    def __hash__(self) -> int:
-        """Hash the payload."""
-        return hash(tuple(sorted(self.data.items())))
 
 
 class RandomnessPayload(BaseAPYPayload):

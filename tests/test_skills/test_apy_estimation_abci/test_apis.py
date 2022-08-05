@@ -251,7 +251,7 @@ class TestSubgraphs:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "block_subgraph, specs_fixture",
+        "dex_subgraph, specs_fixture",
         (
             (
                 SpookySwapSubgraph,
@@ -264,14 +264,14 @@ class TestSubgraphs:
         ),
     )
     def test_top_n_pairs(
-        block_subgraph: Type[ApiSpecs],
+        dex_subgraph: Type[ApiSpecs],
         specs_fixture: str,
         top_n_pairs_q: str,
         request: FixtureRequest,
     ) -> None:
         """Test SpookySwap's top n pairs request from subgraph."""
         specs: SpecsType = request.getfixturevalue(specs_fixture)
-        api = block_subgraph(**specs)
+        api = dex_subgraph(**specs)
 
         res = make_request(specs, top_n_pairs_q)
         pair_ids = [pair["id"] for pair in api.process_response(DummyMessage(res.content))]  # type: ignore
@@ -280,7 +280,7 @@ class TestSubgraphs:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "block_subgraph, query_fixture, specs_fixture",
+        "dex_subgraph, query_fixture, specs_fixture",
         (
             (
                 SpookySwapSubgraph,
@@ -288,23 +288,34 @@ class TestSubgraphs:
                 "spooky_specs_pairs_extended",
             ),
             (
+                SpookySwapSubgraph,
+                "spooky_existing_pairs_q",
+                "spooky_specs_pairs_extended",
+            ),
+            (
                 UniswapSubgraph,
                 "uni_pairs_q",
+                "uni_specs_pairs_extended",
+            ),
+            (
+                UniswapSubgraph,
+                "uni_existing_pairs_q",
                 "uni_specs_pairs_extended",
             ),
         ),
     )
     def test_pairs(
-        block_subgraph: Type[ApiSpecs],
+        dex_subgraph: Type[ApiSpecs],
         specs_fixture: str,
         query_fixture: str,
         pool_fields: Tuple[str, ...],
+        pairs_ids: Dict[str, List[str]],
         request: FixtureRequest,
     ) -> None:
         """Test SpookySwap's pairs request from subgraph."""
         specs: SpecsType = request.getfixturevalue(specs_fixture)
         query: str = request.getfixturevalue(query_fixture)
-        api = block_subgraph(**specs)
+        api = dex_subgraph(**specs)
 
         res = make_request(api.get_spec(), query)
         pairs = api.process_response(DummyMessage(res.content))  # type: ignore
@@ -312,6 +323,10 @@ class TestSubgraphs:
         assert isinstance(pairs, list)
         assert len(pairs) > 0
         assert isinstance(pairs[0], dict)
+
+        if "existing" in query_fixture:
+            assert pairs == [{"id": id_} for id_ in pairs_ids[api.name]]
+            return
 
         for pair in pairs:
             assert all((key in pair for key in pool_fields))
