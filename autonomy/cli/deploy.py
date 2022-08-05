@@ -191,13 +191,22 @@ def run_deployment(build_dir: Path, no_recreate: bool = False) -> None:
 @click.argument("keys_file", type=click.Path())
 @chain_selection_flag()
 @registry_flag()
+@click.option("--rpc", "rpc_url", type=str, help="Custom RPC URL")
+@click.option(
+    "--sca",
+    "service_contract_address",
+    type=str,
+    help="Service contract address for custom RPC URL.",
+)
 @click.pass_context
-def run_deployment_from_token(
+def run_deployment_from_token(  # pylint: disable=too-many-arguments
     click_context: click.Context,
     token_id: int,
     keys_file: Path,
     registry: str,
     chain_type: str,
+    rpc_url: Optional[str],
+    service_contract_address: Optional[str],
 ) -> None:
     """Run service deployment."""
 
@@ -206,7 +215,7 @@ def run_deployment_from_token(
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
 
     click.echo(f"Building service deployment using token ID: {token_id}")
-    metadata = resolve_token_id(token_id, chain_type)
+    metadata = resolve_token_id(token_id, chain_type, rpc_url, service_contract_address)
     click.echo("Service name: " + metadata["name"])
     *_, service_hash = metadata["code_uri"].split("//")
     public_id = PublicId(author="valory", name="service", package_hash=service_hash)
