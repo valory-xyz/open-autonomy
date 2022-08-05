@@ -1318,6 +1318,7 @@ class TestBaseBehaviour:
             ("nonce too low", RPCResponseStatus.INCORRECT_NONCE),
             ("insufficient funds", RPCResponseStatus.INSUFFICIENT_FUNDS),
             ("already known", RPCResponseStatus.ALREADY_KNOWN),
+            ("test", RPCResponseStatus.UNCLASSIFIED_ERROR),
         ),
     )
     @mock.patch.object(BaseBehaviour, "_send_transaction_signing_request")
