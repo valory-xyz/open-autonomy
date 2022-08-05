@@ -25,8 +25,8 @@ from typing import Dict, IO, cast
 from aea.configurations.constants import DEFAULT_PRIVATE_KEY_FILE
 
 from autonomy.constants import (
+    AGENT_IMAGE_NAME,
     IMAGE_VERSION,
-    OPEN_AEA_IMAGE_NAME,
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
 )
@@ -72,8 +72,8 @@ def build_agent_config(  # pylint: disable=too-many-arguments
     dev_mode: bool = False,
     package_dir: Path = Path.cwd().absolute() / "packages",
     open_aea_dir: Path = Path.cwd().absolute().parent / "open-aea",
-    open_aea_image_name: str = OPEN_AEA_IMAGE_NAME,
-    open_aea_image_version: str = IMAGE_VERSION,
+    agent_image_name: str = AGENT_IMAGE_NAME,
+    agent_image_version: str = IMAGE_VERSION,
 ) -> str:
     """Build agent config."""
 
@@ -82,8 +82,8 @@ def build_agent_config(  # pylint: disable=too-many-arguments
         node_id=node_id,
         agent_vars="".join([f"      - {k}={v}\n" for k, v in agent_vars.items()]),
         localnet_address_postfix=node_id + number_of_agents + 3,
-        open_aea_image_name=open_aea_image_name,
-        open_aea_image_version=open_aea_image_version,
+        agent_image_name=agent_image_name,
+        agent_image_version=agent_image_version,
     )
 
     if dev_mode:
@@ -170,7 +170,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     self.service_spec.service.number_of_agents,
                     agent_vars[i],
                     dev_mode,
-                    open_aea_image_version=image_versions["agent"],
+                    agent_image_version=image_versions["agent"],
                 )
                 for i in range(self.service_spec.service.number_of_agents)
             ]

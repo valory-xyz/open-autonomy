@@ -25,27 +25,6 @@ import click
 
 from autonomy.analyse.abci.app_spec import DFA
 from autonomy.deploy.chain import CHAIN_CONFIG
-from autonomy.deploy.image import ImageProfiles
-
-
-def image_profile_flag(
-    default: str = ImageProfiles.PRODUCTION, mark_default: bool = True
-) -> Callable:
-    """Choice of one flag between: '--local/--remote'."""
-
-    def wrapper(f: Callable) -> Callable:
-        for profile in ImageProfiles.ALL:
-            f = click.option(
-                f"--{profile}",
-                "profile",
-                flag_value=profile,
-                help=f"To use the {profile} profile.",
-                default=(profile == default) and mark_default,
-            )(f)
-
-        return f
-
-    return wrapper
 
 
 def abci_spec_format_flag(

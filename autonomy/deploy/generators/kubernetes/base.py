@@ -26,8 +26,8 @@ from typing import Any, Dict, List, cast
 import yaml
 
 from autonomy.constants import (
+    AGENT_IMAGE_NAME,
     HARDHAT_IMAGE_NAME,
-    OPEN_AEA_IMAGE_NAME,
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
 )
@@ -79,8 +79,8 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             host_names=host_names,
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
             tendermint_image_version=image_versions["tendermint"],
-            open_aea_image_name=OPEN_AEA_IMAGE_NAME,
-            open_aea_image_version=image_versions["agent"],
+            agent_image_name=AGENT_IMAGE_NAME,
+            agent_image_version=image_versions["agent"],
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
         resources = []

@@ -115,7 +115,7 @@ class ServiceSpecification:
         """Retrieve vars common for valory apps."""
         agent_vars = {
             "ID": agent_n,
-            "VALORY_APPLICATION": self.service.agent,
+            "AGENT_ID": self.service.agent,
             "ABCI_HOST": ABCI_HOST.format(agent_n),
             "MAX_PARTICIPANTS": self.service.number_of_agents,
             "TENDERMINT_URL": TENDERMINT_NODE.format(agent_n),

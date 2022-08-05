@@ -90,7 +90,7 @@ ABCI_NODE_TEMPLATE: str = """
     mem_reservation: 256M
     cpus: 1
     container_name: abci{node_id}
-    image: {open_aea_image_name}:{valory_app}-{open_aea_image_version}
+    image: {agent_image_name}:{agent_image_version}
     environment:
       - LOG_FILE=/logs/aea_{node_id}.txt
 {agent_vars}

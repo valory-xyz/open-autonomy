@@ -233,7 +233,7 @@ spec:
             name: nodes
 
       - name: aea
-        image: {open_aea_image_name}:{valory_app}-{open_aea_image_version}
+        image: {agent_image_name}:{valory_app}-{agent_image_version}
         imagePullPolicy: Always
         resources:
           limits:
