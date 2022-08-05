@@ -19,7 +19,7 @@ Build tendermint node config for docker compose.
 #### build`_`agent`_`config
 
 ```python
-def build_agent_config(valory_app: str, node_id: int, number_of_agents: int, agent_vars: Dict, dev_mode: bool = False, package_dir: Path = Path.cwd().absolute() / "packages", open_aea_dir: Path = Path.cwd().absolute().parent / "open-aea", open_aea_image_name: str = OPEN_AEA_IMAGE_NAME, open_aea_image_version: str = IMAGE_VERSION) -> str
+def build_agent_config(valory_app: str, node_id: int, number_of_agents: int, agent_vars: Dict, dev_mode: bool = False, package_dir: Path = Path.cwd().absolute() / "packages", open_aea_dir: Path = Path.cwd().absolute().parent / "open-aea", agent_image_name: str = AGENT_IMAGE_NAME, agent_image_version: str = IMAGE_VERSION) -> str
 ```
 
 Build agent config.

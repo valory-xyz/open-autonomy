@@ -110,9 +110,7 @@ Run deployment.
 @deploy_group.command(name="from-token")
 @click.argument("token_id", type=int)
 @click.argument("keys_file", type=click.Path())
-@click.option("--use-mainnet", "chain_type", flag_value="mainnet", default=False)
-@click.option("--use-staging", "chain_type", flag_value="staging", default=True)
-@click.option("--use-testnet", "chain_type", flag_value="testnet", default=False)
+@chain_selection_flag()
 @registry_flag()
 @click.pass_context
 def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, registry: str, chain_type: str) -> None
