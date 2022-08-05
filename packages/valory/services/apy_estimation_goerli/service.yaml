@@ -5,9 +5,9 @@ description: A set of agents reaching consensus on APY estimates
 aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
-  README.md: bafybeibqyfur7wusrbfga66hcbauxvhs2g3j5yhknsxlvyh6mil57aajyu
+  README.md: bafybeieuhno4vkqtv7qrhxd4ya53qijzkaplrbvgi6fgoru7y3s7op2izy
 fingerprint_ignore_patterns: []
-agent: valory/apy_estimation:0.1.0:bafybeigxrbuxifc2nfetudkrvmucujztya7oerc6l2vbgcucfpbrce5t3u
+agent: valory/apy_estimation:0.1.0:bafybeif6cji4gxcccm2jkosnu4q5bsbpg2ppzt7pzjnsot6il6vk33n56y
 number_of_agents: 4
 ---
 public_id: valory/apy_estimation_abci:0.1.0
