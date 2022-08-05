@@ -1067,20 +1067,29 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
 
     @pytest.mark.parametrize("is_majority_possible", (True, False))
     @pytest.mark.parametrize("reach_block_confirmations", (True, False))
-    def test_end_block_no_threshold_reached(self, is_majority_possible: bool, reach_block_confirmations: bool) -> None:
+    def test_end_block_no_threshold_reached(
+        self, is_majority_possible: bool, reach_block_confirmations: bool
+    ) -> None:
         """Test `end_block` when no collection threshold is reached."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
-        test_round.block_confirmations = test_round.required_block_confirmations + 1 if reach_block_confirmations else 0
+        test_round.block_confirmations = (
+            test_round.required_block_confirmations + 1
+            if reach_block_confirmations
+            else 0
+        )
 
         test_round.is_majority_possible = lambda *_: is_majority_possible  # type: ignore
         test_round.no_majority_event = "no_majority"
 
         res = test_round.end_block()
 
-        if test_round.block_confirmations > test_round.required_block_confirmations and not is_majority_possible:
+        if (
+            test_round.block_confirmations > test_round.required_block_confirmations
+            and not is_majority_possible
+        ):
             assert res is not None
             assert res[0].db == self.synchronized_data.db
             assert res[1] == test_round.no_majority_event

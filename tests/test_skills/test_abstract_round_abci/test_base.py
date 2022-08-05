@@ -24,7 +24,7 @@ from abc import ABC
 from copy import copy
 from enum import Enum
 from time import sleep
-from typing import Any, Dict, Optional, Set, Tuple, Type, List
+from typing import Any, Dict, List, Optional, Set, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -35,13 +35,13 @@ from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given
 from hypothesis.strategies import (
     booleans,
+    datetimes,
     dictionaries,
     floats,
-    one_of,
-    text,
     integers,
     none,
-    datetimes,
+    one_of,
+    text,
 )
 
 from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES

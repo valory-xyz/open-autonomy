@@ -33,7 +33,8 @@ from unittest.mock import MagicMock
 
 import pytest
 import pytz  # type: ignore  # pylint: disable=import-error
-from hypothesis import given, strategies as st
+from hypothesis import given
+from hypothesis import strategies as st
 
 from packages.valory.protocols.ledger_api.custom_types import (
     SignedTransaction,
@@ -63,6 +64,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseBehaviour,
     DegenerateBehaviour,
+    GENESIS_TIME_FMT,
     HEIGHT_OFFSET_MULTIPLIER,
     MIN_HEIGHT_OFFSET,
     NON_200_RETURN_CODE_DURING_RESET_THRESHOLD,
@@ -71,7 +73,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     RPCResponseStatus,
     SendException,
     TimeoutException,
-    make_degenerate_behaviour, GENESIS_TIME_FMT,
+    make_degenerate_behaviour,
 )
 from packages.valory.skills.abstract_round_abci.models import (
     _DEFAULT_REQUEST_RETRY_DELAY,
@@ -1574,9 +1576,7 @@ class TestBaseBehaviour:
             offset = math.ceil(interval * HEIGHT_OFFSET_MULTIPLIER)
             offset = max(MIN_HEIGHT_OFFSET, offset)
             initial_height = str(height + offset)
-            genesis_time = timestamp.astimezone(pytz.UTC).strftime(
-                GENESIS_TIME_FMT
-            )
+            genesis_time = timestamp.astimezone(pytz.UTC).strftime(GENESIS_TIME_FMT)
 
             expected = [
                 ("genesis_time", genesis_time),
