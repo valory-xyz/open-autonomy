@@ -654,6 +654,15 @@ class TestCollectionRound(_BaseRoundTestClass):
             test_round.process_payload(DummyTxPayload("sender", "value"))
 
         with pytest.raises(
+            ABCIAppInternalError,
+            match=re.escape(
+                "internal error: Expecting serialized data of chunk size 2, got: None in round_id"
+            ),
+        ):
+            test_round._hash_length = 2
+            test_round.process_payload(DummyTxPayload("agent_1", "value"))
+
+        with pytest.raises(
             TransactionNotValidError,
             match="sender agent_0 has already sent value for round: round_id",
         ):
@@ -666,6 +675,14 @@ class TestCollectionRound(_BaseRoundTestClass):
             ),
         ):
             test_round.check_payload(DummyTxPayload("sender", "value"))
+
+        with pytest.raises(
+            TransactionNotValidError,
+            match=re.escape(
+                "Expecting serialized data of chunk size 2, got: None in round_id"
+            ),
+        ):
+            test_round.check_payload(DummyTxPayload("agent_1", "value"))
 
         self._test_payload_with_wrong_round_count(test_round)
 
