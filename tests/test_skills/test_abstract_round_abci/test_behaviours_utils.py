@@ -33,6 +33,7 @@ from unittest.mock import MagicMock
 
 import pytest
 import pytz  # type: ignore  # pylint: disable=import-error
+from hypothesis import given, strategies as st
 
 from packages.valory.protocols.ledger_api.custom_types import (
     SignedTransaction,
@@ -70,7 +71,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     RPCResponseStatus,
     SendException,
     TimeoutException,
-    make_degenerate_behaviour,
+    make_degenerate_behaviour, GENESIS_TIME_FMT,
 )
 from packages.valory.skills.abstract_round_abci.models import (
     _DEFAULT_REQUEST_RETRY_DELAY,
@@ -1551,6 +1552,38 @@ class TestBaseBehaviour:
         self.behaviour._is_healthy = is_healthy
         self.behaviour._timeout = timeout
         assert self.behaviour._is_timeout_expired() == expiration_expected
+
+    @pytest.mark.parametrize("default", (True, False))
+    @given(st.datetimes(), st.integers(), st.integers())
+    def test_get_reset_params(
+        self, default: bool, timestamp: datetime, height: int, interval: int
+    ) -> None:
+        """Test `_get_reset_params` method."""
+        self.context_mock.state.round_sequence.last_round_transition_timestamp = (
+            timestamp
+        )
+        self.context_mock.state.round_sequence.last_round_transition_tm_height = height
+        self.behaviour.params.observation_interval = interval
+
+        actual = self.behaviour._get_reset_params(default)
+
+        if default:
+            assert actual is None
+
+        else:
+            offset = math.ceil(interval * HEIGHT_OFFSET_MULTIPLIER)
+            offset = max(MIN_HEIGHT_OFFSET, offset)
+            initial_height = str(height + offset)
+            genesis_time = timestamp.astimezone(pytz.UTC).strftime(
+                GENESIS_TIME_FMT
+            )
+
+            expected = [
+                ("genesis_time", genesis_time),
+                ("initial_height", initial_height),
+            ]
+
+            assert actual == expected
 
     @mock.patch.object(BaseBehaviour, "_start_reset")
     @mock.patch.object(BaseBehaviour, "_is_timeout_expired")
