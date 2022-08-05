@@ -1,4 +1,4 @@
-name: apy_estimation_goerli
+name: apy_estimation
 author: valory
 version: 0.1.0
 description: A set of agents reaching consensus on APY estimates
@@ -22,13 +22,3 @@ models:
         - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
         - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https
----
-public_id: valory/ledger:0.1.0
-type: connection
-config:
-  ledger_apis:
-    ethereum:
-      address: https://goerli.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8
-      chain_id: 5
-      poa_chain: true
-      default_gas_price_strategy: eip1559
