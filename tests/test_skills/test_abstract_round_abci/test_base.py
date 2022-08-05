@@ -33,7 +33,16 @@ import pytest
 from aea.exceptions import AEAEnforceError
 from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given
-from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
+from hypothesis.strategies import (
+    booleans,
+    dictionaries,
+    floats,
+    one_of,
+    text,
+    integers,
+    none,
+    datetimes,
+)
 
 from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
 from packages.valory.skills.abstract_round_abci.base import (
@@ -1590,6 +1599,40 @@ class TestRoundSequence:
             self.round_sequence.end_block()
             self.round_sequence.commit()
             assert self.round_sequence.last_round_transition_tm_height == tm_height
+
+    @given(one_of(none(), integers()))
+    def test_tm_height(self, tm_height: int) -> None:
+        """Test `tm_height` getter and setter."""
+
+        self.round_sequence.tm_height = tm_height
+
+        if tm_height is None:
+            with pytest.raises(
+                ValueError,
+                match="Trying to access Tendermint's current height before any `end_block` calls.",
+            ):
+                _ = self.round_sequence.tm_height
+        else:
+            assert (
+                self.round_sequence.tm_height
+                == self.round_sequence._tm_height
+                == tm_height
+            )
+
+    @given(one_of(none(), datetimes()))
+    def test_block_stall_deadline_expired(
+        self, block_stall_deadline: datetime.datetime
+    ) -> None:
+        """Test 'block_stall_deadline_expired' method."""
+
+        self.round_sequence._block_stall_deadline = block_stall_deadline
+        actual = self.round_sequence.block_stall_deadline_expired
+
+        if block_stall_deadline is None:
+            assert actual is False
+        else:
+            expected = datetime.datetime.now() > block_stall_deadline
+            assert actual is expected
 
     @pytest.mark.parametrize("begin_height", tuple(range(0, 50, 10)))
     @pytest.mark.parametrize("initial_height", tuple(range(0, 11, 5)))
