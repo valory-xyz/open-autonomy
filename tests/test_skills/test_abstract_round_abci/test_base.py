@@ -1301,6 +1301,13 @@ class TestAbciApp:
         CopyOfAbciApp._is_abstract = flag
         assert CopyOfAbciApp.is_abstract() is flag
 
+    @given(integers())
+    def test_reset_index(self, reset_index: int) -> None:
+        """Test `reset_index` getter and setter."""
+
+        self.abci_app.reset_index = reset_index
+        assert self.abci_app.reset_index == self.abci_app._reset_index == reset_index
+
     def test_initial_round_cls_not_set(self) -> None:
         """Test when 'initial_round_cls' is not set."""
 
