@@ -24,7 +24,7 @@ from abc import ABC
 from copy import copy
 from enum import Enum
 from time import sleep
-from typing import Any, Dict, Optional, Set, Tuple, Type
+from typing import Any, Dict, Optional, Set, Tuple, Type, List
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -635,6 +635,122 @@ class TestAbciAppDB:
         db = AbciAppDB(setup_data)
         db.update(**update_data)
         assert db._data == expected_data
+
+    @pytest.mark.parametrize(
+        "existing_data, cleanup_history_depth, cleanup_history_depth_current, expected",
+        (
+            (
+                {1: {"test": ["test", ["dummy_value1", "dummy_value2"]]}},
+                0,
+                None,
+                {1: {"test": ["test", ["dummy_value1", "dummy_value2"]]}},
+            ),
+            (
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [0]},
+                },
+                0,
+                None,
+                {2: {"test": [0]}},
+            ),
+            (
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [0, 1, 2]},
+                },
+                0,
+                0,
+                {2: {"test": [0, 1, 2]}},
+            ),
+            (
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [0, 1, 2]},
+                },
+                0,
+                1,
+                {2: {"test": [2]}},
+            ),
+            (
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [i for i in range(5)]},
+                    3: {"test": [i for i in range(5, 10)]},
+                    4: {"test": [i for i in range(10, 15)]},
+                    5: {"test": [i for i in range(15, 20)]},
+                },
+                3,
+                0,
+                {
+                    3: {"test": [i for i in range(5, 10)]},
+                    4: {"test": [i for i in range(10, 15)]},
+                    5: {"test": [i for i in range(15, 20)]},
+                },
+            ),
+            (
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [i for i in range(5)]},
+                    3: {"test": [i for i in range(5, 10)]},
+                    4: {"test": [i for i in range(10, 15)]},
+                    5: {"test": [i for i in range(15, 20)]},
+                },
+                5,
+                3,
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [i for i in range(5)]},
+                    3: {"test": [i for i in range(5, 10)]},
+                    4: {"test": [i for i in range(10, 15)]},
+                    5: {"test": [i for i in range(15 + 2, 20)]},
+                },
+            ),
+            (
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [i for i in range(5)]},
+                    3: {"test": [i for i in range(5, 10)]},
+                    4: {"test": [i for i in range(10, 15)]},
+                    5: {"test": [i for i in range(15, 20)]},
+                },
+                2,
+                3,
+                {
+                    4: {"test": [i for i in range(10, 15)]},
+                    5: {"test": [i for i in range(15 + 2, 20)]},
+                },
+            ),
+            (
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [i for i in range(5)]},
+                    3: {"test": [i for i in range(5, 10)]},
+                    4: {"test": [i for i in range(10, 15)]},
+                    5: {"test": [i for i in range(15, 20)]},
+                },
+                0,
+                1,
+                {
+                    5: {"test": [19]},
+                },
+            ),
+        ),
+    )
+    def test_cleanup(
+        self,
+        existing_data: Dict[int, Dict[str, List[Any]]],
+        cleanup_history_depth: int,
+        cleanup_history_depth_current: Optional[int],
+        expected: Dict[int, Dict[str, List[Any]]],
+    ) -> None:
+        """Test cleanup db."""
+        db = AbciAppDB({})
+        for _, data in existing_data.items():
+            db.create(**data)
+
+        db.cleanup(cleanup_history_depth, cleanup_history_depth_current)
+        assert db._data == expected
 
 
 class TestBaseSynchronizedData:
