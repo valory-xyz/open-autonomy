@@ -68,6 +68,10 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndExecution):
             "value": 200,
             "type_": "float",
         },
+        {
+            "dotted_path": f"{__args_prefix}.optimizer.timeout",
+            "value": 1,
+        },
     ]
 
 

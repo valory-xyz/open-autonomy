@@ -21,6 +21,7 @@
 import ast
 import logging  # noqa: F401
 import re
+import time
 from typing import Dict, List, Tuple, Type, cast
 
 import pytest
@@ -49,7 +50,7 @@ ResponseItemType = List[Dict[str, str]]
 SubgraphResponseType = Dict[str, ResponseItemType]
 
 
-def make_request(
+def __make_request_no_retries(
     api_specs: Dict, query: str, raise_on_error: bool = True
 ) -> requests.Response:
     """Make a request to a subgraph.
@@ -94,6 +95,27 @@ def make_request(
         raise ValueError(f"Unknown error encountered!\nRaw response: {res}")
 
     return r
+
+
+def make_request(
+    api_specs: Dict,
+    query: str,
+    raise_on_error: bool = True,
+    allowed_retries: int = 5,
+    backoff_factor: int = 1,
+) -> requests.Response:
+    """Make a request using retries."""
+    for i in range(allowed_retries):
+        n_tries = i + 1
+        try:
+            return __make_request_no_retries(api_specs, query, raise_on_error)
+        except (ValueError, ConnectionError) as e:
+            retry_in = backoff_factor * n_tries
+            print(
+                f"Trial {n_tries}/{allowed_retries} failed. Retrying the request in {retry_in} secs. "
+                f"Received an exception:\n{e}"
+            )
+            time.sleep(retry_in)
 
 
 class TestSubgraphs:

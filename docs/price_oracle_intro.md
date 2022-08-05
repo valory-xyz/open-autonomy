@@ -1,322 +1,204 @@
-# Price Oracle - Introduction
+# Price Oracle Agent Service Demo
 
-The goal of this agent service is to provide an estimation as an average of a set of observations
-on the Bitcoin price coming from different sources,
+The goal of this demo is to demonstrate an agent service that provides an estimation
+of the Bitcoin price (USD) based on observations coming from different data sources,
 e.g., CoinMarketCap, CoinGecko, Binance and Coinbase.
-Each AEA shares an observation from one of the sources above
-by committing it to a temporary blockchain made with Tendermint.
-Once all the observation are settled, each AEA
-runs a script to aggregate the observations to compute an estimate,
-and the consensus is reached when one estimate
+Each agent collects an observation from one of the data sources above and
+shares it with the rest of the agents through the consensus gadget (Tendermint).
+Once all the observations are settled, each agent
+computes locally a deterministic function that aggregates the observations made by all the
+agents, and obtains an estimate of the Bitcoin price. In this demo, we consider the
+average of the observed values.
+The local estimates made by all the agents are shared, and
+a consensus is reached when one estimate
 reaches $\lceil(2n + 1) / 3\rceil$ of the total voting power committed
-on the temporary blockchain.
+on the consensus gadget.
 Once the consensus on an estimate has been reached, a multi-signature transaction
-with $\lceil(2n + 1) / 3\rceil$ of the participants' signature is settled on the
-Ethereum chain (in the demo this is emulated by the Hardhat node).
-
-Alongside the FSM behaviours executed at each state, the AEAs runs
-an {{fsm_app}} instance which receives all the updates from the
-underlying Tendermint network.
+with $\lceil(2n + 1) / 3\rceil$ of the participants' signatures is settled on the
+Ethereum chain, which is emulated by a local Hardhat node in the demo.
 
 
 ## Architecture of the Demo
 
-The demo is composed of:
+This demo is composed of:
 
 - A [HardHat](https://hardhat.org/) node (emulating an Ethereum blockchain).
-- A set of $n$ Tendermint nodes.
-- A set of $n$ AEAs, in one-to-one connection with one Tendermint node.
+- A set of four [Tendermint](https://tendermint.com/) nodes (`node0`, `node1`, `node2`, `node3`).
+- A set of four AEAs (`abci0`, `abci1`, `abci2`, `abci3`), in one-to-one connection with their corresponding Tendermint
+node.
 
 <figure markdown>
 ![](./images/oracle_diagram.svg)
-<figcaption>Price oracle architecture with four agents</figcaption>
+<figcaption>Architecture of the Price Oracle demo</figcaption>
 </figure>
 
-Agents communicate directly to their local tendermint node, whereas the `AbciApp`
-is used to handle requests they receive (e.g., in response to their behaviour).
 
-In addition to other general-use components (e.g., signing, HTTP client), the components of the  AEAs related to the implementation of the agent service are:
+## Running the Demo
+The steps below will guide you to download the price oracle agent service definition from the Service Registry, build and run a deployment that will run locally.
 
-- Protocol `valory/abci:0.1.0`: it allows representing
-    ABCI request and response messages.
-- Connection `valory/abci:0.1.0`: it accepts ABCI requests
-    from a consensus engine module, e.g. the Tendermint node;
-- Skill `valory/abstract_abci:0.1.0`: it provides a
-    scaffold handler for ABCI requests. It is an abstract skill.
-- Skill `valory/abstract_round_abci:0.1.0`: it
-    implements an ABCI handler and provides
-    useful code abstractions for creating round-based
-    replicated state machines, based on the ABCI protocol
-    (e.g. `Period`, `AbstractRound`). It is an abstract skill.
+1. Ensure that your machine satisfies the [framework requirements](quick_start.md#requirements) and that
+you have followed the [setup instructions](quick_start.md#setup). As a result you should have a Pipenv workspace folder.
 
-Moreover, it has the following specific components to implement the particular case of the price oracle agent service:
+2. Inside the workspace folder, create a JSON file `keys.json` containing the addresses and keys of the four agents that are
+   part of this demo. Below you have a sample `keys.json` file that you can use for testing.
 
-- `valory/price_estimation_abci`: it implements the round-based
-    ABCI application for price estimation of a cryptocurrency,
-    with a finalization step over an Ethereum chain.
+    !!! warning "Important"
+        Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**
 
+        ```json
+        [
+          {
+              "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+              "private_key": "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a"
+          },
+          {
+              "address": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+              "private_key": "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba"
+          },
+          {
+              "address": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+              "private_key": "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e"
+          },
+          {
+              "address": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+              "private_key": "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356"
+          }
+        ]
+        ```
 
-## Price Estimation as a Proof of Concept
+3. Use the {{open_autonomy}} CLI to download and build the agent images:
+    ```bash
+    autonomy deploy build deployment valory/oracle_hardhat:0.1.0:bafybeicrjeiaxcqsas66cpheh4ucptbftz7lvnlau43p62gliap45cet6a keys.json
+    ```
+    This command above downloads the price oracle agent service definition from the Service Registry, and generates the required Docker images to run it using the keys provided in the `keys.json` file.
 
-The ABCI-based replicated FSM (`AbciApp`) used for price estimation consists
-of several smaller modules, each of which is an `AbciApp` of its own. Each of
-them is a `Skill`, which implies that they operate independently of each other,
-however they can be combined to create a larger `AbciApp`, provided that the
-developer specifies the required transition mapping to connect these FSMs.
-This modularity allows a developer to use a subset of these skills in different
-contexts, potentially in combination with skills they themselves define, to
-create another composite `AbciApp` that performs according to their particular
-needs. Specifically, the `PriceEstimationAbciApp` is created by combining the
-following parts:
+4. Open a second terminal and run a local [HardHat](https://hardhat.org/) node that will emulate a blockchain node. For convenience, we provide a Docker image in [Docker Hub](https://hub.docker.com/) that can be run by executing:
+    ```bash
+    docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
+    ```
 
-- `AgentRegistrationAbciApp`
-- `SafeDeploymentAbciApp`
-- `OracleDeploymentAbciApp`
-- `PriceAggregationAbciApp`
-- `TransactionSubmissionAbciApp`
-- `ResetPauseABCIApp`
+5. Return to the workspace terminal.
+The build configuration will be located in `./abci_build`. Execute [Docker Compose](https://docs.docker.com/compose/install/) as indicated below. This will deploy a local price oracle agent service with four agents connected to four [Tendermint](https://tendermint.com/) nodes.
+    ```bash
+    cd abci_build
+    docker-compose up --force-recreate
+    ```
+6. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
+    ```bash
+    docker logs <container_id> --follow
+    ```
+    where `<container_id>` refers to the Docker container ID for either an agent
+    (`abci0`, `abci1`, `abci2` and `abci3`) or a Tendermint node (`node0`, `node1`, `node2` and `node3`).
 
-### The `AgentRegistrationAbciApp`
-
-This `AbciApp` implements the registration of agents to partake in the behaviour
-scheduled in subsequent rounds.
-
-0. `RegistrationStartupRound` <br/>
-
-1. `RegistrationRound` <br/>
-   In this round registrations from AEAs to join the period are accepted, up to
-   a configured maximum number of participants (in the demo, this limit is 4);
-   once this threshold is hit ("registration threshold"), the round is finished.
-
-2. `FinishedRegistrationRound` <br/>
-   A round that signals agent registration was successful, but service contracts has not been already deployed.
-
-3. `FinishedRegistrationFFWRound` <br/>
-   A round that signals agent registration was successful, and the service contracts are already deployed.
-
-
-### The `SafeDeploymentAbciApp`
-
-This `AbciApp` implements the deployments of a Gnosis safe contract, which is
-a multisig smart contract wallet that requires a minimum number of people to
-approve a transaction before it can occur. This assures that no single agent
-can compromise the funds contained in it.
-
-0. `RandomnessSafeRound` <br/>
-   Some randomness is retrieved to be used in a keeper agent selection. In
-   particular, agents individually request the latest random number from
-   [DRAND](https://drand.love), establish consensus on it and then use
-   it as a seed for computations requiring randomness (e.g. keeper selection).
-
-1. `SelectKeeperSafeRound` <br/>
-   The agents agree on a new keeper that will be in charge of sending deploying
-   the multisig wallet and settling transactions.
-
-2. `DeploySafeRound` <br/>
-   A designated sender among the participants of the current period deploys a
-   <a href="https://gnosis-safe.io/">Gnosis Safe contract</a> with all the
-   participants as owners and with `ceil((2n + 1) / 3)` as threshold. If the
-   safe deployment has not been completed after some time, a new keeper will be
-   selected and the safe deployment will be re-run.
-
-3. `ValidateSafeRound` <br/>
-   All agents validate the previous deployment to ensure that the correct
-   contract with the correct settings has been deployed. If the safe deployment
-   could not be verified, the process will start again from the registration
-   round.
-
-4. `FinishedSafeRound` <br/>
-   A round that signals the safe contract was deployed successfully.
-
-
-### The `OracleDeploymentAbciApp`
-
-This `AbciApp` implements the deployments of an Oracle contract, a Gnosis safe
-multisig smart contract wallet that was forked from [Chainlink](https://chain.link/)
-and subsequently stripped from unnecessary data structures and behaviours.
-
-0. `RandomnessOracleRound` <br/>
-   Similar as to the `RandomnessSafeRound`, randomness is retrieved here, this
-   time for the selection of an agent to become the oracle keeper.
-
-1. `SelectKeeperOracleRound` <br/>
-   The agents select a new keeper that will be in charge of sending deploying
-   the multisig wallet and settling transactions.
-
-2. `DeployOracleRound` <br/>
-   The designated keeper deploys a Gnosis safe contract. If a timeout occurs
-   before oracle deployment was completed, a new keeper will be selected and
-   the oracle deployment will be re-run.
-
-3. `ValidateOracleRound` <br/>
-   all agents verify that the Oracle contract has been  deployed using the
-   expected settings. If that's not the case, agents will restart the period.
-
-4. `FinishedOracleRound`
-   A round that signals the oracle contract was deployed successfully.
-
-
-### The `PriceAggregationAbciApp`
-
-This `AbciApp` implements off-chain aggregation of observations by the agents.
-Once the majority of agents has submitted their observation these are shared
-with all agents as they move to the price estimation round. In this next round
-each of the agents performs off-chain a computation on the data set, which could
-be a simple summary statistic or an estimate derived from a complex model -
-either way this is something that cannot be done on-chain. Once consensus is
-reached on this estimate, the aggregate value is submitted and recorded
-on-chain in the next block that is mined.
-
-0. `CollectObservationRound` <br/>
-   Observational data is collected by the AEAs on the target quantity to
-   estimate. Once the agents reach consensus over this data, that is to say at
-   least 2/3rd of them agree on the set of single observations collected by
-   agents (not on individual observations), the shared state gets updated and
-   the agents enter the next round.
-
-1. `EstimateConsensusRound` <br/>
-   Based on the collected data the actual price of the asset is estimated, which
-   could be a simple summary statistic such as the median or the geometric mean.
-   Once the same estimate receives a number of votes greater or equal than
-   2/3 of the total voting power, consensus is reached and the period moves
-   forward.
-
-2. `TxHashRound` <br/>
-   A designated sender composes the transaction and puts it on the temporary
-   Tendermint-based chain. Signing of the transaction for the multisig smart
-   contract requires consensus among the agents on the transaction hash to use.
-
-3. `FinishedPriceAggregationRound` <br/>
-   A round that signals price aggregation was completed successfully.
-
-
-### The `TransactionSubmissionAbciApp`
-
-0. `RandomnessTransactionSubmissionRound` <br/>
-   Randomness is retrieved for keeper selection.
-
-1. `SelectKeeperTransactionSubmissionRoundA` <br/>
-   The agents select a keeper that will be in charge of sending the transaction.
-
-2. `CollectSignatureRound` <br/>
-   Agents sign the transaction to be submitted.
-
-3. `FinalizationRound` <br/>
-   The keeper sends off the transaction to be incorporated in the next block.
-   A transaction hash is returned. This round takes care of submitting
-   with the right amount of gas, i.e., if resubmitting, then the "tip" for the miners
-   is also increased by 10%.
-
-4. `ValidateTransactionRound` <br/>
-   Agents validate whether the transaction has been incorporated in the
-   blockchain.
-
-5. `CheckTransactionHistoryRound` <br/>
-   This round is triggered if the `ValidateTransactionRound` returns with
-   a `NEGATIVE` `Event`, which means that the transaction has not been validated.
-   During the round, the agents check the transaction history up to this point again
-   in order to specify the cause of the problem, e.g., a transaction of a keeper
-   was settled before another keeper managed to do so, a payload is invalid, etc.
-
-6. `SelectKeeperTransactionSubmissionRoundB` <br/>
-   The agents select a keeper that will be in charge of sending the transaction,
-   in case that the first keeper has failed.
-
-7. `ResetRound` <br/>
-   In case that a failure such as round timeout or no majority reached, the period
-   is reset.
-
-8. `ResetAndPauseRound` <br/>
-   A round that updates the `SynchronizedData` to allocate a new period before going to the
-   `FinishedTransactionSubmissionRound`.
-
-9. `FinishedTransactionSubmissionRound` <br/>
-   A round that signals transaction submission was completed successfully.
-
-10. `FailedRound` <br/>
-    A round that signals transaction submission has failed. Occurs if the
-    `CheckTransactionHistoryRound` does not manage to find a validated transaction
-    in the history, or if a Reset round fails.
-
-
-### Implementation of the `PriceEstimationAbciApp`
-
-In the final implementation the `PriceEstimationAbciApp` is then assembled from
-its constituent parts. However, in order to combine the various FSMs previously
-discussed, a transition mapping between states of these FSMs also needs to be
-provided. In order to combine the different FSMs we need to connect them by
-providing the necessary transition mapping. As per the code implemented in the
-[demo](./price_oracle_running.md), the implementation looks as follows:
-
-```python
-abci_app_transition_mapping: AbciAppTransitionMapping = {
-    FinishedRegistrationRound: RandomnessSafeRound,
-    FinishedSafeRound: RandomnessOracleRound,
-    FinishedOracleRound: CollectObservationRound,
-    FinishedRegistrationFFWRound: CollectObservationRound,
-    FinishedPriceAggregationRound: RandomnessTransactionSubmissionRound,
-    FailedRound: ResetAndPauseRound,
-    FinishedTransactionSubmissionRound: ResetAndPauseRound,
-    FinishedResetAndPauseRound: CollectObservationRound,
-    FinishedResetAndPauseErrorRound: RegistrationRound,
-}
-
-OracleAbciApp = chain(
-    (
-        AgentRegistrationAbciApp,
-        SafeDeploymentAbciApp,
-        OracleDeploymentAbciApp,
-        PriceAggregationAbciApp,
-        TransactionSubmissionAbciApp,
-        ResetPauseABCIApp,
-    ),
-    abci_app_transition_mapping,
-)
-```
-
-The AbstractRoundBehaviour schedules the state behaviour associated with the current round, ensuring that a transition to the new state cannot occur without first invoking the associated state Behaviour. Since it is composed of the Behaviours belonging to the constituent FSMs, we can reference them as depicted below.
-
-
-```python
-class OracleAbciAppConsensusBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the price estimation."""
-
-    initial_behaviour_cls = RegistrationStartupBehaviour
-    abci_app_cls = OracleAbciApp  # type: ignore
-    behaviours: Set[Type[BaseBehaviour]] = {
-        *OracleDeploymentRoundBehaviour.behaviours,
-        *AgentRegistrationRoundBehaviour.behaviours,
-        *SafeDeploymentRoundBehaviour.behaviours,
-        *TransactionSettlementRoundBehaviour.behaviours,
-        *ResetPauseABCIConsensusBehaviour.behaviours,
-        *ObserverRoundBehaviour.behaviours,
-    }
-```
-
-Have a look at the [FSM diagram](./price_oracle_fsms.md) of the application in order
-to see what the encoded state transitions in the final composite FSM look like.
-
-!!! warning
-
-    A sequence diagram that shows how AEAs communicate with their environment
-    throughout the execution can be found [here](poc-diagram.md). However,
-    it is not fully up-to-date with the implementation discussed here.
-
-### Known Limitations
-The `TransactionSettlementSkill` has a known limitation that concerns the revert reason lookup.
-While checking the history in `CheckTransactionHistoryRound`, an exception may get raised:
+## Interacting with the Demo
+By examining the logs of an agent container, you will see a message similar to the one depicted below, after the framework successfully builds and starts it:
 
 ```
-ValueError: The given transaction has not been reverted!
+   / \   | ____|   / \   
+  / _ \  |  _|    / _ \  
+ / ___ \ | |___  / ___ \
+/_/   \_\|_____|/_/   \_\
+
+v1.15.0
+
+All available packages.
+================================================================================
+| Package                                          | IPFSHash                  |
+================================================================================
+                                                   |                           |
+(...)                                              |                           |
+                                                   |                           |
+================================================================================
+
+All instantiated components
+======================================================
+| ComponentId                                        |
+======================================================
+| (protocol, valory/ledger_api:1.0.0)                |
+| (protocol, open_aea/signing:1.0.0)                 |
+| (protocol, valory/acn:1.1.0)                       |
+| (protocol, valory/http:1.0.0)                      |
+| (protocol, valory/tendermint:0.1.0)                |
+| (protocol, valory/abci:0.1.0)                      |
+| (protocol, valory/contract_api:1.0.0)              |
+| (connection, valory/abci:0.1.0)                    |
+| (connection, valory/http_client:0.1.0)             |
+| (connection, valory/ledger:0.1.0)                  |
+| (contract, valory/gnosis_safe_proxy_factory:0.1.0) |
+| (contract, valory/gnosis_safe:0.1.0)               |
+| (contract, valory/offchain_aggregator:0.1.0)       |
+| (contract, valory/service_registry:0.1.0)          |
+| (skill, valory/oracle_abci:0.1.0)                  |
+======================================================
+
+All available addresses.
+=========================================================
+| Name     | Address                                    |
+=========================================================
+| ethereum | 0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65 |
+=========================================================
 ```
 
-This error arises because of the way that we check for the revert reason; We currently
-[replay](https://github.com/valory-xyz/open-autonomy/blob/25c9eacae692551eb68aad3977017ca9c5fd337b/packages/valory/contracts/gnosis_safe/contract.py#L614-L619)
-the tx locally. However, there is an important limitation with this method. The replayed transaction will be
-executed in isolation. This means that transactions which occurred prior to the replayed transaction within
-the same block will not be accounted for! Therefore, the replay will not raise a `SolidityError` in such case,
-because both the transactions happened in the same block.
+Following that, you will find the log messages indicating the different stages that the agent is currently executing:
 
-The exception is handled automatically and logged as an error, so it does not affect the execution.
-However, as a side effect, we may end the round with a failure status even though the transaction has settled,
-because we have not managed to detect it.
+```
+Starting AEA 'agent' in 'async' mode...
+[INFO] [agent] Entered in the 'registration_startup' round for period 0
+[INFO] [agent] Start processing messages...
+[INFO] [agent] Entered in the 'registration_startup' behaviour
+[INFO] [agent] Checking sync...
+[INFO] [agent] Checking status @ http://node0:26657/status
+[ERROR] [agent] Tendermint not accepting transactions yet, trying again!
+[INFO] [agent] Checking status @ http://node0:26657/status
+[ERROR] [agent] Tendermint not accepting transactions yet, trying again!
+[INFO] [agent] Checking status @ http://node0:26657/status
+[INFO] [agent] local height == remote == 0; Sync complete...
+[INFO] [agent] Sharing Tendermint config on start-up?: False
+[INFO] [agent] arrived block with timestamp: 2022-08-02 20:19:20.382918
+[INFO] [agent] current AbciApp time: None
+[INFO] [agent] no pending timeout, move time forward
+[INFO] Created a new local deadline for the next `begin_block` request from the Tendermint node: 2022-08-02 20:21:22.036121
+[INFO] [agent] arrived block with timestamp: 2022-08-02 20:20:21.841451
+[INFO] [agent] current AbciApp time: 2022-08-02 20:19:20.382918
+[INFO] [agent] no pending timeout, move time forward
+[INFO] Created a new local deadline for the next `begin_block` request from the Tendermint node: 2022-08-02 20:21:23.463276
+[INFO] [agent] 'registration_startup' round is done with event: Event.DONE
+[INFO] [agent] scheduling timeout of 7.0 seconds for event Event.ROUND_TIMEOUT with deadline 2022-08-02 20:20:28.841451
+[INFO] [agent] Entered in the 'randomness_safe' round for period 0
+[INFO] [agent] Entered in the 'randomness_safe' behaviour
+[INFO] [agent] Retrieving DRAND values from api.
+[INFO] [agent] Verifying DRAND values.
+[INFO] [agent] DRAND check successful.
+```
+
+From the logs, you can see how the agent traverses the different states of the
+{{fsm_app}}: registration, randomness collection, keeper selection, price collection, price estimation, etc.
+For example, note how this particular agent collects the Bitcoin price from CoinGecko:
+
+```
+[INFO] [agent] Entered in the 'collect_observation' round for period 19
+[INFO] [agent] Entered in the 'collect_observation' behaviour
+[INFO] [agent] Got observation of BTC price in USD from coingecko: 23112.0
+[INFO] [agent] arrived block with timestamp: 2022-08-02 22:51:16.858947
+[INFO] [agent] current AbciApp time: 2022-08-02 22:51:15.566192
+[INFO] Created a new local deadline for the next `begin_block` request from the Tendermint node: 2022-08-02 22:52:18.304367
+[INFO] [agent] 'collect_observation' round is done with event: Event.DONE
+[INFO] [agent] scheduling timeout of 7.0 seconds for event Event.ROUND_TIMEOUT with deadline 2022-08-02 22:51:23.858947
+```
+
+Afterwards, the agent estimate the price based on all the different observations collected and forwarded by all the agents:
+
+```
+[INFO] [agent] Entered in the 'estimate_consensus' round for period 19
+[INFO] [agent] Entered in the 'estimate' behaviour
+[INFO] [agent] Got estimate of BTC price in USD: 23117.695, Using aggregator method: median
+[INFO] [agent] arrived block with timestamp: 2022-08-02 22:51:18.194988
+[INFO] [agent] current AbciApp time: 2022-08-02 22:51:16.858947
+[INFO] Created a new local deadline for the next `begin_block` request from the Tendermint node: 2022-08-02 22:52:19.744814
+[INFO] [agent] 'estimate_consensus' round is done with event: Event.DONE
+[INFO] [agent] scheduling timeout of 7.0 seconds for event Event.ROUND_TIMEOUT with deadline 2022-08-02 22:51:25.194988
+```
+
+In order to fully understand what are the constituent states that the {{fsm_app}} is traversing,
+we refer you to the [technical details](price_oracle_technical_details.md) of the demo, and also to
+the [composition of FSMs](price_oracle_fsms.md) that make up the agents' {{fsm_app}}.
