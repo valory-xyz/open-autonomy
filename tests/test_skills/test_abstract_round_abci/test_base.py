@@ -1774,6 +1774,63 @@ class TestRoundSequence:
             )
         assert self.round_sequence._blockchain.height == 0
 
+    @mock.patch.object(AbciApp, "process_event")
+    @pytest.mark.parametrize("end_block_res", (None, (MagicMock(), MagicMock())))
+    def test_update_round(
+        self,
+        process_event_mock: mock.Mock,
+        end_block_res: Optional[Tuple[BaseSynchronizedData, Any]],
+    ) -> None:
+        """Test '_update_round' method."""
+        self.round_sequence.begin_block(MagicMock(height=1))
+        block = self.round_sequence._block_builder.get_block()
+        self.round_sequence._blockchain.add_block(block)
+
+        with mock.patch.object(
+            self.round_sequence.current_round, "end_block", return_value=end_block_res
+        ):
+            self.round_sequence._update_round()
+
+        if end_block_res is None:
+            assert (
+                self.round_sequence._last_round_transition_timestamp
+                != self.round_sequence._blockchain.last_block.timestamp
+            )
+            assert (
+                self.round_sequence._last_round_transition_height
+                != self.round_sequence._blockchain.height
+            )
+            assert (
+                self.round_sequence._last_round_transition_root_hash
+                != self.round_sequence.root_hash
+            )
+            assert (
+                self.round_sequence._last_round_transition_tm_height
+                != self.round_sequence.tm_height
+            )
+            process_event_mock.assert_not_called()
+
+        else:
+            assert (
+                self.round_sequence._last_round_transition_timestamp
+                == self.round_sequence._blockchain.last_block.timestamp
+            )
+            assert (
+                self.round_sequence._last_round_transition_height
+                == self.round_sequence._blockchain.height
+            )
+            assert (
+                self.round_sequence._last_round_transition_root_hash
+                == self.round_sequence.root_hash
+            )
+            assert (
+                self.round_sequence._last_round_transition_tm_height
+                == self.round_sequence.tm_height
+            )
+            process_event_mock.assert_called_with(
+                end_block_res[-1], result=end_block_res[0]
+            )
+
 
 def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:
     """
