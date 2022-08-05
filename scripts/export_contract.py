@@ -35,6 +35,9 @@ TYPE_EQUIVALENCE = {
     "bytes32": "bytes",
     "uint8": "int",
     "bool": "bool",
+    "address[]": "list",
+    "bytes": "bytes",
+    "uint80": "int",
 }
 
 
