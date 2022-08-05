@@ -80,7 +80,6 @@ nav:
           - Base: 'api/deploy/base.md'
           - Build: 'api/deploy/build.md'
           - Constants: 'api/deploy/constants.md'
-          - Image: 'api/deploy/image.md'
           - Generators:
             - Docker Compose:
               - Base: 'api/deploy/generators/docker_compose/base.md'
