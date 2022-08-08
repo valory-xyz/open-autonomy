@@ -64,7 +64,7 @@ class DEXSubgraph(ApiSpecs):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize DEX Subgraph."""
         self.bundle_id: int = self.ensure("bundle_id", kwargs)
-        self.chain_subgraph = self.ensure("chain_subgraph", kwargs)
+        self.chain_subgraph_name = self.ensure("chain_subgraph", kwargs)
         self.non_indexed_error_key = kwargs.pop("non_indexed_error_key", "errors")
         self.non_indexed_error_type = kwargs.pop("non_indexed_error_type", "list")
         super().__init__(*args, **kwargs)
@@ -85,7 +85,6 @@ class SpookySwapSubgraph(DEXSubgraph):
 
 
 PairIdsType = Dict[str, List[str]]
-PairIdsBackwardsCompatibleType = List[str]
 ValidatedSubgraphType = Union[DEXSubgraph, ApiSpecs]
 ValidatedSubgraphsType = ValuesView[ValidatedSubgraphType]
 ValidatedSubgraphsMappingType = Dict[str, ValidatedSubgraphType]
@@ -105,7 +104,7 @@ class SubgraphsMixin:
         utilized_dex_names = set(self.context.params.pair_ids.keys())
         utilized_dex_subgraphs = self._get_subgraphs_mapping(utilized_dex_names)
         utilized_block_names = {
-            dex.chain_subgraph
+            dex.chain_subgraph_name
             for dex in utilized_dex_subgraphs.values()
             if dex is not None
         }
@@ -168,16 +167,6 @@ class SubgraphsMixin:
         return cast(ValidatedSubgraphsMappingType, self._utilized_subgraphs).values()
 
 
-def _pair_ids_backwards_compatible(
-    pair_ids: PairIdsType,
-) -> PairIdsBackwardsCompatibleType:
-    """Convert the pair ids in order to be compatible with the old fetch behaviour."""
-    for subgraph, ids_ in pair_ids.items():
-        if subgraph == "spooky_subgraph":
-            return ids_
-    return []
-
-
 class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
     """Parameters."""
 
@@ -186,15 +175,12 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
         self.start: int = self._ensure("history_start", kwargs)
         self.end: Optional[int] = kwargs.pop("history_end", None)
         self.interval: int = self._ensure("history_interval_in_unix", kwargs)
-        self.optimizer_params = self._ensure("optimizer", kwargs)
+        self.optimizer_params: Dict[
+            str, Union[None, bool, int, float, str]
+        ] = self._ensure("optimizer", kwargs)
         self.testing = self._ensure("testing", kwargs)
         self.estimation = self._ensure("estimation", kwargs)
-        pair_ids = self._ensure("pair_ids", kwargs)
-        self.pair_ids: PairIdsBackwardsCompatibleType = (
-            _pair_ids_backwards_compatible(pair_ids)
-            if kwargs.pop("backwards_compatible", True)
-            else pair_ids
-        )
+        self.pair_ids: PairIdsType = self._ensure("pair_ids", kwargs)
         self.ipfs_domain_name = self._ensure("ipfs_domain_name", kwargs)
         super().__init__(*args, **kwargs)
 

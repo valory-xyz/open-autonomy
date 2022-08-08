@@ -65,8 +65,12 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndExecution):
         },
         {
             "dotted_path": f"{__args_prefix}.round_timeout_seconds",
-            "value": 200,
+            "value": 300,
             "type_": "float",
+        },
+        {
+            "dotted_path": f"{__args_prefix}.optimizer.timeout",
+            "value": 1,
         },
     ]
 
@@ -86,6 +90,8 @@ class TestABCIAPYEstimationTwoAgents(
 ):
     """Test the ABCI apy_estimation_abci skill with two agents."""
 
+    wait_to_finish = 300
+
 
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestABCIAPYEstimationFourAgents(
@@ -94,4 +100,4 @@ class TestABCIAPYEstimationFourAgents(
 ):
     """Test the ABCI apy_estimation_abci skill with four agents."""
 
-    wait_to_finish = 300
+    wait_to_finish = 360

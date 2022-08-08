@@ -191,7 +191,7 @@ As a summary, find below an image which shows the main components of the agent a
 </figure>
 
 ## Coding the Hello World! Agent Service: A Primer
-So far, we have given a conceptual description of the Hello World {{agent_service}}. As we have seen, there are a number of components that a developer needs to focus on in order to fully define the service.
+So far, we have given a conceptual description of the Hello World agent service. As we have seen, there are a number of components that a developer needs to focus on in order to fully define the service.
 
 The objective of what follows next is to explore what are the main steps to code and get the service running. Note that the complete code for the example can be found in
 

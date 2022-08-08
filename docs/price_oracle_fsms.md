@@ -1,12 +1,12 @@
 # Price Oracle - Description of the FSMs
 
 For reference, we provide a high-level description of the FSMs that constitute
-the Price Estimation demo using a simplified syntax.
+the Price Oracle demo using a simplified syntax.
 The syntax should be easy to understand for a reader familiar with conventional
 automata textbook notation.
 
 The aim of this syntax is to be used as a starting point in the design and
-reasoning of an ABCI application without delving into the internals of the {{open_autonomy}} framework
+reasoning of an {{fsm_app}} without delving into the internals of the {{open_autonomy}} framework
 itself. Hence, the usage of objects is minimized, and only strings are
 used as identifiers. It can be used as a description language to translate a
 specification into code, e.g., for agent development, or for conducting some
@@ -24,7 +24,7 @@ Each FSM object is defined by a collection of seven input parameters:
 
 The summary of the constituent FSMs is as follows:
 
-```
+
 | FSM                     | States  | Start states  | Final states  | Events  | Non-trivial transitions (*)   |
 |-----------------------  |-------: |-------------: |-------------: |-------: |------------------------:  |
 | AgentRegistration       |      4  |            2  |            2  |      3  |                       3   |
@@ -34,7 +34,7 @@ The summary of the constituent FSMs is as follows:
 | TransactionSubmission   |     10  |            1  |            2  |      9  |                      26   |
 | ResetPauseABCIApp       |      3  |            1  |            2  |      3  |                       3   |
 | **OracleAbciApp**       | **21**  |        **2**  |        **0**  | **12**  |                  **66**   |
-```
+
 
 (`*`) Transitions to a different state, i.e., not self-transitions.
 
