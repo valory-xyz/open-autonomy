@@ -24,7 +24,8 @@ from pathlib import Path
 from typing import Optional
 
 import click
-from aea.configurations.constants import PACKAGES
+from aea.cli.utils.click_utils import PublicIdParameter
+from aea.configurations.data_types import PublicId
 
 from autonomy.cli.utils.click_utils import image_profile_flag
 from autonomy.configurations.loader import load_service_config
@@ -41,9 +42,9 @@ from autonomy.deploy.image import build_image
     help="Path to build dir.",
 )
 @click.option(
-    "--packages-dir",
-    type=click.Path(dir_okay=True),
-    help="Path to packages folder (for local usage).",
+    "--agent",
+    type=PublicIdParameter(),
+    help="Public Id of the agent to use in the docker image.",
 )
 @click.option(
     "--skaffold-dir",
@@ -59,28 +60,29 @@ from autonomy.deploy.image import build_image
 @click.option("--push", is_flag=True, default=False, help="Push image after build.")
 @image_profile_flag()
 def build_images(  # pylint: disable=too-many-arguments
-    profile: str,
-    packages_dir: Optional[Path],
+    agent: Optional[PublicId],
     build_dir: Optional[Path],
     skaffold_dir: Optional[Path],
     version: str,
     push: bool,
+    profile: str,
 ) -> None:
     """Build image using skaffold."""
 
     build_dir = Path(build_dir or Path.cwd()).absolute()
-    packages_dir = Path(packages_dir or Path.cwd() / PACKAGES).absolute()
     skaffold_dir = Path(skaffold_dir or DATA_DIR / DOCKERFILES).absolute()
 
-    service = load_service_config(build_dir)
-    service_id = service.public_id
+    if agent is None:
+        service = load_service_config(build_dir)
+        agent = service.agent
 
+    service_id = service.public_id
     try:
         click.echo(
             f"Building image with:\n\tProfile: {profile}\n\tServiceId: {service_id}\n"
         )
         build_image(
-            agent=service.agent,
+            agent=agent,
             profile=profile,
             skaffold_dir=skaffold_dir,
             version=version,
