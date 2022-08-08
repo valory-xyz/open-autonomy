@@ -18,7 +18,7 @@ setup_args:
       oracle_contract_address:
       - '0x3f9F36ECb03ded97328FC7747292D6D03dFE3D46'
     max_healthcheck: 43200
-    broadcast_to_server: true
+    broadcast_to_server: false
     reset_tendermint_after: 50
 valory_monitoring_backend:
   args: &id002
