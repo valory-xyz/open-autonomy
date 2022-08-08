@@ -33,13 +33,16 @@ from compose.cli import main as docker_compose
 
 from autonomy.cli.fetch import fetch_service
 from autonomy.cli.utils.click_utils import chain_selection_flag
-from autonomy.constants import DEFAULT_KEYS_FILE
+from autonomy.configurations.loader import load_service_config
+from autonomy.constants import DEFAULT_IMAGE_VERSION, DEFAULT_KEYS_FILE
+from autonomy.data import DATA_DIR
 from autonomy.deploy.build import generate_deployment
 from autonomy.deploy.chain import resolve_token_id
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
     BENCHMARKS_DIR,
     DEFAULT_ABCI_BUILD_DIR,
+    DOCKERFILES,
     LOG_DIR,
     PERSISTENT_DATA_DIR,
     TM_STATE_DIR,
@@ -47,6 +50,7 @@ from autonomy.deploy.constants import (
 )
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
+from autonomy.deploy.image import ImageProfiles, build_image
 
 
 @click.group(name="deploy")
@@ -148,14 +152,27 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     "--build-dir",
     type=click.Path(),
 )
-@click.option("--no-recreate", is_flag=True, default=False)
-def run(build_dir: Path, no_recreate: bool) -> None:
+@click.option(
+    "--no-recreate",
+    is_flag=True,
+    default=False,
+    help="If containers already exist, don't recreate them.",
+)
+@click.option(
+    "--remove-orphans",
+    is_flag=True,
+    default=False,
+    help="Remove containers for services not defined in the Compose file.",
+)
+def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
     """Run deployment."""
     build_dir = Path(build_dir or Path.cwd()).absolute()
-    run_deployment(build_dir, no_recreate)
+    run_deployment(build_dir, no_recreate, remove_orphans)
 
 
-def run_deployment(build_dir: Path, no_recreate: bool = False) -> None:
+def run_deployment(
+    build_dir: Path, no_recreate: bool = False, remove_orphans: bool = False
+) -> None:
     """Run deployment."""
 
     click.echo(f"Running build @ {build_dir}")
@@ -177,7 +194,7 @@ def run_deployment(build_dir: Path, no_recreate: bool = False) -> None:
             "--attach-dependencies": False,
             "--timeout": None,
             "--renew-anon-volumes": False,
-            "--remove-orphans": False,
+            "--remove-orphans": remove_orphans,
             "--exit-code-from": None,
             "--scale": [],
             "--no-log-prefix": False,
@@ -189,8 +206,6 @@ def run_deployment(build_dir: Path, no_recreate: bool = False) -> None:
 @deploy_group.command(name="from-token")
 @click.argument("token_id", type=int)
 @click.argument("keys_file", type=click.Path())
-@chain_selection_flag()
-@registry_flag()
 @click.option("--rpc", "rpc_url", type=str, help="Custom RPC URL")
 @click.option(
     "--sca",
@@ -198,8 +213,14 @@ def run_deployment(build_dir: Path, no_recreate: bool = False) -> None:
     type=str,
     help="Service contract address for custom RPC URL.",
 )
+@click.option("--n", type=int, help="Number of agents to include in the build.")
+@click.option(
+    "--skip-images", is_flag=True, default=False, help="Skip building images."
+)
+@chain_selection_flag()
+@registry_flag()
 @click.pass_context
-def run_deployment_from_token(  # pylint: disable=too-many-arguments
+def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-locals
     click_context: click.Context,
     token_id: int,
     keys_file: Path,
@@ -207,6 +228,8 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments
     chain_type: str,
     rpc_url: Optional[str],
     service_contract_address: Optional[str],
+    skip_images: bool,
+    n: Optional[int],
 ) -> None:
     """Run service deployment."""
 
@@ -221,14 +244,34 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments
     public_id = PublicId(author="valory", name="service", package_hash=service_hash)
     service_path = fetch_service(ctx, public_id)
     build_dir = service_path / DEFAULT_ABCI_BUILD_DIR
+    service = load_service_config(service_path)
 
     with cd(service_path):
+        if not skip_images:
+            click.echo("Building required images.")
+            build_image(
+                agent=service.agent,
+                profile=ImageProfiles.PRODUCTION,
+                skaffold_dir=DATA_DIR / DOCKERFILES,
+                version=DEFAULT_IMAGE_VERSION,
+                push=False,
+            )
+            build_image(
+                agent=service.agent,
+                profile=ImageProfiles.DEPENDENCIES,
+                skaffold_dir=DATA_DIR / DOCKERFILES,
+                version=DEFAULT_IMAGE_VERSION,
+                push=False,
+            )
+
         build_deployment(
             keys_file,
             build_dir=build_dir,
             deployment_type=DockerComposeGenerator.deployment_type,
             dev_mode=False,
             force_overwrite=True,
+            number_of_agents=n,
+            version=DEFAULT_IMAGE_VERSION,
         )
 
     click.echo("Service build successful.")
@@ -251,6 +294,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
             raise click.ClickException(f"Build already exists @ {build_dir}")
         shutil.rmtree(build_dir)
 
+    click.echo(f"Building deployment @ {build_dir}")
     build_dir.mkdir()
     _build_dirs(build_dir)
 
