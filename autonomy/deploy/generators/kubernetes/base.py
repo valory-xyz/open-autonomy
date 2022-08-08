@@ -52,7 +52,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     output_name: str = "build.yaml"
     deployment_type: str = "kubernetes"
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         service_spec: ServiceSpecification,
         build_dir: Path,
