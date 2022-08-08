@@ -22,6 +22,7 @@
 
 import json
 import os
+import shutil
 from pathlib import Path
 from typing import Any, Tuple
 from unittest import mock
@@ -88,28 +89,31 @@ class TestTendermintRunner(BaseCliTest):
     def setup(cls) -> None:
         """Setup."""
         super().setup()
+        shutil.copytree(
+            cls.packages_dir / "valory" / "services" / "hello_world",
+            cls.t / "hello_world",
+        )
         os.chdir(cls.t)
 
     def test_run(self) -> None:
         """Test run."""
+
+        os.chdir(self.t / "hello_world")
         result = self.cli_runner.invoke(
             cli,
             (
                 "deploy",
                 "build",
-                "deployment",
-                "valory/oracle_hardhat",
                 str(self.keys_path),
-                "--packages-dir",
-                str(self.packages_dir),
                 "--force",
                 "--o",
-                str(self.t),
+                str(self.t / DEFAULT_ABCI_BUILD_DIR),
                 "--local",
             ),
         )
 
         assert result.exit_code == 0, result.output
+        os.chdir(self.t)
 
         addrbook_file = (
             (

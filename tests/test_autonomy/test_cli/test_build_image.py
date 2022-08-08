@@ -21,25 +21,26 @@
 
 import os
 import random
+import shutil
 import string
 from pathlib import Path
 from typing import Tuple
 
 import docker
 import pytest
+from aea.configurations.constants import PACKAGES
 
-from autonomy.constants import DEFAULT_BUILD_FOLDER
 from autonomy.test_tools.docker.base import skip_docker_tests
 
 from tests.conftest import ROOT_DIR
-from tests.test_autonomy.test_cli.base import BaseCliTest, cli
+from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 @skip_docker_tests
 class TestBuildImage(BaseCliTest):
     """Test build image command."""
 
-    cli_options: Tuple[str, ...] = ("deploy", "build", "image")
+    cli_options: Tuple[str, ...] = ("build-images",)
     service_id: str = "valory/oracle_hardhat"
     docker_api: docker.APIClient
     build_dir: Path
@@ -50,29 +51,11 @@ class TestBuildImage(BaseCliTest):
         super().setup()
 
         cls.docker_api = docker.APIClient()
-        os.chdir(cls.t)
-
-        result = cls.cli_runner.invoke(
-            cli,
-            (
-                "deploy",
-                "build",
-                "deployment",
-                "valory/oracle_hardhat",
-                str(ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json"),
-                "--packages-dir",
-                str(ROOT_DIR / "packages"),
-                "--force",
-                "--local",
-                "--skip-images",
-                "--o",
-                str(cls.t),
-            ),
+        shutil.copytree(
+            ROOT_DIR / PACKAGES / "valory" / "services" / "hello_world",
+            cls.t / "hello_world",
         )
-
-        assert result.exit_code == 0, result.output
-        cls.build_dir = cls.t / DEFAULT_BUILD_FOLDER
-        os.chdir(cls.build_dir)
+        os.chdir(cls.t / "hello_world")
 
     @staticmethod
     def generate_random_tag(length: int = 16) -> str:
@@ -95,7 +78,7 @@ class TestBuildImage(BaseCliTest):
         assert (
             len(
                 self.docker_api.images(
-                    name=f"valory/open-autonomy-open-aea:oracle-{version}"
+                    name=f"valory/open-autonomy-open-aea:hello_world-{version}"
                 )
             )
             == 1
@@ -109,7 +92,11 @@ class TestBuildImage(BaseCliTest):
         result = self.run_cli(("--dev",))
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert (
-            len(self.docker_api.images(name="valory/open-autonomy-open-aea:oracle-dev"))
+            len(
+                self.docker_api.images(
+                    name="valory/open-autonomy-open-aea:hello_world-dev"
+                )
+            )
             == 1
         )
 
