@@ -165,17 +165,37 @@ class PackageHashManager:
                 return None
 
             # Complete command, succesfully retrieved
-            package_type = None
-            if "deployment" in d["cmd"]:
-                package_type = "service"
-            if d["cmd"] == "fetch":
-                package_type = "agent"
-            if d["cmd"].startswith("add"):
-                package_type = d["cmd"].split(" ")[-1]  # i.e.: aea add connection
-            if not package_type:
-                raise ValueError(
-                    f"Docs [{md_file}]: could not infer the package type for line '{package_line}'"
-                )
+
+            # Guess the package type (agent, service, contract...). First try to find the package in the package_tree
+            potential_package_types = []
+            for package_type, packages in self.package_tree[d["vendor"]].items():
+                if d["package"] in packages.keys():
+                    potential_package_types.append(package_type)
+
+            # If only 1 match has been found we can be sure about the package type
+            if len(potential_package_types) == 1:
+                package_type = potential_package_types[0]
+            else:
+                # Try to guess the package type from the command
+
+                # Fetch option is only available for agents and services
+                if d["cmd"] == "fetch":
+                    potential_package_types = list(filter(lambda x: x in ("agent", "service"), potential_package_types))
+
+                # Deployments are always services
+                if "deployment" in d["cmd"]:
+                    potential_package_types = ["service"]
+
+                # Add commands always specify the package type
+                if d["cmd"].startswith("add"):
+                    potential_package_types = [d["cmd"].split(" ")[-1]]  # i.e.: aea add connection
+
+                if len(potential_package_types) != 1:
+                    raise ValueError(
+                        f"Docs [{md_file}]: could not infer the package type for line '{package_line}'\nPlease update the hash manually."
+                    )
+
+                package_type = potential_package_types[0]
 
             return self.package_tree[d["vendor"]][package_type][d["package"]].hash
 
