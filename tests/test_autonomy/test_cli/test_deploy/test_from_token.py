@@ -51,12 +51,19 @@ class TestFromToken(BaseCliTest):
             "autonomy.cli.deploy.build_image"
         ), mock.patch("autonomy.cli.deploy.build_deployment"), mock.patch(
             "click.echo"
-        ) as click_mock:
+        ) as click_mock, mock.patch(
+            "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "ipfs"
+        ):
             result = self.run_cli(
-                (str(self.token), str(self.keys_file), f"--use-{self.chain}")
+                (
+                    str(self.token),
+                    str(self.keys_file),
+                    f"--use-{self.chain}",
+                    "--remote",
+                )
             )
 
-            assert result.exit_code == 0, result.output
+            assert result.exit_code == 0, click_mock.call_args_list
             assert (
                 "Building service deployment using token ID: 2"
                 in click_mock.call_args_list[0][0][0]
@@ -66,4 +73,5 @@ class TestFromToken(BaseCliTest):
                 "Downloaded service package valory/hello_world:0.1.0"
                 in click_mock.call_args_list[2][0][0]
             )
-            assert "Service build successful." in click_mock.call_args_list[3][0][0]
+            assert "Building required images" in click_mock.call_args_list[3][0][0]
+            assert "Service build successful" in click_mock.call_args_list[4][0][0]
