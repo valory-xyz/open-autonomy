@@ -180,7 +180,11 @@ class PackageHashManager:
 
                 # Fetch option is only available for agents and services
                 if d["cmd"] == "fetch":
-                    potential_package_types = list(filter(lambda x: x in ("agent", "service"), potential_package_types))
+                    potential_package_types = list(
+                        filter(
+                            lambda x: x in ("agent", "service"), potential_package_types
+                        )
+                    )
 
                 # Deployments are always services
                 if "deployment" in d["cmd"]:
@@ -188,7 +192,9 @@ class PackageHashManager:
 
                 # Add commands always specify the package type
                 if d["cmd"].startswith("add"):
-                    potential_package_types = [d["cmd"].split(" ")[-1]]  # i.e.: aea add connection
+                    potential_package_types = [
+                        d["cmd"].split(" ")[-1]
+                    ]  # i.e.: aea add connection
 
                 if len(potential_package_types) != 1:
                     raise ValueError(
