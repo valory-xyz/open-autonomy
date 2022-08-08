@@ -76,10 +76,9 @@ def build_images(  # pylint: disable=too-many-arguments
         service = load_service_config(build_dir)
         agent = service.agent
 
-    service_id = service.public_id
     try:
         click.echo(
-            f"Building image with:\n\tProfile: {profile}\n\tServiceId: {service_id}\n"
+            f"Building image with:\n\tProfile: {profile}\n\tServiceId: {agent}\n"
         )
         build_image(
             agent=agent,
