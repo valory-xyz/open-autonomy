@@ -353,13 +353,11 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                 raise ValueError(
                     "All keys of list like override should be of type int."
                 )
-            nums = set(field_override.keys())
-
-            if len(nums) != self.number_of_agents:
-                raise ValueError("Not enough items in override")
-
-            if nums != set(range(0, self.number_of_agents)):
-                raise ValueError("Overrides incorrectly indexed")
+            override_index = set(field_override.keys())
+            if self.number_of_agents > len(override_index):
+                raise ValueError(
+                    f"Not enough items in override, Number of agents = {self.number_of_agents}; Number of overrides provided = {len(override_index)}"
+                )
 
             n_fields = len(field_override)
             for override in field_override[component_index % n_fields]:
