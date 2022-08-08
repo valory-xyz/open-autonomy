@@ -16,9 +16,9 @@ Build images.
     help="Path to build dir.",
 )
 @click.option(
-    "--packages-dir",
-    type=click.Path(dir_okay=True),
-    help="Path to packages folder (for local usage).",
+    "--agent",
+    type=PublicIdParameter(),
+    help="Public Id of the agent to use in the docker image.",
 )
 @click.option(
     "--skaffold-dir",
@@ -33,7 +33,7 @@ Build images.
 )
 @click.option("--push", is_flag=True, default=False, help="Push image after build.")
 @image_profile_flag()
-def build_images(profile: str, packages_dir: Optional[Path], build_dir: Optional[Path], skaffold_dir: Optional[Path], version: str, push: bool) -> None
+def build_images(agent: Optional[PublicId], build_dir: Optional[Path], skaffold_dir: Optional[Path], version: str, push: bool, profile: str) -> None
 ```
 
 Build image using skaffold.

@@ -86,8 +86,19 @@ Build deployment setup for n agents.
     "--build-dir",
     type=click.Path(),
 )
-@click.option("--no-recreate", is_flag=True, default=False)
-def run(build_dir: Path, no_recreate: bool) -> None
+@click.option(
+    "--no-recreate",
+    is_flag=True,
+    default=False,
+    help="If containers already exist, don't recreate them.",
+)
+@click.option(
+    "--remove-orphans",
+    is_flag=True,
+    default=False,
+    help="Remove containers for services not defined in the Compose file.",
+)
+def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None
 ```
 
 Run deployment.
@@ -97,7 +108,7 @@ Run deployment.
 #### run`_`deployment
 
 ```python
-def run_deployment(build_dir: Path, no_recreate: bool = False) -> None
+def run_deployment(build_dir: Path, no_recreate: bool = False, remove_orphans: bool = False) -> None
 ```
 
 Run deployment.
@@ -110,8 +121,6 @@ Run deployment.
 @deploy_group.command(name="from-token")
 @click.argument("token_id", type=int)
 @click.argument("keys_file", type=click.Path())
-@chain_selection_flag()
-@registry_flag()
 @click.option("--rpc", "rpc_url", type=str, help="Custom RPC URL")
 @click.option(
     "--sca",
@@ -119,8 +128,14 @@ Run deployment.
     type=str,
     help="Service contract address for custom RPC URL.",
 )
+@click.option("--n", type=int, help="Number of agents to include in the build.")
+@click.option(
+    "--skip-images", is_flag=True, default=False, help="Skip building images."
+)
+@chain_selection_flag()
+@registry_flag()
 @click.pass_context
-def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, registry: str, chain_type: str, rpc_url: Optional[str], service_contract_address: Optional[str]) -> None
+def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, registry: str, chain_type: str, rpc_url: Optional[str], service_contract_address: Optional[str], skip_images: bool, n: Optional[int]) -> None
 ```
 
 Run service deployment.
