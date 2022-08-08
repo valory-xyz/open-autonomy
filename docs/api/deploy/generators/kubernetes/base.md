@@ -19,7 +19,7 @@ Kubernetes Deployment Generator.
 #### `__`init`__`
 
 ```python
-def __init__(service_spec: ServiceSpecification, build_dir: Path) -> None
+def __init__(service_spec: ServiceSpecification, build_dir: Path, dev_mode: bool = False, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None) -> None
 ```
 
 Initialise the deployment generator.
@@ -49,7 +49,7 @@ Build configuration job.
 #### generate
 
 ```python
-def generate(image_versions: Dict[str, str], dev_mode: bool = False) -> "KubernetesGenerator"
+def generate(image_versions: Dict[str, str]) -> "KubernetesGenerator"
 ```
 
 Generate the deployment.

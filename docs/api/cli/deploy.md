@@ -68,10 +68,23 @@ Deploy an agent service.
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
+@click.option(
+    "--packages-dir", type=click.Path(), help="Path to packages dir (Use with dev mode)"
+)
+@click.option(
+    "--open-aea-dir",
+    type=click.Path(),
+    help="Path to open-aea repo (Use with dev mode)",
+)
+@click.option(
+    "--open-autonomy-dir",
+    type=click.Path(),
+    help="Path to open-autonomy repo (Use with dev mode)",
+)
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @click.pass_context
-def build_deployment_command(click_context: click.Context, keys_file: Optional[Path], deployment_type: str, output_dir: Optional[Path], dev_mode: bool, force_overwrite: bool, registry: str, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None) -> None
+def build_deployment_command(click_context: click.Context, keys_file: Optional[Path], deployment_type: str, output_dir: Optional[Path], dev_mode: bool, force_overwrite: bool, registry: str, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None, open_aea_dir: Optional[Path] = None, packages_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None) -> None
 ```
 
 Build deployment setup for n agents.
@@ -145,7 +158,7 @@ Run service deployment.
 #### build`_`deployment
 
 ```python
-def build_deployment(keys_file: Path, build_dir: Path, deployment_type: str, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None) -> None
+def build_deployment(keys_file: Path, build_dir: Path, deployment_type: str, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None) -> None
 ```
 
 Build deployment.
