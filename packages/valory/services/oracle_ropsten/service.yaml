@@ -18,7 +18,7 @@ setup_args:
       oracle_contract_address:
       - '0xB555E44648F6Ff759F64A5B451AB845B0450EA57'
     max_healthcheck: 43200
-    broadcast_to_server: false
+    broadcast_to_server: true
 valory_monitoring_backend:
   args: &id002
     url: https://oracle-server.staging.autonolas.tech/deposit
