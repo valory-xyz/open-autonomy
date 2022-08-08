@@ -36,15 +36,15 @@ from autonomy.deploy.image import build_image
 
 
 @click.command(name="build-images")
+@click.argument(
+    "agent",
+    type=PublicIdParameter(),
+    required=False,
+)
 @click.option(
     "--build-dir",
     type=click.Path(dir_okay=True),
     help="Path to build dir.",
-)
-@click.option(
-    "--agent",
-    type=PublicIdParameter(),
-    help="Public Id of the agent to use in the docker image.",
 )
 @click.option(
     "--skaffold-dir",
