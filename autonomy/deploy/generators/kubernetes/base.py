@@ -21,7 +21,7 @@
 """Script to create environment for benchmarking n agents."""
 
 from pathlib import Path
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List, Optional, cast
 
 import yaml
 
@@ -52,9 +52,24 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     output_name: str = "build.yaml"
     deployment_type: str = "kubernetes"
 
-    def __init__(self, service_spec: ServiceSpecification, build_dir: Path) -> None:
+    def __init__(
+        self,
+        service_spec: ServiceSpecification,
+        build_dir: Path,
+        dev_mode: bool = False,
+        packages_dir: Optional[Path] = None,
+        open_aea_dir: Optional[Path] = None,
+        open_autonomy_dir: Optional[Path] = None,
+    ) -> None:
         """Initialise the deployment generator."""
-        super().__init__(service_spec, build_dir)
+        super().__init__(
+            service_spec,
+            build_dir,
+            dev_mode,
+            packages_dir,
+            open_aea_dir,
+            open_autonomy_dir,
+        )
         self.resources: List[str] = []
 
     def build_agent_deployment(
@@ -132,11 +147,10 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     def generate(  # pylint: disable=unused-argument
         self,
         image_versions: Dict[str, str],
-        dev_mode: bool = False,
     ) -> "KubernetesGenerator":
         """Generate the deployment."""
 
-        if dev_mode:
+        if self.dev_mode:
             self.resources.append(
                 HARDHAT_TEMPLATE % (HARDHAT_IMAGE_NAME, image_versions["hardhat"])
             )
