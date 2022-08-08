@@ -177,31 +177,26 @@ class PackageHashManager:
                 package_type = potential_package_types[0]
             else:
                 # Try to guess the package type from the command
+                package_type = None
 
                 # Fetch option is only available for agents and services
                 if d["cmd"] == "fetch":
-                    potential_package_types = list(
-                        filter(
-                            lambda x: x in ("agent", "service"), potential_package_types
-                        )
+                    package_type = (
+                        "service" if "--service" in d["full_cmd"] else "agent"
                     )
 
                 # Deployments are always services
                 if "deployment" in d["cmd"]:
-                    potential_package_types = ["service"]
+                    package_type = "service"
 
                 # Add commands always specify the package type
                 if d["cmd"].startswith("add"):
-                    potential_package_types = [
-                        d["cmd"].split(" ")[-1]
-                    ]  # i.e.: aea add connection
+                    package_type = d["cmd"].split(" ")[-1]  # i.e.: aea add connection
 
-                if len(potential_package_types) != 1:
+                if not package_type:
                     raise ValueError(
                         f"Docs [{md_file}]: could not infer the package type for line '{package_line}'\nPlease update the hash manually."
                     )
-
-                package_type = potential_package_types[0]
 
             return self.package_tree[d["vendor"]][package_type][d["package"]].hash
 
