@@ -150,7 +150,7 @@ Options:
   --help            Show this message and exit.
 ```
 
-`autonomy deploy run` is a wrapper around `docker-compose'` `up` command to run the service deployments. To run deployments, navigate to the build dir and run
+`autonomy deploy run` is a wrapper around `docker-compose up` command to run the service deployments. To run deployments, navigate to the build dir and run
 
 ```bash
 $ autonomy deploy run
