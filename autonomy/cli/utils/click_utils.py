@@ -24,6 +24,7 @@ from typing import Callable
 import click
 
 from autonomy.analyse.abci.app_spec import DFA
+from autonomy.deploy.chain import CHAIN_CONFIG
 from autonomy.deploy.image import ImageProfiles
 
 
@@ -62,6 +63,25 @@ def abci_spec_format_flag(
                 default=(of == default) and mark_default,
             )(f)
 
+        return f
+
+    return wrapper
+
+
+def chain_selection_flag(
+    default: str = "staging", mark_default: bool = True
+) -> Callable:
+    """Flags for abci spec outputs formats."""
+
+    def wrapper(f: Callable) -> Callable:
+        for chain in CHAIN_CONFIG.keys():
+            f = click.option(
+                f"--use-{chain}",
+                "chain_type",
+                flag_value=chain,
+                help=f"Use {chain} chain to resolve the token id.",
+                default=(chain == default) and mark_default,
+            )(f)
         return f
 
     return wrapper

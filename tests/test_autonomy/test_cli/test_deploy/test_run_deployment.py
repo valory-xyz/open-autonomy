@@ -16,18 +16,36 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Constants"""
+
+"""Test `run` command."""
+
+
 import os
+from unittest import mock
+
+from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
-DEFAULT_BUILD_FOLDER = "abci_build"
-DEFAULT_KEYS_FILE = "keys.json"
-DEFAULT_IMAGE_VERSION = "0.1.0"
-IMAGE_VERSION = os.environ.get("VERSION", DEFAULT_IMAGE_VERSION)
-TENDERMINT_IMAGE_VERSION = os.environ.get(
-    "TENDERMINT_IMAGE_VERSION", DEFAULT_IMAGE_VERSION
-)
-HARDHAT_IMAGE_VERSION = os.environ.get("HARDHAT_IMAGE_VERSION", DEFAULT_IMAGE_VERSION)
-OPEN_AEA_IMAGE_NAME = "valory/open-autonomy-open-aea"
-TENDERMINT_IMAGE_NAME = "valory/open-autonomy-tendermint"
-HARDHAT_IMAGE_NAME = "valory/open-autonomy-hardhat"
+class TestRun(BaseCliTest):
+    """Test `run` command."""
+
+    cli_options = ("deploy", "run")
+
+    @classmethod
+    def setup(cls) -> None:
+        """Setup test."""
+
+        super().setup()
+        os.chdir(cls.t)
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run test."""
+
+        with mock.patch(
+            "autonomy.cli.deploy.docker_compose.project_from_options"
+        ), mock.patch("autonomy.cli.deploy.docker_compose.TopLevelCommand"):
+            result = self.run_cli()
+            assert result.exit_code == 0, result.output
+            assert "Running build @" in result.output

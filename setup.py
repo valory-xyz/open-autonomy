@@ -74,6 +74,8 @@ base_deps = [
     "pandas<1.4,>=1.3.4",
     "watchdog >=2.1.6",
     "pytest==7.0.0",
+    "open-aea-ledger-ethereum==1.15.0",
+    "docker-compose==1.29.2",
     _get_docker_dependency(),
 ]
 base_deps.extend(all_extras["cli"])
@@ -113,6 +115,7 @@ if __name__ == "__main__":
                 "data/Dockerfiles/dev/*",
                 "data/Dockerfiles/hardhat/*",
                 "data/Dockerfiles/tendermint/*",
+                "test_tools/data/*",
             ]
         },
         packages=find_packages(include=["autonomy*"]),
