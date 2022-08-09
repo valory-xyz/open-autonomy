@@ -115,6 +115,7 @@ if __name__ == "__main__":
                 "data/Dockerfiles/dev/*",
                 "data/Dockerfiles/hardhat/*",
                 "data/Dockerfiles/tendermint/*",
+                "test_tools/data/*",
             ]
         },
         packages=find_packages(include=["autonomy*"]),
