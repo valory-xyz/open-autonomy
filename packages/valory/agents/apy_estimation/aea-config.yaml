@@ -6,7 +6,6 @@ description: APY estimation agent.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeihxalbstbm7kufnxftkn6mrvculqxyibsk4tzhrq5jbdh5ihejteq
-  aea-config.yaml~: bafybeihhwtbds6bxzmtnjksvc45mdkwgvwvrbbnfixsqcebtlwxumoni74
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiaau6gvge6gh5xp7brrpljqe3mhosy3p67e5cgivtypj7nplmii24
@@ -27,7 +26,7 @@ skills:
 - valory/abstract_abci:0.1.0:bafybeifego6mhqqzzctft4mfcrmsik5wxb4qw3ahje6o6prxbar3unnaie
 - valory/abstract_round_abci:0.1.0:bafybeihrz2sqfxmv5wxhmwwmgybx47g33v7qh2p6ypvwqo7vft3xomcby4
 - valory/apy_estimation_abci:0.1.0:bafybeiaq62stplwxv5yzz475pbhcg6hp2jnjz5olqbm2ssxa5gr5denoi4
-- valory/apy_estimation_chained_abci:0.1.0:bafybeihn6kbx42pcwk7t35snyaniexiwjizdfz5fcmontnxhq2zgyfuhke
+- valory/apy_estimation_chained_abci:0.1.0:bafybeicmqukwhoxdzxs4kaca7hnh5kgjbvg3gpjuldyfljujmzfgo2dqpa
 - valory/registration_abci:0.1.0:bafybeic34hhx3pmppa4etadhz5ejrg3jfqp2vggdiknlfbvs2loliihjcu
 default_ledger: ethereum
 required_ledgers:

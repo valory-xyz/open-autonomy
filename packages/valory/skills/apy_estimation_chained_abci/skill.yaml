@@ -14,7 +14,6 @@ fingerprint:
   fsm_specification.yaml: bafybeid4iuax46gzkeb77g6ezs2arae43lmv3qk36dk7kityg2iwyr2v4a
   handlers.py: bafybeibmzghvqekt7iymu6s6yn5tk7lpdmejba4n7dpsz2do3cgfqz7b2a
   models.py: bafybeifo2eoh5tx2uinqn7mxshvzqma2oc2vbm4u4tevpgsbtiyb5ybbre
-  skill.yaml~: bafybeiee7vemurqyps4i5kbedbfhtaes4ibjw6cqlhhumis5ykoxbltxpy
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
