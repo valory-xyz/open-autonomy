@@ -71,7 +71,7 @@ class TestFromToken(BaseCliTest):
                 "Building service deployment using token ID: 2"
                 in click_mock.call_args_list[0][0][0]
             )
-            assert "Service name: Hello World" in click_mock.call_args_list[1][0][0]
+            assert "Service name: " in click_mock.call_args_list[1][0][0]
             assert (
                 "Downloaded service package valory/hello_world:0.1.0"
                 in click_mock.call_args_list[2][0][0]

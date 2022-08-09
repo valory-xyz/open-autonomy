@@ -24,18 +24,21 @@ Usage: autonomy deploy build [OPTIONS] [KEYS_FILE]
   Build deployment setup for n agents.
 
 Options:
-  --o PATH             Path to output dir.
-  --n INTEGER          Number of agents.
-  --docker             Use docker as a backend.
-  --kubernetes         Use kubernetes as a backend.
-  --dev                Create development environment.
-  --version TEXT       Specify deployment version.
-  --force              Remove existing build and overwrite with new one.
-  --remote             To use a remote registry.
-  --local              To use a local registry.
-  -p                   Ask for password interactively
-  --password PASSWORD  Set password for key encryption/decryption
-  --help               Show this message and exit.
+  --o PATH                  Path to output dir.
+  --n INTEGER               Number of agents.
+  --docker                  Use docker as a backend.
+  --kubernetes              Use kubernetes as a backend.
+  --dev                     Create development environment.
+  --version TEXT            Specify deployment version.
+  --force                   Remove existing build and overwrite with new one.
+  --packages-dir PATH       Path to packages dir (Use with dev mode)
+  --open-aea-dir PATH       Path to open-aea repo (Use with dev mode)
+  --open-autonomy-dir PATH  Path to open-autonomy repo (Use with dev mode)
+  --remote                  To use a remote registry.
+  --local                   To use a local registry.
+  -p                        Ask for password interactively
+  --password PASSWORD       Set password for key encryption/decryption
+  --help                    Show this message and exit.
 ```
 
 To create an environment you'll need a service and a file containing keys with funds for the chain you want to use. The necessary images will be built during the build process.
@@ -69,7 +72,7 @@ These keys can be used for local deployments if you're using the default hardhat
 
 ```bash
 # fetch a service
-$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeickr6gqcnnpponprryxezx4kszmk4iyeaqtadxrw7t3u52zkh5frm  --service
+$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeicrjeiaxcqsas66cpheh4ucptbftz7lvnlau43p62gliap45cet6a  --service
 $ cd oracle_hardhat
 # create a docker deployment
 $ autonomy deploy build keys.json

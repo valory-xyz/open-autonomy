@@ -46,6 +46,9 @@ def generate_deployment(  # pylint: disable=too-many-arguments
     private_keys_password: Optional[str] = None,
     dev_mode: bool = False,
     version: Optional[str] = None,
+    packages_dir: Optional[Path] = None,
+    open_aea_dir: Optional[Path] = None,
+    open_autonomy_dir: Optional[Path] = None,
 ) -> str:
     """Generate the deployment build for the valory app."""
 
@@ -74,10 +77,17 @@ def generate_deployment(  # pylint: disable=too-many-arguments
         raise ValueError(f"Cannot find deployment generator for {type_of_deployment}")
     deployment = cast(
         BaseDeploymentGenerator,
-        DeploymentGenerator(service_spec=service_spec, build_dir=build_dir),
+        DeploymentGenerator(
+            service_spec=service_spec,
+            build_dir=build_dir,
+            dev_mode=dev_mode,
+            packages_dir=packages_dir,
+            open_aea_dir=open_aea_dir,
+            open_autonomy_dir=open_autonomy_dir,
+        ),
     )
 
-    deployment.generate(image_versions, dev_mode).generate_config_tendermint(
+    deployment.generate(image_versions).generate_config_tendermint(
         image_versions["tendermint"]
     ).write_config().populate_private_keys()
 

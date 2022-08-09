@@ -108,6 +108,19 @@ def deploy_group(
     default=False,
     help="Remove existing build and overwrite with new one.",
 )
+@click.option(
+    "--packages-dir", type=click.Path(), help="Path to packages dir (Use with dev mode)"
+)
+@click.option(
+    "--open-aea-dir",
+    type=click.Path(),
+    help="Path to open-aea repo (Use with dev mode)",
+)
+@click.option(
+    "--open-autonomy-dir",
+    type=click.Path(),
+    help="Path to open-autonomy repo (Use with dev mode)",
+)
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @click.pass_context
@@ -122,11 +135,19 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     number_of_agents: Optional[int] = None,
     password: Optional[str] = None,
     version: Optional[str] = None,
+    open_aea_dir: Optional[Path] = None,
+    packages_dir: Optional[Path] = None,
+    open_autonomy_dir: Optional[Path] = None,
 ) -> None:
     """Build deployment setup for n agents."""
 
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
     build_dir = Path(output_dir or DEFAULT_ABCI_BUILD_DIR).absolute()
+    packages_dir = Path(packages_dir or Path.cwd() / "packages").absolute()
+    open_aea_dir = Path(open_aea_dir or Path.home() / "open-aea").absolute()
+    open_autonomy_dir = Path(
+        open_autonomy_dir or Path.home() / "open-autonomy"
+    ).absolute()
 
     ctx = cast(Context, click_context.obj)
     ctx.registry_type = registry
@@ -141,6 +162,9 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             number_of_agents,
             password,
             version,
+            packages_dir,
+            open_aea_dir,
+            open_autonomy_dir,
         )
     except Exception as e:  # pylint: disable=broad-except
         shutil.rmtree(build_dir)
@@ -287,6 +311,9 @@ def build_deployment(  # pylint: disable=too-many-arguments
     number_of_agents: Optional[int] = None,
     password: Optional[str] = None,
     version: Optional[str] = None,
+    packages_dir: Optional[Path] = None,
+    open_aea_dir: Optional[Path] = None,
+    open_autonomy_dir: Optional[Path] = None,
 ) -> None:
     """Build deployment."""
     if build_dir.is_dir():
@@ -307,6 +334,9 @@ def build_deployment(  # pylint: disable=too-many-arguments
         build_dir=build_dir,
         dev_mode=dev_mode,
         version=version,
+        packages_dir=packages_dir,
+        open_aea_dir=open_aea_dir,
+        open_autonomy_dir=open_autonomy_dir,
     )
     click.echo(report)
 

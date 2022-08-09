@@ -148,19 +148,33 @@ class BaseDeploymentGenerator:
     build_dir: Path
     output: str
     tendermint_job_config: Optional[str]
+    dev_mode: bool
+    packages_dir: Path
+    open_aea_dir: Path
+    open_autonomy_dir: Path
 
-    def __init__(self, service_spec: ServiceSpecification, build_dir: Path):
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        service_spec: ServiceSpecification,
+        build_dir: Path,
+        dev_mode: bool = False,
+        packages_dir: Optional[Path] = None,
+        open_aea_dir: Optional[Path] = None,
+        open_autonomy_dir: Optional[Path] = None,
+    ):
         """Initialise with only kwargs."""
         self.service_spec = service_spec
         self.build_dir = Path(build_dir)
         self.tendermint_job_config: Optional[str] = None
+        self.dev_mode = dev_mode
+        self.packages_dir = packages_dir or Path.cwd().absolute() / "packages"
+        self.open_aea_dir = open_aea_dir or Path.home().absolute() / "open-aea"
+        self.open_autonomy_dir = (
+            open_autonomy_dir or Path.home().absolute() / "open-autonomy"
+        )
 
     @abc.abstractmethod
-    def generate(
-        self,
-        image_versions: Dict[str, str],
-        dev_mode: bool = False,
-    ) -> "BaseDeploymentGenerator":
+    def generate(self, image_versions: Dict[str, str]) -> "BaseDeploymentGenerator":
         """Generate the deployment configuration."""
 
     @abc.abstractmethod
