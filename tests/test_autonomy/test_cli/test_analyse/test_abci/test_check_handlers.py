@@ -24,8 +24,11 @@ import platform
 import shutil
 from pathlib import Path
 from typing import Tuple
+from unittest import mock
 
 import pytest
+
+from autonomy.analyse.abci.handlers import check_handlers
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
@@ -91,9 +94,36 @@ class TestCheckHandlers(BaseCliTest):
         assert result.exit_code == 1
         assert "Common handler 'dummy' is not defined in" in result.output
 
+    def test_check_handlers_raises(
+        self,
+    ) -> None:
+        """Test check-handlers command fail."""
+        with pytest.raises(
+            ValueError,
+            match=f"Handler ABCIHandler declared in {self.t}/packages/valory/skills/abstract_abci/skill.yaml is missing from packages/valory/skills/abstract_abci/handlers.py",
+        ):
+            with mock.patch("autonomy.analyse.abci.handlers.dir", return_value=[]):
+                check_handlers(
+                    Path(
+                        f"{self.t}", "packages/valory/skills/abstract_abci/skill.yaml"
+                    ),
+                    [],
+                    [],
+                )
+
     @classmethod
     def teardown(cls) -> None:
         """Teardown method."""
 
         os.chdir(cls.cwd)
         super().teardown()
+
+
+def test_check_handlers_raises() -> None:
+    """Test check-handlers function raises."""
+
+    with pytest.raises(FileNotFoundError, match="Handler file dummy does not exist"):
+        with mock.patch("pathlib.Path.relative_to", return_value="dummy"):
+            check_handlers(
+                config_file=Path("file", "dummy"), common_handlers=[], skip_skills=[]
+            )
