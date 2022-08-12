@@ -8,33 +8,19 @@ Arbitrary agent services built with the {{open_autonomy}} framework can be run w
 
 ### Environment setup
 
-Export the following environment variables (where you replace the paths with valid ones):
+Fetch the required service or if you already have a service defined navigate to the service directoy and run
+
 ```bash
-export OPEN_AEA_REPO_PATH="/path/to/open-aea-repo"
-export DEPLOYMENT_TYPE="docker-compose"
-export DEPLOYMENT_SPEC="/path/to/deployment-spec"
-export VERSION=dev
+# build dev deployment using
+$ autonomy deploy build --dev --packages-dir PATH_TO_PACKAGES_DIR --open-aea-dir PATH_TO_LOCAL_OPEN_AEA_REPO --open-autonomy-dir PATH_TO_LOCAL_OPEN_AUTONOMY_DIR
+# build the required images using
+$ autonomy build-images --dependencies
+$ autonomy build-images --dev
 ```
 
-The default deployment specifications are stored in `deployments/deployment_specifications`.
+This will create a deployment with hot reload enabled for agents. You can run it using the same methods as normal deployments. Use `autonomy deploy run` or `docker-compose up --force-recreate` to start the deployment and enjoy buiding the services.
 
-The `open-aea` repository can be cloned from here: https://github.com/valory-xyz/open-aea
-
-*Tip: You can also store above variables in your .bashrc file*
-
-
-### Prepare images & run
-
-Execute the following:
-```bash
-make build-deploy
-```
-This builds the latest docker images and launches docker compose. Wait for environment setup to be completed inside your docker containers, it may take some time. Also don't make any changes on either open-aea or open-autonomy repository while environment is being set up it may cause some unexpected errors.
-
-Then run:
-```bash
-make run-deploy
-```
+**The `open-aea` repository can be cloned from here: https://github.com/valory-xyz/open-aea**
 
 And - if you want to use local hardhat - in a separate terminal run:
 ```bash
@@ -46,17 +32,9 @@ Once the agents are running, you can make changes to the agent's packages as wel
 The trigger is caused by any python file closing in either `open-autonomy/packages` or `open-aea/` directory. So even if you haven't made any change and still want to restart the agent, just open any python file press `ctrl+s` or save it from file menu and it will trigger the restart.
 
 
-## Quick start for oracle
-
-We have a single make target for the oracle app, just run the following command and it will build and run the oracle.
-```bash
-make run-oracle-dev
-```
-
 ## Debugging in the cluster
 
 When debugging deployments, it can be useful to have the option to spin up a hardhat node to enable debugging and testing of the issue within the cluster.
-
 
 ```bash
 VERSION=cluster-dev
