@@ -94,27 +94,32 @@ class TestCheckHandlers(BaseCliTest):
         assert result.exit_code == 1
         assert "Common handler 'dummy' is not defined in" in result.output
 
-    def test_check_handlers_raises(
+    def test_check_handlers_missing_handler(
         self,
     ) -> None:
-        """Test check-handlers command fail."""
+        """Test check-handlers command missing handler."""
+
+        # Since the CLI catches exceptions, to test for raises we need to call check_handlers directly
         with pytest.raises(
             ValueError,
             match=r"Handler ABCIHandler declared in .* is missing from .*",
         ):
+            # Mock dir() so module_attributes is = []
             with mock.patch("autonomy.analyse.abci.handlers.dir", return_value=[]):
-                check_handlers(
-                    Path(
-                        f"{self.t}",
-                        "packages",
-                        "valory",
-                        "skills",
-                        "abstract_abci",
-                        "skill.yaml",
-                    ),
-                    [],
-                    [],
-                )
+                # Mock Path.relative_to() and return any valid module so import_module does not fail
+                with mock.patch("pathlib.Path.relative_to", return_value="pathlib"):
+                    check_handlers(
+                        Path(
+                            self.t,
+                            "packages",
+                            "valory",
+                            "skills",
+                            "abstract_abci",
+                            "skill.yaml",
+                        ),
+                        [],
+                        [],
+                    )
 
     @classmethod
     def teardown(cls) -> None:
@@ -124,9 +129,10 @@ class TestCheckHandlers(BaseCliTest):
         super().teardown()
 
 
-def test_check_handlers_raises() -> None:
-    """Test check-handlers function raises."""
+def test_check_handlers_missing_file() -> None:
+    """Test check-handlers missing file."""
 
+    # Since the CLI catches exceptions, to test for raises we need to call check_handlers directly
     with pytest.raises(FileNotFoundError, match="Handler file dummy does not exist"):
         with mock.patch("pathlib.Path.relative_to", return_value="dummy"):
             check_handlers(
