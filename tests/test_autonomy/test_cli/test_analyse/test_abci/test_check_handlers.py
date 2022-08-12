@@ -100,12 +100,17 @@ class TestCheckHandlers(BaseCliTest):
         """Test check-handlers command fail."""
         with pytest.raises(
             ValueError,
-            match=f"Handler ABCIHandler declared in {self.t}/packages/valory/skills/abstract_abci/skill.yaml is missing from packages/valory/skills/abstract_abci/handlers.py",
+            match=r"Handler ABCIHandler declared in .* is missing from .*",
         ):
             with mock.patch("autonomy.analyse.abci.handlers.dir", return_value=[]):
                 check_handlers(
                     Path(
-                        f"{self.t}", "packages/valory/skills/abstract_abci/skill.yaml"
+                        f"{self.t}",
+                        "packages",
+                        "valory",
+                        "skills",
+                        "abstract_abci",
+                        "skill.yaml",
                     ),
                     [],
                     [],
