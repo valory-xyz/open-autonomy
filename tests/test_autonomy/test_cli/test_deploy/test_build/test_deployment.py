@@ -26,6 +26,7 @@ from typing import Tuple
 from unittest import mock
 
 import yaml
+from aea.configurations.constants import PACKAGES
 
 from autonomy.constants import (
     DEFAULT_BUILD_FOLDER,
@@ -51,7 +52,7 @@ from tests.test_autonomy.test_cli.base import BaseCliTest
 class TestBuildDeployment(BaseCliTest):
     """Test `autonomy deply build deployment` command."""
 
-    cli_options: Tuple[str, ...] = ("deploy", "build", "deployment")
+    cli_options: Tuple[str, ...] = ("deploy", "build")
     service_id: str = "valory/oracle_hardhat"
 
     keys_file: Path
@@ -64,12 +65,16 @@ class TestBuildDeployment(BaseCliTest):
 
         cls.keys_file = cls.t / "keys.json"
 
-        shutil.copytree(ROOT_DIR / "packages", cls.t / "packages")
+        shutil.copytree(ROOT_DIR / PACKAGES, cls.t / PACKAGES)
         shutil.copy(
             ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json", cls.keys_file
         )
 
-        os.chdir(cls.t)
+        shutil.copytree(
+            cls.t / PACKAGES / "valory" / "services" / "hello_world",
+            cls.t / "hello_world",
+        )
+        os.chdir(cls.t / "hello_world")
 
     def test_docker_compose_build(
         self,
@@ -79,12 +84,9 @@ class TestBuildDeployment(BaseCliTest):
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
-                    self.service_id,
                     str(self.keys_file),
-                    "--packages-dir",
-                    str(self.t / "packages"),
                     "--o",
-                    str(self.t),
+                    str(self.t / DEFAULT_BUILD_FOLDER),
                     "--force",
                     "--local",
                 )
@@ -129,12 +131,9 @@ class TestBuildDeployment(BaseCliTest):
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
-                    self.service_id,
                     str(self.keys_file),
-                    "--packages-dir",
-                    str(self.t / "packages"),
                     "--o",
-                    str(self.t),
+                    str(self.t / DEFAULT_BUILD_FOLDER),
                     "--force",
                     "--dev",
                     "--local",
@@ -180,12 +179,9 @@ class TestBuildDeployment(BaseCliTest):
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
-                    self.service_id,
                     str(self.keys_file),
-                    "--packages-dir",
-                    str(self.t / "packages"),
                     "--o",
-                    str(self.t),
+                    str(self.t / DEFAULT_BUILD_FOLDER),
                     "--kubernetes",
                     "--force",
                     "--local",
@@ -210,12 +206,9 @@ class TestBuildDeployment(BaseCliTest):
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
-                    self.service_id,
                     str(self.keys_file),
-                    "--packages-dir",
-                    str(self.t / "packages"),
                     "--o",
-                    str(self.t),
+                    str(self.t / DEFAULT_BUILD_FOLDER),
                     "--kubernetes",
                     "--force",
                     "--dev",
@@ -242,12 +235,9 @@ class TestBuildDeployment(BaseCliTest):
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
-                    self.service_id,
                     str(self.keys_file),
-                    "--packages-dir",
-                    str(self.t / "packages"),
                     "--o",
-                    str(self.t),
+                    str(self.t / DEFAULT_BUILD_FOLDER),
                     "--force",
                     "--local",
                     "--version",
@@ -269,7 +259,7 @@ class TestBuildDeployment(BaseCliTest):
             )
             assert (
                 docker_compose["services"][f"abci{i}"]["image"]
-                == f"{OPEN_AEA_IMAGE_NAME}:oracle-{version}"
+                == f"{OPEN_AEA_IMAGE_NAME}:hello_world-{version}"
             )
 
     def test_versioning_kubernetes(
@@ -281,12 +271,9 @@ class TestBuildDeployment(BaseCliTest):
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
-                    self.service_id,
                     str(self.keys_file),
-                    "--packages-dir",
-                    str(self.t / "packages"),
                     "--o",
-                    str(self.t),
+                    str(self.t / DEFAULT_BUILD_FOLDER),
                     "--force",
                     "--kubernetes",
                     "--local",
@@ -316,7 +303,7 @@ class TestBuildDeployment(BaseCliTest):
 
             assert (
                 resource["spec"]["template"]["spec"]["containers"][1]["image"]
-                == f"{OPEN_AEA_IMAGE_NAME}:oracle-{version}"
+                == f"{OPEN_AEA_IMAGE_NAME}:hello_world-{version}"
             )
 
     def test_docker_compose_no_password(
@@ -327,10 +314,9 @@ class TestBuildDeployment(BaseCliTest):
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
-                    self.service_id,
                     str(self.keys_file),
                     "--o",
-                    str(self.t),
+                    str(self.t / DEFAULT_BUILD_FOLDER),
                     "--force",
                     "--local",
                 )
@@ -374,10 +360,9 @@ class TestBuildDeployment(BaseCliTest):
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
-                    self.service_id,
                     str(keys_file),
                     "--o",
-                    str(self.t),
+                    str(self.t / DEFAULT_BUILD_FOLDER),
                     "--force",
                     "--password",
                     ETHEREUM_ENCRYPTION_PASSWORD,
@@ -429,10 +414,9 @@ class TestBuildDeployment(BaseCliTest):
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
-                    self.service_id,
                     str(keys_file),
                     "--o",
-                    str(self.t),
+                    str(self.t / DEFAULT_BUILD_FOLDER),
                     "--force",
                     "--kubernetes",
                     "--password",
@@ -485,10 +469,9 @@ class TestBuildDeployment(BaseCliTest):
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
-                    self.service_id,
                     str(self.keys_file),
                     "--o",
-                    str(self.t),
+                    str(self.t / DEFAULT_BUILD_FOLDER),
                     "--force",
                     "--kubernetes",
                     "--local",

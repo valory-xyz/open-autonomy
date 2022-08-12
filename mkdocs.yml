@@ -42,7 +42,7 @@ nav:
     - Package publishing: 'package_publishing.md'
     - CLI: 'autonomy.md'
     - Developer Tooling:
-      - Hot Reload: 'hot_reload.md'
+      - Dev Mode: 'dev_mode.md'
       - Benchmarking: 'benchmarks.md'
     - Deployment:
       - Container Control Flow: 'control_flow.md'

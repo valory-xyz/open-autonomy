@@ -105,7 +105,7 @@ that makes the application layer and the consensus layer highly decoupled.
 A quick overview of the ABCI protocol is depicted in the diagram below. See the complete details [here](https://docs.tendermint.com/master/introduction/what-is-tendermint.html).
 
 <figure markdown>
-![](./images/abci-requests.png)
+![](./images/abci_requests.svg)
 <figcaption>Overview of the flow of messages via the ABCI protocol</figcaption>
 </figure>
 

@@ -24,7 +24,7 @@ from abc import ABC
 from copy import copy
 from enum import Enum
 from time import sleep
-from typing import Any, Dict, Optional, Set, Tuple, Type
+from typing import Any, Dict, List, Optional, Set, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -33,7 +33,16 @@ import pytest
 from aea.exceptions import AEAEnforceError
 from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given
-from hypothesis.strategies import booleans, dictionaries, floats, one_of, text
+from hypothesis.strategies import (
+    booleans,
+    datetimes,
+    dictionaries,
+    floats,
+    integers,
+    none,
+    one_of,
+    text,
+)
 
 from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
 from packages.valory.skills.abstract_round_abci.base import (
@@ -636,6 +645,122 @@ class TestAbciAppDB:
         db.update(**update_data)
         assert db._data == expected_data
 
+    @pytest.mark.parametrize(
+        "existing_data, cleanup_history_depth, cleanup_history_depth_current, expected",
+        (
+            (
+                {1: {"test": ["test", ["dummy_value1", "dummy_value2"]]}},
+                0,
+                None,
+                {1: {"test": ["test", ["dummy_value1", "dummy_value2"]]}},
+            ),
+            (
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [0]},
+                },
+                0,
+                None,
+                {2: {"test": [0]}},
+            ),
+            (
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [0, 1, 2]},
+                },
+                0,
+                0,
+                {2: {"test": [0, 1, 2]}},
+            ),
+            (
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [0, 1, 2]},
+                },
+                0,
+                1,
+                {2: {"test": [2]}},
+            ),
+            (
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [i for i in range(5)]},
+                    3: {"test": [i for i in range(5, 10)]},
+                    4: {"test": [i for i in range(10, 15)]},
+                    5: {"test": [i for i in range(15, 20)]},
+                },
+                3,
+                0,
+                {
+                    3: {"test": [i for i in range(5, 10)]},
+                    4: {"test": [i for i in range(10, 15)]},
+                    5: {"test": [i for i in range(15, 20)]},
+                },
+            ),
+            (
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [i for i in range(5)]},
+                    3: {"test": [i for i in range(5, 10)]},
+                    4: {"test": [i for i in range(10, 15)]},
+                    5: {"test": [i for i in range(15, 20)]},
+                },
+                5,
+                3,
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [i for i in range(5)]},
+                    3: {"test": [i for i in range(5, 10)]},
+                    4: {"test": [i for i in range(10, 15)]},
+                    5: {"test": [i for i in range(15 + 2, 20)]},
+                },
+            ),
+            (
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [i for i in range(5)]},
+                    3: {"test": [i for i in range(5, 10)]},
+                    4: {"test": [i for i in range(10, 15)]},
+                    5: {"test": [i for i in range(15, 20)]},
+                },
+                2,
+                3,
+                {
+                    4: {"test": [i for i in range(10, 15)]},
+                    5: {"test": [i for i in range(15 + 2, 20)]},
+                },
+            ),
+            (
+                {
+                    1: {"test": ["test", ["dummy_value1", "dummy_value2"]]},
+                    2: {"test": [i for i in range(5)]},
+                    3: {"test": [i for i in range(5, 10)]},
+                    4: {"test": [i for i in range(10, 15)]},
+                    5: {"test": [i for i in range(15, 20)]},
+                },
+                0,
+                1,
+                {
+                    5: {"test": [19]},
+                },
+            ),
+        ),
+    )
+    def test_cleanup(
+        self,
+        existing_data: Dict[int, Dict[str, List[Any]]],
+        cleanup_history_depth: int,
+        cleanup_history_depth_current: Optional[int],
+        expected: Dict[int, Dict[str, List[Any]]],
+    ) -> None:
+        """Test cleanup db."""
+        db = AbciAppDB({})
+        for _, data in existing_data.items():
+            db.create(**data)
+
+        db.cleanup(cleanup_history_depth, cleanup_history_depth_current)
+        assert db._data == expected
+
 
 class TestBaseSynchronizedData:
     """Test 'BaseSynchronizedData' class."""
@@ -1176,6 +1301,13 @@ class TestAbciApp:
         CopyOfAbciApp._is_abstract = flag
         assert CopyOfAbciApp.is_abstract() is flag
 
+    @given(integers())
+    def test_reset_index(self, reset_index: int) -> None:
+        """Test `reset_index` getter and setter."""
+
+        self.abci_app.reset_index = reset_index
+        assert self.abci_app.reset_index == self.abci_app._reset_index == reset_index
+
     def test_initial_round_cls_not_set(self) -> None:
         """Test when 'initial_round_cls' is not set."""
 
@@ -1447,21 +1579,32 @@ class TestRoundSequence:
             ):
                 _ = self.round_sequence.last_round_transition_height
 
+    @pytest.mark.parametrize("last_round_transition_root_hash", (b"", b"test"))
     @pytest.mark.parametrize("round_count, reset_index", ((0, 0), (4, 2), (8, 1)))
     def test_last_round_transition_root_hash(
-        self, round_count: int, reset_index: int
+        self, last_round_transition_root_hash: bytes, round_count: int, reset_index: int
     ) -> None:
-        """Test 'last_round_transition_height' method."""
+        """Test 'last_round_transition_root_hash' method."""
+        self.round_sequence._last_round_transition_root_hash = (
+            last_round_transition_root_hash
+        )
         self.round_sequence.abci_app.synchronized_data.db.round_count = round_count  # type: ignore
         self.round_sequence.abci_app._reset_index = reset_index
-        assert (
-            self.round_sequence.last_round_transition_root_hash
-            == f"root:{round_count}reset:{reset_index}".encode("utf-8")
-        )
+
+        if last_round_transition_root_hash == b"":
+            assert (
+                self.round_sequence.last_round_transition_root_hash
+                == f"root:{round_count}reset:{reset_index}".encode("utf-8")
+            )
+        else:
+            assert (
+                self.round_sequence.last_round_transition_root_hash
+                == last_round_transition_root_hash
+            )
 
     @pytest.mark.parametrize("tm_height", (None, 1, 5))
     def test_last_round_transition_tm_height(self, tm_height: Optional[int]) -> None:
-        """Test 'last_round_transition_height' method."""
+        """Test 'last_round_transition_tm_height' method."""
         if tm_height is None:
             with pytest.raises(
                 ValueError,
@@ -1474,6 +1617,40 @@ class TestRoundSequence:
             self.round_sequence.end_block()
             self.round_sequence.commit()
             assert self.round_sequence.last_round_transition_tm_height == tm_height
+
+    @given(one_of(none(), integers()))
+    def test_tm_height(self, tm_height: int) -> None:
+        """Test `tm_height` getter and setter."""
+
+        self.round_sequence.tm_height = tm_height
+
+        if tm_height is None:
+            with pytest.raises(
+                ValueError,
+                match="Trying to access Tendermint's current height before any `end_block` calls.",
+            ):
+                _ = self.round_sequence.tm_height
+        else:
+            assert (
+                self.round_sequence.tm_height
+                == self.round_sequence._tm_height
+                == tm_height
+            )
+
+    @given(one_of(none(), datetimes()))
+    def test_block_stall_deadline_expired(
+        self, block_stall_deadline: datetime.datetime
+    ) -> None:
+        """Test 'block_stall_deadline_expired' method."""
+
+        self.round_sequence._block_stall_deadline = block_stall_deadline
+        actual = self.round_sequence.block_stall_deadline_expired
+
+        if block_stall_deadline is None:
+            assert actual is False
+        else:
+            expected = datetime.datetime.now() > block_stall_deadline
+            assert actual is expected
 
     @pytest.mark.parametrize("begin_height", tuple(range(0, 50, 10)))
     @pytest.mark.parametrize("initial_height", tuple(range(0, 11, 5)))
@@ -1596,6 +1773,63 @@ class TestRoundSequence:
                 == RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
             )
         assert self.round_sequence._blockchain.height == 0
+
+    @mock.patch.object(AbciApp, "process_event")
+    @pytest.mark.parametrize("end_block_res", (None, (MagicMock(), MagicMock())))
+    def test_update_round(
+        self,
+        process_event_mock: mock.Mock,
+        end_block_res: Optional[Tuple[BaseSynchronizedData, Any]],
+    ) -> None:
+        """Test '_update_round' method."""
+        self.round_sequence.begin_block(MagicMock(height=1))
+        block = self.round_sequence._block_builder.get_block()
+        self.round_sequence._blockchain.add_block(block)
+
+        with mock.patch.object(
+            self.round_sequence.current_round, "end_block", return_value=end_block_res
+        ):
+            self.round_sequence._update_round()
+
+        if end_block_res is None:
+            assert (
+                self.round_sequence._last_round_transition_timestamp
+                != self.round_sequence._blockchain.last_block.timestamp
+            )
+            assert (
+                self.round_sequence._last_round_transition_height
+                != self.round_sequence._blockchain.height
+            )
+            assert (
+                self.round_sequence._last_round_transition_root_hash
+                != self.round_sequence.root_hash
+            )
+            assert (
+                self.round_sequence._last_round_transition_tm_height
+                != self.round_sequence.tm_height
+            )
+            process_event_mock.assert_not_called()
+
+        else:
+            assert (
+                self.round_sequence._last_round_transition_timestamp
+                == self.round_sequence._blockchain.last_block.timestamp
+            )
+            assert (
+                self.round_sequence._last_round_transition_height
+                == self.round_sequence._blockchain.height
+            )
+            assert (
+                self.round_sequence._last_round_transition_root_hash
+                == self.round_sequence.root_hash
+            )
+            assert (
+                self.round_sequence._last_round_transition_tm_height
+                == self.round_sequence.tm_height
+            )
+            process_event_mock.assert_called_with(
+                end_block_res[-1], result=end_block_res[0]
+            )
 
 
 def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:
