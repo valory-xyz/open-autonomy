@@ -47,6 +47,14 @@ TEST_LOGS_WITH_MISSING_EVENTS = """
 [2022-04-14 17:45:46,927] [INFO] [agent] scheduling timeout of 7.0 seconds for event Event.ROUND_TIMEOUT with deadline 2022-04-14 17:45:52.089382
 """
 
+TEST_LOGS_ERROR = """[2022-04-14 17:45:43,962] [INFO] [agent] Entered in the 'registration_startup' round for period 0
+E AssertionError: error
+"""
+
+TEST_LOGS_WITH_EVENT = """
+[2022-04-14 17:45:43,959] [INFO] [agent] 'estimate_consensus' round is done with event: Event.DONE
+"""
+
 
 EXPECTED_OUTPUT = (
     "agent         period: 0     round: registration_startup                      event: Event.FAST_FORWARD\n"
@@ -61,6 +69,15 @@ EXPECTED_OUTPUT_WITH_MISSING_EVENTS = (
     "\n"
     "ERRORS:\n"
 )
+
+EXPECTED_OUTPUT_ERROR = (
+    "agent         period: 0     round: registration_startup                      event: N/A\n"
+    "\n"
+    "ERRORS:\n"
+    "error\n\n"
+)
+
+EXPECTED_OUTPUT_EVENT = "\nERRORS:\n"
 
 
 ANSI_COLOR_CHARACTERS_REGEX = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
@@ -96,3 +113,17 @@ class TestLogParser(BaseCliTest):
         self._check_output(
             TEST_LOGS_WITH_MISSING_EVENTS, EXPECTED_OUTPUT_WITH_MISSING_EVENTS
         )
+
+    def test_parser_errors(
+        self,
+    ) -> None:
+        """Test log parser."""
+
+        self._check_output(TEST_LOGS_ERROR, EXPECTED_OUTPUT_ERROR)
+
+    def test_parser_event(
+        self,
+    ) -> None:
+        """Test log parser."""
+
+        self._check_output(TEST_LOGS_WITH_EVENT, EXPECTED_OUTPUT_EVENT)
