@@ -48,7 +48,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 
 
-FILE_HEADER = """
+FILE_HEADER = """\
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
@@ -90,7 +90,7 @@ def _try_get_behaviour_cls_name_from_round_cls_name(round_cls_name: str) -> str:
     """
     Try to get the behaviour class name from the round class name.
 
-    It consits in trying to replace the suffix "Round" with "Behaviour".
+    It tries to replace the suffix "Round" with "Behaviour".
 
     :param round_cls_name: the round class name
     :return: the new behaviour class name
@@ -104,7 +104,7 @@ def _try_get_round_behaviour_cls_name_from_abci_app_cls_name(
     """
     Try to get the round behaviour class name from the Abci app class name.
 
-    It consits in trying to replace the suffix "AbciApp" with "RoundBehaviour".
+    It tries to replace the suffix "AbciApp" with "RoundBehaviour".
 
     :param abci_app_cls_name: the abci app class name
     :return: the new round behaviour class name
@@ -137,7 +137,7 @@ class RoundFileGenerator(AbstractFileGenerator):
 
     ROUNDS_FILE_HEADER = dedent(
         """\
-        \"\"\"This package contains a scaffold of rounds.\"\"\"
+        \"\"\"This package contains the rounds of {FSMName}.\"\"\"
 
         from enum import Enum
         from typing import List, Optional, Set, Tuple
@@ -194,6 +194,7 @@ class RoundFileGenerator(AbstractFileGenerator):
 
     def get_file(self) -> str:
         """Scaffold the 'rounds.py' file."""
+        rounds_header_section = self._get_rounds_header_section()
         event_section = self._get_event_section()
         rounds_section = self._get_rounds_section()
         abci_app_section = self._get_abci_app_section()
@@ -202,7 +203,7 @@ class RoundFileGenerator(AbstractFileGenerator):
         rounds_file_content = "\n".join(
             [
                 FILE_HEADER,
-                RoundFileGenerator.ROUNDS_FILE_HEADER,
+                rounds_header_section,
                 event_section,
                 rounds_section,
                 abci_app_section,
@@ -210,6 +211,12 @@ class RoundFileGenerator(AbstractFileGenerator):
         )
 
         return rounds_file_content
+
+    def _get_rounds_header_section(self) -> str:
+        """Get the rounds header section."""
+        return self.ROUNDS_FILE_HEADER.format(
+            FSMName=_get_abci_app_cls_name_from_dfa(self.dfa)
+        )
 
     def _get_rounds_section(self) -> str:
         """Get the round section of the module (i.e. the round classes)."""
@@ -267,7 +274,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 
     BEHAVIOUR_FILE_HEADER = dedent(
         """\
-        \"\"\"This package contains a scaffold of round behaviours.\"\"\"
+        \"\"\"This package contains round behaviours of {FSMName}.\"\"\"
 
         from abc import abstractmethod
         from typing import Generator, Set, Type
@@ -307,6 +314,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 
     def get_file(self) -> str:
         """Scaffold the 'rounds.py' file."""
+        behaviours_header_section = self._get_behaviours_header_section()
         behaviours_section = self._get_behaviours_section()
         round_behaviour_section = self._get_round_behaviour_section()
 
@@ -314,13 +322,19 @@ class BehaviourFileGenerator(AbstractFileGenerator):
         behaviours_file_content = "\n".join(
             [
                 FILE_HEADER,
-                BehaviourFileGenerator.BEHAVIOUR_FILE_HEADER,
+                behaviours_header_section,
                 behaviours_section,
                 round_behaviour_section,
             ]
         )
 
         return behaviours_file_content
+
+    def _get_behaviours_header_section(self) -> str:
+        """Get the behaviours header section."""
+        return self.BEHAVIOUR_FILE_HEADER.format(
+            FSMName=_get_abci_app_cls_name_from_dfa(self.dfa)
+        )
 
     def _get_behaviours_section(self) -> str:
         """Get the behaviours section of the module (i.e. the list of behaviour classes)."""
@@ -378,7 +392,7 @@ class ModelsFileGenerator(AbstractFileGenerator):
 
     MODEL_FILE_TEMPLATE = dedent(
         """\
-        \"\"\"This module contains the shared state for the scaffold abci skill.\"\"\"
+        \"\"\"This module contains the shared state for the abci skill of {FSMName}.\"\"\"
 
         from typing import Any
 
@@ -405,11 +419,12 @@ class ModelsFileGenerator(AbstractFileGenerator):
 
     def get_file(self) -> str:
         """Get the file content."""
+        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
         return "\n".join(
             [
                 FILE_HEADER,
                 ModelsFileGenerator.MODEL_FILE_TEMPLATE.format(
-                    AbciAppCls=_get_abci_app_cls_name_from_dfa(self.dfa)
+                    FSMName=abci_app_cls_name, AbciAppCls=abci_app_cls_name
                 ),
             ]
         )
@@ -422,6 +437,8 @@ class HandlersFileGenerator(AbstractFileGenerator):
 
     HANDLERS_FILE = dedent(
         """\
+        \"\"\"This module contains the handlers for the skill of {FSMName}.\"\"\"
+
         from packages.valory.skills.abstract_round_abci.handlers import (
             ABCIRoundHandler as BaseABCIRoundHandler,
         )
@@ -453,7 +470,13 @@ class HandlersFileGenerator(AbstractFileGenerator):
 
     def get_file(self) -> str:
         """Get the file content."""
-        return "\n".join([FILE_HEADER, HandlersFileGenerator.HANDLERS_FILE])
+        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
+        return "\n".join(
+            [
+                FILE_HEADER,
+                HandlersFileGenerator.HANDLERS_FILE.format(FSMName=abci_app_cls_name),
+            ]
+        )
 
 
 class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
@@ -492,9 +515,9 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         main_config = SkillComponentConfiguration(round_behaviour_cls_name)
         config.behaviours.create("main", main_config)
 
-    def _update_handlers(
+    def _update_handlers(  # pylint: disable=no-self-use
         self, config: SkillConfig
-    ) -> None:  # pylint: disable=no-self-use
+    ) -> None:
         """Update the handlers section of the skill configuration."""
         config.handlers = CRUDCollection[SkillComponentConfiguration]()
         config.handlers.create("abci", SkillComponentConfiguration("ABCIRoundHandler"))
@@ -510,9 +533,9 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             "tendermint", SkillComponentConfiguration("TendermintHandler")
         )
 
-    def _update_models(
+    def _update_models(  # pylint: disable=no-self-use
         self, config: SkillConfig
-    ) -> None:  # pylint: disable=no-self-use
+    ) -> None:
         """Update the models section of the skill configuration."""
         config.models = CRUDCollection[SkillComponentConfiguration]()
         config.models.create("state", SkillComponentConfiguration("SharedState"))
