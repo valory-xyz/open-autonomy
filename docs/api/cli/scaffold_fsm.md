@@ -27,13 +27,13 @@ def __init__(ctx: Context, skill_name: str, dfa: DFA) -> None
 
 Initialize the abstract file generator.
 
-<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.get_file"></a>
+<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.get_file_content"></a>
 
-#### get`_`file
+#### get`_`file`_`content
 
 ```python
 @abstractmethod
-def get_file() -> str
+def get_file_content() -> str
 ```
 
 Get file content.
@@ -58,12 +58,12 @@ class RoundFileGenerator(AbstractFileGenerator)
 
 File generator for 'rounds.py' modules.
 
-<a id="autonomy.cli.scaffold_fsm.RoundFileGenerator.get_file"></a>
+<a id="autonomy.cli.scaffold_fsm.RoundFileGenerator.get_file_content"></a>
 
-#### get`_`file
+#### get`_`file`_`content
 
 ```python
-def get_file() -> str
+def get_file_content() -> str
 ```
 
 Scaffold the 'rounds.py' file.
@@ -78,12 +78,12 @@ class BehaviourFileGenerator(AbstractFileGenerator)
 
 File generator for 'behaviours.py' modules.
 
-<a id="autonomy.cli.scaffold_fsm.BehaviourFileGenerator.get_file"></a>
+<a id="autonomy.cli.scaffold_fsm.BehaviourFileGenerator.get_file_content"></a>
 
-#### get`_`file
+#### get`_`file`_`content
 
 ```python
-def get_file() -> str
+def get_file_content() -> str
 ```
 
 Scaffold the 'rounds.py' file.
@@ -98,12 +98,12 @@ class ModelsFileGenerator(AbstractFileGenerator)
 
 File generator for 'models.py' modules.
 
-<a id="autonomy.cli.scaffold_fsm.ModelsFileGenerator.get_file"></a>
+<a id="autonomy.cli.scaffold_fsm.ModelsFileGenerator.get_file_content"></a>
 
-#### get`_`file
+#### get`_`file`_`content
 
 ```python
-def get_file() -> str
+def get_file_content() -> str
 ```
 
 Get the file content.
@@ -118,12 +118,12 @@ class HandlersFileGenerator(AbstractFileGenerator)
 
 File generator for 'handlers.py' modules.
 
-<a id="autonomy.cli.scaffold_fsm.HandlersFileGenerator.get_file"></a>
+<a id="autonomy.cli.scaffold_fsm.HandlersFileGenerator.get_file_content"></a>
 
-#### get`_`file
+#### get`_`file`_`content
 
 ```python
-def get_file() -> str
+def get_file_content() -> str
 ```
 
 Get the file content.

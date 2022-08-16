@@ -59,7 +59,6 @@ FILE_HEADER = """\
 # ------------------------------------------------------------------------------
 #
 #   Copyright 2022 Valory AG
-#   Copyright 2018-2021 Fetch.AI Limited
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -159,12 +158,12 @@ class AbstractFileGenerator(ABC):
         self.dfa = dfa
 
     @abstractmethod
-    def get_file(self) -> str:
+    def get_file_content(self) -> str:
         """Get file content."""
 
     def write_file(self, output_dir: Path) -> None:
         """Write the file to output_dir/FILENAME."""
-        (output_dir / self.FILENAME).write_text(self.get_file())
+        (output_dir / self.FILENAME).write_text(self.get_file_content())
 
 
 class RoundFileGenerator(AbstractFileGenerator):
@@ -242,7 +241,7 @@ class RoundFileGenerator(AbstractFileGenerator):
     """
     )
 
-    def get_file(self) -> str:
+    def get_file_content(self) -> str:
         """Scaffold the 'rounds.py' file."""
         rounds_header_section = self._get_rounds_header_section()
         event_section = self._get_event_section()
@@ -397,7 +396,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
     """
     )
 
-    def get_file(self) -> str:
+    def get_file_content(self) -> str:
         """Scaffold the 'rounds.py' file."""
         behaviours_header_section = self._get_behaviours_header_section()
         base_behaviour_section = self._get_base_behaviour_section()
@@ -526,7 +525,7 @@ class ModelsFileGenerator(AbstractFileGenerator):
         """
     )
 
-    def get_file(self) -> str:
+    def get_file_content(self) -> str:
         """Get the file content."""
         abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
         return "\n".join(
@@ -580,7 +579,7 @@ class HandlersFileGenerator(AbstractFileGenerator):
         """
     )
 
-    def get_file(self) -> str:
+    def get_file_content(self) -> str:
         """Get the file content."""
         abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
         return "\n".join(
