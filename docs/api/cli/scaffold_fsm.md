@@ -22,7 +22,7 @@ An abstract class for file generators.
 #### `__`init`__`
 
 ```python
-def __init__(dfa: DFA) -> None
+def __init__(ctx: Context, skill_name: str, dfa: DFA) -> None
 ```
 
 Initialize the abstract file generator.
