@@ -19,7 +19,6 @@
 
 """This module contains the tests of the ledger connection module."""
 
-
 import asyncio
 from asyncio import Task
 from typing import Any, List
@@ -43,17 +42,12 @@ def dummy_task_wrapper(waiting_time: float, result: Any) -> Task:
     return task
 
 
-async def dummy_receive(receiving_tasks: List[asyncio.Future]) -> None:
-    """A dummy receive method that simply waits for the first task to complete and returns the done and pending."""
-    await asyncio.wait(receiving_tasks, return_when=asyncio.FIRST_COMPLETED)
-
-
 class TestLedgerConnection:
     """Test `LedgerConnection` class."""
 
     @pytest.mark.asyncio
-    async def test_not_hanging(self) -> None:
-        """Test that the connection does not hang and that the tasks cannot get blocked."""
+    async def test_hanging(self) -> None:
+        """Test that the connection hangs and that the tasks are blocked."""
         # create configurations for the test, re bocking and non-blocking tasks' waiting times
         blocking_time = 100
         wait_time_among_tasks = 0.1
@@ -71,8 +65,13 @@ class TestLedgerConnection:
             configuration=ConnectionConfig("ledger", "valory", "0.1.0"),
             data_dir="test_data_dir",
         )
-        ledger_connection._event_new_receiving_task = asyncio.Event()
-        ledger_connection.state = ConnectionStates.connected
+
+        # connect() is called by the multiplexer
+        await ledger_connection.connect()
+
+        # once a connection is ready
+        # receive() is called by the multiplexer
+        receive_task = asyncio.ensure_future(ledger_connection.receive())
 
         # create a blocking task lasting `blocking_time` secs
         blocking_task = dummy_task_wrapper(blocking_time, "blocking_task")
@@ -81,14 +80,6 @@ class TestLedgerConnection:
             LedgerConnection, "_schedule_request", return_value=blocking_task
         ):
             await ledger_connection.send(dummy_envelope)
-
-        # call receive
-        with mock.patch.object(
-            LedgerConnection,
-            "receive",
-            return_value=dummy_receive(ledger_connection.receiving_tasks),
-        ):
-            receive_task = asyncio.ensure_future(ledger_connection.receive())
 
         # create a non-blocking task lasting `non_blocking_time` secs, after `wait_time_among_tasks`
         await asyncio.sleep(wait_time_among_tasks)
@@ -102,5 +93,12 @@ class TestLedgerConnection:
         # sleep for `non_blocking_time + tolerance`
         await asyncio.sleep(non_blocking_time + tolerance)
 
-        # the normal task should be finished now
-        assert receive_task.done(), "Normal task is blocked by blocking task!"
+        # the normal task should be finished
+        assert normal_task.done(), "Normal task should be done at this point."
+
+        # the blocking task should not be done
+        assert not blocking_task.done(), "Blocking task should be still running."
+
+        # the receive task should not be done
+        # because it is only awaiting the `blocking_task`
+        assert not receive_task.done(), "Receive task is blocked by blocking task!"
