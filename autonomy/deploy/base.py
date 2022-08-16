@@ -68,7 +68,7 @@ class ServiceSpecification:
         keys: Path,
         number_of_agents: Optional[int] = None,
         private_keys_password: Optional[str] = None,
-        index: Optional[List[str]] = None,
+        agent_instances: Optional[List[str]] = None,
     ) -> None:
         """Initialize the Base Deployment."""
         self.keys: List = []
@@ -77,7 +77,7 @@ class ServiceSpecification:
         if number_of_agents is not None:
             self.service.number_of_agents = number_of_agents
 
-        self.index = index
+        self.agent_instances = agent_instances
         self.read_keys(keys)
 
     def read_keys(self, file_path: Path) -> None:
@@ -88,8 +88,8 @@ class ServiceSpecification:
             if {KEY_SCHEMA_ADDRESS, KEY_SCHEMA_PRIVATE_KEY} != set(key.keys()):
                 raise ValueError("Key file incorrectly formatted.")
 
-        if self.index is not None:
-            keys = [kp for kp in keys if kp["address"] in self.index]
+        if self.agent_instances is not None:
+            keys = [kp for kp in keys if kp["address"] in self.agent_instances]
             self.service.number_of_agents = len(keys)
 
         self.keys = keys
@@ -108,13 +108,14 @@ class ServiceSpecification:
 
     def generate_agents(self) -> List:
         """Generate multiple agent."""
-        if self.index is None:
+        if self.agent_instances is None:
             return [
                 self.generate_agent(i) for i in range(self.service.number_of_agents)
             ]
 
         agent_override_idx = [
-            (i, self.index.index(kp["address"])) for i, kp in enumerate(self.keys)
+            (i, self.agent_instances.index(kp["address"]))
+            for i, kp in enumerate(self.keys)
         ]
         return [self.generate_agent(i, idx) for i, idx in agent_override_idx]
 

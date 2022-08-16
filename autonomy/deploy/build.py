@@ -49,7 +49,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     packages_dir: Optional[Path] = None,
     open_aea_dir: Optional[Path] = None,
     open_autonomy_dir: Optional[Path] = None,
-    index: Optional[List[str]] = None,
+    agent_instances: Optional[List[str]] = None,
 ) -> str:
     """Generate the deployment build for the valory app."""
 
@@ -71,7 +71,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         keys=private_keys_file_path,
         private_keys_password=private_keys_password,
         number_of_agents=number_of_agents,
-        index=index,
+        agent_instances=agent_instances,
     )
 
     DeploymentGenerator = DEPLOYMENT_OPTIONS.get(type_of_deployment)

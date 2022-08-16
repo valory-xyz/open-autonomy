@@ -265,7 +265,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
             force_overwrite=True,
             number_of_agents=n,
             version=DEFAULT_IMAGE_VERSION,
-            index=agent_instances,
+            agent_instances=agent_instances,
         )
 
     click.echo("Service build successful.")
@@ -284,7 +284,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
     packages_dir: Optional[Path] = None,
     open_aea_dir: Optional[Path] = None,
     open_autonomy_dir: Optional[Path] = None,
-    index: Optional[List[str]] = None,
+    agent_instances: Optional[List[str]] = None,
 ) -> None:
     """Build deployment."""
     if build_dir.is_dir():
@@ -308,7 +308,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
         packages_dir=packages_dir,
         open_aea_dir=open_aea_dir,
         open_autonomy_dir=open_autonomy_dir,
-        index=index,
+        agent_instances=agent_instances,
     )
     click.echo(report)
 
