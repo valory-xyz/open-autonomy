@@ -24,6 +24,7 @@ This module patches the 'aea scaffold' command so to add a new subcommand for sc
  starting from FSM specification.
 """
 import re
+import shutil
 from abc import ABC, abstractmethod
 from pathlib import Path
 from textwrap import dedent, indent
@@ -695,6 +696,7 @@ class ScaffoldABCISkill:
         # remove original 'my_model.py' file
         (self.skill_dir / "my_model.py").unlink(missing_ok=True)
 
+        self._remove_pycache()
         self._update_config()
 
     def _scaffold_rounds(self) -> None:
@@ -729,6 +731,11 @@ class ScaffoldABCISkill:
         """Update the skill configuration."""
         click.echo("Updating skill configuration...")
         SkillConfigUpdater(self.ctx, self.skill_dir, self.dfa).update()
+
+    def _remove_pycache(self) -> None:
+        """Remove __pycache__ folders."""
+        for path in self.skill_dir.rglob("*__pycache__*"):
+            shutil.rmtree(path, ignore_errors=True)
 
 
 def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
