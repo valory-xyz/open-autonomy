@@ -30,6 +30,7 @@ from textwrap import dedent, indent
 from typing import Dict, Set
 
 import click
+from aea.cli.add import add_item
 from aea.cli.fingerprint import fingerprint_item
 from aea.cli.scaffold import scaffold, scaffold_item
 from aea.cli.utils.context import Context
@@ -38,7 +39,7 @@ from aea.configurations.base import SkillComponentConfiguration, SkillConfig
 from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE, SKILL, SKILLS
 
 # the decoration does side-effect on the 'aea scaffold' command
-from aea.configurations.data_types import CRUDCollection
+from aea.configurations.data_types import CRUDCollection, PublicId
 
 from autonomy.analyse.abci.app_spec import DFA
 
@@ -590,12 +591,26 @@ class ScaffoldABCISkill:
         SkillConfigUpdater(self.ctx, self.skill_dir, self.dfa).update()
 
 
+def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
+    """Add 'abstract_round_abci' skill if not present."""
+    if PublicId("valory", "abstract_round_abci") not in {
+        public_id.to_latest() for public_id in ctx.agent_config.skills
+    }:
+        click.echo(
+            "Skill valory/abstract_round_abci not found in agent dependencies, adding it..."
+        )
+        add_item(ctx, SKILL, PublicId("valory", "abstract_round_abci"))
+
+
 @scaffold.command()  # noqa
 @click.argument("skill_name", type=str, required=True)
 @click.option("--spec", type=click.Path(exists=True, dir_okay=False), required=True)
 @pass_ctx
 def fsm(ctx: Context, skill_name: str, spec: str) -> None:
     """Add an ABCI skill scaffolding from an FSM specification."""
+    # check abstract_round_abci is in dependencies; if not, add it
+    _add_abstract_round_abci_if_not_present(ctx)
+
     # scaffold AEA skill - as usual
     scaffold_item(ctx, SKILL, skill_name)
 
