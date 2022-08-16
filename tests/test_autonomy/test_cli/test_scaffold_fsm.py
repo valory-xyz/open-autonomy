@@ -55,4 +55,4 @@ class TestScaffoldFSM(AEATestCaseEmpty):
                 cli=cli, args=self.cli_options + (path_to_spec_file,)
             )
 
-        assert result.exit_code == 0
+        assert result.exit_code == 0, result.stdout
