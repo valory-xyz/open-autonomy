@@ -90,6 +90,10 @@ class ServiceSpecification:
 
         if self.agent_instances is not None:
             keys = [kp for kp in keys if kp["address"] in self.agent_instances]
+            if not keys:
+                raise ValueError(
+                    "Cannot find the provided keys in the list of the agent instances."
+                )
             self.service.number_of_agents = len(keys)
 
         self.keys = keys

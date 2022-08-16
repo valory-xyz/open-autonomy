@@ -32,7 +32,7 @@ class TestFromToken(BaseCliTest):
 
     cli_options = ("deploy", "from-token")
     keys_file = ROOT_DIR / "deployments" / "hardhat_keys.json"
-    token = 2
+    token = 5
     chain = "staging"
 
     @classmethod
@@ -68,12 +68,12 @@ class TestFromToken(BaseCliTest):
 
             assert result.exit_code == 0, click_mock.call_args_list
             assert (
-                "Building service deployment using token ID: 2"
+                "Building service deployment using token ID: 5"
                 in click_mock.call_args_list[0][0][0]
             )
             assert "Service name: " in click_mock.call_args_list[1][0][0]
             assert (
-                "Downloaded service package valory/hello_world:0.1.0"
+                "Downloaded service package valory/oracle_hardhat:0.1.0"
                 in click_mock.call_args_list[2][0][0]
             )
             assert "Building required images" in click_mock.call_args_list[3][0][0]
