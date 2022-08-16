@@ -36,8 +36,7 @@ from autonomy.constants import TENDERMINT_IMAGE_VERSION
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     KEY_SCHEMA_ADDRESS,
-    KEY_SCHEMA_ENCRYPTED_KEY,
-    KEY_SCHEMA_UNENCRYPTED_KEY,
+    KEY_SCHEMA_PRIVATE_KEY,
 )
 
 
@@ -69,33 +68,33 @@ class ServiceSpecification:
         keys: Path,
         number_of_agents: Optional[int] = None,
         private_keys_password: Optional[str] = None,
+        index: Optional[List[str]] = None,
     ) -> None:
         """Initialize the Base Deployment."""
-        self.private_keys: List = []
+        self.keys: List = []
         self.private_keys_password = private_keys_password
         self.service = load_service_config(service_path)
         if number_of_agents is not None:
             self.service.number_of_agents = number_of_agents
 
+        self.index = index
         self.read_keys(keys)
-        if self.service.number_of_agents > len(self.private_keys):
-            raise ValueError("Number of agents cannot be greater than available keys.")
 
     def read_keys(self, file_path: Path) -> None:
         """Read in keys from a file on disk."""
 
         keys = json.loads(file_path.read_text(encoding=DEFAULT_ENCODING))
-
-        key_schema = (
-            KEY_SCHEMA_UNENCRYPTED_KEY
-            if self.private_keys_password is None
-            else KEY_SCHEMA_ENCRYPTED_KEY
-        )
         for key in keys:
-            for required_key in [KEY_SCHEMA_ADDRESS, key_schema]:
-                if required_key not in key.keys():
-                    raise ValueError("Key file incorrectly formatted.")
-            self.private_keys.append(key[key_schema])
+            if {KEY_SCHEMA_ADDRESS, KEY_SCHEMA_PRIVATE_KEY} != set(key.keys()):
+                raise ValueError("Key file incorrectly formatted.")
+
+        if self.index is not None:
+            keys = [kp for kp in keys if kp["address"] in self.index]
+            self.service.number_of_agents = len(keys)
+
+        self.keys = keys
+        if self.service.number_of_agents > len(self.keys):
+            raise ValueError("Number of agents cannot be greater than available keys.")
 
     def process_model_args_overrides(self, agent_n: int) -> Dict:
         """Generates env vars based on model overrides."""
@@ -109,7 +108,15 @@ class ServiceSpecification:
 
     def generate_agents(self) -> List:
         """Generate multiple agent."""
-        return [self.generate_agent(i) for i in range(self.service.number_of_agents)]
+        if self.index is None:
+            return [
+                self.generate_agent(i) for i in range(self.service.number_of_agents)
+            ]
+
+        agent_override_idx = [
+            (i, self.index.index(kp["address"])) for i, kp in enumerate(self.keys)
+        ]
+        return [self.generate_agent(i, idx) for i, idx in agent_override_idx]
 
     def generate_common_vars(self, agent_n: int) -> Dict:
         """Retrieve vars common for valory apps."""
@@ -126,12 +133,18 @@ class ServiceSpecification:
             agent_vars["AEA_PASSWORD"] = self.private_keys_password
         return agent_vars
 
-    def generate_agent(self, agent_n: int) -> Dict[Any, Any]:
+    def generate_agent(
+        self, agent_n: int, override_idx: Optional[int] = None
+    ) -> Dict[Any, Any]:
         """Generate next agent."""
         agent_vars = self.generate_common_vars(agent_n)
         if len(self.service.overrides) == 0:
             return agent_vars
-        overrides = self.process_model_args_overrides(agent_n)
+
+        if override_idx is None:
+            override_idx = agent_n
+
+        overrides = self.process_model_args_overrides(override_idx)
         agent_vars.update(overrides)
         for var_name, value in agent_vars.items():
             if any([isinstance(value, list), isinstance(value, dict)]):
