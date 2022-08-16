@@ -35,6 +35,7 @@ from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
     DEPLOYMENT_KEY_DIRECTORY,
+    KEY_SCHEMA_PRIVATE_KEY,
 )
 from autonomy.deploy.generators.docker_compose.templates import (
     ABCI_NODE_TEMPLATE,
@@ -208,5 +209,5 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             with open(
                 path / DEFAULT_PRIVATE_KEY_FILE, "w", encoding=DEFAULT_ENCODING
             ) as f:
-                f.write(str(self.service_spec.private_keys[x]))
+                f.write(str(self.service_spec.keys[x][KEY_SCHEMA_PRIVATE_KEY]))
         return self
