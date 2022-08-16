@@ -35,8 +35,17 @@ from aea.cli.fingerprint import fingerprint_item
 from aea.cli.scaffold import scaffold, scaffold_item
 from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
-from aea.configurations.base import SkillComponentConfiguration, SkillConfig
-from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE, SKILL, SKILLS
+from aea.configurations.base import (
+    AgentConfig,
+    SkillComponentConfiguration,
+    SkillConfig,
+)
+from aea.configurations.constants import (
+    DEFAULT_AEA_CONFIG_FILE,
+    DEFAULT_SKILL_CONFIG_FILE,
+    SKILL,
+    SKILLS,
+)
 
 # the decoration does side-effect on the 'aea scaffold' command
 from aea.configurations.data_types import CRUDCollection, PublicId
@@ -105,10 +114,36 @@ def _try_get_round_behaviour_cls_name_from_abci_app_cls_name(
 
     It tries to replace the suffix "AbciApp" with "RoundBehaviour".
 
+    If it fails, returns "RoundBehaviour".
+
     :param abci_app_cls_name: the abci app class name
     :return: the new round behaviour class name
     """
-    return re.sub("(.*)AbciApp", "\\1RoundBehaviour", abci_app_cls_name)
+    result = re.sub("(.*)AbciApp", "\\1RoundBehaviour", abci_app_cls_name)
+    # if replacement did not work, return default round behaviour name
+    if result == abci_app_cls_name:
+        return "RoundBehaviour"
+    return result
+
+
+def _try_get_base_behaviour_cls_name_from_abci_app_cls_name(
+    abci_app_cls_name: str,
+) -> str:
+    """
+    Try to get the base behaviour class name from the Abci app class name.
+
+    It tries to replace the suffix "AbciApp" with "BaseBehaviour".
+
+    If it fails, returns "RoundBehaviour".
+
+    :param abci_app_cls_name: the abci app class name
+    :return: the new round behaviour class name
+    """
+    result = re.sub("(.*)AbciApp", "\\1BaseBehaviour", abci_app_cls_name)
+    # if replacement did not work, return default round behaviour name
+    if result == abci_app_cls_name:
+        return "BaseBehaviour"
+    return result
 
 
 class AbstractFileGenerator(ABC):
@@ -116,8 +151,10 @@ class AbstractFileGenerator(ABC):
 
     FILENAME: str
 
-    def __init__(self, dfa: DFA) -> None:
+    def __init__(self, ctx: Context, skill_name: str, dfa: DFA) -> None:
         """Initialize the abstract file generator."""
+        self.ctx = ctx
+        self.skill_name = skill_name
         self.dfa = dfa
 
     @abstractmethod
@@ -152,6 +189,18 @@ class RoundFileGenerator(AbstractFileGenerator):
             EventToTimeout,
             TransactionType
         )
+
+    """
+    )
+
+    SYNCHRONIZED_DATA_SECTION = dedent(
+        """\
+        class SynchronizedData(BaseSynchronizedData):
+            \"\"\"
+            Class to represent the synchronized data.
+
+            This data is replicated by the tendermint application.
+            \"\"\"
 
     """
     )
@@ -196,6 +245,7 @@ class RoundFileGenerator(AbstractFileGenerator):
         """Scaffold the 'rounds.py' file."""
         rounds_header_section = self._get_rounds_header_section()
         event_section = self._get_event_section()
+        synchronized_data_section = self._get_synchronized_data_section()
         rounds_section = self._get_rounds_section()
         abci_app_section = self._get_abci_app_section()
 
@@ -205,6 +255,7 @@ class RoundFileGenerator(AbstractFileGenerator):
                 FILE_HEADER,
                 rounds_header_section,
                 event_section,
+                synchronized_data_section,
                 rounds_section,
                 abci_app_section,
             ]
@@ -253,13 +304,17 @@ class RoundFileGenerator(AbstractFileGenerator):
         enum_event_class = class_header + "\n" + class_body + "\n\n"
         return enum_event_class
 
+    def _get_synchronized_data_section(self) -> str:
+        """Get the event section of the module (i.e. the event enum class definition)."""
+        return self.SYNCHRONIZED_DATA_SECTION
+
     def _get_abci_app_section(self) -> str:
         """Get the abci app section (i.e. the declaration of the AbciApp class)."""
         abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
         return RoundFileGenerator.ABCI_APP_CLS_TEMPLATE.format(
             AbciAppCls=abci_app_cls_name,
             initial_round_cls=self.dfa.default_start_state,
-            initial_states=_remove_quotes(str(self.dfa.default_start_state)),
+            initial_states=_remove_quotes(str(self.dfa.start_states)),
             transition_function=self._parse_transition_func(),
             final_states=_remove_quotes(str(self.dfa.final_states)),
         )
@@ -269,6 +324,9 @@ class RoundFileGenerator(AbstractFileGenerator):
         result: Dict[str, Dict[str, str]] = {}  # type: ignore
         for (round_cls_name, event_name), value in self.dfa.transition_func.items():
             result.setdefault(round_cls_name, {})[f"Event.{event_name}"] = value
+        for state in self.dfa.states:
+            if state not in result:
+                result[state] = {}
         return _remove_quotes(str(result))
 
 
@@ -282,7 +340,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
         \"\"\"This package contains round behaviours of {FSMName}.\"\"\"
 
         from abc import abstractmethod
-        from typing import Generator, Set, Type
+        from typing import Generator, Set, Type, cast
 
         from packages.valory.skills.abstract_round_abci.base import AbstractRound
         from packages.valory.skills.abstract_round_abci.behaviours import (
@@ -290,12 +348,33 @@ class BehaviourFileGenerator(AbstractFileGenerator):
             BaseBehaviour,
         )
 
+        from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.models import Params
+        from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.rounds import SynchronizedData, {AbciAppCls}
+
         """
+    )
+
+    BASE_BEHAVIOUR_CLS_TEMPLATE = dedent(
+        """\
+        class {BaseBehaviourCls}(BaseBehaviour):
+            \"\"\"Base behaviour for the common apps' skill.\"\"\"
+
+            @property
+            def synchronized_data(self) -> SynchronizedData:
+                \"\"\"Return the synchronized data.\"\"\"
+                return cast(SynchronizedData, super().synchronized_data)
+
+            @property
+            def params(self) -> Params:
+                \"\"\"Return the params.\"\"\"
+                return cast(Params, super().params)
+
+    """
     )
 
     BEHAVIOUR_CLS_TEMPLATE = dedent(
         """\
-        class {BehaviourCls}(BaseBehaviour):
+        class {BehaviourCls}({BaseBehaviourCls}):
             # TODO: set the following class attributes
             state_id: str
             behaviour_id: str
@@ -311,8 +390,8 @@ class BehaviourFileGenerator(AbstractFileGenerator):
     ROUND_BEHAVIOUR_CLS_TEMPLATE = dedent(
         """\
         class {RoundBehaviourCls}(AbstractRoundBehaviour):
-            initial_behaviour_cls = {initial_behaviour_cls}
-            abci_app_cls = {abci_app_cls}  # type: ignore
+            initial_behaviour_cls = {InitialBehaviourCls}
+            abci_app_cls = {AbciAppCls}  # type: ignore
             behaviours: Set[Type[BaseBehaviour]] = {behaviours}
     """
     )
@@ -320,6 +399,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
     def get_file(self) -> str:
         """Scaffold the 'rounds.py' file."""
         behaviours_header_section = self._get_behaviours_header_section()
+        base_behaviour_section = self._get_base_behaviour_section()
         behaviours_section = self._get_behaviours_section()
         round_behaviour_section = self._get_round_behaviour_section()
 
@@ -328,6 +408,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
             [
                 FILE_HEADER,
                 behaviours_header_section,
+                base_behaviour_section,
                 behaviours_section,
                 round_behaviour_section,
             ]
@@ -337,13 +418,29 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 
     def _get_behaviours_header_section(self) -> str:
         """Get the behaviours header section."""
+        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
         return self.BEHAVIOUR_FILE_HEADER.format(
-            FSMName=_get_abci_app_cls_name_from_dfa(self.dfa)
+            FSMName=_get_abci_app_cls_name_from_dfa(self.dfa),
+            scaffold_skill_author_name=self.ctx.agent_config.author,
+            scaffold_skill_name=self.skill_name,
+            AbciAppCls=abci_app_cls_name,
+        )
+
+    def _get_base_behaviour_section(self) -> str:
+        """Get the base behaviour section."""
+        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
+        base_behaviour_cls_name = (
+            _try_get_base_behaviour_cls_name_from_abci_app_cls_name(abci_app_cls_name)
+        )
+        return self.BASE_BEHAVIOUR_CLS_TEMPLATE.format(
+            BaseBehaviourCls=base_behaviour_cls_name
         )
 
     def _get_behaviours_section(self) -> str:
         """Get the behaviours section of the module (i.e. the list of behaviour classes)."""
         all_behaviour_classes_str = []
+
+        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
 
         # add behaviour classes
         for abci_round_name in self.dfa.states:
@@ -351,8 +448,14 @@ class BehaviourFileGenerator(AbstractFileGenerator):
             abci_behaviour_name = _try_get_behaviour_cls_name_from_round_cls_name(
                 abci_round_name
             )
+            base_behaviour_cls_name = (
+                _try_get_base_behaviour_cls_name_from_abci_app_cls_name(
+                    abci_app_cls_name
+                )
+            )
             behaviour_class_str = BehaviourFileGenerator.BEHAVIOUR_CLS_TEMPLATE.format(
                 BehaviourCls=abci_behaviour_name,
+                BaseBehaviourCls=base_behaviour_cls_name,
             )
             all_behaviour_classes_str.append(behaviour_class_str)
 
@@ -384,8 +487,8 @@ class BehaviourFileGenerator(AbstractFileGenerator):
         )
         return BehaviourFileGenerator.ROUND_BEHAVIOUR_CLS_TEMPLATE.format(
             RoundBehaviourCls=round_behaviour_cls_name,
-            initial_behaviour_cls=initial_behaviour_cls_name,
-            abci_app_cls=abci_app_cls_name,
+            InitialBehaviourCls=initial_behaviour_cls_name,
+            AbciAppCls=abci_app_cls_name,
             behaviours=_remove_quotes(str(self._get_behaviour_set())),
         )
 
@@ -406,7 +509,7 @@ class ModelsFileGenerator(AbstractFileGenerator):
         from packages.valory.skills.abstract_round_abci.models import (
             SharedState as BaseSharedState,
         )
-        from packages.valory.skills.registration_abci.rounds import {AbciAppCls}
+        from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.rounds import {AbciAppCls}
 
 
         class SharedState(BaseSharedState):
@@ -429,7 +532,10 @@ class ModelsFileGenerator(AbstractFileGenerator):
             [
                 FILE_HEADER,
                 ModelsFileGenerator.MODEL_FILE_TEMPLATE.format(
-                    FSMName=abci_app_cls_name, AbciAppCls=abci_app_cls_name
+                    FSMName=abci_app_cls_name,
+                    AbciAppCls=abci_app_cls_name,
+                    scaffold_skill_author_name=self.ctx.agent_config.author,
+                    scaffold_skill_name=self.skill_name,
                 ),
             ]
         )
@@ -507,6 +613,7 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         self._update_behaviours(config)
         self._update_handlers(config)
         self._update_models(config)
+        self._update_dependencies(config)
         self.ctx.skill_loader.dump(config, self.skill_config_path.open("w"))
         fingerprint_item(self.ctx, SKILL, config.public_id)
 
@@ -547,6 +654,22 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         config.models.create("requests", SkillComponentConfiguration("Requests"))
         config.models.create("params", SkillComponentConfiguration("Params"))
 
+    def _update_dependencies(self, config: SkillConfig) -> None:
+        """Update skill dependencies."""
+        # retrieve the actual valory/abstract_round_abci package
+        agent_config = self._load_agent_config()
+        abstract_round_abci = [
+            public_id
+            for public_id in agent_config.skills
+            if public_id.author == "valory" and public_id.name == "abstract_round_abci"
+        ][0]
+        config.skills.add(abstract_round_abci)
+
+    def _load_agent_config(self) -> AgentConfig:
+        """Load the current agent configuration."""
+        with (Path(self.ctx.cwd) / DEFAULT_AEA_CONFIG_FILE).open() as f:
+            return self.ctx.agent_loader.load(f)
+
 
 class ScaffoldABCISkill:
     """Utility class that implements the scaffolding of the ABCI skill."""
@@ -577,22 +700,30 @@ class ScaffoldABCISkill:
     def _scaffold_rounds(self) -> None:
         """Scaffold the 'rounds.py' module."""
         click.echo(f"Generating module {RoundFileGenerator.FILENAME}...")
-        RoundFileGenerator(self.dfa).write_file(self.skill_dir)
+        RoundFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_dir
+        )
 
     def _scaffold_behaviours(self) -> None:
         """Scaffold the 'behaviours.py' module."""
         click.echo(f"Generating module {BehaviourFileGenerator.FILENAME}...")
-        BehaviourFileGenerator(self.dfa).write_file(self.skill_dir)
+        BehaviourFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_dir
+        )
 
     def _scaffold_models(self) -> None:
         """Scaffold the 'models.py' module."""
         click.echo(f"Generating module {ModelsFileGenerator.FILENAME}...")
-        ModelsFileGenerator(self.dfa).write_file(self.skill_dir)
+        ModelsFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_dir
+        )
 
     def _scaffold_handlers(self) -> None:
         """Scaffold the 'handlers.py' module."""
         click.echo(f"Generating module {HandlersFileGenerator.FILENAME}...")
-        HandlersFileGenerator(self.dfa).write_file(self.skill_dir)
+        HandlersFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_dir
+        )
 
     def _update_config(self) -> None:
         """Update the skill configuration."""
