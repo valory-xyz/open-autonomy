@@ -22,7 +22,7 @@
 import os
 import shutil
 from pathlib import Path
-from typing import Optional, cast
+from typing import List, Optional, cast
 
 import click
 from aea.cli.utils.click_utils import password_option, registry_flag
@@ -37,7 +37,7 @@ from autonomy.configurations.loader import load_service_config
 from autonomy.constants import DEFAULT_IMAGE_VERSION, DEFAULT_KEYS_FILE
 from autonomy.data import DATA_DIR
 from autonomy.deploy.build import generate_deployment
-from autonomy.deploy.chain import resolve_token_id
+from autonomy.deploy.chain import ServiceRegistry
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
     BENCHMARKS_DIR,
@@ -194,39 +194,6 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
     run_deployment(build_dir, no_recreate, remove_orphans)
 
 
-def run_deployment(
-    build_dir: Path, no_recreate: bool = False, remove_orphans: bool = False
-) -> None:
-    """Run deployment."""
-
-    click.echo(f"Running build @ {build_dir}")
-    project = docker_compose.project_from_options(build_dir, {})
-    commands = docker_compose.TopLevelCommand(project=project)
-    commands.up(
-        {
-            "--detach": False,
-            "--no-color": False,
-            "--quiet-pull": False,
-            "--no-deps": False,
-            "--force-recreate": not no_recreate,
-            "--always-recreate-deps": False,
-            "--no-recreate": no_recreate,
-            "--no-build": False,
-            "--no-start": False,
-            "--build": True,
-            "--abort-on-container-exit": False,
-            "--attach-dependencies": False,
-            "--timeout": None,
-            "--renew-anon-volumes": False,
-            "--remove-orphans": remove_orphans,
-            "--exit-code-from": None,
-            "--scale": [],
-            "--no-log-prefix": False,
-            "SERVICE": None,
-        }
-    )
-
-
 @deploy_group.command(name="from-token")
 @click.argument("token_id", type=int)
 @click.argument("keys_file", type=click.Path())
@@ -260,16 +227,18 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     ctx = cast(Context, click_context.obj)
     ctx.registry_type = registry
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
+    service_registry = ServiceRegistry(chain_type, rpc_url, service_contract_address)
 
     click.echo(f"Building service deployment using token ID: {token_id}")
-    metadata = resolve_token_id(token_id, chain_type, rpc_url, service_contract_address)
+    metadata = service_registry.resolve_token_id(token_id)
+    _, agent_instances = service_registry.get_agent_instances(token_id)
     click.echo("Service name: " + metadata["name"])
+
     *_, service_hash = metadata["code_uri"].split("//")
     public_id = PublicId(author="valory", name="service", package_hash=service_hash)
     service_path = fetch_service(ctx, public_id)
     build_dir = service_path / DEFAULT_ABCI_BUILD_DIR
     service = load_service_config(service_path)
-
     with cd(service_path):
         if not skip_images:
             click.echo("Building required images.")
@@ -296,6 +265,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
             force_overwrite=True,
             number_of_agents=n,
             version=DEFAULT_IMAGE_VERSION,
+            index=agent_instances,
         )
 
     click.echo("Service build successful.")
@@ -314,6 +284,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
     packages_dir: Optional[Path] = None,
     open_aea_dir: Optional[Path] = None,
     open_autonomy_dir: Optional[Path] = None,
+    index: Optional[List[str]] = None,
 ) -> None:
     """Build deployment."""
     if build_dir.is_dir():
@@ -337,6 +308,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
         packages_dir=packages_dir,
         open_aea_dir=open_aea_dir,
         open_autonomy_dir=open_autonomy_dir,
+        index=index,
     )
     click.echo(report)
 
@@ -361,3 +333,36 @@ def _build_dirs(build_dir: Path) -> None:
             click.echo(
                 f"Updating permissions failed for {path}, please do it manually."
             )
+
+
+def run_deployment(
+    build_dir: Path, no_recreate: bool = False, remove_orphans: bool = False
+) -> None:
+    """Run deployment."""
+
+    click.echo(f"Running build @ {build_dir}")
+    project = docker_compose.project_from_options(build_dir, {})
+    commands = docker_compose.TopLevelCommand(project=project)
+    commands.up(
+        {
+            "--detach": False,
+            "--no-color": False,
+            "--quiet-pull": False,
+            "--no-deps": False,
+            "--force-recreate": not no_recreate,
+            "--always-recreate-deps": False,
+            "--no-recreate": no_recreate,
+            "--no-build": False,
+            "--no-start": False,
+            "--build": True,
+            "--abort-on-container-exit": False,
+            "--attach-dependencies": False,
+            "--timeout": None,
+            "--renew-anon-volumes": False,
+            "--remove-orphans": remove_orphans,
+            "--exit-code-from": None,
+            "--scale": [],
+            "--no-log-prefix": False,
+            "SERVICE": None,
+        }
+    )
