@@ -116,16 +116,6 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None
 
 Run deployment.
 
-<a id="autonomy.cli.deploy.run_deployment"></a>
-
-#### run`_`deployment
-
-```python
-def run_deployment(build_dir: Path, no_recreate: bool = False, remove_orphans: bool = False) -> None
-```
-
-Run deployment.
-
 <a id="autonomy.cli.deploy.run_deployment_from_token"></a>
 
 #### run`_`deployment`_`from`_`token
@@ -158,8 +148,18 @@ Run service deployment.
 #### build`_`deployment
 
 ```python
-def build_deployment(keys_file: Path, build_dir: Path, deployment_type: str, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None) -> None
+def build_deployment(keys_file: Path, build_dir: Path, deployment_type: str, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, index: Optional[List[str]] = None) -> None
 ```
 
 Build deployment.
+
+<a id="autonomy.cli.deploy.run_deployment"></a>
+
+#### run`_`deployment
+
+```python
+def run_deployment(build_dir: Path, no_recreate: bool = False, remove_orphans: bool = False) -> None
+```
+
+Run deployment.
 
