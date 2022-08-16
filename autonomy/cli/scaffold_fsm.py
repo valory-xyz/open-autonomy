@@ -42,11 +42,6 @@ from aea.configurations.data_types import CRUDCollection
 
 from autonomy.analyse.abci.app_spec import DFA
 
-from packages.valory.skills.abstract_round_abci.base import (
-    AbstractRound,
-    DegenerateRound,
-)
-
 
 FILE_HEADER = """\
 # -*- coding: utf-8 -*-
@@ -225,9 +220,9 @@ class RoundFileGenerator(AbstractFileGenerator):
         # add round classes
         for abci_round_name in self.dfa.states:
             abci_round_base_cls_name = (
-                DegenerateRound.__name__
+                "DegenerateRound"
                 if abci_round_name in self.dfa.final_states
-                else AbstractRound.__name__
+                else "AbstractRound"
             )
             round_class_str = RoundFileGenerator.ROUND_CLS_TEMPLATE.format(
                 RoundCls=abci_round_name, ABCRoundCls=abci_round_base_cls_name
