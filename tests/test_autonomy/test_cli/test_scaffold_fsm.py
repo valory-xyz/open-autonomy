@@ -56,14 +56,3 @@ class TestScaffoldFSM(AEATestCaseEmpty):
             )
 
         assert result.exit_code == 0
-        for expected_line in [
-            "Adding skill scaffold 'myskill' to the agent",
-            "Fingerprinting skill components of 'default_author/myskill:0.1.0' ...",
-            "Generating module rounds.py...",
-            "Generating module behaviours.py...",
-            "Generating module models.py...",
-            "Generating module handlers.py...",
-            "Updating skill configuration...",
-            "Fingerprinting skill components of 'default_author/myskill:0.1.0' ...",
-        ]:
-            assert expected_line in result.stdout
