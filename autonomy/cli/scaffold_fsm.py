@@ -71,6 +71,9 @@ BEHAVIOURS_FILENAME = "behaviours.py"
 MODELS_FILENAME = "models.py"
 HANDLERS_FILENAME = "handlers.py"
 
+DEGENERATE_ROUND = "DegenerateRound"
+ABSTRACT_ROUND = "AbstractRound"
+
 
 def _remove_quotes(input_str: str) -> str:
     """Remove single or double quotes from a string."""
@@ -156,6 +159,7 @@ class RoundFileGenerator(AbstractFileGenerator):
     ROUND_CLS_TEMPLATE = dedent(
         """\
         class {RoundCls}({ABCRoundCls}):
+            {todo_abstract_round_cls}
             # TODO: set the following class attributes
             round_id: str
             allowed_tx_type: Optional[TransactionType]
@@ -221,12 +225,17 @@ class RoundFileGenerator(AbstractFileGenerator):
         # add round classes
         for abci_round_name in self.dfa.states:
             abci_round_base_cls_name = (
-                "DegenerateRound"
+                DEGENERATE_ROUND
                 if abci_round_name in self.dfa.final_states
-                else "AbstractRound"
+                else ABSTRACT_ROUND
             )
+            todo_abstract_round_cls = ""
+            if abci_round_base_cls_name == ABSTRACT_ROUND:
+                todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
             round_class_str = RoundFileGenerator.ROUND_CLS_TEMPLATE.format(
-                RoundCls=abci_round_name, ABCRoundCls=abci_round_base_cls_name
+                RoundCls=abci_round_name,
+                ABCRoundCls=abci_round_base_cls_name,
+                todo_abstract_round_cls=todo_abstract_round_cls,
             )
             all_round_classes_str.append(round_class_str)
 
