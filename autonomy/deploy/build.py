@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 """Script for generating deployment environments."""
 from pathlib import Path
-from typing import Optional, cast
+from typing import List, Optional, cast
 
 from autonomy.constants import (
     HARDHAT_IMAGE_VERSION,
@@ -37,7 +37,7 @@ DEPLOYMENT_OPTIONS = {
 }
 
 
-def generate_deployment(  # pylint: disable=too-many-arguments
+def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     type_of_deployment: str,
     private_keys_file_path: Path,
     service_path: Path,
@@ -49,6 +49,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments
     packages_dir: Optional[Path] = None,
     open_aea_dir: Optional[Path] = None,
     open_autonomy_dir: Optional[Path] = None,
+    agent_instances: Optional[List[str]] = None,
 ) -> str:
     """Generate the deployment build for the valory app."""
 
@@ -70,11 +71,13 @@ def generate_deployment(  # pylint: disable=too-many-arguments
         keys=private_keys_file_path,
         private_keys_password=private_keys_password,
         number_of_agents=number_of_agents,
+        agent_instances=agent_instances,
     )
 
     DeploymentGenerator = DEPLOYMENT_OPTIONS.get(type_of_deployment)
     if DeploymentGenerator is None:  # pragma: no cover
         raise ValueError(f"Cannot find deployment generator for {type_of_deployment}")
+
     deployment = cast(
         BaseDeploymentGenerator,
         DeploymentGenerator(
@@ -87,9 +90,12 @@ def generate_deployment(  # pylint: disable=too-many-arguments
         ),
     )
 
-    deployment.generate(image_versions).generate_config_tendermint(
-        image_versions["tendermint"]
-    ).write_config().populate_private_keys()
+    (
+        deployment.generate(image_versions)
+        .generate_config_tendermint(image_versions["tendermint"])
+        .write_config()
+        .populate_private_keys()
+    )
 
     return DEPLOYMENT_REPORT.substitute(
         **{

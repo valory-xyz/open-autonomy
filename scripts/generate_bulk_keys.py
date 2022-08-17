@@ -36,7 +36,7 @@ def generate_keys(number_of_keys: int, output_file: str, password: str) -> None:
     for x in range(number_of_keys):
         account = make_crypto("ethereum")
         keys.append(
-            {"address": account.address, "encrypted_key": account.encrypt(password)}
+            {"address": account.address, "private_key": account.encrypt(password)}
         )
         print(f"Processed key generation {x}")
     with open(output_file, "w", encoding="utf8") as f:
