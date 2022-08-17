@@ -52,7 +52,6 @@ class LedgerConnection(Connection):  # pylint: disable=too-many-instance-attribu
         self._ledger_dispatcher: Optional[LedgerApiRequestDispatcher] = None
         self._contract_dispatcher: Optional[ContractApiRequestDispatcher] = None
 
-        self.receiving_tasks: List[asyncio.Future] = []
         self.task_to_request: Dict[asyncio.Future, Envelope] = {}
         self.response_envelopes: asyncio.Queue = asyncio.Queue()
         self.api_configs = self.configuration.config.get(
@@ -99,7 +98,7 @@ class LedgerConnection(Connection):  # pylint: disable=too-many-instance-attribu
 
         self.state = ConnectionStates.disconnecting
 
-        for task in self.receiving_tasks:
+        for task in self.task_to_request.keys():
             if not task.cancelled():  # pragma: nocover
                 task.cancel()
         self._ledger_dispatcher = None
@@ -162,7 +161,6 @@ class LedgerConnection(Connection):  # pylint: disable=too-many-instance-attribu
         :param task: the done task.
         """
         request = self.task_to_request.pop(task)
-        self.receiving_tasks.remove(task)
         response_message: Optional[Message] = task.result()
 
         response_envelope = None
