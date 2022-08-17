@@ -19,9 +19,7 @@
 
 """Scaffold connection and channel."""
 import asyncio
-from asyncio import Task
-from collections import deque
-from typing import Any, Deque, Dict, List, Optional, cast
+from typing import Any, Dict, Optional
 
 from aea.connections.base import Connection, ConnectionStates
 from aea.mail.base import Envelope
@@ -38,7 +36,7 @@ from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 
 
-class LedgerConnection(Connection):  # pylint: disable=too-many-instance-attributes
+class LedgerConnection(Connection):
     """Proxy to the functionality of the SDK or API."""
 
     connection_id = CONNECTION_ID
@@ -116,7 +114,7 @@ class LedgerConnection(Connection):  # pylint: disable=too-many-instance-attribu
         task.add_done_callback(self._handle_done_task)
         self.task_to_request[task] = envelope
 
-    def _schedule_request(self, envelope: Envelope) -> Task:
+    def _schedule_request(self, envelope: Envelope) -> asyncio.Task:
         """
         Schedule a ledger API request.
 
