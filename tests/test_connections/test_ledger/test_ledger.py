@@ -46,8 +46,8 @@ class TestLedgerConnection:
     """Test `LedgerConnection` class."""
 
     @pytest.mark.asyncio
-    async def test_hanging(self) -> None:
-        """Test that the connection hangs and that the tasks are blocked."""
+    async def test_not_hanging(self) -> None:
+        """Test that the connection does not hang and that the tasks cannot get blocked."""
         # create configurations for the test, re bocking and non-blocking tasks' waiting times
         blocking_time = 100
         wait_time_among_tasks = 0.1
