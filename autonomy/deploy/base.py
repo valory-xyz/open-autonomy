@@ -121,9 +121,9 @@ class ServiceSpecification:
                 self.generate_agent(i) for i in range(self.service.number_of_agents)
             ]
 
+        idx_mappings = {address: i for i, address in enumerate(self.agent_instances)}
         agent_override_idx = [
-            (i, self.agent_instances.index(kp["address"]))
-            for i, kp in enumerate(self.keys)
+            (i, idx_mappings[kp["address"]]) for i, kp in enumerate(self.keys)
         ]
         return [self.generate_agent(i, idx) for i, idx in agent_override_idx]
 
