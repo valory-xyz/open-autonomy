@@ -53,11 +53,8 @@ class TestLedgerConnection:
         non_blocking_time = 1
         tolerance = 0.1
         assert (
-            non_blocking_time < blocking_time
-        ), "`non_blocking_time` should be much smaller than the `blocking_time`."
-        assert (
-            tolerance * 10 < blocking_time
-        ), "`tolerance` should be much smaller than the `blocking_time`."
+            non_blocking_time + tolerance + wait_time_among_tasks < blocking_time
+        ), "`non_blocking_time + tolerance + wait_time_among_tasks` should be less than the `blocking_time`."
 
         # setup a dummy ledger connection
         ledger_connection = LedgerConnection(
