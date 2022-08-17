@@ -20,6 +20,7 @@
 """Tendermint Docker image."""
 import logging
 import time
+from pathlib import Path
 from typing import List
 
 import docker
@@ -27,13 +28,13 @@ import requests
 from aea.exceptions import enforce
 from docker.models.containers import Container
 
-from autonomy.test_tools.configurations import THIRD_PARTY
 from autonomy.test_tools.docker.base import DockerImage
 
 
 DEFAULT_HARDHAT_ADDR = "http://127.0.0.1"
 DEFAULT_HARDHAT_PORT = 8545
-AMM_CONTRACTS_ROOT_DIR = THIRD_PARTY / "contracts-amm"
+
+AMM_CONTRACT_DIR = "contracts-amm"
 
 _SLEEP_TIME = 1
 
@@ -49,9 +50,12 @@ MULTISEND_CALL_ONLY_CONTRACT = "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
 class AMMNetDockerImage(DockerImage):
     """Spawn a local Ethereum network with deployed Gnosis Safe and Uniswap contracts, using HardHat."""
 
+    third_party_contract_dir: Path
+
     def __init__(
         self,
         client: docker.DockerClient,
+        third_party_contract_dir: Path,
         addr: str = DEFAULT_HARDHAT_ADDR,
         port: int = DEFAULT_HARDHAT_PORT,
     ):
@@ -59,6 +63,7 @@ class AMMNetDockerImage(DockerImage):
         super().__init__(client)
         self.addr = addr
         self.port = port
+        self.third_party_contract_dir = third_party_contract_dir
 
     @property
     def tag(self) -> str:
@@ -75,7 +80,7 @@ class AMMNetDockerImage(DockerImage):
         cmd = self._build_command()
         working_dir = "/build"
         volumes = {
-            str(AMM_CONTRACTS_ROOT_DIR): {
+            str(self.third_party_contract_dir / AMM_CONTRACT_DIR): {
                 "bind": working_dir,
                 "mode": "rw",
             },
