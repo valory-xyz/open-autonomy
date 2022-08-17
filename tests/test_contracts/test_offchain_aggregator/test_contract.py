@@ -36,7 +36,7 @@ from packages.valory.contracts.offchain_aggregator.contract import (
     OffchainAggregatorContract,
 )
 
-from tests.conftest import ROOT_DIR
+from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS
 
 
 class BaseContractTest(BaseGanacheContractTest):
@@ -54,6 +54,7 @@ class BaseContractTest(BaseGanacheContractTest):
         ROOT_DIR, "packages", "valory", "contracts", "offchain_aggregator"
     )
     contract: OffchainAggregatorContract
+    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:

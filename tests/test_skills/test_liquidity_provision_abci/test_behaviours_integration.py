@@ -69,7 +69,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TransactionSettlementSynchronizedSata,
 )
 
-from tests.conftest import ROOT_DIR, make_ledger_api_connection
+from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS, make_ledger_api_connection
 from tests.test_skills.test_liquidity_rebalancing_abci.test_behaviours import (
     A_WETH_POOL_ADDRESS,
     B_WETH_POOL_ADDRESS,
@@ -110,6 +110,7 @@ class LiquidityProvisionIntegrationBaseCase(
     default_synchronized_data_hash: LiquidityRebalancingSynchronizedSata
     ROOT_DIR = ROOT_DIR
     make_ledger_api_connection_callable = make_ledger_api_connection
+    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:

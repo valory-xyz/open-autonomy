@@ -32,7 +32,7 @@ from packages.valory.contracts.uniswap_v2_router_02.contract import (
     UniswapV2Router02Contract,
 )
 
-from tests.conftest import ROOT_DIR
+from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS
 
 
 CONTRACT_ADDRESS = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
@@ -1013,6 +1013,7 @@ class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
     )
     sanitize_from_deploy_tx = ["contract_address"]
     contract: UniswapV2Router02Contract
+    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     contract_address = "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"
     weth_address = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
