@@ -51,7 +51,6 @@ class LedgerConnection(Connection):  # pylint: disable=too-many-instance-attribu
 
         self._ledger_dispatcher: Optional[LedgerApiRequestDispatcher] = None
         self._contract_dispatcher: Optional[ContractApiRequestDispatcher] = None
-        self._event_new_receiving_task: Optional[asyncio.Event] = None
 
         self.receiving_tasks: List[asyncio.Future] = []
         self.task_to_request: Dict[asyncio.Future, Envelope] = {}
@@ -65,11 +64,6 @@ class LedgerConnection(Connection):  # pylint: disable=too-many-instance-attribu
         self.request_retry_timeout = self.configuration.config.get(
             "retry_timeout", self.TIMEOUT
         )
-
-    @property
-    def event_new_receiving_task(self) -> asyncio.Event:
-        """Get the event to notify the 'receive' method of new receiving tasks."""
-        return cast(asyncio.Event, self._event_new_receiving_task)
 
     async def connect(self) -> None:
         """Set up the connection."""
@@ -95,7 +89,6 @@ class LedgerConnection(Connection):  # pylint: disable=too-many-instance-attribu
             retry_attempts=self.request_retry_attempts,
             retry_timeout=self.request_retry_timeout,
         )
-        self._event_new_receiving_task = asyncio.Event()
 
         self.state = ConnectionStates.connected
 
@@ -111,7 +104,6 @@ class LedgerConnection(Connection):  # pylint: disable=too-many-instance-attribu
                 task.cancel()
         self._ledger_dispatcher = None
         self._contract_dispatcher = None
-        self._event_new_receiving_task = None
 
         self.state = ConnectionStates.disconnected
 
@@ -124,7 +116,6 @@ class LedgerConnection(Connection):  # pylint: disable=too-many-instance-attribu
         task = self._schedule_request(envelope)
         task.add_done_callback(self._handle_done_task)
         self.task_to_request[task] = envelope
-        self.event_new_receiving_task.set()
 
     def _schedule_request(self, envelope: Envelope) -> Task:
         """
