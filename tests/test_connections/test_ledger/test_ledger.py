@@ -99,6 +99,5 @@ class TestLedgerConnection:
         # the blocking task should not be done
         assert not blocking_task.done(), "Blocking task should be still running."
 
-        # the receive task should not be done
-        # because it is only awaiting the `blocking_task`
-        assert not receive_task.done(), "Receive task is blocked by blocking task!"
+        # the `receive_task` should be done, and not await for the `blocking_task`
+        assert receive_task.done(), "Receive task is blocked by blocking task!"
