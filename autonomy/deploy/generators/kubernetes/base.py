@@ -21,7 +21,7 @@
 """Script to create environment for benchmarking n agents."""
 
 from pathlib import Path
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List, Optional, cast
 
 import yaml
 
@@ -34,6 +34,7 @@ from autonomy.constants import (
 from autonomy.deploy.base import BaseDeploymentGenerator, ServiceSpecification
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
+    KEY_SCHEMA_PRIVATE_KEY,
     KUBERNETES_AGENT_KEY_NAME,
     TENDERMINT_CONFIGURATION_OVERRIDES,
 )
@@ -52,9 +53,24 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     output_name: str = "build.yaml"
     deployment_type: str = "kubernetes"
 
-    def __init__(self, service_spec: ServiceSpecification, build_dir: Path) -> None:
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        service_spec: ServiceSpecification,
+        build_dir: Path,
+        dev_mode: bool = False,
+        packages_dir: Optional[Path] = None,
+        open_aea_dir: Optional[Path] = None,
+        open_autonomy_dir: Optional[Path] = None,
+    ) -> None:
         """Initialise the deployment generator."""
-        super().__init__(service_spec, build_dir)
+        super().__init__(
+            service_spec,
+            build_dir,
+            dev_mode,
+            packages_dir,
+            open_aea_dir,
+            open_autonomy_dir,
+        )
         self.resources: List[str] = []
 
     def build_agent_deployment(
@@ -74,7 +90,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_deployment = AGENT_NODE_TEMPLATE.format(
             valory_app=image_name,
             validator_ix=agent_ix,
-            aea_key=self.service_spec.private_keys[agent_ix],
+            aea_key=self.service_spec.keys[agent_ix][KEY_SCHEMA_PRIVATE_KEY],
             number_of_validators=number_of_agents,
             host_names=host_names,
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
@@ -132,18 +148,16 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     def generate(  # pylint: disable=unused-argument
         self,
         image_versions: Dict[str, str],
-        dev_mode: bool = False,
     ) -> "KubernetesGenerator":
         """Generate the deployment."""
 
-        if dev_mode:
+        if self.dev_mode:
             self.resources.append(
                 HARDHAT_TEMPLATE % (HARDHAT_IMAGE_NAME, image_versions["hardhat"])
             )
 
         agent_vars = self.service_spec.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
-        agent_vars = self.get_deployment_network_configuration(agent_vars)
         self.image_name = self.service_spec.service.agent.name
 
         agents = "\n---\n".join(
@@ -181,7 +195,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         """Populates private keys into a config map for the kubernetes deployment."""
         path = self.build_dir / "agent_keys"
         for x in range(self.service_spec.service.number_of_agents):
-            key = self.service_spec.private_keys[x]
+            key = self.service_spec.keys[x][KEY_SCHEMA_PRIVATE_KEY]
             secret = AGENT_SECRET_TEMPLATE.format(private_key=key, validator_ix=x)
             with open(
                 path / KUBERNETES_AGENT_KEY_NAME.format(agent_n=x), "w", encoding="utf8"

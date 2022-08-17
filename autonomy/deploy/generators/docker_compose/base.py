@@ -35,6 +35,7 @@ from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
     DEPLOYMENT_KEY_DIRECTORY,
+    KEY_SCHEMA_PRIVATE_KEY,
 )
 from autonomy.deploy.generators.docker_compose.templates import (
     ABCI_NODE_TEMPLATE,
@@ -71,7 +72,8 @@ def build_agent_config(  # pylint: disable=too-many-arguments
     agent_vars: Dict,
     dev_mode: bool = False,
     package_dir: Path = Path.cwd().absolute() / "packages",
-    open_aea_dir: Path = Path.cwd().absolute().parent / "open-aea",
+    open_aea_dir: Path = Path.home().absolute() / "open-aea",
+    open_autonomy_dir: Path = Path.home().absolute() / "open-autonomy",
     open_aea_image_name: str = OPEN_AEA_IMAGE_NAME,
     open_aea_image_version: str = IMAGE_VERSION,
 ) -> str:
@@ -93,6 +95,7 @@ def build_agent_config(  # pylint: disable=too-many-arguments
         )
         config += f"      - {package_dir}:/home/ubuntu/packages:rw\n"
         config += f"      - {open_aea_dir}:/open-aea\n"
+        config += f"      - {open_autonomy_dir}:/open-autonomy\n"
 
     return config
 
@@ -152,15 +155,13 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     def generate(
         self,
         image_versions: Dict[str, str],
-        dev_mode: bool = False,
     ) -> "DockerComposeGenerator":
         """Generate the new configuration."""
 
         agent_vars = self.service_spec.generate_agents()
-        agent_vars = self.get_deployment_network_configuration(agent_vars)
         image_name = self.service_spec.service.agent.name
 
-        if dev_mode:
+        if self.dev_mode:
             image_versions["agent"] = "dev"
 
         agents = "".join(
@@ -170,15 +171,20 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     i,
                     self.service_spec.service.number_of_agents,
                     agent_vars[i],
-                    dev_mode,
+                    self.dev_mode,
                     open_aea_image_version=image_versions["agent"],
+                    package_dir=self.packages_dir,
+                    open_aea_dir=self.open_aea_dir,
+                    open_autonomy_dir=self.open_autonomy_dir,
                 )
                 for i in range(self.service_spec.service.number_of_agents)
             ]
         )
         tendermint_nodes = "".join(
             [
-                build_tendermint_node_config(i, dev_mode, image_versions["tendermint"])
+                build_tendermint_node_config(
+                    i, self.dev_mode, image_versions["tendermint"]
+                )
                 for i in range(self.service_spec.service.number_of_agents)
             ]
         )
@@ -203,5 +209,5 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             with open(
                 path / DEFAULT_PRIVATE_KEY_FILE, "w", encoding=DEFAULT_ENCODING
             ) as f:
-                f.write(str(self.service_spec.private_keys[x]))
+                f.write(str(self.service_spec.keys[x][KEY_SCHEMA_PRIVATE_KEY]))
         return self

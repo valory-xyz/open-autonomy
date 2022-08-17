@@ -66,8 +66,8 @@ jobs:
       run: tox -e check-copyright
     - name: Check docs
       run: tox -e check-api-docs
-    - name: Check doc links and IPFS hashes
-      run: tox -e check-doc-links-hashes
+    # - name: Check doc links and IPFS hashes
+    #   run: tox -e check-doc-links-hashes
     - name: Check pipfiles
       run: tox -e check-pipfiles
 
@@ -135,6 +135,22 @@ jobs:
         tox -e check-abciapp-specs
         tox -e check-handlers
 
+  scan:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v3
+        with:
+          go-version: "1.17.7"
+      - run: |
+          wget https://github.com/zricethezav/gitleaks/releases/download/v8.10.1/gitleaks_8.10.1_linux_x64.tar.gz && \
+          tar -xzf gitleaks_8.10.1_linux_x64.tar.gz && \
+          sudo install gitleaks /usr/bin && \
+          gitleaks detect --report-format json --report-path leak_report
+
   test:
     continue-on-error: True
     needs:
@@ -148,7 +164,7 @@ jobs:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         python-version: [ "3.7", "3.8", "3.9", "3.10" ]
 
-    timeout-minutes: 40
+    timeout-minutes: 50
 
     steps:
       - uses: actions/checkout@v2
@@ -198,12 +214,15 @@ jobs:
 
           # build required images
           pip install .
-          autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --local
+          autonomy fetch --local --service valory/hello_world
 
-          cd abci_build
-          autonomy deploy build image
-          autonomy deploy build image --dev
-          autonomy deploy build image --dependencies
+          cd hello_world
+          autonomy build-images
+          autonomy build-images --dev
+          autonomy build-images --dependencies
+          autonomy build-images --dependencies --version 1.0.0
+          autonomy deploy build ../deployments/keys/hardhat_keys.json
+
           cd ..
 
           # build hardhat node in third_party/safe-contracts

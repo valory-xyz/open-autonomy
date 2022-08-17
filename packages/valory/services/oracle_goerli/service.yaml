@@ -7,8 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeig4wu7inb6ibwfgged3djyc7emopcg5n7d7gwrlotne53pp3jfgq4
 fingerprint_ignore_patterns: []
-agent: valory/oracle:0.1.0:bafybeianqh3rtuna36egggi6reykovqlql67qvbvlpl5yzkfrbr77vaaru
-network: goerli
+agent: valory/oracle:0.1.0:bafybeifru5efbyxqhrlxmbgqxgz2uhiu2d5dy5vmvixhgln6thdtkcnesu
 number_of_agents: 4
 ---
 setup_args:
@@ -96,3 +95,13 @@ models:
       args: *id001
   - server_api:
       args: *id002
+---
+public_id: valory/ledger:0.1.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: https://goerli.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8
+      chain_id: 5
+      poa_chain: true
+      default_gas_price_strategy: eip1559

@@ -31,7 +31,7 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
     PROXY_FACTORY_CONTRACT,
 )
 
-from tests.conftest import ROOT_DIR
+from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS
 
 
 DEFAULT_GAS = 1000000
@@ -47,6 +47,7 @@ class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
         ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
     )
     contract: GnosisSafeProxyFactoryContract
+    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:

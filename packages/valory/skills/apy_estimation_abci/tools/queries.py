@@ -247,3 +247,28 @@ def pairs_q(block: int, ids: List[str]) -> bytes:
     )
 
     return finalize_q(query)
+
+
+def existing_pairs_q(ids: List[str]) -> bytes:
+    """Create a query to get the ids of the given pools, if they exist on the subgraph.
+
+    :param ids: the ids of the pools to be fetched.
+    :return: the built query.
+    """
+
+    query = (
+        """
+    {
+        pairs(
+            where: {id_in:
+            [\""""
+        + '","'.join(ids)
+        + """"]},
+        ) {
+            id
+        }
+    }
+    """
+    )
+
+    return finalize_q(query)

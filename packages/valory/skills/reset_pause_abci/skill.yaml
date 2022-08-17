@@ -16,14 +16,11 @@ fingerprint:
   payloads.py: bafybeib726fzcbjfkx3ikf2l55mqk7hc2aspxdcpglayevhzeeqiz6xu7m
   rounds.py: bafybeiby7rsyzli6cnpgyeighdib3cfadu4uxcjorfdcfyy62j6e4ixmse
 fingerprint_ignore_patterns: []
-connections:
-- valory/abci:0.1.0:bafybeibfdzfevrtiywolqeepk6yfzyvl4bbu6mghhnebkptcbhsh5fxkbu
+connections: []
 contracts: []
-protocols:
-- open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
-- valory/abci:0.1.0:bafybeianfguceeckwhelenmythqmbtqswll6vcaz5wwsdr7hin7ov3rvje
+protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihcarapqbgd7czlfyygkdjvb3zxhfkxvud7hd5owajkcwqsxa63gy
+- valory/abstract_round_abci:0.1.0:bafybeihrz2sqfxmv5wxhmwwmgybx47g33v7qh2p6ypvwqo7vft3xomcby4
 behaviours:
   main:
     args: {}

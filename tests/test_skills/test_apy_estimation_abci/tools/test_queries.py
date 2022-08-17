@@ -28,6 +28,7 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_number_q,
     block_from_timestamp_q,
     eth_price_usd_q,
+    existing_pairs_q,
     finalize_q,
     latest_block_q,
     pairs_q,
@@ -241,6 +242,25 @@ class TestQueries:
                            createdAtTimestamp
                            createdAtBlockNumber
                            liquidityProviderCount
+                       }
+                   }
+                   """
+        assert actual.split() == expected.split()
+
+    @staticmethod
+    def test_existing_pairs_q(monkeypatch: MonkeyPatch) -> None:
+        """Test `existing_pairs_q`."""
+        monkeypatch.setattr(
+            "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
+            identity,
+        )
+        actual = existing_pairs_q(["x0", "x1", "x2"])
+        expected = """
+                   {
+                       pairs(
+                           where: {id_in: ["x0","x1","x2"]},
+                       ) {
+                           id
                        }
                    }
                    """

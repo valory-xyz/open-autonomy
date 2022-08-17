@@ -21,6 +21,7 @@
 import ast
 import logging  # noqa: F401
 import re
+import time
 from typing import Dict, List, Tuple, Type, cast
 
 import pytest
@@ -49,7 +50,7 @@ ResponseItemType = List[Dict[str, str]]
 SubgraphResponseType = Dict[str, ResponseItemType]
 
 
-def make_request(
+def __make_request_no_retries(
     api_specs: Dict, query: str, raise_on_error: bool = True
 ) -> requests.Response:
     """Make a request to a subgraph.
@@ -94,6 +95,27 @@ def make_request(
         raise ValueError(f"Unknown error encountered!\nRaw response: {res}")
 
     return r
+
+
+def make_request(
+    api_specs: Dict,
+    query: str,
+    raise_on_error: bool = True,
+    allowed_retries: int = 5,
+    backoff_factor: int = 1,
+) -> requests.Response:
+    """Make a request using retries."""
+    for i in range(allowed_retries):
+        n_tries = i + 1
+        try:
+            return __make_request_no_retries(api_specs, query, raise_on_error)
+        except (ValueError, ConnectionError) as e:
+            retry_in = backoff_factor * n_tries
+            print(
+                f"Trial {n_tries}/{allowed_retries} failed. Retrying the request in {retry_in} secs. "
+                f"Received an exception:\n{e}"
+            )
+            time.sleep(retry_in)
 
 
 class TestSubgraphs:
@@ -229,7 +251,7 @@ class TestSubgraphs:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "block_subgraph, specs_fixture",
+        "dex_subgraph, specs_fixture",
         (
             (
                 SpookySwapSubgraph,
@@ -242,14 +264,14 @@ class TestSubgraphs:
         ),
     )
     def test_top_n_pairs(
-        block_subgraph: Type[ApiSpecs],
+        dex_subgraph: Type[ApiSpecs],
         specs_fixture: str,
         top_n_pairs_q: str,
         request: FixtureRequest,
     ) -> None:
         """Test SpookySwap's top n pairs request from subgraph."""
         specs: SpecsType = request.getfixturevalue(specs_fixture)
-        api = block_subgraph(**specs)
+        api = dex_subgraph(**specs)
 
         res = make_request(specs, top_n_pairs_q)
         pair_ids = [pair["id"] for pair in api.process_response(DummyMessage(res.content))]  # type: ignore
@@ -258,7 +280,7 @@ class TestSubgraphs:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "block_subgraph, query_fixture, specs_fixture",
+        "dex_subgraph, query_fixture, specs_fixture",
         (
             (
                 SpookySwapSubgraph,
@@ -266,23 +288,34 @@ class TestSubgraphs:
                 "spooky_specs_pairs_extended",
             ),
             (
+                SpookySwapSubgraph,
+                "spooky_existing_pairs_q",
+                "spooky_specs_pairs_extended",
+            ),
+            (
                 UniswapSubgraph,
                 "uni_pairs_q",
+                "uni_specs_pairs_extended",
+            ),
+            (
+                UniswapSubgraph,
+                "uni_existing_pairs_q",
                 "uni_specs_pairs_extended",
             ),
         ),
     )
     def test_pairs(
-        block_subgraph: Type[ApiSpecs],
+        dex_subgraph: Type[ApiSpecs],
         specs_fixture: str,
         query_fixture: str,
         pool_fields: Tuple[str, ...],
+        pairs_ids: Dict[str, List[str]],
         request: FixtureRequest,
     ) -> None:
         """Test SpookySwap's pairs request from subgraph."""
         specs: SpecsType = request.getfixturevalue(specs_fixture)
         query: str = request.getfixturevalue(query_fixture)
-        api = block_subgraph(**specs)
+        api = dex_subgraph(**specs)
 
         res = make_request(api.get_spec(), query)
         pairs = api.process_response(DummyMessage(res.content))  # type: ignore
@@ -290,6 +323,10 @@ class TestSubgraphs:
         assert isinstance(pairs, list)
         assert len(pairs) > 0
         assert isinstance(pairs[0], dict)
+
+        if "existing" in query_fixture:
+            assert pairs == [{"id": id_} for id_ in pairs_ids[api.name]]
+            return
 
         for pair in pairs:
             assert all((key in pair for key in pool_fields))

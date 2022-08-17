@@ -18,72 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """Constants for generating deployments environment."""
-import socket
+
 from string import Template
 from typing import Any, Dict
 
-
-def get_ip() -> str:
-    """Get local IP address."""
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.settimeout(0)
-    try:
-        # doesn't even have to be reachable
-        s.connect(("10.255.255.255", 1))
-        IP = s.getsockname()[0]
-    except Exception:  # pylint: disable=broad-except
-        IP = "127.0.0.1"
-    finally:
-        s.close()
-    return IP
-
-
-NETWORKS = {
-    "docker-compose": {
-        "hardhat": {
-            "LEDGER_ADDRESS": f"http://{get_ip()}:8545",
-            "LEDGER_CHAIN_ID": 31337,
-        },
-        "ropsten": {
-            "LEDGER_ADDRESS": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
-            "LEDGER_CHAIN_ID": 3,
-        },
-        "polygon": {
-            "LEDGER_ADDRESS": "https://polygon-mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
-            "LEDGER_CHAIN_ID": 137,
-            "LEDGER_POA_CHAIN": True,
-            "LEDGER_DEFAULT_GAS_PRICE_STRATEGY": "eip1559_polygon",
-        },
-        "goerli": {
-            "LEDGER_ADDRESS": "https://goerli.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
-            "LEDGER_CHAIN_ID": 5,
-            "LEDGER_POA_CHAIN": True,
-            "LEDGER_DEFAULT_GAS_PRICE_STRATEGY": "eip1559",
-        },
-    },
-    "kubernetes": {
-        "hardhat": {
-            "LEDGER_ADDRESS": "http://hardhat:8545",
-            "LEDGER_CHAIN_ID": 31337,
-        },
-        "ropsten": {
-            "LEDGER_ADDRESS": "https://ropsten.infura.io/v3/2980beeca3544c9fbace4f24218afcd4",
-            "LEDGER_CHAIN_ID": 3,
-        },
-        "polygon": {
-            "LEDGER_ADDRESS": "https://polygon-mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
-            "LEDGER_CHAIN_ID": 137,
-            "LEDGER_POA_CHAIN": True,
-            "LEDGER_DEFAULT_GAS_PRICE_STRATEGY": "eip1559_polygon",
-        },
-        "goerli": {
-            "LEDGER_ADDRESS": "https://goerli.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
-            "LEDGER_CHAIN_ID": 5,
-            "LEDGER_POA_CHAIN": True,
-            "LEDGER_DEFAULT_GAS_PRICE_STRATEGY": "eip1559",
-        },
-    },
-}
 
 TENDERMINT_CONFIGURATION_OVERRIDES: Dict[str, Dict[str, Any]] = {
     "kubernetes": {
@@ -98,7 +36,6 @@ DEPLOYMENT_REPORT: Template = Template(
 Generated Deployment!\n\n
 Type:                 $type
 Agents:               $agents
-Network:              $network
 Build Length          $size\n\n
 """
 )
@@ -110,8 +47,7 @@ KUBERNETES_AGENT_KEY_NAME = DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA + "_private_ke
 DEFAULT_ENCODING = "utf-8"
 
 KEY_SCHEMA_ADDRESS = "address"
-KEY_SCHEMA_ENCRYPTED_KEY = "encrypted_key"
-KEY_SCHEMA_UNENCRYPTED_KEY = "private_key"
+KEY_SCHEMA_PRIVATE_KEY = "private_key"
 
 
 DEFAULT_ABCI_BUILD_DIR = "abci_build"

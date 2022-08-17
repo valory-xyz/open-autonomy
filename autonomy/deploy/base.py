@@ -21,7 +21,7 @@
 import abc
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional
 
 from aea.configurations.base import (
     ConnectionConfig,
@@ -36,15 +36,14 @@ from autonomy.constants import TENDERMINT_IMAGE_VERSION
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     KEY_SCHEMA_ADDRESS,
-    KEY_SCHEMA_ENCRYPTED_KEY,
-    KEY_SCHEMA_UNENCRYPTED_KEY,
-    NETWORKS,
+    KEY_SCHEMA_PRIVATE_KEY,
 )
 
 
 ABCI_HOST = "abci{}"
 TENDERMINT_NODE = "http://node{}:26657"
 TENDERMINT_COM = "http://node{}:8080"
+LOCALHOST = "localhost"
 COMPONENT_CONFIGS: Dict = {
     component.package_type.value: component  # type: ignore
     for component in [
@@ -69,33 +68,41 @@ class ServiceSpecification:
         keys: Path,
         number_of_agents: Optional[int] = None,
         private_keys_password: Optional[str] = None,
+        agent_instances: Optional[List[str]] = None,
     ) -> None:
         """Initialize the Base Deployment."""
-        self.private_keys: List = []
+        self.keys: List = []
         self.private_keys_password = private_keys_password
         self.service = load_service_config(service_path)
+
+        # we allow configurable number of agents independent of the
+        # number of agent instances for local development purposes
+
         if number_of_agents is not None:
             self.service.number_of_agents = number_of_agents
 
+        self.agent_instances = agent_instances
         self.read_keys(keys)
-        if self.service.number_of_agents > len(self.private_keys):
-            raise ValueError("Number of agents cannot be greater than available keys.")
 
     def read_keys(self, file_path: Path) -> None:
         """Read in keys from a file on disk."""
 
         keys = json.loads(file_path.read_text(encoding=DEFAULT_ENCODING))
-
-        key_schema = (
-            KEY_SCHEMA_UNENCRYPTED_KEY
-            if self.private_keys_password is None
-            else KEY_SCHEMA_ENCRYPTED_KEY
-        )
         for key in keys:
-            for required_key in [KEY_SCHEMA_ADDRESS, key_schema]:
-                if required_key not in key.keys():
-                    raise ValueError("Key file incorrectly formatted.")
-            self.private_keys.append(key[key_schema])
+            if {KEY_SCHEMA_ADDRESS, KEY_SCHEMA_PRIVATE_KEY} != set(key.keys()):
+                raise ValueError("Key file incorrectly formatted.")
+
+        if self.agent_instances is not None:
+            keys = [kp for kp in keys if kp["address"] in self.agent_instances]
+            if not keys:
+                raise ValueError(
+                    "Cannot find the provided keys in the list of the agent instances."
+                )
+            self.service.number_of_agents = len(keys)
+
+        self.keys = keys
+        if self.service.number_of_agents > len(self.keys):
+            raise ValueError("Number of agents cannot be greater than available keys.")
 
     def process_model_args_overrides(self, agent_n: int) -> Dict:
         """Generates env vars based on model overrides."""
@@ -109,7 +116,16 @@ class ServiceSpecification:
 
     def generate_agents(self) -> List:
         """Generate multiple agent."""
-        return [self.generate_agent(i) for i in range(self.service.number_of_agents)]
+        if self.agent_instances is None:
+            return [
+                self.generate_agent(i) for i in range(self.service.number_of_agents)
+            ]
+
+        idx_mappings = {address: i for i, address in enumerate(self.agent_instances)}
+        agent_override_idx = [
+            (i, idx_mappings[kp["address"]]) for i, kp in enumerate(self.keys)
+        ]
+        return [self.generate_agent(i, idx) for i, idx in agent_override_idx]
 
     def generate_common_vars(self, agent_n: int) -> Dict:
         """Retrieve vars common for valory apps."""
@@ -126,12 +142,18 @@ class ServiceSpecification:
             agent_vars["AEA_PASSWORD"] = self.private_keys_password
         return agent_vars
 
-    def generate_agent(self, agent_n: int) -> Dict[Any, Any]:
+    def generate_agent(
+        self, agent_n: int, override_idx: Optional[int] = None
+    ) -> Dict[Any, Any]:
         """Generate next agent."""
         agent_vars = self.generate_common_vars(agent_n)
         if len(self.service.overrides) == 0:
             return agent_vars
-        overrides = self.process_model_args_overrides(agent_n)
+
+        if override_idx is None:
+            override_idx = agent_n
+
+        overrides = self.process_model_args_overrides(override_idx)
         agent_vars.update(overrides)
         for var_name, value in agent_vars.items():
             if any([isinstance(value, list), isinstance(value, dict)]):
@@ -148,22 +170,33 @@ class BaseDeploymentGenerator:
     build_dir: Path
     output: str
     tendermint_job_config: Optional[str]
+    dev_mode: bool
+    packages_dir: Path
+    open_aea_dir: Path
+    open_autonomy_dir: Path
 
-    def __init__(self, service_spec: ServiceSpecification, build_dir: Path):
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        service_spec: ServiceSpecification,
+        build_dir: Path,
+        dev_mode: bool = False,
+        packages_dir: Optional[Path] = None,
+        open_aea_dir: Optional[Path] = None,
+        open_autonomy_dir: Optional[Path] = None,
+    ):
         """Initialise with only kwargs."""
-        self.network_config = NETWORKS[self.deployment_type][
-            cast(str, service_spec.service.network)
-        ]
         self.service_spec = service_spec
         self.build_dir = Path(build_dir)
         self.tendermint_job_config: Optional[str] = None
+        self.dev_mode = dev_mode
+        self.packages_dir = packages_dir or Path.cwd().absolute() / "packages"
+        self.open_aea_dir = open_aea_dir or Path.home().absolute() / "open-aea"
+        self.open_autonomy_dir = (
+            open_autonomy_dir or Path.home().absolute() / "open-autonomy"
+        )
 
     @abc.abstractmethod
-    def generate(
-        self,
-        image_versions: Dict[str, str],
-        dev_mode: bool = False,
-    ) -> "BaseDeploymentGenerator":
+    def generate(self, image_versions: Dict[str, str]) -> "BaseDeploymentGenerator":
         """Generate the deployment configuration."""
 
     @abc.abstractmethod
@@ -177,14 +210,6 @@ class BaseDeploymentGenerator:
         self,
     ) -> "BaseDeploymentGenerator":
         """Populate the private keys to the deployment."""
-
-    def get_deployment_network_configuration(
-        self, agent_vars: List[Dict[str, Any]]
-    ) -> List:
-        """Retrieve the appropriate network configuration based on deployment & network."""
-        for agent in agent_vars:
-            agent.update(self.network_config)
-        return agent_vars
 
     def write_config(self) -> "BaseDeploymentGenerator":
         """Write output to build dir"""

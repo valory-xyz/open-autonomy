@@ -120,16 +120,12 @@ class TestSharedState:
 class TestAPYParams:
     """Test `APYParams`"""
 
-    @pytest.mark.parametrize("backwards_compatible", (True, False))
     @pytest.mark.parametrize("param_value", (None, "not_an_int", 0))
-    def test__validate_params(
-        self, backwards_compatible: bool, param_value: Union[None, str, int]
-    ) -> None:
+    def test__validate_params(self, param_value: Union[None, str, int]) -> None:
         """Test `__validate_params`."""
         args = APY_PARAMS_ARGS
         # TypedDict can’t be used for specifying the type of a **kwargs argument: https://peps.python.org/pep-0589/
         kwargs: dict = deepcopy(APY_PARAMS_KWARGS)  # type: ignore
-        kwargs["backwards_compatible"] = backwards_compatible
         kwargs["optimizer"]["timeout"] = param_value
         kwargs["optimizer"]["window_size"] = param_value
 
@@ -145,11 +141,6 @@ class TestAPYParams:
             return
 
         apy_params = APYParams(*args, **kwargs)
-        assert (
-            apy_params.pair_ids == ["supported"]
-            if backwards_compatible
-            else kwargs["pair_ids"]
-        )
         assert apy_params.optimizer_params["timeout"] is param_value
         assert apy_params.optimizer_params["window_size"] is param_value
 

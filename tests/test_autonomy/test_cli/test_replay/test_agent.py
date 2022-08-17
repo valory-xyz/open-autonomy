@@ -21,6 +21,7 @@
 
 
 import os
+import shutil
 from pathlib import Path
 from typing import Any, Tuple
 from unittest import mock
@@ -89,7 +90,12 @@ class TestAgentRunner(BaseCliTest):
     def setup(cls) -> None:
         """Setup."""
         super().setup()
-        os.chdir(cls.t)
+
+        shutil.copytree(
+            cls.packages_dir / "valory" / "services" / "hello_world",
+            cls.t / "hello_world",
+        )
+        os.chdir(cls.t / "hello_world")
 
     def test_run(self) -> None:
         """Test run."""
@@ -100,15 +106,11 @@ class TestAgentRunner(BaseCliTest):
                 (
                     "deploy",
                     "build",
-                    "deployment",
-                    "valory/oracle_hardhat",
                     str(self.keys_path),
-                    "--packages-dir",
-                    str(self.packages_dir),
                     "--force",
                     "--local",
                     "--o",
-                    str(self.t),
+                    str(self.t / "abci_build"),
                 ),
             )
 

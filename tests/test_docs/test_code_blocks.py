@@ -174,7 +174,7 @@ class TestPythonSnippets(BaseTestDocCode):
                 "packages/valory/skills/hello_world_abci/payloads.py",
             ],
         },
-        "docs/price_oracle_intro.md": {
+        "docs/price_oracle_technical_details.md": {
             "code_files": [
                 "packages/valory/skills/oracle_abci/composition.py",
                 "packages/valory/skills/oracle_abci/behaviours.py",

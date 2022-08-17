@@ -23,7 +23,11 @@ import click
 from aea.cli.core import cli
 
 import autonomy
+
+# trigger patching of 'aea scaffold' command
+import autonomy.cli.scaffold_fsm  # noqa
 from autonomy.cli.analyse import analyse_group
+from autonomy.cli.build_images import build_images
 from autonomy.cli.deploy import deploy_group
 from autonomy.cli.develop import develop_group
 from autonomy.cli.fetch import fetch
@@ -41,6 +45,7 @@ cli.add_command(hash_group)
 cli.add_command(push_all)
 cli.add_command(publish)
 cli.add_command(fetch)
+cli.add_command(build_images)
 
 
 click.version_option(autonomy.__version__, prog_name="autonomy")(cli)

@@ -19,7 +19,7 @@ Class to assist with generating deployments.
 #### `__`init`__`
 
 ```python
-def __init__(service_path: Path, keys: Path, number_of_agents: Optional[int] = None, private_keys_password: Optional[str] = None) -> None
+def __init__(service_path: Path, keys: Path, number_of_agents: Optional[int] = None, private_keys_password: Optional[str] = None, agent_instances: Optional[List[str]] = None) -> None
 ```
 
 Initialize the Base Deployment.
@@ -69,7 +69,7 @@ Retrieve vars common for valory apps.
 #### generate`_`agent
 
 ```python
-def generate_agent(agent_n: int) -> Dict[Any, Any]
+def generate_agent(agent_n: int, override_idx: Optional[int] = None) -> Dict[Any, Any]
 ```
 
 Generate next agent.
@@ -89,7 +89,7 @@ Base Deployment Class.
 #### `__`init`__`
 
 ```python
-def __init__(service_spec: ServiceSpecification, build_dir: Path)
+def __init__(service_spec: ServiceSpecification, build_dir: Path, dev_mode: bool = False, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None)
 ```
 
 Initialise with only kwargs.
@@ -100,7 +100,7 @@ Initialise with only kwargs.
 
 ```python
 @abc.abstractmethod
-def generate(image_versions: Dict[str, str], dev_mode: bool = False) -> "BaseDeploymentGenerator"
+def generate(image_versions: Dict[str, str]) -> "BaseDeploymentGenerator"
 ```
 
 Generate the deployment configuration.
@@ -126,16 +126,6 @@ def populate_private_keys() -> "BaseDeploymentGenerator"
 ```
 
 Populate the private keys to the deployment.
-
-<a id="autonomy.deploy.base.BaseDeploymentGenerator.get_deployment_network_configuration"></a>
-
-#### get`_`deployment`_`network`_`configuration
-
-```python
-def get_deployment_network_configuration(agent_vars: List[Dict[str, Any]]) -> List
-```
-
-Retrieve the appropriate network configuration based on deployment & network.
 
 <a id="autonomy.deploy.base.BaseDeploymentGenerator.write_config"></a>
 

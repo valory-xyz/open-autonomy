@@ -1,24 +1,26 @@
-# Simple {{fsm_app}}
+# Simple Agent Service Demo
 
-!!!note
-    For clarity, the snippets of code presented here are a simplified version of the actual
-    implementation. We refer the reader to the {{open_autonomy_api}} for the complete details.
+The Simple agent service demonstrates how to use the {{open_autonomy}} framework, and provides
+a general template to build more complex services.
+The goal is to provide the minimum background so that users can start developing their own agent services, and to showcase how agents interact with local Tendermint nodes. Indeed, we recommend that new users take the Simple {{fsm_app}} as the starting point for developing their own agent services.
 
-The Simple {{fsm_app}} is an example application that demonstrates how to use the {{open_autonomy}} framework. The goal is to provide the minimum background so that users can start developing their own agent services, and to showcase how AEAs interact with local Tendermint nodes. Indeed, we recommend that new users use the Simple {{fsm_app}} as the starting point for developing their own agent services.
+Roughly speaking, the Simple agent service executes the following sequence of actions:
 
-Roughly speaking, on a successful execution of a period of the application (i.e., no timeouts, no error conditions, etc.), the following actions would occur in order:
+1. Agents register to the service, i.e., they indicate their willingness to participate in it.
+2. Agents agree on a random value.
+3. Agents nominate a keeper, based on a deterministic function and the random value.
+4. Go to step 1.
 
-1. AEAs indicate their willingness to participate in a given period of the service.
-2. AEAs agree on a random value.
-3. AEAs nominate a keeper (i.e., a "delegate" agent).
-4. Go to step 2.
+Whereas the business logic of this service does not produce any useful result, each of these steps above
+are expected to be quite common in the expected services that can be developed with {{open_autonomy}}.
 
 ## Architecture of the Demo
 
 The demo is composed of:
 
-- A set of $n$ Tendermint nodes.
-- A set of $n$ AEAs, in one-to-one connection with one Tendermint node.
+- A set of four [Tendermint](https://tendermint.com/) nodes (`node0`, `node1`, `node2`, `node3`).
+- A set of four AEAs (`abci0`, `abci1`, `abci2`, `abci3`), in one-to-one connection with their corresponding Tendermint
+node.
 
 The agents are connected to the remote service [DRAND](https://drand.love) through the Internet.
 
@@ -27,6 +29,60 @@ The agents are connected to the remote service [DRAND](https://drand.love) throu
   <figcaption>Simple ABCI architecture with four agents</figcaption>
 </figure>
 
+## Running the Demo
+The steps below will guide you to download the simple agent service definition from the Service Registry, build and run a deployment that will run locally.
+
+1. Ensure that your machine satisfies the [framework requirements](quick_start.md#requirements) and that
+you have followed the [setup instructions](quick_start.md#setup). As a result you should have a Pipenv workspace folder.
+
+2. Inside the workspace folder, create a JSON file `keys.json` containing the addresses and keys of the four agents that are
+   part of this demo. Below you have a sample `keys.json` file that you can use for testing.
+
+    !!! warning "Important"
+        Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**
+
+        ```json
+        [
+          {
+              "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+              "private_key": "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a"
+          },
+          {
+              "address": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+              "private_key": "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba"
+          },
+          {
+              "address": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+              "private_key": "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e"
+          },
+          {
+              "address": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+              "private_key": "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356"
+          }
+        ]
+        ```
+
+3. Use the {{open_autonomy}} CLI to download and build the agent images:
+    ```bash
+    autonomy deploy build deployment valory/simple_abci:hash keys.json
+    ```
+    This command above downloads the simple agent service definition from the Service Registry, and generates the required Docker images to run it using the keys provided in the `keys.json` file.
+
+4. The build configuration will be located in `./abci_build`. Execute [Docker Compose](https://docs.docker.com/compose/install/) as indicated below. This will deploy a local simple agent service with four agents connected to four [Tendermint](https://tendermint.com/) nodes.
+    ```bash
+    cd abci_build
+    docker-compose up --force-recreate
+    ```
+
+5. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
+    ```bash
+    docker logs <container_id> --follow
+    ```
+    where `<container_id>` refers to the Docker container ID for either an agent
+    (`abci0`, `abci1`, `abci2` and `abci3`) or a Tendermint node (`node0`, `node1`, `node2` and `node3`).
+
+
+## Technical Details
 The complete state machine depicting the states and transitions of the application is shown below.
 
 <figure markdown>
@@ -55,7 +111,7 @@ general terms, the developer should put the focus on the four action points belo
 Below we discuss these points in detail for the case of the Simple {{fsm_app}}.
 
 
-## Implementation of the Rounds, Behaviours and Payloads for Each State
+### Implementation of the Rounds, Behaviours and Payloads for Each State
 
 The main modules to take into account in this development step are:
 
@@ -64,7 +120,7 @@ The main modules to take into account in this development step are:
 - `payloads.py`: Contains the implementation of the payloads associated to each state. One payload can be used per state. Payloads are used so sync data between agents, and therefore the application state.
 
 
-### `RegistrationRound` and `RegistrationBehaviour`
+#### `RegistrationRound` and `RegistrationBehaviour`
 
 The `RegistrationRound` and `RegistrationBehaviour` are the round and behaviour classes associated to the start state of the application FSM. The hierarchy diagram for the `RegistrationRound` is depicted below:
 
@@ -222,26 +278,26 @@ corresponding behaviour in the `async_act()` method.
 The remaining states from the FSM follow a similar approach in the definition of the rounds, behaviours and payloads. Therefore, we will omit most of the details and highlight only the relevant information for them.
 
 
-### `RandomnessStartupRound` and `RandomnessStartupBehaviour`
+#### `RandomnessStartupRound` and `RandomnessStartupBehaviour`
 As opposed to `RegistrationRound`, the class `RandomnessStartupRound` inherits from the helper abstract class `CollectSameUntilThresholdRound`. That is, the round will wait until 2/3 of the agents have agreed in the same collected value (in this case, a random string from a decentralized randomness source). If for whatever reason agents do not agree within a given timeframe, this state is revisited. As above, the method `end_block()` must be implemented, and it must return the appropriate events accordingly.
 
 The `RandomnessBehaviour` on the other hand is the proactive part that connects to the distributed randomness service, reads the value,  commits it to the temporary blockchain, and stores it in the `SynchronizedData`.
 As above, all these operations are carried on the `async_act()` method, and the
 payload class `RandomnessPayload` encapsulates the collected randomness as well as the round identifier.
 
-### `SelectKeeperAtStartupRound` and `SelectKeeperAtStartupBehaviour`
+#### `SelectKeeperAtStartupRound` and `SelectKeeperAtStartupBehaviour`
 In this case, `SelectKeeperAtStartupRound` inherits from the class `CollectSameUntilThresholdRound` as above. The value to be agreed by 2/3 of the agents is the address of the agent that will be designated as a keeper. Again, the `end_block()` method must handle the appropriate events to return, depending on the status of the consensus.
 
 
 The `SelectKeeperAtStartupBehaviour` is in charge of executing the operation of selecting the keeper, which is a deterministic function of the randomness collected in the previous round. The behaviour accesses the randomness through the `SynchronizedData`, commits the output to the temporary blockchain, and it also records it on the `SynchronizedData`. The corresponding payload class, `SelectKeeperPayload` stores the selected keeper.
 
 
-### `ResetAndPauseRound` and `ResetAndPauseBehaviour`
+#### `ResetAndPauseRound` and `ResetAndPauseBehaviour`
 The `ResetAndPauseRound` also inherits from  `CollectSameUntilThresholdRound`. The value that the rounds waits that the agents agree is simply the period number (an increasing integer). Once 2/3 of the agents have agreed on it, the {{fsm_app}} transitions again to the `RandomnessStartupRound`.
 
 The `ResetAndPauseBehaviour` class simply logs the state, sleeps for a configured interval, and submits the transaction payload (period number) to the temporary blockchain. As usual, the functionality is encoded in `end_block()`. For convention, the payload associated to the class `ResetPayload` contains the round identifier.
 
-## Implementation of `SimpleAbciApp`
+### Implementation of `SimpleAbciApp`
 This class can be found on `rounds.py`, and it simply encodes the basic parameters of the FSM transition function depicted above. Namely, it defines:
 - the initial round,
 - the set of initial states,
@@ -315,7 +371,7 @@ class SimpleAbciApp(AbciApp[Event]):
 
 For example, upon receiving the event `DONE` being in the state `SelectKeeperAtStartupRound`, the FSM will transit to `ResetAndPauseRound`.
 
-## Implementation of `SimpleAbciConsensusBehaviour`
+### Implementation of `SimpleAbciConsensusBehaviour`
 This class can be found in `behaviours.py`, and is the main behaviour class, aggregating the behaviours from the different states. It is a subclass of `AbstractRoundBehaviour`. The developer needs to define:
 
 - the initial behaviour,
@@ -326,7 +382,7 @@ Recall that each behaviour is in one-to-one correspondence with a round. Upon in
 
 
 
-## Specification of the FSM
+### Specification of the FSM
 
 For convenience, we provide a simplified YAML syntax to describe concisely the FSM of the {{fsm_app}}s. For the case of
 the Simple {{fsm_app}} the specification is as follows:
@@ -360,11 +416,3 @@ transition_func:
     (SelectKeeperAtStartupRound, NO_MAJORITY): RegistrationRound
     (SelectKeeperAtStartupRound, ROUND_TIMEOUT): RegistrationRound
 ```
-
-## Running the Tests
-There are several end-to-end tests where the developer can see the {{fsm_app}} operation. Ensure that your system meets the [stack requirements](./quick_start.md) before launching the tests. To run the tests, execute the command
-
-```bash
-pytest tests/test_agents/test_simple_abci.py
-```
-The tests nicely demonstrate how the same code can be run as a single agent app or as a multi-agent service with two or four agents. The diagram below depicts the architecture for the latter test case:

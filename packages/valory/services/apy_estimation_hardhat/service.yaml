@@ -7,8 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeibqyfur7wusrbfga66hcbauxvhs2g3j5yhknsxlvyh6mil57aajyu
 fingerprint_ignore_patterns: []
-agent: valory/apy_estimation:0.1.0:bafybeiemzfzmgo5sk222miw4zwc2gnt7wdqsub6ddguwrfukq3pwiaubci
-network: hardhat
+agent: valory/apy_estimation:0.1.0:bafybeichu5yjc5cilym65xyucvkh5zmcsdhflxh5zedt6lz6n6aacgwbsu
 number_of_agents: 4
 ---
 public_id: valory/apy_estimation_abci:0.1.0
@@ -36,10 +35,19 @@ models:
         alpha: 0.25
       pair_ids:
         uniswap_subgraph:
-        - '0x5777d92f208679db4b9778590fa3cab3ac9e2168'
-        - '0xa374094527e1673a86de625aa59517c5de346d32'
+        - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
         spooky_subgraph:
         - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
         - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       sleep_time: 10
       ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https
+---
+public_id: valory/ledger:0.1.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: http://host.docker.internal:8545
+      chain_id: 31337
+      poa_chain: false
+      default_gas_price_strategy: eip1559

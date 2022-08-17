@@ -5,7 +5,7 @@ An autonomous service is a decentralized service that runs off-chain and provide
 </details>
 
 <details><summary>What is an agent service?</summary>
-An agent service is an autonomous service which is implemented as a multi-agent system using Autonomous Economic Agents through the <a href="https://github.com/valory-xyz/open-aea">Open AEA</a> framework.
+An agent service is an autonomous service which is implemented as a multi-agent system using Autonomous Economic Agents (AEAs) using the {{open_autonomy}} framework, which is built on top of {{open_aea}}.
 </details>
 
 <details><summary>What is an FSM App?</summary>
@@ -57,6 +57,10 @@ Composition starts at the component level of the agents (multiple rounds make a 
 <li>All agents wait for the transaction to be mined and validate the output.</li>
 <li>Done</li>
 </ol>
+</details>
+
+<details><summary>Do all agent services have to be implemented as {{fsm_app}}s with Open Autonomy?</summary>
+Certainly not. We have provided an example in the [counter demo](counter_example.md). That is, for extremely simple applications, you can consider implementing an agent service by appropriately extending the `ABCIHandler` class to handle the consensus gadget callbacks, and if required, manually implement the agent `Behaviours` that execute client calls to the consensus gadget. However, **we strongly advise against this approach**, as the complexity, maintainability and composability of the resulting service will be severely affected. 
 </details>
 
 ## Security

@@ -54,7 +54,7 @@ from packages.valory.contracts.gnosis_safe.contract import (
     SAFE_CONTRACT,
 )
 
-from tests.conftest import ROOT_DIR
+from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS
 
 
 DEFAULT_GAS = 1000000
@@ -72,6 +72,7 @@ class BaseContractTest(BaseGanacheContractTest):
         ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe"
     )
     contract: GnosisSafeContract
+    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     @classmethod
     def setup_class(
@@ -131,6 +132,7 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
     )
     sanitize_from_deploy_tx = ["contract_address"]
     contract: GnosisSafeContract
+    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     @classmethod
     def setup_class(
@@ -183,6 +185,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
     """Test."""
 
     ledger_api: EthereumApi
+    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     def test_deployed(self) -> None:
         """Run tests."""

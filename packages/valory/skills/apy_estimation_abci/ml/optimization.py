@@ -131,6 +131,7 @@ def optimize_single_pool(  # pylint: disable=too-many-arguments
         * If n_trials is also set to None, the study continues to create trials
             until it receives a termination signal such as Ctrl+C or SIGTERM.
     :param n_jobs: the number of parallel jobs. If this argument is set to -1, the number is set to CPU count.
+        Warning: a value != 1 may result in non-reproducible results, and therefore no consensus among the agents.
     :param show_progress_bar: flag to show progress bars or not. To disable progress bar, set this to False.
         Currently, progress bar is experimental feature in `optuna` and disabled when n_jobs != 1.
     :param scoring: The scoring metric to use. If a callable, must adhere to the signature `metric(true, predicted)`.

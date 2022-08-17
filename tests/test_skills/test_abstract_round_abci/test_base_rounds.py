@@ -654,6 +654,15 @@ class TestCollectionRound(_BaseRoundTestClass):
             test_round.process_payload(DummyTxPayload("sender", "value"))
 
         with pytest.raises(
+            ABCIAppInternalError,
+            match=re.escape(
+                "internal error: Expecting serialized data of chunk size 2, got: None in round_id"
+            ),
+        ):
+            test_round._hash_length = 2
+            test_round.process_payload(DummyTxPayload("agent_1", "value"))
+
+        with pytest.raises(
             TransactionNotValidError,
             match="sender agent_0 has already sent value for round: round_id",
         ):
@@ -666,6 +675,14 @@ class TestCollectionRound(_BaseRoundTestClass):
             ),
         ):
             test_round.check_payload(DummyTxPayload("sender", "value"))
+
+        with pytest.raises(
+            TransactionNotValidError,
+            match=re.escape(
+                "Expecting serialized data of chunk size 2, got: None in round_id"
+            ),
+        ):
+            test_round.check_payload(DummyTxPayload("agent_1", "value"))
 
         self._test_payload_with_wrong_round_count(test_round)
 
@@ -1049,19 +1066,31 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         assert test_round.collection_threshold_reached
 
     @pytest.mark.parametrize("is_majority_possible", (True, False))
-    def test_end_block_no_threshold_reached(self, is_majority_possible: bool) -> None:
+    @pytest.mark.parametrize("reach_block_confirmations", (True, False))
+    def test_end_block_no_threshold_reached(
+        self, is_majority_possible: bool, reach_block_confirmations: bool
+    ) -> None:
         """Test `end_block` when no collection threshold is reached."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
+        test_round.block_confirmations = (
+            test_round.required_block_confirmations + 1
+            if reach_block_confirmations
+            else 0
+        )
 
         test_round.is_majority_possible = lambda *_: is_majority_possible  # type: ignore
         test_round.no_majority_event = "no_majority"
 
-        res = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
+        res = test_round.end_block()
 
-        if test_round.block_confirmations > test_round.required_block_confirmations:
+        if (
+            test_round.block_confirmations > test_round.required_block_confirmations
+            and not is_majority_possible
+        ):
+            assert res is not None
             assert res[0].db == self.synchronized_data.db
             assert res[1] == test_round.no_majority_event
         else:

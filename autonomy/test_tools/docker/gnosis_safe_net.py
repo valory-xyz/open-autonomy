@@ -22,6 +22,7 @@ import fileinput
 import logging
 import sys
 import time
+from pathlib import Path
 from typing import List
 
 import docker
@@ -29,14 +30,13 @@ import requests
 from aea.exceptions import enforce
 from docker.models.containers import Container
 
-from autonomy.test_tools.configurations import THIRD_PARTY
 from autonomy.test_tools.docker.base import DockerImage
 
 
 DEFAULT_HARDHAT_ADDR = "http://127.0.0.1"
 DEFAULT_HARDHAT_PORT = 8545
-GNOSIS_SAFE_CONTRACTS_ROOT_DIR = THIRD_PARTY / "safe-contracts"
-CONFIG_FILE = GNOSIS_SAFE_CONTRACTS_ROOT_DIR / "hardhat.config.ts"
+GNOSIS_SAFE_CONTRACTS_DIR = "safe-contracts"
+CONFIG_FILE = "hardhat.config.ts"
 
 _SLEEP_TIME = 1
 
@@ -51,9 +51,12 @@ MULTISEND_CALL_ONLY_CONTRACT = "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
 class GnosisSafeNetDockerImage(DockerImage):
     """Spawn a local Ethereum network with deployed Gnosis Safe contracts, using HardHat."""
 
+    third_party_contract_dir: Path
+
     def __init__(
         self,
         client: docker.DockerClient,
+        third_party_contract_dir: Path,
         addr: str = DEFAULT_HARDHAT_ADDR,
         port: int = DEFAULT_HARDHAT_PORT,
     ):
@@ -61,6 +64,7 @@ class GnosisSafeNetDockerImage(DockerImage):
         super().__init__(client)
         self.addr = addr
         self.port = port
+        self.third_party_contract_dir = third_party_contract_dir
 
     @property
     def tag(self) -> str:
@@ -69,7 +73,10 @@ class GnosisSafeNetDockerImage(DockerImage):
 
     def _update_config(self) -> None:  # pylint: disable=no-self-use
         """Build command."""
-        for line in fileinput.input(CONFIG_FILE, inplace=True):
+        for line in fileinput.input(
+            self.third_party_contract_dir / GNOSIS_SAFE_CONTRACTS_DIR / CONFIG_FILE,
+            inplace=True,
+        ):
             if "      gas: 100000000\n" in line:
                 line = line.replace(
                     "      gas: 100000000\n",
@@ -88,7 +95,7 @@ class GnosisSafeNetDockerImage(DockerImage):
         cmd = self._build_command()
         working_dir = "/build"
         volumes = {
-            str(GNOSIS_SAFE_CONTRACTS_ROOT_DIR): {
+            str(self.third_party_contract_dir / GNOSIS_SAFE_CONTRACTS_DIR): {
                 "bind": working_dir,
                 "mode": "rw",
             },

@@ -3,6 +3,7 @@ site_url: https://valory.xyz/
 site_description: A framework for the creation of autonomous agent services.
 repo_url: https://github.com/valory-xyz/open-autonomy
 site_author: developer@valory.xyz
+edit_uri: edit/main/docs/
 
 theme:
    name: 'material'
@@ -14,6 +15,7 @@ strict: true
 
 nav:
   - Introduction: 'index.md'
+  - Agent Services in Context: 'agent_services_context.md'
   - Version: 'version.md'
   - Upgrading: 'upgrading.md'
   - Quick Start: 'quick_start.md'
@@ -31,17 +33,17 @@ nav:
     - The AbstractRound Class: 'abci_app_abstract_round.md'
     - Interactions between Components: 'abci_app_interactions.md'
   - Demos:
-    - Simple ABCI: 'simple_abci.md'
-    - Counter Example: 'counter_example.md'
-    - Price Oracle:
+    - Simple Demo: 'simple_abci.md'
+    - Counter Demo: 'counter_example.md'
+    - Price Oracle Demo:
       - Introduction: 'price_oracle_intro.md'
-      - Running the Demo: 'price_oracle_running.md'
+      - Technical Details: 'price_oracle_technical_details.md'
       - FSM Specification: 'price_oracle_fsms.md'
   - Development:
     - Package publishing: 'package_publishing.md'
     - CLI: 'autonomy.md'
     - Developer Tooling:
-      - Hot Reload: 'hot_reload.md'
+      - Dev Mode: 'dev_mode.md'
       - Benchmarking: 'benchmarks.md'
     - Deployment:
       - Container Control Flow: 'control_flow.md'
@@ -206,6 +208,9 @@ plugins:
 markdown_extensions:
   - pymdownx.superfences
   - pymdownx.highlight
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
   - admonition
   - pymdownx.arithmatex
   - attr_list
@@ -218,7 +223,7 @@ extra:
     fsm_app: 'FSM App'
     open_autonomy: '[Open Autonomy](https://github.com/valory-xyz/open-autonomy)'
     open_autonomy_api: '[Open Autonomy API](https://docs.autonolas.network/)'
-    agent_service: 'Agent Service'
+
 
 
 #extra_css:
