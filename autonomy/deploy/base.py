@@ -74,6 +74,10 @@ class ServiceSpecification:
         self.keys: List = []
         self.private_keys_password = private_keys_password
         self.service = load_service_config(service_path)
+
+        # we allow configurable number of agents independent of the
+        # number of agent instances for local development purposes
+
         if number_of_agents is not None:
             self.service.number_of_agents = number_of_agents
 

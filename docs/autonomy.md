@@ -160,7 +160,7 @@ $ autonomy deploy run
 
 4. One click deployments
 
-If you have a service registered on-chain you can deploy the services directly using token IDs generated after the minting the service component. Refer [here](https://docs.autonolas.network/package_publishing/) for more information.
+If you have a service registered on-chain you can deploy the services directly using token IDs generated after the minting the service component. Refer [here](./package_publishing.md) for more information.
 
 ```bash
 Usage: autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
