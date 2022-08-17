@@ -69,8 +69,7 @@ class TestLedgerConnection:
         # connect() is called by the multiplexer
         await ledger_connection.connect()
 
-        # once a connection is ready
-        # receive() is called by the multiplexer
+        # once a connection is ready, `receive()` is called by the multiplexer
         receive_task = asyncio.ensure_future(ledger_connection.receive())
 
         # create a blocking task lasting `blocking_time` secs
