@@ -21,12 +21,11 @@
 
 import asyncio
 from asyncio import Task
-from typing import Any, List
+from typing import Any
 from unittest import mock
 
 import pytest
 from aea.configurations.base import ConnectionConfig
-from aea.connections.base import ConnectionStates
 
 from packages.valory.connections.ledger.connection import LedgerConnection
 
