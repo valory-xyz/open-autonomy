@@ -87,8 +87,7 @@ from packages.valory.skills.transaction_settlement_abci.test_tools.integration i
 from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS, make_ledger_api_connection
 
 
-# SAFE_TX_GAS = 0 would cause `test_sync_local_hash` to fail, because `SAFE_TX_GAS` in price estimation would not match
-SAFE_TX_GAS = 120000
+SAFE_TX_GAS = 0
 ETHER_VALUE = 0
 DUMMY_MAX_PRIORITY_FEE_PER_GAS = 3000000000
 DUMMY_MAX_FEE_PER_GAS = 4000000000
