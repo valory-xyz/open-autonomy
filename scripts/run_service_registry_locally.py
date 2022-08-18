@@ -17,6 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
+"""Script to run registry contracts deployment locally."""
 
 from pathlib import Path
 
@@ -51,13 +52,15 @@ def main(third_party_contracts: Path) -> None:
         for line in client.api.logs(container.id, follow=True, stream=True):
             print(line.decode(), end="")
     except KeyboardInterrupt:
-        pass
-    except Exception:
-        pass
-    finally:
+        print("Stopping container.")
+    except Exception:  # pyline: disable=broad-except
         print("Stopping container.")
         container.stop()
+        raise
+
+    print("Stopping container.")
+    container.stop()
 
 
 if __name__ == "__main__":
-    main()
+    main()  # pylint: disable=no-value-for-parameter
