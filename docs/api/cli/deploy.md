@@ -143,6 +143,16 @@ def run_deployment_from_token(click_context: click.Context, token_id: int, keys_
 
 Run service deployment.
 
+<a id="autonomy.cli.deploy.update_multisig_address"></a>
+
+#### update`_`multisig`_`address
+
+```python
+def update_multisig_address(service_path: Path, address: str) -> None
+```
+
+Update the multisig address on the service config.
+
 <a id="autonomy.cli.deploy.build_deployment"></a>
 
 #### build`_`deployment
