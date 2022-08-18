@@ -58,3 +58,18 @@ BENCHMARKS_DIR = "benchmarks"
 VENVS_DIR = "venvs"
 AGENT_KEYS_DIR = "agent_keys"
 DOCKERFILES = "Dockerfiles"
+
+
+INFO = "INFO"
+DEBUG = "DEBUG"
+WARNING = "WARNING"
+ERROR = "ERROR"
+CRITICAL = "CRITICAL"
+
+LOGGING_LEVELS = (
+    INFO,
+    DEBUG,
+    WARNING,
+    ERROR,
+    CRITICAL,
+)

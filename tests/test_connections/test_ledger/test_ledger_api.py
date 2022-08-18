@@ -101,8 +101,8 @@ class LedgerApiDialogues(BaseLedgerApiDialogues):
 
 @pytest.mark.usefixtures("ganache_scope_class")
 @skip_docker_tests
-class TestLedgerConnection:
-    """Tests for ledger connection."""
+class TestLedgerDispatcher:
+    """Tests for ledger dispatcher."""
 
     @pytest.mark.asyncio
     @ledger_ids
