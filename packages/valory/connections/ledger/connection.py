@@ -19,7 +19,7 @@
 
 """Scaffold connection and channel."""
 import asyncio
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 from aea.connections.base import Connection, ConnectionStates
 from aea.mail.base import Envelope
@@ -49,9 +49,9 @@ class LedgerConnection(Connection):
 
         self._ledger_dispatcher: Optional[LedgerApiRequestDispatcher] = None
         self._contract_dispatcher: Optional[ContractApiRequestDispatcher] = None
+        self._response_envelopes: Optional[asyncio.Queue] = None
 
         self.task_to_request: Dict[asyncio.Future, Envelope] = {}
-        self.response_envelopes: asyncio.Queue = asyncio.Queue()
         self.api_configs = self.configuration.config.get(
             "ledger_apis", {}
         )  # type: Dict[str, Dict[str, str]]
@@ -61,6 +61,11 @@ class LedgerConnection(Connection):
         self.request_retry_timeout = self.configuration.config.get(
             "retry_timeout", self.TIMEOUT
         )
+
+    @property
+    def response_envelopes(self) -> asyncio.Queue:
+        """Get the response envelopes. Only intended to be accessed when connected."""
+        return cast(asyncio.Queue, self._response_envelopes)
 
     async def connect(self) -> None:
         """Set up the connection."""
@@ -87,6 +92,7 @@ class LedgerConnection(Connection):
             retry_timeout=self.request_retry_timeout,
         )
 
+        self._response_envelopes = asyncio.Queue()
         self.state = ConnectionStates.connected
 
     async def disconnect(self) -> None:
@@ -101,6 +107,7 @@ class LedgerConnection(Connection):
                 task.cancel()
         self._ledger_dispatcher = None
         self._contract_dispatcher = None
+        self._response_envelopes = None
 
         self.state = ConnectionStates.disconnected
 
