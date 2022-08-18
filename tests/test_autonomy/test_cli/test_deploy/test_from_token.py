@@ -29,12 +29,14 @@ from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
+@pytest.mark.usefixtures("registries_scope_class")
+@pytest.mark.integration
 class TestFromToken(BaseCliTest):
     """Test `from-token` command."""
 
     cli_options = ("deploy", "from-token")
     keys_file = ROOT_DIR / "deployments" / "hardhat_keys.json"
-    token = 5
+    token = 1
     chain = "staging"
 
     @classmethod
@@ -44,7 +46,6 @@ class TestFromToken(BaseCliTest):
         super().setup()
         os.chdir(cls.t)
 
-    @pytest.mark.skip(reason="Will be fixed in the PR for fetching the safe address.")
     def test_from_token(
         self,
     ) -> None:
@@ -71,7 +72,7 @@ class TestFromToken(BaseCliTest):
 
             assert result.exit_code == 0, click_mock.call_args_list
             assert (
-                "Building service deployment using token ID: 5"
+                "Building service deployment using token ID: 1"
                 in click_mock.call_args_list[0][0][0]
             )
             assert "Service name: " in click_mock.call_args_list[1][0][0]
