@@ -19,7 +19,7 @@
 
 """Scaffold connection and channel."""
 import asyncio
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, Optional
 
 from aea.connections.base import Connection, ConnectionStates
 from aea.mail.base import Envelope
@@ -65,7 +65,11 @@ class LedgerConnection(Connection):
     @property
     def response_envelopes(self) -> asyncio.Queue:
         """Get the response envelopes. Only intended to be accessed when connected."""
-        return cast(asyncio.Queue, self._response_envelopes)
+        if self._response_envelopes is None:
+            raise ValueError(
+                "`asyncio.Queue` for `_response_envelopes` not set. Is the ledger connection active?"
+            )
+        return self._response_envelopes
 
     async def connect(self) -> None:
         """Set up the connection."""
