@@ -112,7 +112,7 @@ class TestContractDispatcher:
             kwargs=ContractApiMessage.Kwargs(
                 body=dict(
                     deployer_address=crypto.address,
-                    gas=5000000,
+                    gas=0,
                     gas_price=10 * 10,
                     owners=owners,
                     threshold=threshold,

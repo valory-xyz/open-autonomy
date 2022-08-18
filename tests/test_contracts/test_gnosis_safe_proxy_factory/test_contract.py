@@ -34,7 +34,9 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
 from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS
 
 
-DEFAULT_GAS = 1000000
+# DEFAULT_GAS = 0 would case `test_build_tx_deploy_proxy_contract_with_nonce` to fail with
+# `AssertionError: Contract not deployed.`
+DEFAULT_GAS = None
 DEFAULT_MAX_FEE_PER_GAS = 10 ** 10
 DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
 

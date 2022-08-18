@@ -21,7 +21,7 @@
 
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import pytest
 from aea.crypto.registries import crypto_registry
@@ -47,7 +47,11 @@ class BaseContractTest(BaseGanacheContractTest):
     DECIMALS: int = 18
     DESCRIPTION: str = "BTC"
     NB_TRANSMITTERS: int = 1
-    GAS: int = 10 ** 10
+    # GAS: int = 0 would cause all `TestDeployTransaction` tests to fail with `AssertionError: Contract not deployed.`
+    # setting it to `None` causes `test_transmit_and_get_latest_round_data` to fail with:
+    # web3.exceptions.ContractLogicError: execution reverted:
+    # VM Exception while processing transaction: revert unauthorized transmitter
+    GAS: Optional[int] = None
     DEFAULT_MAX_FEE_PER_GAS: int = 10 ** 10
     DEFAULT_MAX_PRIORITY_FEE_PER_GAS: int = 10 ** 10
     contract_directory = Path(
