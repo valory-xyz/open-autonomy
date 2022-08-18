@@ -51,6 +51,8 @@ CHAIN_CONFIG: Dict[str, Dict[str, Optional[str]]] = {
     },
 }
 
+ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
+
 
 def get_abi(url: str) -> Dict:
     """Get ABI from provided URL"""
@@ -105,6 +107,24 @@ class ServiceRegistry:
         return requests.get(url).json()
 
     def get_agent_instances(self, token_id: int) -> Tuple[int, List[str]]:
-        """Get the list of agent instances."""
+        """
+        Get the list of agent instances.
+
+        :param token_id: Token ID pointing to the on-chain service
+        :returns: number of agent instances and the list of registered addressed
+        """
         agent_instances = self.contract.functions.getAgentInstances(token_id).call()
         return agent_instances
+
+    def get_service_info(self, token_id: int) -> ServiceInfo:
+        """
+        Returns service info.
+
+        :param token_id: Token ID pointing to the on-chain service
+        :returns: security deposit, multisig address, IPFS hash for config,
+                threshold, max number of agent instances, number of agent instances,
+                service state, list of cannonical agents
+        """
+
+        info = self.contract.functions.getService(token_id).call()
+        return info
