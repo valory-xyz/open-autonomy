@@ -51,7 +51,7 @@ class TestLedgerConnection:
         blocking_time = 100
         wait_time_among_tasks = 0.1
         non_blocking_time = 1
-        tolerance = 0.1
+        tolerance = 1
         assert (
             non_blocking_time + tolerance + wait_time_among_tasks < blocking_time
         ), "`non_blocking_time + tolerance + wait_time_among_tasks` should be less than the `blocking_time`."
