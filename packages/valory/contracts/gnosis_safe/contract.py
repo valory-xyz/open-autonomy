@@ -21,6 +21,7 @@
 import binascii
 import logging
 import secrets
+from copy import deepcopy
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
@@ -34,7 +35,7 @@ from hexbytes import HexBytes
 from packaging.version import Version
 from py_eth_sig_utils.eip712 import encode_typed_data
 from requests import HTTPError
-from web3.exceptions import SolidityError, TransactionNotFound
+from web3.exceptions import ContractLogicError, SolidityError, TransactionNotFound
 from web3.types import BlockIdentifier, Nonce, TxData, TxParams, Wei
 
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
@@ -430,6 +431,7 @@ class GnosisSafeContract(Contract):
         configured_gas = base_gas + safe_tx_gas + 75000
         tx_parameters: Dict[str, Union[str, int]] = {
             "from": sender_address,
+            "gas": configured_gas,
         }
         actual_nonce = ledger_api.api.eth.get_transaction_count(
             ledger_api.api.toChecksumAddress(sender_address)
@@ -449,14 +451,50 @@ class GnosisSafeContract(Contract):
             and max_priority_fee_per_gas is None
         ):
             tx_parameters.update(ledger_api.try_get_gas_pricing(old_price=old_price))
-        # note, the next line makes an eth_estimateGas call!
         transaction_dict = w3_tx.buildTransaction(tx_parameters)
-        transaction_dict["gas"] = Wei(
-            max(transaction_dict["gas"] + 75000, configured_gas)
+        estimated_gas = cls._estimate_gas(
+            ledger_api,
+            transaction_dict,
         )
+        transaction_dict["gas"] = Wei(max(estimated_gas + 75000, configured_gas))
         transaction_dict["nonce"] = nonce  # pragma: nocover
 
         return transaction_dict
+
+    @staticmethod
+    def _estimate_gas(ledger_api: EthereumApi, tx: Dict) -> int:
+        """Estimate the gas for the given tx."""
+        estimated_gas: Optional[int] = None
+        transaction_dict = deepcopy(tx)
+        # we delete the set gas to not interfere with the estimation
+        del transaction_dict["gas"]
+
+        try:
+            estimated_gas = ledger_api.api.eth.estimate_gas(transaction_dict)
+        except ContractLogicError as e:
+            _logger.warning(
+                "Failed to estimate gas with the default block identifier, "
+                f"{type(e).__name__}: {e.__str__()}"
+            )
+
+        if estimated_gas is None:
+            # estimation using default args may fail if the pending state (block)
+            # is used by the node, which might happen when repricing
+            try:
+                estimated_gas = ledger_api.api.eth.estimate_gas(
+                    transaction_dict, block_identifier="latest"
+                )
+            except ContractLogicError as e:
+                _logger.warning(
+                    f"Failed to estimate gas using the latest block, "
+                    f"{type(e).__name__}: {e.__str__()}"
+                )
+
+        if estimated_gas is None:
+            # if we cannot estimate gas, we return the configured gas
+            return cast(int, transaction_dict["gas"])
+
+        return cast(int, estimated_gas)
 
     @classmethod
     def verify_contract(cls, ledger_api: LedgerApi, contract_address: str) -> JSONLike:
