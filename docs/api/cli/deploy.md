@@ -69,6 +69,12 @@ Deploy an agent service.
     help="Remove existing build and overwrite with new one.",
 )
 @click.option(
+    "--log-level",
+    type=click.Choice(choices=LOGGING_LEVELS, case_sensitive=True),
+    help="Logging level for runtime.",
+    default=INFO,
+)
+@click.option(
     "--packages-dir", type=click.Path(), help="Path to packages dir (Use with dev mode)"
 )
 @click.option(
@@ -84,7 +90,7 @@ Deploy an agent service.
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @click.pass_context
-def build_deployment_command(click_context: click.Context, keys_file: Optional[Path], deployment_type: str, output_dir: Optional[Path], dev_mode: bool, force_overwrite: bool, registry: str, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None, open_aea_dir: Optional[Path] = None, packages_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None) -> None
+def build_deployment_command(click_context: click.Context, keys_file: Optional[Path], deployment_type: str, output_dir: Optional[Path], dev_mode: bool, force_overwrite: bool, registry: str, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None, open_aea_dir: Optional[Path] = None, packages_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, log_level: str = INFO) -> None
 ```
 
 Build deployment setup for n agents.
@@ -148,7 +154,7 @@ Run service deployment.
 #### build`_`deployment
 
 ```python
-def build_deployment(keys_file: Path, build_dir: Path, deployment_type: str, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, agent_instances: Optional[List[str]] = None) -> None
+def build_deployment(keys_file: Path, build_dir: Path, deployment_type: str, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, agent_instances: Optional[List[str]] = None, log_level: str = INFO) -> None
 ```
 
 Build deployment.

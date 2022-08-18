@@ -93,11 +93,11 @@ class TestServiceSpecification:
         assert len(agents) == 1, agents
 
         agent = spec.generate_agent(0)
-        assert len(agent.keys()) == 19, agent
+        assert len(agent.keys()) == 20, agent
 
         spec.service.overrides = []
         agent = spec.generate_agent(0)
-        assert len(agent.keys()) == 6, agent
+        assert len(agent.keys()) == 7, agent
 
     def test_set_number_of_agents(
         self,

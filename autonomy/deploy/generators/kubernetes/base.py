@@ -97,6 +97,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             tendermint_image_version=image_versions["tendermint"],
             open_aea_image_name=OPEN_AEA_IMAGE_NAME,
             open_aea_image_version=image_versions["agent"],
+            log_level=self.service_spec.log_level,
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
         resources = []

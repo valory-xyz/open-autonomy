@@ -35,6 +35,7 @@ from autonomy.configurations.loader import load_service_config
 from autonomy.constants import TENDERMINT_IMAGE_VERSION
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
+    INFO,
     KEY_SCHEMA_ADDRESS,
     KEY_SCHEMA_PRIVATE_KEY,
 )
@@ -62,18 +63,20 @@ class ServiceSpecification:
     overrides: List
     packages_dir: Path
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         service_path: Path,
         keys: Path,
         number_of_agents: Optional[int] = None,
         private_keys_password: Optional[str] = None,
         agent_instances: Optional[List[str]] = None,
+        log_level: str = INFO,
     ) -> None:
         """Initialize the Base Deployment."""
         self.keys: List = []
         self.private_keys_password = private_keys_password
         self.service = load_service_config(service_path)
+        self.log_level = log_level
 
         # we allow configurable number of agents independent of the
         # number of agent instances for local development purposes
@@ -136,6 +139,7 @@ class ServiceSpecification:
             "MAX_PARTICIPANTS": self.service.number_of_agents,
             "TENDERMINT_URL": TENDERMINT_NODE.format(agent_n),
             "TENDERMINT_COM_URL": TENDERMINT_COM.format(agent_n),
+            "LOG_LEVEL": self.log_level,
         }
 
         if self.private_keys_password is not None:
