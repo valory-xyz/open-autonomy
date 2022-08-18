@@ -9,7 +9,7 @@ Docker-compose Deployment Generator.
 #### build`_`tendermint`_`node`_`config
 
 ```python
-def build_tendermint_node_config(node_id: int, dev_mode: bool = False, image_version: str = TENDERMINT_IMAGE_VERSION) -> str
+def build_tendermint_node_config(node_id: int, dev_mode: bool = False, image_version: str = TENDERMINT_IMAGE_VERSION, log_level: str = INFO) -> str
 ```
 
 Build tendermint node config for docker compose.
