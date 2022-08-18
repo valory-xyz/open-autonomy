@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
+import json
 import logging
 import time
 from pathlib import Path
@@ -44,6 +45,9 @@ GNOSIS_SAFE_MULTISIG = "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"
 SERVICE_REGISTRY = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
 SERVICE_MANAGER = "0x9A676e781A523b5d0C0e43731313A708CB607508"
 SERVICE_MULTISIG = "0xe1bB37cb3Dd284B490C874C1F3f414FbbE2C278e"
+DEFAULT_SERVICE_CONFIG_HASH = (
+    "0x9e757a42ec13791c8ae6f181e5ac75f94a305a3baf8be960375a674df46d57c9"
+)
 
 
 class RegistriesDockerImage(DockerImage):
@@ -74,8 +78,24 @@ class RegistriesDockerImage(DockerImage):
         cmd = ["run", "hardhat", "node", "--port", str(self.port)]
         return cmd
 
+    def _update_config_hash(
+        self,
+    ) -> None:
+        """Updated config hash in the registry config."""
+
+        node_globals_file = (
+            self.third_party_contract_dir
+            / REGISTRIES_CONTRACTS_DIR
+            / "scripts"
+            / "node_globals.json"
+        )
+        node_globals = json.loads(node_globals_file.read_text())
+        node_globals["configHash"] = DEFAULT_SERVICE_CONFIG_HASH
+        node_globals_file.write_text(json.dumps(node_globals))
+
     def create(self) -> Container:
         """Create the container."""
+        self._update_config_hash()
         cmd = self._build_command()
         working_dir = "/build"
         volumes = {
