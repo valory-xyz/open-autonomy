@@ -471,7 +471,7 @@ class GnosisSafeContract(Contract):
 
         try:
             estimated_gas = ledger_api.api.eth.estimate_gas(transaction_dict)
-        except ContractLogicError as e:
+        except (ContractLogicError, ValueError) as e:
             _logger.warning(
                 "Failed to estimate gas with the default block identifier, "
                 f"{type(e).__name__}: {e.__str__()}"
@@ -484,7 +484,7 @@ class GnosisSafeContract(Contract):
                 estimated_gas = ledger_api.api.eth.estimate_gas(
                     transaction_dict, block_identifier="latest"
                 )
-            except ContractLogicError as e:
+            except (ContractLogicError, ValueError) as e:
                 _logger.warning(
                     f"Failed to estimate gas using the latest block, "
                     f"{type(e).__name__}: {e.__str__()}"
