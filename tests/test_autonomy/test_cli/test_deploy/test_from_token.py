@@ -25,12 +25,15 @@ from unittest import mock
 
 import pytest
 
+from autonomy.test_tools.docker.base import skip_docker_tests
+
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 @pytest.mark.usefixtures("registries_scope_class")
 @pytest.mark.integration
+@skip_docker_tests
 class TestFromToken(BaseCliTest):
     """Test `from-token` command."""
 
