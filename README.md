@@ -51,6 +51,11 @@ Ensure your machine satisfies the following requirements:
       cd ../..
       cd third_party/contracts-amm && yarn install
       cd ../..
+      cd thid_party/autonolas-registries
+      git submodule init
+      git submodule sync --recursive
+      git submodule update --recursive
+      yarn install
 
 - Create and launch a virtual environment. Also, run this during development,
 every time you need to re-create and launch the virtual environment and update
