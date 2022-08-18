@@ -26,7 +26,7 @@ from autonomy.constants import (
     TENDERMINT_IMAGE_VERSION,
 )
 from autonomy.deploy.base import BaseDeploymentGenerator, ServiceSpecification
-from autonomy.deploy.constants import DEPLOYMENT_REPORT
+from autonomy.deploy.constants import DEPLOYMENT_REPORT, INFO
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
@@ -50,6 +50,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     open_aea_dir: Optional[Path] = None,
     open_autonomy_dir: Optional[Path] = None,
     agent_instances: Optional[List[str]] = None,
+    log_level: str = INFO,
 ) -> str:
     """Generate the deployment build for the valory app."""
 
@@ -72,6 +73,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         private_keys_password=private_keys_password,
         number_of_agents=number_of_agents,
         agent_instances=agent_instances,
+        log_level=log_level,
     )
 
     DeploymentGenerator = DEPLOYMENT_OPTIONS.get(type_of_deployment)

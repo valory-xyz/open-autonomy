@@ -43,6 +43,8 @@ from autonomy.deploy.constants import (
     BENCHMARKS_DIR,
     DEFAULT_ABCI_BUILD_DIR,
     DOCKERFILES,
+    INFO,
+    LOGGING_LEVELS,
     LOG_DIR,
     PERSISTENT_DATA_DIR,
     TM_STATE_DIR,
@@ -109,6 +111,12 @@ def deploy_group(
     help="Remove existing build and overwrite with new one.",
 )
 @click.option(
+    "--log-level",
+    type=click.Choice(choices=LOGGING_LEVELS, case_sensitive=True),
+    help="Logging level for runtime.",
+    default=INFO,
+)
+@click.option(
     "--packages-dir", type=click.Path(), help="Path to packages dir (Use with dev mode)"
 )
 @click.option(
@@ -138,6 +146,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     open_aea_dir: Optional[Path] = None,
     packages_dir: Optional[Path] = None,
     open_autonomy_dir: Optional[Path] = None,
+    log_level: str = INFO,
 ) -> None:
     """Build deployment setup for n agents."""
 
@@ -165,6 +174,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             packages_dir,
             open_aea_dir,
             open_autonomy_dir,
+            log_level=log_level,
         )
     except Exception as e:  # pylint: disable=broad-except
         shutil.rmtree(build_dir)
@@ -285,6 +295,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
     open_aea_dir: Optional[Path] = None,
     open_autonomy_dir: Optional[Path] = None,
     agent_instances: Optional[List[str]] = None,
+    log_level: str = INFO,
 ) -> None:
     """Build deployment."""
     if build_dir.is_dir():
@@ -309,6 +320,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
         open_aea_dir=open_aea_dir,
         open_autonomy_dir=open_autonomy_dir,
         agent_instances=agent_instances,
+        log_level=log_level,
     )
     click.echo(report)
 
