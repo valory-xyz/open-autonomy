@@ -290,9 +290,7 @@ def update_multisig_address(service_path: Path, address: str) -> None:
 
     for override in overrides:
         if override["type"] == SKILL:
-            addresses = override["setup_args"]["args"]["setup"]["safe_contract_address"]
             override["setup_args"]["args"]["setup"]["safe_contract_address"] = [
-                *addresses,
                 address,
             ]
 
