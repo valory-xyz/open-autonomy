@@ -20,9 +20,7 @@
 """This module contains the tests of the ledger connection module."""
 
 import asyncio
-import logging
 from asyncio import Task
-from pathlib import Path
 from threading import Thread
 from typing import Any, Callable, cast
 from unittest import mock
@@ -31,14 +29,11 @@ import pytest
 from aea.configurations.base import ConnectionConfig
 from aea.mail.base import Envelope
 from aea.multiplexer import Multiplexer
-from aea.test_tools.test_skill import BaseSkillTestCase
 
-from packages.valory.connections.abci.dialogues import AbciDialogues
 from packages.valory.connections.ledger.connection import LedgerConnection
 from packages.valory.protocols.abci import AbciMessage
-from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 
-from tests.conftest import ROOT_DIR, make_ledger_api_connection
+from tests.conftest import make_ledger_api_connection
 
 
 def dummy_task_wrapper(waiting_time: float, result_message: AbciMessage) -> Task:
@@ -128,47 +123,35 @@ class TestLedgerConnection:
         blocking_task.cancel()
 
 
-class TestLedgerConnectionWithMultiplexer(BaseSkillTestCase):
-    """Test `LedgerConnection` class, using the multiplexer, via the `BaseSkillTestCase`."""
+class TestLedgerConnectionWithMultiplexer:
+    """Test `LedgerConnection` class, using the multiplexer."""
 
-    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "abstract_abci")
-    abci_handler: ABCIHandler
-    logger: logging.Logger
-    abci_dialogues: AbciDialogues
     running_loop: asyncio.AbstractEventLoop
     thread_loop: Thread
-    _multiplexer: Multiplexer
+    multiplexer: Multiplexer
     ledger_connection: LedgerConnection
     make_ledger_connection_callable: Callable = make_ledger_api_connection
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup(cls) -> None:
         """Setup the test class."""
-        super().setup()
-        cls.abci_handler = cast(ABCIHandler, cls._skill.skill_context.handlers.abci)
-        cls.logger = cls._skill.skill_context.logger
-
-        cls.abci_dialogues = cast(
-            AbciDialogues, cls._skill.skill_context.abci_dialogues
-        )
-
         # set up a multiplexer with the required ledger connection
         cls.running_loop = asyncio.new_event_loop()
         cls.thread_loop = Thread(target=cls.running_loop.run_forever)
         cls.thread_loop.start()
-        cls._multiplexer = Multiplexer(
+        cls.multiplexer = Multiplexer(
             [cls.make_ledger_connection_callable()], loop=cls.running_loop
         )
-        cls._multiplexer.connect()
+        cls.multiplexer.connect()
         # the ledger connection's connect() is called by the multiplexer
         # once a connection is ready, `receive()` is called by the multiplexer
-        cls.ledger_connection = cast(LedgerConnection, cls._multiplexer.connections[0])
+        cls.ledger_connection = cast(LedgerConnection, cls.multiplexer.connections[0])
 
     @classmethod
     def teardown(cls) -> None:
         """Tear down the multiplexer."""
-        if cls._multiplexer.is_connected:
-            cls._multiplexer.disconnect()
+        if cls.multiplexer.is_connected:
+            cls.multiplexer.disconnect()
         cls.running_loop.call_soon_threadsafe(cls.running_loop.stop)
         cls.thread_loop.join()
 
@@ -224,7 +207,7 @@ class TestLedgerConnectionWithMultiplexer(BaseSkillTestCase):
         # `receive()` should not be done,
         # and multiplexer's `_receiving_loop` should be still running and have an empty `in_queue`
         assert (
-            len(self._multiplexer.in_queue.queue) == 0
+            len(self.multiplexer.in_queue.queue) == 0
         ), "The multiplexer's `in_queue` should not contain anything."
 
         # sleep for `non_blocking_time + tolerance`
@@ -240,8 +223,8 @@ class TestLedgerConnectionWithMultiplexer(BaseSkillTestCase):
 
         # `receive()` should be done,
         # and multiplexer's `_receiving_loop` should have put the `normal_dummy_envelope` in the `in_queue`
-        self._multiplexer.disconnect()
-        envelope = self._multiplexer.get(block=True)
+        self.multiplexer.disconnect()
+        envelope = self.multiplexer.get(block=True)
         assert envelope is not None
         message = envelope.message
         assert isinstance(message, AbciMessage)
