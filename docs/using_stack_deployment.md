@@ -41,7 +41,8 @@ The domain can be acquired from a domain registrar such as [goDaddy](https://www
 
 1. Acquire the external operator code.
 ```bash
-git clone git@github.com:valory-xyz/external-node-operators.git
+svn checkout https://github.com/valory-xyz/open-autonomy/trunk/infrastructure
+cd infrastructure
 ```
 
 ### Setup on Digital Ocean Cloud Provider
