@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ from unittest.mock import patch
 
 from aea.test_tools.test_skill import BaseSkillTestCase
 
+from packages.valory.connections.abci import PUBLIC_ID
 from packages.valory.protocols.abci.custom_types import (
     CheckTxType,
     CheckTxTypeEnum,
@@ -70,7 +71,7 @@ class TestCounterHandler(BaseSkillTestCase):
         with patch.object(self.logger, "log") as mock_logger:
             self.abci_counter_handler.setup()
             mock_logger.assert_any_call(
-                logging.DEBUG, "ABCI Handler: setup method called."
+                logging.DEBUG, f"ABCI Handler: setup method called. Using {PUBLIC_ID}."
             )
 
         # after

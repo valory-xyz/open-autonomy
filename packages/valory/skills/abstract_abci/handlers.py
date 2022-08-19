@@ -23,6 +23,7 @@ from typing import List, cast
 from aea.protocols.base import Message
 from aea.skills.base import Handler
 
+from packages.valory.connections.abci import PUBLIC_ID
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     Events,
@@ -52,7 +53,9 @@ class ABCIHandler(Handler):
 
     def setup(self) -> None:
         """Set up the handler."""
-        self.context.logger.debug("ABCI Handler: setup method called.")
+        self.context.logger.debug(
+            f"ABCI Handler: setup method called. Using {PUBLIC_ID}."
+        )
 
     def handle(self, message: Message) -> None:
         """
