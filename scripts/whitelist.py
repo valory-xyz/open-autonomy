@@ -133,3 +133,4 @@ SERVICE_REGISTRY  # unused variable (autonomy/test_tools/docker/registries.py:45
 SERVICE_MANAGER  # unused variable (autonomy/test_tools/docker/registries.py:46)
 SERVICE_MULTISIG  # unused variable (autonomy/test_tools/docker/registries.py:47)
 RegistriesDockerImage  # unused class (autonomy/test_tools/docker/registries.py:53)
+identity  # unused function (autonomy/test_tools/helpers/base.py:87)

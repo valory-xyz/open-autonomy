@@ -21,9 +21,11 @@
 import re
 from copy import deepcopy
 from typing import Any, Dict, List, Tuple, Type, Union
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
+
+from autonomy.test_tools.helpers.base import identity
 
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.apy_estimation_abci.models import (
@@ -120,8 +122,13 @@ class TestSharedState:
 class TestAPYParams:
     """Test `APYParams`"""
 
+    @staticmethod
+    @patch(
+        "packages.valory.skills.apy_estimation_abci.models._hack_around_dict_override_limitation",
+        identity,
+    )
     @pytest.mark.parametrize("param_value", (None, "not_an_int", 0))
-    def test__validate_params(self, param_value: Union[None, str, int]) -> None:
+    def test__validate_params(param_value: Union[None, str, int]) -> None:
         """Test `__validate_params`."""
         args = APY_PARAMS_ARGS
         # TypedDict can’t be used for specifying the type of a **kwargs argument: https://peps.python.org/pep-0589/
@@ -175,14 +182,19 @@ class TestSubgraphsMixin:
     dummy_mixin_usage: DummyMixinUsage
 
     @classmethod
-    def setup(cls) -> None:
+    def setup_class(cls) -> None:
         """Initialize a `TestSubgraphsMixin`."""
         # TypedDict can’t be used for specifying the type of a **kwargs argument: https://peps.python.org/pep-0589/
         kwargs: dict = deepcopy(APY_PARAMS_KWARGS)  # type: ignore
         del kwargs["pair_ids"]["test"]
-        cls.dummy_mixin_usage = TestSubgraphsMixin.DummyMixinUsage(
-            *APY_PARAMS_ARGS, **kwargs
-        )
+
+        with patch(
+            "packages.valory.skills.apy_estimation_abci.models._hack_around_dict_override_limitation",
+            identity,
+        ):
+            cls.dummy_mixin_usage = TestSubgraphsMixin.DummyMixinUsage(
+                *APY_PARAMS_ARGS, **kwargs
+            )
 
     @staticmethod
     def test_incorrect_initialization() -> None:
@@ -208,6 +220,9 @@ class TestSubgraphsMixin:
                 "Subgraph(s) {'test'} not recognized. "
                 "Please specify them in the `skill.yaml` config file and `models.py`."
             ),
+        ), patch(
+            "packages.valory.skills.apy_estimation_abci.models._hack_around_dict_override_limitation",
+            identity,
         ):
             TestSubgraphsMixin.DummyMixinUsage(*APY_PARAMS_ARGS, **kwargs)
 
