@@ -26,6 +26,7 @@ from unittest import mock
 import pytest
 
 from autonomy.test_tools.docker.base import skip_docker_tests
+from autonomy.test_tools.docker.registries import SERVICE_REGISTRY
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
@@ -68,8 +69,10 @@ class TestFromToken(BaseCliTest):
                 (
                     str(self.token),
                     str(self.keys_file),
-                    f"--use-{self.chain}",
-                    "--remote",
+                    "--rpc",
+                    "http://localhost:8545/",
+                    "--sca",
+                    SERVICE_REGISTRY,
                 )
             )
 
