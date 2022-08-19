@@ -693,7 +693,7 @@ class ScaffoldABCISkill:
         self._scaffold_handlers()
 
         # remove original 'my_model.py' file
-        (self.skill_dir / "my_model.py").unlink(missing_ok=True)
+        shutil.rmtree(self.skill_dir / "my_model.py", ignore_errors=True)
 
         self._remove_pycache()
         self._update_config()
