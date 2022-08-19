@@ -6,3 +6,6 @@
 	path = third_party/contracts-amm
 	url = https://github.com/valory-xyz/contracts-amm.git
 	ignore = dirty
+[submodule "third_party/autonolas-registries"]
+	path = third_party/autonolas-registries
+	url = https://github.com/valory-xyz/autonolas-registries.git

@@ -63,6 +63,7 @@ from autonomy.test_tools.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
+from autonomy.test_tools.docker.registries import RegistriesDockerImage
 from autonomy.test_tools.docker.tendermint import (
     DEFAULT_ABCI_HOST,
     DEFAULT_ABCI_PORT,
@@ -250,6 +251,16 @@ def ganache_scope_class(
         client, ganache_addr, ganache_port, config=ganache_configuration
     )
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture(scope="class")
+def registries_scope_class() -> Generator:
+    """Launch the Registry contracts image. This fixture is scoped to a class which means it will destroyed after running every test in a class."""
+    client = docker.from_env()
+    image = RegistriesDockerImage(
+        client, third_party_contract_dir=THIRD_PARTY_CONTRACTS
+    )
+    yield from launch_image(image, timeout=2, max_attempts=10)
 
 
 def get_unused_tcp_port() -> int:

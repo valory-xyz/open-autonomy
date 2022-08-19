@@ -10,15 +10,17 @@ fingerprint_ignore_patterns: []
 agent: valory/oracle:0.1.0:bafybeic6cywgpyndirryyz7ndeg6qtuzk3ygjvijilyz26fwtukbxxhc2a
 number_of_agents: 4
 ---
-benchmark_persistence_params:
-  args: &id003
-    log_dir: /benchmarks
-observation_params:
+setup_args:
   args: &id001
+    setup:
+      safe_contract_address: []
     observation_interval: 30
     broadcast_to_server: false
     service_registry_address: '0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82'
     on_chain_service_id: 1
+benchmark_persistence_params:
+  args: &id003
+    log_dir: /benchmarks
 valory_monitoring_backend:
   args: &id002
     url: https://oracle-server.staging.autonolas.tech/deposit
