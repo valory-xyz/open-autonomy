@@ -238,6 +238,17 @@ class TestLedgerConnectionWithMultiplexer(BaseSkillTestCase):
             not self.ledger_connection.response_envelopes.empty()
         ), "The response envelopes of the ledger connection should not be empty."
 
+        # `receive()` should be done,
+        # and multiplexer's `_receiving_loop` should have put the `normal_dummy_envelope` in the `in_queue`
+        self._multiplexer.disconnect()
+        envelope = self._multiplexer.get(block=True)
+        assert envelope is not None
+        message = envelope.message
+        assert isinstance(message, AbciMessage)
+        assert (
+            message.data == b"normal_task"
+        ), "Normal task should be the first item in the multiplexer's `in_queue`."
+
         # the blocking task should not be done
         assert not blocking_task.done(), "Blocking task should be still running."
         # cancel remaining task before ending test
