@@ -167,7 +167,8 @@ class TestLedgerConnectionWithMultiplexer(BaseSkillTestCase):
     @classmethod
     def teardown(cls) -> None:
         """Tear down the multiplexer."""
-        cls._multiplexer.disconnect()
+        if cls._multiplexer.is_connected:
+            cls._multiplexer.disconnect()
         cls.running_loop.call_soon_threadsafe(cls.running_loop.stop)
         cls.thread_loop.join()
 
