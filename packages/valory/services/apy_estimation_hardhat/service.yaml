@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeibqyfur7wusrbfga66hcbauxvhs2g3j5yhknsxlvyh6mil57aajyu
 fingerprint_ignore_patterns: []
-agent: valory/apy_estimation:0.1.0:bafybeidkhhl27onhlanfcepyzhigdusb3r7cyon73c4fr34cqgvburlr4q
+agent: valory/apy_estimation:0.1.0:bafybeihe5s5sos6qolbr4mo7fslsnsxo3wdib3fh6xg2gk2v7nefqyej3u
 number_of_agents: 4
 ---
 public_id: valory/apy_estimation_abci:0.1.0
@@ -34,11 +34,11 @@ models:
         scoring: pinball
         alpha: 0.25
       pair_ids:
-        uniswap_subgraph:
-        - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
-        spooky_subgraph:
-        - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
-        - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
+      - - uniswap_subgraph
+        - - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
+      - - spooky_subgraph
+        - - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
+          - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       sleep_time: 10
       ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https
 ---

@@ -20,7 +20,7 @@ contracts: []
 protocols: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeihrz2sqfxmv5wxhmwwmgybx47g33v7qh2p6ypvwqo7vft3xomcby4
-- valory/apy_estimation_abci:0.1.0:bafybeiaq62stplwxv5yzz475pbhcg6hp2jnjz5olqbm2ssxa5gr5denoi4
+- valory/apy_estimation_abci:0.1.0:bafybeibbc3jl732g3e2qxtkqkbqovqwvdhuxmcnn2vdniwkoddnisweedu
 - valory/registration_abci:0.1.0:bafybeic34hhx3pmppa4etadhz5ejrg3jfqp2vggdiknlfbvs2loliihjcu
 behaviours:
   main:
@@ -112,11 +112,11 @@ models:
         alpha: 0.25
         window_size: null
       pair_ids:
-        uniswap_subgraph:
-        - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
-        spooky_subgraph:
-        - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
-        - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
+      - - uniswap_subgraph
+        - - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
+      - - spooky_subgraph
+        - - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
+          - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3

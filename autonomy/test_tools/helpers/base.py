@@ -82,3 +82,8 @@ def make_round_class(name: str, bases: Tuple = (AbstractRound,)) -> Type[Abstrac
     setattr(new_round_cls, "round_id", name)  # noqa: B010
     assert issubclass(new_round_cls, AbstractRound)  # nosec
     return new_round_cls
+
+
+def identity(arg: Any) -> Any:
+    """Define an identity function."""
+    return arg

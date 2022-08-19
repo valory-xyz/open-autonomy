@@ -25,8 +25,8 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeifego6mhqqzzctft4mfcrmsik5wxb4qw3ahje6o6prxbar3unnaie
 - valory/abstract_round_abci:0.1.0:bafybeihrz2sqfxmv5wxhmwwmgybx47g33v7qh2p6ypvwqo7vft3xomcby4
-- valory/apy_estimation_abci:0.1.0:bafybeiaq62stplwxv5yzz475pbhcg6hp2jnjz5olqbm2ssxa5gr5denoi4
-- valory/apy_estimation_chained_abci:0.1.0:bafybeig4yey4p3wjowu3ckpci2gknsobfzgb7t5mm7q7xmlqzcr3mcaouq
+- valory/apy_estimation_abci:0.1.0:bafybeibbc3jl732g3e2qxtkqkbqovqwvdhuxmcnn2vdniwkoddnisweedu
+- valory/apy_estimation_chained_abci:0.1.0:bafybeian5n7yil55hss7dyjtvz5xpvghxwvnli5h42g26igzonfiurikay
 - valory/registration_abci:0.1.0:bafybeic34hhx3pmppa4etadhz5ejrg3jfqp2vggdiknlfbvs2loliihjcu
 default_ledger: ethereum
 required_ledgers:
@@ -100,8 +100,11 @@ models:
         show_progress_bar: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_SHOW_PROGRESS_BAR:bool:false}
         scoring: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_SCORING:str:pinball}
         alpha: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_ALPHA:float:0.25}
+      pair_ids: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_PAIR_IDS:list:[["uniswap_subgraph",
+        ["0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5"]], ["spooky_subgraph", ["0x2a651563c9d3af67ae0388a5c8f89b867038089e",
+        "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c"]]]}
       sleep_time: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_SLEEP_TIME:int:10}
-      ipfs_domain_name: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_IPFS_DOMAIN_NAME:str}
+      ipfs_domain_name: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_IPFS_DOMAIN_NAME:str:/dns/localhost/tcp/5001/http}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
