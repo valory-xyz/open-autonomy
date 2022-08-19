@@ -31,15 +31,17 @@ from aea.mail.base import Envelope
 from aea.multiplexer import Multiplexer
 
 from packages.valory.connections.ledger.connection import LedgerConnection
-from packages.valory.protocols.abci import AbciMessage
+from packages.valory.protocols.ledger_api import LedgerApiMessage
+from packages.valory.protocols.ledger_api.custom_types import Kwargs
 
 from tests.conftest import make_ledger_api_connection
 
 
-def dummy_task_wrapper(waiting_time: float, result_message: AbciMessage) -> Task:
+
+def dummy_task_wrapper(waiting_time: float, result_message: LedgerApiMessage) -> Task:
     """Create a dummy task that simply waits for a given `waiting_time` and returns a given `result_message`."""
 
-    async def dummy_task(*_: Any) -> AbciMessage:
+    async def dummy_task(*_: Any) -> LedgerApiMessage:
         """Wait for the given `waiting_time` and return the given `result_message`."""
         await asyncio.sleep(waiting_time)
         return result_message
@@ -78,14 +80,14 @@ class TestLedgerConnection:
         # create a blocking task lasting `blocking_time` secs
         blocking_task = dummy_task_wrapper(
             blocking_time,
-            AbciMessage(
-                AbciMessage.Performative.DUMMY, _body={"data": b"blocking_task"}  # type: ignore
+            LedgerApiMessage(
+                LedgerApiMessage.Performative.ERROR, _body={"data": b"blocking_task"}  # type: ignore
             ),
         )
         blocking_dummy_envelope = Envelope(
             to="test_blocking_to",
             sender="test_blocking_sender",
-            message=AbciMessage(AbciMessage.Performative.DUMMY),  # type: ignore
+            message=LedgerApiMessage(LedgerApiMessage.Performative.ERROR),  # type: ignore
         )
         with mock.patch.object(
             LedgerConnection, "_schedule_request", return_value=blocking_task
@@ -96,12 +98,12 @@ class TestLedgerConnection:
         await asyncio.sleep(wait_time_among_tasks)
         normal_task = dummy_task_wrapper(
             non_blocking_time,
-            AbciMessage(AbciMessage.Performative.DUMMY, _body={"data": b"normal_task"}),  # type: ignore
+            LedgerApiMessage(LedgerApiMessage.Performative.ERROR, _body={"data": b"normal_task"}),  # type: ignore
         )
         normal_dummy_envelope = Envelope(
             to="test_normal_to",
             sender="test_normal_sender",
-            message=AbciMessage(AbciMessage.Performative.DUMMY),  # type: ignore
+            message=LedgerApiMessage(LedgerApiMessage.Performative.ERROR),  # type: ignore
         )
         with mock.patch.object(
             LedgerConnection, "_schedule_request", return_value=normal_task
@@ -170,8 +172,12 @@ class TestLedgerConnectionWithMultiplexer:
         # create a blocking task lasting `blocking_time` secs
         blocking_task = dummy_task_wrapper(
             blocking_time,
-            AbciMessage(
-                AbciMessage.Performative.DUMMY, _body={"data": b"blocking_task"}  # type: ignore
+            LedgerApiMessage(
+                ledger_id=EthereumCrypto.identifier,
+                performative=LedgerApiMessage.Performative.ERROR,  # type: ignore
+                code=1,
+                message="",
+                data=b"blocking_task",
             ),
         )
         blocking_dummy_envelope = Envelope(
@@ -188,7 +194,13 @@ class TestLedgerConnectionWithMultiplexer:
         await asyncio.sleep(wait_time_among_tasks)
         normal_task = dummy_task_wrapper(
             non_blocking_time,
-            AbciMessage(AbciMessage.Performative.DUMMY, _body={"data": b"normal_task"}),  # type: ignore
+            LedgerApiMessage(
+                ledger_id=EthereumCrypto.identifier,
+                performative=LedgerApiMessage.Performative.ERROR,  # type: ignore
+                code=1,
+                message="",
+                data=b"normal_task",
+            ),
         )
         normal_dummy_envelope = Envelope(
             to="test_normal_to",
@@ -227,7 +239,7 @@ class TestLedgerConnectionWithMultiplexer:
         envelope = self.multiplexer.get(block=True)
         assert envelope is not None
         message = envelope.message
-        assert isinstance(message, AbciMessage)
+        assert isinstance(message, LedgerApiMessage)
         assert (
             message.data == b"normal_task"
         ), "Normal task should be the first item in the multiplexer's `in_queue`."
