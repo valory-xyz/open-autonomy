@@ -56,6 +56,9 @@ from packages.open_aea.protocols.signing.custom_types import (
 from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
+from packages.valory.contracts.service_registry.contract import (  # noqa: F401  # pylint: disable=unused-import
+    ServiceRegistryContract,
+)
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
@@ -91,6 +94,9 @@ from packages.valory.skills.abstract_round_abci.models import (
     Requests,
     SharedState,
 )
+
+
+# TODO: port registration code from registration_abci to here
 
 
 MIN_HEIGHT_OFFSET = 10
