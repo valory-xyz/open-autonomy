@@ -142,12 +142,21 @@ Run deployment.
     "--skip-images", is_flag=True, default=False, help="Skip building images."
 )
 @chain_selection_flag()
-@registry_flag()
 @click.pass_context
-def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, registry: str, chain_type: str, rpc_url: Optional[str], service_contract_address: Optional[str], skip_images: bool, n: Optional[int]) -> None
+def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, chain_type: str, rpc_url: Optional[str], service_contract_address: Optional[str], skip_images: bool, n: Optional[int]) -> None
 ```
 
 Run service deployment.
+
+<a id="autonomy.cli.deploy.update_multisig_address"></a>
+
+#### update`_`multisig`_`address
+
+```python
+def update_multisig_address(service_path: Path, address: str) -> None
+```
+
+Update the multisig address on the service config.
 
 <a id="autonomy.cli.deploy.build_deployment"></a>
 

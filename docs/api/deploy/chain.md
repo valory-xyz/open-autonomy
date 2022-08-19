@@ -54,3 +54,29 @@ def get_agent_instances(token_id: int) -> Tuple[int, List[str]]
 
 Get the list of agent instances.
 
+**Arguments**:
+
+- `token_id`: Token ID pointing to the on-chain service
+
+**Returns**:
+
+number of agent instances and the list of registered addressed
+
+<a id="autonomy.deploy.chain.ServiceRegistry.get_service_info"></a>
+
+#### get`_`service`_`info
+
+```python
+def get_service_info(token_id: int) -> ServiceInfo
+```
+
+Returns service info.
+
+**Arguments**:
+
+- `token_id`: Token ID pointing to the on-chain service
+
+**Returns**:
+
+security deposit, multisig address, IPFS hash for config,
+
