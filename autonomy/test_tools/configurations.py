@@ -31,8 +31,6 @@ def get_key(key_path: Path) -> str:
 
 CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
 TEST_TOOLS_DIR = Path(CUR_PATH).resolve().absolute()
-ROOT_DIR = Path(CUR_PATH, "..", "..").resolve().absolute()
-THIRD_PARTY = ROOT_DIR / "third_party"
 DATA_PATH = TEST_TOOLS_DIR / "data"
 
 LOCALHOST = "localhost"

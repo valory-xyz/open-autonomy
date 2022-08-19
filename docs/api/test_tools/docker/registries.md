@@ -1,20 +1,20 @@
-<a id="autonomy.test_tools.docker.amm_net"></a>
+<a id="autonomy.test_tools.docker.registries"></a>
 
-# autonomy.test`_`tools.docker.amm`_`net
+# autonomy.test`_`tools.docker.registries
 
 Tendermint Docker image.
 
-<a id="autonomy.test_tools.docker.amm_net.AMMNetDockerImage"></a>
+<a id="autonomy.test_tools.docker.registries.RegistriesDockerImage"></a>
 
-## AMMNetDockerImage Objects
+## RegistriesDockerImage Objects
 
 ```python
-class AMMNetDockerImage(DockerImage)
+class RegistriesDockerImage(DockerImage)
 ```
 
-Spawn a local Ethereum network with deployed Gnosis Safe and Uniswap contracts, using HardHat.
+Spawn a local Ethereum network with deployed registry contracts, using HardHat.
 
-<a id="autonomy.test_tools.docker.amm_net.AMMNetDockerImage.__init__"></a>
+<a id="autonomy.test_tools.docker.registries.RegistriesDockerImage.__init__"></a>
 
 #### `__`init`__`
 
@@ -24,7 +24,7 @@ def __init__(client: docker.DockerClient, third_party_contract_dir: Path, addr: 
 
 Initialize.
 
-<a id="autonomy.test_tools.docker.amm_net.AMMNetDockerImage.tag"></a>
+<a id="autonomy.test_tools.docker.registries.RegistriesDockerImage.tag"></a>
 
 #### tag
 
@@ -35,7 +35,7 @@ def tag() -> str
 
 Get the tag.
 
-<a id="autonomy.test_tools.docker.amm_net.AMMNetDockerImage.create"></a>
+<a id="autonomy.test_tools.docker.registries.RegistriesDockerImage.create"></a>
 
 #### create
 
@@ -45,7 +45,7 @@ def create() -> Container
 
 Create the container.
 
-<a id="autonomy.test_tools.docker.amm_net.AMMNetDockerImage.create_many"></a>
+<a id="autonomy.test_tools.docker.registries.RegistriesDockerImage.create_many"></a>
 
 #### create`_`many
 
@@ -55,7 +55,7 @@ def create_many(nb_containers: int) -> List[Container]
 
 Instantiate the image in many containers, parametrized.
 
-<a id="autonomy.test_tools.docker.amm_net.AMMNetDockerImage.wait"></a>
+<a id="autonomy.test_tools.docker.registries.RegistriesDockerImage.wait"></a>
 
 #### wait
 

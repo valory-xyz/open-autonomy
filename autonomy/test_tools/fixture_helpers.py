@@ -26,6 +26,7 @@
 # pylint: disable=unused-argument
 
 import logging
+from pathlib import Path
 from typing import Any, Dict, List, Tuple, cast
 
 import docker
@@ -224,6 +225,7 @@ class GanacheBaseTest(DockerBaseTest):
     addr: str = DEFAULT_GANACHE_ADDR
     port: int = DEFAULT_GANACHE_PORT
     configuration: Dict = GANACHE_CONFIGURATION
+    third_party_contract_dir: Path
 
     @classmethod
     def setup_class_kwargs(cls) -> Dict[str, Any]:
@@ -270,6 +272,7 @@ class HardHatBaseTest(DockerBaseTest):
 
     addr: str = DEFAULT_HARDHAT_ADDR
     port: int = DEFAULT_HARDHAT_PORT
+    third_party_contract_dir: Path
 
     @classmethod
     def setup_class_kwargs(cls) -> Dict[str, Any]:
@@ -298,7 +301,9 @@ class HardHatGnosisBaseTest(HardHatBaseTest):
     def _build_image(cls) -> DockerImage:
         """Build the image."""
         client = docker.from_env()
-        return GnosisSafeNetDockerImage(client, cls.addr, cls.port)
+        return GnosisSafeNetDockerImage(
+            client, cls.third_party_contract_dir, cls.addr, cls.port
+        )
 
 
 class HardHatAMMBaseTest(HardHatBaseTest):
@@ -308,4 +313,6 @@ class HardHatAMMBaseTest(HardHatBaseTest):
     def _build_image(cls) -> DockerImage:
         """Build the image."""
         client = docker.from_env()
-        return AMMNetDockerImage(client, cls.addr, cls.port)
+        return AMMNetDockerImage(
+            client, cls.third_party_contract_dir, cls.addr, cls.port
+        )

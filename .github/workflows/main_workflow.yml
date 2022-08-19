@@ -235,6 +235,11 @@ jobs:
           cd third_party/contracts-amm &&\
             yarn
 
+          # build hardhat node in third_party/autonolas-registries
+          cd ../..
+          cd third_party/autonolas-registries &&\
+            yarn
+
       - if: matrix.os == 'ubuntu-latest'
         name: Unit tests ubuntu-latest
         run: |
@@ -282,11 +287,18 @@ jobs:
           cd third_party/safe-contracts &&\
             sudo chown -R $(whoami) .husky &&\
             yarn
+          cd ../..
 
           # build hardhat node in third_party/contracts-amm
-          cd ../..
           cd third_party/contracts-amm &&\
             yarn
+          cd ../..
+          
+          # build hardhat node in third_party/autonolas-registries
+          cd third_party/autonolas-registries &&\
+            yarn
+          cd ../..
+
 
       - if: matrix.os == 'macos-latest'
         name: Unit tests macos-latest
@@ -348,6 +360,11 @@ jobs:
 
           # build hardhat node in third_party/contracts-amm
           cd third_party\contracts-amm
+          yarn
+          cd ..\..
+
+          # build hardhat node in third_party/autonolas-registries
+          cd third_party\autonolas-registries
           yarn
           cd ..\..
 

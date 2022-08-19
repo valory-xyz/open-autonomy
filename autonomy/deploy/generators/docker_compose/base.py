@@ -35,6 +35,8 @@ from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
     DEPLOYMENT_KEY_DIRECTORY,
+    INFO,
+    KEY_SCHEMA_PRIVATE_KEY,
 )
 from autonomy.deploy.generators.docker_compose.templates import (
     ABCI_NODE_TEMPLATE,
@@ -45,7 +47,10 @@ from autonomy.deploy.generators.docker_compose.templates import (
 
 
 def build_tendermint_node_config(
-    node_id: int, dev_mode: bool = False, image_version: str = TENDERMINT_IMAGE_VERSION
+    node_id: int,
+    dev_mode: bool = False,
+    image_version: str = TENDERMINT_IMAGE_VERSION,
+    log_level: str = INFO,
 ) -> str:
     """Build tendermint node config for docker compose."""
 
@@ -55,6 +60,7 @@ def build_tendermint_node_config(
         localnet_port_range=node_id,
         tendermint_image_name=TENDERMINT_IMAGE_NAME,
         tendermint_image_version=image_version,
+        log_level=log_level,
     )
 
     if dev_mode:
@@ -182,7 +188,10 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         tendermint_nodes = "".join(
             [
                 build_tendermint_node_config(
-                    i, self.dev_mode, image_versions["tendermint"]
+                    node_id=i,
+                    dev_mode=self.dev_mode,
+                    image_version=image_versions["tendermint"],
+                    log_level=self.service_spec.log_level,
                 )
                 for i in range(self.service_spec.service.number_of_agents)
             ]
@@ -208,5 +217,5 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             with open(
                 path / DEFAULT_PRIVATE_KEY_FILE, "w", encoding=DEFAULT_ENCODING
             ) as f:
-                f.write(str(self.service_spec.private_keys[x]))
+                f.write(str(self.service_spec.keys[x][KEY_SCHEMA_PRIVATE_KEY]))
         return self

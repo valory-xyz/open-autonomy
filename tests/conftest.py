@@ -63,6 +63,7 @@ from autonomy.test_tools.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
+from autonomy.test_tools.docker.registries import RegistriesDockerImage
 from autonomy.test_tools.docker.tendermint import (
     DEFAULT_ABCI_HOST,
     DEFAULT_ABCI_PORT,
@@ -76,6 +77,7 @@ from autonomy.test_tools.helpers.contracts import get_register_contract
 CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
 ROOT_DIR = Path(CUR_PATH, "..").resolve().absolute()
 UNKNOWN_PROTOCOL_PUBLIC_ID = PublicId("unused", "unused", "1.0.0")
+THIRD_PARTY_CONTRACTS = ROOT_DIR / "third_party"
 
 NB_OWNERS = 4
 THRESHOLD = 1
@@ -181,7 +183,9 @@ def gnosis_safe_hardhat_scope_function(
     """Launch the HardHat node with Gnosis Safe contracts deployed. This fixture is scoped to a function which means it will destroyed at the end of the test."""
     client = docker.from_env()
     logging.info(f"Launching Hardhat at port {hardhat_port}")
-    image = GnosisSafeNetDockerImage(client, hardhat_addr, hardhat_port)
+    image = GnosisSafeNetDockerImage(
+        client, THIRD_PARTY_CONTRACTS, hardhat_addr, hardhat_port
+    )
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
@@ -193,7 +197,9 @@ def gnosis_safe_hardhat_scope_class(
     """Launch the HardHat node with Gnosis Safe contracts deployed.This fixture is scoped to a class which means it will destroyed after running every test in a class."""
     client = docker.from_env()
     logging.info(f"Launching Hardhat at port {DEFAULT_HARDHAT_PORT}")
-    image = GnosisSafeNetDockerImage(client, DEFAULT_HARDHAT_ADDR, DEFAULT_HARDHAT_PORT)
+    image = GnosisSafeNetDockerImage(
+        client, THIRD_PARTY_CONTRACTS, DEFAULT_HARDHAT_ADDR, DEFAULT_HARDHAT_PORT
+    )
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
@@ -245,6 +251,16 @@ def ganache_scope_class(
         client, ganache_addr, ganache_port, config=ganache_configuration
     )
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture(scope="class")
+def registries_scope_class() -> Generator:
+    """Launch the Registry contracts image. This fixture is scoped to a class which means it will destroyed after running every test in a class."""
+    client = docker.from_env()
+    image = RegistriesDockerImage(
+        client, third_party_contract_dir=THIRD_PARTY_CONTRACTS
+    )
+    yield from launch_image(image, timeout=2, max_attempts=10)
 
 
 def get_unused_tcp_port() -> int:

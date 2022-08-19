@@ -21,7 +21,7 @@
 
 
 import os
-from typing import Dict, Optional
+from typing import Dict, List, Optional, Tuple
 
 import requests
 import web3
@@ -51,6 +51,8 @@ CHAIN_CONFIG: Dict[str, Dict[str, Optional[str]]] = {
     },
 }
 
+ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
+
 
 def get_abi(url: str) -> Dict:
     """Get ABI from provided URL"""
@@ -59,37 +61,70 @@ def get_abi(url: str) -> Dict:
     return r.json().get("abi")
 
 
-def resolve_token_id(
-    token_id: int,
-    chain_type: str = "staging",
-    rpc_url: Optional[str] = None,
-    service_contract_address: Optional[str] = None,
-) -> Dict:
-    """Resolve token id using on-chain contracts."""
+class ServiceRegistry:
+    """Class to represent on-chain service registry."""
 
-    if chain_type not in CHAIN_CONFIG:
-        raise ValueError(f"{chain_type} Currently not supported.")
+    def __init__(
+        self,
+        chain_type: str = "staging",
+        rpc_url: Optional[str] = None,
+        service_contract_address: Optional[str] = None,
+    ) -> None:
+        """Initialize object."""
 
-    rpc_url = rpc_url or CHAIN_CONFIG.get(chain_type, {}).get("rpc")
-    if rpc_url is None:
-        raise ValueError(
-            f"RPC url for {chain_type} is not set, please set value for {chain_type.upper()}_CHAIN_RPC"
+        if chain_type not in CHAIN_CONFIG:
+            raise ValueError(f"{chain_type} Currently not supported.")
+
+        rpc_url = rpc_url or CHAIN_CONFIG.get(chain_type, {}).get("rpc")
+        if rpc_url is None:
+            raise ValueError(
+                f"RPC url for {chain_type} is not set, please set value for {chain_type.upper()}_CHAIN_RPC"
+            )
+
+        self.w3 = web3.Web3(
+            provider=web3.HTTPProvider(endpoint_uri=rpc_url),
+        )
+        self.abi = get_abi(SERVICE_REGISTRY_ABI)
+
+        self.service_contract_address = service_contract_address or CHAIN_CONFIG.get(
+            chain_type, {}
+        ).get("service_contract_address")
+        if self.service_contract_address is None:
+            raise ValueError(
+                f"RPC url for {chain_type} is not set, please set value for SERVICE_ADDRESS_{chain_type.upper()}"
+            )
+
+        self.contract = self.w3.eth.contract(
+            address=self.service_contract_address, abi=self.abi
         )
 
-    w3 = web3.Web3(
-        provider=web3.HTTPProvider(endpoint_uri=rpc_url),
-    )
+    def resolve_token_id(
+        self,
+        token_id: int,
+    ) -> Dict:
+        """Resolve token id using on-chain contracts."""
+        url = self.contract.functions.tokenURI(token_id).call()
+        return requests.get(url).json()
 
-    service_contract_address = service_contract_address or CHAIN_CONFIG.get(
-        chain_type, {}
-    ).get("service_contract_address")
-    if service_contract_address is None:
-        raise ValueError(
-            f"RPC url for {chain_type} is not set, please set value for SERVICE_ADDRESS_{chain_type.upper()}"
-        )
+    def get_agent_instances(self, token_id: int) -> Tuple[int, List[str]]:
+        """
+        Get the list of agent instances.
 
-    service_contract = w3.eth.contract(
-        address=service_contract_address, abi=get_abi(SERVICE_REGISTRY_ABI)
-    )
-    url = service_contract.functions.tokenURI(token_id).call()
-    return requests.get(url).json()
+        :param token_id: Token ID pointing to the on-chain service
+        :returns: number of agent instances and the list of registered addressed
+        """
+        agent_instances = self.contract.functions.getAgentInstances(token_id).call()
+        return agent_instances
+
+    def get_service_info(self, token_id: int) -> ServiceInfo:
+        """
+        Returns service info.
+
+        :param token_id: Token ID pointing to the on-chain service
+        :returns: security deposit, multisig address, IPFS hash for config,
+                threshold, max number of agent instances, number of agent instances,
+                service state, list of cannonical agents
+        """
+
+        info = self.contract.functions.getService(token_id).call()
+        return info

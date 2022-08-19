@@ -34,6 +34,7 @@ from autonomy.constants import (
     TENDERMINT_IMAGE_NAME,
 )
 from autonomy.deploy.constants import (
+    DEBUG,
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
     DEPLOYMENT_KEY_DIRECTORY,
     KUBERNETES_AGENT_KEY_NAME,
@@ -123,6 +124,52 @@ class TestBuildDeployment(BaseCliTest):
             ]
         )
 
+    def test_docker_compose_build_log_level(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--force",
+                    "--local",
+                    "--log-level",
+                    DEBUG,
+                )
+            )
+
+        build_dir = self.t / "abci_build"
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert build_dir.exists()
+
+        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
+        assert any(
+            [
+                child in build_tree
+                for child in ["persistent_storage", "nodes", "docker-compose.yaml"]
+            ]
+        )
+
+        docker_compose_file = build_dir / "docker-compose.yaml"
+        with open(docker_compose_file, "r", encoding="utf-8") as fp:
+            docker_compose = yaml.safe_load(fp)
+
+        assert any(
+            [key in docker_compose for key in ["version", "services", "networks"]]
+        )
+
+        assert (
+            f"LOG_LEVEL={DEBUG}" in docker_compose["services"]["abci0"]["environment"]
+        )
+        assert (
+            f"LOG_LEVEL={DEBUG}" in docker_compose["services"]["node0"]["environment"]
+        )
+
     def test_docker_compose_build_dev(
         self,
     ) -> None:
@@ -197,6 +244,42 @@ class TestBuildDeployment(BaseCliTest):
         assert any(
             [child in build_tree for child in ["persistent_storage", "build.yaml"]]
         )
+
+    def test_kubernetes_build_log_level(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--kubernetes",
+                    "--force",
+                    "--local",
+                    "--log-level",
+                    DEBUG,
+                )
+            )
+
+        build_dir = self.t / "abci_build"
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert build_dir.exists()
+
+        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
+        assert any(
+            [child in build_tree for child in ["persistent_storage", "build.yaml"]]
+        )
+
+        with open(build_dir / "build.yaml", "r") as fp:
+            build_config = list(yaml.safe_load_all(fp))
+
+        assert {"name": "LOG_LEVEL", "value": DEBUG} in build_config[1]["spec"][
+            "template"
+        ]["spec"]["containers"][0]["env"]
 
     def test_kubernetes_build_dev(
         self,

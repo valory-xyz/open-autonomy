@@ -23,6 +23,9 @@ import click
 from aea.cli.core import cli
 
 import autonomy
+
+# trigger patching of 'aea scaffold' command
+import autonomy.cli.scaffold_fsm  # noqa
 from autonomy.cli.analyse import analyse_group
 from autonomy.cli.build_images import build_images
 from autonomy.cli.deploy import deploy_group

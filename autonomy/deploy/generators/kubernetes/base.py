@@ -34,6 +34,7 @@ from autonomy.constants import (
 from autonomy.deploy.base import BaseDeploymentGenerator, ServiceSpecification
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
+    KEY_SCHEMA_PRIVATE_KEY,
     KUBERNETES_AGENT_KEY_NAME,
     TENDERMINT_CONFIGURATION_OVERRIDES,
 )
@@ -89,13 +90,14 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_deployment = AGENT_NODE_TEMPLATE.format(
             valory_app=image_name,
             validator_ix=agent_ix,
-            aea_key=self.service_spec.private_keys[agent_ix],
+            aea_key=self.service_spec.keys[agent_ix][KEY_SCHEMA_PRIVATE_KEY],
             number_of_validators=number_of_agents,
             host_names=host_names,
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
             tendermint_image_version=image_versions["tendermint"],
             open_aea_image_name=OPEN_AEA_IMAGE_NAME,
             open_aea_image_version=image_versions["agent"],
+            log_level=self.service_spec.log_level,
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
         resources = []
@@ -194,7 +196,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         """Populates private keys into a config map for the kubernetes deployment."""
         path = self.build_dir / "agent_keys"
         for x in range(self.service_spec.service.number_of_agents):
-            key = self.service_spec.private_keys[x]
+            key = self.service_spec.keys[x][KEY_SCHEMA_PRIVATE_KEY]
             secret = AGENT_SECRET_TEMPLATE.format(private_key=key, validator_ix=x)
             with open(
                 path / KUBERNETES_AGENT_KEY_NAME.format(agent_n=x), "w", encoding="utf8"

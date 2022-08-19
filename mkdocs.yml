@@ -3,6 +3,7 @@ site_url: https://valory.xyz/
 site_description: A framework for the creation of autonomous agent services.
 repo_url: https://github.com/valory-xyz/open-autonomy
 site_author: developer@valory.xyz
+edit_uri: edit/main/docs/
 
 theme:
    name: 'material'
@@ -209,7 +210,7 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg  
+      emoji_generator: !!python/name:materialx.emoji.to_svg
   - admonition
   - pymdownx.arithmatex
   - attr_list

@@ -93,11 +93,11 @@ class TestServiceSpecification:
         assert len(agents) == 1, agents
 
         agent = spec.generate_agent(0)
-        assert len(agent.keys()) == 19, agent
+        assert len(agent.keys()) == 20, agent
 
         spec.service.overrides = []
         agent = spec.generate_agent(0)
-        assert len(agent.keys()) == 6, agent
+        assert len(agent.keys()) == 7, agent
 
     def test_set_number_of_agents(
         self,
@@ -139,6 +139,28 @@ class TestServiceSpecification:
                 self.keys_path,
                 number_of_agents=2,
             )
+
+    def test_agent_instances(
+        self,
+    ) -> None:
+        """Test agent_instance initialization."""
+
+        agent_instances = [
+            "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+        ]
+
+        self._write_service(get_dummy_service_config())
+        spec = ServiceSpecification(
+            self.service_path, self.keys_path, agent_instances=agent_instances
+        )
+        agents = spec.generate_agents()
+        assert len(agents) == 1
+
+        with pytest.raises(
+            ValueError,
+            match="Cannot find the provided keys in the list of the agent instances",
+        ):
+            ServiceSpecification(self.service_path, self.keys_path, agent_instances=[])
 
     @classmethod
     def teardown(

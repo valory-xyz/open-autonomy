@@ -72,7 +72,7 @@ These keys can be used for local deployments if you're using the default hardhat
 
 ```bash
 # fetch a service
-$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeicrjeiaxcqsas66cpheh4ucptbftz7lvnlau43p62gliap45cet6a  --service
+$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeigoc6lmislndw22bwd2civwlpnrbsk76delmhqmw3vsblxcypgzem  --service
 $ cd oracle_hardhat
 # create a docker deployment
 $ autonomy deploy build keys.json
@@ -160,7 +160,7 @@ $ autonomy deploy run
 
 4. One click deployments
 
-If you have a service registered on-chain you can deploy the services directly using token IDs generated after the minting the service component.
+If you have a service registered on-chain you can deploy the services directly using token IDs generated after the minting the service component. Refer [here](./package_publishing.md) for more information.
 
 ```bash
 Usage: autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE

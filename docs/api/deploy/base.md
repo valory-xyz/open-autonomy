@@ -19,7 +19,7 @@ Class to assist with generating deployments.
 #### `__`init`__`
 
 ```python
-def __init__(service_path: Path, keys: Path, number_of_agents: Optional[int] = None, private_keys_password: Optional[str] = None) -> None
+def __init__(service_path: Path, keys: Path, number_of_agents: Optional[int] = None, private_keys_password: Optional[str] = None, agent_instances: Optional[List[str]] = None, log_level: str = INFO) -> None
 ```
 
 Initialize the Base Deployment.
@@ -69,7 +69,7 @@ Retrieve vars common for valory apps.
 #### generate`_`agent
 
 ```python
-def generate_agent(agent_n: int) -> Dict[Any, Any]
+def generate_agent(agent_n: int, override_idx: Optional[int] = None) -> Dict[Any, Any]
 ```
 
 Generate next agent.

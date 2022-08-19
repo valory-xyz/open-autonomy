@@ -84,7 +84,7 @@ from packages.valory.skills.transaction_settlement_abci.test_tools.integration i
     GnosisIntegrationBaseCase,
 )
 
-from tests.conftest import ROOT_DIR, make_ledger_api_connection
+from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS, make_ledger_api_connection
 
 
 SAFE_TX_GAS = 120000
@@ -109,6 +109,7 @@ class TransactionSettlementIntegrationBaseCase(
     price_estimation_synchronized_data: PriceEstimationSynchronizedSata
     ROOT_DIR = ROOT_DIR
     make_ledger_api_connection_callable = make_ledger_api_connection
+    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
