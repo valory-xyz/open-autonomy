@@ -23,6 +23,7 @@ Implement a scaffold sub-command to scaffold ABCI skills.
 This module patches the 'aea scaffold' command so to add a new subcommand for scaffolding a skill
  starting from FSM specification.
 """
+import os
 import re
 import shutil
 from abc import ABC, abstractmethod
@@ -693,7 +694,7 @@ class ScaffoldABCISkill:
         self._scaffold_handlers()
 
         # remove original 'my_model.py' file
-        (self.skill_dir / "my_model.py").unlink(missing_ok=True)
+        shutil.rmtree(self.skill_dir / "my_model.py", ignore_errors=True)
 
         self._remove_pycache()
         self._update_config()
