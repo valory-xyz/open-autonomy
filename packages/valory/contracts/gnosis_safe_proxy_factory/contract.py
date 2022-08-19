@@ -144,9 +144,15 @@ class GnosisSafeProxyFactoryContract(Contract):
             tx_parameters["nonce"] = Nonce(nonce)
 
         transaction_dict = create_proxy_fn.buildTransaction(tx_parameters)
-        gas_estimate = ledger_api._try_get_gas_estimate(transaction_dict)
+        gas_estimate = (
+            ledger_api._try_get_gas_estimate(  # pylint: disable=protected-access
+                transaction_dict
+            )
+        )
         transaction_dict["gas"] = (
-            Wei(max(gas_estimate + 50000, gas)) if gas_estimate is not None else Wei(gas)
+            Wei(max(gas_estimate + 50000, gas))
+            if gas_estimate is not None
+            else Wei(gas)
         )
         return transaction_dict, contract_address
 

@@ -453,7 +453,11 @@ class GnosisSafeContract(Contract):
         # note, the next line makes an eth_estimateGas call!
 
         transaction_dict = w3_tx.buildTransaction(tx_parameters)
-        gas_estimate = ledger_api._try_get_gas_estimate(transaction_dict)
+        gas_estimate = (
+            ledger_api._try_get_gas_estimate(  # pylint: disable=protected-access
+                transaction_dict
+            )
+        )
         transaction_dict["gas"] = (
             Wei(max(gas_estimate + 75000, configured_gas))
             if gas_estimate is not None
