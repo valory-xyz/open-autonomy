@@ -233,6 +233,11 @@ class TestLedgerConnectionWithMultiplexer(BaseSkillTestCase):
         # the normal task should be finished
         assert normal_task.done(), "Normal task should be done at this point."
 
+        # the response envelopes of the ledger connection should now contain the `normal_dummy_envelope`
+        assert (
+            not self.ledger_connection.response_envelopes.empty()
+        ), "The response envelopes of the ledger connection should not be empty."
+
         # the blocking task should not be done
         assert not blocking_task.done(), "Blocking task should be still running."
         # cancel remaining task before ending test
