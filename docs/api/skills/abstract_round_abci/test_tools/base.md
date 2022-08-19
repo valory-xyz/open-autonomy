@@ -2,7 +2,7 @@
 
 # packages.valory.skills.abstract`_`round`_`abci.test`_`tools.base
 
-Tests for valory/transaction_settlement_abci skill's behaviours.
+Tests for valory/abstract_round_abci skill's behaviours.
 
 <a id="packages.valory.skills.abstract_round_abci.test_tools.base.FSMBehaviourBaseCase"></a>
 
