@@ -39,6 +39,7 @@ config:
             maxPriorityFeePerGas: 3000000000
             baseFee: null
           priority_fee_increase_boundary: 200
+      is_gas_estimation_enabled: true
       poa_chain: false
   retry_attempts: 240
   retry_timeout: 3

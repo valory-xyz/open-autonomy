@@ -130,7 +130,7 @@ class GnosisSafeContract(Contract):
         owners: List[str],
         threshold: int,
         salt_nonce: Optional[int] = None,
-        gas: Optional[int] = None,
+        gas: int = 0,
         gas_price: Optional[int] = None,
         max_fee_per_gas: Optional[int] = None,
         max_priority_fee_per_gas: Optional[int] = None,
@@ -430,6 +430,7 @@ class GnosisSafeContract(Contract):
         configured_gas = base_gas + safe_tx_gas + 75000
         tx_parameters: Dict[str, Union[str, int]] = {
             "from": sender_address,
+            "gas": configured_gas,
         }
         actual_nonce = ledger_api.api.eth.get_transaction_count(
             ledger_api.api.toChecksumAddress(sender_address)
@@ -450,9 +451,13 @@ class GnosisSafeContract(Contract):
         ):
             tx_parameters.update(ledger_api.try_get_gas_pricing(old_price=old_price))
         # note, the next line makes an eth_estimateGas call!
+
         transaction_dict = w3_tx.buildTransaction(tx_parameters)
-        transaction_dict["gas"] = Wei(
-            max(transaction_dict["gas"] + 75000, configured_gas)
+        gas_estimate = ledger_api._try_get_gas_estimate(transaction_dict)
+        transaction_dict["gas"] = (
+            Wei(max(gas_estimate + 75000, configured_gas))
+            if gas_estimate is not None
+            else configured_gas
         )
         transaction_dict["nonce"] = nonce  # pragma: nocover
 
