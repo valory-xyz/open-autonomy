@@ -218,7 +218,9 @@ class TestLedgerConnectionWithMultiplexer(BaseSkillTestCase):
             await self.ledger_connection.send(normal_dummy_envelope)
 
         # the response envelopes of the ledger connection should be empty
-        assert self.ledger_connection.response_envelopes.empty()
+        assert (
+            self.ledger_connection.response_envelopes.empty()
+        ), "The response envelopes of the ledger connection should be empty."
         # `receive()` should not be done,
         # and multiplexer's `_receiving_loop` should be still running and have an empty `in_queue`
         assert (
