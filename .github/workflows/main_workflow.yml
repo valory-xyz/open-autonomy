@@ -363,7 +363,7 @@ jobs:
 
           # build hardhat node in third_party/autonolas-registries
           cd ../..
-          cd third_party/autonolas-registries &&\
+          cd third_party\autonolas-registries &&\
             yarn
 
       - if: matrix.os == 'windows-latest'
