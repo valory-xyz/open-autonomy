@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import List, Optional, cast
 
 import click
+from aea.cli.registry.settings import REGISTRY_REMOTE
 from aea.cli.utils.click_utils import password_option, registry_flag
 from aea.cli.utils.context import Context
 from aea.configurations.constants import SKILL
@@ -213,13 +214,11 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
     "--skip-images", is_flag=True, default=False, help="Skip building images."
 )
 @chain_selection_flag()
-@registry_flag()
 @click.pass_context
 def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-locals
     click_context: click.Context,
     token_id: int,
     keys_file: Path,
-    registry: str,
     chain_type: str,
     rpc_url: Optional[str],
     service_contract_address: Optional[str],
@@ -229,7 +228,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     """Run service deployment."""
 
     ctx = cast(Context, click_context.obj)
-    ctx.registry_type = registry
+    ctx.registry_type = REGISTRY_REMOTE
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
     service_registry = ServiceRegistry(chain_type, rpc_url, service_contract_address)
 
