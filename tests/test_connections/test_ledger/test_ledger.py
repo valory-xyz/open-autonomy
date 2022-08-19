@@ -87,11 +87,15 @@ class TestLedgerConnection:
                 AbciMessage.Performative.DUMMY, _body={"data": b"blocking_task"}  # type: ignore
             ),
         )
-        dummy_envelope = mock.MagicMock()
+        blocking_dummy_envelope = Envelope(
+            to="test_blocking_to",
+            sender="test_blocking_sender",
+            message=AbciMessage(AbciMessage.Performative.DUMMY),  # type: ignore
+        )
         with mock.patch.object(
             LedgerConnection, "_schedule_request", return_value=blocking_task
         ):
-            await ledger_connection.send(dummy_envelope)
+            await ledger_connection.send(blocking_dummy_envelope)
 
         # create a non-blocking task lasting `non_blocking_time` secs, after `wait_time_among_tasks`
         await asyncio.sleep(wait_time_among_tasks)
@@ -99,11 +103,15 @@ class TestLedgerConnection:
             non_blocking_time,
             AbciMessage(AbciMessage.Performative.DUMMY, _body={"data": b"normal_task"}),  # type: ignore
         )
-        dummy_envelope = mock.MagicMock()
+        normal_dummy_envelope = Envelope(
+            to="test_normal_to",
+            sender="test_normal_sender",
+            message=AbciMessage(AbciMessage.Performative.DUMMY),  # type: ignore
+        )
         with mock.patch.object(
             LedgerConnection, "_schedule_request", return_value=normal_task
         ):
-            await ledger_connection.send(dummy_envelope)
+            await ledger_connection.send(normal_dummy_envelope)
 
         # sleep for `non_blocking_time + tolerance`
         await asyncio.sleep(non_blocking_time + tolerance)
