@@ -9,3 +9,4 @@
 [submodule "third_party/autonolas-registries"]
 	path = third_party/autonolas-registries
 	url = https://github.com/valory-xyz/autonolas-registries.git
+	ignore = dirty
