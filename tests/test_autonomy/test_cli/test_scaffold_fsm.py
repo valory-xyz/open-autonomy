@@ -18,15 +18,14 @@
 # ------------------------------------------------------------------------------
 
 """Test 'scaffold fsm' subcommand."""
-
 from pathlib import Path
 from typing import Tuple
 
 from aea.configurations.constants import PACKAGES, SKILLS
 from aea.test_tools.test_cases import AEATestCaseEmpty
 
-from autonomy.cli import cli
-from autonomy.test_tools.helpers.base import cd
+# trigger population of autonomy commands
+import autonomy.cli.core  # noqa
 
 from tests.conftest import ROOT_DIR
 
@@ -50,9 +49,6 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         """Test run."""
         self.set_agent_context(self.agent_name)
         path_to_spec_file = Path(ROOT_DIR) / self.fsm_spec_file
-        with cd(self._get_cwd()):
-            result = self.runner.invoke(
-                cli=cli, args=self.cli_options + (path_to_spec_file,)
-            )
-
-        assert result.exit_code == 0, result.stdout
+        args = [*self.cli_options, path_to_spec_file]
+        result = self.run_cli_command(*args, cwd=self._get_cwd())
+        assert result.exit_code == 0

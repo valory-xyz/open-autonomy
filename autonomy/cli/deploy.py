@@ -25,14 +25,19 @@ from pathlib import Path
 from typing import List, Optional, cast
 
 import click
+from aea.cli.registry.settings import REGISTRY_REMOTE
 from aea.cli.utils.click_utils import password_option, registry_flag
 from aea.cli.utils.context import Context
+from aea.configurations.constants import SKILL
 from aea.configurations.data_types import PublicId
 from aea.helpers.base import cd
+from aea.helpers.io import open_file
+from aea.helpers.yaml_utils import yaml_dump_all, yaml_load_all
 from compose.cli import main as docker_compose
 
 from autonomy.cli.fetch import fetch_service
 from autonomy.cli.utils.click_utils import chain_selection_flag
+from autonomy.configurations.constants import DEFAULT_SERVICE_FILE
 from autonomy.configurations.loader import load_service_config
 from autonomy.constants import DEFAULT_IMAGE_VERSION, DEFAULT_KEYS_FILE
 from autonomy.data import DATA_DIR
@@ -219,13 +224,11 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
     "--skip-images", is_flag=True, default=False, help="Skip building images."
 )
 @chain_selection_flag()
-@registry_flag()
 @click.pass_context
 def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-locals
     click_context: click.Context,
     token_id: int,
     keys_file: Path,
-    registry: str,
     chain_type: str,
     rpc_url: Optional[str],
     service_contract_address: Optional[str],
@@ -235,7 +238,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     """Run service deployment."""
 
     ctx = cast(Context, click_context.obj)
-    ctx.registry_type = registry
+    ctx.registry_type = REGISTRY_REMOTE
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
     service_registry = ServiceRegistry(chain_type, rpc_url, service_contract_address)
 
@@ -244,11 +247,15 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     _, agent_instances = service_registry.get_agent_instances(token_id)
     click.echo("Service name: " + metadata["name"])
 
+    _, multisig_address, *_ = service_registry.get_service_info(token_id)
     *_, service_hash = metadata["code_uri"].split("//")
     public_id = PublicId(author="valory", name="service", package_hash=service_hash)
     service_path = fetch_service(ctx, public_id)
     build_dir = service_path / DEFAULT_ABCI_BUILD_DIR
+
+    update_multisig_address(service_path, multisig_address)
     service = load_service_config(service_path)
+
     with cd(service_path):
         if not skip_images:
             click.echo("Building required images.")
@@ -280,6 +287,24 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
 
     click.echo("Service build successful.")
     run_deployment(build_dir)
+
+
+def update_multisig_address(service_path: Path, address: str) -> None:
+    """Update the multisig address on the service config."""
+
+    with open_file(service_path / DEFAULT_SERVICE_FILE) as fp:
+        config, *overrides = yaml_load_all(
+            fp,
+        )
+
+    for override in overrides:
+        if override["type"] == SKILL:
+            override["setup_args"]["args"]["setup"]["safe_contract_address"] = [
+                address,
+            ]
+
+    with open_file(service_path / DEFAULT_SERVICE_FILE, mode="w+") as fp:
+        yaml_dump_all([config, *overrides], fp)
 
 
 def build_deployment(  # pylint: disable=too-many-arguments

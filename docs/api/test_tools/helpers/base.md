@@ -50,3 +50,13 @@ def make_round_class(name: str, bases: Tuple = (AbstractRound,)) -> Type[Abstrac
 
 Make a round class.
 
+<a id="autonomy.test_tools.helpers.base.identity"></a>
+
+#### identity
+
+```python
+def identity(arg: Any) -> Any
+```
+
+Define an identity function.
+
