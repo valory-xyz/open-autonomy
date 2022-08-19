@@ -84,8 +84,8 @@ models:
         max_participants: ${MAX_PARTICIPANTS:int:4}
       tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
       tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
-      round_timeout_seconds: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_ROUND_TIMEOUT_SECONDS:float:2000.0}
-      observation_interval: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:86400}
+      round_timeout_seconds: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_ROUND_TIMEOUT_SECONDS:float:3650.0}
+      observation_interval: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:3600}
       max_healthcheck: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:43200}
       drand_public_key: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_DRAND_PUBLIC_KEY:str:868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31}
       estimation:
