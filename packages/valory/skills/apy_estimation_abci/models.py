@@ -218,7 +218,7 @@ def _hack_around_dict_override_limitation(pair_ids: HackyPairIdsType) -> PairIds
 
     try:
         ids = {
-            # here we make the convention that the first item contains the key and the second the `list` of `str` values
+            # here we make the assumption that the first item contains the key and the second the `list` of `str` values
             str(dex_config[i]): cast(List[str], dex_config[i + 1])
             for dex_config in pair_ids
             for i in range(0, len(dex_config), 2)
