@@ -48,7 +48,7 @@ class SharedState(BaseSharedState):
         super().__init__(*args, abci_app_cls=TransactionSubmissionAbciApp, **kwargs)
 
 
-class TransactionParams(BaseParams):
+class TransactionParams(BaseParams):  # pylint: disable=too-many-instance-attributes
     """Transaction settlement agent-specific parameters."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -69,6 +69,7 @@ class TransactionParams(BaseParams):
         self.tx_hash: str = ""
         self.nonce: Optional[Nonce] = None
         self.gas_price: Optional[Dict[str, Wei]] = None
+        self.fallback_gas: int = 0
         self.late_messages: List[ContractApiMessage] = []
         self.keeper_allowed_retries: int = self._ensure(
             "keeper_allowed_retries", kwargs

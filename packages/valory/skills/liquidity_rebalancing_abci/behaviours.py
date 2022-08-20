@@ -62,13 +62,13 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 )
 
 
-# These safeTxGas values are calculated from experimental values plus
-# a 10% buffer and rounded up. The Gnosis safe default value is 0 (max gas)
+# The Gnosis safe default value is 0 (max gas)
 # https://help.gnosis-safe.io/en/articles/4738445-advanced-transaction-parameters
+# This value allows for straightforward gas estimation.
 # More on gas estimation: https://help.gnosis-safe.io/en/articles/4933491-gas-estimation
-SAFE_TX_GAS_ENTER = 553000
-SAFE_TX_GAS_EXIT = 248000
-SAFE_TX_GAS_SWAP_BACK = 268000
+SAFE_TX_GAS_ENTER = 0
+SAFE_TX_GAS_EXIT = 0
+SAFE_TX_GAS_SWAP_BACK = 0
 
 
 def parse_tx_token_balance(

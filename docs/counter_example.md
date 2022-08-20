@@ -52,7 +52,7 @@ you have followed the [setup instructions](quick_start.md#setup). As a result yo
 
 3. Use the {{open_autonomy}} CLI to download and build the agent images:
     ```bash
-    autonomy deploy build deployment valory/counter:0.1.0:bafybeig53lydqmogedd5s6nd5bkdlt6zndjsw3e2qvwxwq5nz5cbv6dd4e keys.json
+    autonomy deploy build deployment valory/counter:0.1.0:bafybeicgcqytl2hoy67hmmi5vbhq2sjzkj4d5eajudjav3d6aqskl2bsge keys.json
     ```
     This command above downloads the counter agent service definition from the Service Registry, and generates the required Docker images to run it using the keys provided in the `keys.json` file.
 
@@ -266,7 +266,7 @@ First, open a terminal to the root of this repository,
 and fetch the `counter_client` agent:
 
 ```bash
-autonomy fetch valory/counter_client:0.1.0:bafybeigkvd5i2jvpj4z5dfyzccqttfuxdwztabngi2bjkxdkdv2rb55kua --remote
+autonomy fetch valory/counter_client:0.1.0:bafybeicseyonjog4h53kobzehbm7zf53qgww3kdhcuo57bp42kjienwpeq --remote
 ```
 
 This will copy the agent project in the `counter_client` directory.

@@ -51,7 +51,7 @@ Ensure your machine satisfies the following requirements:
       cd ../..
       cd third_party/contracts-amm && yarn install
       cd ../..
-      cd thid_party/autonolas-registries && yarn install
+      cd third_party/autonolas-registries && yarn install --ignore-engines
 
 - Create and launch a virtual environment. Also, run this during development,
 every time you need to re-create and launch the virtual environment and update

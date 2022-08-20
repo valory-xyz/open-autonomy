@@ -201,6 +201,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         tx_data["tx_digest"] = cast(str, tx_digest)
 
         nonce = Nonce(int(cast(str, message.raw_transaction.body["nonce"])))
+        fallback_gas = message.raw_transaction.body["gas"]
 
         # Get the gas params
         gas_price_params = self.get_gas_price_params(message.raw_transaction.body)
@@ -230,6 +231,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
             )
             self.params.nonce = nonce
         self.params.gas_price = gas_price
+        self.params.fallback_gas = fallback_gas
 
         return tx_data
 
@@ -786,6 +788,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
             nonce=self.params.nonce,
             old_price=self.params.gas_price,
             operation=tx_params["operation"],
+            fallback_gas=self.params.fallback_gas,
         )
 
         tx_data = yield from self._get_tx_data(contract_api_msg)

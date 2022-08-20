@@ -28,6 +28,7 @@ from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.test_tools.test_skill import BaseSkillTestCase
 
+from packages.valory.connections.abci import PUBLIC_ID
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     CheckTxType,
@@ -101,7 +102,9 @@ class TestABCIHandlerOld(BaseSkillTestCase):
         # after
         self.assert_quantity_in_outbox(0)
 
-        mock_logger.assert_any_call(logging.DEBUG, "ABCI Handler: setup method called.")
+        mock_logger.assert_any_call(
+            logging.DEBUG, f"ABCI Handler: setup method called. Using {PUBLIC_ID}."
+        )
 
     def test_teardown(self) -> None:
         """Test the teardown method of the echo handler."""

@@ -49,7 +49,7 @@ Options:
 
 For example, in order to build a deployment from scratch for oracle abci, first ensure you have a clean build environment and then build the images:
 ```bash
-make clean
+rm -rf abci_build
 autonomy deploy build image valory/oracle_hardhat --dependencies
 autonomy deploy build image valory/oracle_hardhat
 ```
@@ -78,8 +78,10 @@ The logs of a single AEA or node can then be inspected with `docker logs {contai
 ## Building & tagging local images
 
 ```bash
+export SERVICE_ID=author_name/service_name
 export VERSION=0.1.0
-make build-images
+autonomy deploy build image ${SERVICE_ID} --dependencies
+autonomy deploy build image ${SERVICE_ID} --version ${VERSION}
 ```
 
 Conceptually, the image to be used within a deployment should contain all required dependencies and packages.
@@ -102,6 +104,8 @@ In addition to Docker-Compose-based deployments, we support cluster deployments 
 
 Run the following make targets for a quick deployment of the oracle:
 ```bash
+svn checkout https://github.com/valory-xyz/open-autonomy/trunk/infrastructure
+cd infrastructure
 make localcluster-start
 ```
 

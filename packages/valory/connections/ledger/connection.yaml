@@ -11,7 +11,7 @@ fingerprint:
   base.py: bafybeidan7lxw2wbszk5fhp2gtu4kde4womjkeci432wd3ma5vkqdd3o3u
   connection.py: bafybeia4fda47s24k2oi6tva4xfg3kxz4bzruvfclba6hdqopdtvq5aqei
   contract_dispatcher.py: bafybeiaq7i64w5pt5om2rz4cpymcgk42eq5s5xmdq5btyv5ao4ofoj2sri
-  ledger_dispatcher.py: bafybeiaytwse4fhu5wam2yvqwnrcvemiax754gpe2asmrd7s42mxqokppy
+  ledger_dispatcher.py: bafybeiaeuo6oymm5iphwzymd3nignogmjmbcpg42wiqva5xo42rbqfyba4
 fingerprint_ignore_patterns: []
 connections: []
 protocols:
@@ -39,6 +39,7 @@ config:
             maxPriorityFeePerGas: 3000000000
             baseFee: null
           priority_fee_increase_boundary: 200
+      is_gas_estimation_enabled: true
       poa_chain: false
   retry_attempts: 240
   retry_timeout: 3

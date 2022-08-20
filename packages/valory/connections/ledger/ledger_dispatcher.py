@@ -241,9 +241,6 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
         :param dialogue: the Ledger API dialogue
         :return: response Ledger API message
         """
-        transaction_receipt = None
-        is_settled = False
-        attempts = 0
         retry_attempts = (
             self.retry_attempts
             if message.retry_attempts is None
@@ -254,6 +251,10 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
             if message.retry_timeout is None
             else message.retry_timeout
         )
+
+        transaction_receipt = None
+        is_settled = False
+        attempts = 0
         while (
             not is_settled
             and attempts < retry_attempts
@@ -265,15 +266,18 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
                     raise_on_try=True,
                 )
             except Exception as e:  # pylint: disable=broad-except
-                _default_logger.warning(e)
+                self.logger.warning(e)
                 transaction_receipt = None
 
             if transaction_receipt is not None:
                 is_settled = api.is_transaction_settled(transaction_receipt)
             attempts += 1
             time.sleep(retry_timeout * attempts)
-        attempts = 0
+        self.logger.debug(
+            f"Transaction receipt: {transaction_receipt}, settled: {is_settled}"
+        )
 
+        attempts = 0
         transaction = None
         while (
             transaction is None
@@ -285,11 +289,12 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
                     message.transaction_digest.body, raise_on_try=True
                 )
             except Exception as e:  # pylint: disable=broad-except
-                _default_logger.warning(e)
+                self.logger.warning(e)
                 transaction = None
 
             attempts += 1
             time.sleep(retry_timeout * attempts)
+        self.logger.debug(f"Transaction: {transaction}")
 
         if not is_settled:
             response = self.get_error_message(
