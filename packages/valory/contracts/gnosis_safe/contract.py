@@ -383,6 +383,7 @@ class GnosisSafeContract(Contract):
         max_fee_per_gas: Optional[int] = None,
         max_priority_fee_per_gas: Optional[int] = None,
         old_price: Optional[Dict[str, Wei]] = None,
+        fallback_gas: int = 0,
     ) -> JSONLike:
         """
         Get the raw Safe transaction
@@ -407,6 +408,7 @@ class GnosisSafeContract(Contract):
         :param max_fee_per_gas: max
         :param max_priority_fee_per_gas: max
         :param old_price: the old gas price params in case that we are trying to resubmit a transaction.
+        :param fallback_gas: (external) gas to spend when base_gas and safe_tx_gas are zero and no gas estimation is possible.
         :return: the raw Safe transaction
         """
         sender_address = ledger_api.api.toChecksumAddress(sender_address)
@@ -427,7 +429,10 @@ class GnosisSafeContract(Contract):
             refund_receiver,
             signatures,
         )
-        configured_gas = base_gas + safe_tx_gas + 75000
+        # see https://github.com/safe-global/safe-eth-py/blob/6c0e0d80448e5f3496d0d94985bca239df6eb399/gnosis/safe/safe_tx.py#L354
+        configured_gas = (
+            base_gas + safe_tx_gas + 75000 if base_gas != 0 or safe_tx_gas != 0 else 1
+        )
         tx_parameters: Dict[str, Union[str, int]] = {
             "from": sender_address,
             "gas": configured_gas,
@@ -450,21 +455,20 @@ class GnosisSafeContract(Contract):
             and max_priority_fee_per_gas is None
         ):
             tx_parameters.update(ledger_api.try_get_gas_pricing(old_price=old_price))
-        # note, the next line makes an eth_estimateGas call!
-
+        # note, the next line makes an eth_estimateGas call iff gas is not set!
         transaction_dict = w3_tx.buildTransaction(tx_parameters)
-        gas_estimate = (
-            ledger_api._try_get_gas_estimate(  # pylint: disable=protected-access
-                transaction_dict
+        if configured_gas != 1:
+            transaction_dict["gas"] = Wei(configured_gas)
+        else:
+            gas_estimate = (
+                ledger_api._try_get_gas_estimate(  # pylint: disable=protected-access
+                    transaction_dict
+                )
             )
-        )
-        transaction_dict["gas"] = (
-            Wei(max(gas_estimate + 75000, configured_gas))
-            if gas_estimate is not None
-            else configured_gas
-        )
+            transaction_dict["gas"] = (
+                Wei(gas_estimate) if gas_estimate is not None else fallback_gas
+            )
         transaction_dict["nonce"] = nonce  # pragma: nocover
-
         return transaction_dict
 
     @classmethod

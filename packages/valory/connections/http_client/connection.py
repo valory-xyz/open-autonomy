@@ -239,9 +239,9 @@ class HTTPClientAsyncChannel:  # pylint: disable=too-many-instance-attributes
                 ) as resp:
                     await resp.read()
                 return resp
-        except Exception:  # pragma: nocover # pylint: disable=broad-except
+        except Exception as e:  # pragma: nocover # pylint: disable=broad-except
             self.logger.debug(
-                f"Exception raised during http call: {request_http_message.method} {request_http_message.url}"
+                f"Exception raised during http call: {request_http_message.method} {request_http_message.url}, {e}"
             )
             raise
 
