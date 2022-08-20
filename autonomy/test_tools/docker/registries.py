@@ -87,7 +87,7 @@ class RegistriesDockerImage(DockerImage):
             self.third_party_contract_dir
             / REGISTRIES_CONTRACTS_DIR
             / "scripts"
-            / "node_globals.json"
+            / "mainnet_snapshot.json"
         )
         node_globals = json.loads(node_globals_file.read_text())
         node_globals["configHash"] = DEFAULT_SERVICE_CONFIG_HASH
