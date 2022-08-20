@@ -69,6 +69,7 @@ class TransactionParams(BaseParams):
         self.tx_hash: str = ""
         self.nonce: Optional[Nonce] = None
         self.gas_price: Optional[Dict[str, Wei]] = None
+        self.fallback_gas: int = 0
         self.late_messages: List[ContractApiMessage] = []
         self.keeper_allowed_retries: int = self._ensure(
             "keeper_allowed_retries", kwargs

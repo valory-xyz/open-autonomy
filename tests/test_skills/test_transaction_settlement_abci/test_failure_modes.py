@@ -60,7 +60,7 @@ from packages.valory.skills.oracle_deployment_abci.behaviours import (
     DeployOracleBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
-    TransactionHashBehaviour,
+    TransactionHashBehaviour, SAFE_TX_GAS, ETHER_VALUE
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     SynchronizedData as PriceEstimationSynchronizedSata,
@@ -87,8 +87,6 @@ from packages.valory.skills.transaction_settlement_abci.test_tools.integration i
 from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS, make_ledger_api_connection
 
 
-SAFE_TX_GAS = 120000
-ETHER_VALUE = 0
 DUMMY_MAX_PRIORITY_FEE_PER_GAS = 3000000000
 DUMMY_MAX_FEE_PER_GAS = 4000000000
 DUMMY_REPRICING_MULTIPLIER = 1.1
@@ -324,6 +322,32 @@ class TestRepricing(TransactionSettlementIntegrationBaseCase):
         assert self.hardhat_provider.make_request(
             RPCEndpoint("evm_setIntervalMining"), [mining_interval_msecs]
         ), "Re-enabling auto-mining failed!"
+        """
+        NOTE:
+        The second gas estimation will ALWAYS fail. That is, because the
+        current implementation of the plugin does not play well with Hardhat:
+        https://github.com/valory-xyz/open-aea/blob/main/plugins/aea-ledger-ethereum/aea_ledger_ethereum/ethereum.py#L1113-L1118
+        https://github.com/NomicFoundation/hardhat/blob/d1733f9ecfe8125111a707ff0e3dea287e584caa/packages/hardhat-core/src/internal/hardhat-network/provider/modules/eth.ts#L419-L424
+        eth_estimateGas
+          Contract call:       GnosisSafeProxy#<unrecognized-selector>
+          From:                0xbcd4042de499d14e55001ccbb24a551f3b954096
+          To:                  0x68fcdf52066cce5612827e872c45767e5a1f6551
+          Value:               0 ETH
+
+          Error: VM Exception while processing transaction: reverted with reason string 'GS026'
+              at GnosisSafeL2.checkNSignatures (third_party/safe-contracts/contracts/GnosisSafe.sol:301)
+              at GnosisSafeL2.checkSignatures (third_party/safe-contracts/contracts/GnosisSafe.sol:230)
+              at GnosisSafeL2.execTransaction (third_party/safe-contracts/contracts/GnosisSafe.sol:145)
+              at GnosisSafeL2.execTransaction (third_party/safe-contracts/contracts/GnosisSafeL2.sol:69)
+              at GnosisSafeProxy.<fallback> (third_party/safe-contracts/contracts/proxies/GnosisSafeProxy.sol:36)
+              at EthModule._estimateGasAction (/build/node_modules/hardhat/src/internal/hardhat-network/provider/modules/eth.ts:425:7)
+              at HardhatNetworkProvider._sendWithLogging (/build/node_modules/hardhat/src/internal/hardhat-network/provider/provider.ts:131:22)
+              at HardhatNetworkProvider.request (/build/node_modules/hardhat/src/internal/hardhat-network/provider/provider.ts:108:18)
+              at JsonRpcHandler._handleRequest (/build/node_modules/hardhat/src/internal/hardhat-network/jsonrpc/handler.ts:188:20)
+              at JsonRpcHandler._handleSingleRequest (/build/node_modules/hardhat/src/internal/hardhat-network/jsonrpc/handler.ts:167:17)
+              at Server.JsonRpcHandler.handleHttp (/build/node_modules/hardhat/src/internal/hardhat-network/jsonrpc/handler.ts:52:21)
+
+        """
         # send tx second time
         self.send_tx()
         # validate the tx
