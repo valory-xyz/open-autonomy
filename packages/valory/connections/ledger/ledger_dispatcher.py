@@ -273,7 +273,9 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
                 is_settled = api.is_transaction_settled(transaction_receipt)
             attempts += 1
             time.sleep(retry_timeout * attempts)
-        self.logger.debug(f"Transaction receipt: {transaction_receipt}, settled: {is_settled}")
+        self.logger.debug(
+            f"Transaction receipt: {transaction_receipt}, settled: {is_settled}"
+        )
 
         attempts = 0
         transaction = None

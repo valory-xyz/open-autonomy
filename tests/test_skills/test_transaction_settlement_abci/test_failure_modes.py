@@ -60,7 +60,9 @@ from packages.valory.skills.oracle_deployment_abci.behaviours import (
     DeployOracleBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.behaviours import (
-    TransactionHashBehaviour, SAFE_TX_GAS, ETHER_VALUE
+    ETHER_VALUE,
+    SAFE_TX_GAS,
+    TransactionHashBehaviour,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     SynchronizedData as PriceEstimationSynchronizedSata,
@@ -271,7 +273,7 @@ class TransactionSettlementIntegrationBaseCase(
         return dummy_try_get_gas_pricing
 
 
-@skip_docker_tests
+# @skip_docker_tests
 class TestRepricing(TransactionSettlementIntegrationBaseCase):
     """Test failure modes related to repricing."""
 

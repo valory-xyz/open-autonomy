@@ -788,7 +788,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
             nonce=self.params.nonce,
             old_price=self.params.gas_price,
             operation=tx_params["operation"],
-            fallback_gas=self.params.fallback_gas
+            fallback_gas=self.params.fallback_gas,
         )
 
         tx_data = yield from self._get_tx_data(contract_api_msg)

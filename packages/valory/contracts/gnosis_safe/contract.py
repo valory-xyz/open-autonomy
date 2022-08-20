@@ -430,7 +430,9 @@ class GnosisSafeContract(Contract):
             signatures,
         )
         # see https://github.com/safe-global/safe-eth-py/blob/6c0e0d80448e5f3496d0d94985bca239df6eb399/gnosis/safe/safe_tx.py#L354
-        configured_gas = base_gas + safe_tx_gas + 75000 if base_gas != 0 or safe_tx_gas != 0 else 1
+        configured_gas = (
+            base_gas + safe_tx_gas + 75000 if base_gas != 0 or safe_tx_gas != 0 else 1
+        )
         tx_parameters: Dict[str, Union[str, int]] = {
             "from": sender_address,
             "gas": configured_gas,
@@ -463,7 +465,9 @@ class GnosisSafeContract(Contract):
                     transaction_dict
                 )
             )
-            transaction_dict["gas"] = Wei(gas_estimate) if gas_estimate is not None else fallback_gas
+            transaction_dict["gas"] = (
+                Wei(gas_estimate) if gas_estimate is not None else fallback_gas
+            )
         transaction_dict["nonce"] = nonce  # pragma: nocover
         return transaction_dict
 
