@@ -48,7 +48,7 @@ class SharedState(BaseSharedState):
         super().__init__(*args, abci_app_cls=TransactionSubmissionAbciApp, **kwargs)
 
 
-class TransactionParams(BaseParams):
+class TransactionParams(BaseParams):  # pylint: disable=too-many-instance-attributes
     """Transaction settlement agent-specific parameters."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:

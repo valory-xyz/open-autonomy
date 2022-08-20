@@ -28,13 +28,13 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeiam52ztcss46i3tgywuv4qmvddqgn7exmbt5kcicqpyip4kfeyap4
 - valory/abstract_round_abci:0.1.0:bafybeify5cyzxqczuoap2winsssau5wjiv4nhvla7ktmamhadsq5x2p6si
-- valory/oracle_abci:0.1.0:bafybeihvbkpd3flcx6lx2j4hshoyjz6okrncos7tmca5vwej6jqxnht55y
+- valory/oracle_abci:0.1.0:bafybeibxbtacvbx2r5q4amkcc4idxsfk46jwjempsnq62usyhdbg6rjkee
 - valory/oracle_deployment_abci:0.1.0:bafybeibmv2ebvxnzyli6gyikj4lkofosy47e3muhab6gkrkk4fjohb6wq4
-- valory/price_estimation_abci:0.1.0:bafybeiak4kewhyzbd6rlqhyvvmm4xqtikmk6j3g47lxzigmtrx6mstppse
+- valory/price_estimation_abci:0.1.0:bafybeiapq6ydnlvedvvauuzr3wklqronun3xnjrfx45iilwvqno2lbj5ty
 - valory/registration_abci:0.1.0:bafybeihebvuim7u5wkkzbj6bseywo27eudezdcvmbi33swejasd6mvjkmi
 - valory/reset_pause_abci:0.1.0:bafybeidjcxhhywaa5ddaqh7jikbxqk4qdcmt2sxhpx3eib5o6ji4xyywsq
 - valory/safe_deployment_abci:0.1.0:bafybeifmod3ndokxqaziurgvg7ht672hfvajj2azdvsimqfakeobxhvny4
-- valory/transaction_settlement_abci:0.1.0:bafybeiaxjs2fubi774i7k3ypkxrrcz5bmbq756c4yvth2l4yjiicd77hde
+- valory/transaction_settlement_abci:0.1.0:bafybeidooww4lrevaihswxe4tlbzsixlcmqdznn7we2ep5k2brt4j5tmq4
 default_ledger: ethereum
 required_ledgers:
 - ethereum

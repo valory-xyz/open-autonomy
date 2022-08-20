@@ -273,7 +273,7 @@ class TransactionSettlementIntegrationBaseCase(
         return dummy_try_get_gas_pricing
 
 
-# @skip_docker_tests
+@skip_docker_tests
 class TestRepricing(TransactionSettlementIntegrationBaseCase):
     """Test failure modes related to repricing."""
 
