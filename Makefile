@@ -4,7 +4,7 @@ SERVICE_ID := "${SERVICE_ID}"
 PLATFORM_STR := $(shell uname)
 
 .PHONY: clean
-clean: clean-build clean-pyc clean-test clean-docs
+clean: clean-test clean-build clean-pyc clean-docs
 
 .PHONY: clean-build
 clean-build:
@@ -71,18 +71,11 @@ security:
 # update copyright headers
 .PHONY: generators
 generators:
+	tox -e abci-docstrings
 	python -m autonomy.cli hash all
 	python scripts/generate_api_documentation.py
 	python scripts/check_copyright.py
 	python scripts/check_doc_ipfs_hashes.py --fix
-
-.PHONY: abci-docstrings
-abci-docstrings:
-	cp scripts/generate_abci_docstrings.py generate_abci_docstrings.py
-	python generate_abci_docstrings.py
-	rm generate_abci_docstrings.py
-	echo "Successfully validated abcis!"
-
 
 .PHONY: common-checks-1
 common-checks-1:
@@ -100,41 +93,6 @@ common-checks-2:
 copyright:
 	python scripts/check_copyright.py
 
-.PHONY: check-copyright
-check-copyright:
-	tox -e check-copyright
-
-.PHONY: lint
-lint:
-	black autonomy packages/valory scripts tests deployments
-	isort autonomy packages/valory scripts tests deployments
-	flake8 autonomy packages/valory scripts tests deployments
-	vulture autonomy scripts/whitelist.py
-	darglint autonomy scripts packages/valory/* tests deployments
-
-.PHONY: pylint
-pylint:
-	pylint -j4 autonomy packages/valory scripts deployments
-
-
-.PHONY: static
-static:
-	mypy autonomy packages/valory scripts --disallow-untyped-defs
-	mypy tests --disallow-untyped-defs
-
-.PHONY: package_checks
-package_checks:
-	python -m autonomy.cli hash all --check
-	python scripts/check_packages.py --vendor valory
-
-.PHONY: hashes
-hashes:
-	python -m autonomy.cli hash all
-
-.PHONY: api-docs
-api-docs:
-	python scripts/generate_api_documentation.py
-
 .PHONY: docs
 docs:
 	mkdocs build --clean
@@ -148,14 +106,7 @@ test:
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
 .PHONY: all-checks
-all-checks:
-	make clean \
-	&& make formatters \
-	&& make code-checks \
-	&& make security \
-	&& make generators \
-	&& make common-checks-1 \
-	&& make common-checks-2
+all-checks: clean formatters code-checks security make generators make common-checks-1 make common-checks-2
 
 .PHONY: test-skill
 test-skill:
@@ -411,8 +362,8 @@ teardown-kubernetes:
 	kubectl delete ns ${VERSION}
 	echo "Done!"
 
-.PHONY: check_abci_specs
-check_abci_specs:
+.PHONY: generate_abci_specs
+generate_abci_specs:
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_abci.rounds.APYEstimationAbciApp packages/valory/skills/apy_estimation_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_abci consistency" && exit 1)
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_chained_abci.composition.APYEstimationAbciAppChained packages/valory/skills/apy_estimation_chained_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_chained_abci consistency" && exit 1)
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.liquidity_provision_abci.composition.LiquidityProvisionAbciApp packages/valory/skills/liquidity_provision_abci/fsm_specification.yaml || (echo "Failed to check liquidity_provision_abci consistency" && exit 1)
