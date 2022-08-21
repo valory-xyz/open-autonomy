@@ -8,7 +8,7 @@ Arbitrary agent services built with the {{open_autonomy}} framework can be run w
 
 ### Environment setup
 
-Fetch the required service or if you already have a service defined navigate to the service directoy and run
+Fetch the required service or if you already have a service defined navigate to the service directory and run
 
 ```bash
 # build dev deployment using
@@ -18,7 +18,7 @@ $ autonomy build-images --dependencies
 $ autonomy build-images --dev
 ```
 
-This will create a deployment with hot reload enabled for agents. You can run it using the same methods as normal deployments. Use `autonomy deploy run` or `docker-compose up --force-recreate` to start the deployment and enjoy buiding the services.
+This will create a deployment with hot reload enabled for agents. You can run it using the same methods as normal deployments. Use `autonomy deploy run` or `docker-compose up --force-recreate` to start the deployment and enjoy building the services.
 
 **The `open-aea` repository can be cloned from here: https://github.com/valory-xyz/open-aea**
 

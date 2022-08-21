@@ -22,7 +22,7 @@ The table below highlights the main differences between agent services and other
 **Smart contracts** are computer programs that live on-chain. They are crypto-native, can be audited and can use any functionality already available in the blockchain. Their security relies
 on the security of the underlying blockchain. However, due to their nature, they have a number of limitations, including the inability of doing complex operations, talking to other APIs or interact with other blockchains.
 
-**Web services** are a popular off-chain solution to complement the limitations of smart contracts. They are very flexible, but they usually lack the cripto-native features of smart contracts.
+**Web services** are a popular off-chain solution to complement the limitations of smart contracts. They are very flexible, but they usually lack the crypto-native features of smart contracts.
 
 **Custom decentralized services** are services like oracles, bridges or keepers which are run off-chain by a group of operators, thus providing the required level of trust and security. These services run off-chain, which enables them to do complex processing. The main drawback of this approach is that there is no standardized approach to build and compose such services. This severely limits the growth of the ecosystem of applications in the off-chain space.
 
