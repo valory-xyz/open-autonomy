@@ -152,7 +152,7 @@ Options:
   --help            Show this message and exit.
 ```
 
-`autonomy deploy run` is a wrapper around `docker-compose up` command to run the service deployments. To run deployments, navigate to the build dir and run
+`autonomy deploy run` is a wrapper around `docker-compose up` command to run the service deployments. To run deployments, navigate to the build directory and run
 
 ```bash
 $ autonomy deploy run
@@ -180,13 +180,13 @@ Options:
   --help          Show this message and exit.
 ```
 
-To run a deployment for the on-chain service you'll need the token id for the minted service and funded keys. Save the keys in the keys.json and run
+To run a deployment for the on-chain service you'll need the token id for the minted service and funded keys. Save the keys in the `keys.json` and run
 
 ```bash
 $ autonomy deploy from-token ON_SERVICE_TOKEN_ID keys.json
 ```
 
-Currently we support Autonals staging chain, Goerli testnet and Ethereum mainnet for resolving on-chain token ids, but if you have a contract deployed on some other chain you can provide the RPC url to the chain and contract address using `--rpc` and `--sca`.
+Currently we support Autonolas staging chain, Goerli testnet and Ethereum mainnet for resolving on-chain token ids, but if you have a contract deployed on some other chain you can provide the RPC URL to the chain and contract address using `--rpc` and `--sca`.
 
 ## Replay
 
