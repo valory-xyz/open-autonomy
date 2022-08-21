@@ -50,7 +50,14 @@ DEFAULT_PACKAGES = {
     (ComponentType.SKILL, "valory/transaction_settlement_abci:latest"),
 }
 
-IGNORE_NAMES = {r"^__init__\.py$", r"^__main__\.py$",r"^__version__\.py$", r"^py\.typed$", r"^.*_pb2.py$", r"^..*_pb2_grpc.py$"}
+IGNORE_NAMES = {
+    r"^__init__\.py$",
+    r"^__main__\.py$",
+    r"^__version__\.py$",
+    r"^py\.typed$",
+    r"^.*_pb2.py$",
+    r"^..*_pb2_grpc.py$",
+}
 IGNORE_PREFIXES: Set[Path] = set()
 
 
