@@ -22,13 +22,16 @@
 import asyncio
 from asyncio import Task
 from threading import Thread
-from typing import Any, Callable, cast
+from typing import Any, Callable, Tuple, cast
 from unittest import mock
 
 import pytest
 from aea.configurations.base import ConnectionConfig
 from aea.mail.base import Envelope
 from aea.multiplexer import Multiplexer
+from aea_ledger_ethereum import EthereumCrypto
+
+from autonomy.test_tools.configurations import ETHEREUM_KEY_DEPLOYER
 
 from packages.valory.connections.ledger.connection import LedgerConnection
 from packages.valory.protocols.ledger_api import LedgerApiMessage
@@ -161,6 +164,30 @@ class TestLedgerConnectionWithMultiplexer:
             cls.multiplexer.disconnect()
         cls.running_loop.call_soon_threadsafe(cls.running_loop.stop)
         cls.thread_loop.join()
+
+    def create_ledger_dialogues(self) -> Tuple[LedgerApiMessage, LedgerApiDialogues]:
+        """Create a dialogue."""
+        return cast(
+            Tuple[LedgerApiMessage, LedgerApiDialogues],
+            self.ledger_api_dialogues.create(
+                counterparty=str(self.ledger_connection.connection_id),
+                performative=LedgerApiMessage.Performative.GET_STATE,  # type: ignore
+                ledger_id=EthereumCrypto.identifier,
+                address=EthereumCrypto(ETHEREUM_KEY_DEPLOYER).address,
+                callable="get_block",
+                args=("latest",),
+                kwargs=Kwargs({}),
+            ),
+        )
+
+    @staticmethod
+    def create_envelope(request: LedgerApiMessage) -> Envelope:
+        """Create a dummy envelope."""
+        return Envelope(
+            to=request.to,
+            sender=request.sender,
+            message=request,
+        )
 
     @pytest.mark.asyncio
     async def test_not_hanging_with_multiplexer(self) -> None:
