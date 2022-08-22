@@ -35,7 +35,10 @@ from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.ledger_api.custom_types import Kwargs
 
 from tests.conftest import make_ledger_api_connection
+from tests.test_connections.test_ledger.test_ledger_api import LedgerApiDialogues
 
+
+SOME_SKILL_ID = "some/skill:0.1.0"
 
 
 def dummy_task_wrapper(waiting_time: float, result_message: LedgerApiMessage) -> Task:
@@ -133,6 +136,7 @@ class TestLedgerConnectionWithMultiplexer:
     multiplexer: Multiplexer
     ledger_connection: LedgerConnection
     make_ledger_connection_callable: Callable = make_ledger_api_connection
+    ledger_api_dialogues: LedgerApiDialogues
 
     @classmethod
     def setup(cls) -> None:
@@ -148,6 +152,7 @@ class TestLedgerConnectionWithMultiplexer:
         # the ledger connection's connect() is called by the multiplexer
         # once a connection is ready, `receive()` is called by the multiplexer
         cls.ledger_connection = cast(LedgerConnection, cls.multiplexer.connections[0])
+        cls.ledger_api_dialogues = LedgerApiDialogues(SOME_SKILL_ID)
 
     @classmethod
     def teardown(cls) -> None:
