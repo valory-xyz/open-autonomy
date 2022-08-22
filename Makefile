@@ -75,9 +75,9 @@ security:
 .PHONY: generators
 generators:
 	tox -e abci-docstrings
-	tox -e check-copyright
+	tox -e fix-copyright
 	python -m autonomy.cli hash all
-	tox -e generate_api_documentation
+	tox -e generate-api-documentation
 	tox -e fix-doc-hashes
 
 .PHONY: common-checks-1
