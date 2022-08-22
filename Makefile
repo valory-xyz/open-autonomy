@@ -39,6 +39,7 @@ clean-test:
 	rm -fr .hypothesis
 	rm -fr .pytest_cache
 	rm -fr .mypy_cache/
+	rm -fr .hypothesis/
 	find . -name 'log.txt' -exec rm -fr {} +
 	find . -name 'log.*.txt' -exec rm -fr {} +
 
@@ -72,6 +73,7 @@ security:
 .PHONY: generators
 generators:
 	tox -e abci-docstrings
+	python scripts/check_copyright.py
 	python -m autonomy.cli hash all
 	tox -e generate_api_documentation
 	tox -e fix-copyright
@@ -106,7 +108,7 @@ test:
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
 .PHONY: all-checks
-all-checks: clean formatters code-checks security make generators make common-checks-1 make common-checks-2
+all-checks: clean formatters code-checks security generators common-checks-1 common-checks-2
 
 .PHONY: test-skill
 test-skill:
@@ -351,8 +353,8 @@ teardown-kubernetes:
 	kubectl delete ns ${VERSION}
 	echo "Done!"
 
-.PHONY: generate_abci_specs
-generate_abci_specs:
+.PHONY: fix-abci-app-specs
+fix-abci-app-specs:
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_abci.rounds.APYEstimationAbciApp packages/valory/skills/apy_estimation_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_abci consistency" && exit 1)
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_chained_abci.composition.APYEstimationAbciAppChained packages/valory/skills/apy_estimation_chained_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_chained_abci consistency" && exit 1)
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.liquidity_provision_abci.composition.LiquidityProvisionAbciApp packages/valory/skills/liquidity_provision_abci/fsm_specification.yaml || (echo "Failed to check liquidity_provision_abci consistency" && exit 1)
