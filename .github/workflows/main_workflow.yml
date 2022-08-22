@@ -284,20 +284,20 @@ jobs:
           # docker pull trufflesuite/ganache:beta
 
           # build hardhat node in third_party/safe-contracts
-          cd third_party/safe-contracts &&\
-            sudo chown -R $(whoami) .husky &&\
-            yarn
-          cd ../..
+          # cd third_party/safe-contracts &&\
+          #   sudo chown -R $(whoami) .husky &&\
+          #   yarn
+          # cd ../..
 
-          # build hardhat node in third_party/contracts-amm
-          cd third_party/contracts-amm &&\
-            yarn
-          cd ../..
+          # # build hardhat node in third_party/contracts-amm
+          # cd third_party/contracts-amm &&\
+          #   yarn
+          # cd ../..
           
-          # build hardhat node in third_party/autonolas-registries
-          cd third_party/autonolas-registries &&\
-            yarn
-          cd ../..
+          # # build hardhat node in third_party/autonolas-registries
+          # cd third_party/autonolas-registries &&\
+          #   yarn
+          # cd ../..
 
 
       - if: matrix.os == 'macos-latest'
@@ -353,20 +353,20 @@ jobs:
           # docker pull node:16.7.0
           # docker pull trufflesuite/ganache:beta
 
-          # build hardhat node in third_party/safe-contracts
-          cd third_party\safe-contracts
-          yarn
-          cd ..\..
+          # # build hardhat node in third_party/safe-contracts
+          # cd third_party\safe-contracts
+          # yarn
+          # cd ..\..
 
-          # build hardhat node in third_party/contracts-amm
-          cd third_party\contracts-amm
-          yarn
-          cd ..\..
+          # # build hardhat node in third_party/contracts-amm
+          # cd third_party\contracts-amm
+          # yarn
+          # cd ..\..
 
-          # build hardhat node in third_party/autonolas-registries
-          cd third_party\autonolas-registries
-          yarn
-          cd ..\..
+          # # build hardhat node in third_party/autonolas-registries
+          # cd third_party\autonolas-registries
+          # yarn
+          # cd ..\..
 
       - if: matrix.os == 'windows-latest'
         name: Unit tests windows-latest
