@@ -76,7 +76,6 @@ generators:
 	python scripts/check_copyright.py
 	python -m autonomy.cli hash all
 	tox -e generate_api_documentation
-	tox -e fix-copyright
 	tox -e fix-doc-hashes
 
 .PHONY: common-checks-1
