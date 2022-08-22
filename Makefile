@@ -67,9 +67,11 @@ code-checks:
 security:
 	tox -p -e safety -e bandit
 
+# generate abci docstrings
+# check copyright
 # generate latest hashes for updated packages
 # generate docs for updated packages
-# update copyright headers
+# fix hashes in docs
 .PHONY: generators
 generators:
 	tox -e abci-docstrings
@@ -90,16 +92,9 @@ common-checks-2:
 	tox -e check-handlers
 	tox -e check-doc-links-hashes
 
-.PHONY: copyright
-copyright:
-	tox -e fix-copyright
-
 .PHONY: docs
 docs:
 	mkdocs build --clean
-
-.PHONY: common_checks
-common_checks: security misc_checks lint static docs
 
 .PHONY: test
 test:
@@ -135,7 +130,6 @@ test-skill:
 test-sub-p:
 	pytest -rfE tests/test_$(tdir) --cov=packages.valory.$(dir) --cov-report=html --cov-report=xml --cov-report=term-missing --cov-report=term  --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
-
 
 .PHONY: test-all
 test-all:
