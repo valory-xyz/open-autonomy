@@ -25,7 +25,7 @@ Infrastructure deployment is handled by [Terraform](https://www.terraform.io/) t
 
 We require a domain for our cluster. This allow us to route traffic to our cluster controller node. This is a pre-requisite of both Kubernetes based deployments, however the docker-compose deployment is able to skip this step.
 
-The domain can be acquired from a domain registrar such as [goDaddy](https://www.godaddy.com), or [Freenom](https://www.freenom.com). Most cloud providers also offer this as a service such as AWS. The key requirement is to be able to update the domain registrars nameserver (NS) records easily.
+The domain can be acquired from a domain registrar such as [goDaddy](https://www.godaddy.com). Most cloud providers also offer this as a service such as AWS. The key requirement is to be able to update the domain registrars nameserver (NS) records easily.
 
 ###Install dependencies.
 
