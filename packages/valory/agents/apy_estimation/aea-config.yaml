@@ -9,8 +9,8 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiaau6gvge6gh5xp7brrpljqe3mhosy3p67e5cgivtypj7nplmii24
-- valory/http_client:0.1.0:bafybeicmoolrrjnt5qn7jbwon7a3b5noe6hkj7kbjj57xtfosoygkckhuy
-- valory/ledger:0.1.0:bafybeidfmt6bv3rlryfvtntrptcpg3kbohpadmlpgpkodhipou7ztmbq6e
+- valory/http_client:0.1.0:bafybeiajlo43jrfdhtkpagjtj4izm2rc24ysbnzbtxnu5qqc2pxoov66z4
+- valory/ledger:0.1.0:bafybeiemp6u7xsyvwcq25i3t62oiykwsg5wmp7xs2e6eidll5vf3htdpwy
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts:
 - valory/service_registry:0.1.0:bafybeidtwbj7mwiskbbmsw43zzooivuq6nripdzn7yuoou66rq7spom54m
@@ -23,11 +23,11 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeif2c3jt4tim3zbfq5c2lds7bs6qj5gvj2obk3pzdk3uy6zk2ivo3e
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeifego6mhqqzzctft4mfcrmsik5wxb4qw3ahje6o6prxbar3unnaie
-- valory/abstract_round_abci:0.1.0:bafybeihonasrguw4way2b7mwgybowq2o2ix2t2j5i5jrzptvh3dqjyg5vm
-- valory/apy_estimation_abci:0.1.0:bafybeicyjspvponmotdo77vacdwbykbsat2vnvlbrhjad4ppb7bhulq7gm
-- valory/apy_estimation_chained_abci:0.1.0:bafybeicxj63oo7retxbxbgg237v3ckoso6tze7a7qiz2zsxivtgnan6yt4
-- valory/registration_abci:0.1.0:bafybeidatoggkim2zq7l4djp35vfgwnmzveoet7ytnsbdhglt56mxcert4
+- valory/abstract_abci:0.1.0:bafybeiam52ztcss46i3tgywuv4qmvddqgn7exmbt5kcicqpyip4kfeyap4
+- valory/abstract_round_abci:0.1.0:bafybeify5cyzxqczuoap2winsssau5wjiv4nhvla7ktmamhadsq5x2p6si
+- valory/apy_estimation_abci:0.1.0:bafybeihuxthei3vqp2qsjx762h7xk5ekqnlttyu7p4ti3vuo7vyg2gh2t4
+- valory/apy_estimation_chained_abci:0.1.0:bafybeifaxnbeleskfn6bjuea3saz5ybn7mqx4ocybq4ixitzyoaxcm44se
+- valory/registration_abci:0.1.0:bafybeihebvuim7u5wkkzbj6bseywo27eudezdcvmbi33swejasd6mvjkmi
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -84,8 +84,8 @@ models:
         max_participants: ${MAX_PARTICIPANTS:int:4}
       tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
       tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
-      round_timeout_seconds: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_ROUND_TIMEOUT_SECONDS:float:1000.0}
-      observation_interval: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:86400}
+      round_timeout_seconds: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_ROUND_TIMEOUT_SECONDS:float:3650.0}
+      observation_interval: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:3600}
       max_healthcheck: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:43200}
       drand_public_key: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_DRAND_PUBLIC_KEY:str:868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31}
       estimation:
@@ -95,14 +95,16 @@ models:
       history_start: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_HISTORY_START:int:1652544875}
       optimizer:
         n_trials: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_N_TRIALS:int:10}
-        timeout: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_TIMEOUT:int:60}
+        timeout: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_TIMEOUT:int:300}
         n_jobs: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_N_JOBS:int:1}
-        show_progress_bar: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_SHOW_PROGRESS_BAR:bool:False}
+        show_progress_bar: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_SHOW_PROGRESS_BAR:bool:false}
         scoring: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_SCORING:str:pinball}
         alpha: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_ALPHA:float:0.25}
-      pair_ids: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_PAIR_IDS:dict:null}
+      pair_ids: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_PAIR_IDS:list:[["uniswap_subgraph",
+        ["0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5"]], ["spooky_subgraph", ["0x2a651563c9d3af67ae0388a5c8f89b867038089e",
+        "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c"]]]}
       sleep_time: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_SLEEP_TIME:int:10}
-      ipfs_domain_name: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_IPFS_DOMAIN_NAME:str}
+      ipfs_domain_name: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_IPFS_DOMAIN_NAME:str:/dns/localhost/tcp/5001/http}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection

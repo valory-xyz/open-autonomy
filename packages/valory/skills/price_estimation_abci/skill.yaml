@@ -9,7 +9,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeicbdi5spc3w3xlg7x5b4oxvq6jxqq6ihzl7gvvv6uoj6tp3xe6ryy
   __init__.py: bafybeihw3etjrdz7ah6yie3b2z5g4xpfk5wlnbtr2emxyug3hfu6fmmmim
-  behaviours.py: bafybeidd2gvhk7tcdsa7ovpebv7777xq3t3l6nhzcjasvepchbk3ahldvm
+  behaviours.py: bafybeicyvvnbuu5nvz4xbxtre4ixl3n25goisvlag24tqekgxzlxzznvnq
   dialogues.py: bafybeig4tc4thbpsixmbn35kj7jim2gzd7cvxxu4u3xoeyxqzpumuhrdzm
   fsm_specification.yaml: bafybeidfkkbbisseanwkbcceo7bffy6nwmuw5nxrie26a7noqylqylcujm
   handlers.py: bafybeiaktxa76cpjytsjtbkftrhp7cppmweoxvglqmxc2cdcymdnzdsyua
@@ -19,14 +19,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeiexiper376ji5h4wm5erzospvyikqmvw7pi5tpgrwanj5okznemqu
+- valory/gnosis_safe:0.1.0:bafybeif5ump4p7p5bygqyxeznwdvtdhtwihxnjnvjajbcnt7rmcyzyjafy
 - valory/offchain_aggregator:0.1.0:bafybeiexr4ggkzocdz3cojmwzhkgmx3fjnvisvbnh7jumlz32lsm4hp7ii
 protocols:
 - valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihonasrguw4way2b7mwgybowq2o2ix2t2j5i5jrzptvh3dqjyg5vm
-- valory/oracle_deployment_abci:0.1.0:bafybeibf5yzsxpyfwuunom2ell336fphdrgcpfi33kjkjtkrg3ypjftpb4
-- valory/transaction_settlement_abci:0.1.0:bafybeibduesid3ykje3sjg35wxnbki6bixtqsxzawewind365xckcfkgcu
+- valory/abstract_round_abci:0.1.0:bafybeify5cyzxqczuoap2winsssau5wjiv4nhvla7ktmamhadsq5x2p6si
+- valory/oracle_deployment_abci:0.1.0:bafybeibmv2ebvxnzyli6gyikj4lkofosy47e3muhab6gkrkk4fjohb6wq4
+- valory/transaction_settlement_abci:0.1.0:bafybeidooww4lrevaihswxe4tlbzsixlcmqdznn7we2ep5k2brt4j5tmq4
 behaviours:
   main:
     args: {}

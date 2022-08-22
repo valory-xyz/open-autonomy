@@ -140,7 +140,6 @@ Launch many containers from an image.
 ## DockerBaseTest Objects
 
 ```python
-@skip_docker_tests
 class DockerBaseTest(ABC)
 ```
 

@@ -1,0 +1,24 @@
+name: apy_estimation
+author: valory
+version: 0.1.0
+description: A set of agents reaching consensus on APY estimates
+aea_version: '>=1.0.0, <2.0.0'
+license: Apache-2.0
+fingerprint:
+  README.md: bafybeibhbkelnxxvsln677imq65vgbglmlhyxtax4iqtzempjiwcoef3gq
+fingerprint_ignore_patterns: []
+agent: valory/apy_estimation:0.1.0:bafybeichfbqecgd62anequz3wonqfchrsluj473vrqqjsq2gqpwqo4vo5a
+number_of_agents: 4
+---
+public_id: valory/apy_estimation_abci:0.1.0
+type: skill
+models:
+  params:
+    args:
+      pair_ids:
+      - - uniswap_subgraph
+        - - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
+      - - spooky_subgraph
+        - - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
+          - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
+      ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https

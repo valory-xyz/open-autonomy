@@ -19,9 +19,9 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihonasrguw4way2b7mwgybowq2o2ix2t2j5i5jrzptvh3dqjyg5vm
-- valory/apy_estimation_abci:0.1.0:bafybeicyjspvponmotdo77vacdwbykbsat2vnvlbrhjad4ppb7bhulq7gm
-- valory/registration_abci:0.1.0:bafybeidatoggkim2zq7l4djp35vfgwnmzveoet7ytnsbdhglt56mxcert4
+- valory/abstract_round_abci:0.1.0:bafybeify5cyzxqczuoap2winsssau5wjiv4nhvla7ktmamhadsq5x2p6si
+- valory/apy_estimation_abci:0.1.0:bafybeihuxthei3vqp2qsjx762h7xk5ekqnlttyu7p4ti3vuo7vyg2gh2t4
+- valory/registration_abci:0.1.0:bafybeihebvuim7u5wkkzbj6bseywo27eudezdcvmbi33swejasd6mvjkmi
 behaviours:
   main:
     args: {}
@@ -112,11 +112,11 @@ models:
         alpha: 0.25
         window_size: null
       pair_ids:
-        uniswap_subgraph:
-        - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
-        spooky_subgraph:
-        - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
-        - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
+      - - uniswap_subgraph
+        - - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
+      - - spooky_subgraph
+        - - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
+          - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
@@ -191,7 +191,7 @@ dependencies:
   numpy:
     version: <1.22,>=1.21.4
   open-aea-cli-ipfs:
-    version: <2.0.0,>=1.15.0
+    version: <2.0.0,>=1.16.0
   optuna:
     version: <2.11,>=2.10.0
   pandas:

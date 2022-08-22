@@ -16,7 +16,7 @@ fingerprint:
   ml/forecasting.py: bafybeib54a6dzcjlilbkzcpgwrycbkjlrmzox33tas547r2v5hja2qm52m
   ml/optimization.py: bafybeicyfabutvdyfvv2u3b6sdxfr4c5f7vvgvba4snovy5atx3zuj3nha
   ml/preprocessing.py: bafybeieha65b5cslcyyjobjupebyqovod7aigohdidcawz5b6tlxqxpruq
-  models.py: bafybeih5vt5titu4fr5nqxztwqnlha45quoofaa6jhwslstatbuvwlnmd4
+  models.py: bafybeidilp5yyctvr4suadjnqskblu6p4z3hjea4dy5vvw3m7gsqrnjwq4
   payloads.py: bafybeifsicq32ennlitfulqueposyxyk2om2jn5t3pxavwjix4t4shjtdi
   rounds.py: bafybeibaajmnddve5opvq6ijre2ssuxvutreqjqhr7wlqp44ztugo3f3hm
   tasks.py: bafybeihudp5vyhelqnl5eqakjpvuekaoamtbrghss4k2yysvkczspjbbia
@@ -31,7 +31,7 @@ contracts: []
 protocols:
 - valory/http:1.0.0:bafybeienmids6f5pcey2bnywmiup2faawqgmdhhz65qfciuhkntugztvpi
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihonasrguw4way2b7mwgybowq2o2ix2t2j5i5jrzptvh3dqjyg5vm
+- valory/abstract_round_abci:0.1.0:bafybeify5cyzxqczuoap2winsssau5wjiv4nhvla7ktmamhadsq5x2p6si
 behaviours:
   main:
     args: {}
@@ -122,11 +122,11 @@ models:
         alpha: 0.25
         window_size: null
       pair_ids:
-        uniswap_subgraph:
-        - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
-        spooky_subgraph:
-        - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
-        - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
+      - - uniswap_subgraph
+        - - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
+      - - spooky_subgraph
+        - - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
+          - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3

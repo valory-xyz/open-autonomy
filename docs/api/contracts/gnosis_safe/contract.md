@@ -131,7 +131,7 @@ the hash of the raw Safe transaction
 
 ```python
 @classmethod
-def get_raw_safe_transaction(cls, ledger_api: EthereumApi, contract_address: str, sender_address: str, owners: Tuple[str], to_address: str, value: int, data: bytes, signatures_by_owner: Dict[str, str], operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, safe_gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, gas_price: Optional[int] = None, nonce: Optional[Nonce] = None, max_fee_per_gas: Optional[int] = None, max_priority_fee_per_gas: Optional[int] = None, old_price: Optional[Dict[str, Wei]] = None) -> JSONLike
+def get_raw_safe_transaction(cls, ledger_api: EthereumApi, contract_address: str, sender_address: str, owners: Tuple[str], to_address: str, value: int, data: bytes, signatures_by_owner: Dict[str, str], operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, safe_gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, gas_price: Optional[int] = None, nonce: Optional[Nonce] = None, max_fee_per_gas: Optional[int] = None, max_priority_fee_per_gas: Optional[int] = None, old_price: Optional[Dict[str, Wei]] = None, fallback_gas: int = 0) -> JSONLike
 ```
 
 Get the raw Safe transaction
@@ -158,6 +158,7 @@ Get the raw Safe transaction
 - `max_fee_per_gas`: max
 - `max_priority_fee_per_gas`: max
 - `old_price`: the old gas price params in case that we are trying to resubmit a transaction.
+- `fallback_gas`: (external) gas to spend when base_gas and safe_tx_gas are zero and no gas estimation is possible.
 
 **Returns**:
 

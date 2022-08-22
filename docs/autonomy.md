@@ -72,7 +72,7 @@ These keys can be used for local deployments if you're using the default hardhat
 
 ```bash
 # fetch a service
-$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeiddywsth2vb6j3zcu6lu52bz4oknpy7ofxcgazlfbuhuepkszm4mq  --service
+$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeid5wzh5dfoqveiylfk7glmgkce6pmljcgitztrckkle5qlpbdsuem  --service
 $ cd oracle_hardhat
 # create a docker deployment
 $ autonomy deploy build keys.json
@@ -152,7 +152,7 @@ Options:
   --help            Show this message and exit.
 ```
 
-`autonomy deploy run` is a wrapper around `docker-compose up` command to run the service deployments. To run deployments, navigate to the build dir and run
+`autonomy deploy run` is a wrapper around `docker-compose up` command to run the service deployments. To run deployments, navigate to the build directory and run
 
 ```bash
 $ autonomy deploy run
@@ -180,13 +180,13 @@ Options:
   --help          Show this message and exit.
 ```
 
-To run a deployment for the on-chain service you'll need the token id for the minted service and funded keys. Save the keys in the keys.json and run
+To run a deployment for the on-chain service you'll need the token id for the minted service and funded keys. Save the keys in the `keys.json` and run
 
 ```bash
 $ autonomy deploy from-token ON_SERVICE_TOKEN_ID keys.json
 ```
 
-Currently we support Autonals staging chain, Goerli testnet and Ethereum mainnet for resolving on-chain token ids, but if you have a contract deployed on some other chain you can provide the RPC url to the chain and contract address using `--rpc` and `--sca`.
+Currently we support Autonolas staging chain, Goerli testnet and Ethereum mainnet for resolving on-chain token ids, but if you have a contract deployed on some other chain you can provide the RPC URL to the chain and contract address using `--rpc` and `--sca`.
 
 ## Replay
 
@@ -228,13 +228,75 @@ Options:
 
 ## Replay agents runs from Tendermint dumps
 
-1. Run your preferred app in dev mode, for example run oracle in dev using `make run-oracle-dev` and in a separate terminal run `make run-hardhat`.
+1. Copy and paste the following Makefile into your local environment:
 
-2. Wait until at least one reset (`reset_and_pause` round) has occurred, because the Tendermint server will only dump Tendermint data on resets. Once you have a data dump stop the app.
+```bash
+.PHONY: run-hardhat
+run-hardhat:
+  docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
 
-3. Run `autonomy replay tendermint` . This will spawn a tendermint network with the available dumps.
+# if you get following error
+# PermissionError: [Errno 13] Permission denied: '/open-aea/build/bdist.linux-x86_64/wheel'
+# or similar to PermissionError: [Errno 13] Permission denied: /**/build
+# remove build directory from the folder that you got error for
+# for example here it should be /path/to/open-aea/repo/build
+.PHONY: run-oracle-dev
+run-oracle-dev:
+  if [ "${OPEN_AEA_REPO_DIR}" = "" ];\
+  then\
+    echo "Please ensure you have set the environment variable 'OPEN_AEA_REPO_DIR'"
+    exit 1
+  fi
+  if [ "$(shell ls ${OPEN_AEA_REPO_DIR}/build)" != "" ];\
+  then \
+    echo "Please remove ${OPEN_AEA_REPO_DIR}/build manually."
+    exit 1
+  fi
 
-4. Now  you can run replays for particular agents using `autonomy replay agent AGENT_ID`. `AGENT_ID` is a number between `0` and the number of available agents `-1`. E.g. `autonomy replay agent 0` will run the replay for the first agent.
+  autonomy deploy build image valory/oracle_hardhat --dependencies && \
+    autonomy deploy build image valory/oracle_hardhat --dev && \
+    autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --force --dev && \
+    make run-deploy
+
+.PHONY: run-deploy
+run-deploy:
+  if [ "${PLATFORM_STR}" = "Linux" ];\
+  then\
+    mkdir -p abci_build/persistent_data/logs
+    mkdir -p abci_build/persistent_data/venvs
+    sudo chown -R 1000:1000 -R abci_build/persistent_data/logs
+    sudo chown -R 1000:1000 -R abci_build/persistent_data/venvs
+  fi
+  if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
+  then\
+    cd abci_build/ &&  \
+    docker-compose up --force-recreate -t 600 --remove-orphans
+    exit 0
+  fi
+  if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
+  then\
+    kubectl create ns ${VERSION}|| (echo "failed to deploy to namespace already existing!" && exit 0)
+    kubectl create secret generic regcred \
+          --from-file=.dockerconfigjson=/home/$(shell whoami)/.docker/config.json \
+          --type=kubernetes.io/dockerconfigjson -n ${VERSION} || (echo "failed to create secret" && exit 1)
+    cd abci_build/ && \
+      kubectl apply -f build.yaml -n ${VERSION} && \
+      kubectl apply -f agent_keys/ -n ${VERSION} && \
+      exit 0
+  fi
+  echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
+  exit 1
+```
+Then define the relevant environment variables.
+
+
+2. Run your preferred app in dev mode, for example run oracle in dev using `make run-oracle-dev` and in a separate terminal run `make run-hardhat`.
+
+3. Wait until at least one reset (`reset_and_pause` round) has occurred, because the Tendermint server will only dump Tendermint data on resets. Once you have a data dump stop the app.
+
+4. Run `autonomy replay tendermint` . This will spawn a tendermint network with the available dumps.
+
+5. Now  you can run replays for particular agents using `autonomy replay agent AGENT_ID`. `AGENT_ID` is a number between `0` and the number of available agents `-1`. E.g. `autonomy replay agent 0` will run the replay for the first agent.
 
 
 ## Analyse

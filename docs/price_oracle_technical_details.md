@@ -242,7 +242,7 @@ OracleAbciApp = chain(
 )
 ```
 
-Find below a graphical representation of this composition showing how the constituent FSMs iterconnect to achieve the
+Find below a graphical representation of this composition showing how the constituent FSMs interconnect to achieve the
 functionality of the agent service in the demo.
 
 <figure markdown>

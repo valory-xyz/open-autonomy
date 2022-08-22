@@ -209,7 +209,6 @@ def launch_many_containers(
         _stop_container(container, image.tag)
 
 
-@skip_docker_tests
 class DockerBaseTest(ABC):
     """Base pytest class for setting up Docker images."""
 

@@ -5,6 +5,13 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.1.6` to `v0.2.0`
+
+Multiple backwards incompatible changes:
+
+- The service config no longer accepts the `network` key on the first YAML page. The network can now be defined via the package overrides.
+- Dependency specifications are now checked against imports for all packages, this means initially packages might need modifying to reference/unreference missing/irrelevant dependencies.
+
 ## `v0.1.5` to `v0.1.6`
 
 No backwards incompatible changes

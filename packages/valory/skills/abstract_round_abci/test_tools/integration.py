@@ -41,10 +41,10 @@ from web3.providers import BaseProvider
 
 from packages.valory.skills.abstract_round_abci.base import BaseSynchronizedData
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
+from packages.valory.skills.abstract_round_abci.handlers import SigningHandler
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
-from packages.valory.skills.transaction_settlement_abci.handlers import SigningHandler
 
 
 # pylint: disable=protected-access,too-many-ancestors,unbalanced-tuple-unpacking,too-many-locals,consider-using-with,unspecified-encoding,too-many-arguments,unidiomatic-typecheck

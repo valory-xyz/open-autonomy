@@ -172,6 +172,11 @@ dict
 PrintMessage
 Goerli
 utils
+composable
+unreference
+plugins
+runtimes
+Uniswap
  - docs/index.md
 README.md
 s_
@@ -330,3 +335,5 @@ CollectDifferentUntilAllRound
 PrintMessageRound
 HelloWorldABCIAbstractRound
 PrintMessageBehaviour
+ - docs/agent_services_context.md
+heavy_check_mark

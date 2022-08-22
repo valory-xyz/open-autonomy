@@ -19,10 +19,12 @@
 
 """Test the `tools/general.py` module of the skill."""
 import json
-from typing import Any, Dict, Optional, Union
+from typing import Dict, Optional, Union
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
+
+from autonomy.test_tools.helpers.base import identity
 
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_number_q,
@@ -76,11 +78,6 @@ eth_q_parameterization = pytest.mark.parametrize(
         ),
     ],
 )
-
-
-def identity(arg: Any) -> Any:
-    """Define an identity function."""
-    return arg
 
 
 class TestQueries:

@@ -37,7 +37,7 @@ from aea.configurations.constants import (
     SKILL,
 )
 from aea.configurations.data_types import PublicId
-from aea.helpers.dependency_tree import DependecyTree, dump_yaml, load_yaml, to_plural
+from aea.helpers.dependency_tree import DependencyTree, dump_yaml, load_yaml, to_plural
 from aea.helpers.ipfs.base import IPFSHashOnly
 
 
@@ -97,7 +97,7 @@ def main(packages_dir: Path) -> None:
     hash_tool = IPFSHashOnly()
 
     public_id_to_hash_mappings: Dict = {}
-    dependency_tree = DependecyTree.generate(packages_dir)
+    dependency_tree = DependencyTree.generate(packages_dir)
 
     for tree_level in dependency_tree:
         for package in tree_level:
