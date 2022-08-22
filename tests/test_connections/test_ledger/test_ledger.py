@@ -219,7 +219,7 @@ class TestLedgerConnectionWithMultiplexer:
         with mock.patch.object(
             self.ledger_connection, "_schedule_request", return_value=blocking_task
         ):
-            await self.ledger_connection.send(blocking_dummy_envelope)
+            self.multiplexer.put(blocking_dummy_envelope)
 
         # create a non-blocking task lasting `non_blocking_time` secs, after `wait_time_among_tasks`
         await asyncio.sleep(wait_time_among_tasks)
@@ -241,7 +241,7 @@ class TestLedgerConnectionWithMultiplexer:
         with mock.patch.object(
             self.ledger_connection, "_schedule_request", return_value=normal_task
         ):
-            await self.ledger_connection.send(normal_dummy_envelope)
+            self.multiplexer.put(normal_dummy_envelope)
 
         # the response envelopes of the ledger connection should be empty
         assert (
