@@ -73,10 +73,10 @@ security:
 .PHONY: generators
 generators:
 	tox -e abci-docstrings
-	python scripts/check_copyright.py
+	tox -e check-copyright
 	python -m autonomy.cli hash all
-	python scripts/generate_api_documentation.py
-	python scripts/check_doc_ipfs_hashes.py --fix
+	tox -e generate_api_documentation
+	tox -e fix-doc-hashes
 
 .PHONY: common-checks-1
 common-checks-1:
@@ -92,7 +92,7 @@ common-checks-2:
 
 .PHONY: copyright
 copyright:
-	python scripts/check_copyright.py
+	tox -e fix-copyright
 
 .PHONY: docs
 docs:
@@ -333,17 +333,6 @@ protolint_install:
 
 protolint_install_win:
 	powershell -command '$$env:GO111MODULE="on"; go install github.com/yoheimuta/protolint/cmd/protolint@v0.27.0'
-
-# how to use:
-#
-#     make replay-agent AGENT=agent_id
-#
-# 0 <= agent_id < number of agents
-replay-agent:
-	python replay_scripts/agent_runner.py $(AGENT)
-
-replay-tendermint:
-	python replay_scripts/tendermint_runner.py $(NODE_ID)
 
 teardown-docker-compose:
 	cd abci_build/ && \
