@@ -50,7 +50,10 @@ def main() -> None:  # pylint: disable=too-many-locals
     broken_links: List[Tuple[str, Any, Any]] = []
     http_links = []
     http_skips = ["http://www.fipa.org/repository/ips.php3"]
-    url_skips = ["https://github.com/valory-xyz/open-autonomy/trunk/packages", "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure"]
+    url_skips = [
+        "https://github.com/valory-xyz/open-autonomy/trunk/packages",
+        "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure",
+    ]
 
     # Configure request retries
     retry_strategy = Retry(
