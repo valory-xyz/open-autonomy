@@ -202,6 +202,10 @@ class TestLedgerConnectionWithMultiplexer:
         ), "`non_blocking_time + tolerance + wait_time_among_tasks` should be less than the `blocking_time`."
 
         # create a blocking task lasting `blocking_time` secs
+        request, _ = self.create_ledger_dialogues()
+        blocking_dummy_envelope = TestLedgerConnectionWithMultiplexer.create_envelope(
+            request
+        )
         blocking_task = dummy_task_wrapper(
             blocking_time,
             LedgerApiMessage(
@@ -212,11 +216,6 @@ class TestLedgerConnectionWithMultiplexer:
                 data=b"blocking_task",
             ),
         )
-        blocking_dummy_envelope = Envelope(
-            to="test_blocking_to",
-            sender="test_blocking_sender",
-            message=AbciMessage(AbciMessage.Performative.DUMMY),  # type: ignore
-        )
         with mock.patch.object(
             self.ledger_connection, "_schedule_request", return_value=blocking_task
         ):
@@ -224,6 +223,11 @@ class TestLedgerConnectionWithMultiplexer:
 
         # create a non-blocking task lasting `non_blocking_time` secs, after `wait_time_among_tasks`
         await asyncio.sleep(wait_time_among_tasks)
+
+        request, _ = self.create_ledger_dialogues()
+        normal_dummy_envelope = TestLedgerConnectionWithMultiplexer.create_envelope(
+            request
+        )
         normal_task = dummy_task_wrapper(
             non_blocking_time,
             LedgerApiMessage(
@@ -233,11 +237,6 @@ class TestLedgerConnectionWithMultiplexer:
                 message="",
                 data=b"normal_task",
             ),
-        )
-        normal_dummy_envelope = Envelope(
-            to="test_normal_to",
-            sender="test_normal_sender",
-            message=AbciMessage(AbciMessage.Performative.DUMMY),  # type: ignore
         )
         with mock.patch.object(
             self.ledger_connection, "_schedule_request", return_value=normal_task
