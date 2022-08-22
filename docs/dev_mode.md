@@ -20,7 +20,7 @@ $ autonomy build-images --dev
 
 This will create a deployment with hot reload enabled for agents. You can run it using the same methods as normal deployments. Use `autonomy deploy run` or `docker-compose up --force-recreate` to start the deployment and enjoy building the services.
 
-**The `open-aea` repository can be cloned from here: https://github.com/valory-xyz/open-aea**
+**The `open-aea` repository can be cloned from [here]( https://github.com/valory-xyz/open-aea).**
 
 And - if you want to use local hardhat - in a separate terminal run:
 ```bash
