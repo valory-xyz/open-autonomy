@@ -145,7 +145,7 @@ A high level view of what occurs is as follows:
 
 !!! Note
 
-    There are several items which are called after the interface that connects with the consensus gadget, namely the Application Blockchain Interface (ABCI). In case you are not familiar with this, it is enough to know that it is an interface that abstracts away the protocol executed at the consensus gadget, and it produces callbacks to the skill when relevant events occur (e.g. agreement on a block). You can read more about the ABCI [here](https://docs.tendermint.com/master/spec/abci/).
+    There are several items which are called after the interface that connects with the consensus gadget, namely the Application Blockchain Interface (ABCI). In case you are not familiar with this, it is enough to know that it is an interface that abstracts away the protocol executed at the consensus gadget, and it produces callbacks to the skill when relevant events occur (e.g. agreement on a block). You can read more about the ABCI [here](https://github.com/tendermint/spec/blob/95cf253b6df623066ff7cd4074a94e7a3f147c7a/spec/abci).
 
 At this point, the walk-through of a single transition from one state of the FSM, has essentially introduced the main components of an agent and the main interactions that occur in an agent service. It is important that the developer keeps these concepts in mind, since executions of further state transitions can be easily mapped with what has been presented here so far.
 
