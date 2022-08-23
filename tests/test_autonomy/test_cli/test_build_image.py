@@ -112,28 +112,6 @@ class TestBuildImage(BaseCliTest):
             "Please setup kubernetes environment variables." in result.stdout
         ), f"{result.stdout_bytes}\n{result.stderr_bytes}"
 
-    def test_build_dependencies(
-        self,
-    ) -> None:
-        """Test prod build."""
-
-        version = self.generate_random_tag()
-        result = self.run_cli(("--dependencies", "--version", version))
-
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
-        assert (
-            len(
-                self.docker_api.images(
-                    name=f"valory/open-autonomy-tendermint:{version}"
-                )
-            )
-            == 1
-        )
-        assert (
-            len(self.docker_api.images(name=f"valory/open-autonomy-hardhat:{version}"))
-            == 1
-        )
-
     @classmethod
     def teardown(cls) -> None:
         """Teardown."""
