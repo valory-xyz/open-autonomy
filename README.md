@@ -4,7 +4,21 @@ Open Autonomy is a framework for the creation of Agent Services: off-chain servi
 
 As opposed to traditional smart contracts, Valory apps go beyond simple, purely on-chain logic without giving up on decentralization.
 
-## Requirements
+## For developers using the framework: Get started developing
+
+1. Create and launch a clean virtual environment with Python 3.10 (any Python `>=` 3.7 works):
+
+       pipenv --python 3.10 && pipenv shell
+
+2. Install the package from [PyPI](https://pypi.org/project/open-autonomy/):
+
+       pip install open-autonomy
+
+
+3. Then, build your services as described in the [docs](https://docs.autonolas.network/).
+
+
+## Requirements for Framework Developers
 
 Ensure your machine satisfies the following requirements:
 
@@ -21,19 +35,6 @@ Ensure your machine satisfies the following requirements:
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [Skaffold](https://skaffold.dev/docs/install/#standalone-binary) `>= 1.39.1`
 - [Gitleaks](https://github.com/zricethezav/gitleaks/releases/latest)
-
-## For developers using the framework: Get started developing
-
-1. Create and launch a clean virtual environment with Python 3.10 (any Python `>=` 3.7 works):
-
-       pipenv --python 3.10 && pipenv shell
-
-2. Install the package from [PyPI](https://pypi.org/project/open-autonomy/):
-
-       pip install open-autonomy
-
-
-3. Then, build your services as described in the [docs](https://docs.autonolas.network/).
 
 
 ## For developers contributing to the framework: Install from Source
