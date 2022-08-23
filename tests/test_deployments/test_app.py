@@ -42,7 +42,9 @@ from deployments.Dockerfiles.tendermint.app import (  # type: ignore
     load_genesis,
     override_config_toml,
 )
-from deployments.Dockerfiles.tendermint.tendermint import TendermintParams  # type: ignore
+from deployments.Dockerfiles.tendermint.tendermint import (  # type: ignore
+    TendermintParams,
+)
 
 
 ENCODING = "utf-8"
