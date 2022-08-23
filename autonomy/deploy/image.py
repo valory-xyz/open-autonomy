@@ -51,8 +51,7 @@ class ImageProfiles:  # pylint: disable=too-few-public-methods
     CLUSTER = "cluster"
     DEVELOPMENT = "dev"
     PRODUCTION = "prod"
-    DEPENDENCIES = "dependencies"
-    ALL = (CLUSTER, DEVELOPMENT, PRODUCTION, DEPENDENCIES)
+    ALL = (CLUSTER, DEVELOPMENT, PRODUCTION)
 
 
 def build_image(  # pylint: disable=too-many-arguments
@@ -68,9 +67,7 @@ def build_image(  # pylint: disable=too-many-arguments
     env = os.environ.copy()
     env["AEA_AGENT"] = str(agent)
 
-    if profile == ImageProfiles.DEPENDENCIES:
-        env["VERSION"] = version
-    elif profile == ImageProfiles.DEVELOPMENT:
+    if profile == ImageProfiles.DEVELOPMENT:
         env["VERSION"] = f"{agent.name}-dev"
     else:
         env["VERSION"] = f"{agent.name}-{version}"

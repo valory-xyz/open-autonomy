@@ -266,13 +266,6 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
                 version=DEFAULT_IMAGE_VERSION,
                 push=False,
             )
-            build_image(
-                agent=service.agent,
-                profile=ImageProfiles.DEPENDENCIES,
-                skaffold_dir=DATA_DIR / DOCKERFILES,
-                version=DEFAULT_IMAGE_VERSION,
-                push=False,
-            )
 
         build_deployment(
             keys_file,
