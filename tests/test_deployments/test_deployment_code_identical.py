@@ -25,7 +25,7 @@ from typing import List, Type
 
 import pytest
 
-from autonomy.data.Dockerfiles.tendermint import tendermint  # type: ignore
+from deployments.Dockerfiles.tendermint import tendermint  # type: ignore
 
 from packages.valory.connections.abci import connection
 
