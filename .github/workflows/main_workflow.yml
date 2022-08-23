@@ -216,6 +216,9 @@ jobs:
           pip install .
           autonomy fetch --local --service valory/hello_world
 
+          docker build deployments/Dockerfiles/tendermint/ -t valory/open-autonomy-tendermint:0.1.0 --file deployments/Dockerfiles/tendermint/Dockerfile
+          docker build deployments/Dockerfiles/tendermint/ -t valory/open-autonomy-tendermint:1.0.0 --file deployments/Dockerfiles/tendermint/Dockerfile
+          
           cd hello_world
           autonomy build-images
           autonomy build-images --dev
@@ -223,8 +226,6 @@ jobs:
 
           cd ..
 
-          docker build deployments/Dockerfiles/tendermint/ -t valory/open-autonomy-tendermint:0.1.0 --file deployments/Dockerfiles/tendermint/Dockerfile
-          docker build deployments/Dockerfiles/tendermint/ -t valory/open-autonomy-tendermint:1.0.0 --file deployments/Dockerfiles/tendermint/Dockerfile
 
           # build hardhat node in third_party/safe-contracts
           cd third_party/safe-contracts &&\
