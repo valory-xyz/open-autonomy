@@ -66,6 +66,7 @@ code-checks:
 .PHONY: security
 security:
 	tox -p -e safety -e bandit
+	gitleaks detect --report-format json --report-path leak_report
 
 # generate abci docstrings
 # check copyright
