@@ -49,13 +49,17 @@ CONFIG_OVERRIDE = [
 logging.basicConfig(
     filename=os.environ.get("LOG_FILE", DEFAULT_LOG_FILE),
     level=logging.DEBUG,
-    format=f"%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
+    format="%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s",  # noqa : W1309
 )
 
 
 def load_genesis() -> Any:
     """Load genesis file."""
-    return json.loads(Path(os.environ["TMHOME"], "config", "genesis.json").read_text())
+    return json.loads(
+        Path(os.environ["TMHOME"], "config", "genesis.json").read_text(
+            encoding=ENCODING
+        )
+    )
 
 
 def get_defaults() -> Dict[str, str]:
@@ -97,7 +101,9 @@ class PeriodDumper:
         self.dump_dir.mkdir(exist_ok=True)
 
     @staticmethod
-    def readonly_handler(func: Callable, path: str, execinfo: Any) -> None:
+    def readonly_handler(
+        func: Callable, path: str, execinfo: Any  # pylint: disable=unused-argument
+    ) -> None:
         """If permission is readonly, we change and retry."""
         try:
             os.chmod(path, stat.S_IWRITE)
@@ -238,7 +244,7 @@ def create_app(
     @app.errorhandler(404)  # type: ignore
     def handle_notfound(e: NotFound) -> Response:
         """Handle server error."""
-        app.logger.info(e)
+        app.logger.info(e)  # pylint: disable=E
         return Response("Not Found", status=404, mimetype="application/json")
 
     @app.errorhandler(500)  # type: ignore

@@ -17,18 +17,6 @@ build:
 
 profiles:
   - name: prod
-  - name: dependencies
-    build:
-      tagPolicy:
-        envTemplate:
-          template: "{{.VERSION}}"
-      artifacts:
-      - image: valory/open-autonomy-tendermint
-        context: tendermint/
-        docker:
-          dockerfile: Dockerfile
-      - image: valory/open-autonomy-hardhat
-        context: hardhat
   - name: cluster
     patches:
       - op: add
@@ -45,6 +33,7 @@ profiles:
             path: ~/.docker/config.json
       - op: remove
         path: /build/artifacts/0/docker
+
   - name: dev
     build:
       tagPolicy:
