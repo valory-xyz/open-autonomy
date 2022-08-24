@@ -100,7 +100,7 @@ Initialise with only kwargs.
 
 ```python
 @abc.abstractmethod
-def generate(image_versions: Dict[str, str]) -> "BaseDeploymentGenerator"
+def generate() -> "BaseDeploymentGenerator"
 ```
 
 Generate the deployment configuration.
@@ -111,7 +111,7 @@ Generate the deployment configuration.
 
 ```python
 @abc.abstractmethod
-def generate_config_tendermint(image_version: str = TENDERMINT_IMAGE_VERSION) -> "BaseDeploymentGenerator"
+def generate_config_tendermint() -> "BaseDeploymentGenerator"
 ```
 
 Generate the deployment configuration.
