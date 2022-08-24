@@ -46,3 +46,9 @@ profiles:
           docker:
             noCache: true
             dockerfile: deployments/Dockerfiles/documentation/Dockerfile
+
+        - image: valory/open-autonomy-cluster
+          context: deployments/Dockerfiles/cluster
+          docker:
+            noCache: true
+            dockerfile: Dockerfile
