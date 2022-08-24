@@ -182,9 +182,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
                 tx_data["status"] = VerificationStatus.VERIFIED
             else:
                 tx_data["status"] = VerificationStatus.ERROR
-            self.context.logger.warning(
-                f"get_raw_safe_transaction unsuccessful! Received: {message}"
-            )
+            self.context.logger.warning(self._parse_revert_reason(message))
             return tx_data
 
         # Check that we have a RAW_TRANSACTION response
