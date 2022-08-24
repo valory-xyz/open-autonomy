@@ -133,12 +133,10 @@ Run deployment.
     help="Service contract address for custom RPC URL.",
 )
 @click.option("--n", type=int, help="Number of agents to include in the build.")
-@click.option(
-    "--skip-images", is_flag=True, default=False, help="Skip building images."
-)
+@click.option("--skip-image", is_flag=True, default=False, help="Skip building images.")
 @chain_selection_flag()
 @click.pass_context
-def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, chain_type: str, rpc_url: Optional[str], service_contract_address: Optional[str], skip_images: bool, n: Optional[int]) -> None
+def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, chain_type: str, rpc_url: Optional[str], service_contract_address: Optional[str], skip_image: bool, n: Optional[int]) -> None
 ```
 
 Run service deployment.
