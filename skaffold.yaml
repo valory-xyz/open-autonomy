@@ -7,13 +7,12 @@ build:
     envTemplate:
       template: "{{.VERSION}}"
   artifacts:
-  - image: valory/open-autonomy-open-aea
-    context: autonomy/data/Dockerfiles/agent/
+  - image: valory/open-autonomy
+    context: deployments/Dockerfiles/autonomy
     docker:
       dockerfile: Dockerfile
       buildArgs:
         AEA_VERSION: "1.16.0"
-        AEA_AGENT: "{{.AEA_AGENT}}"
 
 
 profiles:
@@ -24,14 +23,13 @@ profiles:
             template: "{{.VERSION}}"
         artifacts:
 
-        - image: valory/open-autonomy-open-aea
-          context: autonomy/data/Dockerfiles/agent/
+        - image: valory/open-autonomy
+          context: deployments/Dockerfiles/autonomy
           docker:
             noCache: true
             dockerfile: Dockerfile
             buildArgs:
               AEA_VERSION: "1.16.0"
-              AEA_AGENT: "{{.AEA_AGENT}}"
 
         - image: valory/open-autonomy-tendermint
           context: deployments/Dockerfiles/tendermint/
