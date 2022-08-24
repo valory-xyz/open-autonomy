@@ -435,10 +435,6 @@ class TestTransactionSettlementBaseBehaviour(PriceEstimationFSMBehaviourBaseCase
         (
             MagicMock(
                 performative=ContractApiMessage.Performative.ERROR,
-                message="Two codes should be invalid GS026 GS013.",
-            ),
-            MagicMock(
-                performative=ContractApiMessage.Performative.ERROR,
                 message="Non existing code should be invalid GS086.",
             ),
             MagicMock(
