@@ -20,14 +20,14 @@
 
 """Script to create environment for benchmarking n agents."""
 
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 
 import yaml
 
 from autonomy.constants import (
-    CLUSTER_IMAGE,
+    AUTONOMY_IMAGE_NAME,
+    AUTONOMY_IMAGE_VERSION,
     HARDHAT_IMAGE_NAME,
     HARDHAT_IMAGE_VERSION,
     TENDERMINT_IMAGE_NAME,
@@ -152,9 +152,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
         agent_vars = self.service_spec.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
-        runtime_image = CLUSTER_IMAGE.format(
-            version=os.environ.get("CLUSTER_IMAGE_VERSION", "latest")
-        )
+        runtime_image = f"{AUTONOMY_IMAGE_NAME}:{AUTONOMY_IMAGE_VERSION}"
 
         agents = "\n---\n".join(
             [

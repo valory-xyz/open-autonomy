@@ -39,4 +39,3 @@ HARDHAT_IMAGE_NAME = os.environ.get(
 )
 
 OAR_IMAGE = "valory/oar-{agent}:{version}"
-CLUSTER_IMAGE = "valory/open-autonomy-cluster:{version}"
