@@ -20,13 +20,13 @@
 """This module contains tests for the `IPFS` interactions."""
 import os.path
 from pathlib import PosixPath
-from typing import Dict, Union, cast
+from typing import Dict, cast
 
-import pandas as pd
 import pytest
 
 from packages.valory.skills.abstract_round_abci.io_.ipfs import IPFSInteract
 from packages.valory.skills.abstract_round_abci.io_.store import (
+    StoredJSONType,
     SupportedFiletype,
     SupportedMultipleObjectsType,
     SupportedSingleObjectType,
@@ -49,23 +49,23 @@ class TestIPFSInteract:
         self,
         multiple: bool,
         tmp_path: PosixPath,
-        dummy_obj: pd.DataFrame,
-        dummy_multiple_obj: Dict[str, pd.DataFrame],
+        dummy_obj: StoredJSONType,
+        dummy_multiple_obj: Dict[str, StoredJSONType],
     ) -> None:
         """Test store -> send -> download -> read of objects."""
-        obj: Union[pd.DataFrame, Dict[str, pd.DataFrame]]
+        obj: StoredJSONType
         if multiple:
             obj = dummy_multiple_obj
             filepath = str(tmp_path)
         else:
             obj = dummy_obj
-            filepath = os.path.join(tmp_path, "test_file.csv")
+            filepath = os.path.join(tmp_path, "test_file.json")
 
         hash_ = self.ipfs_interact.store_and_send(
-            filepath, obj, multiple, SupportedFiletype.CSV
+            filepath, obj, multiple, SupportedFiletype.JSON
         )
         result = self.ipfs_interact.get_and_read(
-            hash_, str(tmp_path), multiple, "test_file.csv", SupportedFiletype.CSV
+            hash_, str(tmp_path), multiple, "test_file.json", SupportedFiletype.JSON
         )
 
         if multiple:
@@ -78,13 +78,13 @@ class TestIPFSInteract:
             ), "loaded objects and dummy objects filenames do not match."
 
             # iterate through the loaded objects and their filenames and the dummy objects and their filenames.
-            for actual_frame, expected_frame in zip(
+            for actual_json, expected_json in zip(
                 result.values(), dummy_multiple_obj.values()
             ):
-                # assert loaded frame with expected.
-                pd.testing.assert_frame_equal(actual_frame, expected_frame)
+                # assert loaded json with expected.
+                assert actual_json == expected_json
 
         else:
             result = cast(SupportedSingleObjectType, result)
-            # assert loaded frame with expected.
-            pd.testing.assert_frame_equal(result, dummy_obj)
+            # assert loaded json with expected.
+            assert result == dummy_obj
