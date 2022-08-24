@@ -6,9 +6,6 @@ FROM ${AUTONOMY_IMAGE_NAME}:${AUTONOMY_IMAGE_VERSION}
 ARG AEA_AGENT
 ARG AUTHOR
 
-COPY start.sh /home/ubuntu
-COPY install.sh /home/ubuntu
-
 VOLUME /home/ubuntu/logs
 WORKDIR /home/ubuntu
 

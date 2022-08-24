@@ -21,5 +21,10 @@ RUN python -m pip install --upgrade pip
 WORKDIR /home/ubuntu
 
 RUN pip3 install -r requirements.txt
+RUN aea init --reset --remote --ipfs --author default_author
 
-ENTRYPOINT [ "/bin/bash" ]
+COPY install.sh /home/ubuntu
+COPY start.sh /home/ubuntu
+COPY run.sh /home/ubuntu
+
+CMD ["run.sh"]
