@@ -12,9 +12,6 @@ fingerprint:
   dialogues.py: bafybeig4tc4thbpsixmbn35kj7jim2gzd7cvxxu4u3xoeyxqzpumuhrdzm
   fsm_specification.yaml: bafybeid56g5zov7zb2hnauahbejn5k3ilymrbg2aihhybzvzwdhbbctexq
   handlers.py: bafybeibmzghvqekt7iymu6s6yn5tk7lpdmejba4n7dpsz2do3cgfqz7b2a
-  io_/__init__.py: bafybeidxth2otiyp5gfk2l3zjvnfktgrtpwzsknihkef3v2lhwbkgum3ea
-  io_/load.py: bafybeicmhoscwsihvu2gjeuabl74vme2ur36g7w6xczf2exuiozbzzwtsq
-  io_/store.py: bafybeibjo6uaq4ikorbj4r2osqrcabed23tgxzzgwsuwf37w24o3vo5cfq
   ml/__init__.py: bafybeibceypb22objsuli3abse3rgyycs4hodokjfj5oei4ms4xlqkra5a
   ml/forecasting.py: bafybeib54a6dzcjlilbkzcpgwrycbkjlrmzox33tas547r2v5hja2qm52m
   ml/optimization.py: bafybeicyfabutvdyfvv2u3b6sdxfr4c5f7vvgvba4snovy5atx3zuj3nha
@@ -34,7 +31,7 @@ contracts: []
 protocols:
 - valory/http:1.0.0:bafybeienmids6f5pcey2bnywmiup2faawqgmdhhz65qfciuhkntugztvpi
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiba3gzasstgzianuegq5m2ejmh5y3hqummpkklxaraxre6fqqql5u
+- valory/abstract_round_abci:0.1.0:bafybeidfd5b2gslpmjjjrlfhdhhmgwlhvhisjl7pmf2o5kfbkjdg7yv34i
 behaviours:
   main:
     args: {}
@@ -210,7 +207,7 @@ dependencies:
   pmdarima:
     version: ==2.0.1
   scikit-learn:
-    version: ==1.1.2
+    version: ==1.0.1
   statsmodels:
     version: ==0.13.2
 is_abstract: true
