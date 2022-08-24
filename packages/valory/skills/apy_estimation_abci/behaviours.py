@@ -50,6 +50,9 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 from packages.valory.skills.abstract_round_abci.io_.load import SupportedFiletype
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
+from packages.valory.skills.apy_estimation_abci.io_.store import (
+    ExtendedSupportedFiletype,
+)
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     PoolIdToForecasterType,
     PoolIdToTestReportType,
@@ -155,7 +158,7 @@ class APYEstimationBaseBehaviour(BaseBehaviour, ABC):
             getattr(self.synchronized_data, f"{split}_hash"),
             split_path,
             multiple=True,
-            filetype=SupportedFiletype.CSV,
+            filetype=ExtendedSupportedFiletype.CSV,
         )
 
 
@@ -690,7 +693,7 @@ class TransformBehaviour(
             self._transformed_hist_hash = self.send_to_ipfs(
                 self._transformed_history_save_path,
                 transformed_history,
-                filetype=SupportedFiletype.CSV,
+                filetype=ExtendedSupportedFiletype.CSV,
             )
 
             # Get the latest observation for each pool id.
@@ -703,7 +706,7 @@ class TransformBehaviour(
             self._latest_observations_hist_hash = self.send_to_ipfs(
                 latest_observations_save_path,
                 latest_observations,
-                filetype=SupportedFiletype.CSV,
+                filetype=ExtendedSupportedFiletype.CSV,
             )
 
         # Pass the hashes as a Payload.
@@ -783,7 +786,10 @@ class PreprocessBehaviour(APYEstimationBaseBehaviour):
                 )
 
                 split_hash = self.send_to_ipfs(
-                    save_path, split, multiple=True, filetype=SupportedFiletype.CSV
+                    save_path,
+                    split,
+                    multiple=True,
+                    filetype=ExtendedSupportedFiletype.CSV,
                 )
                 self._preprocessed_pairs_hashes[f"{split_name}_hash"] = split_hash
 
@@ -867,7 +873,7 @@ class PrepareBatchBehaviour(APYEstimationBaseBehaviour):
             self._prepared_batches_hash = self.send_to_ipfs(
                 self._prepared_batches_save_path,
                 prepared_batches,
-                filetype=SupportedFiletype.CSV,
+                filetype=ExtendedSupportedFiletype.CSV,
             )
 
         # Pass the hash as a Payload.
@@ -1127,7 +1133,7 @@ class TrainBehaviour(APYEstimationBaseBehaviour):
                 forecaster_save_path,
                 forecasters,
                 multiple=True,
-                filetype=SupportedFiletype.PM_PIPELINE,
+                filetype=ExtendedSupportedFiletype.PM_PIPELINE,
             )
 
         payload = TrainingPayload(self.context.agent_address, self._models_hash)
@@ -1180,7 +1186,7 @@ class TestBehaviour(APYEstimationBaseBehaviour):
             self.synchronized_data.models_hash,
             models_path,
             multiple=True,
-            filetype=SupportedFiletype.PM_PIPELINE,
+            filetype=ExtendedSupportedFiletype.PM_PIPELINE,
         )
 
         if not any(
@@ -1264,7 +1270,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseBehaviour):
             self.synchronized_data.latest_observation_hist_hash,
             self.context.data_dir,
             filename=f"latest_observations_period_{self.synchronized_data.period_count}.csv",
-            filetype=SupportedFiletype.CSV,
+            filetype=ExtendedSupportedFiletype.CSV,
         )
 
         # Load forecasters.
@@ -1272,7 +1278,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseBehaviour):
             self.synchronized_data.models_hash,
             self._forecasters_folder + str(self.synchronized_data.period_count - 1),
             multiple=True,
-            filetype=SupportedFiletype.PM_PIPELINE,
+            filetype=ExtendedSupportedFiletype.PM_PIPELINE,
         )
 
         if not any(arg is None for arg in (self._y, self._forecasters)):
@@ -1298,7 +1304,7 @@ class UpdateForecasterBehaviour(APYEstimationBaseBehaviour):
                 self._forecasters_folder + str(self.synchronized_data.period_count),
                 self._forecasters,
                 multiple=True,
-                filetype=SupportedFiletype.PM_PIPELINE,
+                filetype=ExtendedSupportedFiletype.PM_PIPELINE,
             )
 
         payload = UpdatePayload(self.context.agent_address, self._models_hash)
@@ -1336,7 +1342,7 @@ class EstimateBehaviour(APYEstimationBaseBehaviour):
             self.synchronized_data.models_hash,
             forecasters_folder,
             multiple=True,
-            filetype=SupportedFiletype.PM_PIPELINE,
+            filetype=ExtendedSupportedFiletype.PM_PIPELINE,
         )
 
         if self._forecasters is not None:
@@ -1370,7 +1376,7 @@ class EstimateBehaviour(APYEstimationBaseBehaviour):
             self._estimations_hash = self.send_to_ipfs(
                 estimations_path,
                 estimates,
-                filetype=SupportedFiletype.CSV,
+                filetype=ExtendedSupportedFiletype.CSV,
             )
 
         payload = EstimatePayload(self.context.agent_address, self._estimations_hash)
@@ -1407,7 +1413,7 @@ class BaseResetBehaviour(APYEstimationBaseBehaviour):
                 self.synchronized_data.estimates_hash,
                 self.context.data_dir,
                 filename=f"estimations_period_{self.synchronized_data.period_count}.csv",
-                filetype=SupportedFiletype.CSV,
+                filetype=ExtendedSupportedFiletype.CSV,
             )
             if estimations is not None:
                 self.context.logger.info(
