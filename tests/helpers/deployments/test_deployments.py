@@ -62,7 +62,7 @@ version: 0.1.0
 description: Description
 aea_version: ">=1.0.0, <2.0.0"
 license: Apache-2.0
-agent: "valory/oracle:0.1.0"
+agent: valory/oracle:0.1.0:bafybeihurloujnbugvvrv5xegyrdnsgl6z6at5xilq7f5ynjdekijapt6q
 number_of_agents: 1
 fingerprint: {}
 fingerprint_ignore_patterns: []

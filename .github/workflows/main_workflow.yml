@@ -214,6 +214,8 @@ jobs:
 
           # build required images
 
+          skaffold build --push=false
+          skaffold build -p release --push=false
           docker build deployments/Dockerfiles/tendermint/ -t valory/open-autonomy-tendermint:0.1.0 --file deployments/Dockerfiles/tendermint/Dockerfile
           docker build deployments/Dockerfiles/tendermint/ -t valory/open-autonomy-tendermint:1.0.0 --file deployments/Dockerfiles/tendermint/Dockerfile
 
