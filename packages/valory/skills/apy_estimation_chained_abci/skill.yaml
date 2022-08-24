@@ -19,9 +19,9 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeie4ux473o45jjo5cb2f7qavoeawzxsndwbmoxnonqvsagp5ldn6pe
-- valory/apy_estimation_abci:0.1.0:bafybeiao7bm3kvl4cudlfqfeg7sjoey6amh3mudbxjj3h7z5j5bvfaiqqy
-- valory/registration_abci:0.1.0:bafybeig3dkrzo7m2wnw7t4n5nzcpxs4h5gcjvnwn7otrnimjtojk6y3wn4
+- valory/abstract_round_abci:0.1.0:bafybeias5k6pxlim5yy6d5fcrzf5f5tqfcdambktrw7exi2racmnzk3kkm
+- valory/apy_estimation_abci:0.1.0:bafybeibsdgbj5jj3abm6fr4m3hg26zq6bhughkssnpah3d4sthmsvqqcau
+- valory/registration_abci:0.1.0:bafybeihwrrauwzv7wtfgnsqkaljtgal3epiynjwdcilbtulkxcunzidgmu
 behaviours:
   main:
     args: {}
@@ -199,7 +199,7 @@ dependencies:
   pmdarima:
     version: ==2.0.1
   scikit-learn:
-    version: ==1.1.2
+    version: ==1.0.1
   statsmodels:
     version: ==0.13.2
 is_abstract: false
