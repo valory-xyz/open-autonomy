@@ -68,7 +68,7 @@ you have followed the [setup instructions](quick_start.md#setup). As a result yo
 
 3. Use the {{open_autonomy}} CLI to download and build the agent images:
     ```bash
-    autonomy deploy build deployment valory/oracle_hardhat:0.1.0:bafybeihq2rfeoz6yfw6skvblmk4jwpv7xvga6cu5uou5z7h3b5objaxzlq keys.json
+    autonomy deploy build deployment valory/oracle_hardhat:0.1.0:bafybeihhrcewyzsa7syuqhaxjs3maa5wnufzqjeqxc6b6x3zxbg3xpwdeu keys.json
     ```
     This command above downloads the price oracle agent service definition from the Service Registry, and generates the required Docker images to run it using the keys provided in the `keys.json` file.
 

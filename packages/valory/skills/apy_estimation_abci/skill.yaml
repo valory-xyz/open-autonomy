@@ -31,7 +31,7 @@ contracts: []
 protocols:
 - valory/http:1.0.0:bafybeienmids6f5pcey2bnywmiup2faawqgmdhhz65qfciuhkntugztvpi
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeibantzb6stowqrjkijoljchxn7d6zyc6rmzvmx3tps3h2gduu3dpy
+- valory/abstract_round_abci:0.1.0:bafybeidfd5b2gslpmjjjrlfhdhhmgwlhvhisjl7pmf2o5kfbkjdg7yv34i
 behaviours:
   main:
     args: {}
@@ -207,7 +207,7 @@ dependencies:
   pmdarima:
     version: ==2.0.1
   scikit-learn:
-    version: ==1.1.2
+    version: ==1.0.1
   statsmodels:
     version: ==0.13.2
 is_abstract: true
