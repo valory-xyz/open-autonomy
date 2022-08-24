@@ -27,65 +27,35 @@ import click
 from aea.cli.utils.click_utils import PublicIdParameter
 from aea.configurations.data_types import PublicId
 
-from autonomy.cli.utils.click_utils import image_profile_flag
 from autonomy.configurations.loader import load_service_config
-from autonomy.constants import DEFAULT_IMAGE_VERSION
-from autonomy.data import DATA_DIR
-from autonomy.deploy.constants import DOCKERFILES
-from autonomy.deploy.image import build_image
+from autonomy.deploy.image import build_image as _build_image
 
 
-@click.command(name="build-images")
+@click.command(name="build-image")
 @click.argument(
     "agent",
     type=PublicIdParameter(),
     required=False,
 )
 @click.option(
-    "--build-dir",
+    "--service-dir",
     type=click.Path(dir_okay=True),
     help="Path to build dir.",
 )
-@click.option(
-    "--skaffold-dir",
-    type=click.Path(exists=True, dir_okay=True),
-    help="Path to directory containing the skaffold config.",
-)
-@click.option(
-    "--version",
-    type=str,
-    default=DEFAULT_IMAGE_VERSION,
-    help="Image version.",
-)
-@click.option("--push", is_flag=True, default=False, help="Push image after build.")
-@image_profile_flag()
-def build_images(  # pylint: disable=too-many-arguments
+def build_image(
     agent: Optional[PublicId],
-    build_dir: Optional[Path],
-    skaffold_dir: Optional[Path],
-    version: str,
-    push: bool,
-    profile: str,
+    service_dir: Optional[Path],
 ) -> None:
     """Build image using skaffold."""
 
-    build_dir = Path(build_dir or Path.cwd()).absolute()
-    skaffold_dir = Path(skaffold_dir or DATA_DIR / DOCKERFILES).absolute()
+    service_dir = Path(service_dir or Path.cwd()).absolute()
 
     if agent is None:
-        service = load_service_config(build_dir)
+        service = load_service_config(service_dir)
         agent = service.agent
 
     try:
-        click.echo(
-            f"Building image with:\n\tProfile: {profile}\n\tServiceId: {agent}\n"
-        )
-        build_image(
-            agent=agent,
-            profile=profile,
-            skaffold_dir=skaffold_dir,
-            version=version,
-            push=push,
-        )
+        click.echo(f"Building image with agent: {agent}\n")
+        _build_image(agent=agent)
     except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e

@@ -39,15 +39,13 @@ from autonomy.cli.fetch import fetch_service
 from autonomy.cli.utils.click_utils import chain_selection_flag
 from autonomy.configurations.constants import DEFAULT_SERVICE_FILE
 from autonomy.configurations.loader import load_service_config
-from autonomy.constants import DEFAULT_IMAGE_VERSION, DEFAULT_KEYS_FILE
-from autonomy.data import DATA_DIR
+from autonomy.constants import DEFAULT_KEYS_FILE
 from autonomy.deploy.build import generate_deployment
 from autonomy.deploy.chain import ServiceRegistry
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
     BENCHMARKS_DIR,
     DEFAULT_ABCI_BUILD_DIR,
-    DOCKERFILES,
     INFO,
     LOGGING_LEVELS,
     LOG_DIR,
@@ -57,7 +55,7 @@ from autonomy.deploy.constants import (
 )
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
-from autonomy.deploy.image import ImageProfiles, build_image
+from autonomy.deploy.image import build_image
 
 
 @click.group(name="deploy")
@@ -104,11 +102,6 @@ def deploy_group(
     help="Create development environment.",
 )
 @click.option(
-    "--version",
-    "version",
-    help="Specify deployment version.",
-)
-@click.option(
     "--force",
     "force_overwrite",
     is_flag=True,
@@ -147,7 +140,6 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     registry: str,
     number_of_agents: Optional[int] = None,
     password: Optional[str] = None,
-    version: Optional[str] = None,
     open_aea_dir: Optional[Path] = None,
     packages_dir: Optional[Path] = None,
     open_autonomy_dir: Optional[Path] = None,
@@ -175,7 +167,6 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             force_overwrite,
             number_of_agents,
             password,
-            version,
             packages_dir,
             open_aea_dir,
             open_autonomy_dir,
@@ -259,13 +250,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     with cd(service_path):
         if not skip_images:
             click.echo("Building required images.")
-            build_image(
-                agent=service.agent,
-                profile=ImageProfiles.PRODUCTION,
-                skaffold_dir=DATA_DIR / DOCKERFILES,
-                version=DEFAULT_IMAGE_VERSION,
-                push=False,
-            )
+            build_image(agent=service.agent)
 
         build_deployment(
             keys_file,
@@ -274,7 +259,6 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
             dev_mode=False,
             force_overwrite=True,
             number_of_agents=n,
-            version=DEFAULT_IMAGE_VERSION,
             agent_instances=agent_instances,
         )
 
@@ -308,7 +292,6 @@ def build_deployment(  # pylint: disable=too-many-arguments
     force_overwrite: bool,
     number_of_agents: Optional[int] = None,
     password: Optional[str] = None,
-    version: Optional[str] = None,
     packages_dir: Optional[Path] = None,
     open_aea_dir: Optional[Path] = None,
     open_autonomy_dir: Optional[Path] = None,
@@ -333,7 +316,6 @@ def build_deployment(  # pylint: disable=too-many-arguments
         number_of_agents=number_of_agents,
         build_dir=build_dir,
         dev_mode=dev_mode,
-        version=version,
         packages_dir=packages_dir,
         open_aea_dir=open_aea_dir,
         open_autonomy_dir=open_autonomy_dir,
