@@ -91,7 +91,7 @@ TxDataType = Dict[str, Union[VerificationStatus, Deque[str], int, Set[str], str]
 
 drand_check = VerifyDrand()
 
-REVERT_CODE_RE = r"(\sGS\d{3}\s)"
+REVERT_CODE_RE = r"\s(GS\d{3})[^\d]"
 REVERT_CODES_TO_REASONS: Dict[str, str] = {
     "GS000": "Could not finish initialization",
     "GS001": "Threshold needs to be defined",
