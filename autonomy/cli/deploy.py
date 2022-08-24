@@ -212,6 +212,8 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
 )
 @click.option("--n", type=int, help="Number of agents to include in the build.")
 @click.option("--skip-image", is_flag=True, default=False, help="Skip building images.")
+@chain_selection_flag()
+@click.pass_context
 def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-locals
     click_context: click.Context,
     token_id: int,
