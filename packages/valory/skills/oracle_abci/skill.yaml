@@ -22,11 +22,11 @@ protocols: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeid5cf6rzufnvsz3o4ng3prtscvgoidrhswiu24hm7lmsvtc5cjy6e
 - valory/oracle_deployment_abci:0.1.0:bafybeig6e7t7byhs6b2wtwdgxs36v45rvvlvi5caphayuywvoqi3rqwopi
-- valory/price_estimation_abci:0.1.0:bafybeif6a57wss5ouxxxueztg5exfdk73cmyfucx5u3tbpdixwsblyyhpq
+- valory/price_estimation_abci:0.1.0:bafybeibycym7kv4uxkvk2s3sjkkcvduanifrkse4kqmxvafcwdqbtsa474
 - valory/registration_abci:0.1.0:bafybeibhh34g3vgoadlcbpd6i6vlstvy7mdhomkacifac3m7pkkrwqnp7m
 - valory/reset_pause_abci:0.1.0:bafybeiaaagyocwvadclj2avjjgy3mtwcm3ty4izcwxgi732rtxp64wvf7q
 - valory/safe_deployment_abci:0.1.0:bafybeiag6hc7bmi4sqhhugd7rgptso3jbi7tjba44oo4m6nkuzhlzqipxu
-- valory/transaction_settlement_abci:0.1.0:bafybeigq6ve64zmsqi5ltye2yiasqxlqu7mjnlz7eundo3hhnrymh5wpou
+- valory/transaction_settlement_abci:0.1.0:bafybeigamvx2zhek4t5xogwlrk7exi2rnxb7fkayuxrcm2f7s6nheyagju
 behaviours:
   main:
     args: {}
