@@ -13,8 +13,6 @@ VOLUME /home/ubuntu/logs
 WORKDIR /home/ubuntu
 
 RUN aea init --reset --remote --ipfs --author ${AUTHOR}
-
-RUN echo $AEA_AGENT
 RUN AEA_AGENT=${AEA_AGENT} bash install.sh
 
 CMD ["start.sh"]

@@ -45,7 +45,7 @@ def build_image(agent: PublicId, pull: bool = False) -> None:
 
     docker_client = from_env()
 
-    tag = OAR_IMAGE.format(agent=agent.name, version=agent.version)
+    tag = OAR_IMAGE.format(agent=agent.name, version=agent.hash)
     path = str(DATA_DIR / DOCKERFILES / "agent")
 
     stream = docker_client.api.build(
