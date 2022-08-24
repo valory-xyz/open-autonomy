@@ -57,11 +57,6 @@ Deploy an agent service.
     help="Create development environment.",
 )
 @click.option(
-    "--version",
-    "version",
-    help="Specify deployment version.",
-)
-@click.option(
     "--force",
     "force_overwrite",
     is_flag=True,
@@ -90,7 +85,7 @@ Deploy an agent service.
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @click.pass_context
-def build_deployment_command(click_context: click.Context, keys_file: Optional[Path], deployment_type: str, output_dir: Optional[Path], dev_mode: bool, force_overwrite: bool, registry: str, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None, open_aea_dir: Optional[Path] = None, packages_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, log_level: str = INFO) -> None
+def build_deployment_command(click_context: click.Context, keys_file: Optional[Path], deployment_type: str, output_dir: Optional[Path], dev_mode: bool, force_overwrite: bool, registry: str, number_of_agents: Optional[int] = None, password: Optional[str] = None, open_aea_dir: Optional[Path] = None, packages_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, log_level: str = INFO) -> None
 ```
 
 Build deployment setup for n agents.
@@ -138,12 +133,10 @@ Run deployment.
     help="Service contract address for custom RPC URL.",
 )
 @click.option("--n", type=int, help="Number of agents to include in the build.")
-@click.option(
-    "--skip-images", is_flag=True, default=False, help="Skip building images."
-)
+@click.option("--skip-image", is_flag=True, default=False, help="Skip building images.")
 @chain_selection_flag()
 @click.pass_context
-def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, chain_type: str, rpc_url: Optional[str], service_contract_address: Optional[str], skip_images: bool, n: Optional[int]) -> None
+def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, chain_type: str, rpc_url: Optional[str], service_contract_address: Optional[str], skip_image: bool, n: Optional[int]) -> None
 ```
 
 Run service deployment.
@@ -163,7 +156,7 @@ Update the multisig address on the service config.
 #### build`_`deployment
 
 ```python
-def build_deployment(keys_file: Path, build_dir: Path, deployment_type: str, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, password: Optional[str] = None, version: Optional[str] = None, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, agent_instances: Optional[List[str]] = None, log_level: str = INFO) -> None
+def build_deployment(keys_file: Path, build_dir: Path, deployment_type: str, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, password: Optional[str] = None, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, agent_instances: Optional[List[str]] = None, log_level: str = INFO) -> None
 ```
 
 Build deployment.

@@ -19,30 +19,16 @@
 
 """Image building."""
 
-import os
-import signal
-import subprocess  # nosec
-from pathlib import Path
-from typing import IO, cast
 
+import json
+
+from aea.cli.utils.config import get_default_author_from_cli_config
 from aea.configurations.utils import PublicId
+from docker import from_env
 
-
-def check_kubeconfig_vars() -> bool:
-    """Check if kubeconfig variables are set properly."""
-
-    env_vars = (
-        "KUBERNETES_SERVICE_PORT_HTTPS",
-        "KUBERNETES_SERVICE_PORT",
-        "KUBERNETES_PORT_443_TCP",
-        "KUBERNETES_PORT_443_TCP_PROTO",
-        "KUBERNETES_PORT_443_TCP_ADDR",
-        "KUBERNETES_SERVICE_HOST",
-        "KUBERNETES_PORT",
-        "KUBERNETES_PORT_443_TCP_PORT",
-    )
-
-    return any(map(os.environ.get, env_vars))
+from autonomy.constants import AUTONOMY_IMAGE_NAME, AUTONOMY_IMAGE_VERSION, OAR_IMAGE
+from autonomy.data import DATA_DIR
+from autonomy.deploy.constants import DOCKERFILES
 
 
 class ImageProfiles:  # pylint: disable=too-few-public-methods
@@ -54,61 +40,27 @@ class ImageProfiles:  # pylint: disable=too-few-public-methods
     ALL = (CLUSTER, DEVELOPMENT, PRODUCTION)
 
 
-def build_image(  # pylint: disable=too-many-arguments
-    agent: PublicId,
-    profile: str,
-    skaffold_dir: Path,
-    version: str,
-    push: bool = False,
-    build_concurrency: int = 0,
-) -> None:
+def build_image(agent: PublicId, pull: bool = False) -> None:
     """Command to build images from for skaffold deployment."""
 
-    env = os.environ.copy()
-    env["AEA_AGENT"] = str(agent)
+    docker_client = from_env()
 
-    if profile == ImageProfiles.DEVELOPMENT:
-        env["VERSION"] = f"{agent.name}-dev"
-    else:
-        env["VERSION"] = f"{agent.name}-{version}"
+    tag = OAR_IMAGE.format(agent=agent.name, version=agent.hash)
+    path = str(DATA_DIR / DOCKERFILES / "agent")
 
-    kubeconfig = env.get("KUBECONFIG")
-    if profile == ImageProfiles.CLUSTER:
-        if kubeconfig is None and not check_kubeconfig_vars():
-            raise ValueError("Please setup kubernetes environment variables.")
-    else:
-        if kubeconfig is not None:  # pragma: nocover
-            del env["KUBECONFIG"]
-    try:
-        process = subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
-            [
-                "skaffold",
-                "build",
-                f"--build-concurrency={build_concurrency}",
-                f"--push={str(push).lower()}",
-                "-p",
-                profile,
-            ],
-            preexec_fn=os.setsid,
-            env=env,
-            stdout=subprocess.PIPE,
-            cwd=str(skaffold_dir),
-        )
+    stream = docker_client.api.build(
+        path=path,
+        tag=tag,
+        buildargs={
+            "AUTONOMY_IMAGE_NAME": AUTONOMY_IMAGE_NAME,
+            "AUTONOMY_IMAGE_VERSION": AUTONOMY_IMAGE_VERSION,
+            "AEA_AGENT": str(agent),
+            "AUTHOR": get_default_author_from_cli_config(),
+        },
+        pull=pull,
+    )
 
-        for line in iter(cast(IO[bytes], process.stdout).readline, ""):
-            if line == b"":
-                break
-            print(f"[Skaffold] {line.decode().strip()}")
-
-    except KeyboardInterrupt:  # pragma: nocover
-        cast(IO[bytes], process.stdout).close()
-        process.send_signal(signal.SIGTERM)
-
-    process.wait(timeout=30)
-    poll = process.poll()
-    if poll is None:  # pragma: nocover
-        process.terminate()
-        process.wait(2)
-
-    if process.returncode != 0:  # pragma: nocover
-        print("Image build failed.")
+    for stream_obj in stream:
+        stream_data = json.loads(stream_obj.decode())
+        if "stream" in stream_data:
+            print("[docker]" + stream_data["stream"], end="")
