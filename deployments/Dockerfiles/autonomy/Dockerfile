@@ -2,9 +2,6 @@ ARG AEA_VERSION=latest
 
 FROM valory/open-aea-user:${AEA_VERSION}
 
-ARG AUTHOR=default_author
-ARG AEA_AGENT
-
 COPY openssl.cnf /etc/ssl
 COPY requirements.txt /home/ubuntu
 
@@ -24,6 +21,5 @@ RUN python -m pip install --upgrade pip
 WORKDIR /home/ubuntu
 
 RUN pip3 install -r requirements.txt
-RUN aea init --reset --remote --ipfs --author ${AUTHOR}
 
 ENTRYPOINT [ "/bin/bash" ]

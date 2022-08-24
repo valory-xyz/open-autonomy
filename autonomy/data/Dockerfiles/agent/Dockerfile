@@ -4,12 +4,15 @@ ARG AUTONOMY_IMAGE_NAME="valory/open-autonomy"
 FROM ${AUTONOMY_IMAGE_NAME}:${AUTONOMY_IMAGE_VERSION}
 
 ARG AEA_AGENT
+ARG AUTHOR
 
 COPY start.sh /home/ubuntu
 COPY install.sh /home/ubuntu
 
 VOLUME /home/ubuntu/logs
 WORKDIR /home/ubuntu
+
+RUN aea init --reset --remote --ipfs --author ${AUTHOR}
 
 RUN echo $AEA_AGENT
 RUN AEA_AGENT=${AEA_AGENT} bash install.sh

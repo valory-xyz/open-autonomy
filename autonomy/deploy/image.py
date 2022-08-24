@@ -22,6 +22,7 @@
 
 import json
 
+from aea.cli.utils.config import get_default_author_from_cli_config
 from aea.configurations.utils import PublicId
 from docker import from_env
 
@@ -54,6 +55,7 @@ def build_image(agent: PublicId) -> None:
             "AUTONOMY_IMAGE_NAME": AUTONOMY_IMAGE_NAME,
             "AUTONOMY_IMAGE_VERSION": AUTONOMY_IMAGE_VERSION,
             "AEA_AGENT": str(agent),
+            "AUTHOR": get_default_author_from_cli_config(),
         },
     )
 
