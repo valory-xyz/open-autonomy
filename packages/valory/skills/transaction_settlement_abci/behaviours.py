@@ -20,6 +20,7 @@
 """This module contains the behaviours for the 'abci' skill."""
 import binascii
 import pprint
+import re
 from abc import ABC
 from collections import deque
 from typing import (
@@ -89,6 +90,37 @@ TxDataType = Dict[str, Union[VerificationStatus, Deque[str], int, Set[str], str]
 
 
 drand_check = VerifyDrand()
+
+REVERT_CODE_RE = r"(\sGS\d{3}\s)"
+REVERT_CODES_TO_REASONS: Dict[str, str] = {
+    "GS000": "Could not finish initialization",
+    "GS001": "Threshold needs to be defined",
+    "GS010": "Not enough gas to execute Safe transaction",
+    "GS011": "Could not pay gas costs with ether",
+    "GS012": "Could not pay gas costs with token",
+    "GS013": "Safe transaction failed when gasPrice and safeTxGas were 0",
+    "GS020": "Signatures data too short",
+    "GS021": "Invalid contract signature location: inside static part",
+    "GS022": "Invalid contract signature location: length not present",
+    "GS023": "Invalid contract signature location: data not complete",
+    "GS024": "Invalid contract signature provided",
+    "GS025": "Hash has not been approved",
+    "GS026": "Invalid owner provided",
+    "GS030": "Only owners can approve a hash",
+    "GS031": "Method can only be called from this contract",
+    "GS100": "Modules have already been initialized",
+    "GS101": "Invalid module address provided",
+    "GS102": "Module has already been added",
+    "GS103": "Invalid prevModule, module pair provided",
+    "GS104": "Method can only be called from an enabled module",
+    "GS200": "Owners have already been setup",
+    "GS201": "Threshold cannot exceed owner count",
+    "GS202": "Threshold needs to be greater than 0",
+    "GS203": "Invalid owner address provided",
+    "GS204": "Address is already an owner",
+    "GS205": "Invalid prevOwner, owner pair provided",
+    "GS300": "Guard does not implement IERC165",
+}
 
 
 class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
@@ -265,6 +297,26 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
     def _safe_nonce_reused(revert_reason: str) -> bool:
         """Check for GS026."""
         return "GS026" in revert_reason
+
+    @staticmethod
+    def _parse_revert_reason(message: ContractApiMessage) -> str:
+        """Parse a revert reason and log a relevant message."""
+        default_message = f"get_raw_safe_transaction unsuccessful! Received: {message}"
+
+        revert_reason = message.message
+        if not revert_reason:
+            return default_message
+
+        revert_match = re.findall(REVERT_CODE_RE, revert_reason)
+        if revert_match is None or len(revert_match) != 1:
+            return default_message
+
+        revert_code = revert_match.pop()
+        revert_explanation = REVERT_CODES_TO_REASONS.get(revert_code, None)
+        if revert_explanation is None:
+            return default_message
+
+        return f"Received a {revert_code} revert error: {revert_explanation}."
 
 
 class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
