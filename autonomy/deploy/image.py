@@ -40,7 +40,7 @@ class ImageProfiles:  # pylint: disable=too-few-public-methods
     ALL = (CLUSTER, DEVELOPMENT, PRODUCTION)
 
 
-def build_image(agent: PublicId) -> None:
+def build_image(agent: PublicId, pull: bool = False) -> None:
     """Command to build images from for skaffold deployment."""
 
     docker_client = from_env()
@@ -57,6 +57,7 @@ def build_image(agent: PublicId) -> None:
             "AEA_AGENT": str(agent),
             "AUTHOR": get_default_author_from_cli_config(),
         },
+        pull=pull,
     )
 
     for stream_obj in stream:

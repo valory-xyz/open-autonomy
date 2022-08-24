@@ -42,9 +42,9 @@ from autonomy.deploy.image import build_image as _build_image
     type=click.Path(dir_okay=True),
     help="Path to build dir.",
 )
+@click.option("--pull", is_flag=True, help="Pull latest dependencies.", default=False)
 def build_image(
-    agent: Optional[PublicId],
-    service_dir: Optional[Path],
+    agent: Optional[PublicId], service_dir: Optional[Path], pull: bool = False
 ) -> None:
     """Build image using skaffold."""
 
@@ -56,6 +56,6 @@ def build_image(
 
     try:
         click.echo(f"Building image with agent: {agent}\n")
-        _build_image(agent=agent)
+        _build_image(agent=agent, pull=pull)
     except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e

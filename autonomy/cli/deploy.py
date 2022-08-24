@@ -211,11 +211,7 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
     help="Service contract address for custom RPC URL.",
 )
 @click.option("--n", type=int, help="Number of agents to include in the build.")
-@click.option(
-    "--skip-images", is_flag=True, default=False, help="Skip building images."
-)
-@chain_selection_flag()
-@click.pass_context
+@click.option("--skip-image", is_flag=True, default=False, help="Skip building images.")
 def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-locals
     click_context: click.Context,
     token_id: int,
@@ -223,7 +219,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     chain_type: str,
     rpc_url: Optional[str],
     service_contract_address: Optional[str],
-    skip_images: bool,
+    skip_image: bool,
     n: Optional[int],
 ) -> None:
     """Run service deployment."""
@@ -248,7 +244,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     service = load_service_config(service_path)
 
     with cd(service_path):
-        if not skip_images:
+        if not skip_image:
             click.echo("Building required images.")
             build_image(agent=service.agent)
 
