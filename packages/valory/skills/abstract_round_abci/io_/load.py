@@ -27,7 +27,7 @@ from typing import Callable, Dict, Optional
 import joblib
 import pandas as pd
 
-from packages.valory.skills.abstract_round_abci.io.store import (
+from packages.valory.skills.abstract_round_abci.io_.store import (
     CustomObjectType,
     NativelySupportedSingleObjectType,
     SupportedFiletype,

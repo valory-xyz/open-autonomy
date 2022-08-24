@@ -1,10 +1,10 @@
-<a id="packages.valory.skills.abstract_round_abci.io.store"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store"></a>
 
-# packages.valory.skills.abstract`_`round`_`abci.io.store
+# packages.valory.skills.abstract`_`round`_`abci.io`_`.store
 
 This module contains all the storing operations of the behaviours.
 
-<a id="packages.valory.skills.abstract_round_abci.io.store.SupportedFiletype"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.SupportedFiletype"></a>
 
 ## SupportedFiletype Objects
 
@@ -14,7 +14,7 @@ class SupportedFiletype(Enum)
 
 Enum for the supported filetypes of the IPFS interacting methods.
 
-<a id="packages.valory.skills.abstract_round_abci.io.store.AbstractStorer"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.AbstractStorer"></a>
 
 ## AbstractStorer Objects
 
@@ -24,7 +24,7 @@ class AbstractStorer(ABC)
 
 An abstract `Storer` class.
 
-<a id="packages.valory.skills.abstract_round_abci.io.store.AbstractStorer.__init__"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.AbstractStorer.__init__"></a>
 
 #### `__`init`__`
 
@@ -34,7 +34,7 @@ def __init__(path: str)
 
 Initialize an abstract storer.
 
-<a id="packages.valory.skills.abstract_round_abci.io.store.AbstractStorer.store_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.AbstractStorer.store_single_file"></a>
 
 #### store`_`single`_`file
 
@@ -45,7 +45,7 @@ def store_single_file(filename: str, obj: SupportedSingleObjectType, **kwargs: A
 
 Store a single file.
 
-<a id="packages.valory.skills.abstract_round_abci.io.store.AbstractStorer.store"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.AbstractStorer.store"></a>
 
 #### store
 
@@ -55,7 +55,7 @@ def store(obj: SupportedObjectType, multiple: bool, **kwargs: Any) -> None
 
 Store one or multiple files.
 
-<a id="packages.valory.skills.abstract_round_abci.io.store.JSONStorer"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.JSONStorer"></a>
 
 ## JSONStorer Objects
 
@@ -65,7 +65,7 @@ class JSONStorer(AbstractStorer)
 
 A JSON file storer.
 
-<a id="packages.valory.skills.abstract_round_abci.io.store.JSONStorer.store_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.JSONStorer.store_single_file"></a>
 
 #### store`_`single`_`file
 
@@ -75,7 +75,7 @@ def store_single_file(filename: str, obj: NativelySupportedSingleObjectType, **k
 
 Store a JSON.
 
-<a id="packages.valory.skills.abstract_round_abci.io.store.CSVStorer"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.CSVStorer"></a>
 
 ## CSVStorer Objects
 
@@ -85,7 +85,7 @@ class CSVStorer(AbstractStorer)
 
 A CSV file storer.
 
-<a id="packages.valory.skills.abstract_round_abci.io.store.CSVStorer.store_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.CSVStorer.store_single_file"></a>
 
 #### store`_`single`_`file
 
@@ -95,7 +95,7 @@ def store_single_file(filename: str, obj: NativelySupportedSingleObjectType, **k
 
 Store a pandas dataframe.
 
-<a id="packages.valory.skills.abstract_round_abci.io.store.ForecasterStorer"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.ForecasterStorer"></a>
 
 ## ForecasterStorer Objects
 
@@ -105,7 +105,7 @@ class ForecasterStorer(AbstractStorer)
 
 A pmdarima Pipeline storer.
 
-<a id="packages.valory.skills.abstract_round_abci.io.store.ForecasterStorer.store_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.ForecasterStorer.store_single_file"></a>
 
 #### store`_`single`_`file
 
@@ -115,7 +115,7 @@ def store_single_file(filename: str, obj: NativelySupportedSingleObjectType, **k
 
 Store a pmdarima Pipeline.
 
-<a id="packages.valory.skills.abstract_round_abci.io.store.Storer"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.Storer"></a>
 
 ## Storer Objects
 
@@ -125,7 +125,7 @@ class Storer(AbstractStorer)
 
 Class which stores files.
 
-<a id="packages.valory.skills.abstract_round_abci.io.store.Storer.__init__"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.Storer.__init__"></a>
 
 #### `__`init`__`
 
@@ -135,7 +135,7 @@ def __init__(filetype: Optional[SupportedFiletype], custom_storer: Optional[Cust
 
 Initialize a `Storer`.
 
-<a id="packages.valory.skills.abstract_round_abci.io.store.Storer.store_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.Storer.store_single_file"></a>
 
 #### store`_`single`_`file
 

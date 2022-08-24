@@ -1,10 +1,10 @@
-<a id="packages.valory.skills.abstract_round_abci.io.ipfs"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.ipfs"></a>
 
-# packages.valory.skills.abstract`_`round`_`abci.io.ipfs
+# packages.valory.skills.abstract`_`round`_`abci.io`_`.ipfs
 
 This module contains all the interaction operations of the behaviours with IPFS.
 
-<a id="packages.valory.skills.abstract_round_abci.io.ipfs.IPFSInteractionError"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.ipfs.IPFSInteractionError"></a>
 
 ## IPFSInteractionError Objects
 
@@ -14,7 +14,7 @@ class IPFSInteractionError(Exception)
 
 A custom exception for IPFS interaction errors.
 
-<a id="packages.valory.skills.abstract_round_abci.io.ipfs.IPFSInteract"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.ipfs.IPFSInteract"></a>
 
 ## IPFSInteract Objects
 
@@ -24,7 +24,7 @@ class IPFSInteract()
 
 Class for interacting with IPFS.
 
-<a id="packages.valory.skills.abstract_round_abci.io.ipfs.IPFSInteract.__init__"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.ipfs.IPFSInteract.__init__"></a>
 
 #### `__`init`__`
 
@@ -38,7 +38,7 @@ Initialize an `IPFSInteract`.
 
 - `domain`: the IPFS domain name.
 
-<a id="packages.valory.skills.abstract_round_abci.io.ipfs.IPFSInteract.store_and_send"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.ipfs.IPFSInteract.store_and_send"></a>
 
 #### store`_`and`_`send
 
@@ -48,7 +48,7 @@ def store_and_send(filepath: str, obj: SupportedObjectType, multiple: bool, file
 
 Temporarily store a file locally, in order to send it to IPFS and retrieve a hash, and then delete it.
 
-<a id="packages.valory.skills.abstract_round_abci.io.ipfs.IPFSInteract.get_and_read"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.ipfs.IPFSInteract.get_and_read"></a>
 
 #### get`_`and`_`read
 

@@ -25,8 +25,8 @@ from typing import Dict, Union, cast
 import pandas as pd
 import pytest
 
-from packages.valory.skills.abstract_round_abci.io.ipfs import IPFSInteract
-from packages.valory.skills.abstract_round_abci.io.store import (
+from packages.valory.skills.abstract_round_abci.io_.ipfs import IPFSInteract
+from packages.valory.skills.abstract_round_abci.io_.store import (
     SupportedFiletype,
     SupportedMultipleObjectsType,
     SupportedSingleObjectType,

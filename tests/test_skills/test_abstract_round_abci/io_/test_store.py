@@ -26,7 +26,7 @@ from typing import Dict, Optional, cast
 import pandas as pd
 import pytest
 
-from packages.valory.skills.abstract_round_abci.io.store import (
+from packages.valory.skills.abstract_round_abci.io_.store import (
     CSVStorer,
     CustomStorerType,
     ForecasterStorer,

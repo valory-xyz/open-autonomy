@@ -1,10 +1,10 @@
-<a id="packages.valory.skills.abstract_round_abci.io.paths"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.paths"></a>
 
-# packages.valory.skills.abstract`_`round`_`abci.io.paths
+# packages.valory.skills.abstract`_`round`_`abci.io`_`.paths
 
 This module contains all the path related operations of the behaviours.
 
-<a id="packages.valory.skills.abstract_round_abci.io.paths.create_pathdirs"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.paths.create_pathdirs"></a>
 
 #### create`_`pathdirs
 

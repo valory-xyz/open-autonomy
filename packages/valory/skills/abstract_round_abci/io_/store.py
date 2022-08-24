@@ -30,7 +30,7 @@ import joblib
 import pandas as pd
 from pmdarima.pipeline import Pipeline
 
-from packages.valory.skills.abstract_round_abci.io.paths import create_pathdirs
+from packages.valory.skills.abstract_round_abci.io_.paths import create_pathdirs
 
 
 StoredJSONType = Union[dict, list]

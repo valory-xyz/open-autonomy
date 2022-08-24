@@ -23,7 +23,7 @@ from typing import List, Union
 import pandas as pd
 import pytest
 
-from packages.valory.skills.apy_estimation_abci.tools.io import TRANSFORMED_HIST_DTYPES
+from packages.valory.skills.apy_estimation_abci.tools.io_ import TRANSFORMED_HIST_DTYPES
 
 
 @pytest.fixture

@@ -25,7 +25,7 @@ from typing import Dict, Optional, cast
 import pandas as pd
 import pytest
 
-from packages.valory.skills.abstract_round_abci.io.load import (
+from packages.valory.skills.abstract_round_abci.io_.load import (
     CSVLoader,
     CustomLoaderType,
     ForecasterLoader,
@@ -33,7 +33,7 @@ from packages.valory.skills.abstract_round_abci.io.load import (
     Loader,
     SupportedLoaderType,
 )
-from packages.valory.skills.abstract_round_abci.io.store import (
+from packages.valory.skills.abstract_round_abci.io_.store import (
     SupportedFiletype,
     SupportedMultipleObjectsType,
 )

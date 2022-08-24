@@ -79,12 +79,12 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     LedgerApiDialogues,
     SigningDialogues,
 )
-from packages.valory.skills.abstract_round_abci.io.ipfs import (
+from packages.valory.skills.abstract_round_abci.io_.ipfs import (
     IPFSInteract,
     IPFSInteractionError,
 )
-from packages.valory.skills.abstract_round_abci.io.load import CustomLoaderType
-from packages.valory.skills.abstract_round_abci.io.store import (
+from packages.valory.skills.abstract_round_abci.io_.load import CustomLoaderType
+from packages.valory.skills.abstract_round_abci.io_.store import (
     CustomStorerType,
     SupportedFiletype,
     SupportedObjectType,

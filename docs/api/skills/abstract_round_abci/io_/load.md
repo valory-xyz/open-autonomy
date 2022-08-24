@@ -1,10 +1,10 @@
-<a id="packages.valory.skills.abstract_round_abci.io.load"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load"></a>
 
-# packages.valory.skills.abstract`_`round`_`abci.io.load
+# packages.valory.skills.abstract`_`round`_`abci.io`_`.load
 
 This module contains all the loading operations of the behaviours.
 
-<a id="packages.valory.skills.abstract_round_abci.io.load.AbstractLoader"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load.AbstractLoader"></a>
 
 ## AbstractLoader Objects
 
@@ -14,7 +14,7 @@ class AbstractLoader(ABC)
 
 An abstract `Loader` class.
 
-<a id="packages.valory.skills.abstract_round_abci.io.load.AbstractLoader.load_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load.AbstractLoader.load_single_file"></a>
 
 #### load`_`single`_`file
 
@@ -25,7 +25,7 @@ def load_single_file(path: str) -> SupportedSingleObjectType
 
 Load a single file.
 
-<a id="packages.valory.skills.abstract_round_abci.io.load.AbstractLoader.load"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load.AbstractLoader.load"></a>
 
 #### load
 
@@ -44,7 +44,7 @@ Load one or more files.
 
 the loaded file.
 
-<a id="packages.valory.skills.abstract_round_abci.io.load.CSVLoader"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load.CSVLoader"></a>
 
 ## CSVLoader Objects
 
@@ -54,7 +54,7 @@ class CSVLoader(AbstractLoader)
 
 A csv files Loader.
 
-<a id="packages.valory.skills.abstract_round_abci.io.load.CSVLoader.load_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load.CSVLoader.load_single_file"></a>
 
 #### load`_`single`_`file
 
@@ -72,7 +72,7 @@ Read a pandas dataframe from a csv file.
 
 the pandas dataframe.
 
-<a id="packages.valory.skills.abstract_round_abci.io.load.ForecasterLoader"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load.ForecasterLoader"></a>
 
 ## ForecasterLoader Objects
 
@@ -82,7 +82,7 @@ class ForecasterLoader(AbstractLoader)
 
 A `pmdarima` forecaster loader.
 
-<a id="packages.valory.skills.abstract_round_abci.io.load.ForecasterLoader.load_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load.ForecasterLoader.load_single_file"></a>
 
 #### load`_`single`_`file
 
@@ -100,7 +100,7 @@ Load a `pmdarima` forecaster.
 
 a `pmdarima.pipeline.Pipeline`.
 
-<a id="packages.valory.skills.abstract_round_abci.io.load.JSONLoader"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load.JSONLoader"></a>
 
 ## JSONLoader Objects
 
@@ -110,7 +110,7 @@ class JSONLoader(AbstractLoader)
 
 A JSON file loader.
 
-<a id="packages.valory.skills.abstract_round_abci.io.load.JSONLoader.load_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load.JSONLoader.load_single_file"></a>
 
 #### load`_`single`_`file
 
@@ -128,7 +128,7 @@ Read a json file.
 
 the deserialized json file's content.
 
-<a id="packages.valory.skills.abstract_round_abci.io.load.Loader"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load.Loader"></a>
 
 ## Loader Objects
 
@@ -138,7 +138,7 @@ class Loader(AbstractLoader)
 
 Class which loads files.
 
-<a id="packages.valory.skills.abstract_round_abci.io.load.Loader.__init__"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load.Loader.__init__"></a>
 
 #### `__`init`__`
 
@@ -148,7 +148,7 @@ def __init__(filetype: Optional[SupportedFiletype], custom_loader: CustomLoaderT
 
 Initialize a `Loader`.
 
-<a id="packages.valory.skills.abstract_round_abci.io.load.Loader.load_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load.Loader.load_single_file"></a>
 
 #### load`_`single`_`file
 

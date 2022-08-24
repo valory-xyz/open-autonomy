@@ -27,13 +27,16 @@ from typing import Any, Optional
 from aea_cli_ipfs.ipfs_utils import DownloadError, IPFSTool, NodeError
 from ipfshttpclient.exceptions import ErrorResponse
 
-from packages.valory.skills.abstract_round_abci.io.load import (
+from packages.valory.skills.abstract_round_abci.io_.load import (
     CustomLoaderType,
     Loader,
     SupportedFiletype,
     SupportedObjectType,
 )
-from packages.valory.skills.abstract_round_abci.io.store import CustomStorerType, Storer
+from packages.valory.skills.abstract_round_abci.io_.store import (
+    CustomStorerType,
+    Storer,
+)
 
 
 class IPFSInteractionError(Exception):
