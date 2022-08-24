@@ -83,9 +83,10 @@ from packages.valory.skills.abstract_round_abci.io_.ipfs import (
     IPFSInteract,
     IPFSInteractionError,
 )
-from packages.valory.skills.abstract_round_abci.io_.load import CustomLoaderType
+from packages.valory.skills.abstract_round_abci.io_.load import CustomLoaderType, Loader
 from packages.valory.skills.abstract_round_abci.io_.store import (
     CustomStorerType,
+    Storer,
     SupportedFiletype,
     SupportedObjectType,
 )
@@ -372,9 +373,11 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         # If `ipfs_domain_name` is not specified for the skill, then we get a `None` default.
         # Therefore, `IPFSBehaviour` will be disabled.
         domain = getattr(self.params, "ipfs_domain_name", None)  # type: ignore  # pylint: disable=E1101
+        loader_cls = kwargs.pop("loader_cls", Loader)
+        storer_cls = kwargs.pop("storer_cls", Storer)
         if domain is not None:  # pragma: nocover
             self.ipfs_enabled = True
-            self._ipfs_interact = IPFSInteract(domain)
+            self._ipfs_interact = IPFSInteract(domain, loader_cls, storer_cls)
 
     @_check_ipfs_enabled
     def send_to_ipfs(
