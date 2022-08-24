@@ -50,8 +50,10 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 from packages.valory.skills.abstract_round_abci.io_.load import SupportedFiletype
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
+from packages.valory.skills.apy_estimation_abci.io_.load import Loader
 from packages.valory.skills.apy_estimation_abci.io_.store import (
     ExtendedSupportedFiletype,
+    Storer,
 )
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     PoolIdToForecasterType,
@@ -136,6 +138,10 @@ NON_INDEXED_BLOCK_RE = (
 
 class APYEstimationBaseBehaviour(BaseBehaviour, ABC):
     """Base behaviour for the APY estimation skill."""
+
+    def __init__(self, **kwargs: Any):
+        """Initialize an APY base behaviour."""
+        super().__init__(**kwargs, loader_cls=Loader, storer_cls=Storer)
 
     @property
     def synchronized_data(self) -> SynchronizedData:
