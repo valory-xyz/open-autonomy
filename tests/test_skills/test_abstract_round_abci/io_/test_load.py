@@ -18,22 +18,21 @@
 # ------------------------------------------------------------------------------
 
 """Tests for the loading functionality of abstract round abci."""
+import json
 import os.path
 from pathlib import PosixPath
 from typing import Dict, Optional, cast
 
-import pandas as pd
 import pytest
 
-from packages.valory.skills.abstract_round_abci.io.load import (
-    CSVLoader,
+from packages.valory.skills.abstract_round_abci.io_.load import (
     CustomLoaderType,
-    ForecasterLoader,
     JSONLoader,
     Loader,
     SupportedLoaderType,
 )
-from packages.valory.skills.abstract_round_abci.io.store import (
+from packages.valory.skills.abstract_round_abci.io_.store import (
+    StoredJSONType,
     SupportedFiletype,
     SupportedMultipleObjectsType,
 )
@@ -50,19 +49,11 @@ class TestLoader:
         "filetype, custom_loader, expected_loader",
         (
             (None, None, None),
-            (SupportedFiletype.CSV, None, CSVLoader.load_single_file),
             (SupportedFiletype.JSON, None, JSONLoader.load_single_file),
-            (SupportedFiletype.PM_PIPELINE, None, ForecasterLoader.load_single_file),
-            (SupportedFiletype.CSV, __dummy_custom_loader, CSVLoader.load_single_file),
             (
                 SupportedFiletype.JSON,
                 __dummy_custom_loader,
                 JSONLoader.load_single_file,
-            ),
-            (
-                SupportedFiletype.PM_PIPELINE,
-                __dummy_custom_loader,
-                ForecasterLoader.load_single_file,
             ),
             (None, __dummy_custom_loader, __dummy_custom_loader),
         ),
@@ -95,11 +86,11 @@ class TestLoader:
     def test_load(
         multiple: bool,
         tmp_path: PosixPath,
-        dummy_obj: pd.DataFrame,
-        dummy_multiple_obj: Dict[str, pd.DataFrame],
+        dummy_obj: StoredJSONType,
+        dummy_multiple_obj: Dict[str, StoredJSONType],
     ) -> None:
         """Test `load`."""
-        loader = Loader(SupportedFiletype.CSV, None)
+        loader = Loader(SupportedFiletype.JSON, None)
 
         if multiple:
             # test with non-directory path
@@ -116,7 +107,8 @@ class TestLoader:
             # store dummy objects.
             for name, obj in dummy_multiple_obj.items():
                 path = os.path.join(dummy_folder_path, name)
-                obj.to_csv(path, index=False)
+                with open(path, "w") as outfile:
+                    json.dump(obj, outfile)
 
             # load with loader.
             loaded_objects = cast(
@@ -130,17 +122,18 @@ class TestLoader:
             ), "loaded objects and dummy objects filenames do not match."
 
             # iterate through the loaded objects and their filenames and the dummy objects and their filenames.
-            for actual_frame, expected_frame in zip(
+            for actual_json, expected_json in zip(
                 loaded_objects.values(), dummy_multiple_obj.values()
             ):
-                # assert loaded frame with expected.
-                pd.testing.assert_frame_equal(actual_frame, expected_frame)
+                # assert loaded json with expected.
+                assert actual_json == expected_json
 
         else:
             # store dummy object.
             path = os.path.join(tmp_path, "dummy_obj.csv")
-            dummy_obj.to_csv(path, index=False)
+            with open(path, "w") as outfile:
+                json.dump(dummy_obj, outfile)
             # load with loader.
             loaded_obj = loader.load(path, multiple)
-            # assert loaded frame with expected.
-            pd.testing.assert_frame_equal(loaded_obj, dummy_obj)
+            # assert loaded json with expected.
+            assert loaded_obj == dummy_obj
