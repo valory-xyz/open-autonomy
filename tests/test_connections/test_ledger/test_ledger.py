@@ -37,8 +37,6 @@ from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue, DialogueLabel, Dialogues
 from aea_ledger_ethereum import EthereumCrypto
 
-from autonomy.test_tools.configurations import ETHEREUM_KEY_DEPLOYER
-
 from packages.valory.connections.ledger.base import RequestDispatcher
 from packages.valory.connections.ledger.connection import LedgerConnection
 from packages.valory.protocols.ledger_api import LedgerApiMessage
@@ -48,6 +46,10 @@ from tests.conftest import make_ledger_api_connection
 
 
 SOME_SKILL_ID = "some/skill:0.1.0"
+NON_BLOCKING_TIME = 1
+BLOCKING_TIME = 100
+TOLERANCE = 1
+WAIT_TIME_AMONG_TASKS = 0.1
 
 
 def dummy_task_wrapper(waiting_time: float, result_message: LedgerApiMessage) -> Task:
@@ -69,13 +71,9 @@ class TestLedgerConnection:
     async def test_not_hanging(self) -> None:
         """Test that the connection does not hang and that the tasks cannot get blocked."""
         # create configurations for the test, re bocking and non-blocking tasks' waiting times
-        blocking_time = 100
-        wait_time_among_tasks = 0.1
-        non_blocking_time = 1
-        tolerance = 1
         assert (
-            non_blocking_time + tolerance + wait_time_among_tasks < blocking_time
-        ), "`non_blocking_time + tolerance + wait_time_among_tasks` should be less than the `blocking_time`."
+            NON_BLOCKING_TIME + TOLERANCE + WAIT_TIME_AMONG_TASKS < BLOCKING_TIME
+        ), "`NON_BLOCKING_TIME + TOLERANCE + WAIT_TIME_AMONG_TASKS` should be less than the `BLOCKING_TIME`."
 
         # setup a dummy ledger connection
         ledger_connection = LedgerConnection(
@@ -89,9 +87,9 @@ class TestLedgerConnection:
         # once a connection is ready, `receive()` is called by the multiplexer
         receive_task = asyncio.ensure_future(ledger_connection.receive())
 
-        # create a blocking task lasting `blocking_time` secs
+        # create a blocking task lasting `BLOCKING_TIME` secs
         blocking_task = dummy_task_wrapper(
-            blocking_time,
+            BLOCKING_TIME,
             LedgerApiMessage(
                 LedgerApiMessage.Performative.ERROR, _body={"data": b"blocking_task"}  # type: ignore
             ),
@@ -106,10 +104,10 @@ class TestLedgerConnection:
         ):
             await ledger_connection.send(blocking_dummy_envelope)
 
-        # create a non-blocking task lasting `non_blocking_time` secs, after `wait_time_among_tasks`
-        await asyncio.sleep(wait_time_among_tasks)
+        # create a non-blocking task lasting `NON_BLOCKING_TIME` secs, after `WAIT_TIME_AMONG_TASKS`
+        await asyncio.sleep(WAIT_TIME_AMONG_TASKS)
         normal_task = dummy_task_wrapper(
-            non_blocking_time,
+            NON_BLOCKING_TIME,
             LedgerApiMessage(LedgerApiMessage.Performative.ERROR, _body={"data": b"normal_task"}),  # type: ignore
         )
         normal_dummy_envelope = Envelope(
@@ -122,8 +120,8 @@ class TestLedgerConnection:
         ):
             await ledger_connection.send(normal_dummy_envelope)
 
-        # sleep for `non_blocking_time + tolerance`
-        await asyncio.sleep(non_blocking_time + tolerance)
+        # sleep for `NON_BLOCKING_TIME + TOLERANCE`
+        await asyncio.sleep(NON_BLOCKING_TIME + TOLERANCE)
 
         # the normal task should be finished
         assert normal_task.done(), "Normal task should be done at this point."
@@ -258,7 +256,10 @@ class DummyRequestDispatcher(RequestDispatcher):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the dispatcher."""
         super().__init__(*args, **kwargs)
-        self._ledger_api_dialogues = DummyLedgerApiDialogues(LedgerConnection.connection_id.__str__())
+        self.block = True
+        self._ledger_api_dialogues = DummyLedgerApiDialogues(
+            LedgerConnection.connection_id.__str__()
+        )
 
     @staticmethod
     def get_normal(
@@ -274,7 +275,7 @@ class DummyRequestDispatcher(RequestDispatcher):
         :param dialogue: the Ledger API dialogue
         :return: response Ledger API message
         """
-        time.sleep(1)
+        time.sleep(NON_BLOCKING_TIME)
 
         return cast(
             DummyLedgerApiMessage,
@@ -286,8 +287,8 @@ class DummyRequestDispatcher(RequestDispatcher):
             ),
         )
 
-    @staticmethod
     def get_blocking(
+        self,
         _api: LedgerApi,
         message: DummyLedgerApiMessage,
         dialogue: DummyLedgerApiDialogue,
@@ -300,7 +301,8 @@ class DummyRequestDispatcher(RequestDispatcher):
         :param dialogue: the Ledger API dialogue
         :return: response Ledger API message
         """
-        time.sleep(100)
+        while self.block:
+            time.sleep(0.05)
 
         return cast(
             DummyLedgerApiMessage,
@@ -392,6 +394,7 @@ class TestLedgerConnectionWithMultiplexer:
     @classmethod
     def teardown(cls) -> None:
         """Tear down the multiplexer."""
+        cls.ledger_connection._ledger_dispatcher.block = False
         if cls.multiplexer.is_connected:
             cls.multiplexer.disconnect()
         cls.running_loop.call_soon_threadsafe(cls.running_loop.stop)
@@ -433,15 +436,12 @@ class TestLedgerConnectionWithMultiplexer:
     async def test_not_hanging_with_multiplexer(self) -> None:
         """Test that the connection does not hang and that the tasks cannot get blocked, using the multiplexer."""
         # create configurations for the test, re bocking and non-blocking tasks' waiting times
-        blocking_time = 100
-        wait_time_among_tasks = 0.1
-        non_blocking_time = 1
-        tolerance = 1
         assert (
-            non_blocking_time + tolerance + wait_time_among_tasks < blocking_time
-        ), "`non_blocking_time + tolerance + wait_time_among_tasks` should be less than the `blocking_time`."
+            NON_BLOCKING_TIME + TOLERANCE + WAIT_TIME_AMONG_TASKS < BLOCKING_TIME
+        ), "`NON_BLOCKING_TIME + TOLERANCE + WAIT_TIME_AMONG_TASKS` should be less than the `blocking_time`."
+        assert self.ledger_connection._ledger_dispatcher.block
 
-        # create a blocking task lasting `blocking_time` secs
+        # create a blocking task lasting `BLOCKING_TIME` secs
         request, _ = self.create_ledger_dialogues()
         request._sender = SOME_SKILL_ID
         blocking_dummy_envelope = TestLedgerConnectionWithMultiplexer.create_envelope(
@@ -449,8 +449,8 @@ class TestLedgerConnectionWithMultiplexer:
         )
         self.multiplexer.put(blocking_dummy_envelope)
 
-        # create a non-blocking task lasting `non_blocking_time` secs, after `wait_time_among_tasks`
-        await asyncio.sleep(wait_time_among_tasks)
+        # create a non-blocking task lasting `NON_BLOCKING_TIME` secs, after `WAIT_TIME_AMONG_TASKS`
+        await asyncio.sleep(WAIT_TIME_AMONG_TASKS)
 
         request, _ = self.create_ledger_dialogues(blocking=False)
         request._sender = SOME_SKILL_ID
@@ -469,8 +469,8 @@ class TestLedgerConnectionWithMultiplexer:
             len(self.multiplexer.in_queue.queue) == 0
         ), "The multiplexer's `in_queue` should not contain anything."
 
-        # sleep for `non_blocking_time + tolerance`
-        await asyncio.sleep(non_blocking_time + tolerance)
+        # sleep for `NON_BLOCKING_TIME + TOLERANCE`
+        await asyncio.sleep(NON_BLOCKING_TIME + TOLERANCE)
 
         # `receive()` should be done,
         # and multiplexer's `_receiving_loop` should have put the `normal_dummy_envelope` in the `in_queue`
@@ -481,3 +481,4 @@ class TestLedgerConnectionWithMultiplexer:
         assert (
             message.data == b"normal_task"
         ), "Normal task should be the first item in the multiplexer's `in_queue`."
+        assert self.ledger_connection._ledger_dispatcher.block
