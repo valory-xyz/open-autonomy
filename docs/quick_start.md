@@ -40,11 +40,10 @@ Ensure that your machine satisfies the following requirements:
 
 1. Setup the environment. Remember to use the Python version you installed, here we use 3.10 as reference:
 ```bash
-export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
 touch Pipfile && pipenv --python 3.10 && pipenv shell
 ```
 
-2. Install {{open_autonomy}}:
+2. Install {{open_autonomy_api}}:
 ```bash
 pip install open-autonomy
 ```
@@ -97,12 +96,13 @@ In this case, we consider the [Hello World agent service](./hello_world_agent_se
         ```
 
 
-3. Run a local deployment for the [Hello World agent service](./hello_world_agent_service.md):
+3. Build the required image
     ```bash
     autonomy build-image
     ```
     The command above generates the required images to run the agent service.
-    
+
+4. Build a deployment setup for the [Hello World agent service](./hello_world_agent_service.md):
     ```bash
     autonomy deploy build keys.json
     ```
@@ -111,7 +111,7 @@ In this case, we consider the [Hello World agent service](./hello_world_agent_se
     !!!note
         It is also possible to generate a deployment using a local service definition. See the [CLI section](./autonomy.md) for the complete details.
 
-4. The build configuration will be located in `./abci_build`. Run the deployment using
+5. The build configuration will be located in `./abci_build`. Run the deployment using
     ```bash
     cd abci_build
     autonomy deploy run
@@ -119,7 +119,7 @@ In this case, we consider the [Hello World agent service](./hello_world_agent_se
 
     This will deploy a local [Hello World agent service](./hello_world_agent_service.md) with four agents connected to four Tendermint nodes.
 
-5. The logs of a single agent or node can then be inspected with, e.g.,
+6. The logs of a single agent or node can then be inspected with, e.g.,
     ```bash
     docker logs {container_id} --follow
     ```
