@@ -258,7 +258,7 @@ class DummyRequestDispatcher(RequestDispatcher):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the dispatcher."""
         super().__init__(*args, **kwargs)
-        self._ledger_api_dialogues = DummyLedgerApiDialogues(SOME_SKILL_ID)
+        self._ledger_api_dialogues = DummyLedgerApiDialogues(LedgerConnection.connection_id.__str__())
 
     @staticmethod
     def get_normal(
@@ -281,6 +281,7 @@ class DummyRequestDispatcher(RequestDispatcher):
             dialogue.reply(
                 performative=DummyLedgerApiMessage.Performative.NORMAL,  # type: ignore
                 target_message=message,
+                data=b"normal_task",
                 ledger_id=message.ledger_id,
             ),
         )
@@ -306,6 +307,7 @@ class DummyRequestDispatcher(RequestDispatcher):
             dialogue.reply(
                 performative=DummyLedgerApiMessage.Performative.BLOCKING,  # type: ignore
                 target_message=message,
+                data=b"blocking_task",
                 ledger_id=message.ledger_id,
             ),
         )
@@ -412,7 +414,6 @@ class TestLedgerConnectionWithMultiplexer:
                 counterparty=str(self.ledger_connection.connection_id),
                 performative=performative,  # type: ignore
                 ledger_id=EthereumCrypto.identifier,
-                address=EthereumCrypto(ETHEREUM_KEY_DEPLOYER).address,
                 callable=_callable,
                 args=(),
                 kwargs=Kwargs({}),
@@ -442,6 +443,7 @@ class TestLedgerConnectionWithMultiplexer:
 
         # create a blocking task lasting `blocking_time` secs
         request, _ = self.create_ledger_dialogues()
+        request._sender = SOME_SKILL_ID
         blocking_dummy_envelope = TestLedgerConnectionWithMultiplexer.create_envelope(
             request
         )
@@ -451,6 +453,7 @@ class TestLedgerConnectionWithMultiplexer:
         await asyncio.sleep(wait_time_among_tasks)
 
         request, _ = self.create_ledger_dialogues(blocking=False)
+        request._sender = SOME_SKILL_ID
         normal_dummy_envelope = TestLedgerConnectionWithMultiplexer.create_envelope(
             request
         )
@@ -471,7 +474,6 @@ class TestLedgerConnectionWithMultiplexer:
 
         # `receive()` should be done,
         # and multiplexer's `_receiving_loop` should have put the `normal_dummy_envelope` in the `in_queue`
-        self.multiplexer.disconnect()
         envelope = self.multiplexer.get(block=True)
         assert envelope is not None
         message = envelope.message
