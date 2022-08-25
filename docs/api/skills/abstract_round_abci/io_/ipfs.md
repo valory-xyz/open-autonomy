@@ -29,7 +29,7 @@ Class for interacting with IPFS.
 #### `__`init`__`
 
 ```python
-def __init__(domain: str)
+def __init__(domain: str, loader_cls: Type = Loader, storer_cls: Type = Storer)
 ```
 
 Initialize an `IPFSInteract`.
