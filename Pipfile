@@ -67,7 +67,7 @@ pmdarima = "==2.0.1"
 scikit-learn = "==1.0.2"
 statsmodels = "==0.13.2"
 # latest supported for Python 3.7
-numpy = "==1.21.6"
+numpy = "==1.22.0"
 optuna = "==2.10.1"
 joblib = "==1.1.0"
 Flask = "==2.0.2"
