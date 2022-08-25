@@ -394,7 +394,7 @@ class TestLedgerConnectionWithMultiplexer:
     @classmethod
     def teardown(cls) -> None:
         """Tear down the multiplexer."""
-        cls.ledger_connection._ledger_dispatcher.block = False
+        cls.ledger_connection._ledger_dispatcher.block = False  # type: ignore
         if cls.multiplexer.is_connected:
             cls.multiplexer.disconnect()
         cls.running_loop.call_soon_threadsafe(cls.running_loop.stop)
@@ -439,7 +439,7 @@ class TestLedgerConnectionWithMultiplexer:
         assert (
             NON_BLOCKING_TIME + TOLERANCE + WAIT_TIME_AMONG_TASKS < BLOCKING_TIME
         ), "`NON_BLOCKING_TIME + TOLERANCE + WAIT_TIME_AMONG_TASKS` should be less than the `blocking_time`."
-        assert self.ledger_connection._ledger_dispatcher.block
+        assert self.ledger_connection._ledger_dispatcher.block  # type: ignore
 
         # create a blocking task lasting `BLOCKING_TIME` secs
         request, _ = self.create_ledger_dialogues()
@@ -481,4 +481,4 @@ class TestLedgerConnectionWithMultiplexer:
         assert (
             message.data == b"normal_task"
         ), "Normal task should be the first item in the multiplexer's `in_queue`."
-        assert self.ledger_connection._ledger_dispatcher.block
+        assert self.ledger_connection._ledger_dispatcher.block  # type: ignore
