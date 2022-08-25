@@ -17,12 +17,9 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains all the storing operations of the behaviours."""
+"""This module contains all the storing operations of the APY behaviour."""
 
 
-import json
-import os.path
-from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Any, Callable, Dict, Optional, TypeVar, Union, cast
 
@@ -30,10 +27,13 @@ import joblib
 import pandas as pd
 from pmdarima.pipeline import Pipeline
 
-from packages.valory.skills.abstract_round_abci.io.paths import create_pathdirs
+from packages.valory.skills.abstract_round_abci.io_.store import (
+    AbstractStorer,
+    StoredJSONType,
+)
+from packages.valory.skills.abstract_round_abci.io_.store import Storer as BaseStorer
 
 
-StoredJSONType = Union[dict, list]
 NativelySupportedSingleObjectType = Union[StoredJSONType, Pipeline, pd.DataFrame]
 NativelySupportedMultipleObjectsType = Dict[str, NativelySupportedSingleObjectType]
 NativelySupportedObjectType = Union[
@@ -57,61 +57,11 @@ NativelySupportedDfStorerType = Callable[
 ]
 
 
-class SupportedFiletype(Enum):
+class ExtendedSupportedFiletype(Enum):
     """Enum for the supported filetypes of the IPFS interacting methods."""
 
-    JSON = auto()
     PM_PIPELINE = auto()
     CSV = auto()
-
-
-class AbstractStorer(ABC):
-    """An abstract `Storer` class."""
-
-    def __init__(self, path: str):
-        """Initialize an abstract storer."""
-        self._path = path
-        # Create the dirs of the path if it does not exist.
-        create_pathdirs(path)
-
-    @abstractmethod
-    def store_single_file(
-        self, filename: str, obj: SupportedSingleObjectType, **kwargs: Any
-    ) -> None:
-        """Store a single file."""
-
-    def store(self, obj: SupportedObjectType, multiple: bool, **kwargs: Any) -> None:
-        """Store one or multiple files."""
-        if multiple:
-            if not isinstance(obj, dict):  # pragma: no cover
-                raise ValueError(
-                    f"Cannot store multiple files of type {type(obj)}!"
-                    f"Should be a dictionary of filenames mapped to their objects."
-                )
-            for filename, single_obj in obj.items():
-                filename = os.path.join(self._path, filename)
-                self.store_single_file(filename, single_obj, **kwargs)
-        else:
-            self.store_single_file(self._path, obj, **kwargs)
-
-
-class JSONStorer(AbstractStorer):
-    """A JSON file storer."""
-
-    def store_single_file(
-        self, filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any
-    ) -> None:
-        """Store a JSON."""
-        if not any(isinstance(obj, type_) for type_ in (dict, list)):
-            raise ValueError(  # pragma: no cover
-                f"`JSONStorer` cannot be used with a {type(obj)}! Only with a {StoredJSONType}"
-            )
-
-        try:
-            with open(filename, "w", encoding="utf-8") as f:
-                json.dump(obj, f, ensure_ascii=False, indent=4)
-        except (TypeError, OSError) as e:  # pragma: no cover
-            raise IOError(str(e)) from e
 
 
 class CSVStorer(AbstractStorer):
@@ -152,47 +102,22 @@ class ForecasterStorer(AbstractStorer):
             raise IOError(str(e)) from e
 
 
-class Storer(AbstractStorer):
+class Storer(BaseStorer):
     """Class which stores files."""
 
     def __init__(
         self,
-        filetype: Optional[SupportedFiletype],
+        filetype: Optional[ExtendedSupportedFiletype],
         custom_storer: Optional[CustomStorerType],
         path: str,
     ):
         """Initialize a `Storer`."""
-        super().__init__(path)
-        self._filetype = filetype
-        self._custom_storer = custom_storer
-        self.__filetype_to_storer: Dict[SupportedFiletype, SupportedStorerType] = {
-            SupportedFiletype.JSON: cast(
-                NativelySupportedJSONStorerType, JSONStorer(path).store_single_file
-            ),
-            SupportedFiletype.PM_PIPELINE: cast(
-                NativelySupportedPipelineStorerType,
-                ForecasterStorer(path).store_single_file,
-            ),
-            SupportedFiletype.CSV: cast(
-                NativelySupportedDfStorerType, CSVStorer(path).store_single_file
-            ),
-        }
-
-    def store_single_file(
-        self, filename: str, obj: NativelySupportedObjectType, **kwargs: Any
-    ) -> None:
-        """Store a single file."""
-        storer = self._get_single_storer_from_filetype()
-        storer(filename, obj, **kwargs)  # type: ignore
-
-    def _get_single_storer_from_filetype(self) -> SupportedStorerType:
-        """Get a file storer from a given filetype or keep a custom storer."""
-        if self._filetype is not None:
-            return self.__filetype_to_storer[self._filetype]
-
-        if self._custom_storer is not None:  # pragma: no cover
-            return self._custom_storer
-
-        raise ValueError(  # pragma: no cover
-            "Please provide either a supported filetype or a custom storing function."
+        super().__init__(filetype, custom_storer, path)
+        self._filetype_to_storer: Dict[Enum, SupportedStorerType]
+        self._filetype_to_storer[ExtendedSupportedFiletype.PM_PIPELINE] = cast(
+            NativelySupportedPipelineStorerType,
+            ForecasterStorer(path).store_single_file,
+        )
+        self._filetype_to_storer[ExtendedSupportedFiletype.CSV] = cast(
+            NativelySupportedDfStorerType, CSVStorer(path).store_single_file
         )

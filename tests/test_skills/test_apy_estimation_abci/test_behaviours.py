@@ -59,7 +59,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviour,
     IPFSBehaviour,
 )
-from packages.valory.skills.abstract_round_abci.io.store import SupportedFiletype
+from packages.valory.skills.abstract_round_abci.io_.store import SupportedFiletype
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BenchmarkTool
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
@@ -84,6 +84,9 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     TrainBehaviour,
     TransformBehaviour,
     UpdateForecasterBehaviour,
+)
+from packages.valory.skills.apy_estimation_abci.io_.store import (
+    ExtendedSupportedFiletype,
 )
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     PoolIdToForecasterType,
@@ -1512,7 +1515,7 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
                     f"latest_observations_period_{self.synchronized_data.period_count - 1}.csv",
                 ),
                 "obj": transformed_historical_data.iloc[[0, 2]].reset_index(drop=True),
-                "filetype": SupportedFiletype.CSV,
+                "filetype": ExtendedSupportedFiletype.CSV,
             },
             "batch": {
                 "filepath": os.path.join(
@@ -1874,7 +1877,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
                     for i in range(3)
                 },
                 "multiple": True,
-                "filetype": SupportedFiletype.CSV,
+                "filetype": ExtendedSupportedFiletype.CSV,
             }
 
         # Send dummy data to IPFS and get the hashes.
@@ -2043,7 +2046,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
                     for i in range(3)
                 },
                 "multiple": True,
-                "filetype": SupportedFiletype.CSV,
+                "filetype": ExtendedSupportedFiletype.CSV,
             }
 
         # Send dummy data to IPFS and get the hashes.
@@ -2188,7 +2191,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
                 ),
                 "obj": {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
                 "multiple": True,
-                "filetype": SupportedFiletype.PM_PIPELINE,
+                "filetype": ExtendedSupportedFiletype.PM_PIPELINE,
             }
         }
         for split in ("train", "test"):
@@ -2203,7 +2206,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
                     for i in range(3)
                 },
                 "multiple": True,
-                "filetype": SupportedFiletype.CSV,
+                "filetype": ExtendedSupportedFiletype.CSV,
             }
 
         # Send dummy data to IPFS and get the hashes.
@@ -2344,7 +2347,7 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
                 ),
                 "obj": {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
                 "multiple": True,
-                "filetype": SupportedFiletype.PM_PIPELINE,
+                "filetype": ExtendedSupportedFiletype.PM_PIPELINE,
             },
             "observation": {
                 "filepath": os.path.join(
@@ -2352,7 +2355,7 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
                     f"latest_observations_period_{self.synchronized_data.period_count}.csv",
                 ),
                 "obj": prepare_batch_task_result,
-                "filetype": SupportedFiletype.CSV,
+                "filetype": ExtendedSupportedFiletype.CSV,
             },
         }
 
@@ -2493,7 +2496,7 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
                 ),
                 {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
                 multiple=True,
-                filetype=SupportedFiletype.PM_PIPELINE,
+                filetype=ExtendedSupportedFiletype.PM_PIPELINE,
             )
         else:
             hash_ = "non_existing"
@@ -2624,7 +2627,7 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
                     f"estimations_period_{self.synchronized_data.period_count}.csv",
                 ),
                 pd.DataFrame({"pool1": [1.435, 4.234], "pool2": [3.45, 23.64]}),
-                filetype=SupportedFiletype.CSV,
+                filetype=ExtendedSupportedFiletype.CSV,
             )
         else:
             hash_ = "non_existing"
