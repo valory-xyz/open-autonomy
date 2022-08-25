@@ -16,19 +16,22 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Constants"""
-import os
+
+"""Test if constants are valid."""
+
+from pathlib import Path
+
+from aea.configurations.data_types import PublicId
+from aea.helpers.io import from_csv
+
+from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
+
+from tests.conftest import ROOT_DIR
 
 
-DEFAULT_BUILD_FOLDER = "abci_build"
-DEFAULT_KEYS_FILE = "keys.json"
-DEFAULT_IMAGE_VERSION = "0.1.0"
-IMAGE_VERSION = os.environ.get("VERSION", DEFAULT_IMAGE_VERSION)
-TENDERMINT_IMAGE_VERSION = os.environ.get(
-    "TENDERMINT_IMAGE_VERSION", DEFAULT_IMAGE_VERSION
-)
-HARDHAT_IMAGE_VERSION = os.environ.get("HARDHAT_IMAGE_VERSION", DEFAULT_IMAGE_VERSION)
-OPEN_AEA_IMAGE_NAME = "valory/open-autonomy-open-aea"
-TENDERMINT_IMAGE_NAME = "valory/open-autonomy-tendermint"
-HARDHAT_IMAGE_NAME = "valory/open-autonomy-hardhat"
-ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:1.0.0:bafybeify5cyzxqczuoap2winsssau5wjiv4nhvla7ktmamhadsq5x2p6si"
+def test_abstract_round_abci_skill_hash() -> None:
+    """Test abstract_round_abci skill public_id constants"""
+
+    public_id = PublicId.from_str(ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH)
+    hashes = from_csv(Path(ROOT_DIR, "packages", "hashes.csv"))
+    assert public_id.hash == hashes["valory/skills/abstract_round_abci"]
