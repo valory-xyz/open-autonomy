@@ -66,6 +66,7 @@ code-checks:
 .PHONY: security
 security:
 	tox -p -e safety -e bandit
+	gitleaks detect --report-format json --report-path leak_report
 
 # generate abci docstrings
 # check copyright
@@ -75,9 +76,9 @@ security:
 .PHONY: generators
 generators:
 	tox -e abci-docstrings
-	tox -e check-copyright
+	tox -e fix-copyright
 	python -m autonomy.cli hash all
-	tox -e generate_api_documentation
+	tox -e generate-api-documentation
 	tox -e fix-doc-hashes
 
 .PHONY: common-checks-1

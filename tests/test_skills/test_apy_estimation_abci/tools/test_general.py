@@ -24,7 +24,7 @@ from pathlib import PosixPath
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
-from packages.valory.skills.abstract_round_abci.io.paths import create_pathdirs
+from packages.valory.skills.abstract_round_abci.io_.paths import create_pathdirs
 from packages.valory.skills.apy_estimation_abci.tools.general import (
     DEFAULT_UNIT,
     UNITS_TO_UNIX,

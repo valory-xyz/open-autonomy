@@ -40,7 +40,15 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         / "registration_abci"
         / "fsm_specification.yaml"
     )
-    cli_options: Tuple[str, ...] = ("scaffold", "fsm", "myskill", "--spec")
+    cli_options: Tuple[str, ...] = (
+        "--registry-path",
+        str(Path(ROOT_DIR) / Path(PACKAGES)),
+        "scaffold",
+        "fsm",
+        "myskill",
+        "--local",
+        "--spec",
+    )
     packages_dir: Path
 
     def test_run(

@@ -211,10 +211,11 @@ Do the scaffolding.
 
 ```python
 @scaffold.command()  # noqa
+@registry_flag()
 @click.argument("skill_name", type=str, required=True)
 @click.option("--spec", type=click.Path(exists=True, dir_okay=False), required=True)
 @pass_ctx
-def fsm(ctx: Context, skill_name: str, spec: str) -> None
+def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None
 ```
 
 Add an ABCI skill scaffolding from an FSM specification.

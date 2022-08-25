@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,31 +16,22 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Configurations for APY skill's tools tests."""
 
-from typing import List, Union
+"""Test if constants are valid."""
 
-import pandas as pd
-import pytest
+from pathlib import Path
 
-from packages.valory.skills.apy_estimation_abci.tools.io_ import TRANSFORMED_HIST_DTYPES
+from aea.configurations.data_types import PublicId
+from aea.helpers.io import from_csv
+
+from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
+
+from tests.conftest import ROOT_DIR
 
 
-@pytest.fixture
-def transformed_history() -> pd.DataFrame:
-    """Generate a test transformed history.
+def test_abstract_round_abci_skill_hash() -> None:
+    """Test abstract_round_abci skill public_id constants"""
 
-    :return: a test transformed history.
-    """
-    hist_li: List[Union[int, float, str]] = [10] * 21
-    hist_li.extend(["x"] * 4)
-    hist_li.insert(23, "X")
-    hist_li.append("X")
-    hist_li.append("x - x")
-    hist_li.append(10.0)
-    hist_li.append(100.0)
-    hist_li.extend([0.0] * 2)
-
-    transformed = pd.DataFrame([hist_li], [1], TRANSFORMED_HIST_DTYPES.keys())
-
-    return transformed
+    public_id = PublicId.from_str(ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH)
+    hashes = from_csv(Path(ROOT_DIR, "packages", "hashes.csv"))
+    assert public_id.hash == hashes["valory/skills/abstract_round_abci"]
