@@ -35,7 +35,7 @@ from packages.valory.skills.apy_estimation_abci.tools.etl import (
     revert_transform_hist_data,
     transform_hist_data,
 )
-from packages.valory.skills.apy_estimation_abci.tools.io import (
+from packages.valory.skills.apy_estimation_abci.tools.io_ import (
     TRANSFORMED_HIST_DTYPES,
     load_hist,
 )

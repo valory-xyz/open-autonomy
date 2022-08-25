@@ -22,18 +22,21 @@
 
 import os
 from shutil import rmtree
-from typing import Any, Optional
+from typing import Any, Optional, Type
 
 from aea_cli_ipfs.ipfs_utils import DownloadError, IPFSTool, NodeError
 from ipfshttpclient.exceptions import ErrorResponse
 
-from packages.valory.skills.abstract_round_abci.io.load import (
+from packages.valory.skills.abstract_round_abci.io_.load import (
     CustomLoaderType,
     Loader,
     SupportedFiletype,
     SupportedObjectType,
 )
-from packages.valory.skills.abstract_round_abci.io.store import CustomStorerType, Storer
+from packages.valory.skills.abstract_round_abci.io_.store import (
+    CustomStorerType,
+    Storer,
+)
 
 
 class IPFSInteractionError(Exception):
@@ -43,7 +46,9 @@ class IPFSInteractionError(Exception):
 class IPFSInteract:
     """Class for interacting with IPFS."""
 
-    def __init__(self, domain: str):
+    def __init__(
+        self, domain: str, loader_cls: Type = Loader, storer_cls: Type = Storer
+    ):
         """Initialize an `IPFSInteract`.
 
         :param domain: the IPFS domain name.
@@ -53,6 +58,9 @@ class IPFSInteract:
             self.__ipfs_tool = IPFSTool(domain)
             # Check IPFS node.
             self.__ipfs_tool.check_ipfs_node_running()
+            # Set loader/storer class.
+            self._loader_cls = loader_cls
+            self._storer_cls = storer_cls
         except (NodeError, Exception) as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
 
@@ -131,7 +139,7 @@ class IPFSInteract:
         if multiple:
             # Add trailing slash in order to treat path as a folder.
             filepath = os.path.join(filepath, "")
-        storer = Storer(filetype, custom_storer, filepath)
+        storer = self._storer_cls(filetype, custom_storer, filepath)
 
         try:
             storer.store(obj, multiple, **kwargs)
@@ -152,7 +160,7 @@ class IPFSInteract:
         """Get, store and read a file from IPFS."""
         target_dir = os.path.normpath(target_dir)
         filepath = self._download(hash_, target_dir, multiple, filename)
-        loader = Loader(filetype, custom_loader)
+        loader = self._loader_cls(filetype, custom_loader)
 
         try:
             return loader.load(filepath, multiple)
