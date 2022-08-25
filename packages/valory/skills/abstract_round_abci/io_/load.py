@@ -22,10 +22,7 @@
 import json
 import os.path
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, Optional
-
-import joblib
-import pandas as pd
+from typing import Any, Callable, Dict, Optional
 
 from packages.valory.skills.abstract_round_abci.io_.store import (
     CustomObjectType,
@@ -72,38 +69,6 @@ class AbstractLoader(ABC):
         return self.load_single_file(path)
 
 
-class CSVLoader(AbstractLoader):
-    """A csv files Loader."""
-
-    def load_single_file(self, path: str) -> NativelySupportedSingleObjectType:
-        """Read a pandas dataframe from a csv file.
-
-        :param path: the path of the csv.
-        :return: the pandas dataframe.
-        """
-        try:
-            return pd.read_csv(path)
-        except FileNotFoundError as e:  # pragma: no cover
-            raise IOError(f"File {path} was not found!") from e
-        except pd.errors.EmptyDataError as e:  # pragma: no cover
-            raise IOError("The provided csv was empty!") from e
-
-
-class ForecasterLoader(AbstractLoader):
-    """A `pmdarima` forecaster loader."""
-
-    def load_single_file(self, path: str) -> NativelySupportedSingleObjectType:
-        """Load a `pmdarima` forecaster.
-
-        :param path: path to store the forecaster.
-        :return: a `pmdarima.pipeline.Pipeline`.
-        """
-        try:
-            return joblib.load(path)
-        except (NotADirectoryError, FileNotFoundError) as e:  # pragma: no cover
-            raise IOError(f"Could not detect {path}!") from e
-
-
 class JSONLoader(AbstractLoader):
     """A JSON file loader."""
 
@@ -129,16 +94,12 @@ class JSONLoader(AbstractLoader):
 class Loader(AbstractLoader):
     """Class which loads files."""
 
-    def __init__(
-        self, filetype: Optional[SupportedFiletype], custom_loader: CustomLoaderType
-    ):
+    def __init__(self, filetype: Optional[Any], custom_loader: CustomLoaderType):
         """Initialize a `Loader`."""
         self._filetype = filetype
         self._custom_loader = custom_loader
         self.__filetype_to_loader: Dict[SupportedFiletype, SupportedLoaderType] = {
             SupportedFiletype.JSON: JSONLoader().load_single_file,
-            SupportedFiletype.PM_PIPELINE: ForecasterLoader().load_single_file,
-            SupportedFiletype.CSV: CSVLoader().load_single_file,
         }
 
     def load_single_file(self, path: str) -> SupportedSingleObjectType:

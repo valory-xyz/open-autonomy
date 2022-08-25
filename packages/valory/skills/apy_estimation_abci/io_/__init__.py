@@ -17,21 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Conftest module for io tests."""
-from typing import Dict
-
-import pytest
-
-from packages.valory.skills.abstract_round_abci.io_.store import StoredJSONType
-
-
-@pytest.fixture
-def dummy_obj() -> StoredJSONType:
-    """A dummy custom object to test the storing with."""
-    return {"test_col": ["test_val_1", "test_val_2"]}
-
-
-@pytest.fixture
-def dummy_multiple_obj(dummy_obj: StoredJSONType) -> Dict[str, StoredJSONType]:
-    """Many dummy custom objects to test the storing with."""
-    return {f"test_obj_{i}": dummy_obj for i in range(10)}
+"""This package contains all the input-output operations logic of the APY behaviour."""

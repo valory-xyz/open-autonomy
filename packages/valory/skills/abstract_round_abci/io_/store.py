@@ -26,15 +26,11 @@ from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Any, Callable, Dict, Optional, TypeVar, Union, cast
 
-import joblib
-import pandas as pd
-from pmdarima.pipeline import Pipeline
-
 from packages.valory.skills.abstract_round_abci.io_.paths import create_pathdirs
 
 
 StoredJSONType = Union[dict, list]
-NativelySupportedSingleObjectType = Union[StoredJSONType, Pipeline, pd.DataFrame]
+NativelySupportedSingleObjectType = StoredJSONType
 NativelySupportedMultipleObjectsType = Dict[str, NativelySupportedSingleObjectType]
 NativelySupportedObjectType = Union[
     NativelySupportedSingleObjectType, NativelySupportedMultipleObjectsType
@@ -49,20 +45,12 @@ SupportedStorerType = Union[NativelySupportedStorerType, CustomStorerType]
 NativelySupportedJSONStorerType = Callable[
     [str, Union[StoredJSONType, Dict[str, StoredJSONType]], Any], None
 ]
-NativelySupportedPipelineStorerType = Callable[
-    [str, Union[Pipeline, Dict[str, Pipeline]], Any], None
-]
-NativelySupportedDfStorerType = Callable[
-    [str, Union[pd.DataFrame, Dict[str, pd.DataFrame]], Any], None
-]
 
 
 class SupportedFiletype(Enum):
     """Enum for the supported filetypes of the IPFS interacting methods."""
 
     JSON = auto()
-    PM_PIPELINE = auto()
-    CSV = auto()
 
 
 class AbstractStorer(ABC):
@@ -114,50 +102,12 @@ class JSONStorer(AbstractStorer):
             raise IOError(str(e)) from e
 
 
-class CSVStorer(AbstractStorer):
-    """A CSV file storer."""
-
-    def store_single_file(
-        self, filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any
-    ) -> None:
-        """Store a pandas dataframe."""
-        if not isinstance(obj, pd.DataFrame):
-            raise ValueError(  # pragma: no cover
-                f"`JSONStorer` cannot be used with a {type(obj)}! Only with a {pd.DataFrame}"
-            )
-
-        index = kwargs.get("index", False)
-
-        try:
-            obj.to_csv(filename, index=index)
-        except (TypeError, OSError) as e:  # pragma: no cover
-            raise IOError(str(e)) from e
-
-
-class ForecasterStorer(AbstractStorer):
-    """A pmdarima Pipeline storer."""
-
-    def store_single_file(
-        self, filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any
-    ) -> None:
-        """Store a pmdarima Pipeline."""
-        if not isinstance(obj, Pipeline):
-            raise ValueError(  # pragma: no cover
-                f"`JSONStorer` cannot be used with a {type(obj)}! Only with a {Pipeline}"
-            )
-
-        try:
-            joblib.dump(obj, filename)
-        except (ValueError, OSError) as e:  # pragma: no cover
-            raise IOError(str(e)) from e
-
-
 class Storer(AbstractStorer):
     """Class which stores files."""
 
     def __init__(
         self,
-        filetype: Optional[SupportedFiletype],
+        filetype: Optional[Any],
         custom_storer: Optional[CustomStorerType],
         path: str,
     ):
@@ -165,16 +115,9 @@ class Storer(AbstractStorer):
         super().__init__(path)
         self._filetype = filetype
         self._custom_storer = custom_storer
-        self.__filetype_to_storer: Dict[SupportedFiletype, SupportedStorerType] = {
+        self._filetype_to_storer: Dict[Enum, SupportedStorerType] = {
             SupportedFiletype.JSON: cast(
                 NativelySupportedJSONStorerType, JSONStorer(path).store_single_file
-            ),
-            SupportedFiletype.PM_PIPELINE: cast(
-                NativelySupportedPipelineStorerType,
-                ForecasterStorer(path).store_single_file,
-            ),
-            SupportedFiletype.CSV: cast(
-                NativelySupportedDfStorerType, CSVStorer(path).store_single_file
             ),
         }
 
@@ -188,7 +131,7 @@ class Storer(AbstractStorer):
     def _get_single_storer_from_filetype(self) -> SupportedStorerType:
         """Get a file storer from a given filetype or keep a custom storer."""
         if self._filetype is not None:
-            return self.__filetype_to_storer[self._filetype]
+            return self._filetype_to_storer[self._filetype]
 
         if self._custom_storer is not None:  # pragma: no cover
             return self._custom_storer

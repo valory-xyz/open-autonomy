@@ -18,19 +18,18 @@
 # ------------------------------------------------------------------------------
 
 """Tests for the storing functionality of abstract round abci."""
+import json
 import os.path
 from itertools import product
 from pathlib import PosixPath
 from typing import Dict, Optional, cast
 
-import pandas as pd
 import pytest
 
 from packages.valory.skills.abstract_round_abci.io_.store import (
-    CSVStorer,
     CustomStorerType,
-    ForecasterStorer,
     JSONStorer,
+    StoredJSONType,
     Storer,
     SupportedFiletype,
     SupportedStorerType,
@@ -48,19 +47,11 @@ class TestStorer:
         "filetype, custom_storer, expected_storer",
         (
             (None, None, None),
-            (SupportedFiletype.CSV, None, CSVStorer.store_single_file),
             (SupportedFiletype.JSON, None, JSONStorer.store_single_file),
-            (SupportedFiletype.PM_PIPELINE, None, ForecasterStorer.store_single_file),
-            (SupportedFiletype.CSV, __dummy_custom_storer, CSVStorer.store_single_file),
             (
                 SupportedFiletype.JSON,
                 __dummy_custom_storer,
                 JSONStorer.store_single_file,
-            ),
-            (
-                SupportedFiletype.PM_PIPELINE,
-                __dummy_custom_storer,
-                ForecasterStorer.store_single_file,
             ),
             (None, __dummy_custom_storer, __dummy_custom_storer),
         ),
@@ -97,33 +88,23 @@ class TestStorer:
         multiple: bool,
         index: bool,
         tmp_path: PosixPath,
-        dummy_obj: pd.DataFrame,
-        dummy_multiple_obj: Dict[str, pd.DataFrame],
+        dummy_obj: StoredJSONType,
+        dummy_multiple_obj: Dict[str, StoredJSONType],
     ) -> None:
         """Test `store`."""
         if multiple:
-            storer = Storer(SupportedFiletype.CSV, None, str(tmp_path))
+            storer = Storer(SupportedFiletype.JSON, None, str(tmp_path))
             storer.store(dummy_multiple_obj, multiple, index=index)
-            for filename, expected_frame in dummy_multiple_obj.items():
+            for filename, expected_json in dummy_multiple_obj.items():
                 filepath = os.path.join(tmp_path, filename)
-                saved_frame = pd.read_csv(filepath)
-                expected_frame = expected_frame.reset_index(drop=not index)
-                expected_frame = (
-                    expected_frame.rename(columns={"index": "Unnamed: 0"})
-                    if index
-                    else expected_frame
-                )
-                pd.testing.assert_frame_equal(saved_frame, expected_frame)
+                with open(filepath, "r") as outfile:
+                    saved_json = json.load(outfile)
+                assert saved_json, expected_json
 
         else:
             filepath = os.path.join(tmp_path, "test_obj.csv")
-            storer = Storer(SupportedFiletype.CSV, None, filepath)
+            storer = Storer(SupportedFiletype.JSON, None, filepath)
             storer.store(dummy_obj, multiple, index=index)
-            saved_frame = pd.read_csv(filepath)
-            expected_frame = dummy_obj.reset_index(drop=not index)
-            expected_frame = (
-                expected_frame.rename(columns={"index": "Unnamed: 0"})
-                if index
-                else expected_frame
-            )
-            pd.testing.assert_frame_equal(saved_frame, expected_frame)
+            with open(filepath, "r") as outfile:
+                saved_json = json.load(outfile)
+            assert saved_json == dummy_obj

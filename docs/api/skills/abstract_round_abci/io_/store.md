@@ -75,46 +75,6 @@ def store_single_file(filename: str, obj: NativelySupportedSingleObjectType, **k
 
 Store a JSON.
 
-<a id="packages.valory.skills.abstract_round_abci.io_.store.CSVStorer"></a>
-
-## CSVStorer Objects
-
-```python
-class CSVStorer(AbstractStorer)
-```
-
-A CSV file storer.
-
-<a id="packages.valory.skills.abstract_round_abci.io_.store.CSVStorer.store_single_file"></a>
-
-#### store`_`single`_`file
-
-```python
-def store_single_file(filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any) -> None
-```
-
-Store a pandas dataframe.
-
-<a id="packages.valory.skills.abstract_round_abci.io_.store.ForecasterStorer"></a>
-
-## ForecasterStorer Objects
-
-```python
-class ForecasterStorer(AbstractStorer)
-```
-
-A pmdarima Pipeline storer.
-
-<a id="packages.valory.skills.abstract_round_abci.io_.store.ForecasterStorer.store_single_file"></a>
-
-#### store`_`single`_`file
-
-```python
-def store_single_file(filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any) -> None
-```
-
-Store a pmdarima Pipeline.
-
 <a id="packages.valory.skills.abstract_round_abci.io_.store.Storer"></a>
 
 ## Storer Objects
@@ -130,7 +90,7 @@ Class which stores files.
 #### `__`init`__`
 
 ```python
-def __init__(filetype: Optional[SupportedFiletype], custom_storer: Optional[CustomStorerType], path: str)
+def __init__(filetype: Optional[Any], custom_storer: Optional[CustomStorerType], path: str)
 ```
 
 Initialize a `Storer`.

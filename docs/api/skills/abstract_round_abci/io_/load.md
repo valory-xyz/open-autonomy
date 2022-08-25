@@ -44,62 +44,6 @@ Load one or more files.
 
 the loaded file.
 
-<a id="packages.valory.skills.abstract_round_abci.io_.load.CSVLoader"></a>
-
-## CSVLoader Objects
-
-```python
-class CSVLoader(AbstractLoader)
-```
-
-A csv files Loader.
-
-<a id="packages.valory.skills.abstract_round_abci.io_.load.CSVLoader.load_single_file"></a>
-
-#### load`_`single`_`file
-
-```python
-def load_single_file(path: str) -> NativelySupportedSingleObjectType
-```
-
-Read a pandas dataframe from a csv file.
-
-**Arguments**:
-
-- `path`: the path of the csv.
-
-**Returns**:
-
-the pandas dataframe.
-
-<a id="packages.valory.skills.abstract_round_abci.io_.load.ForecasterLoader"></a>
-
-## ForecasterLoader Objects
-
-```python
-class ForecasterLoader(AbstractLoader)
-```
-
-A `pmdarima` forecaster loader.
-
-<a id="packages.valory.skills.abstract_round_abci.io_.load.ForecasterLoader.load_single_file"></a>
-
-#### load`_`single`_`file
-
-```python
-def load_single_file(path: str) -> NativelySupportedSingleObjectType
-```
-
-Load a `pmdarima` forecaster.
-
-**Arguments**:
-
-- `path`: path to store the forecaster.
-
-**Returns**:
-
-a `pmdarima.pipeline.Pipeline`.
-
 <a id="packages.valory.skills.abstract_round_abci.io_.load.JSONLoader"></a>
 
 ## JSONLoader Objects
@@ -143,7 +87,7 @@ Class which loads files.
 #### `__`init`__`
 
 ```python
-def __init__(filetype: Optional[SupportedFiletype], custom_loader: CustomLoaderType)
+def __init__(filetype: Optional[Any], custom_loader: CustomLoaderType)
 ```
 
 Initialize a `Loader`.
