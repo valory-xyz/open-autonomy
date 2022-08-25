@@ -18,7 +18,7 @@ Build images.
 @click.option(
     "--service-dir",
     type=click.Path(dir_okay=True),
-    help="Path to build dir.",
+    help="Path to service dir.",
 )
 @click.option("--pull", is_flag=True, help="Pull latest dependencies.", default=False)
 def build_image(agent: Optional[PublicId], service_dir: Optional[Path], pull: bool = False) -> None

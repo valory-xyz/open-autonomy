@@ -40,7 +40,7 @@ from autonomy.deploy.image import build_image as _build_image
 @click.option(
     "--service-dir",
     type=click.Path(dir_okay=True),
-    help="Path to build dir.",
+    help="Path to service dir.",
 )
 @click.option("--pull", is_flag=True, help="Pull latest dependencies.", default=False)
 def build_image(
