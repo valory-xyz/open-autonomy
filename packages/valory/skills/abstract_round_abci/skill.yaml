@@ -99,4 +99,6 @@ dependencies:
     version: <2.0.0,>=1.17.0
   py-ecc:
     version: ==5.2.0
+  pytz:
+    version: ==2022.2.1
 is_abstract: true
