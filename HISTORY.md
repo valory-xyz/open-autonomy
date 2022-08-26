@@ -11,7 +11,6 @@ Autonomy:
 - Removes `skaffold` as a framework dependency.
 - Adds support for remote registries in the fsm scaffold utility.
 - Bumps `open-aea` and its plugins to version `1.17.0`.
-- 
 
 Packages:
 - Adds support for parsing all the gnosis GS codes and print relevant messages.
