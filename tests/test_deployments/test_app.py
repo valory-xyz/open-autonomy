@@ -34,17 +34,17 @@ import flask
 import pytest
 import requests
 
-from autonomy.data.Dockerfiles.tendermint.app import (  # type: ignore
+from deployments.Dockerfiles.tendermint.app import TendermintNode  # type: ignore
+from deployments.Dockerfiles.tendermint.app import (  # type: ignore
     CONFIG_OVERRIDE,
     create_app,
     get_defaults,
     load_genesis,
     override_config_toml,
 )
-from autonomy.data.Dockerfiles.tendermint.tendermint import (
-    TendermintNode,  # type: ignore
+from deployments.Dockerfiles.tendermint.tendermint import (  # type: ignore
+    TendermintParams,
 )
-from autonomy.data.Dockerfiles.tendermint.tendermint import TendermintParams
 
 
 ENCODING = "utf-8"

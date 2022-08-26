@@ -20,8 +20,8 @@
 """This module contains the tests for the commands in the documentation."""
 
 import itertools
-from scripts.check_doc_ipfs_hashes import AEA_COMMAND_REGEX
 import re
+
 import click
 from click.core import Option
 
@@ -33,11 +33,25 @@ class CommandValidator:
 
     def __init__(self, cli):
         """Extract autonomy command tree from the autonomy cli"""
-        self.tree = {}
+        self.tree = {
+            "commands": {
+                cli.name: {
+                    "commands": {},
+                    "options": list(
+                        itertools.chain(
+                            *[i.opts for i in cli.params if isinstance(i, Option)]
+                        )
+                    ),
+                }
+            },
+        }
+
         for cmd_name, cmd in cli.commands.items():
-            self.tree[cmd_name] = {
+            self.tree["commands"][cli.name]["commands"][cmd_name] = {
                 "options": list(
-                    itertools.chain(*[i.opts for i in cmd.params if isinstance(i, Option)])
+                    itertools.chain(
+                        *[i.opts for i in cmd.params if isinstance(i, Option)]
+                    )
                 ),
                 "commands": {},
             }
@@ -46,28 +60,38 @@ class CommandValidator:
                     sub_cmd = cli.commands[cmd_name].get_command(
                         click.Context, sub_cmd_name
                     )
-                    self.tree[cmd_name]["commands"][sub_cmd_name] = {
+                    self.tree["commands"][cli.name]["commands"][cmd_name]["commands"][
+                        sub_cmd_name
+                    ] = {
                         "options": list(
                             itertools.chain(
-                                *[i.opts for i in sub_cmd.params if isinstance(i, Option)]
+                                *[
+                                    i.opts
+                                    for i in sub_cmd.params
+                                    if isinstance(i, Option)
+                                ]
                             )
                         )
                     }
 
-    def validate(self, cmd) -> bool:
-        m = re.match(AEA_COMMAND_REGEX, cmd)
-        if not m:
-            return False
-        print(m[0])
+    def validate(self, cmd: str) -> bool:
+        tree = self.tree
+        for cmd_part in cmd.split(" "):
+            if cmd_part not in tree["commands"].keys():
+                print(f"Error in {cmd_part}")
+                return False
+            print(list(tree["commands"].keys()))
+            tree = tree["commands"][cmd_part]
+
+        return True
 
 
+cmd = "autonomy deploy build keys.json"
+v = CommandValidator(autonomy_cli)
+print(v.validate(cmd))
 
-# cmd = "autonomy deploy build deployment valory/hello_world:0.1.0:bafybeigvxwhxk3tyulfhhsfxvdfs5yd6rutlsnkv7ngnzi236yycjgrgaa keys.json --remote"
-# v = CommandValidator(autonomy_cli)
-# print(v.validate(cmd))
+# cmd = autonomy_cli.commands["deploy"].get_command(click.Context, "build")
 
-cmd = autonomy_cli.commands["deploy"].get_command(click.Context, "build")
-
-print(dir(cmd))
+# print(dir(cmd))
 
 # print([i.opts for i in cmd.params if isinstance(i, click.Argument)])
