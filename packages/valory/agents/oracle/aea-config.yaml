@@ -27,14 +27,14 @@ protocols:
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
 - valory/abstract_abci:0.1.0:bafybeiam52ztcss46i3tgywuv4qmvddqgn7exmbt5kcicqpyip4kfeyap4
-- valory/abstract_round_abci:0.1.0:bafybeibmwz5b7khd2efbegr7djknjdtwfrm6ufmsyiyhoxwz6r6p5cljv4
-- valory/oracle_abci:0.1.0:bafybeih4inhk2s3vg2xjm4ufwc7zaorowvq5pbkb4hen2e7kjn2dbvmc7q
-- valory/oracle_deployment_abci:0.1.0:bafybeigcepwwbmevinielu7ts6bqv5zexzk6d66sqvmo3lnzcunhbp47i4
-- valory/price_estimation_abci:0.1.0:bafybeigfmocc3okfxt5vl7h2d3zvf25onriicg2oxojwnq6mgnnwjnauzu
-- valory/registration_abci:0.1.0:bafybeickurhjlz4nkmm4cr3nxt6l5ssztkrst2dgimt4u6uenpgquajase
-- valory/reset_pause_abci:0.1.0:bafybeic77eettrkifbyyoisg2jrmxwiqfsbig5wqglw4n2mlyviibfwmfy
-- valory/safe_deployment_abci:0.1.0:bafybeifs47nvri6oa6ttcwlp6jvoxhzfluv4age2oubkygkqyo23slppfm
-- valory/transaction_settlement_abci:0.1.0:bafybeihrolpgm2lm2qszgx6bjdbiwd6p7ew3ct3kfu7rkxkfuq7zyxrfmm
+- valory/abstract_round_abci:0.1.0:bafybeicvhdpuai3mphhzsdhzxcx2sdxbmpsl3jh3ccmjvzkchu4xyjhr3e
+- valory/oracle_abci:0.1.0:bafybeidoqortr5ets2rgsq627cllmohynl7wb7copcuyfblyubggchs3qy
+- valory/oracle_deployment_abci:0.1.0:bafybeihxqg4cext3s5swrhtnkzvizp5gwjtzicjo2luo5kd2lzxt27kesa
+- valory/price_estimation_abci:0.1.0:bafybeia4vytnordnepjwcdutks4s3muw773gwa254dngmix3o4wdippgki
+- valory/registration_abci:0.1.0:bafybeibtyquv5cshtaa5fl54bmw63tn3hbv2t5vtlpoqnskp2thjf2udfy
+- valory/reset_pause_abci:0.1.0:bafybeieg5wv3lk26omeo2yroovdv2ustr4ese6edrcot5da3lu3wdams4m
+- valory/safe_deployment_abci:0.1.0:bafybeie26pz4tz5oqw5cv6odmsyrm6hstcrrzjj4pn724rt2i273jc3wqy
+- valory/transaction_settlement_abci:0.1.0:bafybeigpagifeh737pihrlj37yugaxuzzv5r5a5yyol2ggwlegcwuip3de
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -110,6 +110,7 @@ models:
       observation_interval: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:300}
       max_healthcheck: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:1200}
       broadcast_to_server: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_BROADCAST_TO_SERVER:bool:false}
+      validate_timeout: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_VALIDATE_TIMEOUT:int:1205}
       service_registry_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SERVICE_REGISTRY_ADDRESS:str:none}
       share_tm_config_on_startup: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SHARE_TM_CONFIG_ON_STARTUP:bool:false}
       on_chain_service_id: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_ON_CHAIN_SERVICE_ID:int:none}

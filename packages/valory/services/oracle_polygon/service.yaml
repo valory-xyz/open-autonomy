@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeifqnvekc6s44wsczofdhofiozxekstjau2bk5yqfqvjuv4wzoopku
 fingerprint_ignore_patterns: []
-agent: valory/oracle:0.1.0:bafybeihirqlf5hamgaobcw325gh54cvpezxdjl5nyhcr5yarjfa2utpg2q
+agent: valory/oracle:0.1.0:bafybeia6i5tmoalnaey2iuiuzxqb4lbu5q37gbu24g245jtkhqvfjs2eai
 number_of_agents: 4
 ---
 setup_args:
@@ -19,6 +19,7 @@ setup_args:
       - '0x3d9e92B0FE7673ddA3d7C33B9ff302768A03de19'
     max_healthcheck: 43200
     broadcast_to_server: true
+    validate_timeout: 10
 valory_monitoring_backend:
   args: &id002
     url: https://oracle-server.autonolas.tech/deposit
