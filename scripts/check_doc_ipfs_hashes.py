@@ -35,8 +35,9 @@ CMD_REGEX = r"(?P<cmd>.*)"
 VENDOR_REGEX = rf"(?P<vendor>{SIMPLE_ID_REGEX})"
 PACKAGE_REGEX = rf"(?P<package>{SIMPLE_ID_REGEX})"
 VERSION_REGEX = r"(?P<version>\d+\.\d+\.\d+)"
+FLAGS_REGEX = r"(?P<flags>(\s--.*)?)"
 
-AEA_COMMAND_REGEX = rf"(?P<full_cmd>{CLI_REGEX} {CMD_REGEX} (?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}))"
+AEA_COMMAND_REGEX = rf"(?P<full_cmd>{CLI_REGEX} {CMD_REGEX} (?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}){FLAGS_REGEX})"
 FULL_PACKAGE_REGEX = rf"(?P<full_package>(?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}))"
 
 ROOT_DIR = Path(__file__).parent.parent
@@ -98,18 +99,21 @@ class Package:  # pylint: disable=too-few-public-methods
                     self.last_version = resource["version"]
                     break
 
-    def get_command(self, cmd: str, include_version: bool = True) -> str:
+    def get_command(
+        self, cmd: str, include_version: bool = True, flags: str = ""
+    ) -> str:
         """
         Get the corresponding command.
 
         :param cmd: the command
         :param include_version: whether or not to include the version
+        :param flags: command flags
         :return: the full command
         """
         version = (
             ":" + self.last_version if include_version and self.last_version else ""
         )
-        return f"autonomy {cmd} {self.vendor}/{self.name}{version}:{self.hash}"
+        return f"autonomy {cmd} {self.vendor}/{self.name}{version}:{self.hash}{flags}"
 
 
 class PackageHashManager:
@@ -232,11 +236,13 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     # Fix full commands on docs
     for md_file in all_md_files:
         content = read_file(str(md_file))
-        for match in re.findall(AEA_COMMAND_REGEX, content):
+        for match in [m.groupdict() for m in re.finditer(AEA_COMMAND_REGEX, content)]:
             matches += 1
-            doc_full_cmd = match[0]
-            doc_cmd = match[2]
-            doc_hash = match[-1]
+            doc_full_cmd = match["full_cmd"]
+            doc_cmd = match["cmd"]
+            doc_hash = match["hash"]
+            flags = match["flags"]
+
             expected_hash = package_manager.get_hash_by_package_line(
                 doc_full_cmd, str(md_file)
             )
@@ -248,7 +254,7 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
                 errors = True
                 continue
 
-            new_command = expected_package.get_command(doc_cmd)
+            new_command = expected_package.get_command(cmd=doc_cmd, flags=flags)
 
             # Overwrite with new hash
             if doc_hash == expected_hash:
@@ -272,9 +278,9 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     all_py_files = [Path("autonomy", "constants.py")]
     for py_file in all_py_files:
         content = read_file(str(py_file))
-        for match in re.findall(FULL_PACKAGE_REGEX, content):
-            full_package = match[0]
-            py_hash = match[4]
+        for match in [m.groupdict() for m in re.finditer(FULL_PACKAGE_REGEX, content)]:
+            full_package = match["full_package"]
+            py_hash = match["hash"]
             expected_hash = package_manager.get_hash_by_package_line(
                 full_package, str(py_file)
             )
