@@ -34,8 +34,8 @@ import yaml
 from autonomy.configurations.base import Service
 from autonomy.configurations.validation import ConfigValidator
 from autonomy.constants import (
+    AUTONOMY_IMAGE_VERSION,
     HARDHAT_IMAGE_VERSION,
-    IMAGE_VERSION,
     TENDERMINT_IMAGE_VERSION,
 )
 from autonomy.deploy.base import BaseDeploymentGenerator, ServiceSpecification
@@ -62,7 +62,7 @@ version: 0.1.0
 description: Description
 aea_version: ">=1.0.0, <2.0.0"
 license: Apache-2.0
-agent: "valory/oracle:0.1.0"
+agent: valory/oracle:0.1.0:bafybeihurloujnbugvvrv5xegyrdnsgl6z6at5xilq7f5ynjdekijapt6q
 number_of_agents: 1
 fingerprint: {}
 fingerprint_ignore_patterns: []
@@ -123,7 +123,7 @@ config:
 
 TEST_DEPLOYMENT_PATH: str = "service.yaml"
 IMAGE_VERSIONS = {
-    "agent": IMAGE_VERSION,
+    "agent": AUTONOMY_IMAGE_VERSION,
     "hardhat": HARDHAT_IMAGE_VERSION,
     "tendermint": TENDERMINT_IMAGE_VERSION,
 }
@@ -392,7 +392,7 @@ class TestOverrideTypes(BaseDeploymentTests):
             )
             app_instance.service.check_overrides_valid(app_instance.service.overrides)
             app_instance.generate_agents()
-            deployment_instance.generate(IMAGE_VERSIONS)
+            deployment_instance.generate()
 
     def test_validates_with_20_agents(self) -> None:
         """Test functionality of deploy safe contract."""
@@ -407,4 +407,4 @@ class TestOverrideTypes(BaseDeploymentTests):
             )
             app_instance.service.check_overrides_valid(app_instance.service.overrides)
             app_instance.generate_agents()
-            deployment_instance.generate(IMAGE_VERSIONS)
+            deployment_instance.generate()

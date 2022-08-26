@@ -29,7 +29,7 @@ Initialise the deployment generator.
 #### build`_`agent`_`deployment
 
 ```python
-def build_agent_deployment(image_name: str, agent_ix: int, number_of_agents: int, agent_vars: Dict[str, Any], image_versions: Dict[str, str]) -> str
+def build_agent_deployment(runtime_image: str, agent_ix: int, number_of_agents: int, agent_vars: Dict[str, Any]) -> str
 ```
 
 Build agent deployment.
@@ -39,7 +39,7 @@ Build agent deployment.
 #### generate`_`config`_`tendermint
 
 ```python
-def generate_config_tendermint(image_version: str = TENDERMINT_IMAGE_VERSION) -> "KubernetesGenerator"
+def generate_config_tendermint() -> "KubernetesGenerator"
 ```
 
 Build configuration job.
@@ -49,7 +49,7 @@ Build configuration job.
 #### generate
 
 ```python
-def generate(image_versions: Dict[str, str]) -> "KubernetesGenerator"
+def generate() -> "KubernetesGenerator"
 ```
 
 Generate the deployment.

@@ -31,34 +31,24 @@ Ensure that your machine satisfies the following requirements:
 
 - [Python](https://www.python.org/) `>= 3.7` (recommended `>= 3.10`)
 - [Pip](https://pip.pypa.io/en/stable/installation/)
-- [Tendermint](https://docs.tendermint.com/v0.34/introduction/install.html) `==0.34.19`
 - [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
-- [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
-- [Skaffold](https://skaffold.dev/docs/install/#standalone-binary) `>=1.39.1`
 
 
 ## Setup
 
-1. Create a workspace folder, e.g.,
+1. Setup the environment. Remember to use the Python version you installed, here we use 3.10 as reference:
 ```bash
-mkdir my_service
-cd my_service
-```
-
-2. Setup the environment. Remember to use the Python version you installed, here we use 3.10 as reference:
-```bash
-export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
 touch Pipfile && pipenv --python 3.10 && pipenv shell
 ```
 
-3. Install {{open_autonomy}}:
+2. Install {{open_autonomy_api}}:
 ```bash
 pip install open-autonomy
 ```
 
-4. Initialize the framework to work with the remote IPFS registry.
+3. Initialize the framework to work with the remote IPFS registry.
 ```bash
 autonomy init --remote
 ```
@@ -73,7 +63,13 @@ autonomy init --remote
 Follow the steps indicated below to download a demonstration agent service from the Service Registry, and deploy it locally using Docker Compose.
 In this case, we consider the [Hello World agent service](./hello_world_agent_service.md).
 
-1. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the [Hello World agent service](./hello_world_agent_service.md). Below you have some sample keys for testing:
+1. Use the CLI to download the `valory/hello build` service. 
+    ```bash
+    autonomy fetch valory/hello_world:0.1.0:bafybeib433pq5xkvce6owfqqw7dqkxme4vju4xtnh4yzpzlqqmsyhdfo7i --remote --service
+    cd hello_world
+    ```
+    
+2. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the [Hello World agent service](./hello_world_agent_service.md). Below you have some sample keys for testing:
 
     !!! warning "Important"
         Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**
@@ -99,22 +95,31 @@ In this case, we consider the [Hello World agent service](./hello_world_agent_se
         ]
         ```
 
-2. Use the CLI to download and build the images to deploy the [Hello World agent service](./hello_world_agent_service.md):
-    ```bash
-    autonomy deploy build deployment valory/hello_world:0.1.0:bafybeigvxwhxk3tyulfhhsfxvdfs5yd6rutlsnkv7ngnzi236yycjgrgaa keys.json --remote
-    ```
-    The command above generates the required images to run the agent service using the keys provided in the `keys.json` file. In this case, we are accessing the service definition located in the Service Registry.
 
+3. Build the required image
+    ```bash
+    autonomy build-image
+    ```
+    The command above generates the required images to run the agent service.
+
+4. Build a deployment setup for the [Hello World agent service](./hello_world_agent_service.md):
+    ```bash
+    autonomy deploy build keys.json
+    ```
+
+    This will build the deployment setup required to run the service locally.
     !!!note
         It is also possible to generate a deployment using a local service definition. See the [CLI section](./autonomy.md) for the complete details.
 
-3. The build configuration will be located in `./abci_build`. Execute `docker-compose` as indicated below. This will deploy a local [Hello World agent service](./hello_world_agent_service.md) with four agents connected to four Tendermint nodes.
+5. The build configuration will be located in `./abci_build`. Run the deployment using
     ```bash
     cd abci_build
-    docker-compose up --force-recreate
+    autonomy deploy run
     ```
 
-4. The logs of a single agent or node can then be inspected with, e.g.,
+    This will deploy a local [Hello World agent service](./hello_world_agent_service.md) with four agents connected to four Tendermint nodes.
+
+6. The logs of a single agent or node can then be inspected with, e.g.,
     ```bash
     docker logs {container_id} --follow
     ```

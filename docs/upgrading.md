@@ -11,6 +11,7 @@ Multiple backwards incompatible changes:
 
 - The service config no longer accepts the `network` key on the first YAML page. The network can now be defined via the package overrides.
 - Dependency specifications are now checked against imports for all packages, this means initially packages might need modifying to reference/unreference missing/irrelevant dependencies.
+- The global configuration file for the `aea`/`autonomy` CLI has a breaking change. Please remove `~/.aea/cli_config.yaml` and rerun `autonomy init --remote`.
 
 ## `v0.1.5` to `v0.1.6`
 
