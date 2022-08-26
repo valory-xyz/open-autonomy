@@ -177,6 +177,9 @@ unreference
 plugins
 runtimes
 Uniswap
+fsm
+gnosis
+regex
  - docs/index.md
 README.md
 s_
