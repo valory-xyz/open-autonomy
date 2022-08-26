@@ -35,8 +35,9 @@ CMD_REGEX = r"(?P<cmd>.*)"
 VENDOR_REGEX = rf"(?P<vendor>{SIMPLE_ID_REGEX})"
 PACKAGE_REGEX = rf"(?P<package>{SIMPLE_ID_REGEX})"
 VERSION_REGEX = r"(?P<version>\d+\.\d+\.\d+)"
+FLAGS_REGEX = r"(?P<flags>(\s--.*)?)"
 
-AEA_COMMAND_REGEX = rf"(?P<full_cmd>{CLI_REGEX} {CMD_REGEX} (?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}))"
+AEA_COMMAND_REGEX = rf"(?P<full_cmd>{CLI_REGEX} {CMD_REGEX} (?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}){FLAGS_REGEX})"
 FULL_PACKAGE_REGEX = rf"(?P<full_package>(?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}))"
 
 ROOT_DIR = Path(__file__).parent.parent
@@ -232,11 +233,12 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     # Fix full commands on docs
     for md_file in all_md_files:
         content = read_file(str(md_file))
-        for match in re.findall(AEA_COMMAND_REGEX, content):
+        for match in [m.groupdict() for m in re.finditer(AEA_COMMAND_REGEX, content)]:
             matches += 1
-            doc_full_cmd = match[0]
-            doc_cmd = match[2]
-            doc_hash = match[-1]
+            doc_full_cmd = match["full_cmd"]
+            doc_cmd = match["cmd"]
+            doc_hash = match["hash"]
+
             expected_hash = package_manager.get_hash_by_package_line(
                 doc_full_cmd, str(md_file)
             )
