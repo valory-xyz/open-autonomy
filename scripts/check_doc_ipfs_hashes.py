@@ -107,6 +107,7 @@ class Package:  # pylint: disable=too-few-public-methods
 
         :param cmd: the command
         :param include_version: whether or not to include the version
+        :param flags: command flags
         :return: the full command
         """
         version = (
