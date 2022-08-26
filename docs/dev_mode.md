@@ -14,8 +14,7 @@ Fetch the required service or if you already have a service defined navigate to 
 # build dev deployment using
 $ autonomy deploy build --dev --packages-dir PATH_TO_PACKAGES_DIR --open-aea-dir PATH_TO_LOCAL_OPEN_AEA_REPO --open-autonomy-dir PATH_TO_LOCAL_OPEN_AUTONOMY_DIR
 # build the required images using
-$ autonomy build-images --dependencies
-$ autonomy build-images --dev
+$ autonomy build-image --dev
 ```
 
 This will create a deployment with hot reload enabled for agents. You can run it using the same methods as normal deployments. Use `autonomy deploy run` or `docker-compose up --force-recreate` to start the deployment and enjoy building the services.

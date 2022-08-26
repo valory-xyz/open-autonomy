@@ -158,7 +158,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         agent_vars = self.service_spec.generate_agents()
         runtime_image = OAR_IMAGE.format(
             agent=self.service_spec.service.agent.name,
-            version=self.service_spec.service.agent.hash,
+            version="dev" if self.dev_mode else self.service_spec.service.agent.hash,
         )
 
         agents = "".join(
