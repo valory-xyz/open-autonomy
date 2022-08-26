@@ -6,4 +6,3 @@ open-aea-ledger-ethereum==1.17.0
 open-aea-ledger-cosmos==1.17.0
 open-aea-ledger-fetchai==1.17.0
 protobuf==3.19.4
-open-autonomy==0.2.0
