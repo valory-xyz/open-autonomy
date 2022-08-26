@@ -5,6 +5,13 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.2.0` to `v0.2.1`
+
+- `build-images` command has been renamed to `build-image` 
+- Build support for dependency has been removed from the `build-image` command
+
+Refer to quick start docs for more information on the updated deployment flow.
+
 ## `v0.1.6` to `v0.2.0`
 
 Multiple backwards incompatible changes:
