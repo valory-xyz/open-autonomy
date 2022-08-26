@@ -46,8 +46,6 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         str(Path(ROOT_DIR) / Path(PACKAGES)),
         "scaffold",
         "fsm",
-        "myskill",
-        "--spec",
     )
     packages_dir: Path
 
@@ -56,6 +54,12 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         """Test run."""
         self.set_agent_context(self.agent_name)
         path_to_spec_file = Path(ROOT_DIR) / self.fsm_spec_file
-        args = [*self.cli_options, path_to_spec_file, flag]
+        args = [
+            *self.cli_options,
+            f"myskill_{flag[2:]}",
+            "--spec",
+            path_to_spec_file,
+            flag,
+        ]
         result = self.run_cli_command(*args, cwd=self._get_cwd())
         assert result.exit_code == 0
