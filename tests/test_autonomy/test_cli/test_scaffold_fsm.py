@@ -21,6 +21,7 @@
 from pathlib import Path
 from typing import Tuple
 
+import pytest
 from aea.configurations.constants import PACKAGES, SKILLS
 from aea.test_tools.test_cases import AEATestCaseEmpty
 
@@ -46,17 +47,15 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         "scaffold",
         "fsm",
         "myskill",
-        "--local",
         "--spec",
     )
     packages_dir: Path
 
-    def test_run(
-        self,
-    ) -> None:
+    @pytest.mark.parametrize("flag", ["--local", "--remote"])
+    def test_run_local(self, flag: str) -> None:
         """Test run."""
         self.set_agent_context(self.agent_name)
         path_to_spec_file = Path(ROOT_DIR) / self.fsm_spec_file
-        args = [*self.cli_options, path_to_spec_file]
+        args = [*self.cli_options, path_to_spec_file, flag]
         result = self.run_cli_command(*args, cwd=self._get_cwd())
         assert result.exit_code == 0
