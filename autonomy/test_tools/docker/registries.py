@@ -40,13 +40,13 @@ CONFIG_FILE = "hardhat.config.ts"
 DEFAULT_ACCOUNT = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 COMPONENT_REGISTRY = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
 AGENT_REGISTRY = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
-REGISTRIE_SMANAGER = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
+REGISTRIES_MANAGER = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
 GNOSIS_SAFE_MULTISIG = "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"
-SERVICE_REGISTRY = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
-SERVICE_MANAGER = "0x9A676e781A523b5d0C0e43731313A708CB607508"
-SERVICE_MULTISIG = "0xe1bB37cb3Dd284B490C874C1F3f414FbbE2C278e"
+SERVICE_REGISTRY = "0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf"
+SERVICE_MANAGER = "0x0E801D84Fa97b50751Dbf25036d067dCf18858bF"
+SERVICE_MULTISIG = "0x4826533B4897376654Bb4d4AD88B7faFD0C98528"
 DEFAULT_SERVICE_CONFIG_HASH = (
-    "0x9e757a42ec13791c8ae6f181e5ac75f94a305a3baf8be960375a674df46d57c9"
+    "0xd913b5bf68193dfacb941538d5900466c449c9ec8121153f152de2e026fa7f3a"
 )
 
 
@@ -83,15 +83,20 @@ class RegistriesDockerImage(DockerImage):
     ) -> None:
         """Updated config hash in the registry config."""
 
-        node_globals_file = (
+        base_snapshot_file = (
             self.third_party_contract_dir
             / REGISTRIES_CONTRACTS_DIR
             / "scripts"
             / "mainnet_snapshot.json"
         )
-        node_globals = json.loads(node_globals_file.read_text())
-        node_globals["configHash"] = DEFAULT_SERVICE_CONFIG_HASH
-        node_globals_file.write_text(json.dumps(node_globals))
+        snapshot_data = json.loads(base_snapshot_file.read_text())
+        snapshot_data["serviceRegistry"]["configHashes"] = [
+            DEFAULT_SERVICE_CONFIG_HASH,
+        ]
+        snapshot_file = (
+            self.third_party_contract_dir / REGISTRIES_CONTRACTS_DIR / "snapshot.json"
+        )
+        snapshot_file.write_text(json.dumps(snapshot_data))
 
     def create(self) -> Container:
         """Create the container."""
