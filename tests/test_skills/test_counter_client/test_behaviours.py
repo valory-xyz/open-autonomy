@@ -23,6 +23,7 @@ import json
 from pathlib import Path
 from typing import Any, cast
 
+import pytest
 from aea.test_tools.test_skill import BaseSkillTestCase
 
 from packages.valory.connections.http_client.connection import (
@@ -103,6 +104,7 @@ class TestIncrementerBehaviour(BaseTestClass):
         self.assert_quantity_in_outbox(0)
 
 
+@pytest.mark.windows
 class TestMonitorBehaviour(BaseTestClass):
     """Test MonitorBehaviour."""
 
