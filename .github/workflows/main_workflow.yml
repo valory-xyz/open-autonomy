@@ -222,7 +222,7 @@ jobs:
       - if: matrix.os == 'windows-latest'
         name: Unit tests windows-latest
         run: |
-          tox -e py${{ matrix.python-version }}-win -- -m 'not e2e'
+          tox -e py${{ matrix.python-version }}-win -- -m 'windows'
 
       - if: matrix.os == 'ubuntu-latest'
         name: Upload coverage to Codecov
