@@ -275,8 +275,8 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     for py_file in all_py_files:
         content = read_file(str(py_file))
         for match in re.findall(FULL_PACKAGE_REGEX, content):
-            full_package = match[0]
-            py_hash = match[4]
+            full_package = match["full_package"]
+            py_hash = match["hash"]
             expected_hash = package_manager.get_hash_by_package_line(
                 full_package, str(py_file)
             )
