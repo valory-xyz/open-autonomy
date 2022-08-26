@@ -99,7 +99,9 @@ class Package:  # pylint: disable=too-few-public-methods
                     self.last_version = resource["version"]
                     break
 
-    def get_command(self, cmd: str, include_version: bool = True) -> str:
+    def get_command(
+        self, cmd: str, include_version: bool = True, flags: str = ""
+    ) -> str:
         """
         Get the corresponding command.
 
@@ -110,7 +112,7 @@ class Package:  # pylint: disable=too-few-public-methods
         version = (
             ":" + self.last_version if include_version and self.last_version else ""
         )
-        return f"autonomy {cmd} {self.vendor}/{self.name}{version}:{self.hash}"
+        return f"autonomy {cmd} {self.vendor}/{self.name}{version}:{self.hash}{flags}"
 
 
 class PackageHashManager:
@@ -238,6 +240,7 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
             doc_full_cmd = match["full_cmd"]
             doc_cmd = match["cmd"]
             doc_hash = match["hash"]
+            flags = match["flags"]
 
             expected_hash = package_manager.get_hash_by_package_line(
                 doc_full_cmd, str(md_file)
@@ -250,7 +253,7 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
                 errors = True
                 continue
 
-            new_command = expected_package.get_command(doc_cmd)
+            new_command = expected_package.get_command(cmd=doc_cmd, flags=flags)
 
             # Overwrite with new hash
             if doc_hash == expected_hash:
@@ -274,7 +277,7 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     all_py_files = [Path("autonomy", "constants.py")]
     for py_file in all_py_files:
         content = read_file(str(py_file))
-        for match in re.findall(FULL_PACKAGE_REGEX, content):
+        for match in [m.groupdict() for m in re.finditer(FULL_PACKAGE_REGEX, content)]:
             full_package = match["full_package"]
             py_hash = match["hash"]
             expected_hash = package_manager.get_hash_by_package_line(
