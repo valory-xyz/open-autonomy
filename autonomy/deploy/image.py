@@ -21,6 +21,7 @@
 
 
 import json
+from typing import Dict
 
 from aea.cli.utils.config import get_default_author_from_cli_config
 from aea.configurations.utils import PublicId
@@ -40,23 +41,39 @@ class ImageProfiles:  # pylint: disable=too-few-public-methods
     ALL = (CLUSTER, DEVELOPMENT, PRODUCTION)
 
 
-def build_image(agent: PublicId, pull: bool = False) -> None:
+def build_image(agent: PublicId, pull: bool = False, dev: bool = False) -> None:
     """Command to build images from for skaffold deployment."""
+
+    tag: str
+    path: str
+    buildargs: Dict[str, str]
 
     docker_client = from_env()
 
-    tag = OAR_IMAGE.format(agent=agent.name, version=agent.hash)
-    path = str(DATA_DIR / DOCKERFILES / "agent")
-
-    stream = docker_client.api.build(
-        path=path,
-        tag=tag,
-        buildargs={
+    if dev:
+        tag = OAR_IMAGE.format(agent=agent.name, version="dev")
+        path = str(DATA_DIR / DOCKERFILES / "dev")
+        buildargs = {
             "AUTONOMY_IMAGE_NAME": AUTONOMY_IMAGE_NAME,
             "AUTONOMY_IMAGE_VERSION": AUTONOMY_IMAGE_VERSION,
             "AEA_AGENT": str(agent),
             "AUTHOR": get_default_author_from_cli_config(),
-        },
+        }
+
+    else:
+        tag = OAR_IMAGE.format(agent=agent.name, version=agent.hash)
+        path = str(DATA_DIR / DOCKERFILES / "agent")
+        buildargs = {
+            "AUTONOMY_IMAGE_NAME": AUTONOMY_IMAGE_NAME,
+            "AUTONOMY_IMAGE_VERSION": AUTONOMY_IMAGE_VERSION,
+            "AEA_AGENT": str(agent),
+            "AUTHOR": get_default_author_from_cli_config(),
+        }
+
+    stream = docker_client.api.build(
+        path=path,
+        tag=tag,
+        buildargs=buildargs,
         pull=pull,
     )
 

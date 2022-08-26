@@ -5,14 +5,14 @@ then
     while true; do echo "waiting" ; sleep 2; done
 fi
 echo Running the aea with $(aea --version)
-if [ "$VALORY_APPLICATION" == "" ];
+if [ "$AEA_AGENT" == "" ];
 then
     echo "No Application specified!"
     exit 1
 fi
 
-echo "Loading $VALORY_APPLICATION"
-aea fetch $VALORY_APPLICATION --alias agent
+echo "Loading $AEA_AGENT"
+aea fetch $AEA_AGENT --alias agent
 cd agent
 
 export FILE=/agent_key/ethereum_private_key.txt
