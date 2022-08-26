@@ -119,9 +119,6 @@ nav:
             - Tendermint Utils: 'api/test_tools/helpers/tendermint_utils.md'
         - Data:
           - Watcher: 'api/data/Dockerfiles/dev/watcher.md'
-          - Tendermint:
-            - App: 'api/data/Dockerfiles/tendermint/app.md'
-            - Tendermint: 'api/data/Dockerfiles/tendermint/tendermint.md'
       - Connections:
         - ABCI:
           - Check Dependencies: 'api/connections/abci/check_dependencies.md'

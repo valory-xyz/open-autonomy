@@ -28,11 +28,7 @@ from unittest import mock
 import yaml
 from aea.configurations.constants import PACKAGES
 
-from autonomy.constants import (
-    DEFAULT_BUILD_FOLDER,
-    OPEN_AEA_IMAGE_NAME,
-    TENDERMINT_IMAGE_NAME,
-)
+from autonomy.constants import DEFAULT_BUILD_FOLDER
 from autonomy.deploy.constants import (
     DEBUG,
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
@@ -308,86 +304,6 @@ class TestBuildDeployment(BaseCliTest):
         assert any(
             [child in build_tree for child in ["persistent_storage", "build.yaml"]]
         )
-
-    def test_versioning_docker_compose(
-        self,
-    ) -> None:
-        """Run tests."""
-
-        version = "1.0.0"
-        with mock.patch("os.chown"):
-            result = self.run_cli(
-                (
-                    str(self.keys_file),
-                    "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
-                    "--local",
-                    "--version",
-                    version,
-                )
-            )
-
-        assert result.exit_code == 0, result.output
-
-        build_dir = self.t / "abci_build"
-        docker_compose_file = build_dir / "docker-compose.yaml"
-        with open(docker_compose_file, "r", encoding="utf-8") as fp:
-            docker_compose = yaml.safe_load(fp)
-
-        for i in range(4):
-            assert (
-                docker_compose["services"][f"node{i}"]["image"]
-                == f"{TENDERMINT_IMAGE_NAME}:{version}"
-            )
-            assert (
-                docker_compose["services"][f"abci{i}"]["image"]
-                == f"{OPEN_AEA_IMAGE_NAME}:hello_world-{version}"
-            )
-
-    def test_versioning_kubernetes(
-        self,
-    ) -> None:
-        """Run tests."""
-
-        version = "1.0.0"
-        with mock.patch("os.chown"):
-            result = self.run_cli(
-                (
-                    str(self.keys_file),
-                    "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
-                    "--kubernetes",
-                    "--local",
-                    "--version",
-                    version,
-                )
-            )
-
-        assert result.exit_code == 0, result.output
-
-        build_dir = self.t / "abci_build"
-        kubernetes_config_file = build_dir / "build.yaml"
-        with open(kubernetes_config_file, "r", encoding="utf-8") as fp:
-            kubernetes_config = list(yaml.safe_load_all(fp))
-
-        for resource in kubernetes_config:
-            try:
-                resource["spec"]["template"]["spec"]["containers"][0]["image"]
-                resource["spec"]["template"]["spec"]["containers"][1]["image"]
-            except (KeyError, IndexError):
-                continue
-
-            assert (
-                resource["spec"]["template"]["spec"]["containers"][0]["image"]
-                == f"{TENDERMINT_IMAGE_NAME}:{version}"
-            )
-
-            assert (
-                resource["spec"]["template"]["spec"]["containers"][1]["image"]
-                == f"{OPEN_AEA_IMAGE_NAME}:hello_world-{version}"
-            )
 
     def test_docker_compose_no_password(
         self,

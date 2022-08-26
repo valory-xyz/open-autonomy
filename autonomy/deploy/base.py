@@ -32,7 +32,6 @@ from aea.configurations.base import (
 
 from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
-from autonomy.constants import TENDERMINT_IMAGE_VERSION
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     INFO,
@@ -134,7 +133,7 @@ class ServiceSpecification:
         """Retrieve vars common for valory apps."""
         agent_vars = {
             "ID": agent_n,
-            "VALORY_APPLICATION": self.service.agent,
+            "AEA_AGENT": self.service.agent,
             "ABCI_HOST": ABCI_HOST.format(agent_n),
             "MAX_PARTICIPANTS": self.service.number_of_agents,
             "TENDERMINT_URL": TENDERMINT_NODE.format(agent_n),
@@ -200,13 +199,11 @@ class BaseDeploymentGenerator:
         )
 
     @abc.abstractmethod
-    def generate(self, image_versions: Dict[str, str]) -> "BaseDeploymentGenerator":
+    def generate(self) -> "BaseDeploymentGenerator":
         """Generate the deployment configuration."""
 
     @abc.abstractmethod
-    def generate_config_tendermint(
-        self, image_version: str = TENDERMINT_IMAGE_VERSION
-    ) -> "BaseDeploymentGenerator":
+    def generate_config_tendermint(self) -> "BaseDeploymentGenerator":
         """Generate the deployment configuration."""
 
     @abc.abstractmethod
