@@ -156,7 +156,7 @@ class PackageHashManager:
                 )
                 return None
             m = m_command or m_package
-            d = m.groupdict()
+            d = m.groupdict()  # type: ignore
 
             # Underspecified commands that only use the hash
             # In this case we cannot infer the package type, just check whether or not the hash exists in hashes.csv
@@ -217,7 +217,9 @@ class PackageHashManager:
             return None
 
 
-def check_ipfs_hashes(fix: bool = False) -> None:  # pylint: disable=too-many-locals
+def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
+    fix: bool = False,
+) -> None:
     """Fix ipfs hashes in the docs"""
 
     all_md_files = Path("docs").rglob("*.md")

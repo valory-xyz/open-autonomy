@@ -48,7 +48,7 @@ def test_package_regex() -> None:
 
     lines = [
         "valory/abstract_round_abci:0.1.0:bafybeibmwz5b7khd2efbegr7djknjdtwfrm6ufmsyiyhoxwz6r6p5cljv4",
-        "open_aea/signing:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm"
+        "open_aea/signing:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm",
     ]
 
     for line in lines:
