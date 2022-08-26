@@ -99,10 +99,7 @@ The build configuration will be located in `./abci_build`. Run the deployment us
     autonomy deploy run
     ```
 This will deploy a local price oracle agent service with four agents connected to four [Tendermint](https://tendermint.com/) nodes.
-    ```bash
-    cd abci_build
-    docker-compose up --force-recreate
-    ```
+
 8. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
     ```bash
     docker logs <container_id> --follow
