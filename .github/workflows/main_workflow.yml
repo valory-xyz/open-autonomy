@@ -10,10 +10,6 @@ on:
 jobs:
   test:
     continue-on-error: True
-    needs:
-      - lock_check
-      - copyright_doc_and_pipfile_check
-      - linter_checks
     runs-on: ${{ matrix.os }}
 
     strategy:
