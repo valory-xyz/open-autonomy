@@ -101,7 +101,7 @@ type: connection
 config:
   ledger_apis:
     ethereum:
-      address: https://goerli.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8
+      address: https://goerli.infura.io/v3/REPLACE_WITH_API_KEY
       chain_id: 5
       poa_chain: true
       default_gas_price_strategy: eip1559
