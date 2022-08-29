@@ -117,7 +117,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 ]
             ),
         )
-        entrypoint = TENDERMINT_CONFIG_TEMPLATE.format(
+        self.tendermint_job_config = TENDERMINT_CONFIG_TEMPLATE.format(
             validators=self.service_spec.service.number_of_agents, hosts=hosts
         )
         client = from_env()
@@ -126,7 +126,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         run_log = client.containers.run(
             image=image,
             volumes={f"{self.build_dir}/nodes": {"bind": "/tendermint", "mode": "z"}},
-            entrypoint=entrypoint,
+            entrypoint=self.tendermint_job_config,
         )
         print(run_log.decode())
 
