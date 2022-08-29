@@ -1399,6 +1399,78 @@ class EstimateBehaviour(APYEstimationBaseBehaviour):
 class BaseResetBehaviour(APYEstimationBaseBehaviour):
     """Reset behaviour."""
 
+    start_fresh = False
+
+    def _get_finalized_estimates(self) -> Optional[pd.DataFrame]:
+        """Fetch the finalized estimates from IPFS and log the result."""
+        # Load estimations.
+        estimations = self.get_from_ipfs(
+            self.synchronized_data.estimates_hash,
+            self.context.data_dir,
+            filename=f"estimations_period_{self.synchronized_data.period_count}.csv",
+            filetype=ExtendedSupportedFiletype.CSV,
+        )
+        if estimations is not None:
+            self.context.logger.info(f"Finalized estimates: {estimations.to_string()}.")
+        else:
+            self.context.logger.error(
+                "There was an error while trying to fetch and load the estimations from IPFS!"
+            )
+
+        return estimations
+
+    @staticmethod
+    def _pack_for_server(
+        period_count: int,
+        agent_address: str,
+        n_participants: int,
+        estimations: pd.DataFrame,
+        total_estimations: int,
+    ) -> bytes:
+        """Package server data for signing."""
+        return b"".join(
+            [
+                period_count.to_bytes(32, "big"),
+                str(agent_address).zfill(32).encode("utf-8"),
+                n_participants.to_bytes(32, "big"),
+                total_estimations.to_bytes(32, "big"),
+                # we cannot know the size of the estimations, since it depends on the number of pools
+                estimations.to_json().encode("utf-8"),
+            ]
+        )
+
+    def _send_to_server(self, estimations: pd.DataFrame) -> Generator:
+        """Send the estimations to the server."""
+        self.context.logger.info("Attempting broadcast...")
+
+        # Adding timestamp on server side when received. Period and agent_address are used as `primary key`.
+        data_for_server = {
+            "period_count": self.synchronized_data.period_count,
+            "agent_address": self.context.agent_address,
+            "n_participants": len(self.synchronized_data.participant_to_estimate),
+            "estimations": estimations,
+            "total_estimations": self.synchronized_data.n_estimations,
+        }
+
+        # pack data
+        package = self._pack_for_server(**data_for_server)
+        data_for_server["package"] = package.hex()
+
+        # get signature
+        signature = yield from self.get_signature(package, is_deprecated_mode=True)
+        data_for_server["signature"] = signature
+        self.context.logger.info(f"Package signature: {signature}")
+
+        message = str(data_for_server).encode("utf-8")
+        server_api_specs = self.context.server_api.get_spec()
+        raw_response = yield from self.get_http_response(
+            content=message,
+            **server_api_specs,
+        )
+
+        response = self.context.server_api.process_response(raw_response)
+        self.context.logger.info(f"Broadcast response: {response}")
+
     def async_act(self) -> Generator:
         """
         Do the action.
@@ -1411,42 +1483,25 @@ class BaseResetBehaviour(APYEstimationBaseBehaviour):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour (set done event).
         """
-        if (
-            self.behaviour_id == "cycle_reset"
-            and self.synchronized_data.is_most_voted_estimate_set
-        ):
-            # Load estimations.
-            estimations = self.get_from_ipfs(
-                self.synchronized_data.estimates_hash,
-                self.context.data_dir,
-                filename=f"estimations_period_{self.synchronized_data.period_count}.csv",
-                filetype=ExtendedSupportedFiletype.CSV,
-            )
-            if estimations is not None:
-                self.context.logger.info(
-                    f"Finalized estimates: {estimations.to_string()}. Resetting and pausing!"
-                )
-            else:
-                self.context.logger.error(
-                    "There was an error while trying to fetch and load the estimations from IPFS!"
-                )
-            self.context.logger.info(
-                f"Estimation will happen again in {self.params.observation_interval} seconds."
-            )
-            yield from self.sleep(self.params.observation_interval)
-            self.context.benchmark_tool.save()
-        elif (
-            self.behaviour_id == "cycle_reset"
-            and not self.synchronized_data.is_most_voted_estimate_set
-        ):
-            self.context.logger.info("Finalized estimate not available. Resetting!")
-        elif self.behaviour_id == "fresh_model_reset":
-            self.context.logger.info("Resetting to create a fresh forecasting model!")
-        else:  # pragma: nocover
-            raise RuntimeError(
-                f"BaseResetBehaviour not used correctly. Got {self.behaviour_id}. "
-                f"Allowed behaviour ids are `cycle_reset` and `fresh_model_reset`."
-            )
+        estimations = None
+        if self.synchronized_data.is_most_voted_estimate_set:
+            estimations = self._get_finalized_estimates()
+        else:
+            self.context.logger.error("Finalized estimates not available!")
+
+        if self.params.is_broadcasting_to_server and estimations is not None:
+            yield from self._send_to_server(estimations)
+
+        log_msg = (
+            "Resetting to create a fresh forecasting model"
+            if self.start_fresh
+            else "Estimation will happen again"
+        )
+        log_msg += f" in {self.params.observation_interval} seconds."
+        self.context.logger.info(log_msg)
+
+        yield from self.sleep(self.params.observation_interval)
+        self.context.benchmark_tool.save()
 
         payload = ResetPayload(
             self.context.agent_address, self.synchronized_data.period_count
@@ -1463,6 +1518,7 @@ class FreshModelResetBehaviour(  # pylint: disable=too-many-ancestors
 
     matching_round = FreshModelResetRound
     behaviour_id = "fresh_model_reset"
+    start_fresh = True
 
 
 class CycleResetBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-ancestors
