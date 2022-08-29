@@ -20,7 +20,7 @@
 """This module contains the rounds for the APY estimation ABCI application."""
 from abc import ABC
 from enum import Enum
-from typing import Dict, Optional, Set, Tuple, Type, cast
+from typing import Dict, Mapping, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -137,6 +137,14 @@ class SynchronizedData(BaseSynchronizedData):
     def n_estimations(self) -> int:
         """Get the n_estimations."""
         return cast(int, self.db.get("n_estimations", 0))
+
+    @property
+    def participant_to_estimate(self) -> Mapping[str, EstimatePayload]:
+        """Get the `participant_to_estimate`."""
+        return cast(
+            Mapping[str, EstimatePayload],
+            self.db.get_strict("participant_to_estimate"),
+        )
 
 
 class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
