@@ -70,11 +70,14 @@ class ServiceSpecification:
         private_keys_password: Optional[str] = None,
         agent_instances: Optional[List[str]] = None,
         log_level: str = INFO,
+        substitute_env_vars: bool = False,
     ) -> None:
         """Initialize the Base Deployment."""
         self.keys: List = []
         self.private_keys_password = private_keys_password
-        self.service = load_service_config(service_path)
+        self.service = load_service_config(
+            service_path, substitute_env_vars=substitute_env_vars
+        )
         self.log_level = log_level
 
         # we allow configurable number of agents independent of the

@@ -78,6 +78,16 @@ def build_image(agent: PublicId, pull: bool = False, dev: bool = False) -> None:
     )
 
     for stream_obj in stream:
-        stream_data = json.loads(stream_obj.decode())
-        if "stream" in stream_data:
-            print("[docker]" + stream_data["stream"], end="")
+        for line in stream_obj.decode().split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+            stream_data = json.loads(line)
+            if "stream" in stream_data:
+                print("[docker]" + stream_data["stream"], end="")
+            elif "errorDetail" in stream_data:
+                print("[error]" + stream_data["errorDetail"]["message"], end="")
+            elif "aux" in stream_data:
+                print("[docker]" + stream_data["aux"]["ID"])
+            elif "status" in stream_data:
+                print("[docker]" + stream_data["status"])
