@@ -294,7 +294,7 @@ class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
 
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
-                participants_to_randomness=self.collection,
+                participant_to_randomness=self.collection,
                 most_voted_randomness=filtered_randomness,
             )
             return synchronized_data, Event.DONE
@@ -336,7 +336,7 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
             update_params = dict(
                 synchronized_data_class=SynchronizedData,
-                participants_to_training=self.collection,
+                participant_to_training=self.collection,
                 most_voted_models=self.most_voted_payload,
             )
 
@@ -401,7 +401,7 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
-                participants_to_estimate=self.collection,
+                participant_to_estimate=self.collection,
                 n_estimations=cast(
                     SynchronizedData, self.synchronized_data
                 ).n_estimations
