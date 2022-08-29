@@ -402,7 +402,7 @@ class ABCIHandler(Handler):
             performative=AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK,
             target_message=message,
             result=Result(ResultType.REJECT),
-            refetch_chunks=[],
-            reject_senders=[],
+            refetch_chunks=tuple(),
+            reject_senders=tuple(),
         )
         return cast(AbciMessage, reply)
