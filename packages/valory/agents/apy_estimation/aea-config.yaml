@@ -80,6 +80,7 @@ models:
       log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
   params:
     args:
+      broadcast_to_server: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_BROADCAST_TO_SERVER:bool:false}
       consensus:
         max_participants: ${MAX_PARTICIPANTS:int:4}
       tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}

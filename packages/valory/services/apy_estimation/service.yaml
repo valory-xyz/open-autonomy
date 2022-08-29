@@ -15,6 +15,7 @@ type: skill
 models:
   params:
     args:
+      broadcast_to_server: true
       pair_ids:
       - - uniswap_subgraph
         - - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
