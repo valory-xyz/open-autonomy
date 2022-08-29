@@ -47,7 +47,7 @@ def get_test_files(package_type: PackageType) -> List[Path]:
 
 def test_version() -> None:
     """Test the version."""
-    assert autonomy.__version__ == "0.2.1"
+    assert autonomy.__version__ == "0.2.1.post1"
 
 
 @pytest.mark.parametrize(
