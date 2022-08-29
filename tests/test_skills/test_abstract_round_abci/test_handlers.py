@@ -64,9 +64,6 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 )
 
 
-ABCI_VERSION = "0.17.0"
-
-
 def test_exception_to_info_msg() -> None:
     """Test 'exception_to_info_msg' helper function."""
     exception = Exception("exception message")
@@ -94,7 +91,6 @@ class TestABCIRoundHandler:
             version="",
             block_version=0,
             p2p_version=0,
-            abci_version=ABCI_VERSION,
         )
         response = self.handler.info(
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
