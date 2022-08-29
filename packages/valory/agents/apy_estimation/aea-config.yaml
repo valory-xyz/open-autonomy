@@ -77,7 +77,7 @@ type: skill
 models:
   benchmark_tool:
     args:
-      log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+      log_dir: ${SKILL_APY_ESTIMATION_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
   params:
     args:
       broadcast_to_server: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_BROADCAST_TO_SERVER:bool:false}
