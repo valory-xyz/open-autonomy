@@ -4,7 +4,7 @@
 # 0.2.1.post1 (2022-08-29)
 
 Autonomy:
-- Fix stream logging for docker SDK interations
+- Fix stream logging for docker SDK interactions
 - Use docker SDK to build tendermint testnet config
 
 # 0.2.1 (2022-08-26)
