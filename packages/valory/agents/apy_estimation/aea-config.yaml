@@ -25,8 +25,8 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeiam52ztcss46i3tgywuv4qmvddqgn7exmbt5kcicqpyip4kfeyap4
 - valory/abstract_round_abci:0.1.0:bafybeiden6eoznsyz5wp4nla5tj6hv74ufjiyzdp62sfic47g4prjsblny
-- valory/apy_estimation_abci:0.1.0:bafybeih4cm6vdklkttvnw6ldnt3ja3apu7zwdrnedkdqqvvhr66ncwuxhm
-- valory/apy_estimation_chained_abci:0.1.0:bafybeifk37gyycvb76jz2khig6shbt6vjw5z2owua6kg5crbyrcx3mra5q
+- valory/apy_estimation_abci:0.1.0:bafybeieyloeuyzfwa6p5dktgp4eek7fcq5dfomgev2jpwg2ias3tcyga2m
+- valory/apy_estimation_chained_abci:0.1.0:bafybeid2vpzhzr6djmzhyq4rbdrov6x3ova3gwjchlfuag527qjexweedy
 - valory/registration_abci:0.1.0:bafybeidn5zrn44hbciztbkkhndscc4h3ni5l5b67vgvyx4ptnfemkxokee
 default_ledger: ethereum
 required_ledgers:
@@ -77,9 +77,10 @@ type: skill
 models:
   benchmark_tool:
     args:
-      log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+      log_dir: ${SKILL_APY_ESTIMATION_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
   params:
     args:
+      broadcast_to_server: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_BROADCAST_TO_SERVER:bool:false}
       consensus:
         max_participants: ${MAX_PARTICIPANTS:int:4}
       tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
