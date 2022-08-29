@@ -1369,6 +1369,7 @@ class EstimateBehaviour(APYEstimationBaseBehaviour):
 
             # Get the estimates.
             estimates = self._async_result.get()
+            estimates = estimates.round(self.params.decimals)
             self.context.logger.info(
                 "Estimates have been received:\n" f"{estimates.to_string()}"
             )
