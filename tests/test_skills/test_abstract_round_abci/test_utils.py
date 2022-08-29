@@ -29,7 +29,11 @@ try:
 except (ImportError, ModuleNotFoundError):
     pytestmark = pytest.mark.skip
 
-from packages.valory.skills.abstract_round_abci.utils import MAX_UINT64, VerifyDrand
+from packages.valory.skills.abstract_round_abci.utils import (
+    MAX_UINT64,
+    VerifyDrand,
+    to_int,
+)
 
 
 DRAND_PUBLIC_KEY: str = "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31"
@@ -127,4 +131,28 @@ def test_fuzz_verify_drand() -> None:
 
     atheris.instrument_all()
     atheris.Setup(sys.argv, test_verify_int_to_bytes_big)
+    atheris.Fuzz()
+
+
+def test_to_int_positive() -> None:
+    """Test `to_int` function."""
+    assert to_int(0.542, 5) == 54200
+    assert to_int(0.542, 2) == 54
+    assert to_int(542, 2) == 54200
+
+
+@pytest.mark.skip
+def test_fuzz_to_int() -> None:
+    """Test fuzz to_int."""
+
+    @atheris.instrument_func
+    def fuzz_to_int(input_bytes: bytes) -> None:
+        """Fuzz to_int."""
+        fdp = atheris.FuzzedDataProvider(input_bytes)
+        estimate = fdp.ConsumeFloat()
+        decimals = fdp.ConsumeInt(4)
+        to_int(estimate, decimals)
+
+    atheris.instrument_all()
+    atheris.Setup(sys.argv, fuzz_to_int)
     atheris.Fuzz()
