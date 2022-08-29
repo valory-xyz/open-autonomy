@@ -76,6 +76,7 @@ base_deps = [
     "pytest==7.0.0",
     "open-aea-ledger-ethereum==1.17.0",
     "docker-compose==1.29.2",
+    "werkzeug==2.0.3",
     _get_docker_dependency(),
 ]
 base_deps.extend(all_extras["cli"])

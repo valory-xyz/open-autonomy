@@ -20,10 +20,7 @@
 """Deployment Templates."""
 
 
-TENDERMINT_CONFIG_TEMPLATE: str = """docker run --rm -v {build_dir}/nodes:/tendermint:Z \
---entrypoint=/usr/bin/tendermint \
-{tendermint_image_name}:{tendermint_image_version}  \
-    testnet \
+TENDERMINT_CONFIG_TEMPLATE: str = """/usr/bin/tendermint testnet \
         --config /etc/tendermint/config-template.toml \
         --v {validators} \
         --o . \
