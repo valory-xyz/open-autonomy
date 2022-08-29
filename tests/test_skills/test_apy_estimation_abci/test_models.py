@@ -73,6 +73,7 @@ class APYParamsKwargsType(TypedDict):
     keeper_timeout: float
     cleanup_history_depth: int
     backwards_compatible: bool
+    decimals: int
 
 
 APY_PARAMS_ARGS: APYParamsArgsType = ("test", MagicMock())
@@ -102,6 +103,7 @@ APY_PARAMS_KWARGS = APYParamsKwargsType(
     keeper_timeout=30.0,
     cleanup_history_depth=0,
     backwards_compatible=False,
+    decimals=5,
 )
 
 

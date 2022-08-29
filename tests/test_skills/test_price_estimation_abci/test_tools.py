@@ -24,7 +24,6 @@ import sys
 import pytest
 
 from packages.valory.skills.abstract_round_abci.common import random_selection
-from packages.valory.skills.price_estimation_abci.behaviours import to_int
 
 
 try:
@@ -44,30 +43,6 @@ def test_random_selection_function_raises(value: int) -> None:
     """Test `random_selection` function."""
     with pytest.raises(ValueError):
         random_selection(["hello", "world", "!"], value)
-
-
-def test_to_int_positive() -> None:
-    """Test `to_int` function."""
-    assert to_int(0.542, 5) == 54200
-    assert to_int(0.542, 2) == 54
-    assert to_int(542, 2) == 54200
-
-
-@pytest.mark.skip
-def test_fuzz_to_int() -> None:
-    """Test fuzz to_int."""
-
-    @atheris.instrument_func
-    def fuzz_to_int(input_bytes: bytes) -> None:
-        """Fuzz to_int."""
-        fdp = atheris.FuzzedDataProvider(input_bytes)
-        estimate = fdp.ConsumeFloat()
-        decimals = fdp.ConsumeInt(4)
-        to_int(estimate, decimals)
-
-    atheris.instrument_all()
-    atheris.Setup(sys.argv, fuzz_to_int)
-    atheris.Fuzz()
 
 
 @pytest.mark.skip
