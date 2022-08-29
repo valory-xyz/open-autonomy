@@ -127,6 +127,12 @@ def deploy_group(
     type=click.Path(),
     help="Path to open-autonomy repo (Use with dev mode)",
 )
+@click.option(
+    "--aev",
+    is_flag=True,
+    default=False,
+    help="Apply environment variable when loading service config.",
+)
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @click.pass_context
@@ -144,6 +150,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     packages_dir: Optional[Path] = None,
     open_autonomy_dir: Optional[Path] = None,
     log_level: str = INFO,
+    aev: bool = False,
 ) -> None:
     """Build deployment setup for n agents."""
 
@@ -171,6 +178,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             open_aea_dir,
             open_autonomy_dir,
             log_level=log_level,
+            substitute_env_vars=aev,
         )
     except Exception as e:  # pylint: disable=broad-except
         shutil.rmtree(build_dir)
@@ -212,6 +220,12 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
 )
 @click.option("--n", type=int, help="Number of agents to include in the build.")
 @click.option("--skip-image", is_flag=True, default=False, help="Skip building images.")
+@click.option(
+    "--aev",
+    is_flag=True,
+    default=False,
+    help="Apply environment variable when loading service config.",
+)
 @chain_selection_flag()
 @click.pass_context
 def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-locals
@@ -223,6 +237,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     service_contract_address: Optional[str],
     skip_image: bool,
     n: Optional[int],
+    aev: bool = False,
 ) -> None:
     """Run service deployment."""
 
@@ -243,7 +258,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     build_dir = service_path / DEFAULT_ABCI_BUILD_DIR
 
     update_multisig_address(service_path, multisig_address)
-    service = load_service_config(service_path)
+    service = load_service_config(service_path, substitute_env_vars=aev)
 
     with cd(service_path):
         if not skip_image:
@@ -258,6 +273,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
             force_overwrite=True,
             number_of_agents=n,
             agent_instances=agent_instances,
+            substitute_env_vars=aev,
         )
 
     click.echo("Service build successful.")
@@ -295,6 +311,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
     open_autonomy_dir: Optional[Path] = None,
     agent_instances: Optional[List[str]] = None,
     log_level: str = INFO,
+    substitute_env_vars: bool = False,
 ) -> None:
     """Build deployment."""
     if build_dir.is_dir():
@@ -319,6 +336,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
         open_autonomy_dir=open_autonomy_dir,
         agent_instances=agent_instances,
         log_level=log_level,
+        substitute_env_vars=substitute_env_vars,
     )
     click.echo(report)
 
