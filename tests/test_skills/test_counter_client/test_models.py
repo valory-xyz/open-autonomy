@@ -20,7 +20,6 @@
 """Test the models.py module of the skill."""
 from unittest.mock import MagicMock
 
-# TOFIX - wrong dep
 from packages.valory.skills.counter_client.models import Params, State
 
 

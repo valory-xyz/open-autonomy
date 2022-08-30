@@ -64,8 +64,6 @@ from packages.valory.skills.liquidity_rebalancing_abci.test_tools.integration im
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
-
-# TOFIX - perhaps ok, needs checking
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TransactionSettlementSynchronizedSata,
 )

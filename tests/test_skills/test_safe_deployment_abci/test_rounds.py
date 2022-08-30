@@ -23,13 +23,12 @@ import logging  # noqa: F401
 from typing import Dict, FrozenSet, Optional
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB, MAX_INT_256
-
-# TOFIX - dep not allowed
-from packages.valory.skills.oracle_deployment_abci.payloads import (
+from packages.valory.skills.safe_deployment_abci.payloads import (
+    DeploySafePayload,
     RandomnessPayload,
     SelectKeeperPayload,
+    ValidatePayload,
 )
-from packages.valory.skills.safe_deployment_abci.payloads import DeploySafePayload
 from packages.valory.skills.safe_deployment_abci.rounds import DeploySafeRound
 from packages.valory.skills.safe_deployment_abci.rounds import (
     Event as SafeDeploymentEvent,
@@ -39,9 +38,6 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
     SynchronizedData as SafeDeploymentSynchronizedSata,
 )
 from packages.valory.skills.safe_deployment_abci.rounds import ValidateSafeRound
-
-# TOFIX - dep not allowed
-from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 
 # TOFIX - dep not allowed
 from tests.test_skills.test_oracle_deployment_abci.test_rounds import (
@@ -127,7 +123,7 @@ class TestValidateSafeRound(BaseValidateRoundTest):
     """Test ValidateSafeRound."""
 
     test_class = ValidateSafeRound
-    test_payload = ValidatePayload
+    test_payload = ValidatePayload  # type: ignore
     _event_class = SafeDeploymentEvent
     _synchronized_data_class = SafeDeploymentSynchronizedSata
 

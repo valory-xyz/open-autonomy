@@ -32,6 +32,12 @@ setup(
     packages=find_packages(
         where=".", include=["aea_test_autonomy", "aea_test_autonomy.*"]
     ),
+    package_data={
+        "aea_test_autonomy": [
+            "py.typed",
+            "data/*",
+        ]
+    },
     entry_points={},
     install_requires=["open-aea>=1.0.0, <2.0.0"],
     classifiers=[

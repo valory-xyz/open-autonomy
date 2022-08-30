@@ -28,36 +28,6 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     TransactionType as PETransactionType,
 )
 
-# TOFIX - not allowed
-from packages.valory.skills.safe_deployment_abci.payloads import (
-    DeploySafePayload,
-    RandomnessPayload,
-    SelectKeeperPayload,
-)
-from packages.valory.skills.safe_deployment_abci.payloads import (
-    TransactionType as DSTransactionType,
-)
-
-
-def test_select_keeper_payload() -> None:
-    """Test `SelectKeeperPayload`."""
-
-    payload = SelectKeeperPayload(sender="sender", keeper="keeper")
-
-    assert payload.keeper == "keeper"
-    assert payload.data == {"keeper": "keeper"}
-    assert payload.transaction_type == DSTransactionType.SELECT_KEEPER
-
-
-def test_deploy_safe_payload() -> None:
-    """Test `DeploySafePayload`."""
-
-    payload = DeploySafePayload(sender="sender", safe_contract_address="address")
-
-    assert payload.safe_contract_address == "address"
-    assert payload.data == {"safe_contract_address": "address"}
-    assert payload.transaction_type == DSTransactionType.DEPLOY_SAFE
-
 
 def test_observation_payload() -> None:
     """Test `ObservationPayload`."""
@@ -87,16 +57,3 @@ def test_transaction_hash_payload() -> None:
     assert payload.tx_hash == "hash"
     assert payload.data == {"tx_hash": "hash"}
     assert payload.transaction_type == PETransactionType.TX_HASH
-
-
-def test_randomness_payload() -> None:
-    """Test `RandomnessPayload`"""
-
-    payload = RandomnessPayload(sender="sender", round_id=1, randomness="1", id_="id")
-
-    assert payload.round_id == 1
-    assert payload.randomness == "1"
-    assert payload.id_ == "id"
-    assert payload.data == {"round_id": 1, "randomness": "1"}
-
-    assert payload.transaction_type == DSTransactionType.RANDOMNESS
