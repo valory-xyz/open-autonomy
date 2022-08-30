@@ -152,10 +152,10 @@ class _TendermintABCISerializer:
         """Encode a number in varint coding."""
 
         if not 0 <= number < 1 << 64:
-            log_msg = f"expecting uint64 from Protobuf"
+            log_msg = "Expecting uint64 from Protobuf"
             raise EncodeVarintError(f"{log_msg}: {number}")
 
-        number <<= 1 # Shift to int64
+        number <<= 1  # Shift to int64
         buf = b""
         while True:
             towrite = number & 0x7F
