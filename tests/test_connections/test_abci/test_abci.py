@@ -55,6 +55,7 @@ from packages.valory.connections.abci.connection import (
     DEFAULT_ABCI_PORT,
     DEFAULT_LISTEN_ADDRESS,
     DecodeVarintError,
+    EncodeVarintError,
     ShortBufferLengthError,
     TooLargeVarint,
     VarintMessageReader,
@@ -352,11 +353,12 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, UseTendermint, AB
 
     def health_check(self) -> bool:
         """Do a health-check."""
+        end_point = self.tendermint_url() + "/health"
         try:
-            result = requests.get(self.tendermint_url() + "/health").status_code == 200
+            result = requests.get(end_point).status_code == 200
         except requests.exceptions.ConnectionError:
             result = False
-        logging.debug(f"Health-check result: {result}")
+        logging.debug(f"Health-check result {end_point}: {result}")
         return result
 
     def tendermint_url(self) -> str:
@@ -494,13 +496,16 @@ def test_ensure_connected_raises_connection_error() -> None:
 
 
 def test_encode_varint_method() -> None:
-    """Test encode_varint method for _TendermintABCISerializer"""
-    assert _TendermintABCISerializer.encode_varint(10) == b"\x14"
-    assert _TendermintABCISerializer.encode_varint(70) == b"\x8c\x01"
-    assert _TendermintABCISerializer.encode_varint(130) == b"\x84\x02"
+    """Test encode_varint (uint64 Protobuf) method"""
+    hard_zero_encoded = b"\x00"
+    max_uint32_encoded = b"\xfe\xff\xff\xff\x1f"
+    max_uint64_encoded = b"\xfe\xff\xff\xff\xff\xff\xff\xff\xff\x03"
+    assert _TendermintABCISerializer.encode_varint(0) == hard_zero_encoded
+    assert _TendermintABCISerializer.encode_varint((1 << 32) - 1) == max_uint32_encoded
+    assert _TendermintABCISerializer.encode_varint((1 << 64) - 1) == max_uint64_encoded
 
 
-@given(integers(min_value=0, max_value=2 ** 32))
+@given(integers(min_value=0, max_value=(1 << 64) - 1))
 @pytest.mark.asyncio
 async def test_encode_decode_varint(value: int) -> None:
     """Test that encoding and decoding works."""
@@ -511,6 +516,15 @@ async def test_encode_decode_varint(value: int) -> None:
     decoder = _TendermintABCISerializer.decode_varint
     decoded_value = await decoder(reader)
     assert decoded_value == value
+
+
+@pytest.mark.parametrize("value", [-1, 1 << 64])
+@pytest.mark.asyncio
+async def test_encoding_raises(value: int) -> None:
+    """Test encoding raises"""
+    encoder = _TendermintABCISerializer.encode_varint
+    with pytest.raises(EncodeVarintError):
+        encoder(value)
 
 
 @pytest.mark.asyncio
