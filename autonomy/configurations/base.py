@@ -26,12 +26,9 @@ from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, cast
 
 from aea import AEA_DIR
 from aea.configurations import validation
-from aea.configurations.base import (
-    ComponentConfiguration,
-    ComponentId,
-    ConnectionConfig,
-    ContractConfig,
-)
+from aea.configurations.base import ComponentConfiguration, ComponentId
+from aea.configurations.base import ConnectionConfig as BaseConnectionConfig
+from aea.configurations.base import ContractConfig
 from aea.configurations.base import (
     PACKAGE_TYPE_TO_CONFIG_CLASS as _PACKAGE_TYPE_TO_CONFIG_CLASS,
 )
@@ -42,6 +39,19 @@ from aea.helpers.base import SimpleIdOrStr, cd
 
 from autonomy.configurations.constants import DEFAULT_SERVICE_FILE, SCHEMAS_DIR
 from autonomy.configurations.validation import ConfigValidator
+
+
+class ConnectionConfig(BaseConnectionConfig):
+    """Connection config."""
+
+    FIELDS_WITH_NESTED_FIELDS: FrozenSet[str] = frozenset(
+        [
+            "config",
+        ]
+    )
+    NESTED_FIELDS_ALLOWED_TO_UPDATE: FrozenSet[str] = frozenset(
+        ["ledger_apis", "ethereum"]
+    )
 
 
 COMPONENT_CONFIGS: Dict = {
@@ -298,7 +308,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                 overrides = self.try_to_process_singular_override(
                     component_id, config_class, configuration
                 )
-            except ValueError:
+            except (ValueError, AttributeError):
                 overrides = self.try_to_process_nested_fields(
                     component_id,
                     component_index,
@@ -370,7 +380,9 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                             nested_override_key
                             not in config_class.NESTED_FIELDS_ALLOWED_TO_UPDATE  # type: ignore
                         ):
-                            raise ValueError("Trying to override non-nested field.")
+                            raise ValueError(
+                                f"Trying to override non-nested field. Allowed fields: {config_class.NESTED_FIELDS_ALLOWED_TO_UPDATE}; Field trying to update: {nested_override_key}"
+                            )
 
                         env_var_name = "_".join(
                             [
@@ -391,4 +403,5 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
 PACKAGE_TYPE_TO_CONFIG_CLASS = {
     **_PACKAGE_TYPE_TO_CONFIG_CLASS,
     PackageType.SERVICE: Service,
+    PackageType.CONNECTION: ConnectionConfig,
 }
