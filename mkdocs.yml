@@ -6,7 +6,9 @@ site_author: developer@valory.xyz
 edit_uri: edit/main/docs/
 
 theme:
-   name: 'material'
+  name: 'material'
+  features:
+    - navigation.top   
 
 extra_css:
   - stylesheets/extra.css
