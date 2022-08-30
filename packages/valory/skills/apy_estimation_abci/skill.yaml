@@ -19,7 +19,7 @@ fingerprint:
   ml/forecasting.py: bafybeib54a6dzcjlilbkzcpgwrycbkjlrmzox33tas547r2v5hja2qm52m
   ml/optimization.py: bafybeicyfabutvdyfvv2u3b6sdxfr4c5f7vvgvba4snovy5atx3zuj3nha
   ml/preprocessing.py: bafybeieha65b5cslcyyjobjupebyqovod7aigohdidcawz5b6tlxqxpruq
-  models.py: bafybeidilp5yyctvr4suadjnqskblu6p4z3hjea4dy5vvw3m7gsqrnjwq4
+  models.py: bafybeiafwaspbauznmlwivlycaahjficsycidimjb3722kjbiedqvzx4vy
   payloads.py: bafybeifsicq32ennlitfulqueposyxyk2om2jn5t3pxavwjix4t4shjtdi
   rounds.py: bafybeibaajmnddve5opvq6ijre2ssuxvutreqjqhr7wlqp44ztugo3f3hm
   tasks.py: bafybeihudp5vyhelqnl5eqakjpvuekaoamtbrghss4k2yysvkczspjbbia
@@ -34,7 +34,7 @@ contracts: []
 protocols:
 - valory/http:1.0.0:bafybeienmids6f5pcey2bnywmiup2faawqgmdhhz65qfciuhkntugztvpi
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiarskqygja5pdzccjtxt2w4xo6fpcwb7ux6r6ryzubr5k2ihlxjvi
+- valory/abstract_round_abci:0.1.0:bafybeigeit44ndvhknibyx555lei6t2gspfehmuwe3p2btztzer5puoesq
 behaviours:
   main:
     args: {}
@@ -101,10 +101,12 @@ models:
     class_name: LedgerApiDialogues
   params:
     args:
+      broadcast_to_server: false
       cleanup_history_depth: 1
       cleanup_history_depth_current: null
       consensus:
         max_participants: 1
+      decimals: 5
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       estimation:
         steps_forward: 1
@@ -160,6 +162,18 @@ models:
   requests:
     args: {}
     class_name: Requests
+  server_api:
+    args:
+      api_id: oracle_server
+      headers:
+      - Content-Type: application/json
+      method: POST
+      parameters: null
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: http://192.168.2.17:9999/estimates
+    class_name: ServerApi
   signing_dialogues:
     args: {}
     class_name: SigningDialogues
