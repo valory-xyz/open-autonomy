@@ -28,6 +28,7 @@ from aea.protocols.generator.common import (
     _get_sub_types_of_compositional_types,
 )
 
+# TOFIX - deps not allowed -> move file to connection
 from packages.valory.connections import abci as tendermint_abci
 
 from tests.test_protocols.test_abci.helper import (

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,29 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test the models.py module of the skill."""
-from unittest.mock import MagicMock
-
-# TOFIX - wrong dep
-from packages.valory.skills.counter_client.models import Params, State
-
-
-class TestParams:
-    """Test Params(Model) class."""
-
-    def test_initialization(
-        self,
-    ) -> None:
-        """Test initialization."""
-        params = Params(name="params", skill_context=MagicMock(), tendermint_url="")
-        assert params.tendermint_url == ""
-
-
-class TestState:
-    """Test State(Model) class."""
-
-    def test_initialization(
-        self,
-    ) -> None:
-        """Test initialization."""
-        State(name="state", skill_context=MagicMock(), tendermint_url="")
+"""Tests for aea-test-autonomy plugin."""

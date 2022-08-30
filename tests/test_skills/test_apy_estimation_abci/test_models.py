@@ -24,8 +24,7 @@ from typing import Any, Dict, List, Tuple, Type, Union
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-from autonomy.test_tools.helpers.base import identity
+from aea_test_autonomy.helpers.base import identity
 
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.apy_estimation_abci.models import (

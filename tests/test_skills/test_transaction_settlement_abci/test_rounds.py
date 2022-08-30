@@ -34,6 +34,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     MAX_INT_256,
     TransactionNotValidError,
 )
+
+# TOFIX - deps not allowed
 from packages.valory.skills.oracle_deployment_abci.payloads import RandomnessPayload
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
@@ -76,6 +78,8 @@ from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectSameUntilThresholdRoundTest,
     BaseOnlyKeeperSendsRoundTest,
 )
+
+# TOFIX - deps not allowed
 from tests.test_skills.test_oracle_deployment_abci.test_rounds import (
     BaseSelectKeeperRoundTest,
     BaseValidateRoundTest,

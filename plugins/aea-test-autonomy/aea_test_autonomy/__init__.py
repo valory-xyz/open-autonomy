@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Package that contains tools for easier writing of autonomy tests."""
+"""The aea-test-autonomy plugin."""

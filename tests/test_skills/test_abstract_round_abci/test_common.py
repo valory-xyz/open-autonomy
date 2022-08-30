@@ -324,6 +324,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         assert self.behaviour.context.randomness_api._retries_attempted == 0
 
 
+# TOFIX: depends on transaction_settlement_abci, so should not be here in this form
 class BaseSelectKeeperBehaviourTest(CommonBaseCase):
     """Test SelectKeeperBehaviour."""
 

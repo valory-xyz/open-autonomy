@@ -21,8 +21,7 @@
 
 import pytest
 from aea.exceptions import AEAEnforceError
-
-from autonomy.test_tools.helpers.base import make_round_class
+from aea_test_autonomy.helpers.base import make_round_class
 
 from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,

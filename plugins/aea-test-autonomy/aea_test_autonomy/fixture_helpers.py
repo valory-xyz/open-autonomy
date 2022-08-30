@@ -31,30 +31,25 @@ from typing import Any, Dict, List, Tuple, cast
 
 import docker
 import pytest
-from eth_account import Account
-
-from autonomy.test_tools.configurations import (
-    GANACHE_CONFIGURATION,
-    KEY_PAIRS,
-    LOCALHOST,
-)
-from autonomy.test_tools.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
-from autonomy.test_tools.docker.amm_net import AMMNetDockerImage
-from autonomy.test_tools.docker.base import DockerBaseTest, DockerImage
-from autonomy.test_tools.docker.ganache import (
+from aea_test_autonomy.configurations import GANACHE_CONFIGURATION, KEY_PAIRS, LOCALHOST
+from aea_test_autonomy.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
+from aea_test_autonomy.docker.amm_net import AMMNetDockerImage
+from aea_test_autonomy.docker.base import DockerBaseTest, DockerImage
+from aea_test_autonomy.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_PORT,
     GanacheDockerImage,
 )
-from autonomy.test_tools.docker.gnosis_safe_net import (
+from aea_test_autonomy.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_ADDR,
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
-from autonomy.test_tools.docker.tendermint import (
+from aea_test_autonomy.docker.tendermint import (
     FlaskTendermintDockerImage,
     TendermintDockerImage,
 )
+from eth_account import Account
 
 
 logger = logging.getLogger(__name__)

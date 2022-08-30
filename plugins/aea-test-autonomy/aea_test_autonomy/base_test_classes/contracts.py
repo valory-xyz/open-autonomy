@@ -36,13 +36,12 @@ from aea_ledger_ethereum import (
     DEFAULT_GAS_STATION_STRATEGY,
     EthereumCrypto,
 )
-
-from autonomy.test_tools.fixture_helpers import (
+from aea_test_autonomy.fixture_helpers import (
     GanacheBaseTest,
     HardHatAMMBaseTest,
     HardHatGnosisBaseTest,
 )
-from autonomy.test_tools.helpers.contracts import get_register_contract
+from aea_test_autonomy.helpers.contracts import get_register_contract
 
 
 class BaseContractTest(ABC):

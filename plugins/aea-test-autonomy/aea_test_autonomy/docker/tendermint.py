@@ -27,12 +27,14 @@ from typing import Any, Dict, List
 
 import docker
 import pytest
+from aea_test_autonomy.configurations import (
+    TENDERMINT_IMAGE_NAME,
+    TENDERMINT_IMAGE_VERSION,
+)
+from aea_test_autonomy.docker.base import DockerImage
+from aea_test_autonomy.helpers.base import tendermint_health_check
 from docker.errors import ImageNotFound
 from docker.models.containers import Container
-
-from autonomy.constants import TENDERMINT_IMAGE_NAME, TENDERMINT_IMAGE_VERSION
-from autonomy.test_tools.docker.base import DockerImage
-from autonomy.test_tools.helpers.base import tendermint_health_check
 
 
 _TCP = "tcp://"
@@ -139,6 +141,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         try:
             self._client.images.get(self.tag)
         except ImageNotFound:
+            # TOFIX - remove.
             cwd = os.getcwd()
             current_file_folder = os.path.dirname(os.path.realpath(__file__))
             root = current_file_folder.split(os.path.sep)[:-3]

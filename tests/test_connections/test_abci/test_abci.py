@@ -38,17 +38,16 @@ from aea.identity.base import Identity
 from aea.mail.base import Envelope
 from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
-from hypothesis import given
-from hypothesis.strategies import integers
-
-from autonomy.test_tools.configurations import ANY_ADDRESS, HTTP_LOCALHOST
-from autonomy.test_tools.docker.base import skip_docker_tests
-from autonomy.test_tools.fixture_helpers import UseTendermint
-from autonomy.test_tools.helpers.async_utils import (
+from aea_test_autonomy.configurations import ANY_ADDRESS, HTTP_LOCALHOST
+from aea_test_autonomy.docker.base import skip_docker_tests
+from aea_test_autonomy.fixture_helpers import UseTendermint
+from aea_test_autonomy.helpers.async_utils import (
     AnotherThreadTask,
     BaseThreadedAsyncLoop,
     wait_for_condition,
 )
+from hypothesis import given
+from hypothesis.strategies import integers
 
 from packages.valory.connections.abci import check_dependencies as dep_utils
 from packages.valory.connections.abci.connection import (

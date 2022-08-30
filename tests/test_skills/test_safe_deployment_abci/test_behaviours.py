@@ -46,6 +46,8 @@ from tests.test_skills.test_abstract_round_abci.test_common import (
     BaseRandomnessBehaviourTest,
     BaseSelectKeeperBehaviourTest,
 )
+
+# TOFIX - dep not allowed
 from tests.test_skills.test_oracle_deployment_abci.test_behaviours import (
     BaseDeployBehaviourTest,
     BaseValidateBehaviourTest,

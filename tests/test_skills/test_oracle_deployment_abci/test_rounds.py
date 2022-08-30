@@ -47,10 +47,14 @@ from packages.valory.skills.oracle_deployment_abci.rounds import (
     SynchronizedData as OracleDeploymentSynchronizedSata,
 )
 from packages.valory.skills.oracle_deployment_abci.rounds import ValidateOracleRound
+
+# TOFIX - not allowed
 from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
     TransactionHashPayload,
 )
+
+# TOFIX - not allowed
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
 )

@@ -26,9 +26,8 @@ from unittest import mock
 
 import pytest
 from aea_ledger_ethereum import EthereumApi
+from aea_test_autonomy.docker.base import skip_docker_tests
 from web3.types import RPCEndpoint, Wei
-
-from autonomy.test_tools.docker.base import skip_docker_tests
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.open_aea.protocols.signing.custom_types import (
@@ -53,9 +52,13 @@ from packages.valory.skills.abstract_round_abci.test_tools.integration import (
     HandlersType,
     IntegrationBaseCase,
 )
+
+# TOFIX - deps not allowed
 from packages.valory.skills.oracle_abci.behaviours import (
     OracleAbciAppConsensusBehaviour,
 )
+
+# TOFIX - deps not allowed
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     DeployOracleBehaviour,
 )

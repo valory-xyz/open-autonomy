@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
+import json
 import logging
 import time
 from pathlib import Path
@@ -26,29 +27,30 @@ from typing import List
 import docker
 import requests
 from aea.exceptions import enforce
+from aea_test_autonomy.docker.base import DockerImage
 from docker.models.containers import Container
-
-from autonomy.test_tools.docker.base import DockerImage
 
 
 DEFAULT_HARDHAT_ADDR = "http://127.0.0.1"
 DEFAULT_HARDHAT_PORT = 8545
+REGISTRIES_CONTRACTS_DIR = "autonolas-registries"
+CONFIG_FILE = "hardhat.config.ts"
 
-AMM_CONTRACT_DIR = "contracts-amm"
+DEFAULT_ACCOUNT = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+COMPONENT_REGISTRY = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+AGENT_REGISTRY = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+REGISTRIES_MANAGER = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
+GNOSIS_SAFE_MULTISIG = "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"
+SERVICE_REGISTRY = "0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf"
+SERVICE_MANAGER = "0x0E801D84Fa97b50751Dbf25036d067dCf18858bF"
+SERVICE_MULTISIG = "0x4826533B4897376654Bb4d4AD88B7faFD0C98528"
+DEFAULT_SERVICE_CONFIG_HASH = (
+    "0xd913b5bf68193dfacb941538d5900466c449c9ec8121153f152de2e026fa7f3a"
+)
 
-_SLEEP_TIME = 1
 
-# Note: addresses of deployment of master contracts are deterministic
-SAFE_CONTRACT = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-ROUTER_CONTRACT = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
-DEFAULT_CALLBACK_HANDLER = "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4"
-PROXY_FACTORY_CONTRACT = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
-MULTISEND_CONTRACT = "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761"
-MULTISEND_CALL_ONLY_CONTRACT = "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
-
-
-class AMMNetDockerImage(DockerImage):
-    """Spawn a local Ethereum network with deployed Gnosis Safe and Uniswap contracts, using HardHat."""
+class RegistriesDockerImage(DockerImage):
+    """Spawn a local Ethereum network with deployed registry contracts, using HardHat."""
 
     third_party_contract_dir: Path
 
@@ -72,15 +74,36 @@ class AMMNetDockerImage(DockerImage):
 
     def _build_command(self) -> List[str]:
         """Build command."""
-        cmd = ["run", "hardhat", "extra-compile", "--port", str(self.port)]
+        cmd = ["run", "hardhat", "node", "--port", str(self.port)]
         return cmd
+
+    def _update_config_hash(
+        self,
+    ) -> None:
+        """Updated config hash in the registry config."""
+
+        base_snapshot_file = (
+            self.third_party_contract_dir
+            / REGISTRIES_CONTRACTS_DIR
+            / "scripts"
+            / "mainnet_snapshot.json"
+        )
+        snapshot_data = json.loads(base_snapshot_file.read_text())
+        snapshot_data["serviceRegistry"]["configHashes"] = [
+            DEFAULT_SERVICE_CONFIG_HASH,
+        ]
+        snapshot_file = (
+            self.third_party_contract_dir / REGISTRIES_CONTRACTS_DIR / "snapshot.json"
+        )
+        snapshot_file.write_text(json.dumps(snapshot_data))
 
     def create(self) -> Container:
         """Create the container."""
+        self._update_config_hash()
         cmd = self._build_command()
         working_dir = "/build"
         volumes = {
-            str(self.third_party_contract_dir / AMM_CONTRACT_DIR): {
+            str(self.third_party_contract_dir / REGISTRIES_CONTRACTS_DIR): {
                 "bind": working_dir,
                 "mode": "rw",
             },

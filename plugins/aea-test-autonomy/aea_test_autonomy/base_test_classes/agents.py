@@ -29,9 +29,8 @@ from typing import Any, Dict, List, Optional, Tuple
 import pytest
 from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany, Result
-
-from autonomy.test_tools.configurations import ANY_ADDRESS
-from autonomy.test_tools.fixture_helpers import UseFlaskTendermintNode
+from aea_test_autonomy.configurations import ANY_ADDRESS
+from aea_test_autonomy.fixture_helpers import UseFlaskTendermintNode
 
 
 _HTTP = "http://"

@@ -99,6 +99,8 @@ from tests.test_skills.test_abstract_round_abci.test_common import (
     BaseRandomnessBehaviourTest,
     BaseSelectKeeperBehaviourTest,
 )
+
+# TOFIX - deps not allowed
 from tests.test_skills.test_price_estimation_abci.test_behaviours import (
     PriceEstimationFSMBehaviourBaseCase,
 )

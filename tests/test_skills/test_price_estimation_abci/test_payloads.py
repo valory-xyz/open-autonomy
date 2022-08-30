@@ -27,6 +27,8 @@ from packages.valory.skills.price_estimation_abci.payloads import (
 from packages.valory.skills.price_estimation_abci.payloads import (
     TransactionType as PETransactionType,
 )
+
+# TOFIX - not allowed
 from packages.valory.skills.safe_deployment_abci.payloads import (
     DeploySafePayload,
     RandomnessPayload,

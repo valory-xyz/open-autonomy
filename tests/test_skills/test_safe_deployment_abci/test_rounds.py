@@ -23,6 +23,8 @@ import logging  # noqa: F401
 from typing import Dict, FrozenSet, Optional
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB, MAX_INT_256
+
+# TOFIX - dep not allowed
 from packages.valory.skills.oracle_deployment_abci.payloads import (
     RandomnessPayload,
     SelectKeeperPayload,
@@ -37,12 +39,17 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
     SynchronizedData as SafeDeploymentSynchronizedSata,
 )
 from packages.valory.skills.safe_deployment_abci.rounds import ValidateSafeRound
+
+# TOFIX - dep not allowed
 from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 
+# TOFIX - dep not allowed
 from tests.test_skills.test_oracle_deployment_abci.test_rounds import (
     BaseDeployTestClass,
     BaseValidateRoundTest,
 )
+
+# TOFIX - dep not allowed
 from tests.test_skills.test_transaction_settlement_abci.test_rounds import (
     BaseSelectKeeperRoundTest,
 )

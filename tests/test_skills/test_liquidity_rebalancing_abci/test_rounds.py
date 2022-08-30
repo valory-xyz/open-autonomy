@@ -36,12 +36,16 @@ from packages.valory.skills.liquidity_rebalancing_abci.rounds import (  # noqa: 
     SynchronizedData,
     TransactionHashBaseRound,
 )
+
+# TOFIX - dep not allowed
 from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
 from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectSameUntilThresholdRoundTest,
 )
+
+# TOFIX - investigate if dep allowed
 from tests.test_skills.test_transaction_settlement_abci.test_rounds import (
     get_participant_to_signature,
 )

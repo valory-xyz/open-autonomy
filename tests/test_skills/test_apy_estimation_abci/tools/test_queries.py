@@ -23,8 +23,7 @@ from typing import Dict, Optional, Union
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
-
-from autonomy.test_tools.helpers.base import identity
+from aea_test_autonomy.helpers.base import identity
 
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_number_q,

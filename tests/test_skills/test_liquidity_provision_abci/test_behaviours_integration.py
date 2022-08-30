@@ -26,9 +26,8 @@ from typing import Any, Dict, List, Optional, cast
 
 from aea.helpers.transaction.base import RawTransaction, State
 from aea.skills.base import Handler
+from aea_test_autonomy.docker.base import skip_docker_tests
 from web3 import Web3
-
-from autonomy.test_tools.docker.base import skip_docker_tests
 
 from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.protocols.contract_api import ContractApiMessage
@@ -65,6 +64,8 @@ from packages.valory.skills.liquidity_rebalancing_abci.test_tools.integration im
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
+
+# TOFIX - perhaps ok, needs checking
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TransactionSettlementSynchronizedSata,
 )

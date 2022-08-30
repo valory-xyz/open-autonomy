@@ -24,9 +24,8 @@ from pathlib import Path
 from typing import Any, List
 
 import pytest
-
-from autonomy.test_tools.configurations import LOCALHOST
-from autonomy.test_tools.helpers.base import tendermint_health_check
+from aea_test_autonomy.configurations import LOCALHOST
+from aea_test_autonomy.helpers.base import tendermint_health_check
 
 
 _TCP = "tcp://"

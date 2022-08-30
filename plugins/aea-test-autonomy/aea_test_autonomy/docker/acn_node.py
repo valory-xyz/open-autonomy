@@ -24,10 +24,9 @@ import time
 from typing import Dict, List, Optional
 
 from aea.exceptions import enforce
+from aea_test_autonomy.docker.base import DockerImage
 from docker import DockerClient
 from docker.models.containers import Container
-
-from autonomy.test_tools.docker.base import DockerImage
 
 
 _LOCAL_ADDRESS = "0.0.0.0"  # nosec

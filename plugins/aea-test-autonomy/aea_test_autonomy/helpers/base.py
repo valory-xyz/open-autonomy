@@ -26,8 +26,7 @@ from os import PathLike
 from typing import Any, Generator, Tuple, Type
 
 import requests
-
-from autonomy.test_tools.configurations import DEFAULT_REQUESTS_TIMEOUT, MAX_RETRIES
+from aea_test_autonomy.configurations import DEFAULT_REQUESTS_TIMEOUT, MAX_RETRIES
 
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
 
