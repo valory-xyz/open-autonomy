@@ -4,6 +4,16 @@
 
 Base configurations.
 
+<a id="autonomy.configurations.base.ConnectionConfig"></a>
+
+## ConnectionConfig Objects
+
+```python
+class ConnectionConfig(BaseConnectionConfig)
+```
+
+Connection config.
+
 <a id="autonomy.configurations.base.recurse"></a>
 
 #### recurse
