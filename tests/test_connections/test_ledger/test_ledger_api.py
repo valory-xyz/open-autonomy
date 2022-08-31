@@ -40,10 +40,9 @@ from aea.helpers.transaction.base import (
 from aea.mail.base import Envelope, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea_ledger_ethereum import EthereumCrypto
-
-from autonomy.test_tools.configurations import ETHEREUM_KEY_DEPLOYER
-from autonomy.test_tools.docker.base import skip_docker_tests
-from autonomy.test_tools.docker.ganache import DEFAULT_GANACHE_CHAIN_ID
+from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
+from aea_test_autonomy.docker.base import skip_docker_tests
+from aea_test_autonomy.docker.ganache import DEFAULT_GANACHE_CHAIN_ID
 
 from packages.valory.connections.ledger.connection import LedgerConnection
 from packages.valory.connections.ledger.ledger_dispatcher import (

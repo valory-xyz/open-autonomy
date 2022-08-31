@@ -30,10 +30,9 @@ from typing import Any, Dict, cast
 from aea.crypto.base import Crypto
 from aea.crypto.registries import make_crypto, make_ledger_api
 from aea_ledger_ethereum import EthereumApi
+from aea_test_autonomy.fixture_helpers import HardHatAMMBaseTest
+from aea_test_autonomy.helpers.contracts import get_register_contract
 from web3.types import Nonce, Wei
-
-from autonomy.test_tools.fixture_helpers import HardHatAMMBaseTest
-from autonomy.test_tools.helpers.contracts import get_register_contract
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.protocols.contract_api import ContractApiMessage

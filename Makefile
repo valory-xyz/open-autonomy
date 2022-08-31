@@ -16,6 +16,8 @@ clean-build:
 	find . -name '*.egg' -exec rm -fr {} +
 	find . -type d -name __pycache__ -exec rm -rv {} +
 	rm -fr Pipfile.lock
+	rm -rf plugins/*/build
+	rm -rf plugins/*/dist
 
 .PHONY: clean-docs
 clean-docs:
@@ -175,6 +177,7 @@ new_env: clean
 		pipenv --python 3.10;\
 		pipenv install --dev --skip-lock;\
 		pipenv run pip install -e .[all];\
+		pipenv run pip install --no-deps file:plugins/aea-test-autonomy;\
 		echo "Enter virtual environment with all development dependencies now: 'pipenv shell'.";\
 	else\
 		echo "In a virtual environment! Exit first: 'exit'.";\

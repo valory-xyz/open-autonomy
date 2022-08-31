@@ -24,12 +24,11 @@ from typing import Generator, Tuple
 
 import pytest
 from aea.configurations.data_types import PublicId
-
-from autonomy.test_tools.base_test_classes.agents import (
+from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2End,
     BaseTestEnd2EndExecution,
 )
-from autonomy.test_tools.fixture_helpers import UseACNNode, UseGnosisSafeHardHatNet
+from aea_test_autonomy.fixture_helpers import UseACNNode, UseGnosisSafeHardHatNet
 
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationStartupBehaviour,
