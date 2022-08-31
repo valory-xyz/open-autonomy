@@ -40,16 +40,6 @@ Try to send an object to a generator.
 - `gen`: the generator.
 - `obj`: the object.
 
-<a id="plugins.aea-test-autonomy.aea_test_autonomy.helpers.base.make_round_class"></a>
-
-#### make`_`round`_`class
-
-```python
-def make_round_class(name: str, bases: Tuple = (AbstractRound,)) -> Type[AbstractRound]
-```
-
-Make a round class.
-
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.helpers.base.identity"></a>
 
 #### identity

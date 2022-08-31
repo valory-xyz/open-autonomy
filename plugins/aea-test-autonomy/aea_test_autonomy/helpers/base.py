@@ -23,12 +23,10 @@ import logging
 import os
 import time
 from os import PathLike
-from typing import Any, Generator, Tuple, Type
+from typing import Any, Generator
 
 import requests
 from aea_test_autonomy.configurations import DEFAULT_REQUESTS_TIMEOUT, MAX_RETRIES
-
-from packages.valory.skills.abstract_round_abci.base import AbstractRound
 
 
 def tendermint_health_check(
@@ -73,14 +71,6 @@ def try_send(gen: Generator, obj: Any = None) -> None:
     """
     with contextlib.suppress(StopIteration):
         gen.send(obj)
-
-
-def make_round_class(name: str, bases: Tuple = (AbstractRound,)) -> Type[AbstractRound]:
-    """Make a round class."""
-    new_round_cls = type(name, bases, {})
-    setattr(new_round_cls, "round_id", name)  # noqa: B010
-    assert issubclass(new_round_cls, AbstractRound)  # nosec
-    return new_round_cls
 
 
 def identity(arg: Any) -> Any:

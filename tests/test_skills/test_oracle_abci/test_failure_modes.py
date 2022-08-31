@@ -52,13 +52,9 @@ from packages.valory.skills.abstract_round_abci.test_tools.integration import (
     HandlersType,
     IntegrationBaseCase,
 )
-
-# TOFIX - deps not allowed
 from packages.valory.skills.oracle_abci.behaviours import (
     OracleAbciAppConsensusBehaviour,
 )
-
-# TOFIX - deps not allowed
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     DeployOracleBehaviour,
 )
