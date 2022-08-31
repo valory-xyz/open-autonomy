@@ -88,10 +88,12 @@ models:
     class_name: LedgerApiDialogues
   params:
     args:
+      broadcast_to_server: true
       cleanup_history_depth: 1
       cleanup_history_depth_current: null
       consensus:
         max_participants: 1
+      decimals: 5
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       estimation:
         steps_forward: 1
@@ -147,6 +149,18 @@ models:
   requests:
     args: {}
     class_name: Requests
+  server_api:
+    args:
+      api_id: oracle_server
+      headers:
+      - Content-Type: application/json
+      method: POST
+      parameters: null
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: http://172.17.0.2:9999/apy/deposit
+    class_name: ServerApi
   signing_dialogues:
     args: {}
     class_name: SigningDialogues
