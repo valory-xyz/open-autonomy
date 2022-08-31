@@ -24,10 +24,12 @@
 11. Publish to PyPI with twine (`pip install twine`): `twine upload dist/*`. Optionally, publish to Test-PyPI with twine:
 `twine upload --repository-url https://test.pypi.org/legacy/ dist/*`.
 
-12. Make clean environment and install release from PyPI: `pip install open-autonomy --no-cache`.
+12. Repeat 14. & 15. for each plugin (use `python setup.py sdist bdist_wheel` instead of `make dist`).
 
-13. Release packages into registry: `autonomy init --reset --author valory --ipfs --remote` and `autonomy push-all`. If necessary, run it several times until all packages are updated.
+13. Make clean environment and install release from PyPI: `pip install open-autonomy --no-cache`.
 
-14. Build and tag images for the documentation. `VERSION=TAG-TO-BE-RELEASED make release-images`. Inform DevOps of new release so that these images can be rolled out.
+14. Release packages into registry: `autonomy init --reset --author valory --ipfs --remote` and `autonomy push-all`. If necessary, run it several times until all packages are updated.
+
+15. Build and tag images for the documentation. `VERSION=TAG-TO-BE-RELEASED make release-images`. Inform DevOps of new release so that these images can be rolled out.
 
 If something goes wrong and only needs a small fix do `LAST_VERSION.post1` as version, apply fixes, push again to PyPI.
