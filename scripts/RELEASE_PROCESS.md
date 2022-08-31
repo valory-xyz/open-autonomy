@@ -24,7 +24,7 @@
 11. Publish to PyPI with twine (`pip install twine`): `twine upload dist/*`. Optionally, publish to Test-PyPI with twine:
 `twine upload --repository-url https://test.pypi.org/legacy/ dist/*`.
 
-12. Repeat 14. & 15. for each plugin (use `python setup.py sdist bdist_wheel` instead of `make dist`).
+12. Repeat 11. for each plugin (use `python setup.py sdist bdist_wheel` instead of `make dist`).
 
 13. Make clean environment and install release from PyPI: `pip install open-autonomy --no-cache`.
 
