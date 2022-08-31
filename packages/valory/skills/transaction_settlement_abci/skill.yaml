@@ -17,7 +17,7 @@ fingerprint:
   payloads.py: bafybeibpwhqbjvqi7um2cu4calbdhhzukpi6tn6y3qp4qb4nwx2bzjbmqu
   rounds.py: bafybeicy5il65kkenbd26uxky2qavygsappvmwqliiydwqxdqthfh7rqo4
   test_tools/__init__.py: bafybeibj2blgxzvcgdi5gzcnlzs2nt7bpdifzvjjlxlrkeutjy2qrqbwau
-  test_tools/integration.py: bafybeig7d2vxypokmvpqxr6oapoywh4lq6jphjvd3zbix7ycapg5pw5m5a
+  test_tools/integration.py: bafybeiesjfhgtnq7oiqc7i5fyg3ullb7el6onq54udpk4yo4fxjjeknvce
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -115,5 +115,7 @@ models:
   state:
     args: {}
     class_name: SharedState
-dependencies: {}
+dependencies:
+  open-aea-test-autonomy:
+    version: ==0.2.1
 is_abstract: true

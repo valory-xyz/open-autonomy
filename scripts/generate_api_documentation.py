@@ -35,6 +35,7 @@ DOCS_DIR = Path("docs/")
 API_DIR = DOCS_DIR / "api/"
 AEA_DIR = Path("autonomy")
 PACKAGES_DIR = Path(PACKAGES)
+PLUGIN_DIR = Path("plugins")
 DEFAULT_PACKAGES = {
     (ComponentType.CONNECTION, "valory/abci:latest"),
     (ComponentType.CONTRACT, "valory/gnosis_safe:latest"),
@@ -160,6 +161,24 @@ def _generate_apidocs_packages() -> None:
             make_pydoc(dotted_path, doc_file)
 
 
+def _generate_apidocs_plugins() -> None:
+    """Generate API docs for cyrpto plugins."""
+    for plugin in PLUGIN_DIR.iterdir():
+        plugin_name = plugin.name
+        plugin_module_name = plugin_name.replace("-", "_")
+        python_package_root = plugin / plugin_module_name
+        for module_path in python_package_root.rglob("*.py"):
+            print(f"Processing {module_path}...", end="")
+            if should_skip(module_path):
+                continue
+            # remove ".py"
+            relative_module_path = module_path.relative_to(python_package_root)
+            suffix = Path(str(relative_module_path)[:-3] + ".md")
+            dotted_path = ".".join(module_path.parts)[:-3]
+            doc_file = API_DIR / "plugins" / plugin_module_name / suffix
+            make_pydoc(dotted_path, doc_file)
+
+
 def make_pydoc(dotted_path: str, dest_file: Path) -> None:
     """Make a PyDoc file."""
     print(
@@ -198,6 +217,7 @@ def generate_api_docs() -> None:
     API_DIR.mkdir()
     _generate_apidocs_packages()
     _generate_apidocs_aea_modules()
+    _generate_apidocs_plugins()
 
 
 def install(package: str) -> int:

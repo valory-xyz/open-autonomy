@@ -30,8 +30,22 @@ from aea.configurations.constants import PACKAGES, PACKAGE_TYPE_TO_CONFIG_FILE
 from aea.configurations.data_types import PackageType
 from aea.configurations.loader import ConfigLoader
 from aea.helpers.io import open_file
+from aea_test_autonomy.configurations import (
+    DEFAULT_IMAGE_VERSION as PLUGIN_DEFAULT_IMAGE_VERSION,
+)
+from aea_test_autonomy.configurations import (
+    TENDERMINT_IMAGE_NAME as PLUGIN_TENDERMINT_IMAGE_NAME,
+)
+from aea_test_autonomy.configurations import (
+    TENDERMINT_IMAGE_VERSION as PLUGIN_TENDERMINT_IMAGE_VERSION,
+)
 
 import autonomy
+from autonomy.constants import (
+    DEFAULT_IMAGE_VERSION,
+    TENDERMINT_IMAGE_NAME,
+    TENDERMINT_IMAGE_VERSION,
+)
 
 from tests.conftest import ROOT_DIR
 
@@ -75,3 +89,10 @@ def test_load_all_packages(component_type: PackageType, config_file_path: str) -
         directory = Path(config_file_path).parent
         configuration_object.directory = directory
         load_aea_package(configuration_object)
+
+
+def test_synced_with_plugins() -> None:
+    """Test plugin and autonomy constants are synced."""
+    assert DEFAULT_IMAGE_VERSION == PLUGIN_DEFAULT_IMAGE_VERSION
+    assert TENDERMINT_IMAGE_NAME == PLUGIN_TENDERMINT_IMAGE_NAME
+    assert TENDERMINT_IMAGE_VERSION == PLUGIN_TENDERMINT_IMAGE_VERSION

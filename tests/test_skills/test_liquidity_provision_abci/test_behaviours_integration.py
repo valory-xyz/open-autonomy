@@ -26,9 +26,8 @@ from typing import Any, Dict, List, Optional, cast
 
 from aea.helpers.transaction.base import RawTransaction, State
 from aea.skills.base import Handler
+from aea_test_autonomy.docker.base import skip_docker_tests
 from web3 import Web3
-
-from autonomy.test_tools.docker.base import skip_docker_tests
 
 from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.protocols.contract_api import ContractApiMessage
