@@ -1424,7 +1424,7 @@ class BaseResetBehaviour(APYEstimationBaseBehaviour):
         period_count: int,
         agent_address: str,
         n_participants: int,
-        estimations: pd.DataFrame,
+        estimations: str,
         total_estimations: int,
     ) -> bytes:
         """Package server data for signing."""
@@ -1435,7 +1435,7 @@ class BaseResetBehaviour(APYEstimationBaseBehaviour):
                 n_participants.to_bytes(32, "big"),
                 total_estimations.to_bytes(32, "big"),
                 # we cannot know the size of the estimations, since it depends on the number of pools
-                estimations.to_json().encode("utf-8"),
+                estimations.encode("utf-8"),
             ]
         )
 
@@ -1448,7 +1448,7 @@ class BaseResetBehaviour(APYEstimationBaseBehaviour):
             "period_count": self.synchronized_data.period_count,
             "agent_address": self.context.agent_address,
             "n_participants": len(self.synchronized_data.participant_to_estimate),
-            "estimations": estimations,
+            "estimations": estimations.to_json(),
             "total_estimations": self.synchronized_data.n_estimations,
         }
 

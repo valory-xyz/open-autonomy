@@ -2655,7 +2655,7 @@ class BaseResetBehaviourTests(APYEstimationFSMBehaviourBaseCase):
                     "n_participants": 0,
                     "estimations": pd.DataFrame(
                         {"pool1": [1.435, 4.234], "pool2": [3.45, 23.64]}
-                    ),
+                    ).to_json(),
                     "total_estimations": 0,
                 },
                 (
@@ -2673,7 +2673,9 @@ class BaseResetBehaviourTests(APYEstimationFSMBehaviourBaseCase):
                     "period_count": 34560,
                     "agent_address": "test",
                     "n_participants": 62340,
-                    "estimations": pd.DataFrame({"pool1": [1.435], "pool2": [3.45]}),
+                    "estimations": pd.DataFrame(
+                        {"pool1": [1.435], "pool2": [3.45]}
+                    ).to_json(),
                     "total_estimations": 67850,
                 },
                 (
