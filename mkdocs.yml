@@ -9,6 +9,7 @@ theme:
   name: 'material'
   features:
     - navigation.top   
+    - navigation.indexes
 
 extra_css:
   - stylesheets/extra.css
@@ -16,8 +17,13 @@ extra_css:
 strict: true
 
 nav:
-  - Introduction: 'index.md'
-  - Agent Services in Context: 'agent_services_context.md'
+  - Home: 'index.md'
+  - Get started:
+    - What is the Open Autonomy framework: 'what_is_the_open_autonomy_framework.md' 
+    - What is an agent service: 'what_is_an_agent_service.md'
+    - Why do we need agent services: 'why_do_we_need_agent_services.md'
+    - Agent services compared to...: 'agent_services_compared_to.md' 
+    - Use cases: 'use_cases.md'
   - Version: 'version.md'
   - Upgrading: 'upgrading.md'
   - Quick Start: 'quick_start.md'
