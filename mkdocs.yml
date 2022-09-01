@@ -24,7 +24,7 @@ nav:
     - Why do we need agent services: 'why_do_we_need_agent_services.md'
     - Agent services compared to...: 'agent_services_compared_to.md' 
     - Use cases: 'use_cases.md'
-  - Tutorials:
+  - Guides:
     - Quick start: 'guides/quick_start.md'
     - Create a service with an existing agent: 'guides/create_service_existing_agent.md'
     - Create a service from scratch: 'guides/create_service_from_scratch.md'

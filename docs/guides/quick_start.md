@@ -6,7 +6,7 @@ The purpose of this quick start is to get you up and running with the {{open_aut
 The overall pipeline with the framework is summarized in the figure below:
 
 <figure markdown>
-![](./images/pipeline.svg)
+![](../images/pipeline.svg)
 <figcaption>Overall pipeline to deploy an agent service with the Open Autonomy framework</figcaption>
 </figure>
 
@@ -61,7 +61,7 @@ autonomy init --remote
 
 
 Follow the steps indicated below to download a demonstration agent service from the Service Registry, and deploy it locally using Docker Compose.
-In this case, we consider the [Hello World agent service](./hello_world_agent_service.md).
+In this case, we consider the [Hello World agent service](../hello_world_agent_service.md).
 
 1. Use the CLI to download the `valory/hello build` service. 
     ```bash
@@ -69,7 +69,7 @@ In this case, we consider the [Hello World agent service](./hello_world_agent_se
     cd hello_world
     ```
     
-2. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the [Hello World agent service](./hello_world_agent_service.md). Below you have some sample keys for testing:
+2. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the [Hello World agent service](../hello_world_agent_service.md). Below you have some sample keys for testing:
 
     !!! warning "Important"
         Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**
@@ -102,14 +102,14 @@ In this case, we consider the [Hello World agent service](./hello_world_agent_se
     ```
     The command above generates the required images to run the agent service.
 
-4. Build a deployment setup for the [Hello World agent service](./hello_world_agent_service.md):
+4. Build a deployment setup for the [Hello World agent service](../hello_world_agent_service.md):
     ```bash
     autonomy deploy build keys.json
     ```
 
     This will build the deployment setup required to run the service locally.
     !!!note
-        It is also possible to generate a deployment using a local service definition. See the [CLI section](./autonomy.md) for the complete details.
+        It is also possible to generate a deployment using a local service definition. See the [CLI section](../autonomy.md) for the complete details.
 
 5. The build configuration will be located in `./abci_build`. Run the deployment using
     ```bash
@@ -117,7 +117,7 @@ In this case, we consider the [Hello World agent service](./hello_world_agent_se
     autonomy deploy run
     ```
 
-    This will deploy a local [Hello World agent service](./hello_world_agent_service.md) with four agents connected to four Tendermint nodes.
+    This will deploy a local [Hello World agent service](../hello_world_agent_service.md) with four agents connected to four Tendermint nodes.
 
 6. The logs of a single agent or node can then be inspected with, e.g.,
     ```bash
