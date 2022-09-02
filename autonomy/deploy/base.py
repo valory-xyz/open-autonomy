@@ -32,7 +32,6 @@ from aea.configurations.base import (
 
 from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
-from autonomy.constants import TENDERMINT_IMAGE_VERSION
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     INFO,
@@ -44,7 +43,6 @@ from autonomy.deploy.constants import (
 ABCI_HOST = "abci{}"
 TENDERMINT_NODE = "http://node{}:26657"
 TENDERMINT_COM = "http://node{}:8080"
-LOCALHOST = "localhost"
 COMPONENT_CONFIGS: Dict = {
     component.package_type.value: component  # type: ignore
     for component in [
@@ -71,11 +69,14 @@ class ServiceSpecification:
         private_keys_password: Optional[str] = None,
         agent_instances: Optional[List[str]] = None,
         log_level: str = INFO,
+        substitute_env_vars: bool = False,
     ) -> None:
         """Initialize the Base Deployment."""
         self.keys: List = []
         self.private_keys_password = private_keys_password
-        self.service = load_service_config(service_path)
+        self.service = load_service_config(
+            service_path, substitute_env_vars=substitute_env_vars
+        )
         self.log_level = log_level
 
         # we allow configurable number of agents independent of the
@@ -134,7 +135,7 @@ class ServiceSpecification:
         """Retrieve vars common for valory apps."""
         agent_vars = {
             "ID": agent_n,
-            "VALORY_APPLICATION": self.service.agent,
+            "AEA_AGENT": self.service.agent,
             "ABCI_HOST": ABCI_HOST.format(agent_n),
             "MAX_PARTICIPANTS": self.service.number_of_agents,
             "TENDERMINT_URL": TENDERMINT_NODE.format(agent_n),
@@ -200,13 +201,11 @@ class BaseDeploymentGenerator:
         )
 
     @abc.abstractmethod
-    def generate(self, image_versions: Dict[str, str]) -> "BaseDeploymentGenerator":
+    def generate(self) -> "BaseDeploymentGenerator":
         """Generate the deployment configuration."""
 
     @abc.abstractmethod
-    def generate_config_tendermint(
-        self, image_version: str = TENDERMINT_IMAGE_VERSION
-    ) -> "BaseDeploymentGenerator":
+    def generate_config_tendermint(self) -> "BaseDeploymentGenerator":
         """Generate the deployment configuration."""
 
     @abc.abstractmethod

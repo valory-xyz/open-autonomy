@@ -1,6 +1,6 @@
 # Top level variables
 .aea_version: &aea_version
-  AEA_VERSION: "1.16.0"
+  AEA_VERSION: "1.17.0"
 .docker_args: &docker_args
   dockerfile: Dockerfile
 .release_docker_args: &release_docker_args
@@ -36,7 +36,7 @@ profiles:
   - name: release
     build:
       artifacts:
-      - image: valory/open-autonomy-open-aea
+      - image: valory/open-autonomy
         context: autonomy/data/Dockerfiles/agent/
         docker:
           <<: *release_docker_args
@@ -76,7 +76,7 @@ profiles:
   - name: release-latest
     build:
       artifacts:
-      - image: valory/open-autonomy-open-aea
+      - image: valory/open-autonomy
         context: autonomy/data/Dockerfiles/agent/
         docker:
           <<: *docker_args
@@ -112,7 +112,3 @@ profiles:
           <<: *docker_args
           buildArgs:
             <<: *apy_estimation
-
-
-
-

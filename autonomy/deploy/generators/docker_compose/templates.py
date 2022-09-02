@@ -20,10 +20,7 @@
 """Deployment Templates."""
 
 
-TENDERMINT_CONFIG_TEMPLATE: str = """docker run --rm -v {build_dir}/nodes:/tendermint:Z \
---entrypoint=/usr/bin/tendermint \
-{tendermint_image_name}:{tendermint_image_version}  \
-    testnet \
+TENDERMINT_CONFIG_TEMPLATE: str = """/usr/bin/tendermint testnet \
         --config /etc/tendermint/config-template.toml \
         --v {validators} \
         --o . \
@@ -91,7 +88,7 @@ ABCI_NODE_TEMPLATE: str = """
     mem_reservation: 256M
     cpus: 1
     container_name: abci{node_id}
-    image: {open_aea_image_name}:{valory_app}-{open_aea_image_version}
+    image: {runtime_image}
     environment:
       - LOG_FILE=/logs/aea_{node_id}.txt
 {agent_vars}

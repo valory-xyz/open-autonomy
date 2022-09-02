@@ -24,15 +24,12 @@ import os
 from unittest import mock
 
 import pytest
+from aea_test_autonomy.docker.registries import SERVICE_REGISTRY
 
-from autonomy.test_tools.docker.base import skip_docker_tests
-from autonomy.test_tools.docker.registries import SERVICE_REGISTRY
-
-from tests.conftest import ROOT_DIR
+from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
-@pytest.mark.skip("needs fixing - the registry instantiation script has changed")
 @pytest.mark.usefixtures("registries_scope_class")
 @pytest.mark.integration
 @skip_docker_tests

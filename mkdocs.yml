@@ -99,29 +99,26 @@ nav:
           - Tendermint: 'api/replay/tendermint.md'
           - Utils: 'api/replay/utils.md'
         - Test Tools:
-          - Configurations: 'api/test_tools/configurations.md'
-          - Fixture Helpers: 'api/test_tools/fixture_helpers.md'
+          - Configurations: 'api/plugins/aea_test_autonomy/configurations.md'
+          - Fixture Helpers: 'api/plugins/aea_test_autonomy/fixture_helpers.md'
           - Base Test Classes:
-            - Agents: 'api/test_tools/base_test_classes/agents.md'
-            - Contracts: 'api/test_tools/base_test_classes/contracts.md'
+            - Agents: 'api/plugins/aea_test_autonomy/base_test_classes/agents.md'
+            - Contracts: 'api/plugins/aea_test_autonomy/base_test_classes/contracts.md'
           - Docker:
-            - ACN Node: 'api/test_tools/docker/acn_node.md'
-            - AMM Net: 'api/test_tools/docker/amm_net.md'
-            - Base: 'api/test_tools/docker/base.md'
-            - Ganache Helpers: 'api/test_tools/docker/ganache.md'
-            - Gnosis Safe Helpers: 'api/test_tools/docker/gnosis_safe_net.md'
-            - Registries: 'api/test_tools/docker/registries.md'
-            - Tendermint Helpers: 'api/test_tools/docker/tendermint.md'
+            - ACN Node: 'api/plugins/aea_test_autonomy/docker/acn_node.md'
+            - AMM Net: 'api/plugins/aea_test_autonomy/docker/amm_net.md'
+            - Base: 'api/plugins/aea_test_autonomy/docker/base.md'
+            - Ganache Helpers: 'api/plugins/aea_test_autonomy/docker/ganache.md'
+            - Gnosis Safe Helpers: 'api/plugins/aea_test_autonomy/docker/gnosis_safe_net.md'
+            - Registries: 'api/plugins/aea_test_autonomy/docker/registries.md'
+            - Tendermint Helpers: 'api/plugins/aea_test_autonomy/docker/tendermint.md'
           - Helpers:
-            - Async Utils: 'api/test_tools/helpers/async_utils.md'
-            - Base: 'api/test_tools/helpers/base.md'
-            - Contracts: 'api/test_tools/helpers/contracts.md'
-            - Tendermint Utils: 'api/test_tools/helpers/tendermint_utils.md'
+            - Async Utils: 'api/plugins/aea_test_autonomy/helpers/async_utils.md'
+            - Base: 'api/plugins/aea_test_autonomy/helpers/base.md'
+            - Contracts: 'api/plugins/aea_test_autonomy/helpers/contracts.md'
+            - Tendermint Utils: 'api/plugins/aea_test_autonomy/helpers/tendermint_utils.md'
         - Data:
           - Watcher: 'api/data/Dockerfiles/dev/watcher.md'
-          - Tendermint:
-            - App: 'api/data/Dockerfiles/tendermint/app.md'
-            - Tendermint: 'api/data/Dockerfiles/tendermint/tendermint.md'
       - Connections:
         - ABCI:
           - Check Dependencies: 'api/connections/abci/check_dependencies.md'
@@ -158,10 +155,10 @@ nav:
             - Base: 'api/skills/abstract_round_abci/test_tools/base.md'
             - Integration: 'api/skills/abstract_round_abci/test_tools/integration.md'
           - IO:
-            - IPFS: 'api/skills/abstract_round_abci/io/ipfs.md'
-            - Load: 'api/skills/abstract_round_abci/io/load.md'
-            - Paths: 'api/skills/abstract_round_abci/io/paths.md'
-            - Store: 'api/skills/abstract_round_abci/io/store.md'
+            - IPFS: 'api/skills/abstract_round_abci/io_/ipfs.md'
+            - Load: 'api/skills/abstract_round_abci/io_/load.md'
+            - Paths: 'api/skills/abstract_round_abci/io_/paths.md'
+            - Store: 'api/skills/abstract_round_abci/io_/store.md'
           - Serializer: 'api/skills/abstract_round_abci/serializer.md'
           - Utils: 'api/skills/abstract_round_abci/utils.md'
         - Oracle Deployment ABCI:

@@ -35,8 +35,10 @@ CMD_REGEX = r"(?P<cmd>.*)"
 VENDOR_REGEX = rf"(?P<vendor>{SIMPLE_ID_REGEX})"
 PACKAGE_REGEX = rf"(?P<package>{SIMPLE_ID_REGEX})"
 VERSION_REGEX = r"(?P<version>\d+\.\d+\.\d+)"
+FLAGS_REGEX = r"(?P<flags>(\s--.*)?)"
 
-AEA_COMMAND_REGEX = rf"(?P<full_cmd>{CLI_REGEX} {CMD_REGEX} (?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}))"
+AEA_COMMAND_REGEX = rf"(?P<full_cmd>{CLI_REGEX} {CMD_REGEX} (?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}){FLAGS_REGEX})"
+FULL_PACKAGE_REGEX = rf"(?P<full_package>(?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}))"
 
 ROOT_DIR = Path(__file__).parent.parent
 
@@ -58,7 +60,7 @@ class Package:  # pylint: disable=too-few-public-methods
         m = re.match(self.CSV_HASH_REGEX, package_line)
         if not m:
             raise ValueError(
-                f"PackageHashManager: the line {package_line} does not match the package format"
+                f"PackageHashManager: the line:\n    {package_line}\ndoes not match the package format {self.CSV_HASH_REGEX}"
             )
         self.vendor = m.groupdict()["vendor"]
         self.type = m.groupdict()["type"]
@@ -97,12 +99,21 @@ class Package:  # pylint: disable=too-few-public-methods
                     self.last_version = resource["version"]
                     break
 
-    def get_command(self, cmd: str, include_version=True) -> str:
-        """Get the corresponding command"""
+    def get_command(
+        self, cmd: str, include_version: bool = True, flags: str = ""
+    ) -> str:
+        """
+        Get the corresponding command.
+
+        :param cmd: the command
+        :param include_version: whether or not to include the version
+        :param flags: command flags
+        :return: the full command
+        """
         version = (
             ":" + self.last_version if include_version and self.last_version else ""
         )
-        return f"autonomy {cmd} {self.vendor}/{self.name}{version}:{self.hash}"
+        return f"autonomy {cmd} {self.vendor}/{self.name}{version}:{self.hash}{flags}"
 
 
 class PackageHashManager:
@@ -134,20 +145,22 @@ class PackageHashManager:
         return packages[0]
 
     def get_hash_by_package_line(
-        self, package_line: str, md_file: str
+        self, package_line: str, target_file: str
     ) -> Optional[str]:
         """Get a hash given its package line"""
 
         try:
-            m = re.match(AEA_COMMAND_REGEX, package_line)
+            m_command = re.match(AEA_COMMAND_REGEX, package_line)
+            m_package = re.match(FULL_PACKAGE_REGEX, package_line)
 
             # No match
-            if not m:
+            if not m_command and not m_package:
                 print(
-                    f"Docs [{md_file}]: line '{package_line}' does not match an aea command format"
+                    f"[{target_file}]: line '{package_line}' does not match an aea command or package format"
                 )
                 return None
-            d = m.groupdict()
+            m = m_command or m_package
+            d = m.groupdict()  # type: ignore
 
             # Underspecified commands that only use the hash
             # In this case we cannot infer the package type, just check whether or not the hash exists in hashes.csv
@@ -160,7 +173,7 @@ class PackageHashManager:
 
                 # This hash does not exist in hashes.csv
                 print(
-                    f"Docs [{md_file}]: unknown IPFS hash in line '{package_line}'. Can't fix because this command just uses the hash"
+                    f"[{target_file}]: unknown IPFS hash in line '{package_line}'. Can't fix because this command just uses the hash"
                 )
                 return None
 
@@ -195,7 +208,7 @@ class PackageHashManager:
 
                 if not package_type:
                     raise ValueError(
-                        f"Docs [{md_file}]: could not infer the package type for line '{package_line}'\nPlease update the hash manually."
+                        f"[{target_file}]: could not infer the package type for line '{package_line}'\nPlease update the hash manually."
                     )
 
             return self.package_tree[d["vendor"]][package_type][d["package"]].hash
@@ -203,12 +216,14 @@ class PackageHashManager:
         # Otherwise log the error
         except KeyError:
             print(
-                f"Docs [{md_file}]: could not find the corresponding hash for line '{package_line}'"
+                f"[{target_file}]: could not find the corresponding hash for line '{package_line}'"
             )
             return None
 
 
-def check_ipfs_hashes(fix: bool = False) -> None:  # pylint: disable=too-many-locals
+def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
+    fix: bool = False,
+) -> None:
     """Fix ipfs hashes in the docs"""
 
     all_md_files = Path("docs").rglob("*.md")
@@ -218,13 +233,16 @@ def check_ipfs_hashes(fix: bool = False) -> None:  # pylint: disable=too-many-lo
     package_manager = PackageHashManager()
     matches = 0
 
+    # Fix full commands on docs
     for md_file in all_md_files:
         content = read_file(str(md_file))
-        for match in re.findall(AEA_COMMAND_REGEX, content):
+        for match in [m.groupdict() for m in re.finditer(AEA_COMMAND_REGEX, content)]:
             matches += 1
-            doc_full_cmd = match[0]
-            doc_cmd = match[2]
-            doc_hash = match[-1]
+            doc_full_cmd = match["full_cmd"]
+            doc_cmd = match["cmd"]
+            doc_hash = match["hash"]
+            flags = match["flags"]
+
             expected_hash = package_manager.get_hash_by_package_line(
                 doc_full_cmd, str(md_file)
             )
@@ -236,7 +254,7 @@ def check_ipfs_hashes(fix: bool = False) -> None:  # pylint: disable=too-many-lo
                 errors = True
                 continue
 
-            new_command = expected_package.get_command(doc_cmd)
+            new_command = expected_package.get_command(cmd=doc_cmd, flags=flags)
 
             # Overwrite with new hash
             if doc_hash == expected_hash:
@@ -256,9 +274,47 @@ def check_ipfs_hashes(fix: bool = False) -> None:  # pylint: disable=too-many-lo
                     f"IPFS hash mismatch on doc file {md_file}. Expected {expected_hash}, got {doc_hash}:\n    {doc_full_cmd}"
                 )
 
+    # Fix packages on python files
+    all_py_files = [Path("autonomy", "constants.py")]
+    for py_file in all_py_files:
+        content = read_file(str(py_file))
+        for match in [m.groupdict() for m in re.finditer(FULL_PACKAGE_REGEX, content)]:
+            full_package = match["full_package"]
+            py_hash = match["hash"]
+            expected_hash = package_manager.get_hash_by_package_line(
+                full_package, str(py_file)
+            )
+            if not expected_hash:
+                errors = True
+                continue
+            expected_package = package_manager.get_package_by_hash(expected_hash)
+            if not expected_package:
+                errors = True
+                continue
+
+            new_package = (":").join(full_package.split(":")[:-1] + [expected_hash])
+
+            # Overwrite with new hash
+            if py_hash == expected_hash:
+                continue
+
+            hash_mismatches = True
+
+            if fix:
+                new_content = content.replace(full_package, new_package)
+
+                with open(str(py_file), "w", encoding="utf-8") as qs_file:
+                    qs_file.write(new_content)
+                print(f"Fixed an IPFS hash on doc file {py_file}")
+                old_to_new_hashes[py_hash] = expected_hash
+            else:
+                print(
+                    f"IPFS hash mismatch on file {py_file}. Expected {expected_hash}, got {py_hash}:\n    {full_package}"
+                )
+
     if fix and errors:
         raise ValueError(
-            "There were some errors while processing the docs. Check the logs."
+            "There were some errors while fixing IPFS hashes. Check the logs."
         )
 
     if not fix and (hash_mismatches or errors):

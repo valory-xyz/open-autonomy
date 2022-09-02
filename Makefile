@@ -4,7 +4,7 @@ SERVICE_ID := "${SERVICE_ID}"
 PLATFORM_STR := $(shell uname)
 
 .PHONY: clean
-clean: clean-build clean-pyc clean-test clean-docs
+clean: clean-test clean-build clean-pyc clean-docs
 
 .PHONY: clean-build
 clean-build:
@@ -16,6 +16,8 @@ clean-build:
 	find . -name '*.egg' -exec rm -fr {} +
 	find . -type d -name __pycache__ -exec rm -rv {} +
 	rm -fr Pipfile.lock
+	rm -rf plugins/*/build
+	rm -rf plugins/*/dist
 
 .PHONY: clean-docs
 clean-docs:
@@ -39,6 +41,7 @@ clean-test:
 	rm -fr .hypothesis
 	rm -fr .pytest_cache
 	rm -fr .mypy_cache/
+	rm -fr .hypothesis/
 	find . -name 'log.txt' -exec rm -fr {} +
 	find . -name 'log.*.txt' -exec rm -fr {} +
 
@@ -65,24 +68,20 @@ code-checks:
 .PHONY: security
 security:
 	tox -p -e safety -e bandit
+	gitleaks detect --report-format json --report-path leak_report
 
+# generate abci docstrings
+# check copyright
 # generate latest hashes for updated packages
 # generate docs for updated packages
-# update copyright headers
+# fix hashes in docs
 .PHONY: generators
 generators:
+	tox -e abci-docstrings
+	tox -e fix-copyright
 	python -m autonomy.cli hash all
-	python scripts/generate_api_documentation.py
-	python scripts/check_copyright.py
-	python scripts/check_doc_ipfs_hashes.py --fix
-
-.PHONY: abci-docstrings
-abci-docstrings:
-	cp scripts/generate_abci_docstrings.py generate_abci_docstrings.py
-	python generate_abci_docstrings.py
-	rm generate_abci_docstrings.py
-	echo "Successfully validated abcis!"
-
+	tox -e generate-api-documentation
+	tox -e fix-doc-hashes
 
 .PHONY: common-checks-1
 common-checks-1:
@@ -96,51 +95,9 @@ common-checks-2:
 	tox -e check-handlers
 	tox -e check-doc-links-hashes
 
-.PHONY: copyright
-copyright:
-	python scripts/check_copyright.py
-
-.PHONY: check-copyright
-check-copyright:
-	tox -e check-copyright
-
-.PHONY: lint
-lint:
-	black autonomy packages/valory scripts tests deployments
-	isort autonomy packages/valory scripts tests deployments
-	flake8 autonomy packages/valory scripts tests deployments
-	vulture autonomy scripts/whitelist.py
-	darglint autonomy scripts packages/valory/* tests deployments
-
-.PHONY: pylint
-pylint:
-	pylint -j4 autonomy packages/valory scripts deployments
-
-
-.PHONY: static
-static:
-	mypy autonomy packages/valory scripts --disallow-untyped-defs
-	mypy tests --disallow-untyped-defs
-
-.PHONY: package_checks
-package_checks:
-	python -m autonomy.cli hash all --check
-	python scripts/check_packages.py --vendor valory
-
-.PHONY: hashes
-hashes:
-	python -m autonomy.cli hash all
-
-.PHONY: api-docs
-api-docs:
-	python scripts/generate_api_documentation.py
-
 .PHONY: docs
 docs:
 	mkdocs build --clean
-
-.PHONY: common_checks
-common_checks: security misc_checks lint static docs
 
 .PHONY: test
 test:
@@ -148,14 +105,7 @@ test:
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
 .PHONY: all-checks
-all-checks:
-	make clean \
-	&& make formatters \
-	&& make code-checks \
-	&& make security \
-	&& make generators \
-	&& make common-checks-1 \
-	&& make common-checks-2
+all-checks: clean formatters code-checks security generators common-checks-1 common-checks-2
 
 .PHONY: test-skill
 test-skill:
@@ -183,7 +133,6 @@ test-skill:
 test-sub-p:
 	pytest -rfE tests/test_$(tdir) --cov=packages.valory.$(dir) --cov-report=html --cov-report=xml --cov-report=term-missing --cov-report=term  --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
-
 
 .PHONY: test-all
 test-all:
@@ -228,6 +177,7 @@ new_env: clean
 		pipenv --python 3.10;\
 		pipenv install --dev --skip-lock;\
 		pipenv run pip install -e .[all];\
+		pipenv run pip install --no-deps file:plugins/aea-test-autonomy;\
 		echo "Enter virtual environment with all development dependencies now: 'pipenv shell'.";\
 	else\
 		echo "In a virtual environment! Exit first: 'exit'.";\
@@ -382,17 +332,6 @@ protolint_install:
 protolint_install_win:
 	powershell -command '$$env:GO111MODULE="on"; go install github.com/yoheimuta/protolint/cmd/protolint@v0.27.0'
 
-# how to use:
-#
-#     make replay-agent AGENT=agent_id
-#
-# 0 <= agent_id < number of agents
-replay-agent:
-	python replay_scripts/agent_runner.py $(AGENT)
-
-replay-tendermint:
-	python replay_scripts/tendermint_runner.py $(NODE_ID)
-
 teardown-docker-compose:
 	cd abci_build/ && \
 		docker-compose kill && \
@@ -411,8 +350,8 @@ teardown-kubernetes:
 	kubectl delete ns ${VERSION}
 	echo "Done!"
 
-.PHONY: check_abci_specs
-check_abci_specs:
+.PHONY: fix-abci-app-specs
+fix-abci-app-specs:
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_abci.rounds.APYEstimationAbciApp packages/valory/skills/apy_estimation_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_abci consistency" && exit 1)
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_chained_abci.composition.APYEstimationAbciAppChained packages/valory/skills/apy_estimation_chained_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_chained_abci consistency" && exit 1)
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.liquidity_provision_abci.composition.LiquidityProvisionAbciApp packages/valory/skills/liquidity_provision_abci/fsm_specification.yaml || (echo "Failed to check liquidity_provision_abci consistency" && exit 1)

@@ -34,6 +34,7 @@ import click
 from aea.cli.add import add_item
 from aea.cli.fingerprint import fingerprint_item
 from aea.cli.scaffold import scaffold, scaffold_item
+from aea.cli.utils.click_utils import registry_flag
 from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
 from aea.configurations.base import (
@@ -52,6 +53,7 @@ from aea.configurations.constants import (
 from aea.configurations.data_types import CRUDCollection, PublicId
 
 from autonomy.analyse.abci.app_spec import DFA
+from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
 
 
 FILE_HEADER = """\
@@ -739,21 +741,26 @@ class ScaffoldABCISkill:
 
 def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
     """Add 'abstract_round_abci' skill if not present."""
-    if PublicId("valory", "abstract_round_abci") not in {
+    abstract_round_abci_public_id = PublicId.from_str(
+        ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
+    )
+    if abstract_round_abci_public_id.to_latest() not in {
         public_id.to_latest() for public_id in ctx.agent_config.skills
     }:
         click.echo(
             "Skill valory/abstract_round_abci not found in agent dependencies, adding it..."
         )
-        add_item(ctx, SKILL, PublicId("valory", "abstract_round_abci"))
+        add_item(ctx, SKILL, abstract_round_abci_public_id)
 
 
 @scaffold.command()  # noqa
+@registry_flag()
 @click.argument("skill_name", type=str, required=True)
 @click.option("--spec", type=click.Path(exists=True, dir_okay=False), required=True)
 @pass_ctx
-def fsm(ctx: Context, skill_name: str, spec: str) -> None:
+def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
     """Add an ABCI skill scaffolding from an FSM specification."""
+    ctx.registry_type = registry
     # check abstract_round_abci is in dependencies; if not, add it
     _add_abstract_round_abci_if_not_present(ctx)
 

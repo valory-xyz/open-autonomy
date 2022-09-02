@@ -9,7 +9,7 @@ Docker-compose Deployment Generator.
 #### build`_`tendermint`_`node`_`config
 
 ```python
-def build_tendermint_node_config(node_id: int, dev_mode: bool = False, image_version: str = TENDERMINT_IMAGE_VERSION, log_level: str = INFO) -> str
+def build_tendermint_node_config(node_id: int, dev_mode: bool = False, log_level: str = INFO) -> str
 ```
 
 Build tendermint node config for docker compose.
@@ -19,7 +19,7 @@ Build tendermint node config for docker compose.
 #### build`_`agent`_`config
 
 ```python
-def build_agent_config(valory_app: str, node_id: int, number_of_agents: int, agent_vars: Dict, dev_mode: bool = False, package_dir: Path = Path.cwd().absolute() / "packages", open_aea_dir: Path = Path.home().absolute() / "open-aea", open_autonomy_dir: Path = Path.home().absolute() / "open-autonomy", open_aea_image_name: str = OPEN_AEA_IMAGE_NAME, open_aea_image_version: str = IMAGE_VERSION) -> str
+def build_agent_config(node_id: int, number_of_agents: int, agent_vars: Dict, runtime_image: str, dev_mode: bool = False, package_dir: Path = Path.cwd().absolute() / "packages", open_aea_dir: Path = Path.home().absolute() / "open-aea", open_autonomy_dir: Path = Path.home().absolute() / "open-autonomy") -> str
 ```
 
 Build agent config.
@@ -39,7 +39,7 @@ Class to automate the generation of Deployments.
 #### generate`_`config`_`tendermint
 
 ```python
-def generate_config_tendermint(image_version: str = TENDERMINT_IMAGE_NAME) -> "DockerComposeGenerator"
+def generate_config_tendermint() -> "DockerComposeGenerator"
 ```
 
 Generate the command to configure tendermint testnet.
@@ -49,7 +49,7 @@ Generate the command to configure tendermint testnet.
 #### generate
 
 ```python
-def generate(image_versions: Dict[str, str]) -> "DockerComposeGenerator"
+def generate() -> "DockerComposeGenerator"
 ```
 
 Generate the new configuration.

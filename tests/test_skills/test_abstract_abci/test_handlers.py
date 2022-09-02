@@ -33,6 +33,9 @@ from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     CheckTxType,
     CheckTxTypeEnum,
+    Evidences,
+    Header,
+    LastCommitInfo,
     PublicKey,
     Result,
     ResultType,
@@ -206,13 +209,16 @@ class TestABCIHandler:
 
     def test_begin_block(self) -> None:
         """Test the 'begin_block' handler method."""
+        header = Header(*(MagicMock() for _ in range(14)))
+        last_commit_info = LastCommitInfo(*(MagicMock() for _ in range(2)))
+        byzantine_validators = Evidences(MagicMock())
         message, dialogue = self.dialogues.create(
             counterparty="",
             performative=AbciMessage.Performative.REQUEST_BEGIN_BLOCK,
             hash=b"",
-            header=MagicMock(),
-            last_commit_info=MagicMock(),
-            byzantine_validators=MagicMock(),
+            header=header,
+            last_commit_info=last_commit_info,
+            byzantine_validators=byzantine_validators,
         )
         response = self.handler.begin_block(
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
@@ -379,5 +385,5 @@ class TestABCIHandler:
             == AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK
         )
         assert response.result == Result(ResultType.REJECT)
-        assert response.refetch_chunks == []
-        assert response.reject_senders == []
+        assert response.refetch_chunks == tuple()
+        assert response.reject_senders == tuple()

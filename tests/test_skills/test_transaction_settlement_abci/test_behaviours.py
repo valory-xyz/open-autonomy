@@ -69,6 +69,7 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     CheckLateTxHashesBehaviour,
     CheckTransactionHistoryBehaviour,
     FinalizeBehaviour,
+    REVERT_CODES_TO_REASONS,
     RandomnessTransactionSubmissionBehaviour,
     ResetBehaviour,
     SelectKeeperTransactionSubmissionBehaviourA,
@@ -98,9 +99,6 @@ from tests.test_skills.test_abstract_round_abci.test_common import (
     BaseRandomnessBehaviourTest,
     BaseSelectKeeperBehaviourTest,
 )
-from tests.test_skills.test_price_estimation_abci.test_behaviours import (
-    PriceEstimationFSMBehaviourBaseCase,
-)
 
 
 class TransactionSettlementFSMBehaviourBaseCase(FSMBehaviourBaseCase):
@@ -111,7 +109,7 @@ class TransactionSettlementFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     )
 
 
-class TestTransactionSettlementBaseBehaviour(PriceEstimationFSMBehaviourBaseCase):
+class TestTransactionSettlementBaseBehaviour(FSMBehaviourBaseCase):
     """Test `TransactionSettlementBaseBehaviour`."""
 
     path_to_skill = Path(
@@ -399,6 +397,83 @@ class TestTransactionSettlementBaseBehaviour(PriceEstimationFSMBehaviourBaseCase
                 TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
             ).get_gas_price_params(tx_body)
             == expected_params
+        )
+
+    def test_parse_revert_reason_successful(self) -> None:
+        """Test `_parse_revert_reason` method."""
+        # fast-forward to any behaviour of the tx settlement skill
+        self.fast_forward_to_behaviour(
+            behaviour=self.behaviour,
+            behaviour_id=SignatureBehaviour.behaviour_id,
+            synchronized_data=TransactionSettlementSynchronizedSata(
+                AbciAppDB(
+                    setup_data=AbciAppDB.data_to_lists(dict()),
+                )
+            ),
+        )
+
+        for code, explanation in REVERT_CODES_TO_REASONS.items():
+            message = MagicMock(
+                performative=ContractApiMessage.Performative.ERROR,
+                message=f"some text {code}.",
+            )
+
+            expected = f"Received a {code} revert error: {explanation}."
+
+            assert (
+                cast(
+                    TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
+                )._parse_revert_reason(message)
+                == expected
+            )
+
+    @pytest.mark.parametrize(
+        "message",
+        (
+            MagicMock(
+                performative=ContractApiMessage.Performative.ERROR,
+                message="Non existing code should be invalid GS086.",
+            ),
+            MagicMock(
+                performative=ContractApiMessage.Performative.ERROR,
+                message="Code not matching the regex should be invalid GS0265.",
+            ),
+            MagicMock(
+                performative=ContractApiMessage.Performative.ERROR,
+                message="No code in the message should be invalid.",
+            ),
+            MagicMock(
+                performative=ContractApiMessage.Performative.ERROR,
+                message="",  # empty message should be invalid
+            ),
+            MagicMock(
+                performative=ContractApiMessage.Performative.ERROR,
+                message=None,  # `None` message should be invalid
+            ),
+        ),
+    )
+    def test_parse_revert_reason_unsuccessful(
+        self, message: ContractApiMessage
+    ) -> None:
+        """Test `_parse_revert_reason` method."""
+        # fast-forward to any behaviour of the tx settlement skill
+        self.fast_forward_to_behaviour(
+            behaviour=self.behaviour,
+            behaviour_id=SignatureBehaviour.behaviour_id,
+            synchronized_data=TransactionSettlementSynchronizedSata(
+                AbciAppDB(
+                    setup_data=AbciAppDB.data_to_lists(dict()),
+                )
+            ),
+        )
+
+        expected = f"get_raw_safe_transaction unsuccessful! Received: {message}"
+
+        assert (
+            cast(
+                TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
+            )._parse_revert_reason(message)
+            == expected
         )
 
 

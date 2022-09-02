@@ -18,15 +18,14 @@
 # ------------------------------------------------------------------------------
 
 """Docker-compose Deployment Generator."""
-import subprocess  # nosec
 from pathlib import Path
-from typing import Dict, IO, cast
+from typing import Dict
 
 from aea.configurations.constants import DEFAULT_PRIVATE_KEY_FILE
+from docker import from_env
 
 from autonomy.constants import (
-    IMAGE_VERSION,
-    OPEN_AEA_IMAGE_NAME,
+    OAR_IMAGE,
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
 )
@@ -49,7 +48,6 @@ from autonomy.deploy.generators.docker_compose.templates import (
 def build_tendermint_node_config(
     node_id: int,
     dev_mode: bool = False,
-    image_version: str = TENDERMINT_IMAGE_VERSION,
     log_level: str = INFO,
 ) -> str:
     """Build tendermint node config for docker compose."""
@@ -58,9 +56,9 @@ def build_tendermint_node_config(
         node_id=node_id,
         localnet_address_postfix=node_id + 3,
         localnet_port_range=node_id,
-        tendermint_image_name=TENDERMINT_IMAGE_NAME,
-        tendermint_image_version=image_version,
         log_level=log_level,
+        tendermint_image_name=TENDERMINT_IMAGE_NAME,
+        tendermint_image_version=TENDERMINT_IMAGE_VERSION,
     )
 
     if dev_mode:
@@ -71,26 +69,23 @@ def build_tendermint_node_config(
 
 
 def build_agent_config(  # pylint: disable=too-many-arguments
-    valory_app: str,
     node_id: int,
     number_of_agents: int,
     agent_vars: Dict,
+    runtime_image: str,
     dev_mode: bool = False,
     package_dir: Path = Path.cwd().absolute() / "packages",
     open_aea_dir: Path = Path.home().absolute() / "open-aea",
     open_autonomy_dir: Path = Path.home().absolute() / "open-autonomy",
-    open_aea_image_name: str = OPEN_AEA_IMAGE_NAME,
-    open_aea_image_version: str = IMAGE_VERSION,
 ) -> str:
     """Build agent config."""
 
+    agent_vars_string = "\n".join([f"      - {k}={v}" for k, v in agent_vars.items()])
     config = ABCI_NODE_TEMPLATE.format(
-        valory_app=valory_app,
         node_id=node_id,
-        agent_vars="".join([f"      - {k}={v}\n" for k, v in agent_vars.items()]),
+        agent_vars=agent_vars_string,
         localnet_address_postfix=node_id + number_of_agents + 3,
-        open_aea_image_name=open_aea_image_name,
-        open_aea_image_version=open_aea_image_version,
+        runtime_image=runtime_image,
     )
 
     if dev_mode:
@@ -111,73 +106,51 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     output_name: str = "docker-compose.yaml"
     deployment_type: str = "docker-compose"
 
-    def generate_config_tendermint(
-        self, image_version: str = TENDERMINT_IMAGE_NAME
-    ) -> "DockerComposeGenerator":
+    def generate_config_tendermint(self) -> "DockerComposeGenerator":
         """Generate the command to configure tendermint testnet."""
 
-        if self.tendermint_job_config is not None:  # pragma: no cover
-            return self
-
-        run_cmd = TENDERMINT_CONFIG_TEMPLATE.format(
-            hosts=" \\\n".join(
+        hosts = (
+            " \\\n".join(
                 [
                     f"--hostname=node{k}"
                     for k in range(self.service_spec.service.number_of_agents)
                 ]
             ),
-            validators=self.service_spec.service.number_of_agents,
-            build_dir=self.build_dir,
-            tendermint_image_name=TENDERMINT_IMAGE_NAME,
-            tendermint_image_version=image_version,
         )
-        self.tendermint_job_config = " ".join(
-            [
-                f
-                for f in run_cmd.replace("\n", "").replace("\\", "").split(" ")
-                if f != ""
-            ]
+        self.tendermint_job_config = TENDERMINT_CONFIG_TEMPLATE.format(
+            validators=self.service_spec.service.number_of_agents, hosts=hosts
         )
+        client = from_env()
+        image = f"{TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}"
 
-        process = subprocess.Popen(  # pylint: disable=consider-using-with  # nosec
-            self.tendermint_job_config.split(),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            universal_newlines=True,
+        run_log = client.containers.run(
+            image=image,
+            volumes={f"{self.build_dir}/nodes": {"bind": "/tendermint", "mode": "z"}},
+            entrypoint=self.tendermint_job_config,
         )
+        print(run_log.decode())
 
-        for line in iter(cast(IO[str], process.stdout).readline, ""):
-            if line == "":  # pragma: nocover
-                break
-            print(f"[Tendermint] {line.strip()}")
-
-        if "Unable to find image" in cast(IO[str], process.stderr).read():
-            raise RuntimeError(
-                f"Cannot find {TENDERMINT_IMAGE_NAME}:{image_version}, Please build images first."
-            )
         return self
 
     def generate(
         self,
-        image_versions: Dict[str, str],
     ) -> "DockerComposeGenerator":
         """Generate the new configuration."""
 
         agent_vars = self.service_spec.generate_agents()
-        image_name = self.service_spec.service.agent.name
-
-        if self.dev_mode:
-            image_versions["agent"] = "dev"
+        runtime_image = OAR_IMAGE.format(
+            agent=self.service_spec.service.agent.name,
+            version="dev" if self.dev_mode else self.service_spec.service.agent.hash,
+        )
 
         agents = "".join(
             [
                 build_agent_config(
-                    image_name,
-                    i,
-                    self.service_spec.service.number_of_agents,
-                    agent_vars[i],
-                    self.dev_mode,
-                    open_aea_image_version=image_versions["agent"],
+                    node_id=i,
+                    number_of_agents=self.service_spec.service.number_of_agents,
+                    runtime_image=runtime_image,
+                    agent_vars=agent_vars[i],
+                    dev_mode=self.dev_mode,
                     package_dir=self.packages_dir,
                     open_aea_dir=self.open_aea_dir,
                     open_autonomy_dir=self.open_autonomy_dir,
@@ -190,7 +163,6 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 build_tendermint_node_config(
                     node_id=i,
                     dev_mode=self.dev_mode,
-                    image_version=image_versions["tendermint"],
                     log_level=self.service_spec.log_level,
                 )
                 for i in range(self.service_spec.service.number_of_agents)

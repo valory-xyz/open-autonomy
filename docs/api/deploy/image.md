@@ -4,16 +4,6 @@
 
 Image building.
 
-<a id="autonomy.deploy.image.check_kubeconfig_vars"></a>
-
-#### check`_`kubeconfig`_`vars
-
-```python
-def check_kubeconfig_vars() -> bool
-```
-
-Check if kubeconfig variables are set properly.
-
 <a id="autonomy.deploy.image.ImageProfiles"></a>
 
 ## ImageProfiles Objects
@@ -29,7 +19,7 @@ Image build profiles.
 #### build`_`image
 
 ```python
-def build_image(agent: PublicId, profile: str, skaffold_dir: Path, version: str, push: bool = False, build_concurrency: int = 0) -> None
+def build_image(agent: PublicId, pull: bool = False, dev: bool = False) -> None
 ```
 
 Command to build images from for skaffold deployment.

@@ -20,11 +20,6 @@
 from pathlib import Path
 from typing import List, Optional, cast
 
-from autonomy.constants import (
-    HARDHAT_IMAGE_VERSION,
-    IMAGE_VERSION,
-    TENDERMINT_IMAGE_VERSION,
-)
 from autonomy.deploy.base import BaseDeploymentGenerator, ServiceSpecification
 from autonomy.deploy.constants import DEPLOYMENT_REPORT, INFO
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
@@ -45,27 +40,14 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     number_of_agents: Optional[int] = None,
     private_keys_password: Optional[str] = None,
     dev_mode: bool = False,
-    version: Optional[str] = None,
     packages_dir: Optional[Path] = None,
     open_aea_dir: Optional[Path] = None,
     open_autonomy_dir: Optional[Path] = None,
     agent_instances: Optional[List[str]] = None,
     log_level: str = INFO,
+    substitute_env_vars: bool = False,
 ) -> str:
     """Generate the deployment build for the valory app."""
-
-    if version is None:
-        image_versions = {
-            "agent": IMAGE_VERSION,
-            "hardhat": HARDHAT_IMAGE_VERSION,
-            "tendermint": TENDERMINT_IMAGE_VERSION,
-        }
-    else:
-        image_versions = {
-            "agent": version,
-            "hardhat": version,
-            "tendermint": version,
-        }
 
     service_spec = ServiceSpecification(
         service_path=service_path,
@@ -74,6 +56,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         number_of_agents=number_of_agents,
         agent_instances=agent_instances,
         log_level=log_level,
+        substitute_env_vars=substitute_env_vars,
     )
 
     DeploymentGenerator = DEPLOYMENT_OPTIONS.get(type_of_deployment)
@@ -93,8 +76,8 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     )
 
     (
-        deployment.generate(image_versions)
-        .generate_config_tendermint(image_versions["tendermint"])
+        deployment.generate()
+        .generate_config_tendermint()
         .write_config()
         .populate_private_keys()
     )

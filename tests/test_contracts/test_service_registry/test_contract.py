@@ -27,8 +27,7 @@ from unittest.mock import MagicMock
 import pytest
 from aea.test_tools.test_contract import BaseContractTestCase
 from aea_ledger_ethereum import EthereumCrypto
-
-from autonomy.test_tools.docker.base import skip_docker_tests
+from aea_test_autonomy.docker.base import skip_docker_tests
 
 from packages.valory.contracts.service_registry.contract import (
     DEPLOYED_BYTECODE_MD5_HASH,

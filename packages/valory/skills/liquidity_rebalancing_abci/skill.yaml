@@ -17,7 +17,7 @@ fingerprint:
   payloads.py: bafybeigvs7s5gnr2ocq7ofrvh7tksla2fh3ymgshhdtooe2wb7bdnw6bta
   rounds.py: bafybeibxjnvm5r62qnvv54c6xjcym4j2cuxk4kvv566jwcdbamwyr5qjvq
   test_tools/__init__.py: bafybeifwxievldkr2k5rqcsq4t3hx4kh6pue4spxy6tlji6422np46dtoy
-  test_tools/integration.py: bafybeidi74vdxcj5gvfbuxbbiaowhgrvunxpf7lmasry645lsongz7dimy
+  test_tools/integration.py: bafybeiehxdy6kgq2pfp7cqjfj4fqgqc2fpidb43w4bekvbkdoarnjfp24u
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -28,8 +28,8 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeify5cyzxqczuoap2winsssau5wjiv4nhvla7ktmamhadsq5x2p6si
-- valory/transaction_settlement_abci:0.1.0:bafybeidooww4lrevaihswxe4tlbzsixlcmqdznn7we2ep5k2brt4j5tmq4
+- valory/abstract_round_abci:0.1.0:bafybeigeit44ndvhknibyx555lei6t2gspfehmuwe3p2btztzer5puoesq
+- valory/transaction_settlement_abci:0.1.0:bafybeifrsmfhojkuyqwa5itlfpptwcexik26vgyee7hl2w4klq334az5qi
 behaviours:
   main:
     args: {}
@@ -121,5 +121,7 @@ models:
   state:
     args: {}
     class_name: SharedState
-dependencies: {}
+dependencies:
+  open-aea-test-autonomy:
+    version: ==0.2.1
 is_abstract: true

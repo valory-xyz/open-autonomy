@@ -27,7 +27,8 @@ import yaml
 
 from autonomy.constants import (
     HARDHAT_IMAGE_NAME,
-    OPEN_AEA_IMAGE_NAME,
+    HARDHAT_IMAGE_VERSION,
+    OAR_IMAGE,
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
 )
@@ -49,7 +50,6 @@ from autonomy.deploy.generators.kubernetes.templates import (
 class KubernetesGenerator(BaseDeploymentGenerator):
     """Kubernetes Deployment Generator."""
 
-    image_name: str
     output_name: str = "build.yaml"
     deployment_type: str = "kubernetes"
 
@@ -75,11 +75,10 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
     def build_agent_deployment(
         self,
-        image_name: str,
+        runtime_image: str,
         agent_ix: int,
         number_of_agents: int,
         agent_vars: Dict[str, Any],
-        image_versions: Dict[str, str],
     ) -> str:
         """Build agent deployment."""
 
@@ -88,15 +87,13 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         )
 
         agent_deployment = AGENT_NODE_TEMPLATE.format(
-            valory_app=image_name,
+            runtime_image=runtime_image,
             validator_ix=agent_ix,
             aea_key=self.service_spec.keys[agent_ix][KEY_SCHEMA_PRIVATE_KEY],
             number_of_validators=number_of_agents,
             host_names=host_names,
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
-            tendermint_image_version=image_versions["tendermint"],
-            open_aea_image_name=OPEN_AEA_IMAGE_NAME,
-            open_aea_image_version=image_versions["agent"],
+            tendermint_image_version=TENDERMINT_IMAGE_VERSION,
             log_level=self.service_spec.log_level,
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
@@ -113,9 +110,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         res = "\n---\n".join([yaml.safe_dump(i) for i in resources])
         return res
 
-    def generate_config_tendermint(
-        self, image_version: str = TENDERMINT_IMAGE_VERSION
-    ) -> "KubernetesGenerator":
+    def generate_config_tendermint(self) -> "KubernetesGenerator":
         """Build configuration job."""
 
         if self.tendermint_job_config is not None:  # pragma: no cover
@@ -133,7 +128,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             number_of_validators=self.service_spec.service.number_of_agents,
             host_names=host_names,
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
-            tendermint_image_version=image_version,
+            tendermint_image_version=TENDERMINT_IMAGE_VERSION,
         )
 
         return self
@@ -146,29 +141,28 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             agent.update(TENDERMINT_CONFIGURATION_OVERRIDES[self.deployment_type])
         return agent_params
 
-    def generate(  # pylint: disable=unused-argument
-        self,
-        image_versions: Dict[str, str],
-    ) -> "KubernetesGenerator":
+    def generate(self) -> "KubernetesGenerator":
         """Generate the deployment."""
 
         if self.dev_mode:
             self.resources.append(
-                HARDHAT_TEMPLATE % (HARDHAT_IMAGE_NAME, image_versions["hardhat"])
+                HARDHAT_TEMPLATE % (HARDHAT_IMAGE_NAME, HARDHAT_IMAGE_VERSION)
             )
 
         agent_vars = self.service_spec.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
-        self.image_name = self.service_spec.service.agent.name
+        runtime_image = OAR_IMAGE.format(
+            agent=self.service_spec.service.agent.name,
+            version=self.service_spec.service.agent.version,
+        )
 
         agents = "\n---\n".join(
             [
                 self.build_agent_deployment(
-                    self.image_name,
-                    i,
-                    self.service_spec.service.number_of_agents,
-                    agent_vars[i],
-                    image_versions,
+                    runtime_image=runtime_image,
+                    agent_ix=i,
+                    number_of_agents=self.service_spec.service.number_of_agents,
+                    agent_vars=agent_vars[i],
                 )
                 for i in range(self.service_spec.service.number_of_agents)
             ]

@@ -8,7 +8,7 @@ fingerprint:
   README.md: bafybeihxalbstbm7kufnxftkn6mrvculqxyibsk4tzhrq5jbdh5ihejteq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeiaau6gvge6gh5xp7brrpljqe3mhosy3p67e5cgivtypj7nplmii24
+- valory/abci:0.1.0:bafybeigcf4iwwqruhqmqrx3psdccupofuvdsx54ulvd4dja6ada2cuey4i
 - valory/http_client:0.1.0:bafybeiajlo43jrfdhtkpagjtj4izm2rc24ysbnzbtxnu5qqc2pxoov66z4
 - valory/ledger:0.1.0:bafybeiemp6u7xsyvwcq25i3t62oiykwsg5wmp7xs2e6eidll5vf3htdpwy
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
@@ -16,18 +16,18 @@ contracts:
 - valory/service_registry:0.1.0:bafybeidtwbj7mwiskbbmsw43zzooivuq6nripdzn7yuoou66rq7spom54m
 protocols:
 - open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
-- valory/abci:0.1.0:bafybeianfguceeckwhelenmythqmbtqswll6vcaz5wwsdr7hin7ov3rvje
+- valory/abci:0.1.0:bafybeic4ioeoxrosuuffap3lakejaaj6pi63cl2brwwcocf2s27hthdgfe
 - valory/acn:1.1.0:bafybeidetrrkvdgveu4ph5g6v53lbh7ardfspbkpstmjxctx647bzyosyy
 - valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
 - valory/http:1.0.0:bafybeienmids6f5pcey2bnywmiup2faawqgmdhhz65qfciuhkntugztvpi
 - valory/ledger_api:1.0.0:bafybeif2c3jt4tim3zbfq5c2lds7bs6qj5gvj2obk3pzdk3uy6zk2ivo3e
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeiam52ztcss46i3tgywuv4qmvddqgn7exmbt5kcicqpyip4kfeyap4
-- valory/abstract_round_abci:0.1.0:bafybeify5cyzxqczuoap2winsssau5wjiv4nhvla7ktmamhadsq5x2p6si
-- valory/apy_estimation_abci:0.1.0:bafybeihuxthei3vqp2qsjx762h7xk5ekqnlttyu7p4ti3vuo7vyg2gh2t4
-- valory/apy_estimation_chained_abci:0.1.0:bafybeifaxnbeleskfn6bjuea3saz5ybn7mqx4ocybq4ixitzyoaxcm44se
-- valory/registration_abci:0.1.0:bafybeihebvuim7u5wkkzbj6bseywo27eudezdcvmbi33swejasd6mvjkmi
+- valory/abstract_abci:0.1.0:bafybeidz7p36ctk46qknr5mrd5enomatry6qxk5ejp764xld3y5n3fnxae
+- valory/abstract_round_abci:0.1.0:bafybeigeit44ndvhknibyx555lei6t2gspfehmuwe3p2btztzer5puoesq
+- valory/apy_estimation_abci:0.1.0:bafybeiaauan4dqpwonj23pxv64l32blffwzy7pxbc4hklho2xpmiby7lna
+- valory/apy_estimation_chained_abci:0.1.0:bafybeihaakl5srbd7vs2vbnh2fenjaqn3qcw4grjeh7zuawon446uzi644
+- valory/registration_abci:0.1.0:bafybeigfny6svsayenqnbmvxzk5ad5prvcem74psopzvnfykfjz2wjgs5i
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -77,9 +77,10 @@ type: skill
 models:
   benchmark_tool:
     args:
-      log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+      log_dir: ${SKILL_APY_ESTIMATION_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
   params:
     args:
+      broadcast_to_server: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_BROADCAST_TO_SERVER:bool:false}
       consensus:
         max_participants: ${MAX_PARTICIPANTS:int:4}
       tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}

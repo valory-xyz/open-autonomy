@@ -30,9 +30,7 @@ import docker
 import pytest
 from aea.configurations.constants import PACKAGES
 
-from autonomy.test_tools.docker.base import skip_docker_tests
-
-from tests.conftest import ROOT_DIR
+from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
@@ -40,7 +38,7 @@ from tests.test_autonomy.test_cli.base import BaseCliTest
 class TestBuildImage(BaseCliTest):
     """Test build image command."""
 
-    cli_options: Tuple[str, ...] = ("build-images",)
+    cli_options: Tuple[str, ...] = ("build-image",)
     service_id: str = "valory/oracle_hardhat"
     docker_api: docker.APIClient
     build_dir: Path
@@ -81,56 +79,6 @@ class TestBuildImage(BaseCliTest):
                     name=f"valory/open-autonomy-open-aea:hello_world-{version}"
                 )
             )
-            == 1
-        )
-
-    def test_dev(
-        self,
-    ) -> None:
-        """Test prod build."""
-
-        result = self.run_cli(("--dev",))
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
-        assert (
-            len(
-                self.docker_api.images(
-                    name="valory/open-autonomy-open-aea:hello_world-dev"
-                )
-            )
-            == 1
-        )
-
-    def test_cluster(
-        self,
-    ) -> None:
-        """Test prod build."""
-
-        result = self.run_cli(("--cluster",))
-
-        assert result.exit_code == 1, f"{result.stdout_bytes}\n{result.stderr_bytes}"
-        assert (
-            "Please setup kubernetes environment variables." in result.stdout
-        ), f"{result.stdout_bytes}\n{result.stderr_bytes}"
-
-    def test_build_dependencies(
-        self,
-    ) -> None:
-        """Test prod build."""
-
-        version = self.generate_random_tag()
-        result = self.run_cli(("--dependencies", "--version", version))
-
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
-        assert (
-            len(
-                self.docker_api.images(
-                    name=f"valory/open-autonomy-tendermint:{version}"
-                )
-            )
-            == 1
-        )
-        assert (
-            len(self.docker_api.images(name=f"valory/open-autonomy-hardhat:{version}"))
             == 1
         )
 
