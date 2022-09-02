@@ -186,7 +186,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         )
         self.set_config(
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.service_registry_address",
-            "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",  # address on staging chain
+            "0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf",  # address on registries image
             type_="str",
         )
         self.set_config(  # dummy service
