@@ -52,6 +52,7 @@ class BaseSimpleABCITest(BaseTestEnd2EndExecution):
 
 
 @pytest.mark.parametrize("nb_nodes", (1,))
+@pytest.mark.simpleabci1
 class TestSimpleABCISingleAgent(BaseSimpleABCITest):
     """Test the ABCI simple_abci skill with only one agent."""
 
