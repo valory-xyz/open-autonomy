@@ -10,10 +10,10 @@
 # Agents to be built
 .oracle: &oracle
   <<: *aea_version
-  AEA_AGENT: "valory/oracle:0.1.0:bafybeihurloujnbugvvrv5xegyrdnsgl6z6at5xilq7f5ynjdekijapt6q"
+  AEA_AGENT: "{{.AEA_AGENT_ORACLE}}"
 .apy_estimation: &apy_estimation
   <<: *aea_version
-  AEA_AGENT: "valory/apy_estimation:0.1.0:bafybeichfbqecgd62anequz3wonqfchrsluj473vrqqjsq2gqpwqo4vo5a"
+  AEA_AGENT: "{{.AEA_AGENT_APY_ESTIMATION}}"
 
 # Build configurations
 apiVersion: skaffold/v2beta29
@@ -112,7 +112,3 @@ profiles:
           <<: *docker_args
           buildArgs:
             <<: *apy_estimation
-
-
-
-
