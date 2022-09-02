@@ -34,7 +34,6 @@ from docker.models.containers import Container
 DEFAULT_HARDHAT_ADDR = "http://127.0.0.1"
 DEFAULT_HARDHAT_PORT = 8545
 REGISTRIES_CONTRACTS_DIR = "autonolas-registries"
-CONFIG_FILE = "hardhat.config.ts"
 
 DEFAULT_ACCOUNT = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 COMPONENT_REGISTRY = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
