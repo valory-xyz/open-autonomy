@@ -1,46 +1,118 @@
+# Top level variables
+.aea_version: &aea_version
+  AEA_VERSION: "1.16.0"
+.docker_args: &docker_args
+  dockerfile: Dockerfile
+.release_docker_args: &release_docker_args
+  <<: *docker_args
+  noCache: true
+
+# Agents to be built
+.oracle: &oracle
+  <<: *aea_version
+  AEA_AGENT: "valory/oracle:0.1.0:bafybeihurloujnbugvvrv5xegyrdnsgl6z6at5xilq7f5ynjdekijapt6q"
+.apy_estimation: &apy_estimation
+  <<: *aea_version
+  AEA_AGENT: "valory/apy_estimation:0.1.0:bafybeichfbqecgd62anequz3wonqfchrsluj473vrqqjsq2gqpwqo4vo5a"
+
+# Build configurations
 apiVersion: skaffold/v2beta29
 kind: Config
 metadata:
   name: open-autonomy
-build:
-  tagPolicy:
+build: 
+  tagPolicy: 
     envTemplate:
       template: "{{.VERSION}}"
-  artifacts:
+  artifacts: 
   - image: valory/open-autonomy-open-aea
     context: autonomy/data/Dockerfiles/agent/
-    docker:
+    docker: 
       dockerfile: Dockerfile
-      buildArgs:
-        AEA_VERSION: "1.16.0"
+      buildArgs: 
+        <<: *aea_version
         AEA_AGENT: "{{.AEA_AGENT}}"
-
-
 profiles:
   - name: release
     build:
-        tagPolicy:
-          envTemplate:
-            template: "{{.VERSION}}"
-        artifacts:
-        - image: valory/open-autonomy-open-aea
-          context: autonomy/data/Dockerfiles/agent/
-          docker:
-            noCache: true
-            dockerfile: Dockerfile
-            buildArgs:
-              AEA_VERSION: "1.16.0"
-              AEA_AGENT: "{{.AEA_AGENT}}"
-        - image: valory/open-autonomy-tendermint
-          context: autonomy/data/Dockerfiles/tendermint/
-          docker:
-            noCache: true
-            dockerfile: Dockerfile
-        - image: valory/open-autonomy-hardhat
-          context: autonomy/data/Dockerfiles/hardhat
-          docker:
-            noCache: true
-        - image: valory/open-autonomy-docs
-          docker:
-            noCache: true
-            dockerfile: deployments/Dockerfiles/documentation/Dockerfile
+      artifacts:
+      - image: valory/open-autonomy-open-aea
+        context: autonomy/data/Dockerfiles/agent/
+        docker:
+          <<: *release_docker_args
+          buildArgs: 
+            <<: *aea_version
+            AEA_AGENT: "{{.AEA_AGENT}}"
+
+      - image: valory/open-autonomy-tendermint
+        context: autonomy/data/Dockerfiles/tendermint/
+        docker:
+          <<: *release_docker_args
+
+      - image: valory/open-autonomy-hardhat
+        context: autonomy/data/Dockerfiles/hardhat
+        docker:
+          <<: *release_docker_args
+
+      - image: valory/open-autonomy-docs
+        docker:
+          <<: *release_docker_args
+          dockerfile: deployments/Dockerfiles/documentation/Dockerfile
+
+      - image: "valory/oar-oracle"
+        context: autonomy/data/Dockerfiles/agent/
+        docker:
+          <<: *release_docker_args
+          buildArgs:
+            <<: *oracle
+
+      - image: "valory/oar-apy_estimation"
+        context: autonomy/data/Dockerfiles/agent/
+        docker:
+          <<: *release_docker_args
+          buildArgs:
+            <<: *apy_estimation
+
+  - name: release-latest
+    build:
+      artifacts:
+      - image: valory/open-autonomy-open-aea
+        context: autonomy/data/Dockerfiles/agent/
+        docker:
+          <<: *docker_args
+          buildArgs: 
+            <<: *aea_version
+            AEA_AGENT: "{{.AEA_AGENT}}"
+
+      - image: valory/open-autonomy-tendermint
+        context: autonomy/data/Dockerfiles/tendermint/
+        docker:
+          <<: *docker_args
+
+      - image: valory/open-autonomy-hardhat
+        context: autonomy/data/Dockerfiles/hardhat
+        docker:
+          <<: *docker_args
+
+      - image: valory/open-autonomy-docs
+        docker:
+          <<: *docker_args
+          dockerfile: deployments/Dockerfiles/documentation/Dockerfile
+
+      - image: "valory/oar-oracle"
+        context: autonomy/data/Dockerfiles/agent/
+        docker:
+          <<: *docker_args
+          buildArgs:
+            <<: *oracle
+
+      - image: "valory/oar-apy_estimation"
+        context: autonomy/data/Dockerfiles/agent/
+        docker:
+          <<: *docker_args
+          buildArgs:
+            <<: *apy_estimation
+
+
+
+

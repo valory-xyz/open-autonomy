@@ -430,4 +430,4 @@ check_abci_specs:
 
 AEA_AGENT:=valory/hello_world:latest:$(shell cat packages/hashes.csv | grep "agents/hello_world" | cut -d "," -f2 )
 release-images:
-	AEA_AGENT=${AEA_AGENT} skaffold build -p release && VERSION=latest AEA_AGENT=${AEA_AGENT} skaffold build -p release
+	AEA_AGENT=${AEA_AGENT} skaffold build -p release --cache-artifacts=false && VERSION=latest AEA_AGENT=${AEA_AGENT} skaffold build -p release-latest
