@@ -30,7 +30,7 @@ from aea.configurations.constants import PACKAGES
 
 from autonomy.constants import (
     DEFAULT_BUILD_FOLDER,
-    OPEN_AEA_IMAGE_NAME,
+    AUTONOMY_IMAGE_NAME,
     TENDERMINT_IMAGE_NAME,
 )
 from autonomy.deploy.constants import (

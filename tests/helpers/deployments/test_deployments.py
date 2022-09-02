@@ -35,7 +35,7 @@ from autonomy.configurations.base import Service
 from autonomy.configurations.validation import ConfigValidator
 from autonomy.constants import (
     HARDHAT_IMAGE_VERSION,
-    IMAGE_VERSION,
+    AUTONOMY_IMAGE_VERSION as IMAGE_VERSION,
     TENDERMINT_IMAGE_VERSION,
 )
 from autonomy.deploy.base import BaseDeploymentGenerator, ServiceSpecification
