@@ -47,7 +47,7 @@ INVALID_SERVICE_ID = 0
 class BaseServiceRegistryContractTest(BaseContractTestCase):
     """Base class for Service Registry contract tests"""
 
-    contract_address = EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID[1337]
+    contract_address = EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID[31337]
     invalid_contract_address = SERVICE_REGISTRY_INVALID
     path_to_contract = Path(
         ROOT_DIR, "packages", PUBLIC_ID.author, "contracts", PUBLIC_ID.name
@@ -79,10 +79,10 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         """Run verify test. If abi file is updated tests + addresses need updating"""
         if valid_address:
             contract_address = self.contract_address
-            bytecode = DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID[1337]
+            bytecode = DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID[31337]
         else:
             contract_address = self.invalid_contract_address
-            bytecode = DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID[1337] + "invalid"
+            bytecode = DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID[31337] + "invalid"
 
         with mock.patch.object(
             self.ledger_api.api.manager, "request_blocking", return_value=0
