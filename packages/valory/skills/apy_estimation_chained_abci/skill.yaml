@@ -13,15 +13,15 @@ fingerprint:
   dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
   fsm_specification.yaml: bafybeid4iuax46gzkeb77g6ezs2arae43lmv3qk36dk7kityg2iwyr2v4a
   handlers.py: bafybeibmzghvqekt7iymu6s6yn5tk7lpdmejba4n7dpsz2do3cgfqz7b2a
-  models.py: bafybeifo2eoh5tx2uinqn7mxshvzqma2oc2vbm4u4tevpgsbtiyb5ybbre
+  models.py: bafybeihiisetyfiqfp6sysgp6frg4g6xiwxxfmpxfzb6g3ew63drei36ky
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigeit44ndvhknibyx555lei6t2gspfehmuwe3p2btztzer5puoesq
-- valory/apy_estimation_abci:0.1.0:bafybeiaauan4dqpwonj23pxv64l32blffwzy7pxbc4hklho2xpmiby7lna
-- valory/registration_abci:0.1.0:bafybeigfny6svsayenqnbmvxzk5ad5prvcem74psopzvnfykfjz2wjgs5i
+- valory/abstract_round_abci:0.1.0:bafybeieksptg3t6hsl4hvaxv7gq72iy3pehihfzl7jylgybrzvpw7f26da
+- valory/apy_estimation_abci:0.1.0:bafybeieageotkhipmrfb4afigdk6ojzv3nnakf7no4hofkqnycz7ifentq
+- valory/registration_abci:0.1.0:bafybeifqyftwclbzj6fy7adu72cn4in62u2dsm4emcncx4lz22ujumypni
 behaviours:
   main:
     args: {}
@@ -88,10 +88,12 @@ models:
     class_name: LedgerApiDialogues
   params:
     args:
+      broadcast_to_server: true
       cleanup_history_depth: 1
       cleanup_history_depth_current: null
       consensus:
         max_participants: 1
+      decimals: 5
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       estimation:
         steps_forward: 1
@@ -147,6 +149,18 @@ models:
   requests:
     args: {}
     class_name: Requests
+  server_api:
+    args:
+      api_id: oracle_server
+      headers:
+      - Content-Type: application/json
+      method: POST
+      parameters: null
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: http://172.17.0.2:9999/apy/deposit
+    class_name: ServerApi
   signing_dialogues:
     args: {}
     class_name: SigningDialogues
