@@ -808,11 +808,33 @@ class RoundTestsFileGenerator(RoundFileGenerator):
     BASE_CLASS = dedent(
         """\
         class Base{FSMName}RoundTestClass(BaseRoundTestClass):
-            \"\"\"Base test class for Rounds.\"\"\"
-            
+            \"\"\"Base test class for {FSMName} rounds.\"\"\"
+
             synchronized_data: SynchronizedData
             _synchronized_data_class = SynchronizedData
             _event_class = Event
+
+            def run_test(self, test_case: RoundTestCase, **kwargs) -> None:
+                \"\"\"Run the test\"\"\"
+
+                self.synchronized_data.update(**test_case.initial_data)
+
+                test_round = self.round_class(
+                    synchronized_data=self.synchronized_data,
+                    consensus_params=self.consensus_params,
+                )
+
+                self._complete_run(
+                    self._test_round(
+                        test_round=test_round,
+                        round_payloads=test_case.payloads,
+                        synchronized_data_update_fn=lambda sync_data, _: sync_data.update(**test_case.final_data),
+                        synchronized_data_attr_checks=test_case.synchronized_data_attr_checks,
+                        exit_event=test_case.event,
+                        **kwargs,  # varies per BaseRoundTestClass child
+                    )
+                )
+
             """
     )
 
