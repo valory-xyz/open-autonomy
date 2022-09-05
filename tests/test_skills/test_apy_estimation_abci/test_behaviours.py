@@ -818,17 +818,15 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         else:
             res = {"errors": [{"message": "another error"}]}
 
-        response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        behaviour.act_wrapper()
-        self.mock_http_request(request_kwargs, response_kwargs)
+        with caplog.at_level(
+            logging.WARNING,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            response_kwargs["body"] = json.dumps(res).encode("utf-8")
+            behaviour.act_wrapper()
+            self.mock_http_request(request_kwargs, response_kwargs)
 
         if not is_non_indexed_res:
-            with caplog.at_level(
-                logging.WARNING,
-                logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-            ):
-                behaviour.act_wrapper()
-
             assert (
                 "Attempted to handle an indexing error, but could not extract the latest indexed block!"
                 in caplog.text
