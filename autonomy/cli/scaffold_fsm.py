@@ -762,6 +762,35 @@ class RoundTestsFileGenerator(RoundFileGenerator):
 
     FILENAME = "tests_" + ROUNDS_FILENAME
 
+    ROUNDS_FILE_HEADER = dedent(
+        """\
+        \"\"\"This package contains the tests for rounds of {FSMName}.\"\"\"
+
+        from typing import Any, FrozenSet, Hashable, Type, cast
+        from unittest import mock
+
+        import pytest
+
+        # TODO: define and import specific payloads explicitly by name 
+        from packages.{author}.skills.{skill_name}.payloads import *
+        from packages.{author}.skills.{skill_name}.rounds import (
+            Event,
+            SynchronizedData,
+            {non_degenerate_rounds}
+        )
+        from packages.valory.skills.abstract_round_abci.base import (
+            AbciAppDB,
+            AbstractRound,
+            BaseTxPayload,
+            ConsensusParams,
+        )
+
+
+        MAX_PARTICIPANTS: int = 4
+
+    """
+    )
+
     BASE_CLASS = dedent(
         """\
         class BaseRoundTestClass:
@@ -853,19 +882,34 @@ class RoundTestsFileGenerator(RoundFileGenerator):
     def get_file_content(self) -> str:
         """Scaffold the 'test_rounds.py' file."""
 
+        rounds_header_section = self._get_rounds_header_section()
         rounds_section = self._get_rounds_section()
 
         rounds_file_content = "\n".join(
             [
                 FILE_HEADER,
+                rounds_header_section,
                 rounds_section,
             ]
         )
 
         return rounds_file_content
 
+    def _get_rounds_header_section(self) -> str:
+        """Get the rounds header section."""
+
+        author = "valory"
+        rounds = self.dfa.states - self.dfa.final_states
+
+        return self.ROUNDS_FILE_HEADER.format(
+            FSMName=_get_abci_app_cls_name_from_dfa(self.dfa),
+            author=author,
+            skill_name=self.skill_name,
+            non_degenerate_rounds=indent(',\n'.join(rounds), " " * 4).strip() + ',',
+        )
+
     def _get_rounds_section(self) -> str:
-        """"""
+        """Get rounds section"""
 
         all_round_classes_str = [self.BASE_CLASS]
 
