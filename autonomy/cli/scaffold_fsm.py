@@ -81,9 +81,6 @@ ROUNDS_FILENAME = "rounds.py"
 BEHAVIOURS_FILENAME = "behaviours.py"
 MODELS_FILENAME = "models.py"
 HANDLERS_FILENAME = "handlers.py"
-DIALOGUES_FILENAME = "dialogues.py"
-PAYLOADS_FILENAME = "payloads.py"
-
 
 DEGENERATE_ROUND = "DegenerateRound"
 ABSTRACT_ROUND = "AbstractRound"
@@ -771,7 +768,7 @@ class RoundTestsFileGenerator(RoundFileGenerator):
 
         import pytest
 
-        # TODO: define and import specific payloads explicitly by name 
+        # TODO: define and import specific payloads explicitly by name
         from packages.{author}.skills.{skill_name}.payloads import *
         from packages.{author}.skills.{skill_name}.rounds import (
             Event,
@@ -792,7 +789,7 @@ class RoundTestsFileGenerator(RoundFileGenerator):
         @dataclass
         class RoundTestCase:
             \"\"\"RoundTestCase\"\"\"
-        
+
             initial_data: Dict[str, Hashable]
             payloads: BaseTxPayload
             final_data: Dict[str, Hashable]
@@ -843,7 +840,7 @@ class RoundTestsFileGenerator(RoundFileGenerator):
         class Test{RoundCls}(Base{FSMName}RoundTestClass):
             \"\"\"Tests for {RoundCls}.\"\"\"
 
-            round_class = {RoundCls} 
+            round_class = {RoundCls}
 
             # TODO: provide test cases
             @pytest.mark.parametrize("test_case, kwargs", [])
@@ -881,13 +878,14 @@ class RoundTestsFileGenerator(RoundFileGenerator):
             FSMName=_get_abci_app_cls_name_from_dfa(self.dfa),
             author=author,
             skill_name=self.skill_name,
-            non_degenerate_rounds=indent(',\n'.join(rounds), " " * 4).strip() + ',',
+            non_degenerate_rounds=indent(",\n".join(rounds), " " * 4).strip() + ",",
         )
 
     def _get_rounds_section(self) -> str:
         """Get rounds section"""
 
-        fsm_name = _get_abci_app_cls_name_from_dfa(self.dfa).strip("AbciApp")
+        app_name = _get_abci_app_cls_name_from_dfa(self.dfa)
+        fsm_name = app_name.strip("AbciApp")  # noqa: B005
         all_round_classes_str = [self.BASE_CLASS.format(FSMName=fsm_name)]
 
         for abci_round_name in self.dfa.states - self.dfa.final_states:

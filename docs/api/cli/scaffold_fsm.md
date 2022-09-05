@@ -205,6 +205,57 @@ def do_scaffolding() -> None
 
 Do the scaffolding.
 
+<a id="autonomy.cli.scaffold_fsm.RoundTestsFileGenerator"></a>
+
+## RoundTestsFileGenerator Objects
+
+```python
+class RoundTestsFileGenerator(RoundFileGenerator)
+```
+
+RoundTestsFileGenerator
+
+<a id="autonomy.cli.scaffold_fsm.RoundTestsFileGenerator.get_file_content"></a>
+
+#### get`_`file`_`content
+
+```python
+def get_file_content() -> str
+```
+
+Scaffold the 'test_rounds.py' file.
+
+<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkillTests"></a>
+
+## ScaffoldABCISkillTests Objects
+
+```python
+class ScaffoldABCISkillTests(ScaffoldABCISkill)
+```
+
+ScaffoldABCISkillTests
+
+<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkillTests.skill_test_dir"></a>
+
+#### skill`_`test`_`dir
+
+```python
+@property
+def skill_test_dir() -> Path
+```
+
+Get the directory to the skill tests.
+
+<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkillTests.do_scaffolding"></a>
+
+#### do`_`scaffolding
+
+```python
+def do_scaffolding() -> None
+```
+
+Do the scaffolding.
+
 <a id="autonomy.cli.scaffold_fsm.fsm"></a>
 
 #### fsm
