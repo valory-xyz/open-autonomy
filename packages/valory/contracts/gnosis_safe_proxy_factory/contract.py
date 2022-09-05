@@ -28,6 +28,8 @@ from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
 from web3.types import Nonce, TxParams, Wei
 
+from packages.valory.contracts.constants import GAS_ESTIMATE_ADJUSTMENT
+
 
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe_proxy_factory:0.1.0")
 
@@ -149,8 +151,9 @@ class GnosisSafeProxyFactoryContract(Contract):
                 transaction_dict
             )
         )
+        # see https://github.com/valory-xyz/open-autonomy/pull/1209#discussion_r950129886
         transaction_dict["gas"] = (
-            Wei(max(gas_estimate + 50000, gas))
+            Wei(max(gas_estimate + GAS_ESTIMATE_ADJUSTMENT, gas))
             if gas_estimate is not None
             else Wei(gas)
         )

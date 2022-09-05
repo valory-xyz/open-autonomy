@@ -30,6 +30,8 @@ from aea.crypto.base import LedgerApi
 from hexbytes import HexBytes
 from web3 import Web3
 
+from packages.valory.contracts.constants import MIN_GAS, MIN_GASPRICE
+
 
 PUBLIC_ID = PublicId.from_str("valory/multisend:0.1.0")
 
@@ -147,7 +149,7 @@ class MultiSendContract(Contract):
         return {
             "data": multisend_contract.functions.multiSend(
                 encoded_multisend_data
-            ).buildTransaction({"gas": 1, "gasPrice": 1})["data"]
+            ).buildTransaction({"gas": MIN_GAS, "gasPrice": MIN_GASPRICE})["data"]
         }
 
     @classmethod
