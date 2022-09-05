@@ -801,7 +801,8 @@ class RoundTestsFileGenerator(RoundFileGenerator):
             \"\"\"Base test class for Rounds.\"\"\"
             
             synchronized_data: SynchronizedData
-
+            _synchronized_data_class = SynchronizedData
+            _event_class = Event
             """
     )
 
@@ -811,8 +812,6 @@ class RoundTestsFileGenerator(RoundFileGenerator):
             \"\"\"Tests for {RoundCls}.\"\"\"
 
             round_class = {RoundCls} 
-            _synchronized_data_class = SynchronizedData
-            _event_class = Event
             # TODO: specify corresponding payload class
             payload_class = ... 
             # TODO: specify the initial and final state data
