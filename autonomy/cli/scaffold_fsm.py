@@ -81,6 +81,9 @@ ROUNDS_FILENAME = "rounds.py"
 BEHAVIOURS_FILENAME = "behaviours.py"
 MODELS_FILENAME = "models.py"
 HANDLERS_FILENAME = "handlers.py"
+DIALOGUES_FILENAME = "dialogues.py"
+PAYLOADS_FILENAME = "payloads.py"
+
 
 DEGENERATE_ROUND = "DegenerateRound"
 ABSTRACT_ROUND = "AbstractRound"
@@ -753,6 +756,27 @@ def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
         add_item(ctx, SKILL, abstract_round_abci_public_id)
 
 
+class ScaffoldABCISkillTests(ScaffoldABCISkill):
+    """ScaffoldABCISkillTests"""
+
+    @property
+    def skill_test_dir(self) -> Path:
+        """Get the directory to the skill tests."""
+        return self.skill_dir / "tests"
+
+    def do_scaffolding(self) -> None:
+        """Do the scaffolding."""
+        self.skill_test_dir.mkdir()
+        self._scaffold_rounds()
+
+    def _scaffold_rounds(self) -> None:
+        """Scaffold the tests for rounds"""
+        click.echo(f"Generating test module {RoundFileGenerator.FILENAME}...")
+        RoundFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_test_dir
+        )
+
+
 @scaffold.command()  # noqa
 @registry_flag()
 @click.argument("skill_name", type=str, required=True)
@@ -773,3 +797,4 @@ def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
         dfa = DFA.load(fp, input_format="yaml")
 
     ScaffoldABCISkill(ctx, skill_name, dfa).do_scaffolding()
+    ScaffoldABCISkillTests(ctx, skill_name, dfa).do_scaffolding()
