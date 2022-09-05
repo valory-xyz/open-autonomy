@@ -766,8 +766,8 @@ class RoundTestsFileGenerator(RoundFileGenerator):
         """\
         \"\"\"This package contains the tests for rounds of {FSMName}.\"\"\"
 
-        from typing import Any, FrozenSet, Hashable, Type, cast
-        from unittest import mock
+        from typing import Any, Dict, List, Callable, Hashable
+        from dataclasses import dataclass, field
 
         import pytest
 
@@ -787,6 +787,17 @@ class RoundTestsFileGenerator(RoundFileGenerator):
             BaseCollectDifferentUntilThresholdRoundTest,
             BaseCollectSameUntilThresholdRoundTest,
          )
+
+
+        @dataclass
+        class RoundTestCase:
+            \"\"\"RoundTestCase\"\"\"
+        
+            initial_data: Dict[str, Hashable]
+            payloads: BaseTxPayload
+            final_data: Dict[str, Hashable]
+            event: Event
+            synchronized_data_attr_checks: List[Callable] = field(default_factory=list)
 
 
         MAX_PARTICIPANTS: int = 4
