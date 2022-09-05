@@ -880,10 +880,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         block_from_timestamp_q: str,
         block_from_number_q: str,
         eth_price_usd_q: str,
-        uni_pairs_q: str,
         pairs_ids: Dict[str, List[str]],
-        pool_fields: Tuple[str, ...],
-        caplog: LogCaptureFixture,
     ) -> None:
         """Test `async_act` when we receive `None` responses in `_check_non_indexed_block`."""
         self.fast_forward_to_behaviour(
