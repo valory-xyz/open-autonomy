@@ -21,7 +21,7 @@
 
 import os
 from pathlib import Path
-from typing import Tuple
+from typing import List
 
 import pytest
 
@@ -42,7 +42,7 @@ fsm_specifications = VALORY_SKILLS_PATH.glob("**/fsm_specification.yaml")
 class TestScaffoldFSM(AEATestCaseEmpty):
     """Test `scaffold fsm` subcommand."""
 
-    cli_options: Tuple[str, ...] = (
+    cli_options: List[str] = [
         "--registry-path",
         str(Path(ROOT_DIR) / Path(PACKAGES)),
         "scaffold",
@@ -50,13 +50,14 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         "myskill",
         "--local",
         "--spec",
-    )
+    ]
     packages_dir: Path
 
     @pytest.mark.parametrize("fsm_spec_file", fsm_specifications)
     def test_run(self, fsm_spec_file: Path) -> None:
         """Test run."""
         self.set_agent_context(self.agent_name)
+        self.cli_options[-3] = f"test_{fsm_spec_file.parts[-2]}"
         path_to_spec_file = Path(ROOT_DIR) / fsm_spec_file
         args = [*self.cli_options, path_to_spec_file]
         result = self.run_cli_command(*args, cwd=self._get_cwd())
