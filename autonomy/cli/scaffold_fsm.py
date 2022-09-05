@@ -779,15 +779,14 @@ class RoundTestsFileGenerator(RoundFileGenerator):
             {non_degenerate_rounds}
         )
         from packages.valory.skills.abstract_round_abci.base import (
-            AbciAppDB,
-            AbstractRound,
             BaseTxPayload,
-            ConsensusParams,
-            OnlyKeeperSendsRound,
-            CollectDifferentUntilAllRound,
-            CollectSameUntilAllRound,
-            OnlyKeeperSendsRound,
         )
+        from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
+            BaseRoundTestClass,
+            BaseOnlyKeeperSendsRoundTest,
+            BaseCollectDifferentUntilThresholdRoundTest,
+            BaseCollectSameUntilThresholdRoundTest,
+         )
 
 
         MAX_PARTICIPANTS: int = 4
@@ -797,7 +796,7 @@ class RoundTestsFileGenerator(RoundFileGenerator):
 
     BASE_CLASS = dedent(
         """\
-        class BaseRoundTestClass:
+        class Base{FSMName}RoundTestClass(BaseRoundTestClass):
             \"\"\"Base test class for Rounds.\"\"\"
             
             synchronized_data: SynchronizedData
