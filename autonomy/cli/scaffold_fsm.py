@@ -840,29 +840,17 @@ class RoundTestsFileGenerator(RoundFileGenerator):
 
     ROUND_CLS_TEMPLATE = dedent(
         """\
-        class Test{RoundCls}(BaseRoundTestClass):
+        class Test{RoundCls}(Base{FSMName}RoundTestClass):
             \"\"\"Tests for {RoundCls}.\"\"\"
 
             round_class = {RoundCls} 
-            # TODO: specify corresponding payload class
-            payload_class = ... 
-            # TODO: specify the initial and final state data
-            initial_state_data: ...
-            final_state_data: ...
 
-            # TODO: parameterize tests
-            @pytest.mark.parametrize("payload_arg", [])
-            def test_run(self, payload_arg: Hashable) -> None:
+            # TODO: provide test cases
+            @pytest.mark.parametrize("test_case, kwargs", [])
+            def test_run(self, test_case: RoundTestCase, **kwargs: Any) -> None:
                 \"\"\"Run tests.\"\"\"
 
-                content = {{k: v for k, v in locals().items() if k != "self"}}
-                self.deliver_payloads(**content)
-                # TODO: define the expected synchronized data after round completion
-                data = dict()
-                next_state = self.update_synchronized_data(**data)
-                event = self.complete_round(next_state)
-                # TODO: define the specific event expected: e.g. Event.DONE
-                assert event == Event
+                self.run_test(test_case, **kwargs)
 
     """
     )
