@@ -87,7 +87,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
             bytecode += "invalid"
 
         with mock.patch.object(
-            self.ledger_api.api.manager, "request_blocking", return_value=0
+            self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
         ), mock.patch.object(
             hashlib, "sha512", return_value=MagicMock(hexdigest=lambda: bytecode)
         ):
