@@ -18,3 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the contract packages authored by Valory AG."""
+
+MIN_GAS = MIN_GASPRICE = 1
+# see https://github.com/safe-global/safe-eth-py/blob/6c0e0d80448e5f3496d0d94985bca239df6eb399/gnosis/safe/safe_tx.py#L354
+GAS_ADJUSTMENT = 75_000
+# see https://github.com/valory-xyz/open-autonomy/pull/1209#discussion_r950129886
+GAS_ESTIMATE_ADJUSTMENT = 50_000

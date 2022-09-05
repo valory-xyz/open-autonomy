@@ -37,7 +37,7 @@ from requests import HTTPError
 from web3.exceptions import SolidityError, TransactionNotFound
 from web3.types import BlockIdentifier, Nonce, TxData, TxParams, Wei
 
-from packages.valory.contracts.constants import GAS_ADJUSTMENT, MIN_GAS, MIN_GASPRICE
+from packages.valory.contracts import GAS_ADJUSTMENT, MIN_GAS, MIN_GASPRICE
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
     GnosisSafeProxyFactoryContract,
 )

@@ -28,7 +28,7 @@ from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
 from web3.types import Nonce, TxParams, Wei
 
-from packages.valory.contracts.constants import GAS_ESTIMATE_ADJUSTMENT
+from packages.valory.contracts import GAS_ESTIMATE_ADJUSTMENT
 
 
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe_proxy_factory:0.1.0")
