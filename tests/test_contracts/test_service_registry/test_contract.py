@@ -30,7 +30,8 @@ from aea_ledger_ethereum import EthereumCrypto
 from aea_test_autonomy.docker.base import skip_docker_tests
 
 from packages.valory.contracts.service_registry.contract import (
-    DEPLOYED_BYTECODE_MD5_HASH,
+    DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID,
+    EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID,
     PUBLIC_ID,
     ServiceRegistryContract,
 )
@@ -38,16 +39,16 @@ from packages.valory.contracts.service_registry.contract import (
 from tests.conftest import ROOT_DIR
 
 
-SERVICE_REGISTRY = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
 SERVICE_REGISTRY_INVALID = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"
 VALID_SERVICE_ID = 1
 INVALID_SERVICE_ID = 0
+CHAIN_ID = 31337
 
 
 class BaseServiceRegistryContractTest(BaseContractTestCase):
     """Base class for Service Registry contract tests"""
 
-    contract_address = SERVICE_REGISTRY
+    contract_address = EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID[CHAIN_ID]
     invalid_contract_address = SERVICE_REGISTRY_INVALID
     path_to_contract = Path(
         ROOT_DIR, "packages", PUBLIC_ID.author, "contracts", PUBLIC_ID.name
@@ -77,15 +78,16 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
     @pytest.mark.parametrize("valid_address", (True, False))
     def test_verify_contract(self, valid_address: bool) -> None:
         """Run verify test. If abi file is updated tests + addresses need updating"""
+        bytecode = DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID[CHAIN_ID]
+
         if valid_address:
             contract_address = self.contract_address
-            bytecode = DEPLOYED_BYTECODE_MD5_HASH
         else:
             contract_address = self.invalid_contract_address
-            bytecode = DEPLOYED_BYTECODE_MD5_HASH + "invalid"
+            bytecode += "invalid"
 
         with mock.patch.object(
-            self.ledger_api.api.manager, "request_blocking", return_value=0
+            self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
         ), mock.patch.object(
             hashlib, "sha512", return_value=MagicMock(hexdigest=lambda: bytecode)
         ):
