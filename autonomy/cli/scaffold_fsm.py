@@ -805,16 +805,18 @@ class RoundTestsFileGenerator(RoundFileGenerator):
             payload_class: Type[BaseTxPayload]
             round: AbstractRound
             payload: BaseTxPayload
+            
             synchronized_data: SynchronizedData
             consensus_params: ConsensusParams
             participants: FrozenSet[str]
+            initial_state_data: Dict[str, Any]
 
-            def setup(self, **kwargs: Any) -> None:
+            def setup(self) -> None:
                 \"\"\"Setup the test method.\"\"\"
 
                 self.participants = frozenset(f"agent_{i}" for i in range(MAX_PARTICIPANTS))
                 data = dict(participants=self.participants, all_participants=self.participants)
-                data.update(kwargs)
+                data.update(self.initial_state_data)
                 self.synchronized_data = SynchronizedData(
                     AbciAppDB(setup_data=AbciAppDB.data_to_lists(data))
                 )
@@ -876,19 +878,14 @@ class RoundTestsFileGenerator(RoundFileGenerator):
         class Test{RoundCls}(BaseRoundTestClass):
             \"\"\"Tests for {RoundCls}.\"\"\"
 
-            round_class = {RoundCls}
-            # TODO: specify corresponding payload class
-            payload_class = ...  
+            round_class = {RoundCls} 
             _synchronized_data_class = SynchronizedData
             _event_class = Event
-
-            def setup(self, **kwargs: Hashable) -> None:
-                \"\"\"Setup\"\"\"
-        
-                # TODO: specify the synchronized data content before round completion
-                test_kwargs = dict()
-                kwargs.update(test_kwargs)
-                super().setup(**kwargs)
+            # TODO: specify corresponding payload class
+            payload_class = ... 
+            # TODO: specify the initial and final state data
+            initial_state_data: ...
+            final_state_data: ...
 
             # TODO: parameterize tests
             @pytest.mark.parametrize("payload_arg", [])
