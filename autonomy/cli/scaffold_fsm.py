@@ -762,16 +762,89 @@ class RoundTestsFileGenerator(RoundFileGenerator):
 
     FILENAME = "tests_" + ROUNDS_FILENAME
 
+    BASE_CLASS = dedent(
+        """\
+        class BaseRoundTestClass:
+            \"\"\"Base test class for Rounds.\"\"\"
+
+            # TODO: replace by skill-specific base classes
+            round_class: Type[AbstractRound]
+            payload_class: Type[BaseTxPayload]
+            round: AbstractRound
+            payload: BaseTxPayload
+            synchronized_data: SynchronizedData
+            consensus_params: ConsensusParams
+            participants: FrozenSet[str]
+
+            def setup(self, **kwargs: Any) -> None:
+                \"\"\"Setup the test method.\"\"\"
+
+                self.participants = frozenset(f"agent_{i}" for i in range(MAX_PARTICIPANTS))
+                data = dict(participants=self.participants, all_participants=self.participants)
+                data.update(kwargs)
+                self.synchronized_data = SynchronizedData(
+                    AbciAppDB(setup_data=AbciAppDB.data_to_lists(data))
+                )
+                self.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
+                self.round = self.round_class(
+                    synchronized_data=self.synchronized_data,
+                    consensus_params=self.consensus_params,
+                )
+
+            def deliver_payloads(self, **content: Hashable) -> SynchronizedData:
+                \"\"\"Deliver payloads\"\"\"
+
+                payloads = [self.payload_class(sender=p, **content) for p in self.participants]
+                first_payload, *payloads = payloads
+                self.round.process_payload(first_payload)
+                assert self.round.collection == {first_payload.sender: first_payload}
+                assert self.round.end_block() is None
+                self._test_no_majority_event(self.round)
+                for payload in payloads:
+                    self.round.process_payload(payload)
+                kwargs = dict(path_selection=self.round.most_voted_payload)
+                return cast(SynchronizedData, self.synchronized_data.update(**kwargs))
+
+            def complete_round(self, expected_state: SynchronizedData) -> Event:
+                \"\"\"Complete round\"\"\"
+
+                res = self.round.end_block()
+                assert res is not None
+                state, event = res
+                assert state.db == expected_state.db
+                return cast(Event, event)
+
+            def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
+                \"\"\"Test the NO_MAJORITY event.\"\"\"
+                with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
+                    result = round_obj.end_block()
+                    assert result is not None
+                    state, event = result
+                    assert event == Event.NO_MAJORITY
+
+            """
+    )
+
     def get_file_content(self) -> str:
         """Scaffold the 'test_rounds.py' file."""
+
+        rounds_section = self._get_rounds_section()
 
         rounds_file_content = "\n".join(
             [
                 FILE_HEADER,
+                rounds_section,
             ]
         )
 
         return rounds_file_content
+
+    def _get_rounds_section(self) -> str:
+        """"""
+
+        all_round_classes_str = [self.BASE_CLASS]
+
+        return "\n".join(all_round_classes_str)
 
 
 class ScaffoldABCISkillTests(ScaffoldABCISkill):
