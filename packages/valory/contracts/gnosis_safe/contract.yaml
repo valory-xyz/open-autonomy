@@ -9,10 +9,10 @@ fingerprint:
   README.md: bafybeig26vrs7tcobu4cgk3fpqhvlzjwmb4nqsc7u66n4yhd2dh2rt7ff4
   __init__.py: bafybeidg4jffl5hqsdlobyecgngaqsipjaf5ugoxkcsvepyq4qpbpmqfmm
   build/GnosisSafe_V1_3_0.json: bafybeifxc4pnyus43qfrvxrqunlmkzvwfr5chyjesyobbk5m4smb2hkd4y
-  contract.py: bafybeiegtp2vuegoayyq4ykg7nxegaxj5ttdggaeujkoqlpv5rmd34cjti
+  contract.py: bafybeibrx6ttpohtqru56ztyiat7gnthyxfn5wvc3gne5ws6t4datinpum
 fingerprint_ignore_patterns: []
 contracts:
-- valory/gnosis_safe_proxy_factory:0.1.0:bafybeifhs4wtzdvhozqqah5x5ibnqeyay5bvbpkzqcrybnf3sovad2443y
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeiadez675m4lrten4j3tlyknltezwhd4oexatjc2zbx5awr3tdynyi
 class_name: GnosisSafeContract
 contract_interface_paths:
   ethereum: build/GnosisSafe_V1_3_0.json
