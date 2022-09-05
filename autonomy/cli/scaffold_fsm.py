@@ -825,6 +825,31 @@ class RoundTestsFileGenerator(RoundFileGenerator):
             """
     )
 
+    ROUND_CLS_TEMPLATE = dedent(
+        """\
+        class Test{RoundCls}(BaseRoundTestClass):
+            \"\"\"Tests for {RoundCls}.\"\"\"
+
+            round_class = {RoundCls}
+            # TODO: specify corresponding payload class
+            payload_class = ...  
+            _synchronized_data_class = SynchronizedData
+            _event_class = Event
+
+            # TODO: parameterize tests
+            @pytest.mark.parametrize("payload_arg", [])
+            def test_run(self, payload_arg: Hashable) -> None:
+                \"\"\"Run tests.\"\"\"
+
+                kwargs = {{k: v for k, v in locals().items() if k != "self"}}
+                next_state = self.deliver_payloads(**kwargs)
+                event = self.complete_round(next_state)
+                # TODO: define the specific event expected: e.g. Event.DONE
+                assert event == Event
+
+    """
+    )
+
     def get_file_content(self) -> str:
         """Scaffold the 'test_rounds.py' file."""
 
@@ -844,6 +869,12 @@ class RoundTestsFileGenerator(RoundFileGenerator):
 
         all_round_classes_str = [self.BASE_CLASS]
 
+        for abci_round_name in self.dfa.states - self.dfa.final_states:
+            round_class_str = self.ROUND_CLS_TEMPLATE.format(
+                RoundCls=abci_round_name,
+            )
+            all_round_classes_str.append(round_class_str)
+
         return "\n".join(all_round_classes_str)
 
 
@@ -862,8 +893,8 @@ class ScaffoldABCISkillTests(ScaffoldABCISkill):
 
     def _scaffold_rounds(self) -> None:
         """Scaffold the tests for rounds"""
-        click.echo(f"Generating test module {RoundTestFileGenerator.FILENAME}...")
-        RoundTestFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+        click.echo(f"Generating test module {RoundTestsFileGenerator.FILENAME}...")
+        RoundTestsFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
             self.skill_test_dir
         )
 
