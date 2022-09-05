@@ -810,6 +810,7 @@ class RoundTestsFileGenerator(RoundFileGenerator):
             consensus_params: ConsensusParams
             participants: FrozenSet[str]
             initial_state_data: Dict[str, Any]
+            final_state_data: Dict[str, Any]
 
             def setup(self) -> None:
                 \"\"\"Setup the test method.\"\"\"
@@ -834,8 +835,18 @@ class RoundTestsFileGenerator(RoundFileGenerator):
                 
                 return OnlyKeeperSendsRound in self.round_class.__mro__
 
+            def _keeper_delivery(self, **content: Hashable) -> SynchronizedData:
+                \"\"\"Only keeper delivers a payload\"\"\"
+        
+                keeper = self.synchronized_data.most_voted_keeper_address
+                payload = self.payload_class(sender=keeper, **content)
+                self.round.process_payload(payload)
+
             def deliver_payloads(self, **content: Hashable) -> SynchronizedData:
                 \"\"\"Deliver payloads\"\"\"
+
+                if isinstance(self.round, OnlyKeeperSendsRound):
+                    return self._keeper_delivery()
 
                 payloads = [self.payload_class(sender=p, **content) for p in self.participants]
                 first_payload, *payloads = payloads
