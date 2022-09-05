@@ -442,6 +442,10 @@ jobs:
           cd ../..
           cd third_party/contracts-amm &&\
             yarn
+          # build hardhat node in third_party/autonolas-registries
+          cd ../..
+          cd third_party/autonolas-registries &&\
+            yarn
 
           # install Skaffold needed in order to build the Flask with Tendermint image
           curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.39.1/skaffold-linux-amd64 &&\
