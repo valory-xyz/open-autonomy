@@ -882,13 +882,24 @@ class RoundTestsFileGenerator(RoundFileGenerator):
             _synchronized_data_class = SynchronizedData
             _event_class = Event
 
+            def setup(self, **kwargs: Hashable) -> None:
+                \"\"\"Setup\"\"\"
+        
+                # TODO: specify the synchronized data content before round completion
+                test_kwargs = dict()
+                kwargs.update(test_kwargs)
+                super().setup(**kwargs)
+
             # TODO: parameterize tests
             @pytest.mark.parametrize("payload_arg", [])
             def test_run(self, payload_arg: Hashable) -> None:
                 \"\"\"Run tests.\"\"\"
 
-                kwargs = {{k: v for k, v in locals().items() if k != "self"}}
-                next_state = self.deliver_payloads(**kwargs)
+                content = {{k: v for k, v in locals().items() if k != "self"}}
+                self.deliver_payloads(**content)
+                # TODO: define the expected synchronized data after round completion
+                data = dict()
+                next_state = self.update_synchronized_data(**data)
                 event = self.complete_round(next_state)
                 # TODO: define the specific event expected: e.g. Event.DONE
                 assert event == Event
