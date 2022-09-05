@@ -37,6 +37,7 @@ from requests import HTTPError
 from web3.exceptions import SolidityError, TransactionNotFound
 from web3.types import BlockIdentifier, Nonce, TxData, TxParams, Wei
 
+from packages.valory.contracts import GAS_ADJUSTMENT, MIN_GAS, MIN_GASPRICE
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
     GnosisSafeProxyFactoryContract,
 )
@@ -209,7 +210,7 @@ class GnosisSafeContract(Contract):
                 payment,
                 payment_receiver,
             ).buildTransaction(  # type: ignore
-                {"gas": 1, "gasPrice": 1}  # type: ignore
+                {"gas": MIN_GAS, "gasPrice": MIN_GASPRICE}  # type: ignore
             )[
                 "data"
             ]
@@ -431,7 +432,9 @@ class GnosisSafeContract(Contract):
         )
         # see https://github.com/safe-global/safe-eth-py/blob/6c0e0d80448e5f3496d0d94985bca239df6eb399/gnosis/safe/safe_tx.py#L354
         configured_gas = (
-            base_gas + safe_tx_gas + 75000 if base_gas != 0 or safe_tx_gas != 0 else 1
+            base_gas + safe_tx_gas + GAS_ADJUSTMENT
+            if base_gas != 0 or safe_tx_gas != 0
+            else MIN_GAS
         )
         tx_parameters: Dict[str, Union[str, int]] = {
             "from": sender_address,

@@ -41,7 +41,7 @@ you have followed the [setup instructions](quick_start.md#setup). As a result yo
 
 2. Use the CLI to download the `valory/oracle_hardhat` service.
     ```bash
-    autonomy fetch valory/oracle_hardhat:0.1.0:bafybeifeh6k73fecccnv5sxqo6i6sm3m7fg6nxoxctya6gls6mswvtt5oi --remote --service
+    autonomy fetch valory/oracle_hardhat:0.1.0:bafybeievmel4j7fo55nz5wcb7ojofgjrqyfngd5dauon4ddcabuot6rlkm --remote --service
     cd oracle_hardhat
     ```
 

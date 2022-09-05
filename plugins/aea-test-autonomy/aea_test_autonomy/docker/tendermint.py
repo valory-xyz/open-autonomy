@@ -33,7 +33,6 @@ from aea_test_autonomy.configurations import (
 )
 from aea_test_autonomy.docker.base import DockerImage
 from aea_test_autonomy.helpers.base import tendermint_health_check
-from docker.errors import ImageNotFound
 from docker.models.containers import Container
 
 
@@ -123,7 +122,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
 
     _extra_hosts: Dict[str, str]
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments,useless-super-delegation
         self,
         client: docker.DockerClient,
         abci_host: str = DEFAULT_ABCI_HOST,
@@ -134,28 +133,6 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
     ):
         """Initialize."""
         super().__init__(client, abci_host, abci_port, port, p2p_port, com_port)
-        self.__create_flask_tendermint_image()
-
-    def __create_flask_tendermint_image(self) -> None:
-        """Create an image of the Flask server with Tendermint."""
-        try:
-            self._client.images.get(self.tag)
-        except ImageNotFound:
-            # TOFIX - remove.
-            cwd = os.getcwd()
-            current_file_folder = os.path.dirname(os.path.realpath(__file__))
-            root = current_file_folder.split(os.path.sep)[:-3]
-            os.chdir(os.path.join(os.path.sep, *root))
-            cmd = [
-                "autonomy",
-                "deploy",
-                "build",
-                "image",
-                "valory/oracle_hardhat",
-                "--dependencies",
-            ]
-            subprocess.run(cmd)  # nosec   # pylint: disable=subprocess-run-check
-            os.chdir(cwd)
 
     @property
     def tag(self) -> str:

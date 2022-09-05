@@ -141,6 +141,17 @@ class UseGnosisSafeHardHatNet()
 
 Inherit from this class to use HardHat local net with Gnosis-Safe deployed.
 
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseRegistries"></a>
+
+## UseRegistries Objects
+
+```python
+@pytest.mark.integration
+class UseRegistries()
+```
+
+Inherit from this class to use a local Ethereum network with deployed registry contracts
+
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseGanache"></a>
 
 ## UseGanache Objects
