@@ -23,7 +23,9 @@ import logging
 import os
 import platform
 import socket
+import sys
 import time
+from copy import copy
 from pathlib import Path
 from typing import Any, AsyncGenerator, Dict, Generator, Iterator, List, Tuple, cast
 from unittest.mock import MagicMock
@@ -430,3 +432,11 @@ def acn_node(
     logging.info(f"Launching ACNNode with the following config: {config}")
     image = ACNNodeDockerImage(client, config)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def mock_sys_modules() -> Generator:
+    """Store previous content of sys.modules and restore it after test execution."""
+    old_sys_modules = copy(sys.modules)
+    yield
+    sys.modules = old_sys_modules
