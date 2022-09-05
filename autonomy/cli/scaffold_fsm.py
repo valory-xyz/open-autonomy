@@ -823,6 +823,8 @@ class RoundTestsFileGenerator(RoundFileGenerator):
                     synchronized_data=self.synchronized_data,
                     consensus_params=self.consensus_params,
                 )
+                if self.is_keeper_round:  # else setup incorrect
+                    assert self.synchronized_data.most_voted_keeper_address
 
             @property
             def is_keeper_round() -> bool:
@@ -837,9 +839,10 @@ class RoundTestsFileGenerator(RoundFileGenerator):
                 first_payload, *payloads = payloads
                 self.round.process_payload(first_payload)
                 assert self.round.collection == {first_payload.sender: first_payload}
-                if not self.is_keeper_round:
-                    assert self.round.end_block() is None
-                    self._test_no_majority_event(self.round)
+                if self.is_keeper_round:
+                    return
+                assert self.round.end_block() is None
+                self._test_no_majority_event(self.round)
                 for payload in payloads:
                     self.round.process_payload(payload)
 
