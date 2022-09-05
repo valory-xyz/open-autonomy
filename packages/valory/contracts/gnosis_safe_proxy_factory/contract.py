@@ -28,7 +28,7 @@ from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
 from web3.types import Nonce, TxParams, Wei
 
-from packages.valory.contracts import GAS_ESTIMATE_ADJUSTMENT
+from packages.valory.contracts import GAS_ESTIMATE_ADJUSTMENT, MIN_GAS
 
 
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe_proxy_factory:0.1.0")
@@ -89,7 +89,7 @@ class GnosisSafeProxyFactoryContract(Contract):
         address: str,
         initializer: bytes,
         salt_nonce: int,
-        gas: int = 0,
+        gas: int = MIN_GAS,
         gas_price: Optional[int] = None,
         max_fee_per_gas: Optional[int] = None,
         max_priority_fee_per_gas: Optional[int] = None,
@@ -138,9 +138,8 @@ class GnosisSafeProxyFactoryContract(Contract):
         ):
             tx_parameters.update(ledger_api.try_get_gas_pricing())
 
-        tx_parameters["gas"] = (
-            Wei(gas) if gas != 0 else Wei(1)
-        )  # we set a value to avoid triggering the gas estimation during buildTransaction below
+        # we set a value to avoid triggering the gas estimation during `buildTransaction` below
+        tx_parameters["gas"] = Wei(max(gas, MIN_GAS))
 
         if nonce is not None:
             tx_parameters["nonce"] = Nonce(nonce)
