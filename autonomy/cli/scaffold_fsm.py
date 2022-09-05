@@ -799,87 +799,8 @@ class RoundTestsFileGenerator(RoundFileGenerator):
         """\
         class BaseRoundTestClass:
             \"\"\"Base test class for Rounds.\"\"\"
-
-            # TODO: replace by skill-specific base classes
-            round_class: Type[AbstractRound]
-            payload_class: Type[BaseTxPayload]
-            round: AbstractRound
-            payload: BaseTxPayload
             
             synchronized_data: SynchronizedData
-            consensus_params: ConsensusParams
-            participants: FrozenSet[str]
-            initial_state_data: Dict[str, Any]
-            final_state_data: Dict[str, Any]
-
-            def setup(self) -> None:
-                \"\"\"Setup the test method.\"\"\"
-
-                self.participants = frozenset(f"agent_{i}" for i in range(MAX_PARTICIPANTS))
-                data = dict(participants=self.participants, all_participants=self.participants)
-                data.update(self.initial_state_data)
-                self.synchronized_data = SynchronizedData(
-                    AbciAppDB(setup_data=AbciAppDB.data_to_lists(data))
-                )
-                self.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
-                self.round = self.round_class(
-                    synchronized_data=self.synchronized_data,
-                    consensus_params=self.consensus_params,
-                )
-                if self.is_keeper_round:  # else setup incorrect
-                    assert self.synchronized_data.most_voted_keeper_address
-
-            @property
-            def is_keeper_round() -> bool:
-                \"\"\"Check if OnlyKeeperSendsRound in bases.\"\"\"
-                
-                return OnlyKeeperSendsRound in self.round_class.__mro__
-
-            def _keeper_delivery(self, **content: Hashable) -> SynchronizedData:
-                \"\"\"Only keeper delivers a payload\"\"\"
-        
-                keeper = self.synchronized_data.most_voted_keeper_address
-                payload = self.payload_class(sender=keeper, **content)
-                self.round.process_payload(payload)
-
-            def deliver_payloads(self, **content: Hashable) -> SynchronizedData:
-                \"\"\"Deliver payloads\"\"\"
-
-                if isinstance(self.round, OnlyKeeperSendsRound):
-                    return self._keeper_delivery()
-
-                payloads = [self.payload_class(sender=p, **content) for p in self.participants]
-                first_payload, *payloads = payloads
-                self.round.process_payload(first_payload)
-                assert self.round.collection == {first_payload.sender: first_payload}
-                if self.is_keeper_round:
-                    return
-                assert self.round.end_block() is None
-                self._test_no_majority_event(self.round)
-                for payload in payloads:
-                    self.round.process_payload(payload)
-
-            def update_synchronized_data(self, **kwargs: Hashable) -> SynchronizedData:
-                \"\"\"Update synchronized data and retrieve the expected next state of it\"\"\"
-                
-                return cast(SynchronizedData, self.synchronized_data.update(**kwargs))
-
-            def complete_round(self, expected_state: SynchronizedData) -> Event:
-                \"\"\"Complete round\"\"\"
-
-                res = self.round.end_block()
-                assert res is not None
-                state, event = res
-                assert state.db == expected_state.db
-                return cast(Event, event)
-
-            def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
-                \"\"\"Test the NO_MAJORITY event.\"\"\"
-                with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
-                    result = round_obj.end_block()
-                    assert result is not None
-                    state, event = result
-                    assert event == Event.NO_MAJORITY
 
             """
     )
