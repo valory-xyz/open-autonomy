@@ -756,6 +756,24 @@ def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
         add_item(ctx, SKILL, abstract_round_abci_public_id)
 
 
+# Scaffolding of tests
+class RoundTestsFileGenerator(RoundFileGenerator):
+    """RoundTestsFileGenerator"""
+
+    FILENAME = "tests_" + ROUNDS_FILENAME
+
+    def get_file_content(self) -> str:
+        """Scaffold the 'test_rounds.py' file."""
+
+        rounds_file_content = "\n".join(
+            [
+                FILE_HEADER,
+            ]
+        )
+
+        return rounds_file_content
+
+
 class ScaffoldABCISkillTests(ScaffoldABCISkill):
     """ScaffoldABCISkillTests"""
 
@@ -771,8 +789,8 @@ class ScaffoldABCISkillTests(ScaffoldABCISkill):
 
     def _scaffold_rounds(self) -> None:
         """Scaffold the tests for rounds"""
-        click.echo(f"Generating test module {RoundFileGenerator.FILENAME}...")
-        RoundFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+        click.echo(f"Generating test module {RoundTestFileGenerator.FILENAME}...")
+        RoundTestFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
             self.skill_test_dir
         )
 
