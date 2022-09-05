@@ -783,6 +783,10 @@ class RoundTestsFileGenerator(RoundFileGenerator):
             AbstractRound,
             BaseTxPayload,
             ConsensusParams,
+            OnlyKeeperSendsRound,
+            CollectDifferentUntilAllRound,
+            CollectSameUntilAllRound,
+            OnlyKeeperSendsRound,
         )
 
 
@@ -820,6 +824,12 @@ class RoundTestsFileGenerator(RoundFileGenerator):
                     consensus_params=self.consensus_params,
                 )
 
+            @property
+            def is_keeper_round() -> bool:
+                \"\"\"Check if OnlyKeeperSendsRound in bases.\"\"\"
+                
+                return OnlyKeeperSendsRound in self.round_class.__mro__
+
             def deliver_payloads(self, **content: Hashable) -> SynchronizedData:
                 \"\"\"Deliver payloads\"\"\"
 
@@ -827,8 +837,9 @@ class RoundTestsFileGenerator(RoundFileGenerator):
                 first_payload, *payloads = payloads
                 self.round.process_payload(first_payload)
                 assert self.round.collection == {first_payload.sender: first_payload}
-                assert self.round.end_block() is None
-                self._test_no_majority_event(self.round)
+                if not self.is_keeper_round:
+                    assert self.round.end_block() is None
+                    self._test_no_majority_event(self.round)
                 for payload in payloads:
                     self.round.process_payload(payload)
                 kwargs = dict(path_selection=self.round.most_voted_payload)
