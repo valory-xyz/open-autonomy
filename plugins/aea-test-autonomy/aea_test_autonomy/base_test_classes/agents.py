@@ -30,6 +30,7 @@ import pytest
 from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany, Result
 from aea_test_autonomy.configurations import ANY_ADDRESS
+from aea_test_autonomy.docker.registries import SERVICE_REGISTRY
 from aea_test_autonomy.fixture_helpers import UseFlaskTendermintNode
 
 
@@ -186,7 +187,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         )
         self.set_config(
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.service_registry_address",
-            "0x99bbA657f2BbC93c02D617f8bA121cB8Fc104Acf",  # address on registries image
+            SERVICE_REGISTRY,  # address on registries image
             type_="str",
         )
         self.set_config(  # dummy service
