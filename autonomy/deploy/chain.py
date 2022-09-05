@@ -104,6 +104,11 @@ class ServiceRegistry:
     ) -> Dict:
         """Resolve token id using on-chain contracts."""
         url = self.contract.functions.tokenURI(token_id).call()
+        return self._resolve_from_ipfs(url)
+
+    @staticmethod
+    def _resolve_from_ipfs(url: str) -> Dict:
+        """Resolves from ipfs given an URL."""
         return requests.get(url).json()
 
     def get_agent_instances(self, token_id: int) -> Tuple[int, List[str]]:
