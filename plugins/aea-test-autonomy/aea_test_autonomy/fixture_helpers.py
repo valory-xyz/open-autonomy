@@ -149,6 +149,21 @@ class UseGnosisSafeHardHatNet:
 
 
 @pytest.mark.integration
+class UseRegistries:
+    """Inherit from this class to use a local Ethereum network with deployed registry contracts"""
+
+    key_pairs: List[Tuple[str, str]] = KEY_PAIRS
+
+    @classmethod
+    @pytest.fixture(autouse=True)
+    def _start_gnosis_and_registries(
+        cls, registries_scope_class: Any, hardhat_port: Any, key_pairs: Any
+    ) -> None:
+        """Start a Hardhat instance, with registries contracts deployed."""
+        cls.key_pairs = key_pairs
+
+
+@pytest.mark.integration
 class UseGanache:
     """Inherit from this class to use Ganache."""
 
