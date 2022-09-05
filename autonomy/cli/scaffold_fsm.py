@@ -887,10 +887,12 @@ class RoundTestsFileGenerator(RoundFileGenerator):
     def _get_rounds_section(self) -> str:
         """Get rounds section"""
 
-        all_round_classes_str = [self.BASE_CLASS]
+        fsm_name = _get_abci_app_cls_name_from_dfa(self.dfa).strip("AbciApp")
+        all_round_classes_str = [self.BASE_CLASS.format(FSMName=fsm_name)]
 
         for abci_round_name in self.dfa.states - self.dfa.final_states:
             round_class_str = self.ROUND_CLS_TEMPLATE.format(
+                FSMName=fsm_name,
                 RoundCls=abci_round_name,
             )
             all_round_classes_str.append(round_class_str)
