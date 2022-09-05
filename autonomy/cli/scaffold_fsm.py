@@ -842,7 +842,10 @@ class RoundTestsFileGenerator(RoundFileGenerator):
                     self._test_no_majority_event(self.round)
                 for payload in payloads:
                     self.round.process_payload(payload)
-                kwargs = dict(path_selection=self.round.most_voted_payload)
+
+            def update_synchronized_data(self, **kwargs: Hashable) -> SynchronizedData:
+                \"\"\"Update synchronized data and retrieve the expected next state of it\"\"\"
+                
                 return cast(SynchronizedData, self.synchronized_data.update(**kwargs))
 
             def complete_round(self, expected_state: SynchronizedData) -> Event:
