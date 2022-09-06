@@ -955,6 +955,18 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
     """
     )
 
+    BEHAVIOUR_CLS_TEMPLATE = dedent(
+        """\
+        class Test{BehaviourCls}(Base{FSMName}):
+            \"\"\"Tests {BehaviourCls}\"\"\"
+
+            # TODO: set next_behaviour_class
+            behaviour_class: Type[BaseBehaviour] = {BehaviourCls}
+            next_behaviour_class: Type[BaseBehaviour] = ...
+
+    """
+    )
+
     def get_file_content(self) -> str:
         """Scaffold the 'test_behaviours.py' file."""
 
@@ -1012,6 +1024,13 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
             author=author,
             skill_name=self.skill_name,
         )]
+
+        for abci_behaviour_name in self.non_degenerate_behaviours:
+            round_class_str = self.BEHAVIOUR_CLS_TEMPLATE.format(
+                FSMName=self.fsm_name,
+                BehaviourCls=abci_behaviour_name,
+            )
+            all_behaviour_classes_str.append(round_class_str)
 
         return "\n".join(all_behaviour_classes_str)
 
