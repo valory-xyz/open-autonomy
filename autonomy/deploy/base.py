@@ -201,7 +201,9 @@ class BaseDeploymentGenerator:
         )
 
     @abc.abstractmethod
-    def generate(self) -> "BaseDeploymentGenerator":
+    def generate(
+        self, image_version: Optional[str] = None
+    ) -> "BaseDeploymentGenerator":
         """Generate the deployment configuration."""
 
     @abc.abstractmethod
