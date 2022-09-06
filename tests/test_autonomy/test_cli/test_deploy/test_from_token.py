@@ -19,7 +19,6 @@
 
 """Test `from-token` command."""
 
-
 import os
 from unittest import mock
 
@@ -52,7 +51,13 @@ class TestFromToken(BaseCliTest):
         self,
     ) -> None:
         """Run test."""
-
+        mock_ipfs_response = {
+            "name": "valory/oracle_hardhat",
+            "description": "Oracle service.",
+            "code_uri": "ipfs://bafybeiansmhkoovd6jlnyurm2w4qzhpmi43gxlyenq33ioovy2rh4gziji",
+            "image": "bafybeiansmhkoovd6jlnyurm2w4qzhpmi43gxlyenq33ioovy2rh4gziji",
+            "attributes": [{"trait_type": "version", "value": "0.1.0"}],
+        }
         with mock.patch("autonomy.cli.deploy.run_deployment"), mock.patch(
             "autonomy.cli.deploy.build_image"
         ), mock.patch("autonomy.cli.deploy.build_deployment"), mock.patch(
@@ -62,6 +67,9 @@ class TestFromToken(BaseCliTest):
         ), mock.patch(
             "autonomy.cli.fetch.get_ipfs_node_multiaddr",
             new=lambda: "/dns/registry.autonolas.tech/tcp/443/https",
+        ), mock.patch(
+            "autonomy.deploy.chain.ServiceRegistry._resolve_from_ipfs",
+            return_value=mock_ipfs_response,
         ):
             result = self.run_cli(
                 (

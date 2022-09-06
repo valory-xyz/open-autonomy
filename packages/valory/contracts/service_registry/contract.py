@@ -29,16 +29,18 @@ from aea.contracts.base import Contract
 from aea_ledger_ethereum import EthereumApi, LedgerApi
 
 
-# test_contract and test_agents, respectively...
-DEPLOYED_BYTECODE_MD5_HASH = (
-    "d518af84b4ce10c7611ba3ad749cb3907d225a8a66061bd871f490800c57ea41"
-    "186febbada22648882cca80541b87fc04fa5051768f027aeccd467ac97c9554c"
-)
+EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID = {
+    1: "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA",
+    5: "0x1cEe30D08943EB58EFF84DD1AB44a6ee6FEff63a",
+    31337: "0x998abeb3E57409262aE5b751f60747921B33613E",
+}
+DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID = {
+    1: "6f9fc7f3c2348801737120e6b5f8fa8e9670c65152c66d128ff4cddb465b4d705340c559e352f5e7f29bda3b84a8d36d4a9448b791cfe2d370e31c01276e0244",
+    5: "d4a860f21f17762c99d93359244b39a878dd5bac9ea6056c0ff29c7558d6653aa0d5962aa819fc9f05f237d068845125cfc37a7fd7761b11c29a709ad5c48157",
+    31337: "d8084598f884509694ab1f244cbb8e7697d8db00c241710b89b2ec3037d2edd3b82d01f1f0ca6bd9b265b1184d9c563a6000c30958c2a7ae5a9c35e5ff2ba7de",
+}
 
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
-
-CHAIN_ADDRESS = "https://chain.staging.autonolas.tech"
-CHAIN_ID = 31337
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
@@ -82,15 +84,23 @@ class ServiceRegistryContract(Contract):
         :param contract_address: the contract address
         :return: the verified status
         """
+        verified = False
         ledger_api = cast(EthereumApi, ledger_api)
+        chain_id = ledger_api.api.eth.chain_id
+        expected_address = EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID[chain_id]
+        if contract_address != expected_address:
+            _logger.error(
+                f"For chain_id {chain_id} expected {expected_address} and got {contract_address}."
+            )
+            return dict(verified=verified)
         deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
         sha512_hash = hashlib.sha512(deployed_bytecode.encode("utf-8")).hexdigest()
-        verified = DEPLOYED_BYTECODE_MD5_HASH == sha512_hash
+        verified = DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID[chain_id] == sha512_hash
         if not verified:
-            log_msg = "CONTRACT NOT VERIFIED! reason: frequent changes."
-            log_msg += f". Verified: {verified}. Contract address: {contract_address}."
-            _logger.error(f"{log_msg} Address: {CHAIN_ADDRESS}, chain_id: {CHAIN_ID}")
-        return dict(verified=verified, sha512_hash=sha512_hash)
+            _logger.error(
+                f"CONTRACT NOT VERIFIED! Contract address: {contract_address}, chain_id: {chain_id}."
+            )
+        return dict(verified=verified)
 
     @classmethod
     def exists(
