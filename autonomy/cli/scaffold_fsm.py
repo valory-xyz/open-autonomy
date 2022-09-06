@@ -23,12 +23,13 @@ Implement a scaffold sub-command to scaffold ABCI skills.
 This module patches the 'aea scaffold' command so to add a new subcommand for scaffolding a skill
  starting from FSM specification.
 """
+import logging
 import re
 import shutil
 from abc import ABC, abstractmethod
 from pathlib import Path
 from textwrap import dedent, indent
-from typing import Dict, List, Type, Set
+from typing import Dict, List, Set, Type
 
 import click
 from aea.cli.add import add_item
@@ -772,53 +773,6 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             return self.ctx.agent_loader.load(f)
 
 
-class ScaffoldABCISkill:
-    """Utility class that implements the scaffolding of the ABCI skill."""
-
-    file_generators: List[Type[AbstractFileGenerator]] = [
-        RoundFileGenerator,
-        BehaviourFileGenerator,
-        ModelsFileGenerator,
-        HandlersFileGenerator,
-        DialoguesFileGenerator,
-    ]
-
-    def __init__(self, ctx: Context, skill_name: str, dfa: DFA) -> None:
-        """Initialize the utility class."""
-        self.ctx = ctx
-        self.skill_name = skill_name
-        self.dfa = dfa
-
-    @property
-    def skill_dir(self) -> Path:
-        """Get the directory to the skill."""
-        return Path(SKILLS, self.skill_name)
-
-    def do_scaffolding(self) -> None:
-        """Do the scaffolding."""
-
-        self.skill_dir.mkdir()
-        for file_gen in self.file_generators:
-            click.echo(f"Generating module {file_gen.FILENAME}...")
-            file_gen(self.ctx, self.skill_name, self.dfa).write_file(self.skill_dir)
-
-        # remove original 'my_model.py' file
-        shutil.rmtree(self.skill_dir / "my_model.py", ignore_errors=True)
-
-        self._remove_pycache()
-        self._update_config()
-
-    def _update_config(self) -> None:
-        """Update the skill configuration."""
-        click.echo("Updating skill configuration...")
-        SkillConfigUpdater(self.ctx, self.skill_dir, self.dfa).update()
-
-    def _remove_pycache(self) -> None:
-        """Remove __pycache__ folders."""
-        for path in self.skill_dir.rglob("*__pycache__*"):
-            shutil.rmtree(path, ignore_errors=True)
-
-
 def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
     """Add 'abstract_round_abci' skill if not present."""
     abstract_round_abci_public_id = PublicId.from_str(
@@ -1243,16 +1197,35 @@ class DialoguesTestFileGenerator(AbstractFileGenerator):
         return "\n".join([FILE_HEADER, self._get_dialogues_header_section()])
 
 
-class ScaffoldABCISkillTests(ScaffoldABCISkill):
-    """ScaffoldABCISkillTests"""
+class ScaffoldABCISkill:
+    """Utility class that implements the scaffolding of the ABCI skill."""
 
     file_generators: List[Type[AbstractFileGenerator]] = [
+        RoundFileGenerator,
+        BehaviourFileGenerator,
+        ModelsFileGenerator,
+        HandlersFileGenerator,
+        DialoguesFileGenerator,
+    ]
+
+    test_file_generators: List[Type[AbstractFileGenerator]] = [
         RoundTestsFileGenerator,
         BehaviourTestsFileGenerator,
         ModelTestFileGenerator,
         HandlersTestFileGenerator,
         DialoguesTestFileGenerator,
     ]
+
+    def __init__(self, ctx: Context, skill_name: str, dfa: DFA) -> None:
+        """Initialize the utility class."""
+        self.ctx = ctx
+        self.skill_name = skill_name
+        self.dfa = dfa
+
+    @property
+    def skill_dir(self) -> Path:
+        """Get the directory to the skill."""
+        return Path(SKILLS, self.skill_name)
 
     @property
     def skill_test_dir(self) -> Path:
@@ -1262,13 +1235,31 @@ class ScaffoldABCISkillTests(ScaffoldABCISkill):
     def do_scaffolding(self) -> None:
         """Do the scaffolding."""
 
-        self.skill_test_dir.mkdir()
-        for file_gen in self.file_generators:
-            click.echo(f"Generating module {file_gen.FILENAME}...")
-            file_gen(self.ctx, self.skill_name, self.dfa).write_file(self.skill_test_dir)
+        self.skill_dir.mkdir(exist_ok=True)
+        self.skill_test_dir.mkdir(exist_ok=True)
+
+        file_dirs = self.skill_dir, self.skill_test_dir
+        file_gens = self.file_generators, self.test_file_generators
+        for (f_dir, gens) in zip(file_dirs, file_gens):
+            for f_gen in gens:
+                click.echo(f"Generating module {f_gen.FILENAME}...")
+                f_gen(self.ctx, self.skill_name, self.dfa).write_file(f_dir)
+
+        # remove original 'my_model.py' file
+        shutil.rmtree(self.skill_dir / "my_model.py", ignore_errors=True)
 
         self._remove_pycache()
         self._update_config()
+
+    def _update_config(self) -> None:
+        """Update the skill configuration."""
+        click.echo("Updating skill configuration...")
+        SkillConfigUpdater(self.ctx, self.skill_dir, self.dfa).update()
+
+    def _remove_pycache(self) -> None:
+        """Remove __pycache__ folders."""
+        for path in self.skill_dir.rglob("*__pycache__*"):
+            shutil.rmtree(path, ignore_errors=True)
 
 
 @scaffold.command()  # noqa
@@ -1291,4 +1282,3 @@ def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
         dfa = DFA.load(fp, input_format="yaml")
 
     ScaffoldABCISkill(ctx, skill_name, dfa).do_scaffolding()
-    ScaffoldABCISkillTests(ctx, skill_name, dfa).do_scaffolding()
