@@ -928,6 +928,22 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
         """
     )
 
+    BASE_CLASS = dedent(
+        """\
+        class Base{FSMName}Test(FSMBehaviourBaseCase):
+            \"\"\"Base test case.\"\"\"
+
+            path_to_skill = Path(ROOT_DIR, "packages", "{author}", "skills", "{skill_name}")
+
+            behaviour: {FSMName}BaseBehaviour
+            behaviour_class: Type[{FSMName}BaseBehaviour]
+            next_behaviour_class: Type[{FSMName}BaseBehaviour]
+            synchronized_data: SynchronizedData
+            done_event = Event.DONE
+
+    """
+    )
+
     def get_file_content(self) -> str:
         """Scaffold the 'test_behaviours.py' file."""
 
@@ -938,7 +954,7 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
             [
                 FILE_HEADER,
                 behaviour_header_section,
-                # behaviour_section,
+                behaviour_section,
             ]
         )
 
@@ -948,6 +964,11 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
     def abci_app_name(self) -> str:
         """AbciApp class name"""
         return _get_abci_app_cls_name_from_dfa(self.dfa)
+
+    @property
+    def fsm_name(self) -> str:
+        """FSM base name"""
+        return self.abci_app_name.rstrip("AbciApp")  # noqa: B005
 
     def _get_behaviour_header_section(self) -> str:
         """Get the rounds header section."""
@@ -959,7 +980,12 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
     def _get_behaviour_section(self) -> str:
         """Get behaviour section"""
 
-        all_behaviour_classes_str = []
+        author = "valory"
+        all_behaviour_classes_str = [self.BASE_CLASS.format(
+            FSMName=self.fsm_name,
+            author=author,
+            skill_name=self.skill_name,
+        )]
 
         return "\n".join(all_behaviour_classes_str)
 
