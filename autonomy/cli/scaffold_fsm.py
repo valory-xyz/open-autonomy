@@ -945,11 +945,19 @@ class ScaffoldABCISkillTests(ScaffoldABCISkill):
         """Do the scaffolding."""
         self.skill_test_dir.mkdir()
         self._scaffold_rounds()
+        self._scaffold_behaviours()
 
     def _scaffold_rounds(self) -> None:
         """Scaffold the tests for rounds"""
         click.echo(f"Generating test module {RoundTestsFileGenerator.FILENAME}...")
         RoundTestsFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_test_dir
+        )
+
+    def _scaffold_behaviours(self) -> None:
+        """Scaffold the tests for behaviour"""
+        click.echo(f"Generating test module {BehaviourTestsFileGenerator.FILENAME}...")
+        BehaviourTestsFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
             self.skill_test_dir
         )
 
