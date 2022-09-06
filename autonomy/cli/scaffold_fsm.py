@@ -885,7 +885,7 @@ class RoundTestsFileGenerator(RoundFileGenerator):
         """Get rounds section"""
 
         app_name = _get_abci_app_cls_name_from_dfa(self.dfa)
-        fsm_name = app_name.strip("AbciApp")  # noqa: B005
+        fsm_name = app_name.rstrip("AbciApp")  # noqa: B005
         all_round_classes_str = [self.BASE_CLASS.format(FSMName=fsm_name)]
 
         for abci_round_name in self.dfa.states - self.dfa.final_states:
@@ -1023,7 +1023,7 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
 
     @property
     def abci_app_name(self) -> str:
-        """AbciApp class name"""
+        """ABCI app class name"""
         return _get_abci_app_cls_name_from_dfa(self.dfa)
 
     @property
@@ -1057,11 +1057,13 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
         """Get behaviour section"""
 
         author = "valory"
-        all_behaviour_classes_str = [self.BASE_CLASS.format(
-            FSMName=self.fsm_name,
-            author=author,
-            skill_name=self.skill_name,
-        )]
+        all_behaviour_classes_str = [
+            self.BASE_CLASS.format(
+                FSMName=self.fsm_name,
+                author=author,
+                skill_name=self.skill_name,
+            )
+        ]
 
         for abci_behaviour_name in self.non_degenerate_behaviours:
             round_class_str = self.BEHAVIOUR_CLS_TEMPLATE.format(
