@@ -1287,6 +1287,9 @@ class ScaffoldABCISkillTests(ScaffoldABCISkill):
         self._scaffold_handlers()
         self._scaffold_dialogues()
 
+        self._remove_pycache()
+        self._update_config()
+
     def _scaffold_rounds(self) -> None:
         """Scaffold the tests for rounds"""
         click.echo(f"Generating test module {RoundTestsFileGenerator.FILENAME}...")
