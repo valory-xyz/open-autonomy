@@ -26,6 +26,7 @@ nav:
     - Use cases: 'use_cases.md'
   - Guides:
     - Quick start: 'guides/quick_start.md'
+    - Overview of the development process: 'guides/overview_of_the_development_process.md'
     - Create a service with an existing agent: 'guides/create_service_existing_agent.md'
     - Create a service from scratch: 'guides/create_service_from_scratch.md'
     - Deploy a service: 'guides/deploy_service.md'
