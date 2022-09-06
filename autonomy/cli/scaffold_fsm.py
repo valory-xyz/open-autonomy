@@ -564,10 +564,9 @@ class PayloadsFileGenerator(AbstractFileGenerator):
         all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=fsm_name)]
 
         non_degenerate_rounds = self.dfa.states - self.dfa.final_states
-        for round in non_degenerate_rounds:
+        for state in non_degenerate_rounds:
             payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
-                FSMName=fsm_name,
-                BaseName=round.removesuffix("Round")
+                FSMName=fsm_name, BaseName=state.removesuffix("Round")
             )
             all_payloads_classes_str.append(payload_class_str)
 
@@ -582,7 +581,7 @@ class PayloadsFileGenerator(AbstractFileGenerator):
             [
                 FILE_HEADER,
                 self.PAYLOADS_FILE.format(FSMName=abci_app_cls_name),
-                self._get_base_payload_section()
+                self._get_base_payload_section(),
             ]
         )
 
