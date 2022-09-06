@@ -169,6 +169,21 @@ class AbstractFileGenerator(ABC):
         """Write the file to output_dir/FILENAME."""
         (output_dir / self.FILENAME).write_text(self.get_file_content())
 
+    @property
+    def abci_app_name(self) -> str:
+        """ABCI app class name"""
+        return _get_abci_app_cls_name_from_dfa(self.dfa)
+
+    @property
+    def fsm_name(self) -> str:
+        """FSM base name"""
+        return self.abci_app_name.removesuffix("AbciApp")  # noqa: B005
+
+    @property
+    def author(self) -> str:
+        """Author"""
+        return self.ctx.agent_config.author
+
 
 class RoundFileGenerator(AbstractFileGenerator):
     """File generator for 'rounds.py' modules."""
@@ -1062,12 +1077,11 @@ class RoundTestsFileGenerator(RoundFileGenerator):
     def _get_rounds_header_section(self) -> str:
         """Get the rounds header section."""
 
-        author = "valory"
         rounds = self.dfa.states - self.dfa.final_states
 
         return self.ROUNDS_FILE_HEADER.format(
             FSMName=_get_abci_app_cls_name_from_dfa(self.dfa),
-            author=author,
+            author=self.author,
             skill_name=self.skill_name,
             non_degenerate_rounds=indent(",\n".join(rounds), " " * 4).strip() + ",",
         )
@@ -1075,13 +1089,11 @@ class RoundTestsFileGenerator(RoundFileGenerator):
     def _get_rounds_section(self) -> str:
         """Get rounds section"""
 
-        app_name = _get_abci_app_cls_name_from_dfa(self.dfa)
-        fsm_name = app_name.rstrip("AbciApp")  # noqa: B005
-        all_round_classes_str = [self.BASE_CLASS.format(FSMName=fsm_name)]
+        all_round_classes_str = [self.BASE_CLASS.format(FSMName=self.fsm_name)]
 
         for abci_round_name in self.dfa.states - self.dfa.final_states:
             round_class_str = self.ROUND_CLS_TEMPLATE.format(
-                FSMName=fsm_name,
+                FSMName=self.fsm_name,
                 RoundCls=abci_round_name,
             )
             all_round_classes_str.append(round_class_str)
@@ -1213,16 +1225,6 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
         return behaviour_file_content
 
     @property
-    def abci_app_name(self) -> str:
-        """ABCI app class name"""
-        return _get_abci_app_cls_name_from_dfa(self.dfa)
-
-    @property
-    def fsm_name(self) -> str:
-        """FSM base name"""
-        return self.abci_app_name.rstrip("AbciApp")  # noqa: B005
-
-    @property
     def non_degenerate_behaviours(self) -> Set[str]:
         """Non-degenerate behaviours"""
 
@@ -1232,13 +1234,12 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
     def _get_behaviour_header_section(self) -> str:
         """Get the rounds header section."""
 
-        author = "valory"
         rounds = self.dfa.states
         behaviours = self.non_degenerate_behaviours
         return self.BEHAVIOUR_FILE_HEADER.format(
             AbciAppCls=self.abci_app_name,
             FSMName=self.fsm_name,
-            author=author,
+            author=self.author,
             skill_name=self.skill_name,
             rounds=indent(",\n".join(rounds), " " * 4).strip(),
             non_degenerate_behaviours=indent(",\n".join(behaviours), " " * 4).strip(),
@@ -1247,11 +1248,10 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
     def _get_behaviour_section(self) -> str:
         """Get behaviour section"""
 
-        author = "valory"
         all_behaviour_classes_str = [
             self.BASE_CLASS.format(
                 FSMName=self.fsm_name,
-                author=author,
+                author=self.author,
                 skill_name=self.skill_name,
             )
         ]
@@ -1264,6 +1264,109 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
             all_behaviour_classes_str.append(round_class_str)
 
         return "\n".join(all_behaviour_classes_str)
+
+
+class ModelTestFileGenerator(AbstractFileGenerator):
+    """File generator for 'test_models.py'."""
+
+    FILENAME = "test_" + MODELS_FILENAME
+
+    MODELS_FILE = dedent(
+        """\
+        \"\"\"Test the models.py module of the {FSMName}.\"\"\"
+
+        from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
+        from packages.{author}.skills.{skill_name}.models import SharedState
+
+
+        class TestSharedState:
+            \"\"\"Test SharedState class.\"\"\"
+
+            def test_initialization(self) -> None:
+                \"\"\"Test initialization.\"\"\"
+                SharedState(name="", skill_context=DummyContext())
+
+        """
+    )
+
+    def _get_models_header_section(self) -> str:
+        """Get the models header section."""
+
+        return self.MODELS_FILE.format(
+            FSMName=self.fsm_name,
+            author=self.author,
+            skill_name=self.skill_name,
+        )
+
+    def get_file_content(self) -> str:
+        """Get the file content."""
+
+        return "\n".join([FILE_HEADER, self._get_models_header_section()])
+
+
+class HandlersTestFileGenerator(AbstractFileGenerator):
+    """File generator for 'test_dialogues.py'."""
+
+    FILENAME = "test_" + HANDLERS_FILENAME
+
+    HANDLERS_FILE = dedent(
+        """\
+        \"\"\"Test the handlers.py module of the {FSMName}.\"\"\"
+
+        import packages.{author}.skills.{skill_name}.handlers  # noqa
+
+
+        def test_import() -> None:
+            \"\"\"Test that the 'handlers.py' of the {FSMName} can be imported.\"\"\"
+
+        """
+    )
+
+    def _get_handlers_header_section(self) -> str:
+        """Get the handlers header section."""
+
+        return self.HANDLERS_FILE.format(
+            FSMName=self.fsm_name,
+            author=self.author,
+            skill_name=self.skill_name,
+        )
+
+    def get_file_content(self) -> str:
+        """Get the file content."""
+
+        return "\n".join([FILE_HEADER, self._get_handlers_header_section()])
+
+
+class DialoguesTestFileGenerator(AbstractFileGenerator):
+    """File generator for 'test_dialogues.py'."""
+
+    FILENAME = "test_" + DIALOGUES_FILENAME
+
+    DIALOGUES_FILE = dedent(
+        """\
+        \"\"\"Test the dialogues.py module of the {FSMName}.\"\"\"
+
+        import packages.{author}.skills.{skill_name}.dialogues  # noqa
+
+
+        def test_import() -> None:
+            \"\"\"Test that the 'dialogues.py' of the {FSMName} can be imported.\"\"\"
+        """
+    )
+
+    def _get_dialogues_header_section(self) -> str:
+        """Get the dialogues header section."""
+
+        return self.DIALOGUES_FILE.format(
+            FSMName=self.fsm_name,
+            author=self.author,
+            skill_name=self.skill_name,
+        )
+
+    def get_file_content(self) -> str:
+        """Get the file content."""
+
+        return "\n".join([FILE_HEADER, self._get_dialogues_header_section()])
 
 
 class ScaffoldABCISkillTests(ScaffoldABCISkill):
@@ -1279,6 +1382,12 @@ class ScaffoldABCISkillTests(ScaffoldABCISkill):
         self.skill_test_dir.mkdir()
         self._scaffold_rounds()
         self._scaffold_behaviours()
+        self._scaffold_models()
+        self._scaffold_handlers()
+        self._scaffold_dialogues()
+
+        self._remove_pycache()
+        self._update_config()
 
         self._remove_pycache()
         self._update_config()
@@ -1294,6 +1403,27 @@ class ScaffoldABCISkillTests(ScaffoldABCISkill):
         """Scaffold the tests for behaviour"""
         click.echo(f"Generating test module {BehaviourTestsFileGenerator.FILENAME}...")
         BehaviourTestsFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_test_dir
+        )
+
+    def _scaffold_models(self) -> None:
+        """Scaffold the tests for dialogues"""
+        click.echo(f"Generating test module {ModelTestFileGenerator.FILENAME}...")
+        ModelTestFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_test_dir
+        )
+
+    def _scaffold_handlers(self) -> None:
+        """Scaffold the tests for dialogues"""
+        click.echo(f"Generating test module {HandlersTestFileGenerator.FILENAME}...")
+        HandlersTestFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_test_dir
+        )
+
+    def _scaffold_dialogues(self) -> None:
+        """Scaffold the tests for dialogues"""
+        click.echo(f"Generating test module {DialoguesTestFileGenerator.FILENAME}...")
+        DialoguesTestFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
             self.skill_test_dir
         )
 
