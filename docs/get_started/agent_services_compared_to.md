@@ -1,10 +1,9 @@
-#Agent Services in Context
-
-In this section, we would like to present how agent services fit into the wider space of software services with crypto capabilities. One of the best ways to understand how autonomous services work is to compare them with existing solutions.
+One of the best ways to understand how autonomous services (more concretely, agent services) fit into
+the wider ecosystem of crypto services and applications is to compare them with existing solutions.
 
 Recall that an **autonomous service** is a decentralized service that runs off-chain and provides functionalities to objects living on-chain. Autonomous services are outside the purview and control of a single authority, and can be designed for a variety of purposes, including acting as a decentralized oracle for smart contracts, or executing complex investing strategies that cannot be easily encoded on-chain. An **agent service** is a particular type of autonomous service which is implemented as a multi-agent system.
 
-## Agent Services Vs. Other Software Solutions
+## Agent services vs. other software solutions
 
 The table below highlights the main differences between agent services and other software solutions.
 
@@ -31,7 +30,7 @@ This is where **autonomous services** (implemented as agent services with the {{
 For a more detailed discussion, we refer the reader to take a look at the [Autonolas Education](https://www.autonolas.network/education-articles) article series.
 
 
-## Agent Services Vs. Single-Agent Applications
+## Agent services vs. single-agent applications
 
 Having understood how agent services fit into the wider crypto ecosystem, sometimes there is the question whether is it best to design a certain application as single-agent or as an agent service.
 This is often a question that new developers in the field of agent systems and multi-agent systems face. We provide below a comparison table which hopefully will give you some guidance on which of the both approaches is best for your use case.
