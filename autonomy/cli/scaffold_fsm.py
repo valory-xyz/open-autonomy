@@ -936,6 +936,14 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
             FSMBehaviourBaseCase,
         )
 
+
+        @dataclass
+        class BehaviourTestCase:
+            \"\"\"BehaviourTestCase\"\"\"
+
+            initial_data: Dict[str, Hashable]
+            event: Event
+
         """
     )
 
@@ -977,12 +985,22 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
 
     BEHAVIOUR_CLS_TEMPLATE = dedent(
         """\
-        class Test{BehaviourCls}(Base{FSMName}):
+        class Test{BehaviourCls}(Base{FSMName}Test):
             \"\"\"Tests {BehaviourCls}\"\"\"
 
             # TODO: set next_behaviour_class
             behaviour_class: Type[BaseBehaviour] = {BehaviourCls}
             next_behaviour_class: Type[BaseBehaviour] = ...
+
+            # TODO: provide test cases
+            @pytest.mark.parametrize("test_case, kwargs", [])
+            def test_run(self, test_case: BehaviourTestCase, **kwargs: Any) -> None:
+                \"\"\"Run tests.\"\"\"
+
+                self.fast_forward(test_case.initial_data)
+                # TODO: mock the necessary calls
+                # self.mock_ ...
+                self.complete(test_case.event)
 
     """
     )
