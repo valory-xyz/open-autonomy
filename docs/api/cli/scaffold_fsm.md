@@ -88,6 +88,26 @@ def get_file_content() -> str
 
 Scaffold the 'rounds.py' file.
 
+<a id="autonomy.cli.scaffold_fsm.PayloadsFileGenerator"></a>
+
+## PayloadsFileGenerator Objects
+
+```python
+class PayloadsFileGenerator(AbstractFileGenerator)
+```
+
+File generator for 'payloads.py' modules.
+
+<a id="autonomy.cli.scaffold_fsm.PayloadsFileGenerator.get_file_content"></a>
+
+#### get`_`file`_`content
+
+```python
+def get_file_content() -> str
+```
+
+Get the file content.
+
 <a id="autonomy.cli.scaffold_fsm.ModelsFileGenerator"></a>
 
 ## ModelsFileGenerator Objects

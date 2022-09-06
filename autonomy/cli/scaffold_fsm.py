@@ -79,6 +79,7 @@ FILE_HEADER = """\
 
 ROUNDS_FILENAME = "rounds.py"
 BEHAVIOURS_FILENAME = "behaviours.py"
+PAYLOADS_FILENAME = "payloads.py"
 MODELS_FILENAME = "models.py"
 HANDLERS_FILENAME = "handlers.py"
 DIALOGUES_FILENAME = "dialogues.py"
@@ -496,6 +497,96 @@ class BehaviourFileGenerator(AbstractFileGenerator):
         )
 
 
+class PayloadsFileGenerator(AbstractFileGenerator):
+    """File generator for 'payloads.py' modules."""
+
+    FILENAME = PAYLOADS_FILENAME
+
+    PAYLOADS_FILE = dedent(
+        """\
+        \"\"\"This module contains the transaction payloads of the {FSMName}.\"\"\"
+
+        from enum import Enum
+        from typing import Any, Dict, Hashable, Optional
+
+        from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
+
+
+        class TransactionType(Enum):
+            \"\"\"Enumeration of transaction types.\"\"\"
+
+            # TODO: define transaction types: e.g. TX_HASH: "tx_hash"
+            ...
+
+            def __str__(self) -> str:
+                \"\"\"Get the string value of the transaction type.\"\"\"
+                return self.value
+
+        """
+    )
+
+    BASE_PAYLOAD_CLS = dedent(
+        """\
+        class Base{FSMName}Payload(BaseTxPayload):
+            \"\"\"Base payload for {FSMName}.\"\"\"
+
+            def __init__(self, sender: str, content: Hashable, **kwargs: Any) -> None:
+                \"\"\"Initialize a 'select_keeper' transaction payload.\"\"\"
+
+                super().__init__(sender, **kwargs)
+                setattr(self, f"_{{self.transaction_type}}", content)
+                p = property(lambda s: getattr(self, f"_{{self.transaction_type}}"))
+                setattr(self.__class__, f"{{self.transaction_type}}", p)
+
+            @property
+            def data(self) -> Dict[str, Hashable]:
+                \"\"\"Get the data.\"\"\"
+                return {{str(self.transaction_type): getattr(self, str(self.transaction_type))}}
+
+    """
+    )
+
+    PAYLOAD_CLS_TEMPLATE = dedent(
+        """\
+        class {BaseName}Payload(Base{FSMName}Payload):
+            \"\"\"Represent a transaction payload for {BaseName}.\"\"\"
+
+            # TODO: specify the transaction type
+            transaction_type = TransactionType
+
+        """
+    )
+
+    def _get_base_payload_section(self) -> str:
+        """Get the base payload section."""
+
+        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
+        fsm_name = abci_app_cls_name.removesuffix("AbciApp")
+        all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=fsm_name)]
+
+        non_degenerate_rounds = self.dfa.states - self.dfa.final_states
+        for state in non_degenerate_rounds:
+            payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
+                FSMName=fsm_name, BaseName=state.removesuffix("Round")
+            )
+            all_payloads_classes_str.append(payload_class_str)
+
+        return "\n".join(all_payloads_classes_str)
+
+    def get_file_content(self) -> str:
+        """Get the file content."""
+
+        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
+
+        return "\n".join(
+            [
+                FILE_HEADER,
+                self.PAYLOADS_FILE.format(FSMName=abci_app_cls_name),
+                self._get_base_payload_section(),
+            ]
+        )
+
+
 class ModelsFileGenerator(AbstractFileGenerator):
     """File generator for 'models.py' modules."""
 
@@ -775,6 +866,7 @@ class ScaffoldABCISkill:
         """Do the scaffolding."""
         self._scaffold_rounds()
         self._scaffold_behaviours()
+        self._scaffold_payloads()
         self._scaffold_models()
         self._scaffold_handlers()
         self._scaffold_dialogues()
@@ -796,6 +888,13 @@ class ScaffoldABCISkill:
         """Scaffold the 'behaviours.py' module."""
         click.echo(f"Generating module {BehaviourFileGenerator.FILENAME}...")
         BehaviourFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_dir
+        )
+
+    def _scaffold_payloads(self) -> None:
+        """Scaffold the 'payloads.py' module."""
+        click.echo(f"Generating module {PayloadsFileGenerator.FILENAME}...")
+        PayloadsFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
             self.skill_dir
         )
 
@@ -1180,6 +1279,9 @@ class ScaffoldABCISkillTests(ScaffoldABCISkill):
         self.skill_test_dir.mkdir()
         self._scaffold_rounds()
         self._scaffold_behaviours()
+
+        self._remove_pycache()
+        self._update_config()
 
     def _scaffold_rounds(self) -> None:
         """Scaffold the tests for rounds"""
