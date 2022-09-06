@@ -369,10 +369,9 @@ fix-abci-app-specs:
 
 AEA_AGENT_HELLO_WORLD:=valory/hello_world:latest:$(shell cat packages/hashes.csv | grep "agents/hello_world" | cut -d "," -f2 )
 AEA_AGENT_ORACLE:=valory/oracle:latest:$(shell cat packages/hashes.csv | grep "agents/oracle" | cut -d "," -f2 )
-AEA_AGENT_APY_ESTIMATION:=valory/oracle:latest:$(shell cat packages/hashes.csv | grep "agents/apy_estimation," | cut -d "," -f2 )
+AEA_AGENT_APY_ESTIMATION:=valory/apy_estimation:latest:$(shell cat packages/hashes.csv | grep "agents/apy_estimation," | cut -d "," -f2 )
 release-images:
 	export AEA_AGENT_ORACLE=${AEA_AGENT_ORACLE}
 	export AEA_AGENT_APY_ESTIMATION=${AEA_AGENT_APY_ESTIMATION}
 	export AEA_AGENT=${AEA_AGENT_HELLO_WORLD}
 	skaffold build -p release --cache-artifacts=false && skaffold build -p release-latest
-
