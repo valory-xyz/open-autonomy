@@ -81,6 +81,7 @@ ROUNDS_FILENAME = "rounds.py"
 BEHAVIOURS_FILENAME = "behaviours.py"
 MODELS_FILENAME = "models.py"
 HANDLERS_FILENAME = "handlers.py"
+DIALOGUES_FILENAME = "dialogues.py"
 
 DEGENERATE_ROUND = "DegenerateRound"
 ABSTRACT_ROUND = "AbstractRound"
@@ -592,6 +593,89 @@ class HandlersFileGenerator(AbstractFileGenerator):
         )
 
 
+class DialoguesFileGenerator(AbstractFileGenerator):
+    """File generator for 'dialogues.py' modules."""
+
+    FILENAME = DIALOGUES_FILENAME
+
+    DIALOGUES_FILE = dedent(
+        """\
+        \"\"\"This module contains the dialogues of the {FSMName}.\"\"\"
+
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            AbciDialogue as BaseAbciDialogue,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            AbciDialogues as BaseAbciDialogues,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            ContractApiDialogue as BaseContractApiDialogue,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            ContractApiDialogues as BaseContractApiDialogues,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            HttpDialogue as BaseHttpDialogue,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            HttpDialogues as BaseHttpDialogues,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            LedgerApiDialogue as BaseLedgerApiDialogue,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            LedgerApiDialogues as BaseLedgerApiDialogues,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            SigningDialogue as BaseSigningDialogue,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            SigningDialogues as BaseSigningDialogues,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            TendermintDialogue as BaseTendermintDialogue,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            TendermintDialogues as BaseTendermintDialogues,
+        )
+
+
+        AbciDialogue = BaseAbciDialogue
+        AbciDialogues = BaseAbciDialogues
+
+
+        HttpDialogue = BaseHttpDialogue
+        HttpDialogues = BaseHttpDialogues
+
+
+        SigningDialogue = BaseSigningDialogue
+        SigningDialogues = BaseSigningDialogues
+
+
+        LedgerApiDialogue = BaseLedgerApiDialogue
+        LedgerApiDialogues = BaseLedgerApiDialogues
+
+
+        ContractApiDialogue = BaseContractApiDialogue
+        ContactApiDialogues = BaseContractApiDialogues
+
+
+        TendermintDialogue = BaseTendermintDialogue
+        TendermintDialogues = BaseTendermintDialogues
+        """
+    )
+
+    def get_file_content(self) -> str:
+        """Get the file content."""
+        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
+        return "\n".join(
+            [
+                FILE_HEADER,
+                self.DIALOGUES_FILE.format(FSMName=abci_app_cls_name),
+            ]
+        )
+
+
 class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
     """Update the skill configuration according to the Abci classes."""
 
@@ -693,6 +777,7 @@ class ScaffoldABCISkill:
         self._scaffold_behaviours()
         self._scaffold_models()
         self._scaffold_handlers()
+        self._scaffold_dialogues()
 
         # remove original 'my_model.py' file
         shutil.rmtree(self.skill_dir / "my_model.py", ignore_errors=True)
@@ -725,6 +810,13 @@ class ScaffoldABCISkill:
         """Scaffold the 'handlers.py' module."""
         click.echo(f"Generating module {HandlersFileGenerator.FILENAME}...")
         HandlersFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_dir
+        )
+
+    def _scaffold_dialogues(self) -> None:
+        """Scaffold the 'dialogues.py' module."""
+        click.echo(f"Generating module {DialoguesFileGenerator.FILENAME}...")
+        DialoguesFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
             self.skill_dir
         )
 

@@ -128,6 +128,26 @@ def get_file_content() -> str
 
 Get the file content.
 
+<a id="autonomy.cli.scaffold_fsm.DialoguesFileGenerator"></a>
+
+## DialoguesFileGenerator Objects
+
+```python
+class DialoguesFileGenerator(AbstractFileGenerator)
+```
+
+File generator for 'dialogues.py' modules.
+
+<a id="autonomy.cli.scaffold_fsm.DialoguesFileGenerator.get_file_content"></a>
+
+#### get`_`file`_`content
+
+```python
+def get_file_content() -> str
+```
+
+Get the file content.
+
 <a id="autonomy.cli.scaffold_fsm.SkillConfigUpdater"></a>
 
 ## SkillConfigUpdater Objects
