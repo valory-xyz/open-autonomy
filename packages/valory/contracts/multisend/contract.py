@@ -30,10 +30,9 @@ from aea.crypto.base import LedgerApi
 from hexbytes import HexBytes
 from web3 import Web3
 
-from packages.valory.contracts import MIN_GAS, MIN_GASPRICE
-
 
 PUBLIC_ID = PublicId.from_str("valory/multisend:0.1.0")
+MIN_GAS = MIN_GASPRICE = 1
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"

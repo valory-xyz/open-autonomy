@@ -37,13 +37,15 @@ from requests import HTTPError
 from web3.exceptions import SolidityError, TransactionNotFound
 from web3.types import BlockIdentifier, Nonce, TxData, TxParams, Wei
 
-from packages.valory.contracts import GAS_ADJUSTMENT, MIN_GAS, MIN_GASPRICE
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
     GnosisSafeProxyFactoryContract,
 )
 
 
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe:0.1.0")
+MIN_GAS = MIN_GASPRICE = 1
+# see https://github.com/safe-global/safe-eth-py/blob/6c0e0d80448e5f3496d0d94985bca239df6eb399/gnosis/safe/safe_tx.py#L354
+GAS_ADJUSTMENT = 75_000
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"

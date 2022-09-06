@@ -13,8 +13,8 @@ connections:
 - valory/ledger:0.1.0:bafybeiemp6u7xsyvwcq25i3t62oiykwsg5wmp7xs2e6eidll5vf3htdpwy
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeiavdwhtltlpn6qdnqsfuvxqzr6h7p5ic4hx7oqa4qiqtcu3rpeq7q
-- valory/gnosis_safe_proxy_factory:0.1.0:bafybeidpgjj2d246z3kuji4acdl7apzfts7hwc75rrnz355lkb2wtiav7i
+- valory/gnosis_safe:0.1.0:bafybeiaugd2npc33jgovg72y4y7pyy7yl24ly6eri7mw6v6gev5azewozq
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeicjmvhynk6iiatd5hczr3irkjenlwzvchxslfjscitwikazkk73ra
 - valory/offchain_aggregator:0.1.0:bafybeiexr4ggkzocdz3cojmwzhkgmx3fjnvisvbnh7jumlz32lsm4hp7ii
 - valory/service_registry:0.1.0:bafybeia7uxs2a5gc3zu7qqw3wecukbvib3rd6xauynltmi7m2hmzja4wby
 protocols:
@@ -28,13 +28,13 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeic3dy6vtad4bylhc25mprvl2rl5xiy3zop3arnbeqmiwsbbeyf36u
 - valory/abstract_round_abci:0.1.0:bafybeihrktukokli5xxch7gexdl6wtnj23pnapbe6znmvlphyseotsqlre
-- valory/oracle_abci:0.1.0:bafybeigdzkool3ywclcrqnjyouxisncrwc7hg7i4qpa7s5ds4molpf5s5e
+- valory/oracle_abci:0.1.0:bafybeibgnl2e4ot2hxc2drjqi5odyzfipcw55cu556jpw7dt42hzohsj4i
 - valory/oracle_deployment_abci:0.1.0:bafybeibc7g3rqmtnyq2fxb4g6nohhumtw3oym56past2ehxjqbbvkp445i
-- valory/price_estimation_abci:0.1.0:bafybeiacoiorwpsoa656usj3mfmla4qzc3lcg7hv2li7utrm2ws5p5jt2m
+- valory/price_estimation_abci:0.1.0:bafybeide4b7ytsormz67umri4okcedh64qs7smrivl5dniqpr3qmiogyce
 - valory/registration_abci:0.1.0:bafybeihzmgkj5t737vetrcd5dkzawidk6jzgwswamd4jh4rknjdjdxtg6u
 - valory/reset_pause_abci:0.1.0:bafybeigiaoyjtrudkhn2le7b43s2fpj25ga23lczqhsk2mthmjhmuczr4u
-- valory/safe_deployment_abci:0.1.0:bafybeib6vrok2orykva7n5mgdcjlub7fc2jz3522it2f62ddi3u6t4yb3m
-- valory/transaction_settlement_abci:0.1.0:bafybeia2cy6le46evsvmqchhet5zsggs6lwydwam6cytmsckm2j4kmgcgy
+- valory/safe_deployment_abci:0.1.0:bafybeibgfxiydpxizvk6tdjyx2gcycctndaxzi5rqa3lpqvmi2x47tbtba
+- valory/transaction_settlement_abci:0.1.0:bafybeihcxwoaeidkx22l4bji7najnkb3yimxrjdfrghschmmq5wi3euddy
 default_ledger: ethereum
 required_ledgers:
 - ethereum
