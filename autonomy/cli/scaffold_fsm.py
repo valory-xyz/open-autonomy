@@ -919,6 +919,10 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
             BaseBehaviour,
             make_degenerate_behaviour,
         )
+        from packages.{author}.skills.{skill_name}.behaviours import (
+            {FSMName}BaseBehaviour,
+            {non_degenerate_behaviours},
+        )
         from packages.{author}.skills.{skill_name}.rounds import (
             SynchronizedData,
             DegenerateRound,
@@ -977,17 +981,26 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
         """FSM base name"""
         return self.abci_app_name.rstrip("AbciApp")  # noqa: B005
 
+    @property
+    def non_degenerate_behaviours(self) -> Set[str]:
+        """Non-degenerate behaviours"""
+
+        rounds = self.dfa.states - self.dfa.final_states
+        return {r.replace("Round", "Behaviour") for r in rounds}
+
     def _get_behaviour_header_section(self) -> str:
         """Get the rounds header section."""
 
         author = "valory"
         rounds = self.dfa.states
+        behaviours = self.non_degenerate_behaviours
         return self.BEHAVIOUR_FILE_HEADER.format(
             AbciAppCls=self.abci_app_name,
             FSMName=self.fsm_name,
             author=author,
             skill_name=self.skill_name,
             rounds=indent(",\n".join(rounds), " " * 4).strip(),
+            non_degenerate_behaviours=indent(",\n".join(behaviours), " " * 4).strip(),
         )
 
     def _get_behaviour_section(self) -> str:
