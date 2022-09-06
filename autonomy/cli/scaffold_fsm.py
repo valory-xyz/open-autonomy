@@ -81,6 +81,7 @@ ROUNDS_FILENAME = "rounds.py"
 BEHAVIOURS_FILENAME = "behaviours.py"
 MODELS_FILENAME = "models.py"
 HANDLERS_FILENAME = "handlers.py"
+DIALOGUES_FILENAME = "dialogues.py"
 
 DEGENERATE_ROUND = "DegenerateRound"
 ABSTRACT_ROUND = "AbstractRound"
@@ -595,6 +596,8 @@ class HandlersFileGenerator(AbstractFileGenerator):
 class DialoguesFileGenerator(AbstractFileGenerator):
     """File generator for 'dialogues.py' modules."""
 
+    FILENAME = DIALOGUES_FILENAME
+
     DIALOGUES_FILE = dedent(
         """\
         \"\"\"This module contains the dialogues of the {FSMName}.\"\"\"
@@ -774,6 +777,7 @@ class ScaffoldABCISkill:
         self._scaffold_behaviours()
         self._scaffold_models()
         self._scaffold_handlers()
+        self._scaffold_dialogues()
 
         # remove original 'my_model.py' file
         shutil.rmtree(self.skill_dir / "my_model.py", ignore_errors=True)
@@ -806,6 +810,13 @@ class ScaffoldABCISkill:
         """Scaffold the 'handlers.py' module."""
         click.echo(f"Generating module {HandlersFileGenerator.FILENAME}...")
         HandlersFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_dir
+        )
+
+    def _scaffold_dialogues(self) -> None:
+        """Scaffold the 'dialogues.py' module."""
+        click.echo(f"Generating module {DialoguesFileGenerator.FILENAME}...")
+        DialoguesFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
             self.skill_dir
         )
 
