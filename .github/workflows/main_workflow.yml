@@ -216,8 +216,9 @@ jobs:
 
           skaffold build --push=false
           skaffold build -p release --push=false
-          docker build deployments/Dockerfiles/tendermint/ -t valory/open-autonomy-tendermint:0.1.0 --file deployments/Dockerfiles/tendermint/Dockerfile
-          docker build deployments/Dockerfiles/tendermint/ -t valory/open-autonomy-tendermint:1.0.0 --file deployments/Dockerfiles/tendermint/Dockerfile
+          TM_DEPLOYMENT_PATH="deployments/Dockerfiles/tendermint/"
+          TM_IMG_NAME="valory/open-autonomy-tendermint"
+          docker build $TM_DEPLOYMENT_PATH -t $TM_IMG_NAME:0.1.0 -t $TM_IMG_NAME:1.0.0 -t $TM_IMG_NAME:latest
 
           # build hardhat node in third_party/safe-contracts
           cd third_party/safe-contracts &&\
