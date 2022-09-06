@@ -79,6 +79,7 @@ FILE_HEADER = """\
 
 ROUNDS_FILENAME = "rounds.py"
 BEHAVIOURS_FILENAME = "behaviours.py"
+PAYLOADS_FILENAME = "payloads.py"
 MODELS_FILENAME = "models.py"
 HANDLERS_FILENAME = "handlers.py"
 
@@ -498,6 +499,8 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 class PayloadsFileGenerator(AbstractFileGenerator):
     """File generator for 'payloads.py' modules."""
 
+    FILENAME = PAYLOADS_FILENAME
+
     PAYLOADS_FILE = dedent(
         """\
         \"\"\"This module contains the transaction payloads of the {FSMName}.\"\"\"
@@ -755,6 +758,7 @@ class ScaffoldABCISkill:
         """Do the scaffolding."""
         self._scaffold_rounds()
         self._scaffold_behaviours()
+        self._scaffold_payloads()
         self._scaffold_models()
         self._scaffold_handlers()
 
@@ -775,6 +779,13 @@ class ScaffoldABCISkill:
         """Scaffold the 'behaviours.py' module."""
         click.echo(f"Generating module {BehaviourFileGenerator.FILENAME}...")
         BehaviourFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_dir
+        )
+
+    def _scaffold_payloads(self) -> None:
+        """Scaffold the 'payloads.py' module."""
+        click.echo(f"Generating module {PayloadsFileGenerator.FILENAME}...")
+        PayloadsFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
             self.skill_dir
         )
 
