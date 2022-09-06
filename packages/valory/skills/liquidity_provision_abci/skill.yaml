@@ -21,11 +21,11 @@ contracts: []
 protocols: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeifcez62hbefsccudlvzqdfogjr2asqx6ji25zbtvx5uzzqcjznfze
-- valory/liquidity_rebalancing_abci:0.1.0:bafybeidgg35htu3pgl533jcggkid63sbx6ezfeaomm3e3bqwrvtzewb5wq
+- valory/liquidity_rebalancing_abci:0.1.0:bafybeid3t7nyzfstzvt3xglvvrp2avkeeiqad6ypgqqurqqqebsjnwyyua
 - valory/registration_abci:0.1.0:bafybeieldryrqvhp2gcfjoankiarbll4j4fpmz4vbqrj242yoslsrz5i4y
 - valory/reset_pause_abci:0.1.0:bafybeiga4qrxlwak6enrheturyzgvoxzwcg7hq5kku4tac6pcokhc6plki
-- valory/safe_deployment_abci:0.1.0:bafybeie3tq2aj4ht5n7gvolbk7l2rlmivjdx3cfsemgirj4s62l66qalu4
-- valory/transaction_settlement_abci:0.1.0:bafybeiarue5ykbqchhshnefscqvgakm62cqvkufktonnmjwtkoc6pco3nm
+- valory/safe_deployment_abci:0.1.0:bafybeidf2ysxfrdjhgthtvfvdqaegu27rag7inosq4zlswr3huagdj7rou
+- valory/transaction_settlement_abci:0.1.0:bafybeib2sgvivux6gm63urnfc34c2wuz7ay3tti3crscltu2w5q6ggvjry
 behaviours:
   main:
     args: {}
