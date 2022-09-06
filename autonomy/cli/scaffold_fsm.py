@@ -1209,6 +1209,45 @@ class ModelTestFileGenerator(AbstractFileGenerator):
         )
 
 
+class HandlersTestFileGenerator(AbstractFileGenerator):
+    """File generator for 'test_dialogues.py'."""
+
+    FILENAME = "test_" + HANDLERS_FILENAME
+
+    HANDLERS_FILE = dedent(
+        """\
+        \"\"\"Test the handlers.py module of the {FSMName}.\"\"\"
+
+        import packages.{author}.skills.{skill_name}.handlers  # noqa
+
+        
+        def test_import() -> None:
+            \"\"\"Test that the 'handlers.py' module can be imported.\"\"\"
+
+        """
+    )
+
+    def _get_handlers_header_section(self) -> str:
+        """Get the handlers header section."""
+
+        author = "valory"
+        return self.HANDLERS_FILE.format(
+            FSMName=self.fsm_name,
+            author=author,
+            skill_name=self.skill_name,
+        )
+
+    def get_file_content(self) -> str:
+        """Get the file content."""
+
+        return "\n".join(
+            [
+                FILE_HEADER,
+                self._get_handlers_header_section()
+            ]
+        )
+
+
 class DialoguesTestFileGenerator(AbstractFileGenerator):
     """File generator for 'test_dialogues.py'."""
 
