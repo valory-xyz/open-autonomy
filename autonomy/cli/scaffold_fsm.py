@@ -885,7 +885,7 @@ class RoundTestsFileGenerator(RoundFileGenerator):
         """Get rounds section"""
 
         app_name = _get_abci_app_cls_name_from_dfa(self.dfa)
-        fsm_name = app_name.strip("AbciApp")  # noqa: B005
+        fsm_name = app_name.rstrip("AbciApp")  # noqa: B005
         all_round_classes_str = [self.BASE_CLASS.format(FSMName=fsm_name)]
 
         for abci_round_name in self.dfa.states - self.dfa.final_states:
@@ -896,6 +896,183 @@ class RoundTestsFileGenerator(RoundFileGenerator):
             all_round_classes_str.append(round_class_str)
 
         return "\n".join(all_round_classes_str)
+
+
+class BehaviourTestsFileGenerator(BehaviourFileGenerator):
+    """File generator for 'test_behaviours.py' modules."""
+
+    FILENAME = "test_" + BEHAVIOURS_FILENAME
+
+    BEHAVIOUR_FILE_HEADER = dedent(
+        """\
+        \"\"\"This package contains round behaviours of {AbciAppCls}.\"\"\"
+
+        from pathlib import Path
+        from typing import Any, Dict, Hashable, Optional, Type
+        from dataclasses import dataclass
+
+        import pytest
+
+        from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+        from packages.valory.skills.abstract_round_abci.behaviours import (
+            AbstractRoundBehaviour,
+            BaseBehaviour,
+            make_degenerate_behaviour,
+        )
+        from packages.{author}.skills.{skill_name}.behaviours import (
+            {FSMName}BaseBehaviour,
+            {non_degenerate_behaviours},
+        )
+        from packages.{author}.skills.{skill_name}.rounds import (
+            SynchronizedData,
+            DegenerateRound,
+            Event,
+            {AbciAppCls},
+            {rounds},
+        )
+
+        from tests.conftest import ROOT_DIR
+        from tests.test_skills.test_abstract_round_abci.test_tools.base import (
+            FSMBehaviourBaseCase,
+        )
+
+
+        @dataclass
+        class BehaviourTestCase:
+            \"\"\"BehaviourTestCase\"\"\"
+
+            initial_data: Dict[str, Hashable]
+            event: Event
+
+        """
+    )
+
+    BASE_CLASS = dedent(
+        """\
+        class Base{FSMName}Test(FSMBehaviourBaseCase):
+            \"\"\"Base test case.\"\"\"
+
+            path_to_skill = Path(ROOT_DIR, "packages", "{author}", "skills", "{skill_name}")
+
+            behaviour: {FSMName}BaseBehaviour
+            behaviour_class: Type[{FSMName}BaseBehaviour]
+            next_behaviour_class: Type[{FSMName}BaseBehaviour]
+            synchronized_data: SynchronizedData
+            done_event = Event.DONE
+
+            def fast_forward(self, data: Optional[Dict[str, Any]] = None) -> None:
+                \"\"\"Fast-forward on initialization\"\"\"
+
+                data = data if data is not None else {{}}
+                self.fast_forward_to_behaviour(
+                    self.behaviour,
+                    self.behaviour_class.behaviour_id,
+                    SynchronizedData(AbciAppDB(setup_data=AbciAppDB.data_to_lists(data))),
+                )
+                assert self.behaviour.behaviour_id == self.behaviour_class.behaviour_id
+
+            def complete(self, event: Event) -> None:
+                \"\"\" Complete test \"\"\"
+
+                self.behaviour.act_wrapper()
+                self.mock_a2a_transaction()
+                self._test_done_flag_set()
+                self.end_round(done_event=event)
+                assert self.behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+
+    """
+    )
+
+    BEHAVIOUR_CLS_TEMPLATE = dedent(
+        """\
+        class Test{BehaviourCls}(Base{FSMName}Test):
+            \"\"\"Tests {BehaviourCls}\"\"\"
+
+            # TODO: set next_behaviour_class
+            behaviour_class: Type[BaseBehaviour] = {BehaviourCls}
+            next_behaviour_class: Type[BaseBehaviour] = ...
+
+            # TODO: provide test cases
+            @pytest.mark.parametrize("test_case, kwargs", [])
+            def test_run(self, test_case: BehaviourTestCase, **kwargs: Any) -> None:
+                \"\"\"Run tests.\"\"\"
+
+                self.fast_forward(test_case.initial_data)
+                # TODO: mock the necessary calls
+                # self.mock_ ...
+                self.complete(test_case.event)
+
+    """
+    )
+
+    def get_file_content(self) -> str:
+        """Scaffold the 'test_behaviours.py' file."""
+
+        behaviour_header_section = self._get_behaviour_header_section()
+        behaviour_section = self._get_behaviour_section()
+
+        behaviour_file_content = "\n".join(
+            [
+                FILE_HEADER,
+                behaviour_header_section,
+                behaviour_section,
+            ]
+        )
+
+        return behaviour_file_content
+
+    @property
+    def abci_app_name(self) -> str:
+        """ABCI app class name"""
+        return _get_abci_app_cls_name_from_dfa(self.dfa)
+
+    @property
+    def fsm_name(self) -> str:
+        """FSM base name"""
+        return self.abci_app_name.rstrip("AbciApp")  # noqa: B005
+
+    @property
+    def non_degenerate_behaviours(self) -> Set[str]:
+        """Non-degenerate behaviours"""
+
+        rounds = self.dfa.states - self.dfa.final_states
+        return {r.replace("Round", "Behaviour") for r in rounds}
+
+    def _get_behaviour_header_section(self) -> str:
+        """Get the rounds header section."""
+
+        author = "valory"
+        rounds = self.dfa.states
+        behaviours = self.non_degenerate_behaviours
+        return self.BEHAVIOUR_FILE_HEADER.format(
+            AbciAppCls=self.abci_app_name,
+            FSMName=self.fsm_name,
+            author=author,
+            skill_name=self.skill_name,
+            rounds=indent(",\n".join(rounds), " " * 4).strip(),
+            non_degenerate_behaviours=indent(",\n".join(behaviours), " " * 4).strip(),
+        )
+
+    def _get_behaviour_section(self) -> str:
+        """Get behaviour section"""
+
+        author = "valory"
+        all_behaviour_classes_str = [
+            self.BASE_CLASS.format(
+                FSMName=self.fsm_name,
+                author=author,
+                skill_name=self.skill_name,
+            )
+        ]
+
+        for abci_behaviour_name in self.non_degenerate_behaviours:
+            round_class_str = self.BEHAVIOUR_CLS_TEMPLATE.format(
+                FSMName=self.fsm_name,
+                BehaviourCls=abci_behaviour_name,
+            )
+            all_behaviour_classes_str.append(round_class_str)
+
+        return "\n".join(all_behaviour_classes_str)
 
 
 class ScaffoldABCISkillTests(ScaffoldABCISkill):
@@ -910,11 +1087,19 @@ class ScaffoldABCISkillTests(ScaffoldABCISkill):
         """Do the scaffolding."""
         self.skill_test_dir.mkdir()
         self._scaffold_rounds()
+        self._scaffold_behaviours()
 
     def _scaffold_rounds(self) -> None:
         """Scaffold the tests for rounds"""
         click.echo(f"Generating test module {RoundTestsFileGenerator.FILENAME}...")
         RoundTestsFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_test_dir
+        )
+
+    def _scaffold_behaviours(self) -> None:
+        """Scaffold the tests for behaviour"""
+        click.echo(f"Generating test module {BehaviourTestsFileGenerator.FILENAME}...")
+        BehaviourTestsFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
             self.skill_test_dir
         )
 

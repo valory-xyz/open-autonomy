@@ -225,6 +225,59 @@ def get_file_content() -> str
 
 Scaffold the 'test_rounds.py' file.
 
+<a id="autonomy.cli.scaffold_fsm.BehaviourTestsFileGenerator"></a>
+
+## BehaviourTestsFileGenerator Objects
+
+```python
+class BehaviourTestsFileGenerator(BehaviourFileGenerator)
+```
+
+File generator for 'test_behaviours.py' modules.
+
+<a id="autonomy.cli.scaffold_fsm.BehaviourTestsFileGenerator.get_file_content"></a>
+
+#### get`_`file`_`content
+
+```python
+def get_file_content() -> str
+```
+
+Scaffold the 'test_behaviours.py' file.
+
+<a id="autonomy.cli.scaffold_fsm.BehaviourTestsFileGenerator.abci_app_name"></a>
+
+#### abci`_`app`_`name
+
+```python
+@property
+def abci_app_name() -> str
+```
+
+ABCI app class name
+
+<a id="autonomy.cli.scaffold_fsm.BehaviourTestsFileGenerator.fsm_name"></a>
+
+#### fsm`_`name
+
+```python
+@property
+def fsm_name() -> str
+```
+
+FSM base name
+
+<a id="autonomy.cli.scaffold_fsm.BehaviourTestsFileGenerator.non_degenerate_behaviours"></a>
+
+#### non`_`degenerate`_`behaviours
+
+```python
+@property
+def non_degenerate_behaviours() -> Set[str]
+```
+
+Non-degenerate behaviours
+
 <a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkillTests"></a>
 
 ## ScaffoldABCISkillTests Objects
