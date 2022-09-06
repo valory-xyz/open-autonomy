@@ -14,7 +14,7 @@ Currently, a standardised approach for off-chain application development is miss
 
 
 <figure markdown>
-![](./images/centralized_decentralized_world.svg)
+![](../images/centralized_decentralized_world.svg)
 <figcaption>Location of agent services in the crypto ecosystem</figcaption>
 </figure>
 
