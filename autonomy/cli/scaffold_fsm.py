@@ -898,6 +898,41 @@ class RoundTestsFileGenerator(RoundFileGenerator):
         return "\n".join(all_round_classes_str)
 
 
+class BehaviourTestsFileGenerator(BehaviourFileGenerator):
+    """File generator for 'test_behaviours.py' modules."""
+
+    FILENAME = "test_" + BEHAVIOURS_FILENAME
+
+
+    def get_file_content(self) -> str:
+        """Scaffold the 'test_behaviours.py' file."""
+
+        behaviour_header_section = self._get_behaviour_header_section()
+        behaviour_section = self._get_behaviour_section()
+
+        behaviour_file_content = "\n".join(
+            [
+                FILE_HEADER,
+                # behaviour_header_section,
+                # behaviour_section,
+            ]
+        )
+
+        return behaviour_file_content
+
+    def _get_behaviour_header_section(self) -> str:
+        """Get the rounds header section."""
+
+        return self.BEHAVIOUR_FILE_HEADER
+
+    def _get_behaviour_section(self) -> str:
+        """Get behaviour section"""
+
+        all_behaviour_classes_str = []
+
+        return "\n".join(all_behaviour_classes_str)
+
+
 class ScaffoldABCISkillTests(ScaffoldABCISkill):
     """ScaffoldABCISkillTests"""
 
