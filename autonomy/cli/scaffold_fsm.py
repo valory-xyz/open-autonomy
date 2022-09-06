@@ -178,6 +178,11 @@ class AbstractFileGenerator(ABC):
         """FSM base name"""
         return self.abci_app_name.removesuffix("AbciApp")  # noqa: B005
 
+    @property
+    def author(self) -> str:
+        """Author"""
+        return self.ctx.agent_config.author
+
 
 class RoundFileGenerator(AbstractFileGenerator):
     """File generator for 'rounds.py' modules."""
@@ -973,12 +978,11 @@ class RoundTestsFileGenerator(RoundFileGenerator):
     def _get_rounds_header_section(self) -> str:
         """Get the rounds header section."""
 
-        author = "valory"
         rounds = self.dfa.states - self.dfa.final_states
 
         return self.ROUNDS_FILE_HEADER.format(
             FSMName=_get_abci_app_cls_name_from_dfa(self.dfa),
-            author=author,
+            author=self.author,
             skill_name=self.skill_name,
             non_degenerate_rounds=indent(",\n".join(rounds), " " * 4).strip() + ",",
         )
@@ -1131,13 +1135,12 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
     def _get_behaviour_header_section(self) -> str:
         """Get the rounds header section."""
 
-        author = "valory"
         rounds = self.dfa.states
         behaviours = self.non_degenerate_behaviours
         return self.BEHAVIOUR_FILE_HEADER.format(
             AbciAppCls=self.abci_app_name,
             FSMName=self.fsm_name,
-            author=author,
+            author=self.author,
             skill_name=self.skill_name,
             rounds=indent(",\n".join(rounds), " " * 4).strip(),
             non_degenerate_behaviours=indent(",\n".join(behaviours), " " * 4).strip(),
@@ -1146,11 +1149,10 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
     def _get_behaviour_section(self) -> str:
         """Get behaviour section"""
 
-        author = "valory"
         all_behaviour_classes_str = [
             self.BASE_CLASS.format(
                 FSMName=self.fsm_name,
-                author=author,
+                author=self.author,
                 skill_name=self.skill_name,
             )
         ]
@@ -1191,10 +1193,9 @@ class ModelTestFileGenerator(AbstractFileGenerator):
     def _get_models_header_section(self) -> str:
         """Get the models header section."""
 
-        author = "valory"
         return self.MODELS_FILE.format(
             FSMName=self.fsm_name,
-            author=author,
+            author=self.author,
             skill_name=self.skill_name,
         )
 
@@ -1230,10 +1231,9 @@ class HandlersTestFileGenerator(AbstractFileGenerator):
     def _get_handlers_header_section(self) -> str:
         """Get the handlers header section."""
 
-        author = "valory"
         return self.HANDLERS_FILE.format(
             FSMName=self.fsm_name,
-            author=author,
+            author=self.author,
             skill_name=self.skill_name,
         )
 
@@ -1268,10 +1268,9 @@ class DialoguesTestFileGenerator(AbstractFileGenerator):
     def _get_dialogues_header_section(self) -> str:
         """Get the dialogues header section."""
 
-        author = "valory"
         return self.DIALOGUES_FILE.format(
             FSMName=self.fsm_name,
-            author=author,
+            author=self.author,
             skill_name=self.skill_name,
         )
 
