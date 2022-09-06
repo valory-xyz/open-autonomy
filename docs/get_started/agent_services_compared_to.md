@@ -1,5 +1,5 @@
 One of the best ways to understand how autonomous services (more concretely, agent services) fit into
-the wider ecosystem of crypto services and aplications is to compare them with existing solutions.
+the wider ecosystem of crypto services and applications is to compare them with existing solutions.
 
 Recall that an **autonomous service** is a decentralized service that runs off-chain and provides functionalities to objects living on-chain. Autonomous services are outside the purview and control of a single authority, and can be designed for a variety of purposes, including acting as a decentralized oracle for smart contracts, or executing complex investing strategies that cannot be easily encoded on-chain. An **agent service** is a particular type of autonomous service which is implemented as a multi-agent system.
 

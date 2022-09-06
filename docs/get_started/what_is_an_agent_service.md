@@ -22,7 +22,7 @@ There are a number of concepts that are required to have an initial idea on how 
 
 
 <figure markdown>
-![](./images/agent_service_architecture.svg)
+![](../images/agent_service_architecture.svg)
 <figcaption>Overview of the architecture of an agent service</figcaption>
 </figure>
 
