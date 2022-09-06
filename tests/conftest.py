@@ -268,7 +268,7 @@ def registries_scope_class() -> Generator:
     image = RegistriesDockerImage(
         client, third_party_contract_dir=THIRD_PARTY_CONTRACTS
     )
-    yield from launch_image(image, timeout=2, max_attempts=10)
+    yield from launch_image(image, timeout=2, max_attempts=20)
 
 
 def get_unused_tcp_port() -> int:

@@ -390,7 +390,7 @@ jobs:
         os: [ ubuntu-latest ]
         python-version: [ "3.10" ]
 
-    timeout-minutes: 120
+    timeout-minutes: 140
 
     steps:
       - uses: actions/checkout@v2
@@ -441,6 +441,10 @@ jobs:
           # build hardhat node in third_party/contracts-amm
           cd ../..
           cd third_party/contracts-amm &&\
+            yarn
+          # build hardhat node in third_party/autonolas-registries
+          cd ../..
+          cd third_party/autonolas-registries &&\
             yarn
 
           # install Skaffold needed in order to build the Flask with Tendermint image

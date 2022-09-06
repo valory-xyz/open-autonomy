@@ -32,7 +32,7 @@ connections:
 - valory/http_client:0.1.0:bafybeiajlo43jrfdhtkpagjtj4izm2rc24ysbnzbtxnu5qqc2pxoov66z4
 - valory/ledger:0.1.0:bafybeiemp6u7xsyvwcq25i3t62oiykwsg5wmp7xs2e6eidll5vf3htdpwy
 contracts:
-- valory/service_registry:0.1.0:bafybeidtwbj7mwiskbbmsw43zzooivuq6nripdzn7yuoou66rq7spom54m
+- valory/service_registry:0.1.0:bafybeia7uxs2a5gc3zu7qqw3wecukbvib3rd6xauynltmi7m2hmzja4wby
 protocols:
 - open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
 - valory/abci:0.1.0:bafybeic4ioeoxrosuuffap3lakejaaj6pi63cl2brwwcocf2s27hthdgfe
