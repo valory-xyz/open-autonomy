@@ -452,6 +452,11 @@ jobs:
           curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.39.1/skaffold-linux-amd64 &&\
             sudo install skaffold /usr/local/bin/
 
+          # build the Flask with Tendermint image
+          TM_DEPLOYMENT_PATH="deployments/Dockerfiles/tendermint/"
+          TM_IMG_NAME="valory/open-autonomy-tendermint"
+          docker build $TM_DEPLOYMENT_PATH -t $TM_IMG_NAME:0.1.0 -t $TM_IMG_NAME:1.0.0 -t $TM_IMG_NAME:latest
+
       - name: Unit tests
         run: |
           tox --develop -e py${{ matrix.python-version }} -- -m 'e2e'
