@@ -168,6 +168,16 @@ class AbstractFileGenerator(ABC):
         """Write the file to output_dir/FILENAME."""
         (output_dir / self.FILENAME).write_text(self.get_file_content())
 
+    @property
+    def abci_app_name(self) -> str:
+        """ABCI app class name"""
+        return _get_abci_app_cls_name_from_dfa(self.dfa)
+
+    @property
+    def fsm_name(self) -> str:
+        """FSM base name"""
+        return self.abci_app_name.removesuffix("AbciApp")  # noqa: B005
+
 
 class RoundFileGenerator(AbstractFileGenerator):
     """File generator for 'rounds.py' modules."""
@@ -976,13 +986,11 @@ class RoundTestsFileGenerator(RoundFileGenerator):
     def _get_rounds_section(self) -> str:
         """Get rounds section"""
 
-        app_name = _get_abci_app_cls_name_from_dfa(self.dfa)
-        fsm_name = app_name.rstrip("AbciApp")  # noqa: B005
-        all_round_classes_str = [self.BASE_CLASS.format(FSMName=fsm_name)]
+        all_round_classes_str = [self.BASE_CLASS.format(FSMName=self.fsm_name)]
 
         for abci_round_name in self.dfa.states - self.dfa.final_states:
             round_class_str = self.ROUND_CLS_TEMPLATE.format(
-                FSMName=fsm_name,
+                FSMName=self.fsm_name,
                 RoundCls=abci_round_name,
             )
             all_round_classes_str.append(round_class_str)
@@ -1112,16 +1120,6 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
         )
 
         return behaviour_file_content
-
-    @property
-    def abci_app_name(self) -> str:
-        """ABCI app class name"""
-        return _get_abci_app_cls_name_from_dfa(self.dfa)
-
-    @property
-    def fsm_name(self) -> str:
-        """FSM base name"""
-        return self.abci_app_name.rstrip("AbciApp")  # noqa: B005
 
     @property
     def non_degenerate_behaviours(self) -> Set[str]:
