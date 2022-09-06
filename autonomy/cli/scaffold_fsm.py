@@ -1165,6 +1165,45 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
         return "\n".join(all_behaviour_classes_str)
 
 
+class DialoguesTestFileGenerator(AbstractFileGenerator):
+    """File generator for 'test_dialogues.py'."""
+
+    FILENAME = "test_" + DIALOGUES_FILENAME
+
+    DIALOGUES_FILE = dedent(
+        """\
+        \"\"\"Test the dialogues.py module of the {FSMName}.\"\"\"
+        
+        import packages.{author}.skills.{skill_name}.dialogues  # noqa
+
+
+        def test_import() -> None:
+            \"\"\"Test that the 'dialogues.py' Python module can be imported.\"\"\"
+
+        """
+    )
+
+    def _get_dialogues_header_section(self) -> str:
+        """Get the rounds header section."""
+
+        author = "valory"
+        return self.DIALOGUES_FILE.format(
+            FSMName=self.fsm_name,
+            author=author,
+            skill_name=self.skill_name,
+        )
+
+    def get_file_content(self) -> str:
+        """Get the file content."""
+        
+        return "\n".join(
+            [
+                FILE_HEADER,
+                self._get_dialogues_header_section()
+            ]
+        )
+
+
 class ScaffoldABCISkillTests(ScaffoldABCISkill):
     """ScaffoldABCISkillTests"""
 
@@ -1178,6 +1217,7 @@ class ScaffoldABCISkillTests(ScaffoldABCISkill):
         self.skill_test_dir.mkdir()
         self._scaffold_rounds()
         self._scaffold_behaviours()
+        self._scaffold_dialogues()
 
     def _scaffold_rounds(self) -> None:
         """Scaffold the tests for rounds"""
@@ -1190,6 +1230,13 @@ class ScaffoldABCISkillTests(ScaffoldABCISkill):
         """Scaffold the tests for behaviour"""
         click.echo(f"Generating test module {BehaviourTestsFileGenerator.FILENAME}...")
         BehaviourTestsFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_test_dir
+        )
+
+    def _scaffold_dialogues(self) -> None:
+        """Scaffold the tests for dialogues"""
+        click.echo(f"Generating test module {DialoguesTestFileGenerator.FILENAME}...")
+        DialoguesTestFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
             self.skill_test_dir
         )
 
