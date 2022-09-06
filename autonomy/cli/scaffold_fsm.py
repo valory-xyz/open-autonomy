@@ -592,6 +592,87 @@ class HandlersFileGenerator(AbstractFileGenerator):
         )
 
 
+class DialoguesFileGenerator(AbstractFileGenerator):
+    """File generator for 'dialogues.py' modules."""
+
+    DIALOGUES_FILE = dedent(
+        """\
+        \"\"\"This module contains the dialogues of the {FSMName}.\"\"\"
+
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            AbciDialogue as BaseAbciDialogue,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            AbciDialogues as BaseAbciDialogues,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            ContractApiDialogue as BaseContractApiDialogue,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            ContractApiDialogues as BaseContractApiDialogues,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            HttpDialogue as BaseHttpDialogue,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            HttpDialogues as BaseHttpDialogues,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            LedgerApiDialogue as BaseLedgerApiDialogue,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            LedgerApiDialogues as BaseLedgerApiDialogues,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            SigningDialogue as BaseSigningDialogue,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            SigningDialogues as BaseSigningDialogues,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            TendermintDialogue as BaseTendermintDialogue,
+        )
+        from packages.valory.skills.abstract_round_abci.dialogues import (
+            TendermintDialogues as BaseTendermintDialogues,
+        )
+
+
+        AbciDialogue = BaseAbciDialogue
+        AbciDialogues = BaseAbciDialogues
+
+
+        HttpDialogue = BaseHttpDialogue
+        HttpDialogues = BaseHttpDialogues
+
+
+        SigningDialogue = BaseSigningDialogue
+        SigningDialogues = BaseSigningDialogues
+
+
+        LedgerApiDialogue = BaseLedgerApiDialogue
+        LedgerApiDialogues = BaseLedgerApiDialogues
+
+
+        ContractApiDialogue = BaseContractApiDialogue
+        ContactApiDialogues = BaseContractApiDialogues
+
+
+        TendermintDialogue = BaseTendermintDialogue
+        TendermintDialogues = BaseTendermintDialogues
+        """
+    )
+
+    def get_file_content(self) -> str:
+        """Get the file content."""
+        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
+        return "\n".join(
+            [
+                FILE_HEADER,
+                self.DIALOGUES_FILE.format(FSMName=abci_app_cls_name),
+            ]
+        )
+
+
 class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
     """Update the skill configuration according to the Abci classes."""
 
