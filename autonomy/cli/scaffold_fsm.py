@@ -1165,6 +1165,50 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
         return "\n".join(all_behaviour_classes_str)
 
 
+class ModelTestFileGenerator(AbstractFileGenerator):
+    """File generator for 'test_models.py'."""
+
+    FILENAME = "test_" + MODELS_FILENAME
+
+    MODELS_FILE = dedent(
+        """\
+        \"\"\"Test the models.py module of the {FSMName}.\"\"\"
+
+        from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
+        from packages.{author}.skills.{skill_name}.models import SharedState
+
+
+        class TestSharedState:
+            \"\"\"Test SharedState(Model) class.\"\"\"
+        
+            def test_initialization(self) -> None:
+                \"\"\"Test initialization.\"\"\"
+                SharedState(name="", skill_context=DummyContext())
+
+        """
+    )
+
+    def _get_models_header_section(self) -> str:
+        """Get the models header section."""
+
+        author = "valory"
+        return self.MODELS_FILE.format(
+            FSMName=self.fsm_name,
+            author=author,
+            skill_name=self.skill_name,
+        )
+
+    def get_file_content(self) -> str:
+        """Get the file content."""
+
+        return "\n".join(
+            [
+                FILE_HEADER,
+                self._get_models_header_section()
+            ]
+        )
+
+
 class DialoguesTestFileGenerator(AbstractFileGenerator):
     """File generator for 'test_dialogues.py'."""
 
@@ -1184,7 +1228,7 @@ class DialoguesTestFileGenerator(AbstractFileGenerator):
     )
 
     def _get_dialogues_header_section(self) -> str:
-        """Get the rounds header section."""
+        """Get the dialogues header section."""
 
         author = "valory"
         return self.DIALOGUES_FILE.format(
@@ -1195,7 +1239,7 @@ class DialoguesTestFileGenerator(AbstractFileGenerator):
 
     def get_file_content(self) -> str:
         """Get the file content."""
-        
+
         return "\n".join(
             [
                 FILE_HEADER,
