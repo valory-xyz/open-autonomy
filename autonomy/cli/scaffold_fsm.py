@@ -524,9 +524,30 @@ class PayloadsFileGenerator(AbstractFileGenerator):
         """
     )
 
+    BASE_PAYLOAD_CLS = dedent(
+        """\
+        class Base{FSMName}Payload(BaseTxPayload):
+            \"\"\"Base payload for {FSMName}.\"\"\"
+
+            def __init__(self, sender: str, content: Hashable, **kwargs: Any) -> None:
+                \"\"\"Initialize a 'select_keeper' transaction payload.\"\"\"
+
+                super().__init__(sender, **kwargs)
+                setattr(self, f"_{{self.transaction_type}}", content)
+                p = property(lambda s: getattr(self, f"_{{self.transaction_type}}"))
+                setattr(self.__class__, f"{{self.transaction_type}}", p)
+
+            @property
+            def data(self) -> Dict[str, Hashable]:
+                \"\"\"Get the data.\"\"\"
+                return {{str(self.transaction_type): getattr(self, str(self.transaction_type))}}
+
+    """
+    )
+
     PAYLOAD_CLS_TEMPLATE = dedent(
         """\
-        class {BaseName}Payload(BaseTxPayload):
+        class {BaseName}Payload(Base{FSMName}Payload):
             \"\"\"Represent a transaction payload for {BaseName}.\"\"\"
 
             # TODO: specify the transaction type
@@ -538,11 +559,14 @@ class PayloadsFileGenerator(AbstractFileGenerator):
     def _get_base_payload_section(self) -> str:
         """Get the base payload section."""
 
-        all_payloads_classes_str = []
+        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
+        fsm_name = abci_app_cls_name.removesuffix("AbciApp")
+        all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=fsm_name)]
 
         non_degenerate_rounds = self.dfa.states - self.dfa.final_states
         for round in non_degenerate_rounds:
             payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
+                FSMName=fsm_name,
                 BaseName=round.removesuffix("Round")
             )
             all_payloads_classes_str.append(payload_class_str)
@@ -558,6 +582,7 @@ class PayloadsFileGenerator(AbstractFileGenerator):
             [
                 FILE_HEADER,
                 self.PAYLOADS_FILE.format(FSMName=abci_app_cls_name),
+                self._get_base_payload_section()
             ]
         )
 
