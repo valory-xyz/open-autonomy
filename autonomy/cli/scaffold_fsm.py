@@ -495,6 +495,45 @@ class BehaviourFileGenerator(AbstractFileGenerator):
         )
 
 
+class PayloadsFileGenerator(AbstractFileGenerator):
+    """File generator for 'payloads.py' modules."""
+
+    PAYLOADS_FILE = dedent(
+        """\
+        \"\"\"This module contains the transaction payloads of the {FSMName}.\"\"\"
+
+        from enum import Enum
+        from typing import Any, Dict, Hashable, Optional
+
+        from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
+
+
+        class TransactionType(Enum):
+            \"\"\"Enumeration of transaction types.\"\"\"
+
+            # TODO: define transaction types: e.g. TX_HASH: "tx_hash"
+            ...
+
+            def __str__(self) -> str:
+                \"\"\"Get the string value of the transaction type.\"\"\"
+                return self.value
+
+        """
+    )
+
+    def get_file_content(self) -> str:
+        """Get the file content."""
+
+        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
+
+        return "\n".join(
+            [
+                FILE_HEADER,
+                self.PAYLOADS_FILE.format(FSMName=abci_app_cls_name),
+            ]
+        )
+
+
 class ModelsFileGenerator(AbstractFileGenerator):
     """File generator for 'models.py' modules."""
 
