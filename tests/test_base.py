@@ -23,6 +23,7 @@ import itertools
 from pathlib import Path
 from typing import List
 
+import _strptime  # noqa  # pylint: disable=unsed-import
 import pytest
 from aea.components.base import load_aea_package
 from aea.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
