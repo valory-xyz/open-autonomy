@@ -46,6 +46,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     agent_instances: Optional[List[str]] = None,
     log_level: str = INFO,
     substitute_env_vars: bool = False,
+    image_version: Optional[str] = None,
 ) -> str:
     """Generate the deployment build for the valory app."""
 
@@ -76,7 +77,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     )
 
     (
-        deployment.generate()
+        deployment.generate(image_version=image_version)
         .generate_config_tendermint()
         .write_config()
         .populate_private_keys()
