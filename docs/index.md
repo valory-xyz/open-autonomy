@@ -7,7 +7,7 @@
 autonomous services which run as a multi-agent-system (MAS) and offer **enhanced functionalities
 on-chain**. Agent services expands the range of operations that traditional
 smart contracts provide, making possible to execute **arbitrarily complex operations**
-(such as machine-learning arlgorithms). Most importantly, agent services, are
+(such as machine-learning algorithms). Most importantly, agent services are
 **decentralized**, **trust-minimized**, **transparent**, and **robust**.
 
 <img src="./images/agent_service_index_page.svg" alt="Multiplexer of an AEA" class="center" style="display: block; margin-left: auto; margin-right: auto;width:35%;">
