@@ -1179,7 +1179,7 @@ class ModelTestFileGenerator(AbstractFileGenerator):
 
 
         class TestSharedState:
-            \"\"\"Test SharedState(Model) class.\"\"\"
+            \"\"\"Test SharedState class.\"\"\"
         
             def test_initialization(self) -> None:
                 \"\"\"Test initialization.\"\"\"
@@ -1222,7 +1222,7 @@ class HandlersTestFileGenerator(AbstractFileGenerator):
 
         
         def test_import() -> None:
-            \"\"\"Test that the 'handlers.py' module can be imported.\"\"\"
+            \"\"\"Test that the 'handlers.py' of the {FSMName} can be imported.\"\"\"
 
         """
     )
@@ -1261,8 +1261,7 @@ class DialoguesTestFileGenerator(AbstractFileGenerator):
 
 
         def test_import() -> None:
-            \"\"\"Test that the 'dialogues.py' Python module can be imported.\"\"\"
-
+            \"\"\"Test that the 'dialogues.py' of the {FSMName} can be imported.\"\"\"
         """
     )
 
@@ -1300,6 +1299,8 @@ class ScaffoldABCISkillTests(ScaffoldABCISkill):
         self.skill_test_dir.mkdir()
         self._scaffold_rounds()
         self._scaffold_behaviours()
+        self._scaffold_models()
+        self._scaffold_handlers()
         self._scaffold_dialogues()
 
     def _scaffold_rounds(self) -> None:
@@ -1313,6 +1314,20 @@ class ScaffoldABCISkillTests(ScaffoldABCISkill):
         """Scaffold the tests for behaviour"""
         click.echo(f"Generating test module {BehaviourTestsFileGenerator.FILENAME}...")
         BehaviourTestsFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_test_dir
+        )
+
+    def _scaffold_models(self) -> None:
+        """Scaffold the tests for dialogues"""
+        click.echo(f"Generating test module {ModelTestFileGenerator.FILENAME}...")
+        ModelTestFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
+            self.skill_test_dir
+        )
+
+    def _scaffold_handlers(self) -> None:
+        """Scaffold the tests for dialogues"""
+        click.echo(f"Generating test module {HandlersTestFileGenerator.FILENAME}...")
+        HandlersTestFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
             self.skill_test_dir
         )
 
