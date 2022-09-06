@@ -952,6 +952,17 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
             synchronized_data: SynchronizedData
             done_event = Event.DONE
 
+            def fast_forward(self, data: Optional[Dict[str, Any]] = None) -> None:
+                \"\"\"Fast-forward on initialization\"\"\"
+
+                data = data if data is not None else {{}}
+                self.fast_forward_to_behaviour(
+                    self.behaviour,
+                    self.behaviour_class.behaviour_id,
+                    SynchronizedData(AbciAppDB(setup_data=AbciAppDB.data_to_lists(data))),
+                )
+                assert self.behaviour.behaviour_id == self.behaviour_class.behaviour_id
+
     """
     )
 
