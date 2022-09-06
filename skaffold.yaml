@@ -74,7 +74,7 @@ profiles:
     build:
       tagPolicy:
         envTemplate:
-          template: "{{.VERSION}}"
+          template: latest
       artifacts:
 
       - image: valory/open-autonomy

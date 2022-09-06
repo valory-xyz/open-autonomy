@@ -374,5 +374,5 @@ release-images:
 	export AEA_AGENT_ORACLE=${AEA_AGENT_ORACLE}
 	export AEA_AGENT_APY_ESTIMATION=${AEA_AGENT_APY_ESTIMATION}
 	export AEA_AGENT=${AEA_AGENT_HELLO_WORLD}
-	skaffold build -p release --cache-artifacts=false && VERSION=latest skaffold build -p release-latest
+	skaffold build -p release --cache-artifacts=false && skaffold build -p release-latest
 
