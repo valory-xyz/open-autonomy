@@ -903,6 +903,30 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
 
     FILENAME = "test_" + BEHAVIOURS_FILENAME
 
+    BEHAVIOUR_FILE_HEADER = dedent(
+        """\
+        \"\"\"This package contains round behaviours of {AbciAppCls}.\"\"\"
+
+        from pathlib import Path
+        from typing import Any, Dict, Hashable, Optional, Type
+        from dataclasses import dataclass
+
+        import pytest
+
+        from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+        from packages.valory.skills.abstract_round_abci.behaviours import (
+            AbstractRoundBehaviour,
+            BaseBehaviour,
+            make_degenerate_behaviour,
+        )
+
+        from tests.conftest import ROOT_DIR
+        from tests.test_skills.test_abstract_round_abci.test_tools.base import (
+            FSMBehaviourBaseCase,
+        )
+
+        """
+    )
 
     def get_file_content(self) -> str:
         """Scaffold the 'test_behaviours.py' file."""
@@ -913,17 +937,24 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
         behaviour_file_content = "\n".join(
             [
                 FILE_HEADER,
-                # behaviour_header_section,
+                behaviour_header_section,
                 # behaviour_section,
             ]
         )
 
         return behaviour_file_content
 
+    @property
+    def abci_app_name(self) -> str:
+        """AbciApp class name"""
+        return _get_abci_app_cls_name_from_dfa(self.dfa)
+
     def _get_behaviour_header_section(self) -> str:
         """Get the rounds header section."""
 
-        return self.BEHAVIOUR_FILE_HEADER
+        return self.BEHAVIOUR_FILE_HEADER.format(
+            AbciAppCls=self.abci_app_name,
+        )
 
     def _get_behaviour_section(self) -> str:
         """Get behaviour section"""
