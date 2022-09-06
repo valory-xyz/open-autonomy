@@ -521,6 +521,31 @@ class PayloadsFileGenerator(AbstractFileGenerator):
         """
     )
 
+    PAYLOAD_CLS_TEMPLATE = dedent(
+        """\
+        class {BaseName}Payload(BaseTxPayload):
+            \"\"\"Represent a transaction payload for {BaseName}.\"\"\"
+
+            # TODO: specify the transaction type
+            transaction_type = TransactionType
+
+        """
+    )
+
+    def _get_base_payload_section(self) -> str:
+        """Get the base payload section."""
+
+        all_payloads_classes_str = []
+
+        non_degenerate_rounds = self.dfa.states - self.dfa.final_states
+        for round in non_degenerate_rounds:
+            payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
+                BaseName=round.removesuffix("Round")
+            )
+            all_payloads_classes_str.append(payload_class_str)
+
+        return "\n".join(all_payloads_classes_str)
+
     def get_file_content(self) -> str:
         """Get the file content."""
 
