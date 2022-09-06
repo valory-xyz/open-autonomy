@@ -919,6 +919,13 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
             BaseBehaviour,
             make_degenerate_behaviour,
         )
+        from packages.{author}.skills.{skill_name}.rounds import (
+            SynchronizedData,
+            DegenerateRound,
+            Event,
+            {AbciAppCls},
+            {rounds},
+        )
 
         from tests.conftest import ROOT_DIR
         from tests.test_skills.test_abstract_round_abci.test_tools.base import (
@@ -973,8 +980,14 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
     def _get_behaviour_header_section(self) -> str:
         """Get the rounds header section."""
 
+        author = "valory"
+        rounds = self.dfa.states
         return self.BEHAVIOUR_FILE_HEADER.format(
             AbciAppCls=self.abci_app_name,
+            FSMName=self.fsm_name,
+            author=author,
+            skill_name=self.skill_name,
+            rounds=indent(",\n".join(rounds), " " * 4).strip(),
         )
 
     def _get_behaviour_section(self) -> str:
