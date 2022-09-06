@@ -15,29 +15,29 @@ smart contracts provide, making possible to execute **arbitrarily complex operat
 
 ##Browse the docs
 
-Get started with the framework, **learn the main concepts** and get some context on how agent services 
+Get started with the framework, **learn the main concepts** and get some context on how agent services
 fit in the wider crypto ecosystem.
 
-[Get started](#){ .md-button .md-button--primary}
+[Get started](./get_started/what_is_the_open_autonomy_framework.md){ .md-button .md-button--primary}
 
 ------
 
-Follow the guides to learn how to use the framework to **create and deploy agent services**. 
+Follow the guides to learn how to use the framework to **create and deploy agent services**.
 
 [Tutorials](#){ .md-button }
 
 ------
 
-A tour to **existing agent services** that you can explore and use them as a reference 
+A tour to **existing agent services** that you can explore and use them as a reference
 for your implementations.
 
 [Demos](#){ .md-button }
 
 ------
 
-Detailed topics on how the **internal components** of an agent service work with the 
-framework. 
-Also, you will find **advanced tools** that will help you to develop your agent services. 
+Detailed topics on how the **internal components** of an agent service work with the
+framework.
+Also, you will find **advanced tools** that will help you to develop your agent services.
 
 [In-depth topics](#){ .md-button }
 
@@ -46,4 +46,3 @@ Also, you will find **advanced tools** that will help you to develop your agent 
 Browse through the CLI and API reference documentation.
 
 [Reference](#){ .md-button }
-
