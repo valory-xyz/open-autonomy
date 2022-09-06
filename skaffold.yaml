@@ -12,7 +12,7 @@ build:
     docker:
       dockerfile: Dockerfile
       buildArgs:
-        AEA_VERSION: "1.18.0"
+        AEA_VERSION: "1.18.0.post1"
 
 
 profiles:
@@ -29,7 +29,7 @@ profiles:
             noCache: true
             dockerfile: Dockerfile
             buildArgs:
-              AEA_VERSION: "1.18.0"
+              AEA_VERSION: "1.18.0.post1"
 
         - image: valory/open-autonomy-tendermint
           context: deployments/Dockerfiles/tendermint/
