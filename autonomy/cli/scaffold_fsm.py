@@ -1182,7 +1182,7 @@ class ModelTestFileGenerator(AbstractFileGenerator):
 
         class TestSharedState:
             \"\"\"Test SharedState class.\"\"\"
-        
+
             def test_initialization(self) -> None:
                 \"\"\"Test initialization.\"\"\"
                 SharedState(name="", skill_context=DummyContext())
@@ -1202,12 +1202,7 @@ class ModelTestFileGenerator(AbstractFileGenerator):
     def get_file_content(self) -> str:
         """Get the file content."""
 
-        return "\n".join(
-            [
-                FILE_HEADER,
-                self._get_models_header_section()
-            ]
-        )
+        return "\n".join([FILE_HEADER, self._get_models_header_section()])
 
 
 class HandlersTestFileGenerator(AbstractFileGenerator):
@@ -1221,7 +1216,7 @@ class HandlersTestFileGenerator(AbstractFileGenerator):
 
         import packages.{author}.skills.{skill_name}.handlers  # noqa
 
-        
+
         def test_import() -> None:
             \"\"\"Test that the 'handlers.py' of the {FSMName} can be imported.\"\"\"
 
@@ -1240,12 +1235,7 @@ class HandlersTestFileGenerator(AbstractFileGenerator):
     def get_file_content(self) -> str:
         """Get the file content."""
 
-        return "\n".join(
-            [
-                FILE_HEADER,
-                self._get_handlers_header_section()
-            ]
-        )
+        return "\n".join([FILE_HEADER, self._get_handlers_header_section()])
 
 
 class DialoguesTestFileGenerator(AbstractFileGenerator):
@@ -1256,7 +1246,7 @@ class DialoguesTestFileGenerator(AbstractFileGenerator):
     DIALOGUES_FILE = dedent(
         """\
         \"\"\"Test the dialogues.py module of the {FSMName}.\"\"\"
-        
+
         import packages.{author}.skills.{skill_name}.dialogues  # noqa
 
 
@@ -1277,12 +1267,7 @@ class DialoguesTestFileGenerator(AbstractFileGenerator):
     def get_file_content(self) -> str:
         """Get the file content."""
 
-        return "\n".join(
-            [
-                FILE_HEADER,
-                self._get_dialogues_header_section()
-            ]
-        )
+        return "\n".join([FILE_HEADER, self._get_dialogues_header_section()])
 
 
 class ScaffoldABCISkillTests(ScaffoldABCISkill):
