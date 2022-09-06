@@ -99,9 +99,6 @@ from tests.test_skills.test_abstract_round_abci.test_common import (
     BaseRandomnessBehaviourTest,
     BaseSelectKeeperBehaviourTest,
 )
-from tests.test_skills.test_price_estimation_abci.test_behaviours import (
-    PriceEstimationFSMBehaviourBaseCase,
-)
 
 
 class TransactionSettlementFSMBehaviourBaseCase(FSMBehaviourBaseCase):
@@ -112,7 +109,7 @@ class TransactionSettlementFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     )
 
 
-class TestTransactionSettlementBaseBehaviour(PriceEstimationFSMBehaviourBaseCase):
+class TestTransactionSettlementBaseBehaviour(FSMBehaviourBaseCase):
     """Test `TransactionSettlementBaseBehaviour`."""
 
     path_to_skill = Path(

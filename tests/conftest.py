@@ -21,8 +21,11 @@
 import inspect
 import logging
 import os
+import platform
 import socket
+import sys
 import time
+from copy import copy
 from pathlib import Path
 from typing import Any, AsyncGenerator, Dict, Generator, Iterator, List, Tuple, cast
 from unittest.mock import MagicMock
@@ -43,35 +46,34 @@ from aea_ledger_ethereum import (
     DEFAULT_GAS_STATION_STRATEGY,
     EthereumCrypto,
 )
-from web3 import Web3
-
-from autonomy.test_tools.configurations import (
+from aea_test_autonomy.configurations import (
     ETHEREUM_KEY_DEPLOYER,
     GANACHE_CONFIGURATION,
     KEY_PAIRS,
 )
-from autonomy.test_tools.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
-from autonomy.test_tools.docker.base import launch_image, launch_many_containers
-from autonomy.test_tools.docker.ganache import (
+from aea_test_autonomy.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
+from aea_test_autonomy.docker.base import launch_image, launch_many_containers
+from aea_test_autonomy.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_CHAIN_ID,
     DEFAULT_GANACHE_PORT,
     GanacheDockerImage,
 )
-from autonomy.test_tools.docker.gnosis_safe_net import (
+from aea_test_autonomy.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_ADDR,
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
-from autonomy.test_tools.docker.registries import RegistriesDockerImage
-from autonomy.test_tools.docker.tendermint import (
+from aea_test_autonomy.docker.registries import RegistriesDockerImage
+from aea_test_autonomy.docker.tendermint import (
     DEFAULT_ABCI_HOST,
     DEFAULT_ABCI_PORT,
     DEFAULT_TENDERMINT_PORT,
     FlaskTendermintDockerImage,
     TendermintDockerImage,
 )
-from autonomy.test_tools.helpers.contracts import get_register_contract
+from aea_test_autonomy.helpers.contracts import get_register_contract
+from web3 import Web3
 
 
 CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
@@ -93,6 +95,12 @@ ETHEREUM_DEFAULT_LEDGER_CONFIG = {
         "eip1559": DEFAULT_EIP1559_STRATEGY,
     },
 }
+
+
+skip_docker_tests = pytest.mark.skipif(
+    platform.system() != "Linux",
+    reason="Docker daemon is not available in Windows and macOS CI containers.",
+)
 
 
 @pytest.fixture(scope="session")
@@ -260,7 +268,7 @@ def registries_scope_class() -> Generator:
     image = RegistriesDockerImage(
         client, third_party_contract_dir=THIRD_PARTY_CONTRACTS
     )
-    yield from launch_image(image, timeout=2, max_attempts=10)
+    yield from launch_image(image, timeout=2, max_attempts=20)
 
 
 def get_unused_tcp_port() -> int:
@@ -424,3 +432,11 @@ def acn_node(
     logging.info(f"Launching ACNNode with the following config: {config}")
     image = ACNNodeDockerImage(client, config)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def mock_sys_modules() -> Generator:
+    """Store previous content of sys.modules and restore it after test execution."""
+    old_sys_modules = copy(sys.modules)
+    yield
+    sys.modules = old_sys_modules

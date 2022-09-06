@@ -22,8 +22,8 @@
 from pathlib import Path
 from typing import Any
 
-from autonomy.test_tools.fixture_helpers import HardHatAMMBaseTest
-from autonomy.test_tools.helpers.contracts import get_register_contract
+from aea_test_autonomy.fixture_helpers import HardHatAMMBaseTest
+from aea_test_autonomy.helpers.contracts import get_register_contract
 
 from packages.valory.skills.abstract_round_abci.test_tools.integration import (
     _HarHatHelperIntegration,

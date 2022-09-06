@@ -19,7 +19,7 @@
 
 """Docker-compose Deployment Generator."""
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 from aea.configurations.constants import DEFAULT_PRIVATE_KEY_FILE
 from docker import from_env
@@ -132,15 +132,17 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
 
         return self
 
-    def generate(
-        self,
-    ) -> "DockerComposeGenerator":
+    def generate(self, image_version: Optional[str] = None) -> "DockerComposeGenerator":
         """Generate the new configuration."""
+
+        image_version = image_version or self.service_spec.service.agent.hash
+        if self.dev_mode:
+            image_version = "dev"
 
         agent_vars = self.service_spec.generate_agents()
         runtime_image = OAR_IMAGE.format(
             agent=self.service_spec.service.agent.name,
-            version="dev" if self.dev_mode else self.service_spec.service.agent.hash,
+            version=image_version,
         )
 
         agents = "".join(
