@@ -963,6 +963,15 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
                 )
                 assert self.behaviour.behaviour_id == self.behaviour_class.behaviour_id
 
+            def complete(self, event: Event) -> None:
+                \"\"\" Complete test \"\"\"
+
+                self.behaviour.act_wrapper()
+                self.mock_a2a_transaction()
+                self._test_done_flag_set()
+                self.end_round(done_event=event)
+                assert self.behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+
     """
     )
 
