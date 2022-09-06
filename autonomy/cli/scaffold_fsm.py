@@ -28,7 +28,7 @@ import shutil
 from abc import ABC, abstractmethod
 from pathlib import Path
 from textwrap import dedent, indent
-from typing import Dict, Set
+from typing import Dict, List, Type, Set
 
 import click
 from aea.cli.add import add_item
@@ -775,6 +775,14 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
 class ScaffoldABCISkill:
     """Utility class that implements the scaffolding of the ABCI skill."""
 
+    file_generators: List[Type[AbstractFileGenerator]] = [
+        RoundFileGenerator,
+        BehaviourFileGenerator,
+        ModelsFileGenerator,
+        HandlersFileGenerator,
+        DialoguesFileGenerator,
+    ]
+
     def __init__(self, ctx: Context, skill_name: str, dfa: DFA) -> None:
         """Initialize the utility class."""
         self.ctx = ctx
@@ -788,52 +796,17 @@ class ScaffoldABCISkill:
 
     def do_scaffolding(self) -> None:
         """Do the scaffolding."""
-        self._scaffold_rounds()
-        self._scaffold_behaviours()
-        self._scaffold_models()
-        self._scaffold_handlers()
-        self._scaffold_dialogues()
+
+        self.skill_dir.mkdir()
+        for file_gen in self.file_generators:
+            click.echo(f"Generating module {file_gen.FILENAME}...")
+            file_gen(self.ctx, self.skill_name, self.dfa).write_file(self.skill_dir)
 
         # remove original 'my_model.py' file
         shutil.rmtree(self.skill_dir / "my_model.py", ignore_errors=True)
 
         self._remove_pycache()
         self._update_config()
-
-    def _scaffold_rounds(self) -> None:
-        """Scaffold the 'rounds.py' module."""
-        click.echo(f"Generating module {RoundFileGenerator.FILENAME}...")
-        RoundFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
-            self.skill_dir
-        )
-
-    def _scaffold_behaviours(self) -> None:
-        """Scaffold the 'behaviours.py' module."""
-        click.echo(f"Generating module {BehaviourFileGenerator.FILENAME}...")
-        BehaviourFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
-            self.skill_dir
-        )
-
-    def _scaffold_models(self) -> None:
-        """Scaffold the 'models.py' module."""
-        click.echo(f"Generating module {ModelsFileGenerator.FILENAME}...")
-        ModelsFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
-            self.skill_dir
-        )
-
-    def _scaffold_handlers(self) -> None:
-        """Scaffold the 'handlers.py' module."""
-        click.echo(f"Generating module {HandlersFileGenerator.FILENAME}...")
-        HandlersFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
-            self.skill_dir
-        )
-
-    def _scaffold_dialogues(self) -> None:
-        """Scaffold the 'dialogues.py' module."""
-        click.echo(f"Generating module {DialoguesFileGenerator.FILENAME}...")
-        DialoguesFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
-            self.skill_dir
-        )
 
     def _update_config(self) -> None:
         """Update the skill configuration."""
@@ -1273,6 +1246,14 @@ class DialoguesTestFileGenerator(AbstractFileGenerator):
 class ScaffoldABCISkillTests(ScaffoldABCISkill):
     """ScaffoldABCISkillTests"""
 
+    file_generators: List[Type[AbstractFileGenerator]] = [
+        RoundTestsFileGenerator,
+        BehaviourTestsFileGenerator,
+        ModelTestFileGenerator,
+        HandlersTestFileGenerator,
+        DialoguesTestFileGenerator,
+    ]
+
     @property
     def skill_test_dir(self) -> Path:
         """Get the directory to the skill tests."""
@@ -1280,50 +1261,14 @@ class ScaffoldABCISkillTests(ScaffoldABCISkill):
 
     def do_scaffolding(self) -> None:
         """Do the scaffolding."""
+
         self.skill_test_dir.mkdir()
-        self._scaffold_rounds()
-        self._scaffold_behaviours()
-        self._scaffold_models()
-        self._scaffold_handlers()
-        self._scaffold_dialogues()
+        for file_gen in self.file_generators:
+            click.echo(f"Generating module {file_gen.FILENAME}...")
+            file_gen(self.ctx, self.skill_name, self.dfa).write_file(self.skill_test_dir)
 
         self._remove_pycache()
         self._update_config()
-
-    def _scaffold_rounds(self) -> None:
-        """Scaffold the tests for rounds"""
-        click.echo(f"Generating test module {RoundTestsFileGenerator.FILENAME}...")
-        RoundTestsFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
-            self.skill_test_dir
-        )
-
-    def _scaffold_behaviours(self) -> None:
-        """Scaffold the tests for behaviour"""
-        click.echo(f"Generating test module {BehaviourTestsFileGenerator.FILENAME}...")
-        BehaviourTestsFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
-            self.skill_test_dir
-        )
-
-    def _scaffold_models(self) -> None:
-        """Scaffold the tests for dialogues"""
-        click.echo(f"Generating test module {ModelTestFileGenerator.FILENAME}...")
-        ModelTestFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
-            self.skill_test_dir
-        )
-
-    def _scaffold_handlers(self) -> None:
-        """Scaffold the tests for dialogues"""
-        click.echo(f"Generating test module {HandlersTestFileGenerator.FILENAME}...")
-        HandlersTestFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
-            self.skill_test_dir
-        )
-
-    def _scaffold_dialogues(self) -> None:
-        """Scaffold the tests for dialogues"""
-        click.echo(f"Generating test module {DialoguesTestFileGenerator.FILENAME}...")
-        DialoguesTestFileGenerator(self.ctx, self.skill_name, self.dfa).write_file(
-            self.skill_test_dir
-        )
 
 
 @scaffold.command()  # noqa
