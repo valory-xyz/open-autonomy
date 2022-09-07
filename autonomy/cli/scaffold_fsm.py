@@ -1261,7 +1261,8 @@ class PayloadTestsFileGenerator(PayloadsFileGenerator):
         """\
         \"\"\"This package contains payload tests for the {AbciApp}.\"\"\"
 
-        from typing import List
+        from typing import Hashable
+        from dataclasses import dataclass
 
         import pytest
 
@@ -1271,19 +1272,28 @@ class PayloadTestsFileGenerator(PayloadsFileGenerator):
             {payloads},
         )
 
+
+        @dataclass
+        class PayloadTestCase:
+            \"\"\"PayloadTestCase\"\"\"
+
+            payload_cls: Base{FSMName}Payload
+            content: Hashable
+            transaction_type: TransactionType
+
         """
     )
 
     PAYLOAD_CLS_TEMPLATE = dedent(
         """\
-        @pytest.mark.parametrize("content, tx_type", [])
-        def test_payloads(content: Hashable, tx_type: str) -> None:
+        @pytest.mark.parametrize("test_case", [])
+        def test_payloads(test_case: PayloadTestCase) -> None:
             \"\"\"Tests for {AbciApp} payloads\"\"\"
 
-            payload = test_case.payload_cls(sender="sender", content=content)
+            payload = test_case.payload_cls(sender="sender", content=test_case.content)
             assert payload.sender == "sender"
-            assert getattr(payload, f"{{payload.transaction_type}}") == content
-            assert payload.transaction_type == tx_type
+            assert getattr(payload, f"{{payload.transaction_type}}") == test_case.content
+            assert payload.transaction_type == test_case.transaction_type
             assert payload.from_json(payload.json) == payload
 
     """
