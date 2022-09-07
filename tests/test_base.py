@@ -26,7 +26,6 @@ from typing import List
 import _strptime  # noqa  # pylint: disable=unsed-import
 import pytest
 from aea.components.base import load_aea_package
-from aea.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
 from aea.configurations.constants import PACKAGES, PACKAGE_TYPE_TO_CONFIG_FILE
 from aea.configurations.data_types import PackageType
 from aea.configurations.loader import ConfigLoader
@@ -42,6 +41,7 @@ from aea_test_autonomy.configurations import (
 )
 
 import autonomy
+from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
 from autonomy.constants import (
     DEFAULT_IMAGE_VERSION,
     TENDERMINT_IMAGE_NAME,
@@ -75,6 +75,7 @@ def test_version() -> None:
                 (get_test_files(PackageType.CONTRACT), PackageType.CONTRACT),
                 (get_test_files(PackageType.CONNECTION), PackageType.CONNECTION),
                 (get_test_files(PackageType.SKILL), PackageType.SKILL),
+                (get_test_files(PackageType.SERVICE), PackageType.SERVICE),
             ]
         ]
     ),
@@ -87,9 +88,12 @@ def test_load_all_packages(component_type: PackageType, config_file_path: str) -
     )
     with open_file(config_file_path) as fp:
         configuration_object = configuration_loader.load(fp)
-        directory = Path(config_file_path).parent
-        configuration_object.directory = directory
-        load_aea_package(configuration_object)
+        if component_type != PackageType.SERVICE:
+            # we don't need to check sub packages for service components
+            # so we perform `load_aea_package` only for none service components
+            directory = Path(config_file_path).parent
+            configuration_object.directory = directory
+            load_aea_package(configuration_object)
 
 
 def test_synced_with_plugins() -> None:
