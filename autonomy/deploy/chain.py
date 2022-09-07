@@ -20,6 +20,7 @@
 """Utils to support on-chain contract interactions."""
 import json
 import os
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import requests
@@ -58,7 +59,7 @@ CHAIN_CONFIG: Dict[str, Dict[str, Optional[str]]] = {
 ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
 
 
-def get_abi(path: str) -> Dict:
+def get_abi(path: Path) -> Dict:
     """Read the ABI from the provided path."""
 
     with open(path, encoding="utf-8") as f:
