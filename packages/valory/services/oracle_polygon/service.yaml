@@ -100,9 +100,31 @@ models:
 public_id: valory/ledger:0.1.0
 type: connection
 config:
-  ledger_apis:
-    ethereum:
-      address: https://polygon-mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8
-      chain_id: 137
-      poa_chain: true
-      default_gas_price_strategy: eip1559_polygon
+  0:
+  - ledger_apis:
+      ethereum:
+        address: ${SERVICE_ORACLE_POLYGON_RPC_0:str:http://127.0.0.1:8545}
+        chain_id: 137
+        poa_chain: true
+        default_gas_price_strategy: eip1559_polygon
+  1:
+  - ledger_apis:
+      ethereum:
+        address: ${SERVICE_ORACLE_POLYGON_RPC_1:str:http://127.0.0.1:8545}
+        chain_id: 137
+        poa_chain: true
+        default_gas_price_strategy: eip1559_polygon
+  2:
+  - ledger_apis:
+      ethereum:
+        address: ${SERVICE_ORACLE_POLYGON_RPC_2:str:http://127.0.0.1:8545}
+        chain_id: 137
+        poa_chain: true
+        default_gas_price_strategy: eip1559_polygon
+  3:
+  - ledger_apis:
+      ethereum:
+        address: ${SERVICE_ORACLE_POLYGON_RPC_3:str:http://127.0.0.1:8545}
+        chain_id: 137
+        poa_chain: true
+        default_gas_price_strategy: eip1559_polygon
