@@ -52,6 +52,7 @@ from aea.configurations.constants import (
 
 # the decoration does side-effect on the 'aea scaffold' command
 from aea.configurations.data_types import CRUDCollection, PublicId
+from aea.protocols.generator.common import _camel_case_to_snake_case
 
 from autonomy.analyse.abci.app_spec import DFA
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
@@ -191,24 +192,29 @@ class AbstractFileGenerator(ABC):
         return self.ctx.agent_config.author
 
     @property
-    def rounds(self) -> Set[str]:
+    def all_rounds(self) -> Set[str]:
         """Rounds"""
         return self.dfa.states
 
     @property
-    def non_degenerate_rounds(self) -> Set[str]:
+    def rounds(self) -> Set[str]:
         """Non-degenerate rounds"""
-        return self.rounds - self.dfa.final_states
+        return self.all_rounds - self.dfa.final_states
+
+    @property
+    def base_names(self) -> Set[str]:
+        """Base names"""
+        return {s.replace("Round", "") for s in self.rounds}
 
     @property
     def behaviours(self) -> Set[str]:
         """Behaviours"""
-        return {s.replace("Round", "Behaviour") for s in self.non_degenerate_rounds}
+        return {f"{s}Behaviour" for s in self.base_names}
 
     @property
     def payloads(self) -> Set[str]:
         """Payloads"""
-        return {s.replace("Round", "Payload") for s in self.non_degenerate_rounds}
+        return {f"{s}Payload" for s in self.base_names}
 
 
 class RoundFileGenerator(AbstractFileGenerator):
@@ -229,10 +235,12 @@ class RoundFileGenerator(AbstractFileGenerator):
             AbstractRound,
             AppState,
             BaseSynchronizedData,
-            BaseTxPayload,
-            DegenerateRound,
             EventToTimeout,
             TransactionType
+        )
+
+        from {author}.skills.{skill_name}.payloads import (
+            {payloads},
         )
 
     """
@@ -267,19 +275,19 @@ class RoundFileGenerator(AbstractFileGenerator):
 
             {todo_abstract_round_cls}
             # TODO: set the following class attributes
-            round_id: str
+            round_id: str = "{round_id}"
             allowed_tx_type: Optional[TransactionType]
-            payload_attribute: str
+            payload_attribute: str = {BaseName}Payload.transaction_type
 
             def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
                 \"\"\"Process the end of the block.\"\"\"
                 raise NotImplementedError
 
-            def check_payload(self, payload: BaseTxPayload) -> None:
+            def check_payload(self, payload: {BaseName}Payload) -> None:
                 \"\"\"Check payload.\"\"\"
                 raise NotImplementedError
 
-            def process_payload(self, payload: BaseTxPayload) -> None:
+            def process_payload(self, payload: {BaseName}Payload) -> None:
                 \"\"\"Process payload.\"\"\"
                 raise NotImplementedError
 
@@ -324,14 +332,21 @@ class RoundFileGenerator(AbstractFileGenerator):
 
     def _get_rounds_header_section(self) -> str:
         """Get the rounds header section."""
-        return self.ROUNDS_FILE_HEADER.format(AbciApp=self.abci_app_name)
+
+        payloads = indent(",\n".join(self.payloads), " " * 4).strip()
+        return self.ROUNDS_FILE_HEADER.format(
+            author=self.author,
+            skill_name=self.skill_name,
+            AbciApp=self.abci_app_name,
+            payloads=payloads,
+        )
 
     def _get_rounds_section(self) -> str:
         """Get the round section of the module (i.e. the round classes)."""
         all_round_classes_str = []
 
         # add round classes
-        for abci_round_name in self.rounds:
+        for abci_round_name in self.all_rounds:
             abci_round_base_cls_name = (
                 DEGENERATE_ROUND
                 if abci_round_name in self.dfa.final_states
@@ -340,8 +355,13 @@ class RoundFileGenerator(AbstractFileGenerator):
             todo_abstract_round_cls = ""
             if abci_round_base_cls_name == ABSTRACT_ROUND:
                 todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
+
+            base_name = abci_round_name.replace("Round", "")
+            round_id = _camel_case_to_snake_case(base_name)
             round_class_str = RoundFileGenerator.ROUND_CLS_TEMPLATE.format(
+                round_id=round_id,
                 RoundCls=abci_round_name,
+                BaseName=base_name,
                 ABCRoundCls=abci_round_base_cls_name,
                 todo_abstract_round_cls=todo_abstract_round_cls,
             )
@@ -353,11 +373,11 @@ class RoundFileGenerator(AbstractFileGenerator):
     def _get_event_section(self) -> str:
         """Get the event section of the module (i.e. the event enum class definition)."""
 
-        events = [
+        events_list = [
             f'{event_name} = "{event_name.lower()}"'
             for event_name in self.dfa.alphabet_in
         ]
-        events = indent("\n".join(events), " " * 4).strip()
+        events = indent("\n".join(events_list), " " * 4).strip()
         return self.EVENT_SECTION.format(AbciApp=self.abci_app_name, events=events)
 
     def _get_synchronized_data_section(self) -> str:
@@ -404,8 +424,12 @@ class BehaviourFileGenerator(AbstractFileGenerator):
             BaseBehaviour,
         )
 
-        from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.models import Params
-        from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.rounds import SynchronizedData, {AbciApp}
+        from {author}.skills.{skill_name}.models import Params
+        from {author}.skills.{skill_name}.rounds import (
+            SynchronizedData,
+            {AbciApp},
+            {rounds},
+        )
 
         """
     )
@@ -435,8 +459,8 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 
             # TODO: set the following class attributes
             state_id: str
-            behaviour_id: str
-            matching_round: Type[AbstractRound]
+            behaviour_id: str = "{behaviour_id}"
+            matching_round: Type[AbstractRound] = {matching_round}
 
             @abstractmethod
             def async_act(self) -> Generator:
@@ -479,10 +503,12 @@ class BehaviourFileGenerator(AbstractFileGenerator):
     def _get_behaviours_header_section(self) -> str:
         """Get the behaviours header section."""
 
+        rounds = indent(",\n".join(self.rounds), " " * 4).strip()
         return self.BEHAVIOUR_FILE_HEADER.format(
             AbciApp=self.abci_app_name,
-            scaffold_skill_author_name=self.ctx.agent_config.author,
-            scaffold_skill_name=self.skill_name,
+            author=self.author,
+            skill_name=self.skill_name,
+            rounds=rounds,
         )
 
     def _get_base_behaviour_section(self) -> str:
@@ -506,9 +532,14 @@ class BehaviourFileGenerator(AbstractFileGenerator):
                     self.abci_app_name
                 )
             )
+
+            behaviour_id = abci_behaviour_name.replace("Behaviour", "")
+            matching_round = abci_behaviour_name.replace("Behaviour", "Round")
             behaviour_class_str = BehaviourFileGenerator.BEHAVIOUR_CLS_TEMPLATE.format(
                 BehaviourCls=abci_behaviour_name,
                 BaseBehaviourCls=base_behaviour_cls_name,
+                behaviour_id=_camel_case_to_snake_case(behaviour_id),
+                matching_round=matching_round,
             )
             all_behaviour_classes_str.append(behaviour_class_str)
 
@@ -542,17 +573,22 @@ class PayloadsFileGenerator(AbstractFileGenerator):
         """\
         \"\"\"This module contains the transaction payloads of the {FSMName}.\"\"\"
 
+        from abc import ABC
         from enum import Enum
         from typing import Any, Dict, Hashable, Optional
 
         from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
+    """
+    )
 
+    TRANSACTION_TYPE_SECTION = dedent(
+        """\
         class TransactionType(Enum):
             \"\"\"Enumeration of transaction types.\"\"\"
 
             # TODO: define transaction types: e.g. TX_HASH: "tx_hash"
-            ...
+            {tx_types}
 
             def __str__(self) -> str:
                 \"\"\"Get the string value of the transaction type.\"\"\"
@@ -563,7 +599,7 @@ class PayloadsFileGenerator(AbstractFileGenerator):
 
     BASE_PAYLOAD_CLS = dedent(
         """\
-        class Base{FSMName}Payload(BaseTxPayload):
+        class Base{FSMName}Payload(BaseTxPayload, ABC):
             \"\"\"Base payload for {FSMName}.\"\"\"
 
             def __init__(self, sender: str, content: Hashable, **kwargs: Any) -> None:
@@ -585,10 +621,10 @@ class PayloadsFileGenerator(AbstractFileGenerator):
     PAYLOAD_CLS_TEMPLATE = dedent(
         """\
         class {BaseName}Payload(Base{FSMName}Payload):
-            \"\"\"Represent a transaction payload for {BaseName}.\"\"\"
+            \"\"\"Represent a transaction payload for the {BaseName}Round.\"\"\"
 
             # TODO: specify the transaction type
-            transaction_type = TransactionType
+            transaction_type = TransactionType.{tx_type}
 
         """
     )
@@ -598,10 +634,12 @@ class PayloadsFileGenerator(AbstractFileGenerator):
 
         all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=self.fsm_name)]
 
-        for payload_name in self.payloads:
+        for base_name in self.base_names:
+            tx_type = _camel_case_to_snake_case(base_name)
             payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
                 FSMName=self.fsm_name,
-                BaseName=payload_name,
+                BaseName=base_name,
+                tx_type=tx_type.upper(),
             )
             all_payloads_classes_str.append(payload_class_str)
 
@@ -610,10 +648,15 @@ class PayloadsFileGenerator(AbstractFileGenerator):
     def get_file_content(self) -> str:
         """Get the file content."""
 
+        tx_type_list = list(map(_camel_case_to_snake_case, self.base_names))
+        tx_type_list = [f'{tx_type.upper()} = "{tx_type}"' for tx_type in tx_type_list]
+        tx_types = indent("\n".join(tx_type_list), " " * 4).strip()
+
         return "\n".join(
             [
                 FILE_HEADER,
                 self.PAYLOADS_FILE.format(FSMName=self.abci_app_name),
+                self.TRANSACTION_TYPE_SECTION.format(tx_types=tx_types),
                 self._get_base_payload_section(),
             ]
         )
@@ -635,7 +678,7 @@ class ModelsFileGenerator(AbstractFileGenerator):
         from packages.valory.skills.abstract_round_abci.models import (
             SharedState as BaseSharedState,
         )
-        from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.rounds import {AbciApp}
+        from {author}.skills.{skill_name}.rounds import {AbciApp}
 
 
         class SharedState(BaseSharedState):
@@ -659,8 +702,8 @@ class ModelsFileGenerator(AbstractFileGenerator):
                 FILE_HEADER,
                 ModelsFileGenerator.MODEL_FILE_TEMPLATE.format(
                     AbciApp=self.abci_app_name,
-                    scaffold_skill_author_name=self.ctx.agent_config.author,
-                    scaffold_skill_name=self.skill_name,
+                    author=self.author,
+                    skill_name=self.skill_name,
                 ),
             ]
         )
@@ -909,8 +952,8 @@ class RoundTestsFileGenerator(RoundFileGenerator):
         import pytest
 
         # TODO: define and import specific payloads explicitly by name
-        from packages.{author}.skills.{skill_name}.payloads import *
-        from packages.{author}.skills.{skill_name}.rounds import (
+        from {author}.skills.{skill_name}.payloads import *
+        from {author}.skills.{skill_name}.rounds import (
             Event,
             SynchronizedData,
             {non_degenerate_rounds},
@@ -1011,7 +1054,7 @@ class RoundTestsFileGenerator(RoundFileGenerator):
     def _get_rounds_header_section(self) -> str:
         """Get the rounds header section."""
 
-        rounds = indent(",\n".join(self.non_degenerate_rounds), " " * 4).strip()
+        rounds = indent(",\n".join(self.rounds), " " * 4).strip()
         return self.ROUNDS_FILE_HEADER.format(
             FSMName=_get_abci_app_cls_name_from_dfa(self.dfa),
             author=self.author,
@@ -1055,11 +1098,11 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
             BaseBehaviour,
             make_degenerate_behaviour,
         )
-        from packages.{author}.skills.{skill_name}.behaviours import (
+        from {author}.skills.{skill_name}.behaviours import (
             {FSMName}BaseBehaviour,
             {behaviours},
         )
-        from packages.{author}.skills.{skill_name}.rounds import (
+        from {author}.skills.{skill_name}.rounds import (
             SynchronizedData,
             DegenerateRound,
             Event,
@@ -1165,7 +1208,7 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
             FSMName=self.fsm_name,
             author=self.author,
             skill_name=self.skill_name,
-            rounds=indent(",\n".join(self.rounds), " " * 4).strip(),
+            rounds=indent(",\n".join(self.all_rounds), " " * 4).strip(),
             behaviours=indent(",\n".join(self.behaviours), " " * 4).strip(),
         )
 
@@ -1200,11 +1243,11 @@ class ModelTestFileGenerator(AbstractFileGenerator):
         \"\"\"Test the models.py module of the {FSMName}.\"\"\"
 
         from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
-        from packages.{author}.skills.{skill_name}.models import SharedState
+        from {author}.skills.{skill_name}.models import SharedState
 
 
         class TestSharedState:
-            \"\"\"Test SharedState class.\"\"\"
+            \"\"\"Test SharedState of {FSMName}.\"\"\"
 
             def test_initialization(self) -> None:
                 \"\"\"Test initialization.\"\"\"
