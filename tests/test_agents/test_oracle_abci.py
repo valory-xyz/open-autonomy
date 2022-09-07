@@ -23,12 +23,11 @@ from typing import Tuple
 
 import pytest
 from aea.configurations.data_types import PublicId
-
-from autonomy.test_tools.base_test_classes.agents import (
+from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2EndExecution,
     RoundChecks,
 )
-from autonomy.test_tools.fixture_helpers import UseGnosisSafeHardHatNet
+from aea_test_autonomy.fixture_helpers import UseGnosisSafeHardHatNet
 
 
 HAPPY_PATH: Tuple[RoundChecks, ...] = (

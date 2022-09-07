@@ -48,7 +48,7 @@ except (ImportError, ModuleNotFoundError):
     pytestmark = pytest.mark.skip
 
 
-from autonomy.test_tools.helpers.base import try_send
+from aea_test_autonomy.helpers.base import try_send
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import HttpDialogues

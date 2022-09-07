@@ -20,7 +20,7 @@
 """This module contains the rounds for the APY estimation ABCI application."""
 from abc import ABC
 from enum import Enum
-from typing import Dict, Optional, Set, Tuple, Type, cast
+from typing import Dict, Mapping, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -137,6 +137,14 @@ class SynchronizedData(BaseSynchronizedData):
     def n_estimations(self) -> int:
         """Get the n_estimations."""
         return cast(int, self.db.get("n_estimations", 0))
+
+    @property
+    def participant_to_estimate(self) -> Mapping[str, EstimatePayload]:
+        """Get the `participant_to_estimate`."""
+        return cast(
+            Mapping[str, EstimatePayload],
+            self.db.get_strict("participant_to_estimate"),
+        )
 
 
 class APYEstimationAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -294,7 +302,7 @@ class RandomnessRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound
 
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
-                participants_to_randomness=self.collection,
+                participant_to_randomness=self.collection,
                 most_voted_randomness=filtered_randomness,
             )
             return synchronized_data, Event.DONE
@@ -336,7 +344,7 @@ class TrainRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
             update_params = dict(
                 synchronized_data_class=SynchronizedData,
-                participants_to_training=self.collection,
+                participant_to_training=self.collection,
                 most_voted_models=self.most_voted_payload,
             )
 
@@ -401,7 +409,7 @@ class EstimateRound(CollectSameUntilThresholdRound, APYEstimationAbstractRound):
 
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=SynchronizedData,
-                participants_to_estimate=self.collection,
+                participant_to_estimate=self.collection,
                 n_estimations=cast(
                     SynchronizedData, self.synchronized_data
                 ).n_estimations

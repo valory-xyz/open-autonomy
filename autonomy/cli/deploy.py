@@ -133,6 +133,7 @@ def deploy_group(
     default=False,
     help="Apply environment variable when loading service config.",
 )
+@click.option("--image-version", type=str, help="Define runtime image version.")
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @click.pass_context
@@ -151,6 +152,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     open_autonomy_dir: Optional[Path] = None,
     log_level: str = INFO,
     aev: bool = False,
+    image_version: Optional[str] = None,
 ) -> None:
     """Build deployment setup for n agents."""
 
@@ -179,6 +181,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             open_autonomy_dir,
             log_level=log_level,
             substitute_env_vars=aev,
+            image_version=image_version,
         )
     except Exception as e:  # pylint: disable=broad-except
         shutil.rmtree(build_dir)
@@ -312,6 +315,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
     agent_instances: Optional[List[str]] = None,
     log_level: str = INFO,
     substitute_env_vars: bool = False,
+    image_version: Optional[str] = None,
 ) -> None:
     """Build deployment."""
     if build_dir.is_dir():
@@ -337,6 +341,7 @@ def build_deployment(  # pylint: disable=too-many-arguments
         agent_instances=agent_instances,
         log_level=log_level,
         substitute_env_vars=substitute_env_vars,
+        image_version=image_version,
     )
     click.echo(report)
 
