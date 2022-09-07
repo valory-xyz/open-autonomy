@@ -385,5 +385,4 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
 PACKAGE_TYPE_TO_CONFIG_CLASS = {
     **_PACKAGE_TYPE_TO_CONFIG_CLASS,
     PackageType.SERVICE: Service,
-    PackageType.CONNECTION: ConnectionConfig,
 }
