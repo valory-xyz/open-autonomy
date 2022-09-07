@@ -23,7 +23,7 @@ Implement a scaffold sub-command to scaffold ABCI skills.
 This module patches the 'aea scaffold' command so to add a new subcommand for scaffolding a skill
  starting from FSM specification.
 """
-import logging
+
 import re
 import shutil
 from abc import ABC, abstractmethod

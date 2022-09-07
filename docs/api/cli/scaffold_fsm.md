@@ -217,47 +217,6 @@ def update() -> None
 
 Update the skill configuration file.
 
-<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill"></a>
-
-## ScaffoldABCISkill Objects
-
-```python
-class ScaffoldABCISkill()
-```
-
-Utility class that implements the scaffolding of the ABCI skill.
-
-<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(ctx: Context, skill_name: str, dfa: DFA) -> None
-```
-
-Initialize the utility class.
-
-<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.skill_dir"></a>
-
-#### skill`_`dir
-
-```python
-@property
-def skill_dir() -> Path
-```
-
-Get the directory to the skill.
-
-<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.do_scaffolding"></a>
-
-#### do`_`scaffolding
-
-```python
-def do_scaffolding() -> None
-```
-
-Do the scaffolding.
-
 <a id="autonomy.cli.scaffold_fsm.RoundTestsFileGenerator"></a>
 
 ## RoundTestsFileGenerator Objects
@@ -369,17 +328,38 @@ def get_file_content() -> str
 
 Get the file content.
 
-<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkillTests"></a>
+<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill"></a>
 
-## ScaffoldABCISkillTests Objects
+## ScaffoldABCISkill Objects
 
 ```python
-class ScaffoldABCISkillTests(ScaffoldABCISkill)
+class ScaffoldABCISkill()
 ```
 
-ScaffoldABCISkillTests
+Utility class that implements the scaffolding of the ABCI skill.
 
-<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkillTests.skill_test_dir"></a>
+<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(ctx: Context, skill_name: str, dfa: DFA) -> None
+```
+
+Initialize the utility class.
+
+<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.skill_dir"></a>
+
+#### skill`_`dir
+
+```python
+@property
+def skill_dir() -> Path
+```
+
+Get the directory to the skill.
+
+<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.skill_test_dir"></a>
 
 #### skill`_`test`_`dir
 
@@ -390,7 +370,7 @@ def skill_test_dir() -> Path
 
 Get the directory to the skill tests.
 
-<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkillTests.do_scaffolding"></a>
+<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.do_scaffolding"></a>
 
 #### do`_`scaffolding
 
