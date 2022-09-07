@@ -170,10 +170,6 @@ class TestTendermintServerApp(BaseTendermintServerTest):
     def test_files_exist(self) -> None:
         """Test that the necessary files are present"""
 
-        def remove_prefix(text: str, prefix: str) -> str:
-            """str.removeprefix only from python3.9 onward"""
-            return text[text.startswith(prefix) and len(prefix) :]
-
         expected_file_names = [
             Path(self.tm_home, "config", "config.toml"),
             Path(self.tm_home, "config", "priv_validator_key.json"),
@@ -182,7 +178,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             Path(self.tm_home, "data", "priv_validator_state.json"),
         ]
 
-        assert any([f.exists() for f in expected_file_names]), expected_file_names
+        assert all(f.exists() for f in expected_file_names), expected_file_names
 
     @wait_for_node_to_run
     def test_get_request_status(self, http_: str, loopback: str, rpc_port: int) -> None:

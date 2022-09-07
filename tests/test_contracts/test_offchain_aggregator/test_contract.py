@@ -26,11 +26,10 @@ from typing import Any, Dict, List, Tuple, cast
 import pytest
 from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
+from aea_test_autonomy.base_test_classes.contracts import BaseGanacheContractTest
+from aea_test_autonomy.configurations import ETHEREUM_KEY_PATH_1
+from aea_test_autonomy.docker.base import skip_docker_tests
 from web3 import Web3
-
-from autonomy.test_tools.base_test_classes.contracts import BaseGanacheContractTest
-from autonomy.test_tools.configurations import ETHEREUM_KEY_PATH_1
-from autonomy.test_tools.docker.base import skip_docker_tests
 
 from packages.valory.contracts.offchain_aggregator.contract import (
     OffchainAggregatorContract,

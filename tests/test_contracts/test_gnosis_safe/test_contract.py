@@ -30,24 +30,23 @@ import pytest
 from aea.common import JSONLike
 from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumApi, EthereumCrypto
+from aea_test_autonomy.base_test_classes.contracts import (
+    BaseGanacheContractTest,
+    BaseHardhatGnosisContractTest,
+)
+from aea_test_autonomy.configurations import (
+    ETHEREUM_KEY_PATH_1,
+    ETHEREUM_KEY_PATH_2,
+    ETHEREUM_KEY_PATH_3,
+)
+from aea_test_autonomy.docker.base import skip_docker_tests
+from aea_test_autonomy.helpers.contracts import get_register_contract
 from hexbytes import HexBytes
 from web3 import Web3
 from web3.datastructures import AttributeDict
 from web3.eth import Eth
 from web3.exceptions import SolidityError
 from web3.types import TxData
-
-from autonomy.test_tools.base_test_classes.contracts import (
-    BaseGanacheContractTest,
-    BaseHardhatGnosisContractTest,
-)
-from autonomy.test_tools.configurations import (
-    ETHEREUM_KEY_PATH_1,
-    ETHEREUM_KEY_PATH_2,
-    ETHEREUM_KEY_PATH_3,
-)
-from autonomy.test_tools.docker.base import skip_docker_tests
-from autonomy.test_tools.helpers.contracts import get_register_contract
 
 from packages.valory.contracts.gnosis_safe.contract import (
     GnosisSafeContract,
