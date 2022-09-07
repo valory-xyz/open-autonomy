@@ -190,6 +190,26 @@ class AbstractFileGenerator(ABC):
         """Author"""
         return self.ctx.agent_config.author
 
+    @property
+    def rounds(self) -> Set[str]:
+        """Rounds"""
+        return self.dfa.states
+
+    @property
+    def non_degenerate_rounds(self) -> Set[str]:
+        """Non-degenerate rounds"""
+        return self.rounds - self.dfa.final_states
+
+    @property
+    def behaviours(self) -> Set[str]:
+        """Behaviours"""
+        return {s.replace("Round", "Behaviour") for s in self.non_degenerate_rounds}
+
+    @property
+    def payloads(self) -> Set[str]:
+        """Payloads"""
+        return {s.replace("Round", "Payload") for s in self.non_degenerate_rounds}
+
 
 class RoundFileGenerator(AbstractFileGenerator):
     """File generator for 'rounds.py' modules."""
