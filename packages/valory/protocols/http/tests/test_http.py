@@ -30,8 +30,7 @@ from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.protocols.dialogue.base import DialogueLabel
 
-import packages
-from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.http import HttpMessage, message
 from packages.valory.protocols.http.dialogues import HttpDialogue, HttpDialogues
 from packages.valory.protocols.http.message import (
     _default_logger as http_message_logger,
@@ -106,7 +105,7 @@ class TestResponse(BaseTestMessageConstruction):
 
 
 @mock.patch.object(
-    packages.valory.protocols.http.message,
+    message,
     "enforce",
     side_effect=AEAEnforceError("some error"),
 )

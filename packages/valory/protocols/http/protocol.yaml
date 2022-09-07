@@ -14,6 +14,8 @@ fingerprint:
   http_pb2.py: bafybeibgu25ybhgfx6yvnavf4akg56z64lufau2uj4tndo6767faum6uge
   message.py: bafybeicgi2q53ztpylw3jksqyiwq6athxb74q3jnzy5bbriugpnfsynlba
   serialization.py: bafybeihg24kxzt6tnsqc6ni5svmiawkry26ng3nq4msxm6ffwlt5edzw3q
+  tests/__init__.py: bafybeierwsy34eqeiawwmy6xasatflc7a7i6ae5nmdsx3ogspj3eqckzci
+  tests/test_http.py: bafybeiaal2jpt6unqhsqiygagpgftjezplzwvmotydaruywsgmnkml4yxq
 fingerprint_ignore_patterns: []
 dependencies:
   protobuf: {}
