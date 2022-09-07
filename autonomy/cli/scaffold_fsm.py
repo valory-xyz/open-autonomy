@@ -202,14 +202,19 @@ class AbstractFileGenerator(ABC):
         return self.rounds - self.dfa.final_states
 
     @property
+    def base_names(self) -> Set[str]:
+        """Base names"""
+        return {s.replace("Round", "") for s in self.non_degenerate_rounds}
+
+    @property
     def behaviours(self) -> Set[str]:
         """Behaviours"""
-        return {s.replace("Round", "Behaviour") for s in self.non_degenerate_rounds}
+        return {f"{s}Behaviour" for s in self.base_names}
 
     @property
     def payloads(self) -> Set[str]:
         """Payloads"""
-        return {s.replace("Round", "Payload") for s in self.non_degenerate_rounds}
+        return {f"{s}Payload" for s in self.base_names}
 
 
 class RoundFileGenerator(AbstractFileGenerator):
@@ -234,7 +239,7 @@ class RoundFileGenerator(AbstractFileGenerator):
             TransactionType
         )
 
-        from {author}.skills.{skill_name}.base import (
+        from {author}.skills.{skill_name}.payloads import (
             {payloads},
         )
 
@@ -611,7 +616,7 @@ class PayloadsFileGenerator(AbstractFileGenerator):
     PAYLOAD_CLS_TEMPLATE = dedent(
         """\
         class {BaseName}Payload(Base{FSMName}Payload):
-            \"\"\"Represent a transaction payload for {BaseName}.\"\"\"
+            \"\"\"Represent a transaction payload for the {BaseName}Round.\"\"\"
 
             # TODO: specify the transaction type
             transaction_type = TransactionType
@@ -624,10 +629,10 @@ class PayloadsFileGenerator(AbstractFileGenerator):
 
         all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=self.fsm_name)]
 
-        for payload_name in self.payloads:
+        for base_name in self.base_names:
             payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
                 FSMName=self.fsm_name,
-                BaseName=payload_name,
+                BaseName=base_name,
             )
             all_payloads_classes_str.append(payload_class_str)
 
