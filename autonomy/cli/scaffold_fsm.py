@@ -263,6 +263,8 @@ class RoundFileGenerator(AbstractFileGenerator):
     ROUND_CLS_TEMPLATE = dedent(
         """\
         class {RoundCls}({ABCRoundCls}):
+            \"\"\"{RoundCls}\"\"\"
+
             {todo_abstract_round_cls}
             # TODO: set the following class attributes
             round_id: str
@@ -287,6 +289,8 @@ class RoundFileGenerator(AbstractFileGenerator):
     ABCI_APP_CLS_TEMPLATE = dedent(
         """\
         class {AbciAppCls}(AbciApp[Event]):
+            \"\"\"{AbciAppCls}\"\"\"
+
             initial_round_cls: AppState = {initial_round_cls}
             initial_states: Set[AppState] = {initial_states}
             transition_function: AbciAppTransitionFunction = {transition_function}
@@ -427,6 +431,8 @@ class BehaviourFileGenerator(AbstractFileGenerator):
     BEHAVIOUR_CLS_TEMPLATE = dedent(
         """\
         class {BehaviourCls}({BaseBehaviourCls}):
+            \"\"\"{BehaviourCls}\"\"\"
+
             # TODO: set the following class attributes
             state_id: str
             behaviour_id: str
@@ -442,6 +448,8 @@ class BehaviourFileGenerator(AbstractFileGenerator):
     ROUND_BEHAVIOUR_CLS_TEMPLATE = dedent(
         """\
         class {RoundBehaviourCls}(AbstractRoundBehaviour):
+            \"\"\"{RoundBehaviourCls}\"\"\"
+
             initial_behaviour_cls = {InitialBehaviourCls}
             abci_app_cls = {AbciAppCls}  # type: ignore
             behaviours: Set[Type[BaseBehaviour]] = {behaviours}
