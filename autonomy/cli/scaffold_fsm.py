@@ -197,9 +197,14 @@ class AbstractFileGenerator(ABC):
         return self.dfa.states
 
     @property
+    def degenerate_rounds(self) -> Set[str]:
+        """Non-degenerate rounds"""
+        return self.dfa.final_states
+
+    @property
     def rounds(self) -> Set[str]:
         """Non-degenerate rounds"""
-        return self.all_rounds - self.dfa.final_states
+        return self.all_rounds - self.degenerate_rounds
 
     @property
     def base_names(self) -> Set[str]:
@@ -295,6 +300,16 @@ class RoundFileGenerator(AbstractFileGenerator):
     """
     )
 
+    DEGENERATE_ROUND_CLS_TEMPLATE = dedent(
+        """\
+        class {RoundCls}({ABCRoundCls}):
+            \"\"\"{RoundCls}\"\"\"
+
+            round_id: str = "{round_id}"
+
+    """
+    )
+
     ABCI_APP_CLS_TEMPLATE = dedent(
         """\
         class {AbciAppCls}(AbciApp[Event]):
@@ -347,24 +362,26 @@ class RoundFileGenerator(AbstractFileGenerator):
         all_round_classes_str = []
 
         # add round classes
-        for abci_round_name in self.all_rounds:
-            abci_round_base_cls_name = (
-                DEGENERATE_ROUND
-                if abci_round_name in self.dfa.final_states
-                else ABSTRACT_ROUND
-            )
-            todo_abstract_round_cls = ""
-            if abci_round_base_cls_name == ABSTRACT_ROUND:
-                todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
-
+        for abci_round_name in self.rounds:
+            todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
             base_name = abci_round_name.replace("Round", "")
             round_id = _camel_case_to_snake_case(base_name)
             round_class_str = RoundFileGenerator.ROUND_CLS_TEMPLATE.format(
                 round_id=round_id,
                 RoundCls=abci_round_name,
                 BaseName=base_name,
-                ABCRoundCls=abci_round_base_cls_name,
+                ABCRoundCls=ABSTRACT_ROUND,
                 todo_abstract_round_cls=todo_abstract_round_cls,
+            )
+            all_round_classes_str.append(round_class_str)
+
+        for abci_round_name in self.degenerate_rounds:
+            base_name = abci_round_name.replace("Round", "")
+            round_id = _camel_case_to_snake_case(base_name)
+            round_class_str = RoundFileGenerator.DEGENERATE_ROUND_CLS_TEMPLATE.format(
+                round_id=round_id,
+                RoundCls=abci_round_name,
+                ABCRoundCls=DEGENERATE_ROUND,
             )
             all_round_classes_str.append(round_class_str)
 
