@@ -1274,13 +1274,29 @@ class PayloadTestsFileGenerator(PayloadsFileGenerator):
         """
     )
 
+    PAYLOAD_CLS_TEMPLATE = dedent(
+        """\
+        @pytest.mark.parametrize("content, tx_type", [])
+        def test_payloads(content: Hashable, tx_type: str) -> None:
+            \"\"\"Tests for {AbciApp} payloads\"\"\"
+
+            payload = test_case.payload_cls(sender="sender", content=content)
+            assert payload.sender == "sender"
+            assert getattr(payload, f"{{payload.transaction_type}}") == content
+            assert payload.transaction_type == tx_type
+            assert payload.from_json(payload.json) == payload
+
+    """
+    )
+
     def get_file_content(self) -> str:
         """Scaffold the 'test_payloads.py' file."""
 
         behaviour_file_content = "\n".join(
             [
                 FILE_HEADER,
-                self._get_payload_header_section()
+                self._get_payload_header_section(),
+                self._get_payload_section(),
             ]
         )
 
@@ -1296,6 +1312,11 @@ class PayloadTestsFileGenerator(PayloadsFileGenerator):
             skill_name=self.skill_name,
             payloads=indent(",\n".join(self.payloads), " " * 4).strip(),
         )
+
+    def _get_payload_section(self) -> str:
+        """Get payload section"""
+
+        return self.PAYLOAD_CLS_TEMPLATE.format(AbciApp=self.abci_app_name)
 
 
 class ModelTestFileGenerator(AbstractFileGenerator):
