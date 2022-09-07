@@ -203,7 +203,9 @@ class TestState(BaseTestMessageConstruction):
     "enforce",
     side_effect=AEAEnforceError("some error"),
 )
-def test_incorrect_message(mocked_enforce: Callable) -> None:
+def test_incorrect_message(
+    mocked_enforce: Callable,  # pylint: disable=unused-argument
+) -> None:
     """Test that we raise an exception when the message is incorrect."""
     with mock.patch.object(contract_api_message_logger, "error") as mock_logger:
         ContractApiMessage(
@@ -298,7 +300,8 @@ class AgentDialogues(ContractApiDialogues):
         """
 
         def role_from_first_message(  # pylint: disable=unused-argument
-            message: Message, receiver_address: Address
+            message: Message,  # pylint: disable=redefined-outer-name
+            receiver_address: Address,
         ) -> BaseDialogue.Role:
             """Infer the role of the agent from an incoming/outgoing first message
 
@@ -354,7 +357,8 @@ class LedgerDialogues(ContractApiDialogues):
         """
 
         def role_from_first_message(  # pylint: disable=unused-argument
-            message: Message, receiver_address: Address
+            message: Message,  # pylint: disable=redefined-outer-name
+            receiver_address: Address,
         ) -> BaseDialogue.Role:
             """Infer the role of the agent from an incoming/outgoing first message
 
@@ -390,7 +394,7 @@ class TestDialogues:
 
     def test_create_self_initiated(self) -> None:
         """Test the self initialisation of a dialogue."""
-        result = self.agent_dialogues._create_self_initiated(
+        result = self.agent_dialogues._create_self_initiated(  # pylint: disable=protected-access
             dialogue_opponent_addr=self.ledger_addr,
             dialogue_reference=(str(0), ""),
             role=ContractApiDialogue.Role.AGENT,
@@ -400,7 +404,7 @@ class TestDialogues:
 
     def test_create_opponent_initiated(self) -> None:
         """Test the opponent initialisation of a dialogue."""
-        result = self.agent_dialogues._create_opponent_initiated(
+        result = self.agent_dialogues._create_opponent_initiated(  # pylint: disable=protected-access
             dialogue_opponent_addr=self.ledger_addr,
             dialogue_reference=(str(0), ""),
             role=ContractApiDialogue.Role.AGENT,

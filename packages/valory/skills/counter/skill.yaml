@@ -14,9 +14,9 @@ fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols:
-- valory/abci:0.1.0:bafybeibxuunet42ilj3myxv62jdcfncbpfgkegqz6gpe2a5pyd7ikqxllm
+- valory/abci:0.1.0:bafybeicikoxlo5zjgyyeeswbqa7xw2ed7kzz4ienqumjcnsben5vdrrmoq
 skills:
-- valory/abstract_abci:0.1.0:bafybeibbl72e7nrn6revojohiwfhfdxo5qdcvv4pe5nljnb7jepyzw7hd4
+- valory/abstract_abci:0.1.0:bafybeickdui64uk5vlvqj5okky3j24ytm5j4c3rlz2pvbkcupq7gmosycu
 behaviours: {}
 handlers:
   abci:

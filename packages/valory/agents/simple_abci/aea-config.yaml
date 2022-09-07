@@ -8,21 +8,21 @@ fingerprint:
   README.md: bafybeiaj6b3suwbl3lcdm2bixo6puuwp7nzrjbtguvygt4xoboeasxs6lq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeicxipeaw42v3kvoeuh63ccrllgegbcvh6ywawgbazzjxncrvua4mq
-- valory/http_client:0.1.0:bafybeifvj3dx2rbdf5tac5fsp4sqrpcnw7cznqh5563uzndu6fibpky3kq
-- valory/ledger:0.1.0:bafybeid4w7bt5x53m5vyvr3tg6kjxjpzwptzmgru22ila636n7teqtasye
+- valory/abci:0.1.0:bafybeif63vewpjyxbrks22vwiug4t3t6kykjplbh72q7vss7hnjnqkay4q
+- valory/http_client:0.1.0:bafybeif5z3j3xufadjlqybej53u4tfd27arbpuybgarbgcneyzrp4rzivy
+- valory/ledger:0.1.0:bafybeifz3hhzc2gvgccoa4kmvstkvhkudfvwh2su2xa7lfapvtuhgztqae
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
-- valory/abci:0.1.0:bafybeibxuunet42ilj3myxv62jdcfncbpfgkegqz6gpe2a5pyd7ikqxllm
-- valory/contract_api:1.0.0:bafybeifhdg4wdbp5ajl5zt5ddfcbqcv4en2dnnizfjmq3ud6cakyxkdb3m
-- valory/http:1.0.0:bafybeihndpequh5sr42re2fjrofznvozczltah7oauny22smkdupk5ovay
-- valory/ledger_api:1.0.0:bafybeiffhx3n4xh7vl4vpheaar3xmv7my6wu6cv5ca3ihhaykfwpiswmw4
+- valory/abci:0.1.0:bafybeicikoxlo5zjgyyeeswbqa7xw2ed7kzz4ienqumjcnsben5vdrrmoq
+- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
+- valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
+- valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- valory/abstract_abci:0.1.0:bafybeibbl72e7nrn6revojohiwfhfdxo5qdcvv4pe5nljnb7jepyzw7hd4
-- valory/abstract_round_abci:0.1.0:bafybeie2yyu6pcfx5xp2k2ldwkzklhlwq2epzxy3eq5q7ioyj5fbjwopme
-- valory/simple_abci:0.1.0:bafybeiey4m3jfur3fzakfokukc45l6url2kdkpdcrhsymkar633ldolwbu
+- valory/abstract_abci:0.1.0:bafybeickdui64uk5vlvqj5okky3j24ytm5j4c3rlz2pvbkcupq7gmosycu
+- valory/abstract_round_abci:0.1.0:bafybeigx2vdc6flckja7sxnjfxeqwgynxgclvw24iu2leuaxo7aufcpz7y
+- valory/simple_abci:0.1.0:bafybeibvbrdaxet2tmelhkuppyab4hxyvoa5h3zk2zp7rzk76umbhpyyu4
 default_ledger: ethereum
 required_ledgers:
 - ethereum

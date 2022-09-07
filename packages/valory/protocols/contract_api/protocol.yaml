@@ -16,7 +16,7 @@ fingerprint:
   message.py: bafybeieofehtuiu3dkzkpnb2jvlrnf5qccyn2kdr5v3c4fhjfw6ov63cwm
   serialization.py: bafybeidmd4puzjkh2kqsdeujf4apppkm442sc4rdho3ivebb4htiuqn3py
   tests/__init__.py: bafybeicc5zmsziu4r5dwjnhckfbgnwbgydn7ekeyqsestutq2tusajqzmu
-  tests/test_contract_api.py: bafybeiar7mojdubqx77ipaslqaayoogydluz5jlegejupi27emgrhggvtq
+  tests/test_contract_api.py: bafybeihdouqlfj3bmtzsrquv6hbjfjtlv4uj7xbx5glu3axt2edigajuha
 fingerprint_ignore_patterns: []
 dependencies:
   protobuf: {}

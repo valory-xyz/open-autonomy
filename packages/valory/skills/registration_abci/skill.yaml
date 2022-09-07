@@ -21,11 +21,11 @@ connections:
 contracts:
 - valory/service_registry:0.1.0:bafybeia7uxs2a5gc3zu7qqw3wecukbvib3rd6xauynltmi7m2hmzja4wby
 protocols:
-- valory/contract_api:1.0.0:bafybeifhdg4wdbp5ajl5zt5ddfcbqcv4en2dnnizfjmq3ud6cakyxkdb3m
-- valory/http:1.0.0:bafybeihndpequh5sr42re2fjrofznvozczltah7oauny22smkdupk5ovay
+- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
+- valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeie2yyu6pcfx5xp2k2ldwkzklhlwq2epzxy3eq5q7ioyj5fbjwopme
+- valory/abstract_round_abci:0.1.0:bafybeigx2vdc6flckja7sxnjfxeqwgynxgclvw24iu2leuaxo7aufcpz7y
 behaviours:
   main:
     args: {}
