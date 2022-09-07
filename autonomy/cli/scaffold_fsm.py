@@ -52,6 +52,7 @@ from aea.configurations.constants import (
 
 # the decoration does side-effect on the 'aea scaffold' command
 from aea.configurations.data_types import CRUDCollection, PublicId
+from aea.protocols.generator.common import _camel_case_to_snake_case
 
 from autonomy.analyse.abci.app_spec import DFA
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
@@ -439,8 +440,8 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 
             # TODO: set the following class attributes
             state_id: str
-            behaviour_id: str
-            matching_round: Type[AbstractRound]
+            behaviour_id: str = "{behaviour_id}"
+            matching_round: Type[AbstractRound] = {matching_round}
 
             @abstractmethod
             def async_act(self) -> Generator:
@@ -513,9 +514,13 @@ class BehaviourFileGenerator(AbstractFileGenerator):
                 )
             )
 
+            behaviour_id = abci_behaviour_name.replace("Behaviour", "")
+            matching_round = abci_behaviour_name.replace("Behaviour", "Round")
             behaviour_class_str = BehaviourFileGenerator.BEHAVIOUR_CLS_TEMPLATE.format(
                 BehaviourCls=abci_behaviour_name,
                 BaseBehaviourCls=base_behaviour_cls_name,
+                behaviour_id=_camel_case_to_snake_case(behaviour_id),
+                matching_round=matching_round,
             )
             all_behaviour_classes_str.append(behaviour_class_str)
 
