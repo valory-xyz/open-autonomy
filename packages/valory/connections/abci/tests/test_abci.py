@@ -21,9 +21,11 @@
 import asyncio
 import logging
 import os
+import shutil
 import time
 from abc import ABC, abstractmethod
 from cmath import inf
+from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, Callable, List, cast
@@ -40,7 +42,7 @@ from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea_test_autonomy.configurations import ANY_ADDRESS, HTTP_LOCALHOST
 from aea_test_autonomy.docker.base import skip_docker_tests
-from aea_test_autonomy.fixture_helpers import UseTendermint
+from aea_test_autonomy.fixture_helpers import DEFAULT_TENDERMINT_PORT, tendermint
 from aea_test_autonomy.helpers.async_utils import (
     AnotherThreadTask,
     BaseThreadedAsyncLoop,
@@ -77,6 +79,18 @@ from packages.valory.protocols.abci.custom_types import (  # type: ignore
 )
 from packages.valory.protocols.abci.dialogues import AbciDialogue
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
+
+
+PACKAGE_DIR = Path(__file__).parent.parent
+
+
+@pytest.fixture(scope="session", autouse=True)
+def hypothesis_cleanup():
+    yield
+    hypothesis_dir = PACKAGE_DIR / ".hypothesis"
+    if hypothesis_dir.exists():
+        with suppress(OSError, PermissionError):
+            shutil.rmtree(hypothesis_dir)
 
 
 class AsyncBytesIO:
@@ -304,7 +318,8 @@ class BaseABCITest:
 
 
 @pytest.mark.integration
-class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, UseTendermint, ABC):
+@pytest.mark.usefixtures("tendermint")
+class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
     """
     Integration test between ABCI connection and Tendermint node.
 
@@ -317,6 +332,7 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, UseTendermint, AB
     TARGET_SKILL_ID = "dummy_author/dummy:0.1.0"
     ADDRESS = "agent_address"
     PUBLIC_KEY = "agent_public_key"
+    tendermint_port = DEFAULT_TENDERMINT_PORT
 
     def setup(self) -> None:
         """Set up the test."""

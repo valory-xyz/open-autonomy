@@ -8,7 +8,7 @@ fingerprint:
   README.md: bafybeihxalbstbm7kufnxftkn6mrvculqxyibsk4tzhrq5jbdh5ihejteq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeif63vewpjyxbrks22vwiug4t3t6kykjplbh72q7vss7hnjnqkay4q
+- valory/abci:0.1.0:bafybeidiks6xcbyuxkpnl7ciut2yuc26rj65ekkwkrcla3lllvccdjbhii
 - valory/http_client:0.1.0:bafybeif5z3j3xufadjlqybej53u4tfd27arbpuybgarbgcneyzrp4rzivy
 - valory/ledger:0.1.0:bafybeifz3hhzc2gvgccoa4kmvstkvhkudfvwh2su2xa7lfapvtuhgztqae
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
@@ -16,18 +16,18 @@ contracts:
 - valory/service_registry:0.1.0:bafybeia7uxs2a5gc3zu7qqw3wecukbvib3rd6xauynltmi7m2hmzja4wby
 protocols:
 - open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
-- valory/abci:0.1.0:bafybeicikoxlo5zjgyyeeswbqa7xw2ed7kzz4ienqumjcnsben5vdrrmoq
+- valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
 - valory/acn:1.1.0:bafybeidetrrkvdgveu4ph5g6v53lbh7ardfspbkpstmjxctx647bzyosyy
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 - valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeickdui64uk5vlvqj5okky3j24ytm5j4c3rlz2pvbkcupq7gmosycu
-- valory/abstract_round_abci:0.1.0:bafybeigx2vdc6flckja7sxnjfxeqwgynxgclvw24iu2leuaxo7aufcpz7y
-- valory/apy_estimation_abci:0.1.0:bafybeia2uzrvliooq62noft46e5eizow6arkq6g2oogjv7ybnz2djwyfe4
-- valory/apy_estimation_chained_abci:0.1.0:bafybeifwkbteppxptaqq3rctmqzhaygtcy4y5favruc3izlm5mrnn7lt2e
-- valory/registration_abci:0.1.0:bafybeigea2ofsij7zt3esznhm3zqpz5w6pha5mfqbd3gmhvwu6lqntolgi
+- valory/abstract_abci:0.1.0:bafybeianuhlz56pi45j2ksyy26nixg7rti6slar3opgogosfuhsqaezcfi
+- valory/abstract_round_abci:0.1.0:bafybeic2sdy5kj7ndvnekqcn3hnzxvpusmdlosvbtwceqfaucipfobbe4m
+- valory/apy_estimation_abci:0.1.0:bafybeig6gehngv65o3r7ttr74wlu2a4sf5zpkopke2uw4mjzuk56tbna7e
+- valory/apy_estimation_chained_abci:0.1.0:bafybeicmn725iitgrtirt4ts2slep7b6nv62sfzedi544a6dtmwkluycfa
+- valory/registration_abci:0.1.0:bafybeigkjkdbeppordrs3kepw3a2szlmvpb7ulqnfeayd5qe2x5f5lxxqm
 default_ledger: ethereum
 required_ledgers:
 - ethereum
