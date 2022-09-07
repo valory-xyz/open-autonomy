@@ -539,11 +539,9 @@ class TestLedgerDispatcher:
         retry_timeout = 0.001
         blocking_duration = 1
 
-        assert (
-            # the retry strategy's total duration is an arithmetic progression
-            expected_duration := sum(i * retry_timeout for i in range(retry_attempts))
-            < blocking_duration
-        ), (
+        # the retry strategy's total duration is an arithmetic progression
+        expected_duration = sum(i * retry_timeout for i in range(retry_attempts))
+        assert expected_duration < blocking_duration, (
             "The purpose of this test is to check whether the retry strategy works if a node is blocking."
             f"Therefore, the blocking time ({blocking_duration}) must be larger than the expected duration "
             f"({expected_duration}) of the retry strategy."
