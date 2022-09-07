@@ -1252,6 +1252,23 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
         return "\n".join(all_behaviour_classes_str)
 
 
+class PayloadTestsFileGenerator(PayloadsFileGenerator):
+    """File generator for 'test_payloads.py' modules."""
+
+    FILENAME = "test_" + PAYLOADS_FILENAME
+
+    def get_file_content(self) -> str:
+        """Scaffold the 'test_payloads.py' file."""
+
+        behaviour_file_content = "\n".join(
+            [
+                FILE_HEADER,
+            ]
+        )
+
+        return behaviour_file_content
+
+
 class ModelTestFileGenerator(AbstractFileGenerator):
     """File generator for 'test_models.py'."""
 
@@ -1370,6 +1387,7 @@ class ScaffoldABCISkill:
     test_file_generators: List[Type[AbstractFileGenerator]] = [
         RoundTestsFileGenerator,
         BehaviourTestsFileGenerator,
+        PayloadTestsFileGenerator,
         ModelTestFileGenerator,
         HandlersTestFileGenerator,
         DialoguesTestFileGenerator,
