@@ -46,11 +46,8 @@ from aea.helpers.transaction.base import (
 from aea.identity.base import Identity
 from aea.mail.base import Envelope, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
-from aea_ledger_ethereum import (
-    DEFAULT_EIP1559_STRATEGY,
-    DEFAULT_GAS_STATION_STRATEGY,
-    EthereumCrypto,
-)
+from aea_ledger_ethereum import EthereumCrypto
+from aea_ledger_ethereum.test_tools.constants import ETHEREUM_TESTNET_CONFIG
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.docker.base import skip_docker_tests
 from aea_test_autonomy.docker.ganache import (
@@ -97,24 +94,12 @@ gas_strategies = pytest.mark.parametrize(
     ],
 )
 
-ETHEREUM_DEFAULT_LEDGER_CONFIG = {
-    "address": f"{DEFAULT_GANACHE_ADDR}:{DEFAULT_GANACHE_PORT}",
-    "chain_id": DEFAULT_GANACHE_CHAIN_ID,
-    # "denom": ETHEREUM_DEFAULT_CURRENCY_DENOM, # noqa: E800
-    # "gas_price_api_key": GAS_PRICE_API_KEY, # noqa: E800
-    "default_gas_price_strategy": "eip1559",
-    "gas_price_strategies": {
-        "gas_station": DEFAULT_GAS_STATION_STRATEGY,
-        "eip1559": DEFAULT_EIP1559_STRATEGY,
-    },
-}
-
 
 @pytest.fixture(scope="session")
 def ethereum_testnet_config() -> Dict:
     """Get Ethereum ledger api configurations using Ganache."""
     new_uri = f"{DEFAULT_GANACHE_ADDR}:{DEFAULT_GANACHE_PORT}"
-    new_config = ETHEREUM_DEFAULT_LEDGER_CONFIG
+    new_config = ETHEREUM_TESTNET_CONFIG.copy()
     new_config["address"] = new_uri
     return new_config
 
@@ -130,7 +115,7 @@ def update_default_ethereum_ledger_api(ethereum_testnet_config: Dict) -> Generat
 
 
 def make_ledger_api_connection(
-    ethereum_testnet_config: Dict = ETHEREUM_DEFAULT_LEDGER_CONFIG,
+    ethereum_testnet_config: Dict = ETHEREUM_TESTNET_CONFIG,
 ) -> Connection:
     """Make a connection."""
     crypto = make_crypto(DEFAULT_LEDGER)
