@@ -7,6 +7,16 @@ Implement a scaffold sub-command to scaffold ABCI skills.
 This module patches the 'aea scaffold' command so to add a new subcommand for scaffolding a skill
  starting from FSM specification.
 
+<a id="autonomy.cli.scaffold_fsm.remove_suffix"></a>
+
+#### remove`_`suffix
+
+```python
+def remove_suffix(s: str, suffix: str) -> str
+```
+
+str.removesuffix() does not exist in python 3.7, 3.8
+
 <a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator"></a>
 
 ## AbstractFileGenerator Objects
