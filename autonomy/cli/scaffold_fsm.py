@@ -405,7 +405,11 @@ class BehaviourFileGenerator(AbstractFileGenerator):
         )
 
         from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.models import Params
-        from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.rounds import SynchronizedData, {AbciApp}
+        from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.rounds import (
+            SynchronizedData,
+            {AbciApp},
+            {rounds},
+        )
 
         """
     )
@@ -479,10 +483,12 @@ class BehaviourFileGenerator(AbstractFileGenerator):
     def _get_behaviours_header_section(self) -> str:
         """Get the behaviours header section."""
 
+        rounds = indent(",\n".join(self.non_degenerate_rounds), " " * 4).strip()
         return self.BEHAVIOUR_FILE_HEADER.format(
             AbciApp=self.abci_app_name,
             scaffold_skill_author_name=self.ctx.agent_config.author,
             scaffold_skill_name=self.skill_name,
+            rounds=rounds,
         )
 
     def _get_base_behaviour_section(self) -> str:
@@ -506,6 +512,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
                     self.abci_app_name
                 )
             )
+
             behaviour_class_str = BehaviourFileGenerator.BEHAVIOUR_CLS_TEMPLATE.format(
                 BehaviourCls=abci_behaviour_name,
                 BaseBehaviourCls=base_behaviour_cls_name,
