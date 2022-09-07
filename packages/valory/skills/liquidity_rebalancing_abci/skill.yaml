@@ -26,10 +26,10 @@ contracts:
 - valory/uniswap_v2_erc20:0.1.0:bafybeid2rdlyshie6yamr6lzf3g3kfovlhvww3rszmtaad2pmawwgmfvce
 - valory/uniswap_v2_router_02:0.1.0:bafybeie7xfg2erv4gzuy46vjvqav4fnrzugvkx5twt5h3n2yocakbpzn4u
 protocols:
-- valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
+- valory/contract_api:1.0.0:bafybeifhdg4wdbp5ajl5zt5ddfcbqcv4en2dnnizfjmq3ud6cakyxkdb3m
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeieldayxt57ghm7xjuzaeiq6ehs5xua7xw27cw2evf5fbyfi34hgam
-- valory/transaction_settlement_abci:0.1.0:bafybeia4jzs35syplp344i4nuqxtshkp6w73qsoyxkfduyaqr22lm73ct4
+- valory/abstract_round_abci:0.1.0:bafybeicq2ubd55kh2tf25ppoadykbb7clmg7rj3pje4jd736ivpsmplrzq
+- valory/transaction_settlement_abci:0.1.0:bafybeiasoedx2jkvbswv2hhnxoycom4ucvs7zlw5ujy6bsxwhbnhxxz4pa
 behaviours:
   main:
     args: {}

@@ -20,13 +20,13 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeieldayxt57ghm7xjuzaeiq6ehs5xua7xw27cw2evf5fbyfi34hgam
-- valory/oracle_deployment_abci:0.1.0:bafybeidvc2wl2jfvyr4lx2c7dqgypoiat3wp5h6wtixfqunupd253hlriy
-- valory/price_estimation_abci:0.1.0:bafybeihcm4zzujssmxaut66i4cwrptdez6m64ru44b3grieobi6wlm45cm
-- valory/registration_abci:0.1.0:bafybeiehz5vr3dldhk5dlamaq5l7kzxoyl4at7oui2io6f6adacr4fv46e
-- valory/reset_pause_abci:0.1.0:bafybeifj4fug3yx3lkrmgidedpvpzsldord3cjmveddyaxlskxsgn6dkym
-- valory/safe_deployment_abci:0.1.0:bafybeignrlua5vagjpe3bqo2jmyl2qaxqmystfu4cuz5usg6ucoyxjvnum
-- valory/transaction_settlement_abci:0.1.0:bafybeia4jzs35syplp344i4nuqxtshkp6w73qsoyxkfduyaqr22lm73ct4
+- valory/abstract_round_abci:0.1.0:bafybeicq2ubd55kh2tf25ppoadykbb7clmg7rj3pje4jd736ivpsmplrzq
+- valory/oracle_deployment_abci:0.1.0:bafybeidkehgw5njtyjeoxuevb62qstvqjxkpugmyf2jtrhke7f6ibslwpa
+- valory/price_estimation_abci:0.1.0:bafybeic5tc622miabx44g234w57bdw7lqktrgzndlc742vreowasmnmlem
+- valory/registration_abci:0.1.0:bafybeigyjwrmzp2mgcpz7csocb7mbpwv32urjuy2q62lklnlfenpskazqy
+- valory/reset_pause_abci:0.1.0:bafybeicvlhhtbwlbyygwj4gzukr3murpomzl2qgs4ipjsjsxvjvji6flwu
+- valory/safe_deployment_abci:0.1.0:bafybeibruku37hctj62yavf63kvs5bgbrhsdtuqypy76zmvallfox6noqe
+- valory/transaction_settlement_abci:0.1.0:bafybeiasoedx2jkvbswv2hhnxoycom4ucvs7zlw5ujy6bsxwhbnhxxz4pa
 behaviours:
   main:
     args: {}

@@ -30,8 +30,7 @@ from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.protocols.dialogue.base import DialogueLabel
 
-import packages
-from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.protocols.contract_api import ContractApiMessage, message
 from packages.valory.protocols.contract_api.custom_types import Kwargs
 from packages.valory.protocols.contract_api.dialogues import (
     ContractApiDialogue,
@@ -200,7 +199,7 @@ class TestState(BaseTestMessageConstruction):
 
 
 @mock.patch.object(
-    packages.valory.protocols.contract_api.message,
+    message,
     "enforce",
     side_effect=AEAEnforceError("some error"),
 )
