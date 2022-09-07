@@ -40,6 +40,7 @@ VALORY_SKILLS_PATH = Path(os.path.join(*skills.__package__.split("."))).absolute
 fsm_specifications = VALORY_SKILLS_PATH.glob("**/fsm_specification.yaml")
 
 
+@pytest.mark.parametrize("fsm_spec_file", fsm_specifications)
 class TestScaffoldFSM(AEATestCaseEmpty):
     """Test `scaffold fsm` subcommand."""
 
@@ -61,7 +62,6 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         cls.create_agents(cls.agent_name, is_local=cls.IS_LOCAL, is_empty=cls.IS_EMPTY)
         cls.set_agent_context(cls.agent_name)
 
-    @pytest.mark.parametrize("fsm_spec_file", fsm_specifications)
     def test_run(self, fsm_spec_file: Path) -> None:
         """Test run."""
 
@@ -72,7 +72,7 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         result = self.run_cli_command(*args, cwd=self._get_cwd())
         assert result.exit_code == 0
 
-    def test_imports(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_imports(self, fsm_spec_file: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test imports of scaffolded modules"""
 
         monkeypatch.syspath_prepend(self.t)
