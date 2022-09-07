@@ -218,7 +218,7 @@ class RoundFileGenerator(AbstractFileGenerator):
 
     ROUNDS_FILE_HEADER = dedent(
         """\
-        \"\"\"This package contains the rounds of {FSMName}.\"\"\"
+        \"\"\"This package contains the rounds of {AppName}.\"\"\"
 
         from enum import Enum
         from typing import List, Optional, Set, Tuple
@@ -310,9 +310,7 @@ class RoundFileGenerator(AbstractFileGenerator):
 
     def _get_rounds_header_section(self) -> str:
         """Get the rounds header section."""
-        return self.ROUNDS_FILE_HEADER.format(
-            FSMName=_get_abci_app_cls_name_from_dfa(self.dfa)
-        )
+        return self.ROUNDS_FILE_HEADER.format(AppName=self.abci_app_name)
 
     def _get_rounds_section(self) -> str:
         """Get the round section of the module (i.e. the round classes)."""
@@ -355,9 +353,9 @@ class RoundFileGenerator(AbstractFileGenerator):
 
     def _get_abci_app_section(self) -> str:
         """Get the abci app section (i.e. the declaration of the AbciApp class)."""
-        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
+
         return RoundFileGenerator.ABCI_APP_CLS_TEMPLATE.format(
-            AbciAppCls=abci_app_cls_name,
+            AbciAppCls=self.abci_app_name,
             initial_round_cls=self.dfa.default_start_state,
             initial_states=_remove_quotes(str(self.dfa.start_states)),
             transition_function=self._parse_transition_func(),
@@ -382,7 +380,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 
     BEHAVIOUR_FILE_HEADER = dedent(
         """\
-        \"\"\"This package contains round behaviours of {FSMName}.\"\"\"
+        \"\"\"This package contains round behaviours of {AbciApp}.\"\"\"
 
         from abc import abstractmethod
         from typing import Generator, Set, Type, cast
@@ -394,7 +392,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
         )
 
         from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.models import Params
-        from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.rounds import SynchronizedData, {AbciAppCls}
+        from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.rounds import SynchronizedData, {AbciApp}
 
         """
     )
@@ -463,19 +461,18 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 
     def _get_behaviours_header_section(self) -> str:
         """Get the behaviours header section."""
-        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
+
         return self.BEHAVIOUR_FILE_HEADER.format(
-            FSMName=_get_abci_app_cls_name_from_dfa(self.dfa),
+            AbciApp=self.abci_app_name,
             scaffold_skill_author_name=self.ctx.agent_config.author,
             scaffold_skill_name=self.skill_name,
-            AbciAppCls=abci_app_cls_name,
         )
 
     def _get_base_behaviour_section(self) -> str:
         """Get the base behaviour section."""
-        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
+
         base_behaviour_cls_name = (
-            _try_get_base_behaviour_cls_name_from_abci_app_cls_name(abci_app_cls_name)
+            _try_get_base_behaviour_cls_name_from_abci_app_cls_name(self.abci_app_name)
         )
         return self.BASE_BEHAVIOUR_CLS_TEMPLATE.format(
             BaseBehaviourCls=base_behaviour_cls_name
@@ -483,19 +480,13 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 
     def _get_behaviours_section(self) -> str:
         """Get the behaviours section of the module (i.e. the list of behaviour classes)."""
+
         all_behaviour_classes_str = []
 
-        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
-
-        # add behaviour classes
-        for abci_round_name in self.dfa.states:
-            # try to replace 'Round' suffix with 'Behaviour'
-            abci_behaviour_name = _try_get_behaviour_cls_name_from_round_cls_name(
-                abci_round_name
-            )
+        for abci_behaviour_name in self.behaviours:
             base_behaviour_cls_name = (
                 _try_get_base_behaviour_cls_name_from_abci_app_cls_name(
-                    abci_app_cls_name
+                    self.abci_app_name
                 )
             )
             behaviour_class_str = BehaviourFileGenerator.BEHAVIOUR_CLS_TEMPLATE.format(
@@ -506,19 +497,6 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 
         # build final content
         return "\n".join(all_behaviour_classes_str)
-
-    def _get_behaviour_set(self) -> Set[str]:
-        """Get the set of behaviour states (excluding final states)."""
-        result: Set[str] = set()
-        for abci_round_name in self.dfa.states:
-            if abci_round_name in self.dfa.final_states:
-                continue
-            # try to replace 'Round' suffix with 'Behaviour'
-            abci_behaviour_name = _try_get_behaviour_cls_name_from_round_cls_name(
-                abci_round_name
-            )
-            result.add(abci_behaviour_name)
-        return result
 
     def _get_round_behaviour_section(self) -> str:
         """Get the round behaviour section of the module (i.e. the declaration of the round behaviour class)."""
@@ -534,7 +512,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
             RoundBehaviourCls=round_behaviour_cls_name,
             InitialBehaviourCls=initial_behaviour_cls_name,
             AbciAppCls=abci_app_cls_name,
-            behaviours=_remove_quotes(str(self._get_behaviour_set())),
+            behaviours=_remove_quotes(str(self.behaviours)),
         )
 
 
@@ -601,14 +579,11 @@ class PayloadsFileGenerator(AbstractFileGenerator):
     def _get_base_payload_section(self) -> str:
         """Get the base payload section."""
 
-        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
-        fsm_name = remove_suffix(abci_app_cls_name, "AbciApp")
-        all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=fsm_name)]
+        all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=self.fsm_name)]
 
-        non_degenerate_rounds = self.dfa.states - self.dfa.final_states
-        for state in non_degenerate_rounds:
+        for round_name in self.non_degenerate_rounds:
             payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
-                FSMName=fsm_name, BaseName=remove_suffix(state, "Round")
+                FSMName=self.fsm_name, BaseName=round_name,
             )
             all_payloads_classes_str.append(payload_class_str)
 
@@ -617,12 +592,10 @@ class PayloadsFileGenerator(AbstractFileGenerator):
     def get_file_content(self) -> str:
         """Get the file content."""
 
-        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
-
         return "\n".join(
             [
                 FILE_HEADER,
-                self.PAYLOADS_FILE.format(FSMName=abci_app_cls_name),
+                self.PAYLOADS_FILE.format(FSMName=self.abci_app_name),
                 self._get_base_payload_section(),
             ]
         )
@@ -635,7 +608,7 @@ class ModelsFileGenerator(AbstractFileGenerator):
 
     MODEL_FILE_TEMPLATE = dedent(
         """\
-        \"\"\"This module contains the shared state for the abci skill of {FSMName}.\"\"\"
+        \"\"\"This module contains the shared state for the abci skill of {AbciApp}.\"\"\"
 
         from typing import Any
 
@@ -644,7 +617,7 @@ class ModelsFileGenerator(AbstractFileGenerator):
         from packages.valory.skills.abstract_round_abci.models import (
             SharedState as BaseSharedState,
         )
-        from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.rounds import {AbciAppCls}
+        from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.rounds import {AbciApp}
 
 
         class SharedState(BaseSharedState):
@@ -652,7 +625,7 @@ class ModelsFileGenerator(AbstractFileGenerator):
 
             def __init__(self, *args: Any, **kwargs: Any) -> None:
                 \"\"\"Initialize the state.\"\"\"
-                super().__init__(*args, abci_app_cls={AbciAppCls}, **kwargs)
+                super().__init__(*args, abci_app_cls={AbciApp}, **kwargs)
 
 
         Params = BaseParams
@@ -662,13 +635,12 @@ class ModelsFileGenerator(AbstractFileGenerator):
 
     def get_file_content(self) -> str:
         """Get the file content."""
-        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
+
         return "\n".join(
             [
                 FILE_HEADER,
                 ModelsFileGenerator.MODEL_FILE_TEMPLATE.format(
-                    FSMName=abci_app_cls_name,
-                    AbciAppCls=abci_app_cls_name,
+                    AbciApp=self.abci_app_name,
                     scaffold_skill_author_name=self.ctx.agent_config.author,
                     scaffold_skill_name=self.skill_name,
                 ),
@@ -716,11 +688,11 @@ class HandlersFileGenerator(AbstractFileGenerator):
 
     def get_file_content(self) -> str:
         """Get the file content."""
-        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
+
         return "\n".join(
             [
                 FILE_HEADER,
-                HandlersFileGenerator.HANDLERS_FILE.format(FSMName=abci_app_cls_name),
+                HandlersFileGenerator.HANDLERS_FILE.format(FSMName=self.abci_app_name),
             ]
         )
 
@@ -799,11 +771,11 @@ class DialoguesFileGenerator(AbstractFileGenerator):
 
     def get_file_content(self) -> str:
         """Get the file content."""
-        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
+
         return "\n".join(
             [
                 FILE_HEADER,
-                self.DIALOGUES_FILE.format(FSMName=abci_app_cls_name),
+                self.DIALOGUES_FILE.format(FSMName=self.abci_app_name),
             ]
         )
 
@@ -1068,7 +1040,7 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
         )
         from packages.{author}.skills.{skill_name}.behaviours import (
             {FSMName}BaseBehaviour,
-            {non_degenerate_behaviours},
+            {behaviours},
         )
         from packages.{author}.skills.{skill_name}.rounds import (
             SynchronizedData,
@@ -1119,7 +1091,7 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
                 assert self.behaviour.behaviour_id == self.behaviour_class.behaviour_id
 
             def complete(self, event: Event) -> None:
-                \"\"\" Complete test \"\"\"
+                \"\"\"Complete test\"\"\"
 
                 self.behaviour.act_wrapper()
                 self.mock_a2a_transaction()
@@ -1168,25 +1140,16 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
 
         return behaviour_file_content
 
-    @property
-    def non_degenerate_behaviours(self) -> Set[str]:
-        """Non-degenerate behaviours"""
-
-        rounds = self.dfa.states - self.dfa.final_states
-        return {r.replace("Round", "Behaviour") for r in rounds}
-
     def _get_behaviour_header_section(self) -> str:
         """Get the rounds header section."""
 
-        rounds = self.dfa.states
-        behaviours = self.non_degenerate_behaviours
         return self.BEHAVIOUR_FILE_HEADER.format(
             AbciAppCls=self.abci_app_name,
             FSMName=self.fsm_name,
             author=self.author,
             skill_name=self.skill_name,
-            rounds=indent(",\n".join(rounds), " " * 4).strip(),
-            non_degenerate_behaviours=indent(",\n".join(behaviours), " " * 4).strip(),
+            rounds=indent(",\n".join(self.rounds), " " * 4).strip(),
+            behaviours=indent(",\n".join(self.behaviours), " " * 4).strip(),
         )
 
     def _get_behaviour_section(self) -> str:
@@ -1200,10 +1163,10 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
             )
         ]
 
-        for abci_behaviour_name in self.non_degenerate_behaviours:
+        for behaviour_name in self.behaviours:
             round_class_str = self.BEHAVIOUR_CLS_TEMPLATE.format(
                 FSMName=self.fsm_name,
-                BehaviourCls=abci_behaviour_name,
+                BehaviourCls=behaviour_name,
             )
             all_behaviour_classes_str.append(round_class_str)
 
