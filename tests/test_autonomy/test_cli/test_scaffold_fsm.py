@@ -52,9 +52,18 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         "--spec",
     ]
 
+    @classmethod
+    def setup_class(cls) -> None:
+        """Set up the test class."""
+        super(AEATestCaseEmpty, cls).setup_class()
+        cls.agent_name = "default_author"
+        cls.create_agents(cls.agent_name, is_local=cls.IS_LOCAL, is_empty=cls.IS_EMPTY)
+        cls.set_agent_context(cls.agent_name)
+
     @pytest.mark.parametrize("fsm_spec_file", fsm_specifications)
     def test_run(self, fsm_spec_file: Path) -> None:
         """Test run."""
+
         my_skill = f"test_{fsm_spec_file.parts[-2]}"
         self.cli_options[-3] = my_skill
         path_to_spec_file = Path(ROOT_DIR) / fsm_spec_file
