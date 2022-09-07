@@ -373,11 +373,11 @@ class RoundFileGenerator(AbstractFileGenerator):
     def _get_event_section(self) -> str:
         """Get the event section of the module (i.e. the event enum class definition)."""
 
-        events = [
+        events_list = [
             f'{event_name} = "{event_name.lower()}"'
             for event_name in self.dfa.alphabet_in
         ]
-        events = indent("\n".join(events), " " * 4).strip()
+        events = indent("\n".join(events_list), " " * 4).strip()
         return self.EVENT_SECTION.format(AbciApp=self.abci_app_name, events=events)
 
     def _get_synchronized_data_section(self) -> str:
@@ -648,9 +648,9 @@ class PayloadsFileGenerator(AbstractFileGenerator):
     def get_file_content(self) -> str:
         """Get the file content."""
 
-        tx_types = map(_camel_case_to_snake_case, self.base_names)
-        tx_types = [f'{tx_type.upper()} = "{tx_type}"' for tx_type in tx_types]
-        tx_types = indent("\n".join(tx_types), " " * 4).strip()
+        tx_type_list = list(map(_camel_case_to_snake_case, self.base_names))
+        tx_type_list = [f'{tx_type.upper()} = "{tx_type}"' for tx_type in tx_type_list]
+        tx_types = indent("\n".join(tx_type_list), " " * 4).strip()
 
         return "\n".join(
             [
