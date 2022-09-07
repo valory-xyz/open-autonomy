@@ -272,7 +272,7 @@ class RoundFileGenerator(AbstractFileGenerator):
             # TODO: set the following class attributes
             round_id: str
             allowed_tx_type: Optional[TransactionType]
-            payload_attribute: str
+            payload_attribute: str = {BaseName}Payload.transaction_type
 
             def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
                 \"\"\"Process the end of the block.\"\"\"
