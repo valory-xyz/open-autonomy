@@ -218,7 +218,7 @@ class RoundFileGenerator(AbstractFileGenerator):
 
     ROUNDS_FILE_HEADER = dedent(
         """\
-        \"\"\"This package contains the rounds of {AppName}.\"\"\"
+        \"\"\"This package contains the rounds of {AbciApp}.\"\"\"
 
         from enum import Enum
         from typing import List, Optional, Set, Tuple
@@ -235,6 +235,16 @@ class RoundFileGenerator(AbstractFileGenerator):
             TransactionType
         )
 
+    """
+    )
+
+    EVENT_SECTION = dedent(
+        """\
+        class Event(Enum):
+            \"\"\"{AbciApp} Events\"\"\"
+
+            {events}
+    
     """
     )
 
@@ -310,14 +320,14 @@ class RoundFileGenerator(AbstractFileGenerator):
 
     def _get_rounds_header_section(self) -> str:
         """Get the rounds header section."""
-        return self.ROUNDS_FILE_HEADER.format(AppName=self.abci_app_name)
+        return self.ROUNDS_FILE_HEADER.format(AbciApp=self.abci_app_name)
 
     def _get_rounds_section(self) -> str:
         """Get the round section of the module (i.e. the round classes)."""
         all_round_classes_str = []
 
         # add round classes
-        for abci_round_name in self.dfa.states:
+        for abci_round_name in self.rounds:
             abci_round_base_cls_name = (
                 DEGENERATE_ROUND
                 if abci_round_name in self.dfa.final_states
@@ -338,14 +348,13 @@ class RoundFileGenerator(AbstractFileGenerator):
 
     def _get_event_section(self) -> str:
         """Get the event section of the module (i.e. the event enum class definition)."""
-        class_header = "class Event(Enum):\n"
+
         events = [
             f'{event_name} = "{event_name.lower()}"'
             for event_name in self.dfa.alphabet_in
         ]
-        class_body = indent("\n".join(events), " " * 4)
-        enum_event_class = class_header + "\n" + class_body + "\n\n"
-        return enum_event_class
+        events = indent("\n".join(events), " " * 4).strip()
+        return self.EVENT_SECTION.format(AbciApp=self.abci_app_name, events=events)
 
     def _get_synchronized_data_section(self) -> str:
         """Get the event section of the module (i.e. the event enum class definition)."""
@@ -895,7 +904,7 @@ class RoundTestsFileGenerator(RoundFileGenerator):
         from packages.{author}.skills.{skill_name}.rounds import (
             Event,
             SynchronizedData,
-            {non_degenerate_rounds}
+            {non_degenerate_rounds},
         )
         from packages.valory.skills.abstract_round_abci.base import (
             BaseTxPayload,
@@ -993,13 +1002,12 @@ class RoundTestsFileGenerator(RoundFileGenerator):
     def _get_rounds_header_section(self) -> str:
         """Get the rounds header section."""
 
-        rounds = self.dfa.states - self.dfa.final_states
-
+        rounds = indent(",\n".join(self.non_degenerate_rounds), " " * 4).strip()
         return self.ROUNDS_FILE_HEADER.format(
             FSMName=_get_abci_app_cls_name_from_dfa(self.dfa),
             author=self.author,
             skill_name=self.skill_name,
-            non_degenerate_rounds=indent(",\n".join(rounds), " " * 4).strip() + ",",
+            non_degenerate_rounds=rounds,
         )
 
     def _get_rounds_section(self) -> str:
