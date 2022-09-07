@@ -31,8 +31,7 @@ from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.protocols.dialogue.base import DialogueLabel
 
-import packages
-from packages.valory.protocols.abci import AbciMessage
+from packages.valory.protocols.abci import AbciMessage, message
 from packages.valory.protocols.abci.custom_types import (
     BlockID,
     BlockParams,
@@ -613,7 +612,7 @@ class TestResponseSetOption(BaseTestMessageConstruction):
 
 
 @mock.patch.object(
-    packages.valory.protocols.abci.message,
+    message,
     "enforce",
     side_effect=AEAEnforceError("some error"),
 )
