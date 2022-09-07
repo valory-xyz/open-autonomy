@@ -182,6 +182,13 @@ gnosis
 regex
 Plugin
 plugin
+heavy_check_mark
+DAOs
+Web3-native
+NFTs
+md-button
+md-button--primary
+Gitleaks
  - docs/index.md
 README.md
 s_
@@ -342,5 +349,4 @@ PrintMessageRound
 HelloWorldABCIAbstractRound
 PrintMessageBehaviour
  - docs/agent_services_context.md
-heavy_check_mark
-Gitleaks
+

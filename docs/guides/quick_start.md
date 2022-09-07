@@ -18,18 +18,23 @@ Ensure that your machine satisfies the following requirements:
 
 
 ## Setup
+1. Create a workspace folder:
+```bash
+mkdir my_workspace
+cd my_workspace
+```
 
-1. Setup the environment. Remember to use the Python version you have installed. Here we are using 3.10 as reference:
+2. Setup the environment. Remember to use the Python version you have installed. Here we are using 3.10 as reference:
 ```bash
 touch Pipfile && pipenv --python 3.10 && pipenv shell
 ```
 
-2. Install the {{open_autonomy}} framework:
+3. Install the {{open_autonomy}} framework:
 ```bash
 pip install open-autonomy
 ```
 
-3. Initialize the framework to work with the remote [IPFS](https://ipfs.io) registry. This means that when the framework will be fetching a component, it will do so from the [IPFS](https://ipfs.io):
+4. Initialize the framework to work with the remote [IPFS](https://ipfs.io) registry. This means that when the framework will be fetching a component, it will do so from the [IPFS](https://ipfs.io):
     ```bash
     autonomy init --remote --ipfs
     ```
@@ -48,7 +53,7 @@ Now, we are in position to use the {{open_autonomy}} CLI to fetch the agent serv
 
 1. Use the CLI to fetch the [Hello World agent service](../hello_world_agent_service.md). This will connect to the remote registry and download the service specification to the `hello_world` folder:
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeigcqcactaxfzqmxckmhfkhpr2yb2lv2f53ejdgfgnuyd372fn36de --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeihbrh54wsscvq4wsgaa4wq7skkmnwwjlmyxrtrunsmf72osd3ojay --service
     cd hello_world
     ```
 
