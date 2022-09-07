@@ -94,7 +94,7 @@ Now, we are in position to use the {{open_autonomy}} CLI to fetch the agent serv
     docker image ls | grep hello_world
     ```
 
-4. Build the Docker Compose deployment setup for the service:
+4. Build the deployment setup for the service:
     ```bash
     autonomy deploy build keys.json
     ```
