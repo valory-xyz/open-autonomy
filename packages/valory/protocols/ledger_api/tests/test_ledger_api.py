@@ -30,8 +30,7 @@ from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.protocols.dialogue.base import DialogueLabel
 
-import packages
-from packages.valory.protocols.ledger_api import LedgerApiMessage
+from packages.valory.protocols.ledger_api import LedgerApiMessage, message
 from packages.valory.protocols.ledger_api.custom_types import Terms
 from packages.valory.protocols.ledger_api.dialogues import (
     LedgerApiDialogue,
@@ -255,7 +254,7 @@ class TestError(BaseTestMessageConstruction):
 
 
 @mock.patch.object(
-    packages.valory.protocols.ledger_api.message,
+    message,
     "enforce",
     side_effect=AEAEnforceError("some error"),
 )

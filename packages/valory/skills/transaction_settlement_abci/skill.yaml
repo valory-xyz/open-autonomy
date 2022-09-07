@@ -25,9 +25,9 @@ contracts:
 protocols:
 - open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
 - valory/contract_api:1.0.0:bafybeifhdg4wdbp5ajl5zt5ddfcbqcv4en2dnnizfjmq3ud6cakyxkdb3m
-- valory/ledger_api:1.0.0:bafybeif2c3jt4tim3zbfq5c2lds7bs6qj5gvj2obk3pzdk3uy6zk2ivo3e
+- valory/ledger_api:1.0.0:bafybeiffhx3n4xh7vl4vpheaar3xmv7my6wu6cv5ca3ihhaykfwpiswmw4
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiaxciqjzoaeo7vo4c3rbpreclkhjjorwhmsq3g2twkytdmb3nrzou
+- valory/abstract_round_abci:0.1.0:bafybeie2yyu6pcfx5xp2k2ldwkzklhlwq2epzxy3eq5q7ioyj5fbjwopme
 behaviours:
   main:
     args: {}
