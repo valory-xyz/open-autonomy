@@ -22,6 +22,7 @@ import json
 from pathlib import Path
 
 from autonomy.deploy.chain import SERVICE_REGISTRY_ABI, get_abi
+
 from tests.conftest import ROOT_DIR
 
 
