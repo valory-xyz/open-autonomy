@@ -43,7 +43,6 @@ def test_service_abi_matches_contract() -> None:
     actual_abi = get_abi(SERVICE_REGISTRY_ABI)
 
     # the abi on autonomy is at autonomy/data/abis/service_registry/service_registry.json
-    assert (
-        expected_abi == actual_abi,
+    assert expected_abi == actual_abi, (
         "The ServiceRegistry ABI in autonomy needs to match the ServiceRegistry contract package ABI",
     )
