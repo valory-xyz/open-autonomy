@@ -1286,6 +1286,7 @@ class PayloadTestsFileGenerator(PayloadsFileGenerator):
 
     PAYLOAD_CLS_TEMPLATE = dedent(
         """\
+        # TODO: provide test cases
         @pytest.mark.parametrize("test_case", [])
         def test_payloads(test_case: PayloadTestCase) -> None:
             \"\"\"Tests for {AbciApp} payloads\"\"\"
