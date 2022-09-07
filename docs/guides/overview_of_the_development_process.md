@@ -23,7 +23,7 @@ We will explore this process in detail in several guides included in this sectio
 
   5. Similarly, the **service definition** declares what agents constitute the service, together with a number of configuration parameters required by the service.
 
-  6. Finally, the next step consists in have the **service deployed**. If you want to deploy the service locally (e.g., for testing purposes), you can do so directly with the {{open_autonomy}} CLI. On the other hand, if you want that your service is secured throught the on-chain registry, you need to interact with the on-chain protocol front-end. We will detail how to do this in the guide [deploy a service](./deploy_service.md)
+  6. Finally, the next step consists in have the **service deployed**. If you want to deploy the service locally (e.g., for testing purposes), you can do so directly with the {{open_autonomy}} CLI. On the other hand, if you want that your service is secured through the on-chain registry, you need to interact with the on-chain protocol front-end. We will detail how to do this in the guide [deploy a service](./deploy_service.md)
 
 As you can see in the diagram above any developed component can be pushed to the [IPFS](https://ipfs.io/) and registered in the on-chain registry. This mechanism allows that developers reuse components written by other developers, thus reducing the invested time in developing common functionalities.
 

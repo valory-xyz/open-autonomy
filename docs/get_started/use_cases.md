@@ -12,7 +12,7 @@ Use machine learning to track yield opportunities across chains and protocols. A
 Dynamically evaluates assets based on diverse datasets to add and remove from whitelists.
 
 * **Contribution Coordinator:**
-Watch for contributions on Github, Twitter etc and adjust on-chain rewards & permissions accordingly.
+Watch for contributions on GitHub, Twitter etc and adjust on-chain rewards & permissions accordingly.
 
 ## New services
 * **Web3-native Recommender**:
