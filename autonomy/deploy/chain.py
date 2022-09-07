@@ -18,16 +18,17 @@
 # ------------------------------------------------------------------------------
 
 """Utils to support on-chain contract interactions."""
-
-
+import json
 import os
 from typing import Dict, List, Optional, Tuple
 
 import requests
 import web3
 
+from autonomy.data import DATA_DIR
 
-SERVICE_REGISTRY_ABI = "https://abi-server.staging.autonolas.tech/autonolas-registries/ServiceRegistry.json"
+ABIS_DIR = "abis"
+SERVICE_REGISTRY_ABI = DATA_DIR / ABIS_DIR / "service_registry" / "service_registry.json"
 DEFAULT_STAGING_CHAIN = "https://chain.staging.autonolas.tech"
 
 CHAIN_CONFIG: Dict[str, Dict[str, Optional[str]]] = {
@@ -54,11 +55,12 @@ CHAIN_CONFIG: Dict[str, Dict[str, Optional[str]]] = {
 ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
 
 
-def get_abi(url: str) -> Dict:
-    """Get ABI from provided URL"""
+def get_abi(path: str) -> Dict:
+    """Read the ABI from the provided path."""
 
-    r = requests.get(url=url)
-    return r.json().get("abi")
+    with open(path) as f:
+        abi = json.load(f)
+    return abi
 
 
 class ServiceRegistry:
