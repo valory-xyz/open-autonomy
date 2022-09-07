@@ -19,6 +19,8 @@
 
 """Tests for valory/http_client connection. Adapted from original AEA code."""
 
+# pylint: skip-file
+
 import asyncio
 import logging
 from asyncio import CancelledError

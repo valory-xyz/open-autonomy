@@ -19,6 +19,8 @@
 
 """Tests for valory/abci connection, tendermint_decoder module."""
 
+# pylint: skip-file
+
 from packages.valory.connections.abci.dialogues import AbciDialogue, AbciDialogues
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
     Request,

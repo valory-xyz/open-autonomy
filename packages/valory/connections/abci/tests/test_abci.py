@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/abci connection."""
+
+# pylint: skip-file
+
 import asyncio
 import logging
 import os
@@ -28,7 +31,7 @@ from cmath import inf
 from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Callable, List, cast
+from typing import Any, Callable, Generator, List, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -42,7 +45,8 @@ from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea_test_autonomy.configurations import ANY_ADDRESS, HTTP_LOCALHOST
 from aea_test_autonomy.docker.base import skip_docker_tests
-from aea_test_autonomy.fixture_helpers import DEFAULT_TENDERMINT_PORT, tendermint
+from aea_test_autonomy.fixture_helpers import tendermint  # noqa: F401
+from aea_test_autonomy.fixture_helpers import DEFAULT_TENDERMINT_PORT
 from aea_test_autonomy.helpers.async_utils import (
     AnotherThreadTask,
     BaseThreadedAsyncLoop,
@@ -85,7 +89,8 @@ PACKAGE_DIR = Path(__file__).parent.parent
 
 
 @pytest.fixture(scope="session", autouse=True)
-def hypothesis_cleanup():
+def hypothesis_cleanup() -> Generator:
+    """Fixture to remove hypothesis directory after tests."""
     yield
     hypothesis_dir = PACKAGE_DIR / ".hypothesis"
     if hypothesis_dir.exists():
