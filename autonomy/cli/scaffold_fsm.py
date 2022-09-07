@@ -234,7 +234,7 @@ class RoundFileGenerator(AbstractFileGenerator):
             TransactionType
         )
 
-        from packages.{author}.skills.{skill_name}.base import (
+        from {author}.skills.{skill_name}.base import (
             {payloads},
         )
 
@@ -270,7 +270,7 @@ class RoundFileGenerator(AbstractFileGenerator):
 
             {todo_abstract_round_cls}
             # TODO: set the following class attributes
-            round_id: str = "{round_id}
+            round_id: str = "{round_id}"
             allowed_tx_type: Optional[TransactionType]
             payload_attribute: str = {BaseName}Payload.transaction_type
 
@@ -419,8 +419,8 @@ class BehaviourFileGenerator(AbstractFileGenerator):
             BaseBehaviour,
         )
 
-        from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.models import Params
-        from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.rounds import (
+        from {author}.skills.{skill_name}.models import Params
+        from {author}.skills.{skill_name}.rounds import (
             SynchronizedData,
             {AbciApp},
             {rounds},
@@ -501,8 +501,8 @@ class BehaviourFileGenerator(AbstractFileGenerator):
         rounds = indent(",\n".join(self.non_degenerate_rounds), " " * 4).strip()
         return self.BEHAVIOUR_FILE_HEADER.format(
             AbciApp=self.abci_app_name,
-            scaffold_skill_author_name=self.ctx.agent_config.author,
-            scaffold_skill_name=self.skill_name,
+            author=self.author,
+            skill_name=self.skill_name,
             rounds=rounds,
         )
 
@@ -661,7 +661,7 @@ class ModelsFileGenerator(AbstractFileGenerator):
         from packages.valory.skills.abstract_round_abci.models import (
             SharedState as BaseSharedState,
         )
-        from packages.{scaffold_skill_author_name}.skills.{scaffold_skill_name}.rounds import {AbciApp}
+        from {author}.skills.{skill_name}.rounds import {AbciApp}
 
 
         class SharedState(BaseSharedState):
@@ -685,8 +685,8 @@ class ModelsFileGenerator(AbstractFileGenerator):
                 FILE_HEADER,
                 ModelsFileGenerator.MODEL_FILE_TEMPLATE.format(
                     AbciApp=self.abci_app_name,
-                    scaffold_skill_author_name=self.ctx.agent_config.author,
-                    scaffold_skill_name=self.skill_name,
+                    author=self.author,
+                    skill_name=self.skill_name,
                 ),
             ]
         )
@@ -935,8 +935,8 @@ class RoundTestsFileGenerator(RoundFileGenerator):
         import pytest
 
         # TODO: define and import specific payloads explicitly by name
-        from packages.{author}.skills.{skill_name}.payloads import *
-        from packages.{author}.skills.{skill_name}.rounds import (
+        from {author}.skills.{skill_name}.payloads import *
+        from {author}.skills.{skill_name}.rounds import (
             Event,
             SynchronizedData,
             {non_degenerate_rounds},
@@ -1081,11 +1081,11 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
             BaseBehaviour,
             make_degenerate_behaviour,
         )
-        from packages.{author}.skills.{skill_name}.behaviours import (
+        from {author}.skills.{skill_name}.behaviours import (
             {FSMName}BaseBehaviour,
             {behaviours},
         )
-        from packages.{author}.skills.{skill_name}.rounds import (
+        from {author}.skills.{skill_name}.rounds import (
             SynchronizedData,
             DegenerateRound,
             Event,
@@ -1226,11 +1226,11 @@ class ModelTestFileGenerator(AbstractFileGenerator):
         \"\"\"Test the models.py module of the {FSMName}.\"\"\"
 
         from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
-        from packages.{author}.skills.{skill_name}.models import SharedState
+        from {author}.skills.{skill_name}.models import SharedState
 
 
         class TestSharedState:
-            \"\"\"Test SharedState class.\"\"\"
+            \"\"\"Test SharedState of {FSMName}.\"\"\"
 
             def test_initialization(self) -> None:
                 \"\"\"Test initialization.\"\"\"
