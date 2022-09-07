@@ -1294,6 +1294,7 @@ class ScaffoldABCISkill:
     file_generators: List[Type[AbstractFileGenerator]] = [
         RoundFileGenerator,
         BehaviourFileGenerator,
+        PayloadsFileGenerator,
         ModelsFileGenerator,
         HandlersFileGenerator,
         DialoguesFileGenerator,
