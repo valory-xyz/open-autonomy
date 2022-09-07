@@ -89,6 +89,11 @@ DEGENERATE_ROUND = "DegenerateRound"
 ABSTRACT_ROUND = "AbstractRound"
 
 
+def remove_suffix(s: str, suffix: str) -> str:
+    """str.removesuffix() does not exist in python 3.7, 3.8"""
+    return s[: -len(suffix)] if s.endswith(suffix) else s
+
+
 def _remove_quotes(input_str: str) -> str:
     """Remove single or double quotes from a string."""
     return input_str.replace("'", "").replace('"', "")
@@ -178,7 +183,7 @@ class AbstractFileGenerator(ABC):
     @property
     def fsm_name(self) -> str:
         """FSM base name"""
-        return self.abci_app_name.removesuffix("AbciApp")  # noqa: B005
+        return remove_suffix(self.abci_app_name, "AbciApp")  # noqa: B005
 
     @property
     def author(self) -> str:
@@ -577,13 +582,13 @@ class PayloadsFileGenerator(AbstractFileGenerator):
         """Get the base payload section."""
 
         abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
-        fsm_name = abci_app_cls_name.removesuffix("AbciApp")
+        fsm_name = remove_suffix(abci_app_cls_name, "AbciApp")
         all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=fsm_name)]
 
         non_degenerate_rounds = self.dfa.states - self.dfa.final_states
         for state in non_degenerate_rounds:
             payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
-                FSMName=fsm_name, BaseName=state.removesuffix("Round")
+                FSMName=fsm_name, BaseName=remove_suffix(state, "Round")
             )
             all_payloads_classes_str.append(payload_class_str)
 
