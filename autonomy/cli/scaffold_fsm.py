@@ -573,17 +573,22 @@ class PayloadsFileGenerator(AbstractFileGenerator):
         """\
         \"\"\"This module contains the transaction payloads of the {FSMName}.\"\"\"
 
+        from abc import ABC
         from enum import Enum
         from typing import Any, Dict, Hashable, Optional
 
         from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
+    """
+    )
 
+    TRANSACTION_TYPE_SECTION = dedent(
+        """\
         class TransactionType(Enum):
             \"\"\"Enumeration of transaction types.\"\"\"
 
             # TODO: define transaction types: e.g. TX_HASH: "tx_hash"
-            ...
+            {tx_types}
 
             def __str__(self) -> str:
                 \"\"\"Get the string value of the transaction type.\"\"\"
@@ -594,7 +599,7 @@ class PayloadsFileGenerator(AbstractFileGenerator):
 
     BASE_PAYLOAD_CLS = dedent(
         """\
-        class Base{FSMName}Payload(BaseTxPayload):
+        class Base{FSMName}Payload(BaseTxPayload, ABC):
             \"\"\"Base payload for {FSMName}.\"\"\"
 
             def __init__(self, sender: str, content: Hashable, **kwargs: Any) -> None:
@@ -619,7 +624,7 @@ class PayloadsFileGenerator(AbstractFileGenerator):
             \"\"\"Represent a transaction payload for the {BaseName}Round.\"\"\"
 
             # TODO: specify the transaction type
-            transaction_type = TransactionType
+            transaction_type = TransactionType.{tx_type}
 
         """
     )
@@ -630,9 +635,11 @@ class PayloadsFileGenerator(AbstractFileGenerator):
         all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=self.fsm_name)]
 
         for base_name in self.base_names:
+            tx_type = _camel_case_to_snake_case(base_name)
             payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
                 FSMName=self.fsm_name,
                 BaseName=base_name,
+                tx_type=tx_type.upper(),
             )
             all_payloads_classes_str.append(payload_class_str)
 
@@ -641,10 +648,15 @@ class PayloadsFileGenerator(AbstractFileGenerator):
     def get_file_content(self) -> str:
         """Get the file content."""
 
+        tx_types = map(_camel_case_to_snake_case, self.base_names)
+        tx_types = [f'{tx_type.upper()} = "{tx_type}"' for tx_type in tx_types]
+        tx_types = indent("\n".join(tx_types), " " * 4).strip()
+
         return "\n".join(
             [
                 FILE_HEADER,
                 self.PAYLOADS_FILE.format(FSMName=self.abci_app_name),
+                self.TRANSACTION_TYPE_SECTION.format(tx_types=tx_types),
                 self._get_base_payload_section(),
             ]
         )
