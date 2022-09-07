@@ -230,8 +230,6 @@ class RoundFileGenerator(AbstractFileGenerator):
             AbstractRound,
             AppState,
             BaseSynchronizedData,
-            BaseTxPayload,
-            DegenerateRound,
             EventToTimeout,
             TransactionType
         )
@@ -280,11 +278,11 @@ class RoundFileGenerator(AbstractFileGenerator):
                 \"\"\"Process the end of the block.\"\"\"
                 raise NotImplementedError
 
-            def check_payload(self, payload: BaseTxPayload) -> None:
+            def check_payload(self, payload: {BaseName}Payload) -> None:
                 \"\"\"Check payload.\"\"\"
                 raise NotImplementedError
 
-            def process_payload(self, payload: BaseTxPayload) -> None:
+            def process_payload(self, payload: {BaseName}Payload) -> None:
                 \"\"\"Process payload.\"\"\"
                 raise NotImplementedError
 
@@ -354,6 +352,7 @@ class RoundFileGenerator(AbstractFileGenerator):
                 todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
             round_class_str = RoundFileGenerator.ROUND_CLS_TEMPLATE.format(
                 RoundCls=abci_round_name,
+                BaseName=abci_round_name.replace("Round", ""),
                 ABCRoundCls=abci_round_base_cls_name,
                 todo_abstract_round_cls=todo_abstract_round_cls,
             )
