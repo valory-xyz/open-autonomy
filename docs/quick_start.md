@@ -65,7 +65,7 @@ In this case, we consider the [Hello World agent service](./hello_world_agent_se
 
 1. Use the CLI to download the `valory/hello build` service. 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeif5wkbrp3xl52kpgcxmvsuz7lqawnpimum7qq3z3dvhfnwk6m2oqa --remote --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeihbrh54wsscvq4wsgaa4wq7skkmnwwjlmyxrtrunsmf72osd3ojay --remote --service
     cd hello_world
     ```
     

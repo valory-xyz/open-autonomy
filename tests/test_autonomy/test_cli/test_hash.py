@@ -24,6 +24,8 @@ import shutil
 from pathlib import Path
 from typing import Dict, Tuple
 
+import _strptime  # noqa  # pylint: disable=unsed-import
+
 from autonomy.configurations.loader import load_service_config
 
 from tests.conftest import ROOT_DIR

@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Any, Tuple
 from unittest import mock
 
+import _strptime  # noqa  # pylint: disable=unsed-import
 from aea.cli.registry.settings import REMOTE_IPFS
 
 from tests.conftest import ROOT_DIR
