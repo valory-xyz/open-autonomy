@@ -1257,16 +1257,45 @@ class PayloadTestsFileGenerator(PayloadsFileGenerator):
 
     FILENAME = "test_" + PAYLOADS_FILENAME
 
+    PAYLOAD_FILE_HEADER = dedent(
+        """\
+        \"\"\"This package contains payload tests for the {AbciApp}.\"\"\"
+
+        from typing import List
+
+        import pytest
+
+        from {author}.skills.{skill_name}.payloads import (
+            TransactionType,
+            Base{FSMName}Payload,
+            {payloads},
+        )
+
+        """
+    )
+
     def get_file_content(self) -> str:
         """Scaffold the 'test_payloads.py' file."""
 
         behaviour_file_content = "\n".join(
             [
                 FILE_HEADER,
+                self._get_payload_header_section()
             ]
         )
 
         return behaviour_file_content
+
+    def _get_payload_header_section(self) -> str:
+        """Get the rounds header section."""
+
+        return self.PAYLOAD_FILE_HEADER.format(
+            AbciApp=self.abci_app_name,
+            FSMName=self.fsm_name,
+            author=self.author,
+            skill_name=self.skill_name,
+            payloads=indent(",\n".join(self.payloads), " " * 4).strip(),
+        )
 
 
 class ModelTestFileGenerator(AbstractFileGenerator):
