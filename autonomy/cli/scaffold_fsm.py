@@ -214,12 +214,12 @@ class AbstractFileGenerator(ABC):
     @property
     def behaviours(self) -> Set[str]:
         """Behaviours"""
-        return {f"{s}Behaviour" for s in self.base_names}
+        return {s.replace("Round", "Behaviour") for s in self.rounds}
 
     @property
     def payloads(self) -> Set[str]:
         """Payloads"""
-        return {f"{s}Payload" for s in self.base_names}
+        return {s.replace("Round", "Payload") for s in self.rounds}
 
 
 class RoundFileGenerator(AbstractFileGenerator):
@@ -652,7 +652,8 @@ class PayloadsFileGenerator(AbstractFileGenerator):
 
         all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=self.fsm_name)]
 
-        for base_name in self.base_names:
+        for payload_name in self.payloads:
+            base_name = payload_name.replace("Payload", "")
             tx_type = _camel_case_to_snake_case(base_name)
             payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
                 FSMName=self.fsm_name,
