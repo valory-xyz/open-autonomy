@@ -103,28 +103,28 @@ config:
   0:
   - ledger_apis:
       ethereum:
-        address: ${SERVICE_ORACLE_POLYGON_RPC_0:str:http://127.0.0.1:8545}
+        address: ${SERVICE_ORACLE_ROPSTEN_RPC_0:str:http://127.0.0.1:8545}
         chain_id: 137
-        poa_chain: true
-        default_gas_price_strategy: eip1559_polygon
+        poa_chain: false
+        default_gas_price_strategy: eip1559
   1:
   - ledger_apis:
       ethereum:
-        address: ${SERVICE_ORACLE_POLYGON_RPC_1:str:http://127.0.0.1:8545}
+        address: ${SERVICE_ORACLE_ROPSTEN_RPC_1:str:http://127.0.0.1:8545}
         chain_id: 137
-        poa_chain: true
-        default_gas_price_strategy: eip1559_polygon
+        poa_chain: false
+        default_gas_price_strategy: eip1559
   2:
   - ledger_apis:
       ethereum:
-        address: ${SERVICE_ORACLE_POLYGON_RPC_2:str:http://127.0.0.1:8545}
+        address: ${SERVICE_ORACLE_ROPSTEN_RPC_2:str:http://127.0.0.1:8545}
         chain_id: 137
-        poa_chain: true
-        default_gas_price_strategy: eip1559_polygon
+        poa_chain: false
+        default_gas_price_strategy: eip1559
   3:
   - ledger_apis:
       ethereum:
-        address: ${SERVICE_ORACLE_POLYGON_RPC_3:str:http://127.0.0.1:8545}
+        address: ${SERVICE_ORACLE_ROPSTEN_RPC_3:str:http://127.0.0.1:8545}
         chain_id: 137
-        poa_chain: true
-        default_gas_price_strategy: eip1559_polygon
+        poa_chain: false
+        default_gas_price_strategy: eip1559
