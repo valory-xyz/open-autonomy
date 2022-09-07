@@ -7,6 +7,16 @@ Implement a scaffold sub-command to scaffold ABCI skills.
 This module patches the 'aea scaffold' command so to add a new subcommand for scaffolding a skill
  starting from FSM specification.
 
+<a id="autonomy.cli.scaffold_fsm.remove_suffix"></a>
+
+#### remove`_`suffix
+
+```python
+def remove_suffix(s: str, suffix: str) -> str
+```
+
+str.removesuffix() does not exist in python 3.7, 3.8
+
 <a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator"></a>
 
 ## AbstractFileGenerator Objects
@@ -48,6 +58,94 @@ def write_file(output_dir: Path) -> None
 
 Write the file to output_dir/FILENAME.
 
+<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.abci_app_name"></a>
+
+#### abci`_`app`_`name
+
+```python
+@property
+def abci_app_name() -> str
+```
+
+ABCI app class name
+
+<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.fsm_name"></a>
+
+#### fsm`_`name
+
+```python
+@property
+def fsm_name() -> str
+```
+
+FSM base name
+
+<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.author"></a>
+
+#### author
+
+```python
+@property
+def author() -> str
+```
+
+Author
+
+<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.all_rounds"></a>
+
+#### all`_`rounds
+
+```python
+@property
+def all_rounds() -> Set[str]
+```
+
+Rounds
+
+<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.rounds"></a>
+
+#### rounds
+
+```python
+@property
+def rounds() -> Set[str]
+```
+
+Non-degenerate rounds
+
+<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.base_names"></a>
+
+#### base`_`names
+
+```python
+@property
+def base_names() -> Set[str]
+```
+
+Base names
+
+<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.behaviours"></a>
+
+#### behaviours
+
+```python
+@property
+def behaviours() -> Set[str]
+```
+
+Behaviours
+
+<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.payloads"></a>
+
+#### payloads
+
+```python
+@property
+def payloads() -> Set[str]
+```
+
+Payloads
+
 <a id="autonomy.cli.scaffold_fsm.RoundFileGenerator"></a>
 
 ## RoundFileGenerator Objects
@@ -87,6 +185,26 @@ def get_file_content() -> str
 ```
 
 Scaffold the 'rounds.py' file.
+
+<a id="autonomy.cli.scaffold_fsm.PayloadsFileGenerator"></a>
+
+## PayloadsFileGenerator Objects
+
+```python
+class PayloadsFileGenerator(AbstractFileGenerator)
+```
+
+File generator for 'payloads.py' modules.
+
+<a id="autonomy.cli.scaffold_fsm.PayloadsFileGenerator.get_file_content"></a>
+
+#### get`_`file`_`content
+
+```python
+def get_file_content() -> str
+```
+
+Get the file content.
 
 <a id="autonomy.cli.scaffold_fsm.ModelsFileGenerator"></a>
 
@@ -184,47 +302,6 @@ def update() -> None
 
 Update the skill configuration file.
 
-<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill"></a>
-
-## ScaffoldABCISkill Objects
-
-```python
-class ScaffoldABCISkill()
-```
-
-Utility class that implements the scaffolding of the ABCI skill.
-
-<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(ctx: Context, skill_name: str, dfa: DFA) -> None
-```
-
-Initialize the utility class.
-
-<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.skill_dir"></a>
-
-#### skill`_`dir
-
-```python
-@property
-def skill_dir() -> Path
-```
-
-Get the directory to the skill.
-
-<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.do_scaffolding"></a>
-
-#### do`_`scaffolding
-
-```python
-def do_scaffolding() -> None
-```
-
-Do the scaffolding.
-
 <a id="autonomy.cli.scaffold_fsm.RoundTestsFileGenerator"></a>
 
 ## RoundTestsFileGenerator Objects
@@ -265,50 +342,98 @@ def get_file_content() -> str
 
 Scaffold the 'test_behaviours.py' file.
 
-<a id="autonomy.cli.scaffold_fsm.BehaviourTestsFileGenerator.abci_app_name"></a>
+<a id="autonomy.cli.scaffold_fsm.ModelTestFileGenerator"></a>
 
-#### abci`_`app`_`name
+## ModelTestFileGenerator Objects
+
+```python
+class ModelTestFileGenerator(AbstractFileGenerator)
+```
+
+File generator for 'test_models.py'.
+
+<a id="autonomy.cli.scaffold_fsm.ModelTestFileGenerator.get_file_content"></a>
+
+#### get`_`file`_`content
+
+```python
+def get_file_content() -> str
+```
+
+Get the file content.
+
+<a id="autonomy.cli.scaffold_fsm.HandlersTestFileGenerator"></a>
+
+## HandlersTestFileGenerator Objects
+
+```python
+class HandlersTestFileGenerator(AbstractFileGenerator)
+```
+
+File generator for 'test_dialogues.py'.
+
+<a id="autonomy.cli.scaffold_fsm.HandlersTestFileGenerator.get_file_content"></a>
+
+#### get`_`file`_`content
+
+```python
+def get_file_content() -> str
+```
+
+Get the file content.
+
+<a id="autonomy.cli.scaffold_fsm.DialoguesTestFileGenerator"></a>
+
+## DialoguesTestFileGenerator Objects
+
+```python
+class DialoguesTestFileGenerator(AbstractFileGenerator)
+```
+
+File generator for 'test_dialogues.py'.
+
+<a id="autonomy.cli.scaffold_fsm.DialoguesTestFileGenerator.get_file_content"></a>
+
+#### get`_`file`_`content
+
+```python
+def get_file_content() -> str
+```
+
+Get the file content.
+
+<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill"></a>
+
+## ScaffoldABCISkill Objects
+
+```python
+class ScaffoldABCISkill()
+```
+
+Utility class that implements the scaffolding of the ABCI skill.
+
+<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(ctx: Context, skill_name: str, dfa: DFA) -> None
+```
+
+Initialize the utility class.
+
+<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.skill_dir"></a>
+
+#### skill`_`dir
 
 ```python
 @property
-def abci_app_name() -> str
+def skill_dir() -> Path
 ```
 
-ABCI app class name
+Get the directory to the skill.
 
-<a id="autonomy.cli.scaffold_fsm.BehaviourTestsFileGenerator.fsm_name"></a>
-
-#### fsm`_`name
-
-```python
-@property
-def fsm_name() -> str
-```
-
-FSM base name
-
-<a id="autonomy.cli.scaffold_fsm.BehaviourTestsFileGenerator.non_degenerate_behaviours"></a>
-
-#### non`_`degenerate`_`behaviours
-
-```python
-@property
-def non_degenerate_behaviours() -> Set[str]
-```
-
-Non-degenerate behaviours
-
-<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkillTests"></a>
-
-## ScaffoldABCISkillTests Objects
-
-```python
-class ScaffoldABCISkillTests(ScaffoldABCISkill)
-```
-
-ScaffoldABCISkillTests
-
-<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkillTests.skill_test_dir"></a>
+<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.skill_test_dir"></a>
 
 #### skill`_`test`_`dir
 
@@ -319,7 +444,7 @@ def skill_test_dir() -> Path
 
 Get the directory to the skill tests.
 
-<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkillTests.do_scaffolding"></a>
+<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.do_scaffolding"></a>
 
 #### do`_`scaffolding
 

@@ -99,9 +99,31 @@ models:
 public_id: valory/ledger:0.1.0
 type: connection
 config:
-  ledger_apis:
-    ethereum:
-      address: https://goerli.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8
-      chain_id: 5
-      poa_chain: true
-      default_gas_price_strategy: eip1559
+  0:
+  - ledger_apis:
+      ethereum:
+        address: ${SERVICE_ORACLE_GOERLI_RPC_0:str:http://127.0.0.1:8545}
+        chain_id: 5
+        poa_chain: true
+        default_gas_price_strategy: eip1559
+  1:
+  - ledger_apis:
+      ethereum:
+        address: ${SERVICE_ORACLE_GOERLI_RPC_1:str:http://127.0.0.1:8545}
+        chain_id: 5
+        poa_chain: true
+        default_gas_price_strategy: eip1559
+  2:
+  - ledger_apis:
+      ethereum:
+        address: ${SERVICE_ORACLE_GOERLI_RPC_2:str:http://127.0.0.1:8545}
+        chain_id: 5
+        poa_chain: true
+        default_gas_price_strategy: eip1559
+  3:
+  - ledger_apis:
+      ethereum:
+        address: ${SERVICE_ORACLE_GOERLI_RPC_3:str:http://127.0.0.1:8545}
+        chain_id: 5
+        poa_chain: true
+        default_gas_price_strategy: eip1559
