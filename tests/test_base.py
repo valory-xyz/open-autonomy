@@ -90,7 +90,7 @@ def test_load_all_packages(component_type: PackageType, config_file_path: str) -
         configuration_object = configuration_loader.load(fp)
         if component_type != PackageType.SERVICE:
             # we don't need to check sub packages for service components
-            # so we perform `load_aea_package` only for none service components 
+            # so we perform `load_aea_package` only for none service components
             directory = Path(config_file_path).parent
             configuration_object.directory = directory
             load_aea_package(configuration_object)
