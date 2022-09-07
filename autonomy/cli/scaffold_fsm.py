@@ -244,7 +244,7 @@ class RoundFileGenerator(AbstractFileGenerator):
             \"\"\"{AbciApp} Events\"\"\"
 
             {events}
-    
+
     """
     )
 
@@ -598,9 +598,10 @@ class PayloadsFileGenerator(AbstractFileGenerator):
 
         all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=self.fsm_name)]
 
-        for round_name in self.non_degenerate_rounds:
+        for payload_name in self.payloads:
             payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
-                FSMName=self.fsm_name, BaseName=round_name,
+                FSMName=self.fsm_name,
+                BaseName=payload_name,
             )
             all_payloads_classes_str.append(payload_class_str)
 

@@ -91,6 +91,50 @@ def author() -> str
 
 Author
 
+<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.rounds"></a>
+
+#### rounds
+
+```python
+@property
+def rounds() -> Set[str]
+```
+
+Rounds
+
+<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.non_degenerate_rounds"></a>
+
+#### non`_`degenerate`_`rounds
+
+```python
+@property
+def non_degenerate_rounds() -> Set[str]
+```
+
+Non-degenerate rounds
+
+<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.behaviours"></a>
+
+#### behaviours
+
+```python
+@property
+def behaviours() -> Set[str]
+```
+
+Behaviours
+
+<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.payloads"></a>
+
+#### payloads
+
+```python
+@property
+def payloads() -> Set[str]
+```
+
+Payloads
+
 <a id="autonomy.cli.scaffold_fsm.RoundFileGenerator"></a>
 
 ## RoundFileGenerator Objects
@@ -286,17 +330,6 @@ def get_file_content() -> str
 ```
 
 Scaffold the 'test_behaviours.py' file.
-
-<a id="autonomy.cli.scaffold_fsm.BehaviourTestsFileGenerator.non_degenerate_behaviours"></a>
-
-#### non`_`degenerate`_`behaviours
-
-```python
-@property
-def non_degenerate_behaviours() -> Set[str]
-```
-
-Non-degenerate behaviours
 
 <a id="autonomy.cli.scaffold_fsm.ModelTestFileGenerator"></a>
 
