@@ -8,9 +8,9 @@ fingerprint:
   README.md: bafybeihxalbstbm7kufnxftkn6mrvculqxyibsk4tzhrq5jbdh5ihejteq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeihgznhwv4akl67eqklno6gc6i2ot3gmcdheifg4llzcnyjngktzze
-- valory/http_client:0.1.0:bafybeiehtzr4bylxqainvp5b5ev4bfcir2kjmfkvs264orzad742qvozjm
-- valory/ledger:0.1.0:bafybeia7syrxdn6bptyah2mh3mhgv5azlwenqbbmr6bi56thm72rdvnvxe
+- valory/abci:0.1.0:bafybeifl6fnhassacd24zivywsoza3loeizxnunoj4sm4xw4cpdcmpjw3i
+- valory/http_client:0.1.0:bafybeiayvkp3jkaahfuej72gididod5dzpa2vivjmxk7uxtcimc4g5e66i
+- valory/ledger:0.1.0:bafybeiasxxta4qfnw4gf6vrgfo3zk6cpsrmozwijdcup4tb6avqd7bfday
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts:
 - valory/service_registry:0.1.0:bafybeia7uxs2a5gc3zu7qqw3wecukbvib3rd6xauynltmi7m2hmzja4wby
@@ -23,11 +23,11 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeiafrhunj5z357r2r7cwlvqe2nv2a3mahltpfz2gwukbujx5uzrsdu
-- valory/abstract_round_abci:0.1.0:bafybeibyczbxrodtne42s2weu6wxvzxqecsozz364pknc26r4tvqxhfksm
-- valory/apy_estimation_abci:0.1.0:bafybeia2lpyuld7tnmmrbdso3n3d3hehf6rtgsog7gts36fmteuagopl6m
-- valory/apy_estimation_chained_abci:0.1.0:bafybeigro6lz6q3zdeeidmirzauv6wsws5u7i5gfgiixsecxslddlayg3i
-- valory/registration_abci:0.1.0:bafybeif6b6cxzajfxvec7bwfmmqvejzsyogsbbrtliudibk6etolxcglxu
+- valory/abstract_abci:0.1.0:bafybeid5o3uby54g55q6wxe4kfattygpmwntrc6r337nr3avdsnz7pzxbe
+- valory/abstract_round_abci:0.1.0:bafybeifa3pra7fwkt56af7ar7n5aqbpmf6nzcqxl3avcnxpo4sg7wuivym
+- valory/apy_estimation_abci:0.1.0:bafybeidl427mk6ngcyakzo7b7e32a4sxcppmxz2bdzrwbrzqohtmohyzpq
+- valory/apy_estimation_chained_abci:0.1.0:bafybeiczmrp6ultacyf24ne4pqydkh4hvdyufce66bbtinyjotgz2zqqru
+- valory/registration_abci:0.1.0:bafybeidyrypbptfufr7ygy26elq3o3sqihrbwhgdwujnthkq5opmti72ue
 default_ledger: ethereum
 required_ledgers:
 - ethereum
