@@ -270,7 +270,7 @@ class RoundFileGenerator(AbstractFileGenerator):
 
             {todo_abstract_round_cls}
             # TODO: set the following class attributes
-            round_id: str
+            round_id: str = "{round_id}
             allowed_tx_type: Optional[TransactionType]
             payload_attribute: str = {BaseName}Payload.transaction_type
 
@@ -350,9 +350,13 @@ class RoundFileGenerator(AbstractFileGenerator):
             todo_abstract_round_cls = ""
             if abci_round_base_cls_name == ABSTRACT_ROUND:
                 todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
+
+            base_name = abci_round_name.replace("Round", "")
+            round_id = _camel_case_to_snake_case(base_name)
             round_class_str = RoundFileGenerator.ROUND_CLS_TEMPLATE.format(
+                round_id=round_id,
                 RoundCls=abci_round_name,
-                BaseName=abci_round_name.replace("Round", ""),
+                BaseName=base_name,
                 ABCRoundCls=abci_round_base_cls_name,
                 todo_abstract_round_cls=todo_abstract_round_cls,
             )
