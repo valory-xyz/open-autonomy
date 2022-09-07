@@ -16,7 +16,7 @@ contracts: []
 protocols:
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
 skills:
-- valory/abstract_abci:0.1.0:bafybeianuhlz56pi45j2ksyy26nixg7rti6slar3opgogosfuhsqaezcfi
+- valory/abstract_abci:0.1.0:bafybeiafrhunj5z357r2r7cwlvqe2nv2a3mahltpfz2gwukbujx5uzrsdu
 behaviours: {}
 handlers:
   abci:
