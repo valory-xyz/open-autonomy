@@ -235,6 +235,7 @@ class RoundFileGenerator(AbstractFileGenerator):
             AbstractRound,
             AppState,
             BaseSynchronizedData,
+            DegenerateRound,
             EventToTimeout,
             TransactionType
         )
