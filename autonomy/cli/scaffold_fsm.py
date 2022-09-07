@@ -192,19 +192,19 @@ class AbstractFileGenerator(ABC):
         return self.ctx.agent_config.author
 
     @property
-    def rounds(self) -> Set[str]:
+    def all_rounds(self) -> Set[str]:
         """Rounds"""
         return self.dfa.states
 
     @property
-    def non_degenerate_rounds(self) -> Set[str]:
+    def rounds(self) -> Set[str]:
         """Non-degenerate rounds"""
-        return self.rounds - self.dfa.final_states
+        return self.all_rounds - self.dfa.final_states
 
     @property
     def base_names(self) -> Set[str]:
         """Base names"""
-        return {s.replace("Round", "") for s in self.non_degenerate_rounds}
+        return {s.replace("Round", "") for s in self.rounds}
 
     @property
     def behaviours(self) -> Set[str]:
@@ -346,7 +346,7 @@ class RoundFileGenerator(AbstractFileGenerator):
         all_round_classes_str = []
 
         # add round classes
-        for abci_round_name in self.rounds:
+        for abci_round_name in self.all_rounds:
             abci_round_base_cls_name = (
                 DEGENERATE_ROUND
                 if abci_round_name in self.dfa.final_states
@@ -503,7 +503,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
     def _get_behaviours_header_section(self) -> str:
         """Get the behaviours header section."""
 
-        rounds = indent(",\n".join(self.non_degenerate_rounds), " " * 4).strip()
+        rounds = indent(",\n".join(self.rounds), " " * 4).strip()
         return self.BEHAVIOUR_FILE_HEADER.format(
             AbciApp=self.abci_app_name,
             author=self.author,
@@ -1054,7 +1054,7 @@ class RoundTestsFileGenerator(RoundFileGenerator):
     def _get_rounds_header_section(self) -> str:
         """Get the rounds header section."""
 
-        rounds = indent(",\n".join(self.non_degenerate_rounds), " " * 4).strip()
+        rounds = indent(",\n".join(self.rounds), " " * 4).strip()
         return self.ROUNDS_FILE_HEADER.format(
             FSMName=_get_abci_app_cls_name_from_dfa(self.dfa),
             author=self.author,
@@ -1208,7 +1208,7 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
             FSMName=self.fsm_name,
             author=self.author,
             skill_name=self.skill_name,
-            rounds=indent(",\n".join(self.rounds), " " * 4).strip(),
+            rounds=indent(",\n".join(self.all_rounds), " " * 4).strip(),
             behaviours=indent(",\n".join(self.behaviours), " " * 4).strip(),
         )
 

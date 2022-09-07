@@ -91,6 +91,17 @@ def author() -> str
 
 Author
 
+<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.all_rounds"></a>
+
+#### all`_`rounds
+
+```python
+@property
+def all_rounds() -> Set[str]
+```
+
+Rounds
+
 <a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.rounds"></a>
 
 #### rounds
@@ -98,17 +109,6 @@ Author
 ```python
 @property
 def rounds() -> Set[str]
-```
-
-Rounds
-
-<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.non_degenerate_rounds"></a>
-
-#### non`_`degenerate`_`rounds
-
-```python
-@property
-def non_degenerate_rounds() -> Set[str]
 ```
 
 Non-degenerate rounds
