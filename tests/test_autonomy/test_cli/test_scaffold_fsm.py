@@ -19,6 +19,7 @@
 
 """Test 'scaffold fsm' subcommand."""
 
+import importlib.util
 import os
 from pathlib import Path
 from typing import List
@@ -70,3 +71,15 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         args = [*self.cli_options, path_to_spec_file]
         result = self.run_cli_command(*args, cwd=self._get_cwd())
         assert result.exit_code == 0
+
+    def test_imports(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test imports of scaffolded modules"""
+
+        monkeypatch.syspath_prepend(self.t)
+        path = self.t / self.agent_name
+        for file in path.glob("**/*.py"):
+            if "tests" in file.parts:  # TODO
+                continue
+            spec = importlib.util.spec_from_file_location("name", file)
+            foo = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(foo)
