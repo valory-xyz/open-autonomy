@@ -21,6 +21,7 @@
 
 import importlib.util
 import os
+from importlib.machinery import ModuleSpec
 from pathlib import Path
 from typing import List
 
@@ -72,7 +73,9 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         result = self.run_cli_command(*args, cwd=self._get_cwd())
         assert result.exit_code == 0
 
-    def test_imports(self, fsm_spec_file: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_imports(
+        self, fsm_spec_file: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test imports of scaffolded modules"""
 
         monkeypatch.syspath_prepend(self.t)
@@ -80,6 +83,7 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         for file in path.glob("**/*.py"):
             if "tests" in file.parts:  # TODO
                 continue
-            spec = importlib.util.spec_from_file_location("name", file)
-            foo = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(foo)
+            module_spec = importlib.util.spec_from_file_location("name", file)
+            assert isinstance(module_spec, ModuleSpec)
+            module_type = importlib.util.module_from_spec(module_spec)
+            module_spec.loader.exec_module(module_type)  # type: ignore

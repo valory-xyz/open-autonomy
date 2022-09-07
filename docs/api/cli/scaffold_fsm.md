@@ -102,6 +102,17 @@ def all_rounds() -> Set[str]
 
 Rounds
 
+<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.degenerate_rounds"></a>
+
+#### degenerate`_`rounds
+
+```python
+@property
+def degenerate_rounds() -> Set[str]
+```
+
+Non-degenerate rounds
+
 <a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.rounds"></a>
 
 #### rounds
