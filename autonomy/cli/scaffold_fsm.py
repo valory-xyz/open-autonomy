@@ -236,6 +236,10 @@ class RoundFileGenerator(AbstractFileGenerator):
             TransactionType
         )
 
+        from packages.{author}.skills.{skill_name}.base import (
+            {payloads},
+        )
+
     """
     )
 
@@ -325,7 +329,14 @@ class RoundFileGenerator(AbstractFileGenerator):
 
     def _get_rounds_header_section(self) -> str:
         """Get the rounds header section."""
-        return self.ROUNDS_FILE_HEADER.format(AbciApp=self.abci_app_name)
+
+        payloads = indent(",\n".join(self.payloads), " " * 4).strip()
+        return self.ROUNDS_FILE_HEADER.format(
+            author=self.author,
+            skill_name=self.skill_name,
+            AbciApp=self.abci_app_name,
+            payloads=payloads,
+        )
 
     def _get_rounds_section(self) -> str:
         """Get the round section of the module (i.e. the round classes)."""
