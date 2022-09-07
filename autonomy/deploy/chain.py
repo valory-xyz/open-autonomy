@@ -27,8 +27,11 @@ import web3
 
 from autonomy.data import DATA_DIR
 
+
 ABIS_DIR = "abis"
-SERVICE_REGISTRY_ABI = DATA_DIR / ABIS_DIR / "service_registry" / "service_registry.json"
+SERVICE_REGISTRY_ABI = (
+    DATA_DIR / ABIS_DIR / "service_registry" / "service_registry.json"
+)
 DEFAULT_STAGING_CHAIN = "https://chain.staging.autonolas.tech"
 
 CHAIN_CONFIG: Dict[str, Dict[str, Optional[str]]] = {
@@ -58,7 +61,7 @@ ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
 def get_abi(path: str) -> Dict:
     """Read the ABI from the provided path."""
 
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         abi = json.load(f)
     return abi
 
