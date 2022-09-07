@@ -18,18 +18,23 @@ Ensure that your machine satisfies the following requirements:
 
 
 ## Setup
+1. Create a workspace folder:
+```bash
+mkdir my_workspace
+cd my_workspace
+```
 
-1. Setup the environment. Remember to use the Python version you have installed. Here we are using 3.10 as reference:
+2. Setup the environment. Remember to use the Python version you have installed. Here we are using 3.10 as reference:
 ```bash
 touch Pipfile && pipenv --python 3.10 && pipenv shell
 ```
 
-2. Install the {{open_autonomy}} framework:
+3. Install the {{open_autonomy}} framework:
 ```bash
 pip install open-autonomy
 ```
 
-3. Initialize the framework to work with the remote [IPFS](https://ipfs.io) registry. This means that when the framework will be fetching a component, it will do so from the [IPFS](https://ipfs.io):
+4. Initialize the framework to work with the remote [IPFS](https://ipfs.io) registry. This means that when the framework will be fetching a component, it will do so from the [IPFS](https://ipfs.io):
     ```bash
     autonomy init --remote --ipfs
     ```
