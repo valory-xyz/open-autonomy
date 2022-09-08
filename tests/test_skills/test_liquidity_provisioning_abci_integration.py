@@ -61,15 +61,7 @@ from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
 from packages.valory.skills.liquidity_rebalancing_abci.test_tools.integration import (
     AMMIntegrationBaseCase,
 )
-from packages.valory.skills.transaction_settlement_abci.payload_tools import (
-    hash_payload_to_hex,
-)
-from packages.valory.skills.transaction_settlement_abci.rounds import (
-    SynchronizedData as TransactionSettlementSynchronizedSata,
-)
-
-from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS, make_ledger_api_connection
-from tests.test_skills.test_liquidity_rebalancing_abci.test_behaviours import (
+from packages.valory.skills.liquidity_rebalancing_abci.tests.test_behaviours import (
     A_WETH_POOL_ADDRESS,
     B_WETH_POOL_ADDRESS,
     DEFAULT_MINTER,
@@ -79,6 +71,14 @@ from tests.test_skills.test_liquidity_rebalancing_abci.test_behaviours import (
     WETH_ADDRESS,
     get_default_strategy,
 )
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    hash_payload_to_hex,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    SynchronizedData as TransactionSettlementSynchronizedSata,
+)
+
+from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS, make_ledger_api_connection
 
 
 class LiquidityRebalancingBehaviourBaseCase(FSMBehaviourBaseCase):
