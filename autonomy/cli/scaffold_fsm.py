@@ -1421,19 +1421,23 @@ class ScaffoldABCISkill:
         # remove original 'my_model.py' file
         os.remove(self.skill_dir / "my_model.py")
 
-        # update copyright
-        init_py_path = self.skill_dir / "__init__.py"
-        lines = init_py_path.read_text().splitlines()
-        content = "\n".join(line for line in lines if not line.startswith("#"))
-        init_py_path.write_text(FILE_HEADER + content)
-
         self._remove_pycache()
+        self._update_init_py()
         self._update_config()
 
     def _update_config(self) -> None:
         """Update the skill configuration."""
         click.echo("Updating skill configuration...")
         SkillConfigUpdater(self.ctx, self.skill_dir, self.dfa).update()
+
+    def _update_init_py(self) -> None:
+        """Update Copyright __init__.py files"""
+
+        init_py_path = self.skill_dir / "__init__.py"
+        lines = init_py_path.read_text().splitlines()
+        content = "\n".join(line for line in lines if not line.startswith("#"))
+        init_py_path.write_text(f"{FILE_HEADER} {content}\n")
+        (Path(self.skill_test_dir) / "__init__.py").write_text(FILE_HEADER)
 
     def _remove_pycache(self) -> None:
         """Remove __pycache__ folders."""
