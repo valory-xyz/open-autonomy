@@ -19,6 +19,8 @@
 
 """Tests for valory/registration_abci skill's behaviours."""
 
+# pylint: skip-file
+
 import time
 from pathlib import Path
 from typing import Any, Dict, Type, cast
@@ -44,6 +46,10 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
+from packages.valory.skills.abstract_round_abci.tests.test_common import (
+    BaseRandomnessBehaviourTest,
+    BaseSelectKeeperBehaviourTest,
+)
 from packages.valory.skills.oracle_deployment_abci.behaviours import (
     DeployOracleBehaviour,
     RandomnessOracleBehaviour,
@@ -60,27 +66,19 @@ from packages.valory.skills.oracle_deployment_abci.rounds import (
 )
 from packages.valory.skills.oracle_deployment_abci.rounds import FinishedOracleRound
 
-from tests.conftest import ROOT_DIR
-from tests.test_skills.test_abstract_round_abci.test_common import (
-    BaseRandomnessBehaviourTest,
-    BaseSelectKeeperBehaviourTest,
-)
 
+PACKAGES_DIR = Path(__file__).parent.parent
 
 class OracleDeploymentAbciBaseCase(FSMBehaviourBaseCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "oracle_deployment_abci"
-    )
+    path_to_skill = PACKAGES_DIR
 
 
 class TestRandomnessOracle(BaseRandomnessBehaviourTest):
     """Test randomness safe."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "oracle_deployment_abci"
-    )
+    path_to_skill = PACKAGES_DIR
 
     randomness_behaviour_class = RandomnessOracleBehaviour
     next_behaviour_class = SelectKeeperOracleBehaviour
@@ -90,9 +88,7 @@ class TestRandomnessOracle(BaseRandomnessBehaviourTest):
 class TestSelectKeeperOracleBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "oracle_deployment_abci"
-    )
+    path_to_skill = PACKAGES_DIR
 
     select_keeper_behaviour_class = SelectKeeperOracleBehaviour
     next_behaviour_class = DeployOracleBehaviour

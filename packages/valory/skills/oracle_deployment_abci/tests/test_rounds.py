@@ -33,6 +33,11 @@ from packages.valory.skills.abstract_round_abci.base import (
     MAX_INT_256,
     VotingRound,
 )
+from packages.valory.skills.abstract_round_abci.tests.test_base_rounds import (
+    BaseCollectSameUntilThresholdRoundTest,
+    BaseOnlyKeeperSendsRoundTest,
+    BaseVotingRoundTest,
+)
 from packages.valory.skills.oracle_deployment_abci.payloads import (
     DeployOraclePayload,
     RandomnessPayload,
@@ -48,12 +53,6 @@ from packages.valory.skills.oracle_deployment_abci.rounds import (
     SynchronizedData as OracleDeploymentSynchronizedSata,
 )
 from packages.valory.skills.oracle_deployment_abci.rounds import ValidateOracleRound
-
-from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
-    BaseCollectSameUntilThresholdRoundTest,
-    BaseOnlyKeeperSendsRoundTest,
-    BaseVotingRoundTest,
-)
 
 
 MAX_PARTICIPANTS: int = 4
