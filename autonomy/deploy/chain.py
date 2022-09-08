@@ -33,7 +33,7 @@ ABIS_DIR = "abis"
 SERVICE_REGISTRY_ABI = (
     DATA_DIR / ABIS_DIR / "service_registry" / "service_registry.json"
 )
-DEFAULT_STAGING_CHAIN = "https://chain.staging.autonolas.tech"
+DEFAULT_STAGING_CHAIN = "http://localhost:8545"
 
 CHAIN_CONFIG: Dict[str, Dict[str, Optional[str]]] = {
     "staging": {
