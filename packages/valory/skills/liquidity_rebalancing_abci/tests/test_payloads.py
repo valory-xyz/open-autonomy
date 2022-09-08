@@ -19,6 +19,8 @@
 
 """Test the payloads.py module of the skill."""
 
+# pylint: skip-file
+
 from packages.valory.skills.liquidity_rebalancing_abci.payloads import (
     StrategyEvaluationPayload,
     StrategyType,

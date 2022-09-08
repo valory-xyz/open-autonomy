@@ -17,6 +17,9 @@
 #
 # ------------------------------------------------------------------------------
 """Tests for valory/liquidity_rebalancing_behaviour skill's behaviours."""
+
+# pylint: skip-file
+
 import binascii
 import datetime
 import json
@@ -37,7 +40,7 @@ from packages.valory.contracts.uniswap_v2_router_02.contract import (
 )
 from packages.valory.protocols.contract_api.custom_types import Kwargs
 from packages.valory.protocols.contract_api.message import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+from packages.valory.skills.abstract_round_abci.base import AbciApp, AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
@@ -60,7 +63,8 @@ from packages.valory.skills.liquidity_rebalancing_abci.rounds import (
     SynchronizedData as LiquidityRebalancingSynchronizedSata,
 )
 
-from tests.conftest import ROOT_DIR
+
+PACKAGE_DIR = Path(__file__).parent.parent
 
 
 MAX_ALLOWANCE = 2 ** 256 - 1
@@ -134,9 +138,7 @@ def get_default_strategy(
 class LiquidityRebalancingBehaviourBaseCase(FSMBehaviourBaseCase):
     """Base case for testing LiquidityRebalancing FSMBehaviour."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "liquidity_rebalancing_abci"
-    )
+    path_to_skill = PACKAGE_DIR
 
 
 class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
@@ -251,8 +253,8 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
             ).behaviour_id
             == StrategyEvaluationBehaviour.behaviour_id
         )
-        with mock.patch(
-            "packages.valory.skills.abstract_round_abci.base.AbciApp.last_timestamp",
+        with mock.patch.object(
+            AbciApp, "last_timestamp",
             return_value=datetime.datetime.now(),
         ):
             self.behaviour.act_wrapper()

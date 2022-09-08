@@ -19,6 +19,8 @@
 
 """Test the models.py module of the skill."""
 
+# pylint: skip-file
+
 from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
 from packages.valory.skills.liquidity_rebalancing_abci.models import Params, SharedState
 

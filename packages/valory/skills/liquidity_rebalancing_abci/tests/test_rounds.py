@@ -19,12 +19,17 @@
 
 """Tests for rounds.py file in valory/liquidity_rebalancing_abci."""
 
+# pylint: skip-file
+
 import json
 from types import MappingProxyType
 from typing import Dict, FrozenSet, Mapping, Optional  # noqa : F401
 from unittest import mock
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+from packages.valory.skills.abstract_round_abci.tests.test_base_rounds import (
+    BaseCollectSameUntilThresholdRoundTest,
+)
 from packages.valory.skills.liquidity_rebalancing_abci.payloads import (
     SleepPayload,
     StrategyEvaluationPayload,
@@ -37,13 +42,9 @@ from packages.valory.skills.liquidity_rebalancing_abci.rounds import (  # noqa: 
     SynchronizedData,
     TransactionHashBaseRound,
 )
-from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
-
-from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
-    BaseCollectSameUntilThresholdRoundTest,
-)
-from tests.test_skills.test_transaction_settlement_abci.test_rounds import (
-    get_participant_to_signature,
+from packages.valory.skills.transaction_settlement_abci.payloads import (
+    SignaturePayload,
+    ValidatePayload,
 )
 
 
@@ -101,6 +102,14 @@ def get_participant_to_sleep(
         ]
     )
 
+def get_participant_to_signature(
+    participants: FrozenSet[str],
+) -> Dict[str, SignaturePayload]:
+    """participant_to_signature"""
+    return {
+        participant: SignaturePayload(sender=participant, signature="signature")
+        for participant in participants
+    }
 
 class TestTransactionHashBaseRound(BaseCollectSameUntilThresholdRoundTest):
     """Test TransactionHashBaseRound"""
