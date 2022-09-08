@@ -353,6 +353,26 @@ def get_file_content() -> str
 
 Scaffold the 'test_behaviours.py' file.
 
+<a id="autonomy.cli.scaffold_fsm.PayloadTestsFileGenerator"></a>
+
+## PayloadTestsFileGenerator Objects
+
+```python
+class PayloadTestsFileGenerator(PayloadsFileGenerator)
+```
+
+File generator for 'test_payloads.py' modules.
+
+<a id="autonomy.cli.scaffold_fsm.PayloadTestsFileGenerator.get_file_content"></a>
+
+#### get`_`file`_`content
+
+```python
+def get_file_content() -> str
+```
+
+Scaffold the 'test_payloads.py' file.
+
 <a id="autonomy.cli.scaffold_fsm.ModelTestFileGenerator"></a>
 
 ## ModelTestFileGenerator Objects

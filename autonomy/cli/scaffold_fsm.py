@@ -1252,6 +1252,84 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
         return "\n".join(all_behaviour_classes_str)
 
 
+class PayloadTestsFileGenerator(PayloadsFileGenerator):
+    """File generator for 'test_payloads.py' modules."""
+
+    FILENAME = "test_" + PAYLOADS_FILENAME
+
+    PAYLOAD_FILE_HEADER = dedent(
+        """\
+        \"\"\"This package contains payload tests for the {AbciApp}.\"\"\"
+
+        from typing import Hashable
+        from dataclasses import dataclass
+
+        import pytest
+
+        from {author}.skills.{skill_name}.payloads import (
+            TransactionType,
+            Base{FSMName}Payload,
+            {payloads},
+        )
+
+
+        @dataclass
+        class PayloadTestCase:
+            \"\"\"PayloadTestCase\"\"\"
+
+            payload_cls: Base{FSMName}Payload
+            content: Hashable
+            transaction_type: TransactionType
+
+        """
+    )
+
+    PAYLOAD_CLS_TEMPLATE = dedent(
+        """\
+        # TODO: provide test cases
+        @pytest.mark.parametrize("test_case", [])
+        def test_payloads(test_case: PayloadTestCase) -> None:
+            \"\"\"Tests for {AbciApp} payloads\"\"\"
+
+            payload = test_case.payload_cls(sender="sender", content=test_case.content)
+            assert payload.sender == "sender"
+            assert getattr(payload, f"{{payload.transaction_type}}") == test_case.content
+            assert payload.transaction_type == test_case.transaction_type
+            assert payload.from_json(payload.json) == payload
+
+    """
+    )
+
+    def get_file_content(self) -> str:
+        """Scaffold the 'test_payloads.py' file."""
+
+        behaviour_file_content = "\n".join(
+            [
+                FILE_HEADER,
+                self._get_payload_header_section(),
+                self._get_payload_section(),
+            ]
+        )
+
+        return behaviour_file_content
+
+    def _get_payload_header_section(self) -> str:
+        """Get the rounds header section."""
+
+        return self.PAYLOAD_FILE_HEADER.format(
+            AbciApp=self.abci_app_name,
+            FSMName=self.fsm_name,
+            author=self.author,
+            skill_name=self.skill_name,
+            payloads=indent(",\n".join(self.payloads), " " * 4).strip(),
+        )
+
+    def _get_payload_section(self) -> str:
+        """Get payload section"""
+
+        return self.PAYLOAD_CLS_TEMPLATE.format(AbciApp=self.abci_app_name)
+
+
 class ModelTestFileGenerator(AbstractFileGenerator):
     """File generator for 'test_models.py'."""
 
@@ -1370,6 +1448,7 @@ class ScaffoldABCISkill:
     test_file_generators: List[Type[AbstractFileGenerator]] = [
         RoundTestsFileGenerator,
         BehaviourTestsFileGenerator,
+        PayloadTestsFileGenerator,
         ModelTestFileGenerator,
         HandlersTestFileGenerator,
         DialoguesTestFileGenerator,
