@@ -50,16 +50,6 @@ from packages.valory.skills.abstract_round_abci.models import (
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import AbciAppTest
 
 
-class DummyMessage:
-    """Dummy api specs class."""
-
-    body: bytes
-
-    def __init__(self, body: bytes) -> None:
-        """Initializes DummyMessage"""
-        self.body = body
-
-
 class TestApiSpecsModel:
     """Test ApiSpecsModel."""
 

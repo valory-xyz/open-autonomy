@@ -33,7 +33,7 @@ from _pytest.fixtures import FixtureRequest
 
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
-from packages.valory.skills.abstract_round_abci.tests.test_models import DummyMessage
+from packages.valory.skills.abstract_round_abci.test_tools.apis import DummyMessage
 from packages.valory.skills.apy_estimation_abci.behaviours import NON_INDEXED_BLOCK_RE
 from packages.valory.skills.apy_estimation_abci.models import (
     DEXSubgraph,
