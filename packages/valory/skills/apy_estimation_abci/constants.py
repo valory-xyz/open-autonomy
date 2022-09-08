@@ -48,7 +48,7 @@ _LATEST_OBSERVATIONS_PATH += _CSV_SUFFIX
 _ESTIMATIONS_PATH += _CSV_SUFFIX
 
 # templates
-Y_SPLIT = Template("y_${split}")
+Y_SPLIT_TEMPLATE = Template("y_${split}")
 PERIOD_SPECIFIER_TEMPLATE = Template(_PERIOD_SPECIFIER)
 
 # final filepath templates

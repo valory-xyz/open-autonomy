@@ -61,7 +61,7 @@ from packages.valory.skills.apy_estimation_abci.constants import (
     PERIOD_SPECIFIER_TEMPLATE,
     REPORTS_PATH,
     TRANSFORMED_HISTORICAL_DATA_PATH_TEMPLATE,
-    Y_SPLIT,
+    Y_SPLIT_TEMPLATE,
 )
 from packages.valory.skills.apy_estimation_abci.io_.load import Loader
 from packages.valory.skills.apy_estimation_abci.io_.store import (
@@ -194,7 +194,7 @@ class APYEstimationBaseBehaviour(BaseBehaviour, ABC):
 
     def split_path(self, split: str) -> str:
         """Get the path to a split."""
-        y_split = Y_SPLIT.substitute(split=split)
+        y_split = Y_SPLIT_TEMPLATE.substitute(split=split)
         return self.from_data_dir_with_period_specifier(y_split)
 
     def load_split(self, split: str) -> Optional[Dict[str, pd.DataFrame]]:
