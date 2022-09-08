@@ -24,12 +24,12 @@ This module patches the 'aea scaffold' command so to add a new subcommand for sc
  starting from FSM specification.
 """
 
-import re
+import os
 import shutil
 from abc import ABC, abstractmethod
 from pathlib import Path
 from textwrap import dedent, indent
-from typing import Dict, List, Set, Type
+from typing import Dict, List, Type
 
 import click
 from aea.cli.add import add_item
@@ -89,72 +89,18 @@ DIALOGUES_FILENAME = "dialogues.py"
 DEGENERATE_ROUND = "DegenerateRound"
 ABSTRACT_ROUND = "AbstractRound"
 
-
-def remove_suffix(s: str, suffix: str) -> str:
-    """str.removesuffix() does not exist in python 3.7, 3.8"""
-    return s[: -len(suffix)] if s.endswith(suffix) else s
+ROUND = "Round"
+BEHAVIOUR = "Behaviour"
+PAYLOAD = "Payload"
+EVENT = "Event"
+ABCI_APP = "AbciApp"
+BASE_BEHAVIOUR = "BaseBehaviour"
+ROUND_BEHAVIOUR = "RoundBehaviour"
 
 
 def _remove_quotes(input_str: str) -> str:
     """Remove single or double quotes from a string."""
     return input_str.replace("'", "").replace('"', "")
-
-
-def _get_abci_app_cls_name_from_dfa(dfa: DFA) -> str:
-    """Get the Abci app class name from a DFA object."""
-    return dfa.label.split(".")[-1]
-
-
-def _try_get_behaviour_cls_name_from_round_cls_name(round_cls_name: str) -> str:
-    """
-    Try to get the behaviour class name from the round class name.
-
-    It tries to replace the suffix "Round" with "Behaviour".
-
-    :param round_cls_name: the round class name
-    :return: the new behaviour class name
-    """
-    return re.sub("(.*)Round", "\\1Behaviour", round_cls_name)
-
-
-def _try_get_round_behaviour_cls_name_from_abci_app_cls_name(
-    abci_app_cls_name: str,
-) -> str:
-    """
-    Try to get the round behaviour class name from the Abci app class name.
-
-    It tries to replace the suffix "AbciApp" with "RoundBehaviour".
-
-    If it fails, returns "RoundBehaviour".
-
-    :param abci_app_cls_name: the abci app class name
-    :return: the new round behaviour class name
-    """
-    result = re.sub("(.*)AbciApp", "\\1RoundBehaviour", abci_app_cls_name)
-    # if replacement did not work, return default round behaviour name
-    if result == abci_app_cls_name:
-        return "RoundBehaviour"
-    return result
-
-
-def _try_get_base_behaviour_cls_name_from_abci_app_cls_name(
-    abci_app_cls_name: str,
-) -> str:
-    """
-    Try to get the base behaviour class name from the Abci app class name.
-
-    It tries to replace the suffix "AbciApp" with "BaseBehaviour".
-
-    If it fails, returns "RoundBehaviour".
-
-    :param abci_app_cls_name: the abci app class name
-    :return: the new round behaviour class name
-    """
-    result = re.sub("(.*)AbciApp", "\\1BaseBehaviour", abci_app_cls_name)
-    # if replacement did not work, return default round behaviour name
-    if result == abci_app_cls_name:
-        return "BaseBehaviour"
-    return result
 
 
 class AbstractFileGenerator(ABC):
@@ -179,12 +125,12 @@ class AbstractFileGenerator(ABC):
     @property
     def abci_app_name(self) -> str:
         """ABCI app class name"""
-        return _get_abci_app_cls_name_from_dfa(self.dfa)
+        return self.dfa.label.split(".")[-1]
 
     @property
     def fsm_name(self) -> str:
         """FSM base name"""
-        return remove_suffix(self.abci_app_name, "AbciApp")  # noqa: B005
+        return self.abci_app_name.replace(ABCI_APP, "")
 
     @property
     def author(self) -> str:
@@ -192,34 +138,34 @@ class AbstractFileGenerator(ABC):
         return self.ctx.agent_config.author
 
     @property
-    def all_rounds(self) -> Set[str]:
+    def all_rounds(self) -> List[str]:
         """Rounds"""
-        return self.dfa.states
+        return sorted(self.dfa.states)
 
     @property
-    def degenerate_rounds(self) -> Set[str]:
+    def degenerate_rounds(self) -> List[str]:
+        """Degenerate rounds"""
+        return sorted(self.dfa.final_states)
+
+    @property
+    def rounds(self) -> List[str]:
         """Non-degenerate rounds"""
-        return self.dfa.final_states
+        return sorted(self.dfa.states - self.dfa.final_states)
 
     @property
-    def rounds(self) -> Set[str]:
-        """Non-degenerate rounds"""
-        return self.all_rounds - self.degenerate_rounds
-
-    @property
-    def base_names(self) -> Set[str]:
+    def base_names(self) -> List[str]:
         """Base names"""
-        return {s.replace("Round", "") for s in self.rounds}
+        return [s.replace(ROUND, "") for s in self.rounds]
 
     @property
-    def behaviours(self) -> Set[str]:
+    def behaviours(self) -> List[str]:
         """Behaviours"""
-        return {s.replace("Round", "Behaviour") for s in self.rounds}
+        return [s.replace(ROUND, BEHAVIOUR) for s in self.rounds]
 
     @property
-    def payloads(self) -> Set[str]:
+    def payloads(self) -> List[str]:
         """Payloads"""
-        return {s.replace("Round", "Payload") for s in self.rounds}
+        return [s.replace(ROUND, PAYLOAD) for s in self.rounds]
 
 
 class RoundFileGenerator(AbstractFileGenerator):
@@ -283,17 +229,17 @@ class RoundFileGenerator(AbstractFileGenerator):
             # TODO: set the following class attributes
             round_id: str = "{round_id}"
             allowed_tx_type: Optional[TransactionType]
-            payload_attribute: str = {BaseName}Payload.transaction_type
+            payload_attribute: str = {PayloadCls}.transaction_type
 
             def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
                 \"\"\"Process the end of the block.\"\"\"
                 raise NotImplementedError
 
-            def check_payload(self, payload: {BaseName}Payload) -> None:
+            def check_payload(self, payload: {PayloadCls}) -> None:
                 \"\"\"Check payload.\"\"\"
                 raise NotImplementedError
 
-            def process_payload(self, payload: {BaseName}Payload) -> None:
+            def process_payload(self, payload: {PayloadCls}) -> None:
                 \"\"\"Process payload.\"\"\"
                 raise NotImplementedError
 
@@ -362,25 +308,25 @@ class RoundFileGenerator(AbstractFileGenerator):
         all_round_classes_str = []
 
         # add round classes
-        for abci_round_name in self.rounds:
+        for round_name, payload_name in zip(self.rounds, self.payloads):
             todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
-            base_name = abci_round_name.replace("Round", "")
+            base_name = round_name.replace(ROUND, "")
             round_id = _camel_case_to_snake_case(base_name)
             round_class_str = RoundFileGenerator.ROUND_CLS_TEMPLATE.format(
                 round_id=round_id,
-                RoundCls=abci_round_name,
-                BaseName=base_name,
+                RoundCls=round_name,
+                PayloadCls=payload_name,
                 ABCRoundCls=ABSTRACT_ROUND,
                 todo_abstract_round_cls=todo_abstract_round_cls,
             )
             all_round_classes_str.append(round_class_str)
 
-        for abci_round_name in self.degenerate_rounds:
-            base_name = abci_round_name.replace("Round", "")
+        for round_name in self.degenerate_rounds:
+            base_name = round_name.replace(ROUND, "")
             round_id = _camel_case_to_snake_case(base_name)
             round_class_str = RoundFileGenerator.DEGENERATE_ROUND_CLS_TEMPLATE.format(
                 round_id=round_id,
-                RoundCls=abci_round_name,
+                RoundCls=round_name,
                 ABCRoundCls=DEGENERATE_ROUND,
             )
             all_round_classes_str.append(round_class_str)
@@ -417,7 +363,7 @@ class RoundFileGenerator(AbstractFileGenerator):
         """Parse the transition function from the spec to a nested dictionary."""
         result: Dict[str, Dict[str, str]] = {}  # type: ignore
         for (round_cls_name, event_name), value in self.dfa.transition_func.items():
-            result.setdefault(round_cls_name, {})[f"Event.{event_name}"] = value
+            result.setdefault(round_cls_name, {})[f"{EVENT}.{event_name}"] = value
         for state in self.dfa.states:
             if state not in result:
                 result[state] = {}
@@ -499,7 +445,8 @@ class BehaviourFileGenerator(AbstractFileGenerator):
     )
 
     def get_file_content(self) -> str:
-        """Scaffold the 'rounds.py' file."""
+        """Scaffold the 'behaviours.py' file."""
+
         behaviours_header_section = self._get_behaviours_header_section()
         base_behaviour_section = self._get_base_behaviour_section()
         behaviours_section = self._get_behaviours_section()
@@ -532,9 +479,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
     def _get_base_behaviour_section(self) -> str:
         """Get the base behaviour section."""
 
-        base_behaviour_cls_name = (
-            _try_get_base_behaviour_cls_name_from_abci_app_cls_name(self.abci_app_name)
-        )
+        base_behaviour_cls_name = self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR)
         return self.BASE_BEHAVIOUR_CLS_TEMPLATE.format(
             BaseBehaviourCls=base_behaviour_cls_name
         )
@@ -544,20 +489,16 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 
         all_behaviour_classes_str = []
 
-        for abci_behaviour_name in self.behaviours:
-            base_behaviour_cls_name = (
-                _try_get_base_behaviour_cls_name_from_abci_app_cls_name(
-                    self.abci_app_name
-                )
+        for behaviour_name, round_name in zip(self.behaviours, self.rounds):
+            base_behaviour_cls_name = self.abci_app_name.replace(
+                ABCI_APP, BASE_BEHAVIOUR
             )
-
-            behaviour_id = abci_behaviour_name.replace("Behaviour", "")
-            matching_round = abci_behaviour_name.replace("Behaviour", "Round")
+            behaviour_id = behaviour_name.replace(BEHAVIOUR, "")
             behaviour_class_str = BehaviourFileGenerator.BEHAVIOUR_CLS_TEMPLATE.format(
-                BehaviourCls=abci_behaviour_name,
+                BehaviourCls=behaviour_name,
                 BaseBehaviourCls=base_behaviour_cls_name,
                 behaviour_id=_camel_case_to_snake_case(behaviour_id),
-                matching_round=matching_round,
+                matching_round=round_name,
             )
             all_behaviour_classes_str.append(behaviour_class_str)
 
@@ -566,14 +507,10 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 
     def _get_round_behaviour_section(self) -> str:
         """Get the round behaviour section of the module (i.e. the declaration of the round behaviour class)."""
-        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
-        round_behaviour_cls_name = (
-            _try_get_round_behaviour_cls_name_from_abci_app_cls_name(abci_app_cls_name)
-        )
+        abci_app_cls_name = self.abci_app_name
+        round_behaviour_cls_name = self.abci_app_name.replace(ABCI_APP, ROUND_BEHAVIOUR)
         initial_round_cls_name = self.dfa.default_start_state
-        initial_behaviour_cls_name = _try_get_behaviour_cls_name_from_round_cls_name(
-            initial_round_cls_name
-        )
+        initial_behaviour_cls_name = initial_round_cls_name.replace(ROUND, BEHAVIOUR)
         return BehaviourFileGenerator.ROUND_BEHAVIOUR_CLS_TEMPLATE.format(
             RoundBehaviourCls=round_behaviour_cls_name,
             InitialBehaviourCls=initial_behaviour_cls_name,
@@ -638,8 +575,8 @@ class PayloadsFileGenerator(AbstractFileGenerator):
 
     PAYLOAD_CLS_TEMPLATE = dedent(
         """\
-        class {BaseName}Payload(Base{FSMName}Payload):
-            \"\"\"Represent a transaction payload for the {BaseName}Round.\"\"\"
+        class {PayloadCls}(Base{FSMName}Payload):
+            \"\"\"Represent a transaction payload for the {RoundCls}.\"\"\"
 
             # TODO: specify the transaction type
             transaction_type = TransactionType.{tx_type}
@@ -652,12 +589,12 @@ class PayloadsFileGenerator(AbstractFileGenerator):
 
         all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=self.fsm_name)]
 
-        for payload_name in self.payloads:
-            base_name = payload_name.replace("Payload", "")
-            tx_type = _camel_case_to_snake_case(base_name)
+        for payload_name, round_name in zip(self.payloads, self.rounds):
+            tx_type = _camel_case_to_snake_case(round_name.replace(ROUND, ""))
             payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
                 FSMName=self.fsm_name,
-                BaseName=base_name,
+                PayloadCls=payload_name,
+                RoundCls=round_name,
                 tx_type=tx_type.upper(),
             )
             all_payloads_classes_str.append(payload_class_str)
@@ -890,10 +827,8 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
     def _update_behaviours(self, config: SkillConfig) -> None:
         """Update the behaviours section of the skill configuration."""
         config.behaviours = CRUDCollection[SkillComponentConfiguration]()
-        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
-        round_behaviour_cls_name = _try_get_behaviour_cls_name_from_round_cls_name(
-            abci_app_cls_name
-        )
+        abci_app_cls_name = self.dfa.label.split(".")[-1]
+        round_behaviour_cls_name = abci_app_cls_name.replace(ROUND, BEHAVIOUR)
         main_config = SkillComponentConfiguration(round_behaviour_cls_name)
         config.behaviours.create("main", main_config)
 
@@ -956,7 +891,7 @@ def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
 
 
 # Scaffolding of tests
-class RoundTestsFileGenerator(RoundFileGenerator):
+class RoundTestsFileGenerator(AbstractFileGenerator):
     """RoundTestsFileGenerator"""
 
     FILENAME = "tests_" + ROUNDS_FILENAME
@@ -1075,7 +1010,7 @@ class RoundTestsFileGenerator(RoundFileGenerator):
 
         rounds = indent(",\n".join(self.rounds), " " * 4).strip()
         return self.ROUNDS_FILE_HEADER.format(
-            FSMName=_get_abci_app_cls_name_from_dfa(self.dfa),
+            FSMName=self.abci_app_name,
             author=self.author,
             skill_name=self.skill_name,
             non_degenerate_rounds=rounds,
@@ -1096,7 +1031,7 @@ class RoundTestsFileGenerator(RoundFileGenerator):
         return "\n".join(all_round_classes_str)
 
 
-class BehaviourTestsFileGenerator(BehaviourFileGenerator):
+class BehaviourTestsFileGenerator(AbstractFileGenerator):
     """File generator for 'test_behaviours.py' modules."""
 
     FILENAME = "test_" + BEHAVIOURS_FILENAME
@@ -1252,7 +1187,7 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
         return "\n".join(all_behaviour_classes_str)
 
 
-class PayloadTestsFileGenerator(PayloadsFileGenerator):
+class PayloadTestsFileGenerator(AbstractFileGenerator):
     """File generator for 'test_payloads.py' modules."""
 
     FILENAME = "test_" + PAYLOADS_FILENAME
@@ -1484,15 +1419,25 @@ class ScaffoldABCISkill:
                 f_gen(self.ctx, self.skill_name, self.dfa).write_file(f_dir)
 
         # remove original 'my_model.py' file
-        shutil.rmtree(self.skill_dir / "my_model.py", ignore_errors=True)
+        os.remove(self.skill_dir / "my_model.py")
 
         self._remove_pycache()
+        self._update_init_py()
         self._update_config()
 
     def _update_config(self) -> None:
         """Update the skill configuration."""
         click.echo("Updating skill configuration...")
         SkillConfigUpdater(self.ctx, self.skill_dir, self.dfa).update()
+
+    def _update_init_py(self) -> None:
+        """Update Copyright __init__.py files"""
+
+        init_py_path = self.skill_dir / "__init__.py"
+        lines = init_py_path.read_text().splitlines()
+        content = "\n".join(line for line in lines if not line.startswith("#"))
+        init_py_path.write_text(f"{FILE_HEADER} {content}\n")
+        (Path(self.skill_test_dir) / "__init__.py").write_text(FILE_HEADER)
 
     def _remove_pycache(self) -> None:
         """Remove __pycache__ folders."""
