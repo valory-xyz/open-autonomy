@@ -38,9 +38,8 @@ from packages.valory.protocols.abci.message import AbciMessage
 from packages.valory.skills.counter.dialogues import AbciDialogue, AbciDialogues
 from packages.valory.skills.counter.handlers import ABCICounterHandler
 
-from tests.conftest import ROOT_DIR
 
-
+PACKAGE_DIR = Path(__file__).parent.parent
 OK_CODE = 0
 ERROR_CODE = 1
 
@@ -48,7 +47,7 @@ ERROR_CODE = 1
 class TestCounterHandler(BaseSkillTestCase):
     """Test ABCICounterHandler methods."""
 
-    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "counter")
+    path_to_skill = PACKAGE_DIR
     abci_counter_handler: ABCICounterHandler
     logger: logging.Logger
     abci_dialogues: AbciDialogues
