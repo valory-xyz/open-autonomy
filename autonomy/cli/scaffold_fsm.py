@@ -136,34 +136,34 @@ class AbstractFileGenerator(ABC):
         return self.ctx.agent_config.author
 
     @property
-    def all_rounds(self) -> Set[str]:
+    def all_rounds(self) -> List[str]:
         """Rounds"""
-        return self.dfa.states
+        return sorted(self.dfa.states)
 
     @property
-    def degenerate_rounds(self) -> Set[str]:
+    def degenerate_rounds(self) -> List[str]:
+        """Degenerate rounds"""
+        return sorted(self.dfa.final_states)
+
+    @property
+    def rounds(self) -> List[str]:
         """Non-degenerate rounds"""
-        return self.dfa.final_states
+        return sorted(self.dfa.states - self.dfa.final_states)
 
     @property
-    def rounds(self) -> Set[str]:
-        """Non-degenerate rounds"""
-        return self.all_rounds - self.degenerate_rounds
-
-    @property
-    def base_names(self) -> Set[str]:
+    def base_names(self) -> List[str]:
         """Base names"""
-        return {s.replace(ROUND, "") for s in self.rounds}
+        return [s.replace(ROUND, "") for s in self.rounds]
 
     @property
-    def behaviours(self) -> Set[str]:
+    def behaviours(self) -> List[str]:
         """Behaviours"""
-        return {s.replace(ROUND, BEHAVIOUR) for s in self.rounds}
+        return [s.replace(ROUND, BEHAVIOUR) for s in self.rounds]
 
     @property
-    def payloads(self) -> Set[str]:
+    def payloads(self) -> List[str]:
         """Payloads"""
-        return {s.replace(ROUND, PAYLOAD) for s in self.rounds}
+        return [s.replace(ROUND, PAYLOAD) for s in self.rounds]
 
 
 class RoundFileGenerator(AbstractFileGenerator):
@@ -227,17 +227,17 @@ class RoundFileGenerator(AbstractFileGenerator):
             # TODO: set the following class attributes
             round_id: str = "{round_id}"
             allowed_tx_type: Optional[TransactionType]
-            payload_attribute: str = {BaseName}Payload.transaction_type
+            payload_attribute: str = {PayloadCls}.transaction_type
 
             def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
                 \"\"\"Process the end of the block.\"\"\"
                 raise NotImplementedError
 
-            def check_payload(self, payload: {BaseName}Payload) -> None:
+            def check_payload(self, payload: {PayloadCls}) -> None:
                 \"\"\"Check payload.\"\"\"
                 raise NotImplementedError
 
-            def process_payload(self, payload: {BaseName}Payload) -> None:
+            def process_payload(self, payload: {PayloadCls}) -> None:
                 \"\"\"Process payload.\"\"\"
                 raise NotImplementedError
 
@@ -306,25 +306,25 @@ class RoundFileGenerator(AbstractFileGenerator):
         all_round_classes_str = []
 
         # add round classes
-        for abci_round_name in self.rounds:
+        for round_name, payload_name in zip(self.rounds, self.payloads):
             todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
-            base_name = abci_round_name.replace(ROUND, "")
+            base_name = round_name.replace(ROUND, "")
             round_id = _camel_case_to_snake_case(base_name)
             round_class_str = RoundFileGenerator.ROUND_CLS_TEMPLATE.format(
                 round_id=round_id,
-                RoundCls=abci_round_name,
-                BaseName=base_name,
+                RoundCls=round_name,
+                PayloadCls=payload_name,
                 ABCRoundCls=ABSTRACT_ROUND,
                 todo_abstract_round_cls=todo_abstract_round_cls,
             )
             all_round_classes_str.append(round_class_str)
 
-        for abci_round_name in self.degenerate_rounds:
-            base_name = abci_round_name.replace(ROUND, "")
+        for round_name in self.degenerate_rounds:
+            base_name = round_name.replace(ROUND, "")
             round_id = _camel_case_to_snake_case(base_name)
             round_class_str = RoundFileGenerator.DEGENERATE_ROUND_CLS_TEMPLATE.format(
                 round_id=round_id,
-                RoundCls=abci_round_name,
+                RoundCls=round_name,
                 ABCRoundCls=DEGENERATE_ROUND,
             )
             all_round_classes_str.append(round_class_str)
@@ -486,15 +486,14 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 
         all_behaviour_classes_str = []
 
-        for abci_behaviour_name in self.behaviours:
+        for behaviour_name, round_name in zip(self.behaviours, self.rounds):
             base_behaviour_cls_name = self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR)
-            behaviour_id = abci_behaviour_name.replace(BEHAVIOUR, "")
-            matching_round = abci_behaviour_name.replace(BEHAVIOUR, ROUND)
+            behaviour_id = behaviour_name.replace(BEHAVIOUR, "")
             behaviour_class_str = BehaviourFileGenerator.BEHAVIOUR_CLS_TEMPLATE.format(
-                BehaviourCls=abci_behaviour_name,
+                BehaviourCls=behaviour_name,
                 BaseBehaviourCls=base_behaviour_cls_name,
                 behaviour_id=_camel_case_to_snake_case(behaviour_id),
-                matching_round=matching_round,
+                matching_round=round_name,
             )
             all_behaviour_classes_str.append(behaviour_class_str)
 
@@ -585,8 +584,7 @@ class PayloadsFileGenerator(AbstractFileGenerator):
 
         all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=self.fsm_name)]
 
-        for payload_name in self.payloads:
-            base_name = payload_name.replace(PAYLOAD, "")
+        for base_name, payload_name in zip(self.base_names, self.payloads):
             tx_type = _camel_case_to_snake_case(base_name)
             payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
                 FSMName=self.fsm_name,
