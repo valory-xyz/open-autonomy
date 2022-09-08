@@ -50,6 +50,19 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 from packages.valory.skills.abstract_round_abci.io_.store import SupportedFiletype
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
+from packages.valory.skills.apy_estimation_abci.constants import (
+    BEST_PARAMS_PATH,
+    ESTIMATIONS_PATH_TEMPLATE,
+    FORECASTERS_PATH,
+    FULLY_TRAINED_FORECASTERS_PATH,
+    HISTORICAL_DATA_BATCH_PATH_TEMPLATE,
+    HISTORICAL_DATA_PATH_TEMPLATE,
+    LATEST_OBSERVATIONS_PATH_TEMPLATE,
+    PERIOD_SPECIFIER_TEMPLATE,
+    REPORTS_PATH,
+    TRANSFORMED_HISTORICAL_DATA_PATH_TEMPLATE,
+    Y_SPLIT_TEMPLATE,
+)
 from packages.valory.skills.apy_estimation_abci.io_.load import Loader
 from packages.valory.skills.apy_estimation_abci.io_.store import (
     ExtendedSupportedFiletype,
@@ -153,16 +166,42 @@ class APYEstimationBaseBehaviour(BaseBehaviour, ABC):
         """Return the params."""
         return cast(APYParams, self.context.params)
 
+    def period_specifier(self, previous_period: bool = False) -> str:
+        """Return the period specifier for the filenames."""
+        period_count = self.synchronized_data.period_count
+        if previous_period:
+            period_count -= 1
+
+        period_specifier = PERIOD_SPECIFIER_TEMPLATE.substitute(
+            period_count=period_count
+        )
+
+        return period_specifier
+
+    def with_period_specifier(self, path: str, previous_period: bool = False) -> str:
+        """Return the given path with the period specifier appended."""
+        return os.path.join(path, self.period_specifier(previous_period))
+
+    def from_data_dir(self, path: str) -> str:
+        """Return the given path appended to the data dir."""
+        return os.path.join(self.context.data_dir, path)
+
+    def from_data_dir_with_period_specifier(
+        self, path: str, previous_period: bool = False
+    ) -> str:
+        """Return the given path with the period specifier appended to it, appended to the data dir."""
+        return self.with_period_specifier(self.from_data_dir(path), previous_period)
+
+    def split_path(self, split: str) -> str:
+        """Get the path to a split."""
+        y_split = Y_SPLIT_TEMPLATE.substitute(split=split)
+        return self.from_data_dir_with_period_specifier(y_split)
+
     def load_split(self, split: str) -> Optional[Dict[str, pd.DataFrame]]:
         """Load a split of the data."""
-        split_path = os.path.join(
-            self.context.data_dir,
-            f"y_{split}",
-            f"period_{self.synchronized_data.period_count}",
-        )
         return self.get_from_ipfs(
             getattr(self.synchronized_data, f"{split}_hash"),
-            split_path,
+            self.split_path(split),
             multiple=True,
             filetype=ExtendedSupportedFiletype.CSV,
         )
@@ -274,14 +313,17 @@ class FetchBehaviour(
         )
         self._target = self._target_per_pool * n_ids
 
-        filename = "historical_data"
-        if self.batch:
-            filename += f"_batch_{self.params.end}"
-
-        self._save_path = os.path.join(
-            self.context.data_dir,
-            f"{filename}_period_{self.synchronized_data.period_count}.json",
+        filename = (
+            HISTORICAL_DATA_BATCH_PATH_TEMPLATE.substitute(
+                batch_number=self.params.end,
+                period_count=self.synchronized_data.period_count,
+            )
+            if self.batch
+            else HISTORICAL_DATA_PATH_TEMPLATE.substitute(
+                period_count=self.synchronized_data.period_count
+            )
         )
+        self._save_path = self.from_data_dir(filename)
 
     def _check_given_pairs(self) -> Generator[None, None, None]:
         """Check if the pairs that the user placed in the config file exist on the corresponding subgraphs."""
@@ -663,13 +705,16 @@ class TransformBehaviour(
         self._pairs_hist = self.get_from_ipfs(
             self.synchronized_data.history_hash,
             self.context.data_dir,
-            filename=f"historical_data_period_{self.synchronized_data.period_count}.json",
+            filename=HISTORICAL_DATA_PATH_TEMPLATE.substitute(
+                period_count=self.synchronized_data.period_count
+            ),
             filetype=SupportedFiletype.JSON,
         )
 
-        self._transformed_history_save_path = os.path.join(
-            self.context.data_dir,
-            f"transformed_historical_data_period_{self.synchronized_data.period_count}.csv",
+        self._transformed_history_save_path = self.from_data_dir(
+            TRANSFORMED_HISTORICAL_DATA_PATH_TEMPLATE.substitute(
+                period_count=self.synchronized_data.period_count
+            )
         )
 
         if self._pairs_hist is not None:
@@ -705,9 +750,10 @@ class TransformBehaviour(
             # Get the latest observation for each pool id.
             latest_observations = transformed_history.groupby("id").last().reset_index()
             # Send the latest observations to IPFS and get the hash.
-            latest_observations_save_path = os.path.join(
-                self.context.data_dir,
-                f"latest_observations_period_{self.synchronized_data.period_count}.csv",
+            latest_observations_save_path = self.from_data_dir(
+                LATEST_OBSERVATIONS_PATH_TEMPLATE.substitute(
+                    period_count=self.synchronized_data.period_count
+                )
             )
             self._latest_observations_hist_hash = self.send_to_ipfs(
                 latest_observations_save_path,
@@ -753,7 +799,9 @@ class PreprocessBehaviour(APYEstimationBaseBehaviour):
         self._pairs_hist = self.get_from_ipfs(
             self.synchronized_data.transformed_history_hash,
             self.context.data_dir,
-            filename=f"transformed_historical_data_period_{self.synchronized_data.period_count}.csv",
+            filename=TRANSFORMED_HISTORICAL_DATA_PATH_TEMPLATE.substitute(
+                period_count=self.synchronized_data.period_count
+            ),
             custom_loader=load_hist,
         )
 
@@ -785,14 +833,8 @@ class PreprocessBehaviour(APYEstimationBaseBehaviour):
                 "train": train_splits,
                 "test": test_splits,
             }.items():
-                save_path = os.path.join(
-                    self.context.data_dir,
-                    f"y_{split_name}",
-                    f"period_{self.synchronized_data.period_count}",
-                )
-
                 split_hash = self.send_to_ipfs(
-                    save_path,
+                    self.split_path(split_name),
                     split,
                     multiple=True,
                     filetype=ExtendedSupportedFiletype.CSV,
@@ -836,14 +878,18 @@ class PrepareBatchBehaviour(APYEstimationBaseBehaviour):
             self.get_from_ipfs(
                 self.synchronized_data.latest_observation_hist_hash,
                 self.context.data_dir,
-                filename=f"latest_observations_period_{self.synchronized_data.period_count - 1}.csv",
+                filename=LATEST_OBSERVATIONS_PATH_TEMPLATE.substitute(
+                    period_count=self.synchronized_data.period_count - 1
+                ),
                 custom_loader=load_hist,
             ),
             self.get_from_ipfs(
                 self.synchronized_data.batch_hash,
                 self.context.data_dir,
-                filename=f"historical_data_batch_{self.params.end}"
-                f"_period_{self.synchronized_data.period_count}.json",
+                filename=HISTORICAL_DATA_BATCH_PATH_TEMPLATE.substitute(
+                    batch_number=self.params.end,
+                    period_count=self.synchronized_data.period_count,
+                ),
                 filetype=SupportedFiletype.JSON,
             ),
         )
@@ -857,7 +903,9 @@ class PrepareBatchBehaviour(APYEstimationBaseBehaviour):
 
         self._prepared_batches_save_path = os.path.join(
             self.context.data_dir,
-            f"latest_observations_period_{self.synchronized_data.period_count}.csv",
+            LATEST_OBSERVATIONS_PATH_TEMPLATE.substitute(
+                period_count=self.synchronized_data.period_count
+            ),
         )
 
     def async_act(self) -> Generator:
@@ -1031,13 +1079,8 @@ class OptimizeBehaviour(APYEstimationBaseBehaviour):
             )
 
             # Store the best params from the results.
-            best_params_save_path = os.path.join(
-                self.context.data_dir,
-                "best_params",
-                f"period_{self.synchronized_data.period_count}",
-            )
             self._best_params_hash = self.send_to_ipfs(
-                best_params_save_path,
+                self.from_data_dir_with_period_specifier(BEST_PARAMS_PATH),
                 self._best_params_per_pool,
                 multiple=True,
                 filetype=SupportedFiletype.JSON,
@@ -1073,14 +1116,9 @@ class TrainBehaviour(APYEstimationBaseBehaviour):
     def setup(self) -> None:
         """Setup behaviour."""
         # Load the best params from the optimization results.
-        best_params_path = os.path.join(
-            self.context.data_dir,
-            "best_params",
-            f"period_{self.synchronized_data.period_count}",
-        )
         self._best_params = self.get_from_ipfs(
             self.synchronized_data.params_hash,
-            best_params_path,
+            self.from_data_dir_with_period_specifier(BEST_PARAMS_PATH),
             multiple=True,
             filetype=SupportedFiletype.JSON,
         )
@@ -1127,11 +1165,13 @@ class TrainBehaviour(APYEstimationBaseBehaviour):
             forecasters = self._async_result.get()
             self.context.logger.info("Training has finished.")
 
-            prefix = "fully_trained_" if self.synchronized_data.full_training else ""
-            forecaster_save_path = os.path.join(
-                self.context.data_dir,
-                f"{prefix}forecasters",
-                f"period_{self.synchronized_data.period_count}",
+            forecaster_save_path = (
+                FULLY_TRAINED_FORECASTERS_PATH
+                if self.synchronized_data.full_training
+                else FORECASTERS_PATH
+            )
+            forecaster_save_path = self.from_data_dir_with_period_specifier(
+                forecaster_save_path
             )
 
             # Send the file to IPFS and get its hash.
@@ -1182,11 +1222,7 @@ class TestBehaviour(APYEstimationBaseBehaviour):
                     },
                 )
 
-        models_path = os.path.join(
-            self.context.data_dir,
-            "forecasters",
-            f"period_{self.synchronized_data.period_count}",
-        )
+        models_path = self.from_data_dir_with_period_specifier(FORECASTERS_PATH)
 
         self._forecasters = self.get_from_ipfs(
             self.synchronized_data.models_hash,
@@ -1228,15 +1264,12 @@ class TestBehaviour(APYEstimationBaseBehaviour):
                 f"{json.dumps(report, sort_keys=False, indent=4)}"
             )
 
-            # Store the results.
-            report_save_path = os.path.join(
-                self.context.data_dir,
-                "reports",
-                f"period_{self.synchronized_data.period_count}",
-            )
             # Send the file to IPFS and get its hash.
             self._report_hash = self.send_to_ipfs(
-                report_save_path, report, multiple=True, filetype=SupportedFiletype.JSON
+                self.from_data_dir_with_period_specifier(REPORTS_PATH),
+                report,
+                multiple=True,
+                filetype=SupportedFiletype.JSON,
             )
 
         # Pass the hash and the best trial as a Payload.
@@ -1261,11 +1294,6 @@ class UpdateForecasterBehaviour(APYEstimationBaseBehaviour):
         super().__init__(**kwargs)
         self._async_result: Optional[AsyncResult] = None
         self._y: Optional[PoolIdToTrainDataType] = None
-        self._forecasters_folder: str = os.path.join(
-            self.context.data_dir,
-            "fully_trained_forecasters",
-            "period_",
-        )
         self._forecasters: Optional[PoolIdToForecasterType] = None
         self._models_hash: Optional[str] = None
 
@@ -1275,14 +1303,18 @@ class UpdateForecasterBehaviour(APYEstimationBaseBehaviour):
         self._y = self.get_from_ipfs(
             self.synchronized_data.latest_observation_hist_hash,
             self.context.data_dir,
-            filename=f"latest_observations_period_{self.synchronized_data.period_count}.csv",
+            filename=LATEST_OBSERVATIONS_PATH_TEMPLATE.substitute(
+                period_count=self.synchronized_data.period_count
+            ),
             filetype=ExtendedSupportedFiletype.CSV,
         )
 
         # Load forecasters.
         self._forecasters = self.get_from_ipfs(
             self.synchronized_data.models_hash,
-            self._forecasters_folder + str(self.synchronized_data.period_count - 1),
+            self.from_data_dir_with_period_specifier(
+                FULLY_TRAINED_FORECASTERS_PATH, previous_period=True
+            ),
             multiple=True,
             filetype=ExtendedSupportedFiletype.PM_PIPELINE,
         )
@@ -1307,7 +1339,9 @@ class UpdateForecasterBehaviour(APYEstimationBaseBehaviour):
 
             # Send the file to IPFS and get its hash.
             self._models_hash = self.send_to_ipfs(
-                self._forecasters_folder + str(self.synchronized_data.period_count),
+                self.from_data_dir_with_period_specifier(
+                    FULLY_TRAINED_FORECASTERS_PATH
+                ),
                 self._forecasters,
                 multiple=True,
                 filetype=ExtendedSupportedFiletype.PM_PIPELINE,
@@ -1339,14 +1373,9 @@ class EstimateBehaviour(APYEstimationBaseBehaviour):
     def setup(self) -> None:
         """Setup behaviour."""
         # Load forecasters.
-        forecasters_folder: str = os.path.join(
-            self.context.data_dir,
-            "fully_trained_forecasters",
-            f"period_{self.synchronized_data.period_count}",
-        )
         self._forecasters = self.get_from_ipfs(
             self.synchronized_data.models_hash,
-            forecasters_folder,
+            self.from_data_dir_with_period_specifier(FULLY_TRAINED_FORECASTERS_PATH),
             multiple=True,
             filetype=ExtendedSupportedFiletype.PM_PIPELINE,
         )
@@ -1376,12 +1405,12 @@ class EstimateBehaviour(APYEstimationBaseBehaviour):
             self.context.logger.info("Estimates have been received.")
 
             # Send the file to IPFS and get its hash.
-            estimations_path = os.path.join(
-                self.context.data_dir,
-                f"estimations_period_{self.synchronized_data.period_count}.csv",
-            )
             self._estimations_hash = self.send_to_ipfs(
-                estimations_path,
+                self.from_data_dir(
+                    ESTIMATIONS_PATH_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    )
+                ),
                 estimates,
                 filetype=ExtendedSupportedFiletype.CSV,
             )
@@ -1407,7 +1436,9 @@ class BaseResetBehaviour(APYEstimationBaseBehaviour):
         estimations = self.get_from_ipfs(
             self.synchronized_data.estimates_hash,
             self.context.data_dir,
-            filename=f"estimations_period_{self.synchronized_data.period_count}.csv",
+            filename=ESTIMATIONS_PATH_TEMPLATE.substitute(
+                period_count=self.synchronized_data.period_count
+            ),
             filetype=ExtendedSupportedFiletype.CSV,
         )
         if estimations is not None:

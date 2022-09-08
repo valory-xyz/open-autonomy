@@ -197,9 +197,14 @@ class AbstractFileGenerator(ABC):
         return self.dfa.states
 
     @property
+    def degenerate_rounds(self) -> Set[str]:
+        """Non-degenerate rounds"""
+        return self.dfa.final_states
+
+    @property
     def rounds(self) -> Set[str]:
         """Non-degenerate rounds"""
-        return self.all_rounds - self.dfa.final_states
+        return self.all_rounds - self.degenerate_rounds
 
     @property
     def base_names(self) -> Set[str]:
@@ -209,12 +214,12 @@ class AbstractFileGenerator(ABC):
     @property
     def behaviours(self) -> Set[str]:
         """Behaviours"""
-        return {f"{s}Behaviour" for s in self.base_names}
+        return {s.replace("Round", "Behaviour") for s in self.rounds}
 
     @property
     def payloads(self) -> Set[str]:
         """Payloads"""
-        return {f"{s}Payload" for s in self.base_names}
+        return {s.replace("Round", "Payload") for s in self.rounds}
 
 
 class RoundFileGenerator(AbstractFileGenerator):
@@ -235,6 +240,7 @@ class RoundFileGenerator(AbstractFileGenerator):
             AbstractRound,
             AppState,
             BaseSynchronizedData,
+            DegenerateRound,
             EventToTimeout,
             TransactionType
         )
@@ -294,6 +300,16 @@ class RoundFileGenerator(AbstractFileGenerator):
     """
     )
 
+    DEGENERATE_ROUND_CLS_TEMPLATE = dedent(
+        """\
+        class {RoundCls}({ABCRoundCls}):
+            \"\"\"{RoundCls}\"\"\"
+
+            round_id: str = "{round_id}"
+
+    """
+    )
+
     ABCI_APP_CLS_TEMPLATE = dedent(
         """\
         class {AbciAppCls}(AbciApp[Event]):
@@ -346,24 +362,26 @@ class RoundFileGenerator(AbstractFileGenerator):
         all_round_classes_str = []
 
         # add round classes
-        for abci_round_name in self.all_rounds:
-            abci_round_base_cls_name = (
-                DEGENERATE_ROUND
-                if abci_round_name in self.dfa.final_states
-                else ABSTRACT_ROUND
-            )
-            todo_abstract_round_cls = ""
-            if abci_round_base_cls_name == ABSTRACT_ROUND:
-                todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
-
+        for abci_round_name in self.rounds:
+            todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
             base_name = abci_round_name.replace("Round", "")
             round_id = _camel_case_to_snake_case(base_name)
             round_class_str = RoundFileGenerator.ROUND_CLS_TEMPLATE.format(
                 round_id=round_id,
                 RoundCls=abci_round_name,
                 BaseName=base_name,
-                ABCRoundCls=abci_round_base_cls_name,
+                ABCRoundCls=ABSTRACT_ROUND,
                 todo_abstract_round_cls=todo_abstract_round_cls,
+            )
+            all_round_classes_str.append(round_class_str)
+
+        for abci_round_name in self.degenerate_rounds:
+            base_name = abci_round_name.replace("Round", "")
+            round_id = _camel_case_to_snake_case(base_name)
+            round_class_str = RoundFileGenerator.DEGENERATE_ROUND_CLS_TEMPLATE.format(
+                round_id=round_id,
+                RoundCls=abci_round_name,
+                ABCRoundCls=DEGENERATE_ROUND,
             )
             all_round_classes_str.append(round_class_str)
 
@@ -634,7 +652,8 @@ class PayloadsFileGenerator(AbstractFileGenerator):
 
         all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=self.fsm_name)]
 
-        for base_name in self.base_names:
+        for payload_name in self.payloads:
+            base_name = payload_name.replace("Payload", "")
             tx_type = _camel_case_to_snake_case(base_name)
             payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
                 FSMName=self.fsm_name,
@@ -1233,6 +1252,84 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
         return "\n".join(all_behaviour_classes_str)
 
 
+class PayloadTestsFileGenerator(PayloadsFileGenerator):
+    """File generator for 'test_payloads.py' modules."""
+
+    FILENAME = "test_" + PAYLOADS_FILENAME
+
+    PAYLOAD_FILE_HEADER = dedent(
+        """\
+        \"\"\"This package contains payload tests for the {AbciApp}.\"\"\"
+
+        from typing import Hashable
+        from dataclasses import dataclass
+
+        import pytest
+
+        from {author}.skills.{skill_name}.payloads import (
+            TransactionType,
+            Base{FSMName}Payload,
+            {payloads},
+        )
+
+
+        @dataclass
+        class PayloadTestCase:
+            \"\"\"PayloadTestCase\"\"\"
+
+            payload_cls: Base{FSMName}Payload
+            content: Hashable
+            transaction_type: TransactionType
+
+        """
+    )
+
+    PAYLOAD_CLS_TEMPLATE = dedent(
+        """\
+        # TODO: provide test cases
+        @pytest.mark.parametrize("test_case", [])
+        def test_payloads(test_case: PayloadTestCase) -> None:
+            \"\"\"Tests for {AbciApp} payloads\"\"\"
+
+            payload = test_case.payload_cls(sender="sender", content=test_case.content)
+            assert payload.sender == "sender"
+            assert getattr(payload, f"{{payload.transaction_type}}") == test_case.content
+            assert payload.transaction_type == test_case.transaction_type
+            assert payload.from_json(payload.json) == payload
+
+    """
+    )
+
+    def get_file_content(self) -> str:
+        """Scaffold the 'test_payloads.py' file."""
+
+        behaviour_file_content = "\n".join(
+            [
+                FILE_HEADER,
+                self._get_payload_header_section(),
+                self._get_payload_section(),
+            ]
+        )
+
+        return behaviour_file_content
+
+    def _get_payload_header_section(self) -> str:
+        """Get the rounds header section."""
+
+        return self.PAYLOAD_FILE_HEADER.format(
+            AbciApp=self.abci_app_name,
+            FSMName=self.fsm_name,
+            author=self.author,
+            skill_name=self.skill_name,
+            payloads=indent(",\n".join(self.payloads), " " * 4).strip(),
+        )
+
+    def _get_payload_section(self) -> str:
+        """Get payload section"""
+
+        return self.PAYLOAD_CLS_TEMPLATE.format(AbciApp=self.abci_app_name)
+
+
 class ModelTestFileGenerator(AbstractFileGenerator):
     """File generator for 'test_models.py'."""
 
@@ -1351,6 +1448,7 @@ class ScaffoldABCISkill:
     test_file_generators: List[Type[AbstractFileGenerator]] = [
         RoundTestsFileGenerator,
         BehaviourTestsFileGenerator,
+        PayloadTestsFileGenerator,
         ModelTestFileGenerator,
         HandlersTestFileGenerator,
         DialoguesTestFileGenerator,
