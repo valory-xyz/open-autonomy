@@ -24,11 +24,13 @@ This module patches the 'aea scaffold' command so to add a new subcommand for sc
  starting from FSM specification.
 """
 
+import os
+import stat
 import shutil
 from abc import ABC, abstractmethod
 from pathlib import Path
 from textwrap import dedent, indent
-from typing import Dict, List, Type
+from typing import Dict, List, Type, Callable
 
 import click
 from aea.cli.add import add_item
@@ -489,7 +491,9 @@ class BehaviourFileGenerator(AbstractFileGenerator):
         all_behaviour_classes_str = []
 
         for behaviour_name, round_name in zip(self.behaviours, self.rounds):
-            base_behaviour_cls_name = self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR)
+            base_behaviour_cls_name = self.abci_app_name.replace(
+                ABCI_APP, BASE_BEHAVIOUR
+            )
             behaviour_id = behaviour_name.replace(BEHAVIOUR, "")
             behaviour_class_str = BehaviourFileGenerator.BEHAVIOUR_CLS_TEMPLATE.format(
                 BehaviourCls=behaviour_name,
@@ -1416,7 +1420,7 @@ class ScaffoldABCISkill:
                 f_gen(self.ctx, self.skill_name, self.dfa).write_file(f_dir)
 
         # remove original 'my_model.py' file
-        shutil.rmtree(self.skill_dir / "my_model.py", ignore_errors=True)
+        os.remove(self.skill_dir / "my_model.py")
 
         self._remove_pycache()
         self._update_config()
