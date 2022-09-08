@@ -69,6 +69,7 @@ from packages.valory.skills.oracle_deployment_abci.rounds import FinishedOracleR
 
 PACKAGES_DIR = Path(__file__).parent.parent
 
+
 class OracleDeploymentAbciBaseCase(FSMBehaviourBaseCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 

@@ -254,7 +254,8 @@ class TestStrategyEvaluationBehaviour(LiquidityRebalancingBehaviourBaseCase):
             == StrategyEvaluationBehaviour.behaviour_id
         )
         with mock.patch.object(
-            AbciApp, "last_timestamp",
+            AbciApp,
+            "last_timestamp",
             return_value=datetime.datetime.now(),
         ):
             self.behaviour.act_wrapper()

@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the rounds of the skill."""
+
+# pylint: skip-file
+
 import logging  # noqa: F401
 from types import MappingProxyType
 from typing import Dict, FrozenSet, Optional
@@ -27,6 +30,10 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as SynchronizedData,
 )
 from packages.valory.skills.abstract_round_abci.base import MAX_INT_256
+from packages.valory.skills.abstract_round_abci.tests.test_base_rounds import (
+    BaseCollectDifferentUntilThresholdRoundTest,
+    BaseCollectSameUntilThresholdRoundTest,
+)
 from packages.valory.skills.oracle_deployment_abci.payloads import (
     RandomnessPayload,
     SelectKeeperPayload,
@@ -35,6 +42,9 @@ from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
     ObservationPayload,
     TransactionHashPayload,
+)
+from packages.valory.skills.price_estimation_abci.rounds import (
+    BaseSynchronizedData as RegistrationSynchronizedSata,
 )
 from packages.valory.skills.price_estimation_abci.rounds import (
     CollectObservationRound,
@@ -47,9 +57,6 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     SynchronizedData as PriceEstimationSynchronizedSata,
 )
 from packages.valory.skills.price_estimation_abci.rounds import TxHashRound
-from packages.valory.skills.registration_abci.rounds import (
-    BaseSynchronizedData as RegistrationSynchronizedSata,
-)
 from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
@@ -59,11 +66,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TransactionSettlementSynchronizedSata,
-)
-
-from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
-    BaseCollectDifferentUntilThresholdRoundTest,
-    BaseCollectSameUntilThresholdRoundTest,
 )
 
 

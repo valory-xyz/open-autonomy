@@ -19,6 +19,8 @@
 
 """Test various price apis."""
 
+# pylint: skip-file
+
 import logging  # noqa: F401
 from typing import Dict, List, Tuple, Union
 

@@ -102,6 +102,7 @@ def get_participant_to_sleep(
         ]
     )
 
+
 def get_participant_to_signature(
     participants: FrozenSet[str],
 ) -> Dict[str, SignaturePayload]:
@@ -110,6 +111,7 @@ def get_participant_to_signature(
         participant: SignaturePayload(sender=participant, signature="signature")
         for participant in participants
     }
+
 
 class TestTransactionHashBaseRound(BaseCollectSameUntilThresholdRoundTest):
     """Test TransactionHashBaseRound"""

@@ -19,6 +19,8 @@
 
 """Test the tools.py module of the skill."""
 
+# pylint: skip-file
+
 import sys
 
 import pytest

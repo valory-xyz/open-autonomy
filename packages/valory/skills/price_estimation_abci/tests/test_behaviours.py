@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/price_estimation_abci skill's behaviours."""
+
+# pylint: skip-file
+
 import copy
 import json
 import sys
@@ -67,8 +70,8 @@ from packages.valory.skills.price_estimation_abci.rounds import (
     SynchronizedData as PriceEstimationSynchronizedSata,
 )
 
-from tests.conftest import ROOT_DIR
 
+PACKAGE_DIR = Path(__file__).parent.parent
 
 DRAND_VALUE = {
     "round": 1416669,
@@ -99,9 +102,7 @@ class DummyRoundId:
 class PriceEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "price_estimation_abci"
-    )
+    path_to_skill = PACKAGE_DIR
 
 
 class TestObserveBehaviour(PriceEstimationFSMBehaviourBaseCase):

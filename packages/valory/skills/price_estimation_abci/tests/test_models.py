@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
+
+# pylint: skip-file
+
 from enum import Enum
 from typing import Optional, Tuple
 
