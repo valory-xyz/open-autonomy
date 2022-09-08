@@ -200,11 +200,13 @@ def _validate_parsed_hacky_pair_ids(pair_ids: PairIdsType) -> None:
     :param pair_ids: the parsed hacky pair ids to validate.
     """
     for dex_name, dex_ids in pair_ids.items():
-        if not isinstance(dex_name, str) or not isinstance(dex_ids, list):
-            _raise_incorrect_hacky_initialization()
-        for dex_id in dex_ids:
-            if not isinstance(dex_id, str):
-                _raise_incorrect_hacky_initialization()
+        if (
+            isinstance(dex_name, str)
+            and isinstance(dex_ids, list)
+            and all(isinstance(_id, str) for _id in dex_ids)
+        ):
+            continue
+        _raise_incorrect_hacky_initialization()
 
 
 def _hack_around_dict_override_limitation(pair_ids: HackyPairIdsType) -> PairIdsType:
