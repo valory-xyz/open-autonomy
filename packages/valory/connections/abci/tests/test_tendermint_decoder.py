@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/abci connection, tendermint_decoder module."""
+
+# pylint: skip-file
 
 from packages.valory.connections.abci.dialogues import AbciDialogue, AbciDialogues
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore

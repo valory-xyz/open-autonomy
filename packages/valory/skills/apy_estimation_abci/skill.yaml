@@ -34,7 +34,7 @@ contracts: []
 protocols:
 - valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigx2vdc6flckja7sxnjfxeqwgynxgclvw24iu2leuaxo7aufcpz7y
+- valory/abstract_round_abci:0.1.0:bafybeid7ecmbkywgtsh3s2vjdy2dev5f2av3e76cqcktweaijmaook2eae
 behaviours:
   main:
     args: {}

@@ -8,21 +8,21 @@ fingerprint:
   README.md: bafybeicocdojplie5z4kbs7cn7apunfydbxui2nigp6ci2osuvv3mybzfm
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeif63vewpjyxbrks22vwiug4t3t6kykjplbh72q7vss7hnjnqkay4q
-- valory/http_client:0.1.0:bafybeif5z3j3xufadjlqybej53u4tfd27arbpuybgarbgcneyzrp4rzivy
-- valory/ledger:0.1.0:bafybeifz3hhzc2gvgccoa4kmvstkvhkudfvwh2su2xa7lfapvtuhgztqae
+- valory/abci:0.1.0:bafybeidgvchzybpsdwblifojolya2cdehv4up7fu56xoy7qzovfbhj4zx4
+- valory/http_client:0.1.0:bafybeiayvkp3jkaahfuej72gididod5dzpa2vivjmxk7uxtcimc4g5e66i
+- valory/ledger:0.1.0:bafybeibkgvuvri3wezotpvhviujmlv2vvvocy7tlf7bxr2bi5gmnz7vgvq
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
-- valory/abci:0.1.0:bafybeicikoxlo5zjgyyeeswbqa7xw2ed7kzz4ienqumjcnsben5vdrrmoq
+- valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
 - valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
 skills:
-- valory/abstract_abci:0.1.0:bafybeickdui64uk5vlvqj5okky3j24ytm5j4c3rlz2pvbkcupq7gmosycu
-- valory/abstract_round_abci:0.1.0:bafybeigx2vdc6flckja7sxnjfxeqwgynxgclvw24iu2leuaxo7aufcpz7y
-- valory/register_reset_abci:0.1.0:bafybeifsdrlrd7fhvahw467knobhazf3wrim5fj6cltsavr2tn3mljd5aa
-- valory/registration_abci:0.1.0:bafybeigea2ofsij7zt3esznhm3zqpz5w6pha5mfqbd3gmhvwu6lqntolgi
-- valory/reset_pause_abci:0.1.0:bafybeifdhnggm7clsfjyeeeviw2lwu6k6fgcmpbgf3g53tvgmm3etm2xom
+- valory/abstract_abci:0.1.0:bafybeid33aunlh6vhg3wbcec3jfjr4xspewy37ijbdxiof2hja4tjnedwe
+- valory/abstract_round_abci:0.1.0:bafybeid7ecmbkywgtsh3s2vjdy2dev5f2av3e76cqcktweaijmaook2eae
+- valory/register_reset_abci:0.1.0:bafybeidwjcpeo4wfufnx5e43zjq7hapx7iqquon3u3pljzozue2o77ymke
+- valory/registration_abci:0.1.0:bafybeifcvfbbg4xbkyckru3wdfyklc3fu75evvrp6dwdscxfmxxqiqtqbi
+- valory/reset_pause_abci:0.1.0:bafybeifbkshop3zndmbirwm6p2reiotfc67whqet575pbalqsk4uonmuym
 default_ledger: ethereum
 required_ledgers:
 - ethereum

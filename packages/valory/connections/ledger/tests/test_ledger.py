@@ -19,6 +19,8 @@
 
 """This module contains the tests of the ledger connection module."""
 
+# pylint: skip-file
+
 import asyncio
 import time
 from asyncio import Task

@@ -70,7 +70,6 @@ from aea_test_autonomy.docker.tendermint import (
     DEFAULT_ABCI_PORT,
     DEFAULT_TENDERMINT_PORT,
     FlaskTendermintDockerImage,
-    TendermintDockerImage,
 )
 from aea_test_autonomy.helpers.contracts import get_register_contract
 from web3 import Web3
@@ -107,21 +106,6 @@ skip_docker_tests = pytest.mark.skipif(
 def tendermint_port() -> int:
     """Get the Tendermint port"""
     return DEFAULT_TENDERMINT_PORT
-
-
-@pytest.fixture(scope="class")
-def tendermint(
-    tendermint_port: Any,
-    abci_host: str = DEFAULT_ABCI_HOST,
-    abci_port: int = DEFAULT_ABCI_PORT,
-    timeout: float = 2.0,
-    max_attempts: int = 10,
-) -> Generator:
-    """Launch the Ganache image."""
-    client = docker.from_env()
-    logging.info(f"Launching Tendermint at port {tendermint_port}")
-    image = TendermintDockerImage(client, abci_host, abci_port, tendermint_port)
-    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
 @pytest.fixture

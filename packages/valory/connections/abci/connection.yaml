@@ -34,12 +34,16 @@ fingerprint:
   tendermint/version/types_pb2.py: bafybeiee7dx3fxa4vnuyosl6qps7z6guk3p627lan7owqjuq3rgjhfqnty
   tendermint_decoder.py: bafybeiawoouu44c3rqqcvokas5byrgen2d7xyzgujhl2tec5ok5cj6he3q
   tendermint_encoder.py: bafybeie3pmkuixp367tltoa7urishsizma6n27ftb6uqaeg4gn6os5waym
+  tests/__init__.py: bafybeid67ezzjsfsukyqdjtlnd3ra5yy73jnobm4setddgagd3u4vqboyu
+  tests/test_abci.py: bafybeie2oymwt2igpj66wzklh5w5q6jm52j4brkf4zvhdnff6rv3lot4ha
+  tests/test_tendermint_decoder.py: bafybeih5vo7oxiwdq4awe4evpmpbao2hyzc76z7iwvyhs4edfzkqddl7p4
+  tests/test_tendermint_encoder.py: bafybeigpun2ybwr5tu7b52his3b5apyrlmdytlgofcszbctsmmabo3sjg4
   version.txt: bafybeifjb44fd7qve2ku62ythui6z4mvd4k7qkjomlcdnl3ymb3bnq6xee
 fingerprint_ignore_patterns: []
 build_entrypoint: check_dependencies.py
 connections: []
 protocols:
-- valory/abci:0.1.0:bafybeicikoxlo5zjgyyeeswbqa7xw2ed7kzz4ienqumjcnsben5vdrrmoq
+- valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
 class_name: ABCIServerConnection
 config:
   host: 127.0.0.1
@@ -58,5 +62,7 @@ restricted_to_protocols: []
 dependencies:
   grpcio:
     version: ==1.43.0
+  hypothesis:
+    version: ==6.21.6
 is_abstract: false
 cert_requests: []
