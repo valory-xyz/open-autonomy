@@ -94,11 +94,6 @@ BEHAVIOUR = "Behaviour"
 PAYLOAD = "Payload"
 
 
-def remove_suffix(s: str, suffix: str) -> str:
-    """str.removesuffix() does not exist in python 3.7, 3.8"""
-    return s[: -len(suffix)] if s.endswith(suffix) else s
-
-
 def _remove_quotes(input_str: str) -> str:
     """Remove single or double quotes from a string."""
     return input_str.replace("'", "").replace('"', "")
@@ -188,7 +183,7 @@ class AbstractFileGenerator(ABC):
     @property
     def fsm_name(self) -> str:
         """FSM base name"""
-        return remove_suffix(self.abci_app_name, "AbciApp")  # noqa: B005
+        return self.abci_app_name.replace("AbciApp", "")
 
     @property
     def author(self) -> str:
