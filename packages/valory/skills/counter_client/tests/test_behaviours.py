@@ -19,6 +19,8 @@
 
 """Tests for valory/counter_client skill's behaviours."""
 
+# pylint: skip-file
+
 import json
 from pathlib import Path
 from typing import Any, cast
@@ -31,13 +33,14 @@ from packages.valory.connections.http_client.connection import (
 from packages.valory.skills.counter_client.behaviours import BaseBehaviour
 from packages.valory.skills.counter_client.handlers import HttpHandler, HttpMessage
 
-from tests.conftest import ROOT_DIR
+
+PACKAGE_DIR = Path(__file__).parent.parent
 
 
 class BaseTestClass(BaseSkillTestCase):
     """Base test class."""
 
-    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "counter_client")
+    path_to_skill = PACKAGE_DIR
 
     behaviour: BaseBehaviour
     behaviour_name: str

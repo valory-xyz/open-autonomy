@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/counter skill."""
+
+# pylint: skip-file
+
 import logging
 import struct
 from pathlib import Path
