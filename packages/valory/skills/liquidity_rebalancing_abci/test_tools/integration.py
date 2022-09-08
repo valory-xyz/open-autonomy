@@ -42,18 +42,18 @@ class AMMIntegrationBaseCase(
     """Base test class for integration tests in a Hardhat environment, with AMM interaction."""
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:
         """Setup."""
         super().setup()
 
         # register all contracts we need
         directory = Path(
-            cls.ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
+            self.ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
         )
         _ = get_register_contract(directory)
         directory = Path(
-            cls.ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_erc20"
+            self.ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_erc20"
         )
         _ = get_register_contract(directory)
-        directory = Path(cls.ROOT_DIR, "packages", "valory", "contracts", "multisend")
+        directory = Path(self.ROOT_DIR, "packages", "valory", "contracts", "multisend")
         _ = get_register_contract(directory)

@@ -110,32 +110,31 @@ class TransactionSettlementIntegrationBaseCase(
     make_ledger_api_connection_callable = make_ledger_api_connection
     third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
-    @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:
         """Setup."""
         super().setup()
 
         keeper_initial_retries = 1
-        cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
+        self.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
             AbciAppDB(
                 setup_data=AbciAppDB.data_to_lists(
                     dict(
-                        safe_contract_address=cls.safe_contract_address,
-                        participants=frozenset(list(cls.safe_owners.keys())),
+                        safe_contract_address=self.safe_contract_address,
+                        participants=frozenset(list(self.safe_owners.keys())),
                         keepers=keeper_initial_retries.to_bytes(32, "big").hex()
-                        + cls.keeper_address,
+                                + self.keeper_address,
                     )
                 ),
             )
         )
 
-        cls.price_estimation_synchronized_data = PriceEstimationSynchronizedSata(
+        self.price_estimation_synchronized_data = PriceEstimationSynchronizedSata(
             AbciAppDB(
                 setup_data=AbciAppDB.data_to_lists(
                     dict(
-                        safe_contract_address=cls.safe_contract_address,
-                        participants=frozenset(list(cls.safe_owners.keys())),
-                        most_voted_keeper_address=cls.keeper_address,
+                        safe_contract_address=self.safe_contract_address,
+                        participants=frozenset(list(self.safe_owners.keys())),
+                        most_voted_keeper_address=self.keeper_address,
                         most_voted_estimate=1,
                     )
                 ),
@@ -361,16 +360,15 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
     ROOT_DIR = ROOT_DIR
     make_ledger_api_connection_callable = make_ledger_api_connection
 
-    @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:
         """Set up the test class."""
         super().setup()
 
         # init synchronized data
-        cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
+        self.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
             AbciAppDB(
                 setup_data=dict(
-                    participants=[frozenset(list(cls.agents.keys()))],
+                    participants=[frozenset(list(self.agents.keys()))],
                     most_voted_randomness=["0xabcd"],
                 ),
             )
@@ -485,13 +483,12 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
 class TestSyncing(TransactionSettlementIntegrationBaseCase):
     """Test late tx hashes synchronization."""
 
-    @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:
         """Set up the test class."""
         super().setup()
 
         # update synchronized data
-        cls.tx_settlement_synchronized_data.update(missed_messages=0)
+        self.tx_settlement_synchronized_data.update(missed_messages=0)
 
     def sync_late_messages(self) -> None:
         """Synchronize late messages."""

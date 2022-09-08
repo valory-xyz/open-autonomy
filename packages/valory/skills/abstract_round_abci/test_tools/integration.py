@@ -89,26 +89,25 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
     def _setup_class(cls, **kwargs: Any) -> None:
         """Setup class."""
 
-    @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:
         """Setup."""
         super().setup()
 
         # set up a multiplexer with the required connections
-        cls.running_loop = asyncio.new_event_loop()
-        cls.thread_loop = Thread(target=cls.running_loop.run_forever)
-        cls.thread_loop.start()
-        cls.multiplexer = Multiplexer(
-            [cls.make_ledger_api_connection_callable()], loop=cls.running_loop
+        self.running_loop = asyncio.new_event_loop()
+        self.thread_loop = Thread(target=self.running_loop.run_forever)
+        self.thread_loop.start()
+        self.multiplexer = Multiplexer(
+            [self.make_ledger_api_connection_callable()], loop=self.running_loop
         )
-        cls.multiplexer.connect()
+        self.multiplexer.connect()
 
         # hardhat configuration
         # setup decision maker
         with tempfile.TemporaryDirectory() as temp_dir:
             fp = os.path.join(temp_dir, "key.txt")
             f = open(fp, "w")
-            f.write(cls.agents[next(iter(cls.agents))])
+            f.write(self.agents[next(iter(self.agents))])
             f.close()
             wallet = Wallet(private_key_paths={"ethereum": str(fp)})
         identity = Identity(
@@ -117,16 +116,16 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
             public_keys=wallet.public_keys,
             default_address_key="ethereum",
         )
-        cls._skill._skill_context._agent_context._identity = identity  # type: ignore
-        cls.current_agent = identity.address
+        self._skill._skill_context._agent_context._identity = identity  # type: ignore
+        self.current_agent = identity.address
 
-        cls.decision_maker = DecisionMaker(
+        self.decision_maker = DecisionMaker(
             decision_maker_handler=DecisionMakerHandler(identity, wallet, {})
         )
-        cls._skill._skill_context._agent_context._decision_maker_message_queue = (  # type: ignore
-            cls.decision_maker.message_in_queue
+        self._skill._skill_context._agent_context._decision_maker_message_queue = (  # type: ignore
+            self.decision_maker.message_in_queue
         )
-        cls._skill.skill_context._agent_context._decision_maker_address = (  # type: ignore
+        self._skill.skill_context._agent_context._decision_maker_address = (  # type: ignore
             "decision_maker"
         )
 
@@ -292,12 +291,11 @@ class _HarHatHelperIntegration(IntegrationBaseCase):
 
     hardhat_provider: BaseProvider
 
-    @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:
         """Setup."""
         super().setup()
 
         # create an API for HardHat
-        cls.hardhat_provider = Web3(
+        self.hardhat_provider = Web3(
             provider=HTTPProvider("http://localhost:8545")
         ).provider

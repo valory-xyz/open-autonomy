@@ -155,7 +155,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
 
     other_agents: List[str] = ["0xAlice", "0xBob", "0xCharlie"]
 
-    def setup(self, **kwargs: Any) -> None:  # type: ignore
+    def setup(self, **kwargs: Any) -> None:
         """Setup"""
         super().setup()
         self.state.params.sleep_time = 0.01

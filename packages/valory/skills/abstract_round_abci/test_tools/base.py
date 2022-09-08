@@ -76,54 +76,53 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
     benchmark_dir: TemporaryDirectory
 
-    @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Setup the test class."""
         # we need to store the current value of the meta-class attribute
         # _MetaPayload.transaction_type_to_payload_cls, and restore it
         # in the teardown function. We do a shallow copy so we avoid
         # to modify the old mapping during the execution of the tests.
-        cls.old_tx_type_to_payload_cls = copy(
+        self.old_tx_type_to_payload_cls = copy(
             _MetaPayload.transaction_type_to_payload_cls
         )
         _MetaPayload.transaction_type_to_payload_cls = {}
         super().setup()
-        assert cls._skill.skill_context._agent_context is not None  # nosec
-        cls._skill.skill_context._agent_context.identity._default_address_key = (
+        assert self._skill.skill_context._agent_context is not None  # nosec
+        self._skill.skill_context._agent_context.identity._default_address_key = (
             "ethereum"
         )
-        cls._skill.skill_context._agent_context._default_ledger_id = "ethereum"
-        cls.behaviour = cast(
+        self._skill.skill_context._agent_context._default_ledger_id = "ethereum"
+        self.behaviour = cast(
             AbstractRoundBehaviour,
-            cls._skill.skill_context.behaviours.main,
+            self._skill.skill_context.behaviours.main,
         )
-        cls.http_handler = cast(HttpHandler, cls._skill.skill_context.handlers.http)
-        cls.signing_handler = cast(
-            SigningHandler, cls._skill.skill_context.handlers.signing
+        self.http_handler = cast(HttpHandler, self._skill.skill_context.handlers.http)
+        self.signing_handler = cast(
+            SigningHandler, self._skill.skill_context.handlers.signing
         )
-        cls.contract_handler = cast(
-            ContractApiHandler, cls._skill.skill_context.handlers.contract_api
+        self.contract_handler = cast(
+            ContractApiHandler, self._skill.skill_context.handlers.contract_api
         )
-        cls.ledger_handler = cast(
-            LedgerApiHandler, cls._skill.skill_context.handlers.ledger_api
+        self.ledger_handler = cast(
+            LedgerApiHandler, self._skill.skill_context.handlers.ledger_api
         )
-        cls.tendermint_handler = cast(
-            TendermintHandler, cls._skill.skill_context.handlers.tendermint
+        self.tendermint_handler = cast(
+            TendermintHandler, self._skill.skill_context.handlers.tendermint
         )
 
         if kwargs.get("param_overrides") is not None:
             for param_name, param_value in kwargs["param_overrides"].items():
-                setattr(cls.behaviour.context.params, param_name, param_value)
+                setattr(self.behaviour.context.params, param_name, param_value)
 
-        cls.behaviour.setup()
-        cls._skill.skill_context.state.setup()
-        cls._skill.skill_context.state.round_sequence.end_sync()
+        self.behaviour.setup()
+        self._skill.skill_context.state.setup()
+        self._skill.skill_context.state.round_sequence.end_sync()
 
-        cls.benchmark_dir = TemporaryDirectory()
-        cls._skill.skill_context.benchmark_tool.log_dir = Path(cls.benchmark_dir.name)
+        self.benchmark_dir = TemporaryDirectory()
+        self._skill.skill_context.benchmark_tool.log_dir = Path(self.benchmark_dir.name)
         assert (  # nosec
-            cast(BaseBehaviour, cls.behaviour.current_behaviour).behaviour_id
-            == cls.behaviour.initial_behaviour_cls.behaviour_id
+                cast(BaseBehaviour, self.behaviour.current_behaviour).behaviour_id
+                == self.behaviour.initial_behaviour_cls.behaviour_id
         )
 
     def fast_forward_to_behaviour(

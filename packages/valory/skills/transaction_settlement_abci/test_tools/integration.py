@@ -78,23 +78,22 @@ class _SafeConfiguredHelperIntegration(IntegrationBaseCase):
     safe_owners: Dict[str, Crypto]
     keeper_address: str
 
-    @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:
         """Setup."""
         super().setup()
 
         # safe configuration
-        cls.safe_owners = {}
-        for address, p_key in cls.agents.items():
+        self.safe_owners = {}
+        for address, p_key in self.agents.items():
             with tempfile.TemporaryDirectory() as temp_dir:
                 fp = os.path.join(temp_dir, "key.txt")
                 f = open(fp, "w")
                 f.write(p_key)
                 f.close()
                 crypto = make_crypto("ethereum", private_key_path=str(fp))
-            cls.safe_owners[address] = crypto
-        cls.keeper_address = cls.current_agent
-        assert cls.keeper_address in cls.safe_owners  # nosec
+            self.safe_owners[address] = crypto
+        self.keeper_address = self.current_agent
+        assert self.keeper_address in self.safe_owners  # nosec
 
 
 class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
@@ -104,18 +103,17 @@ class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
     ethereum_api: EthereumApi
     gnosis_instance: Any
 
-    @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:
         """Setup."""
         super().setup()
 
         # register gnosis contract
-        directory = Path(cls.ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
+        directory = Path(self.ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
         gnosis = get_register_contract(directory)
 
-        cls.ethereum_api = make_ledger_api("ethereum")
-        cls.gnosis_instance = gnosis.get_instance(
-            cls.ethereum_api, cls.safe_contract_address
+        self.ethereum_api = make_ledger_api("ethereum")
+        self.gnosis_instance = gnosis.get_instance(
+            self.ethereum_api, self.safe_contract_address
         )
 
 
@@ -322,13 +320,12 @@ class GnosisIntegrationBaseCase(
 
     # TODO change this class to use the `HardHatGnosisBaseTest` instead of `HardHatAMMBaseTest`.
 
-    @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:
         """Setup."""
         super().setup()
 
         # register offchain aggregator contract
         directory = Path(
-            cls.ROOT_DIR, "packages", "valory", "contracts", "offchain_aggregator"
+            self.ROOT_DIR, "packages", "valory", "contracts", "offchain_aggregator"
         )
         _ = get_register_contract(directory)
