@@ -19,6 +19,8 @@
 
 """Tests for valory/registration_abci skill's behaviours."""
 
+# pylint: skip-file
+
 import time
 from pathlib import Path
 from typing import Any, Dict, Type, cast
@@ -44,6 +46,10 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
+from packages.valory.skills.abstract_round_abci.tests.test_common import (
+    BaseRandomnessBehaviourTest,
+    BaseSelectKeeperBehaviourTest,
+)
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     DeploySafeBehaviour,
     RandomnessSafeBehaviour,
@@ -58,11 +64,7 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
 )
 from packages.valory.skills.safe_deployment_abci.rounds import FinishedSafeRound
 
-from tests.conftest import ROOT_DIR
-from tests.test_skills.test_abstract_round_abci.test_common import (
-    BaseRandomnessBehaviourTest,
-    BaseSelectKeeperBehaviourTest,
-)
+PACKAGE_DIR = Path(__file__).parent.parent
 
 
 class BaseValidateBehaviourTest(FSMBehaviourBaseCase):
@@ -255,17 +257,13 @@ class BaseDeployBehaviourTest(FSMBehaviourBaseCase):
 class SafeDeploymentAbciBaseCase(FSMBehaviourBaseCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "safe_deployment_abci"
-    )
+    path_to_skill = PACKAGE_DIR
 
 
 class TestRandomnessSafe(BaseRandomnessBehaviourTest):
     """Test randomness safe."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "safe_deployment_abci"
-    )
+    path_to_skill = PACKAGE_DIR
 
     randomness_behaviour_class = RandomnessSafeBehaviour
     next_behaviour_class = SelectKeeperSafeBehaviour
@@ -275,9 +273,7 @@ class TestRandomnessSafe(BaseRandomnessBehaviourTest):
 class TestSelectKeeperSafeBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "safe_deployment_abci"
-    )
+    path_to_skill = PACKAGE_DIR
 
     select_keeper_behaviour_class = SelectKeeperSafeBehaviour
     next_behaviour_class = DeploySafeBehaviour

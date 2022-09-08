@@ -19,6 +19,8 @@
 
 """Test the payloads.py module of the skill."""
 
+# pylint: skip-file
+
 from packages.valory.skills.safe_deployment_abci.payloads import (
     DeploySafePayload,
     RandomnessPayload,

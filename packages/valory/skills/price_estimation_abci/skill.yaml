@@ -31,7 +31,7 @@ contracts:
 - valory/gnosis_safe:0.1.0:bafybeiaugd2npc33jgovg72y4y7pyy7yl24ly6eri7mw6v6gev5azewozq
 - valory/offchain_aggregator:0.1.0:bafybeiexr4ggkzocdz3cojmwzhkgmx3fjnvisvbnh7jumlz32lsm4hp7ii
 protocols:
-- open_aea/signing:0.1.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
+- open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeihukx5e2iq6ovup3brtelw3wwhkrvmpuo46ruqas45kg47hwkyu2m
