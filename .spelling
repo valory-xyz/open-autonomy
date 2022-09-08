@@ -189,6 +189,8 @@ NFTs
 md-button
 md-button--primary
 Gitleaks
+href
+counter_example
  - docs/index.md
 README.md
 s_
