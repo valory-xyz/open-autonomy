@@ -19,6 +19,8 @@
 
 """Test the payloads.py module of the skill."""
 
+# pylint: skip-file
+
 from packages.valory.skills.simple_abci.payloads import (
     RandomnessPayload,
     RegistrationPayload,

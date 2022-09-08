@@ -19,6 +19,8 @@
 
 """Test the dialogues.py module of the skill."""
 
+# pylint: skip-file
+
 import packages.valory.skills.simple_abci.dialogues  # noqa
 
 

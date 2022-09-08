@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/simple_abci skill's behaviours."""
+
+# pylint: skip-file
+
 import json
 import time
 from copy import copy
@@ -65,7 +68,8 @@ from packages.valory.skills.simple_abci.handlers import (
 )
 from packages.valory.skills.simple_abci.rounds import Event, SynchronizedData
 
-from tests.conftest import ROOT_DIR
+
+PACKAGE_DIR = Path(__file__).parent.parent
 
 
 class DummyRoundId:
@@ -81,7 +85,7 @@ class DummyRoundId:
 class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
-    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "simple_abci")
+    path_to_skill = PACKAGE_DIR
 
     abci_behaviour: AbstractRoundBehaviour
     ledger_handler: LedgerApiHandler
