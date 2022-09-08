@@ -71,45 +71,45 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
     benchmark_dir: TemporaryDirectory
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:
         """Setup the test class."""
         # we need to store the current value of the meta-class attribute
         # _MetaPayload.transaction_type_to_payload_cls, and restore it
         # in the teardown function. We do a shallow copy so we avoid
         # to modify the old mapping during the execution of the tests.
-        cls.old_tx_type_to_payload_cls = copy(
+        self.old_tx_type_to_payload_cls = copy(
             _MetaPayload.transaction_type_to_payload_cls
         )
         _MetaPayload.transaction_type_to_payload_cls = {}
         super().setup()
-        assert cls._skill.skill_context._agent_context is not None
-        cls._skill.skill_context._agent_context.identity._default_address_key = (
+        assert self._skill.skill_context._agent_context is not None
+        self._skill.skill_context._agent_context.identity._default_address_key = (
             "ethereum"
         )
-        cls._skill.skill_context._agent_context._default_ledger_id = "ethereum"
-        cls.hello_world_abci_behaviour = cast(
+        self._skill.skill_context._agent_context._default_ledger_id = "ethereum"
+        self.hello_world_abci_behaviour = cast(
             HelloWorldRoundBehaviour,
-            cls._skill.skill_context.behaviours.main,
+            self._skill.skill_context.behaviours.main,
         )
-        cls.http_handler = cast(HttpHandler, cls._skill.skill_context.handlers.http)
-        cls.signing_handler = cast(
-            SigningHandler, cls._skill.skill_context.handlers.signing
+        self.http_handler = cast(HttpHandler, self._skill.skill_context.handlers.http)
+        self.signing_handler = cast(
+            SigningHandler, self._skill.skill_context.handlers.signing
         )
 
-        cls.hello_world_abci_behaviour.setup()
-        cls._skill.skill_context.state.setup()
-        cls._skill.skill_context.state.round_sequence.end_sync()
+        self.hello_world_abci_behaviour.setup()
+        self._skill.skill_context.state.setup()
+        self._skill.skill_context.state.round_sequence.end_sync()
 
-        cls.benchmark_dir = TemporaryDirectory()
-        cls._skill.skill_context.benchmark_tool.log_dir = Path(cls.benchmark_dir.name)
+        self.benchmark_dir = TemporaryDirectory()
+        self._skill.skill_context.benchmark_tool.log_dir = Path(self.benchmark_dir.name)
 
         assert (
             cast(
-                BaseBehaviour, cls.hello_world_abci_behaviour.current_behaviour
+                BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
             ).behaviour_id
-            == cls.hello_world_abci_behaviour.initial_behaviour_cls.behaviour_id
+            == self.hello_world_abci_behaviour.initial_behaviour_cls.behaviour_id
         )
-        cls.synchronized_data = SynchronizedData(
+        self.synchronized_data = SynchronizedData(
             AbciAppDB(
                 setup_data=dict(
                     most_voted_keeper_address=["most_voted_keeper_address"],

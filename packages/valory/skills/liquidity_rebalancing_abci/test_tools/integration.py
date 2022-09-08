@@ -41,8 +41,7 @@ class AMMIntegrationBaseCase(
 ):
     """Base test class for integration tests in a Hardhat environment, with AMM interaction."""
 
-    @classmethod
-    def setup(self, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Setup."""
         super().setup()
 

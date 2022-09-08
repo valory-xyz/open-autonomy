@@ -110,7 +110,7 @@ class TransactionSettlementIntegrationBaseCase(
     make_ledger_api_connection_callable = make_ledger_api_connection
     third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
-    def setup(self, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Setup."""
         super().setup()
 
@@ -122,7 +122,7 @@ class TransactionSettlementIntegrationBaseCase(
                         safe_contract_address=self.safe_contract_address,
                         participants=frozenset(list(self.safe_owners.keys())),
                         keepers=keeper_initial_retries.to_bytes(32, "big").hex()
-                                + self.keeper_address,
+                        + self.keeper_address,
                     )
                 ),
             )
@@ -360,7 +360,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
     ROOT_DIR = ROOT_DIR
     make_ledger_api_connection_callable = make_ledger_api_connection
 
-    def setup(self, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Set up the test class."""
         super().setup()
 
@@ -483,7 +483,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
 class TestSyncing(TransactionSettlementIntegrationBaseCase):
     """Test late tx hashes synchronization."""
 
-    def setup(self, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Set up the test class."""
         super().setup()
 

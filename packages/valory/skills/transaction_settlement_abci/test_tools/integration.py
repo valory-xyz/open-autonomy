@@ -78,7 +78,7 @@ class _SafeConfiguredHelperIntegration(IntegrationBaseCase):
     safe_owners: Dict[str, Crypto]
     keeper_address: str
 
-    def setup(self, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Setup."""
         super().setup()
 
@@ -103,12 +103,14 @@ class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
     ethereum_api: EthereumApi
     gnosis_instance: Any
 
-    def setup(self, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Setup."""
         super().setup()
 
         # register gnosis contract
-        directory = Path(self.ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
+        directory = Path(
+            self.ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe"
+        )
         gnosis = get_register_contract(directory)
 
         self.ethereum_api = make_ledger_api("ethereum")
@@ -320,7 +322,7 @@ class GnosisIntegrationBaseCase(
 
     # TODO change this class to use the `HardHatGnosisBaseTest` instead of `HardHatAMMBaseTest`.
 
-    def setup(self, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Setup."""
         super().setup()
 

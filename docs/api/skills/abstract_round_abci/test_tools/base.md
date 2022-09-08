@@ -19,8 +19,7 @@ Base case for testing FSMBehaviour classes.
 #### setup
 
 ```python
-@classmethod
-def setup(cls, **kwargs: Any) -> None
+def setup(**kwargs: Any) -> None
 ```
 
 Setup the test class.

@@ -19,8 +19,7 @@ Base test class for integration tests with Gnosis, but no contract, deployed.
 #### setup
 
 ```python
-@classmethod
-def setup(cls, **kwargs: Any) -> None
+def setup(**kwargs: Any) -> None
 ```
 
 Setup.
@@ -40,8 +39,7 @@ Class that assists Gnosis instantiation.
 #### setup
 
 ```python
-@classmethod
-def setup(cls, **kwargs: Any) -> None
+def setup(**kwargs: Any) -> None
 ```
 
 Setup.
@@ -102,8 +100,7 @@ Base test class for integration tests in a Hardhat environment, with Gnosis depl
 #### setup
 
 ```python
-@classmethod
-def setup(cls, **kwargs: Any) -> None
+def setup(**kwargs: Any) -> None
 ```
 
 Setup.

@@ -53,17 +53,16 @@ class TestCounterHandler(BaseSkillTestCase):
     logger: logging.Logger
     abci_dialogues: AbciDialogues
 
-    @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Setup the test class."""
         super().setup()
-        cls.abci_counter_handler = cast(
-            ABCICounterHandler, cls._skill.skill_context.handlers.abci
+        self.abci_counter_handler = cast(
+            ABCICounterHandler, self._skill.skill_context.handlers.abci
         )
-        cls.logger = cls._skill.skill_context.logger
+        self.logger = self._skill.skill_context.logger
 
-        cls.abci_dialogues = cast(
-            AbciDialogues, cls._skill.skill_context.abci_dialogues
+        self.abci_dialogues = cast(
+            AbciDialogues, self._skill.skill_context.abci_dialogues
         )
 
     def test_setup(self) -> None:

@@ -89,7 +89,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
     def _setup_class(cls, **kwargs: Any) -> None:
         """Setup class."""
 
-    def setup(self, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Setup."""
         super().setup()
 
@@ -291,7 +291,7 @@ class _HarHatHelperIntegration(IntegrationBaseCase):
 
     hardhat_provider: BaseProvider
 
-    def setup(self, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Setup."""
         super().setup()
 

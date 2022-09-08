@@ -153,7 +153,7 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     next_behaviour_class: Type[APYEstimationBaseBehaviour]
     synchronized_data: SynchronizedData
 
-    def setup(self, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Set up the test class."""
         super().setup(
             param_overrides={"ipfs_domain_name": "/dns/localhost/tcp/5001/http"}

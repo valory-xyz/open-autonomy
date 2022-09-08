@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -43,19 +43,20 @@ class BaseTestClass(BaseSkillTestCase):
     behaviour_name: str
     http_handler: HttpHandler
 
-    @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Setup the test class."""
         super().setup()
-        assert cls._skill.skill_context._agent_context is not None
-        cls._skill.skill_context._agent_context.identity._default_address_key = (
+        assert self._skill.skill_context._agent_context is not None
+        self._skill.skill_context._agent_context.identity._default_address_key = (
             "ethereum"
         )
-        cls._skill.skill_context._agent_context._default_ledger_id = "ethereum"
-        cls.behaviour = getattr(cls._skill.skill_context.behaviours, cls.behaviour_name)
+        self._skill.skill_context._agent_context._default_ledger_id = "ethereum"
+        self.behaviour = getattr(
+            self._skill.skill_context.behaviours, self.behaviour_name
+        )
 
-        cls.http_handler = cast(
-            HttpHandler, cls._skill.skill_context.handlers.http_handler
+        self.http_handler = cast(
+            HttpHandler, self._skill.skill_context.handlers.http_handler
         )
 
 

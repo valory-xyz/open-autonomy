@@ -121,8 +121,8 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         self.benchmark_dir = TemporaryDirectory()
         self._skill.skill_context.benchmark_tool.log_dir = Path(self.benchmark_dir.name)
         assert (  # nosec
-                cast(BaseBehaviour, self.behaviour.current_behaviour).behaviour_id
-                == self.behaviour.initial_behaviour_cls.behaviour_id
+            cast(BaseBehaviour, self.behaviour.current_behaviour).behaviour_id
+            == self.behaviour.initial_behaviour_cls.behaviour_id
         )
 
     def fast_forward_to_behaviour(

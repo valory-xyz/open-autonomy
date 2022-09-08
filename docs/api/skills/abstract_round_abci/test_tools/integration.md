@@ -19,8 +19,7 @@ Base test class for integration tests.
 #### setup
 
 ```python
-@classmethod
-def setup(cls, **kwargs: Any) -> None
+def setup(**kwargs: Any) -> None
 ```
 
 Setup.
@@ -115,8 +114,7 @@ Base test class for integration tests with HardHat provider.
 #### setup
 
 ```python
-@classmethod
-def setup(cls, **kwargs: Any) -> None
+def setup(**kwargs: Any) -> None
 ```
 
 Setup.
