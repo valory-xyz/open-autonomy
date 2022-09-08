@@ -86,6 +86,17 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     TransformBehaviour,
     UpdateForecasterBehaviour,
 )
+from packages.valory.skills.apy_estimation_abci.constants import (
+    BEST_PARAMS_PATH,
+    ESTIMATIONS_PATH_TEMPLATE,
+    FORECASTERS_PATH,
+    FULLY_TRAINED_FORECASTERS_PATH,
+    HISTORICAL_DATA_BATCH_PATH_TEMPLATE,
+    HISTORICAL_DATA_PATH_TEMPLATE,
+    LATEST_OBSERVATIONS_PATH_TEMPLATE,
+    PERIOD_SPECIFIER_TEMPLATE,
+    Y_SPLIT_TEMPLATE,
+)
 from packages.valory.skills.apy_estimation_abci.io_.store import (
     ExtendedSupportedFiletype,
 )
@@ -1271,7 +1282,9 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             hash_ = cast(BaseBehaviour, self.behaviour.current_behaviour).send_to_ipfs(
                 os.path.join(
                     tmp_path,
-                    f"historical_data_period_{self.synchronized_data.period_count}.json",
+                    HISTORICAL_DATA_PATH_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 {"test": "test"},
                 filetype=SupportedFiletype.JSON,
@@ -1507,7 +1520,9 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
             "hist": {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"latest_observations_period_{self.synchronized_data.period_count - 1}.csv",
+                    LATEST_OBSERVATIONS_PATH_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count - 1
+                    ),
                 ),
                 "obj": transformed_historical_data.iloc[[0, 2]].reset_index(drop=True),
                 "filetype": ExtendedSupportedFiletype.CSV,
@@ -1515,8 +1530,10 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
             "batch": {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"historical_data_batch_{current_behaviour.params.end}"
-                    f"_period_{self.synchronized_data.period_count}.json",
+                    HISTORICAL_DATA_BATCH_PATH_TEMPLATE.substitute(
+                        batch_number=current_behaviour.params.end,
+                        period_count=self.synchronized_data.period_count,
+                    ),
                 ),
                 "obj": batch,
                 "filetype": SupportedFiletype.JSON,
@@ -1864,8 +1881,10 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             data_to_send[split] = {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"y_{split}",
-                    f"period_{self.synchronized_data.period_count}",
+                    Y_SPLIT_TEMPLATE.substitute(split=split),
+                    PERIOD_SPECIFIER_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 "obj": {
                     f"{split}_{i}": pd.DataFrame([i for i in range(5)])
@@ -2018,8 +2037,10 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             "params": {
                 "filepath": os.path.join(
                     tmp_path,
-                    "best_params",
-                    f"period_{self.synchronized_data.period_count}",
+                    BEST_PARAMS_PATH,
+                    PERIOD_SPECIFIER_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 "obj": {
                     "pool1.json": {"p": 1, "q": 1, "d": 1, "m": 1},
@@ -2033,8 +2054,10 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             data_to_send[split] = {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"y_{split}",
-                    f"period_{self.synchronized_data.period_count}",
+                    Y_SPLIT_TEMPLATE.substitute(split=split),
+                    PERIOD_SPECIFIER_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 "obj": {
                     f"pool{i}.csv": pd.DataFrame([i for i in range(5)])
@@ -2181,8 +2204,10 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             "model": {
                 "filepath": os.path.join(
                     tmp_path,
-                    "forecasters",
-                    f"period_{self.synchronized_data.period_count}",
+                    FORECASTERS_PATH,
+                    PERIOD_SPECIFIER_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 "obj": {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
                 "multiple": True,
@@ -2193,8 +2218,10 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             data_to_send[split] = {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"y_{split}",
-                    f"period_{self.synchronized_data.period_count}",
+                    Y_SPLIT_TEMPLATE.substitute(split=split),
+                    PERIOD_SPECIFIER_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 "obj": {
                     f"pool{i}.csv": pd.DataFrame([i for i in range(5)])
@@ -2337,8 +2364,10 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
             "model": {
                 "filepath": os.path.join(
                     tmp_path,
-                    "fully_trained_forecasters",
-                    f"period_{self.synchronized_data.period_count - 1}",
+                    FULLY_TRAINED_FORECASTERS_PATH,
+                    PERIOD_SPECIFIER_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count - 1
+                    ),
                 ),
                 "obj": {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
                 "multiple": True,
@@ -2347,7 +2376,9 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
             "observation": {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"latest_observations_period_{self.synchronized_data.period_count}.csv",
+                    LATEST_OBSERVATIONS_PATH_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 "obj": prepare_batch_task_result,
                 "filetype": ExtendedSupportedFiletype.CSV,
@@ -2486,8 +2517,10 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
             hash_ = cast(BaseBehaviour, self.behaviour.current_behaviour).send_to_ipfs(
                 os.path.join(
                     tmp_path,
-                    "fully_trained_forecasters",
-                    f"period_{self.synchronized_data.period_count}",
+                    FULLY_TRAINED_FORECASTERS_PATH,
+                    PERIOD_SPECIFIER_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
                 multiple=True,
@@ -2614,7 +2647,9 @@ class BaseResetBehaviourTests(APYEstimationFSMBehaviourBaseCase):
             hash_ = cast(BaseBehaviour, self.behaviour.current_behaviour).send_to_ipfs(
                 os.path.join(
                     tmp_path,
-                    f"estimations_period_{self.synchronized_data.period_count}.csv",
+                    ESTIMATIONS_PATH_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 pd.DataFrame({"pool1": [1.435, 4.234], "pool2": [3.45, 23.64]}),
                 filetype=ExtendedSupportedFiletype.CSV,
