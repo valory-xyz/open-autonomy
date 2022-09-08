@@ -12,7 +12,7 @@ In this guide, we will show how to:
   - Register the service in the on-chain protocol. We will be using the [Görli testnet](https://goerli.net/).
   - Deploy the registered service.
 
-If you recall the [overview of the development process](./overview_of_the_development_process.md), this rougly consists in steps 4, 5, and 6. For illustration purposes, we will also be using the agents from the [Hello World agent service](../hello_world_agent_service.md) and we will create a new (but functionally equivalent) "Hello World 2 agent service". To complete all the steps in this guide, you should have a [Görli testnet](https://goerli.net/) wallet address (e.g., [Metamask](https://metamask.io/)) with some GörliETH funds in it.
+If you recall the [overview of the development process](./overview_of_the_development_process.md), this roughly consists in steps 4, 5, and 6. For illustration purposes, we will also be using the agents from the [Hello World agent service](../hello_world_agent_service.md) and we will create a new (but functionally equivalent) "Hello World 2 agent service". To complete all the steps in this guide, you should have a [Görli testnet](https://goerli.net/) wallet address (e.g., [Metamask](https://metamask.io/)) with some GörliETH funds in it.
 
 ##Step-by-step instructions
 
@@ -93,7 +93,7 @@ you have followed the [setup instructions](./quick_start.md#setup). As a result 
 
         Following the mandatory parameters of the service definition, there is a number of parameter overrides following the operator `---`, which set parameters for the agent components. In this case, the service is setting values for some parameters parameters in the `hello_world_abci` skill, and in the `ledger` connection. For now, you can safely ignore that part of the `service.yaml`file.
 
-3. **Test the service using a local deployment.** This is the recommended approach in order to test your agent service before you publish it to the IPFS. This process should be familiar to you if you have followed the [quick sart](./quick_start.md) guide.
+3. **Test the service using a local deployment.** This is the recommended approach in order to test your agent service before you publish it to the IPFS. This process should be familiar to you if you have followed the [quick start](./quick_start.md) guide.
 
     1. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the agent service. Below you have some sample keys for testing:
 
@@ -172,56 +172,41 @@ you have followed the [setup instructions](./quick_start.md#setup). As a result 
     Note down these values. You can browse how your service has been uploaded to the [IPFS](https://ipfs.io/)
     by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>`, where `<hash>` is the IPFS hash value returned by the previous command.
 
-5. **Register the service in the on-chain protocol.** Now it's time to interact with the on-chain protocol through a deployed smart contract in the [Görli testnet](https://goerli.net/).
+5. **Register the service in the on-chain protocol.** Now it's time to interact with the on-chain protocol through a deployed smart contract in the [Görli testnet](https://goerli.net/). We will be using a convenient protocol front-end to interact with the contract.
 
     1. Make sure you have a [Metamask](https://metamask.io/) wallet with a [Görli testnet](https://goerli.net/) address and some funds on it.
 
-    2. Access the on-chain protocol frontend through your browser on the URL https://protocol.autonolas.network/, and connect your [Metamask](https://metamask.io/) wallet.
+    2. Access [the on-chain protocol frontend](https://protocol.autonolas.network/), and connect your [Metamask](https://metamask.io/) wallet.
+
+    3. Navigate to the [agents section](https://protocol.autonolas.network/agents). You will find there that the Hello World agent is the agent with ID 1.
+
+    4. Navigate to the [services section](https://protocol.autonolas.network/services), and press "Register". There are some data that need to be input in this form, whereas additional data is accessed through the "Generate Hash & File" button. Let's complete the main page first. You must insert:
+
+        - Owner Address: your wallet address starting by `0x...`,
+        - Canonical agent Ids: 1,
+        - No. of slots to canonical agent Ids: 4,
+        - Cost of agent instance bond: 0.01 GörliETH,
+        - Threshold: 3.
+
+    5. By pressing "Generate Hash & File" you need to input further data. Here is some example:
+
+        - Name: Hello World 2 Service,
+        - Description: This service says Hello World,
+        - Version: 0.1.0,
+        - Package hash: This is the hash starting by `bafybei...` you obtained when published the service on [IPFS](https://ipfs.io/).
+        - NFT Image URL: An URL pointing to an image. You can use <https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev> for testing purposes.
 
 
+    6. Press "Save File & Generate Hash"
+    7. Press "Submit". Your  [Metamask](https://metamask.io/) wallet will ask you to approve the transaction.
 
-register -> services
 
+    You should see a message indicating that the service has been registered successfully. Congratulations! Your service is now registered and secured on-chain.
 
----------
+6. **Deploy the registered service.** Finally, you can try to run a deployment for the on-chain service that you just have registered. You will need a `keys.json` file, and the service token ID that you can find in
+https://protocol.autonolas.network/services/. Execute the command
 
-bafybeiallwrd27pc5kcibqhx3at5jotq4lb77wmy6p52ewo2p5cjlasy5e
-
-https://gateway.autonolas.tech/ipfs/f01701220492e87007394c85068b86a2177f77cef79972676fe11b0a0aa22026f6d974d24
-
-Use the CLI to fetch the Hello World agent. This will connect to the remote registry and download the agent, together with the components that the agent uses, and place it in the `hello_world` folder:
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeicealdcbxjdejskntddizntwqmlpyxa2ujaxnw2cgy73x3swldwcq
-    cd hello_world
+    autonomy deploy from-token ON_SERVICE_TOKEN_ID keys.json --use-goerli
     ```
-
-    !!!info
-        Note that the `hello_world` agent is not the same as the `hello_world` service downloaded in the [quick start](./quick_start.md) guide. In fact, they have different hash identifiers in the [IPFS](https://ipfs.io).
-
-
-- Find the hash of the agent you want to use.
-- Write the service.yaml. and README.md
-- Test the service localy in a local deployment.
-- autonomy publish the folder with service.yaml and README.md
-- register the service onchain
-- autonomy from-token xxxx
-- END
-
-
-
-
-
-- create empty AEA project
-- define the FSM spec.
-- populate missing code from generated code.
-- define agent overrides (if necessary)
-- write tests for agent.
-- Write the service.yaml. and README.md
-- Test the service localy in a local deployment.
-- push components
-- publish agent
-- autonomy publish the folder with service.yaml and README.md
-- register the component, agent, and service onchain (Goerli)
-
-- autonomy from-token xxxx
-- END
+    and you should be able to see your service running locally. We will discuss in more detail the deployment process in [this guide](./deploy_service.md).
