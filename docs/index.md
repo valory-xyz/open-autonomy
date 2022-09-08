@@ -6,7 +6,7 @@
 {{open_autonomy}} is a framework for the creation of **agent services**: off-chain
 autonomous services which run as a multi-agent-system (MAS) and offer **enhanced functionalities
 on-chain**. Agent services expands the range of operations that traditional
-smart contracts provide, making possible to execute **arbitrarily complex operations**
+smart contracts provide, making it possible to execute **arbitrarily complex operations**
 (such as machine-learning algorithms). Most importantly, agent services are
 **decentralized**, **trust-minimized**, **transparent**, and **robust**.
 
