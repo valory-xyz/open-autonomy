@@ -16,17 +16,27 @@ fingerprint:
   models.py: bafybeiezevn6fbuvt7sxhsbozzbm2wnj5fiu47plhamdytenugjquy5jyq
   payloads.py: bafybeibjub6tjzflmuba34cnukxriipey3cpkcdejtkc3jqrvinxqs3us4
   rounds.py: bafybeihvqee2jhwfcl7bas7h6gw5pywsfya4lcuoe4kvf3zgszn4r3hrry
+  tests/__init__.py: bafybeic73ajpjybqzpvmyjnl5ejsq6ytibs3r7czvz7re3gmtdkpunqap4
+  tests/test_apis.py: bafybeib44svp6jjfmhtp55wisuf5bv5lglc725zducsyhmcrco2s2tukem
+  tests/test_behaviours.py: bafybeihaf77fqsuoudoqmm6u2wrdmnfscbowg4of7w3uzrvyvafklrfxei
+  tests/test_dialogues.py: bafybeigmz5coi27zy7sgwnlhsvk7hg5auxexzbtdsw6uie375x3zjhzd4e
+  tests/test_handlers.py: bafybeiaq5bvl2ypvamd4aq6dtngg2yewh44thvlfqvf4dexwy4ecut5es4
+  tests/test_models.py: bafybeifnkxddj754sn33pgtrtcfkt7nptspnssfvtfpxvoazujlhdms4qu
+  tests/test_payloads.py: bafybeiexaygx5dpt2nv4v56rwmd73jrehdlrrkfrr7qawp4ghms6wf6zey
+  tests/test_rounds.py: bafybeiftjk7vmyllvm6fp2juqyyeatfrvplvuh5mecot246b2igbk2w6mm
+  tests/test_tools.py: bafybeicvwyu4csbn3foyp5mvcdlnu3uiwwvmvnh5m74sspe77nws5ulm6i
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeiaugd2npc33jgovg72y4y7pyy7yl24ly6eri7mw6v6gev5azewozq
 - valory/offchain_aggregator:0.1.0:bafybeiexr4ggkzocdz3cojmwzhkgmx3fjnvisvbnh7jumlz32lsm4hp7ii
 protocols:
+- open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeid7ecmbkywgtsh3s2vjdy2dev5f2av3e76cqcktweaijmaook2eae
-- valory/oracle_deployment_abci:0.1.0:bafybeibovawtv3hcnwxwiyynf6ubmipo5u7q3zr3kfi4xokpd53odmyfpi
-- valory/transaction_settlement_abci:0.1.0:bafybeig4buw6c4ac7w7csqek2o26mtxw6k5e4whku5yopdk2lqp6plm4be
+- valory/abstract_round_abci:0.1.0:bafybeiayundvgebwtckznm3o7io2hk2ehnmohyv64ic3ubqffkgqv6a424
+- valory/oracle_deployment_abci:0.1.0:bafybeiheczdtbnr5d6rlauaofhw36p5l2usyh4c5lfbvfdql4zqbv3jjie
+- valory/transaction_settlement_abci:0.1.0:bafybeig42hbdyljzeoqxpx6mxkz52nlt6utdhchylvmifzkafpdjft7up4
 behaviours:
   main:
     args: {}
