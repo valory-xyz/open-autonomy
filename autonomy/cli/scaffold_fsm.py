@@ -28,7 +28,7 @@ import shutil
 from abc import ABC, abstractmethod
 from pathlib import Path
 from textwrap import dedent, indent
-from typing import Dict, List, Set, Type
+from typing import Dict, List, Type
 
 import click
 from aea.cli.add import add_item
@@ -888,7 +888,7 @@ def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
 
 
 # Scaffolding of tests
-class RoundTestsFileGenerator(RoundFileGenerator):
+class RoundTestsFileGenerator(AbstractFileGenerator):
     """RoundTestsFileGenerator"""
 
     FILENAME = "tests_" + ROUNDS_FILENAME
@@ -1028,7 +1028,7 @@ class RoundTestsFileGenerator(RoundFileGenerator):
         return "\n".join(all_round_classes_str)
 
 
-class BehaviourTestsFileGenerator(BehaviourFileGenerator):
+class BehaviourTestsFileGenerator(AbstractFileGenerator):
     """File generator for 'test_behaviours.py' modules."""
 
     FILENAME = "test_" + BEHAVIOURS_FILENAME
@@ -1184,7 +1184,7 @@ class BehaviourTestsFileGenerator(BehaviourFileGenerator):
         return "\n".join(all_behaviour_classes_str)
 
 
-class PayloadTestsFileGenerator(PayloadsFileGenerator):
+class PayloadTestsFileGenerator(AbstractFileGenerator):
     """File generator for 'test_payloads.py' modules."""
 
     FILENAME = "test_" + PAYLOADS_FILENAME
