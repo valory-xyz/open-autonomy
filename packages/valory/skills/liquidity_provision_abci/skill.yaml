@@ -8,13 +8,19 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeibizgp7d7xn5cbp5ikgqd4axfbucwfwugcvwods2gsyxvuuu5lei4
-  __init__.py: bafybeiaikx37b2ditrxk2646yn24e6sp5utlbgiz4lyyhidbl2ut6kkajy
+  __init__.py: bafybeigkzouubo43nx3hlhwixfkm74wcinxtrskkivvhexyysux54w5qmi
   behaviours.py: bafybeiebkkr4elootfqtmfgurbe74zmzhujlwrsv4qfh2pcrhdm7nt3mfi
   composition.py: bafybeiekejf5bp3etceeocybnlileetot2hrdnn4w4mgg76meqoulshiwq
   dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
   fsm_specification.yaml: bafybeiamyeagkpamjwhqtsgn22d3b2twf6wrjpas4emm2ebfrxn7oztgty
   handlers.py: bafybeicap4nttt2g2updfdf62454a5i5dcstpcwlzaz5gtsqnlz5auuuae
   models.py: bafybeihcsetun6wuygzyjv5m7qtx6sr6sr3bbpudfswg5armnudoa7juru
+  tests/__init__.py: bafybeigtwmtsni2sv3ikqbl72cz7qpjpvqrxmkpzvebw6f4zuxyppylpp4
+  tests/conftest.py: bafybeihjaq2nswtazvjx3r344mq7bmnkalelmcm67tso4oo6ttvmabtwdy
+  tests/test_behaviours.py: bafybeiewavpcq3r6t6qwt2jy7uohonzrhvjgo4zjnifec3mchfwo4arphq
+  tests/test_dialogues.py: bafybeidndadco2cyqj63nfqjx4igbtf2wnkeig47b5twgry3lzbqoudn7a
+  tests/test_handlers.py: bafybeif3mrcsuuu4dabwtpk565objlasp6aydhen3mccj3tffyzsxmnzgq
+  tests/test_models.py: bafybeifim6rodwa6j6o6327565j6xvh6lp7tvgk6sybd5dg45pjji5djha
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []

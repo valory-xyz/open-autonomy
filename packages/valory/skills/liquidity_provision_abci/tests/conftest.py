@@ -16,11 +16,18 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Tests for valory/price_estimation_abci skill's behaviours."""
-from packages.valory.skills.liquidity_provision_abci.behaviours import (  # noqa
-    LiquidityProvisionConsensusBehaviour,
-)
+"""Configurations for Liquidity Provision skill's tests."""
+
+# pylint: skip-file
+
+from unittest import mock
+
+import pytest
+
+from packages.valory.skills.liquidity_provision_abci.models import SharedState
 
 
-def test_import() -> None:
-    """Test that the 'behaviours.py' Python module can be imported."""
+@pytest.fixture
+def shared_state() -> SharedState:
+    """Initialize a test shared state."""
+    return SharedState(name="", skill_context=mock.MagicMock())

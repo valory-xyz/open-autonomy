@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
+
+# pylint: skip-file
+
 from unittest.mock import MagicMock
 
 from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext

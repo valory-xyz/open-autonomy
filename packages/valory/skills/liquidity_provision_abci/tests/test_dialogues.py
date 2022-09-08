@@ -16,16 +16,13 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Configurations for Liquidity Provision skill's tests."""
 
-from unittest import mock
+"""Test the dialogues.py module of the skill."""
 
-import pytest
+# pylint: skip-file
 
-from packages.valory.skills.liquidity_provision_abci.models import SharedState
+import packages.valory.skills.liquidity_provision_abci.dialogues  # noqa
 
 
-@pytest.fixture
-def shared_state() -> SharedState:
-    """Initialize a test shared state."""
-    return SharedState(name="", skill_context=mock.MagicMock())
+def test_import() -> None:
+    """Test that the 'dialogues.py' Python module can be imported."""
