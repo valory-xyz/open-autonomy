@@ -89,6 +89,10 @@ DIALOGUES_FILENAME = "dialogues.py"
 DEGENERATE_ROUND = "DegenerateRound"
 ABSTRACT_ROUND = "AbstractRound"
 
+ROUND = "Round"
+BEHAVIOUR = "Behaviour"
+PAYLOAD = "Payload"
+
 
 def remove_suffix(s: str, suffix: str) -> str:
     """str.removesuffix() does not exist in python 3.7, 3.8"""
@@ -209,17 +213,17 @@ class AbstractFileGenerator(ABC):
     @property
     def base_names(self) -> Set[str]:
         """Base names"""
-        return {s.replace("Round", "") for s in self.rounds}
+        return {s.replace(ROUND, "") for s in self.rounds}
 
     @property
     def behaviours(self) -> Set[str]:
         """Behaviours"""
-        return {s.replace("Round", "Behaviour") for s in self.rounds}
+        return {s.replace(ROUND, BEHAVIOUR) for s in self.rounds}
 
     @property
     def payloads(self) -> Set[str]:
         """Payloads"""
-        return {s.replace("Round", "Payload") for s in self.rounds}
+        return {s.replace(ROUND, PAYLOAD) for s in self.rounds}
 
 
 class RoundFileGenerator(AbstractFileGenerator):
@@ -364,7 +368,7 @@ class RoundFileGenerator(AbstractFileGenerator):
         # add round classes
         for abci_round_name in self.rounds:
             todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
-            base_name = abci_round_name.replace("Round", "")
+            base_name = abci_round_name.replace(ROUND, "")
             round_id = _camel_case_to_snake_case(base_name)
             round_class_str = RoundFileGenerator.ROUND_CLS_TEMPLATE.format(
                 round_id=round_id,
@@ -376,7 +380,7 @@ class RoundFileGenerator(AbstractFileGenerator):
             all_round_classes_str.append(round_class_str)
 
         for abci_round_name in self.degenerate_rounds:
-            base_name = abci_round_name.replace("Round", "")
+            base_name = abci_round_name.replace(ROUND, "")
             round_id = _camel_case_to_snake_case(base_name)
             round_class_str = RoundFileGenerator.DEGENERATE_ROUND_CLS_TEMPLATE.format(
                 round_id=round_id,
@@ -551,8 +555,8 @@ class BehaviourFileGenerator(AbstractFileGenerator):
                 )
             )
 
-            behaviour_id = abci_behaviour_name.replace("Behaviour", "")
-            matching_round = abci_behaviour_name.replace("Behaviour", "Round")
+            behaviour_id = abci_behaviour_name.replace(BEHAVIOUR, "")
+            matching_round = abci_behaviour_name.replace(BEHAVIOUR, ROUND)
             behaviour_class_str = BehaviourFileGenerator.BEHAVIOUR_CLS_TEMPLATE.format(
                 BehaviourCls=abci_behaviour_name,
                 BaseBehaviourCls=base_behaviour_cls_name,
@@ -653,7 +657,7 @@ class PayloadsFileGenerator(AbstractFileGenerator):
         all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=self.fsm_name)]
 
         for payload_name in self.payloads:
-            base_name = payload_name.replace("Payload", "")
+            base_name = payload_name.replace(PAYLOAD, "")
             tx_type = _camel_case_to_snake_case(base_name)
             payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
                 FSMName=self.fsm_name,
