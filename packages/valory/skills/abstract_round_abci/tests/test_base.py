@@ -77,6 +77,11 @@ from packages.valory.skills.abstract_round_abci.base import _logger as default_l
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
+from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
+    AbciAppTest,
+    ConcreteRoundA,
+    ConcreteRoundB,
+)
 
 
 class PayloadEnum(Enum):
@@ -167,23 +172,6 @@ class TooBigPayload(BaseTxPayload, ABC):
         return dict(dummy_field="0" * 10 ** 7)
 
 
-class ConcreteRoundA(AbstractRound):
-    """Dummy instantiation of the AbstractRound class."""
-
-    round_id = "concrete_a"
-    allowed_tx_type = "payload_a"
-
-    def end_block(self) -> Tuple[MagicMock, MagicMock]:
-        """End block."""
-        return MagicMock(), MagicMock()
-
-    def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check payloads of type 'payload_a'."""
-
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """Process payloads of type 'payload_a'."""
-
-
 class ObjectImitator:
     """For custom __eq__ implementation testing"""
 
@@ -195,54 +183,6 @@ class ObjectImitator:
                 setattr(self.__class__, attr, value)
 
         self.__dict__ = other.__dict__
-
-
-class ConcreteRoundB(AbstractRound):
-    """Dummy instantiation of the AbstractRound class."""
-
-    round_id = "concrete_b"
-    allowed_tx_type = "payload_b"
-
-    def end_block(self) -> None:
-        """End block."""
-
-    def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check payloads of type 'payload_b'."""
-
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """Process payloads of type 'payload_b'."""
-
-
-class ConcreteRoundC(AbstractRound):
-    """Dummy instantiation of the AbstractRound class."""
-
-    round_id = "concrete_c"
-    allowed_tx_type = "payload_c"
-
-    def end_block(self) -> None:
-        """End block."""
-
-    def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check payloads of type 'payload_c'."""
-
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """Process payloads of type 'payload_c'."""
-
-
-class AbciAppTest(AbciApp[str]):
-    """A dummy AbciApp for testing purposes."""
-
-    TIMEOUT: float = 1.0
-
-    initial_round_cls: Type[AbstractRound] = ConcreteRoundA
-    transition_function: Dict[Type[AbstractRound], Dict[str, Type[AbstractRound]]] = {
-        ConcreteRoundA: {"a": ConcreteRoundA, "b": ConcreteRoundB, "c": ConcreteRoundC},
-        ConcreteRoundB: {"b": ConcreteRoundB, "timeout": ConcreteRoundA},
-        ConcreteRoundC: {"c": ConcreteRoundA, "timeout": ConcreteRoundC},
-    }
-    event_to_timeout: Dict[str, float] = {
-        "timeout": TIMEOUT,
-    }
 
 
 def test_base_tx_payload() -> None:

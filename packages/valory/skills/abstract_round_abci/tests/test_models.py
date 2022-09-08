@@ -47,7 +47,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     Requests,
     SharedState,
 )
-from packages.valory.skills.abstract_round_abci.tests.test_base import AbciAppTest
+from packages.valory.skills.abstract_round_abci.test_tools.abci_app import AbciAppTest
 
 
 class DummyMessage:

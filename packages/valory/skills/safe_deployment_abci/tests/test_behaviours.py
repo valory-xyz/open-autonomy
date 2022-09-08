@@ -64,6 +64,7 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
 )
 from packages.valory.skills.safe_deployment_abci.rounds import FinishedSafeRound
 
+
 PACKAGE_DIR = Path(__file__).parent.parent
 
 
