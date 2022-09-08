@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/test_abci skill's behaviours."""
+
+# pylint: skip-file
+
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Dict, Type, cast
@@ -42,13 +45,14 @@ from packages.valory.skills.test_abci.handlers import (
     SigningHandler,
 )
 
-from tests.conftest import ROOT_DIR
+
+PACKAGE_DIR = Path(__file__).parent.parent
 
 
 class AbciFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     """Base case for testing FSMBehaviour."""
 
-    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "test_abci")
+    path_to_skill = PACKAGE_DIR
 
     test_abci_behaviour: TestAbciConsensusBehaviour
     ledger_handler: LedgerApiHandler

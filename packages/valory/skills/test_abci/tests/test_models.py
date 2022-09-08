@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
+
+# pylint: skip-file
+
 from unittest import mock
 from unittest.mock import MagicMock
 

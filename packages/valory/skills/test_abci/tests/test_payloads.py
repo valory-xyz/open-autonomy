@@ -19,6 +19,8 @@
 
 """Test the payloads.py module of the skill."""
 
+# pylint: skip-file
+
 from packages.valory.skills.test_abci.payloads import DummyPayload, TransactionType
 
 
