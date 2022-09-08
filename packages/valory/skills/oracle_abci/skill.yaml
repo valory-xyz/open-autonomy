@@ -24,7 +24,7 @@ skills:
 - valory/oracle_deployment_abci:0.1.0:bafybeidpcb7vbxptcsouyemnufshi5xcvzqgst3h5epfnume5xesbsgiti
 - valory/price_estimation_abci:0.1.0:bafybeidpl66axtfynzgtmua5q27pkfkjiqce2tcvn5i7svi2c2xwpwflca
 - valory/registration_abci:0.1.0:bafybeidhig4ncs4gyajscdvp45ye7otzf32krqqaz5uyguie7kl2hnudvu
-- valory/reset_pause_abci:0.1.0:bafybeieljawjnsmczgkmacytiik27ienng5voel26dtqcjtrkxbvbcawoq
+- valory/reset_pause_abci:0.1.0:bafybeianiic6pbyza4xcktxnp6mjt4joh7txc7vcrrihld4pgmgtvpj37e
 - valory/safe_deployment_abci:0.1.0:bafybeifemsdx3zllg32bcbdh6ypqjsn2ewlghwetp2iofcznlnrfkzpjbi
 - valory/transaction_settlement_abci:0.1.0:bafybeidtdpzdebwga5erevziaflvws3cvrocpiwspk3t3c2fm4wqaebe5a
 behaviours:

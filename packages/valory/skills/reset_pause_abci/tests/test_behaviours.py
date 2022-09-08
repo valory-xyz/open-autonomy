@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/reset_pause_abci skill's behaviours."""
+
+# pylint: skip-files
+
 from pathlib import Path
 from typing import Callable, Generator, Optional
 from unittest import mock
@@ -39,13 +42,14 @@ from packages.valory.skills.reset_pause_abci.behaviours import ResetAndPauseBeha
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
 from packages.valory.skills.reset_pause_abci.rounds import FinishedResetAndPauseRound
 
-from tests.conftest import ROOT_DIR
+
+PACKAGE_DIR = Path(__file__).parent.parent
 
 
 class ResetPauseAbciFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     """Base case for testing PauseReset FSMBehaviour."""
 
-    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "reset_pause_abci")
+    path_to_skill = PACKAGE_DIR
 
 
 def dummy_reset_tendermint_with_wait_wrapper(

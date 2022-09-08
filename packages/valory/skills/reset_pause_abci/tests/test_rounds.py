@@ -18,19 +18,21 @@
 # ------------------------------------------------------------------------------
 
 """Test the rounds of the skill."""
+
+# pylint: skip-files
+
 import logging  # noqa: F401
 from typing import Dict, FrozenSet
 
 from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as ResetSynchronizedSata,
 )
+from packages.valory.skills.abstract_round_abci.tests.test_base_rounds import (
+    BaseCollectSameUntilThresholdRoundTest,
+)
 from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
 from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
-
-from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
-    BaseCollectSameUntilThresholdRoundTest,
-)
 
 
 MAX_PARTICIPANTS: int = 4

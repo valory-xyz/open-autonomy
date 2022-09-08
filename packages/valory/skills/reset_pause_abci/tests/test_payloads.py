@@ -19,6 +19,8 @@
 
 """Test the payloads.py module of the skill."""
 
+# pylint: skip-files
+
 from packages.valory.skills.reset_pause_abci.payloads import (
     ResetPausePayload,
     TransactionType,
