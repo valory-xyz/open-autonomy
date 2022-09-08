@@ -91,6 +91,7 @@ ABSTRACT_ROUND = "AbstractRound"
 ROUND = "Round"
 BEHAVIOUR = "Behaviour"
 PAYLOAD = "Payload"
+EVENT = "Event"
 ABCI_APP = "AbciApp"
 BASE_BEHAVIOUR = "BaseBehaviour"
 ROUND_BEHAVIOUR = "RoundBehaviour"
@@ -128,7 +129,7 @@ class AbstractFileGenerator(ABC):
     @property
     def fsm_name(self) -> str:
         """FSM base name"""
-        return self.abci_app_name.replace("AbciApp", "")
+        return self.abci_app_name.replace(ABCI_APP, "")
 
     @property
     def author(self) -> str:
@@ -361,7 +362,7 @@ class RoundFileGenerator(AbstractFileGenerator):
         """Parse the transition function from the spec to a nested dictionary."""
         result: Dict[str, Dict[str, str]] = {}  # type: ignore
         for (round_cls_name, event_name), value in self.dfa.transition_func.items():
-            result.setdefault(round_cls_name, {})[f"Event.{event_name}"] = value
+            result.setdefault(round_cls_name, {})[f"{EVENT}.{event_name}"] = value
         for state in self.dfa.states:
             if state not in result:
                 result[state] = {}
@@ -443,7 +444,8 @@ class BehaviourFileGenerator(AbstractFileGenerator):
     )
 
     def get_file_content(self) -> str:
-        """Scaffold the 'rounds.py' file."""
+        """Scaffold the 'behaviours.py' file."""
+
         behaviours_header_section = self._get_behaviours_header_section()
         base_behaviour_section = self._get_base_behaviour_section()
         behaviours_section = self._get_behaviours_section()
@@ -570,8 +572,8 @@ class PayloadsFileGenerator(AbstractFileGenerator):
 
     PAYLOAD_CLS_TEMPLATE = dedent(
         """\
-        class {BaseName}Payload(Base{FSMName}Payload):
-            \"\"\"Represent a transaction payload for the {BaseName}Round.\"\"\"
+        class {PayloadCls}(Base{FSMName}Payload):
+            \"\"\"Represent a transaction payload for the {RoundCls}.\"\"\"
 
             # TODO: specify the transaction type
             transaction_type = TransactionType.{tx_type}
@@ -584,11 +586,12 @@ class PayloadsFileGenerator(AbstractFileGenerator):
 
         all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=self.fsm_name)]
 
-        for base_name, payload_name in zip(self.base_names, self.payloads):
-            tx_type = _camel_case_to_snake_case(base_name)
+        for payload_name, round_name in zip(self.payloads, self.rounds):
+            tx_type = _camel_case_to_snake_case(round_name.replace(ROUND, ""))
             payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
                 FSMName=self.fsm_name,
-                BaseName=base_name,
+                PayloadCls=payload_name,
+                RoundCls=round_name,
                 tx_type=tx_type.upper(),
             )
             all_payloads_classes_str.append(payload_class_str)
