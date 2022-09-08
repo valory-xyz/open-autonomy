@@ -1421,6 +1421,12 @@ class ScaffoldABCISkill:
         # remove original 'my_model.py' file
         os.remove(self.skill_dir / "my_model.py")
 
+        # update copyright
+        init_py_path = self.skill_dir / "__init__.py"
+        lines = init_py_path.read_text().splitlines()
+        content = "\n".join(line for line in lines if not line.startswith("#"))
+        init_py_path.write_text(FILE_HEADER + content)
+
         self._remove_pycache()
         self._update_config()
 
