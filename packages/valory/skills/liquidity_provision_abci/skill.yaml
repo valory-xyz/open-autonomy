@@ -27,8 +27,8 @@ contracts: []
 protocols: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeihukx5e2iq6ovup3brtelw3wwhkrvmpuo46ruqas45kg47hwkyu2m
-- valory/liquidity_rebalancing_abci:0.1.0:bafybeigg2t7ah2ca2qs4pywcyakqz5nweeaol3vmvijyjmvrqouckvffrq
-- valory/registration_abci:0.1.0:bafybeiglkf3lr4gsand7kzhmuv4ufzf4mzf7l6kom4brunldq7ofd4fvpe
+- valory/liquidity_rebalancing_abci:0.1.0:bafybeiddrux6a6hahpeljyg62pn7oqlitgxqooxruecr6kz4dx37jt4nuy
+- valory/registration_abci:0.1.0:bafybeidhig4ncs4gyajscdvp45ye7otzf32krqqaz5uyguie7kl2hnudvu
 - valory/reset_pause_abci:0.1.0:bafybeieljawjnsmczgkmacytiik27ienng5voel26dtqcjtrkxbvbcawoq
 - valory/safe_deployment_abci:0.1.0:bafybeifemsdx3zllg32bcbdh6ypqjsn2ewlghwetp2iofcznlnrfkzpjbi
 - valory/transaction_settlement_abci:0.1.0:bafybeidtdpzdebwga5erevziaflvws3cvrocpiwspk3t3c2fm4wqaebe5a
