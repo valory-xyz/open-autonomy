@@ -18,11 +18,15 @@
 # ------------------------------------------------------------------------------
 
 """This module contains tests for the `IPFS` interactions."""
+
+# pytest: skip-file
+
 import os.path
 from pathlib import PosixPath
-from typing import Dict, cast
+from typing import Dict, Iterator, cast
 
 import pytest
+from aea_cli_ipfs.ipfs_utils import IPFSDaemon
 
 from packages.valory.skills.abstract_round_abci.io_.ipfs import IPFSInteract
 from packages.valory.skills.abstract_round_abci.io_.store import (
@@ -33,10 +37,21 @@ from packages.valory.skills.abstract_round_abci.io_.store import (
 )
 
 
-ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
+use_ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
 
 
-@ipfs_daemon
+@pytest.fixture(scope="module")
+def ipfs_daemon() -> Iterator[bool]:
+    """Starts an IPFS daemon for the tests."""
+    print("Starting IPFS daemon...")
+    daemon = IPFSDaemon()
+    daemon.start()
+    yield daemon.is_started()
+    print("Tearing down IPFS daemon...")
+    daemon.stop()
+
+
+@use_ipfs_daemon
 class TestIPFSInteract:
     """Test `IPFSInteract`."""
 

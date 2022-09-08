@@ -18,15 +18,21 @@
 # ------------------------------------------------------------------------------
 
 """Test the behaviours_utils.py module of the skill."""
+
+# pytest: skip-file
+
 import json
 import logging
 import math
+import shutil
 import sys
 import time
 from abc import ABC
 from collections import OrderedDict
+from contextlib import suppress
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
 from unittest import mock
 from unittest.mock import MagicMock
@@ -54,6 +60,7 @@ from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import HttpDialogues
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
+from packages.valory.skills.abstract_round_abci import behaviour_utils
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
@@ -81,6 +88,19 @@ from packages.valory.skills.abstract_round_abci.models import (
     _DEFAULT_TX_MAX_ATTEMPTS,
     _DEFAULT_TX_TIMEOUT,
 )
+
+
+PACKAGE_DIR = Path(__file__).parent.parent
+
+
+@pytest.fixture(scope="session", autouse=True)
+def hypothesis_cleanup() -> Generator:
+    """Fixture to remove hypothesis directory after tests."""
+    yield
+    hypothesis_dir = PACKAGE_DIR / ".hypothesis"
+    if hypothesis_dir.exists():
+        with suppress(OSError, PermissionError):
+            shutil.rmtree(hypothesis_dir)
 
 
 def yield_and_return_bool_wrapper(
@@ -1097,8 +1117,8 @@ class TestBaseBehaviour:
             try_send(gen, obj=None)
 
     @mock.patch.object(BaseBehaviour, "_get_request_nonce_from_dialogue")
-    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.RawMessage")
-    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    @mock.patch.object(behaviour_utils, "RawMessage")
+    @mock.patch.object(behaviour_utils, "Terms")
     def test_send_signing_request(self, *_: Any) -> None:
         """Test '_send_signing_request'."""
         with mock.patch.object(
@@ -1132,12 +1152,8 @@ class TestBaseBehaviour:
                 "create",
                 return_value=(MagicMock(), MagicMock()),
             ):
-                with mock.patch(
-                    "packages.valory.skills.abstract_round_abci.behaviour_utils.RawMessage"
-                ):
-                    with mock.patch(
-                        "packages.valory.skills.abstract_round_abci.behaviour_utils.Terms"
-                    ):
+                with mock.patch.object(behaviour_utils, "RawMessage"):
+                    with mock.patch.object(behaviour_utils, "Terms"):
                         self.behaviour._send_signing_request(input_bytes)
 
         atheris.instrument_all()
@@ -1145,8 +1161,8 @@ class TestBaseBehaviour:
         atheris.Fuzz()
 
     @mock.patch.object(BaseBehaviour, "_get_request_nonce_from_dialogue")
-    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.RawMessage")
-    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    @mock.patch.object(behaviour_utils, "RawMessage")
+    @mock.patch.object(behaviour_utils, "Terms")
     def test_send_transaction_signing_request(self, *_: Any) -> None:
         """Test '_send_signing_request'."""
         with mock.patch.object(
@@ -1248,7 +1264,7 @@ class TestBaseBehaviour:
             # trigger generator function
             try_send(gen, obj=None)
 
-    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    @mock.patch.object(behaviour_utils, "Terms")
     def test_get_default_terms(self, *_: Any) -> None:
         """Test '_get_default_terms'."""
         self.behaviour._get_default_terms()
@@ -1256,7 +1272,7 @@ class TestBaseBehaviour:
     @mock.patch.object(BaseBehaviour, "_send_transaction_signing_request")
     @mock.patch.object(BaseBehaviour, "_send_transaction_request")
     @mock.patch.object(BaseBehaviour, "_send_transaction_receipt_request")
-    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    @mock.patch.object(behaviour_utils, "Terms")
     def test_send_raw_transaction(self, *_: Any) -> None:
         """Test 'send_raw_transaction'."""
         m = MagicMock()
@@ -1296,7 +1312,7 @@ class TestBaseBehaviour:
     @mock.patch.object(BaseBehaviour, "_send_transaction_signing_request")
     @mock.patch.object(BaseBehaviour, "_send_transaction_request")
     @mock.patch.object(BaseBehaviour, "_send_transaction_receipt_request")
-    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    @mock.patch.object(behaviour_utils, "Terms")
     def test_send_raw_transaction_with_wrong_signing_performative(
         self, *_: Any
     ) -> None:
@@ -1327,7 +1343,7 @@ class TestBaseBehaviour:
     @mock.patch.object(BaseBehaviour, "_send_transaction_signing_request")
     @mock.patch.object(BaseBehaviour, "_send_transaction_request")
     @mock.patch.object(BaseBehaviour, "_send_transaction_receipt_request")
-    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    @mock.patch.object(behaviour_utils, "Terms")
     def test_send_raw_transaction_errors(
         self,
         _: Any,
@@ -1375,7 +1391,7 @@ class TestBaseBehaviour:
     @mock.patch.object(BaseBehaviour, "_send_transaction_signing_request")
     @mock.patch.object(BaseBehaviour, "_send_transaction_request")
     @mock.patch.object(BaseBehaviour, "_send_transaction_receipt_request")
-    @mock.patch("packages.valory.skills.abstract_round_abci.behaviour_utils.Terms")
+    @mock.patch.object(behaviour_utils, "Terms")
     def test_send_raw_transaction_hashes_mismatch(self, *_: Any) -> None:
         """Test 'send_raw_transaction' when signature and tx responses' hashes mismatch."""
         m = MagicMock()
@@ -1419,9 +1435,7 @@ class TestBaseBehaviour:
             self.behaviour.context.contract_api_dialogues,
             "create",
             return_value=(MagicMock(), MagicMock()),
-        ), mock.patch(
-            "packages.valory.skills.abstract_round_abci.behaviour_utils.Terms"
-        ), mock.patch.object(
+        ), mock.patch.object(behaviour_utils, "Terms"), mock.patch.object(
             BaseBehaviour, "_send_transaction_signing_request"
         ), mock.patch.object(
             BaseBehaviour, "_send_transaction_request"

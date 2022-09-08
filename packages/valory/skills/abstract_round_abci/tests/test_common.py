@@ -19,6 +19,8 @@
 
 """Test the common.py module of the skill."""
 
+# pytest: skip-file
+
 import binascii
 import json
 import re

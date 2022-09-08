@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the behaviours.py module of the skill."""
+
+# pytest: skip-file
+
 from enum import Enum
 from typing import Any, Dict, Generator, Optional, Tuple
 from unittest import mock
@@ -170,12 +173,12 @@ class TestAbstractRoundBehaviour:
             for i, round in enumerate(rounds)
         ]
 
-        with mock.patch(
-            "packages.valory.skills.abstract_round_abci.behaviours._MetaRoundBehaviour._check_all_required_classattributes_are_set"
-        ), mock.patch(
-            "packages.valory.skills.abstract_round_abci.behaviours._MetaRoundBehaviour._check_behaviour_id_uniqueness"
-        ), mock.patch(
-            "packages.valory.skills.abstract_round_abci.behaviours._MetaRoundBehaviour._check_initial_behaviour_in_set_of_behaviours"
+        with mock.patch.object(
+            _MetaRoundBehaviour, "_check_all_required_classattributes_are_set"
+        ), mock.patch.object(
+            _MetaRoundBehaviour, "_check_behaviour_id_uniqueness"
+        ), mock.patch.object(
+            _MetaRoundBehaviour, "_check_initial_behaviour_in_set_of_behaviours"
         ), pytest.raises(
             ABCIAppInternalError,
             match="internal error: round round_0 is a final round it shouldn't have any matching behaviours",
@@ -203,9 +206,7 @@ class TestAbstractRoundBehaviour:
             ValueError,
             match=f"cannot have two behaviours with the same id; got {behaviour_2} and {behaviour_1} both with id '{behaviour_id}'",
         ):
-            with mock.patch(
-                "packages.valory.skills.abstract_round_abci.behaviours._MetaRoundBehaviour._check_consistency"
-            ):
+            with mock.patch.object(_MetaRoundBehaviour, "_check_consistency"):
 
                 class MyRoundBehaviour(AbstractRoundBehaviour):
                     abci_app_cls = MagicMock
@@ -227,9 +228,7 @@ class TestAbstractRoundBehaviour:
             ValueError,
             match=f"the behaviours '{behaviour_id_2}' and '{behaviour_id_1}' point to the same matching round '{round_id}'",
         ):
-            with mock.patch(
-                "packages.valory.skills.abstract_round_abci.behaviours._MetaRoundBehaviour._check_consistency"
-            ):
+            with mock.patch.object(_MetaRoundBehaviour, "_check_consistency"):
 
                 class MyRoundBehaviour(AbstractRoundBehaviour):
                     abci_app_cls = ConcreteAbciApp

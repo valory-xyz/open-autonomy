@@ -127,11 +127,19 @@ class TestABCIHandler:
 
     def setup(self) -> None:
         """Set up the tests."""
-        self.skill_id = PublicId.from_str("dummy/skill:0.1.0")
-        self.context = MagicMock(skill_id=self.skill_id)
+        self.skill_id = (  # pylint: disable=attribute-defined-outside-init
+            PublicId.from_str("dummy/skill:0.1.0")
+        )
+        self.context = MagicMock(  # pylint: disable=attribute-defined-outside-init
+            skill_id=self.skill_id
+        )
         self.context.abci_dialogues = AbciDialogues(name="", skill_context=self.context)
-        self.dialogues = AbciDialoguesServer(address="server")
-        self.handler = ABCIHandler(name="", skill_context=self.context)
+        self.dialogues = (  # pylint: disable=attribute-defined-outside-init
+            AbciDialoguesServer(address="server")
+        )
+        self.handler = ABCIHandler(  # pylint: disable=attribute-defined-outside-init
+            name="", skill_context=self.context
+        )
 
     def test_setup(self) -> None:
         """Test the setup method."""
@@ -163,8 +171,8 @@ class TestABCIHandler:
             target=0,
             message_id=1,
         )
-        message._sender = "server"
-        message._to = str(self.skill_id)
+        message._sender = "server"  # pylint: disable=protected-access
+        message._to = str(self.skill_id)  # pylint: disable=protected-access
         self.handler.handle(message)
 
     def test_info(self) -> None:

@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Tests for the storing functionality of abstract round abci."""
+
+# pytest: skip-file
+
 import json
 import os.path
 from itertools import product

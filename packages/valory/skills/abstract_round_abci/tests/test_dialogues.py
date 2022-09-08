@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the dialogues.py module of the skill."""
+
+# pytest: skip-file
+
 from enum import Enum
 from typing import Type, cast
 from unittest.mock import MagicMock

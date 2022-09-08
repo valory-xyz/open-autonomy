@@ -18,6 +18,8 @@
 # ------------------------------------------------------------------------------
 """Test the serializer.py module of the skill."""
 
+# pytest: skip-file
+
 import math
 import sys
 from collections import defaultdict

@@ -19,6 +19,8 @@
 
 """Test the handlers.py module of the skill."""
 
+# pytest: skip-file
+
 import json
 import logging
 from typing import Any, Dict, cast
@@ -43,6 +45,7 @@ from packages.valory.protocols.abci.custom_types import (
 )
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.tendermint import TendermintMessage
+from packages.valory.skills.abstract_round_abci import handlers
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AddBlockError,
@@ -60,6 +63,7 @@ from packages.valory.skills.abstract_round_abci.handlers import (
     ABCIRoundHandler,
     AbstractResponseHandler,
     TendermintHandler,
+    Transaction,
     exception_to_info_msg,
 )
 
@@ -139,7 +143,7 @@ class TestABCIRoundHandler:
         )
         assert response.performative == AbciMessage.Performative.RESPONSE_BEGIN_BLOCK
 
-    @mock.patch("packages.valory.skills.abstract_round_abci.handlers.Transaction")
+    @mock.patch.object(handlers, "Transaction")
     def test_check_tx(self, *_: Any) -> None:
         """Test the 'check_tx' handler method."""
         message, dialogue = self.dialogues.create(
@@ -154,8 +158,9 @@ class TestABCIRoundHandler:
         assert response.performative == AbciMessage.Performative.RESPONSE_CHECK_TX
         assert response.code == OK_CODE
 
-    @mock.patch(
-        "packages.valory.skills.abstract_round_abci.handlers.Transaction.decode",
+    @mock.patch.object(
+        Transaction,
+        "decode",
         side_effect=SignatureNotValidError,
     )
     def test_check_tx_negative(self, *_: Any) -> None:
@@ -172,7 +177,7 @@ class TestABCIRoundHandler:
         assert response.performative == AbciMessage.Performative.RESPONSE_CHECK_TX
         assert response.code == ERROR_CODE
 
-    @mock.patch("packages.valory.skills.abstract_round_abci.handlers.Transaction")
+    @mock.patch.object(handlers, "Transaction")
     def test_deliver_tx(self, *_: Any) -> None:
         """Test the 'deliver_tx' handler method."""
         message, dialogue = self.dialogues.create(
@@ -186,8 +191,9 @@ class TestABCIRoundHandler:
         assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
         assert response.code == OK_CODE
 
-    @mock.patch(
-        "packages.valory.skills.abstract_round_abci.handlers.Transaction.decode",
+    @mock.patch.object(
+        Transaction,
+        "decode",
         side_effect=SignatureNotValidError,
     )
     def test_deliver_tx_negative(self, *_: Any) -> None:

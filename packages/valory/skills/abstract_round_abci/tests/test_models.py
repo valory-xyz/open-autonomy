@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the models.py module of the skill."""
+
+# pytest: skip-file
+
 import json
 import logging
 from enum import Enum
@@ -44,8 +47,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     Requests,
     SharedState,
 )
-
-from tests.test_skills.test_abstract_round_abci.test_base import AbciAppTest
+from packages.valory.skills.abstract_round_abci.tests.test_base import AbciAppTest
 
 
 class DummyMessage:

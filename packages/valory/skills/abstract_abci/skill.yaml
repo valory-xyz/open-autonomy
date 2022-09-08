@@ -11,8 +11,8 @@ fingerprint:
   dialogues.py: bafybeib6cex55nl57xe6boa4c3z4ynlxstnospqjehdb5owpgtvzsu5ucm
   handlers.py: bafybeib37pd2n2v7gvudhw2bar7ndcz3ui3zfokpmmeg5tjhjhokntf4mm
   tests/__init__.py: bafybeibwdaaihwp36j7ufpmzhv45gjnmz4qgwr62gbttp7lngau2lol5ye
-  tests/test_dialogues.py: bafybeiglblzlyzgxgh5tfl7wg3bggtano3nj5jrxf2puegjbu3btlthpqy
-  tests/test_handlers.py: bafybeidzupydbzajmozmkzgd72qkz62c7grrfelbju3dfzjkgvbpdak2ae
+  tests/test_dialogues.py: bafybeiah54t7xtwjrisciutno7klxyum5d3o7to6ckh7p7vryapyvwa73a
+  tests/test_handlers.py: bafybeigfxwxpm5fackvkwgpxrtnf3oj2b4clovhwmk5nqzkdbgizuwqbgy
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeidgvchzybpsdwblifojolya2cdehv4up7fu56xoy7qzovfbhj4zx4

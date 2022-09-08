@@ -39,6 +39,9 @@ def test_dialogues_creation(
 ) -> None:
     """Test XDialogues creations."""
     dialogues = cast(Dialogues, dialogues_cls(name="", skill_context=MagicMock()))
-    assert expected_role_from_first_message == dialogues._role_from_first_message(
-        MagicMock(), MagicMock()
+    assert (
+        expected_role_from_first_message
+        == dialogues._role_from_first_message(  # pylint: disable=protected-access
+            MagicMock(), MagicMock()
+        )
     )

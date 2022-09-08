@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the base.py module of the skill."""
+
+# pytest: skip-file
+
 import datetime
 import re
 from abc import ABC
