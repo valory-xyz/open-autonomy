@@ -19,6 +19,8 @@
 
 """Tests for valory/registration_abci skill's behaviours."""
 
+# pytest: skip-file
+
 import time
 from collections import deque
 from pathlib import Path
@@ -65,6 +67,10 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
+from packages.valory.skills.abstract_round_abci.tests.test_common import (
+    BaseRandomnessBehaviourTest,
+    BaseSelectKeeperBehaviourTest,
+)
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     CheckLateTxHashesBehaviour,
     CheckTransactionHistoryBehaviour,
@@ -94,27 +100,20 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TransactionSettlementSynchronizedSata,
 )
 
-from tests.conftest import ROOT_DIR
-from tests.test_skills.test_abstract_round_abci.test_common import (
-    BaseRandomnessBehaviourTest,
-    BaseSelectKeeperBehaviourTest,
-)
+
+PACKAGE_DIR = Path(__file__).parent.parent
 
 
 class TransactionSettlementFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     """Base case for testing TransactionSettlement FSMBehaviour."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
-    )
+    path_to_skill = PACKAGE_DIR
 
 
 class TestTransactionSettlementBaseBehaviour(FSMBehaviourBaseCase):
     """Test `TransactionSettlementBaseBehaviour`."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
-    )
+    path_to_skill = PACKAGE_DIR
 
     @pytest.mark.parametrize(
         "message, tx_digest, rpc_status, expected_data, replacement",
@@ -480,9 +479,7 @@ class TestTransactionSettlementBaseBehaviour(FSMBehaviourBaseCase):
 class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
     """Test randomness in operation."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
-    )
+    path_to_skill = PACKAGE_DIR
 
     randomness_behaviour_class = RandomnessTransactionSubmissionBehaviour
     next_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
@@ -492,9 +489,7 @@ class TestRandomnessInOperation(BaseRandomnessBehaviourTest):
 class TestSelectKeeperTransactionSubmissionBehaviourA(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "transaction_settlement_abci"
-    )
+    path_to_skill = PACKAGE_DIR
 
     select_keeper_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
     next_behaviour_class = SignatureBehaviour

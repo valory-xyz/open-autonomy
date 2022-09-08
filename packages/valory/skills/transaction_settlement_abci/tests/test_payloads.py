@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the payloads of the skill."""
+
+# pytest: skip-file
+
 from typing import Optional
 
 import pytest

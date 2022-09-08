@@ -19,6 +19,8 @@
 
 """Tests for valory/registration_abci skill's rounds."""
 
+# pytest: skip-file
+
 import logging  # noqa: F401
 from collections import deque
 from types import MappingProxyType
@@ -51,6 +53,13 @@ from packages.valory.skills.abstract_round_abci.base import (
     MAX_INT_256,
     TransactionNotValidError,
     VotingRound,
+)
+from packages.valory.skills.abstract_round_abci.tests.test_base_rounds import (
+    BaseCollectDifferentUntilThresholdRoundTest,
+    BaseCollectNonEmptyUntilThresholdRound,
+    BaseCollectSameUntilThresholdRoundTest,
+    BaseOnlyKeeperSendsRoundTest,
+    BaseVotingRoundTest,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
@@ -86,14 +95,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     TX_HASH_LENGTH,
     ValidateTransactionRound,
-)
-
-from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
-    BaseCollectDifferentUntilThresholdRoundTest,
-    BaseCollectNonEmptyUntilThresholdRound,
-    BaseCollectSameUntilThresholdRoundTest,
-    BaseOnlyKeeperSendsRoundTest,
-    BaseVotingRoundTest,
 )
 
 

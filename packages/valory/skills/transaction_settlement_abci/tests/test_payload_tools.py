@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/transaction settlement skill's payload tools."""
+
+# pytest: skip-file
+
 import sys
 
 import pytest

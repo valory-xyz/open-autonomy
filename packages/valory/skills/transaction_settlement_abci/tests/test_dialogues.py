@@ -19,6 +19,8 @@
 
 """Test the dialogues.py module of the skill."""
 
+# pytest: skip-file
+
 import packages.valory.skills.transaction_settlement_abci.dialogues  # noqa
 
 
