@@ -16,11 +16,14 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+"""Tests for valory/price_estimation_abci skill's behaviours."""
 
-"""Test the dialogues.py module of the skill."""
+# pylint: skip-file
 
-import packages.valory.skills.oracle_abci.dialogues  # noqa
+from packages.valory.skills.oracle_abci.behaviours import (  # noqa
+    OracleAbciAppConsensusBehaviour,
+)
 
 
 def test_import() -> None:
-    """Test that the 'dialogues.py' Python module can be imported."""
+    """Test that the 'behaviours.py' Python module can be imported."""
