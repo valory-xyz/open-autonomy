@@ -24,7 +24,6 @@ This module patches the 'aea scaffold' command so to add a new subcommand for sc
  starting from FSM specification.
 """
 
-import re
 import shutil
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -92,68 +91,14 @@ ABSTRACT_ROUND = "AbstractRound"
 ROUND = "Round"
 BEHAVIOUR = "Behaviour"
 PAYLOAD = "Payload"
+ABCI_APP = "AbciApp"
+BASE_BEHAVIOUR = "BaseBehaviour"
+ROUND_BEHAVIOUR = "RoundBehaviour"
 
 
 def _remove_quotes(input_str: str) -> str:
     """Remove single or double quotes from a string."""
     return input_str.replace("'", "").replace('"', "")
-
-
-def _get_abci_app_cls_name_from_dfa(dfa: DFA) -> str:
-    """Get the Abci app class name from a DFA object."""
-    return dfa.label.split(".")[-1]
-
-
-def _try_get_behaviour_cls_name_from_round_cls_name(round_cls_name: str) -> str:
-    """
-    Try to get the behaviour class name from the round class name.
-
-    It tries to replace the suffix "Round" with "Behaviour".
-
-    :param round_cls_name: the round class name
-    :return: the new behaviour class name
-    """
-    return re.sub("(.*)Round", "\\1Behaviour", round_cls_name)
-
-
-def _try_get_round_behaviour_cls_name_from_abci_app_cls_name(
-    abci_app_cls_name: str,
-) -> str:
-    """
-    Try to get the round behaviour class name from the Abci app class name.
-
-    It tries to replace the suffix "AbciApp" with "RoundBehaviour".
-
-    If it fails, returns "RoundBehaviour".
-
-    :param abci_app_cls_name: the abci app class name
-    :return: the new round behaviour class name
-    """
-    result = re.sub("(.*)AbciApp", "\\1RoundBehaviour", abci_app_cls_name)
-    # if replacement did not work, return default round behaviour name
-    if result == abci_app_cls_name:
-        return "RoundBehaviour"
-    return result
-
-
-def _try_get_base_behaviour_cls_name_from_abci_app_cls_name(
-    abci_app_cls_name: str,
-) -> str:
-    """
-    Try to get the base behaviour class name from the Abci app class name.
-
-    It tries to replace the suffix "AbciApp" with "BaseBehaviour".
-
-    If it fails, returns "RoundBehaviour".
-
-    :param abci_app_cls_name: the abci app class name
-    :return: the new round behaviour class name
-    """
-    result = re.sub("(.*)AbciApp", "\\1BaseBehaviour", abci_app_cls_name)
-    # if replacement did not work, return default round behaviour name
-    if result == abci_app_cls_name:
-        return "BaseBehaviour"
-    return result
 
 
 class AbstractFileGenerator(ABC):
@@ -178,7 +123,7 @@ class AbstractFileGenerator(ABC):
     @property
     def abci_app_name(self) -> str:
         """ABCI app class name"""
-        return _get_abci_app_cls_name_from_dfa(self.dfa)
+        return self.dfa.label.split(".")[-1]
 
     @property
     def fsm_name(self) -> str:
@@ -531,9 +476,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
     def _get_base_behaviour_section(self) -> str:
         """Get the base behaviour section."""
 
-        base_behaviour_cls_name = (
-            _try_get_base_behaviour_cls_name_from_abci_app_cls_name(self.abci_app_name)
-        )
+        base_behaviour_cls_name = self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR)
         return self.BASE_BEHAVIOUR_CLS_TEMPLATE.format(
             BaseBehaviourCls=base_behaviour_cls_name
         )
@@ -544,12 +487,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
         all_behaviour_classes_str = []
 
         for abci_behaviour_name in self.behaviours:
-            base_behaviour_cls_name = (
-                _try_get_base_behaviour_cls_name_from_abci_app_cls_name(
-                    self.abci_app_name
-                )
-            )
-
+            base_behaviour_cls_name = self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR)
             behaviour_id = abci_behaviour_name.replace(BEHAVIOUR, "")
             matching_round = abci_behaviour_name.replace(BEHAVIOUR, ROUND)
             behaviour_class_str = BehaviourFileGenerator.BEHAVIOUR_CLS_TEMPLATE.format(
@@ -565,14 +503,10 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 
     def _get_round_behaviour_section(self) -> str:
         """Get the round behaviour section of the module (i.e. the declaration of the round behaviour class)."""
-        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
-        round_behaviour_cls_name = (
-            _try_get_round_behaviour_cls_name_from_abci_app_cls_name(abci_app_cls_name)
-        )
+        abci_app_cls_name = self.abci_app_name
+        round_behaviour_cls_name = self.abci_app_name.replace(ABCI_APP, ROUND_BEHAVIOUR)
         initial_round_cls_name = self.dfa.default_start_state
-        initial_behaviour_cls_name = _try_get_behaviour_cls_name_from_round_cls_name(
-            initial_round_cls_name
-        )
+        initial_behaviour_cls_name = initial_round_cls_name.replace(ROUND, BEHAVIOUR)
         return BehaviourFileGenerator.ROUND_BEHAVIOUR_CLS_TEMPLATE.format(
             RoundBehaviourCls=round_behaviour_cls_name,
             InitialBehaviourCls=initial_behaviour_cls_name,
@@ -889,10 +823,8 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
     def _update_behaviours(self, config: SkillConfig) -> None:
         """Update the behaviours section of the skill configuration."""
         config.behaviours = CRUDCollection[SkillComponentConfiguration]()
-        abci_app_cls_name = _get_abci_app_cls_name_from_dfa(self.dfa)
-        round_behaviour_cls_name = _try_get_behaviour_cls_name_from_round_cls_name(
-            abci_app_cls_name
-        )
+        abci_app_cls_name = self.dfa.label.split(".")[-1]
+        round_behaviour_cls_name = abci_app_cls_name.replace(ROUND, BEHAVIOUR)
         main_config = SkillComponentConfiguration(round_behaviour_cls_name)
         config.behaviours.create("main", main_config)
 
@@ -1074,7 +1006,7 @@ class RoundTestsFileGenerator(RoundFileGenerator):
 
         rounds = indent(",\n".join(self.rounds), " " * 4).strip()
         return self.ROUNDS_FILE_HEADER.format(
-            FSMName=_get_abci_app_cls_name_from_dfa(self.dfa),
+            FSMName=self.abci_app_name,
             author=self.author,
             skill_name=self.skill_name,
             non_degenerate_rounds=rounds,
