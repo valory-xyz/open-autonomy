@@ -19,7 +19,7 @@
 
 """Test the base.py module of the skill."""
 
-# pytest: skip-file
+# pylint: skip-file
 
 import datetime
 import re

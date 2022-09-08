@@ -19,7 +19,7 @@
 
 """Tests for the loading functionality of abstract round abci."""
 
-# pytest: skip-file
+# pylint: skip-file
 
 import json
 import os.path

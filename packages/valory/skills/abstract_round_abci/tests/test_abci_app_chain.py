@@ -19,7 +19,7 @@
 
 """Test the abci_app_chain.py module of the skill."""
 
-# pytest: skip-file
+# pylint: skip-file
 
 from typing import Tuple, Type
 

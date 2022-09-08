@@ -19,7 +19,7 @@
 
 """This module contains tests for the `IPFS` interactions."""
 
-# pytest: skip-file
+# pylint: skip-file
 
 import os.path
 from pathlib import PosixPath

@@ -19,7 +19,7 @@
 
 """Test the common.py module of the skill."""
 
-# pytest: skip-file
+# pylint: skip-file
 
 import binascii
 import json

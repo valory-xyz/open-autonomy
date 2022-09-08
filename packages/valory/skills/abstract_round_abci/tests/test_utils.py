@@ -19,7 +19,7 @@
 
 """Test the utils.py module of the skill."""
 
-# pytest: skip-file
+# pylint: skip-file
 
 import sys
 from unittest import mock

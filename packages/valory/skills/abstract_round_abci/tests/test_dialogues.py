@@ -19,7 +19,7 @@
 
 """Test the dialogues.py module of the skill."""
 
-# pytest: skip-file
+# pylint: skip-file
 
 from enum import Enum
 from typing import Type, cast

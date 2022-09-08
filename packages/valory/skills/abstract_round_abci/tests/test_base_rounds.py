@@ -19,7 +19,7 @@
 
 """Test the base round classes."""
 
-# pytest: skip-file
+# pylint: skip-file
 
 import re
 from copy import deepcopy

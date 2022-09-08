@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Conftest module for io tests."""
+
+# pylint: skip-file
+
 from typing import Dict
 
 import pytest
