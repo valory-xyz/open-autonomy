@@ -14,13 +14,18 @@ fingerprint:
   fsm_specification.yaml: bafybeid4iuax46gzkeb77g6ezs2arae43lmv3qk36dk7kityg2iwyr2v4a
   handlers.py: bafybeibmzghvqekt7iymu6s6yn5tk7lpdmejba4n7dpsz2do3cgfqz7b2a
   models.py: bafybeihiisetyfiqfp6sysgp6frg4g6xiwxxfmpxfzb6g3ew63drei36ky
+  tests/__init__.py: bafybeiapnbylokinzkfybybxsuoz5sdwmfw7rzctbqhvnt2ydvvy5twhaa
+  tests/test_behaviours.py: bafybeidwejgvyhfiswn4e4jt6czz3xjy6dfw65zbm2euyoe5wn3u3dvpne
+  tests/test_dialogues.py: bafybeihfvevfoo6h42ibcjxhhdopusgygikcrlgipgnyoivdkpk64uxpey
+  tests/test_handlers.py: bafybeic2lfcmgaahaamemmsw5chw64lpawrjstcwazuif6fza5rzzwcmt4
+  tests/test_models.py: bafybeidx56so5cpzhfbbwhupxaiykqpevxsbsurdxfedx5llp6ylw2tm2y
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeihukx5e2iq6ovup3brtelw3wwhkrvmpuo46ruqas45kg47hwkyu2m
-- valory/apy_estimation_abci:0.1.0:bafybeia3e43isfyji6jfkiio7rvqxa5bvw6m554ng772sf5mpfxieiihci
+- valory/apy_estimation_abci:0.1.0:bafybeih7kj4eiut5ygfwddtinw74aumijy4ahfzsmxnt7pwhwq7xpnm6ti
 - valory/registration_abci:0.1.0:bafybeiglkf3lr4gsand7kzhmuv4ufzf4mzf7l6kom4brunldq7ofd4fvpe
 behaviours:
   main:

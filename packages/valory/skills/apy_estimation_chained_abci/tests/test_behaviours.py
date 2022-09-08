@@ -16,11 +16,14 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+"""Tests for valory/apy_estimation_chained_abci skill's behaviours."""
 
-"""Test the dialogues.py module of the skill."""
+# pylint: skip-file
 
-import packages.valory.skills.apy_estimation_chained_abci.handlers  # noqa
+from packages.valory.skills.apy_estimation_chained_abci.behaviours import (  # noqa
+    APYEstimationConsensusBehaviour,
+)
 
 
 def test_import() -> None:
-    """Test that the 'handlers.py' Python module can be imported."""
+    """Test that the 'behaviours.py' Python module can be imported."""
