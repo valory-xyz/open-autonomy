@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the rounds of the skill."""
+
+# pylint: skip-file
+
 import logging  # noqa: F401
 from types import MappingProxyType
 from typing import Dict, FrozenSet, cast

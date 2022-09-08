@@ -17,10 +17,19 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test the dialogues.py module of the skill."""
+"""Test the models.py module of the skill."""
 
-import packages.valory.skills.hello_world_abci.handlers  # noqa
+# pylint: skip-file
+
+from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
+from packages.valory.skills.hello_world_abci.models import SharedState
 
 
-def test_import() -> None:
-    """Test that the 'handlers.py' Python module can be imported."""
+class TestSharedState:
+    """Test SharedState(Model) class."""
+
+    def test_initialization(
+        self,
+    ) -> None:
+        """Test initialization."""
+        SharedState(name="", skill_context=DummyContext())

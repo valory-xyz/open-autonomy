@@ -19,8 +19,11 @@
 
 """Test the dialogues.py module of the skill."""
 
-import packages.valory.skills.hello_world_abci.dialogues  # noqa
+import packages.valory.skills.hello_world_abci.handlers  # noqa
+
+
+# pylint: skip-file
 
 
 def test_import() -> None:
-    """Test that the 'dialogues.py' Python module can be imported."""
+    """Test that the 'handlers.py' Python module can be imported."""

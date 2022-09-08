@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/hello_world_abci skill's behaviours."""
+
+# pylint: skip-file
+
 import json
 import time
 from copy import copy
@@ -55,13 +58,14 @@ from packages.valory.skills.hello_world_abci.behaviours import (
 from packages.valory.skills.hello_world_abci.handlers import HttpHandler, SigningHandler
 from packages.valory.skills.hello_world_abci.rounds import Event, SynchronizedData
 
-from tests.conftest import ROOT_DIR
+
+PACKAGE_DIR = Path(__file__).parent.parent
 
 
 class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
-    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "hello_world_abci")
+    path_to_skill = PACKAGE_DIR
 
     hello_world_abci_behaviour: HelloWorldRoundBehaviour
     http_handler: HttpHandler
