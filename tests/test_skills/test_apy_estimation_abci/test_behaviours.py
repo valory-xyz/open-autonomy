@@ -87,15 +87,15 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     UpdateForecasterBehaviour,
 )
 from packages.valory.skills.apy_estimation_abci.constants import (
-    HISTORICAL_DATA_PATH_TEMPLATE,
-    LATEST_OBSERVATIONS_PATH_TEMPLATE,
-    HISTORICAL_DATA_BATCH_PATH_TEMPLATE,
-    Y_SPLIT_TEMPLATE,
-    PERIOD_SPECIFIER_TEMPLATE,
     BEST_PARAMS_PATH,
+    ESTIMATIONS_PATH_TEMPLATE,
     FORECASTERS_PATH,
     FULLY_TRAINED_FORECASTERS_PATH,
-    ESTIMATIONS_PATH_TEMPLATE,
+    HISTORICAL_DATA_BATCH_PATH_TEMPLATE,
+    HISTORICAL_DATA_PATH_TEMPLATE,
+    LATEST_OBSERVATIONS_PATH_TEMPLATE,
+    PERIOD_SPECIFIER_TEMPLATE,
+    Y_SPLIT_TEMPLATE,
 )
 from packages.valory.skills.apy_estimation_abci.io_.store import (
     ExtendedSupportedFiletype,
