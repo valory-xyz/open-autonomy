@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test preprocessing operations."""
+
+# pylint: skip-file
+
 import platform
 
 import numpy as np

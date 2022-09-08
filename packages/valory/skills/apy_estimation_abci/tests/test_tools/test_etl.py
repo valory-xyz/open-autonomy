@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Tests for ETL."""
+
+# pylint: skip-file
+
 import platform
 from typing import Any, Dict, List, Optional, Union
 

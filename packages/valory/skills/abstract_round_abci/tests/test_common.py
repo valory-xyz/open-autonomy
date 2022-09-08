@@ -45,9 +45,8 @@ from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
 
-from tests.conftest import ROOT_DIR
 
-
+PACKAGE_DIr = Path(__file__).parent.parent
 DRAND_VALUE = {
     "round": 1416669,
     "randomness": "f6be4bf1fa229f22340c1a5b258f809ac4af558200775a67dacb05f0cb258a11",
@@ -67,9 +66,7 @@ DRAND_VALUE = {
 class CommonBaseCase(FSMBehaviourBaseCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "price_estimation_abci"
-    )
+    path_to_skill = PACKAGE_DIr = Path(__file__).parent.parent
 
 
 class BaseRandomnessBehaviourTest(CommonBaseCase):

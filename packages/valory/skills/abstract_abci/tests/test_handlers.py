@@ -49,7 +49,8 @@ from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDi
 from packages.valory.skills.abstract_abci.dialogues import AbciDialogue, AbciDialogues
 from packages.valory.skills.abstract_abci.handlers import ABCIHandler, ERROR_CODE
 
-from tests.conftest import ROOT_DIR
+
+PACKAGE_DIR = Path(__file__).parent.parent
 
 
 class AbciDialoguesServer(BaseAbciDialogues):
@@ -81,7 +82,7 @@ class AbciDialoguesServer(BaseAbciDialogues):
 class TestABCIHandlerOld(BaseSkillTestCase):
     """Test ABCIHandler methods."""
 
-    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "abstract_abci")
+    path_to_skill = PACKAGE_DIR
     abci_handler: ABCIHandler
     logger: logging.Logger
     abci_dialogues: AbciDialogues

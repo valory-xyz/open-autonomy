@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test optimization operations."""
+
+# pylint: skip-file
+
 from typing import Any, Callable
 from unittest.mock import MagicMock
 
@@ -29,6 +32,7 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from sklearn.metrics import mean_pinball_loss
 
+from packages.valory.skills.apy_estimation_abci.ml import optimization
 from packages.valory.skills.apy_estimation_abci.ml.optimization import (
     Objective,
     get_best_params,
@@ -107,12 +111,11 @@ class TestOptimization:
         no_action: Callable[[Any], None],
     ) -> None:
         """Test `optimize`."""
-        path_to_module = "packages.valory.skills.apy_estimation_abci.ml.optimization"
         monkeypatch.setattr(
-            f"{path_to_module}.optimize_single_pool", lambda *_, **__: MagicMock()
+            optimization, "optimize_single_pool", lambda *_, **__: MagicMock()
         )
         monkeypatch.setattr(
-            f"{path_to_module}.get_best_params", lambda _: {"test_param": 0.23}
+            optimization, "get_best_params", lambda _: {"test_param": 0.23}
         )
         assert optimize({"test1": pd.DataFrame()}) == {"test1": {"test_param": 0.23}}
 

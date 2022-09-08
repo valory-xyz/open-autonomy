@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the `tools/general.py` module of the skill."""
+
+# pylint: skip-file
+
 import json
 from typing import Dict, Optional, Union
 
@@ -25,6 +28,7 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from aea_test_autonomy.helpers.base import identity
 
+from packages.valory.skills.apy_estimation_abci.tools import queries
 from packages.valory.skills.apy_estimation_abci.tools.queries import (
     block_from_number_q,
     block_from_timestamp_q,
@@ -99,7 +103,8 @@ class TestQueries:
     ) -> None:
         """Test `eth_price_usd_q`."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
+            queries,
+            "finalize_q",
             identity,
         )
         actual = eth_price_usd_q(bundle_id, block)
@@ -109,7 +114,8 @@ class TestQueries:
     def test_block_from_timestamp_q(monkeypatch: MonkeyPatch) -> None:
         """Test `block_from_timestamp_q`."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
+            queries,
+            "finalize_q",
             identity,
         )
         actual = block_from_timestamp_q(100)
@@ -134,7 +140,8 @@ class TestQueries:
     def test_block_from_number_q(monkeypatch: MonkeyPatch) -> None:
         """Test `block_from_number_q`."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
+            queries,
+            "finalize_q",
             identity,
         )
         actual = block_from_number_q(100)
@@ -159,7 +166,8 @@ class TestQueries:
     def test_latest_block(monkeypatch: MonkeyPatch) -> None:
         """Test `latest_block`."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
+            queries,
+            "finalize_q",
             identity,
         )
         actual = latest_block_q()
@@ -182,7 +190,8 @@ class TestQueries:
     def test_top_n_pairs_q(monkeypatch: MonkeyPatch) -> None:
         """Test `top_n_pairs_q`."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
+            queries,
+            "finalize_q",
             identity,
         )
         actual = top_n_pairs_q(0)
@@ -201,7 +210,8 @@ class TestQueries:
     def test_pairs_q(monkeypatch: MonkeyPatch) -> None:
         """Test `pairs_q`."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
+            queries,
+            "finalize_q",
             identity,
         )
         actual = pairs_q(0, ["x0", "x1", "x2"])
@@ -247,7 +257,8 @@ class TestQueries:
     def test_existing_pairs_q(monkeypatch: MonkeyPatch) -> None:
         """Test `existing_pairs_q`."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.tools.queries.finalize_q",
+            queries,
+            "finalize_q",
             identity,
         )
         actual = existing_pairs_q(["x0", "x1", "x2"])

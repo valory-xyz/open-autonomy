@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test various price apis."""
+
+# pylint: skip-file
+
 import ast
 import logging  # noqa: F401
 import re
@@ -30,6 +33,7 @@ from _pytest.fixtures import FixtureRequest
 
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
+from packages.valory.skills.abstract_round_abci.tests.test_models import DummyMessage
 from packages.valory.skills.apy_estimation_abci.behaviours import NON_INDEXED_BLOCK_RE
 from packages.valory.skills.apy_estimation_abci.models import (
     DEXSubgraph,
@@ -38,9 +42,7 @@ from packages.valory.skills.apy_estimation_abci.models import (
     SpookySwapSubgraph,
     UniswapSubgraph,
 )
-
-from tests.test_skills.test_abstract_round_abci.test_models import DummyMessage
-from tests.test_skills.test_apy_estimation_abci.conftest import (
+from packages.valory.skills.apy_estimation_abci.tests.conftest import (
     SpecsType,
     is_list_of_strings,
 )

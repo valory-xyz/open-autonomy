@@ -20,6 +20,8 @@
 
 """Configurations for APY skill's tests."""
 
+# pylint: skip-file
+
 import warnings
 from typing import Any, Callable, Dict, List, Tuple, Union
 from unittest import mock

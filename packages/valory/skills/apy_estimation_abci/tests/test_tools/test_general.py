@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the `tools/general.py` module of the skill."""
+
+# pylint: skip-file
+
 import os
 from pathlib import PosixPath
 

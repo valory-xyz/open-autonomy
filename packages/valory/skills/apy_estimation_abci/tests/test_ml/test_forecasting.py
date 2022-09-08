@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test forecasting operations."""
+
+# pylint: skip-file
+
 import platform
 import re
 from copy import deepcopy
@@ -31,6 +34,7 @@ from pmdarima import ARIMA
 from pmdarima.pipeline import Pipeline
 from pmdarima.preprocessing import FourierFeaturizer
 
+from packages.valory.skills.apy_estimation_abci.ml import forecasting
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     PoolIdToTrainDataType,
     baseline,
@@ -52,8 +56,7 @@ from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
     update_forecaster_per_pool,
     walk_forward_test,
 )
-
-from tests.test_skills.test_apy_estimation_abci.conftest import DummyPipeline
+from packages.valory.skills.apy_estimation_abci.tests.conftest import DummyPipeline
 
 
 class TestForecasting:
@@ -111,7 +114,8 @@ class TestForecasting:
     ) -> None:
         """Test `train_forecaster_per_pool`."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.ml.forecasting.train_forecaster",
+            forecasting,
+            "train_forecaster",
             lambda _, **__: trained_forecaster,
         )
         forecasters = train_forecaster_per_pool(
@@ -145,7 +149,8 @@ class TestForecasting:
         )
         for metric_to_patch in metrics_to_patch:
             monkeypatch.setattr(
-                f"packages.valory.skills.apy_estimation_abci.ml.forecasting.{metric_to_patch}",
+                forecasting,
+                metric_to_patch,
                 lambda *_: 0,
             )
 
@@ -172,7 +177,8 @@ class TestForecasting:
             "MSE": 0,
         }
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.ml.forecasting.calc_metrics",
+            forecasting,
+            "calc_metrics",
             lambda *_: metrics_res,
         )
         report = report_metrics(np.empty(0), np.empty(0), "test_name")
@@ -216,7 +222,8 @@ class TestForecasting:
     ) -> None:
         """Test `_test_forecaster_per_pool`."""
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.ml.forecasting.test_forecaster",
+            forecasting,
+            "test_forecaster",
             lambda forecaster_, y_train_, y_test_, pair_name, _: {pair_name: "test"},
         )
         dummy_forecasters = {id_: trained_forecaster for id_ in train_task_input.keys()}
@@ -226,12 +233,14 @@ class TestForecasting:
         """Test `test_forecaster`."""
         for testing_method in ("baseline", "walk_forward_test"):
             monkeypatch.setattr(
-                f"packages.valory.skills.apy_estimation_abci.ml.forecasting.{testing_method}",
+                forecasting,
+                testing_method,
                 lambda *_: None,
             )
 
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.ml.forecasting.report_metrics",
+            forecasting,
+            "report_metrics",
             lambda *_: "Report results.",
         )
 

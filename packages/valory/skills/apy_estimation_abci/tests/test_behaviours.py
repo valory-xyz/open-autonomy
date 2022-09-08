@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/apy_estimation_abci skill's behaviours."""
+
+# pylint: skip-file
+
 import binascii
 import json
 import logging
@@ -33,6 +36,7 @@ from typing import (
     Callable,
     Dict,
     Generator,
+    Iterator,
     List,
     Optional,
     Tuple,
@@ -50,6 +54,7 @@ import pytest
 from _pytest.logging import LogCaptureFixture
 from _pytest.monkeypatch import MonkeyPatch
 from aea.skills.tasks import TaskManager
+from aea_cli_ipfs.ipfs_utils import IPFSDaemon
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -64,6 +69,7 @@ from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
+from packages.valory.skills.apy_estimation_abci import tasks
 from packages.valory.skills.apy_estimation_abci.behaviours import (
     APYEstimationBaseBehaviour,
     BaseResetBehaviour,
@@ -101,16 +107,27 @@ from packages.valory.skills.apy_estimation_abci.ml.preprocessing import (
 )
 from packages.valory.skills.apy_estimation_abci.models import SubgraphsMixin
 from packages.valory.skills.apy_estimation_abci.rounds import Event, SynchronizedData
+from packages.valory.skills.apy_estimation_abci.tests.conftest import DummyPipeline
 from packages.valory.skills.apy_estimation_abci.tools.etl import ResponseItemType
 from packages.valory.skills.apy_estimation_abci.tools.queries import SAFE_BLOCK_TIME
 
-from tests.conftest import ROOT_DIR
-from tests.test_skills.test_apy_estimation_abci.conftest import DummyPipeline
 
-
+PACKAGE_DIR = Path(__file__).parent.parent
 SLEEP_TIME_TWEAK = 0.01
 
-ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
+
+@pytest.fixture(scope="module")
+def ipfs_daemon() -> Iterator[bool]:
+    """Starts an IPFS daemon for the tests."""
+    print("Starting IPFS daemon...")
+    daemon = IPFSDaemon()
+    daemon.start()
+    yield daemon.is_started()
+    print("Tearing down IPFS daemon...")
+    daemon.stop()
+
+
+use_ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
 
 
 class DummyAsyncResult(object):
@@ -140,13 +157,11 @@ class DummyAsyncResult(object):
         return self._task_result
 
 
-@ipfs_daemon
+@use_ipfs_daemon
 class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     """Base case for testing APYEstimation FSMBehaviour."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "apy_estimation_abci"
-    )
+    path_to_skill = PACKAGE_DIR
 
     behaviour: EstimatorRoundBehaviour
     behaviour_class: Type[APYEstimationBaseBehaviour]
@@ -1359,7 +1374,8 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._fast_forward(tmp_path, ipfs_succeed)
 
         monkeypatch.setattr(
-            "packages.valory.skills.apy_estimation_abci.tasks.transform_hist_data",
+            tasks,
+            "transform_hist_data",
             lambda _: transformed_historical_data_no_datetime_conversion,
         )
         monkeypatch.setattr(

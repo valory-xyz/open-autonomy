@@ -6,6 +6,14 @@ description: This skill implements the APY estimation for an AEA.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
+  .hypothesis/examples/1765b5414a8fe6a9/4ec3828398e0a722: bafybeifm6cdgbk6ugtik45xaod4abhidcijudahyj3hg7vlyialsh7ynhq
+  .hypothesis/examples/63e8c019ce18d135/b56705a73cf280f0: bafybeibiyoqvnzrpk7khp7y22qofuxuundfo6oloo6rkcuso73bknzfy3i
+  .hypothesis/examples/6e534fef9bfd227c/b56705a73cf280f0: bafybeibiyoqvnzrpk7khp7y22qofuxuundfo6oloo6rkcuso73bknzfy3i
+  .hypothesis/examples/93c4fd97997c0297/68e09c5bfbe3cdbe: bafybeidaxqshdfwohregoyaksom5nc4jaybuta5ogjsyuc6tifqahqyfku
+  .hypothesis/examples/93c4fd97997c0297/bec021b4f368e306: bafybeibyqyrkx66boqbutl5oktknecxgnl43cipcls3knonfmi727rdtnu
+  .hypothesis/examples/b73b2774595c7681/1086a78797317d2d: bafybeicejdbtwqpiwrokg4ew6ymmntkthvdw4tglnncpzjmvrp74bk6dmi
+  .hypothesis/examples/b73b2774595c7681/bec021b4f368e306: bafybeibyqyrkx66boqbutl5oktknecxgnl43cipcls3knonfmi727rdtnu
+  .hypothesis/unicode_data/13.0.0/charmap.json.gz: bafybeiagyvr5ytlu6bpoce6xubvhwruuyo7dei6rmnxkqqrju3mnrgbivy
   README.md: bafybeiceds6hedhgipxihnl2qt7i2woxsn4fw5ue3evm4aqvknjfpwnbay
   __init__.py: bafybeif4et2adwa4mtx4clsfcpqk77w23kdq5642vulkddnrsxms6ngbma
   behaviours.py: bafybeibdw2bucetmxmxgnu7venxxb3lz3vhv6ivyibnn6hqyyigzxhcijq
@@ -23,6 +31,25 @@ fingerprint:
   payloads.py: bafybeifsicq32ennlitfulqueposyxyk2om2jn5t3pxavwjix4t4shjtdi
   rounds.py: bafybeicsy5gvg2wn5l5vmce3njse6vq6cw74qoahiwslcqsxj6t7kawnui
   tasks.py: bafybeihudp5vyhelqnl5eqakjpvuekaoamtbrghss4k2yysvkczspjbbia
+  tests/__init__.py: bafybeiapnbylokinzkfybybxsuoz5sdwmfw7rzctbqhvnt2ydvvy5twhaa
+  tests/conftest.py: bafybeicbczynn35hgurusmazycsbbadt5grig3k4e4gnoavc7jko6il36a
+  tests/test_apis.py: bafybeihf7nefyhv4gar4obnnq7fuakow6wzgojwvhkbtb4f2brnqiluvaq
+  tests/test_behaviours.py: bafybeid3vq4o7bxy6cyebavdhrkt5ntutkmlvyfwgvekyetvesdfdcixf4
+  tests/test_dialogues.py: bafybeiexpeqkno2ktoq5fabwic7vtsa4mxug32mho5ayggtbmf6qogjyqu
+  tests/test_handlers.py: bafybeicukat5fnrcyiay2orifgx362h5iozky4vcl6we5fkjerqytne2la
+  tests/test_ml/__init__.py: bafybeigluuyaz73cej42yohuvoxnrx65hqsqoqmpzgof4b7co246s3jxjy
+  tests/test_ml/test_forecasting.py: bafybeicmjbndmbfqmunshyrit4l7nwcr2cfmszzssshyutr6f2aefdyehy
+  tests/test_ml/test_optimization.py: bafybeigutw7f23afwah4y5hac5fehfcybdexaw5d46vqyt7h6bmnyzevza
+  tests/test_ml/test_preprocessing.py: bafybeigbhpj46s6xzdy54msjp544fwnmb5y3x6o4q7e2ma4pkepkdiykee
+  tests/test_models.py: bafybeigb6zm36fa4pn4rgfijgow2rdwjpimhsuknuiv23km5iv2e2bhcai
+  tests/test_payloads.py: bafybeia7k4xqdoduko5mu743drf7vn3ezppjgps3svtk7w7zqi4vl7mds4
+  tests/test_rounds.py: bafybeibwwomfcjrtapfuwatoeygw5hyr22purs4k5zb6nh2sh744y73ggm
+  tests/test_tasks.py: bafybeicacdjwax3mlwfts2luj3oskzhy6jluly5hmvogkczf6vcsrh2whq
+  tests/test_tools/__init__.py: bafybeidxxdakfp7rkavdx24vv3bwp6siep7plys7nfrnlwh2opmwbflj2q
+  tests/test_tools/conftest.py: bafybeienmfxdzag3bidmy3enf4jt2ybjhyck7ouxwy2nw4fmcgzyr2e3li
+  tests/test_tools/test_etl.py: bafybeiepsvtv6cqbgrdpiqpavtsrapod4fnjocjsxuxjimeeo2q5r3yzfy
+  tests/test_tools/test_general.py: bafybeifznvqrhs2e33izck2vziaavvjmbgr6cul5vqqpieha6g4dmyfihe
+  tests/test_tools/test_queries.py: bafybeihpspmq6bmu477yo7yl4mbhxbrlrnkh62nann35mpoe7yasoxnzkq
   tools/__init__.py: bafybeid6nc7k2qjndgigeoxhtun27ih5wof3hl4j6fsijulttuwhjydyeu
   tools/etl.py: bafybeif52kzh46ebiu6s47hbgov6adz557ziv42xmh3j6ejgyyfqzh7pzq
   tools/general.py: bafybeiggrhs5pko3q4soobaj7vsimrlwixpfprrup7jtwzr3o6eh5ezuh4
@@ -32,9 +59,10 @@ fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols:
+- valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
 - valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihjqrp5sthxcp4g3bwnljkoimcdz2wtovh5qloahb6cgagh2lhtmq
+- valory/abstract_round_abci:0.1.0:bafybeihukx5e2iq6ovup3brtelw3wwhkrvmpuo46ruqas45kg47hwkyu2m
 behaviours:
   main:
     args: {}

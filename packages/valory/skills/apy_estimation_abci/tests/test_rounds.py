@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Test the rounds of the skill."""
+
+# pylint: skip-file
+
 from typing import Dict, FrozenSet, Optional, Tuple
 from unittest import mock
 
@@ -27,6 +30,9 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppDB,
     AbstractRound,
     ConsensusParams,
+)
+from packages.valory.skills.abstract_round_abci.tests.test_base_rounds import (
+    BaseCollectSameUntilThresholdRoundTest,
 )
 from packages.valory.skills.apy_estimation_abci.payloads import (
     EstimatePayload,
@@ -56,10 +62,6 @@ from packages.valory.skills.apy_estimation_abci.rounds import (
 )
 from packages.valory.skills.apy_estimation_abci.rounds import TestRound as _TestRound
 from packages.valory.skills.apy_estimation_abci.rounds import TrainRound, TransformRound
-
-from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
-    BaseCollectSameUntilThresholdRoundTest,
-)
 
 
 MAX_PARTICIPANTS: int = 4
