@@ -19,7 +19,7 @@
 
 """Tests for valory/reset_pause_abci skill's behaviours."""
 
-# pylint: skip-files
+# pylint: skip-file
 
 from pathlib import Path
 from typing import Callable, Generator, Optional

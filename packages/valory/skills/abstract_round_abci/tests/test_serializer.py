@@ -21,9 +21,12 @@
 # pylint: skip-file
 
 import math
+import shutil
 import sys
 from collections import defaultdict
-from typing import Any, Dict
+from contextlib import suppress
+from pathlib import Path
+from typing import Any, Dict, Generator
 
 import hypothesis.strategies as st
 import pytest
@@ -40,6 +43,19 @@ try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
     pytestmark = pytest.mark.skip
+
+
+PACKAGE_DIR = Path(__file__).parent.parent
+
+
+@pytest.fixture(scope="session", autouse=True)
+def hypothesis_cleanup() -> Generator:
+    """Fixture to remove hypothesis directory after tests."""
+    yield
+    hypothesis_dir = PACKAGE_DIR / ".hypothesis"
+    if hypothesis_dir.exists():
+        with suppress(OSError, PermissionError):
+            shutil.rmtree(hypothesis_dir)
 
 
 def test_encode_decode_i() -> None:

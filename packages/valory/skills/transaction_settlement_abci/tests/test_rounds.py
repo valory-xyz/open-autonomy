@@ -19,7 +19,7 @@
 
 """Tests for valory/registration_abci skill's rounds."""
 
-# pytest: skip-file
+# pylint: skip-file
 
 import logging  # noqa: F401
 from collections import deque
@@ -54,7 +54,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     TransactionNotValidError,
     VotingRound,
 )
-from packages.valory.skills.abstract_round_abci.tests.test_base_rounds import (
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
     BaseCollectDifferentUntilThresholdRoundTest,
     BaseCollectNonEmptyUntilThresholdRound,
     BaseCollectSameUntilThresholdRoundTest,

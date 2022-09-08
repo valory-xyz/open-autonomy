@@ -19,7 +19,7 @@
 
 """Test the dialogues.py module of the skill."""
 
-# pytest: skip-file
+# pylint: skip-file
 
 import packages.valory.skills.transaction_settlement_abci.handlers  # noqa
 

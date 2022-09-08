@@ -20,7 +20,7 @@
 """Test tools for api specs."""
 
 
-class DummyMessage:
+class DummyMessage:  # pylint: disable=too-few-public-methods
     """Dummy api specs class."""
 
     body: bytes

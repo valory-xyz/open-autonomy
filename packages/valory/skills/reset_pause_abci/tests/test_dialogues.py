@@ -19,7 +19,7 @@
 
 """Test the dialogues.py module of the skill."""
 
-# pylint: skip-files
+# pylint: skip-file
 
 import packages.valory.skills.reset_pause_abci.dialogues  # noqa
 

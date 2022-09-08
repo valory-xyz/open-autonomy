@@ -25,7 +25,9 @@ import binascii
 import json
 import logging
 import os
+import shutil
 import time
+from contextlib import suppress
 from datetime import datetime
 from enum import Enum
 from itertools import product
@@ -114,6 +116,16 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import SAFE_BLOCK_
 
 PACKAGE_DIR = Path(__file__).parent.parent
 SLEEP_TIME_TWEAK = 0.01
+
+
+@pytest.fixture(scope="session", autouse=True)
+def hypothesis_cleanup() -> Generator:
+    """Fixture to remove hypothesis directory after tests."""
+    yield
+    hypothesis_dir = PACKAGE_DIR / ".hypothesis"
+    if hypothesis_dir.exists():
+        with suppress(OSError, PermissionError):
+            shutil.rmtree(hypothesis_dir)
 
 
 @pytest.fixture(scope="module")
@@ -347,9 +359,10 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         )
         behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
         behaviour._pairs_hist = pairs_hist
-
+        #
         assert behaviour.total_downloaded == len(pairs_hist)
 
+    #
     @given(st.lists(st.booleans(), max_size=50))
     @settings(deadline=5000)
     def test_retries_exceeded(
@@ -368,7 +381,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             subgraph = mock.MagicMock()
             subgraph.is_retries_exceeded.return_value = is_exceeded_per_subgraph[i]
             behaviour._utilized_subgraphs[f"test{i}"] = subgraph
-
+        #
         # we expect `retries_exceeded` to return True if any of the subgraphs' `is_retries_exceeded` returns `True`
         expected = any(is_exceeded_per_subgraph)
         assert behaviour.retries_exceeded == expected
@@ -488,13 +501,14 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         behaviour.params.start = start
         behaviour.params.interval = interval
         behaviour.params.end = end
-
+        #
         behaviour._reset_timestamps_iterator()
-
+        #
         expected = [end] if batch else [i for i in range(start, end, interval)]
         assert behaviour._progress.timestamps_iterator is not None
         assert list(behaviour._progress.timestamps_iterator) == expected
 
+    #
     @given(
         st.booleans(),
         st.booleans(),
@@ -534,14 +548,14 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         )
         assert behaviour._utilized_subgraphs["test"] is not None
         behaviour.batch = batch
-
+        #
         # start of setting the `currently_downloaded`
         # we cannot simply mock because of https://github.com/valory-xyz/open-autonomy/pull/646
         behaviour.params.pair_ids = pairs_ids
         behaviour._progress.current_dex_name = "uniswap_subgraph"
         behaviour._pairs_hist = [{"test": "test"} for _ in range(currently_downloaded)]
         # end of setting the `currently_downloaded`
-
+        #
         behaviour._target_per_pool = target_per_pool
         behaviour._pairs_hist = pairs_hist
         behaviour._progress.call_failed = call_failed
@@ -555,7 +569,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         behaviour._reset_timestamps_iterator = mock.MagicMock()  # type: ignore
         # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
         behaviour.clean_up = mock.MagicMock()  # type: ignore
-
+        #
         if retries_exceeded:
             # exceed the retries before calling the method
             for _ in range(behaviour._utilized_subgraphs["test"]._retries + 1):
@@ -566,11 +580,11 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             assert behaviour._progress.current_timestamp is None
             assert behaviour._progress.current_dex_name is None
             behaviour.clean_up.assert_called_once()
-
+        #
         elif not call_failed:
             # call the tested method
             behaviour._set_current_progress()
-
+            #
             if (
                 currently_downloaded == 0
                 or currently_downloaded == target_per_pool
@@ -580,13 +594,13 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
                 assert behaviour._progress.current_dex_name == expected_dex_name
                 behaviour._reset_timestamps_iterator.assert_called_once()
                 assert behaviour._progress.n_fetched == len(pairs_hist)
-
+            #
             assert behaviour._progress.current_timestamp == expected_timestamp
-
+        #
         else:
             # call the tested method
             behaviour._set_current_progress()
-
+        #
         assert behaviour._progress.initialized
 
     def test_handle_response(self, caplog: LogCaptureFixture) -> None:

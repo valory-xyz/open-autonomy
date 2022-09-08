@@ -31,7 +31,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     ConsensusParams,
 )
-from packages.valory.skills.abstract_round_abci.tests.test_base_rounds import (
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
     BaseCollectSameUntilThresholdRoundTest,
 )
 from packages.valory.skills.apy_estimation_abci.payloads import (

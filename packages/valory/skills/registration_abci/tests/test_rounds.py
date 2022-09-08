@@ -29,7 +29,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as SynchronizedData,
 )
 from packages.valory.skills.abstract_round_abci.base import CollectSameUntilAllRound
-from packages.valory.skills.abstract_round_abci.tests.test_base_rounds import (
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
     BaseCollectSameUntilAllRoundTest,
     BaseCollectSameUntilThresholdRoundTest,
 )

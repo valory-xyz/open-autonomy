@@ -27,7 +27,7 @@ from typing import Dict, FrozenSet, Mapping, Optional  # noqa : F401
 from unittest import mock
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
-from packages.valory.skills.abstract_round_abci.tests.test_base_rounds import (
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
     BaseCollectSameUntilThresholdRoundTest,
 )
 from packages.valory.skills.liquidity_rebalancing_abci.payloads import (

@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/registration_abci skill's behaviours."""
+
+# pylint: skip-file
+
 from unittest.mock import MagicMock
 
 from packages.valory.skills.register_reset_abci.behaviours import (

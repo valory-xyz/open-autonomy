@@ -19,7 +19,7 @@
 
 """Tests for valory/transaction settlement skill's payload tools."""
 
-# pytest: skip-file
+# pylint: skip-file
 
 import sys
 

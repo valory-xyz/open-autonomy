@@ -16,17 +16,17 @@ fingerprint:
   payloads.py: bafybeib726fzcbjfkx3ikf2l55mqk7hc2aspxdcpglayevhzeeqiz6xu7m
   rounds.py: bafybeiby7rsyzli6cnpgyeighdib3cfadu4uxcjorfdcfyy62j6e4ixmse
   tests/__init__.py: bafybeiclijinxvycj7agcagt2deuuyh7zxyp7k2s55la6lh3jghzqvfux4
-  tests/test_behaviours.py: bafybeidzrbri2yjfablyblyz6unqxhgm6hnbqbslcdes2pwzm2dnohlmmm
-  tests/test_dialogues.py: bafybeiagsoiqzplc66nbj4sxb3qpxknn4xuiacuwukdb34dmxeek4vo6mm
-  tests/test_handlers.py: bafybeigko6tb6tkopzzleq7h2ym4aloy45noevv7jvrhg4f2uo3gte4qhy
-  tests/test_payloads.py: bafybeihlkwr4pl56qjicran7jhqx3wmic7xfijvzovpdviyevukohcc7im
-  tests/test_rounds.py: bafybeifcbextzb7yh26llbs7wvy2ico77zudkbagckp6co6w5pgllzaz5y
+  tests/test_behaviours.py: bafybeicvmwj3lu7itgydooc354levsls653wcnlkqnm4qxygepb7ladt2i
+  tests/test_dialogues.py: bafybeif7pe7v34cfznzv4htyuevx733ersmk4bqjcgajn2535jmuujdmzm
+  tests/test_handlers.py: bafybeiggog2k65ijtvqwkvjvmaoo6khwgfkeodddzl6u76gcvvongwjawy
+  tests/test_payloads.py: bafybeihxhwkpxlqqjq7atemtmqoabogr4ccdwzsrbl32nukk6zmevrzyji
+  tests/test_rounds.py: bafybeih2whvefdhaminpkn5gqfubrfhh6o6p3ybvbwu2kaislbytpdyy5u
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihukx5e2iq6ovup3brtelw3wwhkrvmpuo46ruqas45kg47hwkyu2m
+- valory/abstract_round_abci:0.1.0:bafybeiayundvgebwtckznm3o7io2hk2ehnmohyv64ic3ubqffkgqv6a424
 behaviours:
   main:
     args: {}

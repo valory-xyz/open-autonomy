@@ -19,7 +19,7 @@
 
 """Test the rounds of the skill."""
 
-# pylint: skip-files
+# pylint: skip-file
 
 import logging  # noqa: F401
 from typing import Dict, FrozenSet
@@ -27,7 +27,7 @@ from typing import Dict, FrozenSet
 from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as ResetSynchronizedSata,
 )
-from packages.valory.skills.abstract_round_abci.tests.test_base_rounds import (
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
     BaseCollectSameUntilThresholdRoundTest,
 )
 from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload

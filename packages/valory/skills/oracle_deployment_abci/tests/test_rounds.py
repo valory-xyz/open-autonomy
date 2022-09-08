@@ -19,6 +19,8 @@
 
 """Tests for valory/registration_abci skill's rounds."""
 
+# pylint: skip-file
+
 import logging  # noqa: F401
 from types import MappingProxyType
 from typing import Any, Dict, FrozenSet, Mapping, Optional, Type, cast
@@ -33,7 +35,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     MAX_INT_256,
     VotingRound,
 )
-from packages.valory.skills.abstract_round_abci.tests.test_base_rounds import (
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
     BaseCollectSameUntilThresholdRoundTest,
     BaseOnlyKeeperSendsRoundTest,
     BaseVotingRoundTest,

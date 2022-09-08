@@ -19,7 +19,7 @@
 
 """Test the payloads of the skill."""
 
-# pytest: skip-file
+# pylint: skip-file
 
 from typing import Optional
 
