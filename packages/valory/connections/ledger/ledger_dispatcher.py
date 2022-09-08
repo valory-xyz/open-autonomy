@@ -227,7 +227,7 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
             )
         return response
 
-    def get_transaction_receipt(
+    async def get_transaction_receipt(
         self,
         api: LedgerApi,
         message: LedgerApiMessage,
@@ -261,9 +261,12 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
             and self.connection_state.get() == ConnectionStates.connected
         ):
             try:
-                transaction_receipt = api.get_transaction_receipt(
-                    message.transaction_digest.body,
-                    raise_on_try=True,
+                transaction_receipt = await self.wait_for(
+                    lambda: api.get_transaction_receipt(
+                        message.transaction_digest.body,
+                        raise_on_try=True,
+                    ),
+                    timeout=retry_timeout,
                 )
             except Exception as e:  # pylint: disable=broad-except
                 self.logger.warning(e)
