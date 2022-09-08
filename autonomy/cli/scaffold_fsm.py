@@ -25,12 +25,11 @@ This module patches the 'aea scaffold' command so to add a new subcommand for sc
 """
 
 import os
-import stat
 import shutil
 from abc import ABC, abstractmethod
 from pathlib import Path
 from textwrap import dedent, indent
-from typing import Dict, List, Type, Callable
+from typing import Dict, List, Type
 
 import click
 from aea.cli.add import add_item

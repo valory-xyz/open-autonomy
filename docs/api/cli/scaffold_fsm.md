@@ -7,16 +7,6 @@ Implement a scaffold sub-command to scaffold ABCI skills.
 This module patches the 'aea scaffold' command so to add a new subcommand for scaffolding a skill
  starting from FSM specification.
 
-<a id="autonomy.cli.scaffold_fsm.remove_suffix"></a>
-
-#### remove`_`suffix
-
-```python
-def remove_suffix(s: str, suffix: str) -> str
-```
-
-str.removesuffix() does not exist in python 3.7, 3.8
-
 <a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator"></a>
 
 ## AbstractFileGenerator Objects
@@ -97,7 +87,7 @@ Author
 
 ```python
 @property
-def all_rounds() -> Set[str]
+def all_rounds() -> List[str]
 ```
 
 Rounds
@@ -108,10 +98,10 @@ Rounds
 
 ```python
 @property
-def degenerate_rounds() -> Set[str]
+def degenerate_rounds() -> List[str]
 ```
 
-Non-degenerate rounds
+Degenerate rounds
 
 <a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.rounds"></a>
 
@@ -119,7 +109,7 @@ Non-degenerate rounds
 
 ```python
 @property
-def rounds() -> Set[str]
+def rounds() -> List[str]
 ```
 
 Non-degenerate rounds
@@ -130,7 +120,7 @@ Non-degenerate rounds
 
 ```python
 @property
-def base_names() -> Set[str]
+def base_names() -> List[str]
 ```
 
 Base names
@@ -141,7 +131,7 @@ Base names
 
 ```python
 @property
-def behaviours() -> Set[str]
+def behaviours() -> List[str]
 ```
 
 Behaviours
@@ -152,7 +142,7 @@ Behaviours
 
 ```python
 @property
-def payloads() -> Set[str]
+def payloads() -> List[str]
 ```
 
 Payloads
@@ -195,7 +185,7 @@ File generator for 'behaviours.py' modules.
 def get_file_content() -> str
 ```
 
-Scaffold the 'rounds.py' file.
+Scaffold the 'behaviours.py' file.
 
 <a id="autonomy.cli.scaffold_fsm.PayloadsFileGenerator"></a>
 
@@ -318,7 +308,7 @@ Update the skill configuration file.
 ## RoundTestsFileGenerator Objects
 
 ```python
-class RoundTestsFileGenerator(RoundFileGenerator)
+class RoundTestsFileGenerator(AbstractFileGenerator)
 ```
 
 RoundTestsFileGenerator
@@ -338,7 +328,7 @@ Scaffold the 'test_rounds.py' file.
 ## BehaviourTestsFileGenerator Objects
 
 ```python
-class BehaviourTestsFileGenerator(BehaviourFileGenerator)
+class BehaviourTestsFileGenerator(AbstractFileGenerator)
 ```
 
 File generator for 'test_behaviours.py' modules.
@@ -358,7 +348,7 @@ Scaffold the 'test_behaviours.py' file.
 ## PayloadTestsFileGenerator Objects
 
 ```python
-class PayloadTestsFileGenerator(PayloadsFileGenerator)
+class PayloadTestsFileGenerator(AbstractFileGenerator)
 ```
 
 File generator for 'test_payloads.py' modules.
