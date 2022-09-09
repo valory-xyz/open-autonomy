@@ -1,6 +1,40 @@
 # Release History - `open-autonomy`
 
 
+# 0.2.1.post1 (2022-08-29)
+
+Autonomy:
+- Fix stream logging for docker SDK interactions
+- Use docker SDK to build tendermint testnet config
+
+# 0.2.1 (2022-08-26)
+
+Autonomy:
+- Introduces base autonomy image and agent runtime image for performance improvements.
+- Removes the need for building the dependency images at the runtime.
+- Updates the deployment flow to utilize the newly improved images.
+- Removes the support for pushing the images using the autonomy CLI tool.
+- Removes `skaffold` as a framework dependency.
+- Adds support for remote registries in the fsm scaffold utility.
+- Bumps `open-aea` and its plugins to version `1.17.0`.
+
+Packages:
+- Adds support for parsing all the gnosis GS codes and print relevant messages.
+- Renames `io` module in `abstract_round_abci` to `io_` to avoid possible namespace conflicts with standard `io` module
+- Refactors `io_` module to move `Loaders` and `Storers` classes to relevant skill
+- Decreases validation timeout on `Polygon`
+
+Chores:
+- Updates `tox` definitions and `Makefile` targets to reflect the latest state of the repository.
+- Fixes spell check in the CI.
+- Pins the machine learning libraries to stable versions
+- Updates `scripts/check_doc_ipfs_hashes.py` with more generalized regex
+
+Tests:
+- Adds tests for `scripts/check_doc_ipfs_hashes.py`
+- Fixes ledger connection test
+- Fixes test for `from-token` command
+
 # 0.2.0 (2022-08-21)
 
 Autonomy:

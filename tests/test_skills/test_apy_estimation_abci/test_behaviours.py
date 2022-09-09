@@ -54,18 +54,19 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
-from packages.valory.skills.abstract_round_abci.base import AbciApp, AbciAppDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviour,
     IPFSBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.io_.store import SupportedFiletype
-from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BenchmarkTool
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
 from packages.valory.skills.apy_estimation_abci.behaviours import (
     APYEstimationBaseBehaviour,
+    BaseResetBehaviour,
     CycleResetBehaviour,
     EstimateBehaviour,
     EstimatorRoundBehaviour,
@@ -84,6 +85,17 @@ from packages.valory.skills.apy_estimation_abci.behaviours import (
     TrainBehaviour,
     TransformBehaviour,
     UpdateForecasterBehaviour,
+)
+from packages.valory.skills.apy_estimation_abci.constants import (
+    BEST_PARAMS_PATH,
+    ESTIMATIONS_PATH_TEMPLATE,
+    FORECASTERS_PATH,
+    FULLY_TRAINED_FORECASTERS_PATH,
+    HISTORICAL_DATA_BATCH_PATH_TEMPLATE,
+    HISTORICAL_DATA_PATH_TEMPLATE,
+    LATEST_OBSERVATIONS_PATH_TEMPLATE,
+    PERIOD_SPECIFIER_TEMPLATE,
+    Y_SPLIT_TEMPLATE,
 )
 from packages.valory.skills.apy_estimation_abci.io_.store import (
     ExtendedSupportedFiletype,
@@ -817,17 +829,15 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         else:
             res = {"errors": [{"message": "another error"}]}
 
-        response_kwargs["body"] = json.dumps(res).encode("utf-8")
-        behaviour.act_wrapper()
-        self.mock_http_request(request_kwargs, response_kwargs)
+        with caplog.at_level(
+            logging.WARNING,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            response_kwargs["body"] = json.dumps(res).encode("utf-8")
+            behaviour.act_wrapper()
+            self.mock_http_request(request_kwargs, response_kwargs)
 
         if not is_non_indexed_res:
-            with caplog.at_level(
-                logging.WARNING,
-                logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-            ):
-                behaviour.act_wrapper()
-
             assert (
                 "Attempted to handle an indexing error, but could not extract the latest indexed block!"
                 in caplog.text
@@ -881,10 +891,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         block_from_timestamp_q: str,
         block_from_number_q: str,
         eth_price_usd_q: str,
-        uni_pairs_q: str,
         pairs_ids: Dict[str, List[str]],
-        pool_fields: Tuple[str, ...],
-        caplog: LogCaptureFixture,
     ) -> None:
         """Test `async_act` when we receive `None` responses in `_check_non_indexed_block`."""
         self.fast_forward_to_behaviour(
@@ -1276,7 +1283,9 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             hash_ = cast(BaseBehaviour, self.behaviour.current_behaviour).send_to_ipfs(
                 os.path.join(
                     tmp_path,
-                    f"historical_data_period_{self.synchronized_data.period_count}.json",
+                    HISTORICAL_DATA_PATH_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 {"test": "test"},
                 filetype=SupportedFiletype.JSON,
@@ -1512,7 +1521,9 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
             "hist": {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"latest_observations_period_{self.synchronized_data.period_count - 1}.csv",
+                    LATEST_OBSERVATIONS_PATH_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count - 1
+                    ),
                 ),
                 "obj": transformed_historical_data.iloc[[0, 2]].reset_index(drop=True),
                 "filetype": ExtendedSupportedFiletype.CSV,
@@ -1520,8 +1531,10 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
             "batch": {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"historical_data_batch_{current_behaviour.params.end}"
-                    f"_period_{self.synchronized_data.period_count}.json",
+                    HISTORICAL_DATA_BATCH_PATH_TEMPLATE.substitute(
+                        batch_number=current_behaviour.params.end,
+                        period_count=self.synchronized_data.period_count,
+                    ),
                 ),
                 "obj": batch,
                 "filetype": SupportedFiletype.JSON,
@@ -1869,8 +1882,10 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             data_to_send[split] = {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"y_{split}",
-                    f"period_{self.synchronized_data.period_count}",
+                    Y_SPLIT_TEMPLATE.substitute(split=split),
+                    PERIOD_SPECIFIER_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 "obj": {
                     f"{split}_{i}": pd.DataFrame([i for i in range(5)])
@@ -2023,8 +2038,10 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             "params": {
                 "filepath": os.path.join(
                     tmp_path,
-                    "best_params",
-                    f"period_{self.synchronized_data.period_count}",
+                    BEST_PARAMS_PATH,
+                    PERIOD_SPECIFIER_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 "obj": {
                     "pool1.json": {"p": 1, "q": 1, "d": 1, "m": 1},
@@ -2038,8 +2055,10 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             data_to_send[split] = {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"y_{split}",
-                    f"period_{self.synchronized_data.period_count}",
+                    Y_SPLIT_TEMPLATE.substitute(split=split),
+                    PERIOD_SPECIFIER_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 "obj": {
                     f"pool{i}.csv": pd.DataFrame([i for i in range(5)])
@@ -2186,8 +2205,10 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             "model": {
                 "filepath": os.path.join(
                     tmp_path,
-                    "forecasters",
-                    f"period_{self.synchronized_data.period_count}",
+                    FORECASTERS_PATH,
+                    PERIOD_SPECIFIER_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 "obj": {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
                 "multiple": True,
@@ -2198,8 +2219,10 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             data_to_send[split] = {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"y_{split}",
-                    f"period_{self.synchronized_data.period_count}",
+                    Y_SPLIT_TEMPLATE.substitute(split=split),
+                    PERIOD_SPECIFIER_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 "obj": {
                     f"pool{i}.csv": pd.DataFrame([i for i in range(5)])
@@ -2342,8 +2365,10 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
             "model": {
                 "filepath": os.path.join(
                     tmp_path,
-                    "fully_trained_forecasters",
-                    f"period_{self.synchronized_data.period_count - 1}",
+                    FULLY_TRAINED_FORECASTERS_PATH,
+                    PERIOD_SPECIFIER_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count - 1
+                    ),
                 ),
                 "obj": {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
                 "multiple": True,
@@ -2352,7 +2377,9 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
             "observation": {
                 "filepath": os.path.join(
                     tmp_path,
-                    f"latest_observations_period_{self.synchronized_data.period_count}.csv",
+                    LATEST_OBSERVATIONS_PATH_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 "obj": prepare_batch_task_result,
                 "filetype": ExtendedSupportedFiletype.CSV,
@@ -2491,8 +2518,10 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
             hash_ = cast(BaseBehaviour, self.behaviour.current_behaviour).send_to_ipfs(
                 os.path.join(
                     tmp_path,
-                    "fully_trained_forecasters",
-                    f"period_{self.synchronized_data.period_count}",
+                    FULLY_TRAINED_FORECASTERS_PATH,
+                    PERIOD_SPECIFIER_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 {f"pool{i}.joblib": DummyPipeline() for i in range(3)},
                 multiple=True,
@@ -2588,16 +2617,13 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
         assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
-class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
-    """Test CycleResetBehaviour."""
-
-    behaviour_class = CycleResetBehaviour
-    next_behaviour_class = FetchBatchBehaviour
+class BaseResetBehaviourTests(APYEstimationFSMBehaviourBaseCase):
+    """Test `BaseResetBehaviour`."""
 
     @pytest.mark.parametrize(
         "ipfs_succeed, log_level, log_message",
         (
-            (True, logging.INFO, "Finalized estimates:"),
+            (True, logging.INFO, "Finalized estimates: "),
             (
                 False,
                 logging.ERROR,
@@ -2605,26 +2631,26 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
             ),
         ),
     )
-    def test_reset_behaviour(
+    def test_get_finalized_estimates(
         self,
-        monkeypatch: MonkeyPatch,
         tmp_path: PosixPath,
         caplog: LogCaptureFixture,
-        no_action: Callable[[Any], None],
         ipfs_succeed: bool,
         log_level: int,
         log_message: str,
     ) -> None:
-        """Test reset behaviour."""
+        """Test `_get_finalized_estimates` method."""
         # Set data directory to a temporary path for tests.
         self.behaviour.context._agent_context._data_dir = tmp_path  # type: ignore
 
-        # Send dummy forecasters to IPFS and get the hash.
+        # Send dummy estimations to IPFS and get the hash.
         if ipfs_succeed:
             hash_ = cast(BaseBehaviour, self.behaviour.current_behaviour).send_to_ipfs(
                 os.path.join(
                     tmp_path,
-                    f"estimations_period_{self.synchronized_data.period_count}.csv",
+                    ESTIMATIONS_PATH_TEMPLATE.substitute(
+                        period_count=self.synchronized_data.period_count
+                    ),
                 ),
                 pd.DataFrame({"pool1": [1.435, 4.234], "pool2": [3.45, 23.64]}),
                 filetype=ExtendedSupportedFiletype.CSV,
@@ -2639,68 +2665,172 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
                 AbciAppDB(setup_data=dict(most_voted_estimate=[hash_]))
             ),
         )
-        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        behaviour = cast(BaseResetBehaviour, self.behaviour.current_behaviour)
         assert behaviour.behaviour_id == self.behaviour_class.behaviour_id
 
-        monkeypatch.setattr(BenchmarkTool, "save", lambda _: no_action)
-        monkeypatch.setattr(AbciApp, "last_timestamp", datetime.now())
-        cast(
-            CycleResetBehaviour, self.behaviour.current_behaviour
-        ).params.observation_interval = SLEEP_TIME_TWEAK
         with caplog.at_level(
             log_level,
             logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
         ):
-            self.behaviour.act_wrapper()
+            behaviour._get_finalized_estimates()
         assert log_message in caplog.text
-        time.sleep(SLEEP_TIME_TWEAK + 0.01)
-        self.behaviour.act_wrapper()
 
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
+    @pytest.mark.parametrize(
+        "input_, expected",
+        (
+            (
+                {
+                    "period_count": 0,
+                    "agent_address": "test",
+                    "n_participants": 0,
+                    "estimations": pd.DataFrame(
+                        {"pool1": [1.435, 4.234], "pool2": [3.45, 23.64]}
+                    ).to_json(),
+                    "total_estimations": 0,
+                },
+                (
+                    b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                    b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00000000000000"
+                    b"0000000000000000test\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                    b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                    b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                    b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                    b'\x00\x00\x00\x00{"pool1":{"0":1.435,"1":4.234},"pool2":{"0":3.45,"1":23.64}}',
+                ),
+            ),
+            (
+                {
+                    "period_count": 34560,
+                    "agent_address": "test",
+                    "n_participants": 62340,
+                    "estimations": pd.DataFrame(
+                        {"pool1": [1.435], "pool2": [3.45]}
+                    ).to_json(),
+                    "total_estimations": 67850,
+                },
+                (
+                    b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                    b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x87\x00000000000000"
+                    b"0000000000000000test\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                    b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                    b"\x00\x00\xf3\x84\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                    b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\t\n"
+                    b'{"pool1":{"0":1.435},"pool2":{"0":3.45}}',
+                ),
+            ),
+        ),
+    )
+    def test_pack_for_server(self, input_: Dict, expected: bytes) -> None:
+        """Test for `_pack_for_server` method."""
+        self.fast_forward_to_behaviour(
+            behaviour=self.behaviour,
+            behaviour_id=self.behaviour_class.behaviour_id,
+            synchronized_data=SynchronizedData(AbciAppDB(setup_data=dict())),
+        )
 
-        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+        behaviour = cast(BaseResetBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.behaviour_class.behaviour_id
+        actual = behaviour._pack_for_server(**input_)
+        assert actual == b"".join(expected)  # type: ignore
 
-    def test_reset_behaviour_without_most_voted_estimate(
-        self,
-        monkeypatch: MonkeyPatch,
-        no_action: Callable[[Any], None],
-        caplog: LogCaptureFixture,
-    ) -> None:
-        """Test reset behaviour without most voted estimate."""
+    def test_send_to_server(self, caplog: LogCaptureFixture) -> None:
+        """Test for `_send_to_server` method."""
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=self.behaviour_class.behaviour_id,
             synchronized_data=SynchronizedData(
-                AbciAppDB(setup_data=dict(most_voted_estimate=[None]))
+                AbciAppDB(setup_data=dict(participant_to_estimate=[{}]))
             ),
         )
-        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+
+        behaviour = cast(BaseResetBehaviour, self.behaviour.current_behaviour)
         assert behaviour.behaviour_id == self.behaviour_class.behaviour_id
 
-        monkeypatch.setattr(BenchmarkTool, "save", lambda _: no_action)
-        monkeypatch.setattr(AbciApp, "last_timestamp", datetime.now())
-
-        self.behaviour.context.params.observation_interval = 0.1
+        expected = {"response": "test"}
+        # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour._pack_for_server = lambda **_: mock.MagicMock(hex=lambda: "test_hex")  # type: ignore
+        behaviour.get_signature = lambda _, **__: iter(("test",))  # type: ignore
+        behaviour.get_http_response = lambda **_: iter(("test",))  # type: ignore
+        behaviour.context.server_api.process_response = lambda _: expected  # type: ignore
+        # init the generator
+        send_gen = behaviour._send_to_server(pd.DataFrame())
 
         with caplog.at_level(
             logging.INFO,
             logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-        ):
-            self.behaviour.act_wrapper()
-            cast(
-                CycleResetBehaviour, self.behaviour.current_behaviour
-            ).params.sleep_time = SLEEP_TIME_TWEAK
-            time.sleep(SLEEP_TIME_TWEAK + 0.01)
-            self.behaviour.act_wrapper()
+        ), pytest.raises(StopIteration):
+            for _ in range(3):
+                send_gen.send(None)
 
-        assert "[test_agent_name] Entered in the 'cycle_reset' behaviour" in caplog.text
-        assert (
-            "[test_agent_name] Finalized estimate not available. Resetting!"
-            in caplog.text
+        assert f"Broadcast response: {expected}" in caplog.text
+
+    @pytest.mark.parametrize(
+        "is_most_voted_estimate_set, estimations, is_broadcasting_to_server, log_level, log_message",
+        (
+            (
+                False,
+                pd.DataFrame(),
+                True,
+                logging.ERROR,
+                "Finalized estimates not available!",
+            ),
+            (True, None, True, logging.ERROR, ""),
+            (True, pd.DataFrame(), False, logging.ERROR, ""),
+            (True, pd.DataFrame(), True, logging.ERROR, ""),
+        ),
+    )
+    def test_reset_behaviour(
+        self,
+        caplog: LogCaptureFixture,
+        is_most_voted_estimate_set: bool,
+        estimations: pd.DataFrame,
+        is_broadcasting_to_server: bool,
+        log_level: int,
+        log_message: str,
+    ) -> None:
+        """Test reset behaviour."""
+        self.fast_forward_to_behaviour(
+            behaviour=self.behaviour,
+            behaviour_id=self.behaviour_class.behaviour_id,
+            synchronized_data=SynchronizedData(
+                AbciAppDB(
+                    setup_data=dict(
+                        most_voted_estimate=["not_None"]
+                        if is_most_voted_estimate_set
+                        else [None],
+                        period_count=[0],
+                    )
+                )
+            ),
         )
+        behaviour = cast(BaseResetBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.behaviour_class.behaviour_id
+
+        # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
+        behaviour._get_finalized_estimates = lambda: estimations  # type: ignore
+        behaviour._send_to_server = mock.MagicMock()  # type: ignore
+
+        behaviour.params.is_broadcasting_to_server = is_broadcasting_to_server
+        behaviour.params.observation_interval = SLEEP_TIME_TWEAK
+
+        with caplog.at_level(
+            log_level,
+            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
+        ):
+            behaviour.act_wrapper()
+
+        if log_message:
+            assert log_message in caplog.text
+
+        if (
+            is_broadcasting_to_server
+            and is_most_voted_estimate_set
+            and estimations is not None
+        ):
+            behaviour._send_to_server.assert_called_once_with(estimations)
+
+        time.sleep(SLEEP_TIME_TWEAK + 0.01)
+        behaviour.act_wrapper()
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
@@ -2710,40 +2840,15 @@ class TestCycleResetBehaviour(APYEstimationFSMBehaviourBaseCase):
         assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
-class TestFreshModelResetBehaviour(APYEstimationFSMBehaviourBaseCase):
+class TestFreshModelResetBehaviour(BaseResetBehaviourTests):
     """Test FreshModelResetBehaviour."""
 
     behaviour_class = FreshModelResetBehaviour
     next_behaviour_class = FetchBehaviour
 
-    def test_fresh_model_reset_behaviour(self, caplog: LogCaptureFixture) -> None:
-        """Run test for `ResetBehaviour`."""
-        self.fast_forward_to_behaviour(
-            behaviour=self.behaviour,
-            behaviour_id=self.behaviour_class.behaviour_id,
-            synchronized_data=SynchronizedData(AbciAppDB(setup_data={})),
-        )
-        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.behaviour_id == self.behaviour_class.behaviour_id
 
-        with caplog.at_level(
-            logging.INFO,
-            logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
-        ):
-            self.behaviour.act_wrapper()
+class TestCycleResetBehaviour(BaseResetBehaviourTests):
+    """Test `CycleResetBehaviour`."""
 
-        assert (
-            "[test_agent_name] Entered in the 'fresh_model_reset' behaviour"
-            in caplog.text
-        )
-        assert (
-            "[test_agent_name] Resetting to create a fresh forecasting model!"
-            in caplog.text
-        )
-
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-
-        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+    behaviour_class = CycleResetBehaviour
+    next_behaviour_class = FetchBatchBehaviour

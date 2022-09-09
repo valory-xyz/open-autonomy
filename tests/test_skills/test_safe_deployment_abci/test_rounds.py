@@ -20,14 +20,25 @@
 """Tests for valory/registration_abci skill's rounds."""
 
 import logging  # noqa: F401
-from typing import Dict, FrozenSet, Optional
+from types import MappingProxyType
+from typing import Any, Dict, FrozenSet, Mapping, Optional, Type, cast
 
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB, MAX_INT_256
-from packages.valory.skills.oracle_deployment_abci.payloads import (
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB, AbstractRound
+from packages.valory.skills.abstract_round_abci.base import (
+    BaseSynchronizedData as SynchronizedData,
+)
+from packages.valory.skills.abstract_round_abci.base import (
+    BaseTxPayload,
+    CollectSameUntilThresholdRound,
+    MAX_INT_256,
+    VotingRound,
+)
+from packages.valory.skills.safe_deployment_abci.payloads import (
+    DeploySafePayload,
     RandomnessPayload,
     SelectKeeperPayload,
+    ValidatePayload,
 )
-from packages.valory.skills.safe_deployment_abci.payloads import DeploySafePayload
 from packages.valory.skills.safe_deployment_abci.rounds import DeploySafeRound
 from packages.valory.skills.safe_deployment_abci.rounds import (
     Event as SafeDeploymentEvent,
@@ -37,14 +48,11 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
     SynchronizedData as SafeDeploymentSynchronizedSata,
 )
 from packages.valory.skills.safe_deployment_abci.rounds import ValidateSafeRound
-from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 
-from tests.test_skills.test_oracle_deployment_abci.test_rounds import (
-    BaseDeployTestClass,
-    BaseValidateRoundTest,
-)
-from tests.test_skills.test_transaction_settlement_abci.test_rounds import (
-    BaseSelectKeeperRoundTest,
+from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
+    BaseCollectSameUntilThresholdRoundTest,
+    BaseOnlyKeeperSendsRoundTest,
+    BaseVotingRoundTest,
 )
 
 
@@ -77,11 +85,11 @@ def get_most_voted_randomness() -> str:
 
 
 def get_participant_to_selection(
-    participants: FrozenSet[str],
+    participants: FrozenSet[str], keeper: str = "keeper"
 ) -> Dict[str, SelectKeeperPayload]:
     """participant_to_selection"""
     return {
-        participant: SelectKeeperPayload(sender=participant, keeper="keeper")
+        participant: SelectKeeperPayload(sender=participant, keeper=keeper)
         for participant in participants
     }
 
@@ -106,6 +114,184 @@ def get_participant_to_votes(
     }
 
 
+class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
+    """Test SelectKeeperTransactionSubmissionRoundA"""
+
+    test_class: Type[CollectSameUntilThresholdRound]
+    test_payload: Type[BaseTxPayload]
+
+    _synchronized_data_class = SynchronizedData
+
+    @staticmethod
+    def _participant_to_selection(
+        participants: FrozenSet[str], keepers: str
+    ) -> Mapping[str, BaseTxPayload]:
+        """Get participant to selection"""
+        return get_participant_to_selection(participants, keepers)
+
+    def test_run(
+        self,
+        most_voted_payload: str = "keeper",
+        keepers: str = "",
+        exit_event: Optional[Any] = None,
+    ) -> None:
+        """Run tests."""
+        test_round = self.test_class(
+            synchronized_data=self.synchronized_data.update(
+                keepers=keepers,
+            ),
+            consensus_params=self.consensus_params,
+        )
+
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                round_payloads=self._participant_to_selection(
+                    self.participants, most_voted_payload
+                ),
+                synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
+                    participant_to_selection=MappingProxyType(
+                        dict(
+                            self._participant_to_selection(
+                                self.participants, most_voted_payload
+                            )
+                        )
+                    )
+                ),
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.participant_to_selection.keys()
+                    if exit_event is None
+                    else None
+                ],
+                most_voted_payload=most_voted_payload,
+                exit_event=self._event_class.DONE if exit_event is None else exit_event,
+            )
+        )
+
+
+class BaseValidateRoundTest(BaseVotingRoundTest):
+    """Test BaseValidateRound."""
+
+    test_class: Type[VotingRound]
+    test_payload: Type[ValidatePayload]
+
+    def test_positive_votes(
+        self,
+    ) -> None:
+        """Test ValidateRound."""
+
+        self.synchronized_data.update(tx_hashes_history="t" * 66)
+
+        test_round = self.test_class(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+
+        self._complete_run(
+            self._test_voting_round_positive(
+                test_round=test_round,
+                round_payloads=get_participant_to_votes(self.participants),
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                    participant_to_votes=MappingProxyType(
+                        dict(get_participant_to_votes(self.participants))
+                    )
+                ),
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.participant_to_votes.keys()
+                ],
+                exit_event=self._event_class.DONE,
+            )
+        )
+
+    def test_negative_votes(
+        self,
+    ) -> None:
+        """Test ValidateRound."""
+
+        test_round = self.test_class(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+
+        self._complete_run(
+            self._test_voting_round_negative(
+                test_round=test_round,
+                round_payloads=get_participant_to_votes(self.participants, vote=False),
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                    participant_to_votes=MappingProxyType(
+                        dict(get_participant_to_votes(self.participants, vote=False))
+                    )
+                ),
+                synchronized_data_attr_checks=[],
+                exit_event=self._event_class.NEGATIVE,
+            )
+        )
+
+    def test_none_votes(
+        self,
+    ) -> None:
+        """Test ValidateRound."""
+
+        test_round = self.test_class(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+
+        self._complete_run(
+            self._test_voting_round_none(
+                test_round=test_round,
+                round_payloads=get_participant_to_votes(self.participants, vote=None),
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                    participant_to_votes=MappingProxyType(
+                        dict(get_participant_to_votes(self.participants, vote=None))
+                    )
+                ),
+                synchronized_data_attr_checks=[],
+                exit_event=self._event_class.NONE,
+            )
+        )
+
+
+class BaseDeployTestClass(BaseOnlyKeeperSendsRoundTest):
+    """Test DeploySafeRound."""
+
+    round_class: Type[AbstractRound]
+    payload_class: Type[BaseTxPayload]
+    update_keyword: str
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        keeper = sorted(list(self.participants))[0]
+        self.synchronized_data = cast(
+            SynchronizedData,
+            self.synchronized_data.update(most_voted_keeper_address=keeper),
+        )
+
+        test_round = self.round_class(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,  # type: ignore
+                keeper_payloads=self.payload_class(keeper, get_safe_contract_address()),
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
+                    **{self.update_keyword: get_safe_contract_address()}
+                ),
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: getattr(
+                        _synchronized_data, self.update_keyword
+                    )
+                ],
+                exit_event=self._event_class.DONE,
+            )
+        )
+
+
 class TestDeploySafeRound(BaseDeployTestClass):
     """Test DeploySafeRound."""
 
@@ -120,7 +306,7 @@ class TestValidateSafeRound(BaseValidateRoundTest):
     """Test ValidateSafeRound."""
 
     test_class = ValidateSafeRound
-    test_payload = ValidatePayload
+    test_payload = ValidatePayload  # type: ignore
     _event_class = SafeDeploymentEvent
     _synchronized_data_class = SafeDeploymentSynchronizedSata
 

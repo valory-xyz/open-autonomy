@@ -50,6 +50,10 @@ class RandomnessApi(ApiSpecs):
     """A model that wraps ApiSpecs for randomness api specifications."""
 
 
+class ServerApi(ApiSpecs):
+    """A model for oracle web server api specs."""
+
+
 class FantomSubgraph(ApiSpecs):
     """A model that wraps ApiSpecs for Fantom subgraph specifications."""
 
@@ -196,11 +200,13 @@ def _validate_parsed_hacky_pair_ids(pair_ids: PairIdsType) -> None:
     :param pair_ids: the parsed hacky pair ids to validate.
     """
     for dex_name, dex_ids in pair_ids.items():
-        if not isinstance(dex_name, str) or not isinstance(dex_ids, list):
-            _raise_incorrect_hacky_initialization()
-        for dex_id in dex_ids:
-            if not isinstance(dex_id, str):
-                _raise_incorrect_hacky_initialization()
+        if (
+            isinstance(dex_name, str)
+            and isinstance(dex_ids, list)
+            and all(isinstance(_id, str) for _id in dex_ids)
+        ):
+            continue
+        _raise_incorrect_hacky_initialization()
 
 
 def _hack_around_dict_override_limitation(pair_ids: HackyPairIdsType) -> PairIdsType:
@@ -247,6 +253,8 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
         pair_ids: HackyPairIdsType = self._ensure("pair_ids", kwargs)
         self.pair_ids: PairIdsType = _hack_around_dict_override_limitation(pair_ids)
         self.ipfs_domain_name = self._ensure("ipfs_domain_name", kwargs)
+        self.is_broadcasting_to_server = kwargs.pop("broadcast_to_server", False)
+        self.decimals = self._ensure("decimals", kwargs)
         super().__init__(*args, **kwargs)
 
         self.__validate_params()

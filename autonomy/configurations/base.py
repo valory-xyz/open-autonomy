@@ -298,7 +298,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                 overrides = self.try_to_process_singular_override(
                     component_id, config_class, configuration
                 )
-            except ValueError:
+            except (ValueError, AttributeError):
                 overrides = self.try_to_process_nested_fields(
                     component_id,
                     component_index,
@@ -366,12 +366,6 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                         nested_override_key,
                         nested_override_value,
                     ) in nested_value.items():
-                        if (
-                            nested_override_key
-                            not in config_class.NESTED_FIELDS_ALLOWED_TO_UPDATE  # type: ignore
-                        ):
-                            raise ValueError("Trying to override non-nested field.")
-
                         env_var_name = "_".join(
                             [
                                 component_id.package_type.value,

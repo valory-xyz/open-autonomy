@@ -6,7 +6,10 @@ site_author: developer@valory.xyz
 edit_uri: edit/main/docs/
 
 theme:
-   name: 'material'
+  name: 'material'
+  features:
+    - navigation.top   
+    - navigation.indexes
 
 extra_css:
   - stylesheets/extra.css
@@ -14,12 +17,20 @@ extra_css:
 strict: true
 
 nav:
-  - Introduction: 'index.md'
-  - Agent Services in Context: 'agent_services_context.md'
-  - Version: 'version.md'
-  - Upgrading: 'upgrading.md'
-  - Quick Start: 'quick_start.md'
-  - Hello World Agent Service: 'hello_world_agent_service.md'
+  - Home: 'index.md'
+  - Get started:
+    - What is the Open Autonomy framework: 'get_started/what_is_the_open_autonomy_framework.md' 
+    - What is an agent service: 'get_started/what_is_an_agent_service.md'
+    - Why do we need agent services: 'get_started/why_do_we_need_agent_services.md'
+    - Agent services compared to...: 'get_started/agent_services_compared_to.md' 
+    - Use cases: 'get_started/use_cases.md'
+  - Guides:
+    - Quick start: 'guides/quick_start.md'
+    - Overview of the development process: 'guides/overview_of_the_development_process.md'
+    - Create a service with an existing agent: 'guides/create_service_existing_agent.md'
+    - Create a service from scratch: 'guides/create_service_from_scratch.md'
+    - Deploy a service: 'guides/deploy_service.md'
+    - Running a service in different networks: 'guides/running_service_different_networks.md'
   - Concepts:
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
@@ -34,6 +45,7 @@ nav:
     - Interactions between Components: 'abci_app_interactions.md'
     - Sequence Diagram: 'poc-diagram.md'
   - Demos:
+    - Hello World Agent Service: 'hello_world_agent_service.md'  
     - Simple Demo: 'simple_abci.md'
     - Counter Demo: 'counter_example.md'
     - Price Oracle Demo:
@@ -41,6 +53,8 @@ nav:
       - Technical Details: 'price_oracle_technical_details.md'
       - FSM Specification: 'price_oracle_fsms.md'
   - Development:
+    - Version: 'version.md'
+    - Upgrading: 'upgrading.md'  
     - Package publishing: 'package_publishing.md'
     - CLI: 'autonomy.md'
     - Developer Tooling:
@@ -99,24 +113,24 @@ nav:
           - Tendermint: 'api/replay/tendermint.md'
           - Utils: 'api/replay/utils.md'
         - Test Tools:
-          - Configurations: 'api/test_tools/configurations.md'
-          - Fixture Helpers: 'api/test_tools/fixture_helpers.md'
+          - Configurations: 'api/plugins/aea_test_autonomy/configurations.md'
+          - Fixture Helpers: 'api/plugins/aea_test_autonomy/fixture_helpers.md'
           - Base Test Classes:
-            - Agents: 'api/test_tools/base_test_classes/agents.md'
-            - Contracts: 'api/test_tools/base_test_classes/contracts.md'
+            - Agents: 'api/plugins/aea_test_autonomy/base_test_classes/agents.md'
+            - Contracts: 'api/plugins/aea_test_autonomy/base_test_classes/contracts.md'
           - Docker:
-            - ACN Node: 'api/test_tools/docker/acn_node.md'
-            - AMM Net: 'api/test_tools/docker/amm_net.md'
-            - Base: 'api/test_tools/docker/base.md'
-            - Ganache Helpers: 'api/test_tools/docker/ganache.md'
-            - Gnosis Safe Helpers: 'api/test_tools/docker/gnosis_safe_net.md'
-            - Registries: 'api/test_tools/docker/registries.md'
-            - Tendermint Helpers: 'api/test_tools/docker/tendermint.md'
+            - ACN Node: 'api/plugins/aea_test_autonomy/docker/acn_node.md'
+            - AMM Net: 'api/plugins/aea_test_autonomy/docker/amm_net.md'
+            - Base: 'api/plugins/aea_test_autonomy/docker/base.md'
+            - Ganache Helpers: 'api/plugins/aea_test_autonomy/docker/ganache.md'
+            - Gnosis Safe Helpers: 'api/plugins/aea_test_autonomy/docker/gnosis_safe_net.md'
+            - Registries: 'api/plugins/aea_test_autonomy/docker/registries.md'
+            - Tendermint Helpers: 'api/plugins/aea_test_autonomy/docker/tendermint.md'
           - Helpers:
-            - Async Utils: 'api/test_tools/helpers/async_utils.md'
-            - Base: 'api/test_tools/helpers/base.md'
-            - Contracts: 'api/test_tools/helpers/contracts.md'
-            - Tendermint Utils: 'api/test_tools/helpers/tendermint_utils.md'
+            - Async Utils: 'api/plugins/aea_test_autonomy/helpers/async_utils.md'
+            - Base: 'api/plugins/aea_test_autonomy/helpers/base.md'
+            - Contracts: 'api/plugins/aea_test_autonomy/helpers/contracts.md'
+            - Tendermint Utils: 'api/plugins/aea_test_autonomy/helpers/tendermint_utils.md'
         - Data:
           - Watcher: 'api/data/Dockerfiles/dev/watcher.md'
       - Connections:

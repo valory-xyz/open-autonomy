@@ -43,7 +43,6 @@ from autonomy.deploy.constants import (
 ABCI_HOST = "abci{}"
 TENDERMINT_NODE = "http://node{}:26657"
 TENDERMINT_COM = "http://node{}:8080"
-LOCALHOST = "localhost"
 COMPONENT_CONFIGS: Dict = {
     component.package_type.value: component  # type: ignore
     for component in [
@@ -70,11 +69,14 @@ class ServiceSpecification:
         private_keys_password: Optional[str] = None,
         agent_instances: Optional[List[str]] = None,
         log_level: str = INFO,
+        substitute_env_vars: bool = False,
     ) -> None:
         """Initialize the Base Deployment."""
         self.keys: List = []
         self.private_keys_password = private_keys_password
-        self.service = load_service_config(service_path)
+        self.service = load_service_config(
+            service_path, substitute_env_vars=substitute_env_vars
+        )
         self.log_level = log_level
 
         # we allow configurable number of agents independent of the
@@ -199,7 +201,9 @@ class BaseDeploymentGenerator:
         )
 
     @abc.abstractmethod
-    def generate(self) -> "BaseDeploymentGenerator":
+    def generate(
+        self, image_version: Optional[str] = None
+    ) -> "BaseDeploymentGenerator":
         """Generate the deployment configuration."""
 
     @abc.abstractmethod

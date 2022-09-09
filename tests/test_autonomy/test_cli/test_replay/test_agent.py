@@ -28,9 +28,8 @@ from unittest import mock
 
 from autonomy.cli import cli
 from autonomy.replay.agent import AgentRunner
-from autonomy.test_tools.docker.base import skip_docker_tests
 
-from tests.conftest import ROOT_DIR
+from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 

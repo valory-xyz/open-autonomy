@@ -17,19 +17,19 @@ fingerprint:
   payloads.py: bafybeigvs7s5gnr2ocq7ofrvh7tksla2fh3ymgshhdtooe2wb7bdnw6bta
   rounds.py: bafybeibxjnvm5r62qnvv54c6xjcym4j2cuxk4kvv566jwcdbamwyr5qjvq
   test_tools/__init__.py: bafybeifwxievldkr2k5rqcsq4t3hx4kh6pue4spxy6tlji6422np46dtoy
-  test_tools/integration.py: bafybeidi74vdxcj5gvfbuxbbiaowhgrvunxpf7lmasry645lsongz7dimy
+  test_tools/integration.py: bafybeiehxdy6kgq2pfp7cqjfj4fqgqc2fpidb43w4bekvbkdoarnjfp24u
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeif5ump4p7p5bygqyxeznwdvtdhtwihxnjnvjajbcnt7rmcyzyjafy
-- valory/multisend:0.1.0:bafybeidvuabdn32lpsh3z7wb5fonotimysfsntueeb53dgil5jmiezrasq
+- valory/gnosis_safe:0.1.0:bafybeiaugd2npc33jgovg72y4y7pyy7yl24ly6eri7mw6v6gev5azewozq
+- valory/multisend:0.1.0:bafybeiepv664nlbq6bbjeyy2ljmtiy5nqbkwfcuf3lk7y3akobylgiehia
 - valory/uniswap_v2_erc20:0.1.0:bafybeid2rdlyshie6yamr6lzf3g3kfovlhvww3rszmtaad2pmawwgmfvce
 - valory/uniswap_v2_router_02:0.1.0:bafybeie7xfg2erv4gzuy46vjvqav4fnrzugvkx5twt5h3n2yocakbpzn4u
 protocols:
 - valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicvhdpuai3mphhzsdhzxcx2sdxbmpsl3jh3ccmjvzkchu4xyjhr3e
-- valory/transaction_settlement_abci:0.1.0:bafybeigpagifeh737pihrlj37yugaxuzzv5r5a5yyol2ggwlegcwuip3de
+- valory/abstract_round_abci:0.1.0:bafybeihrktukokli5xxch7gexdl6wtnj23pnapbe6znmvlphyseotsqlre
+- valory/transaction_settlement_abci:0.1.0:bafybeihcxwoaeidkx22l4bji7najnkb3yimxrjdfrghschmmq5wi3euddy
 behaviours:
   main:
     args: {}
@@ -121,5 +121,7 @@ models:
   state:
     args: {}
     class_name: SharedState
-dependencies: {}
+dependencies:
+  open-aea-test-autonomy:
+    version: ==0.2.1
 is_abstract: true

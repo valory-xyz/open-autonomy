@@ -18,11 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """Docker-compose Deployment Generator."""
-import subprocess  # nosec
 from pathlib import Path
-from typing import Dict, IO, cast
+from typing import Dict, Optional
 
 from aea.configurations.constants import DEFAULT_PRIVATE_KEY_FILE
+from docker import from_env
 
 from autonomy.constants import (
     OAR_IMAGE,
@@ -109,56 +109,40 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     def generate_config_tendermint(self) -> "DockerComposeGenerator":
         """Generate the command to configure tendermint testnet."""
 
-        if self.tendermint_job_config is not None:  # pragma: no cover
-            return self
-
-        run_cmd = TENDERMINT_CONFIG_TEMPLATE.format(
-            hosts=" \\\n".join(
+        hosts = (
+            " \\\n".join(
                 [
                     f"--hostname=node{k}"
                     for k in range(self.service_spec.service.number_of_agents)
                 ]
             ),
-            validators=self.service_spec.service.number_of_agents,
-            build_dir=self.build_dir,
-            tendermint_image_name=TENDERMINT_IMAGE_NAME,
-            tendermint_image_version=TENDERMINT_IMAGE_VERSION,
         )
-        self.tendermint_job_config = " ".join(
-            [
-                f
-                for f in run_cmd.replace("\n", "").replace("\\", "").split(" ")
-                if f != ""
-            ]
+        self.tendermint_job_config = TENDERMINT_CONFIG_TEMPLATE.format(
+            validators=self.service_spec.service.number_of_agents, hosts=hosts
         )
+        client = from_env()
+        image = f"{TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}"
 
-        process = subprocess.Popen(  # pylint: disable=consider-using-with  # nosec
-            self.tendermint_job_config.split(),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            universal_newlines=True,
+        run_log = client.containers.run(
+            image=image,
+            volumes={f"{self.build_dir}/nodes": {"bind": "/tendermint", "mode": "z"}},
+            entrypoint=self.tendermint_job_config,
         )
+        print(run_log.decode())
 
-        for line in iter(cast(IO[str], process.stdout).readline, ""):
-            if line == "":  # pragma: nocover
-                break
-            print(f"[Tendermint] {line.strip()}")
-
-        if "Unable to find image" in cast(IO[str], process.stderr).read():
-            raise RuntimeError(
-                f"Cannot find {TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}, Please build images first."
-            )
         return self
 
-    def generate(
-        self,
-    ) -> "DockerComposeGenerator":
+    def generate(self, image_version: Optional[str] = None) -> "DockerComposeGenerator":
         """Generate the new configuration."""
+
+        image_version = image_version or self.service_spec.service.agent.hash
+        if self.dev_mode:
+            image_version = "dev"
 
         agent_vars = self.service_spec.generate_agents()
         runtime_image = OAR_IMAGE.format(
             agent=self.service_spec.service.agent.name,
-            version=self.service_spec.service.agent.hash,
+            version=image_version,
         )
 
         agents = "".join(

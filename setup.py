@@ -34,7 +34,7 @@ def get_all_extras() -> Dict:
 
     cli_deps = [
         "click==8.0.2",
-        "open-aea-cli-ipfs>=1.17.0,<2.0.0",
+        "open-aea-cli-ipfs>=1.18.0,<2.0.0",
     ]
 
     extras = {
@@ -57,7 +57,7 @@ def _get_docker_dependency() -> str:
     as the PyPI distribution of `docker` causes the following conflict:
 
         docker 5.0.3 depends on pywin32==227; sys_platform == "win32"
-        open-aea[all] 1.17.0 depends on pywin32==304
+        open-aea[all] 1.18.0.post1 depends on pywin32==304
 
     Instead, at commit docker/docker-py@3f0095a, `setup.py` has an extra that forces pywin32>=304.
     """
@@ -70,12 +70,13 @@ def _get_docker_dependency() -> str:
 
 base_deps = [
     "Flask>=2.0.2,<3.0.0",
-    "open-aea[all]>=1.17.0,<2.0.0",
+    "open-aea[all]>=1.18.0.post1,<2.0.0",
     "pandas<1.4,>=1.3.4",
     "watchdog >=2.1.6",
     "pytest==7.0.0",
-    "open-aea-ledger-ethereum==1.17.0",
+    "open-aea-ledger-ethereum==1.18.0",
     "docker-compose==1.29.2",
+    "werkzeug==2.0.3",
     _get_docker_dependency(),
 ]
 base_deps.extend(all_extras["cli"])

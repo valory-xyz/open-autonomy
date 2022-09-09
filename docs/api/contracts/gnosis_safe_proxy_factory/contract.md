@@ -74,7 +74,7 @@ an optional JSON-like object.
 
 ```python
 @classmethod
-def build_tx_deploy_proxy_contract_with_nonce(cls, ledger_api: EthereumApi, proxy_factory_address: str, master_copy: str, address: str, initializer: bytes, salt_nonce: int, gas: int = 0, gas_price: Optional[int] = None, max_fee_per_gas: Optional[int] = None, max_priority_fee_per_gas: Optional[int] = None, nonce: Optional[int] = None) -> Tuple[TxParams, str]
+def build_tx_deploy_proxy_contract_with_nonce(cls, ledger_api: EthereumApi, proxy_factory_address: str, master_copy: str, address: str, initializer: bytes, salt_nonce: int, gas: int = MIN_GAS, gas_price: Optional[int] = None, max_fee_per_gas: Optional[int] = None, max_priority_fee_per_gas: Optional[int] = None, nonce: Optional[int] = None) -> Tuple[TxParams, str]
 ```
 
 Deploy proxy contract via Proxy Factory using `createProxyWithNonce` (create2)

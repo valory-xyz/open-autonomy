@@ -18,17 +18,22 @@
 # ------------------------------------------------------------------------------
 
 """Utils to support on-chain contract interactions."""
-
-
+import json
 import os
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import requests
 import web3
 
+from autonomy.data import DATA_DIR
 
-SERVICE_REGISTRY_ABI = "https://abi-server.staging.autonolas.tech/autonolas-registries/ServiceRegistry.json"
-DEFAULT_STAGING_CHAIN = "https://chain.staging.autonolas.tech"
+
+ABIS_DIR = "abis"
+SERVICE_REGISTRY_ABI = (
+    DATA_DIR / ABIS_DIR / "service_registry" / "service_registry.json"
+)
+DEFAULT_STAGING_CHAIN = "http://localhost:8545"
 
 CHAIN_CONFIG: Dict[str, Dict[str, Optional[str]]] = {
     "staging": {
@@ -54,11 +59,12 @@ CHAIN_CONFIG: Dict[str, Dict[str, Optional[str]]] = {
 ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
 
 
-def get_abi(url: str) -> Dict:
-    """Get ABI from provided URL"""
+def get_abi(path: Path) -> Dict:
+    """Read the ABI from the provided path."""
 
-    r = requests.get(url=url)
-    return r.json().get("abi")
+    with open(path, encoding="utf-8") as f:
+        abi = json.load(f)
+    return abi
 
 
 class ServiceRegistry:
@@ -104,6 +110,11 @@ class ServiceRegistry:
     ) -> Dict:
         """Resolve token id using on-chain contracts."""
         url = self.contract.functions.tokenURI(token_id).call()
+        return self._resolve_from_ipfs(url)
+
+    @staticmethod
+    def _resolve_from_ipfs(url: str) -> Dict:
+        """Resolves from ipfs given an URL."""
         return requests.get(url).json()
 
     def get_agent_instances(self, token_id: int) -> Tuple[int, List[str]]:

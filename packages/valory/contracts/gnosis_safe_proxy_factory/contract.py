@@ -30,6 +30,10 @@ from web3.types import Nonce, TxParams, Wei
 
 
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe_proxy_factory:0.1.0")
+MIN_GAS = 1
+# see https://github.com/valory-xyz/open-autonomy/pull/1209#discussion_r950129886
+GAS_ESTIMATE_ADJUSTMENT = 50_000
+
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
@@ -87,7 +91,7 @@ class GnosisSafeProxyFactoryContract(Contract):
         address: str,
         initializer: bytes,
         salt_nonce: int,
-        gas: int = 0,
+        gas: int = MIN_GAS,
         gas_price: Optional[int] = None,
         max_fee_per_gas: Optional[int] = None,
         max_priority_fee_per_gas: Optional[int] = None,
@@ -136,9 +140,8 @@ class GnosisSafeProxyFactoryContract(Contract):
         ):
             tx_parameters.update(ledger_api.try_get_gas_pricing())
 
-        tx_parameters["gas"] = (
-            Wei(gas) if gas != 0 else Wei(1)
-        )  # we set a value to avoid triggering the gas estimation during buildTransaction below
+        # we set a value to avoid triggering the gas estimation during `buildTransaction` below
+        tx_parameters["gas"] = Wei(max(gas, MIN_GAS))
 
         if nonce is not None:
             tx_parameters["nonce"] = Nonce(nonce)
@@ -149,8 +152,9 @@ class GnosisSafeProxyFactoryContract(Contract):
                 transaction_dict
             )
         )
+        # see https://github.com/valory-xyz/open-autonomy/pull/1209#discussion_r950129886
         transaction_dict["gas"] = (
-            Wei(max(gas_estimate + 50000, gas))
+            Wei(max(gas_estimate + GAS_ESTIMATE_ADJUSTMENT, gas))
             if gas_estimate is not None
             else Wei(gas)
         )
