@@ -28,7 +28,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeiaugd2npc33jgovg72y4y7pyy7yl24ly6eri7mw6v6gev5azewozq
+- valory/gnosis_safe:0.1.0:bafybeican3dpup73twym2ieysalbc3phqjwdmdpirifivxmjwrsqmxgyzm
 - valory/offchain_aggregator:0.1.0:bafybeiexr4ggkzocdz3cojmwzhkgmx3fjnvisvbnh7jumlz32lsm4hp7ii
 protocols:
 - open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
@@ -36,7 +36,7 @@ protocols:
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeiayundvgebwtckznm3o7io2hk2ehnmohyv64ic3ubqffkgqv6a424
 - valory/oracle_deployment_abci:0.1.0:bafybeiheczdtbnr5d6rlauaofhw36p5l2usyh4c5lfbvfdql4zqbv3jjie
-- valory/transaction_settlement_abci:0.1.0:bafybeig42hbdyljzeoqxpx6mxkz52nlt6utdhchylvmifzkafpdjft7up4
+- valory/transaction_settlement_abci:0.1.0:bafybeicp47dfp3iq2nsvlbwaa2yldqpldt2sbxtcmztiygjm3mkx26q36m
 behaviours:
   main:
     args: {}
