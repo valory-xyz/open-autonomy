@@ -45,27 +45,6 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 
-CONSENSUS_PARAMS = {
-    "block": {"max_bytes": "22020096", "max_gas": "-1", "time_iota_ms": "1000"},
-    "evidence": {
-        "max_age_num_blocks": "100000",
-        "max_age_duration": "172800000000000",
-        "max_bytes": "1048576",
-    },
-    "validator": {"pub_key_types": ["ed25519"]},
-    "version": {},
-}
-
-
-GENESIS_CONFIG = dict(  # type: ignore
-    genesis_time="2022-05-20T16:00:21.735122717Z",
-    chain_id="chain-c4daS1",
-    consensus_params=CONSENSUS_PARAMS,
-)
-
-DEFAULT_VOTING_POWER = str(10)
-
-
 def format_genesis_data(
     collected_agent_info: Dict[str, Any],
 ) -> Dict[str, Any]:
