@@ -290,8 +290,8 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         return self.collection_complete
 
     def format_genesis_data(
-            self,
-            collected_agent_info: Dict[str, Any],
+        self,
+        collected_agent_info: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Format collected agent info for genesis update"""
 
