@@ -4,7 +4,7 @@ Developing with the {{open_autonomy}} framework usually entails creating all the
 
 In this guide, we will show how to:
 
-- Create different packages using the scaffold tool.
+- Create a skill package using the scaffold tool.
 
 ## Setup
 
@@ -42,34 +42,7 @@ First, create an empty agent using the autonomy CLI. This will create the agent 
 autonomy create my_agent
 cd my_agent
 ```
-Now that the agent is in place, you can follow the next sections examples to add your packages.
-
-### Scaffold a connection.
-To add your first [connection](https://open-aea.docs.autonolas.tech/connection/), run:
-```
-autonomy scaffold connection my_connection
-```
-
-### Scaffold a contract.
-To scaffold a new [contract](https://open-aea.docs.autonolas.tech/contract/), run:
-```
-autonomy scaffold contract my_contract
-```
-
-### Scaffold a protocol.
-To generate a new [protocol](https://open-aea.docs.autonolas.tech/protocol/), execute:
-```
-autonomy scaffold protocol my_protocol
-```
-
-### Scaffold a skill.
-Create a simple [skill](https://open-aea.docs.autonolas.tech/skill/) running:
-```
-autonomy scaffold skill my_skill
-```
-
-### Scaffold a skill from a FSM specification.
-In the previous section, we generated the basic structure of a [skill](https://open-aea.docs.autonolas.tech/skill/). But there's a better way of doing so if you already have its [FSM](https://docs.autonolas.network/fsm/) specification. For example, let's copy the contents of the [Hello World](https://docs.autonolas.network/hello_world_agent_service/) service FSM specification into a file called ```fsm_specification.yaml```. Put it inside your agent's directory.
+Now that the agent is in place, you can generate the basic structure of a [skill](https://open-aea.docs.autonolas.tech/skill/). For that, you need its [FSM](https://docs.autonolas.network/fsm/) specification. In this example, let's copy the contents of the [Hello World](https://docs.autonolas.network/hello_world_agent_service/) service FSM specification into a file called ```fsm_specification.yaml```. Put it inside your agent's directory.
 
 ```
 alphabet_in:
@@ -105,17 +78,4 @@ Now, run the scaffold tool:
 autonomy scaffold fsm my_other_skill --spec fsm_specification.yaml
 ```
 
-In this case, you'll see that the generated rounds, payloads and behaviours already appear with their correct names, as well as the `HelloWorldAbciApp` and its transition function.
-
-### Scaffold the decision maker.
-Run the following to scaffold the [decision maker](https://open-aea.docs.autonolas.tech/decision-maker/):
-```
-autonomy scaffold decision-maker-handler
-```
-
-### Scaffold an error-handler.
-To create a new error handler, execute:
-```
-autonomy scaffold error-handler
-```
-You can learn more about message handling reading the [message routing](https://open-aea.docs.autonolas.tech/message-routing/) section of the docs.
+You will see that the generated rounds, payloads and behaviours already appear with their correct names, as well as the `HelloWorldAbciApp` and its transition function.
