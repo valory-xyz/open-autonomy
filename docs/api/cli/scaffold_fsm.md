@@ -4,7 +4,7 @@
 
 Implement a scaffold sub-command to scaffold ABCI skills.
 
-This module patches the 'aea scaffold' command so to add a new subcommand for scaffolding a skill
+This module patches the 'autonomy scaffold' command so to add a new subcommand for scaffolding a skill
  starting from FSM specification.
 
 <a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator"></a>

@@ -95,7 +95,7 @@ class CommandValidator:
         # Since we are using the autonomy CLI for checking, enforce the usage of "autonomy" commands only in this repo.
         if cmd_parts[0] == "aea":
             print(
-                f"Command validation error in {file_}: aea command detected. Use autonomy command equivalent instead."
+                f"Command validation error in {file_}: aea command detected. Use autonomy command equivalent instead:\n    {cmd}"
             )
             return False
 
