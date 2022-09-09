@@ -20,8 +20,12 @@
 """Develop CLI module."""
 
 import click
-from autonomy.constants import DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE, SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME
 from docker import from_env
+
+from autonomy.constants import (
+    DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE,
+    SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME,
+)
 
 
 @click.group(name="develop")
@@ -46,7 +50,7 @@ def run_service_locally(image: str) -> None:
         image=image,
         detach=True,
         network_mode="host",
-        name=SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME
+        name=SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME,
     )
     try:
         for line in client.api.logs(container.id, follow=True, stream=True):

@@ -19,15 +19,19 @@
 
 """Test `from-token` command."""
 
-import os
 import multiprocessing
+import os
 import time
 from typing import Tuple
 
 import docker
 import pytest
 import requests
-from autonomy.constants import ( SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME as CONTAINER_NAME)
+
+from autonomy.constants import (
+    SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME as CONTAINER_NAME,
+)
+
 from tests.conftest import skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
@@ -38,7 +42,8 @@ class TestRunServiceLocally(BaseCliTest):
     """Test `service-registry-network` command."""
 
     cli_options: Tuple[str, ...] = (
-         "develop", "service-registry-network",
+        "develop",
+        "service-registry-network",
     )
     expected_network_address = "http://localhost:8545"
     running_process: multiprocessing.Process
@@ -75,7 +80,7 @@ class TestRunServiceLocally(BaseCliTest):
     def _stop_cli_process(
         self,
     ) -> None:
-        """Kill the process running the CLI. """
+        """Kill the process running the CLI."""
         if self.running_process is not None:
             self.running_process.terminate()
             client = docker.from_env()
