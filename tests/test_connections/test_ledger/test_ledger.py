@@ -167,7 +167,7 @@ class TestRequestDispatcher:
     async def test_wait_for_happy_path(self) -> None:
         """Tests that wait_for works when timeout is bigger than execution time of callable."""
         should_finish_in = 0.5
-        tolerance = 0.1
+        tolerance = 0.5
         timeout = should_finish_in + tolerance
 
         return_value = await self.dispatcher.wait_for(
