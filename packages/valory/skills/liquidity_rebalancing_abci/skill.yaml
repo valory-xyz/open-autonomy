@@ -30,7 +30,7 @@ connections: []
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeigfr7dqpvpxxgfuirb53c64iphwbhkddzbsmvsvlmaseiost77kri
 - valory/multisend:0.1.0:bafybeibvnywpcrhkhialvuvczua3hhjftqz6jhktolmkygq2dvbliukm2i
-- valory/uniswap_v2_erc20:0.1.0:bafybeid2rdlyshie6yamr6lzf3g3kfovlhvww3rszmtaad2pmawwgmfvce
+- valory/uniswap_v2_erc20:0.1.0:bafybeib3fh3x37ckg6fa2u7turlwub67ta6ivwl7qwf4caldo7c2bdc2o4
 - valory/uniswap_v2_router_02:0.1.0:bafybeie7xfg2erv4gzuy46vjvqav4fnrzugvkx5twt5h3n2yocakbpzn4u
 protocols:
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim

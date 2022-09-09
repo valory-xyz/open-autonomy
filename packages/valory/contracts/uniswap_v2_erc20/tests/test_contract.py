@@ -30,7 +30,8 @@ from packages.valory.contracts.uniswap_v2_erc20.contract import (
     UniswapV2ERC20Contract,
 )
 
-from tests.conftest import ROOT_DIR
+
+PACKAGE_DIR = Path(__file__).parent.parent
 
 
 CONTRACT_ADDRESS = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
@@ -45,9 +46,7 @@ MAX_ALLOWANCE = 2 ** 256 - 1
 class TestUniswapV2ERC20Contract(BaseContractTestCase):
     """Test TestUniswapV2ERC20Contract."""
 
-    path_to_contract = Path(
-        ROOT_DIR, "packages", PUBLIC_ID.author, "contracts", PUBLIC_ID.name
-    )
+    path_to_contract = PACKAGE_DIR
     ledger_identifier = "ethereum"
     contract: UniswapV2ERC20Contract
     owner_address = ADDRESS_ONE
