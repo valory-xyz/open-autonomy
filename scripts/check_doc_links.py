@@ -49,10 +49,14 @@ def main() -> None:  # pylint: disable=too-many-locals
 
     broken_links: List[Tuple[str, Any, Any]] = []
     http_links = []
-    http_skips = ["http://www.fipa.org/repository/ips.php3"]
+    http_skips = [
+        "http://www.fipa.org/repository/ips.php3",
+        "http://host.docker.internal:8545",
+    ]
     url_skips = [
         "https://github.com/valory-xyz/open-autonomy/trunk/packages",
         "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure",
+        "https://gateway.autonolas.tech/ipfs/`<hash>`",
     ]
 
     # Configure request retries
@@ -74,6 +78,11 @@ def main() -> None:  # pylint: disable=too-many-locals
             # Add the closing parenthesis if it is msising, as the REGEX is too strict sometimes
             if "(" in url and ")" not in url:
                 url += ")"
+
+            # Commas and other valid characters can be a problem in some texts where
+            # they appear at the end of the url as a part of the text (not of the url).
+            if url[-1] in [",", "<", ">"]:
+                url = url[:-1]
 
             # Check for HTTP urls
             if not url.startswith("https") and url not in http_skips:
