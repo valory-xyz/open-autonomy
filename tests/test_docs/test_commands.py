@@ -45,6 +45,16 @@ def get_cmd_data(cmd: Union[Command, Group]) -> Dict:
                 *[i.opts for i in cmd.params if isinstance(i, click.Argument)]
             )
         ),
+        "string_options": list(
+            itertools.chain(
+                *[
+                    i.opts
+                    for i in cmd.params
+                    if isinstance(i, Option)
+                    and isinstance(i.type, click.types.StringParamType)
+                ]
+            )
+        ),
     }
 
 
@@ -77,8 +87,8 @@ class CommandValidator:
 
         # Copy the tree
         tree = self.tree
-
         latest_subcmd = None
+        allow_option_arg = False
 
         cmd_parts = [i for i in cmd.split(" ") if i]
 
@@ -96,6 +106,7 @@ class CommandValidator:
             if cmd_part in tree["commands"].keys():
                 latest_subcmd = cmd_part
                 tree = tree["commands"][cmd_part]
+                allow_option_arg = False
                 continue
 
             # Options
@@ -105,9 +116,17 @@ class CommandValidator:
                         f"Command validation error in {file_}: option '{cmd_part}' is not present on the command tree {list(tree['options'])}:\n    {cmd}"
                     )
                     return False
+
+                if cmd_part in tree["string_options"]:
+                    allow_option_arg = True
                 continue
 
-            # Arguments
+            # Option arguments: we can't validate them, just guess that they are correct.
+            if allow_option_arg:
+                allow_option_arg = False
+                continue
+
+            # Command arguments
             if not latest_subcmd:
                 print(
                     f"Command validation error in {file_}: detected argument '{cmd_part}' but no latest subcommand exists yet:\n    {cmd}"
@@ -120,9 +139,8 @@ class CommandValidator:
                 )
                 return False
 
-            # If we reach here, this command part is an argument for either a command or for an option.
-            # It could also be an non-existent option (or typo) but since we have no way of validating this,
-            # we take for granted that it is correct.
+            # If we reach here, this command part is probably an argument for a command.
+            # We can't validate it, just guess that it is correct.
 
         return True
 
@@ -147,6 +165,7 @@ def test_validate_doc_commands() -> None:
         "autonomy test tools",
         "aea helper libraries to check individual overrides",
         "autonomy tests/ --cov=autonomy --cov-report=html --cov=packages/valory --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=",
+        "autonomy CLI",
     ]
 
     # Validate all matches
