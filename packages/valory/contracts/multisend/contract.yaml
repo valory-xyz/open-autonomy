@@ -10,6 +10,8 @@ fingerprint:
   __init__.py: bafybeigzxw44dlgdb4qxhm6zul426uyxnqtlhe3oajivdyo3ue7kb45pai
   build/MultiSend.json: bafybeicamzvsaaxtboijwfnv24ctrgv5v7gn5irnydnuf62y57o7fmx2jm
   contract.py: bafybeieql2vyh5pfjnl3zzbzxwr3adnnccqyxt3drbdq6loe3o7eac2isu
+  tests/__init__.py: bafybeihplsoylouedehndscvh3trhklvxkjcmgobowemkjgkr4b272zusi
+  tests/test_contract.py: bafybeievzleujjhgcnky43exogurd3mnnzjfuup7v64vfb5scsy6zjxxn4
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: MultiSendContract

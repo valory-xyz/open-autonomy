@@ -35,9 +35,9 @@ from packages.valory.contracts.multisend.contract import (
     PUBLIC_ID,
 )
 
-from tests.conftest import ROOT_DIR
 
 
+PACKAGE_DIR = Path(__file__).parent.parent
 CONTRACT_ADDRESS = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
 CHAIN_ID = 1
 
@@ -45,9 +45,7 @@ CHAIN_ID = 1
 class TestMultisendContract(BaseContractTestCase):
     """Base test case for GnosisSafeContract"""
 
-    path_to_contract = Path(
-        ROOT_DIR, "packages", PUBLIC_ID.author, "contracts", PUBLIC_ID.name
-    )
+    path_to_contract = PACKAGE_DIR
     ledger_identifier = EthereumCrypto.identifier
     contract: MultiSendContract
     tx_list = [
