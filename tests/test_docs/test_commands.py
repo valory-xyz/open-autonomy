@@ -38,7 +38,8 @@ def get_cmd_data(cmd: Union[Command, Group]) -> Dict:
         "commands": {},
         "options": list(
             itertools.chain(*[i.opts for i in cmd.params if isinstance(i, Option)])
-        ),
+        )
+        + ["--help"],  # we add help here as it does not appear in the list
         "arguments": list(
             itertools.chain(
                 *[i.opts for i in cmd.params if isinstance(i, click.Argument)]
@@ -47,30 +48,29 @@ def get_cmd_data(cmd: Union[Command, Group]) -> Dict:
     }
 
 
+def get_group_tree(cmd: click.Group) -> Dict:
+    """Returns a tree containing the command data."""
+    tree = get_cmd_data(cmd)
+
+    if isinstance(cmd, click.Group):
+
+        for sub_cmd_name in cmd.list_commands(click.Context):
+
+            # Get the sub-command
+            sub_cmd = cmd.get_command(click.Context, sub_cmd_name)
+
+            # Recursively build the tree
+            tree["commands"][sub_cmd_name] = get_group_tree(sub_cmd)
+
+    return tree
+
+
 class CommandValidator:
     """Validates commands against a CLI"""
 
     def __init__(self, cli: Group):
         """Extract autonomy command tree from the autonomy cli"""
-
-        # CLI level
-        self.tree = {
-            "commands": {cli.name: get_cmd_data(cli)},
-        }
-
-        # Command level
-        for cmd_name, cmd in cli.commands.items():
-            self.tree["commands"][cli.name]["commands"][cmd_name] = get_cmd_data(cmd)
-
-            # Sub-command level
-            if isinstance(cmd, click.Group):
-                for sub_cmd_name in cmd.list_commands(click.Context):
-                    sub_cmd = cli.commands[cmd_name].get_command(
-                        click.Context, sub_cmd_name
-                    )
-                    self.tree["commands"][cli.name]["commands"][cmd_name]["commands"][
-                        sub_cmd_name
-                    ] = get_cmd_data(sub_cmd)
+        self.tree = {"commands": {cli.name: get_group_tree(cli)}}
 
     def validate(self, cmd: str, file_: str = "") -> bool:
         """Validates a command"""
@@ -81,6 +81,13 @@ class CommandValidator:
         latest_subcmd = None
 
         cmd_parts = [i for i in cmd.split(" ") if i]
+
+        # Since we are using the autonomy CLI for checking, enforce the usage of "autonomy" commands only in this repo.
+        if cmd_parts[0] == "aea":
+            print(
+                f"Command validation error in {file_}: aea command detected. Use autonomy command equivalent instead."
+            )
+            return False
 
         # Iterate the command parts
         for cmd_part in cmd_parts:
@@ -102,11 +109,15 @@ class CommandValidator:
 
             # Arguments
             if not latest_subcmd:
-                print(f"Command validation error in {file_}: detected argument '{cmd_part}' but no latest subcommand exists yet:\n    {cmd}")
+                print(
+                    f"Command validation error in {file_}: detected argument '{cmd_part}' but no latest subcommand exists yet:\n    {cmd}"
+                )
                 return False
 
             if not tree["arguments"]:
-                print(f"Command validation error in {file_}: argument '{cmd_part}' is not valid as the latest subcommand [{latest_subcmd}] does not admit arguments:\n    {cmd}")
+                print(
+                    f"Command validation error in {file_}: argument '{cmd_part}' is not valid as the latest subcommand [{latest_subcmd}] does not admit arguments:\n    {cmd}"
+                )
                 return False
 
             # If we reach here, this command part is an argument for either a command or for an option.
@@ -126,21 +137,28 @@ def test_validate_doc_commands() -> None:
     # Get the validator
     validator = CommandValidator(autonomy_cli)
 
-    AUTONOMY_COMMAND_REGEX = r"(?P<full_cmd>(?P<cli>aea|autonomy) ((?!(&|'|\(|\[|\n|\.|`|\|)).)*)"
+    COMMAND_REGEX = (
+        r"(?P<full_cmd>(?P<cli>aea|autonomy) ((?!(&|'|\(|\[|\n|\.|`|\|)).)*)"
+    )
 
-    skips = ["aea repo", "autonomy repo"]
+    skips = [
+        "aea repo",
+        "autonomy repo",
+        "autonomy test tools",
+        "aea helper libraries to check individual overrides",
+        "autonomy tests/ --cov=autonomy --cov-report=html --cov=packages/valory --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=",
+    ]
 
     # Validate all matches
     for file_ in target_files:
         content = read_file(str(file_))
 
-        # The regex currently finds package related commands. We need to use a general one.
-        for match in [m.groupdict() for m in re.finditer(AUTONOMY_COMMAND_REGEX, content)]:
+        for match in [m.groupdict() for m in re.finditer(COMMAND_REGEX, content)]:
             cmd = match["full_cmd"].strip()
 
             if cmd in skips:
                 continue
-            assert validator.validate(cmd, file_)
+            assert validator.validate(cmd, str(file_))
 
 
 def test_validator() -> None:
@@ -155,8 +173,8 @@ def test_validator() -> None:
     ]
 
     bad_cmds = [
-        "autonomy deploy build --docker --bad_option keys.json", # non-existent option
-        "autonomy bad_arg", # non-existent argument
+        "autonomy deploy build --docker --bad_option keys.json",  # non-existent option
+        "autonomy bad_arg",  # non-existent argument
     ]
 
     for cmd in good_cmds:
@@ -164,9 +182,3 @@ def test_validator() -> None:
 
     for cmd in bad_cmds:
         assert not validator.validate(cmd), f"Command {cmd} is valid and it shouldn't."
-
-validator = CommandValidator(autonomy_cli)
-cmd = "autonomy analyse abci generate-app-specs"
-validator.validate(cmd)
-
-# test_validate_doc_commands()
