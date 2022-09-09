@@ -9,7 +9,7 @@ fingerprint:
   __init__.py: bafybeia75xbvf6zogcloppdcu2zrwcl6d46ebj2zmm6dkge6eno3k6ysw4
   build/IUniswapV2ERC20.json: bafybeid45gy6x5ah5ub5p2obdhph36skpoy5qdhikwwfso7f3655iqnpc4
   contract.py: bafybeidxnb72n5xz4fvvxogbk2xk2vz4jvtsqa3berolr34v7cug3snism
-  tests/__init__.py: bafybeicxmimdssimmxt4wzo4dqpoeibdbtdqnduh3567lblwjcfwefh7ka
+  tests/__init__.py: bafybeigj3ngmfmyy4nw4xipxbqnx4nd42aqidqmmduwpx6hurssjqqkirq
   tests/test_contract.py: bafybeigaf7kyhuy4qn5dww2r62hffhytab3uhmjummsaiazzvqetvomyi4
 fingerprint_ignore_patterns: []
 contracts: []

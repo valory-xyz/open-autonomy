@@ -10,7 +10,7 @@ fingerprint:
   __init__.py: bafybeidfas3tfn7n7j4ubj32y6iikimvm53p4427en7mqe477cv3tljfpu
   build/VerySimpleOffchainAggregator.json: bafybeifep3bchwafqplqgtvaujvfwkfdx46ptrsbe574wziohr2kofja6q
   contract.py: bafybeig3xajfle6gepb4ttk732gleog7c7iibi3jwtgqyzgd24kyqimhde
-  tests/__init__.py: bafybeicrq42k2u74ktsupesfhqd26w2hurjy3wg6cnjkiuxef5vrmqzbaa
+  tests/__init__.py: bafybeigmhbpdohq3f7sxidkgout3zftzx4ib45s5jke6gs3tcdewnvg2ci
   tests/test_contract.py: bafybeidvnklio7aa24yzvn3ccfnw7kvov3ilhkgke6cnvxj73sh2lwkvmq
 fingerprint_ignore_patterns: []
 contracts: []

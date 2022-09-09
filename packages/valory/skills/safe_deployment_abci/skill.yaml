@@ -6,7 +6,6 @@ description: ABCI application for safe deployments.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  .hypothesis/unicode_data/13.0.0/charmap.json.gz: bafybeigwsiiiugeeiksbnjfuomnzgp32szjv4kjozti454ljq2ttq7guku
   README.md: bafybeib7wipqo3cwbdtdkbdfsb7qcpsrrmc2qjhge74stytcbalk4xpkmm
   __init__.py: bafybeigftdgpuynk4j6pqy4i4nrdthomrol5ufzgvuulszjuubpngyl7we
   behaviours.py: bafybeih7sosfr55b4ygsgijg3omz2thhdtwgahkudbbyhsjkoglniwexa4

@@ -25,11 +25,11 @@ contracts: []
 protocols: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeifnpcjxemhaihth4bakb7xbh55gurlttxqxscxqwhmnutee5livuu
-- valory/oracle_deployment_abci:0.1.0:bafybeih3ta2xcyfvmooicqa7un6kyh2chchtckuuge36qb4myvekpid5fa
-- valory/price_estimation_abci:0.1.0:bafybeigutdde5whwfbeki2ucv6uso36im7f46wcq3pb4zozjam33bzqg4q
+- valory/oracle_deployment_abci:0.1.0:bafybeieekmwftxfygs5itejokz7jhpttdfg52ictsolp7dyphk2xctwsq4
+- valory/price_estimation_abci:0.1.0:bafybeidgdelfjggs4cjl3ao7yguonaanslm53ysvrpmdninoldsef4z6mm
 - valory/registration_abci:0.1.0:bafybeiehgapqdurajunrcrtdo63uckxttelemicu2rymavh2hmn5wjf72a
 - valory/reset_pause_abci:0.1.0:bafybeid3ngsuqf3bg2v32n4fxxyp4asghwrf5w4qwkktpulmcejtr7fzoq
-- valory/safe_deployment_abci:0.1.0:bafybeiczf32egmlbxw4rt5kwx4kdwv73yuxjhm7yoei5eipdt7jxdvitna
+- valory/safe_deployment_abci:0.1.0:bafybeib6oq4zxpgedbvuzlfihmyz7bmcqr7adqfxgjeuuzepy2hrixr77a
 - valory/transaction_settlement_abci:0.1.0:bafybeigd26tzdrqfgvopbpmg4sqff3pi7i3cmp4xqf2bup64fjtqisjf5e
 behaviours:
   main:
