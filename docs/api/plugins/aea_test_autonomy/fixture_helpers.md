@@ -4,6 +4,28 @@
 
 This module contains helper classes/functions for fixtures.
 
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.tendermint"></a>
+
+#### tendermint
+
+```python
+@pytest.fixture(scope="class")
+def tendermint(tendermint_port: int = DEFAULT_TENDERMINT_PORT, abci_host: str = DEFAULT_ABCI_HOST, abci_port: int = DEFAULT_ABCI_PORT, timeout: float = 2.0, max_attempts: int = 10) -> Generator
+```
+
+Launch the Ganache image.
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.ganache_scope_class"></a>
+
+#### ganache`_`scope`_`class
+
+```python
+@pytest.fixture(scope="class")
+def ganache_scope_class(ganache_addr: str = DEFAULT_GANACHE_ADDR, ganache_port: int = DEFAULT_GANACHE_PORT, timeout: float = 2.0, max_attempts: int = 10) -> Generator
+```
+
+Launch the Ganache image. This fixture is scoped to a class which means it will destroyed after running every test in a class.
+
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseTendermint"></a>
 
 ## UseTendermint Objects

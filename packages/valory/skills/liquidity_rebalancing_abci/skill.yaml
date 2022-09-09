@@ -18,18 +18,25 @@ fingerprint:
   rounds.py: bafybeibxjnvm5r62qnvv54c6xjcym4j2cuxk4kvv566jwcdbamwyr5qjvq
   test_tools/__init__.py: bafybeifwxievldkr2k5rqcsq4t3hx4kh6pue4spxy6tlji6422np46dtoy
   test_tools/integration.py: bafybeiehxdy6kgq2pfp7cqjfj4fqgqc2fpidb43w4bekvbkdoarnjfp24u
+  tests/__init__.py: bafybeidot63jvseuzsejbgxrpglklvv4moom7sbxbw7k6t6sd2dp76zjxe
+  tests/test_behaviours.py: bafybeidobydw54gxf3rftv5wzyvqylyvgjswoq5it6ny7r7ozs2obtlzfq
+  tests/test_dialogues.py: bafybeih3s76ty6lj2ussh2nxtu3ni7mebg6n3xo4vrvizu2vbflo5ieuqa
+  tests/test_handlers.py: bafybeih4axeva7rrdfnf6qeaohcfzccfeyihzubdtmeu776etpfpcsypuq
+  tests/test_models.py: bafybeidm6fqz4lymccnb4a7m63hl7auljfpnkfblgn3asbhmxio4lltnda
+  tests/test_payloads.py: bafybeigsbzr7h3fntqrj5rxiwgh7iopkzqraf5lb3m6wqtpcjdwj6timoq
+  tests/test_rounds.py: bafybeibqp5qyrhttukcqu3yp6sxnxduq3fx3plgmqftjyqjwmb4inmun44
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeiaugd2npc33jgovg72y4y7pyy7yl24ly6eri7mw6v6gev5azewozq
-- valory/multisend:0.1.0:bafybeiepv664nlbq6bbjeyy2ljmtiy5nqbkwfcuf3lk7y3akobylgiehia
-- valory/uniswap_v2_erc20:0.1.0:bafybeid2rdlyshie6yamr6lzf3g3kfovlhvww3rszmtaad2pmawwgmfvce
-- valory/uniswap_v2_router_02:0.1.0:bafybeie7xfg2erv4gzuy46vjvqav4fnrzugvkx5twt5h3n2yocakbpzn4u
+- valory/gnosis_safe:0.1.0:bafybeidkfwvbyknjwlndhdf5euan7i4wmugxgtf2uhakvqspy24vgaehya
+- valory/multisend:0.1.0:bafybeig45676hbh4c3p3mujrrskxgxww4cxdyyginlg5rmmav6orv4gtya
+- valory/uniswap_v2_erc20:0.1.0:bafybeibkiwytuhhvxbisoxcybrx4lfstk6bvtriltles7fxxpy37yq45ja
+- valory/uniswap_v2_router_02:0.1.0:bafybeibxuhayn2vtxangn7casc7zaqeukkq5vqavg3qxgjn46vhvsa4dsa
 protocols:
-- valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
+- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihrktukokli5xxch7gexdl6wtnj23pnapbe6znmvlphyseotsqlre
-- valory/transaction_settlement_abci:0.1.0:bafybeihcxwoaeidkx22l4bji7najnkb3yimxrjdfrghschmmq5wi3euddy
+- valory/abstract_round_abci:0.1.0:bafybeicqihaqm7w7qf2cz5nsop3yrg64mm5eb7vlbl4z5qppmhgtzegpye
+- valory/transaction_settlement_abci:0.1.0:bafybeifb2epyxxzru3yqwgu5nwy4kahzbuenwjt4jiob7kkfoqhbrixyoa
 behaviours:
   main:
     args: {}

@@ -78,7 +78,7 @@ Now, run the scaffold tool:
 autonomy scaffold fsm my_skill --spec fsm_specification.yaml
 ```
 
-You will see that the generated rounds, payloads and behaviours already appear with their correct names, as well as the `HelloWorldAbciApp` and its transition function. Now that you have succesfully created the skill, you can push it to the local registry. Since to fetch all packages from IPFS we had used the remote registry, we now need to reset it so we use a local one during the development:
+You will see that the generated rounds, payloads and behaviours already appear with their correct names, as well as the `HelloWorldAbciApp` and its transition function. Now that you have successfully created the skill, you can push it to the local registry. Since to fetch all packages from IPFS we had used the remote registry, we now need to reset it so we use a local one during the development:
 ```
 autonomy init --local --reset --author AUTHOR
 ```
@@ -95,7 +95,7 @@ And we can now push our new skill to the local registry:
 autonomy push skill <your_author_name>/my_skill
 ```
 
-If we were only interested on the skill we don't need the agent anymore, so we can safely delete it:
+If we were only interested on the skill we don't need the agent any more, so we can safely delete it:
 ```
 cd ..
 autonomy delete my_agent
