@@ -19,6 +19,7 @@
 
 """Tests for valory/offchain_aggregator contract."""
 
+import os
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, cast
@@ -35,7 +36,14 @@ from packages.valory.contracts.offchain_aggregator.contract import (
     OffchainAggregatorContract,
 )
 
-from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS
+
+PACKAGE_DIR = Path(__file__).parent.parent
+THIRD_PARTY_CONTRACTS = Path(
+    os.environ.get("THIRD_PARTY_CONTRACTS", PACKAGE_DIR / "third_party")
+)
+
+if not THIRD_PARTY_CONTRACTS.exists():
+    raise RuntimeError("Please provide valid path for `THIRD_PARTY_CONTRACTS`")
 
 
 class BaseContractTest(BaseGanacheContractTest):
@@ -49,9 +57,7 @@ class BaseContractTest(BaseGanacheContractTest):
     GAS: int = 10 ** 10
     DEFAULT_MAX_FEE_PER_GAS: int = 10 ** 10
     DEFAULT_MAX_PRIORITY_FEE_PER_GAS: int = 10 ** 10
-    contract_directory = Path(
-        ROOT_DIR, "packages", "valory", "contracts", "offchain_aggregator"
-    )
+    contract_directory = PACKAGE_DIR
     contract: OffchainAggregatorContract
     third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
