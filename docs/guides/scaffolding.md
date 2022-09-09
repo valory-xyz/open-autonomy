@@ -83,7 +83,7 @@ You will see that the generated rounds, payloads and behaviours already appear w
 autonomy init --local --reset --author AUTHOR
 ```
 
-To use this local registry we need to create a `packages` directory at the same level as our agent. In this example, we need to create `my_workspace/packages`.
+To use the local registry, it is expected that a `packages` directory exists at the same level as our agent. If you already have it then you can skip this step, but if you don't then you need to create it. In this example, we need to create `my_workspace/packages`.
 ```
 cd ..
 mkdir packages
