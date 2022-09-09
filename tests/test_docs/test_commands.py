@@ -166,6 +166,7 @@ def test_validate_doc_commands() -> None:
         "aea helper libraries to check individual overrides",
         "autonomy tests/ --cov=autonomy --cov-report=html --cov=packages/valory --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=",
         "autonomy CLI",
+        "aea scaffold",  # scaffold_fsm.md contains an auto-generated reference. It is a false positive.
     ]
 
     # Validate all matches
