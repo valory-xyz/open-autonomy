@@ -19,33 +19,38 @@
 
 """Tests for valory/gnosis contract."""
 
+import os
 from pathlib import Path
 from typing import Any, Dict
 
 from aea_test_autonomy.base_test_classes.contracts import BaseGanacheContractTest
 from aea_test_autonomy.docker.base import skip_docker_tests
 
-from packages.valory.contracts.gnosis_safe.contract import SAFE_CONTRACT
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
     GnosisSafeProxyFactoryContract,
     PROXY_FACTORY_CONTRACT,
 )
 
-from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS
 
+PACKAGE_DIR = Path(__file__).parent.parent
+THIRD_PARTY_CONTRACTS = Path(
+    os.environ.get("THIRD_PARTY_CONTRACTS", PACKAGE_DIR / "third_party")
+)
+
+if not THIRD_PARTY_CONTRACTS.exists():
+    raise RuntimeError("Please provide valid path for `THIRD_PARTY_CONTRACTS`")
 
 DEFAULT_GAS = 1000000
 DEFAULT_MAX_FEE_PER_GAS = 10 ** 10
 DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
+SAFE_CONTRACT = "0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552"
 
 
 @skip_docker_tests
 class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
     """Test deployment of the proxy to Ganache."""
 
-    contract_directory = Path(
-        ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
-    )
+    contract_directory = PACKAGE_DIR
     contract: GnosisSafeProxyFactoryContract
     third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 

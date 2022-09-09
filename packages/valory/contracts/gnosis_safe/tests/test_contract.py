@@ -20,6 +20,7 @@
 """Tests for valory/gnosis contract."""
 
 import binascii
+import os
 import secrets
 import time
 from pathlib import Path
@@ -52,9 +53,18 @@ from packages.valory.contracts.gnosis_safe.contract import (
     GnosisSafeContract,
     SAFE_CONTRACT,
 )
+from packages.valory.contracts.gnosis_safe_proxy_factory.tests.test_contract import (
+    PACKAGE_DIR as PROXY_DIR,
+)
 
-from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS
 
+PACKAGE_DIR = Path(__file__).parent.parent
+THIRD_PARTY_CONTRACTS = Path(
+    os.environ.get("THIRD_PARTY_CONTRACTS", PACKAGE_DIR / "third_party")
+)
+
+if not THIRD_PARTY_CONTRACTS.exists():
+    raise RuntimeError("Please provide valid path for `THIRD_PARTY_CONTRACTS`")
 
 DEFAULT_GAS = 1000000
 DEFAULT_MAX_FEE_PER_GAS = 10 ** 15
@@ -67,9 +77,7 @@ class BaseContractTest(BaseGanacheContractTest):
     NB_OWNERS: int = 4
     THRESHOLD: int = 1
     SALT_NONCE: Optional[int] = None
-    contract_directory = Path(
-        ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe"
-    )
+    contract_directory = PACKAGE_DIR
     contract: GnosisSafeContract
     third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
@@ -79,10 +87,7 @@ class BaseContractTest(BaseGanacheContractTest):
     ) -> None:
         """Setup test."""
         # workaround for the fact that contract dependencies are not possible yet
-        directory = Path(
-            ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
-        )
-        _ = get_register_contract(directory)
+        _ = get_register_contract(PROXY_DIR)
         super().setup_class()
 
     @classmethod
@@ -126,9 +131,7 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
     NB_OWNERS: int = 4
     THRESHOLD: int = 1
     SALT_NONCE: Optional[int] = None
-    contract_directory = Path(
-        ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe"
-    )
+    contract_directory = PACKAGE_DIR
     sanitize_from_deploy_tx = ["contract_address"]
     contract: GnosisSafeContract
     third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
@@ -138,10 +141,7 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
         cls,
     ) -> None:
         """Setup test."""
-        directory = Path(
-            ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe_proxy_factory"
-        )
-        _ = get_register_contract(directory)
+        _ = get_register_contract(PROXY_DIR)
         super().setup_class()
 
     @classmethod
@@ -196,10 +196,10 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             threshold=int(self.threshold()),
             gas=DEFAULT_GAS,
         )
-        assert type(result) == dict
+        assert isinstance(result, dict)
         assert len(result) == 10
         data = result.pop("data")
-        assert type(data) == str
+        assert isinstance(data, str)
         assert len(data) > 0 and data.startswith("0x")
         assert all(
             [
@@ -422,7 +422,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             crypto.address: crypto.sign_message(b_tx_hash, is_deprecated_mode=True)[2:]
             for crypto in cryptos
         }
-        assert [key for key in signatures_by_owners.keys()] == self.owners()
+        assert list(signatures_by_owners.keys()) == self.owners()
 
         tx = self.contract.get_raw_safe_transaction(
             ledger_api=self.ledger_api,

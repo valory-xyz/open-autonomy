@@ -32,12 +32,11 @@ from aea_test_autonomy.docker.base import skip_docker_tests
 from packages.valory.contracts.service_registry.contract import (
     DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID,
     EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID,
-    PUBLIC_ID,
     ServiceRegistryContract,
 )
 
-from tests.conftest import ROOT_DIR
 
+PACKAGE_DIR = Path(__file__).parent.parent
 
 SERVICE_REGISTRY_INVALID = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"
 VALID_SERVICE_ID = 1
@@ -50,9 +49,7 @@ class BaseServiceRegistryContractTest(BaseContractTestCase):
 
     contract_address = EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID[CHAIN_ID]
     invalid_contract_address = SERVICE_REGISTRY_INVALID
-    path_to_contract = Path(
-        ROOT_DIR, "packages", PUBLIC_ID.author, "contracts", PUBLIC_ID.name
-    )
+    path_to_contract = PACKAGE_DIR
     ledger_identifier = EthereumCrypto.identifier
 
     @classmethod
