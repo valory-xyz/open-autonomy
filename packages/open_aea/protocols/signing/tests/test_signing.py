@@ -25,8 +25,6 @@ from typing import Type
 from unittest.mock import patch
 
 import pytest
-from aea_ledger_cosmos import CosmosCrypto
-
 from aea.common import Address
 from aea.helpers.transaction.base import (
     RawMessage,
@@ -38,6 +36,7 @@ from aea.helpers.transaction.base import (
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.protocols.dialogue.base import DialogueLabel
+from aea_ledger_cosmos import CosmosCrypto
 
 from packages.open_aea.protocols.signing.dialogues import (
     SigningDialogue as BaseSigningDialogue,
