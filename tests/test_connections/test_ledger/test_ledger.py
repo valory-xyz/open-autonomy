@@ -20,6 +20,7 @@
 """This module contains the tests of the ledger connection module."""
 
 import asyncio
+import logging
 import time
 from asyncio import Task
 from threading import Thread
@@ -31,6 +32,8 @@ from aea.common import Address
 from aea.configurations.base import ConnectionConfig
 from aea.connections.base import ConnectionStates
 from aea.crypto.base import LedgerApi
+from aea.exceptions import AEAEnforceError
+from aea.helpers.async_utils import AsyncState
 from aea.mail.base import Envelope
 from aea.multiplexer import Multiplexer
 from aea.protocols.base import Message
@@ -133,6 +136,63 @@ class TestLedgerConnection:
         assert not blocking_task.done(), "Blocking task should be still running."
         # cancel remaining task before ending test
         blocking_task.cancel()
+
+
+class TestRequestDispatcher:
+    """Test `RequestDispatcher` class."""
+
+    dispatcher: RequestDispatcher
+    loop: asyncio.AbstractEventLoop
+
+    def setup(self) -> None:
+        """Setup test vars."""
+        logger = logging.getLogger(type(self).__class__.__name__)
+        state = AsyncState(ConnectionStates.connected)
+        self.loop = asyncio.get_event_loop()
+        self.dispatcher = DummyRequestDispatcher(
+            logger=logger, connection_state=state, loop=self.loop
+        )
+
+    def dummy_func(self, sleep: float) -> bool:
+        """A dummy function that sleeps and returns True."""
+        time.sleep(sleep)
+        return True
+
+    async def dummy_async_func(self, sleep: float) -> bool:
+        """A dummy async function that sleeps and returns True."""
+        await asyncio.sleep(sleep)
+        return True
+
+    @pytest.mark.asyncio
+    async def test_wait_for_happy_path(self) -> None:
+        """Tests that wait_for works when timeout is bigger than execution time of callable."""
+        should_finish_in = 0.5
+        tolerance = 0.5
+        timeout = should_finish_in + tolerance
+
+        return_value = await self.dispatcher.wait_for(
+            lambda: self.dummy_func(should_finish_in), timeout=timeout
+        )
+        assert return_value, "dummy_func() should've returned True"
+
+    @pytest.mark.asyncio
+    async def test_wait_for_raise_excp(self) -> None:
+        """Tests that wait_for works when timeout is less than execution time of callable."""
+        timeout = 0.25
+        timeout_increase = 0.5
+        should_finish_in = timeout + timeout_increase
+
+        with pytest.raises(asyncio.TimeoutError):
+            await self.dispatcher.wait_for(
+                lambda: self.dummy_func(should_finish_in), timeout=timeout
+            )
+
+    @pytest.mark.asyncio
+    async def test_wait_for_coroutine(self) -> None:
+        """Tests that an error is thrown when a coroutine is passed."""
+        should_finish_in = 0.0  # this value is irrelevant to the result of the test
+        with pytest.raises(AEAEnforceError):
+            await self.dispatcher.wait_for(self.dummy_async_func, should_finish_in)
 
 
 class DummyLedgerApiMessage(LedgerApiMessage):

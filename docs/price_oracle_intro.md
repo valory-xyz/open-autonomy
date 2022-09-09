@@ -36,12 +36,12 @@ node.
 ## Running the Demo
 The steps below will guide you to download the price oracle agent service definition from the Service Registry, build and run a deployment locally.
 
-1. Ensure that your machine satisfies the [framework requirements](quick_start.md#requirements) and that
-you have followed the [setup instructions](quick_start.md#setup). As a result you should have a Pipenv workspace folder.
+1. Ensure that your machine satisfies the [framework requirements](guides/quick_start.md#requirements) and that
+you have followed the [setup instructions](guides/quick_start.md#setup). As a result you should have a Pipenv workspace folder.
 
 2. Use the CLI to download the `valory/oracle_hardhat` service.
     ```bash
-    autonomy fetch valory/oracle_hardhat:0.1.0:bafybeigo3azih2mx77hopy5lsskqhs3qnxolxavjg5heos2jsitpwowtxq --remote --service
+    autonomy fetch valory/oracle_hardhat:0.1.0:bafybeibd4en6ccve3gwhpidmnbrry7ksscot4ne7p32atautlxlb2jbyhi --remote --service
     cd oracle_hardhat
     ```
 

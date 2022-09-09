@@ -515,7 +515,9 @@ class TestLedgerDispatcher:
 
         with patch.object(dispatcher, "retry_attempts", retries):
             with patch.object(dispatcher, "retry_timeout", 0.001):
-                msg = dispatcher.get_transaction_receipt(mock_api, message, dialogue)
+                msg = await dispatcher.get_transaction_receipt(
+                    mock_api, message, dialogue
+                )
 
         assert (
             msg.performative == LedgerApiMessage.Performative.ERROR

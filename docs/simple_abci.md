@@ -32,12 +32,12 @@ The agents are connected to the remote service [DRAND](https://drand.love) throu
 ## Running the Demo
 The steps below will guide you to download the simple agent service definition from the Service Registry, build and run a deployment that will run locally.
 
-1. Ensure that your machine satisfies the [framework requirements](quick_start.md#requirements) and that
-you have followed the [setup instructions](quick_start.md#setup). As a result you should have a Pipenv workspace folder.
+1. Ensure that your machine satisfies the [framework requirements](guides/quick_start.md#requirements) and that
+you have followed the [setup instructions](guides/quick_start.md#setup). As a result you should have a Pipenv workspace folder.
 
 2. Use the CLI to download the `valory/simple_abci` service.
     ```bash
-    autonomy fetch valory/simple_abci:0.1.0:bafybeicl6dwhxr4msdjnmhe6d3blzqoacyj7gtejlysz3mnyopofd6dfdq --remote --service
+    autonomy fetch valory/simple_abci:0.1.0:bafybeidxrcmwl6uc2andbis74lvq4aszhrfn7ntbum6miyovq4jav4gllm --remote --service
     cd simple_abci
     ```
 

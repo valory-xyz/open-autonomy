@@ -90,6 +90,7 @@ ABCI_NODE_TEMPLATE: str = """
     container_name: abci{node_id}
     image: {runtime_image}
     environment:
+      - PYTHONHASHSEED=0
       - LOG_FILE=/logs/aea_{node_id}.txt
 {agent_vars}
     networks:
