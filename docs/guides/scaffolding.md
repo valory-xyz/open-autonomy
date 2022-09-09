@@ -98,5 +98,5 @@ autonomy push skill <your_author_name>/my_skill
 If we were only interested on the skill we don't need the agent anymore, so we can safely delete it:
 ```
 cd ..
-rm -r my_agent
+autonomy delete my_agent
 ```
