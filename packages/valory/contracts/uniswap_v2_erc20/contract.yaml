@@ -10,7 +10,7 @@ fingerprint:
   build/IUniswapV2ERC20.json: bafybeid45gy6x5ah5ub5p2obdhph36skpoy5qdhikwwfso7f3655iqnpc4
   contract.py: bafybeidxnb72n5xz4fvvxogbk2xk2vz4jvtsqa3berolr34v7cug3snism
   tests/__init__.py: bafybeicxmimdssimmxt4wzo4dqpoeibdbtdqnduh3567lblwjcfwefh7ka
-  tests/test_contract.py: bafybeifdlgg7ir7kiw7v6yhf4gycmktjx3ub5vpkbh4bdonevmnjs7xl4m
+  tests/test_contract.py: bafybeigaf7kyhuy4qn5dww2r62hffhytab3uhmjummsaiazzvqetvomyi4
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: UniswapV2ERC20Contract

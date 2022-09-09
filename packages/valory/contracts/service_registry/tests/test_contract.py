@@ -32,7 +32,6 @@ from aea_test_autonomy.docker.base import skip_docker_tests
 from packages.valory.contracts.service_registry.contract import (
     DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID,
     EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID,
-    PUBLIC_ID,
     ServiceRegistryContract,
 )
 

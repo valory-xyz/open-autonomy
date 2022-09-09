@@ -32,9 +32,7 @@ from hexbytes import HexBytes
 from packages.valory.contracts.multisend.contract import (
     MultiSendContract,
     MultiSendOperation,
-    PUBLIC_ID,
 )
-
 
 
 PACKAGE_DIR = Path(__file__).parent.parent

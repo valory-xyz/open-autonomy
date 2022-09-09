@@ -11,7 +11,7 @@ fingerprint:
   build/VerySimpleOffchainAggregator.json: bafybeifep3bchwafqplqgtvaujvfwkfdx46ptrsbe574wziohr2kofja6q
   contract.py: bafybeig3xajfle6gepb4ttk732gleog7c7iibi3jwtgqyzgd24kyqimhde
   tests/__init__.py: bafybeicrq42k2u74ktsupesfhqd26w2hurjy3wg6cnjkiuxef5vrmqzbaa
-  tests/test_contract.py: bafybeia6qbw574n7z6bg37o2d2heoxzdu7lhusojv7hifflsjmltdmtzmu
+  tests/test_contract.py: bafybeidvnklio7aa24yzvn3ccfnw7kvov3ilhkgke6cnvxj73sh2lwkvmq
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: OffchainAggregatorContract

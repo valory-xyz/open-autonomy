@@ -25,10 +25,7 @@ from unittest import mock
 
 from aea.test_tools.test_contract import BaseContractTestCase
 
-from packages.valory.contracts.uniswap_v2_erc20.contract import (
-    PUBLIC_ID,
-    UniswapV2ERC20Contract,
-)
+from packages.valory.contracts.uniswap_v2_erc20.contract import UniswapV2ERC20Contract
 
 
 PACKAGE_DIR = Path(__file__).parent.parent

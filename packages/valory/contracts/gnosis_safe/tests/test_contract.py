@@ -57,6 +57,7 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.tests.test_contract imp
     PACKAGE_DIR as PROXY_DIR,
 )
 
+
 PACKAGE_DIR = Path(__file__).parent.parent
 THIRD_PARTY_CONTRACTS = Path(
     os.environ.get("THIRD_PARTY_CONTRACTS", PACKAGE_DIR / "third_party")
@@ -195,10 +196,10 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             threshold=int(self.threshold()),
             gas=DEFAULT_GAS,
         )
-        assert type(result) == dict
+        assert isinstance(result, dict)
         assert len(result) == 10
         data = result.pop("data")
-        assert type(data) == str
+        assert isinstance(data, str)
         assert len(data) > 0 and data.startswith("0x")
         assert all(
             [
@@ -421,7 +422,7 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             crypto.address: crypto.sign_message(b_tx_hash, is_deprecated_mode=True)[2:]
             for crypto in cryptos
         }
-        assert [key for key in signatures_by_owners.keys()] == self.owners()
+        assert list(signatures_by_owners.keys()) == self.owners()
 
         tx = self.contract.get_raw_safe_transaction(
             ledger_api=self.ledger_api,

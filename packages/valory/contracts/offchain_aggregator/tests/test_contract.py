@@ -99,10 +99,10 @@ class TestDeployTransaction(BaseContractTest):
             deployer_address=str(self.deployer_crypto.address),
             **self.deployment_kwargs()
         )
-        assert type(result) == dict
+        assert isinstance(result, dict)
         assert len(result) == 8
         data = result.pop("data")
-        assert type(data) == str
+        assert isinstance(data, str)
         assert len(data) > 0 and data.startswith("0x")
         assert all(
             [
@@ -195,7 +195,7 @@ class TestDeployTransaction(BaseContractTest):
                 contract_address=self.contract_address,
             ),
         )
-        assert type(result_) == list, "Call failed"
+        assert isinstance(result_, list), "Call failed"
         assert result_[0] == epoch_
         assert result_[1] == amount_
         assert result_[4] == epoch_
