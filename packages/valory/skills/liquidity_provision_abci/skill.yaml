@@ -30,7 +30,7 @@ skills:
 - valory/liquidity_rebalancing_abci:0.1.0:bafybeicjixoyznkajjg2gztoriech4iyouve4gubf5nrvoeulenwjjsg3u
 - valory/registration_abci:0.1.0:bafybeig6sgrgaxxxyvs6negdau2rn5sdl63mwydlyn5xaqwlmuvqjwu4sm
 - valory/reset_pause_abci:0.1.0:bafybeiey5mi2xxoudrpzx75n7zefebl4c4i6yubt2c2w4ddmwnndxsxrrm
-- valory/safe_deployment_abci:0.1.0:bafybeigemsj3yne2raxofzvcgv3rot7t5rtkkpemabwolcpniqyrfv3ey4
+- valory/safe_deployment_abci:0.1.0:bafybeicmfe3pv2xxdbhae4xe3nr3fewre7rcqbtlvq7zevovhbz2sd6qyu
 - valory/transaction_settlement_abci:0.1.0:bafybeig42hbdyljzeoqxpx6mxkz52nlt6utdhchylvmifzkafpdjft7up4
 behaviours:
   main:
