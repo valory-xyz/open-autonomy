@@ -6,13 +6,13 @@
  
 - Adds support for registry flags on `autonomy scaffold fsm` command
 - Adds support for scaffolding
-  - Dialouges
+  - Dialogues
   - Payloads
   - Round tests
   - Behaviour tests
 - Adds support for specifying version for runtime images
 - Removes the need for `NESTED_FIELDS_ALLOWED_TO_UPDATE` from service config class
-- Uses local file for service registry abi rather than fetching from staging server
+- Uses local file for service registry ABI rather than fetching from staging server
 - Replaces the usage of staging chain with locally deployed chain
 
 # Packages
@@ -27,7 +27,7 @@
 - Bumps `tendermint` to `v0.35.7`
 - Fixes tendermint logging issues
 - Updates skaffold config for building runtime images for agents
-- Bumps autonolas registries submodule to latest
+- Bumps autonolas registries sub module to latest
 
 # Tests
 - Replaces the usage of staging chain with local registry deployments
