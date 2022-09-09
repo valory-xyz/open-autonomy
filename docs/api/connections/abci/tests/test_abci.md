@@ -411,6 +411,7 @@ Test encode_varint (uint64 Protobuf) method
 #### test`_`encode`_`decode`_`varint
 
 ```python
+@settings(database=database.InMemoryExampleDatabase())
 @given(integers(min_value=0, max_value=(1 << 64) - 1))
 @pytest.mark.asyncio
 async def test_encode_decode_varint(value: int) -> None
