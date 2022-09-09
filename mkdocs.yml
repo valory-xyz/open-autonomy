@@ -8,7 +8,7 @@ edit_uri: edit/main/docs/
 theme:
   name: 'material'
   features:
-    - navigation.top   
+    - navigation.top
     - navigation.indexes
 
 extra_css:
@@ -19,10 +19,10 @@ strict: true
 nav:
   - Home: 'index.md'
   - Get started:
-    - What is the Open Autonomy framework: 'get_started/what_is_the_open_autonomy_framework.md' 
+    - What is the Open Autonomy framework: 'get_started/what_is_the_open_autonomy_framework.md'
     - What is an agent service: 'get_started/what_is_an_agent_service.md'
     - Why do we need agent services: 'get_started/why_do_we_need_agent_services.md'
-    - Agent services compared to...: 'get_started/agent_services_compared_to.md' 
+    - Agent services compared to...: 'get_started/agent_services_compared_to.md'
     - Use cases: 'get_started/use_cases.md'
   - Guides:
     - Quick start: 'guides/quick_start.md'
@@ -31,6 +31,7 @@ nav:
     - Create a service from scratch: 'guides/create_service_from_scratch.md'
     - Deploy a service: 'guides/deploy_service.md'
     - Running a service in different networks: 'guides/running_service_different_networks.md'
+    - Using the scaffold tool to speed up development: 'guides/scaffolding.md'
   - Concepts:
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
@@ -45,7 +46,7 @@ nav:
     - Interactions between Components: 'abci_app_interactions.md'
     - Sequence Diagram: 'poc-diagram.md'
   - Demos:
-    - Hello World Agent Service: 'hello_world_agent_service.md'  
+    - Hello World Agent Service: 'hello_world_agent_service.md'
     - Simple Demo: 'simple_abci.md'
     - Counter Demo: 'counter_example.md'
     - Price Oracle Demo:
@@ -54,7 +55,7 @@ nav:
       - FSM Specification: 'price_oracle_fsms.md'
   - Development:
     - Version: 'version.md'
-    - Upgrading: 'upgrading.md'  
+    - Upgrading: 'upgrading.md'
     - Package publishing: 'package_publishing.md'
     - CLI: 'autonomy.md'
     - Developer Tooling:

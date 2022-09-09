@@ -14,7 +14,8 @@ We will explore this process in detail in several guides included in this sectio
   2. Here is where the development starts. The first task towards having your agent service up and running is to describe the service business logic as a **finite-state machine (FSM) specification**. Roughly speaking, the specification defines the states where the agent service can be, and how to transit from one state to another. We will discuss this in further guides.
 
   3. Once we have the FSM specification, the next step consists in coding the component that will be the core of the agents running the service: the **FSM App component**.
-  The framework provides scaffolding tools so that you can create boilerplate code using the simple FSM specified in Step 2, and you will only need to implement the business logic part for your service.
+  The framework provides scaffolding tools so that you can create boilerplate code using the simple FSM specified in Step 2, and you will only need to implement the business logic part for your service. You can also use the [developer template repository](https://github.com/valory-xyz/dev-template) as the starting point. It includes
+  the recommended linters, Github's continuous integration and several other files so you don't need to start from scratch.
 
       !!!!note
           We recommend that your developed components have exhaustive tests and pass the library linters before uploading them to the [IPFS](https://ipfs.io/).
