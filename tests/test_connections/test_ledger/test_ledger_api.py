@@ -480,11 +480,13 @@ class TestLedgerDispatcher:
         ("get_transaction_receipt", "is_transaction_settled", "get_transaction"),
     )
     @pytest.mark.parametrize("retries", (0, 5, 20))
+    @pytest.mark.parametrize("retry_timeout", (0.1,))
     @pytest.mark.parametrize("ledger_raise_error", (True, False))
     async def test_attempts_get_transaction_receipt(
         self,
         failing_ledger_method_name: str,
         retries: int,
+        retry_timeout: float,
         ledger_raise_error: bool,
     ) -> None:
         """Test retry and sleep."""
@@ -514,7 +516,7 @@ class TestLedgerDispatcher:
             failing_ledger_method.return_value = None
 
         with patch.object(dispatcher, "retry_attempts", retries):
-            with patch.object(dispatcher, "retry_timeout", 0.001):
+            with patch.object(dispatcher, "retry_timeout", retry_timeout):
                 msg = await dispatcher.get_transaction_receipt(
                     mock_api, message, dialogue
                 )
