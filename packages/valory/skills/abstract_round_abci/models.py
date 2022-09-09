@@ -50,6 +50,8 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
+        self.genesis_config = self._ensure("genesis_config", kwargs)
+        self.voting_power = self._ensure("voting_power", kwargs)
         self.service_id = self._ensure("service_id", kwargs)
         self.tendermint_url = self._ensure("tendermint_url", kwargs)
         self.max_healthcheck = self._ensure("max_healthcheck", kwargs)
