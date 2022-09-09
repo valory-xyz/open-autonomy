@@ -20,6 +20,7 @@
 """This module contains the tests of the ledger API connection module."""
 import asyncio
 import logging
+import time
 from typing import Any, Dict, Optional, cast
 from unittest.mock import Mock, patch
 
@@ -43,6 +44,7 @@ from aea_ledger_ethereum import EthereumCrypto
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.docker.base import skip_docker_tests
 from aea_test_autonomy.docker.ganache import DEFAULT_GANACHE_CHAIN_ID
+from web3.eth import Eth
 
 from packages.valory.connections.ledger.connection import LedgerConnection
 from packages.valory.connections.ledger.ledger_dispatcher import (
@@ -523,3 +525,67 @@ class TestLedgerDispatcher:
         times_called = failing_ledger_method.call_count
         expected_times = retries
         assert times_called == expected_times, "Tried more times than expected!"
+
+    @pytest.mark.asyncio
+    @ledger_ids
+    async def test_get_transaction_receipt_node_blocking(
+        self,
+        ledger_id: str,
+        address: str,
+        ledger_apis_connection: LedgerConnection,
+        update_default_ethereum_ledger_api: None,
+        ethereum_testnet_config: Dict,
+    ) -> None:
+        """Test retry strategy when the node is blocking."""
+        retry_attempts = expected_times_called = 2
+        retry_timeout = 0.001
+        blocking_duration = 1
+
+        # the retry strategy's total duration is an arithmetic progression
+        expected_duration = sum(i * retry_timeout for i in range(retry_attempts))
+        assert expected_duration < blocking_duration, (
+            "The purpose of this test is to check whether the retry strategy works if a node is blocking."
+            f"Therefore, the blocking time ({blocking_duration}) must be larger than the expected duration "
+            f"({expected_duration}) of the retry strategy."
+        )
+
+        ledger_api_dialogues = LedgerApiDialogues(SOME_SKILL_ID)
+        request, ledger_api_dialogue = ledger_api_dialogues.create(
+            counterparty=str(ledger_apis_connection.connection_id),
+            performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT,  # type: ignore
+            ledger_id=ledger_id,
+            address=address,
+            transaction_digest=TransactionDigest(ledger_id="ethereum", body="tx_hash"),
+        )
+        envelope = Envelope(
+            to=request.to,
+            sender=request.sender,
+            message=request,
+        )
+
+        with patch.object(
+            ledger_apis_connection._ledger_dispatcher, "retry_attempts", retry_attempts
+        ), patch.object(
+            ledger_apis_connection._ledger_dispatcher, "retry_timeout", retry_timeout
+        ), patch.object(
+            Eth,
+            "get_transaction_receipt",
+            side_effect=lambda *_: time.sleep(blocking_duration),
+        ) as get_transaction_receipt_mock:
+            await ledger_apis_connection.send(envelope)
+
+            try:
+                await asyncio.wait_for(
+                    ledger_apis_connection.receive(), timeout=blocking_duration
+                )
+            except asyncio.exceptions.TimeoutError:
+                raise AssertionError(
+                    "The retry strategy did not finish before the given `blocking_duration`, "
+                    "which suggests that the ledger api's call was also blocked, "
+                    "and the dispatcher was waiting for its response."
+                )
+
+            actual_times_called = get_transaction_receipt_mock.call_count
+            assert (
+                actual_times_called == expected_times_called
+            ), f"Tried {actual_times_called} times, {expected_times_called} were expected!"
