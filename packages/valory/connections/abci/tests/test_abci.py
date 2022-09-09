@@ -52,7 +52,7 @@ from aea_test_autonomy.helpers.async_utils import (
     BaseThreadedAsyncLoop,
     wait_for_condition,
 )
-from hypothesis import given, database, settings
+from hypothesis import database, given, settings
 from hypothesis.strategies import integers
 
 from packages.valory.connections.abci import check_dependencies as dep_utils

@@ -57,7 +57,7 @@ from _pytest.logging import LogCaptureFixture
 from _pytest.monkeypatch import MonkeyPatch
 from aea.skills.tasks import TaskManager
 from aea_cli_ipfs.ipfs_utils import IPFSDaemon
-from hypothesis import given, settings, database
+from hypothesis import database, given, settings
 from hypothesis import strategies as st
 
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
