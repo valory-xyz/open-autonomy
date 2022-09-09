@@ -15,12 +15,23 @@ fingerprint:
   models.py: bafybeiftwakg6lvxxt35uatkx7n5v5rv5eq7zllrz6je4nxn2sodbkqqy4
   payloads.py: bafybeidkaplovx7g276tby2lspttcntt7wbu2um7drr6mejq23k7edfa6y
   rounds.py: bafybeibys4bhphuiaf6q5qobom2htv4fdembsk3e3ig6icttehgyeaozgq
+  tests/__init__.py: bafybeihelxxyvvwdqeiiate5mlgaq2swunatcwxmkwjliulls7qtbk5tpm
+  tests/test_behaviours.py: bafybeidxjckg3n7tvyqmsju7ulevf7qmwyubcy4hedlpytqmrebrmlucci
+  tests/test_dialogues.py: bafybeidoz6czyogp7odrccrsvxbtrp4kiifzivy26coj5r3u4i2tpjyxnq
+  tests/test_payloads.py: bafybeictcnelqpr6ggr7xesobyvwajdwdebcz3azttb37qpurs35jjpi5a
+  tests/test_rounds.py: bafybeig4fqezwyzvmrahuiunwn7irbfdpj6jzeugofykpzkpjz7lbkmpwm
 fingerprint_ignore_patterns: []
-connections: []
+connections:
+- valory/http_client:0.1.0:bafybeiayvkp3jkaahfuej72gididod5dzpa2vivjmxk7uxtcimc4g5e66i
+- valory/ledger:0.1.0:bafybeibkgvuvri3wezotpvhviujmlv2vvvocy7tlf7bxr2bi5gmnz7vgvq
 contracts: []
-protocols: []
+protocols:
+- open_aea/signing:1.0.0:bafybeifexbtq3cqrodkmy75djq7hck5c44jnjezywins7fzzg5nn6yi6om
+- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
+- valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
+- valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihrktukokli5xxch7gexdl6wtnj23pnapbe6znmvlphyseotsqlre
+- valory/abstract_round_abci:0.1.0:bafybeifpza42lkzgeqykey3xat4mejhg3qs2mri3zqh6yqlu2fu2bwctve
 behaviours:
   main:
     args: {}

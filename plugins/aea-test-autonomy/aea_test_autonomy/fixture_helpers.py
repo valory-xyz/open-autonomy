@@ -27,14 +27,14 @@
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, cast
+from typing import Any, Dict, Generator, List, Tuple, cast
 
 import docker
 import pytest
 from aea_test_autonomy.configurations import GANACHE_CONFIGURATION, KEY_PAIRS, LOCALHOST
 from aea_test_autonomy.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
 from aea_test_autonomy.docker.amm_net import AMMNetDockerImage
-from aea_test_autonomy.docker.base import DockerBaseTest, DockerImage
+from aea_test_autonomy.docker.base import DockerBaseTest, DockerImage, launch_image
 from aea_test_autonomy.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_PORT,
@@ -46,6 +46,9 @@ from aea_test_autonomy.docker.gnosis_safe_net import (
     GnosisSafeNetDockerImage,
 )
 from aea_test_autonomy.docker.tendermint import (
+    DEFAULT_ABCI_HOST,
+    DEFAULT_ABCI_PORT,
+    DEFAULT_TENDERMINT_PORT,
     FlaskTendermintDockerImage,
     TendermintDockerImage,
 )
@@ -53,6 +56,36 @@ from eth_account import Account
 
 
 logger = logging.getLogger(__name__)
+
+
+@pytest.fixture(scope="class")
+def tendermint(
+    tendermint_port: int = DEFAULT_TENDERMINT_PORT,
+    abci_host: str = DEFAULT_ABCI_HOST,
+    abci_port: int = DEFAULT_ABCI_PORT,
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator:
+    """Launch the Ganache image."""
+    client = docker.from_env()
+    logging.info(f"Launching Tendermint at port {tendermint_port}")
+    image = TendermintDockerImage(client, abci_host, abci_port, tendermint_port)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture(scope="class")
+def ganache_scope_class(
+    ganache_addr: str = DEFAULT_GANACHE_ADDR,
+    ganache_port: int = DEFAULT_GANACHE_PORT,
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator:
+    """Launch the Ganache image. This fixture is scoped to a class which means it will destroyed after running every test in a class."""
+    client = docker.from_env()
+    image = GanacheDockerImage(
+        client, ganache_addr, ganache_port, config=GANACHE_CONFIGURATION
+    )
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
 @pytest.mark.integration
@@ -64,7 +97,9 @@ class UseTendermint:
 
     @pytest.fixture(autouse=True, scope="class")
     def _start_tendermint(
-        self, tendermint: TendermintDockerImage, tendermint_port: Any
+        self,
+        tendermint: TendermintDockerImage,  # pylint: disable=redefined-outer-name
+        tendermint_port: Any,
     ) -> None:
         """Start a Tendermint image."""
         cls = type(self)

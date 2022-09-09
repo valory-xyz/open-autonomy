@@ -15,14 +15,23 @@ fingerprint:
   models.py: bafybeicqi64hrfqfloiopfmnkabbahggseu2pt47dcenfqvorxipv6egbi
   payloads.py: bafybeiajdz24osjwh7qvioa4vjssa73nqssnsgpwhowevmxnwqj4usrn5q
   rounds.py: bafybeie23qyyxsniohhcbz6mc4rgrswtk5d257genhxn6waocy3fe47ucm
+  tests/__init__.py: bafybeifelbjn35o54vqz62cdblijcrag2pdf5dtj6wqhepbowyifigno4a
+  tests/test_behaviours.py: bafybeidx23aeenlky5gfocytb5dzfupuskevgyh2msoy4ohb7zaas72are
+  tests/test_dialogues.py: bafybeibcxsrb2zbnrvzkzxvpdu26iw3k6hynotm4xqm2c3e6p7akpipiua
+  tests/test_handlers.py: bafybeihvvm4onw2ocfvai32mlujjngwkolviwehvw35nendb7b3adlol5e
+  tests/test_models.py: bafybeiap3lhuwichxzla2ug4pcajhrsjawlt26dvdvmpoachsel56apazm
+  tests/test_payloads.py: bafybeihuvl7qwisdgvwppda6bpoe63xiitnyhjyszdcmpxia4lzftzdn5e
+  tests/test_rounds.py: bafybeiaxhdpfrgb24lw7euyxrrk7hkbteqroakvchmnvofrzzgv56r5op4
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeiaugd2npc33jgovg72y4y7pyy7yl24ly6eri7mw6v6gev5azewozq
+- valory/gnosis_safe:0.1.0:bafybeidkfwvbyknjwlndhdf5euan7i4wmugxgtf2uhakvqspy24vgaehya
 protocols:
-- valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
+- open_aea/signing:1.0.0:bafybeifexbtq3cqrodkmy75djq7hck5c44jnjezywins7fzzg5nn6yi6om
+- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
+- valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihrktukokli5xxch7gexdl6wtnj23pnapbe6znmvlphyseotsqlre
+- valory/abstract_round_abci:0.1.0:bafybeifpza42lkzgeqykey3xat4mejhg3qs2mri3zqh6yqlu2fu2bwctve
 behaviours:
   main:
     args: {}
