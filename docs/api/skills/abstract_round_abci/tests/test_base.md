@@ -4,6 +4,17 @@
 
 Test the base.py module of the skill.
 
+<a id="packages.valory.skills.abstract_round_abci.tests.test_base.hypothesis_cleanup"></a>
+
+#### hypothesis`_`cleanup
+
+```python
+@pytest.fixture(scope="session", autouse=True)
+def hypothesis_cleanup() -> Generator
+```
+
+Fixture to remove hypothesis directory after tests.
+
 <a id="packages.valory.skills.abstract_round_abci.tests.test_base.PayloadEnum"></a>
 
 ## PayloadEnum Objects

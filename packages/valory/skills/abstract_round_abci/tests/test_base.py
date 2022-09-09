@@ -23,11 +23,14 @@
 
 import datetime
 import re
+import shutil
 from abc import ABC
+from contextlib import suppress
 from copy import copy
 from enum import Enum
+from pathlib import Path
 from time import sleep
-from typing import Any, Dict, List, Optional, Set, Tuple, Type
+from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -82,6 +85,19 @@ from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     ConcreteRoundA,
     ConcreteRoundB,
 )
+
+
+PACKAGE_DIR = Path(__file__).parent.parent
+
+
+@pytest.fixture(scope="session", autouse=True)
+def hypothesis_cleanup() -> Generator:
+    """Fixture to remove hypothesis directory after tests."""
+    yield
+    hypothesis_dir = PACKAGE_DIR / ".hypothesis"
+    if hypothesis_dir.exists():
+        with suppress(OSError, PermissionError):
+            shutil.rmtree(hypothesis_dir)
 
 
 class PayloadEnum(Enum):

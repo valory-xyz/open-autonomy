@@ -52,7 +52,7 @@ from aea_test_autonomy.helpers.async_utils import (
     BaseThreadedAsyncLoop,
     wait_for_condition,
 )
-from hypothesis import given
+from hypothesis import database, given, settings
 from hypothesis.strategies import integers
 
 from packages.valory.connections.abci import check_dependencies as dep_utils
@@ -526,6 +526,7 @@ def test_encode_varint_method() -> None:
     assert _TendermintABCISerializer.encode_varint((1 << 64) - 1) == max_uint64_encoded
 
 
+@settings(database=database.InMemoryExampleDatabase())
 @given(integers(min_value=0, max_value=(1 << 64) - 1))
 @pytest.mark.asyncio
 async def test_encode_decode_varint(value: int) -> None:

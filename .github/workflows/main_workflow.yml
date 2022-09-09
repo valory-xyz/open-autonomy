@@ -236,9 +236,14 @@ jobs:
             yarn
 
       - if: matrix.os == 'ubuntu-latest'
-        name: Unit tests ubuntu-latest
+        name: Framework unit tests ubuntu-latest
         run: |
           tox -e py${{ matrix.python-version }}-linux -- -m 'not e2e'
+      
+      - if: matrix.os == 'ubuntu-latest'
+        name: Packages unit tests ubuntu-latest
+        run: |
+          tox -e packages-py${{ matrix.python-version }}-linux -- -m 'not e2e'
 
       - if: matrix.os == 'macos-latest'
         name: Install dependencies (macos-latest)
@@ -296,9 +301,14 @@ jobs:
 
 
       - if: matrix.os == 'macos-latest'
-        name: Unit tests macos-latest
+        name: Framework unit tests macos-latest
         run: |
           tox -e py${{ matrix.python-version }}-darwin -- -m 'not e2e'
+      
+      - if: matrix.os == 'macos-latest'
+        name: Packages unit tests macos-latest
+        run: |
+          tox -e packages-py${{ matrix.python-version }}-darwin -- -m 'not e2e'
 
       - if: matrix.os == 'windows-latest'
         name: Install dependencies (windows-latest)
@@ -364,9 +374,14 @@ jobs:
           # cd ..\..
 
       - if: matrix.os == 'windows-latest'
-        name: Unit tests windows-latest
+        name: Framework unit tests windows-latest
         run: |
           tox -e py${{ matrix.python-version }}-win -- -m 'not e2e'
+      
+      - if: matrix.os == 'windows-latest'
+        name: Packages unit tests windows-latest
+        run: |
+          tox -e packages-py${{ matrix.python-version }}-win -- -m 'not e2e'
 
       - if: matrix.os == 'ubuntu-latest'
         name: Upload coverage to Codecov
@@ -460,4 +475,4 @@ jobs:
 
       - name: Unit tests
         run: |
-          tox --develop -e py${{ matrix.python-version }} -- -m 'e2e'
+          tox --develop -e py${{ matrix.python-version }}-linux -- -m 'e2e'

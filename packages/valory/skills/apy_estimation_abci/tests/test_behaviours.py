@@ -57,7 +57,7 @@ from _pytest.logging import LogCaptureFixture
 from _pytest.monkeypatch import MonkeyPatch
 from aea.skills.tasks import TaskManager
 from aea_cli_ipfs.ipfs_utils import IPFSDaemon
-from hypothesis import given, settings
+from hypothesis import database, given, settings
 from hypothesis import strategies as st
 
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
@@ -357,7 +357,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         assert behaviour.currently_downloaded == expected
 
     @given(st.lists(st.integers()))
-    @settings(deadline=5000)
+    @settings(deadline=5000, database=database.InMemoryExampleDatabase())
     def test_total_downloaded(
         self,
         pairs_hist: List,
@@ -375,7 +375,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
     #
     @given(st.lists(st.booleans(), max_size=50))
-    @settings(deadline=5000)
+    @settings(deadline=5000, database=database.InMemoryExampleDatabase())
     def test_retries_exceeded(
         self,
         is_exceeded_per_subgraph: List[bool],
@@ -493,7 +493,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         st.integers(min_value=1),
         st.integers(min_value=1, max_value=50),
     )
-    @settings(deadline=5000)
+    @settings(deadline=5000, database=database.InMemoryExampleDatabase())
     def test_reset_timestamps_iterator(
         self,
         batch: bool,
@@ -519,7 +519,6 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         assert behaviour._progress.timestamps_iterator is not None
         assert list(behaviour._progress.timestamps_iterator) == expected
 
-    #
     @given(
         st.booleans(),
         st.booleans(),
@@ -530,7 +529,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         st.integers(),
         st.lists(st.text(min_size=1)),
     )
-    @settings(deadline=5000)
+    @settings(deadline=5000, database=database.InMemoryExampleDatabase())
     def test_set_current_progress(
         self,
         pairs_ids: Dict[str, List[str]],
