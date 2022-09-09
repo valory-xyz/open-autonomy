@@ -9,7 +9,7 @@ Valory application deployments can be built on the fly.
 To learn about generating the deployment configuration, run the following command:
 
 ```bash
-$ autonomy deploy build deployment --help
+$ autonomy deploy build --help
 
 Usage: autonomy deploy build deployment [OPTIONS] PUBLIC_ID_OR_HASH KEYS_FILE
 
@@ -35,22 +35,33 @@ Usage: autonomy deploy build image [OPTIONS] PUBLIC_ID_OR_HASH
   Build image using skaffold.
 
 Options:
-  --packages-dir PATH   Path to packages folder (For local usage).
-  --build-dir PATH     Path to build directory.
-  --skaffold-dir PATH  Path to directory containing the skaffold config.
-  --version TEXT       Image version
-  --push               Push image after build.
-  --dependencies       To use the dependencies profile.
-  --prod               To use the prod profile.
-  --dev                To use the dev profile.
-  --cluster            To use the cluster profile.
-  --help               Show this message and exit.
+  --o PATH                        Path to output dir.
+  --n INTEGER                     Number of agents.
+  --docker                        Use docker as a backend.
+  --kubernetes                    Use kubernetes as a backend.
+  --dev                           Create development environment.
+  --force                         Remove existing build and overwrite with new
+                                  one.
+  --log-level [INFO|DEBUG|WARNING|ERROR|CRITICAL]
+                                  Logging level for runtime.
+  --packages-dir PATH             Path to packages dir (Use with dev mode)
+  --open-aea-dir PATH             Path to open-aea repo (Use with dev mode)
+  --open-autonomy-dir PATH        Path to open-autonomy repo (Use with dev
+                                  mode)
+  --aev                           Apply environment variable when loading
+                                  service config.
+  --image-version TEXT            Define runtime image version.
+  --remote                        To use a remote registry.
+  --local                         To use a local registry.
+  -p                              Ask for password interactively
+  --password PASSWORD             Set password for key encryption/decryption
+  --help                          Show this message and exit.
+
 ```
 
 For example, in order to build a deployment from scratch for oracle abci, first ensure you have a clean build environment and then build the images:
 ```bash
 rm -rf abci_build
-autonomy deploy build image valory/oracle_hardhat --dependencies
 autonomy deploy build image valory/oracle_hardhat
 ```
 
@@ -80,8 +91,7 @@ The logs of a single AEA or node can then be inspected with `docker logs {contai
 ```bash
 export SERVICE_ID=author_name/service_name
 export VERSION=0.1.0
-autonomy deploy build image ${SERVICE_ID} --dependencies
-autonomy deploy build image ${SERVICE_ID} --version ${VERSION}
+autonomy deploy build image ${SERVICE_ID}
 ```
 
 Conceptually, the image to be used within a deployment should contain all required dependencies and packages.
