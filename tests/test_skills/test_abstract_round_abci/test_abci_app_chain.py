@@ -19,28 +19,16 @@
 
 """Test the abci_app_chain.py module of the skill."""
 
-from typing import Tuple, Type
-
 import pytest
 from aea.exceptions import AEAEnforceError
+
+from autonomy.test_tools.helpers.base import make_round_class
 
 from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
     chain,
 )
-from packages.valory.skills.abstract_round_abci.base import (
-    AbciApp,
-    AbstractRound,
-    DegenerateRound,
-)
-
-
-def make_round_class(name: str, bases: Tuple = (AbstractRound,)) -> Type[AbstractRound]:
-    """Make a round class."""
-    new_round_cls = type(name, bases, {})
-    setattr(new_round_cls, "round_id", name)  # noqa: B010
-    assert issubclass(new_round_cls, AbstractRound)  # nosec
-    return new_round_cls
+from packages.valory.skills.abstract_round_abci.base import AbciApp, DegenerateRound
 
 
 class TestAbciAppChaining:

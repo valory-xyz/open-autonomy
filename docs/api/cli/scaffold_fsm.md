@@ -48,105 +48,6 @@ def write_file(output_dir: Path) -> None
 
 Write the file to output_dir/FILENAME.
 
-<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.abci_app_name"></a>
-
-#### abci`_`app`_`name
-
-```python
-@property
-def abci_app_name() -> str
-```
-
-ABCI app class name
-
-<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.fsm_name"></a>
-
-#### fsm`_`name
-
-```python
-@property
-def fsm_name() -> str
-```
-
-FSM base name
-
-<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.author"></a>
-
-#### author
-
-```python
-@property
-def author() -> str
-```
-
-Author
-
-<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.all_rounds"></a>
-
-#### all`_`rounds
-
-```python
-@property
-def all_rounds() -> List[str]
-```
-
-Rounds
-
-<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.degenerate_rounds"></a>
-
-#### degenerate`_`rounds
-
-```python
-@property
-def degenerate_rounds() -> List[str]
-```
-
-Degenerate rounds
-
-<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.rounds"></a>
-
-#### rounds
-
-```python
-@property
-def rounds() -> List[str]
-```
-
-Non-degenerate rounds
-
-<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.base_names"></a>
-
-#### base`_`names
-
-```python
-@property
-def base_names() -> List[str]
-```
-
-Base names
-
-<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.behaviours"></a>
-
-#### behaviours
-
-```python
-@property
-def behaviours() -> List[str]
-```
-
-Behaviours
-
-<a id="autonomy.cli.scaffold_fsm.AbstractFileGenerator.payloads"></a>
-
-#### payloads
-
-```python
-@property
-def payloads() -> List[str]
-```
-
-Payloads
-
 <a id="autonomy.cli.scaffold_fsm.RoundFileGenerator"></a>
 
 ## RoundFileGenerator Objects
@@ -185,27 +86,7 @@ File generator for 'behaviours.py' modules.
 def get_file_content() -> str
 ```
 
-Scaffold the 'behaviours.py' file.
-
-<a id="autonomy.cli.scaffold_fsm.PayloadsFileGenerator"></a>
-
-## PayloadsFileGenerator Objects
-
-```python
-class PayloadsFileGenerator(AbstractFileGenerator)
-```
-
-File generator for 'payloads.py' modules.
-
-<a id="autonomy.cli.scaffold_fsm.PayloadsFileGenerator.get_file_content"></a>
-
-#### get`_`file`_`content
-
-```python
-def get_file_content() -> str
-```
-
-Get the file content.
+Scaffold the 'rounds.py' file.
 
 <a id="autonomy.cli.scaffold_fsm.ModelsFileGenerator"></a>
 
@@ -238,26 +119,6 @@ class HandlersFileGenerator(AbstractFileGenerator)
 File generator for 'handlers.py' modules.
 
 <a id="autonomy.cli.scaffold_fsm.HandlersFileGenerator.get_file_content"></a>
-
-#### get`_`file`_`content
-
-```python
-def get_file_content() -> str
-```
-
-Get the file content.
-
-<a id="autonomy.cli.scaffold_fsm.DialoguesFileGenerator"></a>
-
-## DialoguesFileGenerator Objects
-
-```python
-class DialoguesFileGenerator(AbstractFileGenerator)
-```
-
-File generator for 'dialogues.py' modules.
-
-<a id="autonomy.cli.scaffold_fsm.DialoguesFileGenerator.get_file_content"></a>
 
 #### get`_`file`_`content
 
@@ -303,126 +164,6 @@ def update() -> None
 
 Update the skill configuration file.
 
-<a id="autonomy.cli.scaffold_fsm.RoundTestsFileGenerator"></a>
-
-## RoundTestsFileGenerator Objects
-
-```python
-class RoundTestsFileGenerator(AbstractFileGenerator)
-```
-
-RoundTestsFileGenerator
-
-<a id="autonomy.cli.scaffold_fsm.RoundTestsFileGenerator.get_file_content"></a>
-
-#### get`_`file`_`content
-
-```python
-def get_file_content() -> str
-```
-
-Scaffold the 'test_rounds.py' file.
-
-<a id="autonomy.cli.scaffold_fsm.BehaviourTestsFileGenerator"></a>
-
-## BehaviourTestsFileGenerator Objects
-
-```python
-class BehaviourTestsFileGenerator(AbstractFileGenerator)
-```
-
-File generator for 'test_behaviours.py' modules.
-
-<a id="autonomy.cli.scaffold_fsm.BehaviourTestsFileGenerator.get_file_content"></a>
-
-#### get`_`file`_`content
-
-```python
-def get_file_content() -> str
-```
-
-Scaffold the 'test_behaviours.py' file.
-
-<a id="autonomy.cli.scaffold_fsm.PayloadTestsFileGenerator"></a>
-
-## PayloadTestsFileGenerator Objects
-
-```python
-class PayloadTestsFileGenerator(AbstractFileGenerator)
-```
-
-File generator for 'test_payloads.py' modules.
-
-<a id="autonomy.cli.scaffold_fsm.PayloadTestsFileGenerator.get_file_content"></a>
-
-#### get`_`file`_`content
-
-```python
-def get_file_content() -> str
-```
-
-Scaffold the 'test_payloads.py' file.
-
-<a id="autonomy.cli.scaffold_fsm.ModelTestFileGenerator"></a>
-
-## ModelTestFileGenerator Objects
-
-```python
-class ModelTestFileGenerator(AbstractFileGenerator)
-```
-
-File generator for 'test_models.py'.
-
-<a id="autonomy.cli.scaffold_fsm.ModelTestFileGenerator.get_file_content"></a>
-
-#### get`_`file`_`content
-
-```python
-def get_file_content() -> str
-```
-
-Get the file content.
-
-<a id="autonomy.cli.scaffold_fsm.HandlersTestFileGenerator"></a>
-
-## HandlersTestFileGenerator Objects
-
-```python
-class HandlersTestFileGenerator(AbstractFileGenerator)
-```
-
-File generator for 'test_dialogues.py'.
-
-<a id="autonomy.cli.scaffold_fsm.HandlersTestFileGenerator.get_file_content"></a>
-
-#### get`_`file`_`content
-
-```python
-def get_file_content() -> str
-```
-
-Get the file content.
-
-<a id="autonomy.cli.scaffold_fsm.DialoguesTestFileGenerator"></a>
-
-## DialoguesTestFileGenerator Objects
-
-```python
-class DialoguesTestFileGenerator(AbstractFileGenerator)
-```
-
-File generator for 'test_dialogues.py'.
-
-<a id="autonomy.cli.scaffold_fsm.DialoguesTestFileGenerator.get_file_content"></a>
-
-#### get`_`file`_`content
-
-```python
-def get_file_content() -> str
-```
-
-Get the file content.
-
 <a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill"></a>
 
 ## ScaffoldABCISkill Objects
@@ -453,17 +194,6 @@ def skill_dir() -> Path
 ```
 
 Get the directory to the skill.
-
-<a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.skill_test_dir"></a>
-
-#### skill`_`test`_`dir
-
-```python
-@property
-def skill_test_dir() -> Path
-```
-
-Get the directory to the skill tests.
 
 <a id="autonomy.cli.scaffold_fsm.ScaffoldABCISkill.do_scaffolding"></a>
 

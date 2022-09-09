@@ -28,7 +28,6 @@ from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.liquidity_rebalancing_abci.payloads import (
     SleepPayload,
     StrategyEvaluationPayload,
-    TransactionHashPayload,
 )
 from packages.valory.skills.liquidity_rebalancing_abci.rounds import (  # noqa: F401
     Event,
@@ -37,6 +36,7 @@ from packages.valory.skills.liquidity_rebalancing_abci.rounds import (  # noqa: 
     SynchronizedData,
     TransactionHashBaseRound,
 )
+from packages.valory.skills.price_estimation_abci.payloads import TransactionHashPayload
 from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (

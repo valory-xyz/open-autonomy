@@ -22,8 +22,9 @@
 from pathlib import Path
 
 import click
-from aea_test_autonomy.docker.registries import RegistriesDockerImage
 from docker import from_env
+
+from autonomy.test_tools.docker.registries import RegistriesDockerImage
 
 
 DEFAULT_THIRD_PARTY_PATH = Path(__file__).parent.parent / "third_party"

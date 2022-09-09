@@ -177,20 +177,6 @@ unreference
 plugins
 runtimes
 Uniswap
-fsm
-gnosis
-regex
-Plugin
-plugin
-heavy_check_mark
-DAOs
-Web3-native
-NFTs
-md-button
-md-button--primary
-Gitleaks
-href
-counter_example
  - docs/index.md
 README.md
 s_
@@ -301,7 +287,6 @@ i
 0.1.0rc1
 0.1.0rc2
 serializer
-0.2.1.post1
  - docs/control_flow.md
 EntryPoint
 StartA
@@ -351,4 +336,5 @@ PrintMessageRound
 HelloWorldABCIAbstractRound
 PrintMessageBehaviour
  - docs/agent_services_context.md
-
+heavy_check_mark
+Gitleaks

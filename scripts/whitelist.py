@@ -105,6 +105,7 @@ _._acn_node_image  # unused attribute (autonomy/test_tools/fixture_helpers.py:17
 get_register_contract  # unused function (autonomy/test_tools/helpers/contracts.py:30)
 GanacheForkDockerImage  # unused function (autonomy/test_tools/docker/ganache.py:111)
 try_send  # unused function (/home/marcofavorito/workfolder/open-autonomy/autonomy/test_tools/helpers/base.py:68)
+make_round_class  # unused function (/home/marcofavorito/workfolder/open-autonomy/autonomy/test_tools/helpers/base.py:79)
 ANY_ADDRESS  # unused variable (/home/marcofavorito/workfolder/open-autonomy/autonomy/test_tools/configurations.py:144)
 wait_for_condition  # unused function (/home/marcofavorito/workfolder/open-autonomy/autonomy/test_tools/helpers/async_utils.py:29)
 BaseThreadedAsyncLoop  # unused class (/home/marcofavorito/workfolder/open-autonomy/autonomy/test_tools/helpers/async_utils.py:146)

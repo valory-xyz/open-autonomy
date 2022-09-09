@@ -18,11 +18,11 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeiaugd2npc33jgovg72y4y7pyy7yl24ly6eri7mw6v6gev5azewozq
+- valory/gnosis_safe:0.1.0:bafybeif5ump4p7p5bygqyxeznwdvtdhtwihxnjnvjajbcnt7rmcyzyjafy
 protocols:
 - valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihrktukokli5xxch7gexdl6wtnj23pnapbe6znmvlphyseotsqlre
+- valory/abstract_round_abci:0.1.0:bafybeicvhdpuai3mphhzsdhzxcx2sdxbmpsl3jh3ccmjvzkchu4xyjhr3e
 behaviours:
   main:
     args: {}

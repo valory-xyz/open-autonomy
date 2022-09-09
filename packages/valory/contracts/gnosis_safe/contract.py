@@ -43,9 +43,6 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
 
 
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe:0.1.0")
-MIN_GAS = MIN_GASPRICE = 1
-# see https://github.com/safe-global/safe-eth-py/blob/6c0e0d80448e5f3496d0d94985bca239df6eb399/gnosis/safe/safe_tx.py#L354
-GAS_ADJUSTMENT = 75_000
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
@@ -212,7 +209,7 @@ class GnosisSafeContract(Contract):
                 payment,
                 payment_receiver,
             ).buildTransaction(  # type: ignore
-                {"gas": MIN_GAS, "gasPrice": MIN_GASPRICE}  # type: ignore
+                {"gas": 1, "gasPrice": 1}  # type: ignore
             )[
                 "data"
             ]
@@ -434,9 +431,7 @@ class GnosisSafeContract(Contract):
         )
         # see https://github.com/safe-global/safe-eth-py/blob/6c0e0d80448e5f3496d0d94985bca239df6eb399/gnosis/safe/safe_tx.py#L354
         configured_gas = (
-            base_gas + safe_tx_gas + GAS_ADJUSTMENT
-            if base_gas != 0 or safe_tx_gas != 0
-            else MIN_GAS
+            base_gas + safe_tx_gas + 75000 if base_gas != 0 or safe_tx_gas != 0 else 1
         )
         tx_parameters: Dict[str, Union[str, int]] = {
             "from": sender_address,

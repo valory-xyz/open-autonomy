@@ -32,8 +32,8 @@ IPFS_ENDPOINT = "https://gateway.autonolas.tech/ipfs"
 def check_ipfs_hash_pushed(ipfs_hash: str) -> bool:
     """Check that the given ipfs hash exists in the registry"""
     try:
-        url = f"{IPFS_ENDPOINT}/{ipfs_hash.strip()}"
-        res = requests.get(url, timeout=120)
+        url = f"{IPFS_ENDPOINT}/{ipfs_hash}"
+        res = requests.get(url, timeout=5)
         return res.status_code == 200
     except requests.RequestException:
         return False

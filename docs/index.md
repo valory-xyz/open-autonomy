@@ -1,48 +1,67 @@
-#The Open Autonomy framework
+# Open Autonomy
+
+{{open_autonomy}} is a framework for the creation of _agent services_: off-chain services which run as a multi-agent-system (MAS) and are replicated on a consensus gadget (a sort of short-lived blockchain) while being crypto-economically secured on a public blockchain. Agent services enable complex processing, take action on their own and run continuously. Additionally, agent services are crypto-native by construction, that is, they are decentralized, trust-minimized, transparent, and robust.
+
+The {{open_autonomy}} framework allows to define such services by means of _{{fsm_app}}s_. These dynamic, decentralized apps run inside the agents implementing the agent service, and define its business logic.
+
+The {{open_autonomy}} framework is realized on top of the {{open_aea}} framework, and it consists of:
+
+* A collection of command line tools to build, deploy, publish and  test agent services.
+* A collection of packages with base classes to create the {{fsm_app}} that define the service business logic.
 
 
+<figure markdown>
+![](./images/agent_service_architecture.svg)
+<figcaption>Overview of the architecture of an agent service</figcaption>
+</figure>
+
+## Why?
+Decentralized ledger technologies (DLTs), such as blockchains, face several challenges, for example:
+
+* [the blockchain trilemma](https://www.ledger.com/academy/what-is-the-blockchain-trilemma)
+* [the oracle problem](https://encyclopedia.pub/entry/2959)
+* [privacy issues](https://en.wikipedia.org/wiki/Privacy_and_blockchain)
+* [ledger storage space](https://cointelegraph.com/news/how-can-blockchain-improve-data-storage)
+* [cross chain compatibility](https://101blockchains.com/blockchain-interoperability/)
+* ... and the sheer complexity of the user experience!
+
+In contrast with the increasing growth of on-chain applications (particularly in DeFi), the off-chain design space has seen a lack of innovation. A lot of the technology is centralized, lacks fault tolerance, the code is often opaque and offers little composability.
 
 
-{{open_autonomy}} is a framework for the creation of **agent services**: off-chain
-autonomous services which run as a multi-agent-system (MAS) and offer **enhanced functionalities
-on-chain**. Agent services expands the range of operations that traditional
-smart contracts provide, making it possible to execute **arbitrarily complex operations**
-(such as machine-learning algorithms). Most importantly, agent services are
-**decentralized**, **trust-minimized**, **transparent**, and **robust**.
-
-<img src="./images/agent_service_index_page.svg" alt="Multiplexer of an AEA" class="center" style="display: block; margin-left: auto; margin-right: auto;width:35%;">
+Currently, a standardised approach for off-chain application development is missing in the blockchain space. This is where the Valory stack (i.e., the {{open_aea}} and the {{open_autonomy}} frameworks) comes in, as an open-source framework for developers to implement off-chain services which are secured on-chain and can interact with smart contracts.
 
 
-##Browse the docs
+<figure markdown>
+![](./images/centralized_decentralized_world.svg)
+<figcaption>The Valory Stack allows to develop decentralized, agent services that are run off-chain and are crypto-economically secure</figcaption>
+</figure>
 
-Get started with the framework, **learn the main concepts** and get some context on how agent services
-fit in the wider crypto ecosystem.
 
-[Get started](./get_started/what_is_the_open_autonomy_framework.md){ .md-button .md-button--primary}
+Agent services go beyond simple, purely
+reactive applications (like smart contracts) and can show complex, proactive behaviours that contain off-chain logic without giving up on decentralization. Examples include, but are not limited to, triggering specific actions on external events, or even executing complex machine learning models.
 
-------
 
-Follow the guides to learn how to use the framework to **create and deploy agent services**.
+## How It Works
 
-[Tutorials](#){ .md-button }
+{{open_aea}} is a framework for building arbitrary agent-based applications. It provides the elements to define and implement the required components of an agent, e.g., connections, protocols or skills.
 
-------
+On the other hand, the {{open_autonomy}} framework extends {{open_aea}} to a service architecture. That is, it allows to build applications as distributed systems (agent services) run by sets of agents.
 
-A tour to **existing agent services** that you can explore and use them as a reference
-for your implementations.
+The {{fsm_app}} that defines the service business logic is structured as a series of steps that each agent in the service must follow in order to achieve the service functionality. Agents must reach consensus on the outcome of each step. This ensures that the execution flow, its inputs and outputs are replicated across all agents, creating a distributed (and decentralized) application with shared state that is fault tolerant. The shared state is replicated across agents automatically through the consensus gadget. From an architectural point of view, the {{fsm_app}} is implemented as a particular type of agent component.
 
-[Demos](#){ .md-button }
+If at some point the {{fsm_app}} must execute an action involving an external service, e.g.,
+settling a transaction on a blockchain, one of the agents is randomly nominated to perform that action. The nominated agent is known as a _keeper_. The nomination process is also agreed by consensus, and multi-signature protocols are used to avoid that a single, malicious agent executes an external action on its own.
+For this reason, there is the requirement that a minimum number of agents approve and sign every action before it takes place, and it also must be verified once it has been processed. The threshold on the minimum number of agents is typically, but not exclusively, set at 2/3 of the total of agents.
 
-------
 
-Detailed topics on how the **internal components** of an agent service work with the
-framework.
-Also, you will find **advanced tools** that will help you to develop your agent services.
+## Where to Start
 
-[In-depth topics](#){ .md-button }
+The [_Quick start_](./quick_start.md) section gives a general overview of the work pipeline with {{open_autonomy}} framework, as well as an example of deploying and running an already available, very basic service. The [_Hello World agent service_](./hello_world_agent_service.md) section gives a general overview about how that demonstration agent service is implemented with the stack.
 
-------
+Following these sections, the reader can proceed to explore the core concepts that make agent services possible, presented in the _Concepts_ section:
 
-Browse through the CLI and API reference documentation.
+- [Autonomous economic agents (AEAs) and multi-agent systems (MAS)](./aea.md),
+- [Finite-state machines (FSMs)](./fsm.md), and
+- the [Application BlockChain Interface (ABCI)](./abci.md).
 
-[Reference](#){ .md-button }
+These concepts constitute the starting point before exploring more advanced parts of the documentation.

@@ -4,6 +4,16 @@
 
 This module contains the behaviours for the 'abci' skill.
 
+<a id="packages.valory.skills.price_estimation_abci.behaviours.to_int"></a>
+
+#### to`_`int
+
+```python
+def to_int(most_voted_estimate: float, decimals: int) -> int
+```
+
+Convert to int.
+
 <a id="packages.valory.skills.price_estimation_abci.behaviours.PriceEstimationBaseBehaviour"></a>
 
 ## PriceEstimationBaseBehaviour Objects

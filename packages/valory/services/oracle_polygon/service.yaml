@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeifqnvekc6s44wsczofdhofiozxekstjau2bk5yqfqvjuv4wzoopku
 fingerprint_ignore_patterns: []
-agent: valory/oracle:0.1.0:bafybeien2ej3skri5je7npg3jmes7hddrsom7rfbz5oiracm2uoyata2py
+agent: valory/oracle:0.1.0:bafybeia6i5tmoalnaey2iuiuzxqb4lbu5q37gbu24g245jtkhqvfjs2eai
 number_of_agents: 4
 ---
 setup_args:
@@ -100,31 +100,9 @@ models:
 public_id: valory/ledger:0.1.0
 type: connection
 config:
-  0:
-  - ledger_apis:
-      ethereum:
-        address: ${SERVICE_ORACLE_POLYGON_RPC_0:str:http://127.0.0.1:8545}
-        chain_id: 137
-        poa_chain: true
-        default_gas_price_strategy: eip1559_polygon
-  1:
-  - ledger_apis:
-      ethereum:
-        address: ${SERVICE_ORACLE_POLYGON_RPC_1:str:http://127.0.0.1:8545}
-        chain_id: 137
-        poa_chain: true
-        default_gas_price_strategy: eip1559_polygon
-  2:
-  - ledger_apis:
-      ethereum:
-        address: ${SERVICE_ORACLE_POLYGON_RPC_2:str:http://127.0.0.1:8545}
-        chain_id: 137
-        poa_chain: true
-        default_gas_price_strategy: eip1559_polygon
-  3:
-  - ledger_apis:
-      ethereum:
-        address: ${SERVICE_ORACLE_POLYGON_RPC_3:str:http://127.0.0.1:8545}
-        chain_id: 137
-        poa_chain: true
-        default_gas_price_strategy: eip1559_polygon
+  ledger_apis:
+    ethereum:
+      address: https://polygon-mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8
+      chain_id: 137
+      poa_chain: true
+      default_gas_price_strategy: eip1559_polygon

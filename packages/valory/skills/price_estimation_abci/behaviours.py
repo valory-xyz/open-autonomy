@@ -20,6 +20,7 @@
 """This module contains the behaviours for the 'abci' skill."""
 
 from abc import ABC
+from decimal import Decimal
 from typing import Dict, Generator, Optional, Sequence, Set, Type, cast
 
 from aea.exceptions import enforce
@@ -33,7 +34,6 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
-from packages.valory.skills.abstract_round_abci.utils import to_int
 from packages.valory.skills.price_estimation_abci.models import Params
 from packages.valory.skills.price_estimation_abci.payloads import (
     EstimatePayload,
@@ -60,6 +60,17 @@ SAFE_TX_GAS = 0
 ETHER_VALUE = 0
 
 NO_OBSERVATION = 0.0
+
+
+def to_int(most_voted_estimate: float, decimals: int) -> int:
+    """Convert to int."""
+    most_voted_estimate_ = str(most_voted_estimate)
+    decimal_places = most_voted_estimate_[::-1].find(".")
+    if decimal_places > decimals:
+        most_voted_estimate_ = most_voted_estimate_[: -(decimal_places - decimals)]
+    most_voted_estimate_decimal = Decimal(most_voted_estimate_)
+    int_value = int(most_voted_estimate_decimal * (10 ** decimals))
+    return int_value
 
 
 class PriceEstimationBaseBehaviour(BaseBehaviour, ABC):

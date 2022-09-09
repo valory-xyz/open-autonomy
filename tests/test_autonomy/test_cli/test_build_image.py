@@ -30,7 +30,9 @@ import docker
 import pytest
 from aea.configurations.constants import PACKAGES
 
-from tests.conftest import ROOT_DIR, skip_docker_tests
+from autonomy.test_tools.docker.base import skip_docker_tests
+
+from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 

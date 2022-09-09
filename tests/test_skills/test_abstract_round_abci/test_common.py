@@ -42,6 +42,9 @@ from packages.valory.skills.abstract_round_abci.common import random_selection
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    VerificationStatus,
+)
 
 from tests.conftest import ROOT_DIR
 
@@ -356,6 +359,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
                         dict(
                             participants=participants,
                             most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+                            final_verification_status=VerificationStatus.PENDING,
                             blacklisted_keepers="".join(blacklisted_keepers),
                         )
                     ),

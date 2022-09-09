@@ -9,10 +9,10 @@ Utils to support on-chain contract interactions.
 #### get`_`abi
 
 ```python
-def get_abi(path: Path) -> Dict
+def get_abi(url: str) -> Dict
 ```
 
-Read the ABI from the provided path.
+Get ABI from provided URL
 
 <a id="autonomy.deploy.chain.ServiceRegistry"></a>
 

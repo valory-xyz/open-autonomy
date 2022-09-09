@@ -31,8 +31,9 @@ from aea.mail.base import Envelope
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
 from aea_ledger_ethereum import EthereumCrypto
-from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER, get_key
-from aea_test_autonomy.docker.base import skip_docker_tests
+
+from autonomy.test_tools.configurations import ETHEREUM_KEY_DEPLOYER, get_key
+from autonomy.test_tools.docker.base import skip_docker_tests
 
 from packages.valory.connections.ledger.connection import LedgerConnection
 from packages.valory.contracts.gnosis_safe.contract import (

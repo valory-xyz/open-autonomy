@@ -19,19 +19,16 @@
 
 """Service component base."""
 
-import os
 from pathlib import Path
-from typing import Dict, List, cast
+from typing import Dict
 
+import yaml
 from aea.configurations.base import (
     ConnectionConfig,
     ContractConfig,
     ProtocolConfig,
     SkillConfig,
 )
-from aea.helpers.env_vars import apply_env_variables
-from aea.helpers.io import open_file
-from aea.helpers.yaml_utils import yaml_load_all
 
 from autonomy.configurations.base import Service
 
@@ -47,20 +44,14 @@ COMPONENT_CONFIGS: Dict = {
 }
 
 
-def load_service_config(
-    service_path: Path, substitute_env_vars: bool = False
-) -> Service:
+def load_service_config(service_path: Path) -> Service:
     """Load service config from the path."""
 
-    with open_file(
+    with open(
         service_path / Service.default_configuration_filename, "r", encoding="utf-8"
     ) as fp:
-        data = yaml_load_all(fp)
+        service_config, *overrides = yaml.load_all(fp, Loader=yaml.SafeLoader)
 
-    if substitute_env_vars:
-        data = cast(List[Dict], apply_env_variables(data, env_variables=os.environ))
-
-    service_config, *overrides = data
     Service.validate_config_data(service_config)
     service_config["license_"] = service_config.pop("license")
 

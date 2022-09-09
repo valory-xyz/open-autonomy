@@ -21,11 +21,12 @@
 
 import pytest
 from aea.configurations.data_types import PublicId
-from aea_test_autonomy.base_test_classes.agents import (
+
+from autonomy.test_tools.base_test_classes.agents import (
     BaseTestEnd2EndExecution,
     RoundChecks,
 )
-from aea_test_autonomy.fixture_helpers import UseGnosisSafeHardHatNet
+from autonomy.test_tools.fixture_helpers import UseGnosisSafeHardHatNet
 
 
 ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
@@ -54,13 +55,18 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndExecution):
     agent_package = "valory/apy_estimation_chained:0.1.0"
     skill_package = "valory/apy_estimation_chained_abci:0.1.0"
     happy_path = HAPPY_PATH
-    ROUND_TIMEOUT_SECONDS = 480
-    wait_to_finish = 480
+    ROUND_TIMEOUT_SECONDS = 120
+    wait_to_finish = 240
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     extra_configs = [
         {
             "dotted_path": f"{__args_prefix}.ipfs_domain_name",
             "value": "/dns/localhost/tcp/5001/http",
+        },
+        {
+            "dotted_path": f"{__args_prefix}.round_timeout_seconds",
+            "value": 300,
+            "type_": "float",
         },
         {
             "dotted_path": f"{__args_prefix}.optimizer.timeout",
@@ -84,6 +90,8 @@ class TestABCIAPYEstimationTwoAgents(
 ):
     """Test the ABCI apy_estimation_abci skill with two agents."""
 
+    wait_to_finish = 300
+
 
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestABCIAPYEstimationFourAgents(
@@ -91,3 +99,5 @@ class TestABCIAPYEstimationFourAgents(
     UseGnosisSafeHardHatNet,
 ):
     """Test the ABCI apy_estimation_abci skill with four agents."""
+
+    wait_to_finish = 360

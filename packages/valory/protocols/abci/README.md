@@ -194,7 +194,6 @@ ct:ConsensusParams: |
   EvidenceParams evidence = 2;
   ValidatorParams validator = 3;
   VersionParams version = 4;
-# https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L343
 ct:ValidatorUpdates: |
   message PublicKey {
     oneof sum {
@@ -218,7 +217,6 @@ ct:Timestamp: |
   // that count forward in time. Must be from 0 to 999,999,999
   // inclusive.
   int32 nanos = 2;
-# https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/crypto/proof.proto#L39
 ct:ProofOps: |
   message ProofOp {
     string type = 1;
@@ -262,7 +260,6 @@ ct:Header: |
   // consensus info
   bytes evidence_hash    = 13;  // evidence included in the block
   bytes proposer_address = 14;  // original proposer of the block
-# https://github.com/tendermint/tendermint/blob/v0.34.19/proto/tendermint/abci/types.proto#L299
 ct:LastCommitInfo: |
   message Validator {
     bytes address = 1;  // The first 20 bytes of SHA256(public key)
@@ -275,7 +272,6 @@ ct:LastCommitInfo: |
   }
   int32             round = 1;
   repeated VoteInfo votes = 2;
-# https://github.com/tendermint/tendermint/blob/2f231ceb952a2426cf3c0abaf0b455aadd11e5b2/proto/tendermint/abci/types.proto#L360
 ct:Evidences: |
   message Evidence {
     enum EvidenceType {
@@ -302,7 +298,6 @@ ct:CheckTxType: |
     RECHECK        = 1;
   }
   _CheckTxType type = 1;
-# https://github.com/tendermint/tendermint/blob/2f231ceb952a2426cf3c0abaf0b455aadd11e5b2/proto/tendermint/abci/types.proto#L307
 ct:Events: |
   message EventAttribute {
     bytes key   = 1;

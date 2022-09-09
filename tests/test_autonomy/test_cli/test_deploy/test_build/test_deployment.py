@@ -27,10 +27,6 @@ from unittest import mock
 
 import yaml
 from aea.configurations.constants import PACKAGES
-from aea_test_autonomy.configurations import (
-    ETHEREUM_ENCRYPTED_KEYS,
-    ETHEREUM_ENCRYPTION_PASSWORD,
-)
 
 from autonomy.constants import DEFAULT_BUILD_FOLDER
 from autonomy.deploy.constants import (
@@ -39,8 +35,13 @@ from autonomy.deploy.constants import (
     DEPLOYMENT_KEY_DIRECTORY,
     KUBERNETES_AGENT_KEY_NAME,
 )
+from autonomy.test_tools.configurations import (
+    ETHEREUM_ENCRYPTED_KEYS,
+    ETHEREUM_ENCRYPTION_PASSWORD,
+)
+from autonomy.test_tools.docker.base import skip_docker_tests
 
-from tests.conftest import ROOT_DIR, skip_docker_tests
+from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 

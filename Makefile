@@ -16,8 +16,6 @@ clean-build:
 	find . -name '*.egg' -exec rm -fr {} +
 	find . -type d -name __pycache__ -exec rm -rv {} +
 	rm -fr Pipfile.lock
-	rm -rf plugins/*/build
-	rm -rf plugins/*/dist
 
 .PHONY: clean-docs
 clean-docs:
@@ -177,7 +175,6 @@ new_env: clean
 		pipenv --python 3.10;\
 		pipenv install --dev --skip-lock;\
 		pipenv run pip install -e .[all];\
-		pipenv run pip install --no-deps file:plugins/aea-test-autonomy;\
 		echo "Enter virtual environment with all development dependencies now: 'pipenv shell'.";\
 	else\
 		echo "In a virtual environment! Exit first: 'exit'.";\
@@ -367,11 +364,6 @@ fix-abci-app-specs:
 	echo "Successfully validated abcis!"
 
 
-AEA_AGENT_HELLO_WORLD:=valory/hello_world:latest:$(shell cat packages/hashes.csv | grep "agents/hello_world" | cut -d "," -f2 )
-AEA_AGENT_ORACLE:=valory/oracle:latest:$(shell cat packages/hashes.csv | grep "agents/oracle" | cut -d "," -f2 )
-AEA_AGENT_APY_ESTIMATION:=valory/apy_estimation:latest:$(shell cat packages/hashes.csv | grep "agents/apy_estimation," | cut -d "," -f2 )
+AEA_AGENT:=valory/hello_world:latest:$(shell cat packages/hashes.csv | grep "agents/hello_world" | cut -d "," -f2 )
 release-images:
-	export AEA_AGENT_ORACLE=${AEA_AGENT_ORACLE}
-	export AEA_AGENT_APY_ESTIMATION=${AEA_AGENT_APY_ESTIMATION}
-	export AEA_AGENT=${AEA_AGENT_HELLO_WORLD}
-	skaffold build -p release --cache-artifacts=false && skaffold build -p release-latest
+	AEA_AGENT=${AEA_AGENT} skaffold build -p release && VERSION=latest AEA_AGENT=${AEA_AGENT} skaffold build -p release

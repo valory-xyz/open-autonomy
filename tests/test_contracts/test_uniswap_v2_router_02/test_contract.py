@@ -24,8 +24,9 @@ from typing import Any, Dict, Optional, cast
 from unittest import mock
 
 from aea.test_tools.test_contract import BaseContractTestCase
-from aea_test_autonomy.base_test_classes.contracts import BaseHardhatAMMContractTest
-from aea_test_autonomy.docker.base import skip_docker_tests
+
+from autonomy.test_tools.base_test_classes.contracts import BaseHardhatAMMContractTest
+from autonomy.test_tools.docker.base import skip_docker_tests
 
 from packages.valory.contracts.uniswap_v2_router_02.contract import (
     UniswapV2Router02Contract,

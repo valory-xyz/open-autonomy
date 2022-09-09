@@ -106,10 +106,6 @@ class DecodeVarintError(Exception):
     """This exception is raised when an error occurs while decoding a varint."""
 
 
-class EncodeVarintError(Exception):
-    """This exception is raised when an error occurs while encoding a varint."""
-
-
 class TooLargeVarint(Exception):
     """This exception is raised when a message with varint exceeding the max size is received."""
 
@@ -150,12 +146,8 @@ class _TendermintABCISerializer:
     @classmethod
     def encode_varint(cls, number: int) -> bytes:
         """Encode a number in varint coding."""
-
-        if not 0 <= number < 1 << 64:
-            log_msg = "Expecting uint64 from Protobuf"
-            raise EncodeVarintError(f"{log_msg}: {number}")
-
-        number <<= 1  # Shift to int64
+        # Shift to int64
+        number = number << 1
         buf = b""
         while True:
             towrite = number & 0x7F
@@ -1236,21 +1228,18 @@ class TendermintNode:
             try:
                 if self._monitoring.stopped():  # type: ignore
                     break  # break from the loop immediately.
-                if self._process is not None and self._process.stdout is not None:
-                    line = self._process.stdout.readline()
-                    self.write_line(line)
-                    for trigger in [
-                        # this occurs when we lose connection from the tm side
-                        "RPC HTTP server stopped",
-                        # this occurs when we lose connection from the AEA side.
-                        "Stopping abci.socketClient for error: read message: EOF module=abci-client connection=",
-                    ]:
-                        if line.find(trigger) >= 0:
-                            self._stop_tm_process()
-                            self._start_tm_process()
-                            self.write_line(
-                                f"Restarted the HTTP RPC server, as a connection was dropped with message:\n\t\t {line}\n"
-                            )
+                line = self._process.stdout.readline()  # type: ignore
+                self.write_line(line)
+                for trigger in [
+                    "RPC HTTP server stopped",  # this occurs when we lose connection from the tm side
+                    "Stopping abci.socketClient for error: read message: EOF module=abci-client connection=",  # this occurs when we lose connection from the AEA side.
+                ]:
+                    if line.find(trigger) >= 0:
+                        self._stop_tm_process()
+                        self._start_tm_process()
+                        self.write_line(
+                            f"Restarted the HTTP RPC server, as a connection was dropped with message:\n\t\t {line}\n"
+                        )
             except Exception as e:  # pylint: disable=broad-except
                 self.write_line(f"Error!: {str(e)}")
         self.write_line("Monitoring thread terminated\n")

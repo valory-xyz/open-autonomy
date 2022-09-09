@@ -37,7 +37,6 @@ from packages.valory.skills.oracle_deployment_abci.payloads import (
     DeployOraclePayload,
     RandomnessPayload,
     SelectKeeperPayload,
-    ValidateOraclePayload,
 )
 from packages.valory.skills.oracle_deployment_abci.rounds import DeployOracleRound
 from packages.valory.skills.oracle_deployment_abci.rounds import (
@@ -48,6 +47,14 @@ from packages.valory.skills.oracle_deployment_abci.rounds import (
     SynchronizedData as OracleDeploymentSynchronizedSata,
 )
 from packages.valory.skills.oracle_deployment_abci.rounds import ValidateOracleRound
+from packages.valory.skills.price_estimation_abci.payloads import (
+    EstimatePayload,
+    TransactionHashPayload,
+)
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    VerificationStatus,
+)
+from packages.valory.skills.transaction_settlement_abci.payloads import ValidatePayload
 
 from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
     BaseCollectSameUntilThresholdRoundTest,
@@ -107,10 +114,30 @@ def get_safe_contract_address() -> str:
 
 def get_participant_to_votes(
     participants: FrozenSet[str], vote: Optional[bool] = True
-) -> Dict[str, ValidateOraclePayload]:
+) -> Dict[str, ValidatePayload]:
     """participant_to_votes"""
     return {
-        participant: ValidateOraclePayload(sender=participant, vote=vote)
+        participant: ValidatePayload(sender=participant, vote=vote)
+        for participant in participants
+    }
+
+
+def get_participant_to_estimate(
+    participants: FrozenSet[str],
+) -> Dict[str, EstimatePayload]:
+    """participant_to_estimate"""
+    return {
+        participant: EstimatePayload(sender=participant, estimate=1.0)
+        for participant in participants
+    }
+
+
+def get_participant_to_tx_hash(
+    participants: FrozenSet[str], hash_: Optional[str] = "tx_hash"
+) -> Dict[str, TransactionHashPayload]:
+    """participant_to_tx_hash"""
+    return {
+        participant: TransactionHashPayload(sender=participant, tx_hash=hash_)
         for participant in participants
     }
 
@@ -169,7 +196,7 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
     """Test BaseValidateRound."""
 
     test_class: Type[VotingRound]
-    test_payload: Type[ValidateOraclePayload]
+    test_payload: Type[ValidatePayload]
 
     def test_positive_votes(
         self,
@@ -252,7 +279,7 @@ class TestValidateOracleRound(BaseValidateRoundTest):
     """Test ValidateSafeRound."""
 
     test_class = ValidateOracleRound
-    test_payload = ValidateOraclePayload
+    test_payload = ValidatePayload
     _event_class = OracleDeploymentEvent
     _synchronized_data_class = OracleDeploymentSynchronizedSata
 
@@ -282,6 +309,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
         test_round = self.test_class(
             synchronized_data=self.synchronized_data.update(
                 keepers=keepers,
+                final_verification_status=VerificationStatus.PENDING,
             ),
             consensus_params=self.consensus_params,
         )

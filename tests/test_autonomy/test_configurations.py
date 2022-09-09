@@ -28,7 +28,6 @@ from typing import Dict, List
 
 import pytest
 import yaml
-from aea.exceptions import AEAValidationError
 
 from autonomy.configurations.loader import load_service_config
 
@@ -105,31 +104,6 @@ class TestServiceConfig:
             ),
         ):
             load_service_config(self.t)
-
-    def test_env_vars(
-        self,
-    ) -> None:
-        """Test if env vars are properly loaded."""
-
-        env_placeholder = "${NUMBER_OF_AGENTS:int:1}"
-        dummy_service = get_dummy_service_config()
-        dummy_service[0]["number_of_agents"] = env_placeholder
-
-        self._write_service(dummy_service)
-
-        with pytest.raises(
-            AEAValidationError,
-            match=re.escape("'${NUMBER_OF_AGENTS:int:1}' is not of type 'integer'"),
-        ):
-            load_service_config(self.t)
-
-        dummy_service = get_dummy_service_config()
-        dummy_service[0]["number_of_agents"] = env_placeholder
-
-        self._write_service(dummy_service)
-
-        service = load_service_config(self.t, substitute_env_vars=True)
-        assert service.number_of_agents == 1
 
     @classmethod
     def teardown(

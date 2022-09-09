@@ -21,7 +21,8 @@
 from typing import Tuple
 
 import pytest
-from aea_test_autonomy.base_test_classes.agents import (
+
+from autonomy.test_tools.base_test_classes.agents import (
     BaseTestEnd2EndExecution,
     RoundChecks,
 )

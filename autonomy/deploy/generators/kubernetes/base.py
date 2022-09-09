@@ -141,21 +141,19 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             agent.update(TENDERMINT_CONFIGURATION_OVERRIDES[self.deployment_type])
         return agent_params
 
-    def generate(self, image_version: Optional[str] = None) -> "KubernetesGenerator":
+    def generate(self) -> "KubernetesGenerator":
         """Generate the deployment."""
 
-        image_version = image_version or self.service_spec.service.agent.hash
         if self.dev_mode:
             self.resources.append(
                 HARDHAT_TEMPLATE % (HARDHAT_IMAGE_NAME, HARDHAT_IMAGE_VERSION)
             )
-            image_version = "dev"
 
         agent_vars = self.service_spec.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
         runtime_image = OAR_IMAGE.format(
             agent=self.service_spec.service.agent.name,
-            version=image_version,
+            version=self.service_spec.service.agent.version,
         )
 
         agents = "\n---\n".join(

@@ -19,7 +19,7 @@ Class to assist with generating deployments.
 #### `__`init`__`
 
 ```python
-def __init__(service_path: Path, keys: Path, number_of_agents: Optional[int] = None, private_keys_password: Optional[str] = None, agent_instances: Optional[List[str]] = None, log_level: str = INFO, substitute_env_vars: bool = False) -> None
+def __init__(service_path: Path, keys: Path, number_of_agents: Optional[int] = None, private_keys_password: Optional[str] = None, agent_instances: Optional[List[str]] = None, log_level: str = INFO) -> None
 ```
 
 Initialize the Base Deployment.
@@ -100,7 +100,7 @@ Initialise with only kwargs.
 
 ```python
 @abc.abstractmethod
-def generate(image_version: Optional[str] = None) -> "BaseDeploymentGenerator"
+def generate() -> "BaseDeploymentGenerator"
 ```
 
 Generate the deployment configuration.

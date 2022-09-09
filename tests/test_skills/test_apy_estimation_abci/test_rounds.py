@@ -619,9 +619,6 @@ def test_period() -> None:
     estimates_hash = "test_hash"
     full_training = False
     n_estimations = 1
-    participant_to_estimate = get_participant_to_estimate_payload(
-        frozenset({"test_agent"}), "test_hash"
-    )
 
     synchronized_data = SynchronizedData(
         db=AbciAppDB(
@@ -633,7 +630,6 @@ def test_period() -> None:
                     most_voted_estimate=estimates_hash,
                     full_training=full_training,
                     n_estimations=n_estimations,
-                    participant_to_estimate=participant_to_estimate,
                 )
             ),
         )
@@ -646,4 +642,3 @@ def test_period() -> None:
     assert synchronized_data.full_training == full_training
     assert synchronized_data.n_estimations == n_estimations
     assert synchronized_data.is_most_voted_estimate_set is not None
-    assert synchronized_data.participant_to_estimate == participant_to_estimate

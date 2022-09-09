@@ -24,7 +24,8 @@ from typing import Any, Dict, List, Tuple, Type, Union
 from unittest.mock import MagicMock, patch
 
 import pytest
-from aea_test_autonomy.helpers.base import identity
+
+from autonomy.test_tools.helpers.base import identity
 
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.apy_estimation_abci.models import (
@@ -72,7 +73,6 @@ class APYParamsKwargsType(TypedDict):
     keeper_timeout: float
     cleanup_history_depth: int
     backwards_compatible: bool
-    decimals: int
 
 
 APY_PARAMS_ARGS: APYParamsArgsType = ("test", MagicMock())
@@ -102,7 +102,6 @@ APY_PARAMS_KWARGS = APYParamsKwargsType(
     keeper_timeout=30.0,
     cleanup_history_depth=0,
     backwards_compatible=False,
-    decimals=5,
 )
 
 

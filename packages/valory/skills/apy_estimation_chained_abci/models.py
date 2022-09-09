@@ -41,9 +41,6 @@ from packages.valory.skills.apy_estimation_abci.models import (
     RandomnessApi as APYEstimationRandomnessApi,
 )
 from packages.valory.skills.apy_estimation_abci.models import (
-    ServerApi as APYEstimationServerApi,
-)
-from packages.valory.skills.apy_estimation_abci.models import (
     SpookySwapSubgraph as APYEstimationSpookySwapSubgraph,
 )
 from packages.valory.skills.apy_estimation_abci.models import (
@@ -62,7 +59,6 @@ FantomSubgraph = APYEstimationFantomSubgraph
 ETHSubgraph = APYEstimationETHSubgraph
 UniswapSubgraph = APYEstimationUniswapSubgraph
 SpookySwapSubgraph = APYEstimationSpookySwapSubgraph
-ServerApi = APYEstimationServerApi
 APYParams = APYEstimationAPYParams
 
 MARGIN = 5

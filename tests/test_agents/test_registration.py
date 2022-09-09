@@ -24,11 +24,12 @@ from typing import Generator, Tuple
 
 import pytest
 from aea.configurations.data_types import PublicId
-from aea_test_autonomy.base_test_classes.agents import (
+
+from autonomy.test_tools.base_test_classes.agents import (
     BaseTestEnd2End,
     BaseTestEnd2EndExecution,
 )
-from aea_test_autonomy.fixture_helpers import UseACNNode, UseRegistries
+from autonomy.test_tools.fixture_helpers import UseACNNode, UseGnosisSafeHardHatNet
 
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationStartupBehaviour,
@@ -60,7 +61,9 @@ STRICT_CHECK_STRINGS = (
 )
 
 
-class RegistrationStartUpTestConfig(UseRegistries, UseACNNode, BaseTestEnd2End):
+class RegistrationStartUpTestConfig(
+    UseGnosisSafeHardHatNet, UseACNNode, BaseTestEnd2End
+):
     """Base class for e2e tests using the ACN client connection"""
 
     skill_package = "valory/registration_abci:0.1.0"
