@@ -20,7 +20,7 @@
 """Develop CLI module."""
 
 import click
-from autonomy.constants import DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE
+from autonomy.constants import DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE, SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME
 from docker import from_env
 
 
@@ -31,7 +31,7 @@ def develop_group() -> None:
     click.echo("Develop module.")  # pragma: nocover
 
 
-@click.command(name="service-registry-network")
+@develop_group.command(name="service-registry-network")
 @click.argument(
     "image",
     type=str,
@@ -40,11 +40,13 @@ def develop_group() -> None:
 )
 def run_service_locally(image: str) -> None:
     """Run the service registry contracts on a local network."""
+    click.echo(f"Starting {image}.")
     client = from_env()
     container = client.containers.run(
         image=image,
         detach=True,
         network_mode="host",
+        name=SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME
     )
     try:
         for line in client.api.logs(container.id, follow=True, stream=True):
