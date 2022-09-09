@@ -99,7 +99,7 @@ class RequestDispatcher(ABC):
                 # This can happen if the handler is async.
                 task = func(api, message, dialogue)  # type: ignore
             else:
-                task = self.loop.run_in_executor(
+                task = self.loop.run_in_executor(  # type: ignore
                     self.executor, func, api, message, dialogue
                 )
             response = await task
@@ -107,17 +107,19 @@ class RequestDispatcher(ABC):
         except Exception as exception:  # pylint: disable=broad-except
             return self.get_error_message(exception, api, message, dialogue)
 
-    async def wait_for(self, func: Callable, timeout=3) -> Any:
+    async def wait_for(
+        self, func: Callable, *args: Any, timeout: Optional[float] = None
+    ) -> Any:
         """
         Runs a non-coroutine callable async while enforcing a timeout.
 
-        Warning: This function can be used with non-coroutine functions ONLY!
-        If you want the same functionality with coroutine callables, use
-        # asyncio.wait_for()
+        Warning: This function can be used with non-coroutine callables ONLY!
+        If you want the same functionality with coroutine callables, use asyncio.wait_for().
 
-        :param func: the function to run.
-        :param timeout: for how long to run the function before killing its thread.
-        :return: the return value of "func" if it finishes in "timeout", None otherwise.
+        :param func: the callable (function) to run.
+        :param args: the function params.
+        :param timeout: for how long to run the function before cancelling it and raising TimeoutError.
+        :return: the return value of "func" if it finishes in "timeout", raises a TimeoutError otherwise.
         """
         enforce(
             not inspect.iscoroutinefunction(func),
@@ -127,15 +129,11 @@ class RequestDispatcher(ABC):
         )
 
         # we run the passed function using the default executor
-        running_func = self.loop.run_in_executor(self.executor, func)
-        try:
-            # func_result will carry the
-            # value the function returns
-            func_result = await asyncio.wait_for(running_func, timeout=timeout)
-            return func_result
-        except TimeoutError:
-            self.logger.warning(f"Task could not finish in {timeout}s.")
-            return None
+        running_func = self.loop.run_in_executor(self.executor, func, *args)
+
+        # func_result will carry the value the function returns
+        func_result = await asyncio.wait_for(running_func, timeout=timeout)
+        return func_result
 
     def dispatch(self, envelope: Envelope) -> Task:
         """

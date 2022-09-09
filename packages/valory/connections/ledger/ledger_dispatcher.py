@@ -236,6 +236,9 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
         """
         Send the request 'get_transaction_receipt'.
 
+        NOTE: Under no circumstance can async methods block!
+        All possible methods that can block here, should be run async.
+
         :param api: the API object.
         :param message: the Ledger API message
         :param dialogue: the Ledger API dialogue
@@ -288,8 +291,12 @@ class LedgerApiRequestDispatcher(RequestDispatcher):
             and self.connection_state.get() == ConnectionStates.connected
         ):
             try:
-                transaction = api.get_transaction(
-                    message.transaction_digest.body, raise_on_try=True
+                transaction = await self.wait_for(
+                    lambda: api.get_transaction(
+                        message.transaction_digest.body,
+                        raise_on_try=True,
+                    ),
+                    timeout=retry_timeout,
                 )
             except Exception as e:  # pylint: disable=broad-except
                 self.logger.warning(e)
