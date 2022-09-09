@@ -68,7 +68,7 @@ Create a simple [skill](https://open-aea.docs.autonolas.tech/skill/) running:
 autonomy scaffold skill my_skill
 ```
 
-### Scaffold a skill using its FSM.
+### Scaffold a skill from a FSM specification.
 In the previous section, we generated the basic structure of a [skill](https://open-aea.docs.autonolas.tech/skill/). But there's a better way of doing so if you already have its [FSM](https://docs.autonolas.network/fsm/) specification. For example, let's copy the contents of the [Hello World](https://docs.autonolas.network/hello_world_agent_service/) service FSM specification into a file called ```fsm_specification.yaml```. Put it inside your agent's directory.
 
 ```
