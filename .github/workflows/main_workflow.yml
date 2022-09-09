@@ -475,4 +475,4 @@ jobs:
 
       - name: Unit tests
         run: |
-          tox --develop -e py${{ matrix.python-version }} -- -m 'e2e'
+          tox --develop -e py${{ matrix.python-version }}-linux -- -m 'e2e'
