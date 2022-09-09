@@ -20,7 +20,7 @@ fingerprint:
   ml/forecasting.py: bafybeib54a6dzcjlilbkzcpgwrycbkjlrmzox33tas547r2v5hja2qm52m
   ml/optimization.py: bafybeicyfabutvdyfvv2u3b6sdxfr4c5f7vvgvba4snovy5atx3zuj3nha
   ml/preprocessing.py: bafybeieha65b5cslcyyjobjupebyqovod7aigohdidcawz5b6tlxqxpruq
-  models.py: bafybeihvv646gn6wmwajzovlhtz3hwe4w5t4vzhqqety4xwdtudzkej3aa
+  models.py: bafybeicb3bq3i74mx2uiowykt2xhbfvzviiqaqvz2jzloqf4hchxicvcpe
   payloads.py: bafybeifsicq32ennlitfulqueposyxyk2om2jn5t3pxavwjix4t4shjtdi
   rounds.py: bafybeicsy5gvg2wn5l5vmce3njse6vq6cw74qoahiwslcqsxj6t7kawnui
   tasks.py: bafybeihudp5vyhelqnl5eqakjpvuekaoamtbrghss4k2yysvkczspjbbia
@@ -34,7 +34,7 @@ fingerprint:
   tests/test_ml/test_forecasting.py: bafybeiafu5cfprevg2rfyk3pmhfisrrszabinvbshf7daymfrlpj63pnhq
   tests/test_ml/test_optimization.py: bafybeihnvcgqttwmbi2idvmkrrd5becqry4bannzuww6webxfuznjocdfy
   tests/test_ml/test_preprocessing.py: bafybeigri63jw2lloheocid2tki2c3gr33ldrixenzc733vckzpsto6ada
-  tests/test_models.py: bafybeigwiumwrbmsdfcs24ezagek4yxuewq4souw3nvm3s2onoex535c64
+  tests/test_models.py: bafybeib7lg4gqo4maw5zupflt6dvxhsdyutbctktzhqley2w4trxbpyo2e
   tests/test_payloads.py: bafybeida5a2wgqsc4cfgvq4y6jiikldvu2q5mktwnnfhovejbldj3r6maa
   tests/test_rounds.py: bafybeicnfdjzqcbungrpi4zeozp67342f3a6nsinhc2bxjc6iggm2tm2ja
   tests/test_tasks.py: bafybeifumykfnu4ymcgbpimgmg5ipmfhwgdjggfblyejc3m4eceij554je
@@ -148,11 +148,11 @@ models:
         alpha: 0.25
         window_size: null
       pair_ids:
-      - - uniswap_subgraph
-        - - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
-      - - spooky_subgraph
-        - - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
-          - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
+        uniswap_subgraph:
+        - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
+        spooky_subgraph:
+        - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
+        - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
