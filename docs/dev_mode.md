@@ -53,7 +53,7 @@ build-images:
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
-	autonomy deploy build image ${SERVICE_ID} --dependencies || (echo failed && exit 1)
+	autonomy deploy build image ${SERVICE_ID} || (echo failed && exit 1)
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
@@ -61,7 +61,7 @@ build-images:
 			--dev && exit 0
 		exit 1
 	fi
-	autonomy deploy build image ${SERVICE_ID} --version ${VERSION} && exit 0
+	autonomy deploy build image ${SERVICE_ID} && exit 0
 	exit 1
 
 .ONESHELL: build-images push-images
@@ -71,14 +71,14 @@ push-images:
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
-	autonomy deploy build image ${SERVICE_ID} --dependencies --push || (echo failed && exit 1)
+	autonomy deploy build image ${SERVICE_ID} || (echo failed && exit 1)
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
-		autonomy deploy build image ${SERVICE_ID} --dev --push || (echo failed && exit 1)
+		autonomy deploy build image ${SERVICE_ID} --dev || (echo failed && exit 1)
 		exit 0
 	fi
-	autonomy deploy build image ${SERVICE_ID} --version ${VERSION} --prod --push || (echo failed && exit 1)
+	autonomy deploy build image ${SERVICE_ID} || (echo failed && exit 1)
 	exit 0
 
 .PHONY: build-deploy

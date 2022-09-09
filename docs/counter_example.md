@@ -292,21 +292,21 @@ This will copy the agent project in the `counter_client` directory.
 Then, enter into the project, and generate a private key:
 ```bash
 cd counter_client
-aea generate-key ethereum
-aea install
+autonomy generate-key ethereum
+autonomy install
 ```
 
 You can see the Tendermint node the skill is configured to interact with
 using the following command:
 ```bash
-aea config get vendor.valory.skills.counter_client.models.params.args.tendermint_url
+autonomy config get vendor.valory.skills.counter_client.models.params.args.tendermint_url
 ```
 
 It will print `localhost:26657`, i.e. `node0`.
 
 Finally, run the agent:
 ```bash
-aea run
+autonomy run
 ```
 
 The agent periodically checks the current value of the counter;
