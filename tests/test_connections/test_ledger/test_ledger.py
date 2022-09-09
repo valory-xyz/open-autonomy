@@ -166,8 +166,9 @@ class TestRequestDispatcher:
     @pytest.mark.asyncio
     async def test_wait_for_happy_path(self) -> None:
         """Tests that wait_for works when timeout is bigger than execution time of callable."""
-        should_finish_in = 0.5  # 0.5 seconds
-        timeout = 1  # we give 2 the amount of time for it to finish
+        should_finish_in = 0.5
+        tolerance = 0.1
+        timeout = should_finish_in + tolerance
 
         return_value = await self.dispatcher.wait_for(
             lambda: self.dummy_func(should_finish_in), timeout=timeout
@@ -177,8 +178,9 @@ class TestRequestDispatcher:
     @pytest.mark.asyncio
     async def test_wait_for_raise_excp(self) -> None:
         """Tests that wait_for works when timeout is less than execution time of callable."""
-        should_finish_in = 0.5  # 0.5 seconds
-        timeout = 0.25  # we give 2 the amount of time for it to finish
+        timeout = 0.25
+        timeout_increase = 0.5
+        should_finish_in = timeout + timeout_increase
 
         with pytest.raises(asyncio.TimeoutError):
             await self.dispatcher.wait_for(
