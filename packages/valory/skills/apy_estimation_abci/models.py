@@ -88,11 +88,6 @@ class SpookySwapSubgraph(DEXSubgraph):
     """A model that wraps DEXSubgraph for SpookySwap subgraph specifications."""
 
 
-# This is a `List` that contains `List`s, which contain two items.
-# The first one is the DEX name and the second one is a `List` with the corresponding DEX's id `str`s.
-# This is a temporary hack until we fix the limitation with the dict override in the agent config.
-# This type should be removed when https://github.com/valory-xyz/open-aea/issues/270 is closed.
-HackyPairIdsType = List[List[Union[str, List[str]]]]
 PairIdsType = Dict[str, List[str]]
 ValidatedSubgraphType = Union[DEXSubgraph, ApiSpecs]
 ValidatedSubgraphsType = ValuesView[ValidatedSubgraphType]
@@ -189,7 +184,6 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
         ] = self._ensure("optimizer", kwargs)
         self.testing = self._ensure("testing", kwargs)
         self.estimation = self._ensure("estimation", kwargs)
-        pair_ids: HackyPairIdsType = self._ensure("pair_ids", kwargs)
         self.pair_ids: PairIdsType = self._ensure("pair_ids", kwargs)
         self.ipfs_domain_name = self._ensure("ipfs_domain_name", kwargs)
         self.is_broadcasting_to_server = kwargs.pop("broadcast_to_server", False)
