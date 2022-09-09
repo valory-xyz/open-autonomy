@@ -19,6 +19,7 @@
 
 """Tests for valory/uniswap_v2_router02 contract."""
 
+import os
 from pathlib import Path
 from typing import Any, Dict, Optional, cast
 from unittest import mock
@@ -31,8 +32,14 @@ from packages.valory.contracts.uniswap_v2_router_02.contract import (
     UniswapV2Router02Contract,
 )
 
-from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS
 
+PACKAGE_DIR = Path(__file__).parent.parent
+THIRD_PARTY_CONTRACTS = Path(
+    os.environ.get("THIRD_PARTY_CONTRACTS", PACKAGE_DIR / "third_party")
+)
+
+if not THIRD_PARTY_CONTRACTS.exists():
+    raise RuntimeError("Please provide valid path for `THIRD_PARTY_CONTRACTS`")
 
 CONTRACT_ADDRESS = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
 ADDRESS_ONE = "0x46F415F7BF30f4227F98def9d2B22ff62738fD68"
@@ -49,9 +56,7 @@ DEFAULT_GAS_PRICE = 1000000
 class TestUniswapV2Router02Contract(BaseContractTestCase):
     """Test TestUniswapV2Router02Contract."""
 
-    path_to_contract = Path(
-        ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
-    )
+    path_to_contract = PACKAGE_DIR
     ledger_identifier = "ethereum"
     contract: UniswapV2Router02Contract
     sender_address = ADDRESS_TWO
@@ -1007,9 +1012,7 @@ class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
     NB_OWNERS: int = 4
     THRESHOLD: int = 1
     SALT_NONCE: Optional[int] = None
-    contract_directory = Path(
-        ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
-    )
+    contract_directory = PACKAGE_DIR
     sanitize_from_deploy_tx = ["contract_address"]
     contract: UniswapV2Router02Contract
     third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
