@@ -32,7 +32,7 @@ pip install open-autonomy
 
 4. Initialize the framework to work with the remote [IPFS](https://ipfs.io) registry. This means that when the framework will be fetching a component, it will do so from the [IPFS](https://ipfs.io):
     ```bash
-    autonomy init --remote --ipfs
+    autonomy init --remote --ipfs --author <your_author_name>
     ```
 
 ## Using the scaffold tool: step-by-step instructions
@@ -75,7 +75,28 @@ transition_func:
 Now, run the scaffold tool:
 
 ```
-autonomy scaffold fsm my_other_skill --spec fsm_specification.yaml
+autonomy scaffold fsm my_skill --spec fsm_specification.yaml
 ```
 
-You will see that the generated rounds, payloads and behaviours already appear with their correct names, as well as the `HelloWorldAbciApp` and its transition function.
+You will see that the generated rounds, payloads and behaviours already appear with their correct names, as well as the `HelloWorldAbciApp` and its transition function. Now that you have succesfully created the skill, you can push it to the local registry. Since to fetch all packages from IPFS we had used the remote registry, we now need to reset it so we use a local one during the development:
+```
+autonomy init --local --reset --author dvilela
+```
+
+To use this local registry we need to create a `packages` directory at the same level as our agent. In this example, we need to create `my_workspace/packages`.
+```
+cd ..
+mkdir packages
+cd my_agent
+```
+
+And we can now push our new skill to the local registry:
+```
+autonomy push skill <your_author_name>/my_skill
+```
+
+If we were only interested on the skill we don't need the agent anymore, so we can safely delete it:
+```
+cd ..
+rm -r my_agent
+```
