@@ -1,6 +1,6 @@
 # Release History - `open-autonomy`
 
-# 0.2.0 (2022-08-09)
+# 0.2.2 (2022-08-09)
 
 # AEA
  
@@ -8,8 +8,7 @@
 - Adds support for scaffolding
   - Dialogues
   - Payloads
-  - Round tests
-  - Behaviour tests
+  - Tests
 - Adds support for specifying version for runtime images
 - Removes the need for `NESTED_FIELDS_ALLOWED_TO_UPDATE` from service config class
 - Uses local file for service registry ABI rather than fetching from staging server
@@ -24,7 +23,6 @@
 - Introduces `aea-test-autonomy` plugin
 
 # Chores
-- Bumps `tendermint` to `v0.35.7`
 - Fixes tendermint logging issues
 - Updates skaffold config for building runtime images for agents
 - Bumps autonolas registries sub module to latest
