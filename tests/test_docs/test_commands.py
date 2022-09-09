@@ -28,7 +28,7 @@ import click
 from click.core import Command, Group, Option
 
 from autonomy.cli import cli as autonomy_cli
-from scripts.check_doc_ipfs_hashes import AEA_COMMAND_REGEX, read_file
+from scripts.check_doc_ipfs_hashes import read_file
 
 
 def get_cmd_data(cmd: Union[Command, Group]) -> Dict:
@@ -72,46 +72,46 @@ class CommandValidator:
                         sub_cmd_name
                     ] = get_cmd_data(sub_cmd)
 
-    def validate(self, cmd: str) -> bool:
+    def validate(self, cmd: str, file_: str = "") -> bool:
         """Validates a command"""
 
         # Copy the tree
         tree = self.tree
 
+        latest_subcmd = None
+
+        cmd_parts = [i for i in cmd.split(" ") if i]
+
         # Iterate the command parts
-        for cmd_part in cmd.split(" "):
+        for cmd_part in cmd_parts:
 
-            # Check options
-            if cmd_part.startswith("-") and cmd_part not in tree["options"]:
-                print(
-                    f"Command validation error: option '{cmd_part}' is not present on the command tree {list(tree['options'])}:\n    {cmd}"
-                )
-                return False
-
-            # Leaf: check arguments
-            if not tree["commands"].keys():
-                if len(tree["arguments"]) == 0:
-                    print(
-                        f"Command validation error: argument '{cmd_part}' is not present on the command tree {list(tree['arguments'].keys())}:\n    {cmd}"
-                    )
-                    return False
-
-                # Stop if this is the final command part
-                if cmd.endswith(cmd_part):
-                    break
+            # Subcommands
+            if cmd_part in tree["commands"].keys():
+                latest_subcmd = cmd_part
+                tree = tree["commands"][cmd_part]
                 continue
 
-            # Branch: check command
-            if cmd_part not in tree["commands"].keys():
-                print(
-                    f"Command validation error: command '{cmd_part}' is not present on the command tree {list(tree['commands'].keys())}:\n    {cmd}"
-                )
+            # Options
+            if cmd_part.startswith("-"):
+                if cmd_part not in tree["options"]:
+                    print(
+                        f"Command validation error in {file_}: option '{cmd_part}' is not present on the command tree {list(tree['options'])}:\n    {cmd}"
+                    )
+                    return False
+                continue
+
+            # Arguments
+            if not latest_subcmd:
+                print(f"Command validation error in {file_}: detected argument '{cmd_part}' but no latest subcommand exists yet:\n    {cmd}")
                 return False
 
-            # Update the tree if this is not an option or an argument.
-            # Options/arguments are at the same level as their corresponding commands.
-            if not cmd_part.startswith("-") and tree["commands"].keys():
-                tree = tree["commands"][cmd_part]
+            if not tree["arguments"]:
+                print(f"Command validation error in {file_}: argument '{cmd_part}' is not valid as the latest subcommand [{latest_subcmd}] does not admit arguments:\n    {cmd}")
+                return False
+
+            # If we reach here, this command part is an argument for either a command or for an option.
+            # It could also be an non-existent option (or typo) but since we have no way of validating this,
+            # we take for granted that it is correct.
 
         return True
 
@@ -126,13 +126,21 @@ def test_validate_doc_commands() -> None:
     # Get the validator
     validator = CommandValidator(autonomy_cli)
 
-    #
+    AUTONOMY_COMMAND_REGEX = r"(?P<full_cmd>(?P<cli>aea|autonomy) ((?!(&|'|\(|\[|\n|\.|`|\|)).)*)"
+
+    skips = ["aea repo", "autonomy repo"]
+
+    # Validate all matches
     for file_ in target_files:
         content = read_file(str(file_))
 
         # The regex currently finds package related commands. We need to use a general one.
-        for match in [m.groupdict() for m in re.finditer(AEA_COMMAND_REGEX, content)]:
-            assert validator.validate(match["full_cmd"])
+        for match in [m.groupdict() for m in re.finditer(AUTONOMY_COMMAND_REGEX, content)]:
+            cmd = match["full_cmd"].strip()
+
+            if cmd in skips:
+                continue
+            assert validator.validate(cmd, file_)
 
 
 def test_validator() -> None:
@@ -143,10 +151,12 @@ def test_validator() -> None:
     good_cmds = [
         "autonomy deploy build keys.json",
         "autonomy deploy build --docker --remote keys.json",
+        "autonomy init --remote --ipfs",
     ]
 
     bad_cmds = [
-        "autonomy deploy build --docker --remoote keys.json",
+        "autonomy deploy build --docker --bad_option keys.json", # non-existent option
+        "autonomy bad_arg", # non-existent argument
     ]
 
     for cmd in good_cmds:
@@ -154,3 +164,9 @@ def test_validator() -> None:
 
     for cmd in bad_cmds:
         assert not validator.validate(cmd), f"Command {cmd} is valid and it shouldn't."
+
+validator = CommandValidator(autonomy_cli)
+cmd = "autonomy analyse abci generate-app-specs"
+validator.validate(cmd)
+
+# test_validate_doc_commands()
