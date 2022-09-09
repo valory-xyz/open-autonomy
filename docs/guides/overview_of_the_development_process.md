@@ -15,7 +15,7 @@ We will explore this process in detail in several guides included in this sectio
 
   3. Once we have the FSM specification, the next step consists in coding the component that will be the core of the agents running the service: the **FSM App component**.
   The framework provides scaffolding tools so that you can create boilerplate code using the simple FSM specified in Step 2, and you will only need to implement the business logic part for your service. You can also use the [developer template repository](https://github.com/valory-xyz/dev-template) as the starting point. It includes
-  the recommended linters, Github's continuous integration and several other files so you don't need to start from scratch.
+  the recommended linters, continuous integration and several other files so you don't need to start from scratch.
 
       !!!!note
           We recommend that your developed components have exhaustive tests and pass the library linters before uploading them to the [IPFS](https://ipfs.io/).

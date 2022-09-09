@@ -9,7 +9,7 @@ In this guide, we will show how to:
 ## Setup
 
 !!!note
-    You might have already prepared your enviroment if you went through the [quick start](https://docs.autonolas.network/quick_start/) guide. If that's the case, you can skip this section.
+    You might have already prepared your environment if you went through the [quick start](https://docs.autonolas.network/quick_start/) guide. If that's the case, you can skip this section.
 
 Before starting this guide, ensure that your machine satisfies the [framework requirements](./quick_start.md#requirements) and that
 you have followed the [setup instructions](./quick_start.md#setup). As a result you should have a Pipenv workspace folder.
@@ -35,7 +35,7 @@ pip install open-autonomy
     autonomy init --remote --ipfs
     ```
 
-## Ussing the scaffold tool: step-by-step instructions
+## Using the scaffold tool: step-by-step instructions
 
 First, create an empty agent using the autonomy CLI. This will create the agent directory, that will contain folders for connections, contracts, protocols and skills.
 ```
@@ -45,7 +45,7 @@ cd my_agent
 Now that the agent is in place, you can follow the next sections examples to add your packages.
 
 ### Scaffold a connection.
-To add yout first [connection](https://open-aea.docs.autonolas.tech/connection/), run:
+To add your first [connection](https://open-aea.docs.autonolas.tech/connection/), run:
 ```
 autonomy scaffold connection my_connection
 ```
@@ -105,7 +105,7 @@ Now, run the scaffold tool:
 autonomy scaffold fsm my_other_skill --spec fsm_specification.yaml
 ```
 
-In this case, you'll see that the generated rounds, payloads and behaviours already appear with their correct names, as well as the HelloWorldAbciApp and its transition function.
+In this case, you'll see that the generated rounds, payloads and behaviours already appear with their correct names, as well as the `HelloWorldAbciApp` and its transition function.
 
 ### Scaffold the decision maker.
 Run the following to scaffold the [decision maker](https://open-aea.docs.autonolas.tech/decision-maker/):
