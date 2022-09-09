@@ -80,7 +80,7 @@ autonomy scaffold fsm my_skill --spec fsm_specification.yaml
 
 You will see that the generated rounds, payloads and behaviours already appear with their correct names, as well as the `HelloWorldAbciApp` and its transition function. Now that you have succesfully created the skill, you can push it to the local registry. Since to fetch all packages from IPFS we had used the remote registry, we now need to reset it so we use a local one during the development:
 ```
-autonomy init --local --reset --author dvilela
+autonomy init --local --reset --author AUTHOR
 ```
 
 To use this local registry we need to create a `packages` directory at the same level as our agent. In this example, we need to create `my_workspace/packages`.
