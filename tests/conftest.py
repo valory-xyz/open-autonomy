@@ -71,9 +71,6 @@ from aea_test_autonomy.docker.tendermint import (
     DEFAULT_TENDERMINT_PORT,
     FlaskTendermintDockerImage,
 )
-from aea_test_autonomy.fixture_helpers import (  # noqa: F401  # pylint: disable=unused-import
-    tendermint,
-)
 from aea_test_autonomy.helpers.contracts import get_register_contract
 from web3 import Web3
 
