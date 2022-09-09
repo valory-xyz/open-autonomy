@@ -1,5 +1,46 @@
 # Release History - `open-autonomy`
 
+# 0.2.0 (2022-08-09)
+
+# AEA
+ 
+- Adds support for registry flags on `autonomy scaffold fsm` command
+- Adds support for scaffolding
+  - Dialouges
+  - Payloads
+  - Round tests
+  - Behaviour tests
+- Adds support for specifying version for runtime images
+- Removes the need for `NESTED_FIELDS_ALLOWED_TO_UPDATE` from service config class
+- Uses local file for service registry abi rather than fetching from staging server
+- Replaces the usage of staging chain with locally deployed chain
+
+# Packages
+- Adds support for broadcasting APY estimates to a backend server.
+- Replaces API keys with environment variable placeholders
+- Ports tests for packages to their respective package folders
+
+# Plugins
+- Introduces `aea-test-autonomy` plugin
+
+# Chores
+- Bumps `tendermint` to `v0.35.7`
+- Fixes tendermint logging issues
+- Updates skaffold config for building runtime images for agents
+- Bumps autonolas registries submodule to latest
+
+# Tests
+- Replaces the usage of staging chain with local registry deployments
+- Fixes flaky `test_fetch_behaviour_non_indexed_block` test
+- Fixes flaky registry tests
+- Adds tests for `autonomy scaffold fsm`
+
+# Docs
+- Restructures documentation to introduce new index
+- Adds tutorials on creating a service using an existing agent
+- Updates quick start documentation
+- Adds overview for service development process
+- Adds docs for fsm scaffolding tool
 
 # 0.2.1.post1 (2022-08-29)
 
