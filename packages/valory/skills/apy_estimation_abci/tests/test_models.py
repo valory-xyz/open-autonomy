@@ -24,13 +24,11 @@
 import re
 from copy import deepcopy
 from typing import Any, Dict, List, Tuple, Type, Union
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
-from aea_test_autonomy.helpers.base import identity
 
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
-from packages.valory.skills.apy_estimation_abci import models
 from packages.valory.skills.apy_estimation_abci.models import (
     APYParams,
     SharedState,
@@ -128,11 +126,6 @@ class TestAPYParams:
     """Test `APYParams`"""
 
     @staticmethod
-    @patch.object(
-        models,
-        "_hack_around_dict_override_limitation",
-        identity,
-    )
     @pytest.mark.parametrize("param_value", (None, "not_an_int", 0))
     def test__validate_params(param_value: Union[None, str, int]) -> None:
         """Test `__validate_params`."""
@@ -193,15 +186,9 @@ class TestSubgraphsMixin:
         # TypedDict can’t be used for specifying the type of a **kwargs argument: https://peps.python.org/pep-0589/
         kwargs: dict = deepcopy(APY_PARAMS_KWARGS)  # type: ignore
         del kwargs["pair_ids"]["test"]
-
-        with patch.object(
-            models,
-            "_hack_around_dict_override_limitation",
-            identity,
-        ):
-            cls.dummy_mixin_usage = TestSubgraphsMixin.DummyMixinUsage(
-                *APY_PARAMS_ARGS, **kwargs
-            )
+        cls.dummy_mixin_usage = TestSubgraphsMixin.DummyMixinUsage(
+            *APY_PARAMS_ARGS, **kwargs
+        )
 
     @staticmethod
     def test_incorrect_initialization() -> None:
@@ -227,10 +214,6 @@ class TestSubgraphsMixin:
                 "Subgraph(s) {'test'} not recognized. "
                 "Please specify them in the `skill.yaml` config file and `models.py`."
             ),
-        ), patch.object(
-            models,
-            "_hack_around_dict_override_limitation",
-            identity,
         ):
             TestSubgraphsMixin.DummyMixinUsage(*APY_PARAMS_ARGS, **kwargs)
 
