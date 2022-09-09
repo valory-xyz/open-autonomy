@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test `from-token` command."""
+"""Test `service-registry-network` command."""
 
 import multiprocessing
 import os
@@ -62,7 +62,7 @@ class TestRunServiceLocally(BaseCliTest):
         max_retries = 30
         timeout = 5
 
-        for retry in range(max_retries):
+        for _ in range(max_retries):
             try:
                 res = requests.get(self.expected_network_address)
                 assert res.status_code == 200, "bad response from the network"
@@ -75,7 +75,7 @@ class TestRunServiceLocally(BaseCliTest):
 
         self._stop_cli_process()
 
-        assert False, f"failed to start network after {max_retries} tries"
+        raise AssertionError(f"failed to start network after {max_retries} tries")
 
     def _stop_cli_process(
         self,
