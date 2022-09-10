@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests package for the 'autonomy' library."""
+"""Tests for counter agent."""

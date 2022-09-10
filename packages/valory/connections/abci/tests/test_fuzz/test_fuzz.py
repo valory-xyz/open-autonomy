@@ -22,9 +22,13 @@ from unittest import TestCase
 
 import pytest
 
-from tests.test_connections.test_fuzz.base import BaseFuzzyTests
-from tests.test_connections.test_fuzz.mock_node.channels.grpc_channel import GrpcChannel
-from tests.test_connections.test_fuzz.mock_node.channels.tcp_channel import TcpChannel
+from packages.valory.connections.abci.tests.test_fuzz.base import BaseFuzzyTests
+from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.grpc_channel import (
+    GrpcChannel,
+)
+from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.tcp_channel import (
+    TcpChannel,
+)
 
 
 @pytest.mark.skip(reason="broken & takes too long time to complete on CI")

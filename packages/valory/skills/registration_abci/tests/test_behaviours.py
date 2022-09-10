@@ -60,7 +60,8 @@ from packages.valory.skills.registration_abci.rounds import (
     FinishedRegistrationRound,
 )
 
-from tests.conftest import ROOT_DIR
+
+PACKAGE_DIR = Path(__file__).parent.parent
 
 
 SERVICE_REGISTRY_ADDRESS = "0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"
@@ -93,7 +94,7 @@ def as_context(*contexts: Any) -> Generator[None, None, None]:
 class RegistrationAbciBaseCase(FSMBehaviourBaseCase):
     """Base case for testing RegistrationAbci FSMBehaviour."""
 
-    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "registration_abci")
+    path_to_skill = PACKAGE_DIR
 
 
 class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):

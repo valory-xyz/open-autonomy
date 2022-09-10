@@ -34,7 +34,12 @@ import pytest
 from aea_test_autonomy.configurations import GANACHE_CONFIGURATION, KEY_PAIRS, LOCALHOST
 from aea_test_autonomy.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
 from aea_test_autonomy.docker.amm_net import AMMNetDockerImage
-from aea_test_autonomy.docker.base import DockerBaseTest, DockerImage, launch_image
+from aea_test_autonomy.docker.base import (
+    DockerBaseTest,
+    DockerImage,
+    launch_image,
+    launch_many_containers,
+)
 from aea_test_autonomy.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_PORT,
@@ -58,6 +63,18 @@ from eth_account import Account
 logger = logging.getLogger(__name__)
 
 
+@pytest.fixture(scope="session")
+def tendermint_port() -> int:
+    """Get the Tendermint port"""
+    return DEFAULT_TENDERMINT_PORT
+
+
+@pytest.fixture
+def nb_nodes(request: Any) -> int:
+    """Get a parametrized number of nodes."""
+    return request.param
+
+
 @pytest.fixture(scope="class")
 def tendermint(
     tendermint_port: int = DEFAULT_TENDERMINT_PORT,
@@ -73,8 +90,43 @@ def tendermint(
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
+@pytest.fixture(scope="session")
+def ganache_addr() -> str:
+    """HTTP address to the Ganache node."""
+    return DEFAULT_GANACHE_ADDR
+
+
+@pytest.fixture(scope="session")
+def ganache_port() -> int:
+    """Port of the connection to the Ganache Node to use during the tests."""
+    return DEFAULT_GANACHE_PORT
+
+
+@pytest.fixture(scope="session")
+def ganache_configuration() -> Dict:
+    """Get the Ganache configuration for testing purposes."""
+    return GANACHE_CONFIGURATION
+
+
+@pytest.fixture(scope="function")
+def ganache_scope_function(
+    ganache_configuration: Any,
+    ganache_addr: Any,
+    ganache_port: Any,
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator:
+    """Launch the Ganache image. This fixture is scoped to a function which means it will destroyed at the end of the test."""
+    client = docker.from_env()
+    image = GanacheDockerImage(
+        client, ganache_addr, ganache_port, config=ganache_configuration
+    )
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
 @pytest.fixture(scope="class")
 def ganache_scope_class(
+    ganache_configuration: Any,
     ganache_addr: str = DEFAULT_GANACHE_ADDR,
     ganache_port: int = DEFAULT_GANACHE_PORT,
     timeout: float = 2.0,
@@ -83,9 +135,45 @@ def ganache_scope_class(
     """Launch the Ganache image. This fixture is scoped to a class which means it will destroyed after running every test in a class."""
     client = docker.from_env()
     image = GanacheDockerImage(
-        client, ganache_addr, ganache_port, config=GANACHE_CONFIGURATION
+        client, ganache_addr, ganache_port, config=ganache_configuration
     )
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture(scope="function")
+def acn_node(
+    config: Dict = None,
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator:
+    """Launch the Ganache image."""
+    client = docker.from_env()
+    config = config or DEFAULT_ACN_CONFIG
+    logging.info(f"Launching ACNNode with the following config: {config}")
+    image = ACNNodeDockerImage(client, config)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+# Not sure this is used...
+@pytest.fixture
+def flask_tendermint(
+    tendermint_port: Any,
+    nb_nodes: int,
+    abci_host: str = DEFAULT_ABCI_HOST,
+    abci_port: int = DEFAULT_ABCI_PORT,
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator[FlaskTendermintDockerImage, None, None]:
+    """Launch the Flask server with Tendermint container."""
+    client = docker.from_env()
+    logging.info(
+        f"Launching Tendermint nodes at ports {[tendermint_port + i * 10 for i in range(nb_nodes)]}"
+    )
+    image = FlaskTendermintDockerImage(client, abci_host, abci_port, tendermint_port)
+    yield from cast(
+        Generator[FlaskTendermintDockerImage, None, None],
+        launch_many_containers(image, nb_nodes, timeout, max_attempts),
+    )
 
 
 @pytest.mark.integration

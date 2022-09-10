@@ -35,6 +35,7 @@ from packages.open_aea.protocols.signing.custom_types import (
     SignedMessage,
     SignedTransaction,
 )
+from packages.valory.connections.abci.tests.conftest import make_ledger_api_connection
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.ledger_api.custom_types import (
@@ -85,8 +86,11 @@ from packages.valory.skills.transaction_settlement_abci.test_tools.integration i
     GnosisIntegrationBaseCase,
 )
 
-from tests.conftest import ROOT_DIR, THIRD_PARTY_CONTRACTS, make_ledger_api_connection
 
+PACKAGE_DIR = Path(__file__).parent.parent
+THIRD_PARTY_CONTRACTS = Path(
+    os.environ.get("THIRD_PARTY_CONTRACTS", PACKAGE_DIR / "third_party")
+)
 
 DUMMY_MAX_PRIORITY_FEE_PER_GAS = 3000000000
 DUMMY_MAX_FEE_PER_GAS = 4000000000

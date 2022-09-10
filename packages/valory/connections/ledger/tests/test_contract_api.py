@@ -35,15 +35,21 @@ from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER, get_key
 from aea_test_autonomy.docker.base import skip_docker_tests
 
 from packages.valory.connections.ledger.connection import LedgerConnection
-from packages.valory.contracts.gnosis_safe.contract import (
-    PUBLIC_ID as GNOSIS_SAFE_PUBLIC_ID,
-)
 from packages.valory.protocols.contract_api.dialogues import ContractApiDialogue
 from packages.valory.protocols.contract_api.dialogues import (
     ContractApiDialogues as BaseContractApiDialogues,
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 
+
+try:
+    from packages.valory.contracts.gnosis_safe.contract import (
+        PUBLIC_ID as GNOSIS_SAFE_PUBLIC_ID,
+    )
+
+    SKIP = False
+except ImportError:
+    SKIP = True
 
 SOME_SKILL_ID = "some/skill:0.1.0"
 
@@ -77,6 +83,7 @@ class ContractApiDialogues(BaseContractApiDialogues):
 
 
 @skip_docker_tests
+@pytest.mark.skipif(SKIP)
 @pytest.mark.usefixtures("gnosis_safe_hardhat_scope_class")
 class TestContractDispatcher:
     """Test contract dispatcher."""

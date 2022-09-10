@@ -25,7 +25,7 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 from hypothesis.strategies._internal.lazy import SearchStrategy
 
-from tests.test_protocols.test_abci.helper import (
+from packages.valory.connections.abci.tests.test_abci.helper import (
     AbciMessage,
     PYTHON_PRIMITIVES,
     Request,

@@ -43,11 +43,10 @@ from aea.protocols.dialogue.base import Dialogue, DialogueLabel, Dialogues
 from aea_ledger_ethereum import EthereumCrypto
 
 from packages.valory.connections.ledger.base import RequestDispatcher
+from packages.valory.connections.ledger.conftest import make_ledger_api_connection
 from packages.valory.connections.ledger.connection import LedgerConnection
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.ledger_api.custom_types import Kwargs
-
-from tests.conftest import make_ledger_api_connection
 
 
 SOME_SKILL_ID = "some/skill:0.1.0"
