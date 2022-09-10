@@ -46,7 +46,6 @@ run-oracle-dev:
 run-oracle:
 	export VERSION=0.1.0
 	autonomy deploy build image valory/oracle_hardhat && \
-		autonomy deploy build image valory/oracle_hardhat && \
 		autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --force && \
 		make run-deploy
 
