@@ -1,10 +1,10 @@
-<a id="packages.valory.protocols.abci.tests.test_abci_fuzz"></a>
+<a id="packages.valory.connections.abci.tests.test_abci_fuzz"></a>
 
-# packages.valory.protocols.abci.tests.test`_`abci`_`fuzz
+# packages.valory.connections.abci.tests.test`_`abci`_`fuzz
 
 Test random initializations of ABCI Message content
 
-<a id="packages.valory.protocols.abci.tests.test_abci_fuzz.create_tender_type_tree"></a>
+<a id="packages.valory.connections.abci.tests.test_abci_fuzz.create_tender_type_tree"></a>
 
 #### create`_`tender`_`type`_`tree
 
@@ -14,7 +14,7 @@ def create_tender_type_tree(aea_type_tree: Node, tender_type_tree: Node) -> Node
 
 Create type tree with Tendermint primitives (as string)
 
-<a id="packages.valory.protocols.abci.tests.test_abci_fuzz.init_type_tree_hypotheses"></a>
+<a id="packages.valory.connections.abci.tests.test_abci_fuzz.init_type_tree_hypotheses"></a>
 
 #### init`_`type`_`tree`_`hypotheses
 
@@ -32,7 +32,7 @@ Initialize the hypothesis strategies
 
 mapping from message / field name to initialized primitive.
 
-<a id="packages.valory.protocols.abci.tests.test_abci_fuzz.create_aea_hypotheses"></a>
+<a id="packages.valory.connections.abci.tests.test_abci_fuzz.create_aea_hypotheses"></a>
 
 #### create`_`aea`_`hypotheses
 
@@ -42,7 +42,7 @@ def create_aea_hypotheses() -> Any
 
 Create hypotheses for ABCI Messages
 
-<a id="packages.valory.protocols.abci.tests.test_abci_fuzz.init_abci_messages"></a>
+<a id="packages.valory.connections.abci.tests.test_abci_fuzz.init_abci_messages"></a>
 
 #### init`_`abci`_`messages
 
@@ -52,7 +52,7 @@ def init_abci_messages(type_tree: Node, init_tree: Node) -> Node
 
 Create ABCI messages for AEA-native ABCI spec
 
-<a id="packages.valory.protocols.abci.tests.test_abci_fuzz.list_to_tuple"></a>
+<a id="packages.valory.connections.abci.tests.test_abci_fuzz.list_to_tuple"></a>
 
 #### list`_`to`_`tuple
 
@@ -62,7 +62,7 @@ def list_to_tuple(node: Node) -> Node
 
 Expecting tuples instead of lists
 
-<a id="packages.valory.protocols.abci.tests.test_abci_fuzz.make_aea_test_method"></a>
+<a id="packages.valory.connections.abci.tests.test_abci_fuzz.make_aea_test_method"></a>
 
 #### make`_`aea`_`test`_`method
 
@@ -72,7 +72,7 @@ def make_aea_test_method(message_key: str, strategy: Node) -> Callable
 
 Dynamically create AEA test
 
-<a id="packages.valory.protocols.abci.tests.test_abci_fuzz.TestAeaHypotheses"></a>
+<a id="packages.valory.connections.abci.tests.test_abci_fuzz.TestAeaHypotheses"></a>
 
 ## TestAeaHypotheses Objects
 
@@ -82,7 +82,7 @@ class TestAeaHypotheses()
 
 Test AEA hypotheses
 
-<a id="packages.valory.protocols.abci.tests.test_abci_fuzz.create_tendermint_hypotheses"></a>
+<a id="packages.valory.connections.abci.tests.test_abci_fuzz.create_tendermint_hypotheses"></a>
 
 #### create`_`tendermint`_`hypotheses
 
@@ -92,7 +92,7 @@ def create_tendermint_hypotheses() -> Node
 
 Create Tendermint hypotheses
 
-<a id="packages.valory.protocols.abci.tests.test_abci_fuzz.make_tendermint_test_method"></a>
+<a id="packages.valory.connections.abci.tests.test_abci_fuzz.make_tendermint_test_method"></a>
 
 #### make`_`tendermint`_`test`_`method
 
@@ -102,7 +102,7 @@ def make_tendermint_test_method(message_key: str, strategy: Node) -> Callable
 
 Dynamically create Tendermint test
 
-<a id="packages.valory.protocols.abci.tests.test_abci_fuzz.TestTendermintHypotheses"></a>
+<a id="packages.valory.connections.abci.tests.test_abci_fuzz.TestTendermintHypotheses"></a>
 
 ## TestTendermintHypotheses Objects
 

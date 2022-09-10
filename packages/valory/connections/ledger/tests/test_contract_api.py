@@ -27,6 +27,7 @@ from unittest import mock
 
 import pytest
 from aea.common import Address
+from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.registries import make_crypto
 from aea.helpers.transaction.base import RawMessage, RawTransaction, State
@@ -45,14 +46,7 @@ from packages.valory.protocols.contract_api.dialogues import (
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 
 
-try:
-    from packages.valory.contracts.gnosis_safe.contract import (
-        PUBLIC_ID as GNOSIS_SAFE_PUBLIC_ID,
-    )
-
-    SKIP = False
-except ImportError:
-    SKIP = True
+GNOSIS_SAFE_PUBLIC_ID = PublicId.from_str("valory/gnosis_safe:0.1.0")
 
 SOME_SKILL_ID = "some/skill:0.1.0"
 
@@ -86,7 +80,6 @@ class ContractApiDialogues(BaseContractApiDialogues):
 
 
 @skip_docker_tests
-@pytest.mark.skipif(SKIP)
 @pytest.mark.usefixtures("gnosis_safe_hardhat_scope_class")
 class TestContractDispatcher:
     """Test contract dispatcher."""

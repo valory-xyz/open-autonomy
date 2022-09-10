@@ -15,10 +15,10 @@ fingerprint:
   tests/test_handlers.py: bafybeibgjaj3m4ykodqlsfszhfopav7udi7dddzo52cr5jyyg23z632ch4
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeiemgfargyusm2vux3avt7s6wsugyurkp6ssq4ubkob6fextzrzhre
+- valory/abci:0.1.0:bafybeidf2reoyq2dh7tdeepatuqecvgesmtjewkbwyaf7emwz2rrjn3g7y
 contracts: []
 protocols:
-- valory/abci:0.1.0:bafybeihz35t7sg7l7qdy4s567bgxkyknac4p7mq6y4jtg4m45vybxd4zja
+- valory/abci:0.1.0:bafybeicc3iievqdmavtklvuifi4ivhoha432usn5xg5l33djti7r5g7usa
 skills: []
 behaviours: {}
 handlers:

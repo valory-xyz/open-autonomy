@@ -33,7 +33,7 @@ from aea.protocols.generator.common import (
 )
 
 from packages.valory.connections import abci as tendermint_abci
-from packages.valory.protocols.abci.tests.helper import (
+from packages.valory.connections.abci.tests.helper import (
     camel_to_snake,
     compare_trees,
     create_aea_abci_type_tree,

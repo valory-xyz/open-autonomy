@@ -31,11 +31,11 @@ contracts:
 - valory/gnosis_safe:0.1.0:bafybeidkfwvbyknjwlndhdf5euan7i4wmugxgtf2uhakvqspy24vgaehya
 protocols:
 - open_aea/signing:1.0.0:bafybeifexbtq3cqrodkmy75djq7hck5c44jnjezywins7fzzg5nn6yi6om
-- valory/abci:0.1.0:bafybeihz35t7sg7l7qdy4s567bgxkyknac4p7mq6y4jtg4m45vybxd4zja
+- valory/abci:0.1.0:bafybeicc3iievqdmavtklvuifi4ivhoha432usn5xg5l33djti7r5g7usa
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiduhuuq7ra4um3x5ndmfwlrf6cy5dnnc6773tty5kp5ofk2af33im
+- valory/abstract_round_abci:0.1.0:bafybeie45bxxi45wmo6pt4d2bcqfyuwq6m3fxxvs5czuncv2x5speo4klu
 behaviours:
   main:
     args: {}

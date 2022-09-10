@@ -52,10 +52,10 @@ fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols:
-- valory/abci:0.1.0:bafybeihz35t7sg7l7qdy4s567bgxkyknac4p7mq6y4jtg4m45vybxd4zja
+- valory/abci:0.1.0:bafybeicc3iievqdmavtklvuifi4ivhoha432usn5xg5l33djti7r5g7usa
 - valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiduhuuq7ra4um3x5ndmfwlrf6cy5dnnc6773tty5kp5ofk2af33im
+- valory/abstract_round_abci:0.1.0:bafybeie45bxxi45wmo6pt4d2bcqfyuwq6m3fxxvs5czuncv2x5speo4klu
 behaviours:
   main:
     args: {}

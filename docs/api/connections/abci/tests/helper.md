@@ -1,10 +1,10 @@
-<a id="packages.valory.protocols.abci.tests.helper"></a>
+<a id="packages.valory.connections.abci.tests.helper"></a>
 
-# packages.valory.protocols.abci.tests.helper
+# packages.valory.connections.abci.tests.helper
 
 Helper functions for checking compliance to ABCI spec
 
-<a id="packages.valory.protocols.abci.tests.helper.is_enum"></a>
+<a id="packages.valory.connections.abci.tests.helper.is_enum"></a>
 
 #### is`_`enum
 
@@ -14,7 +14,7 @@ def is_enum(d_type: Any) -> bool
 
 Check if a type is an Enum (not instance!).
 
-<a id="packages.valory.protocols.abci.tests.helper.my_repr"></a>
+<a id="packages.valory.connections.abci.tests.helper.my_repr"></a>
 
 #### my`_`repr
 
@@ -24,7 +24,7 @@ def my_repr(self: Any) -> str
 
 Custom __repr__ for Tendermint protobuf objects, which lack it.
 
-<a id="packages.valory.protocols.abci.tests.helper.is_typing_list"></a>
+<a id="packages.valory.connections.abci.tests.helper.is_typing_list"></a>
 
 #### is`_`typing`_`list
 
@@ -34,7 +34,7 @@ def is_typing_list(d_type: Any) -> bool
 
 Check if field is repeated.
 
-<a id="packages.valory.protocols.abci.tests.helper.replace_keys"></a>
+<a id="packages.valory.connections.abci.tests.helper.replace_keys"></a>
 
 #### replace`_`keys
 
@@ -44,7 +44,7 @@ def replace_keys(node: Node, trans: Node) -> None
 
 Replace keys in-place
 
-<a id="packages.valory.protocols.abci.tests.helper.set_repr"></a>
+<a id="packages.valory.connections.abci.tests.helper.set_repr"></a>
 
 #### set`_`repr
 
@@ -54,7 +54,7 @@ def set_repr(cls: Type) -> Type
 
 Set custom __repr__
 
-<a id="packages.valory.protocols.abci.tests.helper.get_aea_classes"></a>
+<a id="packages.valory.connections.abci.tests.helper.get_aea_classes"></a>
 
 #### get`_`aea`_`classes
 
@@ -64,7 +64,7 @@ def get_aea_classes(module: ModuleType) -> Dict[str, Type]
 
 Get AEA custom classes.
 
-<a id="packages.valory.protocols.abci.tests.helper.get_protocol_readme_spec"></a>
+<a id="packages.valory.connections.abci.tests.helper.get_protocol_readme_spec"></a>
 
 #### get`_`protocol`_`readme`_`spec
 
@@ -75,7 +75,7 @@ def get_protocol_readme_spec() -> Tuple[Any, Any, Any]
 
 Test specification used to generate protocol matches ABCI spec
 
-<a id="packages.valory.protocols.abci.tests.helper.create_aea_abci_type_tree"></a>
+<a id="packages.valory.connections.abci.tests.helper.create_aea_abci_type_tree"></a>
 
 #### create`_`aea`_`abci`_`type`_`tree
 
@@ -85,7 +85,7 @@ def create_aea_abci_type_tree(speech_acts: Dict[str, Dict[str, str]]) -> Dict[st
 
 Create AEA-native ABCI type tree from the defined speech acts
 
-<a id="packages.valory.protocols.abci.tests.helper.init_type_tree_primitives"></a>
+<a id="packages.valory.connections.abci.tests.helper.init_type_tree_primitives"></a>
 
 #### init`_`type`_`tree`_`primitives
 
@@ -111,7 +111,7 @@ This structure allows:
 
 mapping from message / field name to initialized primitive.
 
-<a id="packages.valory.protocols.abci.tests.helper.init_aea_abci_messages"></a>
+<a id="packages.valory.connections.abci.tests.helper.init_aea_abci_messages"></a>
 
 #### init`_`aea`_`abci`_`messages
 
@@ -134,7 +134,7 @@ create an instance of all ABCI messages.
 
 mapping from message name to ABCI Message instance
 
-<a id="packages.valory.protocols.abci.tests.helper.EncodingError"></a>
+<a id="packages.valory.connections.abci.tests.helper.EncodingError"></a>
 
 ## EncodingError Objects
 
@@ -144,7 +144,7 @@ class EncodingError(Exception)
 
 EncodingError AEA- to Tendermint-native ABCI message
 
-<a id="packages.valory.protocols.abci.tests.helper.DecodingError"></a>
+<a id="packages.valory.connections.abci.tests.helper.DecodingError"></a>
 
 ## DecodingError Objects
 
@@ -154,7 +154,7 @@ class DecodingError(Exception)
 
 DecodingError Tendermint- to AEA-native ABCI message
 
-<a id="packages.valory.protocols.abci.tests.helper.encode"></a>
+<a id="packages.valory.connections.abci.tests.helper.encode"></a>
 
 #### encode
 
@@ -164,7 +164,7 @@ def encode(message: AbciMessage) -> Response
 
 Encode AEA-native ABCI protocol messages to Tendermint-native
 
-<a id="packages.valory.protocols.abci.tests.helper.decode"></a>
+<a id="packages.valory.connections.abci.tests.helper.decode"></a>
 
 #### decode
 
@@ -174,7 +174,7 @@ def decode(request: Request) -> AbciMessage
 
 Decode Tendermint-native ABCI protocol messages to AEA-native
 
-<a id="packages.valory.protocols.abci.tests.helper.get_tendermint_content"></a>
+<a id="packages.valory.connections.abci.tests.helper.get_tendermint_content"></a>
 
 #### get`_`tendermint`_`content
 
@@ -195,7 +195,7 @@ we retrieve the information present in the message they contain.
 
 mapping structure from message / field name to leaf values
 
-<a id="packages.valory.protocols.abci.tests.helper.compare_trees"></a>
+<a id="packages.valory.connections.abci.tests.helper.compare_trees"></a>
 
 #### compare`_`trees
 
@@ -205,7 +205,7 @@ def compare_trees(init_node: Node, tender_node: Node) -> None
 
 Compare Initialization and Tendermint tree nodes
 
-<a id="packages.valory.protocols.abci.tests.helper.get_tender_type_tree"></a>
+<a id="packages.valory.connections.abci.tests.helper.get_tender_type_tree"></a>
 
 #### get`_`tender`_`type`_`tree
 
@@ -215,7 +215,7 @@ def get_tender_type_tree() -> Node
 
 Tendermint type tree
 
-<a id="packages.valory.protocols.abci.tests.helper.init_tendermint_messages"></a>
+<a id="packages.valory.connections.abci.tests.helper.init_tendermint_messages"></a>
 
 #### init`_`tendermint`_`messages
 

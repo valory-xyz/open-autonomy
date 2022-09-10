@@ -28,7 +28,6 @@ from enum import Enum
 from pathlib import Path
 from types import ModuleType
 from typing import Any, Dict, List, Tuple, Type, Union
-from unittest import mock
 
 import yaml
 from aea.protocols.generator.common import (
@@ -39,7 +38,6 @@ from aea.protocols.generator.common import (
 )
 from google.protobuf.descriptor import FieldDescriptor
 
-from packages.valory import protocols
 from packages.valory.connections.abci import tendermint
 from packages.valory.connections.abci.connection import (
     _TendermintProtocolDecoder as Decoder,
@@ -47,13 +45,13 @@ from packages.valory.connections.abci.connection import (
 from packages.valory.connections.abci.connection import (
     _TendermintProtocolEncoder as Encoder,
 )
+from packages.valory.connections.abci.dialogues import AbciDialogues
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
     Request,
     Response,
 )
 from packages.valory.protocols import abci as valory_abci_protocol
 from packages.valory.protocols.abci import AbciMessage
-from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogues
 
 
 Node = Dict[str, Any]
@@ -139,7 +137,7 @@ def get_aea_classes(module: ModuleType) -> Dict[str, Type]:
     return {k: v for k, v in vars(module).items() if is_locally_defined_class(v)}
 
 
-AEA_CUSTOM = get_aea_classes(protocols.abci.custom_types)
+AEA_CUSTOM = get_aea_classes(valory_abci_protocol.custom_types)
 
 
 @functools.lru_cache()
@@ -341,7 +339,7 @@ def encode(message: AbciMessage) -> Response:
 def decode(request: Request) -> AbciMessage:
     """Decode Tendermint-native ABCI protocol messages to AEA-native"""
 
-    dialogues = AbciDialogues(name="", skill_context=mock.MagicMock())
+    dialogues = AbciDialogues()
     try:
         message, dialogue = Decoder().process(request, dialogues, "dummy")  # type: ignore
         return message

@@ -8,21 +8,21 @@ fingerprint:
   README.md: bafybeib2s5p42rb4mbn7ag4jmjwutcm2mhvhb7q7vekxevr565crxkk6zy
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeiemgfargyusm2vux3avt7s6wsugyurkp6ssq4ubkob6fextzrzhre
+- valory/abci:0.1.0:bafybeidf2reoyq2dh7tdeepatuqecvgesmtjewkbwyaf7emwz2rrjn3g7y
 - valory/http_client:0.1.0:bafybeiet6defg3qvov4r2ucjtkywkz53xcg6mgarjfdqmnxfgdixgcx45y
-- valory/ledger:0.1.0:bafybeignf5p24b5t4qbpklojtlgw5aimgorb7pqrrmpq5lyetdxbr2vhie
+- valory/ledger:0.1.0:bafybeid3sscpy47zs5gwioeg5wac7yubiegklfp6izgjqozdayoetmkbvu
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeifexbtq3cqrodkmy75djq7hck5c44jnjezywins7fzzg5nn6yi6om
-- valory/abci:0.1.0:bafybeihz35t7sg7l7qdy4s567bgxkyknac4p7mq6y4jtg4m45vybxd4zja
+- valory/abci:0.1.0:bafybeicc3iievqdmavtklvuifi4ivhoha432usn5xg5l33djti7r5g7usa
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 - valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- valory/abstract_abci:0.1.0:bafybeib4h4qvbtyhyfuxi64qg6w5wqt6tidw542fiytm2lq6jfj6xxv63m
-- valory/abstract_round_abci:0.1.0:bafybeiduhuuq7ra4um3x5ndmfwlrf6cy5dnnc6773tty5kp5ofk2af33im
-- valory/test_abci:0.1.0:bafybeidngxpkx7qivqoovti32uq2hvxqfjqndmiaxg2asynpohi2owcunq
+- valory/abstract_abci:0.1.0:bafybeia3x7tx5jssslnnfynvtvogtzgdpqpqrfnqxzc4y47ixzuofbjqgq
+- valory/abstract_round_abci:0.1.0:bafybeie45bxxi45wmo6pt4d2bcqfyuwq6m3fxxvs5czuncv2x5speo4klu
+- valory/test_abci:0.1.0:bafybeib55tturuffqzydtglh4qsnbddvv7mgnp4rttcuaqfm3dg5nboyze
 default_ledger: ethereum
 required_ledgers:
 - ethereum
