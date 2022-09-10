@@ -75,6 +75,8 @@ class APYParamsKwargsType(TypedDict):
     cleanup_history_depth: int
     backwards_compatible: bool
     decimals: int
+    genesis_config: dict
+    voting_power: str
 
 
 APY_PARAMS_ARGS: APYParamsArgsType = ("test", MagicMock())
@@ -105,6 +107,8 @@ APY_PARAMS_KWARGS = APYParamsKwargsType(
     cleanup_history_depth=0,
     backwards_compatible=False,
     decimals=5,
+    genesis_config={},
+    voting_power="0",
 )
 
 
