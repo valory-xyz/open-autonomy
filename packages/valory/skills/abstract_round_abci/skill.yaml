@@ -43,7 +43,7 @@ fingerprint:
   tests/test_io/test_ipfs.py: bafybeigjdu6upetr73i2zldypeozx4hyrzt5il642sb537lpe6lcm36mca
   tests/test_io/test_load.py: bafybeih5qt3etx3bi2zt2kebra322obxq7s77g3r6xzztsix3ihdpfdixy
   tests/test_io/test_store.py: bafybeibqfdgj7unktgkwligf4jnhlytijz7wyczykghylpy2smx76q3d5a
-  tests/test_models.py: bafybeidokmfek2b5wdxauawqyhfa76zrohw6ovouiuy6brbnzm237cuj74
+  tests/test_models.py: bafybeif4agw6rmnrqm56nfkjp3p2ty6aw37f6cgr2y3nl2eklkcriwv5fu
   tests/test_serializer.py: bafybeidedmu2zkyru23q4mw3kqrx2vpiwetwtqvae42mfbfjwke7zre5ta
   tests/test_utils.py: bafybeie4fl6wkinbr4qdghm7jhqoxfi7d26zwo5iqctq2zrvvawrzexmti
   utils.py: bafybeigkr7rxl4wgjdlcea7jgx7xiuksz7vyenkijgyoh3e645weaeybim

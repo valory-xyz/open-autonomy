@@ -31,7 +31,7 @@ protocols:
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigivn74wbxgjekwbpna32qji6b6ffd2hio3cl7l3ohlixuymgporm
+- valory/abstract_round_abci:0.1.0:bafybeif2bdzfrlflohfl5vy4rfxxjqpslqofzxzqhlb6ppf7lckdolkz3a
 behaviours:
   main:
     args: {}
@@ -74,6 +74,11 @@ models:
     class_name: LedgerApiDialogues
   params:
     args:
+      cleanup_history_depth: 1
+      cleanup_history_depth_current: null
+      consensus:
+        max_participants: 1
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       genesis_config:
         genesis_time: '2022-05-20T16:00:21.735122717Z'
         chain_id: chain-c4daS1
@@ -88,14 +93,8 @@ models:
             max_bytes: '1048576'
           validator:
             pub_key_types:
-              - ed25519
-          version: { }
-      voting_power: "10"
-      cleanup_history_depth: 1
-      cleanup_history_depth_current: null
-      consensus:
-        max_participants: 1
-      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+            - ed25519
+          version: {}
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
@@ -112,6 +111,7 @@ models:
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
       validate_timeout: 1205
+      voting_power: '10'
     class_name: Params
   randomness_api:
     args:

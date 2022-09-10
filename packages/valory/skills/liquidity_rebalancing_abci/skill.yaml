@@ -22,7 +22,7 @@ fingerprint:
   tests/test_behaviours.py: bafybeidobydw54gxf3rftv5wzyvqylyvgjswoq5it6ny7r7ozs2obtlzfq
   tests/test_dialogues.py: bafybeih3s76ty6lj2ussh2nxtu3ni7mebg6n3xo4vrvizu2vbflo5ieuqa
   tests/test_handlers.py: bafybeih4axeva7rrdfnf6qeaohcfzccfeyihzubdtmeu776etpfpcsypuq
-  tests/test_models.py: bafybeidm6fqz4lymccnb4a7m63hl7auljfpnkfblgn3asbhmxio4lltnda
+  tests/test_models.py: bafybeihgl6hmru3n7f6m4fjurfx72duljnv2o562ketzt5azn4aemdzacy
   tests/test_payloads.py: bafybeigsbzr7h3fntqrj5rxiwgh7iopkzqraf5lb3m6wqtpcjdwj6timoq
   tests/test_rounds.py: bafybeibqp5qyrhttukcqu3yp6sxnxduq3fx3plgmqftjyqjwmb4inmun44
 fingerprint_ignore_patterns: []
@@ -35,8 +35,8 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigivn74wbxgjekwbpna32qji6b6ffd2hio3cl7l3ohlixuymgporm
-- valory/transaction_settlement_abci:0.1.0:bafybeihydq2d7t6j7lcuj5vjzg423irmsopszhm5hcqg2xkoeclbdonbma
+- valory/abstract_round_abci:0.1.0:bafybeif2bdzfrlflohfl5vy4rfxxjqpslqofzxzqhlb6ppf7lckdolkz3a
+- valory/transaction_settlement_abci:0.1.0:bafybeidpa2owtv3euvaxhszxlqyghu35rrmkrc36x2fuhy32k3evifa2ga
 behaviours:
   main:
     args: {}
@@ -99,8 +99,8 @@ models:
             max_bytes: '1048576'
           validator:
             pub_key_types:
-              - ed25519
-          version: { }
+            - ed25519
+          version: {}
       history_check_timeout: 1205
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
@@ -134,7 +134,7 @@ models:
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
       validate_timeout: 1205
-      voting_power: "10"
+      voting_power: '10'
     class_name: Params
   requests:
     args: {}
