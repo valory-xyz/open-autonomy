@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """End2end tests for the valory/simple_abci skill."""
+
+# pylint: skip-file
+
 from typing import Tuple
 
 import pytest

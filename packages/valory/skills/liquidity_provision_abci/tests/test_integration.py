@@ -19,7 +19,10 @@
 
 """Tests for valory/liquidity_rebalancing_abci skill behaviours with Hardhat."""
 
+# pylint: skip-file
+
 import json
+import os
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
@@ -29,7 +32,7 @@ from aea.skills.base import Handler
 from aea_test_autonomy.docker.base import skip_docker_tests
 from web3 import Web3
 
-from packages.valory.connections.abci.tests.conftest import make_ledger_api_connection
+from packages.valory.connections.ledger.tests.conftest import make_ledger_api_connection
 from packages.valory.contracts.gnosis_safe.contract import SafeOperation
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB

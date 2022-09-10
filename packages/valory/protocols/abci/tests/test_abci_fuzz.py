@@ -19,13 +19,15 @@
 
 """Test random initializations of ABCI Message content"""
 
+# pylint: skip-file
+
 from typing import Any, Callable, Dict
 
 from hypothesis import given, settings
 from hypothesis import strategies as st
 from hypothesis.strategies._internal.lazy import SearchStrategy
 
-from packages.valory.connections.abci.tests.test_abci.helper import (
+from packages.valory.protocols.abci.tests.helper import (
     AbciMessage,
     PYTHON_PRIMITIVES,
     Request,

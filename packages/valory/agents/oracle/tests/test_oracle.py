@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for the valory/oracle_abci skill."""
+
+# pylint: skip-file
+
 from copy import deepcopy
 from typing import Tuple
 

@@ -4,16 +4,82 @@
 
 This module contains helper classes/functions for fixtures.
 
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.tendermint_port"></a>
+
+#### tendermint`_`port
+
+```python
+@pytest.fixture(scope="session")
+def tendermint_port() -> int
+```
+
+Get the Tendermint port
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.nb_nodes"></a>
+
+#### nb`_`nodes
+
+```python
+@pytest.fixture
+def nb_nodes(request: Any) -> int
+```
+
+Get a parametrized number of nodes.
+
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.tendermint"></a>
 
 #### tendermint
 
 ```python
 @pytest.fixture(scope="class")
-def tendermint(tendermint_port: int = DEFAULT_TENDERMINT_PORT, abci_host: str = DEFAULT_ABCI_HOST, abci_port: int = DEFAULT_ABCI_PORT, timeout: float = 2.0, max_attempts: int = 10) -> Generator
+def tendermint(tendermint_port: int, abci_host: str = DEFAULT_ABCI_HOST, abci_port: int = DEFAULT_ABCI_PORT, timeout: float = 2.0, max_attempts: int = 10) -> Generator
 ```
 
 Launch the Ganache image.
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.ganache_addr"></a>
+
+#### ganache`_`addr
+
+```python
+@pytest.fixture(scope="session")
+def ganache_addr() -> str
+```
+
+HTTP address to the Ganache node.
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.ganache_port"></a>
+
+#### ganache`_`port
+
+```python
+@pytest.fixture(scope="session")
+def ganache_port() -> int
+```
+
+Port of the connection to the Ganache Node to use during the tests.
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.ganache_configuration"></a>
+
+#### ganache`_`configuration
+
+```python
+@pytest.fixture(scope="session")
+def ganache_configuration() -> Dict
+```
+
+Get the Ganache configuration for testing purposes.
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.ganache_scope_function"></a>
+
+#### ganache`_`scope`_`function
+
+```python
+@pytest.fixture(scope="function")
+def ganache_scope_function(ganache_configuration: Dict, ganache_addr: str, ganache_port: int, timeout: float = 2.0, max_attempts: int = 10) -> Generator
+```
+
+Launch the Ganache image. This fixture is scoped to a function which means it will destroyed at the end of the test.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.ganache_scope_class"></a>
 
@@ -21,10 +87,32 @@ Launch the Ganache image.
 
 ```python
 @pytest.fixture(scope="class")
-def ganache_scope_class(ganache_addr: str = DEFAULT_GANACHE_ADDR, ganache_port: int = DEFAULT_GANACHE_PORT, timeout: float = 2.0, max_attempts: int = 10) -> Generator
+def ganache_scope_class(ganache_configuration: Dict, ganache_addr: str, ganache_port: int, timeout: float = 2.0, max_attempts: int = 10) -> Generator
 ```
 
 Launch the Ganache image. This fixture is scoped to a class which means it will destroyed after running every test in a class.
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.acn_node"></a>
+
+#### acn`_`node
+
+```python
+@pytest.fixture(scope="function")
+def acn_node(config: Dict = None, timeout: float = 2.0, max_attempts: int = 10) -> Generator
+```
+
+Launch the Ganache image.
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.flask_tendermint"></a>
+
+#### flask`_`tendermint
+
+```python
+@pytest.fixture
+def flask_tendermint(tendermint_port: int, nb_nodes: int, abci_host: str = DEFAULT_ABCI_HOST, abci_port: int = DEFAULT_ABCI_PORT, timeout: float = 2.0, max_attempts: int = 10) -> Generator[FlaskTendermintDockerImage, None, None]
+```
+
+Launch the Flask server with Tendermint container.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseTendermint"></a>
 

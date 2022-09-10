@@ -36,6 +36,16 @@ fingerprint:
   tendermint_encoder.py: bafybeie3pmkuixp367tltoa7urishsizma6n27ftb6uqaeg4gn6os5waym
   tests/__init__.py: bafybeid67ezzjsfsukyqdjtlnd3ra5yy73jnobm4setddgagd3u4vqboyu
   tests/test_abci.py: bafybeidgbukiedgwt2bqi4hnp3silyivwqgivz7rl7bitvq5h4ixktp7yq
+  tests/test_abci_spec.py: bafybeiafisvxrdtwwwdlrer6heo5bvhsju6evs6aob747d4lxp4hajilza
+  tests/test_fuzz/__init__.py: bafybeigvvocb753c6asmre5e4qwpowm4bnm4lgxhhjeprufzpgv4or5yeu
+  tests/test_fuzz/base.py: bafybeig2igo4keiea4evylljqn4tmmjkut7spybn24vu3k6hrel2opk6a4
+  tests/test_fuzz/mock_node/__init__.py: bafybeihfiztehjeukiw5mdyl4dwdkp4uyj3qchndsyxubcahxfp7iuu5lm
+  tests/test_fuzz/mock_node/channels/__init__.py: bafybeihaqmkkfq72qwfkrz2dztvourijijqhrk7tq4swixijp4jqfjjsxi
+  tests/test_fuzz/mock_node/channels/base.py: bafybeif7masssl7okcaog4ulmxqywd23ho6elofkqfnyhdgmtgwqde6n64
+  tests/test_fuzz/mock_node/channels/grpc_channel.py: bafybeiginojhfn7htyz3cggjtkzeex7w6otnnqromfvbaue27r74wmyic4
+  tests/test_fuzz/mock_node/channels/tcp_channel.py: bafybeifdal36qxtu7xjpvhptljfd5kcl3ezvfmc3qd2dnolqty6hcqummm
+  tests/test_fuzz/mock_node/node.py: bafybeieuky4q3nulr4ejho3obgn5g7xsd2q4cm754jyzmxr6oye453q6pa
+  tests/test_fuzz/test_fuzz.py: bafybeib7xy3rtbz4smimgxm4xka5kqw5zx5r6u6ll3etj4iykavdzidsl4
   tests/test_tendermint_decoder.py: bafybeih5vo7oxiwdq4awe4evpmpbao2hyzc76z7iwvyhs4edfzkqddl7p4
   tests/test_tendermint_encoder.py: bafybeigpun2ybwr5tu7b52his3b5apyrlmdytlgofcszbctsmmabo3sjg4
   version.txt: bafybeifjb44fd7qve2ku62ythui6z4mvd4k7qkjomlcdnl3ymb3bnq6xee
@@ -43,7 +53,7 @@ fingerprint_ignore_patterns: []
 build_entrypoint: check_dependencies.py
 connections: []
 protocols:
-- valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
+- valory/abci:0.1.0:bafybeihz35t7sg7l7qdy4s567bgxkyknac4p7mq6y4jtg4m45vybxd4zja
 class_name: ABCIServerConnection
 config:
   host: 127.0.0.1

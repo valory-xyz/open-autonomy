@@ -18,6 +18,7 @@
 #
 # ------------------------------------------------------------------------------
 """GrpcChannel for MockNode"""
+# pylint: skip-file
 
 import logging
 from typing import Dict

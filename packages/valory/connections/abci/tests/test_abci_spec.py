@@ -19,6 +19,8 @@
 
 """Tests to ensure implementation is on par with ABCI spec"""
 
+# pylint: skip-file
+
 import logging
 import time
 from pathlib import Path

@@ -19,6 +19,8 @@
 
 """Helper functions for checking compliance to ABCI spec"""
 
+# pylint: skip-file
+
 import builtins
 import functools
 import inspect

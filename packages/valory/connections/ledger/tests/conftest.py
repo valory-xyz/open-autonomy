@@ -18,6 +18,8 @@
 # ------------------------------------------------------------------------------
 """Test confiugurations for the package."""
 
+# pylint: skip-file
+
 import logging
 import os
 import time

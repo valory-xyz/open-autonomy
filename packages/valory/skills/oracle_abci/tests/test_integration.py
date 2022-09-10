@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for various transaction settlement skill's failure modes."""
+import os
 from collections import deque
 from math import ceil
 from pathlib import Path
@@ -35,7 +36,7 @@ from packages.open_aea.protocols.signing.custom_types import (
     SignedMessage,
     SignedTransaction,
 )
-from packages.valory.connections.abci.tests.conftest import make_ledger_api_connection
+from packages.valory.connections.ledger.tests.conftest import make_ledger_api_connection
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.ledger_api.custom_types import (
@@ -100,7 +101,7 @@ DUMMY_REPRICING_MULTIPLIER = 1.1
 class OracleBehaviourBaseCase(FSMBehaviourBaseCase):
     """Base case for testing the oracle."""
 
-    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "oracle_abci")
+    path_to_skill = PACKAGE_DIR
     behaviour: OracleAbciAppConsensusBehaviour
 
 
@@ -110,7 +111,7 @@ class TransactionSettlementIntegrationBaseCase(
     """Base case for integration testing TransactionSettlement FSM Behaviour."""
 
     price_estimation_synchronized_data: PriceEstimationSynchronizedSata
-    ROOT_DIR = ROOT_DIR
+    ROOT_DIR = Path(".")
     make_ledger_api_connection_callable = make_ledger_api_connection
     third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
@@ -362,7 +363,7 @@ class TestRepricing(TransactionSettlementIntegrationBaseCase):
 class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
     """Test the keepers related functionality for the tx settlement skill."""
 
-    ROOT_DIR = ROOT_DIR
+    ROOT_DIR = Path(".")
     make_ledger_api_connection_callable = make_ledger_api_connection
 
     @classmethod

@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """End2end tests for the valory/hello_world skill."""
+
+# pylint: skip-file
+
 import pytest
 from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2EndExecution,

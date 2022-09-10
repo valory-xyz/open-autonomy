@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for the valory/registration skill."""
+
+# pylint: skip-file
+
 import logging
 import time
 from typing import Generator, Tuple

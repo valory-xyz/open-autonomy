@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for the valory/counter skill."""
+
+# pylint: skip-file
+
 import base64
 import json
 import logging

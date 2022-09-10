@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for the valory/abstract_abci skill."""
+
+# pylint: skip-file
+
 import time
 import warnings
 

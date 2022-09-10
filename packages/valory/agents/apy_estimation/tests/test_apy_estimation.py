@@ -19,6 +19,8 @@
 
 """Integration tests for the valory/apy_estimation_abci skill."""
 
+# pylint: skip-file
+
 import pytest
 from aea.configurations.data_types import PublicId
 from aea_test_autonomy.base_test_classes.agents import (

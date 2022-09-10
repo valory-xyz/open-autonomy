@@ -18,6 +18,9 @@
 #
 # ------------------------------------------------------------------------------
 """Defines the base of the fuzzy tests"""
+
+# pylint: skip-file
+
 from typing import Dict, List, Tuple, Type
 
 import numpy as np

@@ -77,7 +77,7 @@ def nb_nodes(request: Any) -> int:
 
 @pytest.fixture(scope="class")
 def tendermint(
-    tendermint_port: int = DEFAULT_TENDERMINT_PORT,
+    tendermint_port: int,  # pylint: disable=redefined-outer-name
     abci_host: str = DEFAULT_ABCI_HOST,
     abci_port: int = DEFAULT_ABCI_PORT,
     timeout: float = 2.0,
@@ -110,9 +110,9 @@ def ganache_configuration() -> Dict:
 
 @pytest.fixture(scope="function")
 def ganache_scope_function(
-    ganache_configuration: Any,
-    ganache_addr: Any,
-    ganache_port: Any,
+    ganache_configuration: Dict,  # pylint: disable=redefined-outer-name
+    ganache_addr: str,  # pylint: disable=redefined-outer-name
+    ganache_port: int,  # pylint: disable=redefined-outer-name
     timeout: float = 2.0,
     max_attempts: int = 10,
 ) -> Generator:
@@ -126,9 +126,9 @@ def ganache_scope_function(
 
 @pytest.fixture(scope="class")
 def ganache_scope_class(
-    ganache_configuration: Any,
-    ganache_addr: str = DEFAULT_GANACHE_ADDR,
-    ganache_port: int = DEFAULT_GANACHE_PORT,
+    ganache_configuration: Dict,  # pylint: disable=redefined-outer-name
+    ganache_addr: str,  # pylint: disable=redefined-outer-name
+    ganache_port: int,  # pylint: disable=redefined-outer-name
     timeout: float = 2.0,
     max_attempts: int = 10,
 ) -> Generator:
@@ -157,8 +157,8 @@ def acn_node(
 # Not sure this is used...
 @pytest.fixture
 def flask_tendermint(
-    tendermint_port: Any,
-    nb_nodes: int,
+    tendermint_port: int,  # pylint: disable=redefined-outer-name
+    nb_nodes: int,  # pylint: disable=redefined-outer-name
     abci_host: str = DEFAULT_ABCI_HOST,
     abci_port: int = DEFAULT_ABCI_PORT,
     timeout: float = 2.0,
@@ -187,7 +187,7 @@ class UseTendermint:
     def _start_tendermint(
         self,
         tendermint: TendermintDockerImage,  # pylint: disable=redefined-outer-name
-        tendermint_port: Any,
+        tendermint_port: int,  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start a Tendermint image."""
         cls = type(self)
@@ -216,7 +216,9 @@ class UseFlaskTendermintNode:
 
     @pytest.fixture(autouse=True)
     def _start_tendermint(
-        self, flask_tendermint: FlaskTendermintDockerImage, tendermint_port: Any
+        self,
+        flask_tendermint: FlaskTendermintDockerImage,  # pylint: disable=redefined-outer-name
+        tendermint_port: int,  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start a Tendermint image."""
         self._tendermint_image = (  # pylint: disable=attribute-defined-outside-init
@@ -294,7 +296,11 @@ class UseGanache:
 
     @classmethod
     @pytest.fixture(autouse=True)
-    def _start_ganache(cls, ganache: Any, ganache_configuration: Any) -> None:
+    def _start_ganache(
+        cls,
+        ganache: Any,
+        ganache_configuration: Dict,  # pylint: disable=redefined-outer-name
+    ) -> None:
         """Start Ganache instance."""
         cls.key_pairs = cast(
             List[Tuple[str, str]],
@@ -321,7 +327,11 @@ class UseACNNode:
 
     @classmethod
     @pytest.fixture(autouse=True)
-    def _start_acn(cls, acn_node: Any, acn_config: Any = None) -> None:
+    def _start_acn(
+        cls,
+        acn_node: Any,  # pylint: disable=redefined-outer-name
+        acn_config: Any = None,
+    ) -> None:
         """Start an ACN instance."""
         cls._acn_node_image = acn_node
         cls.configuration = acn_config or cls.configuration

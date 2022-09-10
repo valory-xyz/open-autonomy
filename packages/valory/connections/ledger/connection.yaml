@@ -13,8 +13,10 @@ fingerprint:
   contract_dispatcher.py: bafybeiaq7i64w5pt5om2rz4cpymcgk42eq5s5xmdq5btyv5ao4ofoj2sri
   ledger_dispatcher.py: bafybeihb74kmea6ibafl4tkzg5nzencfjf2xeg5xplubk4twwa7hflelua
   tests/__init__.py: bafybeicjid32i45boyvl2l3bmhmufukt6czs52vtbrvmvvbxj4m5mdojhq
-  tests/test_ledger.py: bafybeicmpxtl73selifosdtycpcokmlgyoez7yomwcfam2ejnvvkod5eeq
-  tests/test_ledger_api.py: bafybeiau23dguqrqmfdahm4cir7mvsavqqindaponfv75cb3fhgl2j2wom
+  tests/conftest.py: bafybeiaafjuqdam7qf753k5tureuetext7tng4fmurmzysffnvfxxopmq4
+  tests/test_contract_api.py: bafybeif2ktpu3pwzxc3exrtr64wkfbwrfjf42tdcsk6yai3r5bfk3uiwsq
+  tests/test_ledger.py: bafybeibygurgwsvwhg7xnztm2vvammlkvnnslttrpfxwb5hb43oreow4k4
+  tests/test_ledger_api.py: bafybeieo4226ucsx6di2rqmx7tneireeen45fxmohirbtteit3tjm25w34
 fingerprint_ignore_patterns: []
 connections: []
 protocols:

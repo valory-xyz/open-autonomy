@@ -28,7 +28,6 @@ class BaseChannel:
 
     def __init__(self, **kwargs: Dict) -> None:
         """Initializes a channel"""
-        pass
 
     def connect(self) -> None:
         """

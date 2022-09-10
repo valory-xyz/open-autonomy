@@ -18,6 +18,8 @@
 #
 # ------------------------------------------------------------------------------
 """TcpChannel for MockNode"""
+# pylint: skip-file
+
 import asyncio
 import logging
 import socket

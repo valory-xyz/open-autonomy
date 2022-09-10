@@ -19,6 +19,7 @@
 # ------------------------------------------------------------------------------
 """Used for mocking a tendermint node"""
 # flake8: noqa:D102
+# pylint: skip-file
 
 import logging
 from typing import List, Tuple

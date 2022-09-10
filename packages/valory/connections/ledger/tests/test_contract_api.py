@@ -18,6 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the tests of the ledger API connection for the contract APIs."""
+
+# pylint: skip-file
+
 import asyncio
 from typing import Any, Dict, List, Tuple, cast
 from unittest import mock
