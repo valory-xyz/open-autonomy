@@ -88,6 +88,9 @@ THIRD_PARTY_CONTRACTS = Path(
     os.environ.get("THIRD_PARTY_CONTRACTS", PACKAGE_DIR / "third_party")
 )
 
+if not THIRD_PARTY_CONTRACTS.exists():
+    raise RuntimeError("Please provide valid path for `THIRD_PARTY_CONTRACTS`")
+
 
 class LiquidityRebalancingBehaviourBaseCase(FSMBehaviourBaseCase):
     """Base case for testing LiquidityRebalancing FSMBehaviour."""

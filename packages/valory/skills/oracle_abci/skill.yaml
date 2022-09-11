@@ -18,20 +18,20 @@ fingerprint:
   tests/test_behaviours.py: bafybeibvh43inrplfd62hbhmryxy6zjdptz2ekfdkgoo37neahbldoekju
   tests/test_dialogues.py: bafybeiecwwsjclbhje3bg5bbrias453yuztlg23fbj3a3y4sjyuh2sg62i
   tests/test_handlers.py: bafybeigffxznt27ujgxdko5bhco2z5bmipiauzkrtwwx6dpdj773rtj2om
-  tests/test_integration.py: bafybeicct7x7sdmmfjtiecbpbl4ywlh4ep6qtmpovqje4nmrydy6coi4gm
+  tests/test_integration.py: bafybeid2wkzddvma45zztrlnj6kzqk5qbomaa5vpbkjcnas2ad5riji7rq
   tests/test_models.py: bafybeib5qugc5wrsoc2huo6dpwfekungcqdcjytfoo6hyx434nqtuqeblq
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeie45bxxi45wmo6pt4d2bcqfyuwq6m3fxxvs5czuncv2x5speo4klu
-- valory/oracle_deployment_abci:0.1.0:bafybeigssqx37pssel2vn7b63z5dfqa2eyglhycwcpb5ugrd4kl2kd2kye
-- valory/price_estimation_abci:0.1.0:bafybeif2ennmgneccevu2x24bcvxhzskz3rpfrqid3eslk5lfzkgawjqh4
-- valory/registration_abci:0.1.0:bafybeigeuxjbkxckcqv2tfkaezys6k4joo3klzgvjnib47unrbjlzwldne
-- valory/reset_pause_abci:0.1.0:bafybeib43fh57rvxg4kkntqdmuuvyt333l3ecudalcb4t7jva7cuxgsypu
-- valory/safe_deployment_abci:0.1.0:bafybeigpjphkb3bnj22sepgyviidxqeefipjh6cunfogqqhvhge3nqpc5y
-- valory/transaction_settlement_abci:0.1.0:bafybeifn4o55q4iq4zhjjoktkvl4ilsqi7ebw3rkd6cwo5lk2w7zit42iq
+- valory/abstract_round_abci:0.1.0:bafybeigkqfyq4r7tddt3xkkslvcjgjqecvc65urq6eldlnqh34ceeoluyi
+- valory/oracle_deployment_abci:0.1.0:bafybeihp4mu6zvhtveu7kguq3zq4iic4gdealalg5lzw372oox56kc26fy
+- valory/price_estimation_abci:0.1.0:bafybeibzhwutpe5pp3ppjfyqragzigvs4vfvue3p2olhvitmqgzcfuyski
+- valory/registration_abci:0.1.0:bafybeibcjtbysjculv7bncfk4wjlu7xcplebujezlxrxz7h3nlwrofeemm
+- valory/reset_pause_abci:0.1.0:bafybeibapuxz7e2zzrzpgw44wigvqzztz3zkjjwvw3y6llxmbyl363ylrq
+- valory/safe_deployment_abci:0.1.0:bafybeibzxblcqqaqb7xtzyjheonshg7j7wxqzzhjopbmiafwvpw3omwn6y
+- valory/transaction_settlement_abci:0.1.0:bafybeifho6ozaozstdy347uoc3sdg5k6fi6is3how7skqjcwsoibsdjjq4
 behaviours:
   main:
     args: {}

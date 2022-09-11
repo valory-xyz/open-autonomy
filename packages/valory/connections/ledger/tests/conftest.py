@@ -21,13 +21,11 @@
 # pylint: skip-file
 
 import logging
-import os
 import time
 from pathlib import Path
 from typing import Any, AsyncGenerator, Dict, Generator, List, Tuple, cast
 from unittest.mock import MagicMock
 
-import docker
 import pytest
 from aea.configurations.constants import DEFAULT_LEDGER
 from aea.connections.base import Connection
@@ -42,17 +40,11 @@ from aea_ledger_ethereum import (
     EthereumCrypto,
 )
 from aea_ledger_ethereum.test_tools.constants import ETHEREUM_TESTNET_CONFIG
-from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER, KEY_PAIRS
-from aea_test_autonomy.docker.base import launch_image
+from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_CHAIN_ID,
     DEFAULT_GANACHE_PORT,
-)
-from aea_test_autonomy.docker.gnosis_safe_net import (
-    DEFAULT_HARDHAT_ADDR,
-    DEFAULT_HARDHAT_PORT,
-    GnosisSafeNetDockerImage,
 )
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401  # pylint: disable=unused-import
     tendermint,
@@ -65,10 +57,6 @@ NB_OWNERS = 4
 THRESHOLD = 1
 
 PACKAGE_DIR = Path(__file__).parent.parent
-THIRD_PARTY_CONTRACTS = Path(
-    os.environ.get("THIRD_PARTY_CONTRACTS", PACKAGE_DIR / "third_party")
-)
-
 
 ETHEREUM_DEFAULT_LEDGER_CONFIG = {
     "address": f"{DEFAULT_GANACHE_ADDR}:{DEFAULT_GANACHE_PORT}",
@@ -81,24 +69,6 @@ ETHEREUM_DEFAULT_LEDGER_CONFIG = {
         "eip1559": DEFAULT_EIP1559_STRATEGY,
     },
 }
-
-
-@pytest.fixture()
-def hardhat_addr() -> str:
-    """Get the hardhat addr"""
-    return DEFAULT_HARDHAT_ADDR
-
-
-@pytest.fixture()
-def hardhat_port() -> int:
-    """Get the hardhat port"""
-    return DEFAULT_HARDHAT_PORT
-
-
-@pytest.fixture()
-def key_pairs() -> List[Tuple[str, str]]:
-    """Get the default key paris for hardhat."""
-    return KEY_PAIRS
 
 
 @pytest.fixture()
@@ -183,6 +153,16 @@ async def ledger_apis_connection(
 
 
 @pytest.fixture()
+def ledger_api(
+    ethereum_testnet_config: Dict,
+) -> Generator[LedgerApi, None, None]:
+    """Ledger api fixture."""
+    ledger_id, config = EthereumCrypto.identifier, ethereum_testnet_config
+    api = ledger_apis_registry.make(ledger_id, **config)
+    yield api
+
+
+@pytest.fixture()
 def gnosis_safe_contract(
     ledger_api: LedgerApi, owners: List[str], threshold: int
 ) -> Generator[Tuple[Contract, str], None, None]:
@@ -227,43 +207,3 @@ def gnosis_safe_contract(
     assert receipt is not None
     # contract_address = ledger_api.get_contract_address(receipt)  # noqa: E800 won't work as it's a proxy
     yield contract, contract_address
-
-
-@pytest.fixture()
-def ledger_api(
-    ethereum_testnet_config: Dict,
-) -> Generator[LedgerApi, None, None]:
-    """Ledger api fixture."""
-    ledger_id, config = EthereumCrypto.identifier, ethereum_testnet_config
-    api = ledger_apis_registry.make(ledger_id, **config)
-    yield api
-
-
-@pytest.fixture(scope="function")
-def gnosis_safe_hardhat_scope_function(
-    hardhat_addr: Any,
-    hardhat_port: Any,
-    timeout: float = 3.0,
-    max_attempts: int = 40,
-) -> Generator:
-    """Launch the HardHat node with Gnosis Safe contracts deployed. This fixture is scoped to a function which means it will destroyed at the end of the test."""
-    client = docker.from_env()
-    logging.info(f"Launching Hardhat at port {hardhat_port}")
-    image = GnosisSafeNetDockerImage(
-        client, THIRD_PARTY_CONTRACTS, hardhat_addr, hardhat_port
-    )
-    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
-
-
-@pytest.fixture(scope="class")
-def gnosis_safe_hardhat_scope_class(
-    timeout: float = 3.0,
-    max_attempts: int = 40,
-) -> Generator:
-    """Launch the HardHat node with Gnosis Safe contracts deployed.This fixture is scoped to a class which means it will destroyed after running every test in a class."""
-    client = docker.from_env()
-    logging.info(f"Launching Hardhat at port {DEFAULT_HARDHAT_PORT}")
-    image = GnosisSafeNetDockerImage(
-        client, THIRD_PARTY_CONTRACTS, DEFAULT_HARDHAT_ADDR, DEFAULT_HARDHAT_PORT
-    )
-    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)

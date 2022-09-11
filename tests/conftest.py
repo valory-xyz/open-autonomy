@@ -22,30 +22,14 @@ import inspect
 import os
 import platform
 from pathlib import Path
-from typing import Generator
 
-import docker
 import pytest
-from aea_test_autonomy.docker.base import launch_image
-from aea_test_autonomy.docker.registries import RegistriesDockerImage
 
 
 CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
 ROOT_DIR = Path(CUR_PATH, "..").resolve().absolute()
-THIRD_PARTY_CONTRACTS = ROOT_DIR / "third_party"
-
 
 skip_docker_tests = pytest.mark.skipif(
     platform.system() != "Linux",
     reason="Docker daemon is not available in Windows and macOS CI containers.",
 )
-
-
-@pytest.fixture(scope="class")
-def registries_scope_class() -> Generator:
-    """Launch the Registry contracts image. This fixture is scoped to a class which means it will destroyed after running every test in a class."""
-    client = docker.from_env()
-    image = RegistriesDockerImage(
-        client, third_party_contract_dir=THIRD_PARTY_CONTRACTS
-    )
-    yield from launch_image(image, timeout=2, max_attempts=20)

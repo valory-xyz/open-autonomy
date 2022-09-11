@@ -23,6 +23,7 @@
 
 import time
 import warnings
+from pathlib import Path
 
 import pytest
 from aea.test_tools.test_cases import AEATestCaseMany
@@ -38,6 +39,7 @@ class TestABCISkill(AEATestCaseMany, UseTendermint):
     IS_LOCAL = True
     capture_log = True
     cli_log_options = ["-v", "DEBUG"]
+    package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
 
     def test_run(self) -> None:
         """Run the ABCI skill."""
