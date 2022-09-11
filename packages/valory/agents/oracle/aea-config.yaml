@@ -31,7 +31,7 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeih76j6qtx4xdkbs6psqw2gl64g7s7cz3ioih3zwwujida5fodobqq
 - valory/abstract_round_abci:0.1.0:bafybeibgmtb25itbexhyeij2i23haz5z3z6vjba5clcc7cewm4dtkat4y4
-- valory/oracle_abci:0.1.0:bafybeicfsf4eh6empc5btajhkzwdbysioh7fc4bbd3wj2srx3rkrdogdne
+- valory/oracle_abci:0.1.0:bafybeibnj7spniasejo63zhwkbp4r6jsx2mifqgjcawer4fjddwa4d4xti
 - valory/oracle_deployment_abci:0.1.0:bafybeic2bdlsjseo63qpfvrekhygmbzptlzhjujhibxhn5rstv5mhtjaky
 - valory/price_estimation_abci:0.1.0:bafybeiadbiadwmpy5mb2av43bjfj3yahrwyuoicei4jkvuikxhqrigxgtu
 - valory/registration_abci:0.1.0:bafybeiag4n4kvtln5xlgdtzhtv6ztmwb6ql5ojsbnra7owl5x5xmo2z5wy
