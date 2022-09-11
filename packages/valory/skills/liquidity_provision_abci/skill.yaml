@@ -28,7 +28,7 @@ connections:
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeidkfwvbyknjwlndhdf5euan7i4wmugxgtf2uhakvqspy24vgaehya
 protocols:
-- valory/contract_api:0.1.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
+- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeibgmtb25itbexhyeij2i23haz5z3z6vjba5clcc7cewm4dtkat4y4
 - valory/liquidity_rebalancing_abci:0.1.0:bafybeibzbcrdmyzrcozjy3yynmjkpcpp4krmili3zrf27tjvxfmvc75e3m
