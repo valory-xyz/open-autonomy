@@ -108,7 +108,7 @@ Get a parametrized number of nodes.
 #### flask`_`tendermint
 
 ```python
-@pytest.fixture(scope="class")
+@pytest.fixture
 def flask_tendermint(tendermint_port: int, nb_nodes: int, abci_host: str, abci_port: int, timeout: float = 2.0, max_attempts: int = 10) -> Generator[FlaskTendermintDockerImage, None, None]
 ```
 

@@ -21,13 +21,25 @@
 
 # pylint: skip-file
 
+from pathlib import Path
+
 import pytest
 from aea.configurations.data_types import PublicId
 from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2EndExecution,
     RoundChecks,
 )
-from aea_test_autonomy.fixture_helpers import UseGnosisSafeHardHatNet
+from aea_test_autonomy.fixture_helpers import (  # noqa: F401
+    UseGnosisSafeHardHatNet,
+    abci_host,
+    abci_port,
+    flask_tendermint,
+    gnosis_safe_hardhat_scope_function,
+    hardhat_addr,
+    hardhat_port,
+    nb_nodes,
+    tendermint_port,
+)
 
 
 ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
@@ -50,6 +62,16 @@ HAPPY_PATH = (
 
 
 @ipfs_daemon
+@pytest.mark.usefixtures(
+    "flask_tendermint",
+    "tendermint_port",
+    "abci_host",
+    "abci_port",
+    "nb_nodes",
+    "gnosis_safe_hardhat_scope_function",
+    "hardhat_addr",
+    "hardhat_port",
+)
 class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndExecution):
     """Base class for the APY estimation e2e tests."""
 
@@ -69,6 +91,7 @@ class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndExecution):
             "value": 1,
         },
     ]
+    package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
 
 
 @pytest.mark.parametrize("nb_nodes", (1,))

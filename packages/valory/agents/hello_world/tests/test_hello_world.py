@@ -21,10 +21,18 @@
 
 # pylint: skip-file
 
+from pathlib import Path
+
 import pytest
 from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2EndExecution,
     RoundChecks,
+)
+from aea_test_autonomy.fixture_helpers import (  # noqa: F401
+    abci_host,
+    abci_port,
+    flask_tendermint,
+    tendermint_port,
 )
 
 
@@ -46,6 +54,9 @@ STRICT_CHECK_STRINGS = (
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
+@pytest.mark.usefixtures(
+    "flask_tendermint", "tendermint_port", "abci_host", "abci_port"
+)
 class TestHelloWorldABCIFourAgents(
     BaseTestEnd2EndExecution,
 ):
@@ -56,3 +67,4 @@ class TestHelloWorldABCIFourAgents(
     wait_to_finish = 160
     happy_path = HAPPY_PATH
     strict_check_strings = STRICT_CHECK_STRINGS
+    package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent

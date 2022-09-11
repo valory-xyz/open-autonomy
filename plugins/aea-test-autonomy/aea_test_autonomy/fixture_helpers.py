@@ -148,7 +148,7 @@ def nb_nodes(request: Any) -> int:
     return request.param
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture
 def flask_tendermint(
     tendermint_port: int,  # pylint: disable=redefined-outer-name
     nb_nodes: int,  # pylint: disable=redefined-outer-name
@@ -173,7 +173,7 @@ def flask_tendermint(
 class UseFlaskTendermintNode:
     """Inherit from this class to use flask server with Tendermint."""
 
-    @pytest.fixture(autouse=True, scope="class")
+    @pytest.fixture(autouse=True)
     def _start_tendermint(
         self,
         flask_tendermint: FlaskTendermintDockerImage,  # pylint: disable=redefined-outer-name

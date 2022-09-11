@@ -28,11 +28,18 @@ from pathlib import Path
 import pytest
 from aea.test_tools.test_cases import AEATestCaseMany
 from aea_test_autonomy.configurations import ANY_ADDRESS
-from aea_test_autonomy.fixture_helpers import UseTendermint
+from aea_test_autonomy.fixture_helpers import (  # noqa: F401
+    UseTendermint,
+    abci_host,
+    abci_port,
+    tendermint,
+    tendermint_port,
+)
 
 
 @pytest.mark.e2e
 @pytest.mark.integration
+@pytest.mark.usefixtures("tendermint", "tendermint_port", "abci_host", "abci_port")
 class TestABCISkill(AEATestCaseMany, UseTendermint):
     """Test that the ABCI skill works together with Tendermint."""
 

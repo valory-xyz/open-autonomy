@@ -34,7 +34,13 @@ import pytest
 import requests
 from aea.test_tools.test_cases import AEATestCaseMany
 from aea_test_autonomy.configurations import ANY_ADDRESS, DEFAULT_REQUESTS_TIMEOUT
-from aea_test_autonomy.fixture_helpers import UseTendermint
+from aea_test_autonomy.fixture_helpers import (  # noqa: F401
+    UseTendermint,
+    abci_host,
+    abci_port,
+    tendermint,
+    tendermint_port,
+)
 from aea_test_autonomy.helpers.tendermint_utils import (
     BaseTendermintTestClass,
     TendermintLocalNetworkBuilder,
@@ -86,12 +92,14 @@ class BaseTestABCICounterSkill:
 
 @pytest.mark.e2e
 @pytest.mark.integration
+@pytest.mark.usefixtures("tendermint", "tendermint_port", "abci_host", "abci_port")
 class TestABCICounterSkill(AEATestCaseMany, UseTendermint):
     """Test that the ABCI counter skill works together with Tendermint."""
 
     IS_LOCAL = True
     capture_log = True
     cli_log_options = ["-v", "DEBUG"]
+    package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
 
     def test_run(self) -> None:
         """Run the ABCI skill."""
@@ -146,6 +154,7 @@ class TestABCICounterSkillMany(
     capture_log = True
     NB_AGENTS = 4
     NB_TX = 15
+    package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
 
     def test_run(self) -> None:
         """Run the ABCI skill."""
@@ -276,6 +285,7 @@ class TestABCICounterCrashFailureRestart(
     """Test that restarting the agent with the same Tendermint node will restore the state."""
 
     NB_TX = 5
+    package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
 
     def test_run(self) -> None:
         """Run the test."""
