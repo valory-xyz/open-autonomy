@@ -42,7 +42,7 @@ from autonomy.deploy.base import BaseDeploymentGenerator, ServiceSpecification
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
-from tests.conftest import skip_docker_tests
+from tests.conftest import ROOT_DIR, skip_docker_tests
 
 
 deployment_generators: List[Any] = [
@@ -50,12 +50,9 @@ deployment_generators: List[Any] = [
     KubernetesGenerator,
 ]
 
-ROOT_DIR = Path(__file__).parent.parent.parent.parent
 DEPLOYMENT_SPEC_DIR = ROOT_DIR / "deployments" / "deployment_specifications"
 DEFAULT_KEY_PATH = ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json"
 PACKAGES_DIR = ROOT_DIR / "packages"
-
-os.chdir(ROOT_DIR)
 
 BASE_DEPLOYMENT: str = """name: "deployment_case"
 author: "valory"
