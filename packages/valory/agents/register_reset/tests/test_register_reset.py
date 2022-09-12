@@ -21,11 +21,19 @@
 
 # pylint: skip-file
 
+from pathlib import Path
+
 import pytest
 from aea.configurations.data_types import PublicId
 from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2EndExecution,
     RoundChecks,
+)
+from aea_test_autonomy.fixture_helpers import (  # noqa: F401
+    abci_host,
+    abci_port,
+    flask_tendermint,
+    tendermint_port,
 )
 
 
@@ -50,6 +58,7 @@ class TestTendermintStartup(BaseTestEnd2EndExecution):
         RoundChecks("reset_and_pause"),
     )
     wait_to_finish = 60
+    package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     extra_configs = [
         {
@@ -71,6 +80,7 @@ class TestTendermintReset(BaseTestEnd2EndExecution):
     happy_path = HAPPY_PATH
     wait_to_finish = 200
     __reset_tendermint_every = 1
+    package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     # reset every `__reset_tendermint_every` rounds
     extra_configs = [
@@ -101,7 +111,7 @@ class TestTendermintResetInterrupt(BaseTestEnd2EndExecution):
     __reset_tendermint_every = 1
     stop_string = f"Entered in the 'reset_and_pause' round for period {__reset_tendermint_every - 1}"
     happy_path = HAPPY_PATH
-
+    package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     # reset every `__reset_tendermint_every` rounds
     extra_configs = [

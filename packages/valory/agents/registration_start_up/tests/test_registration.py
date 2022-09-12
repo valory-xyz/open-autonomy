@@ -23,6 +23,7 @@
 
 import logging
 import time
+from pathlib import Path
 from typing import Generator, Tuple
 
 import pytest
@@ -31,7 +32,12 @@ from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2End,
     BaseTestEnd2EndExecution,
 )
-from aea_test_autonomy.fixture_helpers import UseACNNode, UseRegistries
+from aea_test_autonomy.fixture_helpers import (  # noqa: F401
+    UseACNNode,
+    UseRegistries,
+    acn_config,
+    acn_node,
+)
 
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationStartupBehaviour,
@@ -86,6 +92,7 @@ class RegistrationStartUpTestConfig(UseRegistries, UseACNNode, BaseTestEnd2End):
             "value": 15,
         },
     ]
+    package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
 
 
 @pytest.mark.e2e
