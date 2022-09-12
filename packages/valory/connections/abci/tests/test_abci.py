@@ -45,8 +45,13 @@ from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea_test_autonomy.configurations import ANY_ADDRESS, HTTP_LOCALHOST
 from aea_test_autonomy.docker.base import skip_docker_tests
-from aea_test_autonomy.fixture_helpers import tendermint  # noqa: F401
-from aea_test_autonomy.fixture_helpers import DEFAULT_TENDERMINT_PORT
+from aea_test_autonomy.fixture_helpers import (  # noqa: F401
+    DEFAULT_TENDERMINT_PORT,
+    abci_host,
+    abci_port,
+    tendermint,
+    tendermint_port,
+)
 from aea_test_autonomy.helpers.async_utils import (
     AnotherThreadTask,
     BaseThreadedAsyncLoop,
@@ -337,7 +342,7 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
     TARGET_SKILL_ID = "dummy_author/dummy:0.1.0"
     ADDRESS = "agent_address"
     PUBLIC_KEY = "agent_public_key"
-    tendermint_port = DEFAULT_TENDERMINT_PORT
+    tendermint_port = DEFAULT_TENDERMINT_PORT  # noqa: F811
 
     def setup(self) -> None:
         """Set up the test."""
