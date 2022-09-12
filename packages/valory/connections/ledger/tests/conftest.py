@@ -36,7 +36,7 @@ from aea.crypto.wallet import CryptoStore
 from aea.identity.base import Identity
 from aea_ledger_ethereum import EthereumCrypto
 from aea_ledger_ethereum.test_tools.constants import (
-    ETHEREUM_TESTNET_CONFIG as DEFAULT_ETHEREUM_TESTNET_CONFIG,
+    ETHEREUM_TESTNET_CONFIG as _DEFAULT_ETHEREUM_TESTNET_CONFIG,
 )
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER, KEY_PAIRS
 from aea_test_autonomy.docker.ganache import DEFAULT_GANACHE_ADDR, DEFAULT_GANACHE_PORT
@@ -51,6 +51,11 @@ NB_OWNERS = 4
 THRESHOLD = 1
 
 PACKAGE_DIR = Path(__file__).parent.parent
+
+DEFAULT_ETHEREUM_TESTNET_CONFIG = {
+    **_DEFAULT_ETHEREUM_TESTNET_CONFIG,
+    "default_gas_price_strategy": "eip1559",
+}
 
 
 @pytest.fixture()
