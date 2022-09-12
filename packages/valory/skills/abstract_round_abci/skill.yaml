@@ -6,11 +6,6 @@ description: abstract round-based ABCI application
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  .hypothesis/examples/529490a0b26e3020/b5d9fedc4d7aa91c: bafybeieztbbh3limyqcrosvwnyh3xspjl3uawrsf3ucqkh5wj33aux2w5q
-  .hypothesis/examples/529490a0b26e3020/bec021b4f368e306: bafybeibyqyrkx66boqbutl5oktknecxgnl43cipcls3knonfmi727rdtnu
-  .hypothesis/examples/b009e3f77d0ecdb6/3196940a430e4694: bafybeihfc4elqnvlzf22c2lrl5tmyv72kjqdipxsaai2732oa2jtmbua2m
-  .hypothesis/examples/b009e3f77d0ecdb6/7089cef4b92d73cc: bafybeig6ss3dasn2uuw65gbivvkh5hbw5qh755sijuspi4kfiru4ba3dk4
-  .hypothesis/examples/b009e3f77d0ecdb6/72e578684a3d49ec: bafybeicf5qu3lnsc5ygbyh2lyh4a6g4jqjut55x543lmoac52ldqamekxa
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeiaxhdfjmhbstyi5oqeu7wzst44snhbyoggrpusgs2c3tn3cluzhpm
   abci_app_chain.py: bafybeihb3ded23gvjrn426qptkbnkge5cewqm7ywi4j6ebmo3j66ss5wii
