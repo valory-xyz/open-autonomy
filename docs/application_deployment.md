@@ -11,28 +11,9 @@ To learn about generating the deployment configuration, run the following comman
 ```bash
 $ autonomy deploy build --help
 
-Usage: autonomy deploy build deployment [OPTIONS] PUBLIC_ID_OR_HASH KEYS_FILE
+Usage: autonomy deploy build [OPTIONS] [KEYS_FILE]
 
   Build deployment setup for n agents.
-
-Options:
-  --o PATH            Path to output dir.
-  --n INTEGER         Number of agents.
-  --docker            Use docker as a backend.
-  --kubernetes        Use docker as a kubernetes.
-  --packages-dir PATH  Path to packages folder (For local usage).
-  --dev               Create development environment.
-  --force             Remove existing build and overwrite with new one.
-  --help              Show this message and exit.
-  --password     Optional password for encrypted keys.
-```
-
-```bash
-autonomy deploy build image --help
-
-Usage: autonomy deploy build image [OPTIONS] PUBLIC_ID_OR_HASH
-
-  Build image using skaffold.
 
 Options:
   --o PATH                        Path to output dir.
@@ -59,15 +40,30 @@ Options:
 
 ```
 
+```bash
+autonomy build-image --help
+
+Usage: autonomy build-image [OPTIONS] [PUBLIC_ID_OR_HASH]
+
+  Build image using skaffold.
+
+Options:
+  --service-dir PATH  Path to service dir.
+  --dev               Build developement image.
+  --pull              Pull latest dependencies.
+  --help              Show this message and exit.
+
+```
+
 For example, in order to build a deployment from scratch for oracle abci, first ensure you have a clean build environment and then build the images:
 ```bash
 rm -rf abci_build
-autonomy deploy build image valory/oracle_hardhat
+autonomy build-image valory/oracle_hardhat
 ```
 
 Next, run the command to generate the relevant build configuration:
 ```bash
-autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json
+autonomy deploy build deployments/keys/hardhat_keys.json
 ```
 
 A build configuration will be output to `./abci_build`.

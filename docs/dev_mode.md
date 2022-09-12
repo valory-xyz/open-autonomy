@@ -53,15 +53,15 @@ build-images:
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
-	autonomy deploy build image ${SERVICE_ID} || (echo failed && exit 1)
+	autonomy build-image ${SERVICE_ID} || (echo failed && exit 1)
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
-	 	autonomy deploy build image ${SERVICE_ID} \
+	 	autonomy build-image ${SERVICE_ID} \
 			--dev && exit 0
 		exit 1
 	fi
-	autonomy deploy build image ${SERVICE_ID} && exit 0
+	autonomy build-image ${SERVICE_ID} && exit 0
 	exit 1
 
 .ONESHELL: build-images push-images
@@ -71,14 +71,14 @@ push-images:
 		echo "Ensure you have exported a version to build!";\
 		exit 1
 	fi
-	autonomy deploy build image ${SERVICE_ID} || (echo failed && exit 1)
+	autonomy build-image ${SERVICE_ID} || (echo failed && exit 1)
 	if [ "${VERSION}" = "dev" ];\
 	then\
 		echo "building dev images!";\
-		autonomy deploy build image ${SERVICE_ID} --dev || (echo failed && exit 1)
+		autonomy build-image ${SERVICE_ID} --dev || (echo failed && exit 1)
 		exit 0
 	fi
-	autonomy deploy build image ${SERVICE_ID} || (echo failed && exit 1)
+	autonomy build-image ${SERVICE_ID} || (echo failed && exit 1)
 	exit 0
 
 .PHONY: build-deploy
@@ -104,18 +104,18 @@ build-deploy:
 	then\
 		if [ "${VERSION}" = "cluster-dev" ];\
 		then\
-			autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force --dev
+			autonomy deploy build ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force --dev
 			exit 0
 		fi
-		autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force
+		autonomy deploy build ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force
 		exit 0
 	fi
 	if [ "${VERSION}" = "dev" ];\
 	then\
-		autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker --dev --force
+		autonomy deploy build ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker --dev --force
 		exit 0
 	fi
-	autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker
+	autonomy deploy build ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker
 
 .PHONY: run-deploy
 run-deploy:
