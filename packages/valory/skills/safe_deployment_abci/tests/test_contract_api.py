@@ -27,7 +27,6 @@ from unittest import mock
 
 import pytest
 from aea.common import Address
-from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.registries import make_crypto
 from aea.helpers.transaction.base import RawMessage, RawTransaction, State
@@ -37,7 +36,6 @@ from aea.protocols.dialogue.base import Dialogue
 from aea_ledger_ethereum import EthereumCrypto
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER, get_key
 from aea_test_autonomy.docker.base import skip_docker_tests
-from aea_test_autonomy.fixture_helpers import gnosis_safe_hardhat_scope_class
 
 from packages.valory.connections.ledger.connection import LedgerConnection
 from packages.valory.contracts.gnosis_safe.contract import (

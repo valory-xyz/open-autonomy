@@ -115,7 +115,6 @@ class TransactionSettlementIntegrationBaseCase(
     """Base case for integration testing TransactionSettlement FSM Behaviour."""
 
     price_estimation_synchronized_data: PriceEstimationSynchronizedSata
-    ROOT_DIR = Path(".")
     make_ledger_api_connection_callable = make_ledger_api_connection
     third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
@@ -367,7 +366,6 @@ class TestRepricing(TransactionSettlementIntegrationBaseCase):
 class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
     """Test the keepers related functionality for the tx settlement skill."""
 
-    ROOT_DIR = Path(".")
     make_ledger_api_connection_callable = make_ledger_api_connection
 
     @classmethod
