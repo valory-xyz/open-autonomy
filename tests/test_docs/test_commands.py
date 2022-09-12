@@ -21,6 +21,7 @@
 
 import itertools
 import re
+from copy import deepcopy
 from pathlib import Path
 from typing import Dict, Union
 
@@ -86,7 +87,7 @@ class CommandValidator:
         """Validates a command"""
 
         # Copy the tree
-        tree = self.tree
+        tree = deepcopy(self.tree)
         latest_subcmd = None
         allow_option_arg = False
 
