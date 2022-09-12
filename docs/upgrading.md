@@ -15,8 +15,9 @@ No backwards incompatible changes
 
 ## `v0.2.0` to `v0.2.1`
 
-- `build-images` command has been renamed to `build-image` 
+- `build-images` command has been renamed to `build-image`
 - Build support for dependency has been removed from the `build-image` command
+- `autonomy deploy build deployment` has been renamed to `autonomy deploy build`
 
 Refer to quick start docs for more information on the updated deployment flow.
 
