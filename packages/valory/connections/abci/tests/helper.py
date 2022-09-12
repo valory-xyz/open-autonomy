@@ -38,7 +38,6 @@ from aea.protocols.generator.common import (
 )
 from google.protobuf.descriptor import FieldDescriptor
 
-from packages.valory.connections.abci import tendermint
 from packages.valory.connections.abci.connection import (
     _TendermintProtocolDecoder as Decoder,
 )
@@ -47,11 +46,12 @@ from packages.valory.connections.abci.connection import (
 )
 from packages.valory.connections.abci.dialogues import AbciDialogues
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
+    DESCRIPTOR,
     Request,
     Response,
 )
 from packages.valory.protocols import abci as valory_abci_protocol
-from packages.valory.protocols.abci import AbciMessage
+from packages.valory.protocols.abci import AbciMessage, custom_types
 
 
 Node = Dict[str, Any]
@@ -137,7 +137,7 @@ def get_aea_classes(module: ModuleType) -> Dict[str, Type]:
     return {k: v for k, v in vars(module).items() if is_locally_defined_class(v)}
 
 
-AEA_CUSTOM = get_aea_classes(valory_abci_protocol.custom_types)
+AEA_CUSTOM = get_aea_classes(custom_types)
 
 
 @functools.lru_cache()
@@ -480,7 +480,7 @@ def _process_message_descriptor(m_descriptor: Any) -> Node:
 def get_tender_type_tree() -> Node:
     """Tendermint type tree"""
 
-    descriptor = tendermint.abci.types_pb2.DESCRIPTOR
+    descriptor = DESCRIPTOR
     tender_type_tree = {}
     for msg, msg_descr in descriptor.message_types_by_name.items():
         cls = set_repr(msg_descr._concrete_class)
