@@ -1064,11 +1064,12 @@ class BehaviourTestsFileGenerator(AbstractFileGenerator):
             {rounds},
         )
 
-        from tests.conftest import ROOT_DIR
         from packages.valory.skills.abstract_round_abci.test_tools.base import (
             FSMBehaviourBaseCase,
         )
 
+
+        PATH_TO_SKILL = Path(*{FSMName}BaseBehaviour.__module__.split(".")[:-1]).absolute()
 
         @dataclass
         class BehaviourTestCase:
@@ -1085,7 +1086,7 @@ class BehaviourTestsFileGenerator(AbstractFileGenerator):
         class Base{FSMName}Test(FSMBehaviourBaseCase):
             \"\"\"Base test case.\"\"\"
 
-            path_to_skill = Path(ROOT_DIR, "packages", "{author}", "skills", "{skill_name}")
+            path_to_skill = PATH_TO_SKILL
 
             behaviour: {FSMName}BaseBehaviour
             behaviour_class: Type[{FSMName}BaseBehaviour]
