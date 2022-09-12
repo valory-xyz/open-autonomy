@@ -53,7 +53,7 @@ Now, we are in position to use the {{open_autonomy}} CLI to fetch the agent serv
 
 1. Use the CLI to fetch the [Hello World agent service](../hello_world_agent_service.md). This will connect to the remote registry and download the service specification to the `hello_world` folder:
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeiebthfjk2atvxhgwueveurwmnumx23qypzmdnwsdhovfu5i7jgmcm --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeiddra3pvkx2lyvq2ufnohestqc4phmslplikmlvm23f3xhulzbeum --service
     cd hello_world
     ```
 
