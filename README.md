@@ -1,4 +1,44 @@
-# Open Autonomy
+<h1 align="center">
+    <b>Open Autonomy Framework</b>
+</h1>
+
+<p align="center">
+  <a href="https://pypi.org/project/open-autonomy/">
+    <img alt="PyPI" src="https://img.shields.io/pypi/v/open-autonomy">
+  </a>
+  <a href="https://pypi.org/project/open-autonomy/">
+    <img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/open-autonomy">
+  </a>
+  <a>
+    <img alt="PyPI - Wheel" src="https://img.shields.io/pypi/wheel/open-autonomy">
+  </a>
+  <a href="https://github.com/valory-xyz/open-autonomy/blob/main/LICENSE">
+    <img alt="License" src="https://img.shields.io/pypi/l/open-autonomy">
+  </a>
+  <a href="https://pypi.org/project/open-autonomy/">
+    <img alt="Downloads" src="https://img.shields.io/pypi/dm/open-autonomy">
+  </a>
+</p>
+<p align="center">
+  <a href="https://github.com/valory-xyz/open-autonomy/actions/workflows/main_workflow.yml">
+    <img alt="Sanity checks and tests" src="https://github.com/valory-xyz/open-autonomy/workflows/main_workflow/badge.svg?branch=main">
+  </a>
+  <a href="">
+    <img alt="Codecov" src="https://img.shields.io/codecov/c/github/valory-xyz/open-autonomy">
+  </a>
+  <a href="https://img.shields.io/badge/lint-flake8-blueviolet">
+    <img alt="flake8" src="https://img.shields.io/badge/lint-flake8-yellow" >
+  </a>
+  <a href="https://github.com/python/mypy">
+    <img alt="mypy" src="https://img.shields.io/badge/static%20check-mypy-blue">
+  </a>
+  <a href="https://github.com/psf/black">
+    <img alt="Black" src="https://img.shields.io/badge/code%20style-black-black">
+  </a>
+  <a href="https://github.com/PyCQA/bandit">
+    <img alt="mypy" src="https://img.shields.io/badge/security-bandit-lightgrey">
+  </a>
+</p>
 
 Open Autonomy is a framework for the creation of Agent Services: off-chain services which run as a multi-agent-system (MAS)  and are replicated on a temporary consensus gadget (blockchain) while being crypto-economically secured on a public blockchain, hence offering robustness, transparency and decentralization off-chain.
 
