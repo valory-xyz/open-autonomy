@@ -115,7 +115,6 @@ class LiquidityProvisionIntegrationBaseCase(
     exit_nonce: int
     swap_back_nonce: int
     default_synchronized_data_hash: LiquidityRebalancingSynchronizedSata
-    ROOT_DIR = Path(".")
     make_ledger_api_connection_callable = make_ledger_api_connection
     third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 

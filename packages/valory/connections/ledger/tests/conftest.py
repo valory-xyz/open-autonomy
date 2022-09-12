@@ -34,18 +34,12 @@ from aea.crypto.ledger_apis import DEFAULT_LEDGER_CONFIGS, LedgerApi
 from aea.crypto.registries import ledger_apis_registry, make_crypto
 from aea.crypto.wallet import CryptoStore
 from aea.identity.base import Identity
-from aea_ledger_ethereum import (
-    DEFAULT_EIP1559_STRATEGY,
-    DEFAULT_GAS_STATION_STRATEGY,
-    EthereumCrypto,
+from aea_ledger_ethereum import EthereumCrypto
+from aea_ledger_ethereum.test_tools.constants import (
+    ETHEREUM_TESTNET_CONFIG as _DEFAULT_ETHEREUM_TESTNET_CONFIG,
 )
-from aea_ledger_ethereum.test_tools.constants import ETHEREUM_TESTNET_CONFIG
-from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
-from aea_test_autonomy.docker.ganache import (
-    DEFAULT_GANACHE_ADDR,
-    DEFAULT_GANACHE_CHAIN_ID,
-    DEFAULT_GANACHE_PORT,
-)
+from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER, KEY_PAIRS
+from aea_test_autonomy.docker.ganache import DEFAULT_GANACHE_ADDR, DEFAULT_GANACHE_PORT
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401  # pylint: disable=unused-import
     tendermint,
 )
@@ -58,17 +52,16 @@ THRESHOLD = 1
 
 PACKAGE_DIR = Path(__file__).parent.parent
 
-ETHEREUM_DEFAULT_LEDGER_CONFIG = {
-    "address": f"{DEFAULT_GANACHE_ADDR}:{DEFAULT_GANACHE_PORT}",
-    "chain_id": DEFAULT_GANACHE_CHAIN_ID,
-    # "denom": ETHEREUM_DEFAULT_CURRENCY_DENOM, # noqa: E800
-    # "gas_price_api_key": GAS_PRICE_API_KEY, # noqa: E800
+DEFAULT_ETHEREUM_TESTNET_CONFIG = {
+    **_DEFAULT_ETHEREUM_TESTNET_CONFIG,
     "default_gas_price_strategy": "eip1559",
-    "gas_price_strategies": {
-        "gas_station": DEFAULT_GAS_STATION_STRATEGY,
-        "eip1559": DEFAULT_EIP1559_STRATEGY,
-    },
 }
+
+
+@pytest.fixture()
+def key_pairs() -> List[Tuple[str, str]]:
+    """Get the default key paris for hardhat."""
+    return KEY_PAIRS
 
 
 @pytest.fixture()
@@ -95,11 +88,11 @@ def ganache_port() -> int:
     return DEFAULT_GANACHE_PORT
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def ethereum_testnet_config(ganache_addr: str, ganache_port: int) -> Dict:
     """Get Ethereum ledger api configurations using Ganache."""
     new_uri = f"{ganache_addr}:{ganache_port}"
-    new_config = ETHEREUM_DEFAULT_LEDGER_CONFIG.copy()
+    new_config = DEFAULT_ETHEREUM_TESTNET_CONFIG.copy()
     new_config["address"] = new_uri
     return new_config
 
@@ -115,7 +108,7 @@ def update_default_ethereum_ledger_api(ethereum_testnet_config: Dict) -> Generat
 
 
 def make_ledger_api_connection(
-    ethereum_testnet_config: Dict = ETHEREUM_TESTNET_CONFIG,
+    ethereum_testnet_config: Dict = DEFAULT_ETHEREUM_TESTNET_CONFIG,
 ) -> Connection:
     """Make a connection."""
     crypto = make_crypto(DEFAULT_LEDGER)

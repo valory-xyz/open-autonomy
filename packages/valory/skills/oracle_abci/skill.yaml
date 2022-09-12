@@ -18,24 +18,24 @@ fingerprint:
   tests/test_behaviours.py: bafybeibvh43inrplfd62hbhmryxy6zjdptz2ekfdkgoo37neahbldoekju
   tests/test_dialogues.py: bafybeiecwwsjclbhje3bg5bbrias453yuztlg23fbj3a3y4sjyuh2sg62i
   tests/test_handlers.py: bafybeigffxznt27ujgxdko5bhco2z5bmipiauzkrtwwx6dpdj773rtj2om
-  tests/test_integration.py: bafybeid2wkzddvma45zztrlnj6kzqk5qbomaa5vpbkjcnas2ad5riji7rq
+  tests/test_integration.py: bafybeiayxg7bzwb6unxbi4rzxvc6jwacfak4ftog6tmebjakfne2j3moxe
   tests/test_models.py: bafybeib5qugc5wrsoc2huo6dpwfekungcqdcjytfoo6hyx434nqtuqeblq
 fingerprint_ignore_patterns: []
 connections:
-- valory/ledger:0.1.0:bafybeibasz5a3xxahhbkzdmcu5ynocdfwlviqopddzzhngd43vgyjlb67q
+- valory/ledger:0.1.0:bafybeicup3pqzi74h67z6oxzw7qhsz2dpezeqhalg7bex37fqcx5koivqu
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeifexbtq3cqrodkmy75djq7hck5c44jnjezywins7fzzg5nn6yi6om
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeibgmtb25itbexhyeij2i23haz5z3z6vjba5clcc7cewm4dtkat4y4
-- valory/oracle_deployment_abci:0.1.0:bafybeic2bdlsjseo63qpfvrekhygmbzptlzhjujhibxhn5rstv5mhtjaky
-- valory/price_estimation_abci:0.1.0:bafybeiadbiadwmpy5mb2av43bjfj3yahrwyuoicei4jkvuikxhqrigxgtu
-- valory/registration_abci:0.1.0:bafybeiag4n4kvtln5xlgdtzhtv6ztmwb6ql5ojsbnra7owl5x5xmo2z5wy
-- valory/reset_pause_abci:0.1.0:bafybeib6slkmr4x2iaumewhwdllfwqvtzuehjtjtmif3gdefbvrsxfs6yi
-- valory/safe_deployment_abci:0.1.0:bafybeignhae5qngaloefdwdp3eqep5sym6nmpxzufemsn74wgqqpehthzm
-- valory/transaction_settlement_abci:0.1.0:bafybeihiwpin5sribeeiurdctqzymb63bfi22dgsnbwgclmzea3gnt452a
+- valory/abstract_round_abci:0.1.0:bafybeibwwnvq45z5yvqfzxw3dqcdi46l5edpnnw7ozjfxbqr3yqlkvnbwu
+- valory/oracle_deployment_abci:0.1.0:bafybeieaf7i7w2uspgvejyk3uedauenhqaandqvvtzzbcop6yob7z6jl2u
+- valory/price_estimation_abci:0.1.0:bafybeieuqv44suuogzus5tpvr2zh5xgynqwjtrsotzoulngp5acag6yn7a
+- valory/registration_abci:0.1.0:bafybeigtivj7puynh5esf4z2xinswvhjoe4gk54pva42lnosouxxoqqjj4
+- valory/reset_pause_abci:0.1.0:bafybeibwxgjh5asdwrd7smomfn2zahctetp63fybf5kxamtgh5kurezxfq
+- valory/safe_deployment_abci:0.1.0:bafybeiawnudkmz7ojld3umkn3tfi2jt4lh3ctgkn45bcekb3p6abkzakkq
+- valory/transaction_settlement_abci:0.1.0:bafybeihk57r27wmpjqfj2a5wnuemyd7omz4nk4r653vcorxmsof5fj57vq
 behaviours:
   main:
     args: {}
