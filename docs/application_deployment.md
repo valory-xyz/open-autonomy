@@ -91,7 +91,7 @@ The logs of a single AEA or node can then be inspected with `docker logs {contai
 ```bash
 export SERVICE_ID=author_name/service_name
 export VERSION=0.1.0
-autonomy deploy build image ${SERVICE_ID}
+autonomy build-image ${SERVICE_ID}
 ```
 
 Conceptually, the image to be used within a deployment should contain all required dependencies and packages.
