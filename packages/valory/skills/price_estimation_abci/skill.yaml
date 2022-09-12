@@ -34,9 +34,9 @@ protocols:
 - open_aea/signing:1.0.0:bafybeifexbtq3cqrodkmy75djq7hck5c44jnjezywins7fzzg5nn6yi6om
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeibgmtb25itbexhyeij2i23haz5z3z6vjba5clcc7cewm4dtkat4y4
-- valory/oracle_deployment_abci:0.1.0:bafybeic2bdlsjseo63qpfvrekhygmbzptlzhjujhibxhn5rstv5mhtjaky
-- valory/transaction_settlement_abci:0.1.0:bafybeihiwpin5sribeeiurdctqzymb63bfi22dgsnbwgclmzea3gnt452a
+- valory/abstract_round_abci:0.1.0:bafybeieg7mvnrujnrsv4hkfraloqov65m2xz24em6sdhq6vxla3e6igrom
+- valory/oracle_deployment_abci:0.1.0:bafybeifxsvdt2c42v5tdjscw65akymg75srodht2hcfa5bz2jp4hx5egc4
+- valory/transaction_settlement_abci:0.1.0:bafybeibmp2wph5yk2ic52ogt436pg3mwqisx6kkvzt4vrqi57ceads5ypq
 behaviours:
   main:
     args: {}

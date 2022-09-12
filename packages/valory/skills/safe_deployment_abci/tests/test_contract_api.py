@@ -37,18 +37,18 @@ from aea.protocols.dialogue.base import Dialogue
 from aea_ledger_ethereum import EthereumCrypto
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER, get_key
 from aea_test_autonomy.docker.base import skip_docker_tests
+from aea_test_autonomy.fixture_helpers import gnosis_safe_hardhat_scope_class
 
 from packages.valory.connections.ledger.connection import LedgerConnection
+from packages.valory.contracts.gnosis_safe.contract import (
+    PUBLIC_ID as GNOSIS_SAFE_PUBLIC_ID,
+)
 from packages.valory.protocols.contract_api.dialogues import ContractApiDialogue
 from packages.valory.protocols.contract_api.dialogues import (
     ContractApiDialogues as BaseContractApiDialogues,
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
-
-
-GNOSIS_SAFE_PUBLIC_ID = PublicId.from_str("valory/gnosis_safe:0.1.0")
-
-SOME_SKILL_ID = "some/skill:0.1.0"
+from packages.valory.skills.safe_deployment_abci import PUBLIC_ID as SKILL_ID
 
 
 class ContractApiDialogues(BaseContractApiDialogues):
@@ -101,7 +101,7 @@ class TestContractDispatcher:
         :param threshold: fixture
         """
         _, contract_address = gnosis_safe_contract
-        contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
+        contract_api_dialogues = ContractApiDialogues(SKILL_ID)
         crypto = make_crypto(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
         )
@@ -166,7 +166,7 @@ class TestContractDispatcher:
         :param threshold: fixture
         """
         _, contract_address = gnosis_safe_contract
-        contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
+        contract_api_dialogues = ContractApiDialogues(SKILL_ID)
         crypto = make_crypto(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
         )
@@ -230,7 +230,7 @@ class TestContractDispatcher:
         :param ledger_apis_connection: fixture
         """
         _, contract_address = gnosis_safe_contract
-        contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
+        contract_api_dialogues = ContractApiDialogues(SKILL_ID)
         request, contract_api_dialogue = contract_api_dialogues.create(
             counterparty=str(ledger_apis_connection.connection_id),
             performative=ContractApiMessage.Performative.GET_STATE,
@@ -281,7 +281,7 @@ class TestContractDispatcher:
         :param ledger_apis_connection: fixture
         """
         _, contract_address = gnosis_safe_contract
-        contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
+        contract_api_dialogues = ContractApiDialogues(SKILL_ID)
         request, contract_api_dialogue = contract_api_dialogues.create(
             counterparty=str(ledger_apis_connection.connection_id),
             performative=ContractApiMessage.Performative.GET_STATE,
@@ -344,7 +344,7 @@ class TestContractDispatcher:
         :param ledger_apis_connection: fixture
         """
         _, contract_address = gnosis_safe_contract
-        contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
+        contract_api_dialogues = ContractApiDialogues(SKILL_ID)
         request, contract_api_dialogue = contract_api_dialogues.create(
             counterparty=str(ledger_apis_connection.connection_id),
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
@@ -396,7 +396,7 @@ class TestContractDispatcher:
         :param ledger_apis_connection: fixture
         """
         _, contract_address = gnosis_safe_contract
-        contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
+        contract_api_dialogues = ContractApiDialogues(SKILL_ID)
         request, contract_api_dialogue = contract_api_dialogues.create(
             counterparty=str(ledger_apis_connection.connection_id),
             performative=ContractApiMessage.Performative.GET_RAW_MESSAGE,
@@ -451,7 +451,7 @@ class TestContractDispatcher:
         :param threshold: fixture
         """
         _, contract_address = gnosis_safe_contract
-        contract_api_dialogues = ContractApiDialogues(SOME_SKILL_ID)
+        contract_api_dialogues = ContractApiDialogues(SKILL_ID)
         crypto = make_crypto(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
         )
