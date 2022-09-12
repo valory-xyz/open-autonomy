@@ -24,18 +24,18 @@ fingerprint:
   tests/test_models.py: bafybeifim6rodwa6j6o6327565j6xvh6lp7tvgk6sybd5dg45pjji5djha
 fingerprint_ignore_patterns: []
 connections:
-- valory/ledger:0.1.0:bafybeienkw45j4m2p5pwtryy7jnonaybimmrj6j2ybdvp4iicy4rz6fina
+- valory/ledger:0.1.0:bafybeidpbrbqhckfbxs6qiu2j23xeoklm23tdv7bwohxoues7jujdsw4ku
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeidkfwvbyknjwlndhdf5euan7i4wmugxgtf2uhakvqspy24vgaehya
 protocols:
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeieg7mvnrujnrsv4hkfraloqov65m2xz24em6sdhq6vxla3e6igrom
-- valory/liquidity_rebalancing_abci:0.1.0:bafybeia2s3mmdo6f2x72zehzw3z5fbdqkaf4x43de5tjbjejwti6rtijha
-- valory/registration_abci:0.1.0:bafybeiedvz3ao2i27ged5bqmaxvt6jzjr6ngq2z33enue5ypfv36t2plbi
-- valory/reset_pause_abci:0.1.0:bafybeibjxmg7am45twrux2rwvv6othb4yoyu3ooa5abqbaqbijudtiji7y
-- valory/safe_deployment_abci:0.1.0:bafybeifbgsucbxvkffucqhwylxqpmcvptk6ca73zsge7spszjaskctkeie
-- valory/transaction_settlement_abci:0.1.0:bafybeihrlhpp5u326ajisib42pystujzehclfaq3f755d6cyl7ublnihyy
+- valory/abstract_round_abci:0.1.0:bafybeictz5yngbh23rthozdexn6npevlbevcg3qj3s4e5qlnuad37gqpae
+- valory/liquidity_rebalancing_abci:0.1.0:bafybeifrayifflcql5l7qwjiuc7kkkdt7jiviwlmrubcet53kiuvvexniu
+- valory/registration_abci:0.1.0:bafybeih5r23iey33ru2ydzoiwsxnya3ircjvhjpj4fplwkqd6xiygkx7le
+- valory/reset_pause_abci:0.1.0:bafybeig2vp4epctf53bq6pzy4z4w5bpksoni2jfqcetjcnbdbqkv3j4nza
+- valory/safe_deployment_abci:0.1.0:bafybeiglynle5iukwvluzy4gzb5n3urm6abfsc4gy53ntwmvighjfc4ncu
+- valory/transaction_settlement_abci:0.1.0:bafybeifgpyl4oehj5r5s7vpepdl7r75uoofhf3aetk7pyrsvwxztq56lay
 behaviours:
   main:
     args: {}

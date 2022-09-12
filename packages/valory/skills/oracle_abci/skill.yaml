@@ -22,20 +22,20 @@ fingerprint:
   tests/test_models.py: bafybeib5qugc5wrsoc2huo6dpwfekungcqdcjytfoo6hyx434nqtuqeblq
 fingerprint_ignore_patterns: []
 connections:
-- valory/ledger:0.1.0:bafybeienkw45j4m2p5pwtryy7jnonaybimmrj6j2ybdvp4iicy4rz6fina
+- valory/ledger:0.1.0:bafybeidpbrbqhckfbxs6qiu2j23xeoklm23tdv7bwohxoues7jujdsw4ku
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeifexbtq3cqrodkmy75djq7hck5c44jnjezywins7fzzg5nn6yi6om
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeieg7mvnrujnrsv4hkfraloqov65m2xz24em6sdhq6vxla3e6igrom
-- valory/oracle_deployment_abci:0.1.0:bafybeifxsvdt2c42v5tdjscw65akymg75srodht2hcfa5bz2jp4hx5egc4
-- valory/price_estimation_abci:0.1.0:bafybeifllgc2l4qdl5x2wwitjmarg5yopzd46mk7i43nejmo6falj6riza
-- valory/registration_abci:0.1.0:bafybeiedvz3ao2i27ged5bqmaxvt6jzjr6ngq2z33enue5ypfv36t2plbi
-- valory/reset_pause_abci:0.1.0:bafybeibjxmg7am45twrux2rwvv6othb4yoyu3ooa5abqbaqbijudtiji7y
-- valory/safe_deployment_abci:0.1.0:bafybeifbgsucbxvkffucqhwylxqpmcvptk6ca73zsge7spszjaskctkeie
-- valory/transaction_settlement_abci:0.1.0:bafybeihrlhpp5u326ajisib42pystujzehclfaq3f755d6cyl7ublnihyy
+- valory/abstract_round_abci:0.1.0:bafybeictz5yngbh23rthozdexn6npevlbevcg3qj3s4e5qlnuad37gqpae
+- valory/oracle_deployment_abci:0.1.0:bafybeidtqmaagt7lp5mirlblvmisfqtx7j35xn7pxhndwghv2i7n2qwgjm
+- valory/price_estimation_abci:0.1.0:bafybeig67tyfcplvowckkiem2cgmpjnrsernbjceaev64vyttnzzkkf54m
+- valory/registration_abci:0.1.0:bafybeih5r23iey33ru2ydzoiwsxnya3ircjvhjpj4fplwkqd6xiygkx7le
+- valory/reset_pause_abci:0.1.0:bafybeig2vp4epctf53bq6pzy4z4w5bpksoni2jfqcetjcnbdbqkv3j4nza
+- valory/safe_deployment_abci:0.1.0:bafybeiglynle5iukwvluzy4gzb5n3urm6abfsc4gy53ntwmvighjfc4ncu
+- valory/transaction_settlement_abci:0.1.0:bafybeifgpyl4oehj5r5s7vpepdl7r75uoofhf3aetk7pyrsvwxztq56lay
 behaviours:
   main:
     args: {}
