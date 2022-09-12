@@ -17,7 +17,7 @@ fingerprint:
   rounds.py: bafybeie23qyyxsniohhcbz6mc4rgrswtk5d257genhxn6waocy3fe47ucm
   tests/__init__.py: bafybeifelbjn35o54vqz62cdblijcrag2pdf5dtj6wqhepbowyifigno4a
   tests/test_behaviours.py: bafybeidx23aeenlky5gfocytb5dzfupuskevgyh2msoy4ohb7zaas72are
-  tests/test_contract_api.py: bafybeifwmbzz6gv3gknwr3pzvc37c45m3xz2pi6xo3oad72q5f5qwj6yrq
+  tests/test_contract_api.py: bafybeiaytxe7brj2fo7jtpd5lncm4tkhkz3uzgvzi7n2ksbb4xi4vrgwki
   tests/test_dialogues.py: bafybeibcxsrb2zbnrvzkzxvpdu26iw3k6hynotm4xqm2c3e6p7akpipiua
   tests/test_handlers.py: bafybeihvvm4onw2ocfvai32mlujjngwkolviwehvw35nendb7b3adlol5e
   tests/test_models.py: bafybeiap3lhuwichxzla2ug4pcajhrsjawlt26dvdvmpoachsel56apazm
@@ -25,7 +25,7 @@ fingerprint:
   tests/test_rounds.py: bafybeiaxhdpfrgb24lw7euyxrrk7hkbteqroakvchmnvofrzzgv56r5op4
 fingerprint_ignore_patterns: []
 connections:
-- valory/ledger:0.1.0:bafybeienkw45j4m2p5pwtryy7jnonaybimmrj6j2ybdvp4iicy4rz6fina
+- valory/ledger:0.1.0:bafybeihijbl5vttrv76wlvfb4vmq3umdy2o6qwfsbsgalemu3y7fxxnfvm
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeidkfwvbyknjwlndhdf5euan7i4wmugxgtf2uhakvqspy24vgaehya
 protocols:
@@ -33,7 +33,7 @@ protocols:
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeieg7mvnrujnrsv4hkfraloqov65m2xz24em6sdhq6vxla3e6igrom
+- valory/abstract_round_abci:0.1.0:bafybeihxw3y3bd33l3xpyxldiadnu4sr3by6bnkduupp6iorqpu35n5tom
 behaviours:
   main:
     args: {}

@@ -36,8 +36,25 @@ from aea.protocols.dialogue.base import Dialogue
 from aea_ledger_ethereum import EthereumCrypto
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER, get_key
 from aea_test_autonomy.docker.base import skip_docker_tests
+from aea_test_autonomy.fixture_helpers import (
+    gnosis_safe_hardhat_scope_class,
+    hardhat_addr,
+    hardhat_port,
+)
 
 from packages.valory.connections.ledger.connection import LedgerConnection
+from packages.valory.connections.ledger.tests.conftest import (
+    ethereum_testnet_config,
+    ganache_addr,
+    ganache_port,
+    gnosis_safe_contract,
+    key_pairs,
+    ledger_api,
+    ledger_apis_connection,
+    owners,
+    threshold,
+)
+from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.gnosis_safe.contract import (
     PUBLIC_ID as GNOSIS_SAFE_PUBLIC_ID,
 )
@@ -99,7 +116,7 @@ class TestContractDispatcher:
         :param threshold: fixture
         """
         _, contract_address = gnosis_safe_contract
-        contract_api_dialogues = ContractApiDialogues(SKILL_ID)
+        contract_api_dialogues = ContractApiDialogues(str(SKILL_ID))
         crypto = make_crypto(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
         )
@@ -164,7 +181,7 @@ class TestContractDispatcher:
         :param threshold: fixture
         """
         _, contract_address = gnosis_safe_contract
-        contract_api_dialogues = ContractApiDialogues(SKILL_ID)
+        contract_api_dialogues = ContractApiDialogues(str(SKILL_ID))
         crypto = make_crypto(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
         )
@@ -228,7 +245,7 @@ class TestContractDispatcher:
         :param ledger_apis_connection: fixture
         """
         _, contract_address = gnosis_safe_contract
-        contract_api_dialogues = ContractApiDialogues(SKILL_ID)
+        contract_api_dialogues = ContractApiDialogues(str(SKILL_ID))
         request, contract_api_dialogue = contract_api_dialogues.create(
             counterparty=str(ledger_apis_connection.connection_id),
             performative=ContractApiMessage.Performative.GET_STATE,
@@ -246,8 +263,9 @@ class TestContractDispatcher:
             message=request,
         )
 
-        with mock.patch(
-            "packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_state",
+        with mock.patch.object(
+            GnosisSafeContract,
+            "get_state",
             return_value={},
         ):
             await ledger_apis_connection.send(envelope)
@@ -279,7 +297,7 @@ class TestContractDispatcher:
         :param ledger_apis_connection: fixture
         """
         _, contract_address = gnosis_safe_contract
-        contract_api_dialogues = ContractApiDialogues(SKILL_ID)
+        contract_api_dialogues = ContractApiDialogues(str(SKILL_ID))
         request, contract_api_dialogue = contract_api_dialogues.create(
             counterparty=str(ledger_apis_connection.connection_id),
             performative=ContractApiMessage.Performative.GET_STATE,
@@ -307,8 +325,9 @@ class TestContractDispatcher:
                 """Mock `get_state` method from GnosisSafeContract."""
                 return {}
 
-            with mock.patch(
-                "packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_state",
+            with mock.patch.object(
+                GnosisSafeContract,
+                "get_state",
                 new_callable=lambda: get_state,
             ):
                 await ledger_apis_connection.send(envelope)
@@ -342,7 +361,7 @@ class TestContractDispatcher:
         :param ledger_apis_connection: fixture
         """
         _, contract_address = gnosis_safe_contract
-        contract_api_dialogues = ContractApiDialogues(SKILL_ID)
+        contract_api_dialogues = ContractApiDialogues(str(SKILL_ID))
         request, contract_api_dialogue = contract_api_dialogues.create(
             counterparty=str(ledger_apis_connection.connection_id),
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
@@ -360,8 +379,9 @@ class TestContractDispatcher:
             message=request,
         )
 
-        with mock.patch(
-            "packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_raw_transaction",
+        with mock.patch.object(
+            GnosisSafeContract,
+            "get_raw_transaction",
             return_value={},
         ):
             await ledger_apis_connection.send(envelope)
@@ -394,7 +414,7 @@ class TestContractDispatcher:
         :param ledger_apis_connection: fixture
         """
         _, contract_address = gnosis_safe_contract
-        contract_api_dialogues = ContractApiDialogues(SKILL_ID)
+        contract_api_dialogues = ContractApiDialogues(str(SKILL_ID))
         request, contract_api_dialogue = contract_api_dialogues.create(
             counterparty=str(ledger_apis_connection.connection_id),
             performative=ContractApiMessage.Performative.GET_RAW_MESSAGE,
@@ -412,8 +432,9 @@ class TestContractDispatcher:
             message=request,
         )
 
-        with mock.patch(
-            "packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_raw_message",
+        with mock.patch.object(
+            GnosisSafeContract,
+            "get_raw_message",
             return_value=b"{}",
         ):
             await ledger_apis_connection.send(envelope)
@@ -449,7 +470,7 @@ class TestContractDispatcher:
         :param threshold: fixture
         """
         _, contract_address = gnosis_safe_contract
-        contract_api_dialogues = ContractApiDialogues(SKILL_ID)
+        contract_api_dialogues = ContractApiDialogues(str(SKILL_ID))
         crypto = make_crypto(
             EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
         )
