@@ -49,6 +49,9 @@ from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.docker.base import skip_docker_tests
 from aea_test_autonomy.docker.ganache import DEFAULT_GANACHE_CHAIN_ID
 from aea_test_autonomy.fixture_helpers import (  # pylint: disable=unused-import  # noqa: F401
+    ganache_addr,
+    ganache_configuration,
+    ganache_port,
     ganache_scope_class,
 )
 from web3.eth import Eth
