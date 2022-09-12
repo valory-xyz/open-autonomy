@@ -915,7 +915,7 @@ class RoundTestsFileGenerator(AbstractFileGenerator):
         from packages.valory.skills.abstract_round_abci.base import (
             BaseTxPayload,
         )
-        from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
+        from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
             BaseRoundTestClass,
             BaseOnlyKeeperSendsRoundTest,
             BaseCollectDifferentUntilThresholdRoundTest,
@@ -1065,7 +1065,7 @@ class BehaviourTestsFileGenerator(AbstractFileGenerator):
         )
 
         from tests.conftest import ROOT_DIR
-        from tests.test_skills.test_abstract_round_abci.test_tools.base import (
+        from packages.valory.skills.abstract_round_abci.test_tools.base import (
             FSMBehaviourBaseCase,
         )
 
