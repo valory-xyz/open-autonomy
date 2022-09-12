@@ -9,7 +9,7 @@ In this guide, we will show how to:
 ## Setup
 
 !!!note
-    You might have already prepared your environment if you went through the [quick start](https://docs.autonolas.network/quick_start/) guide. If that's the case, you can skip this section.
+    You might have already prepared your environment if you went through the [quick start](../guides/quick_start.md) guide. If that's the case, you can skip this section.
 
 Before starting this guide, ensure that your machine satisfies the [framework requirements](./quick_start.md#requirements) and that
 you have followed the [setup instructions](./quick_start.md#setup). As a result you should have a Pipenv workspace folder.
