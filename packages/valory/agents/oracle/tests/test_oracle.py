@@ -22,6 +22,7 @@
 # pylint: skip-file
 
 from copy import deepcopy
+from pathlib import Path
 from typing import Tuple
 
 import pytest
@@ -30,7 +31,24 @@ from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2EndExecution,
     RoundChecks,
 )
-from aea_test_autonomy.fixture_helpers import UseGnosisSafeHardHatNet
+from aea_test_autonomy.fixture_helpers import abci_host  # noqa: F401
+from aea_test_autonomy.fixture_helpers import abci_port  # noqa: F401
+from aea_test_autonomy.fixture_helpers import flask_tendermint  # noqa: F401
+from aea_test_autonomy.fixture_helpers import ganache_addr  # noqa: F401
+from aea_test_autonomy.fixture_helpers import ganache_configuration  # noqa: F401
+from aea_test_autonomy.fixture_helpers import ganache_port  # noqa: F401
+from aea_test_autonomy.fixture_helpers import ganache_scope_class  # noqa: F401
+from aea_test_autonomy.fixture_helpers import ganache_scope_function  # noqa: F401
+from aea_test_autonomy.fixture_helpers import hardhat_addr  # noqa: F401
+from aea_test_autonomy.fixture_helpers import hardhat_port  # noqa: F401
+from aea_test_autonomy.fixture_helpers import key_pairs  # noqa: F401
+from aea_test_autonomy.fixture_helpers import tendermint  # noqa: F401
+from aea_test_autonomy.fixture_helpers import tendermint_port  # noqa: F401
+from aea_test_autonomy.fixture_helpers import (  # noqa: F401
+    UseGnosisSafeHardHatNet,
+    gnosis_safe_hardhat_scope_class,
+    gnosis_safe_hardhat_scope_function,
+)
 
 
 HAPPY_PATH: Tuple[RoundChecks, ...] = (
@@ -85,6 +103,7 @@ STRICT_CHECK_STRINGS = (
     "Got observation of BTC price in USD",
     "Period end",
 )
+PACKAGES_DIR = Path(__file__).parent.parent.parent.parent.parent
 
 
 @pytest.mark.parametrize("nb_nodes", (1,))
@@ -99,6 +118,7 @@ class TestABCIPriceEstimationSingleAgent(
     wait_to_finish = 180
     strict_check_strings = STRICT_CHECK_STRINGS
     happy_path = HAPPY_PATH
+    package_registry_src_rel = PACKAGES_DIR
 
 
 @pytest.mark.parametrize("nb_nodes", (2,))
@@ -113,6 +133,7 @@ class TestABCIPriceEstimationTwoAgents(
     wait_to_finish = 180
     strict_check_strings = STRICT_CHECK_STRINGS
     happy_path = HAPPY_PATH
+    package_registry_src_rel = PACKAGES_DIR
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
@@ -127,6 +148,7 @@ class TestABCIPriceEstimationFourAgents(
     wait_to_finish = 180
     strict_check_strings = STRICT_CHECK_STRINGS
     happy_path = HAPPY_PATH
+    package_registry_src_rel = PACKAGES_DIR
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
@@ -139,6 +161,7 @@ class TestAgentCatchup(BaseTestEnd2EndExecution, UseGnosisSafeHardHatNet):
     restart_after = 45
     happy_path = HAPPY_PATH
     stop_string = "'registration_startup' round is done with event: Event.DONE"
+    package_registry_src_rel = PACKAGES_DIR
 
     n_terminal = 1
 
