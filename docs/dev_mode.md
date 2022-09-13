@@ -47,11 +47,6 @@ Then, build the image:
 autonomy build-image
 ```
 
-Now, push the image  to make it accessible for the cluster to pull it. You can get the tag from the previous command:
-```bash
-docker image push <tag>
-```
-
 Finally, build the deployment and run it:
 ```bash
 autonomy deploy build  ../generated_keys.json --force --password ${PASSWORD} --kubernetes --dev
