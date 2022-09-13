@@ -55,36 +55,20 @@ from aea.configurations.data_types import CRUDCollection, PublicId
 from aea.protocols.generator.common import _camel_case_to_snake_case
 
 from autonomy.analyse.abci.app_spec import DFA
-from autonomy.cli.scaffolding_templates import (
+from autonomy.cli.scaffold_fsm_templates import (
     FILE_HEADER,
-    ROUNDS_FILE_HEADER,
-    EVENT_SECTION,
-    SYNCHRONIZED_DATA_SECTION,
-    ROUND_CLS_TEMPLATE,
-    DEGENERATE_ROUND_CLS_TEMPLATE,
-    ABCI_APP_CLS_TEMPLATE,
-    BEHAVIOUR_FILE_HEADER,
-    BASE_BEHAVIOUR_CLS_TEMPLATE,
-    BEHAVIOUR_CLS_TEMPLATE,
-    ROUND_BEHAVIOUR_CLS_TEMPLATE,
-    PAYLOADS_FILE,
-    TRANSACTION_TYPE_SECTION,
-    BASE_PAYLOAD_CLS,
-    PAYLOAD_CLS_TEMPLATE,
-    MODEL_FILE_TEMPLATE,
-    HANDLERS_FILE,
-    DIALOGUES_FILE,
-    TEST_ROUNDS_FILE_HEADER,
-    TEST_ROUNDS_BASE_CLASS,
-    TEST_ROUND_CLS_TEMPLATE,
-    TEST_BEHAVIOUR_FILE_HEADER,
-    TEST_BEHAVIOUR_BASE_CLASS,
-    TEST_BEHAVIOUR_CLS_TEMPLATE,
-    TEST_PAYLOAD_FILE_HEADER,
-    TEST_PAYLOAD_CLS_TEMPLATE,
-    TEST_MODELS_FILE,
-    TEST_HANDLERS_FILE,
-    TEST_DIALOGUES_FILE,
+    ROUNDS,
+    BEHAVIOURS,
+    PAYLOADS,
+    MODELS,
+    HANDLERS,
+    DIALOGUES,
+    TEST_ROUNDS,
+    TEST_BEHAVIOURS,
+    TEST_PAYLOADS,
+    TEST_MODELS,
+    TEST_HANDLERS,
+    TEST_DIALOGUES,
 )
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
 
@@ -130,7 +114,7 @@ class AbstractFileGenerator(ABC):
 
     def write_file(self, output_dir: Path) -> None:
         """Write the file to output_dir/FILENAME."""
-        (output_dir / self.FILENAME).write_text(self.get_file_content())
+        (output_dir / self.FILENAME).write_text(dedent(self.get_file_content()))
 
     @property
     def abci_app_name(self) -> str:
@@ -196,10 +180,10 @@ class AbstractFileGenerator(ABC):
             skill_name=self.skill_name,
             FSMName=self.fsm_name,
             AbciApp=self.abci_app_name,
-            rounds=indent(",\n".join(self.rounds), " " * 4).strip(),
-            all_rounds=indent(",\n".join(self.all_rounds), " " * 4).strip(),
-            behaviours=indent(",\n".join(self.behaviours), " " * 4).strip(),
-            payloads=indent(",\n".join(self.payloads), " " * 4).strip(),
+            rounds=indent(",\n".join(self.rounds), " " * 8).strip(),
+            all_rounds=indent(",\n".join(self.all_rounds), " " * 8).strip(),
+            behaviours=indent(",\n".join(self.behaviours), " " * 8).strip(),
+            payloads=indent(",\n".join(self.payloads), " " * 8).strip(),
             initial_round_cls=self.dfa.default_start_state,
             initial_states=_remove_quotes(str(self.dfa.start_states)),
             transition_function=self._parse_transition_func(),
@@ -211,7 +195,7 @@ class AbstractFileGenerator(ABC):
         )
 
 
-class RoundFileGenerator(AbstractFileGenerator):
+class RoundFileGenerator(AbstractFileGenerator, ROUNDS):
     """File generator for 'rounds.py' modules."""
 
     FILENAME = ROUNDS_FILENAME
@@ -241,7 +225,7 @@ class RoundFileGenerator(AbstractFileGenerator):
     def _get_rounds_header_section(self) -> str:
         """Get the rounds header section."""
 
-        return ROUNDS_FILE_HEADER.format(**self.template_kwargs)
+        return ROUNDS.HEADER.format(**self.template_kwargs)
 
     def _get_rounds_section(self) -> str:
         """Get the round section of the module (i.e. the round classes)."""
@@ -252,7 +236,7 @@ class RoundFileGenerator(AbstractFileGenerator):
         for round_name, payload_name in zip(self.rounds, self.payloads):
             base_name = round_name.replace(ROUND, "")
             round_id = _camel_case_to_snake_case(base_name)
-            round_class_str = ROUND_CLS_TEMPLATE.format(
+            round_class_str = self.ROUND_CLS.format(
                 round_id=round_id,
                 RoundCls=round_name,
                 PayloadCls=payload_name,
@@ -264,7 +248,7 @@ class RoundFileGenerator(AbstractFileGenerator):
         for round_name in self.degenerate_rounds:
             base_name = round_name.replace(ROUND, "")
             round_id = _camel_case_to_snake_case(base_name)
-            round_class_str = DEGENERATE_ROUND_CLS_TEMPLATE.format(
+            round_class_str = self.DEGENERATE_ROUND_CLS.format(
                 round_id=round_id,
                 RoundCls=round_name,
                 ABCRoundCls=DEGENERATE_ROUND,
@@ -281,20 +265,20 @@ class RoundFileGenerator(AbstractFileGenerator):
             f'{event_name} = "{event_name.lower()}"'
             for event_name in self.dfa.alphabet_in
         ]
-        events = indent("\n".join(events_list), " " * 4).strip()
-        return EVENT_SECTION.format(AbciApp=self.abci_app_name, events=events)
+        events = indent("\n".join(events_list), " " * 8).strip()
+        return self.EVENT_SECTION.format(AbciApp=self.abci_app_name, events=events)
 
     def _get_synchronized_data_section(self) -> str:
         """Get the event section of the module (i.e. the event enum class definition)."""
-        return SYNCHRONIZED_DATA_SECTION
+        return self.SYNCHRONIZED_DATA_SECTION
 
     def _get_abci_app_section(self) -> str:
         """Get the abci app section (i.e. the declaration of the AbciApp class)."""
 
-        return ABCI_APP_CLS_TEMPLATE.format(**self.template_kwargs)
+        return self.ABCI_APP_CLS.format(**self.template_kwargs)
 
 
-class BehaviourFileGenerator(AbstractFileGenerator):
+class BehaviourFileGenerator(AbstractFileGenerator, BEHAVIOURS):
     """File generator for 'behaviours.py' modules."""
 
     FILENAME = BEHAVIOURS_FILENAME
@@ -323,12 +307,12 @@ class BehaviourFileGenerator(AbstractFileGenerator):
     def _get_behaviours_header_section(self) -> str:
         """Get the behaviours header section."""
 
-        return BEHAVIOUR_FILE_HEADER.format(**self.template_kwargs)
+        return self.HEADER.format(**self.template_kwargs)
 
     def _get_base_behaviour_section(self) -> str:
         """Get the base behaviour section."""
 
-        return BASE_BEHAVIOUR_CLS_TEMPLATE.format(**self.template_kwargs)
+        return self.BASE_BEHAVIOUR_CLS.format(**self.template_kwargs)
 
     def _get_behaviours_section(self) -> str:
         """Get the behaviours section of the module (i.e. the list of behaviour classes)."""
@@ -340,7 +324,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
                 ABCI_APP, BASE_BEHAVIOUR
             )
             behaviour_id = behaviour_name.replace(BEHAVIOUR, "")
-            behaviour_class_str = BEHAVIOUR_CLS_TEMPLATE.format(
+            behaviour_class_str = self.BEHAVIOUR_CLS.format(
                 BehaviourCls=behaviour_name,
                 BaseBehaviourCls=base_behaviour_cls_name,
                 behaviour_id=_camel_case_to_snake_case(behaviour_id),
@@ -354,10 +338,10 @@ class BehaviourFileGenerator(AbstractFileGenerator):
     def _get_round_behaviour_section(self) -> str:
         """Get the round behaviour section of the module (i.e. the declaration of the round behaviour class)."""
 
-        return ROUND_BEHAVIOUR_CLS_TEMPLATE.format(**self.template_kwargs)
+        return self.ROUND_BEHAVIOUR_CLS.format(**self.template_kwargs)
 
 
-class PayloadsFileGenerator(AbstractFileGenerator):
+class PayloadsFileGenerator(AbstractFileGenerator, PAYLOADS):
     """File generator for 'payloads.py' modules."""
 
     FILENAME = PAYLOADS_FILENAME
@@ -365,11 +349,11 @@ class PayloadsFileGenerator(AbstractFileGenerator):
     def _get_base_payload_section(self) -> str:
         """Get the base payload section."""
 
-        all_payloads_classes_str = [BASE_PAYLOAD_CLS.format(**self.template_kwargs)]
+        all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(**self.template_kwargs)]
 
         for payload_name, round_name in zip(self.payloads, self.rounds):
             tx_type = _camel_case_to_snake_case(round_name.replace(ROUND, ""))
-            payload_class_str = PAYLOAD_CLS_TEMPLATE.format(
+            payload_class_str = self.PAYLOAD_CLS.format(
                 FSMName=self.fsm_name,
                 PayloadCls=payload_name,
                 RoundCls=round_name,
@@ -384,19 +368,19 @@ class PayloadsFileGenerator(AbstractFileGenerator):
 
         tx_type_list = list(map(_camel_case_to_snake_case, self.base_names))
         tx_type_list = [f'{tx_type.upper()} = "{tx_type}"' for tx_type in tx_type_list]
-        tx_types = indent("\n".join(tx_type_list), " " * 4).strip()
+        tx_types = indent("\n".join(tx_type_list), " " * 8).strip()
 
         return "\n".join(
             [
                 FILE_HEADER,
-                PAYLOADS_FILE.format(**self.template_kwargs),
-                TRANSACTION_TYPE_SECTION.format(tx_types=tx_types),
+                self.HEADER.format(**self.template_kwargs),
+                self.TRANSACTION_TYPE_SECTION.format(tx_types=tx_types),
                 self._get_base_payload_section(),
             ]
         )
 
 
-class ModelsFileGenerator(AbstractFileGenerator):
+class ModelsFileGenerator(AbstractFileGenerator, MODELS):
     """File generator for 'models.py' modules."""
 
     FILENAME = MODELS_FILENAME
@@ -407,12 +391,12 @@ class ModelsFileGenerator(AbstractFileGenerator):
         return "\n".join(
             [
                 FILE_HEADER,
-                MODEL_FILE_TEMPLATE.format(**self.template_kwargs),
+                self.HEADER.format(**self.template_kwargs),
             ]
         )
 
 
-class HandlersFileGenerator(AbstractFileGenerator):
+class HandlersFileGenerator(AbstractFileGenerator, HANDLERS):
     """File generator for 'handlers.py' modules."""
 
     FILENAME = HANDLERS_FILENAME
@@ -423,12 +407,12 @@ class HandlersFileGenerator(AbstractFileGenerator):
         return "\n".join(
             [
                 FILE_HEADER,
-                HANDLERS_FILE.format(**self.template_kwargs),
+                self.HEADER.format(**self.template_kwargs),
             ]
         )
 
 
-class DialoguesFileGenerator(AbstractFileGenerator):
+class DialoguesFileGenerator(AbstractFileGenerator, DIALOGUES):
     """File generator for 'dialogues.py' modules."""
 
     FILENAME = DIALOGUES_FILENAME
@@ -439,7 +423,7 @@ class DialoguesFileGenerator(AbstractFileGenerator):
         return "\n".join(
             [
                 FILE_HEADER,
-                DIALOGUES_FILE.format(**self.template_kwargs),
+                self.HEADER.format(**self.template_kwargs),
             ]
         )
 
@@ -538,7 +522,7 @@ def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
 
 
 # Scaffolding of tests
-class RoundTestsFileGenerator(AbstractFileGenerator):
+class RoundTestsFileGenerator(AbstractFileGenerator, TEST_ROUNDS):
     """RoundTestsFileGenerator"""
 
     FILENAME = "tests_" + ROUNDS_FILENAME
@@ -562,15 +546,15 @@ class RoundTestsFileGenerator(AbstractFileGenerator):
     def _get_rounds_header_section(self) -> str:
         """Get the rounds header section."""
 
-        return TEST_ROUNDS_FILE_HEADER.format(**self.template_kwargs)
+        return self.HEADER.format(**self.template_kwargs)
 
     def _get_rounds_section(self) -> str:
         """Get rounds section"""
 
-        all_round_classes_str = [TEST_ROUNDS_BASE_CLASS.format(**self.template_kwargs)]
+        all_round_classes_str = [self.BASE_ROUND_TEST_CLS.format(**self.template_kwargs)]
 
         for abci_round_name in self.dfa.states - self.dfa.final_states:
-            round_class_str = TEST_ROUND_CLS_TEMPLATE.format(
+            round_class_str = self.TEST_ROUND_CLS.format(
                 FSMName=self.fsm_name,
                 RoundCls=abci_round_name,
             )
@@ -579,7 +563,7 @@ class RoundTestsFileGenerator(AbstractFileGenerator):
         return "\n".join(all_round_classes_str)
 
 
-class BehaviourTestsFileGenerator(AbstractFileGenerator):
+class BehaviourTestsFileGenerator(AbstractFileGenerator, TEST_BEHAVIOURS):
     """File generator for 'test_behaviours.py' modules."""
 
     FILENAME = "test_" + BEHAVIOURS_FILENAME
@@ -603,17 +587,17 @@ class BehaviourTestsFileGenerator(AbstractFileGenerator):
     def _get_behaviour_header_section(self) -> str:
         """Get the rounds header section."""
 
-        return TEST_BEHAVIOUR_FILE_HEADER.format(**self.template_kwargs)
+        return self.HEADER.format(**self.template_kwargs)
 
     def _get_behaviour_section(self) -> str:
         """Get behaviour section"""
 
         all_behaviour_classes_str = [
-            TEST_BEHAVIOUR_BASE_CLASS.format(**self.template_kwargs)
+            self.BASE_BEHAVIOUR_TEST_CLS.format(**self.template_kwargs)
         ]
 
         for behaviour_name in self.behaviours:
-            round_class_str = TEST_BEHAVIOUR_CLS_TEMPLATE.format(
+            round_class_str = self.TEST_BEHAVIOUR_CLS.format(
                 FSMName=self.fsm_name,
                 BehaviourCls=behaviour_name,
             )
@@ -622,7 +606,7 @@ class BehaviourTestsFileGenerator(AbstractFileGenerator):
         return "\n".join(all_behaviour_classes_str)
 
 
-class PayloadTestsFileGenerator(AbstractFileGenerator):
+class PayloadTestsFileGenerator(AbstractFileGenerator, TEST_PAYLOADS):
     """File generator for 'test_payloads.py' modules."""
 
     FILENAME = "test_" + PAYLOADS_FILENAME
@@ -643,15 +627,15 @@ class PayloadTestsFileGenerator(AbstractFileGenerator):
     def _get_payload_header_section(self) -> str:
         """Get the rounds header section."""
 
-        return TEST_PAYLOAD_FILE_HEADER.format(**self.template_kwargs)
+        return self.HEADER.format(**self.template_kwargs)
 
     def _get_payload_section(self) -> str:
         """Get payload section"""
 
-        return TEST_PAYLOAD_CLS_TEMPLATE.format(**self.template_kwargs)
+        return self.TEST_PAYLOAD_CLS.format(**self.template_kwargs)
 
 
-class ModelTestFileGenerator(AbstractFileGenerator):
+class ModelTestFileGenerator(AbstractFileGenerator, TEST_MODELS):
     """File generator for 'test_models.py'."""
 
     FILENAME = "test_" + MODELS_FILENAME
@@ -659,7 +643,7 @@ class ModelTestFileGenerator(AbstractFileGenerator):
     def _get_models_header_section(self) -> str:
         """Get the models header section."""
 
-        return TEST_MODELS_FILE.format(**self.template_kwargs)
+        return self.HEADER.format(**self.template_kwargs)
 
     def get_file_content(self) -> str:
         """Get the file content."""
@@ -667,7 +651,7 @@ class ModelTestFileGenerator(AbstractFileGenerator):
         return "\n".join([FILE_HEADER, self._get_models_header_section()])
 
 
-class HandlersTestFileGenerator(AbstractFileGenerator):
+class HandlersTestFileGenerator(AbstractFileGenerator, TEST_HANDLERS):
     """File generator for 'test_dialogues.py'."""
 
     FILENAME = "test_" + HANDLERS_FILENAME
@@ -675,7 +659,7 @@ class HandlersTestFileGenerator(AbstractFileGenerator):
     def _get_handlers_header_section(self) -> str:
         """Get the handlers header section."""
 
-        return TEST_HANDLERS_FILE.format(**self.template_kwargs)
+        return self.HEADER.format(**self.template_kwargs)
 
     def get_file_content(self) -> str:
         """Get the file content."""
@@ -683,7 +667,7 @@ class HandlersTestFileGenerator(AbstractFileGenerator):
         return "\n".join([FILE_HEADER, self._get_handlers_header_section()])
 
 
-class DialoguesTestFileGenerator(AbstractFileGenerator):
+class DialoguesTestFileGenerator(AbstractFileGenerator, TEST_DIALOGUES):
     """File generator for 'test_dialogues.py'."""
 
     FILENAME = "test_" + DIALOGUES_FILENAME
@@ -691,7 +675,7 @@ class DialoguesTestFileGenerator(AbstractFileGenerator):
     def _get_dialogues_header_section(self) -> str:
         """Get the dialogues header section."""
 
-        return TEST_DIALOGUES_FILE.format(**self.template_kwargs)
+        return self.HEADER.format(**self.template_kwargs)
 
     def get_file_content(self) -> str:
         """Get the file content."""
