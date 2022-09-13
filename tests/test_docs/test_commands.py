@@ -145,18 +145,16 @@ def test_validate_doc_commands() -> None:
     # Get the validator
     validator = CommandValidator(autonomy_cli)
 
-    COMMAND_REGEX = (
-        r"(?P<full_cmd>(?P<cli>aea|autonomy) ((?!(&|'|\(|\[|\n|\.|`|\|)).)*)"
-    )
+    # Regex conditions for a command:
+    # Either starts at the beginning of a line, or has one of the following characters before it: whitespace, ` or >
+    # Its first word is either aea or autonomy, followed by a whitespace
+    # Ends just before one of the following characters/strings: &, ', (, [, \n, ., `, |, #, </code>, =, "
+    COMMAND_REGEX = r"""(^|\s|`|>)(?P<full_cmd>(?P<cli>aea|autonomy) ((?!(&|'|\(|\[|\n|\.|`|\||#|<\/code>|=|")).)*)"""
 
     skips = [
-        "aea repo",
-        "autonomy repo",
         "autonomy test tools",
-        "aea helper libraries to check individual overrides",
-        "autonomy tests/ --cov=autonomy --cov-report=html --cov=packages/valory --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=",
         "autonomy CLI",
-        "aea scaffold",  # scaffold_fsm.md contains an auto-generated reference. It is a false positive.
+        "autonomy tests/ --cov",
     ]
 
     # Validate all matches
