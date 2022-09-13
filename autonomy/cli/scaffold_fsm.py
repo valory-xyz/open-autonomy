@@ -166,6 +166,38 @@ class AbstractFileGenerator(ABC):
         """Payloads"""
         return [s.replace(ROUND, PAYLOAD) for s in self.rounds]
 
+    def _parse_transition_func(self) -> str:
+        """Parse the transition function from the spec to a nested dictionary."""
+        result: Dict[str, Dict[str, str]] = {}  # type: ignore
+        for (round_cls_name, event_name), value in self.dfa.transition_func.items():
+            result.setdefault(round_cls_name, {})[f"{EVENT}.{event_name}"] = value
+        for state in self.dfa.states:
+            if state not in result:
+                result[state] = {}
+        return _remove_quotes(str(result))
+
+    @property
+    def template_kwargs(self) -> Dict[str, str]:
+        """All keywords for string formatting of templates"""
+
+        return dict(
+            author=self.author,
+            skill_name=self.skill_name,
+            FSMName=self.fsm_name,
+            AbciApp=self.abci_app_name,
+            rounds=indent(",\n".join(self.rounds), " " * 4).strip(),
+            payloads=indent(",\n".join(self.payloads), " " * 4).strip(),
+            AbciAppCls=self.abci_app_name,
+            initial_round_cls=self.dfa.default_start_state,
+            initial_states=_remove_quotes(str(self.dfa.start_states)),
+            transition_function=self._parse_transition_func(),
+            final_states=_remove_quotes(str(self.dfa.final_states)),
+            BaseBehaviourCls=self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR),
+            RoundBehaviourCls=self.abci_app_name.replace(ABCI_APP, ROUND_BEHAVIOUR),
+            InitialBehaviourCls=self.dfa.default_start_state.replace(ROUND, BEHAVIOUR),
+            behaviours=_remove_quotes(str(self.behaviours)),
+        )
+
 
 class RoundFileGenerator(AbstractFileGenerator):
     """File generator for 'rounds.py' modules."""
@@ -197,21 +229,15 @@ class RoundFileGenerator(AbstractFileGenerator):
     def _get_rounds_header_section(self) -> str:
         """Get the rounds header section."""
 
-        payloads = indent(",\n".join(self.payloads), " " * 4).strip()
-        return ROUNDS_FILE_HEADER.format(
-            author=self.author,
-            skill_name=self.skill_name,
-            AbciApp=self.abci_app_name,
-            payloads=payloads,
-        )
+        return ROUNDS_FILE_HEADER.format(**self.template_kwargs)
 
     def _get_rounds_section(self) -> str:
         """Get the round section of the module (i.e. the round classes)."""
         all_round_classes_str = []
 
         # add round classes
+        todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
         for round_name, payload_name in zip(self.rounds, self.payloads):
-            todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
             base_name = round_name.replace(ROUND, "")
             round_id = _camel_case_to_snake_case(base_name)
             round_class_str = ROUND_CLS_TEMPLATE.format(
@@ -253,23 +279,7 @@ class RoundFileGenerator(AbstractFileGenerator):
     def _get_abci_app_section(self) -> str:
         """Get the abci app section (i.e. the declaration of the AbciApp class)."""
 
-        return ABCI_APP_CLS_TEMPLATE.format(
-            AbciAppCls=self.abci_app_name,
-            initial_round_cls=self.dfa.default_start_state,
-            initial_states=_remove_quotes(str(self.dfa.start_states)),
-            transition_function=self._parse_transition_func(),
-            final_states=_remove_quotes(str(self.dfa.final_states)),
-        )
-
-    def _parse_transition_func(self) -> str:
-        """Parse the transition function from the spec to a nested dictionary."""
-        result: Dict[str, Dict[str, str]] = {}  # type: ignore
-        for (round_cls_name, event_name), value in self.dfa.transition_func.items():
-            result.setdefault(round_cls_name, {})[f"{EVENT}.{event_name}"] = value
-        for state in self.dfa.states:
-            if state not in result:
-                result[state] = {}
-        return _remove_quotes(str(result))
+        return ABCI_APP_CLS_TEMPLATE.format(**self.template_kwargs)
 
 
 class BehaviourFileGenerator(AbstractFileGenerator):
@@ -301,21 +311,12 @@ class BehaviourFileGenerator(AbstractFileGenerator):
     def _get_behaviours_header_section(self) -> str:
         """Get the behaviours header section."""
 
-        rounds = indent(",\n".join(self.rounds), " " * 4).strip()
-        return BEHAVIOUR_FILE_HEADER.format(
-            AbciApp=self.abci_app_name,
-            author=self.author,
-            skill_name=self.skill_name,
-            rounds=rounds,
-        )
+        return BEHAVIOUR_FILE_HEADER.format(**self.template_kwargs)
 
     def _get_base_behaviour_section(self) -> str:
         """Get the base behaviour section."""
 
-        base_behaviour_cls_name = self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR)
-        return BASE_BEHAVIOUR_CLS_TEMPLATE.format(
-            BaseBehaviourCls=base_behaviour_cls_name
-        )
+        return BASE_BEHAVIOUR_CLS_TEMPLATE.format(**self.template_kwargs)
 
     def _get_behaviours_section(self) -> str:
         """Get the behaviours section of the module (i.e. the list of behaviour classes)."""
@@ -340,16 +341,8 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 
     def _get_round_behaviour_section(self) -> str:
         """Get the round behaviour section of the module (i.e. the declaration of the round behaviour class)."""
-        abci_app_cls_name = self.abci_app_name
-        round_behaviour_cls_name = self.abci_app_name.replace(ABCI_APP, ROUND_BEHAVIOUR)
-        initial_round_cls_name = self.dfa.default_start_state
-        initial_behaviour_cls_name = initial_round_cls_name.replace(ROUND, BEHAVIOUR)
-        return ROUND_BEHAVIOUR_CLS_TEMPLATE.format(
-            RoundBehaviourCls=round_behaviour_cls_name,
-            InitialBehaviourCls=initial_behaviour_cls_name,
-            AbciAppCls=abci_app_cls_name,
-            behaviours=_remove_quotes(str(self.behaviours)),
-        )
+
+        return ROUND_BEHAVIOUR_CLS_TEMPLATE.format(**self.template_kwargs)
 
 
 class PayloadsFileGenerator(AbstractFileGenerator):
@@ -402,11 +395,7 @@ class ModelsFileGenerator(AbstractFileGenerator):
         return "\n".join(
             [
                 FILE_HEADER,
-                MODEL_FILE_TEMPLATE.format(
-                    AbciApp=self.abci_app_name,
-                    author=self.author,
-                    skill_name=self.skill_name,
-                ),
+                MODEL_FILE_TEMPLATE.format(**self.template_kwargs),
             ]
         )
 
@@ -422,7 +411,7 @@ class HandlersFileGenerator(AbstractFileGenerator):
         return "\n".join(
             [
                 FILE_HEADER,
-                HANDLERS_FILE.format(FSMName=self.abci_app_name),
+                HANDLERS_FILE.format(**self.template_kwargs),
             ]
         )
 
@@ -654,18 +643,12 @@ class RoundTestsFileGenerator(AbstractFileGenerator):
     def _get_rounds_header_section(self) -> str:
         """Get the rounds header section."""
 
-        rounds = indent(",\n".join(self.rounds), " " * 4).strip()
-        return self.ROUNDS_FILE_HEADER.format(
-            FSMName=self.abci_app_name,
-            author=self.author,
-            skill_name=self.skill_name,
-            non_degenerate_rounds=rounds,
-        )
+        return self.ROUNDS_FILE_HEADER.format(**self.template_kwargs)
 
     def _get_rounds_section(self) -> str:
         """Get rounds section"""
 
-        all_round_classes_str = [self.BASE_CLASS.format(FSMName=self.fsm_name)]
+        all_round_classes_str = [self.BASE_CLASS.format(**self.template_kwargs)]
 
         for abci_round_name in self.dfa.states - self.dfa.final_states:
             round_class_str = self.ROUND_CLS_TEMPLATE.format(

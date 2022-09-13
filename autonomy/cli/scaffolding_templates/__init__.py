@@ -173,7 +173,7 @@ class {RoundBehaviourCls}(AbstractRoundBehaviour):
 
 # Payloads
 PAYLOADS_FILE = """\
-    \"\"\"This module contains the transaction payloads of the {FSMName}.\"\"\"
+    \"\"\"This module contains the transaction payloads of the {AbciApp}.\"\"\"
 
     from abc import ABC
     from enum import Enum
@@ -198,7 +198,7 @@ class TransactionType(Enum):
 
 BASE_PAYLOAD_CLS = """\
 class Base{FSMName}Payload(BaseTxPayload, ABC):
-    \"\"\"Base payload for {FSMName}.\"\"\"
+    \"\"\"Base payload for {AbciApp}.\"\"\"
 
     def __init__(self, sender: str, content: Hashable, **kwargs: Any) -> None:
         \"\"\"Initialize a 'select_keeper' transaction payload.\"\"\"
@@ -254,7 +254,7 @@ Requests = BaseRequests
 
 # Handlers
 HANDLERS_FILE = """"\
-\"\"\"This module contains the handlers for the skill of {FSMName}.\"\"\"
+\"\"\"This module contains the handlers for the skill of {AbciApp}.\"\"\"
 
 from packages.valory.skills.abstract_round_abci.handlers import (
     ABCIRoundHandler as BaseABCIRoundHandler,
@@ -287,7 +287,7 @@ TendermintHandler = BaseTendermintHandler
 
 # Dialogues
 DIALOGUES_FILE = """\
-\"\"\"This module contains the dialogues of the {FSMName}.\"\"\"
+\"\"\"This module contains the dialogues of the {AbciApp}.\"\"\"
 
 from packages.valory.skills.abstract_round_abci.dialogues import (
     AbciDialogue as BaseAbciDialogue,
