@@ -37,7 +37,7 @@ pip install open-autonomy
 
 ## Using the scaffold tool: step-by-step instructions
 
-First, create an empty agent using the autonomy CLI. This will create the agent directory, that will contain folders for connections, contracts, protocols and skills.
+First, create an empty agent using the Open Autonomy CLI. This will create the agent directory, that will contain folders for connections, contracts, protocols and skills.
 ```
 autonomy create my_agent
 cd my_agent
