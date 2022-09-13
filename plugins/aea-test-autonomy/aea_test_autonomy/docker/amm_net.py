@@ -64,11 +64,6 @@ class AMMNetDockerImage(DockerImage):
         """Get the tag."""
         return "valory/contracts-amm:latest"
 
-    def _build_command(self) -> List[str]:
-        """Build command."""
-        cmd = ["run", "hardhat", "extra-compile", "--port", str(self.port)]
-        return cmd
-
     def create(self) -> Container:
         """Create the container."""
         ports = {f"{self.port}/tcp": ("0.0.0.0", self.port)}  # nosec
