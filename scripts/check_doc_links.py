@@ -49,7 +49,10 @@ def main() -> None:  # pylint: disable=too-many-locals
 
     broken_links: List[Tuple[str, Any, Any]] = []
     http_links = []
-    http_skips = ["http://www.fipa.org/repository/ips.php3"]
+    http_skips = [
+        "http://www.fipa.org/repository/ips.php3",
+        "http://host.docker.internal:8545```",
+    ]
     url_skips = [
         "https://github.com/valory-xyz/open-autonomy/trunk/packages",
         "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure",
