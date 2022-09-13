@@ -18,11 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
-import json
 import logging
 import time
-from pathlib import Path
-from typing import List
+from typing import Dict, List, Optional
 
 import docker
 import requests
@@ -51,72 +49,40 @@ DEFAULT_SERVICE_CONFIG_HASH = (
 class RegistriesDockerImage(DockerImage):
     """Spawn a local Ethereum network with deployed registry contracts, using HardHat."""
 
-    third_party_contract_dir: Path
+    _CONTAINER_PORT = DEFAULT_HARDHAT_PORT
+    _SERVICE_CONFIG_HASH_ENV_VAR = "SERVICE_CONFIG_HASH"
+    _env_vars = {
+        _SERVICE_CONFIG_HASH_ENV_VAR: DEFAULT_SERVICE_CONFIG_HASH,
+    }
 
     def __init__(
         self,
         client: docker.DockerClient,
-        third_party_contract_dir: Path,
         addr: str = DEFAULT_HARDHAT_ADDR,
         port: int = DEFAULT_HARDHAT_PORT,
+        env_vars: Optional[Dict] = None,
     ):
         """Initialize."""
         super().__init__(client)
         self.addr = addr
         self.port = port
-        self.third_party_contract_dir = third_party_contract_dir
+        if env_vars is not None:
+            self._env_vars = {**self._env_vars, **env_vars}
 
     @property
     def tag(self) -> str:
         """Get the tag."""
-        return "node:16.7.0"
-
-    def _build_command(self) -> List[str]:
-        """Build command."""
-        cmd = ["run", "hardhat", "node", "--port", str(self.port)]
-        return cmd
-
-    def _update_config_hash(
-        self,
-    ) -> None:
-        """Updated config hash in the registry config."""
-
-        base_snapshot_file = (
-            self.third_party_contract_dir
-            / REGISTRIES_CONTRACTS_DIR
-            / "scripts"
-            / "mainnet_snapshot.json"
-        )
-        snapshot_data = json.loads(base_snapshot_file.read_text())
-        snapshot_data["serviceRegistry"]["configHashes"] = [
-            DEFAULT_SERVICE_CONFIG_HASH,
-        ]
-        snapshot_file = (
-            self.third_party_contract_dir / REGISTRIES_CONTRACTS_DIR / "snapshot.json"
-        )
-        snapshot_file.write_text(json.dumps(snapshot_data))
+        return "valory/autonolas-registries:latest"
 
     def create(self) -> Container:
         """Create the container."""
-        self._update_config_hash()
-        cmd = self._build_command()
-        working_dir = "/build"
-        volumes = {
-            str(self.third_party_contract_dir / REGISTRIES_CONTRACTS_DIR): {
-                "bind": working_dir,
-                "mode": "rw",
-            },
-        }
-        ports = {f"{self.port}/tcp": ("0.0.0.0", self.port)}  # nosec
+        ports = {f"{self._CONTAINER_PORT}/tcp": ("0.0.0.0", self.port)}  # nosec
         container = self._client.containers.run(
             self.tag,
-            command=cmd,
             detach=True,
             ports=ports,
-            volumes=volumes,
-            working_dir=working_dir,
-            entrypoint="yarn",
             extra_hosts={"host.docker.internal": "host-gateway"},
+            environment=self._env_vars,
         )
         return container
 

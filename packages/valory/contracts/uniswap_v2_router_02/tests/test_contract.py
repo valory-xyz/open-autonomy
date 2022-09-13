@@ -19,7 +19,6 @@
 
 """Tests for valory/uniswap_v2_router02 contract."""
 
-import os
 from pathlib import Path
 from typing import Any, Dict, Optional, cast
 from unittest import mock
@@ -34,12 +33,6 @@ from packages.valory.contracts.uniswap_v2_router_02.contract import (
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
-THIRD_PARTY_CONTRACTS = Path(
-    os.environ.get("THIRD_PARTY_CONTRACTS", PACKAGE_DIR / "third_party")
-)
-
-if not THIRD_PARTY_CONTRACTS.exists():
-    raise RuntimeError("Please provide valid path for `THIRD_PARTY_CONTRACTS`")
 
 CONTRACT_ADDRESS = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"
 ADDRESS_ONE = "0x46F415F7BF30f4227F98def9d2B22ff62738fD68"
@@ -1015,7 +1008,6 @@ class BaseContractTestHardHatAMMNet(BaseHardhatAMMContractTest):
     contract_directory = PACKAGE_DIR
     sanitize_from_deploy_tx = ["contract_address"]
     contract: UniswapV2Router02Contract
-    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     contract_address = "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"
     weth_address = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"

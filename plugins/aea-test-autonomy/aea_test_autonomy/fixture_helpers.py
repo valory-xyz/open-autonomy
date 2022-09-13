@@ -26,8 +26,6 @@
 # pylint: disable=unused-argument
 
 import logging
-import os
-from pathlib import Path
 from typing import Any, Dict, Generator, List, Tuple, cast
 
 import docker
@@ -309,7 +307,6 @@ class GanacheBaseTest(DockerBaseTest):
     addr: str = DEFAULT_GANACHE_ADDR
     port: int = DEFAULT_GANACHE_PORT
     configuration: Dict = GANACHE_CONFIGURATION
-    third_party_contract_dir: Path
 
     @classmethod
     def setup_class_kwargs(cls) -> Dict[str, Any]:
@@ -444,7 +441,6 @@ class HardHatBaseTest(DockerBaseTest):
 
     addr: str = DEFAULT_HARDHAT_ADDR
     port: int = DEFAULT_HARDHAT_PORT
-    third_party_contract_dir: Path
 
     @classmethod
     def setup_class_kwargs(cls) -> Dict[str, Any]:
@@ -478,9 +474,7 @@ def registries_scope_class(
 ) -> Generator:
     """Launch the Registry contracts image. This fixture is scoped to a class which means it will destroyed after running every test in a class."""
     client = docker.from_env()
-    image = RegistriesDockerImage(
-        client, third_party_contract_dir=_get_third_party_path()
-    )
+    image = RegistriesDockerImage(client)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
@@ -517,9 +511,7 @@ def gnosis_safe_hardhat_scope_function(
     """Launch the HardHat node with Gnosis Safe contracts deployed. This fixture is scoped to a function which means it will destroyed at the end of the test."""
     client = docker.from_env()
     logging.info(f"Launching Hardhat at port {hardhat_port}")
-    image = GnosisSafeNetDockerImage(
-        client, _get_third_party_path(), hardhat_addr, hardhat_port
-    )
+    image = GnosisSafeNetDockerImage(client, hardhat_addr, hardhat_port)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
@@ -533,9 +525,7 @@ def gnosis_safe_hardhat_scope_class(
     """Launch the HardHat node with Gnosis Safe contracts deployed.This fixture is scoped to a class which means it will destroyed after running every test in a class."""
     client = docker.from_env()
     logging.info(f"Launching Hardhat at port {hardhat_port}")
-    image = GnosisSafeNetDockerImage(
-        client, _get_third_party_path(), hardhat_addr, hardhat_port
-    )
+    image = GnosisSafeNetDockerImage(client, hardhat_addr, hardhat_port)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
@@ -564,9 +554,7 @@ class HardHatGnosisBaseTest(HardHatBaseTest):
     def _build_image(cls) -> DockerImage:
         """Build the image."""
         client = docker.from_env()
-        return GnosisSafeNetDockerImage(
-            client, cls.third_party_contract_dir, cls.addr, cls.port
-        )
+        return GnosisSafeNetDockerImage(client, cls.addr, cls.port)
 
 
 ###
@@ -581,18 +569,4 @@ class HardHatAMMBaseTest(HardHatBaseTest):
     def _build_image(cls) -> DockerImage:
         """Build the image."""
         client = docker.from_env()
-        return AMMNetDockerImage(
-            client, cls.third_party_contract_dir, cls.addr, cls.port
-        )
-
-
-# TODO: remove and make all of them hosted images
-def _get_third_party_path() -> Path:
-    """Get path to third party contracts."""
-    third_parth_contracts_path = Path(
-        os.environ.get("THIRD_PARTY_CONTRACTS", "third_party")
-    )
-
-    if not third_parth_contracts_path.exists():
-        raise RuntimeError("Please provide valid path for `THIRD_PARTY_CONTRACTS`")
-    return third_parth_contracts_path
+        return AMMNetDockerImage(client, cls.addr, cls.port)

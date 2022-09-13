@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for various transaction settlement skill's failure modes."""
-import os
 from collections import deque
 from math import ceil
 from pathlib import Path
@@ -89,13 +88,6 @@ from packages.valory.skills.transaction_settlement_abci.test_tools.integration i
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
-THIRD_PARTY_CONTRACTS = Path(
-    os.environ.get("THIRD_PARTY_CONTRACTS", PACKAGE_DIR / "third_party")
-)
-
-if not THIRD_PARTY_CONTRACTS.exists():
-    raise RuntimeError("Please provide valid path for `THIRD_PARTY_CONTRACTS`")
-
 
 DUMMY_MAX_PRIORITY_FEE_PER_GAS = 3000000000
 DUMMY_MAX_FEE_PER_GAS = 4000000000
@@ -116,7 +108,6 @@ class TransactionSettlementIntegrationBaseCase(
 
     price_estimation_synchronized_data: PriceEstimationSynchronizedSata
     make_ledger_api_connection_callable = make_ledger_api_connection
-    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
