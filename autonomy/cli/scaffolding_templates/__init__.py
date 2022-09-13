@@ -463,6 +463,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 )
 from {author}.skills.{skill_name}.behaviours import (
     {FSMName}BaseBehaviour,
+    {FSMName}RoundBehaviour,
     {behaviours},
 )
 from {author}.skills.{skill_name}.rounds import (
@@ -494,7 +495,7 @@ class Base{FSMName}Test(FSMBehaviourBaseCase):
 
     path_to_skill = Path(__file__).parent.parent
 
-    behaviour: {FSMName}BaseBehaviour
+    behaviour: {FSMName}RoundBehaviour
     behaviour_class: Type[{FSMName}BaseBehaviour]
     next_behaviour_class: Type[{FSMName}BaseBehaviour]
     synchronized_data: SynchronizedData
