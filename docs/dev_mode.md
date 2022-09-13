@@ -4,7 +4,7 @@ The hot reload mode enables hot code swapping and reflects changes on the agent 
 
 ## General Guide
 
-Arbitrary agent services built with the {{open_autonomy}} framework can be run with the hot start functionality.
+Arbitrary agent services built with the {{open_autonomy}} framework can be run with the hot reload functionality.
 
 ### Environment setup
 
@@ -33,17 +33,24 @@ The trigger is caused by any python file closing in either `open-autonomy/packag
 
 ## Debugging in the cluster
 
-When debugging deployments, it can be useful to have the option to spin up a hardhat node to enable debugging and testing of the issue within the cluster.
+When debugging deployments, it can be useful to have the option to spin up a hardhat node to enable debugging and testing of the issue within the cluster. First, build the image:
 
 ```bash
-VERSION=cluster-dev
-DEPLOYMENT_TYPE=kubernetes
-DEPLOYMENT_KEYS=deployments/keys/hardhat_keys.json
-SERVICE_ID=valory/oracle_hardhat
+autonomy fetch valory/oracle_hardhat --local --service
+cd oracle_hardhat
+autonomy build-image
+```
 
-autonomy build-image ${SERVICE_ID}
-autonomy deploy build ${DEPLOYMENT_KEYS} --kubernetes --force --dev
-autonomy deploy run --build-dir <build_dir>
+Now, push the image  to make it accessible for the cluster to pull it. You can get the tag from the previous command:
+```bash
+docker image push <tag>
+```
+
+Build the deployment and run it:
+```bash
+autonomy deploy build  ../generated_keys.json --force --password ${PASSWORD} --kubernetes --dev
+kubectl apply -f abci_build/
+kubectl apply -f abci_build/agent_keys
 ```
 
 This will deploy a private hardhat container to the cluster, along with the associated agent service, configured to use the hardhat container.
