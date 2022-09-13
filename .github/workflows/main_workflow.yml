@@ -214,6 +214,11 @@ jobs:
           TM_DEPLOYMENT_PATH="deployments/Dockerfiles/tendermint/"
           TM_IMG_NAME="valory/open-autonomy-tendermint"
           docker build $TM_DEPLOYMENT_PATH -t $TM_IMG_NAME:0.1.0 -t $TM_IMG_NAME:1.0.0 -t $TM_IMG_NAME:latest
+          
+          # pull pre-built images
+          docker pull valory/autonolas-registries:latest
+          docker pull valory/contracts-amm:latest
+          docker pull valory/safe-contract-net:latest
 
       - if: matrix.os == 'ubuntu-latest'
         name: Framework unit tests ubuntu-latest
@@ -257,7 +262,11 @@ jobs:
           sudo chmod +x skaffold
           sudo install skaffold /usr/local/bin/
           skaffold --help
-
+          
+          # pull pre-built images
+          docker pull valory/autonolas-registries:latest
+          docker pull valory/contracts-amm:latest
+          docker pull valory/safe-contract-net:latest
 
 
       - if: matrix.os == 'macos-latest'
@@ -312,7 +321,11 @@ jobs:
           curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.39.1/skaffold-windows-amd64.exe
           cp skaffold C:\Users\runneradmin\go\bin\
           skaffold --help
-
+          
+          # pull pre-built images
+          docker pull valory/autonolas-registries:latest
+          docker pull valory/contracts-amm:latest
+          docker pull valory/safe-contract-net:latest
 
       - if: matrix.os == 'windows-latest'
         name: Framework unit tests windows-latest
@@ -389,6 +402,11 @@ jobs:
           TM_DEPLOYMENT_PATH="deployments/Dockerfiles/tendermint/"
           TM_IMG_NAME="valory/open-autonomy-tendermint"
           docker build $TM_DEPLOYMENT_PATH -t $TM_IMG_NAME:0.1.0 -t $TM_IMG_NAME:1.0.0 -t $TM_IMG_NAME:latest
+          
+          # pull pre-built images
+          docker pull valory/autonolas-registries:latest
+          docker pull valory/contracts-amm:latest
+          docker pull valory/safe-contract-net:latest
 
       - name: Unit tests
         run: |
