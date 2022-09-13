@@ -84,12 +84,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
-THIRD_PARTY_CONTRACTS = Path(
-    os.environ.get("THIRD_PARTY_CONTRACTS", PACKAGE_DIR / "third_party")
-)
-
-if not THIRD_PARTY_CONTRACTS.exists():
-    raise RuntimeError("Please provide valid path for `THIRD_PARTY_CONTRACTS`")
 
 
 class LiquidityRebalancingBehaviourBaseCase(FSMBehaviourBaseCase):
@@ -116,7 +110,6 @@ class LiquidityProvisionIntegrationBaseCase(
     swap_back_nonce: int
     default_synchronized_data_hash: LiquidityRebalancingSynchronizedSata
     make_ledger_api_connection_callable = make_ledger_api_connection
-    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:

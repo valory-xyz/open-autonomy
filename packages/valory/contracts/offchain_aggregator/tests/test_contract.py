@@ -38,13 +38,6 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
-THIRD_PARTY_CONTRACTS = Path(
-    os.environ.get("THIRD_PARTY_CONTRACTS", PACKAGE_DIR / "third_party")
-)
-
-if not THIRD_PARTY_CONTRACTS.exists():
-    raise RuntimeError("Please provide valid path for `THIRD_PARTY_CONTRACTS`")
-
 
 class BaseContractTest(BaseGanacheContractTest):
     """Base test case for OffchainAggregatorContract"""
@@ -59,7 +52,6 @@ class BaseContractTest(BaseGanacheContractTest):
     DEFAULT_MAX_PRIORITY_FEE_PER_GAS: int = 10 ** 10
     contract_directory = PACKAGE_DIR
     contract: OffchainAggregatorContract
-    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:

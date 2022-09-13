@@ -59,12 +59,6 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.tests.test_contract imp
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
-THIRD_PARTY_CONTRACTS = Path(
-    os.environ.get("THIRD_PARTY_CONTRACTS", PACKAGE_DIR / "third_party")
-)
-
-if not THIRD_PARTY_CONTRACTS.exists():
-    raise RuntimeError("Please provide valid path for `THIRD_PARTY_CONTRACTS`")
 
 DEFAULT_GAS = 1000000
 DEFAULT_MAX_FEE_PER_GAS = 10 ** 15
@@ -79,7 +73,6 @@ class BaseContractTest(BaseGanacheContractTest):
     SALT_NONCE: Optional[int] = None
     contract_directory = PACKAGE_DIR
     contract: GnosisSafeContract
-    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     @classmethod
     def setup_class(
@@ -134,7 +127,6 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
     contract_directory = PACKAGE_DIR
     sanitize_from_deploy_tx = ["contract_address"]
     contract: GnosisSafeContract
-    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     @classmethod
     def setup_class(
@@ -184,7 +176,6 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
     """Test."""
 
     ledger_api: EthereumApi
-    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     def test_deployed(self) -> None:
         """Run tests."""
