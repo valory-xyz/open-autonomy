@@ -55,29 +55,17 @@ from aea.configurations.data_types import CRUDCollection, PublicId
 from aea.protocols.generator.common import _camel_case_to_snake_case
 
 from autonomy.analyse.abci.app_spec import DFA
+from autonomy.cli.scaffolding_templates import (
+    FILE_HEADER,
+    ROUNDS_FILE_HEADER,
+    EVENT_SECTION,
+    SYNCHRONIZED_DATA_SECTION,
+    ROUND_CLS_TEMPLATE,
+    DEGENERATE_ROUND_CLS_TEMPLATE,
+    ABCI_APP_CLS_TEMPLATE,
+)
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
 
-
-FILE_HEADER = """\
-# -*- coding: utf-8 -*-
-# ------------------------------------------------------------------------------
-#
-#   Copyright 2022 Valory AG
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-#
-# ------------------------------------------------------------------------------
-"""
 
 ROUNDS_FILENAME = "rounds.py"
 BEHAVIOURS_FILENAME = "behaviours.py"
@@ -173,103 +161,6 @@ class RoundFileGenerator(AbstractFileGenerator):
 
     FILENAME = ROUNDS_FILENAME
 
-    ROUNDS_FILE_HEADER = dedent(
-        """\
-        \"\"\"This package contains the rounds of {AbciApp}.\"\"\"
-
-        from enum import Enum
-        from typing import List, Optional, Set, Tuple
-
-        from packages.valory.skills.abstract_round_abci.base import (
-            AbciApp,
-            AbciAppTransitionFunction,
-            AbstractRound,
-            AppState,
-            BaseSynchronizedData,
-            DegenerateRound,
-            EventToTimeout,
-            TransactionType
-        )
-
-        from {author}.skills.{skill_name}.payloads import (
-            {payloads},
-        )
-
-    """
-    )
-
-    EVENT_SECTION = dedent(
-        """\
-        class Event(Enum):
-            \"\"\"{AbciApp} Events\"\"\"
-
-            {events}
-
-    """
-    )
-
-    SYNCHRONIZED_DATA_SECTION = dedent(
-        """\
-        class SynchronizedData(BaseSynchronizedData):
-            \"\"\"
-            Class to represent the synchronized data.
-
-            This data is replicated by the tendermint application.
-            \"\"\"
-
-    """
-    )
-
-    ROUND_CLS_TEMPLATE = dedent(
-        """\
-        class {RoundCls}({ABCRoundCls}):
-            \"\"\"{RoundCls}\"\"\"
-
-            {todo_abstract_round_cls}
-            # TODO: set the following class attributes
-            round_id: str = "{round_id}"
-            allowed_tx_type: Optional[TransactionType]
-            payload_attribute: str = {PayloadCls}.transaction_type
-
-            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
-                \"\"\"Process the end of the block.\"\"\"
-                raise NotImplementedError
-
-            def check_payload(self, payload: {PayloadCls}) -> None:
-                \"\"\"Check payload.\"\"\"
-                raise NotImplementedError
-
-            def process_payload(self, payload: {PayloadCls}) -> None:
-                \"\"\"Process payload.\"\"\"
-                raise NotImplementedError
-
-    """
-    )
-
-    DEGENERATE_ROUND_CLS_TEMPLATE = dedent(
-        """\
-        class {RoundCls}({ABCRoundCls}):
-            \"\"\"{RoundCls}\"\"\"
-
-            round_id: str = "{round_id}"
-
-    """
-    )
-
-    ABCI_APP_CLS_TEMPLATE = dedent(
-        """\
-        class {AbciAppCls}(AbciApp[Event]):
-            \"\"\"{AbciAppCls}\"\"\"
-
-            initial_round_cls: AppState = {initial_round_cls}
-            initial_states: Set[AppState] = {initial_states}
-            transition_function: AbciAppTransitionFunction = {transition_function}
-            final_states: Set[AppState] = {final_states}
-            event_to_timeout: EventToTimeout = {{}}
-            cross_period_persisted_keys: List[str] = []
-    """
-    )
-
     def get_file_content(self) -> str:
         """Scaffold the 'rounds.py' file."""
         rounds_header_section = self._get_rounds_header_section()
@@ -296,7 +187,7 @@ class RoundFileGenerator(AbstractFileGenerator):
         """Get the rounds header section."""
 
         payloads = indent(",\n".join(self.payloads), " " * 4).strip()
-        return self.ROUNDS_FILE_HEADER.format(
+        return ROUNDS_FILE_HEADER.format(
             author=self.author,
             skill_name=self.skill_name,
             AbciApp=self.abci_app_name,
@@ -312,7 +203,7 @@ class RoundFileGenerator(AbstractFileGenerator):
             todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
             base_name = round_name.replace(ROUND, "")
             round_id = _camel_case_to_snake_case(base_name)
-            round_class_str = RoundFileGenerator.ROUND_CLS_TEMPLATE.format(
+            round_class_str = ROUND_CLS_TEMPLATE.format(
                 round_id=round_id,
                 RoundCls=round_name,
                 PayloadCls=payload_name,
@@ -324,7 +215,7 @@ class RoundFileGenerator(AbstractFileGenerator):
         for round_name in self.degenerate_rounds:
             base_name = round_name.replace(ROUND, "")
             round_id = _camel_case_to_snake_case(base_name)
-            round_class_str = RoundFileGenerator.DEGENERATE_ROUND_CLS_TEMPLATE.format(
+            round_class_str = DEGENERATE_ROUND_CLS_TEMPLATE.format(
                 round_id=round_id,
                 RoundCls=round_name,
                 ABCRoundCls=DEGENERATE_ROUND,
@@ -342,16 +233,16 @@ class RoundFileGenerator(AbstractFileGenerator):
             for event_name in self.dfa.alphabet_in
         ]
         events = indent("\n".join(events_list), " " * 4).strip()
-        return self.EVENT_SECTION.format(AbciApp=self.abci_app_name, events=events)
+        return EVENT_SECTION.format(AbciApp=self.abci_app_name, events=events)
 
     def _get_synchronized_data_section(self) -> str:
         """Get the event section of the module (i.e. the event enum class definition)."""
-        return self.SYNCHRONIZED_DATA_SECTION
+        return SYNCHRONIZED_DATA_SECTION
 
     def _get_abci_app_section(self) -> str:
         """Get the abci app section (i.e. the declaration of the AbciApp class)."""
 
-        return RoundFileGenerator.ABCI_APP_CLS_TEMPLATE.format(
+        return ABCI_APP_CLS_TEMPLATE.format(
             AbciAppCls=self.abci_app_name,
             initial_round_cls=self.dfa.default_start_state,
             initial_states=_remove_quotes(str(self.dfa.start_states)),
