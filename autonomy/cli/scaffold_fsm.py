@@ -171,9 +171,14 @@ class AbstractFileGenerator(ABC):
                 result[state] = {}
         return _remove_quotes(str(result))
 
-    @property
+    @property  # TODO: functools cached property
     def template_kwargs(self) -> Dict[str, str]:
         """All keywords for string formatting of templates"""
+
+        events_list = [
+            f'{event_name} = "{event_name.lower()}"'
+            for event_name in self.dfa.alphabet_in
+        ]
 
         return dict(
             author=self.author,
@@ -184,6 +189,7 @@ class AbstractFileGenerator(ABC):
             all_rounds=indent(",\n".join(self.all_rounds), " " * 8).strip(),
             behaviours=indent(",\n".join(self.behaviours), " " * 8).strip(),
             payloads=indent(",\n".join(self.payloads), " " * 8).strip(),
+            events=indent("\n".join(events_list), " " * 8).strip(),
             initial_round_cls=self.dfa.default_start_state,
             initial_states=_remove_quotes(str(self.dfa.start_states)),
             transition_function=self._parse_transition_func(),
@@ -203,8 +209,6 @@ class RoundFileGenerator(AbstractFileGenerator, ROUNDS):
     def get_file_content(self) -> str:
         """Scaffold the 'rounds.py' file."""
         rounds_header_section = self._get_rounds_header_section()
-        event_section = self._get_event_section()
-        synchronized_data_section = self._get_synchronized_data_section()
         rounds_section = self._get_rounds_section()
         abci_app_section = self._get_abci_app_section()
 
@@ -213,8 +217,6 @@ class RoundFileGenerator(AbstractFileGenerator, ROUNDS):
             [
                 FILE_HEADER,
                 rounds_header_section,
-                event_section,
-                synchronized_data_section,
                 rounds_section,
                 abci_app_section,
             ]
@@ -257,20 +259,6 @@ class RoundFileGenerator(AbstractFileGenerator, ROUNDS):
 
         # build final content
         return "\n".join(all_round_classes_str)
-
-    def _get_event_section(self) -> str:
-        """Get the event section of the module (i.e. the event enum class definition)."""
-
-        events_list = [
-            f'{event_name} = "{event_name.lower()}"'
-            for event_name in self.dfa.alphabet_in
-        ]
-        events = indent("\n".join(events_list), " " * 8).strip()
-        return self.EVENT_SECTION.format(AbciApp=self.abci_app_name, events=events)
-
-    def _get_synchronized_data_section(self) -> str:
-        """Get the event section of the module (i.e. the event enum class definition)."""
-        return self.SYNCHRONIZED_DATA_SECTION
 
     def _get_abci_app_section(self) -> str:
         """Get the abci app section (i.e. the declaration of the AbciApp class)."""

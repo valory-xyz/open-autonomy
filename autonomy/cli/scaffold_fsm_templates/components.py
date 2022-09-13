@@ -44,17 +44,13 @@ class ROUNDS:
         {payloads},
     )
 
-    """
 
-    EVENT_SECTION = """\
     class Event(Enum):
         \"\"\"{AbciApp} Events\"\"\"
 
         {events}
 
-    """
 
-    SYNCHRONIZED_DATA_SECTION = """\
     class SynchronizedData(BaseSynchronizedData):
         \"\"\"
         Class to represent the synchronized data.
