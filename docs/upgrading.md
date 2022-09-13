@@ -7,7 +7,9 @@ Below we describe the additional manual steps required to upgrade between differ
 
 ## `v0.2.1.post1` to `v0.2.2`
 
-No backwards incompatible changes
+No backwards incompatible changes except:
+
+All imports from `autonomy.test_tools.*` are now found at `aea_test_autonomy.*`, after installing `open-aea-test-autonomy`.
 
 ## `v0.2.1` to `v0.2.1.post1`
 

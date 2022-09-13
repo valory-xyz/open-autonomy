@@ -1,4 +1,4 @@
-Having a service developed and deployed using the {{open_autonomy}} is a journey that consists of a number of steps. The process may look intimidating at a first glance, but if you have completed the [quick start guide](./quick_start) you have already navigated through a significant part of it.
+Having a service developed and deployed using the {{open_autonomy}} is a journey that consists of a number of steps. The process may look intimidating at a first glance, but if you have completed the [quick start guide](../quick_start) you have already navigated through a significant part of it.
 
 The overall development process is summarized in the figure below. Whereas you don't need to memorize it, it is recommended that you have a certain familiarity with it when you use the framework. You can always revisit this documentation when in doubt.
 

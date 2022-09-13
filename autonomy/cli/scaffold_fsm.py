@@ -915,7 +915,7 @@ class RoundTestsFileGenerator(AbstractFileGenerator):
         from packages.valory.skills.abstract_round_abci.base import (
             BaseTxPayload,
         )
-        from tests.test_skills.test_abstract_round_abci.test_base_rounds import (
+        from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
             BaseRoundTestClass,
             BaseOnlyKeeperSendsRoundTest,
             BaseCollectDifferentUntilThresholdRoundTest,
@@ -1064,8 +1064,7 @@ class BehaviourTestsFileGenerator(AbstractFileGenerator):
             {rounds},
         )
 
-        from tests.conftest import ROOT_DIR
-        from tests.test_skills.test_abstract_round_abci.test_tools.base import (
+        from packages.valory.skills.abstract_round_abci.test_tools.base import (
             FSMBehaviourBaseCase,
         )
 
@@ -1085,7 +1084,7 @@ class BehaviourTestsFileGenerator(AbstractFileGenerator):
         class Base{FSMName}Test(FSMBehaviourBaseCase):
             \"\"\"Base test case.\"\"\"
 
-            path_to_skill = Path(ROOT_DIR, "packages", "{author}", "skills", "{skill_name}")
+            path_to_skill = Path(__file__).parent.parent
 
             behaviour: {FSMName}BaseBehaviour
             behaviour_class: Type[{FSMName}BaseBehaviour]
