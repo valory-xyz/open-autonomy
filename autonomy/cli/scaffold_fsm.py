@@ -1069,8 +1069,6 @@ class BehaviourTestsFileGenerator(AbstractFileGenerator):
         )
 
 
-        PATH_TO_SKILL = Path(*{FSMName}BaseBehaviour.__module__.split(".")[:-1]).absolute()
-
         @dataclass
         class BehaviourTestCase:
             \"\"\"BehaviourTestCase\"\"\"
@@ -1086,7 +1084,7 @@ class BehaviourTestsFileGenerator(AbstractFileGenerator):
         class Base{FSMName}Test(FSMBehaviourBaseCase):
             \"\"\"Base test case.\"\"\"
 
-            path_to_skill = PATH_TO_SKILL
+            path_to_skill = Path(__file__).parent.parent
 
             behaviour: {FSMName}BaseBehaviour
             behaviour_class: Type[{FSMName}BaseBehaviour]
