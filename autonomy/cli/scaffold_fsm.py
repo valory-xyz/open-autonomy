@@ -67,6 +67,13 @@ from autonomy.cli.scaffolding_templates import (
     BASE_BEHAVIOUR_CLS_TEMPLATE,
     BEHAVIOUR_CLS_TEMPLATE,
     ROUND_BEHAVIOUR_CLS_TEMPLATE,
+    PAYLOADS_FILE,
+    TRANSACTION_TYPE_SECTION,
+    BASE_PAYLOAD_CLS,
+    PAYLOAD_CLS_TEMPLATE,
+    MODEL_FILE_TEMPLATE,
+    HANDLERS_FILE,
+    DIALOGUES_FILE,
 )
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
 
@@ -350,74 +357,14 @@ class PayloadsFileGenerator(AbstractFileGenerator):
 
     FILENAME = PAYLOADS_FILENAME
 
-    PAYLOADS_FILE = dedent(
-        """\
-        \"\"\"This module contains the transaction payloads of the {FSMName}.\"\"\"
-
-        from abc import ABC
-        from enum import Enum
-        from typing import Any, Dict, Hashable, Optional
-
-        from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
-
-    """
-    )
-
-    TRANSACTION_TYPE_SECTION = dedent(
-        """\
-        class TransactionType(Enum):
-            \"\"\"Enumeration of transaction types.\"\"\"
-
-            # TODO: define transaction types: e.g. TX_HASH: "tx_hash"
-            {tx_types}
-
-            def __str__(self) -> str:
-                \"\"\"Get the string value of the transaction type.\"\"\"
-                return self.value
-
-        """
-    )
-
-    BASE_PAYLOAD_CLS = dedent(
-        """\
-        class Base{FSMName}Payload(BaseTxPayload, ABC):
-            \"\"\"Base payload for {FSMName}.\"\"\"
-
-            def __init__(self, sender: str, content: Hashable, **kwargs: Any) -> None:
-                \"\"\"Initialize a 'select_keeper' transaction payload.\"\"\"
-
-                super().__init__(sender, **kwargs)
-                setattr(self, f"_{{self.transaction_type}}", content)
-                p = property(lambda s: getattr(self, f"_{{self.transaction_type}}"))
-                setattr(self.__class__, f"{{self.transaction_type}}", p)
-
-            @property
-            def data(self) -> Dict[str, Hashable]:
-                \"\"\"Get the data.\"\"\"
-                return {{str(self.transaction_type): getattr(self, str(self.transaction_type))}}
-
-    """
-    )
-
-    PAYLOAD_CLS_TEMPLATE = dedent(
-        """\
-        class {PayloadCls}(Base{FSMName}Payload):
-            \"\"\"Represent a transaction payload for the {RoundCls}.\"\"\"
-
-            # TODO: specify the transaction type
-            transaction_type = TransactionType.{tx_type}
-
-        """
-    )
-
     def _get_base_payload_section(self) -> str:
         """Get the base payload section."""
 
-        all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(FSMName=self.fsm_name)]
+        all_payloads_classes_str = [BASE_PAYLOAD_CLS.format(FSMName=self.fsm_name)]
 
         for payload_name, round_name in zip(self.payloads, self.rounds):
             tx_type = _camel_case_to_snake_case(round_name.replace(ROUND, ""))
-            payload_class_str = self.PAYLOAD_CLS_TEMPLATE.format(
+            payload_class_str = PAYLOAD_CLS_TEMPLATE.format(
                 FSMName=self.fsm_name,
                 PayloadCls=payload_name,
                 RoundCls=round_name,
@@ -437,8 +384,8 @@ class PayloadsFileGenerator(AbstractFileGenerator):
         return "\n".join(
             [
                 FILE_HEADER,
-                self.PAYLOADS_FILE.format(FSMName=self.abci_app_name),
-                self.TRANSACTION_TYPE_SECTION.format(tx_types=tx_types),
+                PAYLOADS_FILE.format(FSMName=self.abci_app_name),
+                TRANSACTION_TYPE_SECTION.format(tx_types=tx_types),
                 self._get_base_payload_section(),
             ]
         )
@@ -449,40 +396,13 @@ class ModelsFileGenerator(AbstractFileGenerator):
 
     FILENAME = MODELS_FILENAME
 
-    MODEL_FILE_TEMPLATE = dedent(
-        """\
-        \"\"\"This module contains the shared state for the abci skill of {AbciApp}.\"\"\"
-
-        from typing import Any
-
-        from packages.valory.skills.abstract_round_abci.models import BaseParams
-        from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
-        from packages.valory.skills.abstract_round_abci.models import (
-            SharedState as BaseSharedState,
-        )
-        from {author}.skills.{skill_name}.rounds import {AbciApp}
-
-
-        class SharedState(BaseSharedState):
-            \"\"\"Keep the current shared state of the skill.\"\"\"
-
-            def __init__(self, *args: Any, **kwargs: Any) -> None:
-                \"\"\"Initialize the state.\"\"\"
-                super().__init__(*args, abci_app_cls={AbciApp}, **kwargs)
-
-
-        Params = BaseParams
-        Requests = BaseRequests
-        """
-    )
-
     def get_file_content(self) -> str:
         """Get the file content."""
 
         return "\n".join(
             [
                 FILE_HEADER,
-                ModelsFileGenerator.MODEL_FILE_TEMPLATE.format(
+                MODEL_FILE_TEMPLATE.format(
                     AbciApp=self.abci_app_name,
                     author=self.author,
                     skill_name=self.skill_name,
@@ -496,46 +416,13 @@ class HandlersFileGenerator(AbstractFileGenerator):
 
     FILENAME = HANDLERS_FILENAME
 
-    HANDLERS_FILE = dedent(
-        """\
-        \"\"\"This module contains the handlers for the skill of {FSMName}.\"\"\"
-
-        from packages.valory.skills.abstract_round_abci.handlers import (
-            ABCIRoundHandler as BaseABCIRoundHandler,
-        )
-        from packages.valory.skills.abstract_round_abci.handlers import (
-            ContractApiHandler as BaseContractApiHandler,
-        )
-        from packages.valory.skills.abstract_round_abci.handlers import (
-            HttpHandler as BaseHttpHandler,
-        )
-        from packages.valory.skills.abstract_round_abci.handlers import (
-            LedgerApiHandler as BaseLedgerApiHandler,
-        )
-        from packages.valory.skills.abstract_round_abci.handlers import (
-            SigningHandler as BaseSigningHandler,
-        )
-        from packages.valory.skills.abstract_round_abci.handlers import (
-            TendermintHandler as BaseTendermintHandler,
-        )
-
-
-        ABCIRoundHandler = BaseABCIRoundHandler
-        HttpHandler = BaseHttpHandler
-        SigningHandler = BaseSigningHandler
-        LedgerApiHandler = BaseLedgerApiHandler
-        ContractApiHandler = BaseContractApiHandler
-        TendermintHandler = BaseTendermintHandler
-        """
-    )
-
     def get_file_content(self) -> str:
         """Get the file content."""
 
         return "\n".join(
             [
                 FILE_HEADER,
-                HandlersFileGenerator.HANDLERS_FILE.format(FSMName=self.abci_app_name),
+                HANDLERS_FILE.format(FSMName=self.abci_app_name),
             ]
         )
 
@@ -545,80 +432,13 @@ class DialoguesFileGenerator(AbstractFileGenerator):
 
     FILENAME = DIALOGUES_FILENAME
 
-    DIALOGUES_FILE = dedent(
-        """\
-        \"\"\"This module contains the dialogues of the {FSMName}.\"\"\"
-
-        from packages.valory.skills.abstract_round_abci.dialogues import (
-            AbciDialogue as BaseAbciDialogue,
-        )
-        from packages.valory.skills.abstract_round_abci.dialogues import (
-            AbciDialogues as BaseAbciDialogues,
-        )
-        from packages.valory.skills.abstract_round_abci.dialogues import (
-            ContractApiDialogue as BaseContractApiDialogue,
-        )
-        from packages.valory.skills.abstract_round_abci.dialogues import (
-            ContractApiDialogues as BaseContractApiDialogues,
-        )
-        from packages.valory.skills.abstract_round_abci.dialogues import (
-            HttpDialogue as BaseHttpDialogue,
-        )
-        from packages.valory.skills.abstract_round_abci.dialogues import (
-            HttpDialogues as BaseHttpDialogues,
-        )
-        from packages.valory.skills.abstract_round_abci.dialogues import (
-            LedgerApiDialogue as BaseLedgerApiDialogue,
-        )
-        from packages.valory.skills.abstract_round_abci.dialogues import (
-            LedgerApiDialogues as BaseLedgerApiDialogues,
-        )
-        from packages.valory.skills.abstract_round_abci.dialogues import (
-            SigningDialogue as BaseSigningDialogue,
-        )
-        from packages.valory.skills.abstract_round_abci.dialogues import (
-            SigningDialogues as BaseSigningDialogues,
-        )
-        from packages.valory.skills.abstract_round_abci.dialogues import (
-            TendermintDialogue as BaseTendermintDialogue,
-        )
-        from packages.valory.skills.abstract_round_abci.dialogues import (
-            TendermintDialogues as BaseTendermintDialogues,
-        )
-
-
-        AbciDialogue = BaseAbciDialogue
-        AbciDialogues = BaseAbciDialogues
-
-
-        HttpDialogue = BaseHttpDialogue
-        HttpDialogues = BaseHttpDialogues
-
-
-        SigningDialogue = BaseSigningDialogue
-        SigningDialogues = BaseSigningDialogues
-
-
-        LedgerApiDialogue = BaseLedgerApiDialogue
-        LedgerApiDialogues = BaseLedgerApiDialogues
-
-
-        ContractApiDialogue = BaseContractApiDialogue
-        ContactApiDialogues = BaseContractApiDialogues
-
-
-        TendermintDialogue = BaseTendermintDialogue
-        TendermintDialogues = BaseTendermintDialogues
-        """
-    )
-
     def get_file_content(self) -> str:
         """Get the file content."""
 
         return "\n".join(
             [
                 FILE_HEADER,
-                self.DIALOGUES_FILE.format(FSMName=self.abci_app_name),
+                DIALOGUES_FILE.format(FSMName=self.abci_app_name),
             ]
         )
 
