@@ -1,4 +1,0 @@
-[submodule "third_party/safe-contracts"]
-	path = third_party/safe-contracts
-	url = https://github.com/valory-xyz/safe-contracts.git
-	ignore = dirty

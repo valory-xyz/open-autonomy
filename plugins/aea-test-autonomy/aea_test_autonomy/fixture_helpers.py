@@ -309,7 +309,6 @@ class GanacheBaseTest(DockerBaseTest):
     addr: str = DEFAULT_GANACHE_ADDR
     port: int = DEFAULT_GANACHE_PORT
     configuration: Dict = GANACHE_CONFIGURATION
-    third_party_contract_dir: Path
 
     @classmethod
     def setup_class_kwargs(cls) -> Dict[str, Any]:
@@ -444,7 +443,6 @@ class HardHatBaseTest(DockerBaseTest):
 
     addr: str = DEFAULT_HARDHAT_ADDR
     port: int = DEFAULT_HARDHAT_PORT
-    third_party_contract_dir: Path
 
     @classmethod
     def setup_class_kwargs(cls) -> Dict[str, Any]:
@@ -516,7 +514,7 @@ def gnosis_safe_hardhat_scope_function(
     client = docker.from_env()
     logging.info(f"Launching Hardhat at port {hardhat_port}")
     image = GnosisSafeNetDockerImage(
-        client, _get_third_party_path(), hardhat_addr, hardhat_port
+        client, hardhat_addr, hardhat_port
     )
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
@@ -532,7 +530,7 @@ def gnosis_safe_hardhat_scope_class(
     client = docker.from_env()
     logging.info(f"Launching Hardhat at port {hardhat_port}")
     image = GnosisSafeNetDockerImage(
-        client, _get_third_party_path(), hardhat_addr, hardhat_port
+        client, hardhat_addr, hardhat_port
     )
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
@@ -563,7 +561,7 @@ class HardHatGnosisBaseTest(HardHatBaseTest):
         """Build the image."""
         client = docker.from_env()
         return GnosisSafeNetDockerImage(
-            client, cls.third_party_contract_dir, cls.addr, cls.port
+            client, cls.addr, cls.port
         )
 
 
@@ -580,15 +578,3 @@ class HardHatAMMBaseTest(HardHatBaseTest):
         """Build the image."""
         client = docker.from_env()
         return AMMNetDockerImage(client, cls.addr, cls.port)
-
-
-# TODO: remove and make all of them hosted images
-def _get_third_party_path() -> Path:
-    """Get path to third party contracts."""
-    third_parth_contracts_path = Path(
-        os.environ.get("THIRD_PARTY_CONTRACTS", "third_party")
-    )
-
-    if not third_parth_contracts_path.exists():
-        raise RuntimeError("Please provide valid path for `THIRD_PARTY_CONTRACTS`")
-    return third_parth_contracts_path
