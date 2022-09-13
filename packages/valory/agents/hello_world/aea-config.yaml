@@ -6,10 +6,13 @@ description: Hello World ABCI example.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeifzdekpjcas6egpwxj24tir5ozzffmkq5ecyi6rw3i6fqfd763etu
+  __init__.py: bafybeiehvk4wlv2bcbplwc66owg4qdnisiihijq7iegcmjjxtz3dulnrgm
+  tests/__init__.py: bafybeiasj5kqyvalbnedototb6ooxfnro3vjmgscja2iccccotfjnd6cha
+  tests/test_hello_world.py: bafybeibxivmqhuxpeewcd4tpig45p7ekiegh4ujpez7zbslvmlxwylulee
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeif5kex2gtxnpy7bcpcbz6z62daxnlooqfzam32xewnevee456okxy
-- valory/http_client:0.1.0:bafybeiayvkp3jkaahfuej72gididod5dzpa2vivjmxk7uxtcimc4g5e66i
+- valory/abci:0.1.0:bafybeih34yj6l7akh6wfhgwaud3luvmwxkiakcqzv3zjiz5q7jfqtdnela
+- valory/http_client:0.1.0:bafybeiet6defg3qvov4r2ucjtkywkz53xcg6mgarjfdqmnxfgdixgcx45y
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts: []
 protocols:
@@ -17,9 +20,9 @@ protocols:
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
 - valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
 skills:
-- valory/abstract_abci:0.1.0:bafybeihrpr42sp6ukaiar2eoxp6qrfv4mkndw3m5vzsxivlbhsjv7iwy4a
-- valory/abstract_round_abci:0.1.0:bafybeicqihaqm7w7qf2cz5nsop3yrg64mm5eb7vlbl4z5qppmhgtzegpye
-- valory/hello_world_abci:0.1.0:bafybeiadfyzpfsqvaeb3rt52bw7kyy3vzizsphj5qrkbabnkcbjb2n2xaq
+- valory/abstract_abci:0.1.0:bafybeidt4cyfhlla6faca6us6law7dijrlrzihcj6uwrmeaa3ho6fdck2u
+- valory/abstract_round_abci:0.1.0:bafybeictkuadfh2hwe43tsgw2ohfy5ocwvqgwmmqjicf34dkaqgsslafva
+- valory/hello_world_abci:0.1.0:bafybeih5qalgm7db2sbayld3podbgnnjfpvnefibzzbkffld7ddh7mrejq
 default_ledger: ethereum
 required_ledgers:
 - ethereum

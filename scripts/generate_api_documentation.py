@@ -58,6 +58,8 @@ IGNORE_NAMES = {
     r"^py\.typed$",
     r"^.*_pb2.py$",
     r"^..*_pb2_grpc.py$",
+    r"^test_.*\.py$",
+    r"^conftest\.py$",
 }
 IGNORE_PREFIXES: Set[Path] = set()
 

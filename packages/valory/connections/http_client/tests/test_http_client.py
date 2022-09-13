@@ -23,6 +23,7 @@
 
 import asyncio
 import logging
+import socket
 from asyncio import CancelledError
 from typing import Any, cast
 from unittest.mock import MagicMock, Mock, patch
@@ -30,7 +31,7 @@ from unittest.mock import MagicMock, Mock, patch
 import aiohttp
 import pytest
 from aea.common import Address
-from aea.configurations.base import ConnectionConfig
+from aea.configurations.base import ConnectionConfig, PublicId
 from aea.identity.base import Identity
 from aea.mail.base import Envelope, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
@@ -40,10 +41,34 @@ from packages.valory.protocols.http.dialogues import HttpDialogue
 from packages.valory.protocols.http.dialogues import HttpDialogues as BaseHttpDialogues
 from packages.valory.protocols.http.message import HttpMessage
 
-from tests.conftest import UNKNOWN_PROTOCOL_PUBLIC_ID, get_host, get_unused_tcp_port
 
+UNKNOWN_PROTOCOL_PUBLIC_ID = PublicId("unused", "unused", "1.0.0")
 
 logger = logging.getLogger(__name__)
+
+
+def get_host() -> str:
+    """Get the host."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(("10.255.255.255", 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = "127.0.0.1"
+    finally:
+        s.close()
+    return IP
+
+
+def get_unused_tcp_port() -> int:
+    """Get an unused TCP port."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(("127.0.0.1", 0))
+    s.listen(1)
+    port = s.getsockname()[1]
+    s.close()
+    return port
 
 
 class AnyStringWith(str):

@@ -97,7 +97,7 @@ common-checks-2:
 
 .PHONY: docs
 docs:
-	mkdocs build --clean
+	mkdocs build --clean --strict
 
 .PHONY: test
 test:

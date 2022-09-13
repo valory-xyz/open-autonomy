@@ -20,18 +20,22 @@ fingerprint:
   tests/test_behaviours.py: bafybeiewavpcq3r6t6qwt2jy7uohonzrhvjgo4zjnifec3mchfwo4arphq
   tests/test_dialogues.py: bafybeidndadco2cyqj63nfqjx4igbtf2wnkeig47b5twgry3lzbqoudn7a
   tests/test_handlers.py: bafybeif3mrcsuuu4dabwtpk565objlasp6aydhen3mccj3tffyzsxmnzgq
+  tests/test_integration.py: bafybeidqoutmiq5kqkh4o6n65dcckmxxdlw537yjq6n7f7k2dogvn4d23q
   tests/test_models.py: bafybeifim6rodwa6j6o6327565j6xvh6lp7tvgk6sybd5dg45pjji5djha
 fingerprint_ignore_patterns: []
-connections: []
-contracts: []
-protocols: []
+connections:
+- valory/ledger:0.1.0:bafybeicup3pqzi74h67z6oxzw7qhsz2dpezeqhalg7bex37fqcx5koivqu
+contracts:
+- valory/gnosis_safe:0.1.0:bafybeidkfwvbyknjwlndhdf5euan7i4wmugxgtf2uhakvqspy24vgaehya
+protocols:
+- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicqihaqm7w7qf2cz5nsop3yrg64mm5eb7vlbl4z5qppmhgtzegpye
-- valory/liquidity_rebalancing_abci:0.1.0:bafybeifsrxfuzjzmgiq5rrmohedqzm6sjhdxo7lykdpjac2cgvgnbcvnfq
-- valory/registration_abci:0.1.0:bafybeidlts5ca4qcfd4u2ix7vzj34f7xwfkr74hj3g6awmh6rvlnbagsde
-- valory/reset_pause_abci:0.1.0:bafybeihywet5df7nrgarlx5qqkef6ofh6xrcd3hm2m7mpqpqfvbypra3wq
-- valory/safe_deployment_abci:0.1.0:bafybeicjswvogpm3rut3aghokeodfm3ug2t74zy5og5xnpmid4cdfrazda
-- valory/transaction_settlement_abci:0.1.0:bafybeifhlmfxcxoyxytvcevttoix44kto5z6bskery7y5hltqur25vgory
+- valory/abstract_round_abci:0.1.0:bafybeictkuadfh2hwe43tsgw2ohfy5ocwvqgwmmqjicf34dkaqgsslafva
+- valory/liquidity_rebalancing_abci:0.1.0:bafybeichen2wv6jdnyat7pmmbnmvbh3pyxqgqcrzkfozdfq5ifbnlfgu2i
+- valory/registration_abci:0.1.0:bafybeifjxf4b2m7dymwjyvsshozeaj3lz7whdzcfbkbobbfp3hh7x2b3hy
+- valory/reset_pause_abci:0.1.0:bafybeigserxbzcqmocfkypwypsabnyanxt462hdhjjng7eqdtam5z67boa
+- valory/safe_deployment_abci:0.1.0:bafybeihptscplpnvien2ois43nhyjtfuussyh52rtemxeswjlvwqwur4hq
+- valory/transaction_settlement_abci:0.1.0:bafybeiapkhilfbf6pm6ndfaz35ntwwwvs2c4wy4ttu52mm5232cqlfcvym
 behaviours:
   main:
     args: {}

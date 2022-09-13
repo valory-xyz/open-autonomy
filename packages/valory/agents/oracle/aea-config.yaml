@@ -6,11 +6,14 @@ description: Oracle agent.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeia6rbpcaovvels4mn3ufkbbvwrsibury3x5g6eyo4lws4w2uk3x4q
+  __init__.py: bafybeieja6fkcncllqarspvtzsnm25g6ttxkxfdk2jduuozvt5a3uin6t4
+  tests/__init__.py: bafybeiddkyv7ohqiylizxurzs4ihom2o5rpqbwf5xufzkz3jpa7umpwgmm
+  tests/test_oracle.py: bafybeibf24xwxcw5cdq3sm22tfy3tpgs5skdkwyvuu475byug7b52kz74e
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeif5kex2gtxnpy7bcpcbz6z62daxnlooqfzam32xewnevee456okxy
-- valory/http_client:0.1.0:bafybeiayvkp3jkaahfuej72gididod5dzpa2vivjmxk7uxtcimc4g5e66i
-- valory/ledger:0.1.0:bafybeibrjvpha6payy23d7wcschuf3w4b2nwlms32x5b6u2wipqyh2rcbm
+- valory/abci:0.1.0:bafybeih34yj6l7akh6wfhgwaud3luvmwxkiakcqzv3zjiz5q7jfqtdnela
+- valory/http_client:0.1.0:bafybeiet6defg3qvov4r2ucjtkywkz53xcg6mgarjfdqmnxfgdixgcx45y
+- valory/ledger:0.1.0:bafybeicup3pqzi74h67z6oxzw7qhsz2dpezeqhalg7bex37fqcx5koivqu
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeidkfwvbyknjwlndhdf5euan7i4wmugxgtf2uhakvqspy24vgaehya
@@ -26,15 +29,15 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeihrpr42sp6ukaiar2eoxp6qrfv4mkndw3m5vzsxivlbhsjv7iwy4a
-- valory/abstract_round_abci:0.1.0:bafybeicqihaqm7w7qf2cz5nsop3yrg64mm5eb7vlbl4z5qppmhgtzegpye
-- valory/oracle_abci:0.1.0:bafybeig2nbfwnmcfpno7s7hfomheg67hhwqf6hz6i4hkrhkxdla26yd2fy
-- valory/oracle_deployment_abci:0.1.0:bafybeiabxfz5qqrhtznlfr6tz3fuvlveauysqibtiyz2vsbbzqdmjhg6dm
-- valory/price_estimation_abci:0.1.0:bafybeieydsoars6wrhrribntzb2j54yi3eh2xzghcmsrelvdng6y3jds5q
-- valory/registration_abci:0.1.0:bafybeidlts5ca4qcfd4u2ix7vzj34f7xwfkr74hj3g6awmh6rvlnbagsde
-- valory/reset_pause_abci:0.1.0:bafybeihywet5df7nrgarlx5qqkef6ofh6xrcd3hm2m7mpqpqfvbypra3wq
-- valory/safe_deployment_abci:0.1.0:bafybeicjswvogpm3rut3aghokeodfm3ug2t74zy5og5xnpmid4cdfrazda
-- valory/transaction_settlement_abci:0.1.0:bafybeifhlmfxcxoyxytvcevttoix44kto5z6bskery7y5hltqur25vgory
+- valory/abstract_abci:0.1.0:bafybeidt4cyfhlla6faca6us6law7dijrlrzihcj6uwrmeaa3ho6fdck2u
+- valory/abstract_round_abci:0.1.0:bafybeictkuadfh2hwe43tsgw2ohfy5ocwvqgwmmqjicf34dkaqgsslafva
+- valory/oracle_abci:0.1.0:bafybeieen7ybrnqbb77j7fsgiu5hp4zhcgv73d34qqb6u3czyqmae3rwzy
+- valory/oracle_deployment_abci:0.1.0:bafybeic7rw466d4nhacyoyrehxczukjabbuid75zkkm5pbg67f247zh5bq
+- valory/price_estimation_abci:0.1.0:bafybeic2f63tkc6pkgqml3wq6j7ryp626qvsmo5moxjt3t6iwfr2v7b354
+- valory/registration_abci:0.1.0:bafybeifjxf4b2m7dymwjyvsshozeaj3lz7whdzcfbkbobbfp3hh7x2b3hy
+- valory/reset_pause_abci:0.1.0:bafybeigserxbzcqmocfkypwypsabnyanxt462hdhjjng7eqdtam5z67boa
+- valory/safe_deployment_abci:0.1.0:bafybeihptscplpnvien2ois43nhyjtfuussyh52rtemxeswjlvwqwur4hq
+- valory/transaction_settlement_abci:0.1.0:bafybeiapkhilfbf6pm6ndfaz35ntwwwvs2c4wy4ttu52mm5232cqlfcvym
 default_ledger: ethereum
 required_ledgers:
 - ethereum
