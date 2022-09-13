@@ -4,7 +4,7 @@ The hot reload mode enables hot code swapping and reflects changes on the agent 
 
 ## General Guide
 
-Arbitrary agent services built with the {{open_autonomy}} framework can be run with the hot start functionality.
+Arbitrary agent services built with the {{open_autonomy}} framework can be run with the hot reload functionality.
 
 ### Environment setup
 
@@ -33,118 +33,30 @@ The trigger is caused by any python file closing in either `open-autonomy/packag
 
 ## Debugging in the cluster
 
-When debugging deployments, it can be useful to have the option to spin up a hardhat node to enable debugging and testing of the issue within the cluster.
+When debugging deployments, it can be useful to have the option to spin up a hardhat node to enable debugging and testing of the issue within the cluster. First, fetch the service:
 
 ```bash
-VERSION=cluster-dev
-DEPLOYMENT_TYPE=kubernetes
-DEPLOYMENT_KEYS=deployments/keys/hardhat_keys.json
-SERVICE_ID=valory/oracle_hardhat
-
-make push-images build-deploy run-deploy
+autonomy fetch valory/oracle_hardhat --local --service
+cd oracle_hardhat
 ```
 
-where the Makefile can be copied from here:
+You now need to replace the override in the ```service.yaml``` file: change ```http://host.docker.internal:8545``` to ```http://hardhat:8545```.
+
+Then, build the image:
 ```bash
-.ONESHELL: build-images
-build-images:
-	if [ "${VERSION}" = "" ];\
-	then\
-		echo "Ensure you have exported a version to build!";\
-		exit 1
-	fi
-	autonomy deploy build image ${SERVICE_ID} --dependencies || (echo failed && exit 1)
-	if [ "${VERSION}" = "dev" ];\
-	then\
-		echo "building dev images!";\
-	 	autonomy deploy build image ${SERVICE_ID} \
-			--dev && exit 0
-		exit 1
-	fi
-	autonomy deploy build image ${SERVICE_ID} --version ${VERSION} && exit 0
-	exit 1
+autonomy build-image
+```
 
-.ONESHELL: build-images push-images
-push-images:
-	if [ "${VERSION}" = "" ];\
-	then\
-		echo "Ensure you have exported a version to build!";\
-		exit 1
-	fi
-	autonomy deploy build image ${SERVICE_ID} --dependencies --push || (echo failed && exit 1)
-	if [ "${VERSION}" = "dev" ];\
-	then\
-		echo "building dev images!";\
-		autonomy deploy build image ${SERVICE_ID} --dev --push || (echo failed && exit 1)
-		exit 0
-	fi
-	autonomy deploy build image ${SERVICE_ID} --version ${VERSION} --prod --push || (echo failed && exit 1)
-	exit 0
+Now, push the image  to make it accessible for the cluster to pull it. You can get the tag from the previous command:
+```bash
+docker image push <tag>
+```
 
-.PHONY: build-deploy
-build-deploy:
-	if [ "${DEPLOYMENT_TYPE}" = "" ];\
-	then\
-		echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
-		exit 1
-	fi
-	if [ "${SERVICE_ID}" = "" ];\
-	then\
-		echo "Please ensure you have set the environment variable 'SERVICE_ID'"
-		exit 1
-	fi
-	if [ "${DEPLOYMENT_KEYS}" = "" ];\
-	then\
-		echo "Please ensure you have set the environment variable 'DEPLOYMENT_KEYS'"
-		exit 1
-	fi
-	echo "Building deployment for ${DEPLOYMENT_TYPE} ${DEPLOYMENT_KEYS} ${SERVICE_ID}"
-
-	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
-	then\
-		if [ "${VERSION}" = "cluster-dev" ];\
-		then\
-			autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force --dev
-			exit 0
-		fi
-		autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force
-		exit 0
-	fi
-	if [ "${VERSION}" = "dev" ];\
-	then\
-		autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker --dev --force
-		exit 0
-	fi
-	autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker
-
-.PHONY: run-deploy
-run-deploy:
-	if [ "${PLATFORM_STR}" = "Linux" ];\
-	then\
-		mkdir -p abci_build/persistent_data/logs
-		mkdir -p abci_build/persistent_data/venvs
-		sudo chown -R 1000:1000 -R abci_build/persistent_data/logs
-		sudo chown -R 1000:1000 -R abci_build/persistent_data/venvs
-	fi
-	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
-	then\
-		cd abci_build/ &&  \
-		docker-compose up --force-recreate -t 600 --remove-orphans
-		exit 0
-	fi
-	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
-	then\
-		kubectl create ns ${VERSION}|| (echo "failed to deploy to namespace already existing!" && exit 0)
-		kubectl create secret generic regcred \
-          --from-file=.dockerconfigjson=/home/$(shell whoami)/.docker/config.json \
-          --type=kubernetes.io/dockerconfigjson -n ${VERSION} || (echo "failed to create secret" && exit 1)
-		cd abci_build/ && \
-			kubectl apply -f build.yaml -n ${VERSION} && \
-			kubectl apply -f agent_keys/ -n ${VERSION} && \
-			exit 0
-	fi
-	echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
-	exit 1
+Finally, build the deployment and run it:
+```bash
+autonomy deploy build  ../generated_keys.json --force --password ${PASSWORD} --kubernetes --dev
+kubectl apply -f abci_build/
+kubectl apply -f abci_build/agent_keys
 ```
 
 This will deploy a private hardhat container to the cluster, along with the associated agent service, configured to use the hardhat container.
