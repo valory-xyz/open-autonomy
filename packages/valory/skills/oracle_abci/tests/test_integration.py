@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for various transaction settlement skill's failure modes."""
-import os
 from collections import deque
 from math import ceil
 from pathlib import Path

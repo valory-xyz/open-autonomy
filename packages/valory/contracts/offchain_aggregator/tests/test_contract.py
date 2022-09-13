@@ -19,7 +19,6 @@
 
 """Tests for valory/offchain_aggregator contract."""
 
-import os
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, cast
@@ -38,6 +37,7 @@ from packages.valory.contracts.offchain_aggregator.contract import (
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
+
 
 class BaseContractTest(BaseGanacheContractTest):
     """Base test case for OffchainAggregatorContract"""

@@ -19,7 +19,6 @@
 
 """Tests for valory/uniswap_v2_router02 contract."""
 
-import os
 from pathlib import Path
 from typing import Any, Dict, Optional, cast
 from unittest import mock

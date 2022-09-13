@@ -20,7 +20,6 @@
 """Tests for valory/gnosis contract."""
 
 import binascii
-import os
 import secrets
 import time
 from pathlib import Path

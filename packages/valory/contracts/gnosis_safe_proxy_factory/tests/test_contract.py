@@ -19,7 +19,6 @@
 
 """Tests for valory/gnosis contract."""
 
-import os
 from pathlib import Path
 from typing import Any, Dict
 

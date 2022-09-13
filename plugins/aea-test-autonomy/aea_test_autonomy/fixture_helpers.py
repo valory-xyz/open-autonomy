@@ -26,8 +26,6 @@
 # pylint: disable=unused-argument
 
 import logging
-import os
-from pathlib import Path
 from typing import Any, Dict, Generator, List, Tuple, cast
 
 import docker
@@ -513,9 +511,7 @@ def gnosis_safe_hardhat_scope_function(
     """Launch the HardHat node with Gnosis Safe contracts deployed. This fixture is scoped to a function which means it will destroyed at the end of the test."""
     client = docker.from_env()
     logging.info(f"Launching Hardhat at port {hardhat_port}")
-    image = GnosisSafeNetDockerImage(
-        client, hardhat_addr, hardhat_port
-    )
+    image = GnosisSafeNetDockerImage(client, hardhat_addr, hardhat_port)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
@@ -529,9 +525,7 @@ def gnosis_safe_hardhat_scope_class(
     """Launch the HardHat node with Gnosis Safe contracts deployed.This fixture is scoped to a class which means it will destroyed after running every test in a class."""
     client = docker.from_env()
     logging.info(f"Launching Hardhat at port {hardhat_port}")
-    image = GnosisSafeNetDockerImage(
-        client, hardhat_addr, hardhat_port
-    )
+    image = GnosisSafeNetDockerImage(client, hardhat_addr, hardhat_port)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
@@ -560,9 +554,7 @@ class HardHatGnosisBaseTest(HardHatBaseTest):
     def _build_image(cls) -> DockerImage:
         """Build the image."""
         client = docker.from_env()
-        return GnosisSafeNetDockerImage(
-            client, cls.addr, cls.port
-        )
+        return GnosisSafeNetDockerImage(client, cls.addr, cls.port)
 
 
 ###
