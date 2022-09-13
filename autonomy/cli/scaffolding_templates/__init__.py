@@ -20,6 +20,7 @@ FILE_HEADER = """\
 # ------------------------------------------------------------------------------
 """
 
+# Rounds
 ROUNDS_FILE_HEADER = """\
 \"\"\"This package contains the rounds of {AbciApp}.\"\"\"
 
@@ -106,3 +107,67 @@ class {AbciAppCls}(AbciApp[Event]):
     cross_period_persisted_keys: List[str] = []
 """
 
+# Behaviours
+BEHAVIOUR_FILE_HEADER ="""\
+\"\"\"This package contains round behaviours of {AbciApp}.\"\"\"
+
+from abc import abstractmethod
+from typing import Generator, Set, Type, cast
+
+from packages.valory.skills.abstract_round_abci.base import AbstractRound
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    AbstractRoundBehaviour,
+    BaseBehaviour,
+)
+
+from {author}.skills.{skill_name}.models import Params
+from {author}.skills.{skill_name}.rounds import (
+    SynchronizedData,
+    {AbciApp},
+    {rounds},
+)
+
+"""
+
+
+BASE_BEHAVIOUR_CLS_TEMPLATE = """\
+class {BaseBehaviourCls}(BaseBehaviour):
+    \"\"\"Base behaviour for the common apps' skill.\"\"\"
+
+    @property
+    def synchronized_data(self) -> SynchronizedData:
+        \"\"\"Return the synchronized data.\"\"\"
+        return cast(SynchronizedData, super().synchronized_data)
+
+    @property
+    def params(self) -> Params:
+        \"\"\"Return the params.\"\"\"
+        return cast(Params, super().params)
+
+"""
+
+
+BEHAVIOUR_CLS_TEMPLATE = """\
+class {BehaviourCls}({BaseBehaviourCls}):
+    \"\"\"{BehaviourCls}\"\"\"
+
+    # TODO: set the following class attributes
+    state_id: str
+    behaviour_id: str = "{behaviour_id}"
+    matching_round: Type[AbstractRound] = {matching_round}
+
+    @abstractmethod
+    def async_act(self) -> Generator:
+        \"\"\"Do the act, supporting asynchronous execution.\"\"\"
+
+"""
+
+
+ROUND_BEHAVIOUR_CLS_TEMPLATE = """\
+class {RoundBehaviourCls}(AbstractRoundBehaviour):
+    \"\"\"{RoundBehaviourCls}\"\"\"
+
+    initial_behaviour_cls = {InitialBehaviourCls}
+    abci_app_cls = {AbciAppCls}  # type: ignore
+    behaviours: Set[Type[BaseBehaviour]] = {behaviours}
+"""

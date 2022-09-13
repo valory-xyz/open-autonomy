@@ -63,6 +63,10 @@ from autonomy.cli.scaffolding_templates import (
     ROUND_CLS_TEMPLATE,
     DEGENERATE_ROUND_CLS_TEMPLATE,
     ABCI_APP_CLS_TEMPLATE,
+    BEHAVIOUR_FILE_HEADER,
+    BASE_BEHAVIOUR_CLS_TEMPLATE,
+    BEHAVIOUR_CLS_TEMPLATE,
+    ROUND_BEHAVIOUR_CLS_TEMPLATE,
 )
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
 
@@ -266,75 +270,6 @@ class BehaviourFileGenerator(AbstractFileGenerator):
 
     FILENAME = BEHAVIOURS_FILENAME
 
-    BEHAVIOUR_FILE_HEADER = dedent(
-        """\
-        \"\"\"This package contains round behaviours of {AbciApp}.\"\"\"
-
-        from abc import abstractmethod
-        from typing import Generator, Set, Type, cast
-
-        from packages.valory.skills.abstract_round_abci.base import AbstractRound
-        from packages.valory.skills.abstract_round_abci.behaviours import (
-            AbstractRoundBehaviour,
-            BaseBehaviour,
-        )
-
-        from {author}.skills.{skill_name}.models import Params
-        from {author}.skills.{skill_name}.rounds import (
-            SynchronizedData,
-            {AbciApp},
-            {rounds},
-        )
-
-        """
-    )
-
-    BASE_BEHAVIOUR_CLS_TEMPLATE = dedent(
-        """\
-        class {BaseBehaviourCls}(BaseBehaviour):
-            \"\"\"Base behaviour for the common apps' skill.\"\"\"
-
-            @property
-            def synchronized_data(self) -> SynchronizedData:
-                \"\"\"Return the synchronized data.\"\"\"
-                return cast(SynchronizedData, super().synchronized_data)
-
-            @property
-            def params(self) -> Params:
-                \"\"\"Return the params.\"\"\"
-                return cast(Params, super().params)
-
-    """
-    )
-
-    BEHAVIOUR_CLS_TEMPLATE = dedent(
-        """\
-        class {BehaviourCls}({BaseBehaviourCls}):
-            \"\"\"{BehaviourCls}\"\"\"
-
-            # TODO: set the following class attributes
-            state_id: str
-            behaviour_id: str = "{behaviour_id}"
-            matching_round: Type[AbstractRound] = {matching_round}
-
-            @abstractmethod
-            def async_act(self) -> Generator:
-                \"\"\"Do the act, supporting asynchronous execution.\"\"\"
-
-    """
-    )
-
-    ROUND_BEHAVIOUR_CLS_TEMPLATE = dedent(
-        """\
-        class {RoundBehaviourCls}(AbstractRoundBehaviour):
-            \"\"\"{RoundBehaviourCls}\"\"\"
-
-            initial_behaviour_cls = {InitialBehaviourCls}
-            abci_app_cls = {AbciAppCls}  # type: ignore
-            behaviours: Set[Type[BaseBehaviour]] = {behaviours}
-    """
-    )
-
     def get_file_content(self) -> str:
         """Scaffold the 'behaviours.py' file."""
 
@@ -360,7 +295,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
         """Get the behaviours header section."""
 
         rounds = indent(",\n".join(self.rounds), " " * 4).strip()
-        return self.BEHAVIOUR_FILE_HEADER.format(
+        return BEHAVIOUR_FILE_HEADER.format(
             AbciApp=self.abci_app_name,
             author=self.author,
             skill_name=self.skill_name,
@@ -371,7 +306,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
         """Get the base behaviour section."""
 
         base_behaviour_cls_name = self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR)
-        return self.BASE_BEHAVIOUR_CLS_TEMPLATE.format(
+        return BASE_BEHAVIOUR_CLS_TEMPLATE.format(
             BaseBehaviourCls=base_behaviour_cls_name
         )
 
@@ -385,7 +320,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
                 ABCI_APP, BASE_BEHAVIOUR
             )
             behaviour_id = behaviour_name.replace(BEHAVIOUR, "")
-            behaviour_class_str = BehaviourFileGenerator.BEHAVIOUR_CLS_TEMPLATE.format(
+            behaviour_class_str = BEHAVIOUR_CLS_TEMPLATE.format(
                 BehaviourCls=behaviour_name,
                 BaseBehaviourCls=base_behaviour_cls_name,
                 behaviour_id=_camel_case_to_snake_case(behaviour_id),
@@ -402,7 +337,7 @@ class BehaviourFileGenerator(AbstractFileGenerator):
         round_behaviour_cls_name = self.abci_app_name.replace(ABCI_APP, ROUND_BEHAVIOUR)
         initial_round_cls_name = self.dfa.default_start_state
         initial_behaviour_cls_name = initial_round_cls_name.replace(ROUND, BEHAVIOUR)
-        return BehaviourFileGenerator.ROUND_BEHAVIOUR_CLS_TEMPLATE.format(
+        return ROUND_BEHAVIOUR_CLS_TEMPLATE.format(
             RoundBehaviourCls=round_behaviour_cls_name,
             InitialBehaviourCls=initial_behaviour_cls_name,
             AbciAppCls=abci_app_cls_name,
