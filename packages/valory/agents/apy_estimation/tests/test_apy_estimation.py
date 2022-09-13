@@ -37,12 +37,15 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     gnosis_safe_hardhat_scope_function,
     hardhat_addr,
     hardhat_port,
+    key_pairs,
     nb_nodes,
     tendermint_port,
 )
 
+from packages.valory.skills.abstract_round_abci.tests.test_io.test_ipfs import (  # noqa: F401
+    ipfs_daemon,
+)
 
-ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
 
 HAPPY_PATH = (
     RoundChecks("collect_history"),
@@ -61,21 +64,11 @@ HAPPY_PATH = (
 )
 
 
-@ipfs_daemon
-@pytest.mark.usefixtures(
-    "flask_tendermint",
-    "tendermint_port",
-    "abci_host",
-    "abci_port",
-    "nb_nodes",
-    "gnosis_safe_hardhat_scope_function",
-    "hardhat_addr",
-    "hardhat_port",
-)
+@pytest.mark.usefixtures("ipfs_daemon")
 class BaseTestABCIAPYEstimationSkillNormalExecution(BaseTestEnd2EndExecution):
     """Base class for the APY estimation e2e tests."""
 
-    agent_package = "valory/apy_estimation_chained:0.1.0"
+    agent_package = "valory/apy_estimation:0.1.0"
     skill_package = "valory/apy_estimation_chained_abci:0.1.0"
     happy_path = HAPPY_PATH
     ROUND_TIMEOUT_SECONDS = 480

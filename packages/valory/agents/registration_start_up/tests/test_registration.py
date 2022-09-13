@@ -35,8 +35,16 @@ from aea_test_autonomy.base_test_classes.agents import (
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     UseACNNode,
     UseRegistries,
+    abci_host,
+    abci_port,
     acn_config,
     acn_node,
+    flask_tendermint,
+    hardhat_port,
+    key_pairs,
+    nb_nodes,
+    registries_scope_class,
+    tendermint_port,
 )
 
 from packages.valory.skills.registration_abci.behaviours import (
@@ -92,7 +100,6 @@ class RegistrationStartUpTestConfig(UseRegistries, UseACNNode, BaseTestEnd2End):
             "value": 15,
         },
     ]
-    package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
 
 
 @pytest.mark.e2e
@@ -102,6 +109,8 @@ class TestRegistrationStartUpFourAgents(
     RegistrationStartUpTestConfig, BaseTestEnd2EndExecution
 ):
     """Test registration start-up skill with four agents."""
+
+    package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
 
 
 @pytest.mark.e2e
@@ -115,3 +124,4 @@ class TestRegistrationStartUpFourAgentsCatchUp(
     stop_string = "My address: "
     restart_after = 10
     n_terminal = 1
+    package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
