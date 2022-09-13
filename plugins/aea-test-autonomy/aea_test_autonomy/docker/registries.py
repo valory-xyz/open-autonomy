@@ -20,7 +20,7 @@
 """Tendermint Docker image."""
 import logging
 import time
-from typing import List
+from typing import Dict, List, Optional
 
 import docker
 import requests
@@ -50,17 +50,24 @@ class RegistriesDockerImage(DockerImage):
     """Spawn a local Ethereum network with deployed registry contracts, using HardHat."""
 
     _CONTAINER_PORT = DEFAULT_HARDHAT_PORT
+    _SERVICE_CONFIG_HASH_ENV_VAR = "SERVICE_CONFIG_HASH"
+    _env_vars = {
+        _SERVICE_CONFIG_HASH_ENV_VAR: DEFAULT_SERVICE_CONFIG_HASH,
+    }
 
     def __init__(
         self,
         client: docker.DockerClient,
         addr: str = DEFAULT_HARDHAT_ADDR,
         port: int = DEFAULT_HARDHAT_PORT,
+        env_vars: Optional[Dict] = None,
     ):
         """Initialize."""
         super().__init__(client)
         self.addr = addr
         self.port = port
+        if env_vars is not None:
+            self._env_vars = {**self._env_vars, **env_vars}
 
     @property
     def tag(self) -> str:
@@ -75,6 +82,7 @@ class RegistriesDockerImage(DockerImage):
             detach=True,
             ports=ports,
             extra_hosts={"host.docker.internal": "host-gateway"},
+            environment=self._env_vars,
         )
         return container
 
