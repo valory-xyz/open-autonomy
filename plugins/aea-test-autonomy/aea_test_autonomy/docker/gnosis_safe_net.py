@@ -47,7 +47,7 @@ MULTISEND_CALL_ONLY_CONTRACT = "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
 class GnosisSafeNetDockerImage(DockerImage):
     """Spawn a local Ethereum network with deployed Gnosis Safe contracts, using HardHat."""
 
-    _CONTAINER_PORT = 8545
+    _CONTAINER_PORT = DEFAULT_HARDHAT_PORT
 
     def __init__(
         self,
@@ -63,7 +63,7 @@ class GnosisSafeNetDockerImage(DockerImage):
     @property
     def tag(self) -> str:
         """Get the tag."""
-        return "valory/gnosis-safe-net:latest"
+        return "valory/safe-contract-net:latest"
 
     def create(self) -> Container:
         """Create the container."""
