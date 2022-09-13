@@ -65,7 +65,7 @@ class RegistriesDockerImage(DockerImage):
     @property
     def tag(self) -> str:
         """Get the tag."""
-        return "valory/autonolas-registries"
+        return "valory/autonolas-registries:latest"
 
     def create(self) -> Container:
         """Create the container."""
