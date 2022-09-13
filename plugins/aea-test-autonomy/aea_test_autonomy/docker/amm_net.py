@@ -20,7 +20,6 @@
 """Tendermint Docker image."""
 import logging
 import time
-from pathlib import Path
 from typing import List
 
 import docker
@@ -49,12 +48,9 @@ MULTISEND_CALL_ONLY_CONTRACT = "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
 class AMMNetDockerImage(DockerImage):
     """Spawn a local Ethereum network with deployed Gnosis Safe and Uniswap contracts, using HardHat."""
 
-    third_party_contract_dir: Path
-
     def __init__(
         self,
         client: docker.DockerClient,
-        third_party_contract_dir: Path,
         addr: str = DEFAULT_HARDHAT_ADDR,
         port: int = DEFAULT_HARDHAT_PORT,
     ):
@@ -62,12 +58,11 @@ class AMMNetDockerImage(DockerImage):
         super().__init__(client)
         self.addr = addr
         self.port = port
-        self.third_party_contract_dir = third_party_contract_dir
 
     @property
     def tag(self) -> str:
         """Get the tag."""
-        return "node:16.7.0"
+        return "valory/contracts-amm:latest"
 
     def _build_command(self) -> List[str]:
         """Build command."""
@@ -76,23 +71,11 @@ class AMMNetDockerImage(DockerImage):
 
     def create(self) -> Container:
         """Create the container."""
-        cmd = self._build_command()
-        working_dir = "/build"
-        volumes = {
-            str(self.third_party_contract_dir / AMM_CONTRACT_DIR): {
-                "bind": working_dir,
-                "mode": "rw",
-            },
-        }
         ports = {f"{self.port}/tcp": ("0.0.0.0", self.port)}  # nosec
         container = self._client.containers.run(
             self.tag,
-            command=cmd,
             detach=True,
             ports=ports,
-            volumes=volumes,
-            working_dir=working_dir,
-            entrypoint="yarn",
             extra_hosts={"host.docker.internal": "host-gateway"},
         )
         return container

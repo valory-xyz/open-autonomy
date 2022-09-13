@@ -579,9 +579,7 @@ class HardHatAMMBaseTest(HardHatBaseTest):
     def _build_image(cls) -> DockerImage:
         """Build the image."""
         client = docker.from_env()
-        return AMMNetDockerImage(
-            client, cls.third_party_contract_dir, cls.addr, cls.port
-        )
+        return AMMNetDockerImage(client, cls.addr, cls.port)
 
 
 # TODO: remove and make all of them hosted images
