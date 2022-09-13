@@ -48,6 +48,8 @@ MULTISEND_CALL_ONLY_CONTRACT = "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
 class AMMNetDockerImage(DockerImage):
     """Spawn a local Ethereum network with deployed Gnosis Safe and Uniswap contracts, using HardHat."""
 
+    _CONTAINER_PORT = 8545
+
     def __init__(
         self,
         client: docker.DockerClient,
@@ -66,7 +68,7 @@ class AMMNetDockerImage(DockerImage):
 
     def create(self) -> Container:
         """Create the container."""
-        ports = {f"{self.port}/tcp": ("0.0.0.0", self.port)}  # nosec
+        ports = {f"{self._CONTAINER_PORT}/tcp": ("0.0.0.0", self.port)}  # nosec
         container = self._client.containers.run(
             self.tag,
             detach=True,

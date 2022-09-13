@@ -49,6 +49,8 @@ DEFAULT_SERVICE_CONFIG_HASH = (
 class RegistriesDockerImage(DockerImage):
     """Spawn a local Ethereum network with deployed registry contracts, using HardHat."""
 
+    _CONTAINER_PORT = 8545
+
     def __init__(
         self,
         client: docker.DockerClient,
@@ -67,7 +69,7 @@ class RegistriesDockerImage(DockerImage):
 
     def create(self) -> Container:
         """Create the container."""
-        ports = {f"{self.port}/tcp": ("0.0.0.0", self.port)}  # nosec
+        ports = {f"{self._CONTAINER_PORT}/tcp": ("0.0.0.0", self.port)}  # nosec
         container = self._client.containers.run(
             self.tag,
             detach=True,

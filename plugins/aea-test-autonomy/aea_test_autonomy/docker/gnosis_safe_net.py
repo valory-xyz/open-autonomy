@@ -28,6 +28,7 @@ from aea.exceptions import enforce
 from aea_test_autonomy.docker.base import DockerImage
 from docker.models.containers import Container
 
+
 DEFAULT_HARDHAT_ADDR = "http://127.0.0.1"
 DEFAULT_HARDHAT_PORT = 8545
 GNOSIS_SAFE_CONTRACTS_DIR = "safe-contracts"
@@ -45,6 +46,8 @@ MULTISEND_CALL_ONLY_CONTRACT = "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"
 
 class GnosisSafeNetDockerImage(DockerImage):
     """Spawn a local Ethereum network with deployed Gnosis Safe contracts, using HardHat."""
+
+    _CONTAINER_PORT = 8545
 
     def __init__(
         self,
@@ -64,7 +67,7 @@ class GnosisSafeNetDockerImage(DockerImage):
 
     def create(self) -> Container:
         """Create the container."""
-        ports = {f"{self.port}/tcp": ("0.0.0.0", self.port)}  # nosec
+        ports = {f"{self._CONTAINER_PORT}/tcp": ("0.0.0.0", self.port)}  # nosec
         container = self._client.containers.run(
             self.tag,
             detach=True,
