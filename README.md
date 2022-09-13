@@ -63,8 +63,6 @@ As opposed to traditional smart contracts, Valory apps go beyond simple, purely 
 Ensure your machine satisfies the following requirements:
 
 - Python `>= 3.7`
-- Yarn `>=1.22.xx`
-- Node `>=v12.xx`
 - [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
 - [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `==v0.6.0`
 - [Pip](https://pip.pypa.io/en/stable/installation/)
@@ -87,27 +85,14 @@ Ensure your machine satisfies the following requirements:
 
       git submodule update --init --recursive
 
-- Build the Hardhat projects:
+- Pull pre-built images:
 
-      cd third_party/safe-contracts && yarn install
-      cd ../..
-      cd third_party/contracts-amm && yarn install
-      cd ../..
-      cd third_party/autonolas-registries && yarn install --ignore-engines
+      docker pull valory/autonolas-registries:latest
+      docker pull valory/contracts-amm:latest
+      docker pull valory/safe-contract-net:latest
 
 - Create and launch a virtual environment. Also, run this during development,
 every time you need to re-create and launch the virtual environment and update
 the dependencies:
 
       make new_env && pipenv shell
-
-
-## Common errors and solutions
-### e2e tests not running
-Error message:
-```bash
-error Command "hardhat" not found.
-Failed: node:16.7.0 doesn't work. Exiting...
-```
-
-Solution: re-run `yarn install` inside the `third-party/safe-contracts` and `third-party/contracts-amm` repos.
