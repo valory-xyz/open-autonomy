@@ -46,16 +46,6 @@ def get_cmd_data(cmd: Union[Command, Group]) -> Dict:
                 *[i.opts for i in cmd.params if isinstance(i, click.Argument)]
             )
         ),
-        "string_options": list(
-            itertools.chain(
-                *[
-                    i.opts
-                    for i in cmd.params
-                    if isinstance(i, Option)
-                    and isinstance(i.type, click.types.StringParamType)
-                ]
-            )
-        ),
     }
 
 
@@ -118,8 +108,7 @@ class CommandValidator:
                     )
                     return False
 
-                if cmd_part in tree["string_options"]:
-                    allow_option_arg = True
+                allow_option_arg = True
                 continue
 
             # Option arguments: we can't validate them, just guess that they are correct.
