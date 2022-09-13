@@ -33,8 +33,10 @@ The trigger is caused by any python file closing in either `open-autonomy/packag
 
 ## Debugging in the cluster
 
-When debugging deployments, it can be useful to have the option to spin up a hardhat node to enable debugging and testing of the issue within the cluster. First, build the image:
+When debugging deployments, it can be useful to have the option to spin up a hardhat node to enable debugging and testing of the issue within the cluster. First, replace the override in the
+```service.yaml``` file: change ```http://host.docker.internal:8545``` to ```http://hardhat:8545```.
 
+Then, build the image:
 ```bash
 autonomy fetch valory/oracle_hardhat --local --service
 cd oracle_hardhat
