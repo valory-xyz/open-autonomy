@@ -3,7 +3,7 @@
 # 0.2.2 (2022-08-09)
 
 # AEA
- 
+
 - Adds support for registry flags on `autonomy scaffold fsm` command
 - Adds support for scaffolding
   - Dialogues
@@ -52,7 +52,7 @@ Autonomy:
 - Introduces base autonomy image and agent runtime image for performance improvements.
 - Removes the need for building the dependency images at the runtime.
 - Updates the deployment flow to utilize the newly improved images.
-- Removes the support for pushing the images using the autonomy CLI tool.
+- Removes the support for pushing the images using the Open Autonomy CLI tool.
 - Removes `skaffold` as a framework dependency.
 - Adds support for remote registries in the fsm scaffold utility.
 - Bumps `open-aea` and its plugins to version `1.17.0`.
