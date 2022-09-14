@@ -73,6 +73,16 @@ def get_transitions(input_sequence: List[str]) -> List[str]
 
 Runs the DFA given the input sequence of symbols, and outputs the list of state transitions.
 
+<a id="autonomy.analyse.abci.app_spec.DFA.parse_transition_func"></a>
+
+#### parse`_`transition`_`func
+
+```python
+def parse_transition_func() -> Dict[str, Dict[str, str]]
+```
+
+Parse the transition function from the spec to a nested dictionary.
+
 <a id="autonomy.analyse.abci.app_spec.DFA.__eq__"></a>
 
 #### `__`eq`__`

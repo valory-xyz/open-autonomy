@@ -80,7 +80,6 @@ ABSTRACT_ROUND = "AbstractRound"
 ROUND = "Round"
 BEHAVIOUR = "Behaviour"
 PAYLOAD = "Payload"
-EVENT = "Event"
 ABCI_APP = "AbciApp"
 BASE_BEHAVIOUR = "BaseBehaviour"
 ROUND_BEHAVIOUR = "RoundBehaviour"
@@ -174,7 +173,7 @@ class AbstractFileGenerator(ABC):
         tx_type_list = list(map(_camel_case_to_snake_case, self.base_names))
         tx_type_list = [f'{tx_type.upper()} = "{tx_type}"' for tx_type in tx_type_list]
 
-        tf = json.dumps(self.dfa._parse_transition_func(), indent=4)
+        tf = json.dumps(self.dfa.parse_transition_func(), indent=4)
         behaviours = json.dumps(self.behaviours, indent=4)
 
         return dict(
