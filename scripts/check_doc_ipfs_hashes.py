@@ -121,7 +121,7 @@ class PackageHashManager:
     def __init__(self) -> None:
         """Constructor"""
         hashes_file = Path("packages", "packages.json").relative_to(".")
-        hash_data = json.loads(hashes_file.read_text())
+        hash_data = json.loads(hashes_file.read_text(encoding="utf-8"))
         self.packages = [Package(key, value) for key, value in hash_data.items()]
 
         self.package_tree: Dict = {}
