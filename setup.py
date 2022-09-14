@@ -96,8 +96,10 @@ def parse_readme():
     replacement = raw_url_root + r"\g<0>"
     readme = re.sub(r"(?<=<img src=\")(/.*)(?=\")", replacement, readme, re.DOTALL)
 
-    return "\n".join([readme])
-
+    header = re.search("<h1.*?(?=## )", readme, re.DOTALL).group(0)
+    get_started = re.search("## Get started.*?(?=## )", readme, re.DOTALL).group(0)
+    cite = re.search("## Cite.*$", readme, re.DOTALL).group(0)
+    return "\n".join([header, get_started, cite])
 
 if __name__ == "__main__":
     setup(
