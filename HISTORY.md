@@ -1,6 +1,6 @@
 # Release History - `open-autonomy`
 
-# 3.0.0 (2022-09-14)
+# 0.3.0 (2022-09-14)
 
 # Autonomy
 
