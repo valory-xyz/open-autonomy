@@ -180,6 +180,9 @@ class AbstractFileGenerator(ABC):
             for event_name in self.dfa.alphabet_in
         ]
 
+        tx_type_list = list(map(_camel_case_to_snake_case, self.base_names))
+        tx_type_list = [f'{tx_type.upper()} = "{tx_type}"' for tx_type in tx_type_list]
+
         return dict(
             author=self.author,
             skill_name=self.skill_name,
@@ -189,6 +192,7 @@ class AbstractFileGenerator(ABC):
             all_rounds=indent(",\n".join(self.all_rounds), " " * 8).strip(),
             behaviours=indent(",\n".join(self.behaviours), " " * 8).strip(),
             payloads=indent(",\n".join(self.payloads), " " * 8).strip(),
+            tx_types=indent("\n".join(tx_type_list), " " * 8).strip(),
             events=indent("\n".join(events_list), " " * 8).strip(),
             initial_round_cls=self.dfa.default_start_state,
             initial_states=_remove_quotes(str(self.dfa.start_states)),
@@ -208,44 +212,33 @@ class RoundFileGenerator(AbstractFileGenerator, ROUNDS):
 
     def get_file_content(self) -> str:
         """Scaffold the 'rounds.py' file."""
-        rounds_header_section = self._get_rounds_header_section()
-        rounds_section = self._get_rounds_section()
-        abci_app_section = self._get_abci_app_section()
 
-        # build final content
-        rounds_file_content = "\n".join(
-            [
-                FILE_HEADER,
-                rounds_header_section,
-                rounds_section,
-                abci_app_section,
-            ]
-        )
+        file_content = [
+            FILE_HEADER,
+            ROUNDS.HEADER.format(**self.template_kwargs),
+            self._get_rounds_section(),
+            self.ABCI_APP_CLS.format(**self.template_kwargs),
+        ]
 
-        return rounds_file_content
-
-    def _get_rounds_header_section(self) -> str:
-        """Get the rounds header section."""
-
-        return ROUNDS.HEADER.format(**self.template_kwargs)
+        return "\n".join(file_content)
 
     def _get_rounds_section(self) -> str:
         """Get the round section of the module (i.e. the round classes)."""
-        all_round_classes_str = []
 
-        # add round classes
+        rounds: List[str] = []
+
         todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
         for round_name, payload_name in zip(self.rounds, self.payloads):
             base_name = round_name.replace(ROUND, "")
             round_id = _camel_case_to_snake_case(base_name)
-            round_class_str = self.ROUND_CLS.format(
+            round_class = self.ROUND_CLS.format(
                 round_id=round_id,
                 RoundCls=round_name,
                 PayloadCls=payload_name,
                 ABCRoundCls=ABSTRACT_ROUND,
                 todo_abstract_round_cls=todo_abstract_round_cls,
             )
-            all_round_classes_str.append(round_class_str)
+            rounds.append(round_class)
 
         for round_name in self.degenerate_rounds:
             base_name = round_name.replace(ROUND, "")
@@ -255,15 +248,10 @@ class RoundFileGenerator(AbstractFileGenerator, ROUNDS):
                 RoundCls=round_name,
                 ABCRoundCls=DEGENERATE_ROUND,
             )
-            all_round_classes_str.append(round_class_str)
+            rounds.append(round_class_str)
 
         # build final content
-        return "\n".join(all_round_classes_str)
-
-    def _get_abci_app_section(self) -> str:
-        """Get the abci app section (i.e. the declaration of the AbciApp class)."""
-
-        return self.ABCI_APP_CLS.format(**self.template_kwargs)
+        return "\n".join(rounds)
 
 
 class BehaviourFileGenerator(AbstractFileGenerator, BEHAVIOURS):
@@ -274,59 +262,32 @@ class BehaviourFileGenerator(AbstractFileGenerator, BEHAVIOURS):
     def get_file_content(self) -> str:
         """Scaffold the 'behaviours.py' file."""
 
-        behaviours_header_section = self._get_behaviours_header_section()
-        base_behaviour_section = self._get_base_behaviour_section()
-        behaviours_section = self._get_behaviours_section()
-        round_behaviour_section = self._get_round_behaviour_section()
+        file_content = [
+            FILE_HEADER,
+            self.HEADER.format(**self.template_kwargs),
+            self.BASE_BEHAVIOUR_CLS.format(**self.template_kwargs),
+            self._get_behaviours_section(),
+            self.ROUND_BEHAVIOUR_CLS.format(**self.template_kwargs),
+        ]
 
-        # build final content
-        behaviours_file_content = "\n".join(
-            [
-                FILE_HEADER,
-                behaviours_header_section,
-                base_behaviour_section,
-                behaviours_section,
-                round_behaviour_section,
-            ]
-        )
-
-        return behaviours_file_content
-
-    def _get_behaviours_header_section(self) -> str:
-        """Get the behaviours header section."""
-
-        return self.HEADER.format(**self.template_kwargs)
-
-    def _get_base_behaviour_section(self) -> str:
-        """Get the base behaviour section."""
-
-        return self.BASE_BEHAVIOUR_CLS.format(**self.template_kwargs)
+        return "\n".join(file_content)
 
     def _get_behaviours_section(self) -> str:
         """Get the behaviours section of the module (i.e. the list of behaviour classes)."""
 
-        all_behaviour_classes_str = []
-
+        behaviours: List[str] = []
+        base_behaviour_name = self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR)
         for behaviour_name, round_name in zip(self.behaviours, self.rounds):
-            base_behaviour_cls_name = self.abci_app_name.replace(
-                ABCI_APP, BASE_BEHAVIOUR
-            )
             behaviour_id = behaviour_name.replace(BEHAVIOUR, "")
-            behaviour_class_str = self.BEHAVIOUR_CLS.format(
+            behaviour = self.BEHAVIOUR_CLS.format(
                 BehaviourCls=behaviour_name,
-                BaseBehaviourCls=base_behaviour_cls_name,
+                BaseBehaviourCls=base_behaviour_name,
                 behaviour_id=_camel_case_to_snake_case(behaviour_id),
                 matching_round=round_name,
             )
-            all_behaviour_classes_str.append(behaviour_class_str)
+            behaviours.append(behaviour)
 
-        # build final content
-        return "\n".join(all_behaviour_classes_str)
-
-    def _get_round_behaviour_section(self) -> str:
-        """Get the round behaviour section of the module (i.e. the declaration of the round behaviour class)."""
-
-        return self.ROUND_BEHAVIOUR_CLS.format(**self.template_kwargs)
+        return "\n".join(behaviours)
 
 
 class PayloadsFileGenerator(AbstractFileGenerator, PAYLOADS):
@@ -337,7 +298,7 @@ class PayloadsFileGenerator(AbstractFileGenerator, PAYLOADS):
     def _get_base_payload_section(self) -> str:
         """Get the base payload section."""
 
-        all_payloads_classes_str = [self.BASE_PAYLOAD_CLS.format(**self.template_kwargs)]
+        payloads: List[str] = [self.BASE_PAYLOAD_CLS.format(**self.template_kwargs)]
 
         for payload_name, round_name in zip(self.payloads, self.rounds):
             tx_type = _camel_case_to_snake_case(round_name.replace(ROUND, ""))
@@ -347,25 +308,21 @@ class PayloadsFileGenerator(AbstractFileGenerator, PAYLOADS):
                 RoundCls=round_name,
                 tx_type=tx_type.upper(),
             )
-            all_payloads_classes_str.append(payload_class_str)
+            payloads.append(payload_class_str)
 
-        return "\n".join(all_payloads_classes_str)
+        return "\n".join(payloads)
 
     def get_file_content(self) -> str:
         """Get the file content."""
 
-        tx_type_list = list(map(_camel_case_to_snake_case, self.base_names))
-        tx_type_list = [f'{tx_type.upper()} = "{tx_type}"' for tx_type in tx_type_list]
-        tx_types = indent("\n".join(tx_type_list), " " * 8).strip()
+        file_content = [
+            FILE_HEADER,
+            self.HEADER.format(**self.template_kwargs),
+            self.TRANSACTION_TYPE_SECTION.format(**self.template_kwargs),
+            self._get_base_payload_section(),
+        ]
 
-        return "\n".join(
-            [
-                FILE_HEADER,
-                self.HEADER.format(**self.template_kwargs),
-                self.TRANSACTION_TYPE_SECTION.format(tx_types=tx_types),
-                self._get_base_payload_section(),
-            ]
-        )
+        return "\n".join(file_content)
 
 
 class ModelsFileGenerator(AbstractFileGenerator, MODELS):
@@ -376,12 +333,12 @@ class ModelsFileGenerator(AbstractFileGenerator, MODELS):
     def get_file_content(self) -> str:
         """Get the file content."""
 
-        return "\n".join(
-            [
-                FILE_HEADER,
-                self.HEADER.format(**self.template_kwargs),
-            ]
-        )
+        file_content = [
+            FILE_HEADER,
+            self.HEADER.format(**self.template_kwargs),
+        ]
+
+        return "\n".join(file_content)
 
 
 class HandlersFileGenerator(AbstractFileGenerator, HANDLERS):
@@ -392,12 +349,12 @@ class HandlersFileGenerator(AbstractFileGenerator, HANDLERS):
     def get_file_content(self) -> str:
         """Get the file content."""
 
-        return "\n".join(
-            [
-                FILE_HEADER,
-                self.HEADER.format(**self.template_kwargs),
-            ]
-        )
+        file_content = [
+            FILE_HEADER,
+            self.HEADER.format(**self.template_kwargs),
+        ]
+
+        return "\n".join(file_content)
 
 
 class DialoguesFileGenerator(AbstractFileGenerator, DIALOGUES):
@@ -408,12 +365,12 @@ class DialoguesFileGenerator(AbstractFileGenerator, DIALOGUES):
     def get_file_content(self) -> str:
         """Get the file content."""
 
-        return "\n".join(
-            [
-                FILE_HEADER,
-                self.HEADER.format(**self.template_kwargs),
-            ]
-        )
+        file_content = [
+            FILE_HEADER,
+            self.HEADER.format(**self.template_kwargs),
+        ]
+
+        return "\n".join(file_content)
 
 
 class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
@@ -518,37 +475,27 @@ class RoundTestsFileGenerator(AbstractFileGenerator, TEST_ROUNDS):
     def get_file_content(self) -> str:
         """Scaffold the 'test_rounds.py' file."""
 
-        rounds_header_section = self._get_rounds_header_section()
-        rounds_section = self._get_rounds_section()
+        file_content = [
+            FILE_HEADER,
+            self.HEADER.format(**self.template_kwargs),
+            self._get_rounds_section(),
+        ]
 
-        rounds_file_content = "\n".join(
-            [
-                FILE_HEADER,
-                rounds_header_section,
-                rounds_section,
-            ]
-        )
-
-        return rounds_file_content
-
-    def _get_rounds_header_section(self) -> str:
-        """Get the rounds header section."""
-
-        return self.HEADER.format(**self.template_kwargs)
+        return "\n".join(file_content)
 
     def _get_rounds_section(self) -> str:
         """Get rounds section"""
 
-        all_round_classes_str = [self.BASE_ROUND_TEST_CLS.format(**self.template_kwargs)]
+        rounds: List[str] = [self.BASE_ROUND_TEST_CLS.format(**self.template_kwargs)]
 
-        for abci_round_name in self.dfa.states - self.dfa.final_states:
+        for round_name in self.rounds:
             round_class_str = self.TEST_ROUND_CLS.format(
                 FSMName=self.fsm_name,
-                RoundCls=abci_round_name,
+                RoundCls=round_name,
             )
-            all_round_classes_str.append(round_class_str)
+            rounds.append(round_class_str)
 
-        return "\n".join(all_round_classes_str)
+        return "\n".join(rounds)
 
 
 class BehaviourTestsFileGenerator(AbstractFileGenerator, TEST_BEHAVIOURS):
@@ -559,28 +506,18 @@ class BehaviourTestsFileGenerator(AbstractFileGenerator, TEST_BEHAVIOURS):
     def get_file_content(self) -> str:
         """Scaffold the 'test_behaviours.py' file."""
 
-        behaviour_header_section = self._get_behaviour_header_section()
-        behaviour_section = self._get_behaviour_section()
+        behaviour_file_content = [
+            FILE_HEADER,
+            self.HEADER.format(**self.template_kwargs),
+            self._get_behaviour_section(),
+        ]
 
-        behaviour_file_content = "\n".join(
-            [
-                FILE_HEADER,
-                behaviour_header_section,
-                behaviour_section,
-            ]
-        )
-
-        return behaviour_file_content
-
-    def _get_behaviour_header_section(self) -> str:
-        """Get the rounds header section."""
-
-        return self.HEADER.format(**self.template_kwargs)
+        return "\n".join(behaviour_file_content)
 
     def _get_behaviour_section(self) -> str:
         """Get behaviour section"""
 
-        all_behaviour_classes_str = [
+        behaviours = [
             self.BASE_BEHAVIOUR_TEST_CLS.format(**self.template_kwargs)
         ]
 
@@ -589,9 +526,9 @@ class BehaviourTestsFileGenerator(AbstractFileGenerator, TEST_BEHAVIOURS):
                 FSMName=self.fsm_name,
                 BehaviourCls=behaviour_name,
             )
-            all_behaviour_classes_str.append(round_class_str)
+            behaviours.append(round_class_str)
 
-        return "\n".join(all_behaviour_classes_str)
+        return "\n".join(behaviours)
 
 
 class PayloadTestsFileGenerator(AbstractFileGenerator, TEST_PAYLOADS):
@@ -602,25 +539,13 @@ class PayloadTestsFileGenerator(AbstractFileGenerator, TEST_PAYLOADS):
     def get_file_content(self) -> str:
         """Scaffold the 'test_payloads.py' file."""
 
-        behaviour_file_content = "\n".join(
-            [
-                FILE_HEADER,
-                self._get_payload_header_section(),
-                self._get_payload_section(),
-            ]
-        )
+        behaviour_file_content = [
+            FILE_HEADER,
+            self.HEADER.format(**self.template_kwargs),
+            self.TEST_PAYLOAD_CLS.format(**self.template_kwargs),
+        ]
 
-        return behaviour_file_content
-
-    def _get_payload_header_section(self) -> str:
-        """Get the rounds header section."""
-
-        return self.HEADER.format(**self.template_kwargs)
-
-    def _get_payload_section(self) -> str:
-        """Get payload section"""
-
-        return self.TEST_PAYLOAD_CLS.format(**self.template_kwargs)
+        return "\n".join(behaviour_file_content)
 
 
 class ModelTestFileGenerator(AbstractFileGenerator, TEST_MODELS):
@@ -628,15 +553,15 @@ class ModelTestFileGenerator(AbstractFileGenerator, TEST_MODELS):
 
     FILENAME = "test_" + MODELS_FILENAME
 
-    def _get_models_header_section(self) -> str:
-        """Get the models header section."""
-
-        return self.HEADER.format(**self.template_kwargs)
-
     def get_file_content(self) -> str:
         """Get the file content."""
 
-        return "\n".join([FILE_HEADER, self._get_models_header_section()])
+        file_content = [
+            FILE_HEADER,
+            self.HEADER.format(**self.template_kwargs),
+        ]
+
+        return "\n".join(file_content)
 
 
 class HandlersTestFileGenerator(AbstractFileGenerator, TEST_HANDLERS):
@@ -644,15 +569,15 @@ class HandlersTestFileGenerator(AbstractFileGenerator, TEST_HANDLERS):
 
     FILENAME = "test_" + HANDLERS_FILENAME
 
-    def _get_handlers_header_section(self) -> str:
-        """Get the handlers header section."""
-
-        return self.HEADER.format(**self.template_kwargs)
-
     def get_file_content(self) -> str:
         """Get the file content."""
 
-        return "\n".join([FILE_HEADER, self._get_handlers_header_section()])
+        file_content = [
+            FILE_HEADER,
+            self.HEADER.format(**self.template_kwargs),
+        ]
+
+        return "\n".join(file_content)
 
 
 class DialoguesTestFileGenerator(AbstractFileGenerator, TEST_DIALOGUES):
@@ -660,15 +585,15 @@ class DialoguesTestFileGenerator(AbstractFileGenerator, TEST_DIALOGUES):
 
     FILENAME = "test_" + DIALOGUES_FILENAME
 
-    def _get_dialogues_header_section(self) -> str:
-        """Get the dialogues header section."""
-
-        return self.HEADER.format(**self.template_kwargs)
-
     def get_file_content(self) -> str:
         """Get the file content."""
 
-        return "\n".join([FILE_HEADER, self._get_dialogues_header_section()])
+        file_content = [
+            FILE_HEADER,
+            self.HEADER.format(**self.template_kwargs),
+        ]
+
+        return "\n".join(file_content)
 
 
 class ScaffoldABCISkill:
