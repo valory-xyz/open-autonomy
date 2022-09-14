@@ -9,6 +9,13 @@ Below we describe the additional manual steps required to upgrade between differ
 
 No backwards incompatible changes except:
 
+- Deprecated the usage of `hashes.csv` and replaces it with `packages.json`, which is maintained by `autonomy packages lock`
+- `--check` flag is deprecated from `autonomy hash all`, from now package consistencies can be verified by `autonomy packages lock --check`
+
+## `v0.2.1.post1` to `v0.2.2`
+
+No backwards incompatible changes except:
+
 All imports from `autonomy.test_tools.*` are now found at `aea_test_autonomy.*`, after installing `open-aea-test-autonomy`.
 
 ## `v0.2.1` to `v0.2.1.post1`
