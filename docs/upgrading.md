@@ -5,6 +5,14 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.2.2` to `v0.3.0`
+
+No backwards incompatible changes except:
+
+- Deprecated the usage of `hashes.csv` and replaces it with `packages.json`, which is maintained by `autonomy packages lock`
+- `--check` flag is deprecated from `autonomy hash all`, from now package consistencies can be verified by `autonomy packages lock --check`
+- Various test fixtures have moved and been renamed.
+
 ## `v0.2.1.post1` to `v0.2.2`
 
 No backwards incompatible changes except:
