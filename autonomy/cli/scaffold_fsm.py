@@ -73,13 +73,6 @@ from autonomy.cli.scaffold_fsm_templates import (
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
 
 
-ROUNDS_FILENAME = "rounds.py"
-BEHAVIOURS_FILENAME = "behaviours.py"
-PAYLOADS_FILENAME = "payloads.py"
-MODELS_FILENAME = "models.py"
-HANDLERS_FILENAME = "handlers.py"
-DIALOGUES_FILENAME = "dialogues.py"
-
 DEGENERATE_ROUND = "DegenerateRound"
 ABSTRACT_ROUND = "AbstractRound"
 
@@ -208,8 +201,6 @@ class AbstractFileGenerator(ABC):
 class RoundFileGenerator(AbstractFileGenerator, ROUNDS):
     """File generator for 'rounds.py' modules."""
 
-    FILENAME = ROUNDS_FILENAME
-
     def get_file_content(self) -> str:
         """Scaffold the 'rounds.py' file."""
 
@@ -257,8 +248,6 @@ class RoundFileGenerator(AbstractFileGenerator, ROUNDS):
 class BehaviourFileGenerator(AbstractFileGenerator, BEHAVIOURS):
     """File generator for 'behaviours.py' modules."""
 
-    FILENAME = BEHAVIOURS_FILENAME
-
     def get_file_content(self) -> str:
         """Scaffold the 'behaviours.py' file."""
 
@@ -293,8 +282,6 @@ class BehaviourFileGenerator(AbstractFileGenerator, BEHAVIOURS):
 class PayloadsFileGenerator(AbstractFileGenerator, PAYLOADS):
     """File generator for 'payloads.py' modules."""
 
-    FILENAME = PAYLOADS_FILENAME
-
     def _get_base_payload_section(self) -> str:
         """Get the base payload section."""
 
@@ -328,8 +315,6 @@ class PayloadsFileGenerator(AbstractFileGenerator, PAYLOADS):
 class ModelsFileGenerator(AbstractFileGenerator, MODELS):
     """File generator for 'models.py' modules."""
 
-    FILENAME = MODELS_FILENAME
-
     def get_file_content(self) -> str:
         """Get the file content."""
 
@@ -344,8 +329,6 @@ class ModelsFileGenerator(AbstractFileGenerator, MODELS):
 class HandlersFileGenerator(AbstractFileGenerator, HANDLERS):
     """File generator for 'handlers.py' modules."""
 
-    FILENAME = HANDLERS_FILENAME
-
     def get_file_content(self) -> str:
         """Get the file content."""
 
@@ -359,8 +342,6 @@ class HandlersFileGenerator(AbstractFileGenerator, HANDLERS):
 
 class DialoguesFileGenerator(AbstractFileGenerator, DIALOGUES):
     """File generator for 'dialogues.py' modules."""
-
-    FILENAME = DIALOGUES_FILENAME
 
     def get_file_content(self) -> str:
         """Get the file content."""
@@ -470,8 +451,6 @@ def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
 class RoundTestsFileGenerator(AbstractFileGenerator, TEST_ROUNDS):
     """RoundTestsFileGenerator"""
 
-    FILENAME = "tests_" + ROUNDS_FILENAME
-
     def get_file_content(self) -> str:
         """Scaffold the 'test_rounds.py' file."""
 
@@ -500,8 +479,6 @@ class RoundTestsFileGenerator(AbstractFileGenerator, TEST_ROUNDS):
 
 class BehaviourTestsFileGenerator(AbstractFileGenerator, TEST_BEHAVIOURS):
     """File generator for 'test_behaviours.py' modules."""
-
-    FILENAME = "test_" + BEHAVIOURS_FILENAME
 
     def get_file_content(self) -> str:
         """Scaffold the 'test_behaviours.py' file."""
@@ -534,8 +511,6 @@ class BehaviourTestsFileGenerator(AbstractFileGenerator, TEST_BEHAVIOURS):
 class PayloadTestsFileGenerator(AbstractFileGenerator, TEST_PAYLOADS):
     """File generator for 'test_payloads.py' modules."""
 
-    FILENAME = "test_" + PAYLOADS_FILENAME
-
     def get_file_content(self) -> str:
         """Scaffold the 'test_payloads.py' file."""
 
@@ -551,8 +526,6 @@ class PayloadTestsFileGenerator(AbstractFileGenerator, TEST_PAYLOADS):
 class ModelTestFileGenerator(AbstractFileGenerator, TEST_MODELS):
     """File generator for 'test_models.py'."""
 
-    FILENAME = "test_" + MODELS_FILENAME
-
     def get_file_content(self) -> str:
         """Get the file content."""
 
@@ -567,8 +540,6 @@ class ModelTestFileGenerator(AbstractFileGenerator, TEST_MODELS):
 class HandlersTestFileGenerator(AbstractFileGenerator, TEST_HANDLERS):
     """File generator for 'test_dialogues.py'."""
 
-    FILENAME = "test_" + HANDLERS_FILENAME
-
     def get_file_content(self) -> str:
         """Get the file content."""
 
@@ -582,8 +553,6 @@ class HandlersTestFileGenerator(AbstractFileGenerator, TEST_HANDLERS):
 
 class DialoguesTestFileGenerator(AbstractFileGenerator, TEST_DIALOGUES):
     """File generator for 'test_dialogues.py'."""
-
-    FILENAME = "test_" + DIALOGUES_FILENAME
 
     def get_file_content(self) -> str:
         """Get the file content."""

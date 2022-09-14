@@ -23,6 +23,8 @@
 class ROUNDS:
     """Template for rounds.py"""
 
+    FILENAME = "rounds.py"
+
     HEADER = """\
     \"\"\"This package contains the rounds of {AbciApp}.\"\"\"
 
@@ -108,6 +110,8 @@ class ROUNDS:
 class BEHAVIOURS:
     """Template for behaviours.py"""
 
+    FILENAME = "behaviours.py"
+
     HEADER = """\
     \"\"\"This package contains round behaviours of {AbciApp}.\"\"\"
 
@@ -173,6 +177,8 @@ class BEHAVIOURS:
 class PAYLOADS:
     """Template for payloads.py"""
 
+    FILENAME = "payloads.py"
+
     HEADER = """\
     \"\"\"This module contains the transaction payloads of the {AbciApp}.\"\"\"
 
@@ -229,6 +235,8 @@ class PAYLOADS:
 class MODELS:
     """Template for models.py"""
 
+    FILENAME = "models.py"
+
     HEADER = """\
     \"\"\"This module contains the shared state for the abci skill of {AbciApp}.\"\"\"
 
@@ -257,6 +265,8 @@ class MODELS:
 
 class HANDLERS:
     """Template for handlers.py"""
+
+    FILENAME = "handlers.py"
 
     HEADER = """\
     \"\"\"This module contains the handlers for the skill of {AbciApp}.\"\"\"
@@ -292,6 +302,8 @@ class HANDLERS:
 
 class DIALOGUES:
     """Template for dialogues.py"""
+
+    FILENAME = "dialogues.py"
 
     HEADER = """\
     \"\"\"This module contains the dialogues of the {AbciApp}.\"\"\"

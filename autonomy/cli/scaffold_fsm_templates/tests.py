@@ -23,6 +23,8 @@
 class TEST_ROUNDS:
     """Template for test_rounds.py"""
 
+    FILENAME = "test_rounds.py"
+
     HEADER = """\
     \"\"\"This package contains the tests for rounds of {FSMName}.\"\"\"
 
@@ -113,6 +115,8 @@ class TEST_ROUNDS:
 
 class TEST_BEHAVIOURS:
     """Template for test_behaviours.py"""
+
+    FILENAME = "test_behaviours.py"
 
     HEADER = """\
     \"\"\"This package contains round behaviours of {AbciApp}.\"\"\"
@@ -214,6 +218,8 @@ class TEST_BEHAVIOURS:
 class TEST_PAYLOADS:
     """Template for test_payloads.py"""
 
+    FILENAME = "test_payloads.py"
+
     HEADER = """\
     \"\"\"This package contains payload tests for the {AbciApp}.\"\"\"
 
@@ -257,6 +263,8 @@ class TEST_PAYLOADS:
 class TEST_MODELS:
     """Template for test_models.py"""
 
+    FILENAME = "test_models.py"
+
     HEADER = """\
     \"\"\"Test the models.py module of the {FSMName}.\"\"\"
 
@@ -277,6 +285,8 @@ class TEST_MODELS:
 class TEST_HANDLERS:
     """Template for test_handlers.py"""
 
+    FILENAME = "test_handlers.py"
+
     HEADER = """\
     \"\"\"Test the handlers.py module of the {FSMName}.\"\"\"
 
@@ -291,6 +301,8 @@ class TEST_HANDLERS:
 
 class TEST_DIALOGUES:
     """Template for test_dialogues.py"""
+
+    FILENAME = "test_dialogues.py"
 
     HEADER = """\
     \"\"\"Test the dialogues.py module of the {FSMName}.\"\"\"
