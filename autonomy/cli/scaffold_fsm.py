@@ -28,6 +28,7 @@ import os
 import shutil
 from abc import ABC, abstractmethod
 from pathlib import Path
+import json
 from textwrap import dedent, indent
 from typing import Dict, List, Type
 
@@ -162,7 +163,7 @@ class AbstractFileGenerator(ABC):
         for state in self.dfa.states:
             if state not in result:
                 result[state] = {}
-        return _remove_quotes(str(result))
+        return result
 
     @property  # TODO: functools cached property
     def template_kwargs(self) -> Dict[str, str]:
@@ -175,6 +176,8 @@ class AbstractFileGenerator(ABC):
 
         tx_type_list = list(map(_camel_case_to_snake_case, self.base_names))
         tx_type_list = [f'{tx_type.upper()} = "{tx_type}"' for tx_type in tx_type_list]
+
+        tf = json.dumps(self._parse_transition_func(), indent=4)
 
         return dict(
             author=self.author,
@@ -189,7 +192,7 @@ class AbstractFileGenerator(ABC):
             events=indent("\n".join(events_list), " " * 8).strip(),
             initial_round_cls=self.dfa.default_start_state,
             initial_states=_remove_quotes(str(self.dfa.start_states)),
-            transition_function=self._parse_transition_func(),
+            transition_function=indent(_remove_quotes(str(tf)), " " * 8).strip(),
             final_states=_remove_quotes(str(self.dfa.final_states)),
             BaseBehaviourCls=self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR),
             RoundBehaviourCls=self.abci_app_name.replace(ABCI_APP, ROUND_BEHAVIOUR),
