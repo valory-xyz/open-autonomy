@@ -35,7 +35,7 @@ def check_ipfs_hash_pushed(ipfs_hash: str) -> bool:
 
     try:
         url = f"{IPFS_ENDPOINT}/{ipfs_hash.strip()}"
-        res = requests.get(url, timeout=10)
+        res = requests.get(url, timeout=120)
         return res.status_code == 200
     except requests.RequestException:
         return False
