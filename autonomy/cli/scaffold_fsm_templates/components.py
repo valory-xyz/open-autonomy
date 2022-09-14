@@ -45,7 +45,7 @@ class ROUNDS:
         TransactionType
     )
 
-    from {author}.skills.{skill_name}.payloads import (
+    from packages.{author}.skills.{skill_name}.payloads import (
         {payloads},
     )
 
@@ -128,8 +128,8 @@ class BEHAVIOURS:
         BaseBehaviour,
     )
 
-    from {author}.skills.{skill_name}.models import Params
-    from {author}.skills.{skill_name}.rounds import (
+    from packages.{author}.skills.{skill_name}.models import Params
+    from packages.{author}.skills.{skill_name}.rounds import (
         SynchronizedData,
         {AbciApp},
         {rounds},
@@ -253,7 +253,7 @@ class MODELS:
     from packages.valory.skills.abstract_round_abci.models import (
         SharedState as BaseSharedState,
     )
-    from {author}.skills.{skill_name}.rounds import {AbciApp}
+    from packages.{author}.skills.{skill_name}.rounds import {AbciApp}
 
 
     class SharedState(BaseSharedState):

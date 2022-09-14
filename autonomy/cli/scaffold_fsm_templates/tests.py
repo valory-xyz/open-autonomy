@@ -37,8 +37,8 @@ class TEST_ROUNDS:
     import pytest
 
     # TODO: define and import specific payloads explicitly by name
-    from {author}.skills.{skill_name}.payloads import *
-    from {author}.skills.{skill_name}.rounds import (
+    from packages.{author}.skills.{skill_name}.payloads import *
+    from packages.{author}.skills.{skill_name}.rounds import (
         Event,
         SynchronizedData,
         {rounds},
@@ -137,12 +137,12 @@ class TEST_BEHAVIOURS:
         BaseBehaviour,
         make_degenerate_behaviour,
     )
-    from {author}.skills.{skill_name}.behaviours import (
+    from packages.{author}.skills.{skill_name}.behaviours import (
         {FSMName}BaseBehaviour,
         {FSMName}RoundBehaviour,
         {behaviours},
     )
-    from {author}.skills.{skill_name}.rounds import (
+    from packages.{author}.skills.{skill_name}.rounds import (
         SynchronizedData,
         DegenerateRound,
         Event,
@@ -233,7 +233,7 @@ class TEST_PAYLOADS:
 
     import pytest
 
-    from {author}.skills.{skill_name}.payloads import (
+    from packages.{author}.skills.{skill_name}.payloads import (
         TransactionType,
         Base{FSMName}Payload,
         {payloads},
@@ -275,7 +275,7 @@ class TEST_MODELS:
     \"\"\"Test the models.py module of the {FSMName}.\"\"\"
 
     from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
-    from {author}.skills.{skill_name}.models import SharedState
+    from packages.{author}.skills.{skill_name}.models import SharedState
 
 
     class TestSharedState:

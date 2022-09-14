@@ -20,6 +20,7 @@
 """Test 'scaffold fsm' subcommand."""
 
 import importlib.util
+import shutil
 import os
 from importlib.machinery import ModuleSpec
 from pathlib import Path
@@ -60,8 +61,9 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         """Set up the test class."""
         super(AEATestCaseEmpty, cls).setup_class()
         cls.agent_name = "default_author"
+        cls.set_agent_context("packages/" + cls.agent_name)
         cls.create_agents(cls.agent_name, is_local=cls.IS_LOCAL, is_empty=cls.IS_EMPTY)
-        cls.set_agent_context(cls.agent_name)
+        shutil.move(cls.t / cls.agent_name, cls.t / "packages")
 
     def test_run(self, fsm_spec_file: Path) -> None:
         """Test run."""
