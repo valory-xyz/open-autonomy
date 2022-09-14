@@ -22,7 +22,7 @@
 from pathlib import Path
 
 from aea.cli.packages import PackageManager
-from aea.configurations.data_types import PackageId, PublicId, PackageType
+from aea.configurations.data_types import PackageId, PackageType, PublicId
 
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
 
