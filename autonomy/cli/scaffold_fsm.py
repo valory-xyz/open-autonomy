@@ -24,11 +24,11 @@ This module patches the 'aea scaffold' command so to add a new subcommand for sc
  starting from FSM specification.
 """
 
+import json
 import os
 import shutil
 from abc import ABC, abstractmethod
 from pathlib import Path
-import json
 from textwrap import dedent, indent
 from typing import Dict, List, Type
 
@@ -57,19 +57,19 @@ from aea.protocols.generator.common import _camel_case_to_snake_case
 
 from autonomy.analyse.abci.app_spec import DFA
 from autonomy.cli.scaffold_fsm_templates import (
-    FILE_HEADER,
-    ROUNDS,
     BEHAVIOURS,
-    PAYLOADS,
-    MODELS,
-    HANDLERS,
     DIALOGUES,
-    TEST_ROUNDS,
+    FILE_HEADER,
+    HANDLERS,
+    MODELS,
+    PAYLOADS,
+    ROUNDS,
     TEST_BEHAVIOURS,
-    TEST_PAYLOADS,
-    TEST_MODELS,
-    TEST_HANDLERS,
     TEST_DIALOGUES,
+    TEST_HANDLERS,
+    TEST_MODELS,
+    TEST_PAYLOADS,
+    TEST_ROUNDS,
 )
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
 
@@ -155,9 +155,10 @@ class AbstractFileGenerator(ABC):
         """Payloads"""
         return [s.replace(ROUND, PAYLOAD) for s in self.rounds]
 
-    def _parse_transition_func(self) -> str:
+    def _parse_transition_func(self) -> Dict[str, Dict[str, str]]:
         """Parse the transition function from the spec to a nested dictionary."""
-        result: Dict[str, Dict[str, str]] = {}  # type: ignore
+
+        result: Dict[str, Dict[str, str]] = {}
         for (round_cls_name, event_name), value in self.dfa.transition_func.items():
             result.setdefault(round_cls_name, {})[f"{EVENT}.{event_name}"] = value
         for state in self.dfa.states:
@@ -205,12 +206,14 @@ class AbstractFileGenerator(ABC):
 class SimpleFileGenerator(AbstractFileGenerator):
     """For files that require minimal formatting"""
 
+    HEADER: str
+
     def get_file_content(self) -> str:
         """Get the file content."""
 
         file_content = [
             FILE_HEADER,
-            self.HEADER.format(**self.template_kwargs),  # type: ignore
+            self.HEADER.format(**self.template_kwargs),
         ]
 
         return "\n".join(file_content)
@@ -482,9 +485,7 @@ class BehaviourTestsFileGenerator(AbstractFileGenerator, TEST_BEHAVIOURS):
     def _get_behaviour_section(self) -> str:
         """Get behaviour section"""
 
-        behaviours = [
-            self.BASE_BEHAVIOUR_TEST_CLS.format(**self.template_kwargs)
-        ]
+        behaviours = [self.BASE_BEHAVIOUR_TEST_CLS.format(**self.template_kwargs)]
 
         for behaviour_name in self.behaviours:
             round_class_str = self.TEST_BEHAVIOUR_CLS.format(

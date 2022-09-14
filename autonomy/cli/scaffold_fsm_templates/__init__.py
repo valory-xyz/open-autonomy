@@ -17,8 +17,17 @@
 #
 # ------------------------------------------------------------------------------
 
-from .components import ROUNDS, BEHAVIOURS, PAYLOADS, MODELS, HANDLERS, DIALOGUES
-from .tests import TEST_ROUNDS, TEST_BEHAVIOURS, TEST_PAYLOADS, TEST_MODELS, TEST_HANDLERS, TEST_DIALOGUES
+"""Scaffolding templates for FSM"""
+
+from .components import BEHAVIOURS, DIALOGUES, HANDLERS, MODELS, PAYLOADS, ROUNDS
+from .tests import (
+    TEST_BEHAVIOURS,
+    TEST_DIALOGUES,
+    TEST_HANDLERS,
+    TEST_MODELS,
+    TEST_PAYLOADS,
+    TEST_ROUNDS,
+)
 
 
 FILE_HEADER = """\

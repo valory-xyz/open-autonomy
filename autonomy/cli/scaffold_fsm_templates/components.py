@@ -19,7 +19,10 @@
 
 """Templates for FSM components"""
 
+from dataclasses import dataclass
 
+
+@dataclass
 class ROUNDS:
     """Template for rounds.py"""
 
@@ -107,6 +110,7 @@ class ROUNDS:
     """
 
 
+@dataclass
 class BEHAVIOURS:
     """Template for behaviours.py"""
 
@@ -174,6 +178,7 @@ class BEHAVIOURS:
     """
 
 
+@dataclass
 class PAYLOADS:
     """Template for payloads.py"""
 
@@ -232,6 +237,7 @@ class PAYLOADS:
     """
 
 
+@dataclass
 class MODELS:
     """Template for models.py"""
 
@@ -263,6 +269,7 @@ class MODELS:
     """
 
 
+@dataclass
 class HANDLERS:
     """Template for handlers.py"""
 
@@ -300,6 +307,7 @@ class HANDLERS:
     """
 
 
+@dataclass
 class DIALOGUES:
     """Template for dialogues.py"""
 

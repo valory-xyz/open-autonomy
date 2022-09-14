@@ -19,7 +19,10 @@
 
 """Templates for FSM tests"""
 
+from dataclasses import dataclass
 
+
+@dataclass
 class TEST_ROUNDS:
     """Template for test_rounds.py"""
 
@@ -113,6 +116,7 @@ class TEST_ROUNDS:
     """
 
 
+@dataclass
 class TEST_BEHAVIOURS:
     """Template for test_behaviours.py"""
 
@@ -215,6 +219,7 @@ class TEST_BEHAVIOURS:
     """
 
 
+@dataclass
 class TEST_PAYLOADS:
     """Template for test_payloads.py"""
 
@@ -260,6 +265,7 @@ class TEST_PAYLOADS:
     """
 
 
+@dataclass
 class TEST_MODELS:
     """Template for test_models.py"""
 
@@ -282,6 +288,7 @@ class TEST_MODELS:
     """
 
 
+@dataclass
 class TEST_HANDLERS:
     """Template for test_handlers.py"""
 
@@ -299,6 +306,7 @@ class TEST_HANDLERS:
     """
 
 
+@dataclass
 class TEST_DIALOGUES:
     """Template for test_dialogues.py"""
 
