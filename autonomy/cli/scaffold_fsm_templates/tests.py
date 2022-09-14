@@ -59,6 +59,7 @@ class TEST_ROUNDS:
     class RoundTestCase:
         \"\"\"RoundTestCase\"\"\"
 
+        name: str
         initial_data: Dict[str, Hashable]
         payloads: BaseTxPayload
         final_data: Dict[str, Hashable]
@@ -160,6 +161,7 @@ class TEST_BEHAVIOURS:
     class BehaviourTestCase:
         \"\"\"BehaviourTestCase\"\"\"
 
+        name: str
         initial_data: Dict[str, Hashable]
         event: Event
 
@@ -177,6 +179,12 @@ class TEST_BEHAVIOURS:
         synchronized_data: SynchronizedData
         done_event = Event.DONE
 
+        @property
+        def current_behaviour_id(self) -> str:
+            \"\"\"Current RoundBehaviour's behaviour id\"\"\"
+
+            return self.behaviour.current_behaviour.behaviour_id
+
         def fast_forward(self, data: Optional[Dict[str, Any]] = None) -> None:
             \"\"\"Fast-forward on initialization\"\"\"
 
@@ -186,7 +194,7 @@ class TEST_BEHAVIOURS:
                 self.behaviour_class.behaviour_id,
                 SynchronizedData(AbciAppDB(setup_data=AbciAppDB.data_to_lists(data))),
             )
-            assert self.behaviour.behaviour_id == self.behaviour_class.behaviour_id
+            assert self.current_behaviour_id == self.behaviour_class.behaviour_id
 
         def complete(self, event: Event) -> None:
             \"\"\"Complete test\"\"\"
@@ -195,7 +203,7 @@ class TEST_BEHAVIOURS:
             self.mock_a2a_transaction()
             self._test_done_flag_set()
             self.end_round(done_event=event)
-            assert self.behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+            assert self.current_behaviour_id == self.next_behaviour_class.behaviour_id
 
     """
 
@@ -245,6 +253,7 @@ class TEST_PAYLOADS:
     class PayloadTestCase:
         \"\"\"PayloadTestCase\"\"\"
 
+        name: str
         payload_cls: Base{FSMName}Payload
         content: Hashable
         transaction_type: TransactionType

@@ -213,7 +213,7 @@ class PAYLOADS:
         \"\"\"Base payload for {AbciApp}.\"\"\"
 
         def __init__(self, sender: str, content: Hashable, **kwargs: Any) -> None:
-            \"\"\"Initialize a 'select_keeper' transaction payload.\"\"\"
+            \"\"\"Initialize a transaction payload.\"\"\"
 
             super().__init__(sender, **kwargs)
             setattr(self, f"_{{self.transaction_type}}", content)
