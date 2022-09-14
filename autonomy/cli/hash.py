@@ -26,7 +26,6 @@ from typing import Callable, Dict, Optional, cast
 
 import click
 from aea.cli.ipfs_hash import (
-    check_hashes,
     extend_public_ids,
     hash_file,
     hash_package,
@@ -36,14 +35,12 @@ from aea.cli.ipfs_hash import (
     to_v0_string,
     to_v1_string,
 )
-from aea.cli.utils.constants import HASHES_FILE
 from aea.configurations.base import PackageConfiguration, PackageType
 from aea.configurations.constants import PACKAGE_TYPE_TO_CONFIG_FILE, SCAFFOLD_PACKAGES
 from aea.configurations.data_types import PackageId, PublicId
 from aea.configurations.loader import load_configuration_object
 from aea.helpers.dependency_tree import DependencyTree, dump_yaml, load_yaml
 from aea.helpers.fingerprint import update_fingerprint
-from aea.helpers.io import to_csv
 
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
 
@@ -129,8 +126,6 @@ def update_hashes(  # pylint: disable=too-many-locals
                 if vendor is not None and package_id.author != vendor:
                     continue  # pragma: nocover
                 package_hashes[key] = package_hash
-
-        to_csv(package_hashes, packages_dir / HASHES_FILE)
         click.echo("Done!")
 
     except Exception:  # pylint: disable=broad-except  # pragma: nocover
@@ -158,18 +153,12 @@ def generate_all(
     packages_dir: Path,
     vendor: Optional[str],
     no_wrap: bool,
-    check: bool,
 ) -> None:
     """Generate IPFS hashes."""
     packages_dir = Path(packages_dir).absolute()
-    if check:  # pragma: nocover
-        return_code = check_hashes(
-            packages_dir, no_wrap, vendor=vendor, config_loader=load_configuration
-        )
-    else:
-        return_code = update_hashes(
-            packages_dir, no_wrap, vendor=vendor, config_loader=load_configuration
-        )
+    return_code = update_hashes(
+        packages_dir, no_wrap, vendor=vendor, config_loader=load_configuration
+    )
     sys.exit(return_code)
 
 
