@@ -178,6 +178,7 @@ class AbstractFileGenerator(ABC):
         tx_type_list = [f'{tx_type.upper()} = "{tx_type}"' for tx_type in tx_type_list]
 
         tf = json.dumps(self._parse_transition_func(), indent=4)
+        behaviours = json.dumps(self.behaviours, indent=4)
 
         return dict(
             author=self.author,
@@ -197,7 +198,7 @@ class AbstractFileGenerator(ABC):
             BaseBehaviourCls=self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR),
             RoundBehaviourCls=self.abci_app_name.replace(ABCI_APP, ROUND_BEHAVIOUR),
             InitialBehaviourCls=self.dfa.default_start_state.replace(ROUND, BEHAVIOUR),
-            round_behaviours=_remove_quotes(str(self.behaviours)),
+            round_behaviours=indent(_remove_quotes(str(behaviours)), " " * 8).strip(),
         )
 
 
