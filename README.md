@@ -44,7 +44,7 @@ Open Autonomy is a framework for the creation of Agent Services: off-chain servi
 
 As opposed to traditional smart contracts, Valory apps go beyond simple, purely on-chain logic without giving up on decentralization.
 
-## For developers using the framework: Get started developing
+## Get started developing autonomous services
 
 1. Create and launch a clean virtual environment with Python 3.10 (any Python `>=` 3.7 works):
 
@@ -89,3 +89,16 @@ every time you need to re-create and launch the virtual environment and update
 the dependencies:
 
       make new_env && pipenv shell
+
+## Cite
+
+If you are using our software in a publication, please
+consider to cite it with the following BibTex entry:
+
+```
+@misc{open-autonomy,
+  Author = {David Minarsch and Marco Favorito and Viraj Patel and Adamantios Zaras and David Vilela Freire and Michiel Karrenbelt and 8baller and Ardian Abazi},
+  Title = {Open Autonomy Framework},
+  Year = {2021},
+}
+```
