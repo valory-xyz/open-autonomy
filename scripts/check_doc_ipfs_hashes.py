@@ -21,12 +21,14 @@
 """This module contains the tools for autoupdating ipfs hashes in the documentation."""
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
 from typing import Dict, Optional
 
 import yaml
+from aea.configurations.data_types import PackageId
 from aea.helpers.base import IPFS_HASH_REGEX, SIMPLE_ID_REGEX
 
 
@@ -55,17 +57,14 @@ class Package:  # pylint: disable=too-few-public-methods
 
     CSV_HASH_REGEX = r"(?P<vendor>.*)\/(?P<type>.*)\/(?P<name>.*),(?P<hash>.*)(?:\n|$)"
 
-    def __init__(self, package_line: str) -> None:
+    def __init__(self, package_id_str: str, package_hash: str) -> None:
         """Constructor"""
-        m = re.match(self.CSV_HASH_REGEX, package_line)
-        if not m:
-            raise ValueError(
-                f"PackageHashManager: the line:\n    {package_line}\ndoes not match the package format {self.CSV_HASH_REGEX}"
-            )
-        self.vendor = m.groupdict()["vendor"]
-        self.type = m.groupdict()["type"]
-        self.name = m.groupdict()["name"]
-        self.hash = m.groupdict()["hash"]
+
+        self.package_id = PackageId.from_uri_path(package_id_str)
+        self.vendor = self.package_id.author
+        self.type = self.package_id.package_type.to_plural()
+        self.name = self.package_id.name
+        self.hash = package_hash
 
         if self.name == "scaffold":
             return
@@ -121,10 +120,9 @@ class PackageHashManager:
 
     def __init__(self) -> None:
         """Constructor"""
-        hashes_file = Path("packages", "hashes.csv").relative_to(".")
-        with open(hashes_file, "r", encoding="utf-8") as file_:
-            self.packages = [Package(line) for line in file_.readlines()]
-            self.packages = [p for p in self.packages if p.name != "scaffold"]
+        hashes_file = Path("packages", "packages.json").relative_to(".")
+        hash_data = json.loads(hashes_file.read_text())
+        self.packages = [Package(key, value) for key, value in hash_data.items()]
 
         self.package_tree: Dict = {}
         for p in self.packages:

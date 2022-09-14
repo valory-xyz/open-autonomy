@@ -135,3 +135,4 @@ RegistriesDockerImage  # unused class (autonomy/test_tools/docker/registries.py:
 identity  # unused function (autonomy/test_tools/helpers/base.py:87)
 skip_docker_tests  # unused variable (autonomy/test_tools/docker/base.py:40)
 run_service_locally  # unused function (autonomy.cli.develop.run_service_locally)
+lock_packages  # unused function (autonomy/cli/packages.py:33)
