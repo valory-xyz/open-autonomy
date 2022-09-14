@@ -58,8 +58,8 @@ from aea.protocols.generator.common import _camel_case_to_snake_case
 from autonomy.analyse.abci.app_spec import DFA
 from autonomy.cli.scaffold_fsm_templates import (
     BEHAVIOURS,
+    COPYRIGHT_HEADER,
     DIALOGUES,
-    FILE_HEADER,
     HANDLERS,
     MODELS,
     PAYLOADS,
@@ -85,10 +85,17 @@ ABCI_APP = "AbciApp"
 BASE_BEHAVIOUR = "BaseBehaviour"
 ROUND_BEHAVIOUR = "RoundBehaviour"
 
+TEMPLATE_INDENTATION = " " * 8
+
 
 def _remove_quotes(input_str: str) -> str:
     """Remove single or double quotes from a string."""
     return input_str.replace("'", "").replace('"', "")
+
+
+def _indent_wrapper(lines: str) -> str:
+    """Indentation"""
+    return indent(lines, TEMPLATE_INDENTATION).strip()
 
 
 class AbstractFileGenerator(ABC):
@@ -186,20 +193,20 @@ class AbstractFileGenerator(ABC):
             skill_name=self.skill_name,
             FSMName=self.fsm_name,
             AbciApp=self.abci_app_name,
-            rounds=indent(",\n".join(self.rounds), " " * 8).strip(),
-            all_rounds=indent(",\n".join(self.all_rounds), " " * 8).strip(),
-            behaviours=indent(",\n".join(self.behaviours), " " * 8).strip(),
-            payloads=indent(",\n".join(self.payloads), " " * 8).strip(),
-            tx_types=indent("\n".join(tx_type_list), " " * 8).strip(),
-            events=indent("\n".join(events_list), " " * 8).strip(),
+            rounds=_indent_wrapper(",\n".join(self.rounds)),
+            all_rounds=_indent_wrapper(",\n".join(self.all_rounds)),
+            behaviours=_indent_wrapper(",\n".join(self.behaviours)),
+            payloads=_indent_wrapper(",\n".join(self.payloads)),
+            tx_types=_indent_wrapper("\n".join(tx_type_list)),
+            events=_indent_wrapper("\n".join(events_list)),
             initial_round_cls=self.dfa.default_start_state,
             initial_states=_remove_quotes(str(self.dfa.start_states)),
-            transition_function=indent(_remove_quotes(str(tf)), " " * 8).strip(),
+            transition_function=_indent_wrapper(_remove_quotes(str(tf))),
             final_states=_remove_quotes(str(self.dfa.final_states)),
             BaseBehaviourCls=self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR),
             RoundBehaviourCls=self.abci_app_name.replace(ABCI_APP, ROUND_BEHAVIOUR),
             InitialBehaviourCls=self.dfa.default_start_state.replace(ROUND, BEHAVIOUR),
-            round_behaviours=indent(_remove_quotes(str(behaviours)), " " * 8).strip(),
+            round_behaviours=_indent_wrapper(_remove_quotes(str(behaviours))),
         )
 
 
@@ -212,7 +219,7 @@ class SimpleFileGenerator(AbstractFileGenerator):
         """Get the file content."""
 
         file_content = [
-            FILE_HEADER,
+            COPYRIGHT_HEADER,
             self.HEADER.format(**self.template_kwargs),
         ]
 
@@ -226,7 +233,7 @@ class RoundFileGenerator(AbstractFileGenerator, ROUNDS):
         """Scaffold the 'rounds.py' file."""
 
         file_content = [
-            FILE_HEADER,
+            COPYRIGHT_HEADER,
             ROUNDS.HEADER.format(**self.template_kwargs),
             self._get_rounds_section(),
             self.ABCI_APP_CLS.format(**self.template_kwargs),
@@ -273,7 +280,7 @@ class BehaviourFileGenerator(AbstractFileGenerator, BEHAVIOURS):
         """Scaffold the 'behaviours.py' file."""
 
         file_content = [
-            FILE_HEADER,
+            COPYRIGHT_HEADER,
             self.HEADER.format(**self.template_kwargs),
             self.BASE_BEHAVIOUR_CLS.format(**self.template_kwargs),
             self._get_behaviours_section(),
@@ -324,7 +331,7 @@ class PayloadsFileGenerator(AbstractFileGenerator, PAYLOADS):
         """Get the file content."""
 
         file_content = [
-            FILE_HEADER,
+            COPYRIGHT_HEADER,
             self.HEADER.format(**self.template_kwargs),
             self.TRANSACTION_TYPE_SECTION.format(**self.template_kwargs),
             self._get_base_payload_section(),
@@ -446,7 +453,7 @@ class RoundTestsFileGenerator(AbstractFileGenerator, TEST_ROUNDS):
         """Scaffold the 'test_rounds.py' file."""
 
         file_content = [
-            FILE_HEADER,
+            COPYRIGHT_HEADER,
             self.HEADER.format(**self.template_kwargs),
             self._get_rounds_section(),
         ]
@@ -475,7 +482,7 @@ class BehaviourTestsFileGenerator(AbstractFileGenerator, TEST_BEHAVIOURS):
         """Scaffold the 'test_behaviours.py' file."""
 
         behaviour_file_content = [
-            FILE_HEADER,
+            COPYRIGHT_HEADER,
             self.HEADER.format(**self.template_kwargs),
             self._get_behaviour_section(),
         ]
@@ -504,7 +511,7 @@ class PayloadTestsFileGenerator(AbstractFileGenerator, TEST_PAYLOADS):
         """Scaffold the 'test_payloads.py' file."""
 
         behaviour_file_content = [
-            FILE_HEADER,
+            COPYRIGHT_HEADER,
             self.HEADER.format(**self.template_kwargs),
             self.TEST_PAYLOAD_CLS.format(**self.template_kwargs),
         ]
@@ -592,8 +599,8 @@ class ScaffoldABCISkill:
         init_py_path = self.skill_dir / "__init__.py"
         lines = init_py_path.read_text().splitlines()
         content = "\n".join(line for line in lines if not line.startswith("#"))
-        init_py_path.write_text(f"{FILE_HEADER} {content}\n")
-        (Path(self.skill_test_dir) / "__init__.py").write_text(FILE_HEADER)
+        init_py_path.write_text(f"{COPYRIGHT_HEADER} {content}\n")
+        (Path(self.skill_test_dir) / "__init__.py").write_text(COPYRIGHT_HEADER)
 
     def _remove_pycache(self) -> None:
         """Remove __pycache__ folders."""

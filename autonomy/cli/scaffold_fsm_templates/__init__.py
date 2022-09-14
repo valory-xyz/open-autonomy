@@ -19,8 +19,17 @@
 
 """Scaffolding templates for FSM"""
 
-from .components import BEHAVIOURS, DIALOGUES, HANDLERS, MODELS, PAYLOADS, ROUNDS
-from .tests import (
+from datetime import datetime
+
+from .components import (  # noqa: F401
+    BEHAVIOURS,
+    DIALOGUES,
+    HANDLERS,
+    MODELS,
+    PAYLOADS,
+    ROUNDS,
+)
+from .tests import (  # noqa: F401
     TEST_BEHAVIOURS,
     TEST_DIALOGUES,
     TEST_HANDLERS,
@@ -30,11 +39,11 @@ from .tests import (
 )
 
 
-FILE_HEADER = """\
+COPYRIGHT_HEADER = """\
     # -*- coding: utf-8 -*-
     # ------------------------------------------------------------------------------
     #
-    #   Copyright 2022 Valory AG
+    #   Copyright {year} Valory AG
     #
     #   Licensed under the Apache License, Version 2.0 (the "License");
     #   you may not use this file except in compliance with the License.
@@ -49,4 +58,6 @@ FILE_HEADER = """\
     #   limitations under the License.
     #
     # ------------------------------------------------------------------------------
-    """
+    """.format(
+    year=datetime.now().year
+)
