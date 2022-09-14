@@ -35,8 +35,8 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeictkuadfh2hwe43tsgw2ohfy5ocwvqgwmmqjicf34dkaqgsslafva
-- valory/transaction_settlement_abci:0.1.0:bafybeifql2hmnqcoeljsbuxdckbdvav2bclosvaqkjjbp3xoevzitcpazq
+- valory/abstract_round_abci:0.1.0:bafybeigpz64qx22a4zzlcczmc5frhlecytrh5q3x77lwe3a5kee2qrcchm
+- valory/transaction_settlement_abci:0.1.0:bafybeig3lpuertmg5wngcnherollnvakvqgeisy3a6f5tbmw4e5k5khnt4
 behaviours:
   main:
     args: {}
@@ -130,5 +130,5 @@ models:
     class_name: SharedState
 dependencies:
   open-aea-test-autonomy:
-    version: ==0.2.2
+    version: ==0.3.0
 is_abstract: true

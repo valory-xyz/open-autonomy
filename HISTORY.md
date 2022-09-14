@@ -1,5 +1,27 @@
 # Release History - `open-autonomy`
 
+# 0.3.0 (2022-09-14)
+
+# Autonomy
+
+- Adds `PYTHONHASHSEED` in Kubernetes deployment template
+- Moves all fixtures into `aea_test_autonomy` plugin.
+- Adds `service-registry-network` cli command for starting a local hardhat node. 
+
+# Packages
+
+- Replaces `third-party` dependencies with docker images. 
+- Fixes import from tests folder and `path_to_skill` in FSM scaffolding
+- Moves remaining tests into packages, in particular agents.
+
+# Chores
+
+- Adds README header
+- Removes `quickstart` skip on command test
+- Removes unnecessary shebangs from several non-script files
+- Adds a script to validates commands in the docs and Makefile
+- Cleans the `README.md` and `AUTHORS.md` to reflect changes
+
 # 0.2.2 (2022-08-09)
 
 # AEA

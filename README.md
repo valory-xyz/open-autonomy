@@ -44,7 +44,7 @@ Open Autonomy is a framework for the creation of Agent Services: off-chain servi
 
 As opposed to traditional smart contracts, Valory apps go beyond simple, purely on-chain logic without giving up on decentralization.
 
-## For developers using the framework: Get started developing
+## Get started developing autonomous services
 
 1. Create and launch a clean virtual environment with Python 3.10 (any Python `>=` 3.7 works):
 
@@ -58,32 +58,25 @@ As opposed to traditional smart contracts, Valory apps go beyond simple, purely 
 3. Then, build your services as described in the [docs](https://docs.autonolas.network/).
 
 
-## Requirements for Framework Developers
-
-Ensure your machine satisfies the following requirements:
-
-- Python `>= 3.7`
-- [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
-- [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `==v0.6.0`
-- [Pip](https://pip.pypa.io/en/stable/installation/)
-- [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
-- [Go](https://go.dev/doc/install) `==1.17.7`
-- [Kubectl](https://kubernetes.io/docs/tasks/tools/)
-- [Docker Engine](https://docs.docker.com/engine/install/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
-- [Skaffold](https://skaffold.dev/docs/install/#standalone-binary) `>= 1.39.1`
-- [Gitleaks](https://github.com/zricethezav/gitleaks/releases/latest)
-
-
 ## For developers contributing to the framework: Install from Source
 
-- Clone the repository, and recursively clone the submodules:
+- Ensure your machine satisfies the following requirements:
 
-      git clone --recursive git@github.com:valory-xyz/open-autonomy.git
+    - Python `>= 3.7`
+    - [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
+    - [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `==v0.6.0`
+    - [Pip](https://pip.pypa.io/en/stable/installation/)
+    - [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
+    - [Go](https://go.dev/doc/install) `==1.17.7`
+    - [Kubectl](https://kubernetes.io/docs/tasks/tools/)
+    - [Docker Engine](https://docs.docker.com/engine/install/)
+    - [Docker Compose](https://docs.docker.com/compose/install/)
+    - [Skaffold](https://skaffold.dev/docs/install/#standalone-binary) `>= 1.39.1`
+    - [Gitleaks](https://github.com/zricethezav/gitleaks/releases/latest)
 
-  Note: to update the Git submodules later:
+- Clone the repository:
 
-      git submodule update --init --recursive
+      git clone git@github.com:valory-xyz/open-autonomy.git
 
 - Pull pre-built images:
 
@@ -96,3 +89,16 @@ every time you need to re-create and launch the virtual environment and update
 the dependencies:
 
       make new_env && pipenv shell
+
+## Cite
+
+If you are using our software in a publication, please
+consider to cite it with the following BibTex entry:
+
+```
+@misc{open-autonomy,
+  Author = {David Minarsch and Marco Favorito and Viraj Patel and Adamantios Zaras and David Vilela Freire and Michiel Karrenbelt and 8baller and Ardian Abazi},
+  Title = {Open Autonomy Framework},
+  Year = {2021},
+}
+```

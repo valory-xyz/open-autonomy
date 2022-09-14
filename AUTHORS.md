@@ -10,3 +10,4 @@ This is the official list of authors for copyright purposes.
 * Jose Moreira Sanchez <jose.moreira.sanchez@valory.xyz> [jmoreira-valory](https://github.com/jmoreira-valory)
 * M.A.P. Karrenbelt <m.a.p.karrenbelt@gmail.com> [Karrenbelt](https://github.com/Karrenbelt)
 * Viraj Patel <vptl185@gmail.com> [angrybayblade](https://github.com/angrybayblade)
+* Ardian Abazi <ardian.abazi@valory.xyz> [0xArdi](https://github.com/0xArdi)
