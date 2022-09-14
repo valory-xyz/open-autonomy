@@ -49,7 +49,7 @@ def _get_docker_dependency() -> str:
 base_deps = [
     "open-aea[all]>=1.19.0,<2.0.0",
     "pytest==7.0.0",
-    "open-aea-ledger-ethereum==1.18.0",
+    "open-aea-ledger-ethereum==1.19.0",
     _get_docker_dependency(),
 ]
 
