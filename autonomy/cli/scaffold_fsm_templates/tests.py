@@ -36,8 +36,9 @@ class TEST_ROUNDS:
 
     import pytest
 
-    # TODO: define and import specific payloads explicitly by name
-    from packages.{author}.skills.{skill_name}.payloads import *
+    from packages.{author}.skills.{skill_name}.payloads import (
+        {payloads},
+    )
     from packages.{author}.skills.{skill_name}.rounds import (
         Event,
         SynchronizedData,
