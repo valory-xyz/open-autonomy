@@ -30,7 +30,7 @@
     "skill/valory/counter/0.1.0": "bafybeih6ryaxwlwd3yrfvrnw5plpt7cds6ykujlyisqsmuj52bbj65hvme",
     "skill/valory/counter_client/0.1.0": "bafybeigbq3tkjojxognv3auyhablqd6lybeahc6xd6rnpi4dlw4jryedwq",
     "skill/valory/hello_world_abci/0.1.0": "bafybeiamhn2ri7ocdummqhwgd75lqeev3ruviqdfuujae4adtksmleetmy",
-    "skill/valory/liquidity_rebalancing_abci/0.1.0": "bafybeie35qtdxt3qf4lte232l6rgrn3tpkt5mobmk2xyfqyl3kawilzdae",
+    "skill/valory/liquidity_rebalancing_abci/0.1.0": "bafybeigh727rchyzwubtaxul2myionpl4eitjzoesamr42vjw5mbegsyru",
     "skill/valory/oracle_abci/0.1.0": "bafybeib5vhkaltdem6z2ybzdevqiuepsnndtgilefwtz2lydhfv6cc36he",
     "skill/valory/register_reset_abci/0.1.0": "bafybeiawo72hspab7nyt7gcjs7b44qksem26mhmkfriuov7rhebtkpnxre",
     "skill/valory/simple_abci/0.1.0": "bafybeifw3msuw67ird6hbatosh2yhql5n5k44dlwnyjwlek3g6ergpwpza",
@@ -56,5 +56,5 @@
     "service/valory/oracle_ropsten_cluster/0.1.0": "bafybeidjdfhwbugdpk4qy53k2yeinki45t3midj6hh5mwggkk4632kqhze",
     "service/valory/register_reset/0.1.0": "bafybeidkzsisq62mmd4xdfv4joxpnyvyp3rihd7mpiseddvyb6wwoul7ei",
     "service/valory/simple_abci/0.1.0": "bafybeibcplvpk56a47vgblnhpji435ennnsn64ohdebewwefra7gnywxpa",
-    "skill/valory/liquidity_provision_abci/0.1.0": "bafybeifr574dody4tgmahprhvfzgtpw6omr4wslfr4cxsb4wspeyiekixm"
+    "skill/valory/liquidity_provision_abci/0.1.0": "bafybeig5bscql5pje4hqtvcxq5pf5skke4jolphskr3yjwilkc7vlyvt2q"
 }
