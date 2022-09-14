@@ -162,17 +162,6 @@ class AbstractFileGenerator(ABC):
         """Payloads"""
         return [s.replace(ROUND, PAYLOAD) for s in self.rounds]
 
-    def _parse_transition_func(self) -> Dict[str, Dict[str, str]]:
-        """Parse the transition function from the spec to a nested dictionary."""
-
-        result: Dict[str, Dict[str, str]] = {}
-        for (round_cls_name, event_name), value in self.dfa.transition_func.items():
-            result.setdefault(round_cls_name, {})[f"{EVENT}.{event_name}"] = value
-        for state in self.dfa.states:
-            if state not in result:
-                result[state] = {}
-        return result
-
     @property  # TODO: functools cached property
     def template_kwargs(self) -> Dict[str, str]:
         """All keywords for string formatting of templates"""
@@ -185,7 +174,7 @@ class AbstractFileGenerator(ABC):
         tx_type_list = list(map(_camel_case_to_snake_case, self.base_names))
         tx_type_list = [f'{tx_type.upper()} = "{tx_type}"' for tx_type in tx_type_list]
 
-        tf = json.dumps(self._parse_transition_func(), indent=4)
+        tf = json.dumps(self.dfa._parse_transition_func(), indent=4)
         behaviours = json.dumps(self.behaviours, indent=4)
 
         return dict(
