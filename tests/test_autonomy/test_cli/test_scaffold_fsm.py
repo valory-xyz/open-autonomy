@@ -63,7 +63,7 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         cls.agent_name = "default_author"
         cls.set_agent_context(os.path.join("packages", cls.agent_name))
         cls.create_agents(cls.agent_name, is_local=cls.IS_LOCAL, is_empty=cls.IS_EMPTY)
-        shutil.move(cls.t / cls.agent_name, cls.t / "packages")
+        shutil.move(str(cls.t / cls.agent_name), str(cls.t / "packages"))
 
     def test_run(self, fsm_spec_file: Path) -> None:
         """Test run."""
