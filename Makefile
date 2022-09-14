@@ -236,7 +236,7 @@ fix-abci-app-specs:
 
 AEA_AGENT_HELLO_WORLD:=valory/hello_world:latest:$(shell cat packages/packages.json | grep "agent/valory/hello_world" | cut -d "\"" -f4 )
 AEA_AGENT_ORACLE:=valory/oracle:latest:$(shell cat packages/packages.json | grep "agent/valory/oracle" | cut -d "\"" -f4 )
-AEA_AGENT_APY_ESTIMATION:=valory/apy_estimation:latest:$(shell cat packages/packages.json | grep "agents/apy_estimation," | cut -d "\"" -f4 )
+AEA_AGENT_APY_ESTIMATION:=valory/apy_estimation:latest:$(shell cat packages/packages.json | grep "agent/valory/apy_estimation" | cut -d "\"" -f4 )
 release-images:
 	export AEA_AGENT_ORACLE=${AEA_AGENT_ORACLE}
 	export AEA_AGENT_APY_ESTIMATION=${AEA_AGENT_APY_ESTIMATION}
