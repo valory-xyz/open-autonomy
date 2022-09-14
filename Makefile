@@ -80,7 +80,7 @@ generators:
 	tox -e abci-docstrings
 	tox -e fix-copyright
 	python -m autonomy.cli hash all
-	python -m autonomy.cli autonomy packages lock
+	python -m autonomy.cli packages lock
 	tox -e generate-api-documentation
 	tox -e fix-doc-hashes
 
