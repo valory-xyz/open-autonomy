@@ -83,8 +83,6 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         monkeypatch.syspath_prepend(self.t)
         path = self.t / self.agent_name
         for file in path.glob("**/*.py"):
-            if "tests" in file.parts:  # TODO
-                continue
             module_spec = importlib.util.spec_from_file_location("name", file)
             assert isinstance(module_spec, ModuleSpec)
             module_type = importlib.util.module_from_spec(module_spec)
