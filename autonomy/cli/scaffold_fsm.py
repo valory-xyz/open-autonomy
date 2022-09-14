@@ -198,6 +198,20 @@ class AbstractFileGenerator(ABC):
         )
 
 
+class SimpleFileGenerator(AbstractFileGenerator):
+    """For files that require minimal formatting"""
+
+    def get_file_content(self) -> str:
+        """Get the file content."""
+
+        file_content = [
+            FILE_HEADER,
+            self.HEADER.format(**self.template_kwargs),  # type: ignore
+        ]
+
+        return "\n".join(file_content)
+
+
 class RoundFileGenerator(AbstractFileGenerator, ROUNDS):
     """File generator for 'rounds.py' modules."""
 
@@ -312,46 +326,16 @@ class PayloadsFileGenerator(AbstractFileGenerator, PAYLOADS):
         return "\n".join(file_content)
 
 
-class ModelsFileGenerator(AbstractFileGenerator, MODELS):
+class ModelsFileGenerator(SimpleFileGenerator, MODELS):
     """File generator for 'models.py' modules."""
 
-    def get_file_content(self) -> str:
-        """Get the file content."""
 
-        file_content = [
-            FILE_HEADER,
-            self.HEADER.format(**self.template_kwargs),
-        ]
-
-        return "\n".join(file_content)
-
-
-class HandlersFileGenerator(AbstractFileGenerator, HANDLERS):
+class HandlersFileGenerator(SimpleFileGenerator, HANDLERS):
     """File generator for 'handlers.py' modules."""
 
-    def get_file_content(self) -> str:
-        """Get the file content."""
 
-        file_content = [
-            FILE_HEADER,
-            self.HEADER.format(**self.template_kwargs),
-        ]
-
-        return "\n".join(file_content)
-
-
-class DialoguesFileGenerator(AbstractFileGenerator, DIALOGUES):
+class DialoguesFileGenerator(SimpleFileGenerator, DIALOGUES):
     """File generator for 'dialogues.py' modules."""
-
-    def get_file_content(self) -> str:
-        """Get the file content."""
-
-        file_content = [
-            FILE_HEADER,
-            self.HEADER.format(**self.template_kwargs),
-        ]
-
-        return "\n".join(file_content)
 
 
 class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
@@ -523,46 +507,16 @@ class PayloadTestsFileGenerator(AbstractFileGenerator, TEST_PAYLOADS):
         return "\n".join(behaviour_file_content)
 
 
-class ModelTestFileGenerator(AbstractFileGenerator, TEST_MODELS):
+class ModelTestFileGenerator(SimpleFileGenerator, TEST_MODELS):
     """File generator for 'test_models.py'."""
 
-    def get_file_content(self) -> str:
-        """Get the file content."""
 
-        file_content = [
-            FILE_HEADER,
-            self.HEADER.format(**self.template_kwargs),
-        ]
-
-        return "\n".join(file_content)
-
-
-class HandlersTestFileGenerator(AbstractFileGenerator, TEST_HANDLERS):
+class HandlersTestFileGenerator(SimpleFileGenerator, TEST_HANDLERS):
     """File generator for 'test_dialogues.py'."""
 
-    def get_file_content(self) -> str:
-        """Get the file content."""
 
-        file_content = [
-            FILE_HEADER,
-            self.HEADER.format(**self.template_kwargs),
-        ]
-
-        return "\n".join(file_content)
-
-
-class DialoguesTestFileGenerator(AbstractFileGenerator, TEST_DIALOGUES):
+class DialoguesTestFileGenerator(SimpleFileGenerator, TEST_DIALOGUES):
     """File generator for 'test_dialogues.py'."""
-
-    def get_file_content(self) -> str:
-        """Get the file content."""
-
-        file_content = [
-            FILE_HEADER,
-            self.HEADER.format(**self.template_kwargs),
-        ]
-
-        return "\n".join(file_content)
 
 
 class ScaffoldABCISkill:
