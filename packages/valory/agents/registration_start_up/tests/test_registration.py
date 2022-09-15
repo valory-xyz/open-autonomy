@@ -31,6 +31,7 @@ from aea.configurations.data_types import PublicId
 from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2End,
     BaseTestEnd2EndExecution,
+    RoundChecks,
 )
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     UseACNNode,
@@ -77,12 +78,16 @@ STRICT_CHECK_STRINGS = (
 )
 
 
+HAPPY_PATH = RoundChecks("registration_startup"),
+
+
 class RegistrationStartUpTestConfig(UseRegistries, UseACNNode, BaseTestEnd2End):
     """Base class for e2e tests using the ACN client connection"""
 
     skill_package = "valory/registration_abci:0.1.0"
     agent_package = "valory/registration_start_up:0.1.0"
     wait_to_finish = 60
+    happy_path = HAPPY_PATH
     strict_check_strings: Tuple[str, ...] = STRICT_CHECK_STRINGS
     __p2p_prefix = "vendor.valory.connections.p2p_libp2p_client"
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
