@@ -78,7 +78,7 @@ STRICT_CHECK_STRINGS = (
 )
 
 
-HAPPY_PATH = RoundChecks("registration_startup"),
+HAPPY_PATH = (RoundChecks("registration_startup"),)
 
 
 class RegistrationStartUpTestConfig(UseRegistries, UseACNNode, BaseTestEnd2End):
