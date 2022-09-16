@@ -219,6 +219,9 @@ jobs:
           docker pull valory/autonolas-registries:latest
           docker pull valory/contracts-amm:latest
           docker pull valory/safe-contract-net:latest
+          docker pull valory/acn-node:latest
+          docker pull tendermint/tendermint:v0.34.19
+          docker pull trufflesuite/ganache:beta
 
       - if: matrix.os == 'ubuntu-latest'
         name: Framework unit tests ubuntu-latest
