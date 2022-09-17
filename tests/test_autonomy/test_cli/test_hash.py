@@ -21,11 +21,13 @@
 
 
 import json
+import platform
 import shutil
 from pathlib import Path
 from typing import Dict, Tuple
 
 import _strptime  # noqa  # pylint: disable=unsed-import
+import pytest
 
 from autonomy.cli import cli
 from autonomy.configurations.loader import load_service_config
@@ -63,6 +65,9 @@ class TestHashAll(BaseCliTest):
 
         return hashes
 
+    @pytest.mark.skipif(
+        platform.system() == "Windows", reason="Fix hashing on windows."
+    )
     def test_service_hashing(
         self,
     ) -> None:
