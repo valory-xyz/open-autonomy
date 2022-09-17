@@ -22,9 +22,11 @@
 # pylint: skip-file
 
 import json
+import platform
 from pathlib import Path
 from typing import Any, cast
 
+import pytest
 from aea.test_tools.test_skill import BaseSkillTestCase
 
 from packages.valory.connections.http_client.connection import (
@@ -67,6 +69,7 @@ class TestIncrementerBehaviour(BaseTestClass):
 
     behaviour_name = "incrementer"
 
+    @pytest.mark.skipif(platform.system() == "Windows", reason="Flaky on Windows.")
     def test_run(
         self,
     ) -> None:
@@ -111,6 +114,7 @@ class TestMonitorBehaviour(BaseTestClass):
 
     behaviour_name = "monitor"
 
+    @pytest.mark.skipif(platform.system() == "Windows", reason="Flaky on Windows.")
     def test_run(
         self,
     ) -> None:
@@ -157,6 +161,7 @@ class TestHttpHandler(BaseTestClass):
 
     behaviour_name = "monitor"
 
+    @pytest.mark.skipif(platform.system() == "Windows", reason="Flaky on Windows.")
     def test_handle(
         self,
     ) -> None:
