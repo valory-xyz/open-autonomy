@@ -67,7 +67,9 @@ from packages.valory.skills.price_estimation_abci.behaviours import (
 from packages.valory.skills.price_estimation_abci.rounds import (
     SynchronizedData as PriceEstimationSynchronizedSata,
 )
-from packages.valory.skills.price_estimation_abci.tests import GnosisIntegrationBaseCase
+from packages.valory.skills.price_estimation_abci.tests.conftest import (
+    GnosisIntegrationBaseCase,
+)
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     CheckLateTxHashesBehaviour,
     FinalizeBehaviour,

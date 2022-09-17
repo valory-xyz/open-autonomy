@@ -18,34 +18,3 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/price_estimation_abci skill."""
-
-from typing import Any
-
-from aea_test_autonomy.fixture_helpers import HardHatAMMBaseTest
-from aea_test_autonomy.helpers.contracts import get_register_contract
-
-from packages.valory.contracts.offchain_aggregator.tests.test_contract import (
-    PACKAGE_DIR as OFFCHAIN_AGGREGATOR_PACKAGE,
-)
-from packages.valory.skills.abstract_round_abci.test_tools.integration import (
-    _HarHatHelperIntegration,
-)
-from packages.valory.skills.transaction_settlement_abci.test_tools.integration import (
-    _TxHelperIntegration,
-)
-
-
-class GnosisIntegrationBaseCase(  # pylint: disable=too-many-ancestors
-    _TxHelperIntegration, _HarHatHelperIntegration, HardHatAMMBaseTest
-):
-    """Base test class for integration tests in a Hardhat environment, with Gnosis deployed."""
-
-    # TODO change this class to use the `HardHatGnosisBaseTest` instead of `HardHatAMMBaseTest`.
-
-    @classmethod
-    def setup(cls, **kwargs: Any) -> None:
-        """Setup."""
-        super().setup()
-
-        # register offchain aggregator contract
-        _ = get_register_contract(OFFCHAIN_AGGREGATOR_PACKAGE)
