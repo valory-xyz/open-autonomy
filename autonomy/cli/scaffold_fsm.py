@@ -26,6 +26,7 @@ This module patches the 'aea scaffold' command so to add a new subcommand for sc
 
 import json
 import os
+import re
 import shutil
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -371,7 +372,7 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         """Update the behaviours section of the skill configuration."""
         config.behaviours = CRUDCollection[SkillComponentConfiguration]()
         abci_app_cls_name = self.dfa.label.split(".")[-1]
-        round_behaviour_cls_name = abci_app_cls_name.replace(ROUND, BEHAVIOUR)
+        round_behaviour_cls_name = abci_app_cls_name.replace(ABCI_APP, ROUND_BEHAVIOUR)
         main_config = SkillComponentConfiguration(round_behaviour_cls_name)
         config.behaviours.create("main", main_config)
 
@@ -400,7 +401,28 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         config.models = CRUDCollection[SkillComponentConfiguration]()
         config.models.create("state", SkillComponentConfiguration("SharedState"))
         config.models.create("requests", SkillComponentConfiguration("Requests"))
-        config.models.create("params", SkillComponentConfiguration("Params"))
+        config.models.create(
+            "params",
+            SkillComponentConfiguration("Params", **self._default_params_config),
+        )
+        config.models.create(
+            "abci_dialogues", SkillComponentConfiguration("AbciDialogues")
+        )
+        config.models.create(
+            "http_dialogues", SkillComponentConfiguration("HttpDialogues")
+        )
+        config.models.create(
+            "signing_dialogues", SkillComponentConfiguration("SigningDialogues")
+        )
+        config.models.create(
+            "ledger_api_dialogues", SkillComponentConfiguration("LedgerApiDialogues")
+        )
+        config.models.create(
+            "contract_api_dialogues", SkillComponentConfiguration("ContactApiDialogues")
+        )
+        config.models.create(
+            "tendermint_dialogues", SkillComponentConfiguration("TendermintDialogues")
+        )
 
     def _update_dependencies(self, config: SkillConfig) -> None:
         """Update skill dependencies."""
@@ -417,6 +439,39 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         """Load the current agent configuration."""
         with (Path(self.ctx.cwd) / DEFAULT_AEA_CONFIG_FILE).open() as f:
             return self.ctx.agent_loader.load(f)
+
+    @property
+    def _default_params_config(self) -> Dict:
+        """The default `params` configuration."""
+        abci_app_cls_name = self.dfa.label.split(".")[-1]
+        service_id = abci_app_cls_name.replace(ABCI_APP, "")
+        service_id = re.sub(r"(?<!^)(?=[A-Z])", "_", service_id).lower()
+        return {
+            "cleanup_history_depth": 1,
+            "cleanup_history_depth_current": None,
+            "consensus": {"max_participants": 1},
+            "drand_public_key": "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31",
+            "finalize_timeout": 60.0,
+            "history_check_timeout": 1205,
+            "keeper_allowed_retries": 3,
+            "keeper_timeout": 30.0,
+            "max_healthcheck": 120,
+            "observation_interval": 10,
+            "on_chain_service_id": None,
+            "reset_tendermint_after": 2,
+            "retry_attempts": 400,
+            "retry_timeout": 3,
+            "round_timeout_seconds": 30.0,
+            "service_id": service_id,
+            "service_registry_address": None,
+            "setup": {},
+            "sleep_time": 1,
+            "tendermint_check_sleep_delay": 3,
+            "tendermint_com_url": "http://localhost:8080",
+            "tendermint_max_retries": 5,
+            "tendermint_url": "http://localhost:26657",
+            "validate_timeout": 1205,
+        }
 
 
 def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
