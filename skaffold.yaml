@@ -60,7 +60,7 @@ profiles:
           <<: *release_docker_args
           buildArgs: &oar-oracle
             <<: *aea_version
-            AEA_AGENT: "{{=AEA_AGENT_ORACLE}}"
+            AEA_AGENT: "{{.AEA_AGENT_ORACLE}}"
 
       - image: valory/oar-apy_estimation
         <<: *open_autonomy_runtime_context
