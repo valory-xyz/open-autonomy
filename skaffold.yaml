@@ -1,5 +1,5 @@
 .aea_version: &aea_version
-  AEA_VERSION: "1.17.0"
+  AEA_VERSION: "1.19.0"
   AUTHOR: "valory"
 .docker_args: &docker_args
   dockerfile: Dockerfile
@@ -70,6 +70,13 @@ profiles:
             <<: *aea_version
             AEA_AGENT: "{{.AEA_AGENT_APY_ESTIMATION}}"
 
+      - image: valory/open-autonomy-user
+        context: deployments/Dockerfiles/autonomy-user
+        docker:
+          <<: *release_docker_args
+          buildArgs: 
+            <<: *aea_version
+
   - name: release-latest
     build:
       tagPolicy:
@@ -112,3 +119,10 @@ profiles:
           <<: *docker_args
           buildArgs:
             <<: *oar-apy_estimation
+
+      - image: valory/open-autonomy-user
+        context: deployments/Dockerfiles/autonomy-user
+        docker:
+          <<: *release_docker_args
+          buildArgs: 
+            <<: *aea_version
