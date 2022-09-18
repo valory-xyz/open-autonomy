@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeibqyfur7wusrbfga66hcbauxvhs2g3j5yhknsxlvyh6mil57aajyu
 fingerprint_ignore_patterns: []
-agent: valory/apy_estimation:0.1.0:bafybeigtwnns3lq4oiytr4xe36m3zhf3so6lvb22c2qx2qsspb7vcahgdy
+agent: valory/apy_estimation:0.1.0:bafybeih37ticxwakd5sqzxskw7h7q3jwdhrhtmxyzcvx6yuxoxditys3ha
 number_of_agents: 4
 ---
 public_id: valory/apy_estimation_abci:0.1.0
@@ -47,7 +47,7 @@ type: connection
 config:
   ledger_apis:
     ethereum:
-      address: http://host.docker.internal:8545
+      address: ${SERVICE_APY_ESTIMATION_RPC:str:http://host.docker.internal:8545}
       chain_id: 31337
       poa_chain: false
       default_gas_price_strategy: eip1559
