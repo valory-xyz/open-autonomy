@@ -90,6 +90,10 @@ the dependencies:
 
       make new_env && pipenv shell
 
+- Fetch packages:
+
+      autonomy packages sync
+
 ## Cite
 
 If you are using our software in a publication, please
