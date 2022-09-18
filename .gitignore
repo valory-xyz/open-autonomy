@@ -389,17 +389,7 @@ Pipfile.lock
 !packages/valory/contracts/agent_registry/build
 !packages/valory/contracts/service_registry/build
 
-# benchmark data.
-
-benchmark/*/logs
-benchmark/*/build
-benchmark/*/configure_agents
-benchmark/*/docker-compose.yml
-
-examples/price_estimation_dev/logs
-examples/price_estimation_dev/build
-examples/price_estimation_dev/configure_agents
-examples/price_estimation_dev/docker-compose.yml
+packages/open_aea
 
 .vscode/
 

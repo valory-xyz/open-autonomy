@@ -47,7 +47,7 @@ type: connection
 config:
   ledger_apis:
     ethereum:
-      address: http://host.docker.internal:8545
+      address: ${SERVICE_APY_ESTIMATION_RPC:str:http://host.docker.internal:8545}
       chain_id: 31337
       poa_chain: false
       default_gas_price_strategy: eip1559
