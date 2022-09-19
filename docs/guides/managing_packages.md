@@ -34,7 +34,7 @@ autonomy create my_agent
 cd my_agent
 ```
 
-If you explore the newly created `my_agent` directoy, you'll see it contains the following structure:
+If you explore the newly created `my_agent` directory, you'll see it contains the following structure:
 
 ```bash
 my_agent
@@ -205,7 +205,7 @@ Now you know how to publish your own agent, but what if you actually want to get
 autonomy fetch john_doe/my_agent --local
 ```
 
-If you run the previous command, you will see that you now have the `my_agent` folder again, but this time it only contains the agent configuration and the `vendor` folder because we are fetchig from the registry.
+If you run the previous command, you will see that you now have the `my_agent` folder again, but this time it only contains the agent configuration and the `vendor` folder because we are fetching from the registry.
 
 Fetching works for services as well:
 
