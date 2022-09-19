@@ -15,9 +15,9 @@ You can see that this setup is not that different from the one git uses.
 
 This package organization lets users develop in two different ways:
 
-- Create an agent and develop inside it. In this case you will have a vendor folder inside the agent containing all packages from other developers, and it is not recommended to modify anything inside it. Packages under development will live inside the agent (see green box on the diagram).
+- Create an agent and develop inside it. In this case you will have a vendor folder inside the agent containing all packages from other developers, and it is not recommended to modify anything inside it. Packages under development will live inside the agent's component specific folders `skills`, `connections`, `contracts` and `protocols`  (see green box on the diagram).
 
-- Develop the needed packages independently from the agent, inside the local registry (packages folder) and later add them to an agent. This is the recommended method.
+- Develop the needed packages independently from the agent, inside the local registry (packages folder) and later add them to an agent. **This is the recommended method as it improves separation of concerns and offers the cleanest developer experience.**
 
 ## The agent structure
 
