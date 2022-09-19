@@ -1,6 +1,6 @@
-During the development of agents and services, users need to manage other packages, either developing them themselves or fetching already available ones. This guide will show you which are the relevant directories during AEA development and how to get, use and publish packages.
+During the development of agents and services, users need to manage other packages, either developing them themselves or fetching already available ones. This guide will show you which are the relevant directories during development and how to get, use and publish packages.
 
-The first thing you need to know is that there are different types of packages: agents, services, connections, contracts, protocols, services and skills. These packages can live in different places:
+The first thing you need to know is that there are different types of packages: services, agents, connections, contracts, protocols and skills. Services are composed of agents, and agents are composed of connections, contracts, protocols and skills. All these packages can live in different places:
 
 - Inside an agent if they are being used by that agent, with the exception of services which never live inside an agent.
 - In the local registry (packages folder), a local directory that stores packages classified by vendor.
@@ -21,16 +21,7 @@ This package organization lets users develop in two different ways:
 
 ## The agent structure
 
-The first thing a developer needs to do before they start writing code is setting up the project. Instead of starting from scratch, we recommend to use our developer template:
-
-```bash
-git clone git@github.com:valory-xyz/dev-template.git
-cd dev-template/
-make new_env
-pipenv shell
-```
-
-The previous commands will generate a virtual environment with {{open_autonomy}} installed, an empty local registry, some useful tools for checking packages and dummy tests. After this, in the same fashion git asks to initialize its configuration using `git config`, {{open_autonomy}} asks the user to set the user name, whether we are using a local or remote registry as well as the type of registry (IPFS by default). For example, initialize your registry running the following command:
+The first thing a developer needs to do before they start writing code is setting up the project. Instead of starting from scratch, we recommend to use our [developer template](https://github.com/valory-xyz/dev-template). Once setup, it will generate a virtual environment with {{open_autonomy}} installed, an empty local registry, some useful tools for checking packages and dummy tests. After this, in the same fashion git asks to initialize its configuration using `git config`, {{open_autonomy}} asks the user to set the user name, whether we are using a local or remote registry as well as the type of registry (IPFS by default). For example, initialize your registry running the following command:
 
 ```bash
 autonomy init --reset --author john_doe --remote --ipfs --ipfs-node "/dns/registry.autonolas.tech/tcp/443/https"
@@ -39,7 +30,7 @@ autonomy init --reset --author john_doe --remote --ipfs --ipfs-node "/dns/regist
 Now we are in the position of creating our first agent:
 
 ```bash
-aea create my_agent
+autonomy create my_agent
 cd my_agent
 ```
 
@@ -67,7 +58,8 @@ So your new agent just contains the basic signing protocol from `open_aea` insid
 Let's say we now want to add a new feature to this agent, for instance the ability to communicate using the Tendermint protocol. Since that package is already available on the Autonolas IPFS registry, we'll use the `add command` with the `--remote` flag:
 
 ```bash
-autonomy add protocol valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq --remote
+# Remote flag is not needed here as we initialized the default registry to remote
+autonomy add protocol valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 ```
 
 You can check your new protocol package at the following location:
@@ -80,9 +72,9 @@ my_agent
                            └── tendermint
 ```
 
-It is useful to add these third party packages to the `.gitignore` so your repository just tracks your own packages.
+It is useful to add these third party vendor path to the `.gitignore` so your repository just tracks your own packages. For the local registry, paths like `packages/valory` should also be added to it.
 
-After adding a vendor package, you can remove it from the agent by:
+After adding a vendor package, you can also move it from the vendor into the non-vendor directories by:
 ```bash
 autonomy eject protocol valory/tendermint:0.1.0
 ```
