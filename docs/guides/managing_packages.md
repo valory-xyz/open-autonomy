@@ -210,7 +210,7 @@ If you run the previous command, you will see that you now have the `my_agent` f
 Fetching works for services as well:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeihrng5d73bsctkjilgc2lxkn4ditsbf3c7vqmt6wpi45zglq42i2e --service --remote
+autonomy fetch valory/hello_world:0.1.0:bafybeighscqgkb5y2ttozpipkkubjzuw5atq4rpmn5i7fvotmkvidwij5a --service --remote
 ```
 
 Sometimes agents and services share the same name, so the `--service` and `--agent` flags are useful to break any ambiguity.
