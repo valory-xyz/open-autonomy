@@ -25,10 +25,7 @@ from functools import partial
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
-import click
 import mistune  # type: ignore
-
-from autonomy.cli.core import cli
 
 from tests.conftest import ROOT_DIR
 
