@@ -33,6 +33,7 @@ nav:
     - Deploy a service: 'guides/deploy_service.md'
     - Running a service in different networks: 'guides/running_service_different_networks.md'
     - Using the scaffold tool to speed up development: 'guides/scaffolding.md'
+    - Managing packages: 'guides/managing_packages.md'
   - Concepts:
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
