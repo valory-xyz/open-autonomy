@@ -19,15 +19,13 @@
 
 """Test build image."""
 
+import json
 import os
-import random
 import shutil
-import string
 from pathlib import Path
 from typing import Tuple
 
 import docker
-import pytest
 from aea.configurations.constants import PACKAGES
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
@@ -39,9 +37,9 @@ class TestBuildImage(BaseCliTest):
     """Test build image command."""
 
     cli_options: Tuple[str, ...] = ("build-image",)
-    service_id: str = "valory/oracle_hardhat"
     docker_api: docker.APIClient
     build_dir: Path
+    hash_: str
 
     @classmethod
     def setup(cls) -> None:
@@ -49,36 +47,27 @@ class TestBuildImage(BaseCliTest):
         super().setup()
 
         cls.docker_api = docker.APIClient()
+
+        with open(ROOT_DIR / PACKAGES / "packages.json") as json_data:
+            d = json.load(json_data)
+            cls.hash_ = d["agent/valory/hello_world/0.1.0"]
+            json_data.close()
         shutil.copytree(
             ROOT_DIR / PACKAGES / "valory" / "services" / "hello_world",
             cls.t / "hello_world",
         )
         os.chdir(cls.t / "hello_world")
 
-    @staticmethod
-    def generate_random_tag(length: int = 16) -> str:
-        """Generate random version tag."""
-
-        return "".join(
-            [random.choice(string.ascii_lowercase) for _ in range(length)]  # nosec
-        )
-
-    @pytest.mark.skip("https://github.com/valory-xyz/open-autonomy/issues/1108")
     def test_build_prod(
         self,
     ) -> None:
         """Test prod build."""
 
-        version = self.generate_random_tag()
-        result = self.run_cli(("--version", version))
+        result = self.run_cli()
 
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert (
-            len(
-                self.docker_api.images(
-                    name=f"valory/open-autonomy-open-aea:hello_world-{version}"
-                )
-            )
+            len(self.docker_api.images(name=f"valory/oar-hello_world:{self.hash_}"))
             == 1
         )
 

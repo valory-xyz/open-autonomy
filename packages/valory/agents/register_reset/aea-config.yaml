@@ -17,15 +17,15 @@ connections:
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeifexbtq3cqrodkmy75djq7hck5c44jnjezywins7fzzg5nn6yi6om
+- open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
 - valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
 skills:
 - valory/abstract_abci:0.1.0:bafybeidt4cyfhlla6faca6us6law7dijrlrzihcj6uwrmeaa3ho6fdck2u
-- valory/abstract_round_abci:0.1.0:bafybeigpz64qx22a4zzlcczmc5frhlecytrh5q3x77lwe3a5kee2qrcchm
-- valory/register_reset_abci:0.1.0:bafybeiawo72hspab7nyt7gcjs7b44qksem26mhmkfriuov7rhebtkpnxre
-- valory/registration_abci:0.1.0:bafybeiajvfkffbdmggj3it7e4r6733lylxhbnb2a6tx3tmlgpy2fpxkuze
-- valory/reset_pause_abci:0.1.0:bafybeieo5m37rwoel7e6u3lrp2cei7hdyhklggsc6776vej6bp6gzua7ei
+- valory/abstract_round_abci:0.1.0:bafybeiddvt3bwiqgf6kzg3bjlo2hvnurpmisys3u4jbhgc64vx3d2meadi
+- valory/register_reset_abci:0.1.0:bafybeie5z5pabpz7jz72nx2uanswvw57cd6uzfyxenjbcrijlcyvqjitz4
+- valory/registration_abci:0.1.0:bafybeid4o3rxvjvrrhvipwe5nntk7b5qdfb7axeltlifazx5rdqndqfqty
+- valory/reset_pause_abci:0.1.0:bafybeidwo75l6spqdf45yqx7rpofqpku3yi223ud3pamgasi4xbod3hun4
 default_ledger: ethereum
 required_ledgers:
 - ethereum

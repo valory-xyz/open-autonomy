@@ -8,14 +8,14 @@ fingerprint:
   README.md: bafybeidoybzzjch4djhhafqm4e4jcrpaqmlthntcnonlsjtowwpykbc5xi
 fingerprint_ignore_patterns: []
 number_of_agents: 1
-agent: valory/counter:0.1.0:bafybeidqj3gwaageeqwi62ymxfvhkh4lfjmjmra2b3ayjlwdg3bltyye3m
+agent: valory/counter:0.1.0:bafybeidtbq4uoylwasrsawaogifxxuittm75qlkayinknv77osvjx7ffw4
 ---
 public_id: valory/ledger:0.1.0
 type: connection
 config:
   ledger_apis:
     ethereum:
-      address: http://host.docker.internal:8545
+      address: ${SERVICE_COUNTER_RPC:str:http://host.docker.internal:8545}
       chain_id: 31337
       poa_chain: false
       default_gas_price_strategy: eip1559
