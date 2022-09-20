@@ -389,10 +389,14 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             assert current_behaviour.is_done()  # nosec
 
     @classmethod
-    def teardown(cls) -> None:
+    def teardown_class(cls) -> None:
         """Teardown the test class."""
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
-        cls.benchmark_dir.cleanup()
+
+    def teardown(self) -> None:
+        """Teardown."""
+        super().teardown()
+        self.benchmark_dir.cleanup()
 
 
 class DummyContext:

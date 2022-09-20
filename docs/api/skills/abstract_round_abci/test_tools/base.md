@@ -127,16 +127,26 @@ def end_round(done_event: Enum) -> None
 
 Ends round early to cover `wait_for_end` generator.
 
+<a id="packages.valory.skills.abstract_round_abci.test_tools.base.FSMBehaviourBaseCase.teardown_class"></a>
+
+#### teardown`_`class
+
+```python
+@classmethod
+def teardown_class(cls) -> None
+```
+
+Teardown the test class.
+
 <a id="packages.valory.skills.abstract_round_abci.test_tools.base.FSMBehaviourBaseCase.teardown"></a>
 
 #### teardown
 
 ```python
-@classmethod
-def teardown(cls) -> None
+def teardown() -> None
 ```
 
-Teardown the test class.
+Teardown.
 
 <a id="packages.valory.skills.abstract_round_abci.test_tools.base.DummyContext"></a>
 

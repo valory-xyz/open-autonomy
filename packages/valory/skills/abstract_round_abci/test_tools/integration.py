@@ -136,6 +136,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         cls.multiplexer.disconnect()
         cls.running_loop.call_soon_threadsafe(cls.running_loop.stop)
         cls.thread_loop.join()
+        super().teardown_class()
 
     def get_message_from_decision_maker_inbox(self) -> Optional[Message]:
         """Get message from decision maker inbox."""

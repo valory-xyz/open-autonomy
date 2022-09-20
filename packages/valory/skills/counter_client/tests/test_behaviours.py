@@ -49,9 +49,9 @@ class BaseTestClass(BaseSkillTestCase):
     http_handler: HttpHandler
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup the test class."""
-        super().setup()
+        super().setup_class()
         assert cls._skill.skill_context._agent_context is not None
         cls._skill.skill_context._agent_context.identity._default_address_key = (
             "ethereum"
