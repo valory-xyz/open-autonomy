@@ -50,9 +50,9 @@ class AMMIntegrationBaseCase(
     """Base test class for integration tests in a Hardhat environment, with AMM interaction."""
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup."""
-        super().setup()
+        super().setup_class()
 
         # register all contracts we need
         _ = get_register_contract(UNISWAP_V2_ROUTER_02_PACKAGE)

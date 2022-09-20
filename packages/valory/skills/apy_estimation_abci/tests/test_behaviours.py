@@ -192,9 +192,9 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     synchronized_data: SynchronizedData
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup_class(cls, **kwargs: Any) -> None:
         """Set up the test class."""
-        super().setup(
+        super().setup_class(
             param_overrides={"ipfs_domain_name": "/dns/localhost/tcp/5001/http"}
         )
         cls.synchronized_data = SynchronizedData(
