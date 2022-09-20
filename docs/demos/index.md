@@ -7,8 +7,6 @@ the corresponding agents) from the remote IPFS registry and explore them by your
   how to use the main components in an agent service,  without external interactions.
 - [Simple agent service](../simple_abci.md): a service to showcase a number of major
   stages which are quite common in agent services.
-- [Counter demo](../counter_example.md): a very simple demo of a non-FSM based service.
-  Use this approach for extremely simple services only.
 - [Price oracle demo](../price_oracle_intro.md): a full service implementing a
   price oracle where each agent collects price estimates from a different source.
   

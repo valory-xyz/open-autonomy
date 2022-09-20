@@ -38,7 +38,6 @@ nav:
     - 'demos/index.md'  
     - Hello World Agent Service: 'hello_world_agent_service.md'
     - Simple Demo: 'simple_abci.md'
-    - Counter Demo: 'counter_example.md'
     - Price Oracle Demo:
       - Introduction: 'price_oracle_intro.md'
       - Technical Details: 'price_oracle_technical_details.md'
