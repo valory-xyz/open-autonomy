@@ -1,5 +1,34 @@
 # Release History - `open-autonomy`
 
+
+# 0.3.1 (2022-09-20)
+
+# Autonomy
+- Factors out scaffolding templates
+- Updates CLI help messages
+- Fixes the scaffold `FSM` command so that a skill can be loaded once created
+- Adds `valory/open-autonomy-user` Docker image with latest open-autonomy framework installed
+
+# Packages
+- Point to ACN Docker image instead of staging ACN nodes
+- Removes unnecessary dependency of `transaction_settlement_abci` skill on the `offchain_aggregator` contract
+- Adds env vars for the RPC endpoints of all service specs
+- Deduplicates `open_aea` packages by pulling from registry
+- Increases the validate timeout by an order of magnitude in `Polygon` service
+
+# Tests
+- Fixes build image test
+
+# Docs
+- Adds a doc section to explain package management
+- Fixes broken links on documentation
+
+# Chores
+- Fixes `release-image` target on the `Makefile` to use `packages.json`
+- Check hashes in `packages.json` instead of `hashes.csv`
+- Removes changelog
+- Updates command regex to reflect latest changes
+
 # 0.3.0 (2022-09-14)
 
 # Autonomy
