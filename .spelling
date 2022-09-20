@@ -189,6 +189,12 @@ NFTs
 md-button
 md-button--primary
 Gitleaks
+href
+counter_example
+Ardian
+Abazi
+0xArdi
+BibTex
  - docs/index.md
 README.md
 s_
@@ -300,6 +306,7 @@ i
 0.1.0rc2
 serializer
 0.2.1.post1
+shebangs
  - docs/control_flow.md
 EntryPoint
 StartA
@@ -349,4 +356,3 @@ PrintMessageRound
 HelloWorldABCIAbstractRound
 PrintMessageBehaviour
  - docs/agent_services_context.md
-

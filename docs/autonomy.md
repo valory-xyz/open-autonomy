@@ -75,7 +75,7 @@ These keys can be used for local deployments if you're using the default hardhat
 
 ```bash
 # fetch a service
-$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeidbsapk7oq256t3ma532ziwdmut3k7b5k6japbklyb253zafuanie  --service
+$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeihx26r2oysncazjncvnjdackbbmnbayyd5bpjqp6rhkhx22cpodoq  --service
 $ cd oracle_hardhat
 # create a docker deployment
 $ autonomy deploy build keys.json
@@ -185,7 +185,7 @@ Currently we support Autonolas staging chain, Goerli testnet and Ethereum mainne
 
 ## Replay
 
-Replay tools can be use the re run the agents using data dumps from previous runs.
+Replay tools can be used to re-run the agents execution using data dumps from previous runs.
 
 **Note: Replay only works for deployments which were ran in dev mode**
 
@@ -248,9 +248,8 @@ run-oracle-dev:
     exit 1
   fi
 
-  autonomy deploy build image valory/oracle_hardhat --dependencies && \
-    autonomy deploy build image valory/oracle_hardhat --dev && \
-    autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --force --dev && \
+  autonomy build-image valory/oracle_hardhat --dev && \
+    autonomy deploy build valory/oracle_hardhat deployments/keys/hardhat_keys.json --force --dev && \
     make run-deploy
 
 .PHONY: run-deploy
@@ -375,7 +374,7 @@ Aggregating results from deployments.
 To use this tool you'll need benchmark data generated from agent runtime. To generate benchmark data run
 
 ```
-$ autonomy deploy build deployment SERVICE_ID PATH_RO_KEYS --dev
+$ autonomy deploy build PATH_RO_KEYS --dev
 ```
 
 By default this will create a 4 agent runtime where you can wait until all 4 agents are at the end of the first period (you can wait for more periods if you want) and then you can stop the runtime. The data will be stored in `abci_build/persistent_data/benchmarks` folder.
@@ -424,7 +423,7 @@ autonomy fetch --local --alias oracle valory/oracle:0.1.0
 ```bash
 Usage: autonomy run [OPTIONS]
 
-  Run the agent.
+  Run the agent. Available for docker compose deployments only, not for kubernetes deployments.
 
 Options:
   -p                          Ask for password interactively
@@ -452,4 +451,38 @@ Options:
 
 ```bash
 autonomy run --aev
+```
+
+## Scaffold
+
+The scaffold tool lets users generate boilerplate code that acts as a template to speed-up the development of packages.
+
+
+```bash
+Usage: autonomy scaffold [OPTIONS] COMMAND [ARGS]...
+
+  Scaffold a package for the agent.
+
+Options:
+  -tlr, --to-local-registry  Scaffold skill inside a local registry.
+  --with-symlinks            Add symlinks from vendor to non-vendor and
+                             packages to vendor folders.
+  --help                     Show this message and exit.
+
+Commands:
+  connection              Add a connection scaffolding to the configuration file and agent.
+  contract                Add a connection scaffolding to the configuration file and agent.
+  decision-maker-handler  Add a decision maker scaffolding to the configuration file and agent.
+  error-handler           Add an error scaffolding to the configuration file and agent.
+  fsm                     Add an ABCI skill scaffolding from an FSM specification.
+  protocol                Add a protocol scaffolding to the configuration file and agent.
+  skill                   Add a skill scaffolding to the configuration file and agent.
+
+```
+
+#### Example
+
+
+```bash
+autonomy scaffold connection my_connection
 ```

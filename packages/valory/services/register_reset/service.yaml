@@ -1,7 +1,7 @@
 name: register_reset
 author: valory
 version: 0.1.0
-agent: valory/register_reset:0.1.0:bafybeigvqg2ku3jtfztlr2jm6xltesqkyv4g7hcjuaza3bpaovxub3efbm
+agent: valory/register_reset:0.1.0:bafybeiauh4bxgy26bkhv5ug23l3xtxll2fmufaifxfrqs34u6v3yclx7lm
 number_of_agents: 4
 description: Test and debug tendermint reset mechanism.
 aea_version: '>=1.0.0, <2.0.0'
@@ -15,7 +15,7 @@ type: connection
 config:
   ledger_apis:
     ethereum:
-      address: http://host.docker.internal:8545
+      address: ${SERVICE_REGISTER_RESET_RPC:str:http://host.docker.internal:8545}
       chain_id: 31337
       poa_chain: false
       default_gas_price_strategy: eip1559

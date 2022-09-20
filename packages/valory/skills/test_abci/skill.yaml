@@ -14,13 +14,20 @@ fingerprint:
   models.py: bafybeidlcic7cpxbqlxoeg56d3chnuoepk3inbn3yryyxtskp3msge75ci
   payloads.py: bafybeibp4ty4dnrpkezdmxqdv6icp5d23chkfs5ufygrxb2eouvxsdvv2e
   rounds.py: bafybeicnhsrtfmmm4zenvfz7mvw5sady5ysz4wbn2uuacmny6qxghsq64a
+  tests/__init__.py: bafybeicmlbk5j45t5qgvrlv7n3e3kpih2s3ibmjremouifdgcig6cajryq
+  tests/test_behaviours.py: bafybeidjmuhah5tt7czjqyobnwrrjvbfcwc63emmutaonjenezi7vyvqmi
+  tests/test_dialogues.py: bafybeicd4f6di6m527d724vo6xcmbmpxgqr22rtzkkcvcqpjzievb5imra
+  tests/test_handlers.py: bafybeigwsx5yhtxruoqai3cckiupm3wbu3vucxyxnc6us27oa3nnqgs2xe
+  tests/test_models.py: bafybeihtud7c4q4eaop4knivs5yzo6ktaqefrbyjtthuwy34mytcbtpeqq
+  tests/test_payloads.py: bafybeigdkysovfmacsvdcw4gsjfijjcwza64zsospifl2v7hwgmz27af5y
+  tests/test_rounds.py: bafybeiac7wlch6uso33fng6qiwgmqhdyetvb64hnlls2oxqe4g3mhggmwa
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_abci:0.1.0:bafybeic3dy6vtad4bylhc25mprvl2rl5xiy3zop3arnbeqmiwsbbeyf36u
-- valory/abstract_round_abci:0.1.0:bafybeihppsoiulob35ee3oacfao2j6snyqzdgt7njt4apc32wndqkekmm4
+- valory/abstract_abci:0.1.0:bafybeicodi6jiir3yfz5rjotsym2wgpgn3olelrz6hl2d4dlbxkpnpsmym
+- valory/abstract_round_abci:0.1.0:bafybeib2b6pnmlvylvqpnpin4lhv7pdv22rhk7ur3is26kqnzjgtlfzhz4
 behaviours:
   main:
     args: {}
@@ -68,6 +75,23 @@ models:
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      genesis_config:
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_num_blocks: '100000'
+            max_age_duration: '172800000000000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        voting_power: '10'
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10

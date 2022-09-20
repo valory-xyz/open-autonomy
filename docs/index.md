@@ -6,7 +6,7 @@
 {{open_autonomy}} is a framework for the creation of **agent services**: off-chain
 autonomous services which run as a multi-agent-system (MAS) and offer **enhanced functionalities
 on-chain**. Agent services expands the range of operations that traditional
-smart contracts provide, making possible to execute **arbitrarily complex operations**
+smart contracts provide, making it possible to execute **arbitrarily complex operations**
 (such as machine-learning algorithms). Most importantly, agent services are
 **decentralized**, **trust-minimized**, **transparent**, and **robust**.
 
@@ -24,25 +24,33 @@ fit in the wider crypto ecosystem.
 
 Follow the guides to learn how to use the framework to **create and deploy agent services**.
 
-[Tutorials](#){ .md-button }
+[Guides](./guides/index.md){ .md-button }
 
 ------
 
 A tour to **existing agent services** that you can explore and use them as a reference
 for your implementations.
 
-[Demos](#){ .md-button }
+[Demos](./demos/index.md){ .md-button }
 
 ------
 
 Detailed topics on how the **internal components** of an agent service work with the
 framework.
-Also, you will find **advanced tools** that will help you to develop your agent services.
 
-[In-depth topics](#){ .md-button }
+
+[Key concepts](./key_concepts/index.md){ .md-button }
 
 ------
 
 Browse through the CLI and API reference documentation.
 
-[Reference](#){ .md-button }
+[Advanced reference](./advanced_reference/index.md){ .md-button }
+
+
+------
+
+Browse our FAQ where you can find commonly asked questions about the framework.
+
+[FAQ](./questions-and-answers.md){ .md-button }
+

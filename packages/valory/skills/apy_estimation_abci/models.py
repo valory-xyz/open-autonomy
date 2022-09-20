@@ -88,11 +88,6 @@ class SpookySwapSubgraph(DEXSubgraph):
     """A model that wraps DEXSubgraph for SpookySwap subgraph specifications."""
 
 
-# This is a `List` that contains `List`s, which contain two items.
-# The first one is the DEX name and the second one is a `List` with the corresponding DEX's id `str`s.
-# This is a temporary hack until we fix the limitation with the dict override in the agent config.
-# This type should be removed when https://github.com/valory-xyz/open-aea/issues/270 is closed.
-HackyPairIdsType = List[List[Union[str, List[str]]]]
 PairIdsType = Dict[str, List[str]]
 ValidatedSubgraphType = Union[DEXSubgraph, ApiSpecs]
 ValidatedSubgraphsType = ValuesView[ValidatedSubgraphType]
@@ -176,67 +171,6 @@ class SubgraphsMixin:
         return cast(ValidatedSubgraphsMappingType, self._utilized_subgraphs).values()
 
 
-def _raise_incorrect_hacky_initialization() -> None:
-    """
-    Raise a `ValueError` when the pair ids hacky initialization is incorrect.
-
-    Please also take a look at the discussion here:
-    https://github.com/valory-xyz/open-autonomy/pull/1171#discussion_r938924806
-    This method should be removed when https://github.com/valory-xyz/open-aea/issues/270 is closed.
-    """
-    raise ValueError(
-        "Pair ids have been incorrectly configured. Please consider: https://github.com/valory-xyz/open-aea/issues/270."
-    )
-
-
-def _validate_parsed_hacky_pair_ids(pair_ids: PairIdsType) -> None:
-    """
-    Validate the parsed hacky initialized pair ids.
-
-    Please also take a look at the discussion here:
-    https://github.com/valory-xyz/open-autonomy/pull/1171#discussion_r938924806
-    This method should be removed when https://github.com/valory-xyz/open-aea/issues/270 is closed.
-
-    :param pair_ids: the parsed hacky pair ids to validate.
-    """
-    for dex_name, dex_ids in pair_ids.items():
-        if (
-            isinstance(dex_name, str)
-            and isinstance(dex_ids, list)
-            and all(isinstance(_id, str) for _id in dex_ids)
-        ):
-            continue
-        _raise_incorrect_hacky_initialization()
-
-
-def _hack_around_dict_override_limitation(pair_ids: HackyPairIdsType) -> PairIdsType:
-    """
-    Temporary hack to overcome the dict override limitation in the agent's config.
-
-    Please also take a look at the discussion here:
-    https://github.com/valory-xyz/open-autonomy/pull/1171#discussion_r938924806
-    This method should be removed when https://github.com/valory-xyz/open-aea/issues/270 is closed.
-
-    :param pair_ids: the hacky pair ids to parse to their normal dict representation.
-    :return: the parsed pair ids.
-    """
-    ids: Dict[str, List[str]] = {}
-
-    try:
-        ids = {
-            # here we make the assumption that the first item contains the key and the second the `list` of `str` values
-            str(dex_config[i]): cast(List[str], dex_config[i + 1])
-            for dex_config in pair_ids
-            for i in range(0, len(dex_config), 2)
-        }
-    except IndexError:
-        _raise_incorrect_hacky_initialization()
-    else:
-        _validate_parsed_hacky_pair_ids(ids)
-
-    return ids
-
-
 class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
     """Parameters."""
 
@@ -250,8 +184,7 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
         ] = self._ensure("optimizer", kwargs)
         self.testing = self._ensure("testing", kwargs)
         self.estimation = self._ensure("estimation", kwargs)
-        pair_ids: HackyPairIdsType = self._ensure("pair_ids", kwargs)
-        self.pair_ids: PairIdsType = _hack_around_dict_override_limitation(pair_ids)
+        self.pair_ids: PairIdsType = self._ensure("pair_ids", kwargs)
         self.ipfs_domain_name = self._ensure("ipfs_domain_name", kwargs)
         self.is_broadcasting_to_server = kwargs.pop("broadcast_to_server", False)
         self.decimals = self._ensure("decimals", kwargs)

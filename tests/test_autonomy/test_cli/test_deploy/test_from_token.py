@@ -24,6 +24,7 @@ from unittest import mock
 
 import pytest
 from aea_test_autonomy.docker.registries import SERVICE_REGISTRY
+from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest

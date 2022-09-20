@@ -17,17 +17,25 @@ fingerprint:
   payloads.py: bafybeibpwhqbjvqi7um2cu4calbdhhzukpi6tn6y3qp4qb4nwx2bzjbmqu
   rounds.py: bafybeicy5il65kkenbd26uxky2qavygsappvmwqliiydwqxdqthfh7rqo4
   test_tools/__init__.py: bafybeibj2blgxzvcgdi5gzcnlzs2nt7bpdifzvjjlxlrkeutjy2qrqbwau
-  test_tools/integration.py: bafybeifuiemdilvephqggapombrd6j4djzfqdrpml3lfi6bkwidohca3km
+  test_tools/integration.py: bafybeiavgnu4rslrdwfr3yn7l2oekstalbvnyff3rwvzoravgui4qhxtem
+  tests/__init__.py: bafybeihfowyc3zstgtexgbjcuahnfcoq36qlp5nj5jri4rkm3h4cmshgc4
+  tests/test_behaviours.py: bafybeicguis5enl7zm3wpemudfjczoqpfqhzescenzsokxlyx6iasdovbq
+  tests/test_dialogues.py: bafybeictrjf6jzsj4y6u2ftdrb2nyriiipia5b7wc4fsli3lwbjpd3mbam
+  tests/test_handlers.py: bafybeievntkwacpfaom3qabvrlworjqyd4sgfjknjlhys7f5tuq7725xli
+  tests/test_payload_tools.py: bafybeiarxbtpluepdlwzncxiz3cu6fcot7al6eijqjf7zanc762ontd2i4
+  tests/test_payloads.py: bafybeihqelg2m66cxeqtcd5vcy7bmw6xpibeh7nob46olmxyi6fi6i2oci
+  tests/test_rounds.py: bafybeiai4tldcuvhnn673fq7bbiea542tbn7tassxxqb7hn5mw7zmlijpa
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeiaugd2npc33jgovg72y4y7pyy7yl24ly6eri7mw6v6gev5azewozq
+- valory/gnosis_safe:0.1.0:bafybeifbkitkori3pi2mtevm475xbnljfejpci7u7veziaptrj4hjbciju
 protocols:
-- open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
-- valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
-- valory/ledger_api:1.0.0:bafybeif2c3jt4tim3zbfq5c2lds7bs6qj5gvj2obk3pzdk3uy6zk2ivo3e
+- open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
+- valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
+- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
+- valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihppsoiulob35ee3oacfao2j6snyqzdgt7njt4apc32wndqkekmm4
+- valory/abstract_round_abci:0.1.0:bafybeib2b6pnmlvylvqpnpin4lhv7pdv22rhk7ur3is26kqnzjgtlfzhz4
 behaviours:
   main:
     args: {}
@@ -76,6 +84,23 @@ models:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       finalize_timeout: 60.0
+      genesis_config:
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_num_blocks: '100000'
+            max_age_duration: '172800000000000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        voting_power: '10'
       history_check_timeout: 1205
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
@@ -117,5 +142,5 @@ models:
     class_name: SharedState
 dependencies:
   open-aea-test-autonomy:
-    version: ==0.2.1
+    version: ==0.2.2
 is_abstract: true

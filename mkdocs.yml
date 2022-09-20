@@ -8,7 +8,7 @@ edit_uri: edit/main/docs/
 theme:
   name: 'material'
   features:
-    - navigation.top   
+    - navigation.top
     - navigation.indexes
 
 extra_css:
@@ -19,42 +19,47 @@ strict: true
 nav:
   - Home: 'index.md'
   - Get started:
-    - What is the Open Autonomy framework: 'get_started/what_is_the_open_autonomy_framework.md' 
+    - What is the Open Autonomy framework: 'get_started/what_is_the_open_autonomy_framework.md'
     - What is an agent service: 'get_started/what_is_an_agent_service.md'
     - Why do we need agent services: 'get_started/why_do_we_need_agent_services.md'
-    - Agent services compared to...: 'get_started/agent_services_compared_to.md' 
+    - Agent services compared to...: 'get_started/agent_services_compared_to.md'
     - Use cases: 'get_started/use_cases.md'
   - Guides:
+    - 'guides/index.md'
     - Quick start: 'guides/quick_start.md'
     - Overview of the development process: 'guides/overview_of_the_development_process.md'
     - Create a service with an existing agent: 'guides/create_service_existing_agent.md'
     - Create a service from scratch: 'guides/create_service_from_scratch.md'
     - Deploy a service: 'guides/deploy_service.md'
     - Running a service in different networks: 'guides/running_service_different_networks.md'
-  - Concepts:
-    - Autonomous Economic Agents: 'aea.md'
-    - Finite State Machines: 'fsm.md'
-    - The Application BlockChain Interface: 'abci.md'
-  - FSM Apps:
-    - Introduction to FSM Apps: 'fsm_app_introduction.md'
-    - Components of an FSM App: 'fsm_app_components.md'
-    - The AbciApp Class: 'abci_app_class.md'
-    - The AbstractRoundBehaviour Class: 'abci_app_abstract_round_behaviour.md'
-    - The AsyncBehaviour Class: 'abci_app_async_behaviour.md'
-    - The AbstractRound Class: 'abci_app_abstract_round.md'
-    - Interactions between Components: 'abci_app_interactions.md'
-    - Sequence Diagram: 'poc-diagram.md'
-  - Demos:
-    - Hello World Agent Service: 'hello_world_agent_service.md'  
+    - Using the scaffold tool to speed up development: 'guides/scaffolding.md'
+    - Managing packages: 'guides/managing_packages.md'
+  - Demo agent services:
+    - 'demos/index.md'  
+    - Hello World Agent Service: 'hello_world_agent_service.md'
     - Simple Demo: 'simple_abci.md'
-    - Counter Demo: 'counter_example.md'
     - Price Oracle Demo:
       - Introduction: 'price_oracle_intro.md'
       - Technical Details: 'price_oracle_technical_details.md'
-      - FSM Specification: 'price_oracle_fsms.md'
-  - Development:
+      - FSM Specification: 'price_oracle_fsms.md'  
+  - Key concepts:
+    - 'key_concepts/index.md'    
+    - Autonomous Economic Agents: 'aea.md'
+    - Finite State Machines: 'fsm.md'
+    - The Application BlockChain Interface: 'abci.md'
+    - FSM Apps:
+      - Introduction to FSM Apps: 'fsm_app_introduction.md'
+      - Components of an FSM App: 'fsm_app_components.md'
+      - The AbciApp Class: 'abci_app_class.md'
+      - The AbstractRoundBehaviour Class: 'abci_app_abstract_round_behaviour.md'
+      - The AsyncBehaviour Class: 'abci_app_async_behaviour.md'
+      - The AbstractRound Class: 'abci_app_abstract_round.md'
+      - Interactions between Components: 'abci_app_interactions.md'
+      - Sequence Diagram: 'poc-diagram.md'
+  - Advanced reference:
+    - 'advanced_reference/index.md'
     - Version: 'version.md'
-    - Upgrading: 'upgrading.md'  
+    - Upgrading: 'upgrading.md'
     - Package publishing: 'package_publishing.md'
     - CLI: 'autonomy.md'
     - Developer Tooling:
@@ -141,6 +146,13 @@ nav:
           - Tendermint Decoder: 'api/connections/abci/tendermint_decoder.md'
           - Tendermint Encoder: 'api/connections/abci/tendermint_encoder.md'
           - Scripts: 'api/connections/abci/scripts/genproto.md'
+          - Tests - Helper:
+            - Helper: 'api/connections/abci/tests/helper.md'
+            - Base: 'api/connections/abci/tests/test_fuzz/base.md'
+            - Mock Node - Node: 'api/connections/abci/tests/test_fuzz/mock_node/node.md'
+            - Mock Node - Channels Base: 'api/connections/abci/tests/test_fuzz/mock_node/channels/base.md'
+            - Mock Node - Channels GRPC: 'api/connections/abci/tests/test_fuzz/mock_node/channels/grpc_channel.md'
+            - Mock Node - Channels TCP: 'api/connections/abci/tests/test_fuzz/mock_node/channels/tcp_channel.md'
       - Contracts:
         - Gnosis Safe:
           - Contract: 'api/contracts/gnosis_safe/contract.md'
@@ -166,8 +178,12 @@ nav:
           - Handlers: 'api/skills/abstract_round_abci/handlers.md'
           - Models: 'api/skills/abstract_round_abci/models.md'
           - Test Tools:
+            - ABCI App: 'api/skills/abstract_round_abci/test_tools/abci_app.md'
+            - APIs: 'api/skills/abstract_round_abci/test_tools/apis.md'
             - Base: 'api/skills/abstract_round_abci/test_tools/base.md'
+            - Common: 'api/skills/abstract_round_abci/test_tools/common.md'
             - Integration: 'api/skills/abstract_round_abci/test_tools/integration.md'
+            - Rounds: 'api/skills/abstract_round_abci/test_tools/rounds.md'
           - IO:
             - IPFS: 'api/skills/abstract_round_abci/io_/ipfs.md'
             - Load: 'api/skills/abstract_round_abci/io_/load.md'
@@ -219,10 +235,11 @@ nav:
           - Payload Tools: 'api/skills/transaction_settlement_abci/payload_tools.md'
           - Test Tools: 'api/skills/transaction_settlement_abci/test_tools/integration.md'
       - Exceptions: 'exceptions.md'
-  - Miscellaneous:
-    - Ethereum: 'ethereum_specifics.md'
-    - Delegate call vs call: 'delegate_call.md'
-    - Debugging Using Tenderly: 'debugging.md'
+    - Miscellaneous:
+      - Ethereum: 'ethereum_specifics.md'
+      - Delegate call vs call: 'delegate_call.md'
+      - Debugging Using Tenderly: 'debugging.md'
+      - Package list: 'package_list.md'
   - FAQ: 'questions-and-answers.md'
 
 

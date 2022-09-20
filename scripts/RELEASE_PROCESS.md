@@ -5,23 +5,25 @@
    
 2. Determine the next `open-autonomy` version. Create new release branch named `feature/release-{new-version}`, switch to this branch. Update the version in `autonomy/__version__.py`. Commit if satisfied.
 
-3. [CURRENTLY SKIPPED] Bump all the packages to their latest versions by running `python scripts/update_package_versions.py`.
+3. Determine the next `open-aea-test-autonomyy` version. Update the version in `plugins/aea_test_autonomy/setup.py` and relevant component configurations. Commit if satisfied.
 
-4. Check the package upgrades are correct by running `autonomy check-packages`. Commit if satisfied.
+4. [CURRENTLY SKIPPED] Bump all the packages to their latest versions by running `python scripts/update_package_versions.py`.
 
-5. Check the docs are up-to-date by running `python scripts/generate_api_documentation.py`. Ensure all links are configured `mkdocs serve`. Commit if satisfied.
+5. Check the package upgrades are correct by running `autonomy check-packages`. Commit if satisfied.
 
-6. Write release notes and place them in `HISTORY.md`. Add upgrading tips in `upgrading.md`. If necessary, adjust version references in `SECURITY.md`. Commit if satisfied.
+6. Check the docs are up-to-date by running `python scripts/generate_api_documentation.py`. Ensure all links are configured `mkdocs serve`. Commit if satisfied.
 
-7. Run spell checker `./scripts/spell-check.sh`. Run `pylint --disable all --enable spelling ...`. Commit if required.
+7. Write release notes and place them in `HISTORY.md`. Add upgrading tips in `upgrading.md`. If necessary, adjust version references in `SECURITY.md`. Commit if satisfied.
 
-8. Open PRs and merge into develop. Then open develop to main PR and merge it.
+8. Run spell checker `./scripts/spell-check.sh`. Run `pylint --disable all --enable spelling ...`. Commit if required.
 
-9. Tag version on main.
+9. Open PRs and merge into develop. Then open develop to main PR and merge it.
 
-10. Pull main, make a clean environment (`pipenv --rm` and `pipenv --python 3.10` and `pipenv shell`) and create distributions: `make dist`.
+10. Tag version on main.
 
-11. Publish to PyPI with twine (`pip install twine`): `twine upload dist/*`. Optionally, publish to Test-PyPI with twine:
+11. Pull main, make a clean environment (`pipenv --rm` and `pipenv --python 3.10` and `pipenv shell`) and create distributions: `make dist`.
+
+12. Publish to PyPI with twine (`pip install twine`): `twine upload dist/*`. Optionally, publish to Test-PyPI with twine:
 `twine upload --repository-url https://test.pypi.org/legacy/ dist/*`.
 
 12. Repeat 11. for each plugin (use `python setup.py sdist bdist_wheel` instead of `make dist`).

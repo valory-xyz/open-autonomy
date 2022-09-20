@@ -4,16 +4,6 @@
 
 This module contains the behaviours for the 'abci' skill.
 
-<a id="packages.valory.skills.registration_abci.behaviours.format_genesis_data"></a>
-
-#### format`_`genesis`_`data
-
-```python
-def format_genesis_data(collected_agent_info: Dict[str, Any]) -> Dict[str, Any]
-```
-
-Format collected agent info for genesis update
-
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationBaseBehaviour"></a>
 
 ## RegistrationBaseBehaviour Objects
@@ -141,6 +131,16 @@ def request_tendermint_info() -> Generator[None, None, bool]
 ```
 
 Request Tendermint info from other agents
+
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.format_genesis_data"></a>
+
+#### format`_`genesis`_`data
+
+```python
+def format_genesis_data(collected_agent_info: Dict[str, Any]) -> Dict[str, Any]
+```
+
+Format collected agent info for genesis update
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.request_update"></a>
 

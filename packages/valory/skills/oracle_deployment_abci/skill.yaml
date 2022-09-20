@@ -15,14 +15,21 @@ fingerprint:
   models.py: bafybeib4a4lcnfqr6ori3xohff4h4yxm7c7vl6sgqk2oqrypqgf2iybinu
   payloads.py: bafybeigj4llomatxlisjynutrh6elg2j7tc6z5q5ia35cuk2ccrzlz4pgy
   rounds.py: bafybeifhxfvv6pygzuropc4xyj4fy3j2a6eh3acci4fav2mt4wmy54jltq
+  tests/__init__.py: bafybeig4kgnmdxqconomictyqruydn56gdhoo3yv6ej4yfrxt3srgpcvni
+  tests/test_behaviours.py: bafybeiar6ruqksbsl7zjffr6c4ewlhesuav2byr2v7rdjuss2ellg3gd64
+  tests/test_dialogues.py: bafybeie2terywcwf6o5xdhua5jxgadowyz4qszjkw4hjym5pba5ma5kvkq
+  tests/test_handlers.py: bafybeihlanj36h26jo5aiepjpfefsjzrzhouidsshijuvn6qd3z3bmaqcy
+  tests/test_rounds.py: bafybeibhijp6utianeywikrrkmum446hn3skfqkps3nivm2ljnqe6dhm7a
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/offchain_aggregator:0.1.0:bafybeiexr4ggkzocdz3cojmwzhkgmx3fjnvisvbnh7jumlz32lsm4hp7ii
+- valory/offchain_aggregator:0.1.0:bafybeifjmazj5ger33po34easdzytqdgi4yaieqaa2vfs535sbgpdwnuf4
 protocols:
-- valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
+- open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
+- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
+- valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihppsoiulob35ee3oacfao2j6snyqzdgt7njt4apc32wndqkekmm4
+- valory/abstract_round_abci:0.1.0:bafybeib2b6pnmlvylvqpnpin4lhv7pdv22rhk7ur3is26kqnzjgtlfzhz4
 behaviours:
   main:
     args: {}
@@ -70,6 +77,23 @@ models:
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      genesis_config:
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_num_blocks: '100000'
+            max_age_duration: '172800000000000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        voting_power: '10'
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
       max_healthcheck: 120

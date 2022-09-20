@@ -25,7 +25,7 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
 
 2. Use the CLI to download the `valory/counter` service.
     ```bash
-    autonomy fetch valory/counter:0.1.0:bafybeiedslbhlyxycok4fvchl7v7q7avwp73manukyvnb3bjl3qetmlbgq --remote --service
+    autonomy fetch valory/counter:0.1.0:bafybeiefqdjxgbeozrw75iiubiajsee3q7gvdmkigdqsl2luw2wuqaygv4 --remote --service
     cd counter
     ```
 
@@ -284,7 +284,7 @@ First, open a terminal to the root of this repository,
 and fetch the `counter_client` agent:
 
 ```bash
-autonomy fetch valory/counter_client:0.1.0:bafybeicseyonjog4h53kobzehbm7zf53qgww3kdhcuo57bp42kjienwpeq --remote
+autonomy fetch valory/counter_client:0.1.0:bafybeie2e3a3d7ofjdgzaj4imvqheqyqbip447wdfekei6nvoznaq2ex7a --remote
 ```
 
 This will copy the agent project in the `counter_client` directory.
@@ -292,21 +292,21 @@ This will copy the agent project in the `counter_client` directory.
 Then, enter into the project, and generate a private key:
 ```bash
 cd counter_client
-aea generate-key ethereum
-aea install
+autonomy generate-key ethereum
+autonomy install
 ```
 
 You can see the Tendermint node the skill is configured to interact with
 using the following command:
 ```bash
-aea config get vendor.valory.skills.counter_client.models.params.args.tendermint_url
+autonomy config get vendor.valory.skills.counter_client.models.params.args.tendermint_url
 ```
 
 It will print `localhost:26657`, i.e. `node0`.
 
 Finally, run the agent:
 ```bash
-aea run
+autonomy run
 ```
 
 The agent periodically checks the current value of the counter;

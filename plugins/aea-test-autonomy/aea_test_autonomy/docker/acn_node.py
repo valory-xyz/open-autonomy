@@ -68,7 +68,7 @@ class ACNNodeDockerImage(DockerImage):
     @property
     def tag(self) -> str:
         """Get the image tag."""
-        return "valory/acn-node:0.1.0"
+        return "valory/acn-node:latest"
 
     def _make_ports(self) -> Dict:
         """Make ports dictionary for Docker."""

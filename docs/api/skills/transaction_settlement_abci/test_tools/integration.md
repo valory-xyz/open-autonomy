@@ -84,24 +84,3 @@ def validate_tx(simulate_timeout: bool = False, mining_interval_secs: float = 0)
 
 Validate the sent transaction.
 
-<a id="packages.valory.skills.transaction_settlement_abci.test_tools.integration.GnosisIntegrationBaseCase"></a>
-
-## GnosisIntegrationBaseCase Objects
-
-```python
-class GnosisIntegrationBaseCase(
-    _TxHelperIntegration,  _HarHatHelperIntegration,  HardHatAMMBaseTest)
-```
-
-Base test class for integration tests in a Hardhat environment, with Gnosis deployed.
-
-<a id="packages.valory.skills.transaction_settlement_abci.test_tools.integration.GnosisIntegrationBaseCase.setup"></a>
-
-#### setup
-
-```python
-def setup(**kwargs: Any) -> None
-```
-
-Setup.
-

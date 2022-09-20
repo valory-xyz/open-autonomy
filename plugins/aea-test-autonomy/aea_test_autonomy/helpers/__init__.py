@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Package with utilities for the autonomy test tools."""
+"""Package with utilities for the Open Autonomy test tools."""

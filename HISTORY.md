@@ -1,5 +1,66 @@
 # Release History - `open-autonomy`
 
+# 0.3.0 (2022-09-14)
+
+# Autonomy
+
+- Adds `PYTHONHASHSEED` in Kubernetes deployment template
+- Moves all fixtures into `aea_test_autonomy` plugin.
+- Adds `service-registry-network` cli command for starting a local hardhat node. 
+
+# Packages
+
+- Replaces `third-party` dependencies with docker images. 
+- Fixes import from tests folder and `path_to_skill` in FSM scaffolding
+- Moves remaining tests into packages, in particular agents.
+
+# Chores
+
+- Adds README header
+- Removes `quickstart` skip on command test
+- Removes unnecessary shebangs from several non-script files
+- Adds a script to validates commands in the docs and Makefile
+- Cleans the `README.md` and `AUTHORS.md` to reflect changes
+
+# 0.2.2 (2022-08-09)
+
+# AEA
+
+- Adds support for registry flags on `autonomy scaffold fsm` command
+- Adds support for scaffolding
+  - Dialogues
+  - Payloads
+  - Tests
+- Adds support for specifying version for runtime images
+- Removes the need for `NESTED_FIELDS_ALLOWED_TO_UPDATE` from service config class
+- Uses local file for service registry ABI rather than fetching from staging server
+- Replaces the usage of staging chain with locally deployed chain
+
+# Packages
+- Adds support for broadcasting APY estimates to a backend server.
+- Replaces API keys with environment variable placeholders
+- Ports tests for packages to their respective package folders
+
+# Plugins
+- Introduces `aea-test-autonomy` plugin
+
+# Chores
+- Fixes tendermint logging issues
+- Updates skaffold config for building runtime images for agents
+- Bumps autonolas registries sub module to latest
+
+# Tests
+- Replaces the usage of staging chain with local registry deployments
+- Fixes flaky `test_fetch_behaviour_non_indexed_block` test
+- Fixes flaky registry tests
+- Adds tests for `autonomy scaffold fsm`
+
+# Docs
+- Restructures documentation to introduce new index
+- Adds tutorials on creating a service using an existing agent
+- Updates quick start documentation
+- Adds overview for service development process
+- Adds docs for fsm scaffolding tool
 
 # 0.2.1.post1 (2022-08-29)
 
@@ -13,7 +74,7 @@ Autonomy:
 - Introduces base autonomy image and agent runtime image for performance improvements.
 - Removes the need for building the dependency images at the runtime.
 - Updates the deployment flow to utilize the newly improved images.
-- Removes the support for pushing the images using the autonomy CLI tool.
+- Removes the support for pushing the images using the Open Autonomy CLI tool.
 - Removes `skaffold` as a framework dependency.
 - Adds support for remote registries in the fsm scaffold utility.
 - Bumps `open-aea` and its plugins to version `1.17.0`.

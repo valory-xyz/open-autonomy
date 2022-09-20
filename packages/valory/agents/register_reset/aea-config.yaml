@@ -6,23 +6,26 @@ description: Register reset to replicate Tendermint issue.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeicocdojplie5z4kbs7cn7apunfydbxui2nigp6ci2osuvv3mybzfm
+  __init__.py: bafybeihgxrmmp63exxkdmvlu565kehvuucg4iivnejwutaehb2p7xzxu4q
+  tests/__init__.py: bafybeigkkq3hon4wuyrazwnt5tiu23idpelf6a7kzbmawty7zfrpqnmnhi
+  tests/test_register_reset.py: bafybeibjg33b42lcwizx5747jnw7ywg5djignawkkcva5q7larqujgemuy
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeidtrrzpngswqpctfftqvkx7d7ln2seo74emx5k6kcdhait3p6kf4u
-- valory/http_client:0.1.0:bafybeiajlo43jrfdhtkpagjtj4izm2rc24ysbnzbtxnu5qqc2pxoov66z4
-- valory/ledger:0.1.0:bafybeiemp6u7xsyvwcq25i3t62oiykwsg5wmp7xs2e6eidll5vf3htdpwy
+- valory/abci:0.1.0:bafybeih34yj6l7akh6wfhgwaud3luvmwxkiakcqzv3zjiz5q7jfqtdnela
+- valory/http_client:0.1.0:bafybeiet6defg3qvov4r2ucjtkywkz53xcg6mgarjfdqmnxfgdixgcx45y
+- valory/ledger:0.1.0:bafybeicup3pqzi74h67z6oxzw7qhsz2dpezeqhalg7bex37fqcx5koivqu
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
-- valory/abci:0.1.0:bafybeic4ioeoxrosuuffap3lakejaaj6pi63cl2brwwcocf2s27hthdgfe
-- valory/http:1.0.0:bafybeienmids6f5pcey2bnywmiup2faawqgmdhhz65qfciuhkntugztvpi
+- open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
+- valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
+- valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
 skills:
-- valory/abstract_abci:0.1.0:bafybeic3dy6vtad4bylhc25mprvl2rl5xiy3zop3arnbeqmiwsbbeyf36u
-- valory/abstract_round_abci:0.1.0:bafybeihppsoiulob35ee3oacfao2j6snyqzdgt7njt4apc32wndqkekmm4
-- valory/register_reset_abci:0.1.0:bafybeidfloqx4veqri53l3efw5tlgio6mrwnpodekjvu6soomsckmhmgrm
-- valory/registration_abci:0.1.0:bafybeigct4awipitl5watf57hy6fgxo5uoanx5t43aiainl3v55jgswy4u
-- valory/reset_pause_abci:0.1.0:bafybeifvisl5ozdpcs4v472sorbmxcvccyvs3iuykb6wugkpmiqrejzolq
+- valory/abstract_abci:0.1.0:bafybeicodi6jiir3yfz5rjotsym2wgpgn3olelrz6hl2d4dlbxkpnpsmym
+- valory/abstract_round_abci:0.1.0:bafybeib2b6pnmlvylvqpnpin4lhv7pdv22rhk7ur3is26kqnzjgtlfzhz4
+- valory/register_reset_abci:0.1.0:bafybeibvk5u7qoeh5eaixt76bpdtu4ipuyk4md2w5sam5x26ge2xvb4isa
+- valory/registration_abci:0.1.0:bafybeifes4fcbdmjgf7wo3cgwgd7wh63pgvep7dedjcmuogaudywqh5sqi
+- valory/reset_pause_abci:0.1.0:bafybeig2cd6cuwevt3yccqyt7oo4p5hwsktkd35qm6l3g7ifyabbdf6wvu
 default_ledger: ethereum
 required_ledgers:
 - ethereum

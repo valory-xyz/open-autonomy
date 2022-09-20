@@ -8,24 +8,34 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeibizgp7d7xn5cbp5ikgqd4axfbucwfwugcvwods2gsyxvuuu5lei4
-  __init__.py: bafybeiaikx37b2ditrxk2646yn24e6sp5utlbgiz4lyyhidbl2ut6kkajy
+  __init__.py: bafybeigkzouubo43nx3hlhwixfkm74wcinxtrskkivvhexyysux54w5qmi
   behaviours.py: bafybeiebkkr4elootfqtmfgurbe74zmzhujlwrsv4qfh2pcrhdm7nt3mfi
   composition.py: bafybeiekejf5bp3etceeocybnlileetot2hrdnn4w4mgg76meqoulshiwq
   dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
   fsm_specification.yaml: bafybeiamyeagkpamjwhqtsgn22d3b2twf6wrjpas4emm2ebfrxn7oztgty
   handlers.py: bafybeicap4nttt2g2updfdf62454a5i5dcstpcwlzaz5gtsqnlz5auuuae
   models.py: bafybeihcsetun6wuygzyjv5m7qtx6sr6sr3bbpudfswg5armnudoa7juru
+  tests/__init__.py: bafybeigtwmtsni2sv3ikqbl72cz7qpjpvqrxmkpzvebw6f4zuxyppylpp4
+  tests/conftest.py: bafybeihjaq2nswtazvjx3r344mq7bmnkalelmcm67tso4oo6ttvmabtwdy
+  tests/test_behaviours.py: bafybeiewavpcq3r6t6qwt2jy7uohonzrhvjgo4zjnifec3mchfwo4arphq
+  tests/test_dialogues.py: bafybeidndadco2cyqj63nfqjx4igbtf2wnkeig47b5twgry3lzbqoudn7a
+  tests/test_handlers.py: bafybeif3mrcsuuu4dabwtpk565objlasp6aydhen3mccj3tffyzsxmnzgq
+  tests/test_integration.py: bafybeiazufzlzxsp2eza4lzrovjwan3xbdxlldmvplmb54xedntdofnrem
+  tests/test_models.py: bafybeifim6rodwa6j6o6327565j6xvh6lp7tvgk6sybd5dg45pjji5djha
 fingerprint_ignore_patterns: []
-connections: []
-contracts: []
-protocols: []
+connections:
+- valory/ledger:0.1.0:bafybeicup3pqzi74h67z6oxzw7qhsz2dpezeqhalg7bex37fqcx5koivqu
+contracts:
+- valory/gnosis_safe:0.1.0:bafybeifbkitkori3pi2mtevm475xbnljfejpci7u7veziaptrj4hjbciju
+protocols:
+- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihppsoiulob35ee3oacfao2j6snyqzdgt7njt4apc32wndqkekmm4
-- valory/liquidity_rebalancing_abci:0.1.0:bafybeidk7iakkdh7slhu7jhhrjtovtvuhsg4ljhcbbzvr5eq447xnjw37u
-- valory/registration_abci:0.1.0:bafybeigct4awipitl5watf57hy6fgxo5uoanx5t43aiainl3v55jgswy4u
-- valory/reset_pause_abci:0.1.0:bafybeifvisl5ozdpcs4v472sorbmxcvccyvs3iuykb6wugkpmiqrejzolq
-- valory/safe_deployment_abci:0.1.0:bafybeidlz7kpl4prhcx5mtigjnkgt75isv6klipm23fhcb7ifahmy4vame
-- valory/transaction_settlement_abci:0.1.0:bafybeifj4obhvcr6qwvvsxgb7xxtdx4btdvqdk4pwprskia2vywlk2nxq4
+- valory/abstract_round_abci:0.1.0:bafybeib2b6pnmlvylvqpnpin4lhv7pdv22rhk7ur3is26kqnzjgtlfzhz4
+- valory/liquidity_rebalancing_abci:0.1.0:bafybeia2dp6pknnu3vvivranvmb2xzej3vplvjkvyipmeauvp7rkt5auim
+- valory/registration_abci:0.1.0:bafybeifes4fcbdmjgf7wo3cgwgd7wh63pgvep7dedjcmuogaudywqh5sqi
+- valory/reset_pause_abci:0.1.0:bafybeig2cd6cuwevt3yccqyt7oo4p5hwsktkd35qm6l3g7ifyabbdf6wvu
+- valory/safe_deployment_abci:0.1.0:bafybeihhdeikhvkpwrq4fe2qezd4qw22aryx3bzlalserm2psvyvopsxce
+- valory/transaction_settlement_abci:0.1.0:bafybeidzgbbd33jnu2qnzkn2sakvalwchfalrnq3ehnu72bfood2csyi7u
 behaviours:
   main:
     args: {}
@@ -74,6 +84,23 @@ models:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       finalize_timeout: 60.0
+      genesis_config:
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_num_blocks: '100000'
+            max_age_duration: '172800000000000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        voting_power: '10'
       history_check_timeout: 1205
       keeper_allowed_retries: 3
       keeper_timeout: 30.0

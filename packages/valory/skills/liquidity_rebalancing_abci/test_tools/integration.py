@@ -19,12 +19,20 @@
 
 """Integration tests for various transaction settlement skill's failure modes."""
 
-from pathlib import Path
 from typing import Any
 
 from aea_test_autonomy.fixture_helpers import HardHatAMMBaseTest
 from aea_test_autonomy.helpers.contracts import get_register_contract
 
+from packages.valory.contracts.multisend.tests.test_contract import (
+    PACKAGE_DIR as MULTISEND_PACKAGE,
+)
+from packages.valory.contracts.uniswap_v2_erc20.tests.test_contract import (
+    PACKAGE_DIR as UNISWAP_V2_ERC20_PACKAGE,
+)
+from packages.valory.contracts.uniswap_v2_router_02.tests.test_contract import (
+    PACKAGE_DIR as UNISWAP_V2_ROUTER_02_PACKAGE,
+)
 from packages.valory.skills.abstract_round_abci.test_tools.integration import (
     _HarHatHelperIntegration,
 )
@@ -46,13 +54,6 @@ class AMMIntegrationBaseCase(
         super().setup()
 
         # register all contracts we need
-        directory = Path(
-            self.ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_router_02"
-        )
-        _ = get_register_contract(directory)
-        directory = Path(
-            self.ROOT_DIR, "packages", "valory", "contracts", "uniswap_v2_erc20"
-        )
-        _ = get_register_contract(directory)
-        directory = Path(self.ROOT_DIR, "packages", "valory", "contracts", "multisend")
-        _ = get_register_contract(directory)
+        _ = get_register_contract(UNISWAP_V2_ROUTER_02_PACKAGE)
+        _ = get_register_contract(UNISWAP_V2_ERC20_PACKAGE)
+        _ = get_register_contract(MULTISEND_PACKAGE)

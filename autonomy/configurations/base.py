@@ -249,7 +249,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
     def check_overrides_valid(
         self, overrides: List, env_vars_friendly: bool = False
     ) -> Dict[ComponentId, Dict[Any, Any]]:
-        """Uses the aea helper libraries to check individual overrides."""
+        """Uses the AEA helper libraries to check individual overrides."""
 
         component_configurations: Dict[ComponentId, Dict] = {}
         # load the other components.

@@ -19,6 +19,7 @@
 
 """This module contains the tools for checking that all packages have been pushed to the ipfs registry."""
 
+import json
 import subprocess  # nosec
 import sys
 from typing import Optional
@@ -31,6 +32,7 @@ IPFS_ENDPOINT = "https://gateway.autonolas.tech/ipfs"
 
 def check_ipfs_hash_pushed(ipfs_hash: str) -> bool:
     """Check that the given ipfs hash exists in the registry"""
+
     try:
         url = f"{IPFS_ENDPOINT}/{ipfs_hash.strip()}"
         res = requests.get(url, timeout=120)
@@ -71,16 +73,9 @@ def get_file_from_tag(file_path: str, latest_tag: Optional[str] = None) -> str:
 
 if __name__ == "__main__":
     # Get all hashes from the latest tag, excluding the scaffold ones (that are not pushed)
-    hashes = [
-        line.split(",")[-1]
-        for line in get_file_from_tag("packages/hashes.csv").split("\n")
-        if line and "/scaffold," not in line
-    ]
 
-    errors = []
-    for h in hashes:
-        if not check_ipfs_hash_pushed(h):
-            errors.append(h)
+    packages_json = json.loads(get_file_from_tag("packages/packages.json"))
+    errors = {k: v for k, v in packages_json.items() if not check_ipfs_hash_pushed(v)}
 
     if errors:
         print(f"The following hashes were not found in IPFS registry: {errors}")

@@ -6,17 +6,20 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeib7it5qaocb3ixf64gb576dmvovd4ehsvbdd5tiilrb75do6q3hre
+  __init__.py: bafybeifhegkalvgxfovnld7ni72nzyfeys6p27bgvt6hr2rzcn4zfise4i
+  tests/__init__.py: bafybeie2owisfwjo4bkoz2dur64wzfzodyybjoe75acehwuiswu4jqtopy
+  tests/test_counter.py: bafybeidjaal2tihbvelry3ahn6tigzceswss66vnhgaoggpqsu5asl34me
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeidtrrzpngswqpctfftqvkx7d7ln2seo74emx5k6kcdhait3p6kf4u
+- valory/abci:0.1.0:bafybeih34yj6l7akh6wfhgwaud3luvmwxkiakcqzv3zjiz5q7jfqtdnela
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
-- valory/abci:0.1.0:bafybeic4ioeoxrosuuffap3lakejaaj6pi63cl2brwwcocf2s27hthdgfe
+- open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
+- valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
 skills:
-- valory/abstract_abci:0.1.0:bafybeic3dy6vtad4bylhc25mprvl2rl5xiy3zop3arnbeqmiwsbbeyf36u
-- valory/counter:0.1.0:bafybeigbu4gxaz24qyy37naodxbvv4bjp3lyiddrtwpv74ly46mhgpeah4
+- valory/abstract_abci:0.1.0:bafybeicodi6jiir3yfz5rjotsym2wgpgn3olelrz6hl2d4dlbxkpnpsmym
+- valory/counter:0.1.0:bafybeibgwbnof5vs5yglr5avrybakjpeeuiaemfaiavl6jadqyhko5ayri
 default_ledger: ethereum
 required_ledgers:
 - ethereum
