@@ -1,3 +1,6 @@
+!!! note
+       Similarly as the Open AEA framework, the Open Autonomy framework also works with the concept of package: a collection of files that implement a specific component or functionality, and which are named as vendor/package_name:version.
+
 During the development of agents and services, users need to manage other packages, either developing them themselves or fetching already available ones. This guide will show you which are the relevant directories during development and how to get, use and publish packages.
 
 The first thing you need to know is that there are different types of packages: services, agents, connections, contracts, protocols and skills. Services are composed of agents, and agents are composed of connections, contracts, protocols and skills. All these packages can live in different places:
