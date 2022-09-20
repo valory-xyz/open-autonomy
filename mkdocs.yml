@@ -237,6 +237,7 @@ nav:
     - Ethereum: 'ethereum_specifics.md'
     - Delegate call vs call: 'delegate_call.md'
     - Debugging Using Tenderly: 'debugging.md'
+    - Package list: 'package_list.md'
   - FAQ: 'questions-and-answers.md'
 
 

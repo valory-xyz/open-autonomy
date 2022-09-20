@@ -37,6 +37,8 @@ cd my_agent/
 autonomy add protocol valory/acn:0.1.0:bafybeidetrrkvdgveu4ph5g6v53lbh7ardfspbkpstmjxctx647bzyosyy
 ```
 
+You can find a list with all available packages [here](../package_list.md).
+
 Now we might want to develop our own package, for example a skill. We could do it writing all the skill structure from scratch, but fortunately the CLI also provides a scaffolding option that will create a lot of boilerplate for us using its specification. For this example, we will use the specification from the [hello world skill](https://raw.githubusercontent.com/valory-xyz/open-autonomy/main/packages/valory/skills/hello_world_abci/fsm_specification.yaml). Download it to the agent directory and run:
 
 ```bash
