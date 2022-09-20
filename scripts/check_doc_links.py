@@ -51,11 +51,7 @@ def main() -> None:  # pylint: disable=too-many-locals
     http_links = []
     http_skips = [
         "http://www.fipa.org/repository/ips.php3",
-<<<<<<< HEAD
-        "http://host.docker.internal:8545",
-=======
         "http://host.docker.internal:8545```",
->>>>>>> refs/remotes/origin/main
     ]
     url_skips = [
         "https://github.com/valory-xyz/open-autonomy/trunk/packages",
