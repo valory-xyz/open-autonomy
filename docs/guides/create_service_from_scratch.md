@@ -1,1 +1,2 @@
-This tutorial will be added soon.
+!!! info
+    This tutorial will be added soon.
