@@ -52,10 +52,13 @@ def main() -> None:  # pylint: disable=too-many-locals
     http_skips = [
         "http://www.fipa.org/repository/ips.php3",
         "http://host.docker.internal:8545```",
+        "http://host.docker.internal:8545",
     ]
     url_skips = [
         "https://github.com/valory-xyz/open-autonomy/trunk/packages",
         "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure",
+        "https://gateway.autonolas.tech/ipfs/`<hash>`,",
+        "https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev",
     ]
 
     # Configure request retries
