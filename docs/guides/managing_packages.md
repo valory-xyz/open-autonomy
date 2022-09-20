@@ -13,11 +13,11 @@ You can see that this setup is not that different from the one git uses.
 <figcaption>Overview of the package managing flows with the Open Autonomy framework</figcaption>
 </figure>
 
-Packages should be developed independently from any agent, inside the local registry (packages folder) and later on they can be added to an agent. **This is the recommended method as it improves separation of concerns and offers the cleanest developer experience.**
+Packages should be developed independently from any agent, inside the local registry (packages folder) and later on they can be added to an agent for running them. **This is the recommended method as it improves separation of concerns and offers the cleanest developer experience.**
 
 ## Creating your agents and services
 
-The first thing a developer needs to do before they start writing code is setting up the project. Instead of starting from scratch, we recommend to use our [developer template](https://github.com/valory-xyz/dev-template). Once setup, it will generate a virtual environment with {{open_autonomy}} installed, an empty local registry, some useful tools for checking packages and dummy tests. After this, in the same fashion git asks to initialize its configuration using `git config`, {{open_autonomy}} asks the user to set the user name, whether we are using a local or remote registry as well as the type of registry (IPFS by default). For example, initialize your registry running the following command:
+The first thing a developer needs to do before they start writing code is setting up the project. Instead of starting from scratch, we recommend to clone our [developer template](https://github.com/valory-xyz/dev-template). Once setup, it will generate a virtual environment with {{open_autonomy}} installed, an empty local registry, some useful tools for checking packages and dummy tests. After this, in the same fashion git asks to initialize its configuration using `git config`, {{open_autonomy}} asks the user to set the user name, whether we are using a local or remote registry as well as the type of registry (IPFS by default). For example, initialize your registry running the following command:
 
 ```bash
 autonomy init --reset --author john_doe --remote --ipfs --ipfs-node "/dns/registry.autonolas.tech/tcp/443/https"
@@ -37,7 +37,7 @@ cd my_agent/
 autonomy add protocol valory/acn:0.1.0:bafybeidetrrkvdgveu4ph5g6v53lbh7ardfspbkpstmjxctx647bzyosyy
 ```
 
-Now we might want to develop our own package, for example a cool skill. We could do it writing all the skill structure from scratch, but fortunately the CLI also provides a scaffolding option that will create a lot of boilerplate for us using its specification. For this example, we will use the specification from the [hello world skill](https://raw.githubusercontent.com/valory-xyz/open-autonomy/main/packages/valory/skills/hello_world_abci/fsm_specification.yaml). Download it to the agent directory and run:
+Now we might want to develop our own package, for example a skill. We could do it writing all the skill structure from scratch, but fortunately the CLI also provides a scaffolding option that will create a lot of boilerplate for us using its specification. For this example, we will use the specification from the [hello world skill](https://raw.githubusercontent.com/valory-xyz/open-autonomy/main/packages/valory/skills/hello_world_abci/fsm_specification.yaml). Download it to the agent directory and run:
 
 ```bash
 autonomy scaffold fsm my_skill --spec fsm_specification.yaml
