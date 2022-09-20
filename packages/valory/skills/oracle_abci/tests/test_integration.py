@@ -110,9 +110,9 @@ class TransactionSettlementIntegrationBaseCase(
     make_ledger_api_connection_callable = make_ledger_api_connection
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup."""
-        super().setup()
+        super().setup_class()
 
         keeper_initial_retries = 1
         cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
@@ -360,9 +360,9 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
     make_ledger_api_connection_callable = make_ledger_api_connection
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup_class(cls, **kwargs: Any) -> None:
         """Set up the test class."""
-        super().setup()
+        super().setup_class()
 
         # init synchronized data
         cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
@@ -484,9 +484,9 @@ class TestSyncing(TransactionSettlementIntegrationBaseCase):
     """Test late tx hashes synchronization."""
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup_class(cls, **kwargs: Any) -> None:
         """Set up the test class."""
-        super().setup()
+        super().setup_class()
 
         # update synchronized data
         cls.tx_settlement_synchronized_data.update(missed_messages=0)

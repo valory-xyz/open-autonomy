@@ -75,7 +75,7 @@ These keys can be used for local deployments if you're using the default hardhat
 
 ```bash
 # fetch a service
-$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeiftbyeosexbmujj6n3ptmgzsodtsmjt4itsdzlzrdksy665pg5ewa  --service
+$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeifup2zmu6ya6fbul36nwskt7ezci462fdczjfvflvyhvi5azp7jha  --service
 $ cd oracle_hardhat
 # create a docker deployment
 $ autonomy deploy build keys.json

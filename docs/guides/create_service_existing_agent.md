@@ -186,7 +186,7 @@ you have followed the [setup instructions](./quick_start.md#setup). As a result 
         - Description: This service says Hello World,
         - Version: 0.1.0,
         - Package hash: This is the hash starting by `bafybei...` you obtained when published the service on [IPFS](https://ipfs.io/).
-        - NFT Image URL: An URL pointing to an image. You can usehttps://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev for testing purposes.
+        - NFT Image URL: An URL pointing to an image. You can use https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev for testing purposes.
 
 
     6. Press "Save File & Generate Hash"

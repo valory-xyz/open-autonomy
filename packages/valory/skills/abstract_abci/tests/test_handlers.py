@@ -88,9 +88,9 @@ class TestABCIHandlerOld(BaseSkillTestCase):
     abci_dialogues: AbciDialogues
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup the test class."""
-        super().setup()  # pylint: disable=no-value-for-parameter
+        super().setup_class()
         cls.abci_handler = cast(ABCIHandler, cls._skill.skill_context.handlers.abci)
         cls.logger = cls._skill.skill_context.logger
 

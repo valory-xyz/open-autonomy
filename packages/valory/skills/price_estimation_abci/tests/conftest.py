@@ -43,9 +43,9 @@ class GnosisIntegrationBaseCase(  # pylint: disable=too-many-ancestors
     # TODO change this class to use the `HardHatGnosisBaseTest` instead of `HardHatAMMBaseTest`.
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup."""
-        super().setup()
+        super().setup_class()
 
         # register offchain aggregator contract
         _ = get_register_contract(OFFCHAIN_AGGREGATOR_PACKAGE)

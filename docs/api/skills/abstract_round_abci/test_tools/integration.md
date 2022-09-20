@@ -14,24 +14,24 @@ class IntegrationBaseCase(FSMBehaviourBaseCase)
 
 Base test class for integration tests.
 
-<a id="packages.valory.skills.abstract_round_abci.test_tools.integration.IntegrationBaseCase.setup"></a>
+<a id="packages.valory.skills.abstract_round_abci.test_tools.integration.IntegrationBaseCase.setup_class"></a>
 
-#### setup
+#### setup`_`class
 
 ```python
 @classmethod
-def setup(cls, **kwargs: Any) -> None
+def setup_class(cls, **kwargs: Any) -> None
 ```
 
 Setup.
 
-<a id="packages.valory.skills.abstract_round_abci.test_tools.integration.IntegrationBaseCase.teardown"></a>
+<a id="packages.valory.skills.abstract_round_abci.test_tools.integration.IntegrationBaseCase.teardown_class"></a>
 
-#### teardown
+#### teardown`_`class
 
 ```python
 @classmethod
-def teardown(cls) -> None
+def teardown_class(cls) -> None
 ```
 
 Tear down the multiplexer.
@@ -110,13 +110,13 @@ class _HarHatHelperIntegration(IntegrationBaseCase)
 
 Base test class for integration tests with HardHat provider.
 
-<a id="packages.valory.skills.abstract_round_abci.test_tools.integration._HarHatHelperIntegration.setup"></a>
+<a id="packages.valory.skills.abstract_round_abci.test_tools.integration._HarHatHelperIntegration.setup_class"></a>
 
-#### setup
+#### setup`_`class
 
 ```python
 @classmethod
-def setup(cls, **kwargs: Any) -> None
+def setup_class(cls, **kwargs: Any) -> None
 ```
 
 Setup.

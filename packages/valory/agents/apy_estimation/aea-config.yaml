@@ -26,11 +26,11 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeifbhnjkfnhry76uhxbo54tgu3uwnbfajyshothwzflvafcvzyljly
-- valory/abstract_round_abci:0.1.0:bafybeia5sujx2b2tvoa6b5ntld57eoyywyev5eth7jsoraramhpqkb3oe4
-- valory/apy_estimation_abci:0.1.0:bafybeiabkxng6z42pz4kszob3tu2brmstdp55iblyariauu5fusbcte7qi
-- valory/apy_estimation_chained_abci:0.1.0:bafybeifc2654etyftcgvvzrmsjzzo6dvv7eck2k65cke4bccdet6u4o6hq
-- valory/registration_abci:0.1.0:bafybeidqbu6hqmalwbtbbdienve5mzkvqhu3vr7zfld7gk7e5tj5zawswe
+- valory/abstract_abci:0.1.0:bafybeihhlin243hsmqanqjbn4sv4y6ma36dfsipzfrszqstfooa5rfyxju
+- valory/abstract_round_abci:0.1.0:bafybeifhckoo5poaupawsstafr2hss2zfb5pn5das3nn22hd5eksm37ccm
+- valory/apy_estimation_abci:0.1.0:bafybeibn74uutckchb3na3pbqs2g654taigc65urstbnno3ustptv3frme
+- valory/apy_estimation_chained_abci:0.1.0:bafybeiao3ftzhr7cbuhasucayxkr52ezpgrdtbiqgbujz6jywjqrpu3jru
+- valory/registration_abci:0.1.0:bafybeidbqkl4kx22lhts27qaeglw2f3ldcatcbpl676twzlqusbnwun2ie
 default_ledger: ethereum
 required_ledgers:
 - ethereum

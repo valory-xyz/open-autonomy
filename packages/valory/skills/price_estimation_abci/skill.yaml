@@ -17,7 +17,7 @@ fingerprint:
   payloads.py: bafybeibjub6tjzflmuba34cnukxriipey3cpkcdejtkc3jqrvinxqs3us4
   rounds.py: bafybeihvqee2jhwfcl7bas7h6gw5pywsfya4lcuoe4kvf3zgszn4r3hrry
   tests/__init__.py: bafybeic73ajpjybqzpvmyjnl5ejsq6ytibs3r7czvz7re3gmtdkpunqap4
-  tests/conftest.py: bafybeihu6kikviyj66zkeze3yqkcdr7hrcjj2sybzhtunf2euwhhobu3cy
+  tests/conftest.py: bafybeif5h3ozxfhqyjkc2apb62scinvyoqvqggbbnjjbbxj5mlxxpzudti
   tests/test_apis.py: bafybeib44svp6jjfmhtp55wisuf5bv5lglc725zducsyhmcrco2s2tukem
   tests/test_behaviours.py: bafybeihaf77fqsuoudoqmm6u2wrdmnfscbowg4of7w3uzrvyvafklrfxei
   tests/test_dialogues.py: bafybeigmz5coi27zy7sgwnlhsvk7hg5auxexzbtdsw6uie375x3zjhzd4e
@@ -35,9 +35,9 @@ protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeia5sujx2b2tvoa6b5ntld57eoyywyev5eth7jsoraramhpqkb3oe4
-- valory/oracle_deployment_abci:0.1.0:bafybeiekizlpg5wg6eew63u26ozihdp74yommmjeh3ctlbx3whandi5hyq
-- valory/transaction_settlement_abci:0.1.0:bafybeiff2hcahowbywenh3zke2lu6fvyahuhb4xkvho7qktm6qogifiuva
+- valory/abstract_round_abci:0.1.0:bafybeifhckoo5poaupawsstafr2hss2zfb5pn5das3nn22hd5eksm37ccm
+- valory/oracle_deployment_abci:0.1.0:bafybeifzq2rputho4c35vqpwxss5gpyk3p57asscitbdrhyjrlhdvqarne
+- valory/transaction_settlement_abci:0.1.0:bafybeifqfxfozbukq7ixtwufg62jgnfbkd4okijakjcpar3qe3r5sjwtre
 behaviours:
   main:
     args: {}
