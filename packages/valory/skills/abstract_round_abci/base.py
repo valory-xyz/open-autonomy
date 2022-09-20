@@ -51,8 +51,8 @@ from aea.crypto.ledger_apis import LedgerApis
 from aea.exceptions import enforce
 
 from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
-from packages.valory.connections.ledger.base import (
-    CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
+from packages.valory.connections.ledger.connection import (
+    PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.abci.custom_types import Header
 from packages.valory.skills.abstract_round_abci.serializer import (

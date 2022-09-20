@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeiaxhdfjmhbstyi5oqeu7wzst44snhbyoggrpusgs2c3tn3cluzhpm
   abci_app_chain.py: bafybeihb3ded23gvjrn426qptkbnkge5cewqm7ywi4j6ebmo3j66ss5wii
-  base.py: bafybeicbdo74prebsmczkpmpj7lqs2cqkgjh6uwsvas7cztabxfttain6y
+  base.py: bafybeiejqcp4h44aa43lhq5tmetttls4fmwih7kcgj6htlqa532tyxoj3u
   behaviour_utils.py: bafybeid63sroln5feyudtvignapsii3k3ittqr6apmx5kspwglzlx7eg6y
   behaviours.py: bafybeif3knc6efobddgkh3xc3yqwgtlk7z4zflftd7sic5j3at5rrhsute
   common.py: bafybeicz7feaxvwftwi7qe2x4g4f6edwsh434kr4duebafbwphqyxzuyka
@@ -25,7 +25,7 @@ fingerprint:
   test_tools/__init__.py: bafybeigicwqumbl3jorusndtfa6ag7lnf3saa6cbqn7fazur4n6nxmsdva
   test_tools/abci_app.py: bafybeidv6c5cl2ye54mxkz3t4dq2vmg22a5jvgrwlwhzjbgfvefe5pq6ca
   test_tools/apis.py: bafybeiemw7yoh5kk6li7pyg2zp5qzkkt3a476b6o5to5etgkgus6ov47kq
-  test_tools/base.py: bafybeiggrkaquiy7bmgzj54n7r5blkgvojlpd7omz3qcptb2u3eqzf5iqm
+  test_tools/base.py: bafybeibhrikkgqeeguwahifdzdq3i4xmeulshek6rfscu4ffi7672nekym
   test_tools/common.py: bafybeigzrzrww6swkcbfqd34apgnrmcbgmqjjwikfj6b7jcayuwoqhnyve
   test_tools/integration.py: bafybeiadnrulj7vitnfskphe6embnq3fam2jl3g6aa5jub2rcrat3mgeru
   test_tools/rounds.py: bafybeignmwjc2qpia6lz6qtdj3lmvrf7fw64oho5iwxlp5hdez5o3nvv3a
@@ -49,9 +49,9 @@ fingerprint:
   utils.py: bafybeigkr7rxl4wgjdlcea7jgx7xiuksz7vyenkijgyoh3e645weaeybim
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeih34yj6l7akh6wfhgwaud3luvmwxkiakcqzv3zjiz5q7jfqtdnela
+- valory/abci:0.1.0:bafybeiavrdxerjzjomz36lvkzmr2o6262rny4tqdlyp42l7pcus3d3n2my
 - valory/http_client:0.1.0:bafybeiet6defg3qvov4r2ucjtkywkz53xcg6mgarjfdqmnxfgdixgcx45y
-- valory/ledger:0.1.0:bafybeicup3pqzi74h67z6oxzw7qhsz2dpezeqhalg7bex37fqcx5koivqu
+- valory/ledger:0.1.0:bafybeiaj2nf6qnnhuv47h4gfvpnxd6mo3234fauohd45jlhzswrredarte
 contracts:
 - valory/service_registry:0.1.0:bafybeicczwyiwjiejqtt2kvkx3eit6faidt3zv5tkfdjyczg3e5xyhtvsy
 protocols:
@@ -62,7 +62,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeidt4cyfhlla6faca6us6law7dijrlrzihcj6uwrmeaa3ho6fdck2u
+- valory/abstract_abci:0.1.0:bafybeidobbo7ao4infxs2lmbamrf6odh66cfkv2zxjtpxmffyvqm2rt7zi
 behaviours:
   main:
     args: {}

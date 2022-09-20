@@ -34,8 +34,8 @@ from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
-from packages.valory.connections.ledger.base import (
-    CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
+from packages.valory.connections.ledger.connection import (
+    PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
@@ -87,7 +87,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             _MetaPayload.transaction_type_to_payload_cls
         )
         _MetaPayload.transaction_type_to_payload_cls = {}
-        super().setup()
+        super().setup()  # pylint: disable=no-value-for-parameter
         assert cls._skill.skill_context._agent_context is not None  # nosec
         cls._skill.skill_context._agent_context.identity._default_address_key = (
             "ethereum"

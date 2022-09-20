@@ -25,7 +25,6 @@ from concurrent.futures._base import Executor
 from logging import Logger
 from typing import Any, Callable, Dict, Optional, Union
 
-from aea.configurations.base import PublicId
 from aea.crypto.base import LedgerApi
 from aea.crypto.registries import Registry, ledger_apis_registry
 from aea.exceptions import enforce
@@ -33,9 +32,6 @@ from aea.helpers.async_utils import AsyncState
 from aea.mail.base import Envelope
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue, Dialogues
-
-
-CONNECTION_ID = PublicId.from_str("valory/ledger:0.1.0")
 
 
 class RequestDispatcher(ABC):
