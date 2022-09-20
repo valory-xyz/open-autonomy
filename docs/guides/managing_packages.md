@@ -9,7 +9,7 @@ The first thing you need to know is that there are different types of packages: 
 - In the local registry (packages folder), a local directory that stores packages classified by vendor.
 - In the remote registry, a remote machine that serves packages over IPFS or HTTP.
 
-You can see that this setup is not that different from the one git uses.
+You can see that this setup is not that different from the one Git uses.
 
 <figure markdown>
 ![](../images/package_management.svg){ width="85%" height="85%" style="display: block; margin: 0 auto" }
@@ -20,7 +20,7 @@ Packages should be developed independently from any agent, inside the local regi
 
 ## Creating your agents and services
 
-The first thing a developer needs to do before they start writing code is setting up the project. Instead of starting from scratch, we recommend to clone our [developer template](https://github.com/valory-xyz/dev-template). Once setup, it will generate a virtual environment with {{open_autonomy}} installed, an empty local registry, some useful tools for checking packages and dummy tests. After this, in the same fashion git asks to initialize its configuration using `git config`, {{open_autonomy}} asks the user to set the user name, whether we are using a local or remote registry as well as the type of registry (IPFS by default). For example, initialize your registry running the following command:
+The first thing a developer needs to do before they start writing code is setting up the project. Instead of starting from scratch, we recommend to clone our [developer template](https://github.com/valory-xyz/dev-template). Once setup, it will generate a virtual environment with {{open_autonomy}} installed, an empty local registry, some useful tools for checking packages and dummy tests. After this, in the same fashion Git asks to initialize its configuration using `git config`, {{open_autonomy}} asks the user to set the user name, whether we are using a local or remote registry as well as the type of registry (IPFS by default). For example, initialize your registry running the following command:
 
 ```bash
 autonomy init --reset --author john_doe --remote --ipfs --ipfs-node "/dns/registry.autonolas.tech/tcp/443/https"
