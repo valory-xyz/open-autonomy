@@ -423,7 +423,7 @@ autonomy fetch --local --alias oracle valory/oracle:0.1.0
 ```bash
 Usage: autonomy run [OPTIONS]
 
-  Run the agent.
+  Run the agent. Available for docker compose deployments only, not for kubernetes deployments.
 
 Options:
   -p                          Ask for password interactively

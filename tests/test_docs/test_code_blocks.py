@@ -31,7 +31,6 @@ from tests.test_docs.helper import (  # type: ignore
     check_bash_commands_exist,
     check_code_blocks_exist,
     contains_code_blocks,
-    extract_autonomy_commands,
     extract_make_commands,
     remove_doc_ellipsis,
     remove_ips_hashes,
@@ -238,7 +237,9 @@ class TestDocBashSnippets:
         )
 
         make_commands = extract_make_commands(all_mk_files)
-        autonomy_commands = extract_autonomy_commands()
 
         for md_file in files_with_blocks:
-            check_bash_commands_exist(md_file, make_commands, autonomy_commands)
+            check_bash_commands_exist(
+                md_file,
+                make_commands,
+            )
