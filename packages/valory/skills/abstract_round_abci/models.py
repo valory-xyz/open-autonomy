@@ -50,6 +50,23 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
+
+        # The genesis configuration should be a dictionary with the following format:
+        #
+        #   genesis_time: str
+        #   chain_id: str
+        #   consensus_params:
+        #     block:
+        #       max_bytes: str
+        #       max_gas: str
+        #       time_iota_ms: str
+        #     evidence:
+        #       max_age_num_blocks: str
+        #       max_age_duration: str
+        #       max_bytes: str
+        #     validator:
+        #       pub_key_types: List[str]
+        #     version: dict
         self.genesis_config = self._ensure("genesis_config", kwargs)
         self.voting_power = self._ensure("voting_power", kwargs)
         self.service_id = self._ensure("service_id", kwargs)
