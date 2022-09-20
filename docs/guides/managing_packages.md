@@ -69,27 +69,6 @@ We will focus now on developing inside the local registry. First of all, it is u
 autonomy packages lock
 ```
 
-This will add the new skill hashes to it:
-
-```json
-{
-    "protocol/valory/abci/0.1.0": "bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay",
-    "connection/valory/abci/0.1.0": "bafybeih34yj6l7akh6wfhgwaud3luvmwxkiakcqzv3zjiz5q7jfqtdnela",
-    "protocol/valory/contract_api/1.0.0": "bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim",
-    "protocol/valory/http/1.0.0": "bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i",
-    "protocol/valory/ledger_api/1.0.0": "bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54",
-    "connection/valory/http_client/0.1.0": "bafybeiet6defg3qvov4r2ucjtkywkz53xcg6mgarjfdqmnxfgdixgcx45y",
-    "connection/valory/ledger/0.1.0": "bafybeicup3pqzi74h67z6oxzw7qhsz2dpezeqhalg7bex37fqcx5koivqu",
-    "contract/valory/service_registry/0.1.0": "bafybeicczwyiwjiejqtt2kvkx3eit6faidt3zv5tkfdjyczg3e5xyhtvsy",
-    "protocol/open_aea/signing/1.0.0": "bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44",
-    "protocol/valory/tendermint/0.1.0": "bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq",
-    "skill/valory/abstract_abci/0.1.0": "bafybeidt4cyfhlla6faca6us6law7dijrlrzihcj6uwrmeaa3ho6fdck2u",
-    "skill/valory/abstract_round_abci/0.1.0": "bafybeigpz64qx22a4zzlcczmc5frhlecytrh5q3x77lwe3a5kee2qrcchm",
-    "skill/john_doe/my_skill/0.1.0": "bafybeiaecrvczomydblyhpxsflczkkwlwgu4wszydcwbhco3jjxdlcurve",
-    "agent/john_doe/my_agent/0.1.0": "bafybeicauz6f4x7nvpcxze3peusptd5jeinuum3mhtije23jyvbizdw42y"
-}
-```
-
 While developing, each change will make this hashes out of date. You can run the following to check whether you need to update `autonomy packages lock` again:
 
 ```bash
