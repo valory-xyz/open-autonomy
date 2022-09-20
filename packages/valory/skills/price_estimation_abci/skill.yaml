@@ -103,6 +103,7 @@ models:
             pub_key_types:
             - ed25519
           version: {}
+        voting_power: '10'
       history_check_timeout: 1205
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
@@ -130,7 +131,6 @@ models:
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
       validate_timeout: 1205
-      voting_power: '10'
     class_name: Params
   price_api:
     args:

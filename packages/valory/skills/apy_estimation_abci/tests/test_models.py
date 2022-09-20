@@ -76,7 +76,6 @@ class APYParamsKwargsType(TypedDict):
     backwards_compatible: bool
     decimals: int
     genesis_config: dict
-    voting_power: str
 
 
 APY_PARAMS_ARGS: APYParamsArgsType = ("test", MagicMock())
@@ -107,8 +106,7 @@ APY_PARAMS_KWARGS = APYParamsKwargsType(
     cleanup_history_depth=0,
     backwards_compatible=False,
     decimals=5,
-    genesis_config={},
-    voting_power="0",
+    genesis_config={"voting_power": "0"},
 )
 
 
@@ -144,6 +142,8 @@ class TestAPYParams:
                 APYParams(*args, **kwargs)
 
             kwargs["optimizer"]["timeout"] = "None"  # type: ignore
+            # set the voting power again because the previous `APYParams` call has popped it.
+            kwargs["genesis_config"]["voting_power"] = "0"  # type: ignore
 
             with pytest.raises(ValueError):
                 APYParams(*args, **kwargs)

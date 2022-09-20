@@ -118,6 +118,7 @@ models:
             pub_key_types:
             - ed25519
           version: {}
+        voting_power: '10'
       history_end: 1655136875
       history_interval_in_unix: 86400
       history_start: 1652544875
@@ -155,7 +156,6 @@ models:
       tendermint_url: http://localhost:26657
       testing:
         steps_forward: 1
-      voting_power: '10'
     class_name: APYParams
   randomness_api:
     args:

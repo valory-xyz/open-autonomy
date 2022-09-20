@@ -67,12 +67,13 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
               validator:
                 pub_key_types: List[str]
               version: dict
+            voting_power: str
 
         :param args: positional arguments
         :param kwargs: keyword arguments
         """
         self.genesis_config = self._ensure("genesis_config", kwargs)
-        self.voting_power = self._ensure("voting_power", kwargs)
+        self.voting_power = self._ensure("voting_power", self.genesis_config)
         self.service_id = self._ensure("service_id", kwargs)
         self.tendermint_url = self._ensure("tendermint_url", kwargs)
         self.max_healthcheck = self._ensure("max_healthcheck", kwargs)
