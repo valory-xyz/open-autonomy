@@ -95,7 +95,7 @@ Each time you need a new package you will need to either copy/paste/edit an exis
 
 ## The remote registry
 
-We have been mostly working with the local registry, but for other developers to be able of fetching your packages you will need to push them to the remote registry: `push`, `publish`, `add` and `fetch` commands work with the `--remote` flag. When you specify it instead of the `--local` one, operations will be performed against a remote server. You can also push a package directly from the local registry to the remote one:
+We have been mostly working with the local registry, but for other developers to be able to fetch your packages you will need to push them to the remote registry: `push`, `publish`, `add` and `fetch` commands work with the `--remote` flag. When you specify it instead of the `--local` one, operations will be performed against a remote server. You can also push a package directly from the local registry to the remote one:
 
 ```bash
 # Remove all cache files before running
