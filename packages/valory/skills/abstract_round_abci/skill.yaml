@@ -20,7 +20,7 @@ fingerprint:
   io_/load.py: bafybeifdki3qeq4aplu6chpozysmeqrt23lxhvcmlefsbesdrklh4wxu64
   io_/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
   io_/store.py: bafybeihksp4ch67ae3lum5ou62mmctbl4xnodkiewdlbilmgy752m4pwc4
-  models.py: bafybeiessnw4xvvplb3munjd6ztdfquxkwqcqfnxsmk4sqhmvhnduuspca
+  models.py: bafybeibgy5zv2u3lcijmaxzf4cba4i5yu3ihtfyb2tfzwhq7u6yzy6arie
   serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
   test_tools/__init__.py: bafybeigicwqumbl3jorusndtfa6ag7lnf3saa6cbqn7fazur4n6nxmsdva
   test_tools/abci_app.py: bafybeidv6c5cl2ye54mxkz3t4dq2vmg22a5jvgrwlwhzjbgfvefe5pq6ca
@@ -43,7 +43,7 @@ fingerprint:
   tests/test_io/test_ipfs.py: bafybeigjdu6upetr73i2zldypeozx4hyrzt5il642sb537lpe6lcm36mca
   tests/test_io/test_load.py: bafybeih5qt3etx3bi2zt2kebra322obxq7s77g3r6xzztsix3ihdpfdixy
   tests/test_io/test_store.py: bafybeibqfdgj7unktgkwligf4jnhlytijz7wyczykghylpy2smx76q3d5a
-  tests/test_models.py: bafybeif4agw6rmnrqm56nfkjp3p2ty6aw37f6cgr2y3nl2eklkcriwv5fu
+  tests/test_models.py: bafybeicqiprnm627bmkvl7nptva4xz3kyze4f5bnv6uvgwzamqprfkwfa4
   tests/test_serializer.py: bafybeidedmu2zkyru23q4mw3kqrx2vpiwetwtqvae42mfbfjwke7zre5ta
   tests/test_utils.py: bafybeie4fl6wkinbr4qdghm7jhqoxfi7d26zwo5iqctq2zrvvawrzexmti
   utils.py: bafybeigkr7rxl4wgjdlcea7jgx7xiuksz7vyenkijgyoh3e645weaeybim

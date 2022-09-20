@@ -39,6 +39,7 @@ The genesis configuration should be a dictionary with the following format:
       validator:
         pub_key_types: List[str]
       version: dict
+    voting_power: str
 
 **Arguments**:
 
