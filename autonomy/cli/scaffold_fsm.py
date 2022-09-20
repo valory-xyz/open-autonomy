@@ -471,6 +471,25 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             "tendermint_max_retries": 5,
             "tendermint_url": "http://localhost:26657",
             "validate_timeout": 1205,
+            "genesis_config": {
+                "genesis_time": "2022-05-20T16:00:21.735122717Z",
+                "chain_id": "chain-c4daS1",
+                "consensus_params": {
+                    "block": {
+                        "max_bytes": "22020096",
+                        "max_gas": "-1",
+                        "time_iota_ms": "1000",
+                    },
+                    "evidence": {
+                        "max_age_num_blocks": "100000",
+                        "max_age_duration": "172800000000000",
+                        "max_bytes": "1048576",
+                    },
+                    "validator": {"pub_key_types": ["ed25519"]},
+                    "version": {},
+                },
+                "voting_power": "10",
+            },
         }
 
 
