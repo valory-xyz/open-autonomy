@@ -45,6 +45,9 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 
+NODE = "node{i}"
+
+
 class RegistrationBaseBehaviour(BaseBehaviour):
     """Agent registration to the FSM App."""
 
@@ -301,7 +304,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
                 address=validator_config["address"],
                 pub_key=validator_config["pub_key"],
                 power=self.params.voting_power,
-                name=f"node{i}",
+                name=NODE.format(i=i),
             )
             validators.append(validator)
 
