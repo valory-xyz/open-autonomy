@@ -22,20 +22,20 @@ fingerprint:
   tests/test_models.py: bafybeib5qugc5wrsoc2huo6dpwfekungcqdcjytfoo6hyx434nqtuqeblq
 fingerprint_ignore_patterns: []
 connections:
-- valory/ledger:0.1.0:bafybeicup3pqzi74h67z6oxzw7qhsz2dpezeqhalg7bex37fqcx5koivqu
+- valory/ledger:0.1.0:bafybeih7swfc342b3bknw4thc7h5ywqa4zgnstl743pnhekwntofiypqjm
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigpsmher4z74pog5y3xvzi6f35j4fxm775peu6baaspgmq4eawmya
-- valory/oracle_deployment_abci:0.1.0:bafybeiaylosh65g2xoroistjlhbpfapajoibblpd5h4zmzyt5ddn6z335y
-- valory/price_estimation_abci:0.1.0:bafybeihqneis6t4fomub5vin6zjzpru5nnk6ai7hfvca5fszb4eki5wshe
-- valory/registration_abci:0.1.0:bafybeifp63zzugkpnfuf5a5ryr7ib6qemh3vrmfpmk5mekww7lm6y5unii
-- valory/reset_pause_abci:0.1.0:bafybeihdtnqq4i65tsts3guu6yjo3sjlfvrqyteszrp36mp22syrei7uvi
-- valory/safe_deployment_abci:0.1.0:bafybeigmdefpjq5jtfqmaxkwfhdvyqofzm73plc6ej5pxdpewg5rco34ya
-- valory/transaction_settlement_abci:0.1.0:bafybeielgwyxa2yia5ddx6s4tv23rxfit2n6l6xjukynexfvxfowvfvzj4
+- valory/abstract_round_abci:0.1.0:bafybeida6vwh5up47op4hhko6r6ncxg5xxa2qhmcnmsirt5n5hm5xpixye
+- valory/oracle_deployment_abci:0.1.0:bafybeicfnoiio3zojfimuygvcj77rv7sbpnrgw4xxwllppnu6cysom2ehu
+- valory/price_estimation_abci:0.1.0:bafybeihdfi4d4dhzk34y7ebyxhyhti24kum6dqlfewtnhdjgr37gpcgwba
+- valory/registration_abci:0.1.0:bafybeiccr4i3q6tksglk5v2wxgs4gh6cri6aj5rxeujflta4nfxxrkofgm
+- valory/reset_pause_abci:0.1.0:bafybeihtuwik7ah6t3jph7yrnz2yttcgv5ncxikcxol37kddagefantcqm
+- valory/safe_deployment_abci:0.1.0:bafybeidm44wlnjt7sjiso77egyygnygkbkpciln342lngrcwfxrllmze3i
+- valory/transaction_settlement_abci:0.1.0:bafybeiaqir3wo5qcczxrmurl37xhmwzqjswrufjsppl23qpqcqkdk5gdqq
 behaviours:
   main:
     args: {}
@@ -179,5 +179,7 @@ models:
   tendermint_dialogues:
     args: {}
     class_name: TendermintDialogues
-dependencies: {}
+dependencies:
+  open-aea-test-autonomy:
+    version: ==0.3.1
 is_abstract: false

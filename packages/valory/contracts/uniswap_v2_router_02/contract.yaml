@@ -16,4 +16,6 @@ contracts: []
 class_name: UniswapV2Router02Contract
 contract_interface_paths:
   ethereum: build/IUniswapV2Router02.json
-dependencies: {}
+dependencies:
+  open-aea-test-autonomy:
+    version: ==0.3.1
