@@ -1,7 +1,6 @@
-The typical use case that this guide intends to illustrate is where a service owner wants to use already developed agents to run its own service, possibly customizing it through the service parameters. For example, an oracle agent service with existing agents, where the service owner specifies
+The typical use case that this guide intends to illustrate is where a service owner wants to use existing agents to run its own service 
+with a custom configuration. For example, an oracle service customized to serve data of their interest.
 
-  - what exchanges the agents should feed the information from, and
-  - what blockchain the service is reporting to.
 
 ##What you will learn
 In this guide, we will show how to:
@@ -149,13 +148,6 @@ you have followed the [setup instructions](./quick_start.md#setup). As a result 
 
 
 4. **Publish the service on the [IPFS](https://ipfs.io/).** This will make the service available for other developers to fetch it.
-
-    !!! warning "Important"
-        Before publishing any service or agent, make sure that all the files and folders no longer needed are deleted. In this example,
-            ```bash
-            rm keys.json
-            rm -rf abci_build
-            ```
 
     Now publish the service by executing the following command within the service parent folder:
 
