@@ -7,9 +7,7 @@ Below we describe the additional manual steps required to upgrade between differ
 
 ## `v0.3.0` to `v0.3.1`
 
-No backwards incompatible changes but
-
-- This release introduces the usage of package sync so the `packages/` directory will only contain `valory` packages, other packages can be downloaded by running `autonomy packages sync` 
+No backwards incompatible changes
 
 ## `v0.2.2` to `v0.3.0`
 
