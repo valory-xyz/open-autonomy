@@ -10,13 +10,16 @@ fingerprint:
   __init__.py: bafybeic6edzuxlzxfechexteae6qyednm2feuvwmgyxzs7fopd6v5wqjgq
   dialogues.py: bafybeigocfxocz4ektda3iloefedpjru3hobmxop7czi6ekq7ifumvdtwa
   handlers.py: bafybeiazszy3rxyvitfseyey43wrfmhlcztku55jaxk3lg7hzmuxy4t4zm
+  tests/__init__.py: bafybeico62tplfccctl7o2ixzpzpysjk5klj36nlk4uqqwzqxc5xrx2ldu
+  tests/test_counter.py: bafybeicodhhf3pdgi4x74bd6sbnkvhk6jlm24x7t7aaxt7p2kqy72hclai
 fingerprint_ignore_patterns: []
-connections: []
+connections:
+- valory/abci:0.1.0:bafybeih34yj6l7akh6wfhgwaud3luvmwxkiakcqzv3zjiz5q7jfqtdnela
 contracts: []
 protocols:
-- valory/abci:0.1.0:bafybeic4ioeoxrosuuffap3lakejaaj6pi63cl2brwwcocf2s27hthdgfe
+- valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
 skills:
-- valory/abstract_abci:0.1.0:bafybeic3dy6vtad4bylhc25mprvl2rl5xiy3zop3arnbeqmiwsbbeyf36u
+- valory/abstract_abci:0.1.0:bafybeidt4cyfhlla6faca6us6law7dijrlrzihcj6uwrmeaa3ho6fdck2u
 behaviours: {}
 handlers:
   abci:

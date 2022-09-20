@@ -164,7 +164,7 @@ jobs:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         python-version: [ "3.7", "3.8", "3.9", "3.10" ]
 
-    timeout-minutes: 50
+    timeout-minutes: 55
 
     steps:
       - uses: actions/checkout@v2
@@ -208,37 +208,30 @@ jobs:
           sudo install skaffold /usr/local/bin/
           skaffold --help
 
-          # pull node image needed for the integration tests
-          docker pull node:16.7.0
-          docker pull trufflesuite/ganache:beta
-
           # build required images
-
           skaffold build --push=false
           skaffold build -p release --push=false
           TM_DEPLOYMENT_PATH="deployments/Dockerfiles/tendermint/"
           TM_IMG_NAME="valory/open-autonomy-tendermint"
           docker build $TM_DEPLOYMENT_PATH -t $TM_IMG_NAME:0.1.0 -t $TM_IMG_NAME:1.0.0 -t $TM_IMG_NAME:latest
-
-          # build hardhat node in third_party/safe-contracts
-          cd third_party/safe-contracts &&\
-            sudo chown -R $(whoami) .husky &&\
-            yarn
-
-          # build hardhat node in third_party/contracts-amm
-          cd ../..
-          cd third_party/contracts-amm &&\
-            yarn
-
-          # build hardhat node in third_party/autonolas-registries
-          cd ../..
-          cd third_party/autonolas-registries &&\
-            yarn
+          
+          # pull pre-built images
+          docker pull valory/autonolas-registries:latest
+          docker pull valory/contracts-amm:latest
+          docker pull valory/safe-contract-net:latest
+          docker pull valory/acn-node:latest
+          docker pull tendermint/tendermint:v0.34.19
+          docker pull trufflesuite/ganache:beta
 
       - if: matrix.os == 'ubuntu-latest'
-        name: Unit tests ubuntu-latest
+        name: Framework unit tests ubuntu-latest
         run: |
           tox -e py${{ matrix.python-version }}-linux -- -m 'not e2e'
+      
+      - if: matrix.os == 'ubuntu-latest'
+        name: Packages unit tests ubuntu-latest
+        run: |
+          tox -e packages-py${{ matrix.python-version }}-linux -- -m 'not e2e'
 
       - if: matrix.os == 'macos-latest'
         name: Install dependencies (macos-latest)
@@ -273,32 +266,15 @@ jobs:
           sudo install skaffold /usr/local/bin/
           skaffold --help
 
-          # pull node image needed for the integration tests
-          # we don't run tests that require docker images on MacOS
-          # docker pull node:16.7.0
-          # docker pull trufflesuite/ganache:beta
-
-          # build hardhat node in third_party/safe-contracts
-          # cd third_party/safe-contracts &&\
-          #   sudo chown -R $(whoami) .husky &&\
-          #   yarn
-          # cd ../..
-
-          # # build hardhat node in third_party/contracts-amm
-          # cd third_party/contracts-amm &&\
-          #   yarn
-          # cd ../..
-          
-          # # build hardhat node in third_party/autonolas-registries
-          # cd third_party/autonolas-registries &&\
-          #   yarn
-          # cd ../..
-
-
       - if: matrix.os == 'macos-latest'
-        name: Unit tests macos-latest
+        name: Framework unit tests macos-latest
         run: |
           tox -e py${{ matrix.python-version }}-darwin -- -m 'not e2e'
+      
+      - if: matrix.os == 'macos-latest'
+        name: Packages unit tests macos-latest
+        run: |
+          tox -e packages-py${{ matrix.python-version }}-darwin -- -m 'not e2e'
 
       - if: matrix.os == 'windows-latest'
         name: Install dependencies (windows-latest)
@@ -343,30 +319,15 @@ jobs:
           cp skaffold C:\Users\runneradmin\go\bin\
           skaffold --help
 
-          # pull node image needed for the integration tests
-          # we don't run tests that require docker images on Windows
-          # docker pull node:16.7.0
-          # docker pull trufflesuite/ganache:beta
-
-          # # build hardhat node in third_party/safe-contracts
-          # cd third_party\safe-contracts
-          # yarn
-          # cd ..\..
-
-          # # build hardhat node in third_party/contracts-amm
-          # cd third_party\contracts-amm
-          # yarn
-          # cd ..\..
-
-          # # build hardhat node in third_party/autonolas-registries
-          # cd third_party\autonolas-registries
-          # yarn
-          # cd ..\..
-
       - if: matrix.os == 'windows-latest'
-        name: Unit tests windows-latest
+        name: Framework unit tests windows-latest
         run: |
           tox -e py${{ matrix.python-version }}-win -- -m 'not e2e'
+      
+      - if: matrix.os == 'windows-latest'
+        name: Packages unit tests windows-latest
+        run: |
+          tox -e packages-py${{ matrix.python-version }}-win -- -m 'not e2e'
 
       - if: matrix.os == 'ubuntu-latest'
         name: Upload coverage to Codecov
@@ -425,30 +386,6 @@ jobs:
           tar -xf tendermint.tar.gz
           sudo mv tendermint /usr/local/bin/tendermint
 
-
-          # ensure yarn is installed
-          curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-          echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-          sudo apt update
-          sudo apt install yarn -y
-
-          # pull node image needed for the integration tests
-          docker pull node:16.7.0
-          docker pull trufflesuite/ganache:beta
-          # build hardhat node in third_party/safe-contracts
-          cd third_party/safe-contracts &&\
-            sudo chown -R $(whoami) .husky &&\
-            yarn
-          # build hardhat node in third_party/contracts-amm
-          cd ../..
-          cd third_party/contracts-amm &&\
-            yarn
-          # build hardhat node in third_party/autonolas-registries
-          cd ../..
-          cd third_party/autonolas-registries &&\
-            yarn
-          cd ../..
-
           # install Skaffold needed in order to build the Flask with Tendermint image
           curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v1.39.1/skaffold-linux-amd64 &&\
             sudo install skaffold /usr/local/bin/
@@ -457,7 +394,12 @@ jobs:
           TM_DEPLOYMENT_PATH="deployments/Dockerfiles/tendermint/"
           TM_IMG_NAME="valory/open-autonomy-tendermint"
           docker build $TM_DEPLOYMENT_PATH -t $TM_IMG_NAME:0.1.0 -t $TM_IMG_NAME:1.0.0 -t $TM_IMG_NAME:latest
+          
+          # pull pre-built images
+          docker pull valory/autonolas-registries:latest
+          docker pull valory/contracts-amm:latest
+          docker pull valory/safe-contract-net:latest
 
       - name: Unit tests
         run: |
-          tox --develop -e py${{ matrix.python-version }} -- -m 'e2e'
+          tox --develop -e packages-py${{ matrix.python-version }}-linux -- -m 'e2e'

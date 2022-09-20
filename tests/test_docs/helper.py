@@ -25,10 +25,7 @@ from functools import partial
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
-import click
 import mistune  # type: ignore
-
-from autonomy.cli.core import cli
 
 from tests.conftest import ROOT_DIR
 
@@ -41,6 +38,7 @@ PYTHON_COMMAND = r"^pyt(hon|est) (?P<file_name>.*\.py).*$"
 MAKE_COMMAND = r"^make (?P<cmd_name>.*)$"
 AUTONOMY_COMMAND = r"^(?P<cmd_name>autonomy .*)$"
 MAKEFILE_COMMAND = r"^(?P<command>.*):$"
+MAKEFILE_COMMAND_PHONY = r"^\.PHONY: (?P<command>.*)$"
 
 
 class CodeType(Enum):
@@ -188,26 +186,14 @@ def extract_make_commands(makefile_paths: List[str]) -> List[str]:
                 match = re.match(MAKEFILE_COMMAND, line)
                 if match:
                     commands += match.groupdict()["command"].split(" ")
+                    continue
+                match = re.match(MAKEFILE_COMMAND_PHONY, line)
+                if match:
+                    commands += match.groupdict()["command"].split(" ")
     return commands
 
 
-def extract_autonomy_commands() -> List[str]:
-    """Extract autonomy commands from the autonomy cli"""
-    cmd_list = []
-    for cmd_name, cmd in cli.commands.items():
-        if isinstance(cmd, click.Group):
-            cmd_list += [
-                f"autonomy {cmd_name} {sub_cmd_name}"
-                for sub_cmd_name in cmd.list_commands(click.Context)
-            ]
-        else:
-            cmd_list += [f"autonomy {cmd_name}"]
-    return cmd_list
-
-
-def check_bash_commands_exist(
-    md_file: str, make_commands: List[str], autonomy_commands: List[str]
-) -> None:
+def check_bash_commands_exist(md_file: str, make_commands: List[str]) -> None:
     """Check whether a bash code block exists in the codebase"""
     # Load the code file and process it
     doc_path = os.path.join(ROOT_DIR, md_file)
@@ -235,13 +221,4 @@ def check_bash_commands_exist(
                     assert (
                         mk_cmd in make_commands
                     ), f"Make command '{mk_cmd}' referenced in {md_file} is not present in the Makefile"
-                continue
-
-            # autonomy commands
-            match = re.match(AUTONOMY_COMMAND, line)
-            if match:
-                autonomy_cmd = match.groupdict()["cmd_name"]
-                assert any(
-                    autonomy_cmd.startswith(cmd) for cmd in autonomy_commands
-                ), f"autonomy command '{autonomy_cmd}' referenced in {md_file} is not present in the autonomy cli"
                 continue

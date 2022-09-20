@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 """This module contains base classes for the ledger API connection."""
 import asyncio
+import inspect
 from abc import ABC, abstractmethod
 from asyncio import Task
 from concurrent.futures._base import Executor
@@ -27,6 +28,7 @@ from typing import Any, Callable, Dict, Optional, Union
 from aea.configurations.base import PublicId
 from aea.crypto.base import LedgerApi
 from aea.crypto.registries import Registry, ledger_apis_registry
+from aea.exceptions import enforce
 from aea.helpers.async_utils import AsyncState
 from aea.mail.base import Envelope
 from aea.protocols.base import Message
@@ -92,12 +94,46 @@ class RequestDispatcher(ABC):
         :return: the return value of the function.
         """
         try:
-            response = await self.loop.run_in_executor(
-                self.executor, func, api, message, dialogue
-            )
+            if inspect.iscoroutinefunction(func):
+                # If it is a coroutine, no need to run it in an executor
+                # This can happen if the handler is async.
+                task = func(api, message, dialogue)  # type: ignore
+            else:
+                task = self.loop.run_in_executor(  # type: ignore
+                    self.executor, func, api, message, dialogue
+                )
+            response = await task
             return response
         except Exception as exception:  # pylint: disable=broad-except
             return self.get_error_message(exception, api, message, dialogue)
+
+    async def wait_for(
+        self, func: Callable, *args: Any, timeout: Optional[float] = None
+    ) -> Any:
+        """
+        Runs a non-coroutine callable async while enforcing a timeout.
+
+        Warning: This function can be used with non-coroutine callables ONLY!
+        If you want the same functionality with coroutine callables, use asyncio.wait_for().
+
+        :param func: the callable (function) to run.
+        :param args: the function params.
+        :param timeout: for how long to run the function before cancelling it and raising TimeoutError.
+        :return: the return value of "func" if it finishes in "timeout", raises a TimeoutError otherwise.
+        """
+        enforce(
+            not inspect.iscoroutinefunction(func),
+            'A coroutine was passed to "RequestDispatcher.wait_for()", '
+            '"RequestDispatcher.wait_for()" only works with non-coroutine callables. '
+            'Hint: Look at "asyncio.wait_for()". ',
+        )
+
+        # we run the passed function using the default executor
+        running_func = self.loop.run_in_executor(self.executor, func, *args)
+
+        # func_result will carry the value the function returns
+        func_result = await asyncio.wait_for(running_func, timeout=timeout)
+        return func_result
 
     def dispatch(self, envelope: Envelope) -> Task:
         """

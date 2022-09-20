@@ -2,7 +2,7 @@
 
 # plugins.aea-test-autonomy.aea`_`test`_`autonomy.helpers.base
 
-Utilities for the autonomy test tools.
+Utilities for the Open Autonomy test tools.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.helpers.base.tendermint_health_check"></a>
 

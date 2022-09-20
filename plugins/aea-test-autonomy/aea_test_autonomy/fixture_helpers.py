@@ -26,15 +26,19 @@
 # pylint: disable=unused-argument
 
 import logging
-from pathlib import Path
-from typing import Any, Dict, List, Tuple, cast
+from typing import Any, Dict, Generator, List, Tuple, cast
 
 import docker
 import pytest
 from aea_test_autonomy.configurations import GANACHE_CONFIGURATION, KEY_PAIRS, LOCALHOST
 from aea_test_autonomy.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
 from aea_test_autonomy.docker.amm_net import AMMNetDockerImage
-from aea_test_autonomy.docker.base import DockerBaseTest, DockerImage
+from aea_test_autonomy.docker.base import (
+    DockerBaseTest,
+    DockerImage,
+    launch_image,
+    launch_many_containers,
+)
 from aea_test_autonomy.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_PORT,
@@ -45,7 +49,11 @@ from aea_test_autonomy.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
+from aea_test_autonomy.docker.registries import RegistriesDockerImage
 from aea_test_autonomy.docker.tendermint import (
+    DEFAULT_ABCI_HOST,
+    DEFAULT_ABCI_PORT,
+    DEFAULT_TENDERMINT_PORT,
     FlaskTendermintDockerImage,
     TendermintDockerImage,
 )
@@ -53,6 +61,44 @@ from eth_account import Account
 
 
 logger = logging.getLogger(__name__)
+
+
+###
+# Vanilla Tendermint
+###
+
+
+@pytest.fixture(scope="session")
+def tendermint_port() -> int:
+    """Get the Tendermint port"""
+    return DEFAULT_TENDERMINT_PORT
+
+
+@pytest.fixture(scope="session")
+def abci_host() -> str:
+    """Get the ABCI host"""
+    return DEFAULT_ABCI_HOST
+
+
+@pytest.fixture(scope="session")
+def abci_port() -> int:
+    """Get the ABCI port"""
+    return DEFAULT_ABCI_PORT
+
+
+@pytest.fixture(scope="class")
+def tendermint(
+    tendermint_port: int,  # pylint: disable=redefined-outer-name
+    abci_host: str,  # pylint: disable=redefined-outer-name
+    abci_port: int,  # pylint: disable=redefined-outer-name
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator:
+    """Launch the Ganache image."""
+    client = docker.from_env()
+    logging.info(f"Launching Tendermint at port {tendermint_port}")
+    image = TendermintDockerImage(client, abci_host, abci_port, tendermint_port)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
 @pytest.mark.integration
@@ -64,7 +110,9 @@ class UseTendermint:
 
     @pytest.fixture(autouse=True, scope="class")
     def _start_tendermint(
-        self, tendermint: TendermintDockerImage, tendermint_port: Any
+        self,
+        tendermint: TendermintDockerImage,  # pylint: disable=redefined-outer-name
+        tendermint_port: int,  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start a Tendermint image."""
         cls = type(self)
@@ -87,13 +135,47 @@ class UseTendermint:
         return f"http://{LOCALHOST}:{self.tendermint_port}"
 
 
+###
+# Tendermint managed by Flask server
+###
+
+
+@pytest.fixture
+def nb_nodes(request: Any) -> int:
+    """Get a parametrized number of nodes."""
+    return request.param
+
+
+@pytest.fixture
+def flask_tendermint(
+    tendermint_port: int,  # pylint: disable=redefined-outer-name
+    nb_nodes: int,  # pylint: disable=redefined-outer-name
+    abci_host: str,  # pylint: disable=redefined-outer-name
+    abci_port: int,  # pylint: disable=redefined-outer-name
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator[FlaskTendermintDockerImage, None, None]:
+    """Launch the Flask server with Tendermint container."""
+    client = docker.from_env()
+    logging.info(
+        f"Launching Tendermint nodes managed by Flask server at ports {[tendermint_port + i * 10 for i in range(nb_nodes)]}"
+    )
+    image = FlaskTendermintDockerImage(client, abci_host, abci_port, tendermint_port)
+    yield from cast(
+        Generator[FlaskTendermintDockerImage, None, None],
+        launch_many_containers(image, nb_nodes, timeout, max_attempts),
+    )
+
+
 @pytest.mark.integration
 class UseFlaskTendermintNode:
     """Inherit from this class to use flask server with Tendermint."""
 
     @pytest.fixture(autouse=True)
     def _start_tendermint(
-        self, flask_tendermint: FlaskTendermintDockerImage, tendermint_port: Any
+        self,
+        flask_tendermint: FlaskTendermintDockerImage,  # pylint: disable=redefined-outer-name
+        tendermint_port: int,  # pylint: disable=redefined-outer-name
     ) -> None:
         """Start a Tendermint image."""
         self._tendermint_image = (  # pylint: disable=attribute-defined-outside-init
@@ -133,34 +215,60 @@ class UseFlaskTendermintNode:
         self._tendermint_image.health_check(**kwargs)
 
 
-@pytest.mark.integration
-class UseGnosisSafeHardHatNet:
-    """Inherit from this class to use HardHat local net with Gnosis-Safe deployed."""
-
-    key_pairs: List[Tuple[str, str]] = KEY_PAIRS
-
-    @classmethod
-    @pytest.fixture(autouse=True)
-    def _start_hardhat(
-        cls, gnosis_safe_hardhat_scope_function: Any, hardhat_port: Any, key_pairs: Any
-    ) -> None:
-        """Start an HardHat instance."""
-        cls.key_pairs = key_pairs
+###
+# Vanilla Ganache
+###
 
 
-@pytest.mark.integration
-class UseRegistries:
-    """Inherit from this class to use a local Ethereum network with deployed registry contracts"""
+@pytest.fixture(scope="session")
+def ganache_addr() -> str:
+    """HTTP address to the Ganache node."""
+    return DEFAULT_GANACHE_ADDR
 
-    key_pairs: List[Tuple[str, str]] = KEY_PAIRS
 
-    @classmethod
-    @pytest.fixture(autouse=True)
-    def _start_gnosis_and_registries(
-        cls, registries_scope_class: Any, hardhat_port: Any, key_pairs: Any
-    ) -> None:
-        """Start a Hardhat instance, with registries contracts deployed."""
-        cls.key_pairs = key_pairs
+@pytest.fixture(scope="session")
+def ganache_port() -> int:
+    """Port of the connection to the Ganache Node to use during the tests."""
+    return DEFAULT_GANACHE_PORT
+
+
+@pytest.fixture(scope="session")
+def ganache_configuration() -> Dict:
+    """Get the Ganache configuration for testing purposes."""
+    return GANACHE_CONFIGURATION
+
+
+# TODO: remove as not used
+@pytest.fixture(scope="function")
+def ganache_scope_function(
+    ganache_configuration: Dict,  # pylint: disable=redefined-outer-name
+    ganache_addr: str,  # pylint: disable=redefined-outer-name
+    ganache_port: int,  # pylint: disable=redefined-outer-name
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator:
+    """Launch the Ganache image. This fixture is scoped to a function which means it will destroyed at the end of the test."""
+    client = docker.from_env()
+    image = GanacheDockerImage(
+        client, ganache_addr, ganache_port, config=ganache_configuration
+    )
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture(scope="class")
+def ganache_scope_class(
+    ganache_configuration: Dict,  # pylint: disable=redefined-outer-name
+    ganache_addr: str,  # pylint: disable=redefined-outer-name
+    ganache_port: int,  # pylint: disable=redefined-outer-name
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator:
+    """Launch the Ganache image. This fixture is scoped to a class which means it will destroyed after running every test in a class."""
+    client = docker.from_env()
+    image = GanacheDockerImage(
+        client, ganache_addr, ganache_port, config=ganache_configuration
+    )
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
 @pytest.mark.integration
@@ -170,8 +278,12 @@ class UseGanache:
     key_pairs: List[Tuple[str, str]] = []
 
     @classmethod
-    @pytest.fixture(autouse=True)
-    def _start_ganache(cls, ganache: Any, ganache_configuration: Any) -> None:
+    @pytest.fixture(autouse=True, scope="class")
+    def _start_ganache(
+        cls,
+        ganache_scope_class: GanacheDockerImage,  # pylint: disable=redefined-outer-name
+        ganache_configuration: Dict,  # pylint: disable=redefined-outer-name
+    ) -> None:
         """Start Ganache instance."""
         cls.key_pairs = cast(
             List[Tuple[str, str]],
@@ -189,19 +301,91 @@ class UseGanache:
         )
 
 
+class GanacheBaseTest(DockerBaseTest):
+    """Base pytest class for Ganache."""
+
+    addr: str = DEFAULT_GANACHE_ADDR
+    port: int = DEFAULT_GANACHE_PORT
+    configuration: Dict = GANACHE_CONFIGURATION
+
+    @classmethod
+    def setup_class_kwargs(cls) -> Dict[str, Any]:
+        """Get kwargs for _setup_class call."""
+        setup_class_kwargs = {
+            "key_pairs": cls.key_pairs(),
+            "url": cls.url(),
+        }
+        return setup_class_kwargs
+
+    @classmethod
+    def _build_image(cls) -> DockerImage:
+        """Build the image."""
+        client = docker.from_env()
+        return GanacheDockerImage(client, cls.addr, cls.port, config=cls.configuration)
+
+    @classmethod
+    def key_pairs(cls) -> List[Tuple[str, str]]:
+        """Get the key pairs which are funded."""
+        key_pairs_ = cast(
+            List[Tuple[str, str]],
+            [
+                key
+                if type(key) == tuple  # pylint: disable=unidiomatic-typecheck
+                else (
+                    Account.from_key(  # pylint: disable=no-value-for-parameter
+                        key
+                    ).address,
+                    key,
+                )
+                for key, _ in cls.configuration.get("accounts_balances", [])
+            ],
+        )
+        return key_pairs_
+
+    @classmethod
+    def url(cls) -> str:
+        """Get the url under which the image is reachable."""
+        return f"{cls.addr}:{cls.port}"
+
+
+###
+# Vanilla ACN
+###
+
+
+@pytest.fixture(scope="session")
+def acn_config() -> Dict:
+    """ACN node configuration."""
+    return DEFAULT_ACN_CONFIG
+
+
+@pytest.fixture(scope="function")
+def acn_node(
+    acn_config: Dict,  # pylint: disable=redefined-outer-name
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator:
+    """Launch the Ganache image."""
+    client = docker.from_env()
+    logging.info(f"Launching ACNNode with the following config: {acn_config}")
+    image = ACNNodeDockerImage(client, acn_config)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
 @pytest.mark.integration
 class UseACNNode:
     """Inherit from this class to use an ACNNode for a client connection"""
 
-    configuration: Dict = DEFAULT_ACN_CONFIG
     _acn_node_image: ACNNodeDockerImage
 
     @classmethod
     @pytest.fixture(autouse=True)
-    def _start_acn(cls, acn_node: Any, acn_config: Any = None) -> None:
+    def _start_acn(
+        cls,
+        acn_node: ACNNodeDockerImage,  # pylint: disable=redefined-outer-name
+    ) -> None:
         """Start an ACN instance."""
         cls._acn_node_image = acn_node
-        cls.configuration = acn_config or cls.configuration
 
 
 class ACNNodeBaseTest(DockerBaseTest):
@@ -229,52 +413,27 @@ class ACNNodeBaseTest(DockerBaseTest):
         return str(cls.configuration.get("AEA_P2P_URI_PUBLIC"))
 
 
-class GanacheBaseTest(DockerBaseTest):
-    """Base pytest class for Ganache."""
+###
+# Vanilla HardHat
+###
 
-    addr: str = DEFAULT_GANACHE_ADDR
-    port: int = DEFAULT_GANACHE_PORT
-    configuration: Dict = GANACHE_CONFIGURATION
-    third_party_contract_dir: Path
 
-    @classmethod
-    def setup_class_kwargs(cls) -> Dict[str, Any]:
-        """Get kwargs for _setup_class call."""
-        setup_class_kwargs = {
-            "key_pairs": cls.key_pairs(),
-            "url": cls.url(),
-        }
-        return setup_class_kwargs
+@pytest.fixture(scope="session")
+def hardhat_addr() -> str:
+    """Get the hardhat addr"""
+    return DEFAULT_HARDHAT_ADDR
 
-    @classmethod
-    def _build_image(cls) -> DockerImage:
-        """Build the image."""
-        client = docker.from_env()
-        return GanacheDockerImage(client, cls.addr, cls.port, config=cls.configuration)
 
-    @classmethod
-    def key_pairs(cls) -> List[Tuple[str, str]]:
-        """Get the key pairs which are funded."""
-        key_pairs = cast(
-            List[Tuple[str, str]],
-            [
-                key
-                if type(key) == tuple  # pylint: disable=unidiomatic-typecheck
-                else (
-                    Account.from_key(  # pylint: disable=no-value-for-parameter
-                        key
-                    ).address,
-                    key,
-                )
-                for key, _ in cls.configuration.get("accounts_balances", [])
-            ],
-        )
-        return key_pairs
+@pytest.fixture(scope="session")
+def hardhat_port() -> int:
+    """Get the hardhat port"""
+    return DEFAULT_HARDHAT_PORT
 
-    @classmethod
-    def url(cls) -> str:
-        """Get the url under which the image is reachable."""
-        return f"{cls.addr}:{cls.port}"
+
+@pytest.fixture(scope="session")
+def key_pairs() -> List[Tuple[str, str]]:
+    """Get the default key paris for hardhat."""
+    return KEY_PAIRS
 
 
 class HardHatBaseTest(DockerBaseTest):
@@ -282,7 +441,6 @@ class HardHatBaseTest(DockerBaseTest):
 
     addr: str = DEFAULT_HARDHAT_ADDR
     port: int = DEFAULT_HARDHAT_PORT
-    third_party_contract_dir: Path
 
     @classmethod
     def setup_class_kwargs(cls) -> Dict[str, Any]:
@@ -304,6 +462,91 @@ class HardHatBaseTest(DockerBaseTest):
         return f"{cls.addr}:{cls.port}"
 
 
+###
+# Custom HardHat: HardHat + Autonolas Registry
+###
+
+
+@pytest.fixture(scope="class")
+def registries_scope_class(
+    timeout: float = 2.0,
+    max_attempts: int = 20,
+) -> Generator:
+    """Launch the Registry contracts image. This fixture is scoped to a class which means it will destroyed after running every test in a class."""
+    client = docker.from_env()
+    image = RegistriesDockerImage(client)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.mark.integration
+class UseRegistries:
+    """Inherit from this class to use a local Ethereum network with deployed registry contracts"""
+
+    key_pairs: List[Tuple[str, str]] = KEY_PAIRS
+
+    @classmethod
+    @pytest.fixture(autouse=True)
+    def _start_gnosis_and_registries(
+        cls,
+        registries_scope_class: Any,  # pylint: disable=redefined-outer-name
+        hardhat_port: int,  # pylint: disable=redefined-outer-name
+        key_pairs: List[Tuple[str, str]],  # pylint: disable=redefined-outer-name
+    ) -> None:
+        """Start a Hardhat instance, with registries contracts deployed."""
+        cls.key_pairs = key_pairs
+
+
+###
+# Custom HardHat: HardHat + Gnosis Safe contracts
+###
+
+
+@pytest.fixture(scope="function")
+def gnosis_safe_hardhat_scope_function(
+    hardhat_addr: str,  # pylint: disable=redefined-outer-name
+    hardhat_port: int,  # pylint: disable=redefined-outer-name
+    timeout: float = 3.0,
+    max_attempts: int = 40,
+) -> Generator:
+    """Launch the HardHat node with Gnosis Safe contracts deployed. This fixture is scoped to a function which means it will destroyed at the end of the test."""
+    client = docker.from_env()
+    logging.info(f"Launching Hardhat at port {hardhat_port}")
+    image = GnosisSafeNetDockerImage(client, hardhat_addr, hardhat_port)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture(scope="class")
+def gnosis_safe_hardhat_scope_class(
+    hardhat_addr: str,  # pylint: disable=redefined-outer-name
+    hardhat_port: int,  # pylint: disable=redefined-outer-name
+    timeout: float = 3.0,
+    max_attempts: int = 40,
+) -> Generator:
+    """Launch the HardHat node with Gnosis Safe contracts deployed.This fixture is scoped to a class which means it will destroyed after running every test in a class."""
+    client = docker.from_env()
+    logging.info(f"Launching Hardhat at port {hardhat_port}")
+    image = GnosisSafeNetDockerImage(client, hardhat_addr, hardhat_port)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.mark.integration
+class UseGnosisSafeHardHatNet:
+    """Inherit from this class to use HardHat local net with Gnosis-Safe deployed."""
+
+    key_pairs: List[Tuple[str, str]] = KEY_PAIRS
+
+    @classmethod
+    @pytest.fixture(autouse=True)
+    def _start_hardhat(
+        cls,
+        gnosis_safe_hardhat_scope_function: Any,  # pylint: disable=redefined-outer-name
+        hardhat_port: int,  # pylint: disable=redefined-outer-name
+        key_pairs: List[Tuple[str, str]],  # pylint: disable=redefined-outer-name
+    ) -> None:
+        """Start an HardHat instance."""
+        cls.key_pairs = key_pairs
+
+
 class HardHatGnosisBaseTest(HardHatBaseTest):
     """Base pytest class for HardHat with Gnosis deployed."""
 
@@ -311,9 +554,12 @@ class HardHatGnosisBaseTest(HardHatBaseTest):
     def _build_image(cls) -> DockerImage:
         """Build the image."""
         client = docker.from_env()
-        return GnosisSafeNetDockerImage(
-            client, cls.third_party_contract_dir, cls.addr, cls.port
-        )
+        return GnosisSafeNetDockerImage(client, cls.addr, cls.port)
+
+
+###
+# Custom HardHat: HardHat + AMM contracts
+###
 
 
 class HardHatAMMBaseTest(HardHatBaseTest):
@@ -323,6 +569,4 @@ class HardHatAMMBaseTest(HardHatBaseTest):
     def _build_image(cls) -> DockerImage:
         """Build the image."""
         client = docker.from_env()
-        return AMMNetDockerImage(
-            client, cls.third_party_contract_dir, cls.addr, cls.port
-        )
+        return AMMNetDockerImage(client, cls.addr, cls.port)

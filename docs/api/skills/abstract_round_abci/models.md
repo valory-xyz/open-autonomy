@@ -24,6 +24,28 @@ def __init__(*args: Any, **kwargs: Any) -> None
 
 Initialize the parameters object.
 
+The genesis configuration should be a dictionary with the following format:
+    genesis_time: str
+    chain_id: str
+    consensus_params:
+      block:
+        max_bytes: str
+        max_gas: str
+        time_iota_ms: str
+      evidence:
+        max_age_num_blocks: str
+        max_age_duration: str
+        max_bytes: str
+      validator:
+        pub_key_types: List[str]
+      version: dict
+    voting_power: str
+
+**Arguments**:
+
+- `args`: positional arguments
+- `kwargs`: keyword arguments
+
 <a id="packages.valory.skills.abstract_round_abci.models.SharedState"></a>
 
 ## SharedState Objects

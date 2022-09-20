@@ -20,14 +20,14 @@ Implementation of the 'autonomy fetch' subcommand.
 @click.option(
     "--agent",
     "package_type",
-    help="Provide a local alias for the agent.",
+    help="Specify the package type as agent.",
     default=True,
     flag_value=AGENT,
 )
 @click.option(
     "--service",
     "package_type",
-    help="Provide a local alias for the agent.",
+    help="Specify the package type as service.",
     flag_value=SERVICE,
 )
 @click.argument("public-id", type=PublicIdParameter(), required=True)

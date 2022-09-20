@@ -15,14 +15,25 @@ fingerprint:
   models.py: bafybeicqi64hrfqfloiopfmnkabbahggseu2pt47dcenfqvorxipv6egbi
   payloads.py: bafybeiajdz24osjwh7qvioa4vjssa73nqssnsgpwhowevmxnwqj4usrn5q
   rounds.py: bafybeie23qyyxsniohhcbz6mc4rgrswtk5d257genhxn6waocy3fe47ucm
+  tests/__init__.py: bafybeifelbjn35o54vqz62cdblijcrag2pdf5dtj6wqhepbowyifigno4a
+  tests/test_behaviours.py: bafybeidx23aeenlky5gfocytb5dzfupuskevgyh2msoy4ohb7zaas72are
+  tests/test_contract_api.py: bafybeifo5rpjy7mfrf7hykwf3ocgfg636wg27f7mgatkhulswukqvivqpe
+  tests/test_dialogues.py: bafybeibcxsrb2zbnrvzkzxvpdu26iw3k6hynotm4xqm2c3e6p7akpipiua
+  tests/test_handlers.py: bafybeihvvm4onw2ocfvai32mlujjngwkolviwehvw35nendb7b3adlol5e
+  tests/test_models.py: bafybeiap3lhuwichxzla2ug4pcajhrsjawlt26dvdvmpoachsel56apazm
+  tests/test_payloads.py: bafybeihuvl7qwisdgvwppda6bpoe63xiitnyhjyszdcmpxia4lzftzdn5e
+  tests/test_rounds.py: bafybeiaxhdpfrgb24lw7euyxrrk7hkbteqroakvchmnvofrzzgv56r5op4
 fingerprint_ignore_patterns: []
-connections: []
+connections:
+- valory/ledger:0.1.0:bafybeicup3pqzi74h67z6oxzw7qhsz2dpezeqhalg7bex37fqcx5koivqu
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeiaugd2npc33jgovg72y4y7pyy7yl24ly6eri7mw6v6gev5azewozq
+- valory/gnosis_safe:0.1.0:bafybeifbkitkori3pi2mtevm475xbnljfejpci7u7veziaptrj4hjbciju
 protocols:
-- valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
+- open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
+- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
+- valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihrktukokli5xxch7gexdl6wtnj23pnapbe6znmvlphyseotsqlre
+- valory/abstract_round_abci:0.1.0:bafybeie3vvct6ydb46pe6f7fp65aafwz5ybr6bk7zkkpbrui4tjbbs66xa
 behaviours:
   main:
     args: {}
@@ -70,6 +81,23 @@ models:
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      genesis_config:
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_num_blocks: '100000'
+            max_age_duration: '172800000000000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        voting_power: '10'
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10

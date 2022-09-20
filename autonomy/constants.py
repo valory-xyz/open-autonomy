@@ -23,6 +23,8 @@ import os
 DEFAULT_BUILD_FOLDER = "abci_build"
 DEFAULT_KEYS_FILE = "keys.json"
 DEFAULT_IMAGE_VERSION = "latest"
+DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE = "valory/autonolas-registries:latest"
+SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME = "autonolas-registries"
 
 AUTONOMY_IMAGE_VERSION = os.environ.get("AUTONOMY_IMAGE_VERSION", DEFAULT_IMAGE_VERSION)
 TENDERMINT_IMAGE_VERSION = os.environ.get(
@@ -39,4 +41,4 @@ HARDHAT_IMAGE_NAME = os.environ.get(
 )
 
 OAR_IMAGE = "valory/oar-{agent}:{version}"
-ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeihrktukokli5xxch7gexdl6wtnj23pnapbe6znmvlphyseotsqlre"
+ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeie3vvct6ydb46pe6f7fp65aafwz5ybr6bk7zkkpbrui4tjbbs66xa"

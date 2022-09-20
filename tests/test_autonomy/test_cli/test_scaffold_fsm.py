@@ -21,6 +21,7 @@
 
 import importlib.util
 import os
+import shutil
 from importlib.machinery import ModuleSpec
 from pathlib import Path
 from typing import List
@@ -60,8 +61,9 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         """Set up the test class."""
         super(AEATestCaseEmpty, cls).setup_class()
         cls.agent_name = "default_author"
+        cls.set_agent_context(os.path.join("packages", cls.agent_name))
         cls.create_agents(cls.agent_name, is_local=cls.IS_LOCAL, is_empty=cls.IS_EMPTY)
-        cls.set_agent_context(cls.agent_name)
+        shutil.move(str(cls.t / cls.agent_name), str(cls.t / "packages"))
 
     def test_run(self, fsm_spec_file: Path) -> None:
         """Test run."""
@@ -81,8 +83,6 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         monkeypatch.syspath_prepend(self.t)
         path = self.t / self.agent_name
         for file in path.glob("**/*.py"):
-            if "tests" in file.parts:  # TODO
-                continue
             module_spec = importlib.util.spec_from_file_location("name", file)
             assert isinstance(module_spec, ModuleSpec)
             module_type = importlib.util.module_from_spec(module_spec)

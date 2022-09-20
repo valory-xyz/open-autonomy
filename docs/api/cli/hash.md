@@ -59,8 +59,7 @@ Hashing utils.
 )
 @click.option("--vendor", type=str)
 @click.option("--no-wrap", is_flag=True)
-@click.option("--check", is_flag=True)
-def generate_all(packages_dir: Path, vendor: Optional[str], no_wrap: bool, check: bool) -> None
+def generate_all(packages_dir: Path, vendor: Optional[str], no_wrap: bool) -> None
 ```
 
 Generate IPFS hashes.

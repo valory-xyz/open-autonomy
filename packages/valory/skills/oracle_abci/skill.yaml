@@ -15,18 +15,27 @@ fingerprint:
   fsm_specification.yaml: bafybeigvfxswergl2q3hra3c6dcfuq4wvpgh4rcc76i4ozirdfyew3gv5u
   handlers.py: bafybeiaktxa76cpjytsjtbkftrhp7cppmweoxvglqmxc2cdcymdnzdsyua
   models.py: bafybeicemrwjh2kvdzqah2j34yj4mf777orbx4gn3kmbpwmi2uxerjy5bu
+  tests/test_behaviours.py: bafybeibvh43inrplfd62hbhmryxy6zjdptz2ekfdkgoo37neahbldoekju
+  tests/test_dialogues.py: bafybeiecwwsjclbhje3bg5bbrias453yuztlg23fbj3a3y4sjyuh2sg62i
+  tests/test_handlers.py: bafybeigffxznt27ujgxdko5bhco2z5bmipiauzkrtwwx6dpdj773rtj2om
+  tests/test_integration.py: bafybeibrmxm7wxfakf7qnh3gduxhrkolrpetoymwps44ntd7oyt5l6ugcq
+  tests/test_models.py: bafybeib5qugc5wrsoc2huo6dpwfekungcqdcjytfoo6hyx434nqtuqeblq
 fingerprint_ignore_patterns: []
-connections: []
+connections:
+- valory/ledger:0.1.0:bafybeicup3pqzi74h67z6oxzw7qhsz2dpezeqhalg7bex37fqcx5koivqu
 contracts: []
-protocols: []
+protocols:
+- open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
+- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
+- valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihrktukokli5xxch7gexdl6wtnj23pnapbe6znmvlphyseotsqlre
-- valory/oracle_deployment_abci:0.1.0:bafybeibc7g3rqmtnyq2fxb4g6nohhumtw3oym56past2ehxjqbbvkp445i
-- valory/price_estimation_abci:0.1.0:bafybeide4b7ytsormz67umri4okcedh64qs7smrivl5dniqpr3qmiogyce
-- valory/registration_abci:0.1.0:bafybeihzmgkj5t737vetrcd5dkzawidk6jzgwswamd4jh4rknjdjdxtg6u
-- valory/reset_pause_abci:0.1.0:bafybeigiaoyjtrudkhn2le7b43s2fpj25ga23lczqhsk2mthmjhmuczr4u
-- valory/safe_deployment_abci:0.1.0:bafybeibgfxiydpxizvk6tdjyx2gcycctndaxzi5rqa3lpqvmi2x47tbtba
-- valory/transaction_settlement_abci:0.1.0:bafybeihcxwoaeidkx22l4bji7najnkb3yimxrjdfrghschmmq5wi3euddy
+- valory/abstract_round_abci:0.1.0:bafybeie3vvct6ydb46pe6f7fp65aafwz5ybr6bk7zkkpbrui4tjbbs66xa
+- valory/oracle_deployment_abci:0.1.0:bafybeiffwjxqqpgecssgwnf5qmxylxd3cyrh2antdmrtvxsyw2nrlkhapi
+- valory/price_estimation_abci:0.1.0:bafybeidoda6nc3xemlt3znlczubljkqpx7od47eqxpgcotmh65xop6lejq
+- valory/registration_abci:0.1.0:bafybeibdm4z6q46fe7sw7v35y3vhratbojmewspfzu6iblrkejvifh5hl4
+- valory/reset_pause_abci:0.1.0:bafybeiels75ugffnjmbmf4ptopox2qfnswur6irjkwmnbntvuxpqwxks3m
+- valory/safe_deployment_abci:0.1.0:bafybeichyln7xwg5plfch4ppdyp5lc5ciuufqmhurpxj3f7cwtodwlxmza
+- valory/transaction_settlement_abci:0.1.0:bafybeiegrjh4h6qj6wohls7vg73z2hovg5tksokt2xnso46sc4lauxmy4a
 behaviours:
   main:
     args: {}
@@ -76,6 +85,23 @@ models:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       finalize_timeout: 60.0
+      genesis_config:
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_num_blocks: '100000'
+            max_age_duration: '172800000000000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        voting_power: '10'
       history_check_timeout: 1205
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
