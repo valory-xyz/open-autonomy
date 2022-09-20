@@ -12,8 +12,8 @@
 # Packages
 - Point to ACN Docker image instead of staging ACN nodes
 - Removes unnecessary dependency of `transaction_settlement_abci` skill on the `offchain_aggregator` contract
-- Adds env vars for the RPC endpoints of all service specs
-- Deduplicates `open_aea` packages by pulling from registry
+- Adds environment variables for the RPC endpoints of all service specifications
+- De duplicates `open_aea` packages by pulling from registry
 - Increases the validate timeout by an order of magnitude in `Polygon` service
 
 # Tests
