@@ -11,9 +11,9 @@ fingerprint:
   tests/test_register_reset.py: bafybeibjg33b42lcwizx5747jnw7ywg5djignawkkcva5q7larqujgemuy
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeiexle6kecyx7wfvbiswcv4pjttf2kqnmtppavikq7aeh3rfaq5vsy
+- valory/abci:0.1.0:bafybeiejtgtkfxrrigsro6tvaaqgktrpao7bx476ob3n2wezonblnxi3xy
 - valory/http_client:0.1.0:bafybeiet6defg3qvov4r2ucjtkywkz53xcg6mgarjfdqmnxfgdixgcx45y
-- valory/ledger:0.1.0:bafybeiaj2nf6qnnhuv47h4gfvpnxd6mo3234fauohd45jlhzswrredarte
+- valory/ledger:0.1.0:bafybeicfycqnhdzg5nsir33dlcgs2k4ijjncysqjcn67zvzv2fkwr43eby
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts: []
 protocols:
@@ -21,11 +21,11 @@ protocols:
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
 - valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
 skills:
-- valory/abstract_abci:0.1.0:bafybeihhlin243hsmqanqjbn4sv4y6ma36dfsipzfrszqstfooa5rfyxju
-- valory/abstract_round_abci:0.1.0:bafybeifhckoo5poaupawsstafr2hss2zfb5pn5das3nn22hd5eksm37ccm
-- valory/register_reset_abci:0.1.0:bafybeigy45tcnu4aqom5jl3unpagwz7qyhax2wy4oxy24lwintchpbhgem
-- valory/registration_abci:0.1.0:bafybeidbqkl4kx22lhts27qaeglw2f3ldcatcbpl676twzlqusbnwun2ie
-- valory/reset_pause_abci:0.1.0:bafybeiexpa43gtn6imecfyiizs6b3zime3evc6pgtpdid6kr5nl2ro4ium
+- valory/abstract_abci:0.1.0:bafybeigqbgoej3zhsz6e5ibdu5tewv6plh4yzxllguyftbymj5bp2zaxyq
+- valory/abstract_round_abci:0.1.0:bafybeigiy5ppq7wxpvxjpeeceejwmnloi5f6hfmdx4veevdhyqiwv53dwq
+- valory/register_reset_abci:0.1.0:bafybeidkanq2a53wgzbst7blcq3v5tjk7acjei5iwgev2hntux2ijngfiu
+- valory/registration_abci:0.1.0:bafybeie76yzos7sr4e5hrdjfxty4t3d3zdew7jxx47nb4irjexen4lxkim
+- valory/reset_pause_abci:0.1.0:bafybeiglucv5p6ndaewmpaflqnreits4xbloodz62n6jnc3xbsatdhx5hi
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -56,6 +56,8 @@ logging_config:
       propagate: false
 dependencies:
   open-aea-ledger-ethereum: {}
+  open-aea-test-autonomy:
+    version: ==0.3.1
 default_connection: null
 ---
 public_id: valory/abci:0.1.0

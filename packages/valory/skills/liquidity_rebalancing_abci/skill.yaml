@@ -28,15 +28,15 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeifbkitkori3pi2mtevm475xbnljfejpci7u7veziaptrj4hjbciju
+- valory/gnosis_safe:0.1.0:bafybeihht4j726a4swe4duqxohnxtctdghftgywurw55zwjjqsbqjwnacm
 - valory/multisend:0.1.0:bafybeig45676hbh4c3p3mujrrskxgxww4cxdyyginlg5rmmav6orv4gtya
 - valory/uniswap_v2_erc20:0.1.0:bafybeibkiwytuhhvxbisoxcybrx4lfstk6bvtriltles7fxxpy37yq45ja
-- valory/uniswap_v2_router_02:0.1.0:bafybeidabycj7yw6u2bt64db23lvb5zowmcgu6zjkp7xjigqle3y3scgfi
+- valory/uniswap_v2_router_02:0.1.0:bafybeia5hkf3esqulz7g4uhjwhcrfwaok42ddumnokkbvrlm4g55wgdxmq
 protocols:
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifhckoo5poaupawsstafr2hss2zfb5pn5das3nn22hd5eksm37ccm
-- valory/transaction_settlement_abci:0.1.0:bafybeifqfxfozbukq7ixtwufg62jgnfbkd4okijakjcpar3qe3r5sjwtre
+- valory/abstract_round_abci:0.1.0:bafybeigiy5ppq7wxpvxjpeeceejwmnloi5f6hfmdx4veevdhyqiwv53dwq
+- valory/transaction_settlement_abci:0.1.0:bafybeif4ho2t6l5ctrjeld4kas6kdjqpeoprvbffsqgymsvgdvafbkdaj4
 behaviours:
   main:
     args: {}
@@ -147,5 +147,5 @@ models:
     class_name: SharedState
 dependencies:
   open-aea-test-autonomy:
-    version: ==0.3.0
+    version: ==0.3.1
 is_abstract: true

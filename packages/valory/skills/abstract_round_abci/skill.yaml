@@ -49,11 +49,11 @@ fingerprint:
   utils.py: bafybeigkr7rxl4wgjdlcea7jgx7xiuksz7vyenkijgyoh3e645weaeybim
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeiexle6kecyx7wfvbiswcv4pjttf2kqnmtppavikq7aeh3rfaq5vsy
+- valory/abci:0.1.0:bafybeiejtgtkfxrrigsro6tvaaqgktrpao7bx476ob3n2wezonblnxi3xy
 - valory/http_client:0.1.0:bafybeiet6defg3qvov4r2ucjtkywkz53xcg6mgarjfdqmnxfgdixgcx45y
-- valory/ledger:0.1.0:bafybeiaj2nf6qnnhuv47h4gfvpnxd6mo3234fauohd45jlhzswrredarte
+- valory/ledger:0.1.0:bafybeicfycqnhdzg5nsir33dlcgs2k4ijjncysqjcn67zvzv2fkwr43eby
 contracts:
-- valory/service_registry:0.1.0:bafybeicczwyiwjiejqtt2kvkx3eit6faidt3zv5tkfdjyczg3e5xyhtvsy
+- valory/service_registry:0.1.0:bafybeieubs245wvjpwjelmagipqqx4zo3qj42kb54oy62ogo7xbk3nudxm
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
@@ -62,7 +62,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeihhlin243hsmqanqjbn4sv4y6ma36dfsipzfrszqstfooa5rfyxju
+- valory/abstract_abci:0.1.0:bafybeigqbgoej3zhsz6e5ibdu5tewv6plh4yzxllguyftbymj5bp2zaxyq
 behaviours:
   main:
     args: {}
@@ -118,6 +118,8 @@ models:
 dependencies:
   open-aea-cli-ipfs:
     version: <2.0.0,>=1.20.0
+  open-aea-test-autonomy:
+    version: ==0.3.1
   py-ecc:
     version: ==5.2.0
   pytz:

@@ -24,18 +24,18 @@ fingerprint:
   tests/test_models.py: bafybeifim6rodwa6j6o6327565j6xvh6lp7tvgk6sybd5dg45pjji5djha
 fingerprint_ignore_patterns: []
 connections:
-- valory/ledger:0.1.0:bafybeiaj2nf6qnnhuv47h4gfvpnxd6mo3234fauohd45jlhzswrredarte
+- valory/ledger:0.1.0:bafybeicfycqnhdzg5nsir33dlcgs2k4ijjncysqjcn67zvzv2fkwr43eby
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeifbkitkori3pi2mtevm475xbnljfejpci7u7veziaptrj4hjbciju
+- valory/gnosis_safe:0.1.0:bafybeihht4j726a4swe4duqxohnxtctdghftgywurw55zwjjqsbqjwnacm
 protocols:
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifhckoo5poaupawsstafr2hss2zfb5pn5das3nn22hd5eksm37ccm
-- valory/liquidity_rebalancing_abci:0.1.0:bafybeicnsu57hqkjne2jdkgdq64jcjaxnpf7jffqsmhahvymvn7wi2t5ee
-- valory/registration_abci:0.1.0:bafybeidbqkl4kx22lhts27qaeglw2f3ldcatcbpl676twzlqusbnwun2ie
-- valory/reset_pause_abci:0.1.0:bafybeiexpa43gtn6imecfyiizs6b3zime3evc6pgtpdid6kr5nl2ro4ium
-- valory/safe_deployment_abci:0.1.0:bafybeibimmhvjdp3e5dlfrhpniv2ue5buuucqfnwkzdlgedcco7tna2qja
-- valory/transaction_settlement_abci:0.1.0:bafybeifqfxfozbukq7ixtwufg62jgnfbkd4okijakjcpar3qe3r5sjwtre
+- valory/abstract_round_abci:0.1.0:bafybeigiy5ppq7wxpvxjpeeceejwmnloi5f6hfmdx4veevdhyqiwv53dwq
+- valory/liquidity_rebalancing_abci:0.1.0:bafybeig7itrnz77oknd55fkx7uonlv2ue36ensyuocdxtemdb6g4hwnaw4
+- valory/registration_abci:0.1.0:bafybeie76yzos7sr4e5hrdjfxty4t3d3zdew7jxx47nb4irjexen4lxkim
+- valory/reset_pause_abci:0.1.0:bafybeiglucv5p6ndaewmpaflqnreits4xbloodz62n6jnc3xbsatdhx5hi
+- valory/safe_deployment_abci:0.1.0:bafybeia6r42qlulfoob5dwswfv3xkpjysa4wppdj44gqooess3g6ar6twa
+- valory/transaction_settlement_abci:0.1.0:bafybeif4ho2t6l5ctrjeld4kas6kdjqpeoprvbffsqgymsvgdvafbkdaj4
 behaviours:
   main:
     args: {}
@@ -145,5 +145,7 @@ models:
   state:
     args: {}
     class_name: SharedState
-dependencies: {}
+dependencies:
+  open-aea-test-autonomy:
+    version: ==0.3.1
 is_abstract: false

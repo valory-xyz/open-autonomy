@@ -29,15 +29,15 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeifbkitkori3pi2mtevm475xbnljfejpci7u7veziaptrj4hjbciju
-- valory/offchain_aggregator:0.1.0:bafybeifjmazj5ger33po34easdzytqdgi4yaieqaa2vfs535sbgpdwnuf4
+- valory/gnosis_safe:0.1.0:bafybeihht4j726a4swe4duqxohnxtctdghftgywurw55zwjjqsbqjwnacm
+- valory/offchain_aggregator:0.1.0:bafybeifpfs2xb6y7dc6eugxlzqkki6hbici7r2glwk5gc55j6pssmjfrp4
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifhckoo5poaupawsstafr2hss2zfb5pn5das3nn22hd5eksm37ccm
-- valory/oracle_deployment_abci:0.1.0:bafybeifzq2rputho4c35vqpwxss5gpyk3p57asscitbdrhyjrlhdvqarne
-- valory/transaction_settlement_abci:0.1.0:bafybeifqfxfozbukq7ixtwufg62jgnfbkd4okijakjcpar3qe3r5sjwtre
+- valory/abstract_round_abci:0.1.0:bafybeigiy5ppq7wxpvxjpeeceejwmnloi5f6hfmdx4veevdhyqiwv53dwq
+- valory/oracle_deployment_abci:0.1.0:bafybeic4wogjuxlptzrmicy7mtyly26c4hmj44rhu4e3hldmjzogmkl63i
+- valory/transaction_settlement_abci:0.1.0:bafybeif4ho2t6l5ctrjeld4kas6kdjqpeoprvbffsqgymsvgdvafbkdaj4
 behaviours:
   main:
     args: {}
@@ -177,5 +177,7 @@ models:
   state:
     args: {}
     class_name: SharedState
-dependencies: {}
+dependencies:
+  open-aea-test-autonomy:
+    version: ==0.3.1
 is_abstract: true
