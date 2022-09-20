@@ -19,6 +19,7 @@
 
 """Test fetch command."""
 
+import json
 import os
 import shutil
 from pathlib import Path
@@ -65,11 +66,10 @@ class TestFetchCommand(BaseCliTest):
     ) -> str:
         """Load hashes from CSV file."""
 
-        hashes_file = self.packages_dir / "hashes.csv"
+        hashes_file = self.packages_dir / "packages.json"
         with open(str(hashes_file), "r") as file:
-            content = file.read().strip()
-        hashes = dict([line.split(",") for line in content.split("\n") if "," in line])  # type: ignore
-        return hashes["valory/services/counter"]
+            hashes = json.load(file)
+        return hashes["service/valory/counter/0.1.0"]
 
     def test_fetch_service_local(
         self,

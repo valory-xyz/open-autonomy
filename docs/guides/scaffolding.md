@@ -9,10 +9,10 @@ In this guide, we will show how to:
 ## Setup
 
 !!!note
-    You might have already prepared your environment if you went through the [quick start](https://docs.autonolas.network/quick_start/) guide. If that's the case, you can skip this section.
+    You might have already prepared your environment if you went through the [quick start](../guides/quick_start.md) guide. If that's the case, you can skip this section.
 
-Before starting this guide, ensure that your machine satisfies the [framework requirements](./quick_start.md#requirements) and that
-you have followed the [setup instructions](./quick_start.md#setup). As a result you should have a Pipenv workspace folder.
+Before starting this guide, ensure that your machine satisfies the [framework requirements](../guides/quick_start.md#requirements) and that
+you have followed the [setup instructions](../guides/quick_start.md#setup). As a result you should have a Pipenv workspace folder.
 
 1. Create a workspace folder:
 ```bash
@@ -37,12 +37,12 @@ pip install open-autonomy
 
 ## Using the scaffold tool: step-by-step instructions
 
-First, create an empty agent using the autonomy CLI. This will create the agent directory, that will contain folders for connections, contracts, protocols and skills.
+First, create an empty agent using the Open Autonomy CLI. This will create the agent directory, that will contain folders for connections, contracts, protocols and skills.
 ```
 autonomy create my_agent
 cd my_agent
 ```
-Now that the agent is in place, you can generate the basic structure of a [skill](https://open-aea.docs.autonolas.tech/skill/). For that, you need its [FSM](https://docs.autonolas.network/fsm/) specification. In this example, let's copy the contents of the [Hello World](https://docs.autonolas.network/hello_world_agent_service/) service FSM specification into a file called ```fsm_specification.yaml```. Put it inside your agent's directory.
+Now that the agent is in place, you can generate the basic structure of a [skill](https://open-aea.docs.autonolas.tech/skill/). For that, you need its [FSM](../fsm.md) specification. In this example, let's copy the contents of the [Hello World](../hello_world_agent_service.md) service FSM specification into a file called ```fsm_specification.yaml```. Put it inside your agent's directory.
 
 ```
 alphabet_in:

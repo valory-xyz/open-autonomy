@@ -6,19 +6,22 @@ description: Oracle agent.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeia6rbpcaovvels4mn3ufkbbvwrsibury3x5g6eyo4lws4w2uk3x4q
+  __init__.py: bafybeieja6fkcncllqarspvtzsnm25g6ttxkxfdk2jduuozvt5a3uin6t4
+  tests/__init__.py: bafybeiddkyv7ohqiylizxurzs4ihom2o5rpqbwf5xufzkz3jpa7umpwgmm
+  tests/test_oracle.py: bafybeibf24xwxcw5cdq3sm22tfy3tpgs5skdkwyvuu475byug7b52kz74e
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeif5kex2gtxnpy7bcpcbz6z62daxnlooqfzam32xewnevee456okxy
-- valory/http_client:0.1.0:bafybeiayvkp3jkaahfuej72gididod5dzpa2vivjmxk7uxtcimc4g5e66i
-- valory/ledger:0.1.0:bafybeibrjvpha6payy23d7wcschuf3w4b2nwlms32x5b6u2wipqyh2rcbm
+- valory/abci:0.1.0:bafybeih34yj6l7akh6wfhgwaud3luvmwxkiakcqzv3zjiz5q7jfqtdnela
+- valory/http_client:0.1.0:bafybeiet6defg3qvov4r2ucjtkywkz53xcg6mgarjfdqmnxfgdixgcx45y
+- valory/ledger:0.1.0:bafybeicup3pqzi74h67z6oxzw7qhsz2dpezeqhalg7bex37fqcx5koivqu
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeidkfwvbyknjwlndhdf5euan7i4wmugxgtf2uhakvqspy24vgaehya
-- valory/gnosis_safe_proxy_factory:0.1.0:bafybeifrhsfwodss63sm52m5vzcjuwmpyyfp2xxqzhamesxrdsop7f2z3e
-- valory/offchain_aggregator:0.1.0:bafybeichjxy5vcx6isfk5cmnvheov7go4wdv4fpynyqfe6ztxiagrvxlqy
+- valory/gnosis_safe:0.1.0:bafybeifbkitkori3pi2mtevm475xbnljfejpci7u7veziaptrj4hjbciju
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeihjomblzjm76m2y6h4evnazrzpykx4iehnifzjmbw7ddnfsojvxke
+- valory/offchain_aggregator:0.1.0:bafybeifjmazj5ger33po34easdzytqdgi4yaieqaa2vfs535sbgpdwnuf4
 - valory/service_registry:0.1.0:bafybeicczwyiwjiejqtt2kvkx3eit6faidt3zv5tkfdjyczg3e5xyhtvsy
 protocols:
-- open_aea/signing:1.0.0:bafybeifexbtq3cqrodkmy75djq7hck5c44jnjezywins7fzzg5nn6yi6om
+- open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
 - valory/acn:1.1.0:bafybeidetrrkvdgveu4ph5g6v53lbh7ardfspbkpstmjxctx647bzyosyy
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
@@ -26,15 +29,15 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeihrpr42sp6ukaiar2eoxp6qrfv4mkndw3m5vzsxivlbhsjv7iwy4a
-- valory/abstract_round_abci:0.1.0:bafybeif2bdzfrlflohfl5vy4rfxxjqpslqofzxzqhlb6ppf7lckdolkz3a
-- valory/oracle_abci:0.1.0:bafybeig7uhhlc3e6unel3lwuc533ypitgxmtpytoxsh7u4b4lgxuiauyey
-- valory/oracle_deployment_abci:0.1.0:bafybeic5l4rcecpec5inem53vi27el6yuaiix7xowugyeadlghqh52g2x4
-- valory/price_estimation_abci:0.1.0:bafybeic43nstwx6ongegdrrlkxw3vxszpjnpk3iovovka4l4yqwsus22km
-- valory/registration_abci:0.1.0:bafybeighb6fqp6bqwj7nyn6yj2rmtdrdkobgn2xnplwuka6czpjsbciomm
-- valory/reset_pause_abci:0.1.0:bafybeicxbnyvawvhxb6xnj3bbanhcypmmavm47tayq3e4lc546gn4awmfu
-- valory/safe_deployment_abci:0.1.0:bafybeifposbxypxtfiue44kygd3gcwrarljtmuvfjfwubjt33e6rvwxeaq
-- valory/transaction_settlement_abci:0.1.0:bafybeidpa2owtv3euvaxhszxlqyghu35rrmkrc36x2fuhy32k3evifa2ga
+- valory/abstract_abci:0.1.0:bafybeidt4cyfhlla6faca6us6law7dijrlrzihcj6uwrmeaa3ho6fdck2u
+- valory/abstract_round_abci:0.1.0:bafybeiakzkenxd7ef52qmxrhhsx2aw4em65nh755obncjfpuxpiryrkozy
+- valory/oracle_abci:0.1.0:bafybeigbvbtlnjrcix7xpdxtsgqoremmfe54ud3kpwsvjm3va2phqtm7ty
+- valory/oracle_deployment_abci:0.1.0:bafybeibmlo4p7wqgfz2xmjmaseff4oy3kh5h2fsemq2mmucfrs3rfypure
+- valory/price_estimation_abci:0.1.0:bafybeig3dnkc4dkscepwk5rzztzloxsjfyyggtq73eh3sfz62c2bvdn3rq
+- valory/registration_abci:0.1.0:bafybeigniuwbciocm66j3dkr2ejez36pdlfquwvo7bo3csyd4fsjck777m
+- valory/reset_pause_abci:0.1.0:bafybeicrbt4y5gnvpnbfbwqexmzenkpayupvoljgjjxygwmdurfdvfnjjq
+- valory/safe_deployment_abci:0.1.0:bafybeidxpj6xtpgxgw6q6btyhyoagflcfrqxaicepjehnplhaymrl3ihie
+- valory/transaction_settlement_abci:0.1.0:bafybeic2nwyimy32hcoyglxvdcs3xghtw6kiqzcq5zvewhgjyl2wavtdcm
 default_ledger: ethereum
 required_ledgers:
 - ethereum

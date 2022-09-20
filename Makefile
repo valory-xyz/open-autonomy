@@ -80,6 +80,7 @@ generators:
 	tox -e abci-docstrings
 	tox -e fix-copyright
 	python -m autonomy.cli hash all
+	python -m autonomy.cli packages lock
 	tox -e generate-api-documentation
 	tox -e fix-doc-hashes
 
@@ -97,7 +98,7 @@ common-checks-2:
 
 .PHONY: docs
 docs:
-	mkdocs build --clean
+	mkdocs build --clean --strict
 
 .PHONY: test
 test:
@@ -188,143 +189,9 @@ install-hooks:
 	@echo "Installing pre-push"
 	cp scripts/pre-push .git/hooks/pre-push
 
-.ONESHELL: build-images
-build-images:
-	if [ "${VERSION}" = "" ];\
-	then\
-		echo "Ensure you have exported a version to build!";\
-		exit 1
-	fi
-	autonomy deploy build image ${SERVICE_ID} --dependencies || (echo failed && exit 1)
-	if [ "${VERSION}" = "dev" ];\
-	then\
-		echo "building dev images!";\
-	 	autonomy deploy build image ${SERVICE_ID} \
-			--dev && exit 0
-		exit 1
-	fi
-	autonomy deploy build image ${SERVICE_ID} --version ${VERSION} && exit 0
-	exit 1
-
-.ONESHELL: build-images push-images
-push-images:
-	if [ "${VERSION}" = "" ];\
-	then\
-		echo "Ensure you have exported a version to build!";\
-		exit 1
-	fi
-	autonomy deploy build image ${SERVICE_ID} --dependencies --push || (echo failed && exit 1)
-	if [ "${VERSION}" = "dev" ];\
-	then\
-		echo "building dev images!";\
-		autonomy deploy build image ${SERVICE_ID} --dev --push || (echo failed && exit 1)
-		exit 0
-	fi
-	autonomy deploy build image ${SERVICE_ID} --version ${VERSION} --prod --push || (echo failed && exit 1)
-	exit 0
-
 .PHONY: run-hardhat
 run-hardhat:
 	docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
-
-# if you get following error
-# PermissionError: [Errno 13] Permission denied: '/open-aea/build/bdist.linux-x86_64/wheel'
-# or similar to PermissionError: [Errno 13] Permission denied: /**/build
-# remove build directory from the folder that you got error for
-# for example here it should be /path/to/open-aea/repo/build
-.PHONY: run-oracle-dev
-run-oracle-dev:
-	if [ "${OPEN_AEA_REPO_DIR}" = "" ];\
-	then\
-		echo "Please ensure you have set the environment variable 'OPEN_AEA_REPO_DIR'"
-		exit 1
-	fi
-	if [ "$(shell ls ${OPEN_AEA_REPO_DIR}/build)" != "" ];\
-	then \
-		echo "Please remove ${OPEN_AEA_REPO_DIR}/build manually."
-		exit 1
-	fi
-
-	autonomy deploy build image valory/oracle_hardhat --dependencies && \
-		autonomy deploy build image valory/oracle_hardhat --dev && \
-		autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --force --dev && \
-		make run-deploy
-
-.PHONY: run-oracle
-run-oracle:
-	export VERSION=0.1.0
-	autonomy deploy build image valory/oracle_hardhat --dependencies && \
-		autonomy deploy build image valory/oracle_hardhat && \
-		autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --force && \
-		make run-deploy
-
-
-.PHONY: run-deploy
-run-deploy:
-	if [ "${PLATFORM_STR}" = "Linux" ];\
-	then\
-		mkdir -p abci_build/persistent_data/logs
-		mkdir -p abci_build/persistent_data/venvs
-		sudo chown -R 1000:1000 -R abci_build/persistent_data/logs
-		sudo chown -R 1000:1000 -R abci_build/persistent_data/venvs
-	fi
-	if [ "${DEPLOYMENT_TYPE}" = "docker-compose" ];\
-	then\
-		cd abci_build/ &&  \
-		docker-compose up --force-recreate -t 600 --remove-orphans
-		exit 0
-	fi
-	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
-	then\
-		kubectl create ns ${VERSION}|| (echo "failed to deploy to namespace already existing!" && exit 0)
-		kubectl create secret generic regcred \
-          --from-file=.dockerconfigjson=/home/$(shell whoami)/.docker/config.json \
-          --type=kubernetes.io/dockerconfigjson -n ${VERSION} || (echo "failed to create secret" && exit 1)
-		cd abci_build/ && \
-			kubectl apply -f build.yaml -n ${VERSION} && \
-			kubectl apply -f agent_keys/ -n ${VERSION} && \
-			exit 0
-	fi
-	echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
-	exit 1
-
-
-.PHONY: build-deploy
-build-deploy:
-	if [ "${DEPLOYMENT_TYPE}" = "" ];\
-	then\
-		echo "Please ensure you have set the environment variable 'DEPLOYMENT_TYPE'"
-		exit 1
-	fi
-	if [ "${SERVICE_ID}" = "" ];\
-	then\
-		echo "Please ensure you have set the environment variable 'SERVICE_ID'"
-		exit 1
-	fi
-	if [ "${DEPLOYMENT_KEYS}" = "" ];\
-	then\
-		echo "Please ensure you have set the environment variable 'DEPLOYMENT_KEYS'"
-		exit 1
-	fi
-	echo "Building deployment for ${DEPLOYMENT_TYPE} ${DEPLOYMENT_KEYS} ${SERVICE_ID}"
-
-	if [ "${DEPLOYMENT_TYPE}" = "kubernetes" ];\
-	then\
-		if [ "${VERSION}" = "cluster-dev" ];\
-		then\
-			autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force --dev
-			exit 0
-		fi
-		autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --kubernetes --force
-		exit 0
-	fi
-	if [ "${VERSION}" = "dev" ];\
-	then\
-		autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker --dev --force
-		exit 0
-	fi
-	autonomy deploy build deployment ${SERVICE_ID} ${DEPLOYMENT_KEYS} --docker
-
 
 protolint_install:
 	GO111MODULE=on GOPATH=~/go go get -u -v github.com/yoheimuta/protolint/cmd/protolint@v0.27.0
@@ -367,11 +234,12 @@ fix-abci-app-specs:
 	echo "Successfully validated abcis!"
 
 
-AEA_AGENT_HELLO_WORLD:=valory/hello_world:latest:$(shell cat packages/hashes.csv | grep "agents/hello_world" | cut -d "," -f2 )
-AEA_AGENT_ORACLE:=valory/oracle:latest:$(shell cat packages/hashes.csv | grep "agents/oracle" | cut -d "," -f2 )
-AEA_AGENT_APY_ESTIMATION:=valory/apy_estimation:latest:$(shell cat packages/hashes.csv | grep "agents/apy_estimation," | cut -d "," -f2 )
+AEA_AGENT_HELLO_WORLD:=valory/hello_world:latest:$(shell cat packages/packages.json | grep "agent/valory/hello_world" | cut -d "\"" -f4 )
+AEA_AGENT_ORACLE:=valory/oracle:latest:$(shell cat packages/packages.json | grep "agent/valory/oracle" | cut -d "\"" -f4 )
+AEA_AGENT_APY_ESTIMATION:=valory/apy_estimation:latest:$(shell cat packages/packages.json | grep "agent/valory/apy_estimation" | cut -d "\"" -f4 )
 release-images:
 	export AEA_AGENT_ORACLE=${AEA_AGENT_ORACLE}
 	export AEA_AGENT_APY_ESTIMATION=${AEA_AGENT_APY_ESTIMATION}
 	export AEA_AGENT=${AEA_AGENT_HELLO_WORLD}
 	skaffold build -p release --cache-artifacts=false && skaffold build -p release-latest
+	

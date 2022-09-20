@@ -19,31 +19,17 @@
 
 """Script to run registry contracts deployment locally."""
 
-from pathlib import Path
-
 import click
 from aea_test_autonomy.docker.registries import RegistriesDockerImage
 from docker import from_env
 
 
-DEFAULT_THIRD_PARTY_PATH = Path(__file__).parent.parent / "third_party"
-
-
 @click.command()
-@click.argument(
-    "third_party_contracts",
-    type=click.Path(),
-    required=False,
-    default=DEFAULT_THIRD_PARTY_PATH,
-)
-def main(third_party_contracts: Path) -> None:
+def main() -> None:
     """Run a local registry deployment."""
-
-    third_party_contracts = Path(third_party_contracts).absolute()
-
     client = from_env()
     image = RegistriesDockerImage(
-        client=client, third_party_contract_dir=third_party_contracts
+        client=client,
     )
     container = image.create()
 

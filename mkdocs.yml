@@ -25,6 +25,7 @@ nav:
     - Agent services compared to...: 'get_started/agent_services_compared_to.md'
     - Use cases: 'get_started/use_cases.md'
   - Guides:
+    - Index: 'guides/index.md'
     - Quick start: 'guides/quick_start.md'
     - Overview of the development process: 'guides/overview_of_the_development_process.md'
     - Create a service with an existing agent: 'guides/create_service_existing_agent.md'
@@ -142,6 +143,13 @@ nav:
           - Tendermint Decoder: 'api/connections/abci/tendermint_decoder.md'
           - Tendermint Encoder: 'api/connections/abci/tendermint_encoder.md'
           - Scripts: 'api/connections/abci/scripts/genproto.md'
+          - Tests - Helper:
+            - Helper: 'api/connections/abci/tests/helper.md'
+            - Base: 'api/connections/abci/tests/test_fuzz/base.md'
+            - Mock Node - Node: 'api/connections/abci/tests/test_fuzz/mock_node/node.md'
+            - Mock Node - Channels Base: 'api/connections/abci/tests/test_fuzz/mock_node/channels/base.md'
+            - Mock Node - Channels GRPC: 'api/connections/abci/tests/test_fuzz/mock_node/channels/grpc_channel.md'
+            - Mock Node - Channels TCP: 'api/connections/abci/tests/test_fuzz/mock_node/channels/tcp_channel.md'
       - Contracts:
         - Gnosis Safe:
           - Contract: 'api/contracts/gnosis_safe/contract.md'
@@ -167,8 +175,12 @@ nav:
           - Handlers: 'api/skills/abstract_round_abci/handlers.md'
           - Models: 'api/skills/abstract_round_abci/models.md'
           - Test Tools:
+            - ABCI App: 'api/skills/abstract_round_abci/test_tools/abci_app.md'
+            - APIs: 'api/skills/abstract_round_abci/test_tools/apis.md'
             - Base: 'api/skills/abstract_round_abci/test_tools/base.md'
+            - Common: 'api/skills/abstract_round_abci/test_tools/common.md'
             - Integration: 'api/skills/abstract_round_abci/test_tools/integration.md'
+            - Rounds: 'api/skills/abstract_round_abci/test_tools/rounds.md'
           - IO:
             - IPFS: 'api/skills/abstract_round_abci/io_/ipfs.md'
             - Load: 'api/skills/abstract_round_abci/io_/load.md'

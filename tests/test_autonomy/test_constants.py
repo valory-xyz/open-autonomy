@@ -21,8 +21,8 @@
 
 from pathlib import Path
 
-from aea.configurations.data_types import PublicId
-from aea.helpers.io import from_csv
+from aea.cli.packages import PackageManager
+from aea.configurations.data_types import PackageId, PackageType, PublicId
 
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
 
@@ -32,6 +32,8 @@ from tests.conftest import ROOT_DIR
 def test_abstract_round_abci_skill_hash() -> None:
     """Test abstract_round_abci skill public_id constants"""
 
+    package_manager = PackageManager.from_dir(Path(ROOT_DIR, "packages"))
     public_id = PublicId.from_str(ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH)
-    hashes = from_csv(Path(ROOT_DIR, "packages", "hashes.csv"))
-    assert public_id.hash == hashes["valory/skills/abstract_round_abci"]
+    package_id = PackageId(PackageType.SKILL, public_id)
+
+    assert public_id.hash == package_manager.packages[package_id]

@@ -153,6 +153,17 @@ class DFA:
                 transitions.append(state)
         return transitions
 
+    def parse_transition_func(self) -> Dict[str, Dict[str, str]]:
+        """Parse the transition function from the spec to a nested dictionary."""
+
+        result: Dict[str, Dict[str, str]] = {}
+        for (round_cls_name, event_name), value in self.transition_func.items():
+            result.setdefault(round_cls_name, {})[f"Event.{event_name}"] = value
+        for state in self.states:
+            if state not in result:
+                result[state] = {}
+        return result
+
     def __eq__(self, other: object) -> bool:
         """Compares two DFAs"""
         if not isinstance(other, DFA):

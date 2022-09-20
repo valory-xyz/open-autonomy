@@ -1,9 +1,31 @@
 # Release History - `open-autonomy`
 
+# 0.3.0 (2022-09-14)
+
+# Autonomy
+
+- Adds `PYTHONHASHSEED` in Kubernetes deployment template
+- Moves all fixtures into `aea_test_autonomy` plugin.
+- Adds `service-registry-network` cli command for starting a local hardhat node. 
+
+# Packages
+
+- Replaces `third-party` dependencies with docker images. 
+- Fixes import from tests folder and `path_to_skill` in FSM scaffolding
+- Moves remaining tests into packages, in particular agents.
+
+# Chores
+
+- Adds README header
+- Removes `quickstart` skip on command test
+- Removes unnecessary shebangs from several non-script files
+- Adds a script to validates commands in the docs and Makefile
+- Cleans the `README.md` and `AUTHORS.md` to reflect changes
+
 # 0.2.2 (2022-08-09)
 
 # AEA
- 
+
 - Adds support for registry flags on `autonomy scaffold fsm` command
 - Adds support for scaffolding
   - Dialogues
@@ -52,7 +74,7 @@ Autonomy:
 - Introduces base autonomy image and agent runtime image for performance improvements.
 - Removes the need for building the dependency images at the runtime.
 - Updates the deployment flow to utilize the newly improved images.
-- Removes the support for pushing the images using the autonomy CLI tool.
+- Removes the support for pushing the images using the Open Autonomy CLI tool.
 - Removes `skaffold` as a framework dependency.
 - Adds support for remote registries in the fsm scaffold utility.
 - Bumps `open-aea` and its plugins to version `1.17.0`.

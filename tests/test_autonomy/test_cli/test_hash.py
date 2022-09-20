@@ -20,12 +20,16 @@
 """Test hash command group."""
 
 
+import json
+import platform
 import shutil
 from pathlib import Path
 from typing import Dict, Tuple
 
 import _strptime  # noqa  # pylint: disable=unsed-import
+import pytest
 
+from autonomy.cli import cli
 from autonomy.configurations.loader import load_service_config
 
 from tests.conftest import ROOT_DIR
@@ -55,16 +59,19 @@ class TestHashAll(BaseCliTest):
     ) -> Dict[str, str]:
         """Load hashes from CSV file."""
 
-        hashes_file = self.packages_dir / "hashes.csv"
+        hashes_file = self.packages_dir / "packages.json"
         with open(str(hashes_file), "r") as file:
-            content = file.read().strip()
+            hashes = json.load(file)
 
-        return dict([line.split(",") for line in content.split("\n") if "," in line])  # type: ignore
+        return hashes
 
+    @pytest.mark.skipif(
+        platform.system() == "Windows", reason="Fix hashing on windows."
+    )
     def test_service_hashing(
         self,
     ) -> None:
-        """Check if `hash-all` updates agent hashes properly."""
+        """Check if `hash-all` updates agent hashes in service configs properly."""
 
         service_name = "counter"
         result = self.run_cli(("--packages-dir", str(self.packages_dir)))
@@ -74,7 +81,7 @@ class TestHashAll(BaseCliTest):
         service_path = self.packages_dir / "valory" / "services" / service_name
         service_config = load_service_config(service_path)
         hashes = self.load_hashes()
-        key = f"valory/agents/{service_name}"
+        key = f"agent/valory/{service_name}/0.1.0"
 
         assert key in hashes, (
             hashes,
@@ -82,10 +89,12 @@ class TestHashAll(BaseCliTest):
         )
         assert hashes[key] == service_config.agent.hash
 
-        result = self.run_cli(("--packages-dir", str(self.packages_dir), "--check"))
+        result = self.cli_runner.invoke(
+            cli=cli, args=(*("packages", "lock"), *("--check",))
+        )
 
         assert result.exit_code == 0, result.output
-        assert "OK!" in result.output, result.output
+        assert "Verification successful" in result.output, result.output
 
 
 class TestHashOne(BaseCliTest):

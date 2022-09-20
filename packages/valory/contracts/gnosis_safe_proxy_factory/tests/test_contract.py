@@ -19,7 +19,6 @@
 
 """Tests for valory/gnosis contract."""
 
-import os
 from pathlib import Path
 from typing import Any, Dict
 
@@ -33,12 +32,6 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
-THIRD_PARTY_CONTRACTS = Path(
-    os.environ.get("THIRD_PARTY_CONTRACTS", PACKAGE_DIR / "third_party")
-)
-
-if not THIRD_PARTY_CONTRACTS.exists():
-    raise RuntimeError("Please provide valid path for `THIRD_PARTY_CONTRACTS`")
 
 DEFAULT_GAS = 1000000
 DEFAULT_MAX_FEE_PER_GAS = 10 ** 10
@@ -52,7 +45,6 @@ class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
 
     contract_directory = PACKAGE_DIR
     contract: GnosisSafeProxyFactoryContract
-    third_party_contract_dir: Path = THIRD_PARTY_CONTRACTS
 
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:

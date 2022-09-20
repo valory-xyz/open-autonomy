@@ -5,9 +5,19 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.2.2` to `v0.3.0`
+
+No backwards incompatible changes except:
+
+- Deprecated the usage of `hashes.csv` and replaces it with `packages.json`, which is maintained by `autonomy packages lock`
+- `--check` flag is deprecated from `autonomy hash all`, from now package consistencies can be verified by `autonomy packages lock --check`
+- Various test fixtures have moved and been renamed.
+
 ## `v0.2.1.post1` to `v0.2.2`
 
-No backwards incompatible changes
+No backwards incompatible changes except:
+
+All imports from `autonomy.test_tools.*` are now found at `aea_test_autonomy.*`, after installing `open-aea-test-autonomy`.
 
 ## `v0.2.1` to `v0.2.1.post1`
 
@@ -15,8 +25,9 @@ No backwards incompatible changes
 
 ## `v0.2.0` to `v0.2.1`
 
-- `build-images` command has been renamed to `build-image` 
+- `build-images` command has been renamed to `build-image`
 - Build support for dependency has been removed from the `build-image` command
+- `autonomy deploy build deployment` has been renamed to `autonomy deploy build`
 
 Refer to quick start docs for more information on the updated deployment flow.
 

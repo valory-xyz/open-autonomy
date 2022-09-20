@@ -24,17 +24,18 @@ import binascii
 import os
 import tempfile
 from math import ceil
-from pathlib import Path
 from typing import Any, Dict, cast
 
 from aea.crypto.base import Crypto
 from aea.crypto.registries import make_crypto, make_ledger_api
 from aea_ledger_ethereum import EthereumApi
-from aea_test_autonomy.fixture_helpers import HardHatAMMBaseTest
 from aea_test_autonomy.helpers.contracts import get_register_contract
 from web3.types import Nonce, Wei
 
 from packages.open_aea.protocols.signing import SigningMessage
+from packages.valory.contracts.gnosis_safe.tests.test_contract import (
+    PACKAGE_DIR as GNOSIS_SAFE_PACKAGE,
+)
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.contract_api.custom_types import RawTransaction, State
 from packages.valory.protocols.ledger_api import LedgerApiMessage
@@ -48,7 +49,6 @@ from packages.valory.skills.abstract_round_abci.test_tools.integration import (
     ExpectedTypesType,
     HandlersType,
     IntegrationBaseCase,
-    _HarHatHelperIntegration,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     FinalizeBehaviour,
@@ -110,8 +110,7 @@ class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
         super().setup()
 
         # register gnosis contract
-        directory = Path(cls.ROOT_DIR, "packages", "valory", "contracts", "gnosis_safe")
-        gnosis = get_register_contract(directory)
+        gnosis = get_register_contract(GNOSIS_SAFE_PACKAGE)
 
         cls.ethereum_api = make_ledger_api("ethereum")
         cls.gnosis_instance = gnosis.get_instance(
@@ -313,22 +312,3 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
                 final_verification_status=VerificationStatus.VERIFIED,
                 final_tx_hash=self.tx_settlement_synchronized_data.to_be_validated_tx_hash,
             )
-
-
-class GnosisIntegrationBaseCase(
-    _TxHelperIntegration, _HarHatHelperIntegration, HardHatAMMBaseTest
-):
-    """Base test class for integration tests in a Hardhat environment, with Gnosis deployed."""
-
-    # TODO change this class to use the `HardHatGnosisBaseTest` instead of `HardHatAMMBaseTest`.
-
-    @classmethod
-    def setup(cls, **kwargs: Any) -> None:
-        """Setup."""
-        super().setup()
-
-        # register offchain aggregator contract
-        directory = Path(
-            cls.ROOT_DIR, "packages", "valory", "contracts", "offchain_aggregator"
-        )
-        _ = get_register_contract(directory)

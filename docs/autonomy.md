@@ -75,7 +75,7 @@ These keys can be used for local deployments if you're using the default hardhat
 
 ```bash
 # fetch a service
-$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeigs4vjjjh6hoin7fnhhwedw62usqvlvvm56twh77a2o52wm7fwd2u  --service
+$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeieoflipmi7wzvtuxnxsdi62iqluqbeuzdtcjr27axb3y4ixxlsrte  --service
 $ cd oracle_hardhat
 # create a docker deployment
 $ autonomy deploy build keys.json
@@ -248,9 +248,8 @@ run-oracle-dev:
     exit 1
   fi
 
-  autonomy deploy build image valory/oracle_hardhat --dependencies && \
-    autonomy deploy build image valory/oracle_hardhat --dev && \
-    autonomy deploy build deployment valory/oracle_hardhat deployments/keys/hardhat_keys.json --force --dev && \
+  autonomy build-image valory/oracle_hardhat --dev && \
+    autonomy deploy build valory/oracle_hardhat deployments/keys/hardhat_keys.json --force --dev && \
     make run-deploy
 
 .PHONY: run-deploy
@@ -375,7 +374,7 @@ Aggregating results from deployments.
 To use this tool you'll need benchmark data generated from agent runtime. To generate benchmark data run
 
 ```
-$ autonomy deploy build deployment SERVICE_ID PATH_RO_KEYS --dev
+$ autonomy deploy build PATH_RO_KEYS --dev
 ```
 
 By default this will create a 4 agent runtime where you can wait until all 4 agents are at the end of the first period (you can wait for more periods if you want) and then you can stop the runtime. The data will be stored in `abci_build/persistent_data/benchmarks` folder.

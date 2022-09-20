@@ -25,17 +25,15 @@ import asyncio
 import logging
 import time
 from pathlib import Path
-from typing import Any, AsyncGenerator, Dict, Generator, Optional, cast
-from unittest.mock import MagicMock, Mock, patch
+from typing import Any, Dict, Optional, cast
+from unittest.mock import Mock, patch
 
 import pytest
 from aea.common import Address
-from aea.configurations.constants import DEFAULT_LEDGER
 from aea.configurations.data_types import PublicId
 from aea.connections.base import Connection, ConnectionStates
-from aea.crypto.ledger_apis import DEFAULT_LEDGER_CONFIGS, LedgerApis
+from aea.crypto.ledger_apis import LedgerApis
 from aea.crypto.registries import make_crypto, make_ledger_api
-from aea.crypto.wallet import CryptoStore
 from aea.helpers.async_utils import AsyncState
 from aea.helpers.transaction.base import (
     RawTransaction,
@@ -44,19 +42,16 @@ from aea.helpers.transaction.base import (
     TransactionDigest,
     TransactionReceipt,
 )
-from aea.identity.base import Identity
 from aea.mail.base import Envelope, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea_ledger_ethereum import EthereumCrypto
-from aea_ledger_ethereum.test_tools.constants import ETHEREUM_TESTNET_CONFIG
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.docker.base import skip_docker_tests
-from aea_test_autonomy.docker.ganache import (
-    DEFAULT_GANACHE_ADDR,
-    DEFAULT_GANACHE_CHAIN_ID,
-    DEFAULT_GANACHE_PORT,
-)
+from aea_test_autonomy.docker.ganache import DEFAULT_GANACHE_CHAIN_ID
 from aea_test_autonomy.fixture_helpers import (  # pylint: disable=unused-import  # noqa: F401
+    ganache_addr,
+    ganache_configuration,
+    ganache_port,
     ganache_scope_class,
 )
 from web3.eth import Eth
@@ -95,63 +90,6 @@ gas_strategies = pytest.mark.parametrize(
         },
     ],
 )
-
-
-@pytest.fixture(scope="session")
-def ethereum_testnet_config() -> Dict:
-    """Get Ethereum ledger api configurations using Ganache."""
-    new_uri = f"{DEFAULT_GANACHE_ADDR}:{DEFAULT_GANACHE_PORT}"
-    new_config = ETHEREUM_TESTNET_CONFIG.copy()
-    new_config["address"] = new_uri
-    return new_config
-
-
-@pytest.fixture(scope="function")
-def update_default_ethereum_ledger_api(ethereum_testnet_config: Dict) -> Generator:
-    """Change temporarily default Ethereum ledger api configurations to interact with local Ganache."""
-    old_config = DEFAULT_LEDGER_CONFIGS.pop(EthereumCrypto.identifier)
-    DEFAULT_LEDGER_CONFIGS[EthereumCrypto.identifier] = ethereum_testnet_config
-    yield
-    DEFAULT_LEDGER_CONFIGS.pop(EthereumCrypto.identifier)
-    DEFAULT_LEDGER_CONFIGS[EthereumCrypto.identifier] = old_config
-
-
-def make_ledger_api_connection(
-    ethereum_testnet_config: Dict = ETHEREUM_TESTNET_CONFIG,
-) -> Connection:
-    """Make a connection."""
-    crypto = make_crypto(DEFAULT_LEDGER)
-    identity = Identity("name", crypto.address, crypto.public_key)
-    crypto_store = CryptoStore()
-    directory = PACKAGE_DIR
-    connection = Connection.from_dir(
-        str(directory),
-        data_dir=MagicMock(),
-        identity=identity,
-        crypto_store=crypto_store,
-    )
-    connection = cast(Connection, connection)
-    connection._logger = logging.getLogger("packages.valory.connections.ledger")
-
-    # use testnet config
-    connection.configuration.config.get("ledger_apis", {})[
-        "ethereum"
-    ] = ethereum_testnet_config
-
-    connection.request_retry_attempts = 1  # type: ignore
-    connection.request_retry_attempts = 2  # type: ignore
-    return connection
-
-
-@pytest.fixture()
-async def ledger_apis_connection(
-    request: Any, ethereum_testnet_config: Dict
-) -> AsyncGenerator:
-    """Make a connection."""
-    connection = make_ledger_api_connection(ethereum_testnet_config)
-    await connection.connect()
-    yield connection
-    await connection.disconnect()
 
 
 class LedgerApiDialogues(BaseLedgerApiDialogues):

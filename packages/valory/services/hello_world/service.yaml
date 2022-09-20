@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
 fingerprint_ignore_patterns: []
-agent: valory/hello_world:0.1.0:bafybeidcdnj44ml4rqzydgjo5pfzmeukxasxfzfmsgwxn3yigltnjb35uy
+agent: valory/hello_world:0.1.0:bafybeige5ajvkjhq333k4x7ixqzc2yx7dqzrltn7occzsjqcb3fgl5fg3e
 number_of_agents: 4
 ---
 benchmark_persistence_params:
@@ -34,7 +34,7 @@ type: connection
 config:
   ledger_apis:
     ethereum:
-      address: http://host.docker.internal:8545
+      address: ${SERVICE_HELLO_WORLD_RPC:str:http://host.docker.internal:8545}
       chain_id: 31337
       poa_chain: false
       default_gas_price_strategy: eip1559
