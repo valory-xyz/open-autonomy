@@ -25,7 +25,7 @@ nav:
     - Agent services compared to...: 'get_started/agent_services_compared_to.md'
     - Use cases: 'get_started/use_cases.md'
   - Guides:
-    - Index: 'guides/index.md'
+    - 'guides/index.md'
     - Quick start: 'guides/quick_start.md'
     - Overview of the development process: 'guides/overview_of_the_development_process.md'
     - Create a service with an existing agent: 'guides/create_service_existing_agent.md'
@@ -34,28 +34,30 @@ nav:
     - Running a service in different networks: 'guides/running_service_different_networks.md'
     - Using the scaffold tool to speed up development: 'guides/scaffolding.md'
     - Managing packages: 'guides/managing_packages.md'
-  - Concepts:
-    - Autonomous Economic Agents: 'aea.md'
-    - Finite State Machines: 'fsm.md'
-    - The Application BlockChain Interface: 'abci.md'
-  - FSM Apps:
-    - Introduction to FSM Apps: 'fsm_app_introduction.md'
-    - Components of an FSM App: 'fsm_app_components.md'
-    - The AbciApp Class: 'abci_app_class.md'
-    - The AbstractRoundBehaviour Class: 'abci_app_abstract_round_behaviour.md'
-    - The AsyncBehaviour Class: 'abci_app_async_behaviour.md'
-    - The AbstractRound Class: 'abci_app_abstract_round.md'
-    - Interactions between Components: 'abci_app_interactions.md'
-    - Sequence Diagram: 'poc-diagram.md'
-  - Demos:
+  - Demo agent services:
+    - 'demos/index.md'  
     - Hello World Agent Service: 'hello_world_agent_service.md'
     - Simple Demo: 'simple_abci.md'
-    - Counter Demo: 'counter_example.md'
     - Price Oracle Demo:
       - Introduction: 'price_oracle_intro.md'
       - Technical Details: 'price_oracle_technical_details.md'
-      - FSM Specification: 'price_oracle_fsms.md'
-  - Development:
+      - FSM Specification: 'price_oracle_fsms.md'  
+  - Key concepts:
+    - 'key_concepts/index.md'    
+    - Autonomous Economic Agents: 'aea.md'
+    - Finite State Machines: 'fsm.md'
+    - The Application BlockChain Interface: 'abci.md'
+    - FSM Apps:
+      - Introduction to FSM Apps: 'fsm_app_introduction.md'
+      - Components of an FSM App: 'fsm_app_components.md'
+      - The AbciApp Class: 'abci_app_class.md'
+      - The AbstractRoundBehaviour Class: 'abci_app_abstract_round_behaviour.md'
+      - The AsyncBehaviour Class: 'abci_app_async_behaviour.md'
+      - The AbstractRound Class: 'abci_app_abstract_round.md'
+      - Interactions between Components: 'abci_app_interactions.md'
+      - Sequence Diagram: 'poc-diagram.md'
+  - Advanced reference:
+    - 'advanced_reference/index.md'
     - Version: 'version.md'
     - Upgrading: 'upgrading.md'
     - Package publishing: 'package_publishing.md'
@@ -233,11 +235,11 @@ nav:
           - Payload Tools: 'api/skills/transaction_settlement_abci/payload_tools.md'
           - Test Tools: 'api/skills/transaction_settlement_abci/test_tools/integration.md'
       - Exceptions: 'exceptions.md'
-  - Miscellaneous:
-    - Ethereum: 'ethereum_specifics.md'
-    - Delegate call vs call: 'delegate_call.md'
-    - Debugging Using Tenderly: 'debugging.md'
-    - Package list: 'package_list.md'
+    - Miscellaneous:
+      - Ethereum: 'ethereum_specifics.md'
+      - Delegate call vs call: 'delegate_call.md'
+      - Debugging Using Tenderly: 'debugging.md'
+      - Package list: 'package_list.md'
   - FAQ: 'questions-and-answers.md'
 
 
