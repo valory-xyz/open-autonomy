@@ -8,14 +8,14 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeifn5mj5hlqrttxsnwueac2wro4kttpirc6dlajgbyxh2vkjaojdbm
   __init__.py: bafybeierqitcqk7oy6m3qp7jgs67lcg55mzt3arltkwimuii2ynfejccwi
-  base.py: bafybeifmp2jdvhxbwucinxs75u6pmw4g2s4mupqm7kdxsrknd46einbd5y
-  connection.py: bafybeia4fda47s24k2oi6tva4xfg3kxz4bzruvfclba6hdqopdtvq5aqei
-  contract_dispatcher.py: bafybeiaq7i64w5pt5om2rz4cpymcgk42eq5s5xmdq5btyv5ao4ofoj2sri
-  ledger_dispatcher.py: bafybeihb74kmea6ibafl4tkzg5nzencfjf2xeg5xplubk4twwa7hflelua
+  base.py: bafybeief4cfi2rwje7pt5ezjxp54pyv3kqhfm2eyv7nrams5nkfv5pvcfm
+  connection.py: bafybeifjtfk4ucjbfvewlyaqvkg73knbp5jt5ack4kitnqgd2f7hmlwwou
+  contract_dispatcher.py: bafybeifnllxbgq5tbesskje2wv2k2b5yaki2vxsce5crxjv2inurzefuaa
+  ledger_dispatcher.py: bafybeiea2yymd2dcckwqrdrnix4n5j7vshmbwkvfgz5yusmhbzl3jcmv7a
   tests/__init__.py: bafybeicjid32i45boyvl2l3bmhmufukt6czs52vtbrvmvvbxj4m5mdojhq
   tests/conftest.py: bafybeiewtba5b6jpy5lamqy6qtvdrl2uoa3eu26w6dgqplh5eondusqgnu
   tests/test_ledger.py: bafybeibygurgwsvwhg7xnztm2vvammlkvnnslttrpfxwb5hb43oreow4k4
-  tests/test_ledger_api.py: bafybeidfbocbbcisx7ougpa3unmne7bntdhoisl72nxlmzl3ohkrld5zym
+  tests/test_ledger_api.py: bafybeienzjm2iggz3tioixwyri6tyjimvb5mvgcgqk3xu67lx2bvv2oqcm
 fingerprint_ignore_patterns: []
 connections: []
 protocols:

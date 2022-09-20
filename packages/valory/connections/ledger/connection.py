@@ -21,11 +21,12 @@
 import asyncio
 from typing import Any, Dict, Optional
 
+from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
 from aea.mail.base import Envelope
 from aea.protocols.base import Message
 
-from packages.valory.connections.ledger.base import CONNECTION_ID, RequestDispatcher
+from packages.valory.connections.ledger.base import RequestDispatcher
 from packages.valory.connections.ledger.contract_dispatcher import (
     ContractApiRequestDispatcher,
 )
@@ -36,10 +37,13 @@ from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 
 
+PUBLIC_ID = PublicId.from_str("valory/ledger:0.1.0")
+
+
 class LedgerConnection(Connection):
     """Proxy to the functionality of the SDK or API."""
 
-    connection_id = CONNECTION_ID
+    connection_id = PUBLIC_ID
     TIMEOUT = 3
     MAX_ATTEMPTS = 120
 
@@ -86,6 +90,7 @@ class LedgerConnection(Connection):
             logger=self.logger,
             retry_attempts=self.request_retry_attempts,
             retry_timeout=self.request_retry_timeout,
+            connection_id=self.connection_id,
         )
         self._contract_dispatcher = ContractApiRequestDispatcher(
             self._state,
@@ -94,6 +99,7 @@ class LedgerConnection(Connection):
             logger=self.logger,
             retry_attempts=self.request_retry_attempts,
             retry_timeout=self.request_retry_timeout,
+            connection_id=self.connection_id,
         )
 
         self._response_envelopes = asyncio.Queue()

@@ -29,7 +29,7 @@ from unittest.mock import patch
 
 from aea.test_tools.test_skill import BaseSkillTestCase
 
-from packages.valory.connections.abci import PUBLIC_ID
+from packages.valory.connections.abci.connection import PUBLIC_ID
 from packages.valory.protocols.abci.custom_types import (
     CheckTxType,
     CheckTxTypeEnum,

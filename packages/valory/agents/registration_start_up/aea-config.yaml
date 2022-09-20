@@ -11,9 +11,9 @@ fingerprint:
   tests/test_registration.py: bafybeifjqvw3fzabl3fpqthnme3tcmstxrxiv4gqifdrszv76hvhygckpe
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeic36k2y3dzr4rmnbgmyjsvvdexk4w4u36y5szflp7goxj5vh3bsrm
+- valory/abci:0.1.0:bafybeiejtgtkfxrrigsro6tvaaqgktrpao7bx476ob3n2wezonblnxi3xy
 - valory/http_client:0.1.0:bafybeiet6defg3qvov4r2ucjtkywkz53xcg6mgarjfdqmnxfgdixgcx45y
-- valory/ledger:0.1.0:bafybeih7swfc342b3bknw4thc7h5ywqa4zgnstl743pnhekwntofiypqjm
+- valory/ledger:0.1.0:bafybeicfycqnhdzg5nsir33dlcgs2k4ijjncysqjcn67zvzv2fkwr43eby
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts:
 - valory/service_registry:0.1.0:bafybeieubs245wvjpwjelmagipqqx4zo3qj42kb54oy62ogo7xbk3nudxm
@@ -26,9 +26,9 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeifwwfjgpdh7c65b3ftds6rmkm564jg7akpfrgqbbqn2a66usror5i
-- valory/abstract_round_abci:0.1.0:bafybeida6vwh5up47op4hhko6r6ncxg5xxa2qhmcnmsirt5n5hm5xpixye
-- valory/registration_abci:0.1.0:bafybeiccr4i3q6tksglk5v2wxgs4gh6cri6aj5rxeujflta4nfxxrkofgm
+- valory/abstract_abci:0.1.0:bafybeif3rpah3fqrnmeaqrhv5fewrhuxphdroqxvksikgriy733if3lslq
+- valory/abstract_round_abci:0.1.0:bafybeibvoeehzn5ifytnskcaqyxke7minryi62jmawffmfabh3brhpvpte
+- valory/registration_abci:0.1.0:bafybeie7fmmqbrqevi3jrpwlwdoddqa4u3n3fsgazqksemipocgoehxufy
 default_ledger: ethereum
 required_ledgers:
 - ethereum
