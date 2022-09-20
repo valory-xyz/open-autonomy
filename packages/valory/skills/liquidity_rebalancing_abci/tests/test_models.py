@@ -82,4 +82,5 @@ class TestParams:
                 "sleep_seconds": 60,
             },
             cleanup_history_depth=0,
+            genesis_config={"voting_power": "0"},
         )
