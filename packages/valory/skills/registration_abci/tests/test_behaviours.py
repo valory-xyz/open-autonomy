@@ -49,7 +49,6 @@ from packages.valory.skills.registration_abci.behaviours import (
     RegistrationBaseBehaviour,
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
-    format_genesis_data,
 )
 from packages.valory.skills.registration_abci.rounds import (
     BaseSynchronizedData as RegistrationSynchronizedData,
@@ -296,7 +295,9 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     def mock_tendermint_update(self, valid_response: bool = True) -> None:
         """Mock Tendermint update"""
 
-        validator_configs = format_genesis_data(self.state.registered_addresses)
+        validator_configs = self.state.format_genesis_data(
+            self.state.registered_addresses
+        )
         body = json.dumps(validator_configs).encode(self.state.ENCODING)
         url = self.state.tendermint_parameter_url
         request_kwargs = dict(method="POST", url=url, body=body)

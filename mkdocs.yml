@@ -33,6 +33,7 @@ nav:
     - Deploy a service: 'guides/deploy_service.md'
     - Running a service in different networks: 'guides/running_service_different_networks.md'
     - Using the scaffold tool to speed up development: 'guides/scaffolding.md'
+    - Managing packages: 'guides/managing_packages.md'
   - Demo agent services:
     - 'demos/index.md'  
     - Hello World Agent Service: 'hello_world_agent_service.md'
@@ -239,6 +240,7 @@ nav:
       - Ethereum: 'ethereum_specifics.md'
       - Delegate call vs call: 'delegate_call.md'
       - Debugging Using Tenderly: 'debugging.md'
+      - Package list: 'package_list.md'
   - FAQ: 'questions-and-answers.md'
 
 

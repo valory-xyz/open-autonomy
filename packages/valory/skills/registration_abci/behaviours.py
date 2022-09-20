@@ -45,47 +45,7 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 
-CONSENSUS_PARAMS = {
-    "block": {"max_bytes": "22020096", "max_gas": "-1", "time_iota_ms": "1000"},
-    "evidence": {
-        "max_age_num_blocks": "100000",
-        "max_age_duration": "172800000000000",
-        "max_bytes": "1048576",
-    },
-    "validator": {"pub_key_types": ["ed25519"]},
-    "version": {},
-}
-
-
-GENESIS_CONFIG = dict(  # type: ignore
-    genesis_time="2022-05-20T16:00:21.735122717Z",
-    chain_id="chain-c4daS1",
-    consensus_params=CONSENSUS_PARAMS,
-)
-
-DEFAULT_VOTING_POWER = str(10)
-
-
-def format_genesis_data(
-    collected_agent_info: Dict[str, Any],
-) -> Dict[str, Any]:
-    """Format collected agent info for genesis update"""
-
-    validators = []
-    for i, validator_config in enumerate(collected_agent_info.values()):
-        validator = dict(
-            address=validator_config["address"],
-            pub_key=validator_config["pub_key"],
-            power=DEFAULT_VOTING_POWER,
-            name=f"node{i}",
-        )
-        validators.append(validator)
-
-    genesis_data = dict(
-        validators=validators,
-        genesis_config=GENESIS_CONFIG,
-    )
-    return genesis_data
+NODE = "node{i}"
 
 
 class RegistrationBaseBehaviour(BaseBehaviour):
@@ -332,11 +292,33 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             self.collection_complete = True
         return self.collection_complete
 
+    def format_genesis_data(
+        self,
+        collected_agent_info: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Format collected agent info for genesis update"""
+
+        validators = []
+        for i, validator_config in enumerate(collected_agent_info.values()):
+            validator = dict(
+                address=validator_config["address"],
+                pub_key=validator_config["pub_key"],
+                power=self.params.voting_power,
+                name=NODE.format(i=i),
+            )
+            validators.append(validator)
+
+        genesis_data = dict(
+            validators=validators,
+            genesis_config=self.params.genesis_config,
+        )
+        return genesis_data
+
     def request_update(self) -> Generator[None, None, bool]:
         """Make HTTP POST request to update agent's local Tendermint node"""
 
         url = self.tendermint_parameter_url
-        genesis_data = format_genesis_data(self.registered_addresses)
+        genesis_data = self.format_genesis_data(self.registered_addresses)
         log_message = self.LogMessages.request_update
         self.context.logger.info(f"{log_message}: {genesis_data}")
 

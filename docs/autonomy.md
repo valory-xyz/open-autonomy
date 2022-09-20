@@ -75,7 +75,7 @@ These keys can be used for local deployments if you're using the default hardhat
 
 ```bash
 # fetch a service
-$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeievouxfpo53bluf5f5icyvuyx6j2nucqvijb3s7qhpknnqp7xk6ue  --service
+$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeihbkyrmh47g4peg2ghu72v4sl3ohmqxobc5fbxhukwbkm6rrxz2di  --service
 $ cd oracle_hardhat
 # create a docker deployment
 $ autonomy deploy build keys.json
@@ -423,7 +423,7 @@ autonomy fetch --local --alias oracle valory/oracle:0.1.0
 ```bash
 Usage: autonomy run [OPTIONS]
 
-  Run the agent.
+  Run the agent. Available for docker compose deployments only, not for kubernetes deployments.
 
 Options:
   -p                          Ask for password interactively
