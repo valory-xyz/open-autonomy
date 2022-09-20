@@ -1,6 +1,6 @@
 #Demo agent services - index
 Here you can find a number of already deployed services that showcase the potential
-of the {{open_autonomy}} framework. If you with, you can fetch the  services (and/or 
+of the {{open_autonomy}} framework. You can fetch the  services (and/or 
 the corresponding agents) from the remote IPFS registry and explore them by yourself.
 
 - [Hello world agent service](../hello_world_agent_service.md): a demo service to showcase
