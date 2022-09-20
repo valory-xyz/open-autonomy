@@ -91,7 +91,7 @@ While developing, each change will make this hashes out of date. You can run the
 autonomy packages lock --check
 ```
 
-Each time you need a new package you will need to either copy/paste/edit an existing one and edit the agent's configuration file or use the intermediate agent method discussed before.
+Each time you need a new package, add its identifier to `packages.json`, run `autonomy packages sync --update-packages` to download it and then add it to the agent's configuration file.
 
 ## The remote registry
 
