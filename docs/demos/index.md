@@ -1,0 +1,14 @@
+#Demo agent services - index
+Here you can find a number of already deployed services that showcase the potential
+of the {{open_autonomy}} framework. If you with, you can fetch the  services (and/or 
+the corresponding agents) from the remote IPFS registry and explore them by yourself.
+
+- [Hello world agent service](../hello_world_agent_service.md): a demo service to showcase
+  how to use the main components in an agent service,  without external interactions.
+- [Simple agent service](../simple_abci.md): a service to showcase a number of major
+  stages which are quite common in agent services.
+- [Counter demo](../counter_example.md): a very simple demo of a non-FSM based service.
+  Use this approach for extremely simple services only.
+- [Price oracle demo](../price_oracle_intro.md): a full service implementing a
+  price oracle where each agent collects price estimates from a different source.
+  
