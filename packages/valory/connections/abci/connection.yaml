@@ -76,5 +76,7 @@ dependencies:
     version: ==1.43.0
   hypothesis:
     version: ==6.21.6
+  open-aea-test-autonomy:
+    version: ==0.3.1
 is_abstract: false
 cert_requests: []

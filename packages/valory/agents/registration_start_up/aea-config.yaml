@@ -11,12 +11,12 @@ fingerprint:
   tests/test_registration.py: bafybeifjqvw3fzabl3fpqthnme3tcmstxrxiv4gqifdrszv76hvhygckpe
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeiexle6kecyx7wfvbiswcv4pjttf2kqnmtppavikq7aeh3rfaq5vsy
+- valory/abci:0.1.0:bafybeiejtgtkfxrrigsro6tvaaqgktrpao7bx476ob3n2wezonblnxi3xy
 - valory/http_client:0.1.0:bafybeiet6defg3qvov4r2ucjtkywkz53xcg6mgarjfdqmnxfgdixgcx45y
-- valory/ledger:0.1.0:bafybeiaj2nf6qnnhuv47h4gfvpnxd6mo3234fauohd45jlhzswrredarte
+- valory/ledger:0.1.0:bafybeicfycqnhdzg5nsir33dlcgs2k4ijjncysqjcn67zvzv2fkwr43eby
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts:
-- valory/service_registry:0.1.0:bafybeicczwyiwjiejqtt2kvkx3eit6faidt3zv5tkfdjyczg3e5xyhtvsy
+- valory/service_registry:0.1.0:bafybeieubs245wvjpwjelmagipqqx4zo3qj42kb54oy62ogo7xbk3nudxm
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
@@ -26,9 +26,9 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeihhlin243hsmqanqjbn4sv4y6ma36dfsipzfrszqstfooa5rfyxju
-- valory/abstract_round_abci:0.1.0:bafybeifhckoo5poaupawsstafr2hss2zfb5pn5das3nn22hd5eksm37ccm
-- valory/registration_abci:0.1.0:bafybeidbqkl4kx22lhts27qaeglw2f3ldcatcbpl676twzlqusbnwun2ie
+- valory/abstract_abci:0.1.0:bafybeigqbgoej3zhsz6e5ibdu5tewv6plh4yzxllguyftbymj5bp2zaxyq
+- valory/abstract_round_abci:0.1.0:bafybeigiy5ppq7wxpvxjpeeceejwmnloi5f6hfmdx4veevdhyqiwv53dwq
+- valory/registration_abci:0.1.0:bafybeie76yzos7sr4e5hrdjfxty4t3d3zdew7jxx47nb4irjexen4lxkim
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -61,6 +61,8 @@ logging_config:
 dependencies:
   open-aea-ledger-cosmos: {}
   open-aea-ledger-ethereum: {}
+  open-aea-test-autonomy:
+    version: ==0.3.1
 skill_exception_policy: just_log
 connection_exception_policy: just_log
 default_connection: null
