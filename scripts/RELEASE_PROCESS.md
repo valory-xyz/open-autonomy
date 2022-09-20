@@ -5,7 +5,7 @@
    
 2. Determine the next `open-autonomy` version. Create new release branch named `feature/release-{new-version}`, switch to this branch. Update the version in `autonomy/__version__.py`. Commit if satisfied.
 
-3. Determine the next `open-aea-test-autonomyy` version. Update the version in `plugins/aea_test_autonomy/setup.py` and relevant component configurations. Commit if satisfied.
+3. Determine the next `open-aea-test-autonomyy` version. Update the version in `plugins/aea-test-autonomy/setup.py` and relevant component configurations. Commit if satisfied.
 
 4. [CURRENTLY SKIPPED] Bump all the packages to their latest versions by running `python scripts/update_package_versions.py`.
 
