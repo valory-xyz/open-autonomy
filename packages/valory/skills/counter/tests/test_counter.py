@@ -68,7 +68,6 @@ class TestCounterHandler(BaseSkillTestCase):
             AbciDialogues, cls._skill.skill_context.abci_dialogues
         )
 
-    @classmethod
     def setup(
         self,
     ) -> None:
