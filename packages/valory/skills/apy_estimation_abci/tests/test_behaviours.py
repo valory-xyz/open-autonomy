@@ -1413,6 +1413,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
     ) -> None:
         """Run test for `transform_behaviour` when task result is not ready."""
         self._fast_forward(tmp_path)
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(
             TaskManager,
             "get_task_result",
