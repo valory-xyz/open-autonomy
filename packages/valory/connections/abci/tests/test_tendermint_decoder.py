@@ -21,6 +21,7 @@
 
 # pylint: skip-file
 
+from packages.valory.connections.abci.connection import PUBLIC_ID
 from packages.valory.connections.abci.dialogues import AbciDialogue, AbciDialogues
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
     Request,
@@ -43,7 +44,7 @@ class TestTendermintProtocolDecoder:
 
     def test_request_echo(self) -> None:
         """Test decoding of a request echo."""
-        dialogues = AbciDialogues()
+        dialogues = AbciDialogues(connection_id=PUBLIC_ID)
         request = Request()
         echo = RequestEcho()
         echo.message = ""
@@ -56,7 +57,7 @@ class TestTendermintProtocolDecoder:
 
     def test_request_set_option(self) -> None:
         """Test decoding of a request set-option."""
-        dialogues = AbciDialogues()
+        dialogues = AbciDialogues(connection_id=PUBLIC_ID)
         request = Request()
         set_option = RequestSetOption()
         set_option.key = ""
@@ -70,7 +71,7 @@ class TestTendermintProtocolDecoder:
 
     def test_request_list_snapshots(self) -> None:
         """Test decoding of a request list-snapshots."""
-        dialogues = AbciDialogues()
+        dialogues = AbciDialogues(connection_id=PUBLIC_ID)
         request = Request()
         list_snapshots = RequestListSnapshots()
         request.list_snapshots.CopyFrom(list_snapshots)
@@ -82,7 +83,7 @@ class TestTendermintProtocolDecoder:
 
     def test_request_offer_snapshot(self) -> None:
         """Test decoding of a request offer-snapshot."""
-        dialogues = AbciDialogues()
+        dialogues = AbciDialogues(connection_id=PUBLIC_ID)
         request = Request()
         offer_snapshot = RequestOfferSnapshot()
         snapshot = Snapshot()
@@ -97,7 +98,7 @@ class TestTendermintProtocolDecoder:
 
     def test_request_load_snapshot_chunk(self) -> None:
         """Test decoding of a request load-snapshot-chunk."""
-        dialogues = AbciDialogues()
+        dialogues = AbciDialogues(connection_id=PUBLIC_ID)
         request = Request()
         load_snapshot_chunk = RequestLoadSnapshotChunk()
         request.load_snapshot_chunk.CopyFrom(load_snapshot_chunk)
@@ -109,7 +110,7 @@ class TestTendermintProtocolDecoder:
 
     def test_request_apply_snapshot_chunk(self) -> None:
         """Test decoding of a request load-snapshot-chunk."""
-        dialogues = AbciDialogues()
+        dialogues = AbciDialogues(connection_id=PUBLIC_ID)
         request = Request()
         apply_snapshot_chunk = RequestApplySnapshotChunk()
         request.apply_snapshot_chunk.CopyFrom(apply_snapshot_chunk)

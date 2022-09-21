@@ -14,6 +14,17 @@ class FSMBehaviourBaseCase(BaseSkillTestCase)
 
 Base case for testing FSMBehaviour classes.
 
+<a id="packages.valory.skills.abstract_round_abci.test_tools.base.FSMBehaviourBaseCase.setup_class"></a>
+
+#### setup`_`class
+
+```python
+@classmethod
+def setup_class(cls, **kwargs: Any) -> None
+```
+
+Setup the test class.
+
 <a id="packages.valory.skills.abstract_round_abci.test_tools.base.FSMBehaviourBaseCase.setup"></a>
 
 #### setup
@@ -22,7 +33,13 @@ Base case for testing FSMBehaviour classes.
 def setup(**kwargs: Any) -> None
 ```
 
-Setup the test class.
+Set up the test method.
+
+Called each time before a test method is called.
+
+**Arguments**:
+
+- `kwargs`: the keyword arguments passed to _prepare_skill
 
 <a id="packages.valory.skills.abstract_round_abci.test_tools.base.FSMBehaviourBaseCase.fast_forward_to_behaviour"></a>
 
@@ -110,16 +127,26 @@ def end_round(done_event: Enum) -> None
 
 Ends round early to cover `wait_for_end` generator.
 
+<a id="packages.valory.skills.abstract_round_abci.test_tools.base.FSMBehaviourBaseCase.teardown_class"></a>
+
+#### teardown`_`class
+
+```python
+@classmethod
+def teardown_class(cls) -> None
+```
+
+Teardown the test class.
+
 <a id="packages.valory.skills.abstract_round_abci.test_tools.base.FSMBehaviourBaseCase.teardown"></a>
 
 #### teardown
 
 ```python
-@classmethod
-def teardown(cls) -> None
+def teardown() -> None
 ```
 
-Teardown the test class.
+Teardown.
 
 <a id="packages.valory.skills.abstract_round_abci.test_tools.base.DummyContext"></a>
 

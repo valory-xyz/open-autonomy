@@ -20,22 +20,22 @@ fingerprint:
   tests/test_behaviours.py: bafybeiewavpcq3r6t6qwt2jy7uohonzrhvjgo4zjnifec3mchfwo4arphq
   tests/test_dialogues.py: bafybeidndadco2cyqj63nfqjx4igbtf2wnkeig47b5twgry3lzbqoudn7a
   tests/test_handlers.py: bafybeif3mrcsuuu4dabwtpk565objlasp6aydhen3mccj3tffyzsxmnzgq
-  tests/test_integration.py: bafybeiazufzlzxsp2eza4lzrovjwan3xbdxlldmvplmb54xedntdofnrem
+  tests/test_integration.py: bafybeiemhu7slfqxyyiqwibt3klt7sfza6cuiqx6yk75rcn5odghljzssm
   tests/test_models.py: bafybeifim6rodwa6j6o6327565j6xvh6lp7tvgk6sybd5dg45pjji5djha
 fingerprint_ignore_patterns: []
 connections:
-- valory/ledger:0.1.0:bafybeicup3pqzi74h67z6oxzw7qhsz2dpezeqhalg7bex37fqcx5koivqu
+- valory/ledger:0.1.0:bafybeicfycqnhdzg5nsir33dlcgs2k4ijjncysqjcn67zvzv2fkwr43eby
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeifbkitkori3pi2mtevm475xbnljfejpci7u7veziaptrj4hjbciju
+- valory/gnosis_safe:0.1.0:bafybeihht4j726a4swe4duqxohnxtctdghftgywurw55zwjjqsbqjwnacm
 protocols:
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeib2b6pnmlvylvqpnpin4lhv7pdv22rhk7ur3is26kqnzjgtlfzhz4
-- valory/liquidity_rebalancing_abci:0.1.0:bafybeia2dp6pknnu3vvivranvmb2xzej3vplvjkvyipmeauvp7rkt5auim
-- valory/registration_abci:0.1.0:bafybeifes4fcbdmjgf7wo3cgwgd7wh63pgvep7dedjcmuogaudywqh5sqi
-- valory/reset_pause_abci:0.1.0:bafybeig2cd6cuwevt3yccqyt7oo4p5hwsktkd35qm6l3g7ifyabbdf6wvu
-- valory/safe_deployment_abci:0.1.0:bafybeihhdeikhvkpwrq4fe2qezd4qw22aryx3bzlalserm2psvyvopsxce
-- valory/transaction_settlement_abci:0.1.0:bafybeidzgbbd33jnu2qnzkn2sakvalwchfalrnq3ehnu72bfood2csyi7u
+- valory/abstract_round_abci:0.1.0:bafybeicdchwld55jjepxuiciysto7i7cudpuiwn2f2d6e3gzfh7ij7xbuq
+- valory/liquidity_rebalancing_abci:0.1.0:bafybeiem3vm3gyxdfnb53l5c2t37wyve6t6thnazc2hnnacit454r7d3ny
+- valory/registration_abci:0.1.0:bafybeifn2t5zohzzvmt75oe6eimo4id7gpjecwttqv3x7jnjpx32p5p7pq
+- valory/reset_pause_abci:0.1.0:bafybeid77ov4zbo6xbszuxhr6aeypjudpthszuceoa3ld354vptwu7smtm
+- valory/safe_deployment_abci:0.1.0:bafybeier6gaaq42bbwttjwheanpk5hfo3ml5a2xq5jx3bqfqfdyd6tzaci
+- valory/transaction_settlement_abci:0.1.0:bafybeid66zapvizspewr7iezmj2tcxge2cyryglymv4tsrowd2ipktxjl4
 behaviours:
   main:
     args: {}
@@ -145,5 +145,7 @@ models:
   state:
     args: {}
     class_name: SharedState
-dependencies: {}
+dependencies:
+  open-aea-test-autonomy:
+    version: ==0.3.1
 is_abstract: false

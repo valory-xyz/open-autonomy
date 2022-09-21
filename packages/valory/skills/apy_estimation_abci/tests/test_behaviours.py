@@ -127,6 +127,9 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import SAFE_BLOCK_
 
 PACKAGE_DIR = Path(__file__).parent.parent
 SLEEP_TIME_TWEAK = 0.01
+HISTORY_START = 1652544875
+HISTORY_INTERVAL = 86400
+HISTORY_END = 1655136875
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -191,11 +194,20 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     next_behaviour_class: Type[APYEstimationBaseBehaviour]
     synchronized_data: SynchronizedData
 
-    def setup(self, **kwargs: Any) -> None:  # type: ignore
+    @classmethod
+    def setup_class(cls, **kwargs: Any) -> None:
         """Set up the test class."""
-        super().setup(
+        super().setup_class(
             param_overrides={"ipfs_domain_name": "/dns/localhost/tcp/5001/http"}
         )
+
+    def setup(self, **kwargs: Any) -> None:
+        """Set up the test method."""
+        super().setup()
+        assert self.behaviour.current_behaviour is not None
+        self.behaviour.current_behaviour.params.start = HISTORY_START
+        self.behaviour.current_behaviour.params.interval = HISTORY_INTERVAL
+        self.behaviour.current_behaviour.params.end = HISTORY_END
         self.synchronized_data = SynchronizedData(
             AbciAppDB(
                 setup_data={"full_training": [False]},

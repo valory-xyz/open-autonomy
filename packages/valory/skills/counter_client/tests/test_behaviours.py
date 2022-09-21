@@ -48,11 +48,12 @@ class BaseTestClass(BaseSkillTestCase):
     behaviour_name: str
     http_handler: HttpHandler
 
-    def setup(self, **kwargs: Any) -> None:  # type: ignore
+    @classmethod
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup the test class."""
-        super().setup()
-        assert self._skill.skill_context._agent_context is not None
-        self._skill.skill_context._agent_context.identity._default_address_key = (
+        super().setup_class()
+        assert cls._skill.skill_context._agent_context is not None
+        cls._skill.skill_context._agent_context.identity._default_address_key = (
             "ethereum"
         )
         self._skill.skill_context._agent_context._default_ledger_id = "ethereum"

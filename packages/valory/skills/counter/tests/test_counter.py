@@ -29,7 +29,7 @@ from unittest.mock import patch
 
 from aea.test_tools.test_skill import BaseSkillTestCase
 
-from packages.valory.connections.abci import PUBLIC_ID
+from packages.valory.connections.abci.connection import PUBLIC_ID
 from packages.valory.protocols.abci.custom_types import (
     CheckTxType,
     CheckTxTypeEnum,
@@ -55,17 +55,25 @@ class TestCounterHandler(BaseSkillTestCase):
     logger: logging.Logger
     abci_dialogues: AbciDialogues
 
-    def setup(self, **kwargs: Any) -> None:  # type: ignore
+    @classmethod
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup the test class."""
-        super().setup()
-        self.abci_counter_handler = cast(
-            ABCICounterHandler, self._skill.skill_context.handlers.abci
+        super().setup_class()
+        cls.abci_counter_handler = cast(
+            ABCICounterHandler, cls._skill.skill_context.handlers.abci
         )
         self.logger = self._skill.skill_context.logger
 
         self.abci_dialogues = cast(
             AbciDialogues, self._skill.skill_context.abci_dialogues
         )
+
+    def setup(
+        self,
+    ) -> None:
+        """Setup test."""
+
+        self.abci_counter_handler.tx_count = 0
 
     def test_setup(self) -> None:
         """Test the setup method of the echo handler."""

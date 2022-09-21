@@ -433,7 +433,9 @@ class TestLedgerDispatcher:
         self,
     ) -> None:
         """Test no balance."""
-        dispatcher = LedgerApiRequestDispatcher(AsyncState())
+        dispatcher = LedgerApiRequestDispatcher(
+            AsyncState(), connection_id=LedgerConnection.connection_id
+        )
         mock_api = Mock()
         message = LedgerApiMessage(
             performative=LedgerApiMessage.Performative.GET_BALANCE,  # type: ignore
@@ -457,7 +459,9 @@ class TestLedgerDispatcher:
         self,
     ) -> None:
         """Test no raw tx returned."""
-        dispatcher = LedgerApiRequestDispatcher(AsyncState())
+        dispatcher = LedgerApiRequestDispatcher(
+            AsyncState(), connection_id=LedgerConnection.connection_id
+        )
         mock_api = Mock()
         message = LedgerApiMessage(
             performative=LedgerApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -501,7 +505,10 @@ class TestLedgerDispatcher:
         ledger_raise_error: bool,
     ) -> None:
         """Test retry and sleep."""
-        dispatcher = LedgerApiRequestDispatcher(AsyncState(ConnectionStates.connected))
+        dispatcher = LedgerApiRequestDispatcher(
+            AsyncState(ConnectionStates.connected),
+            connection_id=LedgerConnection.connection_id,
+        )
         mock_api = Mock()
         message = LedgerApiMessage(
             performative=LedgerApiMessage.Performative.GET_TRANSACTION_RECEIPT,  # type: ignore

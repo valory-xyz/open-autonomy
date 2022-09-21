@@ -17,4 +17,6 @@ contracts: []
 class_name: OffchainAggregatorContract
 contract_interface_paths:
   ethereum: build/VerySimpleOffchainAggregator.json
-dependencies: {}
+dependencies:
+  open-aea-test-autonomy:
+    version: ==0.3.1

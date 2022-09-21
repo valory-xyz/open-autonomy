@@ -24,9 +24,9 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeib2b6pnmlvylvqpnpin4lhv7pdv22rhk7ur3is26kqnzjgtlfzhz4
-- valory/registration_abci:0.1.0:bafybeifes4fcbdmjgf7wo3cgwgd7wh63pgvep7dedjcmuogaudywqh5sqi
-- valory/reset_pause_abci:0.1.0:bafybeig2cd6cuwevt3yccqyt7oo4p5hwsktkd35qm6l3g7ifyabbdf6wvu
+- valory/abstract_round_abci:0.1.0:bafybeicdchwld55jjepxuiciysto7i7cudpuiwn2f2d6e3gzfh7ij7xbuq
+- valory/registration_abci:0.1.0:bafybeifn2t5zohzzvmt75oe6eimo4id7gpjecwttqv3x7jnjpx32p5p7pq
+- valory/reset_pause_abci:0.1.0:bafybeid77ov4zbo6xbszuxhr6aeypjudpthszuceoa3ld354vptwu7smtm
 behaviours:
   main:
     args: {}

@@ -19,8 +19,12 @@ The dialogues class keeps track of all ABCI dialogues.
 #### `__`init`__`
 
 ```python
-def __init__() -> None
+def __init__(**kwargs: Any) -> None
 ```
 
 Initialize dialogues.
+
+**Arguments**:
+
+- `kwargs`: keyword arguments
 

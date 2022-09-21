@@ -14,12 +14,13 @@ class _SafeConfiguredHelperIntegration(IntegrationBaseCase)
 
 Base test class for integration tests with Gnosis, but no contract, deployed.
 
-<a id="packages.valory.skills.transaction_settlement_abci.test_tools.integration._SafeConfiguredHelperIntegration.setup"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.test_tools.integration._SafeConfiguredHelperIntegration.setup_class"></a>
 
-#### setup
+#### setup`_`class
 
 ```python
-def setup(**kwargs: Any) -> None
+@classmethod
+def setup_class(cls, **kwargs: Any) -> None
 ```
 
 Setup.
@@ -34,12 +35,13 @@ class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration)
 
 Class that assists Gnosis instantiation.
 
-<a id="packages.valory.skills.transaction_settlement_abci.test_tools.integration._GnosisHelperIntegration.setup"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.test_tools.integration._GnosisHelperIntegration.setup_class"></a>
 
-#### setup
+#### setup`_`class
 
 ```python
-def setup(**kwargs: Any) -> None
+@classmethod
+def setup_class(cls, **kwargs: Any) -> None
 ```
 
 Setup.

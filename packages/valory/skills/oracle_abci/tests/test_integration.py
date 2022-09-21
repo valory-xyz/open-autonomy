@@ -27,6 +27,9 @@ from unittest import mock
 import pytest
 from aea_ledger_ethereum import EthereumApi
 from aea_test_autonomy.docker.base import skip_docker_tests
+from aea_test_autonomy.fixture_helpers import (  # pylint: unsed-import # noqa: F401
+    ammnet_scope_class,
+)
 from web3.types import RPCEndpoint, Wei
 
 from packages.open_aea.protocols.signing import SigningMessage
@@ -101,6 +104,7 @@ class OracleBehaviourBaseCase(FSMBehaviourBaseCase):
     behaviour: OracleAbciAppConsensusBehaviour
 
 
+@pytest.mark.usefixtures("ammnet_scope_class")
 class TransactionSettlementIntegrationBaseCase(
     OracleBehaviourBaseCase, GnosisIntegrationBaseCase
 ):
@@ -109,9 +113,10 @@ class TransactionSettlementIntegrationBaseCase(
     price_estimation_synchronized_data: PriceEstimationSynchronizedSata
     make_ledger_api_connection_callable = make_ledger_api_connection
 
-    def setup(self, **kwargs: Any) -> None:  # type: ignore
+    @classmethod
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup."""
-        super().setup()
+        super().setup_class()
 
         keeper_initial_retries = 1
         self.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(
@@ -358,7 +363,7 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
 
     make_ledger_api_connection_callable = make_ledger_api_connection
 
-    def setup(self, **kwargs: Any) -> None:  # type: ignore
+    def setup(self, **kwargs: Any) -> None:
         """Set up the test class."""
         super().setup()
 
@@ -476,14 +481,19 @@ class TestKeepers(OracleBehaviourBaseCase, IntegrationBaseCase):
             # select keeper b
             self.select_keeper(expected_keepers=expected_keepers, expected_retries=1)
 
+    def teardown(self) -> None:
+        """Teardown."""
+        # TODO - reintroduce (makes tests fail atm, indicating problematic implementation)
+
 
 @skip_docker_tests
 class TestSyncing(TransactionSettlementIntegrationBaseCase):
     """Test late tx hashes synchronization."""
 
-    def setup(self, **kwargs: Any) -> None:  # type: ignore
+    @classmethod
+    def setup_class(cls, **kwargs: Any) -> None:
         """Set up the test class."""
-        super().setup()
+        super().setup_class()
 
         # update synchronized data
         self.tx_settlement_synchronized_data.update(missed_messages=0)

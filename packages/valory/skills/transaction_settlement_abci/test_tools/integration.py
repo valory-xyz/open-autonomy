@@ -78,9 +78,10 @@ class _SafeConfiguredHelperIntegration(IntegrationBaseCase):
     safe_owners: Dict[str, Crypto]
     keeper_address: str
 
-    def setup(self, **kwargs: Any) -> None:  # type: ignore
+    @classmethod
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup."""
-        super().setup()
+        super().setup_class()
 
         # safe configuration
         self.safe_owners = {}
@@ -103,9 +104,10 @@ class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
     ethereum_api: EthereumApi
     gnosis_instance: Any
 
-    def setup(self, **kwargs: Any) -> None:  # type: ignore
+    @classmethod
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup."""
-        super().setup()
+        super().setup_class()
 
         # register gnosis contract
         gnosis = get_register_contract(GNOSIS_SAFE_PACKAGE)

@@ -37,8 +37,8 @@ from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
-from packages.valory.connections.ledger.base import (
-    CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
+from packages.valory.connections.ledger.connection import (
+    PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
@@ -98,7 +98,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
     done_event: Enum = Event.DONE
 
     @classmethod
-    def setup(self, **kwargs: Any) -> None:
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup the test class."""
         # we need to store the current value of the meta-class attribute
         # _MetaPayload.transaction_type_to_payload_cls, and restore it
@@ -108,9 +108,9 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             _MetaPayload.transaction_type_to_payload_cls
         )
         _MetaPayload.transaction_type_to_payload_cls = {}
-        super().setup()
-        assert self._skill.skill_context._agent_context is not None
-        self._skill.skill_context._agent_context.identity._default_address_key = (
+        super().setup_class()
+        assert cls._skill.skill_context._agent_context is not None
+        cls._skill.skill_context._agent_context.identity._default_address_key = (
             "ethereum"
         )
         self._skill.skill_context._agent_context._default_ledger_id = "ethereum"
@@ -129,10 +129,18 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             LedgerApiHandler, self._skill.skill_context.handlers.ledger_api
         )
 
+    def setup(self, **kwargs: Any) -> None:
+        """
+        Set up the test method.
+
+        Called each time before a test method is called.
+
+        :param kwargs: the keyword arguments passed to _prepare_skill
+        """
+        super().setup()
         self.abci_behaviour.setup()
         self._skill.skill_context.state.setup()
         self._skill.skill_context.state.round_sequence.end_sync()
-
         self.benchmark_dir = TemporaryDirectory()
         self._skill.skill_context.benchmark_tool.log_dir = Path(self.benchmark_dir.name)
 
@@ -397,10 +405,14 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             assert current_behaviour.is_done()
 
     @classmethod
-    def teardown(cls) -> None:
+    def teardown_class(cls) -> None:
         """Teardown the test class."""
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
-        cls.benchmark_dir.cleanup()
+
+    def teardown(self) -> None:
+        """Teardown."""
+        super().teardown()
+        self.benchmark_dir.cleanup()
 
 
 class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):

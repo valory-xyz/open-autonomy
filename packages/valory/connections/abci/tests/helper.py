@@ -38,6 +38,7 @@ from aea.protocols.generator.common import (
 )
 from google.protobuf.descriptor import FieldDescriptor
 
+from packages.valory.connections.abci.connection import PUBLIC_ID
 from packages.valory.connections.abci.connection import (
     _TendermintProtocolDecoder as Decoder,
 )
@@ -339,7 +340,7 @@ def encode(message: AbciMessage) -> Response:
 def decode(request: Request) -> AbciMessage:
     """Decode Tendermint-native ABCI protocol messages to AEA-native"""
 
-    dialogues = AbciDialogues()
+    dialogues = AbciDialogues(connection_id=PUBLIC_ID)
     try:
         message, dialogue = Decoder().process(request, dialogues, "dummy")  # type: ignore
         return message
