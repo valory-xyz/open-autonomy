@@ -204,6 +204,7 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     def setup(self, **kwargs: Any) -> None:
         """Set up the test method."""
         super().setup()
+        assert self.behaviour.current_behaviour is not None
         self.behaviour.current_behaviour.params.start = HISTORY_START
         self.behaviour.current_behaviour.params.interval = HISTORY_INTERVAL
         self.behaviour.current_behaviour.params.end = HISTORY_END
