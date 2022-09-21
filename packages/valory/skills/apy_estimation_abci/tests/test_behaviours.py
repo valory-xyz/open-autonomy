@@ -1427,16 +1427,6 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
         ):
             self.behaviour.context.task_manager.start()
-
-            cast(
-                TransformBehaviour, self.behaviour.current_behaviour
-            ).params.sleep_time = SLEEP_TIME_TWEAK
-            self.behaviour.act_wrapper()
-
-            # Sleep to wait for the behaviour that is also sleeping.
-            time.sleep(SLEEP_TIME_TWEAK + 0.01)
-
-            # Continue the `async_act` after the sleep of the Behaviour.
             self.behaviour.act_wrapper()
 
         assert "[test_agent_name] Entered in the 'transform' behaviour" in caplog.text
