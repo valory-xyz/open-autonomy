@@ -39,7 +39,6 @@ from aea.mail.base import Envelope
 from aea.protocols.dialogue.base import DialogueLabel
 from google.protobuf.message import DecodeError
 
-from packages.valory.connections.abci import PUBLIC_ID as CONNECTION_PUBLIC_ID
 from packages.valory.connections.abci.dialogues import AbciDialogues
 from packages.valory.connections.abci.tendermint.abci import (  # type: ignore
     types_pb2_grpc,
@@ -87,7 +86,7 @@ from packages.valory.connections.abci.tendermint_encoder import (
 from packages.valory.protocols.abci import AbciMessage
 
 
-PUBLIC_ID = CONNECTION_PUBLIC_ID
+PUBLIC_ID = PublicId.from_str("valory/abci:0.1.0")
 
 ENCODING = "utf-8"
 LOCALHOST = "127.0.0.1"
@@ -795,7 +794,7 @@ class GrpcServerChannel:  # pylint: disable=too-many-instance-attributes
 
         # channel state
         self._loop: Optional[AbstractEventLoop] = None
-        self._dialogues = AbciDialogues()
+        self._dialogues = AbciDialogues(connection_id=PUBLIC_ID)
         self._is_stopped: bool = True
         self.queue: Optional[asyncio.Queue] = None
         self._server: Optional[grpc.Server] = None
@@ -882,7 +881,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
 
         # channel state
         self._loop: Optional[AbstractEventLoop] = None
-        self._dialogues = AbciDialogues()
+        self._dialogues = AbciDialogues(connection_id=PUBLIC_ID)
         self._is_stopped: bool = True
         self.queue: Optional[asyncio.Queue] = None
         self._server: Optional[AbstractServer] = None

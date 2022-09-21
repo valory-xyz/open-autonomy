@@ -79,9 +79,9 @@ class _SafeConfiguredHelperIntegration(IntegrationBaseCase):
     keeper_address: str
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup."""
-        super().setup()
+        super().setup_class()
 
         # safe configuration
         cls.safe_owners = {}
@@ -105,9 +105,9 @@ class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
     gnosis_instance: Any
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup."""
-        super().setup()
+        super().setup_class()
 
         # register gnosis contract
         gnosis = get_register_contract(GNOSIS_SAFE_PACKAGE)

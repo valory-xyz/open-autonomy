@@ -28,7 +28,7 @@ from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.test_tools.test_skill import BaseSkillTestCase
 
-from packages.valory.connections.abci import PUBLIC_ID
+from packages.valory.connections.abci.connection import PUBLIC_ID
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
     CheckTxType,
@@ -88,9 +88,9 @@ class TestABCIHandlerOld(BaseSkillTestCase):
     abci_dialogues: AbciDialogues
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup the test class."""
-        super().setup()
+        super().setup_class()
         cls.abci_handler = cast(ABCIHandler, cls._skill.skill_context.handlers.abci)
         cls.logger = cls._skill.skill_context.logger
 

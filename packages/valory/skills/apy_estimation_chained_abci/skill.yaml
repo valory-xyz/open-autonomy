@@ -24,9 +24,9 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeie3vvct6ydb46pe6f7fp65aafwz5ybr6bk7zkkpbrui4tjbbs66xa
-- valory/apy_estimation_abci:0.1.0:bafybeidclzfwua45kpem366jyzttdwvw5peakxw72mbdzmgjxwmnc64vhi
-- valory/registration_abci:0.1.0:bafybeibdm4z6q46fe7sw7v35y3vhratbojmewspfzu6iblrkejvifh5hl4
+- valory/abstract_round_abci:0.1.0:bafybeiasu3lbnwqdgdzoaxrvbos5qgabxtxkhb52r3rosrp4s4c246467a
+- valory/apy_estimation_abci:0.1.0:bafybeibibontwb4rrs6jkgrvmpzxjyeqhtxz7uudtaa265gep42763eeza
+- valory/registration_abci:0.1.0:bafybeie7lxe5spcitc7pwfilapsu5wlictp4ibz7gbko5yg3nx6llcjisu
 behaviours:
   main:
     args: {}
@@ -227,7 +227,7 @@ dependencies:
   numpy:
     version: ==1.21.6
   open-aea-cli-ipfs:
-    version: <2.0.0,>=1.19.0
+    version: <2.0.0,>=1.20.0
   optuna:
     version: ==2.10.1
   pandas:

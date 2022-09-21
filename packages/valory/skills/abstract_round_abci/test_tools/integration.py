@@ -90,9 +90,9 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         """Setup class."""
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup."""
-        super().setup()
+        super().setup_class()
 
         # set up a multiplexer with the required connections
         cls.running_loop = asyncio.new_event_loop()
@@ -131,12 +131,12 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         )
 
     @classmethod
-    def teardown(cls) -> None:
+    def teardown_class(cls) -> None:
         """Tear down the multiplexer."""
-        super().teardown()
         cls.multiplexer.disconnect()
         cls.running_loop.call_soon_threadsafe(cls.running_loop.stop)
         cls.thread_loop.join()
+        super().teardown_class()
 
     def get_message_from_decision_maker_inbox(self) -> Optional[Message]:
         """Get message from decision maker inbox."""
@@ -293,9 +293,9 @@ class _HarHatHelperIntegration(IntegrationBaseCase):
     hardhat_provider: BaseProvider
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup_class(cls, **kwargs: Any) -> None:
         """Setup."""
-        super().setup()
+        super().setup_class()
 
         # create an API for HardHat
         cls.hardhat_provider = Web3(

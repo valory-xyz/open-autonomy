@@ -17,7 +17,7 @@ fingerprint:
   payloads.py: bafybeigvs7s5gnr2ocq7ofrvh7tksla2fh3ymgshhdtooe2wb7bdnw6bta
   rounds.py: bafybeibxjnvm5r62qnvv54c6xjcym4j2cuxk4kvv566jwcdbamwyr5qjvq
   test_tools/__init__.py: bafybeifwxievldkr2k5rqcsq4t3hx4kh6pue4spxy6tlji6422np46dtoy
-  test_tools/integration.py: bafybeid7u6ajc4wt6ntdv4dr4gdbam7odl3rl544lhfokxolr4zn2xyhj4
+  test_tools/integration.py: bafybeigfxfkh3ozort5j2njw4lx77fkwoacn5jaxwn73uuhg2kq3n5zp3e
   tests/__init__.py: bafybeidot63jvseuzsejbgxrpglklvv4moom7sbxbw7k6t6sd2dp76zjxe
   tests/test_behaviours.py: bafybeidobydw54gxf3rftv5wzyvqylyvgjswoq5it6ny7r7ozs2obtlzfq
   tests/test_dialogues.py: bafybeih3s76ty6lj2ussh2nxtu3ni7mebg6n3xo4vrvizu2vbflo5ieuqa
@@ -28,15 +28,15 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeifbkitkori3pi2mtevm475xbnljfejpci7u7veziaptrj4hjbciju
+- valory/gnosis_safe:0.1.0:bafybeihht4j726a4swe4duqxohnxtctdghftgywurw55zwjjqsbqjwnacm
 - valory/multisend:0.1.0:bafybeig45676hbh4c3p3mujrrskxgxww4cxdyyginlg5rmmav6orv4gtya
 - valory/uniswap_v2_erc20:0.1.0:bafybeibkiwytuhhvxbisoxcybrx4lfstk6bvtriltles7fxxpy37yq45ja
-- valory/uniswap_v2_router_02:0.1.0:bafybeidabycj7yw6u2bt64db23lvb5zowmcgu6zjkp7xjigqle3y3scgfi
+- valory/uniswap_v2_router_02:0.1.0:bafybeia5hkf3esqulz7g4uhjwhcrfwaok42ddumnokkbvrlm4g55wgdxmq
 protocols:
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeie3vvct6ydb46pe6f7fp65aafwz5ybr6bk7zkkpbrui4tjbbs66xa
-- valory/transaction_settlement_abci:0.1.0:bafybeiegrjh4h6qj6wohls7vg73z2hovg5tksokt2xnso46sc4lauxmy4a
+- valory/abstract_round_abci:0.1.0:bafybeiasu3lbnwqdgdzoaxrvbos5qgabxtxkhb52r3rosrp4s4c246467a
+- valory/transaction_settlement_abci:0.1.0:bafybeia2gs36s2mz32yaznhlidiolhw5swkumiej4vgwywphppjvurldie
 behaviours:
   main:
     args: {}
@@ -147,5 +147,5 @@ models:
     class_name: SharedState
 dependencies:
   open-aea-test-autonomy:
-    version: ==0.3.0
+    version: ==0.3.1
 is_abstract: true

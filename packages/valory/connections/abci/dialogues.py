@@ -18,10 +18,11 @@
 # ------------------------------------------------------------------------------
 """Dialogues classes for the ABCI connection."""
 
+from typing import Any
+
 from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 
-from packages.valory.connections.abci import PUBLIC_ID
 from packages.valory.protocols.abci.dialogues import AbciDialogue as BaseAbciDialogue
 from packages.valory.protocols.abci.dialogues import AbciDialogues as BaseAbciDialogues
 
@@ -32,8 +33,12 @@ AbciDialogue = BaseAbciDialogue
 class AbciDialogues(BaseAbciDialogues):
     """The dialogues class keeps track of all ABCI dialogues."""
 
-    def __init__(self) -> None:
-        """Initialize dialogues."""
+    def __init__(self, **kwargs: Any) -> None:
+        """
+        Initialize dialogues.
+
+        :param kwargs: keyword arguments
+        """
 
         def role_from_first_message(  # pylint: disable=unused-argument
             message: Message, receiver_address: Address
@@ -48,7 +53,7 @@ class AbciDialogues(BaseAbciDialogues):
 
         BaseAbciDialogues.__init__(
             self,
-            self_address=str(PUBLIC_ID),
+            self_address=str(kwargs.pop("connection_id")),
             role_from_first_message=role_from_first_message,
             dialogue_class=AbciDialogue,
         )
