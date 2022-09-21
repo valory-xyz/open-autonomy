@@ -205,6 +205,7 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
         """Set up the test method."""
         super().setup()
         assert self.behaviour.current_behaviour is not None
+        self.behaviour.current_behaviour.batch = False
         self.behaviour.current_behaviour.params.start = HISTORY_START
         self.behaviour.current_behaviour.params.interval = HISTORY_INTERVAL
         self.behaviour.current_behaviour.params.end = HISTORY_END
@@ -277,6 +278,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         behaviour.params.pair_ids = pairs_ids
 
         assert expected_pair_ids == behaviour.current_pair_ids
+        self.end_round()
 
     @pytest.mark.parametrize(
         "progress_initialized, current_dex_name, expected",
@@ -310,6 +312,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         actual = behaviour.current_dex
         get_subgraph_mock.assert_called_once_with(expected)
         assert actual == "get_subgraph_output"
+        self.end_round()
 
     def test_current_chain(self) -> None:
         """Test `current_chain`."""
@@ -329,6 +332,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         assert (
             behaviour.current_chain.api_id == "test_current_chain"
         ), "current chain is incorrect"
+        self.end_round()
 
     @pytest.mark.parametrize(
         "current_dex_name", ("uniswap_subgraph", "spooky_subgraph")
@@ -366,9 +370,10 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         behaviour._progress.n_fetched = n_fetched
 
         assert behaviour.currently_downloaded == expected
+        self.end_round()
 
     @given(st.lists(st.integers()))
-    @settings(deadline=5000, database=database.InMemoryExampleDatabase())
+    @settings(deadline=None, database=database.InMemoryExampleDatabase())
     def test_total_downloaded(
         self,
         pairs_hist: List,
@@ -383,10 +388,11 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         behaviour._pairs_hist = pairs_hist
         #
         assert behaviour.total_downloaded == len(pairs_hist)
+        self.end_round()
 
     #
     @given(st.lists(st.booleans(), max_size=50))
-    @settings(deadline=5000, database=database.InMemoryExampleDatabase())
+    @settings(deadline=None, database=database.InMemoryExampleDatabase())
     def test_retries_exceeded(
         self,
         is_exceeded_per_subgraph: List[bool],
@@ -407,6 +413,8 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         # we expect `retries_exceeded` to return True if any of the subgraphs' `is_retries_exceeded` returns `True`
         expected = any(is_exceeded_per_subgraph)
         assert behaviour.retries_exceeded == expected
+        behaviour._utilized_subgraphs = {}
+        self.end_round()
 
     @pytest.mark.parametrize("batch_flag", (True, False))
     def test_setup(self, monkeypatch: MonkeyPatch, batch_flag: bool) -> None:
@@ -497,6 +505,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             raise AssertionError(
                 "Test did not finish as expected. `_check_given_pairs` should have reached to its end."
             )
+        self.end_round()
 
     @pytest.mark.parametrize("batch", (True, False))
     @given(
@@ -504,7 +513,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         st.integers(min_value=1),
         st.integers(min_value=1, max_value=50),
     )
-    @settings(deadline=5000, database=database.InMemoryExampleDatabase())
+    @settings(deadline=None, database=database.InMemoryExampleDatabase())
     def test_reset_timestamps_iterator(
         self,
         batch: bool,
@@ -529,6 +538,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         expected = [end] if batch else [i for i in range(start, end, interval)]
         assert behaviour._progress.timestamps_iterator is not None
         assert list(behaviour._progress.timestamps_iterator) == expected
+        self.end_round()
 
     @given(
         st.booleans(),
@@ -540,7 +550,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         st.integers(),
         st.lists(st.text(min_size=1)),
     )
-    @settings(deadline=5000, database=database.InMemoryExampleDatabase())
+    @settings(deadline=None, database=database.InMemoryExampleDatabase())
     def test_set_current_progress(
         self,
         pairs_ids: Dict[str, List[str]],
@@ -623,6 +633,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             behaviour._set_current_progress()
         #
         assert behaviour._progress.initialized
+        self.end_round()
 
     def test_handle_response(self, caplog: LogCaptureFixture) -> None:
         """Test `handle_response`."""
@@ -678,6 +689,8 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
                 assert res.value == 4
             assert "[test_agent_name] Retrieved test: 4." in caplog.text
             assert specs._retries_attempted == 0
+
+        self.end_round()
 
     def test_fetch_behaviour(
         self,
@@ -800,6 +813,10 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
+
+        behaviour._progress.call_failed = False
+        behaviour.context.spooky_subgraph._retries_attempted = 0
+
         self.end_round()
         behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
         assert behaviour.behaviour_id == TransformBehaviour.behaviour_id
@@ -825,6 +842,10 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
         behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
         behaviour._pairs_exist = True
+        behaviour._progress.initialized = True
+        behaviour._progress.current_dex_name = "uniswap_subgraph"
+        expected_timestamp = 1
+        behaviour._progress.timestamps_iterator = iter((expected_timestamp,))
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
@@ -845,7 +866,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             "utf-8"
         )
         res: Dict[str, Union[List[Dict[str, str]], Dict[str, List[Dict[str, str]]]]] = {
-            "data": {"blocks": [{"timestamp": "1", "number": "15178691"}]}
+            "data": {
+                "blocks": [{"timestamp": str(expected_timestamp), "number": "15178691"}]
+            }
         }
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
         behaviour.act_wrapper()
@@ -942,6 +965,12 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
         behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
         behaviour._pairs_exist = True
+        behaviour._progress.initialized = True
+        behaviour._progress.current_dex_name = "uniswap_subgraph"
+        expected_timestamp = 1
+        behaviour._progress.timestamps_iterator = (
+            iter((expected_timestamp,)) if expected_timestamp is not None else iter(())
+        )
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
@@ -962,7 +991,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             "utf-8"
         )
         res: Dict[str, Union[List[Dict[str, str]], Dict[str, List[Dict[str, str]]]]] = {
-            "data": {"blocks": [{"timestamp": "1", "number": "15178691"}]}
+            "data": {
+                "blocks": [{"timestamp": str(expected_timestamp), "number": "15178691"}]
+            }
         }
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
         behaviour.act_wrapper()
@@ -1025,6 +1056,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self.mock_http_request(request_kwargs, response_kwargs)
         time.sleep(SLEEP_TIME_TWEAK + 0.01)
         behaviour.act_wrapper()
+        self.end_round()
 
     def test_fetch_behaviour_retries_exceeded(self, caplog: LogCaptureFixture) -> None:
         """Run tests for exceeded retries."""
@@ -1094,6 +1126,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
+        self.end_round()
 
     def test_fetch_value_none(
         self,
@@ -1114,6 +1147,12 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
         behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
         behaviour._pairs_exist = True
+        behaviour._progress.initialized = True
+        behaviour._progress.current_dex_name = "uniswap_subgraph"
+        expected_timestamp = 1
+        behaviour._progress.timestamps_iterator = (
+            iter((expected_timestamp,)) if expected_timestamp is not None else iter(())
+        )
 
         request_kwargs: Dict[str, Union[str, bytes]] = dict(
             method="POST",
@@ -1153,7 +1192,11 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         request_kwargs["body"] = json.dumps({"query": block_from_timestamp_q}).encode(
             "utf-8"
         )
-        res = {"data": {"blocks": [{"timestamp": "1", "number": "15178691"}]}}
+        res = {
+            "data": {
+                "blocks": [{"timestamp": str(expected_timestamp), "number": "15178691"}]
+            }
+        }
         response_kwargs["body"] = json.dumps(res).encode("utf-8")
         behaviour.act_wrapper()
         self.mock_http_request(request_kwargs, response_kwargs)
@@ -1214,6 +1257,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         caplog.clear()
         time.sleep(SLEEP_TIME_TWEAK + 0.01)
         behaviour.act_wrapper()
+        self.end_round()
 
     @pytest.mark.parametrize("target_per_pool", (0, 3))
     def test_fetch_behaviour_stop_iteration(
@@ -1305,6 +1349,8 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             self.behaviour.current_behaviour.clean_up()
             assert subgraph._retries_attempted == 0
 
+        self.end_round()
+
 
 class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
     """Test TransformBehaviour."""
@@ -1356,6 +1402,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         self._fast_forward(tmp_path)
         self.behaviour.context.task_manager.start()
         cast(TransformBehaviour, self.behaviour.current_behaviour).setup()
+        self.end_round()
 
     def test_task_not_ready(
         self,
@@ -1366,6 +1413,7 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
     ) -> None:
         """Run test for `transform_behaviour` when task result is not ready."""
         self._fast_forward(tmp_path)
+        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
         monkeypatch.setattr(
             TaskManager,
             "get_task_result",
@@ -1379,16 +1427,6 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
             logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
         ):
             self.behaviour.context.task_manager.start()
-
-            cast(
-                TransformBehaviour, self.behaviour.current_behaviour
-            ).params.sleep_time = SLEEP_TIME_TWEAK
-            self.behaviour.act_wrapper()
-
-            # Sleep to wait for the behaviour that is also sleeping.
-            time.sleep(SLEEP_TIME_TWEAK + 0.01)
-
-            # Continue the `async_act` after the sleep of the Behaviour.
             self.behaviour.act_wrapper()
 
         assert "[test_agent_name] Entered in the 'transform' behaviour" in caplog.text
@@ -1524,9 +1562,6 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
         if task_ready:
             self.mock_a2a_transaction()
             self._test_done_flag_set()
-            self.end_round()
-            behaviour = cast(PreprocessBehaviour, self.behaviour.current_behaviour)
-            assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
         else:
             self.behaviour.act_wrapper()
@@ -1534,6 +1569,10 @@ class TestPreprocessBehaviour(APYEstimationFSMBehaviourBaseCase):
             self.behaviour.act_wrapper()
             behaviour = cast(PreprocessBehaviour, self.behaviour.current_behaviour)
             assert behaviour.behaviour_id == self.behaviour_class.behaviour_id
+
+        self.end_round()
+        behaviour = cast(PreprocessBehaviour, self.behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
 class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -1639,6 +1678,7 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
         )
         current_behaviour.setup()
         assert not any(batch is None for batch in current_behaviour._batches)
+        self.end_round()
 
     def test_task_not_ready(
         self,
@@ -1675,6 +1715,7 @@ class TestPrepareBatchBehaviour(APYEstimationFSMBehaviourBaseCase):
             ).behaviour_id
             == self.behaviour_class.behaviour_id
         )
+        self.end_round()
 
     @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_prepare_batch_behaviour(
@@ -1812,6 +1853,7 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
                 body=json.dumps(drand_invalid).encode(),
             ),
         )
+        self.end_round()
 
     def test_invalid_response(
         self,
@@ -1850,6 +1892,7 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
         self.behaviour.act_wrapper()
         time.sleep(SLEEP_TIME_TWEAK + 0.01)
         self.behaviour.act_wrapper()
+        self.end_round()
 
     def test_max_retries_reached(
         self,
@@ -1879,6 +1922,8 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
             )
             self._test_done_flag_set()
 
+        self.end_round()
+
     def test_clean_up(
         self,
     ) -> None:
@@ -1899,6 +1944,7 @@ class TestRandomnessBehaviour(APYEstimationFSMBehaviourBaseCase):
         assert self.behaviour.current_behaviour is not None
         self.behaviour.current_behaviour.clean_up()
         assert self.behaviour.context.randomness_api._retries_attempted == 0
+        self.end_round()
 
 
 class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
@@ -1982,6 +2028,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
         current_behaviour = cast(OptimizeBehaviour, self.behaviour.current_behaviour)
         current_behaviour.setup()
         assert current_behaviour._y is not None
+        self.end_round()
 
     def test_task_not_ready(
         self,
@@ -2012,6 +2059,7 @@ class TestOptimizeBehaviour(APYEstimationFSMBehaviourBaseCase):
             ).behaviour_id
             == self.behaviour_class.behaviour_id
         )
+        self.end_round()
 
     @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_optimize_behaviour(
@@ -2172,6 +2220,8 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
                 for arg in (current_behaviour._y, current_behaviour._best_params)
             )
 
+        self.end_round()
+
     def test_task_not_ready(
         self,
         monkeypatch: MonkeyPatch,
@@ -2196,6 +2246,7 @@ class TestTrainBehaviour(APYEstimationFSMBehaviourBaseCase):
             ).behaviour_id
             == self.behaviour_class.behaviour_id
         )
+        self.end_round()
 
     @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_train_behaviour(
@@ -2332,6 +2383,8 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
         else:
             assert all(is_none)
 
+        self.end_round()
+
     def test_task_not_ready(
         self,
         monkeypatch: MonkeyPatch,
@@ -2355,6 +2408,7 @@ class TestTestBehaviour(APYEstimationFSMBehaviourBaseCase):
             ).behaviour_id
             == self.behaviour_class.behaviour_id
         )
+        self.end_round()
 
     @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_test_behaviour(
@@ -2476,6 +2530,7 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
         current_behaviour = cast(
             UpdateForecasterBehaviour, self.behaviour.current_behaviour
         )
+        assert current_behaviour.behaviour_id == UpdateForecasterBehaviour.behaviour_id
         current_behaviour.setup()
 
         is_none = (
@@ -2489,6 +2544,8 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
             assert not any(is_none)
         else:
             assert all(is_none)
+
+        self.end_round()
 
     def test_task_not_ready(
         self,
@@ -2515,6 +2572,7 @@ class TestUpdateForecasterBehaviour(APYEstimationFSMBehaviourBaseCase):
             ).behaviour_id
             == self.behaviour_class.behaviour_id
         )
+        self.end_round()
 
     @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_update_forecaster_behaviour(
@@ -2609,6 +2667,7 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
             assert current_behaviour._forecasters is not None
         else:
             assert current_behaviour._forecasters is None
+        self.end_round()
 
     def test_task_not_ready(
         self,
@@ -2634,6 +2693,7 @@ class TestEstimateBehaviour(APYEstimationFSMBehaviourBaseCase):
             ).behaviour_id
             == self.behaviour_class.behaviour_id
         )
+        self.end_round()
 
     @pytest.mark.parametrize("ipfs_succeed", (True, False))
     def test_estimate_behaviour(
@@ -2714,6 +2774,7 @@ class BaseResetBehaviourTests(APYEstimationFSMBehaviourBaseCase):
         ):
             behaviour._get_finalized_estimates()
         assert log_message in caplog.text
+        self.end_round()
 
     @pytest.mark.parametrize(
         "input_, expected",
@@ -2772,6 +2833,7 @@ class BaseResetBehaviourTests(APYEstimationFSMBehaviourBaseCase):
         assert behaviour.behaviour_id == self.behaviour_class.behaviour_id
         actual = behaviour._pack_for_server(**input_)
         assert actual == b"".join(expected)  # type: ignore
+        self.end_round()
 
     def test_send_to_server(self, caplog: LogCaptureFixture) -> None:
         """Test for `_send_to_server` method."""
@@ -2803,6 +2865,7 @@ class BaseResetBehaviourTests(APYEstimationFSMBehaviourBaseCase):
                 send_gen.send(None)
 
         assert f"Broadcast response: {expected}" in caplog.text
+        self.end_round()
 
     @pytest.mark.parametrize(
         "is_most_voted_estimate_set, estimations, is_broadcasting_to_server, log_level, log_message",
