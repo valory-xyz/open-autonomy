@@ -53,6 +53,7 @@ class AMMIntegrationBaseCase(
     def setup_class(cls, **kwargs: Any) -> None:
         """Setup."""
         super().setup_class()
+        HardHatAMMBaseTest.setup_class()
 
         # register all contracts we need
         _ = get_register_contract(UNISWAP_V2_ROUTER_02_PACKAGE)
