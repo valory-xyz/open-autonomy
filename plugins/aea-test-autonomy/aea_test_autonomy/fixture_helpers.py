@@ -271,6 +271,17 @@ def ganache_scope_class(
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
+@pytest.fixture(scope="class")
+def ammnet_scope_class(
+    timeout: float = 2.0,
+    max_attempts: int = 20,
+) -> Generator:
+    """Launch the Ganache image. This fixture is scoped to a class which means it will destroyed after running every test in a class."""
+    client = docker.from_env()
+    image = AMMNetDockerImage(client=client)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
 @pytest.mark.integration
 class UseGanache:
     """Inherit from this class to use Ganache."""

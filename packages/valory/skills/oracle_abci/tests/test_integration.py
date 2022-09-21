@@ -27,6 +27,9 @@ from unittest import mock
 import pytest
 from aea_ledger_ethereum import EthereumApi
 from aea_test_autonomy.docker.base import skip_docker_tests
+from aea_test_autonomy.fixture_helpers import (  # pylint: unsed-import # noqa: F401
+    ammnet_scope_class,
+)
 from web3.types import RPCEndpoint, Wei
 
 from packages.open_aea.protocols.signing import SigningMessage
@@ -101,6 +104,7 @@ class OracleBehaviourBaseCase(FSMBehaviourBaseCase):
     behaviour: OracleAbciAppConsensusBehaviour
 
 
+@pytest.mark.usefixtures("ammnet_scope_class")
 class TransactionSettlementIntegrationBaseCase(
     OracleBehaviourBaseCase, GnosisIntegrationBaseCase
 ):

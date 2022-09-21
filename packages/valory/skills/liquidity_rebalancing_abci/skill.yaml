@@ -17,7 +17,7 @@ fingerprint:
   payloads.py: bafybeigvs7s5gnr2ocq7ofrvh7tksla2fh3ymgshhdtooe2wb7bdnw6bta
   rounds.py: bafybeibxjnvm5r62qnvv54c6xjcym4j2cuxk4kvv566jwcdbamwyr5qjvq
   test_tools/__init__.py: bafybeifwxievldkr2k5rqcsq4t3hx4kh6pue4spxy6tlji6422np46dtoy
-  test_tools/integration.py: bafybeicw3rr56gkibeulvdlpmojfd6nl7ilqu6oqndbkpr5whq6ly2dkce
+  test_tools/integration.py: bafybeigfxfkh3ozort5j2njw4lx77fkwoacn5jaxwn73uuhg2kq3n5zp3e
   tests/__init__.py: bafybeidot63jvseuzsejbgxrpglklvv4moom7sbxbw7k6t6sd2dp76zjxe
   tests/test_behaviours.py: bafybeidobydw54gxf3rftv5wzyvqylyvgjswoq5it6ny7r7ozs2obtlzfq
   tests/test_dialogues.py: bafybeih3s76ty6lj2ussh2nxtu3ni7mebg6n3xo4vrvizu2vbflo5ieuqa
@@ -35,8 +35,8 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiasu3lbnwqdgdzoaxrvbos5qgabxtxkhb52r3rosrp4s4c246467a
-- valory/transaction_settlement_abci:0.1.0:bafybeia2gs36s2mz32yaznhlidiolhw5swkumiej4vgwywphppjvurldie
+- valory/abstract_round_abci:0.1.0:bafybeifesvgygepeq5y2jxo5cqkke5fe2nyzbafyxft6ofldguaobxzrge
+- valory/transaction_settlement_abci:0.1.0:bafybeih2mfgfypj2w4bws5tbgbwz4rtz5wosezjq3hkobbatbmw7fo6p34
 behaviours:
   main:
     args: {}

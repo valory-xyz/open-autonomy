@@ -6,6 +6,15 @@ description: abstract round-based ABCI application
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
+  .hypothesis/examples/529490a0b26e3020/00cabd95ee3490f2: bafybeigceq5mkro6fog3mb37vwh3jaxaq76mnm7ko6rhuxyljxexur5pme
+  .hypothesis/examples/529490a0b26e3020/00e2f9511f743595: bafybeidius6abvylrfd6usoxvtoyd5kcuq5cdro27kpgzckjf5tfxw3wtm
+  .hypothesis/examples/529490a0b26e3020/0a3816557bdb28e8: bafybeifnwkz5ggrsl5halel7rtywisqrc6whdpli273diteirwaai6uvma
+  .hypothesis/examples/529490a0b26e3020/1086a78797317d2d: bafybeicejdbtwqpiwrokg4ew6ymmntkthvdw4tglnncpzjmvrp74bk6dmi
+  .hypothesis/examples/529490a0b26e3020/2873e89f42ff97fc: bafybeicppsopj427dheugs35k4cqglr3dwf5hhtsx34tqhi74ioozo6mvq
+  .hypothesis/examples/529490a0b26e3020/bec021b4f368e306: bafybeibyqyrkx66boqbutl5oktknecxgnl43cipcls3knonfmi727rdtnu
+  .hypothesis/examples/529490a0b26e3020/d61d81bde901a3dd: bafybeieq7eubppz3lnwjftjcui47vwbdiisdxxzpemah3owkpllnyvj5eu
+  .hypothesis/examples/b009e3f77d0ecdb6/a420b900630674df: bafybeie7ki2hvtsywsgd5pgno4og2zx4dwjop22somkqh3qe4l5ywvluby
+  .hypothesis/examples/b009e3f77d0ecdb6/cace61974a80763a: bafybeifytrjibroszfnz256ivauelofxpm4a7swvpbivl2mifwmj2vxdq4
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeiaxhdfjmhbstyi5oqeu7wzst44snhbyoggrpusgs2c3tn3cluzhpm
   abci_app_chain.py: bafybeihb3ded23gvjrn426qptkbnkge5cewqm7ywi4j6ebmo3j66ss5wii
