@@ -251,6 +251,17 @@ def ganache_scope_class(ganache_configuration: Dict, ganache_addr: str, ganache_
 
 Launch the Ganache image. This fixture is scoped to a class which means it will destroyed after running every test in a class.
 
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.ammnet_scope_class"></a>
+
+#### ammnet`_`scope`_`class
+
+```python
+@pytest.fixture(scope="class")
+def ammnet_scope_class(timeout: float = 2.0, max_attempts: int = 20) -> Generator
+```
+
+Launch the Ganache image. This fixture is scoped to a class which means it will destroyed after running every test in a class.
+
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseGanache"></a>
 
 ## UseGanache Objects

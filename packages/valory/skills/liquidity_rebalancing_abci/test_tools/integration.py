@@ -21,7 +21,6 @@
 
 from typing import Any
 
-from aea_test_autonomy.fixture_helpers import HardHatAMMBaseTest
 from aea_test_autonomy.helpers.contracts import get_register_contract
 
 from packages.valory.contracts.multisend.tests.test_contract import (
@@ -44,10 +43,12 @@ from packages.valory.skills.transaction_settlement_abci.test_tools.integration i
 # pylint: disable=protected-access,too-many-ancestors,unbalanced-tuple-unpacking,too-many-locals,consider-using-with,unspecified-encoding,too-many-arguments,unidiomatic-typecheck
 
 
-class AMMIntegrationBaseCase(
-    _TxHelperIntegration, _HarHatHelperIntegration, HardHatAMMBaseTest
-):
+class AMMIntegrationBaseCase(_TxHelperIntegration, _HarHatHelperIntegration):
     """Base test class for integration tests in a Hardhat environment, with AMM interaction."""
+
+    @classmethod
+    def _setup_class(cls, **setup_class_kwargs: Any) -> None:
+        """Continue setting up the class."""
 
     @classmethod
     def setup_class(cls, **kwargs: Any) -> None:

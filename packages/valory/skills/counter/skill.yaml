@@ -11,7 +11,7 @@ fingerprint:
   dialogues.py: bafybeigocfxocz4ektda3iloefedpjru3hobmxop7czi6ekq7ifumvdtwa
   handlers.py: bafybeiazszy3rxyvitfseyey43wrfmhlcztku55jaxk3lg7hzmuxy4t4zm
   tests/__init__.py: bafybeico62tplfccctl7o2ixzpzpysjk5klj36nlk4uqqwzqxc5xrx2ldu
-  tests/test_counter.py: bafybeifmhzzrrayfuhr7toygij6hcjeo2uhnrm5umuf4g5p7ymxswdp3ta
+  tests/test_counter.py: bafybeiegnzuszomtspybabnaryjimz5q7lyjkh32ewq6qmwdrerqj5cdaq
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiejtgtkfxrrigsro6tvaaqgktrpao7bx476ob3n2wezonblnxi3xy

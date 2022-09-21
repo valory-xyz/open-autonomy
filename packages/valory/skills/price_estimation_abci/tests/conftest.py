@@ -21,7 +21,6 @@
 
 from typing import Any
 
-from aea_test_autonomy.fixture_helpers import HardHatAMMBaseTest
 from aea_test_autonomy.helpers.contracts import get_register_contract
 
 from packages.valory.contracts.offchain_aggregator.tests.test_contract import (
@@ -36,7 +35,7 @@ from packages.valory.skills.transaction_settlement_abci.test_tools.integration i
 
 
 class GnosisIntegrationBaseCase(  # pylint: disable=too-many-ancestors
-    _TxHelperIntegration, _HarHatHelperIntegration, HardHatAMMBaseTest
+    _TxHelperIntegration, _HarHatHelperIntegration
 ):
     """Base test class for integration tests in a Hardhat environment, with Gnosis deployed."""
 

@@ -26,9 +26,13 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 
+import pytest
 from aea.helpers.transaction.base import RawTransaction, State
 from aea.skills.base import Handler
 from aea_test_autonomy.docker.base import skip_docker_tests
+from aea_test_autonomy.fixture_helpers import (  # pylint: unsed-import # noqa: F401
+    ammnet_scope_class,
+)
 from web3 import Web3
 
 from packages.valory.connections.ledger.tests.conftest import make_ledger_api_connection
@@ -96,6 +100,7 @@ class LiquidityRebalancingBehaviourBaseCase(FSMBehaviourBaseCase):
     signing_handler: SigningHandler
 
 
+@pytest.mark.usefixtures("ammnet_scope_class")
 class LiquidityProvisionIntegrationBaseCase(
     LiquidityRebalancingBehaviourBaseCase, AMMIntegrationBaseCase
 ):
