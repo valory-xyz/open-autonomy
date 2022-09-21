@@ -68,6 +68,14 @@ class TestCounterHandler(BaseSkillTestCase):
             AbciDialogues, cls._skill.skill_context.abci_dialogues
         )
 
+    @classmethod
+    def setup(
+        self,
+    ) -> None:
+        """Setup test."""
+
+        self.abci_counter_handler.tx_count = 0
+
     def test_setup(self) -> None:
         """Test the setup method of the echo handler."""
         with patch.object(self.logger, "log") as mock_logger:
