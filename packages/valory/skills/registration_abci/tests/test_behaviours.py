@@ -329,6 +329,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         """Empty init"""
         assert self.state.registered_addresses == {}
         assert self.state.local_tendermint_params == {}
+        assert self.state.updated_genesis_data == {}
 
     def test_no_contract_address(self, caplog: LogCaptureFixture) -> None:
         """Test service registry contract address not provided"""
@@ -460,6 +461,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     ) -> None:
         """Test Tendermint config update"""
 
+        self.state.updated_genesis_data = {}
         failed_message = self.state.LogMessages.failed_update
         response_message = self.state.LogMessages.response_update
         log_message = [failed_message, response_message][valid_response]
@@ -481,6 +483,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         self, valid_response: bool, caplog: LogCaptureFixture
     ) -> None:
         """Test Tendermint start"""
+        self.state.updated_genesis_data = {}
         with as_context(
             caplog.at_level(logging.INFO, logger=self.logger),
             self.mocked_service_registry_address,
