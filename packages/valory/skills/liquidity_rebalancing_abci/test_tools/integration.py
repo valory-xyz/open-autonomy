@@ -50,6 +50,10 @@ class AMMIntegrationBaseCase(
     """Base test class for integration tests in a Hardhat environment, with AMM interaction."""
 
     @classmethod
+    def _setup_class(cls, **setup_class_kwargs: Any) -> None:
+        """Continue setting up the class."""
+
+    @classmethod
     def setup_class(cls, **kwargs: Any) -> None:
         """Setup."""
         super().setup_class()
