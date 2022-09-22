@@ -1570,7 +1570,14 @@ class TestBaseBehaviour:
         assert self.behaviour._is_timeout_expired() == expiration_expected
 
     @pytest.mark.parametrize("default", (True, False))
-    @given(st.datetimes(), st.integers(), st.integers())
+    @given(
+        st.datetimes(
+            min_value=datetime(2, 1, 1),
+            max_value=datetime(9999, 1, 1),
+        ),
+        st.integers(),
+        st.integers(),
+    )
     def test_get_reset_params(
         self, default: bool, timestamp: datetime, height: int, interval: int
     ) -> None:
