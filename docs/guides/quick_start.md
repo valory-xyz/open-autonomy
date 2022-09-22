@@ -5,9 +5,11 @@ The purpose of this guide is to provide a step-by-step instructions to gain fami
 
 Having completed this guide, you can take a look at the [overview of the development process](./overview_of_the_development_process.md) with the {{open_autonomy}} framework, and continue with the rest of the guides in this section.
 
-Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
+
 
 ## Step-by-step instructions: deploy a local agent service
+
+Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
 
 !!! note
     On **MacOS** and **Windows**, running Docker containers requires having Docker Desktop running as well. If you're using one of those operating systems, remember to start Docker Desktop
