@@ -1409,24 +1409,16 @@ class TestTransformBehaviour(APYEstimationFSMBehaviourBaseCase):
         monkeypatch: MonkeyPatch,
         caplog: LogCaptureFixture,
         tmp_path: PosixPath,
-        transformed_historical_data_no_datetime_conversion: pd.DataFrame,
     ) -> None:
         """Run test for `transform_behaviour` when task result is not ready."""
         self._fast_forward(tmp_path)
-        monkeypatch.setattr(TaskManager, "enqueue_task", lambda *_, **__: 0)
-        monkeypatch.setattr(
-            TaskManager,
-            "get_task_result",
-            lambda *_: DummyAsyncResult(
-                transformed_historical_data_no_datetime_conversion, ready=False
-            ),
-        )
+        self.behaviour.context.task_manager.start()
+        monkeypatch.setattr(AsyncResult, "ready", lambda *_: False)
 
         with caplog.at_level(
             logging.DEBUG,
             logger="aea.test_agent_name.packages.valory.skills.apy_estimation_abci",
         ):
-            self.behaviour.context.task_manager.start()
             self.behaviour.act_wrapper()
 
         assert "[test_agent_name] Entered in the 'transform' behaviour" in caplog.text

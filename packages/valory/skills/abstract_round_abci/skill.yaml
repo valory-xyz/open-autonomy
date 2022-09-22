@@ -34,7 +34,7 @@ fingerprint:
   tests/test_base.py: bafybeidqeib4j4gnb5gjqyvf4triaqcp6jo5jrl2hfuwzaehuyfn62ryom
   tests/test_base_rounds.py: bafybeih7jzjbd23cxoi6lgncwsqgobtond62tiss6gxzw2u2c6qwk7krai
   tests/test_behaviours.py: bafybeie4azyxjmr2bvcf5uub52ewjqrxtvvr5nvlfz5fkvmtv5jgidmewe
-  tests/test_behaviours_utils.py: bafybeibpf4f72vnm6amoct3pd4em5advvrv5ron266ffqw4bya3bd73sca
+  tests/test_behaviours_utils.py: bafybeig2q5tvlhjqekekq57zccs25xkiq3iryyxa3shqppfgy3jp3ih7iu
   tests/test_common.py: bafybeif7qa6avf4mcvm2qmnukxuzahpnhaedu2wjhvrpdkd6j7cusvufry
   tests/test_dialogues.py: bafybeie4dkivvp3gdqyvvnazebftprwklklkjh6o36l5lxtwxuetgaw2nm
   tests/test_handlers.py: bafybeidkaz33qrrb6pfcz7acomw7e6p6dmyuykst5cvepjitubnjmfdgai
@@ -49,7 +49,7 @@ fingerprint:
   utils.py: bafybeigkr7rxl4wgjdlcea7jgx7xiuksz7vyenkijgyoh3e645weaeybim
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeiejtgtkfxrrigsro6tvaaqgktrpao7bx476ob3n2wezonblnxi3xy
+- valory/abci:0.1.0:bafybeidphoubsmjfndoqdj4ykkzygnz7jm57vleppj2qegplr4zsmw4vwy
 - valory/http_client:0.1.0:bafybeiet6defg3qvov4r2ucjtkywkz53xcg6mgarjfdqmnxfgdixgcx45y
 - valory/ledger:0.1.0:bafybeicfycqnhdzg5nsir33dlcgs2k4ijjncysqjcn67zvzv2fkwr43eby
 contracts:
@@ -62,7 +62,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeigqbgoej3zhsz6e5ibdu5tewv6plh4yzxllguyftbymj5bp2zaxyq
+- valory/abstract_abci:0.1.0:bafybeihlqczjtcdw3gfix2kakshmq2ujsbnqxxcxsxm2fvn6x6zg7kltga
 behaviours:
   main:
     args: {}
