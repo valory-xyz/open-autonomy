@@ -26,7 +26,7 @@ touch Pipfile && pipenv --python 3.10 && pipenv shell
 
 3. Install the {{open_autonomy}} framework:
 ```bash
-pip install open-autonomy
+pip install open-autonomy[all]
 ```
 
 4. Initialize the framework to work with the remote [IPFS](https://ipfs.io) registry. This means that when the framework will be fetching a component, it will do so from the [IPFS](https://ipfs.io):
