@@ -109,6 +109,9 @@ models:
       pair_ids: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_PAIR_IDS:dict:{"uniswap_subgraph":["0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5"],"spooky_subgraph":["0x2a651563c9d3af67ae0388a5c8f89b867038089e"]}}
       sleep_time: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_SLEEP_TIME:int:10}
       ipfs_domain_name: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_IPFS_DOMAIN_NAME:str:/dns/localhost/tcp/5001/http}
+  server_api:
+    args:
+      url: ${SKILL_APY_ESTIMATION_ABCI_MODELS_SERVER_API_ARGS_URL:str:http://192.168.2.17:9999/apy/deposit}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
