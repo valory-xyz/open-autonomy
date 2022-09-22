@@ -13,9 +13,9 @@ In this guide, we will show how to:
 
 If you recall the [overview of the development process](./overview_of_the_development_process.md), this roughly consists in steps 4, 5, and 6. For illustration purposes, we will also be using the agents from the [Hello World agent service](../hello_world_agent_service.md) and we will create a new (but functionally equivalent) "Hello World 2 agent service". To complete all the steps in this guide, you should have a [Görli testnet](https://goerli.net/) wallet address (e.g., [Metamask](https://metamask.io/)) with some GörliETH funds in it.
 
-## Step-by-step instructions
-
 Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
+
+## Step-by-step instructions
 
 1. **Identify the IPFS hash of the agent.** This can be some agent with the desired functionality for which you already know the hash, or you can browse it in the repository of a published agent. For this example, we consider the `hello_world` agent, whose hash is
 
@@ -91,59 +91,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
         Following the mandatory parameters of the service definition, there is a number of parameter overrides following the operator `---`, which set parameters for the agent components. In this case, the service is setting values for some parameters parameters in the `hello_world_abci` skill, and in the `ledger` connection. For now, you can safely ignore that part of the `service.yaml`file.
 
-3. **Test the service using a local deployment.** This is the recommended approach in order to test your agent service before you publish it to the IPFS. This process should be familiar to you if you have followed the [quick start](./quick_start.md) guide.
-
-    1. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the agent service. Below you have some sample keys for testing:
-
-        !!! warning "Important"
-            Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**
-
-            ```json
-            [
-              {
-                  "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
-                  "private_key": "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a"
-              },
-              {
-                  "address": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
-                  "private_key": "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba"
-              },
-              {
-                  "address": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
-                  "private_key": "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e"
-              },
-              {
-                  "address": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
-                  "private_key": "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356"
-              }
-            ]
-            ```
-
-
-    2. Build the Docker image of the service agents:
-        ```bash
-        autonomy build-image
-        ```
-        After the command finishes building it, you can see that it has created the image by executing:
-        ```bash
-        docker image ls | grep hello_world
-        ```
-
-        Note that if you have already executed the steps in the [quick sart](./quick_start.md), you should already have an image of the `hello_world` agent.
-
-
-    3. Build the deployment setup for the service:
-        ```bash
-        autonomy deploy build keys.json
-        ```
-
-    4. The build configuration will be located in `./abci_build`. Run the deployment locally using
-        ```bash
-        cd abci_build
-        autonomy deploy run
-        ```
-        You can cancel the local execution by pressing `Ctrl-C`, and return to the service parent folder `cd ..`.
-
+3. **Test the service using a local deployment.** This is the recommended approach in order to test your agent service before you publish it to the IPFS. Follow [these instructions](./deploy_service.md#step-by-step-instructions-local-deployment) to run the local deployment. Note that this process should be familiar to you if you have followed the [quick start](./quick_start.md) guide.
 
 
 4. **Publish the service on the [IPFS](https://ipfs.io/).** This will make the service available for other developers to fetch it.
