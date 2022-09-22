@@ -58,12 +58,12 @@ you have followed the [setup instructions](./quick_start.md#setup). As a result 
 
 4. **Push the generated skill to the local registry.** Now that you have successfully created the skill, you can push it to the local registry.
 
-    To use the local registry, it is expected that a `packages` directory exists at the same level as our agent. In this example, it expects that the directory `my_workspace/packages` exists. If you don't have a local registry, you can create it as
+    To use the local registry, the framework expects that a `packages` directory exists at the same level as our agent. In this example, it expects that the directory `my_workspace/packages` exists. If you don't have a local registry, you can create it as
     ```bash
     mkdir ../packages
     ```
 
-    Now you can push the new skill to the local registry:
+    Now, you can push the new skill to the local registry:
     ```bash
     autonomy push skill <your_author_name>/my_skill --local
     ```
@@ -71,10 +71,10 @@ you have followed the [setup instructions](./quick_start.md#setup). As a result 
     !!!note
         The flag `--local` in the command above forces to use the local registry.
         Recall that in the [setup instructions](./quick_start.md#setup) the framework has been initialized to use
-        the remote registry. For this reason, the flag is required to store the skill in the local registry.
+        the remote registry. For this reason, this flag is required to instruct the framework to store the skill in the local registry.
 
 
-5. **Clean up.** If we were only interested on the skill we don't need the agent any more, so we can safely delete it:
+5. **Clean up.** If we are only interested on the skill, we don't need the agent anymore, so we can safely delete it:
     ```bash
     cd ..
     autonomy delete my_agent
