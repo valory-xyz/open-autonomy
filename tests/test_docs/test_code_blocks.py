@@ -19,11 +19,8 @@
 
 """This module contains the tests for the code-blocks in the documentation."""
 
-import platform
 from pathlib import Path
 from typing import Dict, List, Optional
-
-import pytest
 
 from tests.conftest import ROOT_DIR
 from tests.test_docs.helper import (  # type: ignore
@@ -46,7 +43,7 @@ class BaseTestDocCode:
     skipped_files: Optional[List[str]] = None
 
     def _to_os_path(self, file_path: str) -> str:
-        """
+        r"""
         Transforms a file path to a path in the OS the code is being executed on.
 
         Example:
@@ -54,6 +51,9 @@ class BaseTestDocCode:
         this method would transform it to:
          - "docs/fsm.yaml" for POSIX systems. (no changes)
          - "docs\\fsm.yaml" for Windows systems.
+
+        :param file_path: the file path to transform.
+        :return: the transformed file path
         """
         path = Path(file_path)
         return str(path)
