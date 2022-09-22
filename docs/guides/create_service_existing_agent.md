@@ -1,4 +1,4 @@
-The typical use case that this guide intends to illustrate is where a service owner wants to use existing agents to run its own service 
+The typical use case that this guide intends to illustrate is where a service owner wants to use existing agents to run its own service
 with a custom configuration. For example, an oracle service customized to serve data of their interest.
 
 
@@ -13,10 +13,9 @@ In this guide, we will show how to:
 
 If you recall the [overview of the development process](./overview_of_the_development_process.md), this roughly consists in steps 4, 5, and 6. For illustration purposes, we will also be using the agents from the [Hello World agent service](../hello_world_agent_service.md) and we will create a new (but functionally equivalent) "Hello World 2 agent service". To complete all the steps in this guide, you should have a [Görli testnet](https://goerli.net/) wallet address (e.g., [Metamask](https://metamask.io/)) with some GörliETH funds in it.
 
-##Step-by-step instructions
+## Step-by-step instructions
 
-Before starting this guide, ensure that your machine satisfies the [framework requirements](./quick_start.md#requirements) and that
-you have followed the [setup instructions](./quick_start.md#setup). As a result you should have a Pipenv workspace folder.
+Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
 
 1. **Identify the IPFS hash of the agent.** This can be some agent with the desired functionality for which you already know the hash, or you can browse it in the repository of a published agent. For this example, we consider the `hello_world` agent, whose hash is
 

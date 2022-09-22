@@ -1,4 +1,4 @@
-The purpose of this guide is to provide a step-by-step instructions on how to install the {{open_autonomy}} framework and use a number of CLI commands to run a [Hello World agent service](../hello_world_agent_service.md) as a local deployment. More concretely, in this guide, you will end up running:
+The purpose of this guide is to provide a step-by-step instructions to gain familiarity with the {{open_autonomy}} framework, and use a number of CLI commands to run a [Hello World agent service](../hello_world_agent_service.md) as a local deployment. More concretely, in this guide, you will end up running:
 
   - 4 Docker containers implementing the 4 agents of the service, and
   - 4 Docker containers implementing one Tendermint node for each agent.
@@ -6,50 +6,16 @@ The purpose of this guide is to provide a step-by-step instructions on how to in
 Having completed this guide, you can take a look at the [overview of the development process](./overview_of_the_development_process.md) with the {{open_autonomy}} framework, and continue with the rest of the guides in this section.
 
 
-## Requirements
 
-Ensure that your machine satisfies the following requirements:
+## Step-by-step instructions: deploy a local agent service
 
-- [Python](https://www.python.org/) `>= 3.7` (recommended `>= 3.10`)
-- [Pip](https://pip.pypa.io/en/stable/installation/)
-- [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
-- [Docker Engine](https://docs.docker.com/engine/install/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
-
-
-## Setup
-1. Create a workspace folder:
-```bash
-mkdir my_workspace
-cd my_workspace
-```
-
-2. Setup the environment. Remember to use the Python version you have installed. Here we are using 3.10 as reference:
-```bash
-touch Pipfile && pipenv --python 3.10 && pipenv shell
-```
-
-3. Install the {{open_autonomy}} framework:
-```bash
-pip install open-autonomy
-```
-
-4. Initialize the framework to work with the remote [IPFS](https://ipfs.io) registry. This means that when the framework will be fetching a component, it will do so from the [IPFS](https://ipfs.io):
-    ```bash
-    autonomy init --remote --ipfs
-    ```
-
-    !!!info
-        The InterPlanetary File System ([IPFS](https://ipfs.io)) is a protocol, hypermedia and file sharing peer-to-peer network for storing and sharing data in a global, distributed file system. {{open_autonomy}} can use components stored in the [IPFS](https://ipfs.io), or stored locally.
-
-## Deploy a local agent service
+Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
 
 !!! note
     On **MacOS** and **Windows**, running Docker containers requires having Docker Desktop running as well. If you're using one of those operating systems, remember to start Docker Desktop
     before you run agent services.
 
-
-Now, we are in position to use the {{open_autonomy}} CLI to fetch the agent service from the remote registry, and deploy it locally.
+Now that you have set up your machine to work with {{open_autonomy}}, we are in position to use the CLI to fetch the agent service from the remote registry and deploy it locally.
 
 1. Use the CLI to fetch the [Hello World agent service](../hello_world_agent_service.md). This will connect to the remote registry and download the service specification to the `hello_world` folder:
     ```bash

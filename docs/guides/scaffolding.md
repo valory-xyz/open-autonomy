@@ -8,10 +8,9 @@ In this guide, we will show how to:
 - Push the generated skill to the local registry.
 
 
-## Using the scaffold tool: step-by-step instructions
+## Step-by-step instructions: using the scaffold tool
 
-Before starting this guide, ensure that your machine satisfies the [framework requirements](./quick_start.md#requirements) and that
-you have followed the [setup instructions](./quick_start.md#setup). As a result you should have a Pipenv workspace folder.
+Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
 
 1. **Create an empty agent.** Use the {{open_autonomy}} CLI to create an empty agent as follows:
     ```bash
