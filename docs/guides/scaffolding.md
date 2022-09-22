@@ -56,21 +56,23 @@ you have followed the [setup instructions](./quick_start.md#setup). As a result 
     ```
     You will see that the generated rounds, payloads and behaviours already appear with their correct names, as well as the `HelloWorldAbciApp` and its transition function.
 
-4. **Push the generated skill to the local registry.** Now that you have successfully created the skill, you can push it to the local registry. Since to fetch all packages from IPFS we had used the remote registry, we now need to reset it so we use a local one during the development:
+4. **Push the generated skill to the local registry.** Now that you have successfully created the skill, you can push it to the local registry.
 
-    ```bash
-    autonomy init --local --reset --author AUTHOR
-    ```
-
-    To use the local registry, it is expected that a `packages` directory exists at the same level as our agent. If you already have it then you can skip this step, but if you don't then you need to create it. In this example, we need to create `my_workspace/packages`.
+    To use the local registry, it is expected that a `packages` directory exists at the same level as our agent. In this example, it expects that the directory `my_workspace/packages` exists. If you don't have a local registry, you can create it as
     ```bash
     mkdir ../packages
     ```
 
-    And we can now push our new skill to the local registry:
+    Now you can push the new skill to the local registry:
     ```bash
-    autonomy push skill <your_author_name>/my_skill
+    autonomy push skill <your_author_name>/my_skill --local
     ```
+
+    !!!note
+        The flag `--local` in the command above forces to use the local registry.
+        Recall that in the [setup instructions](./quick_start.md#setup) the framework has been initialized to use
+        the remote registry. For this reason, the flag is required to store the skill in the local registry.
+
 
 5. **Clean up.** If we were only interested on the skill we don't need the agent any more, so we can safely delete it:
     ```bash
