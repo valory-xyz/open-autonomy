@@ -119,7 +119,7 @@ models:
             - ed25519
           version: {}
         voting_power: '10'
-      history_end: 1655136875
+      history_end: 1654136875
       history_interval_in_unix: 86400
       history_start: 1652544875
       ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https
@@ -140,7 +140,6 @@ models:
         - '0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5'
         spooky_subgraph:
         - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
-        - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
