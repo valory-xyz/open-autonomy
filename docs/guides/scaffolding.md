@@ -64,9 +64,7 @@ you have followed the [setup instructions](./quick_start.md#setup). As a result 
 
     To use the local registry, it is expected that a `packages` directory exists at the same level as our agent. If you already have it then you can skip this step, but if you don't then you need to create it. In this example, we need to create `my_workspace/packages`.
     ```bash
-    cd ..
-    mkdir packages
-    cd my_agent
+    mkdir ../packages
     ```
 
     And we can now push our new skill to the local registry:
