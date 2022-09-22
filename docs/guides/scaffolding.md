@@ -74,7 +74,7 @@ you have followed the [setup instructions](./quick_start.md#setup). As a result 
         the remote registry. For this reason, this flag is required to instruct the framework to store the skill in the local registry.
 
 
-5. **Clean up.** If we are only interested on the skill, we don't need the agent anymore, so we can safely delete it:
+5. **Clean up.** If we are only interested on the skill, we don't need the agent any more, so we can safely delete it:
     ```bash
     cd ..
     autonomy delete my_agent
