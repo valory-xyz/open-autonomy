@@ -206,7 +206,8 @@ def create_app(
     def app_hash() -> Tuple[Any, int]:
         """Get the app hash."""
         try:
-            endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http')}/block"
+            non_routable, loopback = "0.0.0.0", "127.0.0.1"
+            endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http').replace(non_routable, loopback)}/block"
             height = request.args.get("height")
             params = {"height": height} if height is not None else None
             res = requests.get(endpoint, params)
