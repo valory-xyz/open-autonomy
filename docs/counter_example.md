@@ -284,7 +284,7 @@ First, open a terminal to the root of this repository,
 and fetch the `counter_client` agent:
 
 ```bash
-autonomy fetch valory/counter_client:0.1.0:bafybeiaihyr56wz2csc6ltyf7mjtnhz6lpjjc35fhgxhkxmjzfx3acwceq --remote
+autonomy fetch valory/counter_client:0.1.0:bafybeiegfw7ou6y76guudtxgzywkrbqb2a4mzzladlxo2y7idzbkrf36lm --remote
 ```
 
 This will copy the agent project in the `counter_client` directory.
