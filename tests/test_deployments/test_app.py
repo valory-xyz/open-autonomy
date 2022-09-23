@@ -310,7 +310,7 @@ class TestTendermintBufferFailing(BaseTendermintServerTest):
 
     @pytest.mark.skipif(
         platform.system() == "Windows",
-        reason="Needs investigation. Could be: Tendermint process is not killed on teardown in Windows.",
+        reason="The pipe gets filled before the test reaches here, and the node becomes unresponsive.",
     )
     @wait_for_node_to_run
     def test_tendermint_buffer(self) -> None:
