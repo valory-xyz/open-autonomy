@@ -38,6 +38,7 @@ from packages.valory.skills.apy_estimation_abci.tools.etl import (
     prepare_batch,
     revert_transform_hist_data,
     transform_hist_data,
+    to_unix,
 )
 from packages.valory.skills.apy_estimation_abci.tools.io_ import (
     TRANSFORMED_HIST_DTYPES,
@@ -203,9 +204,14 @@ class TestProcessing:
         }
 
     @staticmethod
-    @pytest.mark.skipif(
-        platform.system() == "Windows", reason="Need to be investigated."
-    )
+    def test_to_unix(
+        transformed_historical_data: pd.DataFrame,
+        historical_data: HistoricalDataType,
+    ) -> None:
+        actual = to_unix(transformed_historical_data["blockTimestamp"])
+        assert actual.to_list() == historical_data["blockTimestamp"]
+
+    @staticmethod
     def test_revert_transform_hist_data(
         transformed_historical_data: pd.DataFrame,
         historical_data: HistoricalDataType,
