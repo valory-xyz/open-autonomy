@@ -48,7 +48,7 @@ Now we might want to develop our own package, for example a skill. We could do i
 autonomy scaffold fsm my_skill --spec fsm_specification.yaml
 ```
 
-This will add your skill's boilerplate code to `my_agent/skills/my_skill` and some dependencies to the vendor directory. You can learn more on scaffolding by reading the [scaffolding guide](../guides/scaffolding.md).
+This will add your skill's boilerplate code to `my_agent/skills/my_skill` and some dependencies to the vendor directory. You can learn more on scaffolding by reading the [create a service from scratch](./create_service_from_scratch.md) guide.
 
 Now that we have all we need, publish the new agent and all its dependencies to the local registry:
 
