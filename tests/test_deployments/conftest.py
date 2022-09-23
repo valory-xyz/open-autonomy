@@ -84,8 +84,9 @@ def wait_for_occupied_rpc_port(
 ) -> Generator[None, None, None]:
     """Wait for Tendermint to occupy rpc_port."""
     i, max_retries = 0, 5
-    while not __port_is_open(loopback, rpc_port) and i < max_retries:
+    while not __port_is_open(loopback, rpc_port):
         logging.debug(f"waiting for node... t={i}")
         i += 1
         time.sleep(1)
+        assert i < max_retries, "Failed to run tendermint node in time."
     yield
