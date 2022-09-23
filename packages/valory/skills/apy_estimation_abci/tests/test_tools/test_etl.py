@@ -28,6 +28,7 @@ import pandas as pd
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
+from packages.valory.skills.apy_estimation_abci.tests.conftest import HistoricalDataType
 from packages.valory.skills.apy_estimation_abci.tools.etl import (
     HIST_DTYPES,
     ResponseItemType,
@@ -207,7 +208,7 @@ class TestProcessing:
     )
     def test_revert_transform_hist_data(
         transformed_historical_data: pd.DataFrame,
-        historical_data: Dict[str, List[Union[None, Dict[str, str], int, str, float]]],
+        historical_data: HistoricalDataType,
     ) -> None:
         """Test `revert_transform_hist_data`."""
         reverted_pairs_hist = revert_transform_hist_data(transformed_historical_data)
