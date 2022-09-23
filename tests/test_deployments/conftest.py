@@ -76,3 +76,16 @@ def wait_for_node(
     success = response.status_code == 200
     assert success, "Tendermint node not running"
     yield
+
+
+@pytest.fixture
+def wait_for_occupied_rpc_port(
+    http_: str, loopback: str, rpc_port: int
+) -> Generator[None, None, None]:
+    """Wait for Tendermint to occupy rpc_port."""
+    i, max_retries = 0, 5
+    while not __port_is_open(loopback, rpc_port) and i < max_retries:
+        logging.debug(f"waiting for node... t={i}")
+        i += 1
+        time.sleep(1)
+    yield
