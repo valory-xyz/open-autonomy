@@ -731,7 +731,7 @@ def historical_data() -> HistoricalDataType:
 
 @pytest.fixture
 def transformed_historical_data_no_datetime_conversion(
-    historical_data: HistoricalDataType
+    historical_data: HistoricalDataType,
 ) -> pd.DataFrame:
     """Create dummy transformed historical data"""
     data_copy = historical_data.copy()

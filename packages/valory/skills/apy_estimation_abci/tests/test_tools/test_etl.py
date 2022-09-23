@@ -21,7 +21,6 @@
 
 # pylint: skip-file
 
-import platform
 from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
@@ -37,8 +36,8 @@ from packages.valory.skills.apy_estimation_abci.tools.etl import (
     calc_change,
     prepare_batch,
     revert_transform_hist_data,
-    transform_hist_data,
     to_unix,
+    transform_hist_data,
 )
 from packages.valory.skills.apy_estimation_abci.tools.io_ import (
     TRANSFORMED_HIST_DTYPES,
@@ -208,6 +207,7 @@ class TestProcessing:
         transformed_historical_data: pd.DataFrame,
         historical_data: HistoricalDataType,
     ) -> None:
+        """Test `to_unix`."""
         actual = to_unix(transformed_historical_data["blockTimestamp"])
         assert actual.to_list() == historical_data["blockTimestamp"]
 
