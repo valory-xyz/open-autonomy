@@ -20,7 +20,6 @@
 """Test check-handlers command."""
 
 import os
-import platform
 import shutil
 from pathlib import Path
 from typing import Tuple
