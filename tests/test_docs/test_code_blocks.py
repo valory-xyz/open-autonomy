@@ -19,11 +19,8 @@
 
 """This module contains the tests for the code-blocks in the documentation."""
 
-import platform
 from pathlib import Path
 from typing import Dict, List, Optional
-
-import pytest
 
 from tests.conftest import ROOT_DIR
 from tests.test_docs.helper import (  # type: ignore
@@ -45,8 +42,24 @@ class BaseTestDocCode:
     code_type: CodeType = CodeType.NOCODE
     skipped_files: Optional[List[str]] = None
 
+    def _to_os_path(self, file_path: str) -> str:
+        r"""
+        Transforms a file path to a path in the OS the code is being executed on.
+
+        Example:
+        Given file_path="docs/fsm.yaml",
+        this method would transform it to:
+         - "docs/fsm.yaml" for POSIX systems. (no changes)
+         - "docs\\fsm.yaml" for Windows systems.
+
+        :param file_path: the file path to transform.
+        :return: the transformed file path
+        """
+        path = Path(file_path)
+        return str(path)
+
     def test_run_check(self) -> None:
-        """Check the documentaion code"""
+        """Check the documentation code"""
 
         assert (
             self.code_type != CodeType.NOCODE
@@ -70,12 +83,14 @@ class BaseTestDocCode:
             )
         )
         if self.skipped_files:
+            os_path_skipped_files = {
+                self._to_os_path(file) for file in self.skipped_files
+            }
             files_with_blocks = [
-                f for f in files_with_blocks if f not in self.skipped_files
+                f for f in files_with_blocks if f not in os_path_skipped_files
             ]
-        not_checked_files = set(files_with_blocks).difference(
-            set(self.md_to_code.keys())
-        )
+        os_path_md_to_code = {self._to_os_path(file) for file in self.md_to_code.keys()}
+        not_checked_files = set(files_with_blocks).difference(os_path_md_to_code)
 
         assert (
             not not_checked_files
@@ -101,7 +116,6 @@ class BaseTestDocCode:
             print("OK")
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="Need to be investigated.")
 class TestYamlSnippets(BaseTestDocCode):
     """Test that all the yaml snippets in the documentation exist in the repository"""
 
@@ -112,7 +126,7 @@ class TestYamlSnippets(BaseTestDocCode):
     # snippets, a list with the target files ordered is provided.
     #
     # Use skip_blocks to specify a list of blocks that need to be skipped
-    # Add by_line:: at the beggining of a code file path so the check is performed line by line
+    # Add by_line:: at the beginning of a code file path so the check is performed line by line
     # instead of checking the code block as a whole.
 
     md_to_code = {
@@ -137,7 +151,6 @@ class TestYamlSnippets(BaseTestDocCode):
     }
 
 
-@pytest.mark.skipif(platform.system() == "Windows", reason="Need to be investigated.")
 class TestPythonSnippets(BaseTestDocCode):
     """Test that all the python snippets in the documentation exist in the repository"""
 
