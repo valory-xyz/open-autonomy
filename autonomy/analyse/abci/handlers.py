@@ -21,6 +21,7 @@
 
 
 import importlib
+import os
 from pathlib import Path
 from typing import List
 
@@ -35,7 +36,7 @@ def check_handlers(
     handler_file_path = (config_file.parent / "handlers.py").relative_to(
         Path.cwd().resolve()
     )
-    module_name = str(handler_file_path).replace(".py", "").replace("/", ".")
+    module_name = str(handler_file_path).replace(".py", "").replace(os.sep, ".")
     if config_file.parent.name in skip_skills:
         return
 
