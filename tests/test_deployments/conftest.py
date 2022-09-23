@@ -54,6 +54,18 @@ def rpc_port() -> int:
     return __RPC_PORT
 
 
+@pytest.fixture(scope="session")
+def max_retries() -> int:
+    """Max retries to make when ensuring Tendermint is running."""
+    return 10
+
+
+@pytest.fixture(scope="session")
+def sleep_amount() -> int:
+    """Amount to sleep in seconds."""
+    return 1
+
+
 def __port_is_open(ip: str, port: int) -> bool:
     """Assess whether a port is open"""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -64,15 +76,29 @@ def __port_is_open(ip: str, port: int) -> bool:
 
 @pytest.fixture
 def wait_for_node(
-    http_: str, loopback: str, rpc_port: int
+    http_: str, loopback: str, rpc_port: int, max_retries: int, sleep_amount: int
 ) -> Generator[None, None, None]:
     """Wait for Tendermint node to run."""
-    i, max_retries = 0, 5
+    i = 0
     while not __port_is_open(loopback, rpc_port) and i < max_retries:
         logging.debug(f"waiting for node... t={i}")
         i += 1
-        time.sleep(1)
+        time.sleep(sleep_amount)
     response = requests.get(f"{http_}{loopback}:{rpc_port}/status")
     success = response.status_code == 200
     assert success, "Tendermint node not running"
+    yield
+
+
+@pytest.fixture
+def wait_for_occupied_rpc_port(
+    http_: str, loopback: str, rpc_port: int, max_retries: int, sleep_amount: int
+) -> Generator[None, None, None]:
+    """Wait for Tendermint to occupy rpc_port."""
+    i = 0
+    while not __port_is_open(loopback, rpc_port):
+        logging.debug(f"waiting for node... t={i}")
+        i += 1
+        time.sleep(sleep_amount)
+        assert i < max_retries, "Failed to run tendermint node in time."
     yield

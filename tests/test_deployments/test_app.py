@@ -51,6 +51,7 @@ ENCODING = "utf-8"
 VERSION = "0.34.19"
 
 wait_for_node_to_run = pytest.mark.usefixtures("wait_for_node")
+wait_for_occupied_rpc_port = pytest.mark.usefixtures("wait_for_occupied_rpc_port")
 
 
 # utility functions
@@ -308,11 +309,7 @@ class TestTendermintBufferFailing(BaseTendermintServerTest):
         ):
             super().setup_class()
 
-    @pytest.mark.skipif(
-        platform.system() == "Windows",
-        reason="Needs investigation. Could be: Tendermint process is not killed on teardown in Windows.",
-    )
-    @wait_for_node_to_run
+    @wait_for_occupied_rpc_port
     def test_tendermint_buffer(self) -> None:
         """Test Tendermint buffer"""
 
