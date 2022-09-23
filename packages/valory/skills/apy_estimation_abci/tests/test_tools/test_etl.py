@@ -21,13 +21,13 @@
 
 # pylint: skip-file
 
-import platform
 from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 
+from packages.valory.skills.apy_estimation_abci.tests.conftest import HistoricalDataType
 from packages.valory.skills.apy_estimation_abci.tools.etl import (
     HIST_DTYPES,
     ResponseItemType,
@@ -36,6 +36,7 @@ from packages.valory.skills.apy_estimation_abci.tools.etl import (
     calc_change,
     prepare_batch,
     revert_transform_hist_data,
+    to_unix,
     transform_hist_data,
 )
 from packages.valory.skills.apy_estimation_abci.tools.io_ import (
@@ -202,12 +203,18 @@ class TestProcessing:
         }
 
     @staticmethod
-    @pytest.mark.skipif(
-        platform.system() == "Windows", reason="Need to be investigated."
-    )
+    def test_to_unix(
+        transformed_historical_data: pd.DataFrame,
+        historical_data: HistoricalDataType,
+    ) -> None:
+        """Test `to_unix`."""
+        actual = to_unix(transformed_historical_data["blockTimestamp"])
+        assert actual.to_list() == historical_data["blockTimestamp"]
+
+    @staticmethod
     def test_revert_transform_hist_data(
         transformed_historical_data: pd.DataFrame,
-        historical_data: Dict[str, List[Union[None, Dict[str, str], int, str, float]]],
+        historical_data: HistoricalDataType,
     ) -> None:
         """Test `revert_transform_hist_data`."""
         reverted_pairs_hist = revert_transform_hist_data(transformed_historical_data)

@@ -61,6 +61,7 @@ except ImportError:
 
 HeaderType = Dict[str, str]
 SpecsType = Dict[str, Union[str, int, HeaderType, SkillContext]]
+HistoricalDataType = Dict[str, List[Union[None, Dict[str, str], int, str, float]]]
 
 
 _ETH_PRICE_USD_Q_PARAMS: Dict[str, Union[int, float]] = {
@@ -666,7 +667,7 @@ def _test_task_result_non_serializable() -> bytes:
 
 
 @pytest.fixture
-def historical_data() -> Dict[str, List[Union[None, Dict[str, str], int, str, float]]]:
+def historical_data() -> HistoricalDataType:
     """Create dummy transformed historical data"""
     return {
         "createdAtBlockNumber": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
@@ -730,7 +731,7 @@ def historical_data() -> Dict[str, List[Union[None, Dict[str, str], int, str, fl
 
 @pytest.fixture
 def transformed_historical_data_no_datetime_conversion(
-    historical_data: Dict[str, List[Union[None, Dict[str, str], int, str, float]]]
+    historical_data: HistoricalDataType,
 ) -> pd.DataFrame:
     """Create dummy transformed historical data"""
     data_copy = historical_data.copy()
