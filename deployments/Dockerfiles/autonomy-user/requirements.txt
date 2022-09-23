@@ -2,4 +2,4 @@ open-autonomy[all]==0.3.1
 open-aea[all]==1.20.0
 open-aea-cli-ipfs==1.20.0
 open-aea-ledger-ethereum==1.20.0
-protobuf==3.19.4
+protobuf==3.19.5
