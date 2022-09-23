@@ -53,6 +53,7 @@ VERSION = "0.34.19"
 wait_for_node_to_run = pytest.mark.usefixtures("wait_for_node")
 wait_for_occupied_rpc_port = pytest.mark.usefixtures("wait_for_occupied_rpc_port")
 
+
 # utility functions
 def readonly_handler(func: Callable, path: str, execinfo) -> None:  # type: ignore
     """If permission is readonly, we change and retry."""
