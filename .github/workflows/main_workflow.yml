@@ -10,7 +10,7 @@ on:
 jobs:
   lock_check:
     continue-on-error: False
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
