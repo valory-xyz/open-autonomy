@@ -462,7 +462,7 @@ class GnosisSafeContract(Contract):
             tx_parameters.update(ledger_api.try_get_gas_pricing(old_price=old_price))
         # note, the next line makes an eth_estimateGas call iff gas is not set!
         transaction_dict = w3_tx.buildTransaction(tx_parameters)
-        if configured_gas != 1:
+        if configured_gas != MIN_GAS:
             transaction_dict["gas"] = Wei(configured_gas)
         else:
             gas_estimate = (
