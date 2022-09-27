@@ -31,11 +31,11 @@ protocols:
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeieotxp2hbqxiwgolysh3ka2phc4cszqqp3tjuvfgwriwjb3evrhfq
 - valory/oracle_deployment_abci:0.1.0:bafybeiewajzm4e6p6vxusqkwavtgm22dzjh67i3yzik4qgboksif7atxtm
-- valory/price_estimation_abci:0.1.0:bafybeiabxsqta7hafhkpbotqvyl3v7ln2c6pyw3x3x5qxzti4ektovanme
+- valory/price_estimation_abci:0.1.0:bafybeid55mtfp6m4nlrb2u53ocmaauvua2gcvjyt3tyxgessno3imwodsu
 - valory/registration_abci:0.1.0:bafybeicsnxskaww6f2dgdxbmwfihjiaympgan4tvfwwh4b7mhe3j46vyne
 - valory/reset_pause_abci:0.1.0:bafybeighihoy2b7hllcvpvq2htn6rbavnp2evuhlccih6ong737t56jby4
-- valory/safe_deployment_abci:0.1.0:bafybeibrwniyxzl5zuqm4geqhpxmo76jrigb6owhl3gixolomhav3wodea
-- valory/transaction_settlement_abci:0.1.0:bafybeidg7z4p4rriywsolqpdarpbiwdt6jfs3e5lrtjozddxpdbtrxnboa
+- valory/safe_deployment_abci:0.1.0:bafybeig4svjnqd66m5rwsqjzsynq66vi4xx434xykgxm22szyho5u5v5pm
+- valory/transaction_settlement_abci:0.1.0:bafybeierhlhlkqnklnrupgrq3lbvtuz2r6fev4jq2xarohvgaerxqkecbm
 behaviours:
   main:
     args: {}

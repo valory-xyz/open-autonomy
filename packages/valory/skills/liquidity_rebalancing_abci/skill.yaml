@@ -28,7 +28,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeihht4j726a4swe4duqxohnxtctdghftgywurw55zwjjqsbqjwnacm
+- valory/gnosis_safe:0.1.0:bafybeie35ad2m5zzhbdarw4n5p7yrguro2hw6gk2ydrd2ebpch4xfh3jpu
 - valory/multisend:0.1.0:bafybeig45676hbh4c3p3mujrrskxgxww4cxdyyginlg5rmmav6orv4gtya
 - valory/uniswap_v2_erc20:0.1.0:bafybeibkiwytuhhvxbisoxcybrx4lfstk6bvtriltles7fxxpy37yq45ja
 - valory/uniswap_v2_router_02:0.1.0:bafybeia5hkf3esqulz7g4uhjwhcrfwaok42ddumnokkbvrlm4g55wgdxmq
@@ -36,7 +36,7 @@ protocols:
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeieotxp2hbqxiwgolysh3ka2phc4cszqqp3tjuvfgwriwjb3evrhfq
-- valory/transaction_settlement_abci:0.1.0:bafybeidg7z4p4rriywsolqpdarpbiwdt6jfs3e5lrtjozddxpdbtrxnboa
+- valory/transaction_settlement_abci:0.1.0:bafybeierhlhlkqnklnrupgrq3lbvtuz2r6fev4jq2xarohvgaerxqkecbm
 behaviours:
   main:
     args: {}
