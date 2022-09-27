@@ -103,6 +103,7 @@ models:
           version: {}
         voting_power: '10'
       history_check_timeout: 1205
+      init_fallback_gas: 270000
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
       max_healthcheck: 120
