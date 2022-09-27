@@ -35,7 +35,7 @@ Yes, an agent service can be composed from other agent services, analogously to 
 </details>
 
 <details><summary>How do services communicate with other services?</summary>
-Services use a native message protocol based on protobuf that allows them to have arbitrary message based communication between compatible agents in the network. This network is called Agent Communication Network (ACN). When a service needs a more complicated message flow than request-response (e.g. some extended dialogue like FIPA) they can express it as a protocol and deliver the messages via the ACN. To communicate with traditional services, agents can both make API calls and expose REST APIs.
+Services use a native message protocol based on protobuf that allows them to have arbitrary message-based communication between compatible agents in the network. The network they use for this is the Agent Communication Network (ACN), and protocols define the structure of communication flow, ranging from simple atomic request-response pairs to arbitrarily complicated dialogues (e.g. FIPA). To communicate with traditional services, agents can both make API calls and expose REST APIs.
 </details>
 
 <details><summary>What happens when agents are deployed?</summary>
