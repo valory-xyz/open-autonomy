@@ -5,7 +5,7 @@ An autonomous service is a decentralized service that runs off-chain and provide
 </details>
 
 <details><summary>What is an agent service?</summary>
-An agent service is an autonomous service which is implemented as a multi-agent system using Autonomous Economic Agents (AEAs) using the {{open_autonomy}} framework, which is built on top of {{open_aea}}.
+An agent service is an autonomous service which is implemented as a multi-agent system using Autonomous Economic Agents (AEAs) using the <a href="https://github.com/valory-xyz/open-autonomy">Open Autonomy</a> framework, which is built on top of <a href="https://github.com/valory-xyz/open-aea">Open AEA</a>.
 </details>
 
 <details><summary>What is an FSM App?</summary>
@@ -27,7 +27,7 @@ Autonolas is not just a framework where devs can build on: it is a complete, nov
 In the same way companies like Apple or Google offer SDKs to accelerate devs work plus an app store to monetize their work, Autonolas offers the same capabilities but in a decentralized way: developers register components, operators run services that use those components, consumers use and pay for those services so both developers and operators are compensated for their work. And all the parameters that govern the network can be voted on.</details>
 
 <details><summary>How do agents communicate with other agents?</summary>
-Different forms of communication are used depending on the service status: while agents are connecting to each other to form a temporary blockchain (formation), they use the Agent Communication Network (ACN). Under the hood the ACN is a DHT that keeps track of live agents mapping their crypto address to IP address. So agents can communicate with other agents without knowing their network location assuming they are online or offline but registered in the ACN. Once the service has been established, agent services use Tendermint for messaging.
+Different forms of communication are used depending on the service status. Before the agents can establish a temporary blockchain (Tendermint network) that serves as consensus engine they need to exchange the necessary information with others in order to be able to do so. This information includes the network address of their Tendermint node and the associated public key. They do so by connecting to the Agent Communication Network (ACN), where they can send messages to other agents, in this case requesting their Tendermint configuration details, using their on-chain registered address. The list of registered addresses is retrieved from the the service registry smart contract and can be used to filter out request coming from any party that is not registered to operate in this service as well. Once all configurations have been exchanged the Tendermint network can be established and is used as a consensus engine.
 </details>
 
 <details><summary>Can services use other services?</summary>
@@ -35,11 +35,11 @@ Yes, an agent service can be composed from other agent services, analogously to 
 </details>
 
 <details><summary>How do services communicate with other services?</summary>
-Services can expose REST APIs and they also have a native message protocol that uses protobuf that allows them to have arbitrary message based communication between compatible agents in the network. This network is called Agent Communication Network (ACN). When a service needs a more complicated message flow than request-response (e.g. some extended dialogue like FIPA) they can express it as a protocol and deliver the messages via the ACN.
+Services use a native message protocol based on protobuf that allows them to have arbitrary message based communication between compatible agents in the network. This network is called Agent Communication Network (ACN). When a service needs a more complicated message flow than request-response (e.g. some extended dialogue like FIPA) they can express it as a protocol and deliver the messages via the ACN. To communicate with traditional services, agents can both make API calls and expose REST APIs.
 </details>
 
-<details><summary>What happens when agents are deployed now?</summary>
-Currently only the so called "island deployments" are being operated, which are services that run as one-off services, not anchored in the protocol, because the protocol is not live (more on that <a href="https://www.autonolas.network/blog/11">here</a>). Once the protocol is live, agents will be able to interact with it so they can monetize their work and connect to other services.
+<details><summary>What happens when agents are deployed?</summary>
+Agents are be able to interact with the Autonolas on-chain Protocol so they can monetize their work and connect to other services. Apart from that, "island deployments" can also be operated, which are services that run as one-off services, not anchored in the protocol.
 </details>
 
 <details><summary>How many composition levels does Open Autonomy offer?</summary>
@@ -60,7 +60,7 @@ Composition starts at the component level of the agents (multiple rounds make a 
 </details>
 
 <details><summary>Do all agent services have to be implemented as {{fsm_app}}s with Open Autonomy?</summary>
-Certainly not. We have provided an example in the <a href=/counter_example>counter demo</a>. That is, for extremely simple applications, you can consider implementing an agent service by appropriately extending the <code>ABCIHandler</code> class to handle the consensus gadget callbacks, and if required, manually implement the agent <code>Behaviours</code> that execute client calls to the consensus gadget. However, <b>we strongly advise against this approach</b>, as the complexity, maintainability and composability of the resulting service will be severely affected. 
+Certainly not. We have provided an example in the <a href=/counter_example>counter demo</a>. That is, for extremely simple applications, you can consider implementing an agent service by appropriately extending the <code>ABCIHandler</code> class to handle the consensus gadget callbacks, and if required, manually implement the agent <code>Behaviours</code> that execute client calls to the consensus gadget. However, <b>we strongly advise against this approach</b>, as the complexity, maintainability and composability of the resulting service will be severely affected.
 </details>
 
 ## Security
@@ -85,4 +85,139 @@ As in any other online service, nodes are exposed to the risk of being breached.
 <details><summary>How much does it cost to run an agent service using the framework?</summary>
 Agent services are not limited in what they do or how they are configured (e.g. number of agents in them), therefore the costs are subjective to each service. At the very minimum there will be the costs of running the agent on cloud or local infrastructure.
 On top of that, if a service sends transactions to a chain, it will incur in fee costs that will depend on the selected chain.</p>As an example, for a simple service of four agents that makes a simple contract call every five minutes, a monthly cost of $3000 in Ethereum and $1.5 in Polygon is presently estimated (at gas cost of 60 wei per gas), but this number will wildly vary depending on gas costs.
+
+Apart from transaction costs, service operators also incur in infrastructure costs. A rough, quite conservative estimation can be calculated using the following example: a simple service running on
+top of AWS m5.large instances (8GB, 2vCPU) with four agents per instance. The following table shows how server costs would vary depending on the number of operators and number of instances per operator.
+
+<table>
+<thead>
+  <tr>
+    <th>Operators</th>
+    <th>Instances per operator</th>
+    <th>Total instances</th>
+    <th>Total agents</th>
+    <th>Service daily costs ($)</th>
+    <th>Daily costs per operator ($)</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td rowspan="4">1</td>
+    <td>1</td>
+    <td>1</td>
+    <td>4</td>
+    <td>2.304</td>
+    <td>2.304</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>2</td>
+    <td>8</td>
+    <td>4.608</td>
+    <td>4.608</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>3</td>
+    <td>12</td>
+    <td>6.912</td>
+    <td>6.912</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>4</td>
+    <td>16</td>
+    <td>9.216</td>
+    <td>9.216</td>
+  </tr>
+  <tr>
+    <td rowspan="4">2</td>
+    <td>1</td>
+    <td>2</td>
+    <td>8</td>
+    <td>4.608</td>
+    <td>2.304</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>4</td>
+    <td>16</td>
+    <td>9.216</td>
+    <td>4.608</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>6</td>
+    <td>24</td>
+    <td>13.824</td>
+    <td>6.912</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>8</td>
+    <td>32</td>
+    <td>18.432</td>
+    <td>9.216</td>
+  </tr>
+  <tr>
+    <td rowspan="4">3</td>
+    <td>1</td>
+    <td>3</td>
+    <td>12</td>
+    <td>6.912</td>
+    <td>2.304</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>6</td>
+    <td>24</td>
+    <td>13.824</td>
+    <td>4.608</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>9</td>
+    <td>36</td>
+    <td>20.736</td>
+    <td>6.912</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>12</td>
+    <td>48</td>
+    <td>27.648</td>
+    <td>9.216</td>
+  </tr>
+  <tr>
+    <td rowspan="4">4</td>
+    <td>1</td>
+    <td>4</td>
+    <td>16</td>
+    <td>9.216</td>
+    <td>2.304</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>8</td>
+    <td>32</td>
+    <td>18.432</td>
+    <td>4.608</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>12</td>
+    <td>48</td>
+    <td>27.648</td>
+    <td>6.912</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>16</td>
+    <td>64</td>
+    <td>36.864</td>
+    <td>9.216</td>
+  </tr>
+</tbody>
+</table>
+
 </details>
