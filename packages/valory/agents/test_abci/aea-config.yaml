@@ -44,7 +44,7 @@ logging_config:
     aea:
       handlers:
       - console
-      propagate: false
+      propagate: true
 dependencies:
   open-aea-ledger-ethereum: {}
 default_connection: null
