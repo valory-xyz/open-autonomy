@@ -66,7 +66,7 @@ logging_config:
       handlers:
       - logfile
       - console
-      propagate: false
+      propagate: true
 dependencies:
   open-aea-ledger-cosmos: {}
   open-aea-ledger-ethereum: {}
