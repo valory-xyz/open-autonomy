@@ -23,10 +23,13 @@
 
 import re
 from copy import deepcopy
-from typing import Any, Dict, List, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from unittest import mock
 from unittest.mock import MagicMock
 
+import hypothesis.strategies as st
 import pytest
+from hypothesis import database, given, settings
 
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs
 from packages.valory.skills.apy_estimation_abci.models import (
@@ -126,6 +129,45 @@ class TestSharedState:
 
 class TestAPYParams:
     """Test `APYParams`"""
+
+    @staticmethod
+    @given(end=st.one_of(st.none(), st.integers()), ts_length=st.integers())
+    @settings(deadline=None, database=database.InMemoryExampleDatabase())
+    def test_start(end: Optional[int], ts_length: int) -> None:
+        """Test `start` property."""
+        args = APY_PARAMS_ARGS
+        # TypedDict can’t be used for specifying the type of a **kwargs argument: https://peps.python.org/pep-0589/
+        kwargs: dict = deepcopy(APY_PARAMS_KWARGS)  # type: ignore
+        kwargs["history_end"] = end
+        params = APYParams(*args, **kwargs)
+
+        expected = None if end is None else end - ts_length
+
+        with mock.patch.object(
+            APYParams,
+            "ts_length",
+            new_callable=mock.PropertyMock,
+            return_value=ts_length,
+        ):
+            if expected is None:
+                assert params.start is expected
+            else:
+                assert params.start == expected
+
+    @staticmethod
+    @given(n_observations=st.integers(), interval=st.integers())
+    @settings(deadline=None, database=database.InMemoryExampleDatabase())
+    def test_ts_length(n_observations: int, interval: int) -> None:
+        """Test `ts_length` property."""
+        args = APY_PARAMS_ARGS
+        # TypedDict can’t be used for specifying the type of a **kwargs argument: https://peps.python.org/pep-0589/
+        kwargs: dict = deepcopy(APY_PARAMS_KWARGS)  # type: ignore
+        kwargs["n_observations"] = n_observations
+        kwargs["history_interval_in_unix"] = interval
+        params = APYParams(*args, **kwargs)
+
+        expected = n_observations * interval
+        assert params.ts_length == expected
 
     @staticmethod
     @pytest.mark.parametrize("param_value", (None, "not_an_int", 0))
