@@ -44,4 +44,6 @@ This is often a question that new developers in the field of agent systems and m
 | Example | Automated, personal asset management: an agent determines the best strategy to invest owners assets. | Automated asset management as a service. Users subscribe to the service, which execute elaborate investing strategies to maximize the capital gains, in exchange for a service fee. |
 | Frameworks   | {{open_aea}} | {{open_autonomy}} + {{open_aea}} |
 
+## Progressive decentralization
+
 Of course, many use cases that apply for single-agent application can later be considered to be offered as an agent service. For this reason, it is often advisable to implement a single-agent application as an agent service with a single service operator. This approach has the benefit that whenever the developer wants to make the promotion of that application to an agent service, they will be able to do so almost effortlessly, except for some modifications to account for potentially extra configuration requirements.
