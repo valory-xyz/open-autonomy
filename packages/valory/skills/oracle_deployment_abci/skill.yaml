@@ -26,10 +26,10 @@ contracts:
 - valory/offchain_aggregator:0.1.0:bafybeifpfs2xb6y7dc6eugxlzqkki6hbici7r2glwk5gc55j6pssmjfrp4
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
-- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
-- valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
+- valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
+- valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifhdywc4n2cbp7gs4vomei4occdppqhmezm7l44ygq2sv7kqrl6iq
+- valory/abstract_round_abci:0.1.0:bafybeibr3cmc5gsxwxiqckdorrhdswd5arpkg53ltyfzncnmdr6gxo62fi
 behaviours:
   main:
     args: {}

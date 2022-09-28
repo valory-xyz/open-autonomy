@@ -37,7 +37,7 @@ This agent will have some dependencies: some packages might be already available
 ```bash
 cd my_agent/
 # Remote flag is not needed here as we initialized the default registry to remote
-autonomy add protocol valory/acn:0.1.0:bafybeidetrrkvdgveu4ph5g6v53lbh7ardfspbkpstmjxctx647bzyosyy
+autonomy add protocol valory/acn:1.1.0:bafybeifontek6tvaecatoauiule3j3id6xoktpjubvuqi3h2jkzqg7zh7a
 ```
 
 You can find a list with all available packages [here](../package_list.md).

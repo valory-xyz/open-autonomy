@@ -12,20 +12,20 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeidphoubsmjfndoqdj4ykkzygnz7jm57vleppj2qegplr4zsmw4vwy
-- valory/http_client:0.1.0:bafybeiet6defg3qvov4r2ucjtkywkz53xcg6mgarjfdqmnxfgdixgcx45y
-- valory/ledger:0.1.0:bafybeicfycqnhdzg5nsir33dlcgs2k4ijjncysqjcn67zvzv2fkwr43eby
-- valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
+- valory/http_client:0.1.0:bafybeign22sj6e3dgae7xkrud5hwfn7wvx2elze3xf4fgpyjuemfvpbjoi
+- valory/ledger:0.1.0:bafybeicjwc3ilyxbtduk4x7c4vjqjfeyatbtscyjpfe2jzlz46yhkgl7vu
+- valory/p2p_libp2p_client:0.1.0:bafybeihf35zfr35qsvfte4vbi7njvuzfx4httysw7owmlux53gvxh2or54
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
-- valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
+- valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 skills:
 - valory/abstract_abci:0.1.0:bafybeihlqczjtcdw3gfix2kakshmq2ujsbnqxxcxsxm2fvn6x6zg7kltga
-- valory/abstract_round_abci:0.1.0:bafybeifhdywc4n2cbp7gs4vomei4occdppqhmezm7l44ygq2sv7kqrl6iq
-- valory/register_reset_abci:0.1.0:bafybeibbnb5yao63aecy4qcrxspetsmjmll3sn353fvau5neumsylnujzu
-- valory/registration_abci:0.1.0:bafybeibihk4oci6cuovyrcbze2332epgjagsja22tqp2njmmsb22v4h4m4
-- valory/reset_pause_abci:0.1.0:bafybeihaoakitbot5epqogfa2kiunz4lw3obep7l2gafo3lmc6qid55mce
+- valory/abstract_round_abci:0.1.0:bafybeibr3cmc5gsxwxiqckdorrhdswd5arpkg53ltyfzncnmdr6gxo62fi
+- valory/register_reset_abci:0.1.0:bafybeiacnxckbrcvbx2nggr7uk5xh6nbasos63hqcdlmcq3uoydempqtgu
+- valory/registration_abci:0.1.0:bafybeihuzmqfgdpoydkbqewbki42iiekxikvms6rzy2q7plb74cjoimia4
+- valory/reset_pause_abci:0.1.0:bafybeig5ccpe5wifsmqcl6al6tvc7z5a7l3gcutrydkdjjvhwfisnfohwa
 default_ledger: ethereum
 required_ledgers:
 - ethereum

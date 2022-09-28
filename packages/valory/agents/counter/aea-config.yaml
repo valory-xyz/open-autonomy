@@ -12,7 +12,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeidphoubsmjfndoqdj4ykkzygnz7jm57vleppj2qegplr4zsmw4vwy
-- valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
+- valory/p2p_libp2p_client:0.1.0:bafybeihf35zfr35qsvfte4vbi7njvuzfx4httysw7owmlux53gvxh2or54
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
