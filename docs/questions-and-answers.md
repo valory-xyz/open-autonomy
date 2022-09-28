@@ -86,8 +86,8 @@ As in any other online service, nodes are exposed to the risk of being breached.
 Agent services are not limited in what they do or how they are configured (e.g. number of agents in them), therefore the costs are subjective to each service. At the very minimum there will be the costs of running the agent on cloud or local infrastructure.
 On top of that, if a service sends transactions to a chain, it will incur in fee costs that will depend on the selected chain.</p>As an example, for a simple service of four agents that makes a simple contract call every five minutes, a monthly cost of $3000 in Ethereum and $1.5 in Polygon is presently estimated (at gas cost of 60 wei per gas), but this number will wildly vary depending on gas costs.
 
-Apart from transaction costs, service operators also incur in infrastructure costs. A rough, quite conservative estimation can be calculated using the following example: a simple service running on
-top of AWS m5.large instances (8GB, 2vCPU) with four agents per instance. The following table shows how server costs would vary depending on the number of operators and number of instances per operator.
+Apart from transaction costs, service operators also incur infrastructure costs. A rough, quite conservative estimation can be calculated using the following example: a simple service running on
+top of an AWS m5.large instance (8GB, 2vCPU) with four agents per instance. The following table shows how server costs would vary depending on the number of operators and number of instances per operator.
 
 <table>
 <thead>
