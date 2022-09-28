@@ -64,7 +64,7 @@ class APYParamsKwargsType(TypedDict):
     observation_interval: str
     drand_public_key: str
     history_interval_in_unix: int
-    history_start: int
+    n_observations: int
     optimizer: Dict[str, Union[None, str, int]]
     testing: str
     estimation: str
@@ -95,7 +95,7 @@ APY_PARAMS_KWARGS = APYParamsKwargsType(
     observation_interval="test",
     drand_public_key="test",
     history_interval_in_unix=86400,
-    history_start=1652544875,
+    n_observations=10,
     optimizer={"timeout": 0, "window_size": 0},
     testing="test",
     estimation="test",
