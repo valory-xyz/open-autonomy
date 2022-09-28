@@ -208,7 +208,7 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
 
     def __validate_params(self) -> None:
         """Validate the given parameters."""
-        # Eventually, we should probably validate all the parameters.
+        # Eventually, we should probably validate all the parameters. E.g., `ts_length` should be < `end`
         for param_name in ("timeout", "window_size"):
             param_val = self.optimizer_params.get(param_name)
             if param_val is not None and not isinstance(param_val, int):
