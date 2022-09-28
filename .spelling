@@ -363,3 +363,7 @@ PrintMessageBehaviour
  - docs/questions-and-answers.md
 m5.large
 2vCPU
+ - docs/threat-model.md
+L1
+L2
+misbehavior
