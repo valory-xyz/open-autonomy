@@ -25,7 +25,7 @@ models:
         steps_forward: 1
       history_end: null
       history_interval_in_unix: 86400
-      history_start: 1652544875
+      n_observations: 10
       optimizer:
         n_trials: 10
         timeout: 60

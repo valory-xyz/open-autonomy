@@ -150,10 +150,10 @@ models:
         voting_power: '10'
       history_end: 1655136875
       history_interval_in_unix: 86400
-      history_start: 1652544875
       ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https
       keeper_timeout: 30.0
       max_healthcheck: 120
+      n_observations: 10
       observation_interval: 10
       on_chain_service_id: null
       optimizer:

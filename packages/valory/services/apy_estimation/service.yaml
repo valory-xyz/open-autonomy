@@ -22,7 +22,7 @@ models:
         spooky_subgraph:
         - '0x2a651563c9d3af67ae0388a5c8f89b867038089e'
         - '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c'
-      history_start: ${SERVICE_APY_HISTORY_START:int:null}
+      n_observations: ${SERVICE_APY_N_OBSERVATIONS:int:120}
       history_end: null
       ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https
   server_api:
