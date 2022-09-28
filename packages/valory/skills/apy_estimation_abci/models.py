@@ -176,6 +176,8 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
+        # end can be `None`; this means that the current time will be used
+        # It is set in the behaviour using the last synced timestamp among the agents
         self.end: Optional[int] = kwargs.pop("history_end", None)
         self.interval: int = self._ensure("history_interval_in_unix", kwargs)
         self.n_observations: int = self._ensure("n_observations", kwargs)
