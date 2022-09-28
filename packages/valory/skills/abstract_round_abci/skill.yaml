@@ -117,7 +117,7 @@ models:
     class_name: SharedState
 dependencies:
   open-aea-cli-ipfs:
-    version: <2.0.0,>=1.20.0
+    version: <2.0.0,>=1.21.0
   open-aea-test-autonomy:
     version: ==0.3.1
   py-ecc:
