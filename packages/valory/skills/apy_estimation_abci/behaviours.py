@@ -1403,7 +1403,6 @@ class EstimateBehaviour(APYEstimationBaseBehaviour):
             self.context.logger.info(
                 "Estimates have been received:\n" f"{estimates.to_string()}"
             )
-            self.context.logger.info("Estimates have been received.")
 
             # Send the file to IPFS and get its hash.
             self._estimations_hash = self.send_to_ipfs(
