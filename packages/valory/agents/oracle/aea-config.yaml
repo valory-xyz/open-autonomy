@@ -16,7 +16,7 @@ connections:
 - valory/ledger:0.1.0:bafybeicfycqnhdzg5nsir33dlcgs2k4ijjncysqjcn67zvzv2fkwr43eby
 - valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeihht4j726a4swe4duqxohnxtctdghftgywurw55zwjjqsbqjwnacm
+- valory/gnosis_safe:0.1.0:bafybeibwqdpcefr5cwmysdap6av3xyemve2ayifdfthw3kcoe6m3e4xrgq
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeielbvildyu3ochppoyx7ldstgzqerwnq7qjbubyaunbuztsvrabnq
 - valory/offchain_aggregator:0.1.0:bafybeifpfs2xb6y7dc6eugxlzqkki6hbici7r2glwk5gc55j6pssmjfrp4
 - valory/service_registry:0.1.0:bafybeieubs245wvjpwjelmagipqqx4zo3qj42kb54oy62ogo7xbk3nudxm
@@ -31,13 +31,13 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeihlqczjtcdw3gfix2kakshmq2ujsbnqxxcxsxm2fvn6x6zg7kltga
 - valory/abstract_round_abci:0.1.0:bafybeieotxp2hbqxiwgolysh3ka2phc4cszqqp3tjuvfgwriwjb3evrhfq
-- valory/oracle_abci:0.1.0:bafybeicmbxvszca3zgtvaoyeyypphifw7gkwvvcpuaoupyx6j3e3o5y7sy
+- valory/oracle_abci:0.1.0:bafybeibcdflxfusratqumsy5izxguyc6beo7s7voi7bo4iazfn2iwjaq7i
 - valory/oracle_deployment_abci:0.1.0:bafybeiewajzm4e6p6vxusqkwavtgm22dzjh67i3yzik4qgboksif7atxtm
-- valory/price_estimation_abci:0.1.0:bafybeiabxsqta7hafhkpbotqvyl3v7ln2c6pyw3x3x5qxzti4ektovanme
+- valory/price_estimation_abci:0.1.0:bafybeibppucbwcsuugg7gelqwd5qzzybm6oitm7bsnqwphyje4gceqvylq
 - valory/registration_abci:0.1.0:bafybeicsnxskaww6f2dgdxbmwfihjiaympgan4tvfwwh4b7mhe3j46vyne
 - valory/reset_pause_abci:0.1.0:bafybeighihoy2b7hllcvpvq2htn6rbavnp2evuhlccih6ong737t56jby4
-- valory/safe_deployment_abci:0.1.0:bafybeibrwniyxzl5zuqm4geqhpxmo76jrigb6owhl3gixolomhav3wodea
-- valory/transaction_settlement_abci:0.1.0:bafybeidg7z4p4rriywsolqpdarpbiwdt6jfs3e5lrtjozddxpdbtrxnboa
+- valory/safe_deployment_abci:0.1.0:bafybeiertm2g7fbagl7ao4ynus66nw73dlicaaqlrsu46vcfaflny2hzoi
+- valory/transaction_settlement_abci:0.1.0:bafybeibmrhd3ux6ug4dgy2phqbrsw5mgxbunad3nrvtdqr2mmmfo6nx6ja
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -66,7 +66,7 @@ logging_config:
       handlers:
       - logfile
       - console
-      propagate: false
+      propagate: true
 dependencies:
   open-aea-ledger-cosmos: {}
   open-aea-ledger-ethereum: {}
@@ -119,6 +119,7 @@ models:
       service_registry_address: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SERVICE_REGISTRY_ADDRESS:str:none}
       share_tm_config_on_startup: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_SHARE_TM_CONFIG_ON_STARTUP:bool:false}
       on_chain_service_id: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_ON_CHAIN_SERVICE_ID:int:none}
+      init_fallback_gas: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_INIT_FALLBACK_GAS:int:270000}
   server_api:
     args:
       url: ${SKILL_ORACLE_ABCI_MODELS_SERVER_API_ARGS_URL:str:http://192.168.2.17:9999/deposit}

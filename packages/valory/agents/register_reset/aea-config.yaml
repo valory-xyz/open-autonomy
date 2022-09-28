@@ -53,7 +53,7 @@ logging_config:
       handlers:
       - logfile
       - console
-      propagate: false
+      propagate: true
 dependencies:
   open-aea-ledger-ethereum: {}
   open-aea-test-autonomy:

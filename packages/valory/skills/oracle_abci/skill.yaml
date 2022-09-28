@@ -31,11 +31,11 @@ protocols:
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeieotxp2hbqxiwgolysh3ka2phc4cszqqp3tjuvfgwriwjb3evrhfq
 - valory/oracle_deployment_abci:0.1.0:bafybeiewajzm4e6p6vxusqkwavtgm22dzjh67i3yzik4qgboksif7atxtm
-- valory/price_estimation_abci:0.1.0:bafybeiabxsqta7hafhkpbotqvyl3v7ln2c6pyw3x3x5qxzti4ektovanme
+- valory/price_estimation_abci:0.1.0:bafybeibppucbwcsuugg7gelqwd5qzzybm6oitm7bsnqwphyje4gceqvylq
 - valory/registration_abci:0.1.0:bafybeicsnxskaww6f2dgdxbmwfihjiaympgan4tvfwwh4b7mhe3j46vyne
 - valory/reset_pause_abci:0.1.0:bafybeighihoy2b7hllcvpvq2htn6rbavnp2evuhlccih6ong737t56jby4
-- valory/safe_deployment_abci:0.1.0:bafybeibrwniyxzl5zuqm4geqhpxmo76jrigb6owhl3gixolomhav3wodea
-- valory/transaction_settlement_abci:0.1.0:bafybeidg7z4p4rriywsolqpdarpbiwdt6jfs3e5lrtjozddxpdbtrxnboa
+- valory/safe_deployment_abci:0.1.0:bafybeiertm2g7fbagl7ao4ynus66nw73dlicaaqlrsu46vcfaflny2hzoi
+- valory/transaction_settlement_abci:0.1.0:bafybeibmrhd3ux6ug4dgy2phqbrsw5mgxbunad3nrvtdqr2mmmfo6nx6ja
 behaviours:
   main:
     args: {}
@@ -103,6 +103,7 @@ models:
           version: {}
         voting_power: '10'
       history_check_timeout: 1205
+      init_fallback_gas: 270000
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
       max_healthcheck: 120
