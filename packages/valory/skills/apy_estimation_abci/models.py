@@ -176,7 +176,6 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
-        self.start: int = self._ensure("history_start", kwargs)
         self.end: Optional[int] = kwargs.pop("history_end", None)
         self.interval: int = self._ensure("history_interval_in_unix", kwargs)
         self.n_observations: int = self._ensure("n_observations", kwargs)
@@ -192,6 +191,18 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
         super().__init__(*args, **kwargs)
 
         self.__validate_params()
+
+    @property
+    def start(self) -> Optional[int]:
+        """The start timestamp of the timeseries."""
+        if self.end is None:
+            return None
+        return self.end - self.ts_length
+
+    @property
+    def ts_length(self) -> int:
+        """The length of the timeseries in seconds."""
+        return self.n_observations * self.interval
 
     def __validate_params(self) -> None:
         """Validate the given parameters."""
