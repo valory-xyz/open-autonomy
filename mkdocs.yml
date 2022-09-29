@@ -56,6 +56,7 @@ nav:
       - The AbstractRound Class: 'abci_app_abstract_round.md'
       - Interactions between Components: 'abci_app_interactions.md'
       - Sequence Diagram: 'poc-diagram.md'
+    - Threat model: 'threat-model.md'
   - Advanced reference:
     - 'advanced_reference/index.md'
     - Version: 'version.md'
