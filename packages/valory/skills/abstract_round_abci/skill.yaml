@@ -6,19 +6,6 @@ description: abstract round-based ABCI application
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  .hypothesis/examples/9447dab7b47571df/841d7961bce00bcf: bafybeib2itnffb4i5pyismmdlblqebd32kr44icboo7vjwywxsto2z2t2e
-  .hypothesis/examples/9447dab7b47571df/93df84281a53c223: bafybeig6qcikboieh5h6ukvlb4oqh4ojsu7iycxb2zgokoimo46g65bskq
-  .hypothesis/examples/9447dab7b47571df/a82d9d5b1b30ce34: bafybeibvhc4dorfutcxslfsgu3ghcpcmdogwc5mob6rop542ocq2bicd5e
-  .hypothesis/examples/9447dab7b47571df/e016929922312257: bafybeibx4em2zju7cuuk22u4iso2j35jgc3ihypzxoarsyz4qobhz7bmaa
-  .hypothesis/examples/f50b622b8b63f57e/25dbd9da4f53e72e: bafybeiandsbu7vbmkt3s6b5eqowye4l7gz4e7ydd23z7uazwlmw2t6qvka
-  .hypothesis/examples/f50b622b8b63f57e/32b69ccffcd54de9: bafybeiasjgz4xdfso2xweoz62q4nbwoyy3qfsowlmosifm7txfyqgfmqja
-  .hypothesis/examples/f50b622b8b63f57e/352387855ee8c379: bafybeifxrq7hsbzcwoi3itagbth67dvuy7ihj6jwntaykg2zpiwiksmq6i
-  .hypothesis/examples/f50b622b8b63f57e/a420b900630674df: bafybeie7ki2hvtsywsgd5pgno4og2zx4dwjop22somkqh3qe4l5ywvluby
-  .hypothesis/examples/f50b622b8b63f57e/af8ec452e2716d99: bafybeidib6pddndwb7emqj722pp7d2gtbgddytqfa5k4eh5zatz3psz3mm
-  .hypothesis/examples/f50b622b8b63f57e/cace61974a80763a: bafybeifytrjibroszfnz256ivauelofxpm4a7swvpbivl2mifwmj2vxdq4
-  .hypothesis/examples/f50b622b8b63f57e/cd6bd1dcfebeffe9: bafybeibikkrfdvhgqq45npnnss4zepaiiseijh63kfl6hh2tpx2gmy4t3q
-  .hypothesis/examples/f50b622b8b63f57e/f0ca237e664ac742: bafybeibwrgs75jqgo3uzicfo3w5lsvimmdorzksmozua6lzl7fbmcux4se
-  .hypothesis/examples/f50b622b8b63f57e/fc4707dd66cec63c: bafybeiawwzl2zff63irgemvzps6fhy7t5rzyiewibo4saatbbip3ene3cu
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeiaxhdfjmhbstyi5oqeu7wzst44snhbyoggrpusgs2c3tn3cluzhpm
   abci_app_chain.py: bafybeihb3ded23gvjrn426qptkbnkge5cewqm7ywi4j6ebmo3j66ss5wii

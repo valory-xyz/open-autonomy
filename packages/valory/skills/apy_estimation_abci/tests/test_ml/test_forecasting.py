@@ -33,6 +33,7 @@ from _pytest.monkeypatch import MonkeyPatch
 from pmdarima import ARIMA
 from pmdarima.pipeline import Pipeline
 from pmdarima.preprocessing import FourierFeaturizer
+from sklearn.exceptions import NotFittedError
 
 from packages.valory.skills.apy_estimation_abci.ml import forecasting
 from packages.valory.skills.apy_estimation_abci.ml.forecasting import (
@@ -292,7 +293,8 @@ class TestForecasting:
         )
         pd.testing.assert_frame_equal(estimates, expected_estimates)
 
-    def test_predict_safely(self) -> None:
+    @pytest.mark.parametrize("fitted", (True, False))
+    def test_predict_safely(self, fitted: bool) -> None:
         """
         Test `predict_safely`.
 
@@ -333,6 +335,11 @@ class TestForecasting:
             ]
         )
         steps_forward = 1
+
+        if not fitted:
+            with pytest.raises(NotFittedError, match="Model has not been fit!"):
+                predict_safely(model, steps_forward)
+            return
 
         # Fit model with data.
         model.fit(y)
