@@ -18,6 +18,6 @@ Autonomous services work under the following threat model:
 
 - Agents can punish each other's misbehavior by submitting fraud proofs to the underlying chain, causing slashing of the deposit of the malicious instance
 
-- The service owner locks a deposit equal to the total deposits requested from the agent instances. This is used to incentivise the service owner to release the agents deposits at the end of the lifetime of the service
+- The service owner locks a deposit equal to the largest deposit requested from the agent instances. This is used to incentivise the service owner to release the agents deposits at the end of the lifetime of the service
 
 An autonomous (or agent) service is decentralized by virtue of minimizing the trust placed on individual agent instances. Although a service owner could potentially be penalized for misbehavior, they are largely assumed to act honestly, as it has no control over the service when it is live (similarly to the entity that deploys a smart contract in a programmable blockchain).
