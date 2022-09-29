@@ -179,6 +179,8 @@ class TestBuildDeployment(BaseCliTest):
                     "--force",
                     "--dev",
                     "--local",
+                    "--packages-dir",
+                    str(ROOT_DIR / PACKAGES),
                 )
             )
 
@@ -291,6 +293,8 @@ class TestBuildDeployment(BaseCliTest):
                     "--force",
                     "--dev",
                     "--local",
+                    "--packages-dir",
+                    str(ROOT_DIR / PACKAGES),
                 )
             )
 
