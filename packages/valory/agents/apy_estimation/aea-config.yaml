@@ -28,8 +28,8 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeihlqczjtcdw3gfix2kakshmq2ujsbnqxxcxsxm2fvn6x6zg7kltga
 - valory/abstract_round_abci:0.1.0:bafybeieotxp2hbqxiwgolysh3ka2phc4cszqqp3tjuvfgwriwjb3evrhfq
-- valory/apy_estimation_abci:0.1.0:bafybeihjdlyoctn7ejvwu6l3zdua7x2ftoe5r2ziuth2cwzmjc6ieww2ci
-- valory/apy_estimation_chained_abci:0.1.0:bafybeigzn3shqgusrb4kvmapzmlugiumzkfyjgcvhpcb6d456banabhmim
+- valory/apy_estimation_abci:0.1.0:bafybeih2phwgdokxwtntbgzgao5trrzlqxbpg53txsfrmctswnm2274aee
+- valory/apy_estimation_chained_abci:0.1.0:bafybeidz5lfoapru7defmdeysramcz5pw7onxp5byzgaxciyz74pve2sj4
 - valory/registration_abci:0.1.0:bafybeicsnxskaww6f2dgdxbmwfihjiaympgan4tvfwwh4b7mhe3j46vyne
 default_ledger: ethereum
 required_ledgers:
@@ -98,7 +98,7 @@ models:
         steps_forward: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_ESTIMATION_STEPS_FORWARD:int:1}
       history_end: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_HISTORY_END:int:1654136875}
       history_interval_in_unix: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_HISTORY_INTERVAL_IN_UNIX:int:86400}
-      history_start: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_HISTORY_START:int:1652544875}
+      n_observations: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_N_OBSERVATIONS:int:10}
       optimizer:
         n_trials: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_N_TRIALS:int:10}
         timeout: ${SKILL_APY_ESTIMATION_ABCI_MODELS_PARAMS_ARGS_OPTIMIZER_TIMEOUT:int:300}
