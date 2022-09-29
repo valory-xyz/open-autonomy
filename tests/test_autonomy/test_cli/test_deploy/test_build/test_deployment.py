@@ -180,7 +180,11 @@ class TestBuildDeployment(BaseCliTest):
                     "--dev",
                     "--local",
                     "--packages-dir",
-                    str(ROOT_DIR / PACKAGES),
+                    str(ROOT_DIR),
+                    "--open-aea-dir",
+                    str(ROOT_DIR),
+                    "--open-autonomy-dir",
+                    str(ROOT_DIR),
                 )
             )
 
@@ -294,7 +298,11 @@ class TestBuildDeployment(BaseCliTest):
                     "--dev",
                     "--local",
                     "--packages-dir",
-                    str(ROOT_DIR / PACKAGES),
+                    str(ROOT_DIR),
+                    "--open-aea-dir",
+                    str(ROOT_DIR),
+                    "--open-autonomy-dir",
+                    str(ROOT_DIR),
                 )
             )
 
