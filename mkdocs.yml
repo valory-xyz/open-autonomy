@@ -248,6 +248,7 @@ plugins:
   - macros
 
 markdown_extensions:
+  - pymdownx.details
   - pymdownx.superfences
   - pymdownx.highlight
   - pymdownx.emoji:
