@@ -34,7 +34,7 @@ fingerprint:
   tests/test_ml/test_forecasting.py: bafybeihezrnqxrhdcugndf64wv72kp2jhizzrf4svzlrseucparpizwpo4
   tests/test_ml/test_optimization.py: bafybeihnvcgqttwmbi2idvmkrrd5becqry4bannzuww6webxfuznjocdfy
   tests/test_ml/test_preprocessing.py: bafybeicqer5b6fhzoimtrk4mwmh62km6olwljmhxvi6p7zdm6o4jbycfji
-  tests/test_models.py: bafybeibwe7y45cqn6x6um3uq4h3mkr4dkdjs25vn6iq5hdufgaeqs2kste
+  tests/test_models.py: bafybeiaj6uv2dymuhmzqd3gqhdlheeoizzpdlmlemskqwci7q4dif4szxm
   tests/test_payloads.py: bafybeida5a2wgqsc4cfgvq4y6jiikldvu2q5mktwnnfhovejbldj3r6maa
   tests/test_rounds.py: bafybeicnfdjzqcbungrpi4zeozp67342f3a6nsinhc2bxjc6iggm2tm2ja
   tests/test_tasks.py: bafybeifumykfnu4ymcgbpimgmg5ipmfhwgdjggfblyejc3m4eceij554je

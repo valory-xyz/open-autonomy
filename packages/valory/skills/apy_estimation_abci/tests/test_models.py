@@ -149,10 +149,7 @@ class TestAPYParams:
             new_callable=mock.PropertyMock,
             return_value=ts_length,
         ):
-            if expected is None:
-                assert params.start is expected
-            else:
-                assert params.start == expected
+            assert params.start == expected
 
     @staticmethod
     @given(n_observations=st.integers(), interval=st.integers())
