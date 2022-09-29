@@ -13,7 +13,7 @@ Last but not least, it is important to keep in mind what the average block times
 ## Ledger configuration for Agents
 Look at you agent's `aea-config.yaml` last section. It should look like this:
 ```
-public_id: valory/ledger:0.1.0
+public_id: valory/ledger:0.19.0
 type: connection
 config:
   ledger_apis:

@@ -10,7 +10,7 @@ fingerprint_ignore_patterns: []
 number_of_agents: 1
 agent: valory/counter:0.1.0:bafybeigb76iqtioafwwtljfofceq636qm6fxdfgwgelwiqjob2zqsyeeqe
 ---
-public_id: valory/ledger:0.1.0
+public_id: valory/ledger:0.19.0
 type: connection
 config:
   ledger_apis:

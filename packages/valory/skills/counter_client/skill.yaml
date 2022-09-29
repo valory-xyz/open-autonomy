@@ -18,7 +18,7 @@ fingerprint:
   utils.py: bafybeiddamdexsvkj63qccmfjqvsmxjzbrrmhydijkf64jshw3wanbd4ja
 fingerprint_ignore_patterns: []
 connections:
-- valory/http_client:0.1.0:bafybeign22sj6e3dgae7xkrud5hwfn7wvx2elze3xf4fgpyjuemfvpbjoi
+- valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
 contracts: []
 protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
