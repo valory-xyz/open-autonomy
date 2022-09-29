@@ -57,6 +57,7 @@ from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerato
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 from autonomy.deploy.image import build_image
 
+
 PACKAGES_DIR = "packages_dir"
 OPEN_AEA_DIR = "open_aea_dir"
 OPEN_AUTONOMY_DIR = "open_autonomy_dir"
