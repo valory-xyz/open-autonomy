@@ -31,7 +31,7 @@ pip install open-autonomy[all]
 
 4. Initialize the framework to work with the remote [IPFS](https://ipfs.io) registry. This means that when the framework will be fetching a component, it will do so from the [IPFS](https://ipfs.io):
     ```bash
-    autonomy init --reset --author john_doe --remote --ipfs --ipfs-node "/dns/registry.autonolas.tech/tcp/443/https"
+    autonomy init --remote --ipfs
     ```
 
     !!!info
