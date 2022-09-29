@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeibqyfur7wusrbfga66hcbauxvhs2g3j5yhknsxlvyh6mil57aajyu
 fingerprint_ignore_patterns: []
-agent: valory/apy_estimation:0.1.0:bafybeicns5f77wmlxhztnar4dgjcwnmju7i23vc7ufwlh7lr3wbwdkv5ua
+agent: valory/apy_estimation:0.1.0:bafybeib54g6rtqnsfpfu3qzmhbalci2o5bkzeiomtgcytcz3p3jbdat37y
 number_of_agents: 4
 ---
 public_id: valory/apy_estimation_abci:0.1.0
@@ -25,7 +25,7 @@ models:
         steps_forward: 1
       history_end: null
       history_interval_in_unix: 86400
-      history_start: 1652544875
+      n_observations: 10
       optimizer:
         n_trials: 10
         timeout: 60
