@@ -57,6 +57,10 @@ from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerato
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 from autonomy.deploy.image import build_image
 
+PACKAGES_DIR = "packages_dir"
+OPEN_AEA_DIR = "open_aea_dir"
+OPEN_AUTONOMY_DIR = "open_autonomy_dir"
+
 
 @click.group(name="deploy")
 @click.pass_context
@@ -167,9 +171,9 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
 
     if dev_mode:
         for name, path in (
-            ("packages_dir", packages_dir),
-            ("open_aea_dir", open_aea_dir),
-            ("open_autonomy_dir", open_autonomy_dir),
+            (PACKAGES_DIR, packages_dir),
+            (OPEN_AEA_DIR, open_aea_dir),
+            (OPEN_AUTONOMY_DIR, open_autonomy_dir),
         ):
             if not path.exists():
                 flag = "--" + "-".join(name.split("_"))
