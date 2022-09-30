@@ -61,9 +61,11 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 4. **Fill in the business logic code of the service.** By default, the generated rounds, payloads and behaviours are initialized to empty values. It is your turn to define what actions are occurring at each state of the service, by filling up the code of the template {{fsm_app}} skill generated above. You can review how a number of [demo services](../demos/index.md) are implemented, or read more about the internals of [{{fsm_app}}s](../fsm_app_introduction.md)).
 
-5. **Push the generated skill to the local registry.** Once you have finished creating the {{fsm_app}} skill, you can [push it to a local or remote registry](./managing_packages.md) for future reuse of the component.
+5. **Optionally, create additional components**. If required by your skills, you can add additional components for the agents that make up the service. You can browse the {{open_aea}} docs for further guidance. For example, have a look at how to create and interact with contracts in our [contract development guide](https://open-aea.docs.autonolas.tech/creating-contracts/).
 
-6. **Clean up.** If you are only interested in the {{fsm_app}} skill created, you don't need the agent any more, so it can be safely deleted:
+6. **Push the generated skill to the local registry.** Once you have finished creating the {{fsm_app}} skill, you can [push it to a local or remote registry](./managing_packages.md) for future reuse of the component.
+
+7. **Clean up.** If you are only interested in the {{fsm_app}} skill created, you don't need the agent any more, so it can be safely deleted:
     ```bash
     cd ..
     autonomy delete my_agent

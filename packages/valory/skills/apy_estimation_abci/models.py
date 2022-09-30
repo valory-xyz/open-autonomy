@@ -176,9 +176,11 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters object."""
-        self.start: int = self._ensure("history_start", kwargs)
+        # end can be `None`; this means that the current time will be used
+        # It is set in the behaviour using the last synced timestamp among the agents
         self.end: Optional[int] = kwargs.pop("history_end", None)
         self.interval: int = self._ensure("history_interval_in_unix", kwargs)
+        self.n_observations: int = self._ensure("n_observations", kwargs)
         self.optimizer_params: Dict[
             str, Union[None, bool, int, float, str]
         ] = self._ensure("optimizer", kwargs)
@@ -192,9 +194,21 @@ class APYParams(BaseParams):  # pylint: disable=too-many-instance-attributes
 
         self.__validate_params()
 
+    @property
+    def start(self) -> Optional[int]:
+        """The start timestamp of the timeseries."""
+        if self.end is None:
+            return None
+        return self.end - self.ts_length
+
+    @property
+    def ts_length(self) -> int:
+        """The length of the timeseries in seconds."""
+        return self.n_observations * self.interval
+
     def __validate_params(self) -> None:
         """Validate the given parameters."""
-        # Eventually, we should probably validate all the parameters.
+        # Eventually, we should probably validate all the parameters. E.g., `ts_length` should be < `end`
         for param_name in ("timeout", "window_size"):
             param_val = self.optimizer_params.get(param_name)
             if param_val is not None and not isinstance(param_val, int):

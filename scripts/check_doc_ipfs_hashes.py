@@ -38,9 +38,13 @@ VENDOR_REGEX = rf"(?P<vendor>{SIMPLE_ID_REGEX})"
 PACKAGE_REGEX = rf"(?P<package>{SIMPLE_ID_REGEX})"
 VERSION_REGEX = r"(?P<version>\d+\.\d+\.\d+)"
 FLAGS_REGEX = r"(?P<flags>(\s--.*)?)"
+PACKAGE_TYPE_REGEX = (
+    r"(?P<package_type>(skill|protocol|connection|contract|agent|service))"
+)
 
 AEA_COMMAND_REGEX = rf"(?P<full_cmd>{CLI_REGEX} {CMD_REGEX} (?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}){FLAGS_REGEX})"
 FULL_PACKAGE_REGEX = rf"(?P<full_package>(?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}))"
+PACKAGE_TABLE_REGEX = rf"\| {PACKAGE_TYPE_REGEX}\/{VENDOR_REGEX}\/{PACKAGE_REGEX}\/{VERSION_REGEX}(\s|\|)*(?P<hash>{IPFS_HASH_REGEX})\s*\|"
 
 ROOT_DIR = Path(__file__).parent.parent
 
@@ -218,6 +222,12 @@ class PackageHashManager:
             )
             return None
 
+    def get_hash_by_attributes(
+        self, package_type: str, vendor: str, package_name: str
+    ) -> str:
+        """Get a package hash give the package information"""
+        return self.package_tree[vendor][package_type][package_name].hash
+
 
 def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     fix: bool = False,
@@ -231,7 +241,7 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     package_manager = PackageHashManager()
     matches = 0
 
-    # Fix full commands on docs
+    # Fix full commands in docs
     for md_file in all_md_files:
         content = read_file(str(md_file))
         for match in [m.groupdict() for m in re.finditer(AEA_COMMAND_REGEX, content)]:
@@ -265,14 +275,14 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
 
                 with open(str(md_file), "w", encoding="utf-8") as qs_file:
                     qs_file.write(new_content)
-                print(f"Fixed an IPFS hash on doc file {md_file}")
+                print(f"Fixed an IPFS hash in doc file {md_file}")
                 old_to_new_hashes[doc_hash] = expected_hash
             else:
                 print(
-                    f"IPFS hash mismatch on doc file {md_file}. Expected {expected_hash}, got {doc_hash}:\n    {doc_full_cmd}"
+                    f"IPFS hash mismatch in doc file {md_file}. Expected {expected_hash}, got {doc_hash}:\n    {doc_full_cmd}"
                 )
 
-    # Fix packages on python files
+    # Fix packages in python files
     all_py_files = [Path("autonomy", "constants.py")]
     for py_file in all_py_files:
         content = read_file(str(py_file))
@@ -303,12 +313,41 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
 
                 with open(str(py_file), "w", encoding="utf-8") as qs_file:
                     qs_file.write(new_content)
-                print(f"Fixed an IPFS hash on doc file {py_file}")
+                print(f"Fixed an IPFS hash in doc file {py_file}")
                 old_to_new_hashes[py_hash] = expected_hash
             else:
                 print(
                     f"IPFS hash mismatch on file {py_file}. Expected {expected_hash}, got {py_hash}:\n    {full_package}"
                 )
+
+    # Fix hashes in package list
+    package_list_file = Path(ROOT_DIR, "docs", "package_list.md")
+    content = read_file(str(package_list_file))
+
+    for match in [m.groupdict() for m in re.finditer(PACKAGE_TABLE_REGEX, content)]:
+        expected_hash = package_manager.get_hash_by_attributes(
+            match["package_type"], match["vendor"], match["package"]
+        )
+        package_hash = match["hash"]
+
+        if package_hash == expected_hash:
+            continue
+
+        print(
+            f"IPFS hash mismatch in doc file {package_list_file}.\n"
+            f"Expected {expected_hash}, got {package_hash}\n"
+            f'in package {match["package_type"]}/{match["vendor"]}/{match["package"]}.\n'
+        )
+        hash_mismatches = True
+
+        # Overwrite with new hash
+        if fix:
+            content = content.replace(package_hash, expected_hash)
+
+    if fix:
+        with open(str(package_list_file), "w", encoding="utf-8") as p_file:
+            p_file.write(content)
+        print(f"Fixed some IPFS hashes in doc file {package_list_file}")
 
     if fix and errors:
         raise ValueError(

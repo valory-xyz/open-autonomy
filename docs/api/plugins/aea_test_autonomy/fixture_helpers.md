@@ -257,7 +257,7 @@ Launch the Ganache image. This fixture is scoped to a class which means it will 
 
 ```python
 @pytest.fixture(scope="class")
-def ammnet_scope_class(timeout: float = 2.0, max_attempts: int = 20) -> Generator
+def ammnet_scope_class(timeout: float = 2.0, max_attempts: int = 26) -> Generator
 ```
 
 Launch the Ganache image. This fixture is scoped to a class which means it will destroyed after running every test in a class.

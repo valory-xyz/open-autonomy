@@ -61,5 +61,5 @@ ESTIMATIONS_PATH_TEMPLATE = Template(_ESTIMATIONS_PATH)
 # paths for folders
 BEST_PARAMS_PATH = "best_params"
 FORECASTERS_PATH = "forecasters"
-FULLY_TRAINED_FORECASTERS_PATH = "_".join(("fully_trained_", FORECASTERS_PATH))
+FULLY_TRAINED_FORECASTERS_PATH = "_".join(("fully_trained", FORECASTERS_PATH))
 REPORTS_PATH = "reports"
