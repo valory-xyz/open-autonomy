@@ -6,6 +6,8 @@
 Autonomy:
 - Fixes issues related to `IP/Host` resolving on windows
 - Fixes several issues with dev mode to make it work again
+
+Packages:
 - Sets an initial fallback gas and propagates the logs
 
 Docs:
@@ -22,7 +24,7 @@ Docs:
 Chores:
 - Extends the hash fixing script to also fix the hash table in the docs
 - Simplifies linter configuration for `pylint`
-- Bumps Open-AEA to 1.21.0
+- Bumps `open-aea` to 1.21.0
 - Adds lock check for all platforms
 
 Tests:
