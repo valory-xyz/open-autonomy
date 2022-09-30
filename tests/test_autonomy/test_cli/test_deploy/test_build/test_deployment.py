@@ -524,6 +524,26 @@ class TestBuildDeployment(BaseCliTest):
             ]
         )
 
+    def test_build_dev_failures(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--force",
+                    "--dev",
+                    "--local",
+                )
+            )
+
+        assert result.exit_code == 1, result.output
+        assert "Please provide proper value for --packages-dir" in result.output
+
     @classmethod
     def teardown(cls) -> None:
         """Teardown method."""
