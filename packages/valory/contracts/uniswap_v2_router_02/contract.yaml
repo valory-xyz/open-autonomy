@@ -18,4 +18,4 @@ contract_interface_paths:
   ethereum: build/IUniswapV2Router02.json
 dependencies:
   open-aea-test-autonomy:
-    version: ==0.3.1
+    version: ==0.3.2

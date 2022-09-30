@@ -11,12 +11,12 @@ fingerprint:
   tests/test_registration.py: bafybeifjqvw3fzabl3fpqthnme3tcmstxrxiv4gqifdrszv76hvhygckpe
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeidphoubsmjfndoqdj4ykkzygnz7jm57vleppj2qegplr4zsmw4vwy
+- valory/abci:0.1.0:bafybeidwcyd3zekabzih56y3hhsh75irzwkfp5xyj4ms6cfkudrfg73wsa
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
 - valory/ledger:0.19.0:bafybeigpltrga4ggf4nejvl7l32zioyk77jzodvhthjwd3uvdkuxedvnz4
 - valory/p2p_libp2p_client:0.1.0:bafybeihf35zfr35qsvfte4vbi7njvuzfx4httysw7owmlux53gvxh2or54
 contracts:
-- valory/service_registry:0.1.0:bafybeieubs245wvjpwjelmagipqqx4zo3qj42kb54oy62ogo7xbk3nudxm
+- valory/service_registry:0.1.0:bafybeicvmdbhovr247vvunz5rer7sai74jxxavfwxyundiq3ebfxc2pvya
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
@@ -26,9 +26,9 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeihlqczjtcdw3gfix2kakshmq2ujsbnqxxcxsxm2fvn6x6zg7kltga
-- valory/abstract_round_abci:0.1.0:bafybeihliaw2n6aqbp7mqaa76fgmpgugdyt4grhled6pxmer6czauskfr4
-- valory/registration_abci:0.1.0:bafybeiddsu5kxcivqfozlg5lgywnd74enrzgobbpjopurvciym3bry6cle
+- valory/abstract_abci:0.1.0:bafybeib3eq6qk7sz5cmrytl4rwyrmyupps2hhvncghc7q3bwvyh3fwetpy
+- valory/abstract_round_abci:0.1.0:bafybeihwhcdxbxxx6bodp27b5visoo67mgkleoawsrvaolxxa3d3gnus2u
+- valory/registration_abci:0.1.0:bafybeihkh7klg23m3v2kokpi5dmzv24qymsrjhcvesdst57yhbtyvx6b74
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -62,7 +62,7 @@ dependencies:
   open-aea-ledger-cosmos: {}
   open-aea-ledger-ethereum: {}
   open-aea-test-autonomy:
-    version: ==0.3.1
+    version: ==0.3.2
 skill_exception_policy: just_log
 connection_exception_policy: just_log
 default_connection: null

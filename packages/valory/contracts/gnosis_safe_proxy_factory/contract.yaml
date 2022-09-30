@@ -19,5 +19,5 @@ contract_interface_paths:
   ethereum: build/ProxyFactory_V1_3_0.json
 dependencies:
   open-aea-test-autonomy:
-    version: ==0.3.1
+    version: ==0.3.2
   py-eth-sig-utils: {}

@@ -55,7 +55,7 @@ protocols:
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihliaw2n6aqbp7mqaa76fgmpgugdyt4grhled6pxmer6czauskfr4
+- valory/abstract_round_abci:0.1.0:bafybeihwhcdxbxxx6bodp27b5visoo67mgkleoawsrvaolxxa3d3gnus2u
 behaviours:
   main:
     args: {}
@@ -256,7 +256,7 @@ dependencies:
   numpy:
     version: ==1.21.6
   open-aea-test-autonomy:
-    version: ==0.3.1
+    version: ==0.3.2
   optuna:
     version: ==2.10.1
   pandas:
