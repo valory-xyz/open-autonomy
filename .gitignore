@@ -391,6 +391,15 @@ Pipfile.lock
 
 packages/open_aea
 
+packages/valory/connections/http_client
+packages/valory/connections/ledger
+packages/valory/connections/p2p_libp2p_client
+
+packages/valory/protocols/acn
+packages/valory/protocols/contract_api
+packages/valory/protocols/http
+packages/valory/protocols/ledger_api
+
 .vscode/
 
 generate_abciapp_spec.py

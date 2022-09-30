@@ -109,7 +109,7 @@ models:
       url: ""
       api_id: ""
 """
-CONNECTION_OVERRIDE: str = """public_id: valory/ledger:0.1.0
+CONNECTION_OVERRIDE: str = """public_id: valory/ledger:0.19.0
 type: connection
 config:
   ledger_apis:

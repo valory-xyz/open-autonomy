@@ -22,36 +22,37 @@
 # pylint: skip-file
 
 import asyncio
-from typing import Any, Dict, List, Tuple, cast
+import time
+from pathlib import Path
+from typing import Any, Dict, Generator, List, Tuple, cast
 from unittest import mock
 
 import pytest
 from aea.common import Address
 from aea.contracts.base import Contract
+from aea.crypto.ledger_apis import LedgerApi
 from aea.crypto.registries import make_crypto
 from aea.helpers.transaction.base import RawMessage, RawTransaction, State
 from aea.mail.base import Envelope
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
 from aea_ledger_ethereum import EthereumCrypto
-from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER, get_key
+from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER, KEY_PAIRS, get_key
 from aea_test_autonomy.docker.base import skip_docker_tests
 from aea_test_autonomy.fixture_helpers import hardhat_addr  # noqa: F401
 from aea_test_autonomy.fixture_helpers import hardhat_port  # noqa: F401
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     gnosis_safe_hardhat_scope_class,
 )
+from aea_test_autonomy.helpers.contracts import get_register_contract
+from web3 import Web3
 
 from packages.valory.connections.ledger.connection import LedgerConnection
 from packages.valory.connections.ledger.tests.conftest import ganache_addr  # noqa: F401
 from packages.valory.connections.ledger.tests.conftest import ganache_port  # noqa: F401
-from packages.valory.connections.ledger.tests.conftest import key_pairs  # noqa: F401
 from packages.valory.connections.ledger.tests.conftest import ledger_api  # noqa: F401
-from packages.valory.connections.ledger.tests.conftest import owners  # noqa: F401
-from packages.valory.connections.ledger.tests.conftest import threshold  # noqa: F401
 from packages.valory.connections.ledger.tests.conftest import (  # noqa: F401
     ethereum_testnet_config,
-    gnosis_safe_contract,
     ledger_apis_connection,
 )
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
@@ -64,6 +65,77 @@ from packages.valory.protocols.contract_api.dialogues import (
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.skills.safe_deployment_abci import PUBLIC_ID as SKILL_ID
+
+
+NB_OWNERS = 4
+THRESHOLD = 1
+PACKAGE_DIR = Path(__file__).parent.parent
+
+
+@pytest.fixture()
+def key_pairs() -> List[Tuple[str, str]]:
+    """Get the default key paris for hardhat."""
+    return KEY_PAIRS
+
+
+@pytest.fixture()
+def owners(key_pairs: List[Tuple[str, str]]) -> List[str]:
+    """Get the owners."""
+    return [Web3.toChecksumAddress(t[0]) for t in key_pairs[:NB_OWNERS]]
+
+
+@pytest.fixture()
+def threshold() -> int:
+    """Returns the amount of threshold."""
+    return THRESHOLD
+
+
+@pytest.fixture()
+def gnosis_safe_contract(
+    ledger_api: LedgerApi,  # noqa: F811
+    owners: List[str],
+    threshold: int,
+) -> Generator[Tuple[Contract, str], None, None]:
+    """
+    Instantiate an Gnosis Safe contract instance.
+
+    As a side effect, register it to the registry, if not already registered.
+    :param ledger_api: ledger_api fixture
+    :param owners: onwers fixture
+    :param threshold: threshold fixture
+    :yield: contract and contract_address
+    """
+    directory = Path(
+        PACKAGE_DIR.parent.parent, "contracts", "gnosis_safe_proxy_factory"
+    )
+    _ = get_register_contract(
+        directory
+    )  # we need to load this too as it's a dependency of the gnosis_safe
+    directory = Path(PACKAGE_DIR.parent.parent, "contracts", "gnosis_safe")
+    contract = get_register_contract(directory)
+    crypto = make_crypto(
+        EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_DEPLOYER
+    )
+    tx = contract.get_deploy_transaction(
+        ledger_api=ledger_api,
+        deployer_address=crypto.address,
+        gas=5000000,
+        owners=owners,
+        threshold=threshold,
+    )
+    assert tx is not None
+    contract_address = tx.pop("contract_address")  # hack
+    assert isinstance(contract_address, str)
+    gas = ledger_api.api.eth.estimate_gas(transaction=tx)
+    tx["gas"] = gas
+    tx_signed = crypto.sign_transaction(tx)
+    tx_digest = ledger_api.send_signed_transaction(tx_signed)
+    assert tx_digest is not None
+    time.sleep(0.5)
+    receipt = ledger_api.get_transaction_receipt(tx_digest)
+    assert receipt is not None
+    # contract_address = ledger_api.get_contract_address(receipt)  # noqa: E800 won't work as it's a proxy
+    yield contract, contract_address
 
 
 class ContractApiDialogues(BaseContractApiDialogues):
