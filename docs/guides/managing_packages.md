@@ -32,12 +32,12 @@ Now we are in the position of creating our first agent:
 autonomy create my_agent
 ```
 
-This agent will have some dependencies: some packages might be already available in the remote registry and some will need to be developed. Let's say, for example, that it will need the ability to communicate using the ACN protocol. Since that package is already available on the Autonolas IPFS registry, we'll use the `add command`:
+This agent will have some dependencies: some packages might be already available in the remote registry and some will need to be developed. Let's say, for example, that it will need the ability to use the signing protocol protocol. Since that package is already available on the Autonolas IPFS registry, we'll use the `add command`:
 
 ```bash
 cd my_agent/
 # Remote flag is not needed here as we initialized the default registry to remote
-autonomy add protocol valory/acn:1.1.0:bafybeifontek6tvaecatoauiule3j3id6xoktpjubvuqi3h2jkzqg7zh7a
+autonomy add protocol open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 ```
 
 You can find a list with all available packages [here](../package_list.md).
