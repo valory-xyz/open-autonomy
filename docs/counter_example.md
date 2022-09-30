@@ -25,7 +25,7 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
 
 2. Use the CLI to download the `valory/counter` service.
     ```bash
-    autonomy fetch valory/counter:0.1.0:bafybeiewbloedbqnpsnqog2mewv6tju6zkkerfu3ecx5u5trclu42vdxdu --remote --service
+    autonomy fetch valory/counter:0.1.0:bafybeicyfrkfej5oboyzdyis5dvo6p2f5vi2wxbxzz4a6knvrvnctzdf6e --remote --service
     cd counter
     ```
 
@@ -284,7 +284,7 @@ First, open a terminal to the root of this repository,
 and fetch the `counter_client` agent:
 
 ```bash
-autonomy fetch valory/counter_client:0.1.0:bafybeiegfw7ou6y76guudtxgzywkrbqb2a4mzzladlxo2y7idzbkrf36lm --remote
+autonomy fetch valory/counter_client:0.1.0:bafybeihal4atepsglbkmyuozul7l4wv5bxwwr5wzx6k6xcni4c4bwm2oyq --remote
 ```
 
 This will copy the agent project in the `counter_client` directory.
