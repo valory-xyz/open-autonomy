@@ -13,7 +13,7 @@ Docs:
 - Updates scaffolding guide
 - Splits `set up` section as a guide to be referenced commonly by the rest of guides
 - Separates the deployment part to be in a separate section to be referenced when required
-- Moves scaffolding contents to its approppriate place and re-writes some parts of the text
+- Moves scaffolding contents to its appropriate place and rewrites some parts of the text
 - Updates language in several docs
 - Adds cost table and threat model to the docs
 - Updates FAQ to use pure markdown
@@ -21,12 +21,12 @@ Docs:
 
 Chores:
 - Extends the hash fixing script to also fix the hash table in the docs
-- Simplifies linter configuration for pylint
+- Simplifies linter configuration for `pylint`
 - Bumps Open-AEA to 1.21.0
 - Adds lock check for all platforms
 
 Tests:
-- Fixes APY tests after the setup and setup_class changes
+- Fixes APY tests after the `setup` and `setup_class` changes
 - Fixes counter client behaviour tests.
 - Fixes use os specific paths when comparing file names
 - Fixes path resolution on Windows
