@@ -34,7 +34,7 @@ def get_all_extras() -> Dict:
 
     cli_deps = [
         "click==8.0.2",
-        "open-aea-cli-ipfs>=1.20.0,<2.0.0",
+        "open-aea-cli-ipfs>=1.21.0,<2.0.0",
     ]
 
     extras = {
@@ -49,35 +49,16 @@ def get_all_extras() -> Dict:
 all_extras = get_all_extras()
 
 
-def _get_docker_dependency() -> str:
-    """
-    Get the `docker-py` dependency, according to the underlying platform.
-
-    If on Windows, we need to install the cutting-edge package version of `docker` directly from the GitHub repository;
-    as the PyPI distribution of `docker` causes the following conflict:
-
-        docker 5.0.3 depends on pywin32==227; sys_platform == "win32"
-        open-aea[all] 1.20.0 depends on pywin32==304
-
-    Instead, at commit docker/docker-py@3f0095a, `setup.py` has an extra that forces pywin32>=304.
-    """
-    return (
-        "docker==5.0.3"
-        if platform.system() != "Windows"
-        else "docker @ git+https://github.com/docker/docker-py.git@3f0095a7c1966c521652314e524ff362c24ff58c"
-    )
-
-
 base_deps = [
     "Flask>=2.0.2,<3.0.0",
-    "open-aea[all]==1.20.0",
+    "open-aea[all]==1.21.0",
     "pandas<1.4,>=1.3.4",
     "watchdog >=2.1.6",
     "pytest==7.0.0",
-    "open-aea-ledger-ethereum==1.20.0",
+    "open-aea-ledger-ethereum==1.21.0",
     "docker-compose==1.29.2",
     "werkzeug==2.0.3",
-    _get_docker_dependency(),
+    "docker==6.0.0",
 ]
 base_deps.extend(all_extras["cli"])
 

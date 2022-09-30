@@ -74,7 +74,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
           - benchmark_tool:
               args: *id001
         ---
-        public_id: valory/ledger:0.1.0
+        public_id: valory/ledger:0.19.0
         type: connection
         config:
           ledger_apis:
