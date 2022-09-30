@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeifpb54id7wln2ayku65s3qmih3aljf23rfpsggjwuzc7cnkfroi7y
 fingerprint_ignore_patterns: []
-agent: valory/oracle:0.1.0:bafybeifvxb7em4cblzunb3xytjnttpe25xonzpt5qjkt4slmlpa4ulbiai
+agent: valory/oracle:0.1.0:bafybeiewzeoi5lmggsxko6gq63a2gyuovp7vord437wonjyeoerhok2efm
 number_of_agents: 4
 ---
 setup_args:
@@ -96,7 +96,7 @@ models:
   - server_api:
       args: *id002
 ---
-public_id: valory/ledger:0.1.0
+public_id: valory/ledger:0.19.0
 type: connection
 config:
   0:

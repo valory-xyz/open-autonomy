@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeibqyfur7wusrbfga66hcbauxvhs2g3j5yhknsxlvyh6mil57aajyu
 fingerprint_ignore_patterns: []
-agent: valory/apy_estimation:0.1.0:bafybeigxsexq66ysifttw6qodcdqtmktllh7udogsoba453fdkqssdc6ey
+agent: valory/apy_estimation:0.1.0:bafybeihsgurmvz2mmktwcucaaol4eqa7dllbwllnatnwss4u4wsuglbe7a
 number_of_agents: 4
 ---
 public_id: valory/apy_estimation_abci:0.1.0
@@ -42,7 +42,7 @@ models:
       sleep_time: 10
       ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https
 ---
-public_id: valory/ledger:0.1.0
+public_id: valory/ledger:0.19.0
 type: connection
 config:
   ledger_apis:

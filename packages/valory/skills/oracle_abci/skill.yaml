@@ -22,20 +22,20 @@ fingerprint:
   tests/test_models.py: bafybeib5qugc5wrsoc2huo6dpwfekungcqdcjytfoo6hyx434nqtuqeblq
 fingerprint_ignore_patterns: []
 connections:
-- valory/ledger:0.1.0:bafybeicfycqnhdzg5nsir33dlcgs2k4ijjncysqjcn67zvzv2fkwr43eby
+- valory/ledger:0.19.0:bafybeigpltrga4ggf4nejvl7l32zioyk77jzodvhthjwd3uvdkuxedvnz4
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
-- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
-- valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
+- valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
+- valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifxzab27calxv53ueo2mbkfo75wai2fxywlgqdy47gllk5cppqcoi
-- valory/oracle_deployment_abci:0.1.0:bafybeibpzjikfrm2crtylnbfrefj5ibere4qrjnxkyad4txvqi2knqzoei
-- valory/price_estimation_abci:0.1.0:bafybeiaqknkyvkfnessqctd4vl6pds5pq3vl4z5teb6xkob4std7kjr3d4
-- valory/registration_abci:0.1.0:bafybeigtsulzccvge627omkejfhyflqzp3mr2b32zckwbzkieoiq2bnnka
-- valory/reset_pause_abci:0.1.0:bafybeifshxmrcg7bcsrtshtdc3mi34p6es2l674hzalmvi466yy6lx7i5u
-- valory/safe_deployment_abci:0.1.0:bafybeibvfhroh3ti7bpwyzvo737oylod6bdmxhtqk2zfq7sfil64vxmb3e
-- valory/transaction_settlement_abci:0.1.0:bafybeic3dyzspm4ifqv6ffcabe6cqiieu5pf2j4vizlwcbdnyf33p6ndk4
+- valory/abstract_round_abci:0.1.0:bafybeiduiyvieomrupab6cil3ac4k5xqrtbwrwqnhwawdo2p5iokbjetje
+- valory/oracle_deployment_abci:0.1.0:bafybeidviy4zzj3hzf5pyenmiofgnui3jpkwkj2bvhh5swv4zl4qsowiou
+- valory/price_estimation_abci:0.1.0:bafybeie5iny57aq725amho2yyajlxq47umtpap7ovymcm2tiqmdxbldg4a
+- valory/registration_abci:0.1.0:bafybeifcelytznlpyadjm5ykdp6ygr4byfsonzqkyc5fx2gqiwf36tw5gq
+- valory/reset_pause_abci:0.1.0:bafybeigmr7avxf7ryg6repsbyiv3egfqowl4uiaom5hrnwc36b4qg7p2te
+- valory/safe_deployment_abci:0.1.0:bafybeiapozvv743mr5q5jyxa7v6uyk6gqnvnh65epkfxtbzwyzpcpiiqfq
+- valory/transaction_settlement_abci:0.1.0:bafybeifyy3todww3a7zhd765k3kadwl3yr7ggsy4cea7hzgcix436foehm
 behaviours:
   main:
     args: {}

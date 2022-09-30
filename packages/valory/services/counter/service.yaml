@@ -8,9 +8,9 @@ fingerprint:
   README.md: bafybeidoybzzjch4djhhafqm4e4jcrpaqmlthntcnonlsjtowwpykbc5xi
 fingerprint_ignore_patterns: []
 number_of_agents: 1
-agent: valory/counter:0.1.0:bafybeiedcvcmsptagqozzppwuoe6lojgdcb27xnbdcytwks262kcitdleu
+agent: valory/counter:0.1.0:bafybeidh6jjr5pspwthv6dmqy2b2neciqeuftsm3wn6tc2itlogslzvc3y
 ---
-public_id: valory/ledger:0.1.0
+public_id: valory/ledger:0.19.0
 type: connection
 config:
   ledger_apis:
