@@ -179,6 +179,12 @@ class TestBuildDeployment(BaseCliTest):
                     "--force",
                     "--dev",
                     "--local",
+                    "--packages-dir",
+                    str(ROOT_DIR),
+                    "--open-aea-dir",
+                    str(ROOT_DIR),
+                    "--open-autonomy-dir",
+                    str(ROOT_DIR),
                 )
             )
 
@@ -291,6 +297,12 @@ class TestBuildDeployment(BaseCliTest):
                     "--force",
                     "--dev",
                     "--local",
+                    "--packages-dir",
+                    str(ROOT_DIR),
+                    "--open-aea-dir",
+                    str(ROOT_DIR),
+                    "--open-autonomy-dir",
+                    str(ROOT_DIR),
                 )
             )
 
@@ -511,6 +523,26 @@ class TestBuildDeployment(BaseCliTest):
                 for i in range(4)
             ]
         )
+
+    def test_build_dev_failures(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--force",
+                    "--dev",
+                    "--local",
+                )
+            )
+
+        assert result.exit_code == 1, result.output
+        assert "Please provide proper value for --packages-dir" in result.output
 
     @classmethod
     def teardown(cls) -> None:

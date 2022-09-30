@@ -58,6 +58,11 @@ from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 from autonomy.deploy.image import build_image
 
 
+PACKAGES_DIR = "packages_dir"
+OPEN_AEA_DIR = "open_aea_dir"
+OPEN_AUTONOMY_DIR = "open_autonomy_dir"
+
+
 @click.group(name="deploy")
 @click.pass_context
 def deploy_group(
@@ -158,11 +163,24 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
 
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
     build_dir = Path(output_dir or DEFAULT_ABCI_BUILD_DIR).absolute()
+
     packages_dir = Path(packages_dir or Path.cwd() / "packages").absolute()
     open_aea_dir = Path(open_aea_dir or Path.home() / "open-aea").absolute()
     open_autonomy_dir = Path(
         open_autonomy_dir or Path.home() / "open-autonomy"
     ).absolute()
+
+    if dev_mode:
+        for name, path in (
+            (PACKAGES_DIR, packages_dir),
+            (OPEN_AEA_DIR, open_aea_dir),
+            (OPEN_AUTONOMY_DIR, open_autonomy_dir),
+        ):
+            if not path.exists():
+                flag = "--" + "-".join(name.split("_"))
+                raise click.ClickException(
+                    f"Path does not exist @ {path} for {name}; Please provide proper value for {flag}"
+                )
 
     ctx = cast(Context, click_context.obj)
     ctx.registry_type = registry

@@ -34,5 +34,4 @@ fi
 
 echo "Using venv @ $(pipenv --venv)"
 
-INSTALL=1 pipenv run bash start.sh
 pipenv run python /home/ubuntu/watcher.py
