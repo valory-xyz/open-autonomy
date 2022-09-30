@@ -15,8 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        # we need to specify exact version to access the correct file on the ftp server of the windows python installer
-        python-version: ["3.10.7"]
+        python-version: ["3.10"]
 
     timeout-minutes: 10
 
