@@ -19,8 +19,6 @@
 # ------------------------------------------------------------------------------
 """Setup script for the plug-in."""
 
-import platform
-
 from setuptools import find_packages  # type: ignore
 from setuptools import setup  # type: ignore
 
