@@ -90,6 +90,11 @@ the dependencies:
 
       make new_env && pipenv shell
 
+  > :information_source: Note: we are using [atheris](https://github.com/google/atheris) in order to perform fuzzy testing. 
+  > The dependency is not listed in the `Pipfile` because it is not supported on Windows. 
+  > If you need to run or implement a fuzzy test, please manually install the dependency.
+  > If you are developing on Mac, please follow the extra steps described [here](https://github.com/google/atheris#mac).
+
 - Fetch packages:
 
       autonomy packages sync
