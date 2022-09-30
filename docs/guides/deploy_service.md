@@ -3,12 +3,14 @@ Deploying a service with the {{open_autonomy}} framework requires that you have 
 ## What you will learn
 In this guide, you will learn how to:
 
-* Create a local deployment of a service for testing purposes.
+* Create a local deployment for testing purposes of
+    * a service stored in your machine.
+    * a service available in the on-chain registry.
 * Create a cloud deployment of a service.
 
 Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
 
-## Step-by-step instructions: local deployment
+## Local deployment of a local service
 
 Local deployments of a service are recommended to test your service before you publish it to the [IPFS](https://ipfs.io/). This guide assumes that your terminal is located in the (local) service folder that you want to deploy. that is, the folder containing the `service.yaml` file.
 
@@ -58,6 +60,18 @@ Local deployments of a service are recommended to test your service before you p
     autonomy deploy run
     ```
     You can cancel the local execution by pressing `Ctrl-C`, and return to the service parent folder `cd ..`.
+
+
+
+## Local deployment of an on-chain service
+
+You can try to run a deployment for the on-chain service that you just have registered. You will need a `keys.json` file, and the service token ID that you can find in
+https://protocol.autonolas.network/services/. Execute the command
+
+    ```bash
+    autonomy deploy from-token ON_SERVICE_TOKEN_ID keys.json --use-goerli
+    ```
+    and you should be able to see your service running locally.
 
 
 ## Step-by-step instructions: cloud deployment
