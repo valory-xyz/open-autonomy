@@ -93,12 +93,12 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
         Following the mandatory parameters of the service definition, there is a number of parameter overrides following the operator `---`, which set parameters for the agent components. In this case, the service is setting values for some parameters parameters in the `hello_world_abci` skill, and in the `ledger` connection. For now, you can safely ignore that part of the `service.yaml`file.
 
-3. **Test the service using a local deployment.** This is the recommended approach in order to test your agent service before you publish it to the IPFS. Follow the instructions in the [local deployment guide](./deploy_service.md##local-deployment-of-a-local-service) to run the local deployment. Note that this process should be familiar to you if you have followed the [quick start guide](./quick_start.md).
+3. **Use a local deployment to test the service.** This is the recommended approach in order to test your agent service before you publish it to the IPFS. Follow the instructions in the [local deployment guide](./deploy_service.md#local-deployment) to run the local deployment. Note that this process should be somewhat familiar to you if you have followed the [quick start guide](./quick_start.md).
 
 
 4. **Publish the service.** This will make the service available for other developers to fetch and use it. This step is also required if you want to register the service in the on-chain registry. Follow the instructions in the [IPFS service publication guide](./publish_service.md) to have your service published.
 
-5. **Register the service onchain.** By registering the service in the on-chain registry you ensure that it is crypto-economically secured through the on-chain protocol. Follow the instructions in the [on-chain service registration guide](./register_components_on_chain.md).
+5. **Register the service on-chain.** By registering the service in the on-chain registry you ensure that it is crypto-economically secured through the on-chain protocol. Follow the instructions in the [on-chain service registration guide](./register_components_on_chain.md).
 
 
-6. **Deploy the registered service.** Finally, you can try to run a deployment for the on-chain service that you just have registered. Follow the [local deployment of an on-chain service guide](./deploy_service.md) to have your service up and running.
+6. **Deploy the registered service.** Finally, you can try to run a deployment for the on-chain service that you just have registered. Follow the [on-chain deployment guide](./deploy_service.md#on-chain-deployment) to have your service up and running.

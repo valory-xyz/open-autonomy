@@ -10,7 +10,7 @@ In this guide, you will learn how to:
 
 Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
 
-## Local deployment of a local service
+## Local deployment
 
 Local deployments of a service are recommended to test your service before you publish it to the [IPFS](https://ipfs.io/). This guide assumes that your terminal is located in the (local) service folder that you want to deploy. that is, the folder containing the `service.yaml` file.
 
@@ -42,7 +42,7 @@ Local deployments of a service are recommended to test your service before you p
 
 2. Build the Docker image of the service agents:
     ```bash
-    autonomy build-image
+    autonomy build-image --dev
     ```
     After the command finishes building it, you can see that it has created the image by executing:
     ```bash
@@ -51,7 +51,7 @@ Local deployments of a service are recommended to test your service before you p
 
 3. Build the deployment setup for the service:
     ```bash
-    autonomy deploy build keys.json
+    autonomy deploy build keys.json --dev
     ```
 
 4. The build configuration will be located in `./abci_build`. Run the deployment locally using
@@ -63,7 +63,7 @@ Local deployments of a service are recommended to test your service before you p
 
 
 
-## Local deployment of an on-chain service
+## On-chain deployment
 
 You can try to run a deployment for the on-chain service that you just have registered. You will need a `keys.json` file, and the service token ID that you can find in
 https://protocol.autonolas.network/services/. Execute the command
