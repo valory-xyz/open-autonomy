@@ -40,7 +40,7 @@ pytz = "==2022.2.1"
 # tests deps
 mistune = "==2.0.3"
 PyYAML = "==5.4.1"
-tomte = "==0.1.0"
+tomte = "==0.1.2"
 
 [requires]
 python_version = "3.10"
