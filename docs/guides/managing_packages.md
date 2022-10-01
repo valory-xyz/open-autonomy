@@ -1,3 +1,8 @@
+!!! warning
+       The contents of this section are being reviewed and integrated with the corresponding guides above.
+
+
+
 !!! note
        Similarly as the Open AEA framework, the Open Autonomy framework also works with the concept of package: a collection of files that implement a specific component or functionality, and which are named as vendor/package:version.
 
