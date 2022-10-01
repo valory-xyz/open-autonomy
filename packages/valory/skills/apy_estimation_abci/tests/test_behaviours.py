@@ -57,7 +57,7 @@ from _pytest.logging import LogCaptureFixture
 from _pytest.monkeypatch import MonkeyPatch
 from aea.skills.tasks import TaskManager
 from aea_cli_ipfs.ipfs_utils import IPFSDaemon
-from hypothesis import database, given, settings
+from hypothesis import HealthCheck, assume, database, given, settings
 from hypothesis import strategies as st
 
 from packages.valory.protocols.abci import AbciMessage  # noqa: F401
@@ -127,7 +127,7 @@ from packages.valory.skills.apy_estimation_abci.tools.queries import SAFE_BLOCK_
 
 PACKAGE_DIR = Path(__file__).parent.parent
 SLEEP_TIME_TWEAK = 0.01
-HISTORY_START = 1652544875
+N_OBSERVATIONS = 10
 HISTORY_INTERVAL = 86400
 HISTORY_END = 1655136875
 
@@ -206,7 +206,7 @@ class APYEstimationFSMBehaviourBaseCase(FSMBehaviourBaseCase):
         super().setup()
         assert self.behaviour.current_behaviour is not None
         self.behaviour.current_behaviour.batch = False
-        self.behaviour.current_behaviour.params.start = HISTORY_START
+        self.behaviour.current_behaviour.params.n_observations = N_OBSERVATIONS
         self.behaviour.current_behaviour.params.interval = HISTORY_INTERVAL
         self.behaviour.current_behaviour.params.end = HISTORY_END
         self.synchronized_data = SynchronizedData(
@@ -509,19 +509,28 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
 
     @pytest.mark.parametrize("batch", (True, False))
     @given(
-        st.integers(min_value=0),
+        # set max data points to 1000
+        st.integers(min_value=0, max_value=1000),
+        # set max interval to a day
+        st.integers(min_value=1, max_value=60 * 60 * 24),
         st.integers(min_value=1),
-        st.integers(min_value=1, max_value=50),
     )
-    @settings(deadline=None, database=database.InMemoryExampleDatabase())
+    @settings(
+        deadline=None,
+        database=database.InMemoryExampleDatabase(),
+        suppress_health_check=[HealthCheck.filter_too_much],
+    )
     def test_reset_timestamps_iterator(
         self,
         batch: bool,
-        start: int,
+        n_observations: int,
         interval: int,
         end: int,
     ) -> None:
         """Test `_reset_timestamps_iterator` method."""
+        # filter out end values that will result in negative `start`
+        assume(end >= n_observations * interval)
+
         self.fast_forward_to_behaviour(
             self.behaviour,
             self.behaviour_class.behaviour_id,
@@ -529,12 +538,13 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         )
         behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
         behaviour.batch = batch
-        behaviour.params.start = start
+        behaviour.params.n_observations = n_observations
         behaviour.params.interval = interval
         behaviour.params.end = end
         #
         behaviour._reset_timestamps_iterator()
         #
+        start = end - n_observations * interval
         expected = [end] if batch else [i for i in range(start, end, interval)]
         assert behaviour._progress.timestamps_iterator is not None
         assert list(behaviour._progress.timestamps_iterator) == expected
@@ -713,10 +723,9 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
         behaviour._pairs_exist = True
 
-        total_iterations = 30
         # for every subgraph and every iteration that will be performed, we test fetching a single batch
         for subgraph_name in ("uniswap_subgraph", "spooky_subgraph"):
-            for _ in range(total_iterations):
+            for _ in range(N_OBSERVATIONS):
                 behaviour.act_wrapper()
                 subgraph = getattr(behaviour.context, subgraph_name)
                 request_kwargs: Dict[str, Union[str, bytes]] = dict(
@@ -826,6 +835,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self,
         is_non_indexed_res: bool,
         block_from_timestamp_q: str,
+        timestamp_gte: str,
         block_from_number_q: str,
         eth_price_usd_q: str,
         uni_pairs_q: str,
@@ -839,6 +849,12 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         )
         behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
         behaviour.params.pair_ids = pairs_ids
+        # make sure that the first generated timestamp (`behaviour.params.start` property)
+        # will be the `timestamp_gte` which is used in `block_from_timestamp_q`
+        behaviour.params.end = (
+            int(timestamp_gte)
+            + behaviour.params.interval * behaviour.params.n_observations
+        )
         # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
         behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
         behaviour._pairs_exist = True
@@ -951,6 +967,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self,
         none_at_step: int,
         block_from_timestamp_q: str,
+        timestamp_gte: str,
         block_from_number_q: str,
         eth_price_usd_q: str,
         pairs_ids: Dict[str, List[str]],
@@ -962,6 +979,12 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
         behaviour.params.pair_ids = pairs_ids
         behaviour.params.sleep_time = SLEEP_TIME_TWEAK
+        # make sure that the first generated timestamp (`behaviour.params.start` property)
+        # will be the `timestamp_gte` which is used in `block_from_timestamp_q`
+        behaviour.params.end = (
+            int(timestamp_gte)
+            + behaviour.params.interval * behaviour.params.n_observations
+        )
         # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
         behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
         behaviour._pairs_exist = True
@@ -1132,6 +1155,7 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         self,
         caplog: LogCaptureFixture,
         block_from_timestamp_q: str,
+        timestamp_gte: str,
         eth_price_usd_q: str,
         uni_pairs_q: str,
         pairs_ids: Dict[str, List[str]],
@@ -1144,6 +1168,12 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
         behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
         behaviour.params.pair_ids = pairs_ids
         behaviour.params.sleep_time = SLEEP_TIME_TWEAK
+        # make sure that the first generated timestamp (`behaviour.params.start` property)
+        # will be the `timestamp_gte` which is used in `block_from_timestamp_q`
+        behaviour.params.end = (
+            int(timestamp_gte)
+            + behaviour.params.interval * behaviour.params.n_observations
+        )
         # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
         behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
         behaviour._pairs_exist = True
@@ -1277,8 +1307,8 @@ class TestFetchAndBatchBehaviours(APYEstimationFSMBehaviourBaseCase):
             self.behaviour, FetchBehaviour.behaviour_id, self.synchronized_data
         )
         behaviour = cast(FetchBehaviour, self.behaviour.current_behaviour)
-        # set history end to a negative value in order to raise a `StopIteration`.
-        behaviour.params.end = -1
+        # set `n_observations` to `0` in order to raise a `StopIteration`.
+        behaviour.params.n_observations = 0
         # we do this because of https://github.com/valory-xyz/open-autonomy/pull/646
         behaviour._check_given_pairs = mock.MagicMock()  # type: ignore
         behaviour._pairs_exist = True

@@ -22,11 +22,10 @@
 # pylint: skip-file
 
 import json
-import platform
+import time
 from pathlib import Path
 from typing import Any, cast
 
-import pytest
 from aea.test_tools.test_skill import BaseSkillTestCase
 
 from packages.valory.connections.http_client.connection import (
@@ -63,19 +62,25 @@ class BaseTestClass(BaseSkillTestCase):
             HttpHandler, cls._skill.skill_context.handlers.http_handler
         )
 
+    def ticker_act_wrapper(self) -> None:
+        """Calls act wrapper after waiting for tick interval + tolerance."""
+        tolerance = 0.5
+        sleep_amount = self.behaviour.tick_interval + tolerance
+        time.sleep(sleep_amount)
+        self.behaviour.act_wrapper()
+
 
 class TestIncrementerBehaviour(BaseTestClass):
     """Test IncrementerBehaviour."""
 
     behaviour_name = "incrementer"
 
-    @pytest.mark.skipif(platform.system() == "Windows", reason="Flaky on Windows.")
     def test_run(
         self,
     ) -> None:
         """Run tests."""
 
-        self.behaviour.act_wrapper()
+        self.ticker_act_wrapper()
         self.assert_quantity_in_outbox(1)
 
         actual_message = self.get_message_from_outbox()
@@ -114,13 +119,12 @@ class TestMonitorBehaviour(BaseTestClass):
 
     behaviour_name = "monitor"
 
-    @pytest.mark.skipif(platform.system() == "Windows", reason="Flaky on Windows.")
     def test_run(
         self,
     ) -> None:
         """Run tests."""
 
-        self.behaviour.act_wrapper()
+        self.ticker_act_wrapper()
         self.assert_quantity_in_outbox(1)
 
         actual_message = self.get_message_from_outbox()
@@ -161,13 +165,12 @@ class TestHttpHandler(BaseTestClass):
 
     behaviour_name = "monitor"
 
-    @pytest.mark.skipif(platform.system() == "Windows", reason="Flaky on Windows.")
     def test_handle(
         self,
     ) -> None:
         """Run tests."""
 
-        self.behaviour.act_wrapper()
+        self.ticker_act_wrapper()
         self.assert_quantity_in_outbox(1)
 
         actual_message = self.get_message_from_outbox()

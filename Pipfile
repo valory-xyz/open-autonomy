@@ -4,21 +4,20 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-open-aea = {version = "==1.20.0", extras = ["all"]}
-open-aea-ledger-ethereum = "==1.20.0"
-open-aea-ledger-cosmos = "==1.20.0"
-open-aea-cli-ipfs = "==1.20.0"
+open-aea = {version = "==1.21.0", extras = ["all"]}
+open-aea-ledger-ethereum = "==1.21.0"
+open-aea-ledger-cosmos = "==1.21.0"
+open-aea-cli-ipfs = "==1.21.0"
 
 [dev-packages]
 asn1crypto = "==1.4.0"
-atheris = "==2.0.11"
 bandit = "==1.7.0"
 black = "==21.6b0"
 bs4 = "==0.0.1"
 certifi = "==2021.10.8"
 click = "==8.0.2"
 darglint = "==1.8.0"
-docker = "==5.0.2"
+docker = "==6.0.0"
 docker-compose = "==1.29.2"
 flake8 = "==3.9.2"
 flake8-bugbear = "==21.9.1"

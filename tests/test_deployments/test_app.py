@@ -198,7 +198,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
     @wait_for_node_to_run
     def test_get_app_hash(self) -> None:
         """Test get app hash"""
-        time.sleep(3)  # requires some extra time!
+        time.sleep(5)  # requires some extra time!
         with self.app.test_client() as client:
             response = client.get("/app_hash")
             data = response.get_json()

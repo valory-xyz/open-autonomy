@@ -33,7 +33,6 @@ nav:
     - Create a service from scratch: 'guides/create_service_from_scratch.md'
     - Deploy a service: 'guides/deploy_service.md'
     - Running a service in different networks: 'guides/running_service_different_networks.md'
-    - Using the scaffold tool to speed up development: 'guides/scaffolding.md'
     - Managing packages: 'guides/managing_packages.md'
   - Demo agent services:
     - 'demos/index.md'  
@@ -57,6 +56,7 @@ nav:
       - The AbstractRound Class: 'abci_app_abstract_round.md'
       - Interactions between Components: 'abci_app_interactions.md'
       - Sequence Diagram: 'poc-diagram.md'
+    - Threat model: 'threat-model.md'
   - Advanced reference:
     - 'advanced_reference/index.md'
     - Version: 'version.md'
@@ -248,6 +248,7 @@ plugins:
   - macros
 
 markdown_extensions:
+  - pymdownx.details
   - pymdownx.superfences
   - pymdownx.highlight
   - pymdownx.emoji:

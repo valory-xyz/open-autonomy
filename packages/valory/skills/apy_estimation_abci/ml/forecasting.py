@@ -27,6 +27,7 @@ from pmdarima import ARIMA
 from pmdarima.metrics import smape
 from pmdarima.pipeline import Pipeline
 from pmdarima.preprocessing import FourierFeaturizer
+from sklearn.exceptions import NotFittedError
 from sklearn.metrics import (
     explained_variance_score,
     max_error,
@@ -341,6 +342,9 @@ def predict_safely(forecaster: Pipeline, steps_forward: int) -> Any:
     """
     try:
         y_hat = forecaster.predict(steps_forward)
+    except NotFittedError:
+        # raise `NotFittedError` here so that it does not get caught from `ValueError` below which it inherits from
+        raise
     except ValueError:
         y_hat = [np.nan] * steps_forward if steps_forward > 1 else np.nan
 

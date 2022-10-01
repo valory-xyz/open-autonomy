@@ -26,6 +26,7 @@ import pandas as pd
 
 ResponseItemType = List[Dict[str, Union[str, Dict[str, str]]]]
 
+UNIX_TIME_START = "1970-01-01"
 # Define a dictionary with the data types for each column of the historical data.
 HIST_DTYPES = {
     "createdAtBlockNumber": int,
@@ -246,6 +247,12 @@ def apply_revert_token_cols_wrapper(
     return apply_revert_token_cols
 
 
+def to_unix(stamps: pd.Series) -> pd.Series:
+    """Calculate `int` unix datetime `Series` from `Timestamp` `Series`."""
+    # https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#from-timestamps-to-epoch
+    return (stamps - pd.Timestamp(UNIX_TIME_START)) // pd.Timedelta("1s")
+
+
 def revert_transform_hist_data(pairs_hist: pd.DataFrame) -> ResponseItemType:
     """Revert the transformation of pairs' history.
 
@@ -267,7 +274,7 @@ def revert_transform_hist_data(pairs_hist: pd.DataFrame) -> ResponseItemType:
     pairs_hist.drop(columns=drop_cols, inplace=True)
 
     # Convert timestamp to unix int.
-    pairs_hist["blockTimestamp"] = pairs_hist["blockTimestamp"].view(int) / 10 ** 9
+    pairs_hist["blockTimestamp"] = to_unix(pairs_hist["blockTimestamp"])
 
     # Convert history to a list of dicts.
     reverted_pairs_hist = pairs_hist.to_dict("records")

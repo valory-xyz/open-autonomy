@@ -14,7 +14,7 @@ There are a number of concepts that are required to have an initial idea on how 
 
 * Each agent is made up of a number of **components** defined by the {{open_aea}} framework. These components define, for example, what protocols the agent is able to process.
 
-* A special component called **{{fsm_app}}** defines the business logic of the agent service. Thus, each agent in the service has a copy of the {{fsm_app}}. The {{fsm_app}} is defined through the {{open_autonomy}} framework.
+* Some special components called **skills** implement the **{{fsm_app}}**, which defines the business logic of the agent service. Thus, each agent in the service has a copy of the {{fsm_app}}. The {{fsm_app}} is defined through the {{open_autonomy}} framework.
 
 * **Agent operators** are the entities or individuals that own the infrastructure where the agents run. Each operator executes an agent instance and a **consensus gadget node**.
 

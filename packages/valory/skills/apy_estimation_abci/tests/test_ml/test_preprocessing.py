@@ -21,8 +21,6 @@
 
 # pylint: skip-file
 
-import platform
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -67,9 +65,6 @@ class TestPreprocessing:
             grouped_and_filtered.get_group("test_id"), pool2_data[filtering_columns]
         )
 
-    @pytest.mark.skipif(
-        platform.system() == "Windows", reason="Need to be investigated."
-    )
     def test_prepare_pair_data(self, transformed_historical_data: pd.DataFrame) -> None:
         """Test `prepare_pair_data`."""
         id_with_enough_observations = "0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c"
@@ -99,7 +94,7 @@ class TestPreprocessing:
             )
 
         # test with wrong block timestamp.
-        test_data["blockTimestamp"] = test_data["blockTimestamp"].view(int)
+        test_data["blockTimestamp"] = range(len(test_data.index))
         with pytest.raises(
             AttributeError, match="'Int64Index' object has no attribute 'to_period'"
         ):
