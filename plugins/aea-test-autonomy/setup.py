@@ -19,38 +19,15 @@
 # ------------------------------------------------------------------------------
 """Setup script for the plug-in."""
 
-import platform
-
 from setuptools import find_packages  # type: ignore
 from setuptools import setup  # type: ignore
-
-
-def _get_docker_dependency() -> str:
-    """
-    Get the `docker-py` dependency, according to the underlying platform.
-
-    If on Windows, we need to install the cutting-edge package version of `docker` directly from the GitHub repository;
-    as the PyPI distribution of `docker` causes the following conflict:
-
-        docker 5.0.3 depends on pywin32==227; sys_platform == "win32"
-        open-aea[all] 1.21.0 depends on pywin32==304
-
-    Instead, at commit docker/docker-py@3f0095a, `setup.py` has an extra that forces pywin32>=304.
-
-    :return: the docker version
-    """
-    return (
-        "docker==5.0.3"
-        if platform.system() != "Windows"
-        else "docker @ git+https://github.com/docker/docker-py.git@3f0095a7c1966c521652314e524ff362c24ff58c"
-    )
 
 
 base_deps = [
     "open-aea[all]>=1.21.0,<2.0.0",
     "pytest==7.0.0",
     "open-aea-ledger-ethereum==1.21.0",
-    _get_docker_dependency(),
+    "docker==6.0.0",
 ]
 
 setup(
