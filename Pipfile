@@ -10,15 +10,16 @@ Flask = "==2.0.2"
 Werkzeug= "==2.0.3"
 open-aea = {version = "==1.21.0", extras = ["all"]}
 open-aea-ledger-ethereum = "==1.21.0"
-open-aea-ledger-cosmos = "==1.21.0"
 open-aea-cli-ipfs = "==1.21.0"
 # deps to be fixed
 click = "==8.0.2"
 ipfshttpclient = "==0.8.0a2"
-cosmpy = "==0.3.1"
+
 
 [dev-packages]
 # package deps
+open-aea-ledger-cosmos = "==1.21.0"
+cosmpy = "==0.3.1"
 grpcio = "==1.43.0"
 hypothesis = "==6.21.6"
 protobuf = "==3.19.4"
