@@ -1,6 +1,6 @@
 The Autonolas ecosystem has an **on-chain protocol** that provides primitives to create, operate and secure agent services on a blockchain. It also provides a mechanism that incentivizes their creation and rewards developers and service operators proportionally for their efforts to support the growth of the Autonolas ecosystem.
 
-The **on-chain registry** is a collection of ERC721 smart contracts (eventually deployed on all major blockchains) that handle the lifecycle of **packages** (that is, agent components, agents and agent services) within the on-chain protocol. These contracts store a representation of the code developed in the form of an NFT.
+The **on-chain registry** is a collection of ERC721 smart contracts (eventually deployed on all major blockchains) that handle the life cycle of **packages** (that is, agent components, agents and agent services) within the on-chain protocol. These contracts store a representation of the code developed in the form of an NFT.
 
 Therefore, registering a package in the on-chain registry is the required step so that they can be used in the on-chain protocol.
 
@@ -10,7 +10,7 @@ The on-chain protocol can be accessed through the {{on_chain_frontend}}.
 In this guide, you will learn how to:
 
   * Register agent components, agents and agent services in the on-chain registry.
-  * Manage the lifecycle of an agent service on-chain.
+  * Manage the life cycle of an agent service on-chain.
 
 ## Requirements
 This guide is based in the on-chain registry currently deployed in the [Görli testnet](https://goerli.net/). Ensure that you have:
