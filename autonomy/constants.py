@@ -41,4 +41,4 @@ HARDHAT_IMAGE_NAME = os.environ.get(
 )
 
 OAR_IMAGE = "valory/oar-{agent}:{version}"
-ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeicik2qhj6lfacls2kcmmgx6st2kksi4demuj7cseagbrnrq5pqarq"
+ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeihsiutqvh2777cw4lwtdmndwghqfamk723hsw3bbvgm3vfgnn44ya"
