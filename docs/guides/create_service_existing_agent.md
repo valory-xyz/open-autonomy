@@ -98,7 +98,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 4. **Publish the service.** This will make the service available for other developers to fetch and use it. This step is also required if you want to register the service in the on-chain registry. Follow the instructions in the [IPFS service publication guide](./publish_service.md) to have your service published.
 
-5. **Register the service on-chain.** By registering the service in the on-chain registry you ensure that it is crypto-economically secured through the on-chain protocol. Follow the instructions in the [on-chain service registration guide](./register_components_on_chain.md).
+5. **Register the service on-chain.** By registering the service in the on-chain registry you ensure that it is crypto-economically secured through the on-chain protocol. Follow the instructions in the [on-chain service registration guide](./register_packages_on_chain.md#register-a-service).
 
 
 6. **Deploy the registered service.** Finally, you can try to run a deployment for the on-chain service that you just have registered. Follow the [on-chain deployment guide](./deploy_service.md#on-chain-deployment) to have your service up and running.

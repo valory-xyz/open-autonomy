@@ -42,7 +42,7 @@ Local deployments of a service are recommended to test your service before you p
 
 2. Build the Docker image of the service agents:
     ```bash
-    autonomy build-image --dev
+    autonomy build-image
     ```
     After the command finishes building it, you can see that it has created the image by executing:
     ```bash
@@ -51,7 +51,7 @@ Local deployments of a service are recommended to test your service before you p
 
 3. Build the deployment setup for the service:
     ```bash
-    autonomy deploy build keys.json --dev
+    autonomy deploy build keys.json
     ```
 
 4. The build configuration will be located in `./abci_build`. Run the deployment locally using
