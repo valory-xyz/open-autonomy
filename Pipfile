@@ -18,6 +18,7 @@ Werkzeug= "==2.0.3"
 [dev-packages]
 ### package deps
 aiohttp = "==3.7.4.post0"
+asn1crypto = "==1.4.0"
 # we pin this as the range specified in open-aea-ledger-cosmos is wide
 cosmpy = "==0.3.1"
 grpcio = "==1.43.0"
