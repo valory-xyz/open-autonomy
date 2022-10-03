@@ -7,7 +7,7 @@ name = "pypi"
 docker = "==6.0.0"
 docker-compose = "==1.29.2"
 Flask = "==2.0.2"
-open-aea = {version = "==1.21.0", extras = ["all"]}
+open-aea = {version = "==1.21.0.post1", extras = ["all"]}
 open-aea-ledger-ethereum = "==1.21.0"
 open-aea-cli-ipfs = "==1.21.0"
 Werkzeug= "==2.0.3"
