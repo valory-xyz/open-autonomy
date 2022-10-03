@@ -11,9 +11,6 @@ open-aea = {version = "==1.21.0", extras = ["all"]}
 open-aea-ledger-ethereum = "==1.21.0"
 open-aea-cli-ipfs = "==1.21.0"
 Werkzeug= "==2.0.3"
-# deps to be fixed
-# click = "==8.0.2"
-# ipfshttpclient = "==0.8.0a2"
 
 [dev-packages]
 ### package deps
@@ -40,7 +37,7 @@ scikit-learn = "==1.0.2"
 statsmodels = "==0.13.2"
 ### tests deps
 mistune = "==2.0.3"
-tomte = {version = "==0.1.3", extras = ["tox", "tests"]}
+tomte = {version = "==0.1.5", extras = ["tox", "tests"]}
 
 [requires]
 python_version = "3.10"
