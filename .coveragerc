@@ -1,10 +1,6 @@
 [run]
 omit =
     */.tox/*
-    # TODO: remove following 3 lines after testing ACN
-    packages/valory/connections/p2p_libp2p_client/*
-    packages/valory/protocols/acn/*
-    packages/valory/protocols/tendermint/*
 
 [report]
 exclude_lines =
