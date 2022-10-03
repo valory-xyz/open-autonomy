@@ -1,6 +1,42 @@
 # Release History - `open-autonomy`
 
 
+# 0.3.2 (2022-09-30)
+
+Autonomy:
+- Fixes issues related to `IP/Host` resolving on windows
+- Fixes several issues with dev mode to make it work again
+
+Packages:
+- Sets an initial fallback gas and propagates the logs
+
+Docs:
+- Address several doc issues, updates FAQ
+- Updates scaffolding guide
+- Splits `set up` section as a guide to be referenced commonly by the rest of guides
+- Separates the deployment part to be in a separate section to be referenced when required
+- Moves scaffolding contents to its appropriate place and rewrites some parts of the text
+- Updates language in several docs
+- Adds cost table and threat model to the docs
+- Updates FAQ to use pure markdown
+- Adds a link to our contract development guide
+
+Chores:
+- Extends the hash fixing script to also fix the hash table in the docs
+- Simplifies linter configuration for `pylint`
+- Bumps `open-aea` to 1.21.0
+- Adds lock check for all platforms
+
+Tests:
+- Fixes APY tests after the `setup` and `setup_class` changes
+- Fixes counter client behaviour tests.
+- Fixes use os specific paths when comparing file names
+- Fixes path resolution on Windows
+- Fixes `TestTendermintBufferFailing` on windows
+- Fixes pandas timestamps conversion to `UNIX`
+- Increases `test_get_app_hash` sleep tolerance
+- Avoids indirectly handle `NotFittedError`
+
 # 0.3.1 (2022-09-20)
 
 # Autonomy
