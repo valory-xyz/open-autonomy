@@ -32,7 +32,7 @@ nav:
     - Create a service with an existing agent: 'guides/create_service_existing_agent.md'
     - Create a service from scratch: 'guides/create_service_from_scratch.md'
     - Publish a service: 'guides/publish_service.md'
-    - Register components on-chain: 'guides/register_components_on_chain.md'
+    - Register packages on-chain: 'guides/register_packages_on_chain.md'
     - Deploy a service: 'guides/deploy_service.md'
     - Running a service in different networks: 'guides/running_service_different_networks.md'
     - Managing packages: 'guides/managing_packages.md'
@@ -268,6 +268,7 @@ extra:
     fsm_app: 'FSM App'
     open_autonomy: '[Open Autonomy](https://github.com/valory-xyz/open-autonomy)'
     open_autonomy_api: '[Open Autonomy API](https://docs.autonolas.network/)'
+    on_chain_frontend: '[on-chain protocol frontend](https://protocol.autonolas.network/)'
 
 
 

@@ -42,7 +42,7 @@ Local deployments of a service are recommended to test your service before you p
 
 2. Build the Docker image of the service agents:
     ```bash
-    autonomy build-image --dev
+    autonomy build-image
     ```
     After the command finishes building it, you can see that it has created the image by executing:
     ```bash
@@ -51,7 +51,7 @@ Local deployments of a service are recommended to test your service before you p
 
 3. Build the deployment setup for the service:
     ```bash
-    autonomy deploy build keys.json --dev
+    autonomy deploy build keys.json
     ```
 
 4. The build configuration will be located in `./abci_build`. Run the deployment locally using
@@ -64,17 +64,18 @@ Local deployments of a service are recommended to test your service before you p
 
 
 ## On-chain deployment
+The {{open_autonomy}} framework provides a convenient interface for services that have are [registered in the on-chain protocol](./register_packages_on_chain.md##register-a-service).
 
-You can try to run a deployment for the on-chain service that you just have registered. You will need a `keys.json` file, and the service token ID that you can find in
-https://protocol.autonolas.network/services/. Execute the command
+  1. **Find the service ID.** Explore the [services section](https://protocol.autonolas.network/agents) of the protocol frontend, and note the ID of the service that you want to deploy. The service must be in **Finished Registration** state.
 
+  2. **Execute the service deployment.** Execute the following command
     ```bash
-    autonomy deploy from-token ON_SERVICE_TOKEN_ID keys.json --use-goerli
+    autonomy deploy from-token <ID> keys.json --use-goerli
     ```
-    and you should be able to see your service running locally.
+    where `keys.json` contains the addresses and keys of (some of) the registered agents in the service.
 
 
-## Step-by-step instructions: cloud deployment
+## Cloud deployment
 
 !!! info
-    This tutorial will be added soon.
+    This section will be added soon.
