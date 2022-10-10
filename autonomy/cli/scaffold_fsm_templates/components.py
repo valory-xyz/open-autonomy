@@ -162,7 +162,7 @@ class BEHAVIOURS:
         state_id: str
         behaviour_id: str = "{behaviour_id}"
         matching_round: Type[AbstractRound] = {matching_round}
-        
+
         # TODO: implement logic required to set payload content (e.g. synchronized_data)
         def async_act(self) -> Generator:
             \"\"\"Do the act, supporting asynchronous execution.\"\"\"
