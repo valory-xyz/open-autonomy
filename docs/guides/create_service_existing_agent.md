@@ -1,3 +1,5 @@
+{{check_untagged_doc()}}
+
 The typical use case that this guide intends to illustrate is where a service owner wants to use existing agents to run its own service
 with a custom configuration. For example, an oracle service customized to serve data of their interest.
 
@@ -87,7 +89,11 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
         Most of the parameters in the YAML file are self-explanatory, but let us briefly discuss some of them:
 
-        - `fingerprint`: this field contains the IPFS hash for all the files inside the service folder, except the `service.yaml` itself.
+        - `fingerprint`: this field contains the IPFS hash for all the files inside the service folder, except the `service.yaml` itself. To get the IPFS hash of a given file you can use the `autonomy hash` command, for example,
+        ```bash
+        autonomy hash one README.md
+        ```
+
         - `fingerprint_ignore_patterns`: filename patterns whose matches will be ignored.
         - `agent`: references the agent that the service is going to use, in the format `public_id:ipfs_hash`.
 

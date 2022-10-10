@@ -1,3 +1,5 @@
+{{check_untagged_doc()}}
+
 The purpose of this guide is to provide a step-by-step instructions to gain familiarity with the {{open_autonomy}} framework, and use a number of CLI commands to run a [Hello World agent service](../hello_world_agent_service.md) as a local deployment. More concretely, in this guide, you will end up running:
 
   - 4 Docker containers implementing the 4 agents of the service, and
@@ -60,7 +62,7 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
 
 4. Build the deployment setup for the service:
     ```bash
-    autonomy deploy build keys.json
+    autonomy deploy build keys.json --aev
     ```
 
 5. The build configuration will be located in `./abci_build`. Run the deployment using
