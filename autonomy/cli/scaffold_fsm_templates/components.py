@@ -118,7 +118,6 @@ class BEHAVIOURS:
     HEADER = """\
     \"\"\"This package contains round behaviours of {AbciApp}.\"\"\"
 
-    from abc import abstractmethod
     from typing import Generator, Set, Type, cast
 
     from packages.valory.skills.abstract_round_abci.base import AbstractRound
@@ -163,11 +162,20 @@ class BEHAVIOURS:
         state_id: str
         behaviour_id: str = "{behaviour_id}"
         matching_round: Type[AbstractRound] = {matching_round}
-
-        @abstractmethod
+        
+        # TODO: implement logic required to set payload content (e.g. synchronized_data)
         def async_act(self) -> Generator:
             \"\"\"Do the act, supporting asynchronous execution.\"\"\"
 
+            with self.context.benchmark_tool.measure(self.behaviour_id).local():
+                sender = self.context.agent_address
+                payload = {PayloadCls}(sender=sender, content=...)
+
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
+
+            self.set_done()
     """
 
     ROUND_BEHAVIOUR_CLS = """\
