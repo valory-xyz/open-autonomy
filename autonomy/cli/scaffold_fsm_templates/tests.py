@@ -66,6 +66,7 @@ class TEST_ROUNDS:
         final_data: Dict[str, Hashable]
         event: Event
         synchronized_data_attr_checks: List[Callable] = field(default_factory=list)
+        kwargs: Dict[str, Any] = field(default_factory=dict)
 
 
     MAX_PARTICIPANTS: int = 4
@@ -81,7 +82,7 @@ class TEST_ROUNDS:
         _synchronized_data_class = SynchronizedData
         _event_class = Event
 
-        def run_test(self, test_case: RoundTestCase, **kwargs) -> None:
+        def run_test(self, test_case: RoundTestCase) -> None:
             \"\"\"Run the test\"\"\"
 
             self.synchronized_data.update(**test_case.initial_data)
@@ -98,7 +99,7 @@ class TEST_ROUNDS:
                     synchronized_data_update_fn=lambda sync_data, _: sync_data.update(**test_case.final_data),
                     synchronized_data_attr_checks=test_case.synchronized_data_attr_checks,
                     exit_event=test_case.event,
-                    **kwargs,  # varies per BaseRoundTestClass child
+                    **test_case.kwargs,  # varies per BaseRoundTestClass child
                 )
             )
 
@@ -111,11 +112,11 @@ class TEST_ROUNDS:
         round_class = {RoundCls}
 
         # TODO: provide test cases
-        @pytest.mark.parametrize("test_case, kwargs", [])
-        def test_run(self, test_case: RoundTestCase, **kwargs: Any) -> None:
+        @pytest.mark.parametrize("test_case", [])
+        def test_run(self, test_case: RoundTestCase) -> None:
             \"\"\"Run tests.\"\"\"
 
-            self.run_test(test_case, **kwargs)
+            self.run_test(test_case)
 
     """
 
