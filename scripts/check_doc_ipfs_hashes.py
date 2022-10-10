@@ -33,6 +33,8 @@ from aea.helpers.base import IPFS_HASH_REGEX, SIMPLE_ID_REGEX
 
 
 CLI_REGEX = r"(?P<cli>aea|autonomy)"
+# CMD_REGEX should be r"(?P<cmd>(\S+\s(\s--\S+)*)+)",
+# but python implementation differs from others and does not match it properly
 CMD_REGEX = r"(?P<cmd>.*)"
 VENDOR_REGEX = rf"(?P<vendor>{SIMPLE_ID_REGEX})"
 PACKAGE_REGEX = rf"(?P<package>{SIMPLE_ID_REGEX})"
@@ -57,9 +59,7 @@ def read_file(filepath: str) -> str:
 
 
 class Package:  # pylint: disable=too-few-public-methods
-    """Class that represents a package in hashes.csv"""
-
-    CSV_HASH_REGEX = r"(?P<vendor>.*)\/(?P<type>.*)\/(?P<name>.*),(?P<hash>.*)(?:\n|$)"
+    """Class that represents a package in packages.json"""
 
     def __init__(self, package_id_str: str, package_hash: str) -> None:
         """Constructor"""
@@ -82,7 +82,7 @@ class Package:  # pylint: disable=too-few-public-methods
             "contracts",
         ):
             raise ValueError(
-                f"Package: unknown package type in hashes.csv: {self.type}"
+                f"Package: unknown package type in packages.json: {self.type}"
             )
         self.type = self.type[:-1]  # remove last s
 
@@ -120,7 +120,7 @@ class Package:  # pylint: disable=too-few-public-methods
 
 
 class PackageHashManager:
-    """Class that represents the packages in hashes.csv"""
+    """Class that represents the packages in packages.json"""
 
     def __init__(self) -> None:
         """Constructor"""
@@ -142,7 +142,7 @@ class PackageHashManager:
             return None
         if len(packages) > 1:
             raise ValueError(
-                f"PackageHashManager: hash search for {package_hash} returned more than 1 result in hashes.csv"
+                f"PackageHashManager: hash search for {package_hash} returned more than 1 result in packages.json"
             )
         return packages[0]
 
@@ -158,28 +158,28 @@ class PackageHashManager:
             # No match
             if not m_command and not m_package:
                 print(
-                    f"[{target_file}]: line '{package_line}' does not match an aea command or package format"
+                    f"[{target_file}]: line '{package_line}' does not match an autonomy/aea command or package format"
                 )
                 return None
             m = m_command or m_package
             d = m.groupdict()  # type: ignore
 
             # Underspecified commands that only use the hash
-            # In this case we cannot infer the package type, just check whether or not the hash exists in hashes.csv
+            # In this case we cannot infer the package type, just check whether or not the hash exists in packages.json
             if not d["vendor"] and not d["package"]:
                 package = self.get_package_by_hash(d["hash"])
 
-                # This hash exists in hashes.csv
+                # This hash exists in packages.json
                 if package:
                     return package.hash
 
-                # This hash does not exist in hashes.csv
+                # This hash does not exist in packages.json
                 print(
                     f"[{target_file}]: unknown IPFS hash in line '{package_line}'. Can't fix because this command just uses the hash"
                 )
                 return None
 
-            # Complete command, succesfully retrieved
+            # Complete command, succesfully retrieved or complete packages
 
             # Guess the package type (agent, service, contract...). First try to find the package in the package_tree
             potential_package_types = []
@@ -271,10 +271,10 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
             hash_mismatches = True
 
             if fix:
-                new_content = content.replace(doc_full_cmd, new_command)
+                content = content.replace(doc_full_cmd, new_command)
 
                 with open(str(md_file), "w", encoding="utf-8") as qs_file:
-                    qs_file.write(new_content)
+                    qs_file.write(content)
                 print(f"Fixed an IPFS hash in doc file {md_file}")
                 old_to_new_hashes[doc_hash] = expected_hash
             else:
@@ -309,10 +309,10 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
             hash_mismatches = True
 
             if fix:
-                new_content = content.replace(full_package, new_package)
+                content = content.replace(full_package, new_package)
 
                 with open(str(py_file), "w", encoding="utf-8") as qs_file:
-                    qs_file.write(new_content)
+                    qs_file.write(content)
                 print(f"Fixed an IPFS hash in doc file {py_file}")
                 old_to_new_hashes[py_hash] = expected_hash
             else:

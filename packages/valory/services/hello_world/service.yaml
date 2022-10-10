@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
 fingerprint_ignore_patterns: []
-agent: valory/hello_world:0.1.0:bafybeieo6qbytstnxqgoxsrn4iaf4ixg3e7i4z5q5jzkuzjj6jgnjc6rsu
+agent: valory/hello_world:0.1.0:bafybeidlcxjfrig22rcmpjk5xb2y54odyyi7uchawtjosqbftn6bfele6y
 number_of_agents: 4
 ---
 benchmark_persistence_params:
@@ -29,7 +29,7 @@ models:
   - benchmark_tool:
       args: *id001
 ---
-public_id: valory/ledger:0.1.0
+public_id: valory/ledger:0.19.0
 type: connection
 config:
   ledger_apis:

@@ -3,12 +3,14 @@ Deploying a service with the {{open_autonomy}} framework requires that you have 
 ## What you will learn
 In this guide, you will learn how to:
 
-* Create a local deployment of a service for testing purposes.
+* Create a local deployment for testing purposes of
+    * a service stored in your machine.
+    * a service available in the on-chain registry.
 * Create a cloud deployment of a service.
 
 Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
 
-## Step-by-step instructions: local deployment
+## Local deployment
 
 Local deployments of a service are recommended to test your service before you publish it to the [IPFS](https://ipfs.io/). This guide assumes that your terminal is located in the (local) service folder that you want to deploy. that is, the folder containing the `service.yaml` file.
 
@@ -60,7 +62,20 @@ Local deployments of a service are recommended to test your service before you p
     You can cancel the local execution by pressing `Ctrl-C`, and return to the service parent folder `cd ..`.
 
 
-## Step-by-step instructions: cloud deployment
+
+## On-chain deployment
+The {{open_autonomy}} framework provides a convenient interface for services that have are [registered in the on-chain protocol](./register_packages_on_chain.md##register-a-service).
+
+  1. **Find the service ID.** Explore the [services section](https://protocol.autonolas.network/agents) of the protocol frontend, and note the ID of the service that you want to deploy. The service must be in **Finished Registration** state.
+
+  2. **Execute the service deployment.** Execute the following command
+    ```bash
+    autonomy deploy from-token <ID> keys.json --use-goerli
+    ```
+    where `keys.json` contains the addresses and keys of (some of) the registered agents in the service.
+
+
+## Cloud deployment
 
 !!! info
-    This tutorial will be added soon.
+    This section will be added soon.

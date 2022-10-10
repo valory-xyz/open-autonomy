@@ -1,7 +1,7 @@
 name: register_reset
 author: valory
 version: 0.1.0
-agent: valory/register_reset:0.1.0:bafybeiciw5e7hv5yraze7uzx3np3ak7dq6msz2m32st655jkzd6247nyjm
+agent: valory/register_reset:0.1.0:bafybeih4yzr4ar6n242urks2f4plyn2g7u3ck55uz5hpv5hessgwpzczue
 number_of_agents: 4
 description: Test and debug tendermint reset mechanism.
 aea_version: '>=1.0.0, <2.0.0'
@@ -10,7 +10,7 @@ fingerprint:
   README.md: bafybeiae4sog7e3hyjdujzp5qr2g3auobmqswqnaczh2zhlphuojnd2g6u
 fingerprint_ignore_patterns: []
 ---
-public_id: valory/ledger:0.1.0
+public_id: valory/ledger:0.19.0
 type: connection
 config:
   ledger_apis:

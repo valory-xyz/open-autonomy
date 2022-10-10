@@ -11,10 +11,10 @@ fingerprint:
   tests/test_oracle.py: bafybeibf24xwxcw5cdq3sm22tfy3tpgs5skdkwyvuu475byug7b52kz74e
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeidphoubsmjfndoqdj4ykkzygnz7jm57vleppj2qegplr4zsmw4vwy
-- valory/http_client:0.1.0:bafybeiet6defg3qvov4r2ucjtkywkz53xcg6mgarjfdqmnxfgdixgcx45y
-- valory/ledger:0.1.0:bafybeicfycqnhdzg5nsir33dlcgs2k4ijjncysqjcn67zvzv2fkwr43eby
-- valory/p2p_libp2p_client:0.1.0:bafybeictjizuc4on3k2yjeo3d7xmihge7y4roynmzeq4kp7klzmb2nchaq
+- valory/abci:0.1.0:bafybeidqkdf2vhraovmqwfm5dsp7ohnv7j63skgmjg43uxewt7h3zlmhdi
+- valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
+- valory/ledger:0.19.0:bafybeigpltrga4ggf4nejvl7l32zioyk77jzodvhthjwd3uvdkuxedvnz4
+- valory/p2p_libp2p_client:0.1.0:bafybeihf35zfr35qsvfte4vbi7njvuzfx4httysw7owmlux53gvxh2or54
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeibwqdpcefr5cwmysdap6av3xyemve2ayifdfthw3kcoe6m3e4xrgq
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeielbvildyu3ochppoyx7ldstgzqerwnq7qjbubyaunbuztsvrabnq
@@ -23,21 +23,21 @@ contracts:
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
-- valory/acn:1.1.0:bafybeid2qy4363w4q7nwhcaw5tva7sle4htfynh3expukdygieof7ywevu
-- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
-- valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
-- valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
+- valory/acn:1.1.0:bafybeifontek6tvaecatoauiule3j3id6xoktpjubvuqi3h2jkzqg7zh7a
+- valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
+- valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
+- valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeihlqczjtcdw3gfix2kakshmq2ujsbnqxxcxsxm2fvn6x6zg7kltga
-- valory/abstract_round_abci:0.1.0:bafybeidc7bsbqbdejd2cgeynwbxuhvaa2ls7rjmgyip6i3i5jjgsne7v5i
-- valory/oracle_abci:0.1.0:bafybeicusdtesj4o4qu5j2briud7dby2cfvmy3oiaryjbkolewez7kxg7y
-- valory/oracle_deployment_abci:0.1.0:bafybeid7ez4qpg4knwa4iwheb32xo3lgdmsjin6svg4vmktmgzrfskgpti
-- valory/price_estimation_abci:0.1.0:bafybeihnasbes36wdya3wzrtno74f6joffcghijeurnvtx5pqsdm6zmapq
-- valory/registration_abci:0.1.0:bafybeicuywbbtdpl7eiypcktr6evbzp63fvf6hl53qn7lbfhjsmer57wlm
-- valory/reset_pause_abci:0.1.0:bafybeibpyluy4pilisw2gc6ki5cfdab4nj3ew5vjdhzh4gyr5vi5elmby4
-- valory/safe_deployment_abci:0.1.0:bafybeigyskczukke4c3zoepy7sr7edjeysdcy5hhg32c3tfutrkqn2skoe
-- valory/transaction_settlement_abci:0.1.0:bafybeibyyz6pvsxycoooqhymgtadvwi52e2udumikpfxtvydzuib5tvn7u
+- valory/abstract_abci:0.1.0:bafybeibhg432dy4nfxzxfrgoeankfn7j2mfosqvm4525re5ejxl3osxohm
+- valory/abstract_round_abci:0.1.0:bafybeigrddmgrngcfyw5lwquhfcgo2s3vqnnthhy6bbhrq6ra23xhlyimq
+- valory/oracle_abci:0.1.0:bafybeihrkzdwa7j2i6x7qlbnnu2fnnauvragpftp2sjqfw2gpwpmbiiodi
+- valory/oracle_deployment_abci:0.1.0:bafybeiflh7ob4s4ijxin4pfuhygg3zahlhb7jcjku7hdardlntvurqmzry
+- valory/price_estimation_abci:0.1.0:bafybeifrmt6yvtksuxrafluyebnj33jevj5ceqy55gx76uqu2uo7rzxko4
+- valory/registration_abci:0.1.0:bafybeibccnddacrd4u76m5lelooi7ntfaplf62tgrafnt4bjs75qadn6ou
+- valory/reset_pause_abci:0.1.0:bafybeigb55se2miut2nlhitylzdaurtfnkclrvygcw2gpeo6f65vsm2n4q
+- valory/safe_deployment_abci:0.1.0:bafybeidjhojqimsxnluzozxvlsog6gf3qcnbtjxzlbfik5dspdjvjyf2nq
+- valory/transaction_settlement_abci:0.1.0:bafybeidjq7zi7rwz6ic4cu3usrp22ss3b5jlycx5ay3bblbnuiiwy65jl4
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -124,7 +124,7 @@ models:
     args:
       url: ${SKILL_ORACLE_ABCI_MODELS_SERVER_API_ARGS_URL:str:http://192.168.2.17:9999/deposit}
 ---
-public_id: valory/ledger:0.1.0
+public_id: valory/ledger:0.19.0
 type: connection
 config:
   ledger_apis:
@@ -138,13 +138,23 @@ public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
 config:
   nodes:
-  - uri: acn:11000
-    public_key: 02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77
+  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9005}
+    public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
+  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9006}
+    public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
 cert_requests:
 - identifier: acn
   ledger_id: ethereum
   message_format: '{public_key}'
   not_after: '2023-01-01'
   not_before: '2022-01-01'
-  public_key: 02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77
-  save_path: .certs/acn_cosmos_11000.txt
+  public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
+  save_path: .certs/acn_cosmos_9005.txt
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2023-01-01'
+  not_before: '2022-01-01'
+  public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
+  save_path: .certs/acn_cosmos_9006.txt
+is_abstract: true

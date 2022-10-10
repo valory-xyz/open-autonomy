@@ -24,9 +24,9 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidc7bsbqbdejd2cgeynwbxuhvaa2ls7rjmgyip6i3i5jjgsne7v5i
-- valory/apy_estimation_abci:0.1.0:bafybeihusroyfkuqbld3h2rmqobmugbi7xxtqblpud3mqp5sq2qp5gl7zq
-- valory/registration_abci:0.1.0:bafybeicuywbbtdpl7eiypcktr6evbzp63fvf6hl53qn7lbfhjsmer57wlm
+- valory/abstract_round_abci:0.1.0:bafybeigrddmgrngcfyw5lwquhfcgo2s3vqnnthhy6bbhrq6ra23xhlyimq
+- valory/apy_estimation_abci:0.1.0:bafybeib7firamyb3zxmqoqblot44mkn7k5xnfrbuohd6jcmxrrdfhrvske
+- valory/registration_abci:0.1.0:bafybeibccnddacrd4u76m5lelooi7ntfaplf62tgrafnt4bjs75qadn6ou
 behaviours:
   main:
     args: {}
@@ -121,10 +121,10 @@ models:
         voting_power: '10'
       history_end: 1654136875
       history_interval_in_unix: 86400
-      history_start: 1652544875
       ipfs_domain_name: /dns/registry.autonolas.tech/tcp/443/https
       keeper_timeout: 30.0
       max_healthcheck: 120
+      n_observations: 10
       observation_interval: 10
       on_chain_service_id: null
       optimizer:
@@ -226,7 +226,7 @@ dependencies:
   numpy:
     version: ==1.21.6
   open-aea-cli-ipfs:
-    version: <2.0.0,>=1.20.0
+    version: <2.0.0,>=1.21.0
   optuna:
     version: ==2.10.1
   pandas:

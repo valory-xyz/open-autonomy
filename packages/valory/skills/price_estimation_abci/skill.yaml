@@ -33,11 +33,11 @@ contracts:
 - valory/offchain_aggregator:0.1.0:bafybeifpfs2xb6y7dc6eugxlzqkki6hbici7r2glwk5gc55j6pssmjfrp4
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
-- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
+- valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidc7bsbqbdejd2cgeynwbxuhvaa2ls7rjmgyip6i3i5jjgsne7v5i
-- valory/oracle_deployment_abci:0.1.0:bafybeid7ez4qpg4knwa4iwheb32xo3lgdmsjin6svg4vmktmgzrfskgpti
-- valory/transaction_settlement_abci:0.1.0:bafybeibyyz6pvsxycoooqhymgtadvwi52e2udumikpfxtvydzuib5tvn7u
+- valory/abstract_round_abci:0.1.0:bafybeigrddmgrngcfyw5lwquhfcgo2s3vqnnthhy6bbhrq6ra23xhlyimq
+- valory/oracle_deployment_abci:0.1.0:bafybeiflh7ob4s4ijxin4pfuhygg3zahlhb7jcjku7hdardlntvurqmzry
+- valory/transaction_settlement_abci:0.1.0:bafybeidjq7zi7rwz6ic4cu3usrp22ss3b5jlycx5ay3bblbnuiiwy65jl4
 behaviours:
   main:
     args: {}

@@ -1,3 +1,8 @@
+!!! warning
+       The contents of this section are being reviewed and integrated with the corresponding guides above.
+
+
+
 !!! note
        Similarly as the Open AEA framework, the Open Autonomy framework also works with the concept of package: a collection of files that implement a specific component or functionality, and which are named as vendor/package:version.
 
@@ -32,12 +37,12 @@ Now we are in the position of creating our first agent:
 autonomy create my_agent
 ```
 
-This agent will have some dependencies: some packages might be already available in the remote registry and some will need to be developed. Let's say, for example, that it will need the ability to communicate using the ACN protocol. Since that package is already available on the Autonolas IPFS registry, we'll use the `add command`:
+This agent will have some dependencies: some packages might be already available in the remote registry and some will need to be developed. Let's say, for example, that it will need the ability to use the signing protocol protocol. Since that package is already available on the Autonolas IPFS registry, we'll use the `add command`:
 
 ```bash
 cd my_agent/
 # Remote flag is not needed here as we initialized the default registry to remote
-autonomy add protocol valory/acn:1.1.0:bafybeid2qy4363w4q7nwhcaw5tva7sle4htfynh3expukdygieof7ywevu
+autonomy add protocol open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 ```
 
 You can find a list with all available packages [here](../package_list.md).

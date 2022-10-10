@@ -306,7 +306,7 @@ class FetchBehaviour(
 
         self._unit = sec_to_unit(self.params.interval)
         self._target_per_pool = int(
-            unit_amount_from_sec(self.params.end - self.params.start, self._unit)
+            unit_amount_from_sec(self.params.ts_length, self._unit)
         )
         n_ids = sum(
             (len(dex_pair_ids) for dex_pair_ids in self.params.pair_ids.values())
@@ -361,14 +361,15 @@ class FetchBehaviour(
 
     def _reset_timestamps_iterator(self) -> None:
         """Reset the timestamps iterator."""
-        # end is set in the `setup` method and therefore cannot be `None` at this point
+        # `start` and `end` are set in the `setup` method and therefore cannot be `None` at this point
+        start = cast(int, self.params.start)
         end = cast(int, self.params.end)
 
         if self.batch:
             self._progress.timestamps_iterator = iter((end,))
         else:
             self._progress.timestamps_iterator = gen_unix_timestamps(
-                self.params.start, self.params.interval, end
+                start, self.params.interval, end
             )
 
     def _set_current_progress(self) -> None:
@@ -1402,7 +1403,6 @@ class EstimateBehaviour(APYEstimationBaseBehaviour):
             self.context.logger.info(
                 "Estimates have been received:\n" f"{estimates.to_string()}"
             )
-            self.context.logger.info("Estimates have been received.")
 
             # Send the file to IPFS and get its hash.
             self._estimations_hash = self.send_to_ipfs(
