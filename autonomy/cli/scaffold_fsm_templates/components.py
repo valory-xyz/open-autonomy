@@ -70,10 +70,9 @@ class ROUNDS:
         \"\"\"{RoundCls}\"\"\"
 
         {todo_abstract_round_cls}
-        # TODO: set the following class attributes
         round_id: str = "{round_id}"
-        allowed_tx_type: Optional[TransactionType]
-        payload_attribute: str = {PayloadCls}.transaction_type
+        allowed_tx_type: Optional[TransactionType] = {PayloadCls}.transaction_type
+        payload_attribute: str = "{round_id}"
 
         def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
             \"\"\"Process the end of the block.\"\"\"
