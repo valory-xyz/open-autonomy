@@ -32,7 +32,7 @@ This guide is based in the on-chain registry currently deployed in the [Görli t
 
 
 ## Register a service
-Before continue, ensure that you meet the [requirements](#requirements) stated above.
+Before continuing, ensure that you meet the [requirements](#requirements) stated above.
 
   1. **Connect your wallet.** Access the {{on_chain_frontend}}, and connect your [Metamask](https://metamask.io/) wallet.
 
