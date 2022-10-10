@@ -27,10 +27,10 @@ protocols:
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
 - valory/abstract_abci:0.1.0:bafybeibhg432dy4nfxzxfrgoeankfn7j2mfosqvm4525re5ejxl3osxohm
-- valory/abstract_round_abci:0.1.0:bafybeigrddmgrngcfyw5lwquhfcgo2s3vqnnthhy6bbhrq6ra23xhlyimq
-- valory/apy_estimation_abci:0.1.0:bafybeib7firamyb3zxmqoqblot44mkn7k5xnfrbuohd6jcmxrrdfhrvske
-- valory/apy_estimation_chained_abci:0.1.0:bafybeiefvwfqcmwxtuu6gy3qs7eilejv2sxd7l5sa7xwlrvvmcqzjhnflu
-- valory/registration_abci:0.1.0:bafybeibccnddacrd4u76m5lelooi7ntfaplf62tgrafnt4bjs75qadn6ou
+- valory/abstract_round_abci:0.1.0:bafybeih34jor222j3bogygzoedk6pmlvvvd4roev2buzohz5aljjt7hl4q
+- valory/apy_estimation_abci:0.1.0:bafybeiayhxodkz3jk6xmocopkjoormartlapr2d3ywkdufzyxzwfj6sj5q
+- valory/apy_estimation_chained_abci:0.1.0:bafybeihvuemway3pxjlllmdmc3luzg2zoirgpgqodqls6tsnvcs5vj6fau
+- valory/registration_abci:0.1.0:bafybeif5aiybfqujcy36u3kynpifc3b5e34dlndjbqgjppm5c7qglieaki
 default_ledger: ethereum
 required_ledgers:
 - ethereum
