@@ -132,7 +132,7 @@ class TEST_BEHAVIOURS:
 
     from pathlib import Path
     from typing import Any, Dict, Hashable, Optional, Type
-    from dataclasses import dataclass
+    from dataclasses import dataclass, field
 
     import pytest
 
@@ -167,6 +167,7 @@ class TEST_BEHAVIOURS:
         name: str
         initial_data: Dict[str, Hashable]
         event: Event
+        kwargs: Dict[str, Any] = field(default_factory=dict)
 
     """
 
@@ -219,8 +220,8 @@ class TEST_BEHAVIOURS:
         next_behaviour_class: Type[BaseBehaviour] = ...
 
         # TODO: provide test cases
-        @pytest.mark.parametrize("test_case, kwargs", [])
-        def test_run(self, test_case: BehaviourTestCase, **kwargs: Any) -> None:
+        @pytest.mark.parametrize("test_case", [])
+        def test_run(self, test_case: BehaviourTestCase) -> None:
             \"\"\"Run tests.\"\"\"
 
             self.fast_forward(test_case.initial_data)
