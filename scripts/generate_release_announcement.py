@@ -41,9 +41,14 @@ RELEASE_DATA_REGEX = (
 
 
 def generate_release_data(
-    source_path=DEFAULT_SOURCE_PATH, target_path=DEFAULT_TARGET_PATH
+    source_path: Path = DEFAULT_SOURCE_PATH, target_path: Path = DEFAULT_TARGET_PATH
 ) -> None:
-    """Generates the release announcement for Discord"""
+    """Generates the release announcement for Discord
+
+    :param source_path: source file path
+    :param target_path: target file path
+    :return: None
+    """
 
     # Load HISTORY.md content
     with open(source_path, mode="r", encoding="utf-8") as history:
