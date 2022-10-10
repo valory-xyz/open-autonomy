@@ -248,20 +248,6 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         process = self.run_agent()
         self.processes[i] = process
 
-    def terminate_processes(self) -> None:
-        """Terminate processes"""
-        for i, process in self.processes.items():
-            self.terminate_agents(process)
-            outs, errs = process.communicate()
-            logging.info(f"subprocess logs {process}: {outs} --- {errs}")
-            if not self.is_successfully_terminated(process):
-                agent_name = self._get_agent_name(i)
-                warnings.warn(
-                    UserWarning(
-                        f"ABCI {agent_name} with process {process} wasn't successfully terminated."
-                    )
-                )
-
     @staticmethod
     def __generate_full_strings_from_rounds(
         happy_path: Tuple[RoundChecks, ...]
@@ -430,7 +416,6 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
         if self.n_terminal:
             self._restart_agents()
         self.check_aea_messages()
-        self.terminate_processes()
 
     def _restart_agents(self) -> None:
         """Stops and restarts agents after stop string is found."""
