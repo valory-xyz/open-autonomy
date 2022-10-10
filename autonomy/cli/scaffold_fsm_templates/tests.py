@@ -31,7 +31,7 @@ class TEST_ROUNDS:
     HEADER = """\
     \"\"\"This package contains the tests for rounds of {FSMName}.\"\"\"
 
-    from typing import Any, Dict, List, Callable, Hashable
+    from typing import Any, Type, Dict, List, Callable, Hashable
     from dataclasses import dataclass, field
 
     import pytest
@@ -40,6 +40,7 @@ class TEST_ROUNDS:
         {payloads},
     )
     from packages.{author}.skills.{skill_name}.rounds import (
+        AbstractRound,
         Event,
         SynchronizedData,
         {rounds},
@@ -75,6 +76,7 @@ class TEST_ROUNDS:
     class Base{FSMName}RoundTest(BaseRoundTestClass):
         \"\"\"Base test class for {FSMName} rounds.\"\"\"
 
+        round: Type[AbstractRound]
         synchronized_data: SynchronizedData
         _synchronized_data_class = SynchronizedData
         _event_class = Event
