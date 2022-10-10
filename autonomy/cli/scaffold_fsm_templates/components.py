@@ -242,7 +242,6 @@ class PAYLOADS:
     class {PayloadCls}(Base{FSMName}Payload):
         \"\"\"Represent a transaction payload for the {RoundCls}.\"\"\"
 
-        # TODO: specify the transaction type
         transaction_type = TransactionType.{tx_type}
 
     """
