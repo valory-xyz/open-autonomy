@@ -47,16 +47,6 @@ fsm_specifications = VALORY_SKILLS_PATH.glob("**/fsm_specification.yaml")
 class TestScaffoldFSM(AEATestCaseEmpty):
     """Test `scaffold fsm` subcommand."""
 
-    cli_options: List[str] = [
-        "--registry-path",
-        str(Path(ROOT_DIR) / Path(PACKAGES)),
-        "scaffold",
-        "fsm",
-        "myskill",
-        "--local",
-        "--spec",
-    ]
-
     @classmethod
     def setup_class(cls) -> None:
         """Set up the test class."""
@@ -66,24 +56,15 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         cls.create_agents(cls.agent_name, is_local=cls.IS_LOCAL, is_empty=cls.IS_EMPTY)
         shutil.move(str(cls.t / cls.agent_name), str(cls.t / "packages"))
 
-    def test_run(self, fsm_spec_file: Path) -> None:
-        """Test run."""
+    def test_scaffold_fsm(self, fsm_spec_file: Path) -> None:
+        """Test scaffold fsm."""
 
-        my_skill = f"{fsm_spec_file.parts[-2]}"
-        self.cli_options[-3] = my_skill
         path_to_spec_file = Path(ROOT_DIR) / fsm_spec_file
-        args = [*self.cli_options, path_to_spec_file]
+        packages_path = str(Path(ROOT_DIR) / Path(PACKAGES))
+        my_skill = f"{fsm_spec_file.parts[-2]}"
+        scaffold_args = ["scaffold", "fsm", my_skill, "--local", "--spec"]
+        args = ["--registry-path", packages_path, *scaffold_args, path_to_spec_file]
         result = self.run_cli_command(*args, cwd=self._get_cwd())
-        assert result.exit_code == 0
-
-    def test_autonomy_test_on_scaffolded_fsm(self, fsm_spec_file: Path):
-        """Run autonomy test on the scaffolded skill"""
-
-        prefix = self.t / "packages" / self.agent_name / "skills"
-        path = prefix / fsm_spec_file.parent.parts[-1]
-        packages_dir = str(Path(self._get_cwd()).parent)
-        args = ["test", "by-path", str(path)]
-        result = self.run_cli_command(*args, cwd=packages_dir)
         assert result.exit_code == 0
 
     def test_imports(
@@ -98,3 +79,13 @@ class TestScaffoldFSM(AEATestCaseEmpty):
             assert isinstance(module_spec, ModuleSpec)
             module_type = importlib.util.module_from_spec(module_spec)
             module_spec.loader.exec_module(module_type)  # type: ignore
+
+    def test_autonomy_test(self, fsm_spec_file: Path):
+        """Run autonomy test on the scaffolded skill"""
+
+        prefix = self.t / "packages" / self.agent_name / "skills"
+        path = prefix / fsm_spec_file.parent.parts[-1]
+        packages_dir = str(Path(self._get_cwd()).parent)
+        args = ["test", "by-path", str(path)]
+        result = self.run_cli_command(*args, cwd=packages_dir)
+        assert result.exit_code == 0
