@@ -233,7 +233,7 @@ class PAYLOADS:
         @property
         def data(self) -> Dict[str, Hashable]:
             \"\"\"Get the data.\"\"\"
-            return {{str(self.transaction_type): getattr(self, str(self.transaction_type))}}
+            return dict(content=getattr(self, str(self.transaction_type)))
 
     """
 
