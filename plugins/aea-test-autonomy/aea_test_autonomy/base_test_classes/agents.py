@@ -18,10 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """End2end tests base class."""
+
 import json
 import logging
 import time
-import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
