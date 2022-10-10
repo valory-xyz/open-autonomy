@@ -133,6 +133,9 @@ class BEHAVIOURS:
         {AbciApp},
         {rounds},
     )
+    from packages.{author}.skills.{skill_name}.rounds import (
+        {payloads},
+    )
 
     """
 
