@@ -20,6 +20,7 @@
 """Test 'scaffold fsm' subcommand."""
 
 import importlib.util
+import logging
 import os
 import shutil
 from importlib.machinery import ModuleSpec
@@ -68,11 +69,21 @@ class TestScaffoldFSM(AEATestCaseEmpty):
     def test_run(self, fsm_spec_file: Path) -> None:
         """Test run."""
 
-        my_skill = f"test_{fsm_spec_file.parts[-2]}"
+        my_skill = f"{fsm_spec_file.parts[-2]}"
         self.cli_options[-3] = my_skill
         path_to_spec_file = Path(ROOT_DIR) / fsm_spec_file
         args = [*self.cli_options, path_to_spec_file]
         result = self.run_cli_command(*args, cwd=self._get_cwd())
+        assert result.exit_code == 0
+
+    def test_autonomy_test_on_scaffolded_fsm(self, fsm_spec_file: Path):
+        """Run autonomy test on the scaffolded skill"""
+
+        prefix = self.t / "packages" / self.agent_name / "skills"
+        path = prefix / fsm_spec_file.parent.parts[-1]
+        packages_dir = str(Path(self._get_cwd()).parent)
+        args = ["test", "by-path", str(path)]
+        result = self.run_cli_command(*args, cwd=packages_dir)
         assert result.exit_code == 0
 
     def test_imports(
