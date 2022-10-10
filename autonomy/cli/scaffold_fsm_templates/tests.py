@@ -77,7 +77,7 @@ class TEST_ROUNDS:
     class Base{FSMName}RoundTest(BaseRoundTestClass):
         \"\"\"Base test class for {FSMName} rounds.\"\"\"
 
-        round: Type[AbstractRound]
+        round_cls: Type[AbstractRound]
         synchronized_data: SynchronizedData
         _synchronized_data_class = SynchronizedData
         _event_class = Event
@@ -87,7 +87,7 @@ class TEST_ROUNDS:
 
             self.synchronized_data.update(**test_case.initial_data)
 
-            test_round = self.round_class(
+            test_round = self.round_cls(
                 synchronized_data=self.synchronized_data,
                 consensus_params=self.consensus_params,
             )
@@ -241,7 +241,7 @@ class TEST_PAYLOADS:
     HEADER = """\
     \"\"\"This package contains payload tests for the {AbciApp}.\"\"\"
 
-    from typing import Hashable
+    from typing import Type, Hashable
     from dataclasses import dataclass
 
     import pytest
@@ -258,7 +258,7 @@ class TEST_PAYLOADS:
         \"\"\"PayloadTestCase\"\"\"
 
         name: str
-        payload_cls: Base{FSMName}Payload
+        payload_cls: Type[Base{FSMName}Payload]
         content: Hashable
         transaction_type: TransactionType
 

@@ -176,6 +176,7 @@ class BEHAVIOURS:
                 yield from self.wait_until_round_end()
 
             self.set_done()
+
     """
 
     ROUND_BEHAVIOUR_CLS = """\
