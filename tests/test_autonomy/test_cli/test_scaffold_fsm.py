@@ -20,11 +20,13 @@
 """Test 'scaffold fsm' subcommand."""
 
 import importlib.util
+import logging
 import os
 import shutil
 from importlib.machinery import ModuleSpec
 from pathlib import Path
 
+import click.testing
 import pytest
 from aea.configurations.constants import PACKAGES
 from aea.test_tools.test_cases import AEATestCaseEmpty
@@ -38,40 +40,53 @@ from tests.conftest import ROOT_DIR
 
 
 VALORY_SKILLS_PATH = Path(os.path.join(*skills.__package__.split("."))).absolute()
-fsm_specifications = VALORY_SKILLS_PATH.glob("**/fsm_specification.yaml")
+fsm_specifications = list(VALORY_SKILLS_PATH.glob("**/fsm_specification.yaml"))
 
 
-@pytest.mark.parametrize("fsm_spec_file", fsm_specifications)
-class TestScaffoldFSM(AEATestCaseEmpty):
+class BaseScaffoldFSMTest(AEATestCaseEmpty):
     """Test `scaffold fsm` subcommand."""
 
     @classmethod
     def setup_class(cls) -> None:
-        """Set up the test class."""
-        super(AEATestCaseEmpty, cls).setup_class()
+        """Set up the test."""
+        super().setup_class()
         cls.agent_name = "default_author"
         cls.set_agent_context(os.path.join("packages", cls.agent_name))
         cls.create_agents(cls.agent_name, is_local=cls.IS_LOCAL, is_empty=cls.IS_EMPTY)
         shutil.move(str(cls.t / cls.agent_name), str(cls.t / "packages"))
 
-    @pytest.mark.order(1)
-    def test_scaffold_fsm(self, fsm_spec_file: Path) -> None:
-        """Test scaffold fsm."""
+    def scaffold_fsm(self, fsm_spec_file: Path) -> click.testing.Result:
+        """Scaffold FSM."""
 
         path_to_spec_file = Path(ROOT_DIR) / fsm_spec_file
         packages_path = str(Path(ROOT_DIR) / Path(PACKAGES))
         my_skill = f"{fsm_spec_file.parts[-2]}"
         scaffold_args = ["scaffold", "fsm", my_skill, "--local", "--spec"]
         args = ["--registry-path", packages_path, *scaffold_args, path_to_spec_file]
-        result = self.run_cli_command(*args, cwd=self._get_cwd())
+        return self.run_cli_command(*args, cwd=self._get_cwd())
+
+
+class TestScaffoldFSM(BaseScaffoldFSMTest):
+    """Test `scaffold fsm` subcommand."""
+
+    @pytest.mark.parametrize("fsm_spec_file", fsm_specifications)
+    def test_scaffold_fsm(self, fsm_spec_file: Path) -> None:
+        """Test scaffold fsm."""
+
+        result = self.scaffold_fsm(fsm_spec_file)
         assert result.exit_code == 0
 
-    @pytest.mark.order(2)
+
+class TestScaffoldFSMImports(BaseScaffoldFSMTest):
+    """Test `scaffold fsm` subcommand."""
+
+    @pytest.mark.parametrize("fsm_spec_file", fsm_specifications)
     def test_imports(
         self, fsm_spec_file: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test imports of scaffolded modules"""
 
+        self.scaffold_fsm(fsm_spec_file)
         monkeypatch.syspath_prepend(self.t)
         path = self.t / self.agent_name
         for file in path.rglob("**/*.py"):
@@ -80,10 +95,15 @@ class TestScaffoldFSM(AEATestCaseEmpty):
             module_type = importlib.util.module_from_spec(module_spec)
             module_spec.loader.exec_module(module_type)  # type: ignore
 
-    @pytest.mark.order(3)
+
+class TestScaffoldFSMAutonomyTests(BaseScaffoldFSMTest):
+    """Test `scaffold fsm` subcommand."""
+
+    @pytest.mark.parametrize("fsm_spec_file", fsm_specifications)
     def test_autonomy_test(self, fsm_spec_file: Path) -> None:
         """Run autonomy test on the scaffolded skill"""
 
+        self.scaffold_fsm(fsm_spec_file)
         prefix = self.t / "packages" / self.agent_name / "skills"
         path = prefix / fsm_spec_file.parent.parts[-1]
         packages_dir = str(Path(self._get_cwd()).parent)
