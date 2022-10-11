@@ -14,5 +14,5 @@ if [ -z "${MDSPELL_PATH}" ]; then
   exit 127
 else
   echo "Found 'mdspell' executable at ${MDSPELL_PATH}"
-  mdspell -n -a --en-gb '**/*.md' '!docker-images/*.md' '!docs/api/**/*.md' '!third_party/**/*.md' '!docs/package_list.md'
+  mdspell -r -n -a --en-gb '**/*.md' '!docker-images/*.md' '!docs/api/**/*.md' '!third_party/**/*.md' '!go-ipfs/**/*.md' '!docs/package_list.md'
 fi

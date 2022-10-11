@@ -96,6 +96,9 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     ledger_id: str = "ethereum"
     key_file_name: str = "ethereum_private_key.txt"
     USE_GRPC = False
+    # usually test envs provide the full set of dependencies; only select
+    # when you want to run the installation of the packages as part of the test case.
+    RUN_AEA_INSTALL = False
 
     @classmethod
     def set_config(
@@ -229,9 +232,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         for agent_id in range(nb_nodes):
             self.__prepare_agent_i(agent_id, nb_nodes)
 
-        # run 'aea install' in only one AEA project, to save time
-        self.set_agent_context(self._get_agent_name(0))
-        self.run_install()
+        if self.RUN_AEA_INSTALL:
+            # run 'aea install' in only one AEA project, to save time
+            self.set_agent_context(self._get_agent_name(0))
+            self.run_install()
 
     def prepare_and_launch(self, nb_nodes: int) -> None:
         """Prepare and launch the agents."""

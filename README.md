@@ -97,7 +97,7 @@ the dependencies:
 
 - Fetch packages:
 
-      autonomy packages sync
+      autonomy packages sync --update-packages
 
 ## Cite
 

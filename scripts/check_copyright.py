@@ -315,7 +315,7 @@ def main() -> None:
             Path("examples").glob("**/*.py"),
             Path("tests").glob("**/*.py"),
             Path("packages", "valory", "agents").glob("**/*.py"),
-            Path("packages", "valory", "connections").glob("**/*.py"),
+            Path("packages", "valory", "connections", "abci").glob("**/*.py"),
             Path("packages", "valory", "contracts").glob("**/*.py"),
             Path("packages", "valory", "skills").glob("**/*.py"),
             Path("tests").glob("**/*.py"),
