@@ -283,11 +283,14 @@ class BehaviourFileGenerator(AbstractFileGenerator, BEHAVIOURS):
 
         behaviours: List[str] = []
         base_behaviour_name = self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR)
-        for behaviour_name, round_name in zip(self.behaviours, self.rounds):
+        for behaviour_name, round_name, payload_name in zip(
+            self.behaviours, self.rounds, self.payloads
+        ):
             behaviour_id = behaviour_name.replace(BEHAVIOUR, "")
             behaviour = self.BEHAVIOUR_CLS.format(
                 BehaviourCls=behaviour_name,
                 BaseBehaviourCls=base_behaviour_name,
+                PayloadCls=payload_name,
                 behaviour_id=_camel_case_to_snake_case(behaviour_id),
                 matching_round=round_name,
             )
