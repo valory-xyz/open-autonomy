@@ -56,6 +56,7 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         cls.create_agents(cls.agent_name, is_local=cls.IS_LOCAL, is_empty=cls.IS_EMPTY)
         shutil.move(str(cls.t / cls.agent_name), str(cls.t / "packages"))
 
+    @pytest.mark.order(1)
     def test_scaffold_fsm(self, fsm_spec_file: Path) -> None:
         """Test scaffold fsm."""
 
@@ -67,6 +68,7 @@ class TestScaffoldFSM(AEATestCaseEmpty):
         result = self.run_cli_command(*args, cwd=self._get_cwd())
         assert result.exit_code == 0
 
+    @pytest.mark.order(2)
     def test_imports(
         self, fsm_spec_file: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
@@ -80,6 +82,7 @@ class TestScaffoldFSM(AEATestCaseEmpty):
             module_type = importlib.util.module_from_spec(module_spec)
             module_spec.loader.exec_module(module_type)  # type: ignore
 
+    @pytest.mark.order(3)
     def test_autonomy_test(self, fsm_spec_file: Path):
         """Run autonomy test on the scaffolded skill"""
 
