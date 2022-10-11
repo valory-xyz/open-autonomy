@@ -20,12 +20,10 @@
 """Test 'scaffold fsm' subcommand."""
 
 import importlib.util
-import logging
 import os
 import shutil
 from importlib.machinery import ModuleSpec
 from pathlib import Path
-from typing import List
 
 import pytest
 from aea.configurations.constants import PACKAGES
