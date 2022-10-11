@@ -20,12 +20,10 @@
 """Test 'scaffold fsm' subcommand."""
 
 import importlib.util
-import logging
 import os
 import shutil
 from importlib.machinery import ModuleSpec
 from pathlib import Path
-from typing import List
 
 import pytest
 from aea.configurations.constants import PACKAGES
@@ -83,7 +81,7 @@ class TestScaffoldFSM(AEATestCaseEmpty):
             module_spec.loader.exec_module(module_type)  # type: ignore
 
     @pytest.mark.order(3)
-    def test_autonomy_test(self, fsm_spec_file: Path):
+    def test_autonomy_test(self, fsm_spec_file: Path) -> None:
         """Run autonomy test on the scaffolded skill"""
 
         prefix = self.t / "packages" / self.agent_name / "skills"
