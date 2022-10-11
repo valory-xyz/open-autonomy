@@ -79,4 +79,4 @@ In the **Active registration** state you should specify the [Görli testnet](htt
 The goal of the **Finished Registration** state is to deploy the Gnosis safe multisig contract that will be associated to the service. The parameters you see in this screen are associated to the creation of the safe (check the `setup` method [here](https://github.com/safe-global/safe-contracts/blob/main/contracts/GnosisSafe.sol)). If you are not familiar with the setup of such contract, you can leave the default values and press _Submit_. Once again, you will be prompted for authorization.
 
 
- Congratulations! Your service is should be now in **Deployed** state in the on-chain protocol!.
+ Congratulations! Your service is should be now in **Deployed** state in the on-chain protocol!
