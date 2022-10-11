@@ -34,6 +34,7 @@ from aea_test_autonomy.docker.registries import SERVICE_REGISTRY
 from aea_test_autonomy.fixture_helpers import UseFlaskTendermintNode
 
 
+TERMINATION_TIMEOUT = 120
 _HTTP = "http://"
 
 
@@ -419,7 +420,9 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
         )
         if self.n_terminal:
             self._restart_agents()
+
         self.check_aea_messages()
+        self.terminate_agents(timeout=TERMINATION_TIMEOUT)
 
     def _restart_agents(self) -> None:
         """Stops and restarts agents after stop string is found."""
