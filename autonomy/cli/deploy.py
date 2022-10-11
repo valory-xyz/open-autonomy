@@ -138,6 +138,18 @@ def deploy_group(
     default=False,
     help="Apply environment variable when loading service config.",
 )
+@click.option(
+    "--use-hardhat",
+    is_flag=True,
+    default=False,
+    help="Include a hardhat node in the deployment set up.",
+)
+@click.option(
+    "--use-acn",
+    is_flag=True,
+    default=False,
+    help="Include an ACN node in the deployment set up.",
+)
 @click.option("--image-version", type=str, help="Define runtime image version.")
 @registry_flag()
 @password_option(confirmation_prompt=True)
@@ -158,6 +170,8 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     log_level: str = INFO,
     aev: bool = False,
     image_version: Optional[str] = None,
+    use_hardhat: bool = False,
+    use_acn: bool = False,
 ) -> None:
     """Build deployment setup for n agents."""
 
@@ -200,6 +214,8 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             log_level=log_level,
             substitute_env_vars=aev,
             image_version=image_version,
+            use_hardhat=use_hardhat,
+            use_acn=use_acn,
         )
     except Exception as e:  # pylint: disable=broad-except
         shutil.rmtree(build_dir)
@@ -334,6 +350,8 @@ def build_deployment(  # pylint: disable=too-many-arguments
     log_level: str = INFO,
     substitute_env_vars: bool = False,
     image_version: Optional[str] = None,
+    use_hardhat: bool = False,
+    use_acn: bool = False,
 ) -> None:
     """Build deployment."""
     if build_dir.is_dir():
@@ -360,6 +378,8 @@ def build_deployment(  # pylint: disable=too-many-arguments
         log_level=log_level,
         substitute_env_vars=substitute_env_vars,
         image_version=image_version,
+        use_hardhat=use_hardhat,
+        use_acn=use_acn,
     )
     click.echo(report)
 
