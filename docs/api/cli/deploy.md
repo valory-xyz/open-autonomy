@@ -88,11 +88,23 @@ Deploy an agent service.
     default=False,
     help="Apply environment variable when loading service config.",
 )
+@click.option(
+    "--use-hardhat",
+    is_flag=True,
+    default=False,
+    help="Include a hardhat node in the deployment set up.",
+)
+@click.option(
+    "--use-acn",
+    is_flag=True,
+    default=False,
+    help="Include an ACN node in the deployment set up.",
+)
 @click.option("--image-version", type=str, help="Define runtime image version.")
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @click.pass_context
-def build_deployment_command(click_context: click.Context, keys_file: Optional[Path], deployment_type: str, output_dir: Optional[Path], dev_mode: bool, force_overwrite: bool, registry: str, number_of_agents: Optional[int] = None, password: Optional[str] = None, open_aea_dir: Optional[Path] = None, packages_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, log_level: str = INFO, aev: bool = False, image_version: Optional[str] = None) -> None
+def build_deployment_command(click_context: click.Context, keys_file: Optional[Path], deployment_type: str, output_dir: Optional[Path], dev_mode: bool, force_overwrite: bool, registry: str, number_of_agents: Optional[int] = None, password: Optional[str] = None, open_aea_dir: Optional[Path] = None, packages_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, log_level: str = INFO, aev: bool = False, image_version: Optional[str] = None, use_hardhat: bool = False, use_acn: bool = False) -> None
 ```
 
 Build deployment setup for n agents.
@@ -169,7 +181,7 @@ Update the multisig address on the service config.
 #### build`_`deployment
 
 ```python
-def build_deployment(keys_file: Path, build_dir: Path, deployment_type: str, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, password: Optional[str] = None, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, agent_instances: Optional[List[str]] = None, log_level: str = INFO, substitute_env_vars: bool = False, image_version: Optional[str] = None) -> None
+def build_deployment(keys_file: Path, build_dir: Path, deployment_type: str, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, password: Optional[str] = None, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, agent_instances: Optional[List[str]] = None, log_level: str = INFO, substitute_env_vars: bool = False, image_version: Optional[str] = None, use_hardhat: bool = False, use_acn: bool = False) -> None
 ```
 
 Build deployment.

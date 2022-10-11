@@ -100,7 +100,7 @@ Initialise with only kwargs.
 
 ```python
 @abc.abstractmethod
-def generate(image_version: Optional[str] = None) -> "BaseDeploymentGenerator"
+def generate(image_version: Optional[str] = None, use_hardhat: bool = False, use_acn: bool = False) -> "BaseDeploymentGenerator"
 ```
 
 Generate the deployment configuration.
