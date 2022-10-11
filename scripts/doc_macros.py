@@ -19,7 +19,9 @@
 
 """Mkdocs documentation macros."""
 
-import subprocess
+from git import Repo
+from git.exc import GitCommandError
+
 
 UNTAGGED_DOC_WARNING = """\
 !!! warning "Warning"
@@ -28,13 +30,16 @@ UNTAGGED_DOC_WARNING = """\
     services referenced in this compilation might be inconsistent.**</span>
     """
 
+
 def define_env(env):
     """Hook function"""
-    
+
     @env.macro
     def check_untagged_doc() -> str:
         """Displays a warning if docs are compiled from a non-release commit"""
-        if subprocess.call(['git', 'describe', '--tags', '--exact-match']) != 0:
+        try:
+            repo = Repo()
+            repo.git.describe("--tags", "--exact-match")
+            return ""
+        except GitCommandError:
             return UNTAGGED_DOC_WARNING
-        
-        return ""
