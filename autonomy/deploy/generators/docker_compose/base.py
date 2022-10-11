@@ -144,8 +144,8 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     def generate(
         self,
         image_version: Optional[str] = None,
-        use_acn: bool = False,
         use_hardhat: bool = False,
+        use_acn: bool = False,
     ) -> "DockerComposeGenerator":
         """Generate the new configuration."""
 

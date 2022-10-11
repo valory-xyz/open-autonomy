@@ -335,7 +335,7 @@ def update_multisig_address(service_path: Path, address: str) -> None:
         yaml_dump_all([config, *overrides], fp)
 
 
-def build_deployment(  # pylint: disable=too-many-arguments
+def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     keys_file: Path,
     build_dir: Path,
     deployment_type: str,
