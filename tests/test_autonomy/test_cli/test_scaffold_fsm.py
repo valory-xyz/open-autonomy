@@ -20,7 +20,6 @@
 """Test 'scaffold fsm' subcommand."""
 
 import importlib.util
-import logging
 import os
 import shutil
 from importlib.machinery import ModuleSpec
