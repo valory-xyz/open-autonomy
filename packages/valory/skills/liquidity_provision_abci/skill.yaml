@@ -26,16 +26,16 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/ledger:0.19.0:bafybeigpltrga4ggf4nejvl7l32zioyk77jzodvhthjwd3uvdkuxedvnz4
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeibwqdpcefr5cwmysdap6av3xyemve2ayifdfthw3kcoe6m3e4xrgq
+- valory/gnosis_safe:0.1.0:bafybeiaema4xgfolq3nx26zu4o3kafro4aubmsjfwvzi5tfbp3fwg4cmoa
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeih34jor222j3bogygzoedk6pmlvvvd4roev2buzohz5aljjt7hl4q
-- valory/liquidity_rebalancing_abci:0.1.0:bafybeicpjhpcdvsvukav475hcmgy5sbryw77irquurzwcwvaqlu3cchhyy
-- valory/registration_abci:0.1.0:bafybeif5aiybfqujcy36u3kynpifc3b5e34dlndjbqgjppm5c7qglieaki
-- valory/reset_pause_abci:0.1.0:bafybeifcvaz2xy2srns4s2ixq2i2dwuoysb6dah2p57jxwbnxvkbso3z3a
-- valory/safe_deployment_abci:0.1.0:bafybeiatwgjvunhzfu2zxjowdkapbju54yabavsvndt3exvbvrjajdzizq
-- valory/transaction_settlement_abci:0.1.0:bafybeigqwqhaydsz6m736baeia7zp2w2stpdorsllzny5ymw2x6ipnhzeu
+- valory/abstract_round_abci:0.1.0:bafybeifciotvfhgvttflrlqcgpimwsmhmtlw5tgrs5d6i3fm5lttaleax4
+- valory/liquidity_rebalancing_abci:0.1.0:bafybeihu4t7ty5xmrbbn5wmhrdrco3ndzee3h2pgi5c4nms7csbn5ypzhi
+- valory/registration_abci:0.1.0:bafybeibvwbqvtsasmzf2rbmdugpgme2ovptuxf6aqsfzq7qqynrpxd7jia
+- valory/reset_pause_abci:0.1.0:bafybeia4xmtzs4bsglkzfthoxqinmtkbxwdnynextpqmqy2l4f2xjjpsjq
+- valory/safe_deployment_abci:0.1.0:bafybeics5bqlmsigqd6wyl7esbrt4kfojstpv3w6pk5j2lwct7jnljyw2q
+- valory/transaction_settlement_abci:0.1.0:bafybeidqhqikl4bxnbff5brdeisea43ladqurgp5jsijgym5oiy2rckfq4
 behaviours:
   main:
     args: {}
@@ -147,5 +147,5 @@ models:
     class_name: SharedState
 dependencies:
   open-aea-test-autonomy:
-    version: ==0.3.1
+    version: ==0.3.2
 is_abstract: false
