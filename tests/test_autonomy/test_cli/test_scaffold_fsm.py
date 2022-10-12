@@ -22,9 +22,10 @@
 import importlib.util
 import os
 import shutil
+from contextlib import suppress
 from importlib.machinery import ModuleSpec
 from pathlib import Path
-from unittest import mock
+from tempfile import TemporaryDirectory
 
 import click.testing
 import pytest
@@ -96,18 +97,75 @@ class TestScaffoldFSMImports(BaseScaffoldFSMTest):
             module_spec.loader.exec_module(module_type)  # type: ignore
 
 
-class TestScaffoldFSMAutonomyTests(BaseScaffoldFSMTest):
+class TestScaffoldFSMAutonomyTests(AEATestCaseEmpty):
     """Test `scaffold fsm` subcommand."""
+
+    _t: TemporaryDirectory
+
+    @classmethod
+    def setup(
+        cls,
+    ) -> None:
+        """Setup test."""
+
+        cls._t = TemporaryDirectory()
+        cls.t = Path(cls._t.name)
+        cls.packages_dir_path = str(cls.t / PACKAGES)
+
+        shutil.copytree(ROOT_DIR / PACKAGES, cls.packages_dir_path)
+
+        cls.cwd = Path.cwd()
+        os.chdir(cls.t)
+
+        cls.run_cli_command(
+            "--registry-path",
+            str(cls.packages_dir_path),
+            "create",
+            "--local",
+            "--empty",
+            cls.agent_name,
+        )
 
     @pytest.mark.parametrize("fsm_spec_file", fsm_specifications)
     def test_autonomy_test(self, fsm_spec_file: Path) -> None:
         """Run autonomy test on the scaffolded skill"""
 
-        with mock.patch("aea.cli.utils.decorators._validate_config_consistency"):
-            self.scaffold_fsm(fsm_spec_file)
-            prefix = self.t / "packages" / self.agent_name / "skills"
-            path = prefix / f"test_skill_{fsm_spec_file.parts[-2]}"
-            packages_dir = str(Path(self._get_cwd()).parent)
-            args = ["test", "by-path", str(path)]
-            result = self.run_cli_command(*args, cwd=packages_dir)
-            assert result.exit_code == 0
+        *_, skill_author, _, skill_name, _ = fsm_spec_file.parts
+        skill_name = f"test_skill_{skill_name}"
+        scaffold_args = ["scaffold", "fsm", skill_name, "--local", "--spec"]
+        cli_args = [
+            "--registry-path",
+            self.packages_dir_path,
+            *scaffold_args,
+            fsm_spec_file,
+        ]
+        self.run_cli_command(*cli_args, cwd=self.t / self.agent_name)
+        self.run_cli_command(
+            "--registry-path",
+            str(self.packages_dir_path),
+            "push",
+            "--local",
+            "skill",
+            f"{skill_author}/{skill_name}",
+            cwd=self.t / self.agent_name,
+        )
+
+        cli_args = [
+            "--registry-path",
+            str(self.packages_dir_path),
+            "test",
+            "by-path",
+            str(self.t / "packages" / skill_author / "skills" / skill_name),
+        ]
+
+        result = self.run_cli_command(*cli_args)
+        assert result.exit_code == 0
+
+    @classmethod
+    def teardown(
+        cls,
+    ) -> None:
+        """Teardown test."""
+        os.chdir(cls.cwd)
+        with suppress(OSError, PermissionError):
+            cls._t.cleanup()
