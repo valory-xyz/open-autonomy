@@ -24,6 +24,7 @@ import os
 import shutil
 from importlib.machinery import ModuleSpec
 from pathlib import Path
+from unittest import mock
 
 import click.testing
 import pytest
@@ -59,7 +60,7 @@ class BaseScaffoldFSMTest(AEATestCaseEmpty):
 
         path_to_spec_file = Path(ROOT_DIR) / fsm_spec_file
         packages_path = str(Path(ROOT_DIR) / Path(PACKAGES))
-        my_skill = f"{fsm_spec_file.parts[-2]}"
+        my_skill = f"test_skill_{fsm_spec_file.parts[-2]}"
         scaffold_args = ["scaffold", "fsm", my_skill, "--local", "--spec"]
         args = ["--registry-path", packages_path, *scaffold_args, path_to_spec_file]
         return self.run_cli_command(*args, cwd=self._get_cwd())
@@ -102,10 +103,11 @@ class TestScaffoldFSMAutonomyTests(BaseScaffoldFSMTest):
     def test_autonomy_test(self, fsm_spec_file: Path) -> None:
         """Run autonomy test on the scaffolded skill"""
 
-        self.scaffold_fsm(fsm_spec_file)
-        prefix = self.t / "packages" / self.agent_name / "skills"
-        path = prefix / fsm_spec_file.parent.parts[-1]
-        packages_dir = str(Path(self._get_cwd()).parent)
-        args = ["test", "by-path", str(path)]
-        result = self.run_cli_command(*args, cwd=packages_dir)
-        assert result.exit_code == 0
+        with mock.patch("aea.cli.utils.decorators._validate_config_consistency"):
+            self.scaffold_fsm(fsm_spec_file)
+            prefix = self.t / "packages" / self.agent_name / "skills"
+            path = prefix / f"test_skill_{fsm_spec_file.parts[-2]}"
+            packages_dir = str(Path(self._get_cwd()).parent)
+            args = ["test", "by-path", str(path)]
+            result = self.run_cli_command(*args, cwd=packages_dir)
+            assert result.exit_code == 0
