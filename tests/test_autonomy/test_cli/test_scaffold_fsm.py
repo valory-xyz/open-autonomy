@@ -29,6 +29,7 @@ from tempfile import TemporaryDirectory
 
 import click.testing
 import pytest
+from aea.cli.utils.config import get_default_author_from_cli_config
 from aea.configurations.constants import PACKAGES
 from aea.test_tools.test_cases import AEATestCaseEmpty
 
@@ -103,6 +104,13 @@ class TestScaffoldFSMAutonomyTests(AEATestCaseEmpty):
     _t: TemporaryDirectory
 
     @classmethod
+    def setup_class(cls) -> None:
+        """Setup class."""
+        super().setup_class()
+
+        cls.author = get_default_author_from_cli_config()
+
+    @classmethod
     def setup(
         cls,
     ) -> None:
@@ -124,13 +132,15 @@ class TestScaffoldFSMAutonomyTests(AEATestCaseEmpty):
             "--local",
             "--empty",
             cls.agent_name,
+            "--author",
+            cls.author,
         )
 
     @pytest.mark.parametrize("fsm_spec_file", fsm_specifications)
     def test_autonomy_test(self, fsm_spec_file: Path) -> None:
         """Run autonomy test on the scaffolded skill"""
 
-        *_, skill_author, _, skill_name, _ = fsm_spec_file.parts
+        *_, skill_name, _ = fsm_spec_file.parts
         skill_name = f"test_skill_{skill_name}"
         scaffold_args = ["scaffold", "fsm", skill_name, "--local", "--spec"]
         cli_args = [
@@ -146,7 +156,7 @@ class TestScaffoldFSMAutonomyTests(AEATestCaseEmpty):
             "push",
             "--local",
             "skill",
-            f"{skill_author}/{skill_name}",
+            f"{self.author}/{skill_name}",
             cwd=self.t / self.agent_name,
         )
 
@@ -155,7 +165,7 @@ class TestScaffoldFSMAutonomyTests(AEATestCaseEmpty):
             str(self.packages_dir_path),
             "test",
             "by-path",
-            str(self.t / "packages" / skill_author / "skills" / skill_name),
+            str(self.t / "packages" / self.author / "skills" / skill_name),
         ]
 
         result = self.run_cli_command(*cli_args)
