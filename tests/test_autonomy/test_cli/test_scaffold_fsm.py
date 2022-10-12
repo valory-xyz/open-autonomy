@@ -48,59 +48,6 @@ fsm_specifications = list(VALORY_SKILLS_PATH.glob("**/fsm_specification.yaml"))
 class BaseScaffoldFSMTest(AEATestCaseEmpty):
     """Test `scaffold fsm` subcommand."""
 
-    @classmethod
-    def setup_class(cls) -> None:
-        """Set up the test."""
-        super().setup_class()
-        cls.agent_name = "default_author"
-        cls.set_agent_context(os.path.join("packages", cls.agent_name))
-        cls.create_agents(cls.agent_name, is_local=cls.IS_LOCAL, is_empty=cls.IS_EMPTY)
-        shutil.move(str(cls.t / cls.agent_name), str(cls.t / "packages"))
-
-    def scaffold_fsm(self, fsm_spec_file: Path) -> click.testing.Result:
-        """Scaffold FSM."""
-
-        path_to_spec_file = Path(ROOT_DIR) / fsm_spec_file
-        packages_path = str(Path(ROOT_DIR) / Path(PACKAGES))
-        my_skill = f"test_skill_{fsm_spec_file.parts[-2]}"
-        scaffold_args = ["scaffold", "fsm", my_skill, "--local", "--spec"]
-        args = ["--registry-path", packages_path, *scaffold_args, path_to_spec_file]
-        return self.run_cli_command(*args, cwd=self._get_cwd())
-
-
-class TestScaffoldFSM(BaseScaffoldFSMTest):
-    """Test `scaffold fsm` subcommand."""
-
-    @pytest.mark.parametrize("fsm_spec_file", fsm_specifications)
-    def test_scaffold_fsm(self, fsm_spec_file: Path) -> None:
-        """Test scaffold fsm."""
-
-        result = self.scaffold_fsm(fsm_spec_file)
-        assert result.exit_code == 0
-
-
-class TestScaffoldFSMImports(BaseScaffoldFSMTest):
-    """Test `scaffold fsm` subcommand."""
-
-    @pytest.mark.parametrize("fsm_spec_file", fsm_specifications)
-    def test_imports(
-        self, fsm_spec_file: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test imports of scaffolded modules"""
-
-        self.scaffold_fsm(fsm_spec_file)
-        monkeypatch.syspath_prepend(self.t)
-        path = self.t / self.agent_name
-        for file in path.rglob("**/*.py"):
-            module_spec = importlib.util.spec_from_file_location("name", file)
-            assert isinstance(module_spec, ModuleSpec)
-            module_type = importlib.util.module_from_spec(module_spec)
-            module_spec.loader.exec_module(module_type)  # type: ignore
-
-
-class TestScaffoldFSMAutonomyTests(AEATestCaseEmpty):
-    """Test `scaffold fsm` subcommand."""
-
     _t: TemporaryDirectory
 
     @classmethod
@@ -136,9 +83,8 @@ class TestScaffoldFSMAutonomyTests(AEATestCaseEmpty):
             cls.author,
         )
 
-    @pytest.mark.parametrize("fsm_spec_file", fsm_specifications)
-    def test_autonomy_test(self, fsm_spec_file: Path) -> None:
-        """Run autonomy test on the scaffolded skill"""
+    def scaffold_fsm(self, fsm_spec_file: Path) -> click.testing.Result:
+        """Scaffold FSM."""
 
         *_, skill_name, _ = fsm_spec_file.parts
         skill_name = f"test_skill_{skill_name}"
@@ -149,8 +95,8 @@ class TestScaffoldFSMAutonomyTests(AEATestCaseEmpty):
             *scaffold_args,
             fsm_spec_file,
         ]
-        self.run_cli_command(*cli_args, cwd=self.t / self.agent_name)
-        self.run_cli_command(
+        scaffold_result = self.run_cli_command(*cli_args, cwd=self.t / self.agent_name)
+        push_result = self.run_cli_command(
             "--registry-path",
             str(self.packages_dir_path),
             "push",
@@ -160,6 +106,52 @@ class TestScaffoldFSMAutonomyTests(AEATestCaseEmpty):
             cwd=self.t / self.agent_name,
         )
 
+        return scaffold_result, push_result
+
+    @classmethod
+    def teardown(
+        cls,
+    ) -> None:
+        """Teardown test."""
+        os.chdir(cls.cwd)
+        with suppress(OSError, PermissionError):
+            cls._t.cleanup()
+
+
+class TestScaffoldFSM(BaseScaffoldFSMTest):
+    """Test `scaffold fsm` subcommand."""
+
+    @pytest.mark.parametrize("fsm_spec_file", fsm_specifications)
+    def test_scaffold_fsm(
+        self, fsm_spec_file: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test scaffold fsm."""
+
+        *_, skill_name, _ = fsm_spec_file.parts
+        skill_name = f"test_skill_{skill_name}"
+        scaffold_result, push_result = self.scaffold_fsm(fsm_spec_file)
+        assert scaffold_result.exit_code == 0
+        assert push_result.exit_code == 0
+
+        monkeypatch.syspath_prepend(self.t)
+        path = self.t / self.author / "skills" / skill_name
+        for file in path.rglob("**/*.py"):
+            module_spec = importlib.util.spec_from_file_location("name", file)
+            assert isinstance(module_spec, ModuleSpec)
+            module_type = importlib.util.module_from_spec(module_spec)
+            module_spec.loader.exec_module(module_type)  # type: ignore
+
+
+class TestScaffoldFSMAutonomyTests(BaseScaffoldFSMTest):
+    """Test `scaffold fsm` subcommand."""
+
+    @pytest.mark.parametrize("fsm_spec_file", fsm_specifications)
+    def test_autonomy_test(self, fsm_spec_file: Path) -> None:
+        """Run autonomy test on the scaffolded skill"""
+
+        *_, skill_name, _ = fsm_spec_file.parts
+        skill_name = f"test_skill_{skill_name}"
+        self.scaffold_fsm(fsm_spec_file)
         cli_args = [
             "--registry-path",
             str(self.packages_dir_path),
@@ -170,12 +162,3 @@ class TestScaffoldFSMAutonomyTests(AEATestCaseEmpty):
 
         result = self.run_cli_command(*cli_args)
         assert result.exit_code == 0
-
-    @classmethod
-    def teardown(
-        cls,
-    ) -> None:
-        """Teardown test."""
-        os.chdir(cls.cwd)
-        with suppress(OSError, PermissionError):
-            cls._t.cleanup()
