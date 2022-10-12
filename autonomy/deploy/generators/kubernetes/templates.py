@@ -251,8 +251,6 @@ spec:
             value: "1"
           - name: LOG_FILE
             value: "/logs/aea_{validator_ix}.txt"
-          - name: PYTHONHASHSEED
-            value: "0"
         volumeMounts:
           - mountPath: /logs
             name: persistent-data
