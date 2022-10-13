@@ -25,7 +25,7 @@ import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import requests
 from requests.adapters import HTTPAdapter  # type: ignore
