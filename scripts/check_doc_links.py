@@ -36,6 +36,7 @@ from requests.packages.urllib3.util.retry import (  # type: ignore # pylint: dis
 
 MAX_WORKERS = 10
 URL_REGEX = r'(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)"]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)"]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s)"]{2,}|www\.[a-zA-Z0-9]+\.[^\s)"]{2,})'
+REQUEST_TIMEOUT = 5  # seconds
 
 
 def read_file(filepath: str) -> str:
@@ -69,7 +70,7 @@ def check_file(
         if url in url_skips + http_skips:
             continue
         try:
-            status_code = session.get(url, timeout=5).status_code
+            status_code = session.get(url, timeout=REQUEST_TIMEOUT).status_code
             if status_code not in (200, 403):
                 broken_links.append((md_file, url, status_code))
         except (
