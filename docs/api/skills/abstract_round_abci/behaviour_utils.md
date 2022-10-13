@@ -348,6 +348,17 @@ def params() -> BaseParams
 
 Return the params.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.shared_state"></a>
+
+#### shared`_`state
+
+```python
+@property
+def shared_state() -> SharedState
+```
+
+Shared state
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.synchronized_data"></a>
 
 #### synchronized`_`data
@@ -358,6 +369,28 @@ def synchronized_data() -> BaseSynchronizedData
 ```
 
 Return the synchronized data.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.round_sequence"></a>
+
+#### round`_`sequence
+
+```python
+@property
+def round_sequence() -> RoundSequence
+```
+
+Round sequence
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.abci_app"></a>
+
+#### abci`_`app
+
+```python
+@property
+def abci_app() -> AbciApp
+```
+
+ABCI App
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.tm_communication_unhealthy"></a>
 

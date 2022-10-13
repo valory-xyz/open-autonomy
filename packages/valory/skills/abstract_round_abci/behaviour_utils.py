@@ -63,14 +63,15 @@ from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciApp,
     AbstractRound,
     BaseSynchronizedData,
     BaseTxPayload,
     LEDGER_API_ADDRESS,
     OK_CODE,
+    RoundSequence,
     Transaction,
 )
-from packages.valory.skills.abstract_round_abci.base import RoundSequence, AbciApp
 from packages.valory.skills.abstract_round_abci.dialogues import (
     ContractApiDialogue,
     ContractApiDialogues,
@@ -1589,6 +1590,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """
         if self._check_started is None and not self._is_healthy:
             # if abci_app._last_timestamp is None there are no blocks yet
+            # pylint: disable=protected-access
             if self.abci_app._last_timestamp is not None:
                 # we do the reset in the middle of the pause as there are no immediate transactions on either side of the reset
                 yield from self.wait_from_last_timestamp(
