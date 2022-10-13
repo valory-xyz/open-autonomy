@@ -1,4 +1,4 @@
-The purpose of this guide is to provide a step-by-step instructions to gain familiarity with the {{open_autonomy}} framework, and use a number of CLI commands to run a [Hello World agent service](../hello_world_agent_service.md) as a local deployment. More concretely, in this guide, you will end up running:
+The purpose of this guide is to provide a step-by-step instructions to gain familiarity with the {{open_autonomy}} framework, and use a number of CLI commands to run a [Hello World agent service](../demos/hello_world_demo.md) as a local deployment. More concretely, in this guide, you will end up running:
 
   - 4 Docker containers implementing the 4 agents of the service, and
   - 4 Docker containers implementing one Tendermint node for each agent.
@@ -15,7 +15,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 Now that you have set up your machine to work with {{open_autonomy}}, we are in position to use the CLI to fetch the agent service from the remote registry and deploy it locally.
 
-1. Use the CLI to fetch the [Hello World agent service](../hello_world_agent_service.md). This will connect to the remote registry and download the service specification to the `hello_world` folder:
+1. Use the CLI to fetch the [Hello World agent service](../demos/hello_world_demo.md). This will connect to the remote registry and download the service specification to the `hello_world` folder:
     ```bash
     autonomy fetch valory/hello_world:0.1.0:bafybeigu4dyxzpfka5bodnb5lzas5jsd4ejps6aabofn32l2wyqcbnilvm --service
     cd hello_world
@@ -69,7 +69,7 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
     autonomy deploy run
     ```
 
-    This will deploy the [Hello World agent service](../hello_world_agent_service.md) locally with four agents connected to four Tendermint nodes.
+    This will deploy the [Hello World agent service](../demos/hello_world_demo.md) locally with four agents connected to four Tendermint nodes.
 
     At this point you should see a (verbose) output of the agent logs, which should look something like this:
     ```bash

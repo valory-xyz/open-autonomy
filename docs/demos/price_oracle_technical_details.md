@@ -246,7 +246,7 @@ Find below a graphical representation of this composition showing how the consti
 functionality of the agent service in the demo.
 
 <figure markdown>
-![](./images/oracle_composition.svg)
+![](../images/oracle_composition.svg)
 <figcaption>Composition of the different FSMs that constitute the price oracle agent service FSM</figcaption>
 </figure>
 
@@ -276,7 +276,7 @@ to see what the encoded state transitions in the final composite FSM look like.
 !!! warning
 
     A sequence diagram that shows how AEAs communicate with their environment
-    throughout the execution can be found [here](poc-diagram.md). However,
+    throughout the execution can be found [here](../poc-diagram.md). However,
     it is not fully up-to-date with the implementation discussed here.
 
 ### Known Limitations

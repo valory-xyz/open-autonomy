@@ -23,7 +23,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 2. **Create the FSM specification.** Now that the agent is in place, you can generate the basic structure of the {{fsm_app}} skill. Recall that the {{fsm_app}} defines the business logic of the skill as a finite-state machine (see the [introduction to {{fsm_app}}s](../fsm_app_introduction.md)).
 
-    To use the scaffold tool, you need the [FSM](../fsm.md) specification of the service. In this example, let's copy the contents of the [Hello World](../hello_world_agent_service.md) service FSM specification into a file called `fsm_specification.yaml`, which should be located in the agent's directory.
+    To use the scaffold tool, you need the [FSM](../fsm.md) specification of the service. In this example, let's copy the contents of the [Hello World](../demos/hello_world_demo.md) service FSM specification into a file called `fsm_specification.yaml`, which should be located in the agent's directory.
 
     ```yaml
     alphabet_in:
