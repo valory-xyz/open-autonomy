@@ -492,33 +492,27 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         return cast(BaseParams, self.context.params)
 
     @property
+    def shared_state(self) -> SharedState:
+        """Shared state"""
+        return cast(SharedState, self.context.state)
+
+    @property
     def synchronized_data(self) -> BaseSynchronizedData:
         """Return the synchronized data."""
-        return cast(
-            BaseSynchronizedData,
-            cast(SharedState, self.context.state).synchronized_data,
-        )
+        return cast(BaseSynchronizedData, self.shared_state.synchronized_data)
 
     @property
     def tm_communication_unhealthy(self) -> bool:
         """Return if the Tendermint communication is not healthy anymore."""
-        return cast(
-            SharedState, self.context.state
-        ).round_sequence.block_stall_deadline_expired
+        return self.shared_state.round_sequence.block_stall_deadline_expired
 
     def check_in_round(self, round_id: str) -> bool:
         """Check that we entered a specific round."""
-        return (
-            cast(SharedState, self.context.state).round_sequence.current_round_id
-            == round_id
-        )
+        return self.shared_state.round_sequence.current_round_id == round_id
 
     def check_in_last_round(self, round_id: str) -> bool:
         """Check that we entered a specific round."""
-        return (
-            cast(SharedState, self.context.state).round_sequence.last_round_id
-            == round_id
-        )
+        return self.shared_state.round_sequence.last_round_id == round_id
 
     def check_not_in_round(self, round_id: str) -> bool:
         """Check that we are not in a specific round."""
@@ -534,10 +528,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     def check_round_height_has_changed(self, round_height: int) -> bool:
         """Check that the round height has changed."""
-        return (
-            cast(SharedState, self.context.state).round_sequence.current_round_height
-            != round_height
-        )
+        return self.shared_state.round_sequence.current_round_height != round_height
 
     def is_round_ended(self, round_id: str) -> Callable[[], bool]:
         """Get a callable to check whether the current round has ended."""
@@ -553,9 +544,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :yield: None
         """
         round_id = self.matching_round.round_id
-        round_height = cast(
-            SharedState, self.context.state
-        ).round_sequence.current_round_height
+        round_height = self.shared_state.round_sequence.current_round_height
         if self.check_not_in_round(round_id) and self.check_not_in_last_round(round_id):
             raise ValueError(
                 f"Should be in matching round ({round_id}) or last round ({self.context.state.round_sequence.last_round_id}), actual round {self.context.state.round_sequence.current_round_id}!"
@@ -577,9 +566,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """
         if seconds < 0:
             raise ValueError("Can only wait for a positive amount of time")
-        deadline = cast(
-            SharedState, self.context.state
-        ).round_sequence.abci_app.last_timestamp + datetime.timedelta(seconds=seconds)
+
+        deadline = self.shared_state.round_sequence.abci_app.last_timestamp + datetime.timedelta(seconds=seconds)
 
         def _wait_until() -> bool:
             return datetime.datetime.now() > deadline
@@ -605,9 +593,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :yield: the responses
         """
         stop_condition = self.is_round_ended(self.matching_round.round_id)
-        payload.round_count = cast(
-            SharedState, self.context.state
-        ).synchronized_data.round_count
+        payload.round_count = self.shared_state.synchronized_data.round_count
         yield from self._send_transaction(
             payload,
             resetting,
