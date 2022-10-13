@@ -232,10 +232,6 @@ fix-abci-app-specs:
 	echo "Successfully validated abcis!"
 
 
-AEA_AGENT_HELLO_WORLD:=valory/hello_world:latest:$(shell cat packages/packages.json | grep "agent/valory/hello_world" | cut -d "\"" -f4 )
 AEA_AGENT_ORACLE:=valory/oracle:latest:$(shell cat packages/packages.json | grep "agent/valory/oracle" | cut -d "\"" -f4 )
 release-images:
-	export AEA_AGENT_ORACLE=${AEA_AGENT_ORACLE}
-	export AEA_AGENT=${AEA_AGENT_HELLO_WORLD}
-	skaffold build -p release --cache-artifacts=false && skaffold build -p release-latest
-	
+	AEA_AGENT_ORACLE=${AEA_AGENT_ORACLE} skaffold build -p release --cache-artifacts=false && AEA_AGENT_ORACLE=${AEA_AGENT_ORACLE} skaffold build -p release-latest
