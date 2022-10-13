@@ -1588,10 +1588,12 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :yield: None
         """
         if self._check_started is None and not self._is_healthy:
-            # we do the reset in the middle of the pause as there are no immediate transactions on either side of the reset
-            yield from self.wait_from_last_timestamp(
-                self.params.observation_interval / 2
-            )
+            # if abci_app._last_timestamp is None there are no blocks yet
+            if self.abci_app._last_timestamp is not None:
+                # we do the reset in the middle of the pause as there are no immediate transactions on either side of the reset
+                yield from self.wait_from_last_timestamp(
+                    self.params.observation_interval / 2
+                )
             self._check_started = datetime.datetime.now()
             self._timeout = self.params.max_healthcheck
             self._is_healthy = False
