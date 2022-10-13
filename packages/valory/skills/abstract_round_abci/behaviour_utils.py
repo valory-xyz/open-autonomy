@@ -70,6 +70,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     OK_CODE,
     Transaction,
 )
+from packages.valory.skills.abstract_round_abci.base import RoundSequence, AbciApp
 from packages.valory.skills.abstract_round_abci.dialogues import (
     ContractApiDialogue,
     ContractApiDialogues,
@@ -502,17 +503,22 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         return cast(BaseSynchronizedData, self.shared_state.synchronized_data)
 
     @property
+    def round_sequence(self) -> RoundSequence:
+        """Round sequence"""
+        return self.shared_state.round_sequence
+
+    @property
     def tm_communication_unhealthy(self) -> bool:
         """Return if the Tendermint communication is not healthy anymore."""
-        return self.shared_state.round_sequence.block_stall_deadline_expired
+        return self.round_sequence.block_stall_deadline_expired
 
     def check_in_round(self, round_id: str) -> bool:
         """Check that we entered a specific round."""
-        return self.shared_state.round_sequence.current_round_id == round_id
+        return self.round_sequence.current_round_id == round_id
 
     def check_in_last_round(self, round_id: str) -> bool:
         """Check that we entered a specific round."""
-        return self.shared_state.round_sequence.last_round_id == round_id
+        return self.round_sequence.last_round_id == round_id
 
     def check_not_in_round(self, round_id: str) -> bool:
         """Check that we are not in a specific round."""
@@ -528,7 +534,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     def check_round_height_has_changed(self, round_height: int) -> bool:
         """Check that the round height has changed."""
-        return self.shared_state.round_sequence.current_round_height != round_height
+        return self.round_sequence.current_round_height != round_height
 
     def is_round_ended(self, round_id: str) -> Callable[[], bool]:
         """Get a callable to check whether the current round has ended."""
@@ -544,10 +550,10 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :yield: None
         """
         round_id = self.matching_round.round_id
-        round_height = self.shared_state.round_sequence.current_round_height
+        round_height = self.round_sequence.current_round_height
         if self.check_not_in_round(round_id) and self.check_not_in_last_round(round_id):
             raise ValueError(
-                f"Should be in matching round ({round_id}) or last round ({self.context.state.round_sequence.last_round_id}), actual round {self.context.state.round_sequence.current_round_id}!"
+                f"Should be in matching round ({round_id}) or last round ({self.round_sequence.last_round_id}), actual round {self.round_sequence.current_round_id}!"
             )
         yield from self.wait_for_condition(
             partial(self.check_round_height_has_changed, round_height), timeout=timeout
@@ -567,7 +573,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         if seconds < 0:
             raise ValueError("Can only wait for a positive amount of time")
 
-        deadline = self.shared_state.round_sequence.abci_app.last_timestamp + datetime.timedelta(seconds=seconds)
+        deadline = self.round_sequence.abci_app.last_timestamp + datetime.timedelta(seconds=seconds)
 
         def _wait_until() -> bool:
             return datetime.datetime.now() > deadline
