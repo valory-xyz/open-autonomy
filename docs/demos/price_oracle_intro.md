@@ -18,8 +18,7 @@ with $\lceil(2n + 1) / 3\rceil$ of the participants' signatures is settled on th
 Ethereum chain, which is emulated by a local Hardhat node in the demo.
 
 
-## Architecture of the Demo
-
+## Architecture of the demo
 This demo is composed of:
 
 - A [HardHat](https://hardhat.org/) node (emulating an Ethereum blockchain).
@@ -33,7 +32,7 @@ node.
 </figure>
 
 
-## Running the Demo
+## Running the demo
 The steps below will guide you to download the price oracle agent service definition from the Service Registry, build and run a deployment locally.
 
 1. Open a terminal and run a local [HardHat](https://hardhat.org/) node that will emulate a blockchain node. For convenience, we provide a Docker image in [Docker Hub](https://hub.docker.com/) that can be run by executing:
@@ -62,7 +61,7 @@ you have followed the [setup instructions](../guides/set_up.md#setup). As a resu
     (`abci0`, `abci1`, `abci2` and `abci3`) or a [Tendermint](https://tendermint.com/) node (`node0`, `node1`, `node2` and `node3`).
 
 
-## Interacting with the Demo
+## Interacting with the demo
 By examining the logs of an agent container, you will see a message similar to the one depicted below, after the framework successfully builds and starts it:
 
 ```

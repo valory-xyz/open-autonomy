@@ -24,7 +24,7 @@ Moreover, it has the following specific components to implement the particular c
     with a finalization step over an Ethereum chain.
 
 
-## The Constituent {{fsm_app}}s
+## The constituent {{fsm_app}}s
 
 The ABCI-based replicated FSM (`AbciApp`) used for price estimation consists
 of several smaller modules, each of which is an `AbciApp` of its own. Each of
@@ -279,7 +279,7 @@ to see what the encoded state transitions in the final composite FSM look like.
     throughout the execution can be found [here](../poc-diagram.md). However,
     it is not fully up-to-date with the implementation discussed here.
 
-### Known Limitations
+### Known limitations
 The `TransactionSettlementSkill` has a known limitation that concerns the revert reason lookup.
 While checking the history in `CheckTransactionHistoryRound`, an exception may get raised:
 
