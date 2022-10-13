@@ -22,11 +22,21 @@
 
 import importlib
 import os
+import re
 import shutil
+from enum import Enum
 from pathlib import Path
 from typing import Tuple
+from unittest import mock
 
-from autonomy.analyse.abci.app_spec import DFA
+import pytest
+
+from autonomy.analyse.abci.app_spec import (
+    DFA,
+    DFASpecificationError,
+    SpecCheck,
+    _check_unreferenced_events,
+)
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
@@ -250,3 +260,165 @@ class TestCheckSpecs(BaseCliTest):
         """Teardown method."""
         os.chdir(cls.cwd)
         super().teardown()
+
+
+class TestDFA:
+    """Test the DFA class."""
+
+    good_dfa_kwargs = dict(
+        label="dummy_dfa",
+        states={"state_a", "state_b", "state_c"},
+        default_start_state="state_a",
+        start_states={"state_a"},
+        final_states={"state_c"},
+        alphabet_in={"event_a", "event_b", "event_c"},
+        transition_func={
+            ("state_a", "event_b"): "state_b",
+            ("state_b", "event_a"): "state_a",
+            ("state_b", "event_c"): "state_c",
+        },
+    )
+
+    bad_dfa_kwargs = dict(
+        label="dummy_dfa",
+        states={"state_a", "state_b", "state_c", "unreachable_state"},
+        default_start_state="state_other",
+        start_states={"state_a", "extra_state"},
+        final_states={"state_a", "state_c", "extra_state"},
+        alphabet_in={"event_a", "event_b", "event_c", "other_extra_event"},
+        transition_func={
+            ("state_a", "event_b"): "state_b",
+            ("state_b", "event_a"): "state_a",
+            ("state_b", "event_c"): "state_c",
+            ("extra_state", "extra_event"): "extra_state",
+        },
+    )
+
+    def test_dfa(self) -> None:
+        """Test DFA."""
+        good_dfa = DFA(**self.good_dfa_kwargs)  # type: ignore
+
+        assert not good_dfa.is_transition_func_total()
+        assert good_dfa.get_transitions(["event_a"]) == ["state_a", "state_a"]
+        assert good_dfa.get_transitions(["event_x"]) == ["state_a"]
+        assert isinstance(good_dfa.parse_transition_func(), dict)
+        assert good_dfa.__eq__(None) == NotImplemented
+
+        with pytest.raises(DFASpecificationError):
+            assert good_dfa._norep_list_to_set(dict())  # type: ignore
+
+        with pytest.raises(DFASpecificationError):
+            assert good_dfa._norep_list_to_set(["value", "value"])
+
+        with pytest.raises(DFASpecificationError):
+            assert good_dfa._str_to_tuple("")
+
+        with pytest.raises(DFASpecificationError):
+            DFA(**self.bad_dfa_kwargs)  # type: ignore
+
+    def test_load(self) -> None:
+        """Test test_load"""
+
+        json_spec = Path(
+            ROOT_DIR,
+            "tests",
+            "test_autonomy",
+            "test_cli",
+            "test_analyse",
+            "test_abci",
+            "specs",
+            "fsm_specification.json",
+        )
+        with open(json_spec, "r", encoding="utf-8") as fp:
+            assert isinstance(DFA.load(fp, input_format="json"), DFA)
+
+            with pytest.raises(ValueError):
+                DFA.load(fp, input_format="wrong_format")
+
+    def test_load_empty(self) -> None:
+        """Test test_load_empty"""
+
+        json_spec = Path(
+            ROOT_DIR,
+            "tests",
+            "test_autonomy",
+            "test_cli",
+            "test_analyse",
+            "test_abci",
+            "specs",
+            "fsm_specification_empty.json",
+        )
+        with open(json_spec, "r", encoding="utf-8") as fp:
+            with pytest.raises(
+                DFASpecificationError, match="DFA spec. JSON file missing key."
+            ):
+                DFA.load(fp, input_format="json")
+
+    def test_load_extra(self) -> None:
+        """Test test_load_extra"""
+
+        json_spec = Path(
+            ROOT_DIR,
+            "tests",
+            "test_autonomy",
+            "test_cli",
+            "test_analyse",
+            "test_abci",
+            "specs",
+            "fsm_specification_extra.json",
+        )
+        with open(json_spec, "r", encoding="utf-8") as fp:
+            with pytest.raises(
+                DFASpecificationError,
+                match=re.escape(
+                    "DFA spec. JSON file contains unexpected objects: dict_keys(['extra_field'])."
+                ),
+            ):
+                DFA.load(fp, input_format="json")
+
+    def test_check_unreferenced_events(self) -> None:
+        """Test check_unreferenced_events"""
+
+        class MockABCIApp:
+            """Mock ABCIApp class"""
+
+            class Round:
+                """Mock Round class"""
+
+                __name__ = "round"
+
+            class Event(Enum):
+                """Mock Event class"""
+
+                A = "A"
+                B = "B"
+
+            initial_round_cls = "initial_round_cls"
+            transition_function = {
+                Round: {
+                    Event.A: "round_b",
+                    Event.B: "round_b",
+                },
+            }
+            event_to_timeout = {
+                Event.A: 30.0,
+            }
+
+        with mock.patch("inspect.getmro", return_value=[]):
+            with pytest.raises(
+                DFASpecificationError, match=r"ABCI App has the following issues"
+            ):
+                _check_unreferenced_events(MockABCIApp)
+
+
+class TestSpecCheck:
+    """Test the SpecCheck class."""
+
+    def test_check_one(self) -> None:
+        """Test check_one."""
+        mock_module: dict = {}
+        with mock.patch("importlib.import_module", return_value=mock_module):
+            with pytest.raises(
+                Exception, match='Class "classfqn" is not in "classfqn"'
+            ):
+                SpecCheck.check_one("informat", "infile", "classfqn.classfqn")
