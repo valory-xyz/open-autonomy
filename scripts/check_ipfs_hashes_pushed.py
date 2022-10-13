@@ -90,9 +90,9 @@ if __name__ == "__main__":
         future_results = [future.result() for future in futures]
 
         errors = []
-        for res in future_results:
-            if not res[1]:
-                errors.append(res[0])
+        for future_result in future_results:
+            if not future_result[1]:
+                errors.append(future_result[0])
 
         if errors:
             print(f"The following hashes were not found in IPFS registry: {errors}")
