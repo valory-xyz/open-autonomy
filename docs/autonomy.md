@@ -37,6 +37,12 @@ Options:
   --open-aea-dir PATH             Path to open-aea repo (Use with dev mode)
   --open-autonomy-dir PATH        Path to open-autonomy repo (Use with dev
                                   mode)
+  --aev                           Apply environment variable when loading
+                                  service config.
+  --use-hardhat                   Include a hardhat node in the deployment
+                                  setup.
+  --use-acn                       Include an ACN node in the deployment setup.
+  --image-version TEXT            Define runtime image version.
   --remote                        To use a remote registry.
   --local                         To use a local registry.
   -p                              Ask for password interactively

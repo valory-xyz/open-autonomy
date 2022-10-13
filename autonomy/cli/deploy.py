@@ -142,13 +142,13 @@ def deploy_group(
     "--use-hardhat",
     is_flag=True,
     default=False,
-    help="Include a hardhat node in the deployment set up.",
+    help="Include a hardhat node in the deployment setup.",
 )
 @click.option(
     "--use-acn",
     is_flag=True,
     default=False,
-    help="Include an ACN node in the deployment set up.",
+    help="Include an ACN node in the deployment setup.",
 )
 @click.option("--image-version", type=str, help="Define runtime image version.")
 @registry_flag()
