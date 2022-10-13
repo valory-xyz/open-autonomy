@@ -47,7 +47,7 @@ def read_file(filepath: str) -> str:
 
 def check_file(
     session: Any, md_file: str, http_skips: List[str], url_skips: List[str]
-) -> Tuple:
+) -> Dict:
     """Check for broken or HTTP links in a specific file"""
 
     text = read_file(md_file)
@@ -78,7 +78,11 @@ def check_file(
         ) as e:
             broken_links.append((md_file, url, e))
 
-    return str(md_file), http_links, broken_links
+    return {
+        "file": str(md_file),
+        "http_links": http_links,
+        "broken_links": broken_links,
+    }
 
 
 def main() -> None:  # pylint: disable=too-many-locals
@@ -125,10 +129,10 @@ def main() -> None:  # pylint: disable=too-many-locals
 
         # Get errors
         for i in future_results:
-            if i[1]:
-                http_links[i[0]] = i[1]
-            if i[2]:
-                broken_links[i[0]] = i[2]
+            if i["http_links"]:
+                http_links[i["file"]] = i["http_links"]
+            if i["broken_links"]:
+                broken_links[i["file"]] = i["broken_links"]
 
         # Check errors
         if broken_links:
