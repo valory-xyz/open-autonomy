@@ -508,6 +508,11 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         return self.shared_state.round_sequence
 
     @property
+    def abci_app(self) -> AbciApp:
+        """ABCI App"""
+        return self.round_sequence.abci_app
+
+    @property
     def tm_communication_unhealthy(self) -> bool:
         """Return if the Tendermint communication is not healthy anymore."""
         return self.round_sequence.block_stall_deadline_expired
@@ -573,7 +578,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         if seconds < 0:
             raise ValueError("Can only wait for a positive amount of time")
 
-        deadline = self.round_sequence.abci_app.last_timestamp + datetime.timedelta(seconds=seconds)
+        deadline = self.abci_app.last_timestamp + datetime.timedelta(seconds=seconds)
 
         def _wait_until() -> bool:
             return datetime.datetime.now() > deadline
@@ -674,7 +679,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 )
             reset_index = int(match.group(1))
 
-        self.context.state.round_sequence.abci_app.reset_index = reset_index
+        self.abci_app.reset_index = reset_index
 
     def _check_sync(
         self,
@@ -1676,10 +1681,10 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     self.context.logger.info(
                         "Resetting tendermint node successful! Resetting local blockchain."
                     )
-                    self.context.state.round_sequence.reset_blockchain(
+                    self.round_sequence.reset_blockchain(
                         response.get("is_replay", False)
                     )
-                    self.context.state.round_sequence.abci_app.cleanup(
+                    self.abci_app.cleanup(
                         self.params.cleanup_history_depth,
                         self.params.cleanup_history_depth_current,
                     )
