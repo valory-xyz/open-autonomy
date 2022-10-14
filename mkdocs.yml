@@ -37,15 +37,15 @@ nav:
     - Running a service in different networks: 'guides/running_service_different_networks.md'
     - Managing packages: 'guides/managing_packages.md'
   - Demo agent services:
-    - 'demos/index.md'  
+    - 'demos/index.md'
     - Hello World Demo: 'demos/hello_world_demo.md'
     - Simple Demo: 'demos/simple_abci.md'
     - Price Oracle Demo:
       - Introduction: 'demos/price_oracle_intro.md'
       - Technical Details: 'demos/price_oracle_technical_details.md'
-      - FSM Specification: 'demos/price_oracle_fsms.md'  
+      - FSM Specification: 'demos/price_oracle_fsms.md'
   - Key concepts:
-    - 'key_concepts/index.md'    
+    - 'key_concepts/index.md'
     - Autonomous Economic Agents: 'aea.md'
     - Finite State Machines: 'fsm.md'
     - The Application BlockChain Interface: 'abci.md'
@@ -260,6 +260,8 @@ markdown_extensions:
   - pymdownx.arithmatex
   - attr_list
   - md_in_html
+  - pymdownx.snippets:
+      base_path: docs/guides/
 
 extra:
     open_aea: '[Open AEA](https://github.com/valory-xyz/open-aea)'
