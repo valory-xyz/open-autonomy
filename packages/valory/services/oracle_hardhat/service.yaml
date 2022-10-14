@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeieqpbuzrxtfo5hz3gsb64aumnfbxad4tpxp4s46jxj7byb3zxx34y
 fingerprint_ignore_patterns: []
-agent: valory/oracle:0.1.0:bafybeiee65bpmorvfol4ue7dlfihu7d2qcbql3rt5kphaqsjydlulz4ntu
+agent: valory/oracle:0.1.0:bafybeifxbzmbzftv3r65hixd5badfh3nkrc6feinchjoh22522h5oqvuly
 number_of_agents: 4
 ---
 setup_args:
@@ -16,8 +16,9 @@ setup_args:
       safe_contract_address: []
     observation_interval: 30
     broadcast_to_server: false
-    service_registry_address: '0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82'
+    service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:0x998abeb3E57409262aE5b751f60747921B33613E}
     on_chain_service_id: 1
+    share_tm_config_on_startup: ${SHARE_TENDERMINT_CONFIG_AT_START:bool:false}
 benchmark_persistence_params:
   args: &id003
     log_dir: /benchmarks
