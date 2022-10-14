@@ -1,18 +1,55 @@
-# Hello World Agent Service
+# Hello world agent service demo
+This demo is aimed at giving a general, introductory overview on what are the main elements that make an agent service and how they work. The goal is to provide to new users of the {{open_autonomy}} framework a global understanding on the development process and the relationship between the main components of the stack. You can skip the [running the demo section](./hello_world_demo.md#running-the-demo) on a first read.
 
-This section gives a general, introductory overview of the library and a high-level view of the main elements that make an agent service. The goal is to provide a global understanding on the development process and the relationship between the main components of the stack.
 
-We start with a simple "Hello World" example service, and we will add progressively more functionality to it.
-The goal is to come up with a service composed of four agents. The functionality of this service will be extremely simple. Namely, each agent will output the following message to its local console:
-> "Agent $i$ in period $j$ says: Hello World!"
 
-More concretely, we divide the timeline into _periods_, and within each period, _only one designated agent will print the message_. The other agents will print nothing. Think of a period as an interval where the service carries out an iteration of its intended functionality.
+## Architecture of the demo
+The demo is composed of:
 
-The architecture of this agent service, albeit simple, features four agents that are coordinated through a _consensus gadget_.
+- A set of four [Tendermint](https://tendermint.com/) nodes (`node0`, `node1`, `node2`, `node3`).
+- A set of four AEAs (`abci0`, `abci1`, `abci2`, `abci3`), in one-to-one connection with their corresponding Tendermint
+node.
 
 <figure markdown>
-![](./images/hello_world_architecture.svg)
-<figcaption>Hello World service architecture</figcaption>
+  ![](../images/hello_world_demo_architecture.svg){align=center}
+  <figcaption>Hello world agent service demo architecture with four agents</figcaption>
+</figure>
+
+## Running the demo
+The steps below will guide you to download the simple agent service definition from the Service Registry, build and run a local deployment.
+
+1. Ensure that your machine satisfies the [framework requirements](../guides/set_up.md#requirements) and that
+you have followed the [setup instructions](../guides/set_up.md#setup). As a result you should have a Pipenv workspace folder.
+
+2. Use the CLI to download the `valory/hello_world` service.
+    ```bash
+    autonomy fetch valory/hello_world:0.1.0:bafybeigu4dyxzpfka5bodnb5lzas5jsd4ejps6aabofn32l2wyqcbnilvm --remote --service
+    cd simple_abci
+    ```
+
+3. Follow the steps in the [local deployment guide](../guides/deploy_service.md#local-deployment) to deploy and run the service locally.
+
+4. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
+    ```bash
+    docker logs <container_id> --follow
+    ```
+    where `<container_id>` refers to the Docker container ID for either an agent
+    (`abci0`, `abci1`, `abci2` and `abci3`) or a [Tendermint](https://tendermint.com/) node (`node0`, `node1`, `node2` and `node3`).
+
+
+
+## Details of the demo
+The service presented in this demo is a "Hello world" agent service, which can be considered as a baseline service to which more complex functionalities can be added. The functionality of the service is extremely simple. Namely, each agent will output (at different times) the following message to its local console:
+> "Agent $i$ in period $j$ says: Hello World!"
+
+More concretely, we divide the timeline into _periods_, and within each period, _only one designated agent will print the message_. The other agents will print nothing. Think of a period as an interval where the service executes an iteration of its intended functionality (e.g., checking some price on a market, execute an investment strategy, etc.).
+
+
+The architecture of this agent service, albeit simple, features four agents that are coordinated through a _consensus gadget_. For clarity and simplicity, we will be using the simplified architecture diagram depicted below.
+
+<figure markdown>
+![](../images/hello_world_demo_architecture_simplified.svg){align="center"}
+<figcaption>A simplified view of the Hello world agent service architecture</figcaption>
 </figure>
 
 
@@ -28,7 +65,7 @@ The architecture of this agent service, albeit simple, features four agents that
 This is what the service would look like in all its glory:
 
 <figure markdown>
-![](./images/hello_world_action.svg)
+![](../images/hello_world_action.svg)
 <figcaption>Hello World agent service in action</figcaption>
 </figure>
 
@@ -47,7 +84,7 @@ The main questions that we try to answer at this point are:
 * What are the main elements of the {{open_autonomy}} framework to implement an agent service?
 * How do agents interact with the different components in an agent service?
 
-## The Finite State Machine of an Agent Service
+### The finite state machine of an agent service
 
 The first step when designing an agent service is to divide the intended functionality into "atomic" steps. For example, for the Hello World service, we identify these steps as
 
@@ -61,7 +98,7 @@ The reader may have identified Steps 2 and 3 beforehand. Step 1 is a requirement
 Graphically, the sequence of atomic steps of the Hello Word service functionality can be seen as
 
 <figure markdown>
-![](./images/hello_world_fsm.svg)
+![](../images/hello_world_fsm.svg)
 <figcaption>Diagram of atomic operations of the Hello World service</figcaption>
 </figure>
 
@@ -81,10 +118,10 @@ This sequence diagram of operations can be interpreted as a finite state machine
 
 Each agent runs internally a process or application that implements the service FSM, processes events and transits to new states according to the state-transition function. The component that encapsulates this functionality is an agent _skill_. As its name suggests, a skill is some sort of "knowledge" that the agent possesses.
 
-Let us call `hello_world_abci`the skill that encapsulates the Hello World functionality (the reason for the suffix `abci` will be explained below). A zoom on an agent would look like this:
+The component that encapsulates the Hello World functionality is the "Hello World {{fsm_app}}", which is a skill named `hello_world_abci`. A zoom on an agent would look like this:
 
 <figure markdown>
-![](./images/hello_world_zoom_agent.svg)
+![](../images/hello_world_zoom_agent.svg)
 <figcaption>Zoom on an agent.</figcaption>
 </figure>
 
@@ -95,7 +132,7 @@ Observe that Agent 2 has three additional skills. In fact, an agent can have one
     All agents in an agent service are implemented by the same codebase. The codebase implementing an agent is called a _canonical agent_, whereas each of the actual instances is called _agent instance_, or simply _agent_ for short.
     Each agent instance is then parameterized with their own set of keys, addresses and other required attributes.
 
-## Transitioning through the FSM
+### Transitioning through the FSM
 
 But how exactly does an agent transition through the FSM? That is, how are the events generated, and how are they received?
 
@@ -105,23 +142,23 @@ A high level view of what occurs is as follows:
 
 1.  Prepare the vote. Each agent determines what agent it wishes to vote for as the new keeper. Since there is the need to reach an agreement, we consider that each agent wants to vote for "Agent $M\pmod 4+1$," where $M$ is the value of the current period. Thus, the agent prepares an appropriate _payload_ that contains that information.
 
-    ![](./images/hello_world_sequence_1.svg)
+    ![](../images/hello_world_sequence_1.svg)
 
 
-2.  Send the vote. The `hello_world_abci` skill has a component (_Behaviour_) that is in charge of casting the vote to the consensus gadget.
+2.  Send the vote. The Hello World {{fsm_app}} has a component (_Behaviour_) that is in charge of casting the vote to the consensus gadget.
 
-    ![](./images/hello_world_sequence_2.svg)
+    ![](../images/hello_world_sequence_2.svg)
 
 
 3.  The consensus gadget reads the agents' outputs, and ensures that the collection of responses observed is consistent. The gadget takes the responsibility of executing the consensus algorithm, which is abstracted away to the developer of the agent service.
     *   Note that this does not mean that the consensus gadget ensures that all the agents vote the same. Rather, it means that all the agents reach an agreement on what vote was sent by each of them.
 
-    ![](./images/hello_world_sequence_3.svg)
+    ![](../images/hello_world_sequence_3.svg)
 
 
-4.  Once the consensus phase is finished (and stored in a temporary blockchain maintained by the agents), each agent is notified with the corresponding information via an interface called _ABCI_ (this is why we called the skill `hello_world_abci`).
+4.  Once the consensus phase is finished (and stored in a temporary blockchain maintained by the agents), each agent is notified with the corresponding information via an interface called _ABCI_.
 
-    ![](./images/hello_world_sequence_4.svg)
+    ![](../images/hello_world_sequence_4.svg)
 
 
 5.  A certain skill component, called _Round_, receives and processes this information. If strictly more than $2/3$ of the agents voted for a certain keeper, then the agent records this result persistently to be used in future phases of the service. After finalizing all this processing, the _Round_ skill component outputs the event that indicates the success of the expected actions at that state.
@@ -129,7 +166,7 @@ A high level view of what occurs is as follows:
 
 6.  The event cast in the previous step is received by the component that actually manages the service FSM (_AbciApp_). This component processes the event according to the state-transition function and moves the current state of the FSM appropriately.
 
-    ![](./images/hello_world_sequence_5.svg)
+    ![](../images/hello_world_sequence_5.svg)
 
 
 !!! warning "Important"
@@ -149,7 +186,7 @@ A high level view of what occurs is as follows:
 
 At this point, the walk-through of a single transition from one state of the FSM, has essentially introduced the main components of an agent and the main interactions that occur in an agent service. It is important that the developer keeps these concepts in mind, since executions of further state transitions can be easily mapped with what has been presented here so far.
 
-## Executing the Main Functionality
+### Executing the main functionality
 
 At this point, the service has only transitioned to a new state on its FSM. But, what would happen in an actual execution of the service functionality?
 
@@ -165,7 +202,7 @@ Mimicking the steps that occurred in the previous state, it is not difficult to 
 As a result, we have finished a "happy path" of execution of the FSM, concluding with the expected output:
 
 <figure markdown>
-![](./images/hello_world_result.svg)
+![](../images/hello_world_result.svg)
 <figcaption>Result of the execution the second period of the Hello World agent service</figcaption>
 </figure>
 
@@ -182,23 +219,23 @@ As a result, we have finished a "happy path" of execution of the FSM, concluding
 
     When the waiting condition is not met during a certain time interval, a special timeout event is generated by the `Round`, and the developer is in charge of defining how the FSM will transit in that case.
 
-## Bird's Eye View
+### Bird's eye view
 As a summary, find below an image which shows the main components of the agent and the skill related to the Hello World agent service presented in this overview. Of course, this is by no means the complete picture of what is inside an agent, but it should give a good intuition of what are the main elements that play a role in any agent service and how they interact.
 
 <figure markdown>
-![](./images/hello_world_agent_internal.svg)
+![](../images/hello_world_agent_internal.svg)
 <figcaption>Main components of an agent that play a role in an agent service. Red arrows indicate a high-level flow of messages when the agent is in the SelectKeeper state.</figcaption>
 </figure>
 
-## Coding the Hello World! Agent Service: A Primer
+### Coding the Hello World agent service: a primer
 So far, we have given a conceptual description of the Hello World agent service. As we have seen, there are a number of components that a developer needs to focus on in order to fully define the service.
 
 The objective of what follows next is to explore what are the main steps to code and get the service running. Note that the complete code for the example can be found in
 
 * `packages/valory/agents/hello_world`: the Hello World agent,
-* `packages/valory/skills/hello_world_abci`: the `hello_world_abci` skill.
+* `packages/valory/skills/hello_world_abci`: the `hello_world_abci` skill that implements the Hello World FSM app.
 
-### Coding the Agent
+#### Coding the agent
 Agents are defined through the {{open_aea}} library as YAML files, which specify what components the agent made of, together with some configuration parameters. Agents components can be, for example, connections, contracts, protocols or skills. We refer to the {{open_aea_doc}} for the complete details, although the reader might already have some intuition about their meaning.
 
 This is an excerpt of the `/agents/hello_world/aea-config.yaml` file:
@@ -229,7 +266,7 @@ Note that the agent also includes the `hello_world_abci` skill, which is the one
 
 Note that although it is possible to develop your own protocols and connections, the {{open_aea}} framework provides a number of typical ones which can be reused. Therefore, it is usual that the developer focuses most of its programming efforts in coding the particular skill(s) for their new agent.
 
-### Coding the Skill
+#### Coding the skill
 
 Recall that the skill needs to define the `AbciApp`; `Rounds`, `Behaviours` and `Payloads` associated to each state of the FSM; and the main skill class `RoundBehaviour`. Let's look how each of these objects are implemented. The files referenced below are all placed within `packages/valory/skills/hello_world_abci`:
 
@@ -459,5 +496,5 @@ To conclude this section, let us briefly describe the purposes of each one, and 
 * `fsm_specification.yaml`: It contains a specification of the FSM in a simplified syntax. It is used for checking the consistency of the implementation, and it can be automatically generated using a script.
 
 
-## Further Reading
+## Further reading
 This walk-through of the Hello World agent service should give an overview of the development process, and of the main elements that play a role in an agent service. However there are more elements in the {{open_autonomy}} framework that facilitate building complex applications, that interact with real blockchains and other networks. We refer the reader to the more advanced sections of the documentation, where we explore in detail the stack.
