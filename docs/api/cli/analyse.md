@@ -26,7 +26,7 @@ def abci_group() -> None
 
 Analyse ABCI apps of an agent service.
 
-<a id="autonomy.cli.analyse.generat_abci_app_pecs"></a>
+<a id="autonomy.cli.analyse.generate_abci_app_specs"></a>
 
 #### generat`_`abci`_`app`_`pecs
 
@@ -35,7 +35,7 @@ Analyse ABCI apps of an agent service.
 @click.argument("app_class", type=str)
 @click.argument("output_file", type=click.Path())
 @abci_spec_format_flag()
-def generat_abci_app_pecs(app_class: str, output_file: Path, spec_format: str) -> None
+def generate_abci_app_specs(app_class: str, output_file: Path, spec_format: str) -> None
 ```
 
 Generate ABCI app specs.
