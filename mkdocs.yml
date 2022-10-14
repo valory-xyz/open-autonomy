@@ -247,8 +247,7 @@ nav:
 
 
 plugins:
-  - macros:
-        module_name: 'scripts/doc_macros'
+  - macros
 
 markdown_extensions:
   - pymdownx.details

@@ -1,5 +1,3 @@
-{{check_untagged_doc()}}
-
 The typical use case that this guide intends to illustrate is where a service owner wants to use existing agents to run its own service
 with a custom configuration. For example, an oracle service customized to serve data of their interest.
 
