@@ -276,7 +276,7 @@ to see what the encoded state transitions in the final composite FSM look like.
 !!! warning
 
     A sequence diagram that shows how AEAs communicate with their environment
-    throughout the execution can be found [here](../poc-diagram.md). However,
+    throughout the execution can be found [here](../key_concepts/poc-diagram.md). However,
     it is not fully up-to-date with the implementation discussed here.
 
 ### Known limitations

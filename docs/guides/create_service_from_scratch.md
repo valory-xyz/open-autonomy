@@ -21,9 +21,9 @@ Before starting this guide, ensure that your machine satisfies the framework req
     ```
     This will create the agent directory, that will contain folders for connections, contracts, protocols and skills.
 
-2. **Create the FSM specification.** Now that the agent is in place, you can generate the basic structure of the {{fsm_app}} skill. Recall that the {{fsm_app}} defines the business logic of the skill as a finite-state machine (see the [introduction to {{fsm_app}}s](../fsm_app_introduction.md)).
+2. **Create the FSM specification.** Now that the agent is in place, you can generate the basic structure of the {{fsm_app}} skill. Recall that the {{fsm_app}} defines the business logic of the skill as a finite-state machine (see the [introduction to {{fsm_app}}s](../key_concepts/fsm_app_introduction.md)).
 
-    To use the scaffold tool, you need the [FSM](../fsm.md) specification of the service. In this example, let's copy the contents of the [Hello World](../demos/hello_world_demo.md) service FSM specification into a file called `fsm_specification.yaml`, which should be located in the agent's directory.
+    To use the scaffold tool, you need the [FSM](../key_concepts/fsm.md) specification of the service. In this example, let's copy the contents of the [Hello World](../demos/hello_world_demo.md) service FSM specification into a file called `fsm_specification.yaml`, which should be located in the agent's directory.
 
     ```yaml
     alphabet_in:
@@ -59,7 +59,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
     ```
     You will see that the generated rounds, payloads and behaviours already appear with their correct names, as well as the `HelloWorldAbciApp` and its transition function.
 
-4. **Fill in the business logic code of the service.** By default, the generated rounds, payloads and behaviours are initialized to empty values. It is your turn to define what actions are occurring at each state of the service, by filling up the code of the template {{fsm_app}} skill generated above. You can review how a number of [demo services](../demos/index.md) are implemented, or read more about the internals of [{{fsm_app}}s](../fsm_app_introduction.md)).
+4. **Fill in the business logic code of the service.** By default, the generated rounds, payloads and behaviours are initialized to empty values. It is your turn to define what actions are occurring at each state of the service, by filling up the code of the template {{fsm_app}} skill generated above. You can review how a number of [demo services](../demos/index.md) are implemented, or read more about the internals of [{{fsm_app}}s](../key_concepts/fsm_app_introduction.md)).
 
 5. **Optionally, create additional components**. If required by your skills, you can add additional components for the agents that make up the service. You can browse the {{open_aea}} docs for further guidance. For example, have a look at how to create and interact with contracts in our [contract development guide](https://open-aea.docs.autonolas.tech/creating-contracts/).
 
