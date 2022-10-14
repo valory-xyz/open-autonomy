@@ -45,7 +45,7 @@ Execute the next steps in a separate terminal.
 1. Ensure that your machine satisfies the [framework requirements](../guides/set_up.md#requirements) and that
 you have followed the [setup instructions](../guides/set_up.md#setup). As a result you should have a Pipenv workspace folder.
 
-2. Use the CLI to download the `valory/oracle_hardhat` service.
+2. Use the CLI to fetch the `valory/oracle_hardhat` service.
     ```bash
     autonomy fetch valory/oracle_hardhat:0.1.0:bafybeie553shfmnds6v7defynjv5kmjkqf2aygj345jbbcssevtnkbodbe --remote --service
     cd oracle_hardhat

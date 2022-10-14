@@ -56,7 +56,7 @@ Local deployments of a service are recommended to test your service before you p
     autonomy deploy build keys.json --aev
     ```
 
-5. The build configuration will be located in `./abci_build`. Run the deployment locally using
+5. The build configuration will be located in `./abci_build` folder. Run the deployment locally using
     ```bash
     cd abci_build
     autonomy deploy run
