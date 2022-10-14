@@ -33,7 +33,7 @@ The steps below will guide you to download the simple agent service definition f
 1. Ensure that your machine satisfies the [framework requirements](../guides/set_up.md#requirements) and that
 you have followed the [setup instructions](../guides/set_up.md#setup). As a result you should have a Pipenv workspace folder.
 
-2. Use the CLI to download the `valory/simple_abci` service.
+2. Use the CLI to fetch the `valory/simple_abci` service.
     ```bash
     autonomy fetch valory/simple_abci:0.1.0:bafybeigcrl7p5hwwwu5oh5ykckj6h6vlzk37x3mg7nlwwfyzphub7j6j4a --remote --service
     cd simple_abci

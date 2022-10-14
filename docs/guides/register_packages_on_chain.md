@@ -18,7 +18,7 @@ This guide is based in the on-chain registry currently deployed in the [Görli t
   * A **[Görli testnet](https://goerli.net/) wallet address** (e.g., [Metamask](https://metamask.io/)) with some GörliETH funds in it. You can use, for example, a [Görli POW faucet](https://goerli-faucet.pk910.de/) to earn some free GörliETH.
   * The remote registry **package hash** of the already published completed package that you want to register on-chain. See the corresponding guides in case you are in doubt on how to create and publish a package in a remote registry.
   * An **NFT image URL**. This image will be used to represent the NFT on marketplaces such as [OpenSea](https://opensea.io/). You can use [this sample image URL](https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev) for testing purposes.
-  * If you are registering an agent service, you will also need the **wallet addresses of the agents** that are part of the service.
+  * If you are registering an agent service, you will also need the [Görli testnet](https://goerli.net/) **addresses of the agents** that are part of the service.
 
 
 ## Register an agent component
@@ -32,13 +32,18 @@ This guide is based in the on-chain registry currently deployed in the [Görli t
 
 
 ## Register a service
+In this section, we show how to register a service in the on-chain registry, and how to bring the service to the **Deployed** status.
 Before continue, ensure that you meet the [requirements](#requirements) stated above.
 
+### Preliminary steps
   1. **Connect your wallet.** Access the {{on_chain_frontend}}, and connect your [Metamask](https://metamask.io/) wallet.
 
   2. **Find the agent's canonical ID.** Explore the [agents section](https://protocol.autonolas.network/agents), and note the ID of the agent that make up your service. If your service is composed of different agents, you must note the IDs of all of them.
 
-  3. **Fill in the service data.** Navigate to the [services section](https://protocol.autonolas.network/services), and press the button _Register_.
+
+### Fill-in the service data
+
+  1. **Fill in the service data.** Navigate to the [services section](https://protocol.autonolas.network/services), and press the button _Register_.
   There are some data that need to be input in this form, whereas additional metadata needs to be filled by pressing the button _Generate Hash & File_:
 
       1. **Owner Address.** Your wallet address (or whoever you want to declare the owner of the service), starting by `0x...`.
@@ -60,6 +65,18 @@ Before continue, ensure that you meet the [requirements](#requirements) stated a
 
       6. **Threshold.** Specify the threshold of agents required to sign.
 
-  4. Press the button _Submit_. Your  [Metamask](https://metamask.io/) wallet will ask you to approve the transaction.
+  2. Press the button _Submit_. Your  [Metamask](https://metamask.io/) wallet will ask you to approve the transaction.
 
-Once the transaction is settled on-chain, you should see a message indicating that the service has been registered successfully, and you should see that it is in agent **pre-registration** state. Congratulations! Your service is now registered to work with the on-chain protocol.
+Once the transaction is settled, you should see a message indicating that the service has been registered successfully, and you should see that it is in **Pre-Registration** state.
+
+### Activate service registration
+Within the **Pre-Registration** state you should press _Activate Registration_ to advance to the next state (**Active Registration**). In case you require to make any amendments in the service you have just registered, you can do so through the _Update_ button. In either case, you should authorize the transaction through your [Metamask](https://metamask.io/) wallet.
+
+### Register agent instances
+In the **Active registration** state you should specify the [Görli testnet](https://goerli.net/) addresses (starting by `0x...`) of the agent instances that are part of the service. Press _Register Agents_ to associate them with the service. Once you have finished, press _Terminate_ to proceed to the **Finished Registration** state. Again, you will need authorization from your wallet to complete the transaction.
+
+### Deploy the multisig contract for the service
+The goal of the **Finished Registration** state is to deploy the Gnosis safe multisig contract that will be associated to the service. The parameters you see in this screen are associated to the creation of the safe (check the `setup` method [here](https://github.com/safe-global/safe-contracts/blob/main/contracts/GnosisSafe.sol)). If you are not familiar with the setup of such contract, you can leave the default values and press _Submit_. Once again, you will be prompted for authorization.
+
+
+ Congratulations! Your service is should be now in **Deployed** state in the on-chain protocol!
