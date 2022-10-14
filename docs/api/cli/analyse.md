@@ -28,7 +28,7 @@ Analyse ABCI apps of an agent service.
 
 <a id="autonomy.cli.analyse.generate_abci_app_specs"></a>
 
-#### generat`_`abci`_`app`_`pecs
+#### generate`_`abci`_`app`_`specs
 
 ```python
 @abci_group.command(name="generate-app-specs")
