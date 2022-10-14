@@ -17,8 +17,9 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
 
 1. Use the CLI to fetch the [Hello World agent service](../demos/hello_world_demo.md). This will connect to the remote registry and download the service specification to the `hello_world` folder:
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeigu4dyxzpfka5bodnb5lzas5jsd4ejps6aabofn32l2wyqcbnilvm --remote --service
-    cd hello_world
+    --8<--
+snippets/quick_start/1_fetch.sh
+    --8<--
     ```
 
 2. Build the Docker image of the service agents:
