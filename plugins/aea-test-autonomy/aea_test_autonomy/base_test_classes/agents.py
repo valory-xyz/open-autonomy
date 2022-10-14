@@ -18,10 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """End2end tests base class."""
+
 import json
 import logging
 import time
-import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -34,6 +34,7 @@ from aea_test_autonomy.docker.registries import SERVICE_REGISTRY
 from aea_test_autonomy.fixture_helpers import UseFlaskTendermintNode
 
 
+TERMINATION_TIMEOUT = 120
 _HTTP = "http://"
 
 
@@ -252,20 +253,6 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         process = self.run_agent()
         self.processes[i] = process
 
-    def terminate_processes(self) -> None:
-        """Terminate processes"""
-        for i, process in self.processes.items():
-            self.terminate_agents(process)
-            outs, errs = process.communicate()
-            logging.info(f"subprocess logs {process}: {outs} --- {errs}")
-            if not self.is_successfully_terminated(process):
-                agent_name = self._get_agent_name(i)
-                warnings.warn(
-                    UserWarning(
-                        f"ABCI {agent_name} with process {process} wasn't successfully terminated."
-                    )
-                )
-
     @staticmethod
     def __generate_full_strings_from_rounds(
         happy_path: Tuple[RoundChecks, ...]
@@ -433,8 +420,9 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
         )
         if self.n_terminal:
             self._restart_agents()
+
         self.check_aea_messages()
-        self.terminate_processes()
+        self.terminate_agents(timeout=TERMINATION_TIMEOUT)
 
     def _restart_agents(self) -> None:
         """Stops and restarts agents after stop string is found."""

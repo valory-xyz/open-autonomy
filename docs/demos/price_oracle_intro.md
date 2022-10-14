@@ -18,8 +18,7 @@ with $\lceil(2n + 1) / 3\rceil$ of the participants' signatures is settled on th
 Ethereum chain, which is emulated by a local Hardhat node in the demo.
 
 
-## Architecture of the Demo
-
+## Architecture of the demo
 This demo is composed of:
 
 - A [HardHat](https://hardhat.org/) node (emulating an Ethereum blockchain).
@@ -28,16 +27,23 @@ This demo is composed of:
 node.
 
 <figure markdown>
-![](./images/oracle_diagram.svg)
+![](../images/oracle_diagram.svg)
 <figcaption>Architecture of the Price Oracle demo</figcaption>
 </figure>
 
 
-## Running the Demo
+## Running the demo
 The steps below will guide you to download the price oracle agent service definition from the Service Registry, build and run a deployment locally.
 
-1. Ensure that your machine satisfies the [framework requirements](guides/quick_start.md#requirements) and that
-you have followed the [setup instructions](guides/quick_start.md#setup). As a result you should have a Pipenv workspace folder.
+1. Open a terminal and run a local [HardHat](https://hardhat.org/) node that will emulate a blockchain node. For convenience, we provide a Docker image in [Docker Hub](https://hub.docker.com/) that can be run by executing:
+    ```bash
+    docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
+    ```
+
+Execute the next steps in a separate terminal.
+
+1. Ensure that your machine satisfies the [framework requirements](../guides/set_up.md#requirements) and that
+you have followed the [setup instructions](../guides/set_up.md#setup). As a result you should have a Pipenv workspace folder.
 
 2. Use the CLI to download the `valory/oracle_hardhat` service.
     ```bash
@@ -45,69 +51,17 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
     cd oracle_hardhat
     ```
 
-3. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that are
-   part of this demo. Below you have a sample `keys.json` file that you can use for testing.
+3. Follow the steps in the [local deployment guide](../guides/deploy_service.md#local-deployment) to deploy and run the service locally.
 
-    !!! warning "Important"
-        Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**
-
-        ```json
-        [
-          {
-              "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
-              "private_key": "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a"
-          },
-          {
-              "address": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
-              "private_key": "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba"
-          },
-          {
-              "address": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
-              "private_key": "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e"
-          },
-          {
-              "address": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
-              "private_key": "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356"
-          }
-        ]
-        ```
-
-4. Build the required image
-    ```bash
-    autonomy build-image
-    ```
-    The command above generates the required images to run the agent service.
-
-5. Build a deployment setup for the demo service:
-    ```bash
-    autonomy deploy build keys.json
-    ```
-
-    This will build the deployment setup required to run the service locally.
-    !!!note
-        It is also possible to generate a deployment using a local service definition. See the [CLI section](./autonomy.md) for the complete details.
-
-6. Open a second terminal and run a local [HardHat](https://hardhat.org/) node that will emulate a blockchain node. For convenience, we provide a Docker image in [Docker Hub](https://hub.docker.com/) that can be run by executing:
-    ```bash
-    docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
-    ```
-
-7. Return to the workspace terminal.
-The build configuration will be located in `./abci_build`. Run the deployment using
-    ```bash
-    cd abci_build
-    autonomy deploy run
-    ```
-This will deploy a local price oracle agent service with four agents connected to four [Tendermint](https://tendermint.com/) nodes.
-
-8. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
+4. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
     ```bash
     docker logs <container_id> --follow
     ```
     where `<container_id>` refers to the Docker container ID for either an agent
-    (`abci0`, `abci1`, `abci2` and `abci3`) or a Tendermint node (`node0`, `node1`, `node2` and `node3`).
+    (`abci0`, `abci1`, `abci2` and `abci3`) or a [Tendermint](https://tendermint.com/) node (`node0`, `node1`, `node2` and `node3`).
 
-## Interacting with the Demo
+
+## Interacting with the demo
 By examining the logs of an agent container, you will see a message similar to the one depicted below, after the framework successfully builds and starts it:
 
 ```
