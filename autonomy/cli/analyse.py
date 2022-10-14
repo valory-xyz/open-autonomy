@@ -51,7 +51,9 @@ def abci_group() -> None:
 @click.argument("app_class", type=str)
 @click.argument("output_file", type=click.Path())
 @abci_spec_format_flag()
-def generate_abci_app_specs(app_class: str, output_file: Path, spec_format: str) -> None:
+def generate_abci_app_specs(
+    app_class: str, output_file: Path, spec_format: str
+) -> None:
     """Generate ABCI app specs."""
 
     module_name, class_name = app_class.rsplit(".", 1)
