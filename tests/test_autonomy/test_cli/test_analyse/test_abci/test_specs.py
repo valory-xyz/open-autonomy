@@ -333,7 +333,7 @@ class TestDFA:
 
         json_spec = Path(
             ROOT_DIR,
-            "autonomy",
+            "tests",
             "data",
             "specs",
             "fsm_specification.json",
@@ -349,7 +349,7 @@ class TestDFA:
 
         json_spec = Path(
             ROOT_DIR,
-            "autonomy",
+            "tests",
             "data",
             "specs",
             "fsm_specification_empty.json",
@@ -365,7 +365,7 @@ class TestDFA:
 
         json_spec = Path(
             ROOT_DIR,
-            "autonomy",
+            "tests",
             "data",
             "specs",
             "fsm_specification_extra.json",
