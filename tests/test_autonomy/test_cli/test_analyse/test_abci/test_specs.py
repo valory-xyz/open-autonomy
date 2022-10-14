@@ -304,16 +304,28 @@ class TestDFA:
         assert isinstance(good_dfa.parse_transition_func(), dict)
         assert good_dfa.__eq__(None) == NotImplemented
 
-        with pytest.raises(DFASpecificationError):
+        with pytest.raises(
+            DFASpecificationError, match="DFA spec. object {} is not of type List."
+        ):
             assert good_dfa._norep_list_to_set(dict())  # type: ignore
 
-        with pytest.raises(DFASpecificationError):
+        with pytest.raises(
+            DFASpecificationError,
+            match=re.escape(
+                "DFA spec. List ['value', 'value'] contains repeated values."
+            ),
+        ):
             assert good_dfa._norep_list_to_set(["value", "value"])
 
-        with pytest.raises(DFASpecificationError):
+        with pytest.raises(
+            DFASpecificationError,
+            match="DFA spec. JSON file contains an invalid transition function key: .",
+        ):
             assert good_dfa._str_to_tuple("")
 
-        with pytest.raises(DFASpecificationError):
+        with pytest.raises(
+            DFASpecificationError, match="DFA spec. has the following issues"
+        ):
             DFA(**self.bad_dfa_kwargs)  # type: ignore
 
     def test_load(self) -> None:
