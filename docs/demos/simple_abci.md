@@ -1,5 +1,4 @@
-# Simple Agent Service Demo
-
+# Simple agent service demo
 The Simple agent service demonstrates how to use the {{open_autonomy}} framework, and provides
 a general template to build more complex services.
 The goal is to provide the minimum background so that users can start developing their own agent services, and to showcase how agents interact with local Tendermint nodes. Indeed, we recommend that new users take the Simple {{fsm_app}} as the starting point for developing their own agent services.
@@ -14,8 +13,7 @@ Roughly speaking, the Simple agent service executes the following sequence of ac
 Whereas the business logic of this service does not produce any useful result, each of these steps above
 are expected to be quite common in the expected services that can be developed with {{open_autonomy}}.
 
-## Architecture of the Demo
-
+## Architecture of the demo
 The demo is composed of:
 
 - A set of four [Tendermint](https://tendermint.com/) nodes (`node0`, `node1`, `node2`, `node3`).
@@ -25,81 +23,33 @@ node.
 The agents are connected to the remote service [DRAND](https://drand.love) through the Internet.
 
 <figure markdown>
-  ![](./images/simple_abci_app_four_agents.svg){align=center}
-  <figcaption>Simple ABCI architecture with four agents</figcaption>
+  ![](../images/simple_demo_architecture.svg){align=center}
+  <figcaption>Simple agent service demo architecture with four agents</figcaption>
 </figure>
 
-## Running the Demo
-The steps below will guide you to download the simple agent service definition from the Service Registry, build and run a deployment that will run locally.
+## Running the demo
+The steps below will guide you to download the simple agent service definition from the Service Registry, build and run a local deployment.
 
-1. Ensure that your machine satisfies the [framework requirements](guides/quick_start.md#requirements) and that
-you have followed the [setup instructions](guides/quick_start.md#setup). As a result you should have a Pipenv workspace folder.
+1. Ensure that your machine satisfies the [framework requirements](../guides/set_up.md#requirements) and that
+you have followed the [setup instructions](../guides/set_up.md#setup). As a result you should have a Pipenv workspace folder.
 
-2. Use the CLI to download the `valory/simple_abci` service.
+2. Use the CLI to fetch the `valory/simple_abci` service.
     ```bash
     autonomy fetch valory/simple_abci:0.1.0:bafybeigcrl7p5hwwwu5oh5ykckj6h6vlzk37x3mg7nlwwfyzphub7j6j4a --remote --service
     cd simple_abci
     ```
 
-3. Inside the workspace folder, create a JSON file `keys.json` containing the addresses and keys of the four agents that are
-   part of this demo. Below you have a sample `keys.json` file that you can use for testing.
+3. Follow the steps in the [local deployment guide](../guides/deploy_service.md#local-deployment) to deploy and run the service locally.
 
-    !!! warning "Important"
-        Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**
-
-        ```json
-        [
-          {
-              "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
-              "private_key": "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a"
-          },
-          {
-              "address": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
-              "private_key": "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba"
-          },
-          {
-              "address": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
-              "private_key": "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e"
-          },
-          {
-              "address": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
-              "private_key": "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356"
-          }
-        ]
-        ```
-
-4. Build the required image
-    ```bash
-    autonomy build-image
-    ```
-    The command above generates the required images to run the agent service.
-
-5. Build a deployment setup for the demo service:
-    ```bash
-    autonomy deploy build keys.json
-    ```
-
-    This will build the deployment setup required to run the service locally.
-    !!!note
-        It is also possible to generate a deployment using a local service definition. See the [CLI section](./autonomy.md) for the complete details.
-
-6. The build configuration will be located in `./abci_build`. Run the deployment using
-    ```bash
-    cd abci_build
-    autonomy deploy run
-    ```
-
-    This will deploy a local simple service with four agents connected to four Tendermint nodes.
-
-7. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
+4. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
     ```bash
     docker logs <container_id> --follow
     ```
     where `<container_id>` refers to the Docker container ID for either an agent
-    (`abci0`, `abci1`, `abci2` and `abci3`) or a Tendermint node (`node0`, `node1`, `node2` and `node3`).
+    (`abci0`, `abci1`, `abci2` and `abci3`) or a [Tendermint](https://tendermint.com/) node (`node0`, `node1`, `node2` and `node3`).
 
 
-## Technical Details
+## Details of the demo
 The complete state machine depicting the states and transitions of the application is shown below.
 
 <figure markdown>

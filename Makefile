@@ -219,8 +219,6 @@ teardown-kubernetes:
 
 .PHONY: fix-abci-app-specs
 fix-abci-app-specs:
-	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_abci.rounds.APYEstimationAbciApp packages/valory/skills/apy_estimation_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_abci consistency" && exit 1)
-	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_chained_abci.composition.APYEstimationAbciAppChained packages/valory/skills/apy_estimation_chained_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_chained_abci consistency" && exit 1)
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.liquidity_provision_abci.composition.LiquidityProvisionAbciApp packages/valory/skills/liquidity_provision_abci/fsm_specification.yaml || (echo "Failed to check liquidity_provision_abci consistency" && exit 1)
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.liquidity_rebalancing_abci.rounds.LiquidityRebalancingAbciApp packages/valory/skills/liquidity_rebalancing_abci/fsm_specification.yaml || (echo "Failed to check liquidity_rebalancing_abci consistency" && exit 1)
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.oracle_abci.composition.OracleAbciApp packages/valory/skills/oracle_abci/fsm_specification.yaml || (echo "Failed to check oracle_abci consistency" && exit 1)
@@ -235,7 +233,5 @@ fix-abci-app-specs:
 
 
 AEA_AGENT_ORACLE:=valory/oracle:latest:$(shell cat packages/packages.json | grep "agent/valory/oracle" | cut -d "\"" -f4 )
-AEA_AGENT_APY_ESTIMATION:=valory/apy_estimation:latest:$(shell cat packages/packages.json | grep "agent/valory/apy_estimation" | cut -d "\"" -f4 )
 release-images:
-	AEA_AGENT_ORACLE=${AEA_AGENT_ORACLE} AEA_AGENT_APY_ESTIMATION=${AEA_AGENT_APY_ESTIMATION} skaffold build -p release --cache-artifacts=false && AEA_AGENT_ORACLE=${AEA_AGENT_ORACLE} AEA_AGENT_APY_ESTIMATION=${AEA_AGENT_APY_ESTIMATION} skaffold build -p release-latest
-	
+	AEA_AGENT_ORACLE=${AEA_AGENT_ORACLE} skaffold build -p release --cache-artifacts=false && AEA_AGENT_ORACLE=${AEA_AGENT_ORACLE} skaffold build -p release-latest

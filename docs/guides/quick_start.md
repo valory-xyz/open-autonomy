@@ -1,4 +1,4 @@
-The purpose of this guide is to provide a step-by-step instructions to gain familiarity with the {{open_autonomy}} framework, and use a number of CLI commands to run a [Hello World agent service](../hello_world_agent_service.md) as a local deployment. More concretely, in this guide, you will end up running:
+The purpose of this guide is to provide a step-by-step instructions to gain familiarity with the {{open_autonomy}} framework, and use a number of CLI commands to run a [Hello World agent service](../demos/hello_world_demo.md) as a local deployment. More concretely, in this guide, you will end up running:
 
   - 4 Docker containers implementing the 4 agents of the service, and
   - 4 Docker containers implementing one Tendermint node for each agent.
@@ -15,14 +15,22 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 Now that you have set up your machine to work with {{open_autonomy}}, we are in position to use the CLI to fetch the agent service from the remote registry and deploy it locally.
 
-1. Use the CLI to fetch the [Hello World agent service](../hello_world_agent_service.md). This will connect to the remote registry and download the service specification to the `hello_world` folder:
+1. Use the CLI to fetch the [Hello World agent service](../demos/hello_world_demo.md). This will connect to the remote registry and download the service specification to the `hello_world` folder:
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeigu4dyxzpfka5bodnb5lzas5jsd4ejps6aabofn32l2wyqcbnilvm --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeigu4dyxzpfka5bodnb5lzas5jsd4ejps6aabofn32l2wyqcbnilvm --remote --service
     cd hello_world
     ```
 
+2. Build the Docker image of the service agents:
+    ```bash
+    autonomy build-image
+    ```
+    After the command finishes building the image, you can see that it has created the image by executing:
+    ```bash
+    docker image ls | grep hello_world
+    ```
 
-2. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the agent service. Below you have some sample keys for testing:
+3. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the agent service. Below you have some sample keys for testing:
 
     !!! warning "Important"
         Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**
@@ -48,28 +56,18 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
         ]
         ```
 
-
-3. Build the Docker image of the service agents:
-    ```bash
-    autonomy build-image
-    ```
-    After the command finishes building it, you can see that it has created the image by executing:
-    ```bash
-    docker image ls | grep hello_world
-    ```
-
 4. Build the deployment setup for the service:
     ```bash
-    autonomy deploy build keys.json
+    autonomy deploy build keys.json --aev
     ```
 
-5. The build configuration will be located in `./abci_build`. Run the deployment using
+5. The build configuration will be located in `./abci_build` folder. Run the deployment using
     ```bash
     cd abci_build
     autonomy deploy run
     ```
 
-    This will deploy the [Hello World agent service](../hello_world_agent_service.md) locally with four agents connected to four Tendermint nodes.
+    This will deploy the [Hello World agent service](../demos/hello_world_demo.md) locally with four agents connected to four Tendermint nodes.
 
     At this point you should see a (verbose) output of the agent logs, which should look something like this:
     ```bash
@@ -88,12 +86,11 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
     (...)
     ```
 
-
-6. The logs of a single agent or node can then be inspected with, e.g.,
+6. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
     ```bash
-    docker logs {container_id} --follow
+    docker logs <container_id> --follow
     ```
-    where `{container_id}` refers to the Docker container ID for either an agent
-    (`abci0`, `abci1`, `abci2` and `abci3`) or a Tendermint node (`node0`, `node1`, `node2` and `node3`).
+    where `<container_id>` refers to the Docker container ID for either an agent
+    (`abci0`, `abci1`, `abci2` and `abci3`) or a [Tendermint](https://tendermint.com/) node (`node0`, `node1`, `node2` and `node3`).
 
     Try to inspect the service agent logs yourself and identify when they say "HELLO WORLD!"
