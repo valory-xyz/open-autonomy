@@ -78,14 +78,6 @@ profiles:
           <<: *release_docker_args
           dockerfile: deployments/Dockerfiles/documentation/Dockerfile
 
-      - image: valory/oar-oracle
-        <<: *open_autonomy_runtime_context
-        docker:
-          <<: *release_docker_args
-          buildArgs: &oar-oracle
-            <<: *aea_version
-            AEA_AGENT: "{{.AEA_AGENT_ORACLE}}"
-
       - image: valory/open-autonomy-user
         context: deployments/Dockerfiles/autonomy-user
         docker:
@@ -121,13 +113,6 @@ profiles:
         docker:
           <<: *docker_args
           dockerfile: deployments/Dockerfiles/documentation/Dockerfile
-
-      - image: valory/oar-oracle
-        <<: *open_autonomy_runtime_context
-        docker:
-          <<: *docker_args
-          buildArgs:
-            <<: *oar-oracle
 
       - image: valory/open-autonomy-user
         context: deployments/Dockerfiles/autonomy-user
