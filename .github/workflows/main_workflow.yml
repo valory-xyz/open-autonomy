@@ -289,8 +289,6 @@ jobs:
           # unzip protoc-3.19.4-win64.zip -d protoc
           # sudo mv protoc/bin/protoc /usr/local/bin/protoc
 
-          python scripts\update_symlinks_cross_platform.py
-
           # TODO: install protolint
           #echo "::set-env name=GOPATH::$(go env GOPATH)"
           #echo "::add-path::$(go env GOPATH)/bin"

@@ -20,7 +20,6 @@ asn1crypto = "==1.4.0"
 cosmpy = "==0.3.1"
 grpcio = "==1.43.0"
 hypothesis = "==6.21.6"
-joblib = "==1.1.0"
 # latest supported for Python 3.7
 numpy = "==1.21.6"
 open-aea-ledger-cosmos = "==1.21.0"
@@ -30,9 +29,6 @@ protobuf = "==3.19.4"
 pytz = "==2022.2.1"
 py-ecc = "==5.2.0"
 py-eth-sig-utils = "==0.4.0"
-# latest supported for Python 3.7
-scikit-learn = "==1.0.2"
-statsmodels = "==0.13.2"
 ### tests deps
 mistune = "==2.0.3"
 tomte = {version = "==0.1.5", extras = ["tox", "tests"]}
