@@ -1,10 +1,5 @@
-# Autonomous Economic Agents (AEAs)
-
 !!!note
-    It is assumed the reader has some familiarity with the
-    {{open_aea}} framework.
-    New developers may want refer to the {{open_aea_doc}} to get started.
-
+    This page presents a brief overview of the {{open_aea}} framework. We refer the reader to the {{open_aea_doc}} for the complete details.
 
 
 An [intelligent agent](https://en.wikipedia.org/wiki/Intelligent_agent) is a computer program that observes its environment, processes the perceived information, and executes actions in order to achieve some predefined goals. Intelligent agents can be designed to work autonomously by gathering data on a regular, pre-programmed schedule, or when a user prompts them in real time.
