@@ -207,9 +207,9 @@ class TestPythonSnippets(BaseTestDocCode):
     }
 
     skipped_files = [
-        "docs/abci_app_async_behaviour.md",  # just placeholder examples
+        "docs/key_concepts/abci_app_async_behaviour.md",  # just placeholder examples
         "docs/networks.md",  # only irrelevant one-liners,
-        "docs/abci_app_abstract_round.md",  # just a placeholder example
+        "docs/key_concepts/abci_app_abstract_round.md",  # just a placeholder example
     ]
 
 
