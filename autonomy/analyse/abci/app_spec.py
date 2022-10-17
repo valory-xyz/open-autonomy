@@ -265,7 +265,7 @@ class DFA:
     @classmethod
     def _str_to_tuple(cls, k: str) -> Tuple[str, str]:
         """Converts a string in format "(a, b)" to a tuple ("a", "b")."""
-        match = re.search(r"\((\w*),\s(\w*)\)", k, re.DOTALL)
+        match = re.search(r"\((\w+),\s*(\w+)\)", k, re.DOTALL)
 
         if match is None:
             raise DFASpecificationError(
