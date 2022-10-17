@@ -71,7 +71,8 @@ class TestPublish(BaseCliTest):
 
         assert result.exit_code == 0, result.output
         assert (
-            'Service "counter" successfully saved in packages folder.' in result.output
+            'Service "counter" successfully published on the local packages directory.'
+            in result.output
         )
         os.chdir(self.t)
 
@@ -97,7 +98,7 @@ class TestPublish(BaseCliTest):
         ):
             result = self.run_cli(("--remote",))
 
-        msg_check = f"""Published service package with\n\tPublicId: valory/counter:0.1.0\n\tPackage hash: {dummy_hash_v1}"""
+        msg_check = f"""Service "counter" successfully published on the IPFS registry.\n\tPublicId: valory/counter:0.1.0\n\tPackage hash: {dummy_hash_v1}"""
         assert result.exit_code == 0, result.output
         assert msg_check in result.output, result.output
         os.chdir(self.t)
