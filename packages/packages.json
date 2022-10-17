@@ -18,9 +18,6 @@
     "connection/valory/p2p_libp2p_client/0.1.0": "bafybeihf35zfr35qsvfte4vbi7njvuzfx4httysw7owmlux53gvxh2or54",
     "skill/valory/oracle_deployment_abci/0.1.0": "bafybeidd4jn6yi2d4lqskfgyhgzgei5w5rk3f6p2w377imk6dizsa6kz54",
     "skill/valory/transaction_settlement_abci/0.1.0": "bafybeigvdugurqbx4vqrkpro2q662vhild76r6yfw7thpgfftx6ysvdjg4",
-    "contract/valory/multisend/0.1.0": "bafybeig45676hbh4c3p3mujrrskxgxww4cxdyyginlg5rmmav6orv4gtya",
-    "contract/valory/uniswap_v2_erc20/0.1.0": "bafybeibkiwytuhhvxbisoxcybrx4lfstk6bvtriltles7fxxpy37yq45ja",
-    "contract/valory/uniswap_v2_router_02/0.1.0": "bafybeigk46llosgsfz3zp7gdz44t4libzqqqq7zi6d5wsjpz43evn6ww4m",
     "skill/valory/price_estimation_abci/0.1.0": "bafybeicjxjp26m4pkxv6j4ifizr4ve6fgc5vqrvgp2ybsw56mc2bwt7znq",
     "skill/valory/registration_abci/0.1.0": "bafybeigck3gb5tvm5tilzii7kvzqpryxrmxu2meck5empgl7lhuz66mbgq",
     "skill/valory/reset_pause_abci/0.1.0": "bafybeid65rpcwq3rzxijwrpsbirersuwk2sdtcwnpkplczbszzoq2tbitu",
@@ -28,7 +25,6 @@
     "skill/valory/counter/0.1.0": "bafybeievrwdndvczmjyetfa6sag5rwy5texjvfdf3ul25ze2s5i3h3bx2q",
     "skill/valory/counter_client/0.1.0": "bafybeihr3p2ztqpbgzuo4xi7gwq4hjcc3khibirritnxkajaugshlzxjke",
     "skill/valory/hello_world_abci/0.1.0": "bafybeigssdbyqr2bh2tzchg3a5tssdj3uwakvjsl5uuoff5wxfyxpfqbwe",
-    "skill/valory/liquidity_rebalancing_abci/0.1.0": "bafybeihykceeonzvwoogkr4iqfczzpvf6wt2sbzfboo3jac43wqcpqyaau",
     "skill/valory/oracle_abci/0.1.0": "bafybeicqfgctuzynbefgsei2oukb3c3rgu27iitjmx4o6zjhlazdeeqb2a",
     "skill/valory/register_reset_abci/0.1.0": "bafybeicqjkim6zfvngvgkvsns7h4iseyfhwsoqfvxdeubw4mt4qmrb43ju",
     "skill/valory/simple_abci/0.1.0": "bafybeianb6xv3fwf3nqzijjes6vwztf3xhurtgxqfrx6cfrvem2qms2ooi",
@@ -42,6 +38,7 @@
     "agent/valory/registration_start_up/0.1.0": "bafybeibpnjhetlif6zesescxcypqcscedb7u3dgpmv4nfbbwabuwj42k3m",
     "agent/valory/simple_abci/0.1.0": "bafybeiez76fbbul4xyizbytr424onz3s2dd2ct3lyjip5wkjylk7opmxmi",
     "agent/valory/test_abci/0.1.0": "bafybeifllqlz32rz3uglgvug3vffr753stagotmijzu2gws24z2qmxg6ce",
+    "contract/valory/multisend/0.1.0": "bafybeig45676hbh4c3p3mujrrskxgxww4cxdyyginlg5rmmav6orv4gtya",
     "service/valory/counter/0.1.0": "bafybeiev45ujfstey5mztqmvn2ttjfbsqdxbpjjhqfzqrhonjbo725twua",
     "service/valory/hello_world/0.1.0": "bafybeigu4dyxzpfka5bodnb5lzas5jsd4ejps6aabofn32l2wyqcbnilvm",
     "service/valory/oracle_goerli/0.1.0": "bafybeieyqejjcy7qvkyum4turx63txyrnwz4xd3ksg7ydhptyidwu7sbmy",
@@ -50,6 +47,5 @@
     "service/valory/oracle_ropsten/0.1.0": "bafybeib4cpusdubxo6jlyxfwn26pbjovm2fdkzmnafcptmnoylrpoggjda",
     "service/valory/oracle_ropsten_cluster/0.1.0": "bafybeieodycxy4ptd5g26c3sa3f5tc5w4a2j6ojuvqjk5udxfddmmfngk4",
     "service/valory/register_reset/0.1.0": "bafybeiesayz5f4itjetjivvspmgpjoggvyz77ipeputkvjc5ztlzvvweei",
-    "service/valory/simple_abci/0.1.0": "bafybeigcrl7p5hwwwu5oh5ykckj6h6vlzk37x3mg7nlwwfyzphub7j6j4a",
-    "skill/valory/liquidity_provision_abci/0.1.0": "bafybeiem73w3i6oi4u66262ihreeojrrgn7mkluvvzvp3sdv3c6khegwqe"
+    "service/valory/simple_abci/0.1.0": "bafybeigcrl7p5hwwwu5oh5ykckj6h6vlzk37x3mg7nlwwfyzphub7j6j4a"
 }
