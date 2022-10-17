@@ -165,13 +165,13 @@ class TestPythonSnippets(BaseTestDocCode):
     # instead of checking the code block as a whole.
 
     md_to_code = {
-        "docs/abci_app_abstract_round_behaviour.md": {
+        "docs/key_concepts/abci_app_abstract_round_behaviour.md": {
             "code_files": [
                 "by_line::packages/valory/skills/abstract_round_abci/behaviours.py"
             ],
             "skip_blocks": [1],
         },
-        "docs/abci_app_class.md": {
+        "docs/key_concepts/abci_app_class.md": {
             "code_files": [
                 "by_line::packages/valory/skills/abstract_round_abci/base.py"
             ],
