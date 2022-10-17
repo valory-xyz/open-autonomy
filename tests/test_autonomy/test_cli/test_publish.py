@@ -71,7 +71,8 @@ class TestPublish(BaseCliTest):
 
         assert result.exit_code == 0, result.output
         assert (
-            'Service "counter" successfully published on the local packages directory.' in result.output
+            'Service "counter" successfully published on the local packages directory.'
+            in result.output
         )
         os.chdir(self.t)
 
