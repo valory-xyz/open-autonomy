@@ -66,7 +66,6 @@ Ropsten
 abci
 metaclass
 api
-apy
 dataframe
 Pipenv
 nameserver
@@ -229,10 +228,10 @@ o
 i
  - docs/hot_reload.md
 bashrc
- - docs/price_estimation_details.md
+ - docs/demos/price_estimation_details.md
 application_readmes
 price_estimation_readme.md
- - docs/price_oracle_fsms.md
+ - docs/demos/price_oracle_fsms.md
 nontrivial
 walkthrough
 AgentRegistration
@@ -301,9 +300,9 @@ ResetAndPauseRound
 FinishedResetAndPauseRound
 FinishedResetAndPauseErrorRound
 RESET_AND_PAUSE_TIMEOUT
- - docs/price_estimation_intro.md
+ - docs/demos/price_estimation_intro.md
 2n
- - docs/price_oracle_intro.md
+ - docs/demos/price_oracle_intro.md
 2n
 AbstractRound
 CollectionRound
@@ -354,7 +353,7 @@ HelloWorldABCIBaseBehaviour
 BaseBehaviour
 SimpleABCIBaseBehaviour
 SpookySwap
- - docs/hello_world_agent_service.md
+ - docs/demos/hello_world_demo.md
 SelectKeeper
 pmod
 ResetAndPause
@@ -364,6 +363,7 @@ CollectDifferentUntilAllRound
 PrintMessageRound
 HelloWorldABCIAbstractRound
 PrintMessageBehaviour
+i
  - docs/agent_services_context.md
  - docs/questions-and-answers.md
 m5.large

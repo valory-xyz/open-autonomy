@@ -69,16 +69,6 @@ def prepare_and_launch(nb_nodes: int) -> None
 
 Prepare and launch the agents.
 
-<a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2End.terminate_processes"></a>
-
-#### terminate`_`processes
-
-```python
-def terminate_processes() -> None
-```
-
-Terminate processes
-
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2End.missing_from_output"></a>
 
 #### missing`_`from`_`output

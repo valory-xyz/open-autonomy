@@ -18,10 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """End2end tests base class."""
+
 import json
 import logging
 import time
-import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -34,6 +34,7 @@ from aea_test_autonomy.docker.registries import SERVICE_REGISTRY
 from aea_test_autonomy.fixture_helpers import UseFlaskTendermintNode
 
 
+TERMINATION_TIMEOUT = 120
 _HTTP = "http://"
 
 
@@ -96,6 +97,9 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     ledger_id: str = "ethereum"
     key_file_name: str = "ethereum_private_key.txt"
     USE_GRPC = False
+    # usually test envs provide the full set of dependencies; only select
+    # when you want to run the installation of the packages as part of the test case.
+    RUN_AEA_INSTALL = False
 
     @classmethod
     def set_config(
@@ -229,9 +233,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         for agent_id in range(nb_nodes):
             self.__prepare_agent_i(agent_id, nb_nodes)
 
-        # run 'aea install' in only one AEA project, to save time
-        self.set_agent_context(self._get_agent_name(0))
-        self.run_install()
+        if self.RUN_AEA_INSTALL:
+            # run 'aea install' in only one AEA project, to save time
+            self.set_agent_context(self._get_agent_name(0))
+            self.run_install()
 
     def prepare_and_launch(self, nb_nodes: int) -> None:
         """Prepare and launch the agents."""
@@ -247,20 +252,6 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
         self.set_agent_context(agent_name)
         process = self.run_agent()
         self.processes[i] = process
-
-    def terminate_processes(self) -> None:
-        """Terminate processes"""
-        for i, process in self.processes.items():
-            self.terminate_agents(process)
-            outs, errs = process.communicate()
-            logging.info(f"subprocess logs {process}: {outs} --- {errs}")
-            if not self.is_successfully_terminated(process):
-                agent_name = self._get_agent_name(i)
-                warnings.warn(
-                    UserWarning(
-                        f"ABCI {agent_name} with process {process} wasn't successfully terminated."
-                    )
-                )
 
     @staticmethod
     def __generate_full_strings_from_rounds(
@@ -429,8 +420,9 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
         )
         if self.n_terminal:
             self._restart_agents()
+
         self.check_aea_messages()
-        self.terminate_processes()
+        self.terminate_agents(timeout=TERMINATION_TIMEOUT)
 
     def _restart_agents(self) -> None:
         """Stops and restarts agents after stop string is found."""
