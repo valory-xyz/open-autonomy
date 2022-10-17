@@ -132,4 +132,6 @@ def publish_service_local(ctx: Context, public_id: PublicId) -> None:
         os.makedirs(author_dir, exist_ok=True)
 
     copytree(ctx.cwd, target_dir)
-    click.echo(f'Service "{public_id.name}" successfully published on the local packages directory.')
+    click.echo(
+        f'Service "{public_id.name}" successfully published on the local packages directory.'
+    )
