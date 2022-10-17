@@ -324,6 +324,30 @@ class TestDFA:
             assert good_dfa._str_to_tuple("")
 
         with pytest.raises(
+            DFASpecificationError,
+            match=re.escape(
+                "DFA spec. JSON file contains an invalid transition function key: (a, )."
+            ),
+        ):
+            assert good_dfa._str_to_tuple("(a, )")
+
+        with pytest.raises(
+            DFASpecificationError,
+            match=re.escape(
+                "DFA spec. JSON file contains an invalid transition function key: (, b)."
+            ),
+        ):
+            assert good_dfa._str_to_tuple("(, b)")
+
+        with pytest.raises(
+            DFASpecificationError,
+            match=re.escape(
+                "DFA spec. JSON file contains an invalid transition function key: (, )."
+            ),
+        ):
+            assert good_dfa._str_to_tuple("(, )")
+
+        with pytest.raises(
             DFASpecificationError, match="DFA spec. has the following issues"
         ):
             DFA(**self.bad_dfa_kwargs)  # type: ignore
