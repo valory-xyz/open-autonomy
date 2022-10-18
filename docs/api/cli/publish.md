@@ -12,13 +12,13 @@ Implementation of the 'autonomy publish' subcommand.
 @click.command(name="publish")
 @registry_flag()
 @click.option(
-    "--push-missing", is_flag=True, help="Push missing components to registry."
+    "--push-missing", is_flag=True, help="Push missing components on the registry."
 )
 @click.pass_context
 def publish(click_context: click.Context, registry: str, push_missing: bool) -> None
 ```
 
-Publish the agent to the registry.
+Publish the agent or service on the registry.
 
 <a id="autonomy.cli.publish.publish_service_package"></a>
 
@@ -28,7 +28,7 @@ Publish the agent to the registry.
 def publish_service_package(click_context: click.Context, registry: str) -> None
 ```
 
-Publish an agent package.
+Publish a service package.
 
 <a id="autonomy.cli.publish.publish_service_ipfs"></a>
 
@@ -38,7 +38,7 @@ Publish an agent package.
 def publish_service_ipfs(public_id: PublicId, package_path: Path) -> None
 ```
 
-Publish a service package to the IPFS registry.
+Publish a service package on the IPFS registry.
 
 <a id="autonomy.cli.publish.publish_service_local"></a>
 
@@ -48,5 +48,5 @@ Publish a service package to the IPFS registry.
 def publish_service_local(ctx: Context, public_id: PublicId) -> None
 ```
 
-Publish a service package to the local packages directory.
+Publish a service package on the local packages directory.
 

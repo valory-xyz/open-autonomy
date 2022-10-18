@@ -1,10 +1,5 @@
-# Autonomous Economic Agents (AEAs)
-
 !!!note
-    It is assumed the reader has some familiarity with the
-    {{open_aea}} framework.
-    New developers may want refer to the {{open_aea_doc}} to get started.
-
+    This page presents a brief overview of the {{open_aea}} framework. We refer the reader to the {{open_aea_doc}} for the complete details.
 
 
 An [intelligent agent](https://en.wikipedia.org/wiki/Intelligent_agent) is a computer program that observes its environment, processes the perceived information, and executes actions in order to achieve some predefined goals. Intelligent agents can be designed to work autonomously by gathering data on a regular, pre-programmed schedule, or when a user prompts them in real time.
@@ -61,7 +56,7 @@ Every AEA is composed of a number of components that work together to achieve th
 
 
 <figure markdown>
-![](./images/simplified-aea.svg)
+![](../images/simplified-aea.svg)
 <figcaption>Main components of an AEA</figcaption>
 </figure>
 
@@ -114,7 +109,7 @@ Every [`Skill`](https://open-aea.docs.autonolas.tech/skill/) has a
 This object is shared by all [`Handler`](https://open-aea.docs.autonolas.tech/api/skills/base/#handler-objects), [`Behaviour`](https://open-aea.docs.autonolas.tech/api/skills/base/#behaviour-objects), and [`Model`](https://open-aea.docs.autonolas.tech/api/skills/base/#model-objects) objects. The [`SkillContext`](https://open-aea.docs.autonolas.tech/api/skills/base/) also has a link to the [`AgentContext`](https://open-aea.docs.autonolas.tech/api/context/base/), which provides read access to AEA specific information like the public key and address of the AEA, its preferences and ownership state.
 
 <figure markdown>
-![Skill components](./images/skill-components.svg)
+![Skill components](../images/skill-components.svg)
 <figcaption>Skill components have access to the SkillContext</figcaption>
 </figure>
 
