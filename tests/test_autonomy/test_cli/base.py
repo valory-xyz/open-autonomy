@@ -41,15 +41,16 @@ class BaseCliTest:
     cli_options: Tuple[str, ...]
 
     @classmethod
-    def setup(
-        cls,
-    ) -> None:
-        """Setup test."""
-
+    def setup_class(cls) -> None:
+        """Setup test class."""
         cls.cli_runner = CliRunner()
         cls.cwd = Path.cwd().absolute()
-        cls.t = Path(tempfile.mkdtemp())
-        cls.t.mkdir(exist_ok=True)
+
+    def setup(
+        self,
+    ) -> None:
+        """Setup test."""
+        self.t = Path(tempfile.mkdtemp())
 
     def run_cli(self, commands: Optional[Tuple[str, ...]] = None) -> Result:
         """Run CLI."""
@@ -58,11 +59,10 @@ class BaseCliTest:
 
         return self.cli_runner.invoke(cli=cli, args=(*self.cli_options, *commands))
 
-    @classmethod
     def teardown(
-        cls,
+        self,
     ) -> None:
         """Teardown method."""
-        os.chdir(cls.cwd)
+        os.chdir(self.cwd)
         with suppress(OSError, FileExistsError, PermissionError):
-            shutil.rmtree(str(cls.t))
+            shutil.rmtree(str(self.t))

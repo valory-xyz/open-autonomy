@@ -52,17 +52,16 @@ class TestGenerateSpecs(BaseCliTest):
     cls_name: str
     dfa: DFA
 
-    @classmethod
-    def setup(cls) -> None:
-        """Setup class."""
+    def setup(self) -> None:
+        """Setup test method."""
         super().setup()
 
-        module_name = ".".join(cls.skill_path.parts)
+        module_name = ".".join(self.skill_path.parts)
         module = importlib.import_module(module_name)
-        cls.cls_name = ".".join([module_name, cls.app_name])
+        self.cls_name = ".".join([module_name, self.app_name])
 
-        abci_app_cls = getattr(module, cls.app_name)
-        cls.dfa = DFA.abci_to_dfa(abci_app_cls, cls.cls_name)
+        abci_app_cls = getattr(module, self.app_name)
+        self.dfa = DFA.abci_to_dfa(abci_app_cls, self.cls_name)
 
     def get_expected_output(self, output_format: str) -> str:
         """Get expected output."""
@@ -137,21 +136,18 @@ class TestCheckSpecs(BaseCliTest):
     cls_name: str
     dfa: DFA
 
-    @classmethod
-    def setup(cls) -> None:
+    def setup(self) -> None:
         """Setup class."""
         super().setup()
 
-        module_name = ".".join(cls.skill_path.parts)
-        module = importlib.import_module(module_name)
-        cls.cls_name = ".".join([module_name, cls.app_name])
+        module_name = ".".join(self.skill_path.parts)
+        self.cls_name = ".".join([module_name, self.app_name])
 
-        abci_app_cls = getattr(module, cls.app_name)
-        cls.dfa = DFA.abci_to_dfa(abci_app_cls, cls.cls_name)
-
-        cls.specification_path = cls.skill_path.parent / "fsm_specification.yaml"
-        shutil.copytree(ROOT_DIR / "packages", cls.t / "packages")
-        os.chdir(cls.t)
+        shutil.copytree(ROOT_DIR / "packages", self.t / "packages")
+        self.specification_path = (
+            self.t / self.skill_path.parent / "fsm_specification.yaml"
+        )
+        os.chdir(self.t)
 
     def _corrupt_spec_file(
         self,
@@ -163,19 +159,10 @@ class TestCheckSpecs(BaseCliTest):
         )
         self.specification_path.write_text(content)
 
-    def _fix_corrupt_file(
-        self,
-    ) -> None:
-        """Fix corrupt file."""
-        self.specification_path.write_text(
-            Path(*ROOT_DIR.absolute().parts, *self.specification_path.parts).read_text()
-        )
-
     def test_one_pass(
         self,
     ) -> None:
         """Test with one class."""
-        self._fix_corrupt_file()
         result = self.run_cli(
             ("--app-class", self.cls_name, "--infile", str(self.specification_path))
         )
@@ -205,8 +192,6 @@ class TestCheckSpecs(BaseCliTest):
         self,
     ) -> None:
         """Test --check-all flag."""
-
-        self._fix_corrupt_file()
         result = self.run_cli(
             (
                 "--check-all",
@@ -222,7 +207,6 @@ class TestCheckSpecs(BaseCliTest):
         self,
     ) -> None:
         """Test --check-all flag."""
-
         self._corrupt_spec_file()
         result = self.run_cli(
             (
@@ -241,8 +225,6 @@ class TestCheckSpecs(BaseCliTest):
         self,
     ) -> None:
         """Test with one class."""
-        self._fix_corrupt_file()
-
         result = self.run_cli(("--infile", str(self.specification_path)))
 
         assert result.exit_code == 1, result.output
@@ -254,12 +236,6 @@ class TestCheckSpecs(BaseCliTest):
         assert (
             "Please provide path to specification file." in result.output
         ), result.output
-
-    @classmethod
-    def teardown(cls) -> None:
-        """Teardown method."""
-        os.chdir(cls.cwd)
-        super().teardown()
 
 
 class TestDFA:

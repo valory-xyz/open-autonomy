@@ -40,12 +40,11 @@ class TestCheckHandlers(BaseCliTest):
     config_file: Path
     config_file_temp: Path
 
-    @classmethod
-    def setup(cls) -> None:
+    def setup(self) -> None:
         """Setup."""
         super().setup()
-        shutil.copytree(ROOT_DIR / "packages", cls.t / "packages")
-        os.chdir(cls.t)
+        shutil.copytree(ROOT_DIR / "packages", self.t / "packages")
+        os.chdir(self.t)
 
     def _get_expected_output(
         self,
@@ -116,13 +115,6 @@ class TestCheckHandlers(BaseCliTest):
                         [],
                         [],
                     )
-
-    @classmethod
-    def teardown(cls) -> None:
-        """Teardown method."""
-
-        os.chdir(cls.cwd)
-        super().teardown()
 
 
 def test_check_handlers_missing_file() -> None:

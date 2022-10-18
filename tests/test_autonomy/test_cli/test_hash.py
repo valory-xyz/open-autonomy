@@ -43,14 +43,13 @@ class TestHashAll(BaseCliTest):
         "all",
     )
 
-    @classmethod
-    def setup(cls) -> None:
+    def setup(self) -> None:
         """Setup class."""
 
         super().setup()
 
-        cls.packages_dir = cls.t / "packages"
-        shutil.copytree(ROOT_DIR / "packages", cls.packages_dir)
+        self.packages_dir = self.t / "packages"
+        shutil.copytree(ROOT_DIR / "packages", self.packages_dir)
 
     def load_hashes(
         self,
@@ -102,14 +101,13 @@ class TestHashOne(BaseCliTest):
         "one",
     )
 
-    @classmethod
-    def setup(cls) -> None:
+    def setup(self) -> None:
         """Setup class."""
 
         super().setup()
 
-        cls.file = cls.t / "some_file.txt"
-        cls.file.write_text("Hello, World!")
+        self.file = self.t / "some_file.txt"
+        self.file.write_text("Hello, World!")
 
     def test_one(
         self,

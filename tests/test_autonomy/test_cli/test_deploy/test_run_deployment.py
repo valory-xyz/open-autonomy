@@ -31,12 +31,11 @@ class TestRun(BaseCliTest):
 
     cli_options = ("deploy", "run")
 
-    @classmethod
-    def setup(cls) -> None:
-        """Setup test."""
+    def setup(self) -> None:
+        """Setup test method."""
 
         super().setup()
-        os.chdir(cls.t)
+        os.chdir(self.t)
 
     def test_run(
         self,
