@@ -143,8 +143,8 @@ class TEST_BEHAVIOURS:
         make_degenerate_behaviour,
     )
     from packages.{author}.skills.{skill_name}.behaviours import (
-        {FSMName}BaseBehaviour,
-        {FSMName}RoundBehaviour,
+        {BaseBehaviourCls},
+        {RoundBehaviourCls},
         {behaviours},
     )
     from packages.{author}.skills.{skill_name}.rounds import (
@@ -177,9 +177,9 @@ class TEST_BEHAVIOURS:
 
         path_to_skill = Path(__file__).parent.parent
 
-        behaviour: {FSMName}RoundBehaviour
-        behaviour_class: Type[{FSMName}BaseBehaviour]
-        next_behaviour_class: Type[{FSMName}BaseBehaviour]
+        behaviour: {RoundBehaviourCls}
+        behaviour_class: Type[{BaseBehaviourCls}]
+        next_behaviour_class: Type[{BaseBehaviourCls}]
         synchronized_data: SynchronizedData
         done_event = Event.DONE
 

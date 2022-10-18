@@ -125,7 +125,7 @@ class AbstractFileGenerator(ABC):
     @property
     def fsm_name(self) -> str:
         """FSM base name"""
-        return self.abci_app_name.replace(ABCI_APP, "")
+        return re.sub(ABCI_APP, "", self.abci_app_name, flags=re.IGNORECASE)
 
     @property
     def author(self) -> str:
@@ -192,8 +192,12 @@ class AbstractFileGenerator(ABC):
             initial_states=_remove_quotes(str(self.dfa.start_states)),
             transition_function=_indent_wrapper(_remove_quotes(str(tf))),
             final_states=_remove_quotes(str(self.dfa.final_states)),
-            BaseBehaviourCls=self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR),
-            RoundBehaviourCls=self.abci_app_name.replace(ABCI_APP, ROUND_BEHAVIOUR),
+            BaseBehaviourCls=re.sub(
+                ABCI_APP, BASE_BEHAVIOUR, self.abci_app_name, flags=re.IGNORECASE
+            ),
+            RoundBehaviourCls=re.sub(
+                ABCI_APP, ROUND_BEHAVIOUR, self.abci_app_name, flags=re.IGNORECASE
+            ),
             InitialBehaviourCls=self.dfa.default_start_state.replace(ROUND, BEHAVIOUR),
             round_behaviours=_indent_wrapper(_remove_quotes(str(behaviours))),
         )

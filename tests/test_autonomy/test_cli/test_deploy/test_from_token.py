@@ -41,12 +41,11 @@ class TestFromToken(BaseCliTest):
     token = 1
     chain = "staging"
 
-    @classmethod
-    def setup(cls) -> None:
-        """Setup test."""
+    def setup(self) -> None:
+        """Setup test method."""
 
         super().setup()
-        os.chdir(cls.t)
+        os.chdir(self.t)
 
     def test_from_token(
         self,
