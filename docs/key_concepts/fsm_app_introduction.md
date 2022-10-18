@@ -11,7 +11,7 @@ Its internal state takes the form of an FSM, and it exhibits proactive behaviour
 The figure below depicts an sketch of the internal workings of an {{fsm_app}}, composed of six states (A-F) and six events (1-6):
 
 <figure markdown>
-  ![](./images/fsm.svg){align=center}
+  ![](../images/fsm.svg){align=center}
   <figcaption>Diagram of a Valory stack FSM</figcaption>
 </figure>
 
@@ -70,7 +70,7 @@ We call _FSM composition mapping_ the mapping that indicates how to move from on
 For every entry in the FSM composition mapping, e.g., from a final state $Z$ from FSM1 to a start state $A$ from FSM2, the composition mechanism will enforce that all the transitions ending in the final state $Z$ of FSM1 be redirected to the start state $A$ of FSM2. See an example below.
 
 <figure markdown>
-  ![](./images/fsm_composition.svg){align=center}
+  ![](../images/fsm_composition.svg){align=center}
   <figcaption>How the FSM composition process works</figcaption>
 </figure>
 
@@ -83,7 +83,7 @@ The figure above depicts an excerpt of a composition of three FSMs into a single
     Therefore, althought it might be useful and intuitive thinking of a composed FSM in terms of its constituent FSMs, the structure is not retained internally by the {{fsm_app}}. For example, consider the following setting:
 
     <figure markdown>
-      ![](./images/fsm_composition_2.svg){align=center}
+      ![](../images/fsm_composition_2.svg){align=center}
       <figcaption>FSM composition with two sources</figcaption>
     </figure>
 

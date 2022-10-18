@@ -165,13 +165,13 @@ class TestPythonSnippets(BaseTestDocCode):
     # instead of checking the code block as a whole.
 
     md_to_code = {
-        "docs/abci_app_abstract_round_behaviour.md": {
+        "docs/key_concepts/abci_app_abstract_round_behaviour.md": {
             "code_files": [
                 "by_line::packages/valory/skills/abstract_round_abci/behaviours.py"
             ],
             "skip_blocks": [1],
         },
-        "docs/abci_app_class.md": {
+        "docs/key_concepts/abci_app_class.md": {
             "code_files": [
                 "by_line::packages/valory/skills/abstract_round_abci/base.py"
             ],
@@ -207,9 +207,9 @@ class TestPythonSnippets(BaseTestDocCode):
     }
 
     skipped_files = [
-        "docs/abci_app_async_behaviour.md",  # just placeholder examples
+        "docs/key_concepts/abci_app_async_behaviour.md",  # just placeholder examples
         "docs/networks.md",  # only irrelevant one-liners,
-        "docs/abci_app_abstract_round.md",  # just a placeholder example
+        "docs/key_concepts/abci_app_abstract_round.md",  # just a placeholder example
     ]
 
 

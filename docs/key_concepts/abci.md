@@ -1,7 +1,3 @@
-# The Application BlockChain Interface (ABCI)
-
-
-
 The [Application BlockChain Interface (ABCI)](https://github.com/tendermint/spec/tree/95cf253b6df623066ff7cd4074a94e7a3f147c7a/spec/abci) defines the boundary between the consensus engine (the blockchain) and an application to be replicated across a number of platforms.
 The ABCI lets the application logic communicate with the consensus engine in a transparent way so that all agents' internal state are synchronized. The application to be replicated can be written in any programming language, and it communicates with the consensus engine of each agent through a variety of methods, e.g., Unix or TCP sockets. In our case, we leverage the ABCI to replicate the sate of the {{fsm_app}} within the agents of an agent service.
 
@@ -44,7 +40,7 @@ modularizes a distributed state-machine replication system by clearly separating
 from the consensus and networking layer (Tendermint Core) through the ABCI layer:
 
 <figure markdown>
-  ![](./images/tendermint.svg){align=center}
+  ![](../images/tendermint.svg){align=center}
   <figcaption>Diagram of a Tendermint replicated application</figcaption>
 </figure>
 
@@ -105,7 +101,7 @@ that makes the application layer and the consensus layer highly decoupled.
 A quick overview of the ABCI protocol is depicted in the diagram below. See the complete details [here](https://docs.tendermint.com/v0.34/introduction/what-is-tendermint.html).
 
 <figure markdown>
-![](./images/abci_requests.svg)
+![](../images/abci_requests.svg)
 <figcaption>Overview of the flow of messages via the ABCI protocol</figcaption>
 </figure>
 
@@ -118,7 +114,7 @@ Below, we depict sequence diagrams for the three transactions presented above, s
 The figure below shows the sequence of actions on the different components on a Tendermint application, e.g., for the request [`broadcast_tx_sync`](https://docs.tendermint.com/v0.34/rpc/#/Tx/broadcast_tx_sync):
 
 <figure markdown>
-![](./images/tendermint_transaction.svg)
+![](../images/tendermint_transaction.svg)
 <figcaption>Sequence of actions to submit a transaction on Tendermint.</figcaption>
 </figure>
 

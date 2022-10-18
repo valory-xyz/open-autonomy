@@ -84,7 +84,7 @@ The main questions that we try to answer at this point are:
 * What are the main elements of the {{open_autonomy}} framework to implement an agent service?
 * How do agents interact with the different components in an agent service?
 
-### The finite state machine of an agent service
+### The finite-state machine of an agent service
 
 The first step when designing an agent service is to divide the intended functionality into "atomic" steps. For example, for the Hello World service, we identify these steps as
 
@@ -102,7 +102,7 @@ Graphically, the sequence of atomic steps of the Hello Word service functionalit
 <figcaption>Diagram of atomic operations of the Hello World service</figcaption>
 </figure>
 
-This sequence diagram of operations can be interpreted as a finite state machine (FSM) that defines the service. Ignoring network latency and delays caused by the underlying consensus gadget, it can be considered that at any given time, **all agents have the same view of the service FSM**, and **all agents execute the same transitions**. This is one of the key concepts of the {{open_autonomy}} framework.
+This sequence diagram of operations can be interpreted as a finite-state machine (FSM) that defines the service. Ignoring network latency and delays caused by the underlying consensus gadget, it can be considered that at any given time, **all agents have the same view of the service FSM**, and **all agents execute the same transitions**. This is one of the key concepts of the {{open_autonomy}} framework.
 
 !!! note
 
