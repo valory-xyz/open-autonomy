@@ -37,6 +37,12 @@ Options:
   --open-aea-dir PATH             Path to open-aea repo (Use with dev mode)
   --open-autonomy-dir PATH        Path to open-autonomy repo (Use with dev
                                   mode)
+  --aev                           Apply environment variable when loading
+                                  service config.
+  --use-hardhat                   Include a hardhat node in the deployment
+                                  setup.
+  --use-acn                       Include an ACN node in the deployment setup.
+  --image-version TEXT            Define runtime image version.
   --remote                        To use a remote registry.
   --local                         To use a local registry.
   -p                              Ask for password interactively
@@ -75,7 +81,7 @@ These keys can be used for local deployments if you're using the default hardhat
 
 ```bash
 # fetch a service
-$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeibwyep3yawto7o4ryboclji3jsy2akwcijwtx4njdvmkd3hl2hfh4  --service
+$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeig4psie34h7afk2p6lxmmn5yu5xfnjb6dr6dfkibfbbculyctljza  --service
 $ cd oracle_hardhat
 # create a docker deployment
 $ autonomy deploy build keys.json

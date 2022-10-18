@@ -524,6 +524,43 @@ class TestBuildDeployment(BaseCliTest):
             ]
         )
 
+    def test_include_acn_and_hardhat_nodes(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--force",
+                    "--dev",
+                    "--local",
+                    "--packages-dir",
+                    str(ROOT_DIR),
+                    "--open-aea-dir",
+                    str(ROOT_DIR),
+                    "--open-autonomy-dir",
+                    str(ROOT_DIR),
+                    "--use-hardhat",
+                    "--use-acn",
+                )
+            )
+
+        build_dir = self.t / "abci_build"
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert build_dir.exists()
+
+        docker_compose_file = build_dir / "docker-compose.yaml"
+        with open(docker_compose_file, "r", encoding="utf-8") as fp:
+            docker_compose = yaml.safe_load(fp)
+
+        assert "acn" in docker_compose["services"]
+        assert "hardhat" in docker_compose["services"]
+
     def test_build_dev_failures(
         self,
     ) -> None:

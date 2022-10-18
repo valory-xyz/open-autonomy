@@ -29,8 +29,7 @@ TENDERMINT_CONFIG_TEMPLATE: str = """/usr/bin/tendermint testnet \
 
 DOCKER_COMPOSE_TEMPLATE: str = """version: "2.4"
 services:
-{tendermint_nodes}
-{abci_nodes}
+{hardhat_node}{acn_node}{tendermint_nodes}{abci_nodes}
 networks:
   localnet:
     driver: bridge
@@ -40,13 +39,30 @@ networks:
         - subnet: 192.167.11.0/24
 """
 
-HARDHAT_NODE_TEMPLATE: str = """
-  hardhat:
+ACN_NODE_TEMPLATE: str = """  acn:
+    container_name: acn
+    image: "{acn_image_name}:{acn_image_version}"
+    restart: always
+    environment:
+      - AEA_P2P_ID=d9e43d3f0266d14b3af8627a626fa734450b1c0fcdec6f88f79bcf5543b4668c
+      - AEA_P2P_URI_PUBLIC=0.0.0.0:5000
+      - AEA_P2P_URI=0.0.0.0:5000
+      - AEA_P2P_DELEGATE_URI=0.0.0.0:11000
+      - AEA_P2P_URI_MONITORING=0.0.0.0:8081
+    entrypoint: ["python3", "-u", "/acn/node/run_acn_node_standalone.py", "/acn/node/libp2p_node", "--config-from-env"]
+    networks:
+      localnet:
+        ipv4_address: 192.167.11.3
+    ports:
+      - "9005:9005"
+      - "11000:11000"
+"""
+
+HARDHAT_NODE_TEMPLATE: str = """  hardhat:
     container_name: hardhat
-    image: "{hardhat_image_name}:{hardhat_image_version}}"
+    image: "{hardhat_image_name}:{hardhat_image_version}"
     ports:
       - "8545:8545"
-    working_dir: /home/ubuntu/build
     networks:
       localnet:
         ipv4_address: 192.167.11.2

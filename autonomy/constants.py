@@ -31,6 +31,7 @@ TENDERMINT_IMAGE_VERSION = os.environ.get(
     "TENDERMINT_IMAGE_VERSION", DEFAULT_IMAGE_VERSION
 )
 HARDHAT_IMAGE_VERSION = os.environ.get("HARDHAT_IMAGE_VERSION", DEFAULT_IMAGE_VERSION)
+ACN_IMAGE_VERSION = os.environ.get("ACN_IMAGE_VERSION", DEFAULT_IMAGE_VERSION)
 
 AUTONOMY_IMAGE_NAME = os.environ.get("AUTONOMY_IMAGE_NAME", "valory/open-autonomy")
 TENDERMINT_IMAGE_NAME = os.environ.get(
@@ -39,6 +40,7 @@ TENDERMINT_IMAGE_NAME = os.environ.get(
 HARDHAT_IMAGE_NAME = os.environ.get(
     "HARDHAT_IMAGE_NAME", "valory/open-autonomy-hardhat"
 )
+ACN_IMAGE_NAME = os.environ.get("ACN_IMAGE_NAME", "valory/open-acn-node")
 
 OAR_IMAGE = "valory/oar-{agent}:{version}"
-ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeifciotvfhgvttflrlqcgpimwsmhmtlw5tgrs5d6i3fm5lttaleax4"
+ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeihvvkuila7nh4x4u3wuj4zkrrkewv6pvpeftlkklvrnvtaw3jq75i"

@@ -25,6 +25,10 @@ from aea.configurations.constants import DEFAULT_PRIVATE_KEY_FILE
 from docker import from_env
 
 from autonomy.constants import (
+    ACN_IMAGE_NAME,
+    ACN_IMAGE_VERSION,
+    HARDHAT_IMAGE_NAME,
+    HARDHAT_IMAGE_VERSION,
     OAR_IMAGE,
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
@@ -39,10 +43,15 @@ from autonomy.deploy.constants import (
 )
 from autonomy.deploy.generators.docker_compose.templates import (
     ABCI_NODE_TEMPLATE,
+    ACN_NODE_TEMPLATE,
     DOCKER_COMPOSE_TEMPLATE,
+    HARDHAT_NODE_TEMPLATE,
     TENDERMINT_CONFIG_TEMPLATE,
     TENDERMINT_NODE_TEMPLATE,
 )
+
+
+N_RESERVED_IP_ADDRESSES = 4
 
 
 def build_tendermint_node_config(
@@ -54,7 +63,7 @@ def build_tendermint_node_config(
 
     config = TENDERMINT_NODE_TEMPLATE.format(
         node_id=node_id,
-        localnet_address_postfix=node_id + 3,
+        localnet_address_postfix=node_id + N_RESERVED_IP_ADDRESSES,
         localnet_port_range=node_id,
         log_level=log_level,
         tendermint_image_name=TENDERMINT_IMAGE_NAME,
@@ -84,7 +93,7 @@ def build_agent_config(  # pylint: disable=too-many-arguments
     config = ABCI_NODE_TEMPLATE.format(
         node_id=node_id,
         agent_vars=agent_vars_string,
-        localnet_address_postfix=node_id + number_of_agents + 3,
+        localnet_address_postfix=node_id + number_of_agents + N_RESERVED_IP_ADDRESSES,
         runtime_image=runtime_image,
     )
 
@@ -132,7 +141,12 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
 
         return self
 
-    def generate(self, image_version: Optional[str] = None) -> "DockerComposeGenerator":
+    def generate(
+        self,
+        image_version: Optional[str] = None,
+        use_hardhat: bool = False,
+        use_acn: bool = False,
+    ) -> "DockerComposeGenerator":
         """Generate the new configuration."""
 
         image_version = image_version or self.service_spec.service.agent.hash
@@ -170,9 +184,26 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 for i in range(self.service_spec.service.number_of_agents)
             ]
         )
+
+        hardhat_node = ""
+        if use_hardhat:
+            hardhat_node = HARDHAT_NODE_TEMPLATE.format(
+                hardhat_image_name=HARDHAT_IMAGE_NAME,
+                hardhat_image_version=HARDHAT_IMAGE_VERSION,
+            )
+
+        acn_node = ""
+        if use_acn:
+            acn_node = ACN_NODE_TEMPLATE.format(
+                acn_image_name=ACN_IMAGE_NAME,
+                acn_image_version=ACN_IMAGE_VERSION,
+            )
+
         self.output = DOCKER_COMPOSE_TEMPLATE.format(
             abci_nodes=agents,
             tendermint_nodes=tendermint_nodes,
+            hardhat_node=hardhat_node,
+            acn_node=acn_node,
         )
 
         return self
