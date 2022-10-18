@@ -381,7 +381,7 @@ class DIALOGUES:
 
 
     ContractApiDialogue = BaseContractApiDialogue
-    ContactApiDialogues = BaseContractApiDialogues
+    ContractApiDialogues = BaseContractApiDialogues
 
 
     TendermintDialogue = BaseTendermintDialogue
