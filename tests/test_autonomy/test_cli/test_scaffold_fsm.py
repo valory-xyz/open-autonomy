@@ -121,6 +121,7 @@ class BaseScaffoldFSMTest(AEATestCaseEmpty):
     @classmethod
     def teardown_class(cls) -> None:
         """Teardown the test class."""
+        super().teardown_class()
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
 
     @classmethod
