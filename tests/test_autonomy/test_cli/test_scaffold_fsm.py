@@ -23,6 +23,7 @@ import importlib.util
 import os
 import shutil
 from contextlib import suppress
+from copy import copy
 from importlib.machinery import ModuleSpec
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -37,6 +38,7 @@ from aea.test_tools.test_cases import AEATestCaseEmpty
 import autonomy.cli.core  # noqa
 
 from packages.valory import skills
+from packages.valory.skills.abstract_round_abci.base import _MetaPayload
 
 from tests.conftest import ROOT_DIR
 
@@ -53,6 +55,14 @@ class BaseScaffoldFSMTest(AEATestCaseEmpty):
     @classmethod
     def setup_class(cls) -> None:
         """Setup class."""
+        # we need to store the current value of the meta-class attribute
+        # _MetaPayload.transaction_type_to_payload_cls, and restore it
+        # in the teardown function. We do a shallow copy so we avoid
+        # to modify the old mapping during the execution of the tests.
+        cls.old_tx_type_to_payload_cls = copy(
+            _MetaPayload.transaction_type_to_payload_cls
+        )
+        _MetaPayload.transaction_type_to_payload_cls = {}
         super().setup_class()
 
         cls.author = get_default_author_from_cli_config()
@@ -107,6 +117,11 @@ class BaseScaffoldFSMTest(AEATestCaseEmpty):
         )
 
         return scaffold_result, push_result
+
+    @classmethod
+    def teardown_class(cls) -> None:
+        """Teardown the test class."""
+        _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
 
     @classmethod
     def teardown(
