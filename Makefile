@@ -219,13 +219,6 @@ teardown-kubernetes:
 
 .PHONY: fix-abci-app-specs
 fix-abci-app-specs:
-	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_abci.rounds.APYEstimationAbciApp packages/valory/skills/apy_estimation_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_abci consistency" && exit 1)
-	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.apy_estimation_chained_abci.composition.APYEstimationAbciAppChained packages/valory/skills/apy_estimation_chained_abci/fsm_specification.yaml || (echo "Failed to check apy_estimation_chained_abci consistency" && exit 1)
-	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.liquidity_provision_abci.composition.LiquidityProvisionAbciApp packages/valory/skills/liquidity_provision_abci/fsm_specification.yaml || (echo "Failed to check liquidity_provision_abci consistency" && exit 1)
-	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.liquidity_rebalancing_abci.rounds.LiquidityRebalancingAbciApp packages/valory/skills/liquidity_rebalancing_abci/fsm_specification.yaml || (echo "Failed to check liquidity_rebalancing_abci consistency" && exit 1)
-	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.oracle_abci.composition.OracleAbciApp packages/valory/skills/oracle_abci/fsm_specification.yaml || (echo "Failed to check oracle_abci consistency" && exit 1)
-	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.oracle_deployment_abci.rounds.OracleDeploymentAbciApp packages/valory/skills/oracle_deployment_abci/fsm_specification.yaml || (echo "Failed to check oracle_deployment_abci consistency" && exit 1)
-	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.price_estimation_abci.rounds.PriceAggregationAbciApp packages/valory/skills/price_estimation_abci/fsm_specification.yaml || (echo "Failed to check price_estimation_abci consistency" && exit 1)
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp packages/valory/skills/registration_abci/fsm_specification.yaml || (echo "Failed to check registration_abci consistency" && exit 1)
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.reset_pause_abci.rounds.ResetPauseABCIApp packages/valory/skills/reset_pause_abci/fsm_specification.yaml || (echo "Failed to check reset_pause_abci consistency" && exit 1)
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.safe_deployment_abci.rounds.SafeDeploymentAbciApp packages/valory/skills/safe_deployment_abci/fsm_specification.yaml || (echo "Failed to check safe_deployment_abci consistency" && exit 1)
@@ -233,13 +226,5 @@ fix-abci-app-specs:
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
 	echo "Successfully validated abcis!"
 
-
-AEA_AGENT_HELLO_WORLD:=valory/hello_world:latest:$(shell cat packages/packages.json | grep "agent/valory/hello_world" | cut -d "\"" -f4 )
-AEA_AGENT_ORACLE:=valory/oracle:latest:$(shell cat packages/packages.json | grep "agent/valory/oracle" | cut -d "\"" -f4 )
-AEA_AGENT_APY_ESTIMATION:=valory/apy_estimation:latest:$(shell cat packages/packages.json | grep "agent/valory/apy_estimation" | cut -d "\"" -f4 )
 release-images:
-	export AEA_AGENT_ORACLE=${AEA_AGENT_ORACLE}
-	export AEA_AGENT_APY_ESTIMATION=${AEA_AGENT_APY_ESTIMATION}
-	export AEA_AGENT=${AEA_AGENT_HELLO_WORLD}
 	skaffold build -p release --cache-artifacts=false && skaffold build -p release-latest
-	

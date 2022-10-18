@@ -130,21 +130,19 @@ class TestYamlSnippets(BaseTestDocCode):
     # instead of checking the code block as a whole.
 
     md_to_code = {
-        "docs/hello_world_agent_service.md": {
+        "docs/demos/hello_world_demo.md": {
             "code_files": ["packages/valory/agents/hello_world/aea-config.yaml"],
         },
-        "docs/price_oracle_fsms.md": {
+        "docs/demos/price_oracle_fsms.md": {
             "code_files": [
                 "packages/valory/skills/registration_abci/fsm_specification.yaml",
                 "packages/valory/skills/safe_deployment_abci/fsm_specification.yaml",
-                "packages/valory/skills/oracle_deployment_abci/fsm_specification.yaml",
-                "packages/valory/skills/price_estimation_abci/fsm_specification.yaml",
                 "packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml",
                 "packages/valory/skills/reset_pause_abci/fsm_specification.yaml",
-                "packages/valory/skills/oracle_abci/fsm_specification.yaml",
             ],
+            "skip_blocks": [2, 3, 6],
         },
-        "docs/simple_abci.md": {
+        "docs/demos/simple_abci.md": {
             "code_files": ["packages/valory/skills/simple_abci/fsm_specification.yaml"],
         },
         "docs/networks.md": {"skip_blocks": [0]},
@@ -161,23 +159,23 @@ class TestPythonSnippets(BaseTestDocCode):
     # snippets, a list with the target files ordered is provided.
     #
     # Use skip_blocks to specify a list of blocks that need to be skipped
-    # Add by_line:: at the beggining of a code file path so the check is performed line by line
+    # Add by_line:: at the beginning of a code file path so the check is performed line by line
     # instead of checking the code block as a whole.
 
     md_to_code = {
-        "docs/abci_app_abstract_round_behaviour.md": {
+        "docs/key_concepts/abci_app_abstract_round_behaviour.md": {
             "code_files": [
                 "by_line::packages/valory/skills/abstract_round_abci/behaviours.py"
             ],
             "skip_blocks": [1],
         },
-        "docs/abci_app_class.md": {
+        "docs/key_concepts/abci_app_class.md": {
             "code_files": [
                 "by_line::packages/valory/skills/abstract_round_abci/base.py"
             ],
             "skip_blocks": [1],
         },
-        "docs/hello_world_agent_service.md": {
+        "docs/demos/hello_world_demo.md": {
             "code_files": [
                 "by_line::packages/valory/skills/hello_world_abci/rounds.py",
                 "by_line::packages/valory/skills/hello_world_abci/rounds.py",
@@ -186,19 +184,7 @@ class TestPythonSnippets(BaseTestDocCode):
                 "packages/valory/skills/hello_world_abci/payloads.py",
             ],
         },
-        "docs/price_oracle_technical_details.md": {
-            "code_files": [
-                "packages/valory/skills/oracle_abci/composition.py",
-                "packages/valory/skills/oracle_abci/behaviours.py",
-            ],
-        },
-        "docs/price_oracle_fsms.md": {
-            "code_files": [
-                "packages/valory/skills/oracle_abci/composition.py",
-                "packages/valory/skills/oracle_abci/composition.py",
-            ],
-        },
-        "docs/simple_abci.md": {
+        "docs/demos/simple_abci.md": {
             "code_files": [
                 "packages/valory/skills/simple_abci/behaviours.py",
                 "packages/valory/skills/simple_abci/rounds.py",
@@ -207,9 +193,11 @@ class TestPythonSnippets(BaseTestDocCode):
     }
 
     skipped_files = [
-        "docs/abci_app_async_behaviour.md",  # just placeholder examples
+        "docs/key_concepts/abci_app_async_behaviour.md",  # just placeholder examples
         "docs/networks.md",  # only irrelevant one-liners,
-        "docs/abci_app_abstract_round.md",  # just a placeholder example
+        "docs/key_concepts/abci_app_abstract_round.md",  # just a placeholder example
+        "docs/demos/price_oracle_fsms.md",  # price oracle has been extracted to a separate repo on #1441
+        "docs/demos/price_oracle_technical_details.md",  # price oracle has been extracted to a separate repo on #1441
     ]
 
 

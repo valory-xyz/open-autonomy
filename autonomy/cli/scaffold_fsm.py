@@ -125,7 +125,7 @@ class AbstractFileGenerator(ABC):
     @property
     def fsm_name(self) -> str:
         """FSM base name"""
-        return self.abci_app_name.replace(ABCI_APP, "")
+        return re.sub(ABCI_APP, "", self.abci_app_name, flags=re.IGNORECASE)
 
     @property
     def author(self) -> str:
@@ -192,8 +192,12 @@ class AbstractFileGenerator(ABC):
             initial_states=_remove_quotes(str(self.dfa.start_states)),
             transition_function=_indent_wrapper(_remove_quotes(str(tf))),
             final_states=_remove_quotes(str(self.dfa.final_states)),
-            BaseBehaviourCls=self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR),
-            RoundBehaviourCls=self.abci_app_name.replace(ABCI_APP, ROUND_BEHAVIOUR),
+            BaseBehaviourCls=re.sub(
+                ABCI_APP, BASE_BEHAVIOUR, self.abci_app_name, flags=re.IGNORECASE
+            ),
+            RoundBehaviourCls=re.sub(
+                ABCI_APP, ROUND_BEHAVIOUR, self.abci_app_name, flags=re.IGNORECASE
+            ),
             InitialBehaviourCls=self.dfa.default_start_state.replace(ROUND, BEHAVIOUR),
             round_behaviours=_indent_wrapper(_remove_quotes(str(behaviours))),
         )
@@ -283,11 +287,14 @@ class BehaviourFileGenerator(AbstractFileGenerator, BEHAVIOURS):
 
         behaviours: List[str] = []
         base_behaviour_name = self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR)
-        for behaviour_name, round_name in zip(self.behaviours, self.rounds):
+        for behaviour_name, round_name, payload_name in zip(
+            self.behaviours, self.rounds, self.payloads
+        ):
             behaviour_id = behaviour_name.replace(BEHAVIOUR, "")
             behaviour = self.BEHAVIOUR_CLS.format(
                 BehaviourCls=behaviour_name,
                 BaseBehaviourCls=base_behaviour_name,
+                PayloadCls=payload_name,
                 behaviour_id=_camel_case_to_snake_case(behaviour_id),
                 matching_round=round_name,
             )
@@ -418,7 +425,8 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             "ledger_api_dialogues", SkillComponentConfiguration("LedgerApiDialogues")
         )
         config.models.create(
-            "contract_api_dialogues", SkillComponentConfiguration("ContactApiDialogues")
+            "contract_api_dialogues",
+            SkillComponentConfiguration("ContractApiDialogues"),
         )
         config.models.create(
             "tendermint_dialogues", SkillComponentConfiguration("TendermintDialogues")

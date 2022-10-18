@@ -13,7 +13,7 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeid6p7vwyikn7sntlpc36vymotldfgonjbk3qa5gfacxxamybhmpvy
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
-- valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
+- valory/ledger:0.19.0:bafybeihmz5us4ntmzvgikpkx4tththrl7zvou4uiebvletdeliidiuhi6m
 - valory/p2p_libp2p_client:0.1.0:bafybeihf35zfr35qsvfte4vbi7njvuzfx4httysw7owmlux53gvxh2or54
 contracts: []
 protocols:
@@ -24,8 +24,8 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 skills:
 - valory/abstract_abci:0.1.0:bafybeiabow5j6wc63szukedutrx6bia2agnju62avxsbhqkhchcwwpvu5i
-- valory/abstract_round_abci:0.1.0:bafybeihvvkuila7nh4x4u3wuj4zkrrkewv6pvpeftlkklvrnvtaw3jq75i
-- valory/simple_abci:0.1.0:bafybeid3uixd5lyr3vherj64zqtycwhmymcvf6bd7pkmz2l66nmp47fcfm
+- valory/abstract_round_abci:0.1.0:bafybeicxgd6b7mkkpjsj2cwzs3evf4tctoqelcx4kctm6il3xneednkp3y
+- valory/simple_abci:0.1.0:bafybeibm6l4ffmpvywctfp7l3baivoc7jvk4sqcjxrgk6khbvxus4kokuy
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -98,14 +98,14 @@ type: skill
 models:
   benchmark_tool:
     args:
-      log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+      log_dir: ${SKILL_SIMPLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
   params:
     args:
       consensus:
         max_participants: ${MAX_PARTICIPANTS:int:4}
-      round_timeout_seconds: ${ORACLE_PARAMS_ROUND_TIMEOUT_SECONDS:float:7.0}
+      round_timeout_seconds: ${SIMPLE_ABCI_MODELS_PARAMS_ROUND_TIMEOUT_SECONDS:float:7.0}
       tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
       tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
-      reset_tendermint_after: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_RESET_TENDERMINT_AFTER:int:10}
-      observation_interval: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:10}
-      max_healthcheck: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:1200}
+      reset_tendermint_after: ${SKILL_SIMPLE_ABCI_MODELS_PARAMS_ARGS_RESET_TENDERMINT_AFTER:int:10}
+      observation_interval: ${SKILL_SIMPLE_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:10}
+      max_healthcheck: ${SKILL_SIMPLE_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:1200}

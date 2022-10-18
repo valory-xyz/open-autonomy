@@ -48,6 +48,8 @@ backend
 kubeconfig
 poc
 Valory
+lceil
+rceil
 linters
 linter
 docstrings
@@ -66,7 +68,6 @@ Ropsten
 abci
 metaclass
 api
-apy
 dataframe
 Pipenv
 nameserver
@@ -199,6 +200,7 @@ Abazi
 0xArdi
 BibTex
 fsm_app_introduction.md
+key_concepts
 incentivizes
 faucet
 OpenSea
@@ -210,11 +212,9 @@ s_
 
  - docs/deployment_description.md
 center
- - docs/aea.md
+ - docs/key_concepts/aea.md
 3f
 geq
-lceil
-rceil
 classDiagram
 init
 teardown
@@ -225,14 +225,14 @@ act_wrapper
 ConcreteBehaviour
 shared_state
 o
- - docs/fsm.md
+ - docs/key_concepts/fsm.md
 i
  - docs/hot_reload.md
 bashrc
- - docs/price_estimation_details.md
+ - docs/demos/price_estimation_details.md
 application_readmes
 price_estimation_readme.md
- - docs/price_oracle_fsms.md
+ - docs/demos/price_oracle_fsms.md
 nontrivial
 walkthrough
 AgentRegistration
@@ -301,13 +301,15 @@ ResetAndPauseRound
 FinishedResetAndPauseRound
 FinishedResetAndPauseErrorRound
 RESET_AND_PAUSE_TIMEOUT
- - docs/price_estimation_intro.md
+ - docs/demos/price_estimation_intro.md
 2n
- - docs/price_oracle_intro.md
+ - docs/demos/price_oracle_intro.md
 2n
 AbstractRound
 CollectionRound
 CollectDifferentUntilAllRound
+lceil
+rceil
  - docs/fsm_app_introduction.md
 i
  - HISTORY.md
@@ -354,21 +356,23 @@ HelloWorldABCIBaseBehaviour
 BaseBehaviour
 SimpleABCIBaseBehaviour
 SpookySwap
- - docs/hello_world_agent_service.md
+ - docs/demos/hello_world_demo.md
 SelectKeeper
 pmod
 ResetAndPause
 AbstractRound
+classDiagram
 CollectionRound
 CollectDifferentUntilAllRound
 PrintMessageRound
 HelloWorldABCIAbstractRound
 PrintMessageBehaviour
+i
  - docs/agent_services_context.md
  - docs/questions-and-answers.md
 m5.large
 2vCPU
- - docs/threat-model.md
+ - docs/key_concepts/threat_model.md
 L1
 L2
 misbehavior

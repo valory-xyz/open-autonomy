@@ -70,10 +70,9 @@ class ROUNDS:
         \"\"\"{RoundCls}\"\"\"
 
         {todo_abstract_round_cls}
-        # TODO: set the following class attributes
         round_id: str = "{round_id}"
-        allowed_tx_type: Optional[TransactionType]
-        payload_attribute: str = {PayloadCls}.transaction_type
+        allowed_tx_type: Optional[TransactionType] = {PayloadCls}.transaction_type
+        payload_attribute: str = "{round_id}"
 
         def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
             \"\"\"Process the end of the block.\"\"\"
@@ -119,7 +118,6 @@ class BEHAVIOURS:
     HEADER = """\
     \"\"\"This package contains round behaviours of {AbciApp}.\"\"\"
 
-    from abc import abstractmethod
     from typing import Generator, Set, Type, cast
 
     from packages.valory.skills.abstract_round_abci.base import AbstractRound
@@ -133,6 +131,9 @@ class BEHAVIOURS:
         SynchronizedData,
         {AbciApp},
         {rounds},
+    )
+    from packages.{author}.skills.{skill_name}.rounds import (
+        {payloads},
     )
 
     """
@@ -162,9 +163,19 @@ class BEHAVIOURS:
         behaviour_id: str = "{behaviour_id}"
         matching_round: Type[AbstractRound] = {matching_round}
 
-        @abstractmethod
+        # TODO: implement logic required to set payload content (e.g. synchronized_data)
         def async_act(self) -> Generator:
             \"\"\"Do the act, supporting asynchronous execution.\"\"\"
+
+            with self.context.benchmark_tool.measure(self.behaviour_id).local():
+                sender = self.context.agent_address
+                payload = {PayloadCls}(sender=sender, content=...)
+
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
+
+            self.set_done()
 
     """
 
@@ -223,7 +234,7 @@ class PAYLOADS:
         @property
         def data(self) -> Dict[str, Hashable]:
             \"\"\"Get the data.\"\"\"
-            return {{str(self.transaction_type): getattr(self, str(self.transaction_type))}}
+            return dict(content=getattr(self, str(self.transaction_type)))
 
     """
 
@@ -231,7 +242,6 @@ class PAYLOADS:
     class {PayloadCls}(Base{FSMName}Payload):
         \"\"\"Represent a transaction payload for the {RoundCls}.\"\"\"
 
-        # TODO: specify the transaction type
         transaction_type = TransactionType.{tx_type}
 
     """
@@ -371,7 +381,7 @@ class DIALOGUES:
 
 
     ContractApiDialogue = BaseContractApiDialogue
-    ContactApiDialogues = BaseContractApiDialogues
+    ContractApiDialogues = BaseContractApiDialogues
 
 
     TendermintDialogue = BaseTendermintDialogue

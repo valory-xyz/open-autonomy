@@ -11,7 +11,7 @@ In this guide, we will show how to:
   - Register the service in the on-chain protocol. We will be using the [Görli testnet](https://goerli.net/).
   - Deploy the registered service.
 
-If you recall the [overview of the development process](./overview_of_the_development_process.md), this roughly consists in steps 4, 5, and 6. For illustration purposes, we will also be using the agents from the [Hello World agent service](../hello_world_agent_service.md) and we will create a new (but functionally equivalent) "Hello World 2 agent service".
+If you recall the [overview of the development process](./overview_of_the_development_process.md), this roughly consists in steps 4, 5, and 6. For illustration purposes, we will also be using the agents from the [Hello World agent service](../demos/hello_world_demo.md) and we will create a new (but functionally equivalent) "Hello World 2 agent service".
 
 Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
 
@@ -87,7 +87,11 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
         Most of the parameters in the YAML file are self-explanatory, but let us briefly discuss some of them:
 
-        - `fingerprint`: this field contains the IPFS hash for all the files inside the service folder, except the `service.yaml` itself.
+        - `fingerprint`: this field contains the IPFS hash for all the files inside the service folder, except the `service.yaml` itself. To get the IPFS hash of a given file you can use the `autonomy hash` command, for example,
+        ```bash
+        autonomy hash one README.md
+        ```
+
         - `fingerprint_ignore_patterns`: filename patterns whose matches will be ignored.
         - `agent`: references the agent that the service is going to use, in the format `public_id:ipfs_hash`.
 

@@ -42,38 +42,35 @@ class TestPublish(BaseCliTest):
 
     cli_options: Tuple[str, ...] = ("publish",)
 
-    @classmethod
-    def setup(cls) -> None:
+    def setup(self) -> None:
         """Setup class."""
 
         super().setup()
 
-        cls.packages_dir = cls.t / "packages"
-        cls.service_dir = cls.t / "packages" / "valory" / "services" / "counter"
-        cls.temp_local_registry = cls.t / "temp_reg"
-        cls.temp_local_registry.mkdir()
-        cls.cli_options = (
+        self.packages_dir = self.t / "packages"
+        self.service_dir = self.t / "packages" / "valory" / "services" / "counter"
+        self.temp_local_registry = self.t / "temp_reg"
+        self.temp_local_registry.mkdir()
+        self.cli_options = (
             "--registry-path",
-            str(cls.temp_local_registry),
+            str(self.temp_local_registry),
             "publish",
         )
 
-        shutil.copytree(ROOT_DIR / "packages", cls.packages_dir)
-        os.chdir(cls.t)
+        shutil.copytree(ROOT_DIR / "packages", self.packages_dir)
+        os.chdir(self.service_dir)
 
     def test_local(
         self,
     ) -> None:
         """Test publish service locally."""
-
-        os.chdir(self.service_dir)
         result = self.run_cli(("--local",))
 
         assert result.exit_code == 0, result.output
         assert (
-            'Service "counter" successfully saved in packages folder.' in result.output
+            'Service "counter" successfully published on the local packages directory.'
+            in result.output
         )
-        os.chdir(self.t)
 
     def test_ipfs(
         self,
@@ -82,7 +79,6 @@ class TestPublish(BaseCliTest):
 
         dummy_hash_v0 = "QmeU1Cz796TBihCT426pA3HAYC7LhaawsXgGmy1hpyZXj9"
         dummy_hash_v1 = to_v1("QmeU1Cz796TBihCT426pA3HAYC7LhaawsXgGmy1hpyZXj9")
-        os.chdir(self.service_dir)
 
         with mock.patch(
             "autonomy.cli.publish.get_default_remote_registry", new=lambda: REMOTE_IPFS
@@ -97,7 +93,6 @@ class TestPublish(BaseCliTest):
         ):
             result = self.run_cli(("--remote",))
 
-        msg_check = f"""Published service package with\n\tPublicId: valory/counter:0.1.0\n\tPackage hash: {dummy_hash_v1}"""
+        msg_check = f"""Service "counter" successfully published on the IPFS registry.\n\tPublicId: valory/counter:0.1.0\n\tPackage hash: {dummy_hash_v1}"""
         assert result.exit_code == 0, result.output
         assert msg_check in result.output, result.output
-        os.chdir(self.t)

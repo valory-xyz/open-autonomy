@@ -44,22 +44,21 @@ class TestFetchCommand(BaseCliTest):
 
     packages_dir: Path
 
-    @classmethod
-    def setup(cls) -> None:
+    def setup(self) -> None:
         """Setup class."""
 
         super().setup()
 
-        cls.packages_dir = cls.t / "packages"
-        cls.cli_options = (
+        self.packages_dir = self.t / "packages"
+        self.cli_options = (
             "--registry-path",
-            str(cls.packages_dir),
+            str(self.packages_dir),
             "fetch",
             "--service",
         )
 
-        shutil.copytree(ROOT_DIR / "packages", cls.packages_dir)
-        os.chdir(cls.t)
+        shutil.copytree(ROOT_DIR / "packages", self.packages_dir)
+        os.chdir(self.t)
 
     def get_service_hash(
         self,
@@ -94,7 +93,7 @@ class TestFetchCommand(BaseCliTest):
         self,
     ) -> None:
         """Test fetch service."""
-        expected_hash = "bafybeiazafhn7aeeo5ymo6gslbdjpr5ek4j7dmelf56izvbq4litrdhx7y"
+        expected_hash = "bafybeicqvwvogloyw2ujhedbwv4opn2ngus6dh7ocxg7umhhawcnzpibrq"
 
         service_dir = self.t / "dummy_service"
         service_file = service_dir / "service.yaml"

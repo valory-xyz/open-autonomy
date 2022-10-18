@@ -41,22 +41,21 @@ class TestBuildImage(BaseCliTest):
     build_dir: Path
     hash_: str
 
-    @classmethod
-    def setup(cls) -> None:
+    def setup(self) -> None:
         """Setup class."""
         super().setup()
 
-        cls.docker_api = docker.APIClient()
+        self.docker_api = docker.APIClient()
 
         with open(ROOT_DIR / PACKAGES / "packages.json") as json_data:
             d = json.load(json_data)
-            cls.hash_ = d["agent/valory/hello_world/0.1.0"]
+            self.hash_ = d["agent/valory/hello_world/0.1.0"]
             json_data.close()
         shutil.copytree(
             ROOT_DIR / PACKAGES / "valory" / "services" / "hello_world",
-            cls.t / "hello_world",
+            self.t / "hello_world",
         )
-        os.chdir(cls.t / "hello_world")
+        os.chdir(self.t / "hello_world")
 
     def test_build_prod(
         self,
@@ -70,10 +69,3 @@ class TestBuildImage(BaseCliTest):
             len(self.docker_api.images(name=f"valory/oar-hello_world:{self.hash_}"))
             == 1
         )
-
-    @classmethod
-    def teardown(cls) -> None:
-        """Teardown."""
-
-        os.chdir(cls.cwd)
-        super().teardown()

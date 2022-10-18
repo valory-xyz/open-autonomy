@@ -31,7 +31,7 @@ class TEST_ROUNDS:
     HEADER = """\
     \"\"\"This package contains the tests for rounds of {FSMName}.\"\"\"
 
-    from typing import Any, Dict, List, Callable, Hashable
+    from typing import Any, Type, Dict, List, Callable, Hashable
     from dataclasses import dataclass, field
 
     import pytest
@@ -40,6 +40,7 @@ class TEST_ROUNDS:
         {payloads},
     )
     from packages.{author}.skills.{skill_name}.rounds import (
+        AbstractRound,
         Event,
         SynchronizedData,
         {rounds},
@@ -65,6 +66,7 @@ class TEST_ROUNDS:
         final_data: Dict[str, Hashable]
         event: Event
         synchronized_data_attr_checks: List[Callable] = field(default_factory=list)
+        kwargs: Dict[str, Any] = field(default_factory=dict)
 
 
     MAX_PARTICIPANTS: int = 4
@@ -75,16 +77,17 @@ class TEST_ROUNDS:
     class Base{FSMName}RoundTest(BaseRoundTestClass):
         \"\"\"Base test class for {FSMName} rounds.\"\"\"
 
+        round_cls: Type[AbstractRound]
         synchronized_data: SynchronizedData
         _synchronized_data_class = SynchronizedData
         _event_class = Event
 
-        def run_test(self, test_case: RoundTestCase, **kwargs) -> None:
+        def run_test(self, test_case: RoundTestCase) -> None:
             \"\"\"Run the test\"\"\"
 
             self.synchronized_data.update(**test_case.initial_data)
 
-            test_round = self.round_class(
+            test_round = self.round_cls(
                 synchronized_data=self.synchronized_data,
                 consensus_params=self.consensus_params,
             )
@@ -96,7 +99,7 @@ class TEST_ROUNDS:
                     synchronized_data_update_fn=lambda sync_data, _: sync_data.update(**test_case.final_data),
                     synchronized_data_attr_checks=test_case.synchronized_data_attr_checks,
                     exit_event=test_case.event,
-                    **kwargs,  # varies per BaseRoundTestClass child
+                    **test_case.kwargs,  # varies per BaseRoundTestClass child
                 )
             )
 
@@ -109,11 +112,11 @@ class TEST_ROUNDS:
         round_class = {RoundCls}
 
         # TODO: provide test cases
-        @pytest.mark.parametrize("test_case, kwargs", [])
-        def test_run(self, test_case: RoundTestCase, **kwargs: Any) -> None:
+        @pytest.mark.parametrize("test_case", [])
+        def test_run(self, test_case: RoundTestCase) -> None:
             \"\"\"Run tests.\"\"\"
 
-            self.run_test(test_case, **kwargs)
+            self.run_test(test_case)
 
     """
 
@@ -129,7 +132,7 @@ class TEST_BEHAVIOURS:
 
     from pathlib import Path
     from typing import Any, Dict, Hashable, Optional, Type
-    from dataclasses import dataclass
+    from dataclasses import dataclass, field
 
     import pytest
 
@@ -140,8 +143,8 @@ class TEST_BEHAVIOURS:
         make_degenerate_behaviour,
     )
     from packages.{author}.skills.{skill_name}.behaviours import (
-        {FSMName}BaseBehaviour,
-        {FSMName}RoundBehaviour,
+        {BaseBehaviourCls},
+        {RoundBehaviourCls},
         {behaviours},
     )
     from packages.{author}.skills.{skill_name}.rounds import (
@@ -164,6 +167,7 @@ class TEST_BEHAVIOURS:
         name: str
         initial_data: Dict[str, Hashable]
         event: Event
+        kwargs: Dict[str, Any] = field(default_factory=dict)
 
     """
 
@@ -173,9 +177,9 @@ class TEST_BEHAVIOURS:
 
         path_to_skill = Path(__file__).parent.parent
 
-        behaviour: {FSMName}RoundBehaviour
-        behaviour_class: Type[{FSMName}BaseBehaviour]
-        next_behaviour_class: Type[{FSMName}BaseBehaviour]
+        behaviour: {RoundBehaviourCls}
+        behaviour_class: Type[{BaseBehaviourCls}]
+        next_behaviour_class: Type[{BaseBehaviourCls}]
         synchronized_data: SynchronizedData
         done_event = Event.DONE
 
@@ -216,8 +220,8 @@ class TEST_BEHAVIOURS:
         next_behaviour_class: Type[BaseBehaviour] = ...
 
         # TODO: provide test cases
-        @pytest.mark.parametrize("test_case, kwargs", [])
-        def test_run(self, test_case: BehaviourTestCase, **kwargs: Any) -> None:
+        @pytest.mark.parametrize("test_case", [])
+        def test_run(self, test_case: BehaviourTestCase) -> None:
             \"\"\"Run tests.\"\"\"
 
             self.fast_forward(test_case.initial_data)
@@ -237,7 +241,7 @@ class TEST_PAYLOADS:
     HEADER = """\
     \"\"\"This package contains payload tests for the {AbciApp}.\"\"\"
 
-    from typing import Hashable
+    from typing import Type, Hashable
     from dataclasses import dataclass
 
     import pytest
@@ -254,7 +258,7 @@ class TEST_PAYLOADS:
         \"\"\"PayloadTestCase\"\"\"
 
         name: str
-        payload_cls: Base{FSMName}Payload
+        payload_cls: Type[Base{FSMName}Payload]
         content: Hashable
         transaction_type: TransactionType
 

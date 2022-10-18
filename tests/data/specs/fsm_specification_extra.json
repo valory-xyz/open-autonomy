@@ -1,0 +1,30 @@
+{
+    "alphabet_in": [
+        "DONE",
+        "NO_MAJORITY",
+        "RESET_TIMEOUT",
+        "ROUND_TIMEOUT"
+    ],
+    "default_start_state": "RegistrationRound",
+    "final_states": [],
+    "label": "packages.valory.skills.hello_world_abci.rounds.HelloWorldAbciApp",
+    "start_states": ["RegistrationRound"],
+    "states": [
+        "PrintMessageRound",
+        "RegistrationRound",
+        "ResetAndPauseRound",
+        "SelectKeeperRound"
+    ],
+    "transition_func": {
+        "(PrintMessageRound, DONE)": "ResetAndPauseRound",
+        "(PrintMessageRound, ROUND_TIMEOUT)": "RegistrationRound",
+        "(RegistrationRound, DONE)": "SelectKeeperRound",
+        "(ResetAndPauseRound, DONE)": "SelectKeeperRound",
+        "(ResetAndPauseRound, NO_MAJORITY)": "RegistrationRound",
+        "(ResetAndPauseRound, RESET_TIMEOUT)": "RegistrationRound",
+        "(SelectKeeperRound, DONE)": "PrintMessageRound",
+        "(SelectKeeperRound, NO_MAJORITY)": "RegistrationRound",
+        "(SelectKeeperRound, ROUND_TIMEOUT)": "RegistrationRound"
+    },
+    "extra_field": 0
+}

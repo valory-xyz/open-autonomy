@@ -12,9 +12,20 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 ## Local deployment
 
-Local deployments of a service are recommended to test your service before you publish it to the [IPFS](https://ipfs.io/). This guide assumes that your terminal is located in the (local) service folder that you want to deploy. that is, the folder containing the `service.yaml` file.
+Local deployments of a service are recommended to test your service before you publish it to a remote registry. Open a terminal and follow the steps below.
 
-1. Prepare a JSON file `keys.json` containing an address and a key for each of the agents that make up the agent service. Below you have some sample keys for testing:
+1. Navigate to the local folder of the service that you want to deploy. That is, the folder containing the `service.yaml` file.
+
+2. Build the Docker image of the service agents:
+    ```bash
+    autonomy build-image
+    ```
+    After the command finishes building the image, you can see that it has been created by executing:
+    ```bash
+    docker image ls | grep <service_agent_name>
+    ```
+
+3. Prepare a JSON file `keys.json` containing an address and a key for each of the agents that make up the agent service. Below you have some sample keys for testing:
 
     !!! warning "Important"
         Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**
@@ -40,31 +51,22 @@ Local deployments of a service are recommended to test your service before you p
         ]
         ```
 
-2. Build the Docker image of the service agents:
+4. Build the deployment setup for the service:
     ```bash
-    autonomy build-image
-    ```
-    After the command finishes building it, you can see that it has created the image by executing:
-    ```bash
-    docker image ls | grep <service_agent_name>
+    autonomy deploy build keys.json --aev
     ```
 
-3. Build the deployment setup for the service:
-    ```bash
-    autonomy deploy build keys.json
-    ```
-
-4. The build configuration will be located in `./abci_build`. Run the deployment locally using
+5. The build configuration will be located in `./abci_build` folder. Run the deployment locally using
     ```bash
     cd abci_build
     autonomy deploy run
     ```
-    You can cancel the local execution by pressing `Ctrl-C`, and return to the service parent folder `cd ..`.
+    You can cancel the local execution by pressing `Ctrl-C`.
 
 
 
 ## On-chain deployment
-The {{open_autonomy}} framework provides a convenient interface for services that have are [registered in the on-chain protocol](./register_packages_on_chain.md##register-a-service).
+The {{open_autonomy}} framework provides a convenient interface for services that are [registered in the on-chain protocol](./register_packages_on_chain.md##register-a-service).
 
   1. **Find the service ID.** Explore the [services section](https://protocol.autonolas.network/agents) of the protocol frontend, and note the ID of the service that you want to deploy. The service must be in **Finished Registration** state.
 

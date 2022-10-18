@@ -26,7 +26,7 @@ In this guide, you will learn how to:
 
     You should see an output similar to this:
     ```
-    Published service package with
+    Service "<your_service_name>" successfully published on the IPFS registry.
         PublicId: <your_name>/<your_service_name>:<version>
         Package hash: bafybei01234567890abcdefghijklmnopqrstuvwxyz01234567890abcd
     ```
