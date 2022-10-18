@@ -6,7 +6,7 @@ description: ABCI application for dummy skill that registers and resets
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: bafybeicg5eg7f4fhaxflzaz6h73xklax6cfggg6d4sjl27tcs3rjqgflza
+  README.md: bafybeigoqyrvnxe6rk7jbbuqia73wym2gckucwr2dut2erivmzp3ypm7p4
   __init__.py: bafybeib3wx66crh3jb56hmo5snirxfolxvjhongpygddadn3ui5cftmnpm
   behaviours.py: bafybeick2z3fmwjcnacvcnxglpexpub27isshhgb7rbmjekoggq52vuxmq
   composition.py: bafybeicokngkvzfxu4nawhfxt6zlrk2ml6i37u7i3e5zfv4hybrkefl3nu

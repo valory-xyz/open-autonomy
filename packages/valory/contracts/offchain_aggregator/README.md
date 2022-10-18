@@ -1,6 +1,0 @@
-# `OffchainAggregator` contract
-
-## Description
-
-## Functions
-
