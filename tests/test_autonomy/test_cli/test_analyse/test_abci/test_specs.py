@@ -31,6 +31,8 @@ from unittest import mock
 
 import pytest
 
+from aea.configurations.constants import PACKAGES
+
 from autonomy.analyse.abci.app_spec import (
     DFA,
     DFASpecificationError,
@@ -46,20 +48,18 @@ class TestGenerateSpecs(BaseCliTest):
     """Test generate-app-specs"""
 
     cli_options: Tuple[str, ...] = ("analyse", "abci", "generate-app-specs")
-    skill_path = Path("packages", "valory", "skills", "hello_world_abci", "rounds")
+    skill_path = Path(PACKAGES, "valory", "skills", "hello_world_abci", "rounds")
+    module_name = ".".join(skill_path.parts)
     app_name = "HelloWorldAbciApp"
+    cls_name = ".".join([module_name, app_name])
 
-    cls_name: str
     dfa: DFA
 
     def setup(self) -> None:
         """Setup test method."""
         super().setup()
 
-        module_name = ".".join(self.skill_path.parts)
-        module = importlib.import_module(module_name)
-        self.cls_name = ".".join([module_name, self.app_name])
-
+        module = importlib.import_module(self.module_name)
         abci_app_cls = getattr(module, self.app_name)
         self.dfa = DFA.abci_to_dfa(abci_app_cls, self.cls_name)
 
@@ -129,21 +129,20 @@ class TestCheckSpecs(BaseCliTest):
     """Test `check-app-specs` command."""
 
     cli_options: Tuple[str, ...] = ("analyse", "abci", "check-app-specs")
-    skill_path = Path("packages", "valory", "skills", "hello_world_abci", "rounds")
+    skill_path = Path(PACKAGES, "valory", "skills", "hello_world_abci", "rounds")
+    module_name = ".".join(skill_path.parts)
     app_name = "HelloWorldAbciApp"
+    cls_name = ".".join([module_name, app_name])
 
+    packages_dir: Path
     specification_path: Path
-    cls_name: str
-    dfa: DFA
 
     def setup(self) -> None:
         """Setup class."""
         super().setup()
 
-        module_name = ".".join(self.skill_path.parts)
-        self.cls_name = ".".join([module_name, self.app_name])
-
-        shutil.copytree(ROOT_DIR / "packages", self.t / "packages")
+        self.packages_dir = self.t / PACKAGES
+        shutil.copytree(ROOT_DIR / PACKAGES, self.packages_dir)
         self.specification_path = (
             self.t / self.skill_path.parent / "fsm_specification.yaml"
         )
@@ -170,7 +169,7 @@ class TestCheckSpecs(BaseCliTest):
         assert result.exit_code == 0
         assert (
             result.output
-            == "Checking : packages.valory.skills.hello_world_abci.rounds.HelloWorldAbciApp\nCheck successful\n"
+            == f"Checking : {self.cls_name}\nCheck successful\n"
         )
 
     def test_one_fail(
@@ -185,7 +184,7 @@ class TestCheckSpecs(BaseCliTest):
         assert result.exit_code == 1
         assert (
             result.output
-            == "Checking : packages.valory.skills.hello_world_abci.rounds.HelloWorldAbciApp\nCheck failed.\n"
+            == f"Checking : {self.cls_name}\nCheck failed.\n"
         )
 
     def test_check_all(
@@ -196,7 +195,7 @@ class TestCheckSpecs(BaseCliTest):
             (
                 "--check-all",
                 "--packages-dir",
-                str(self.t / "packages"),
+                str(self.packages_dir),
             )
         )
 
@@ -212,7 +211,7 @@ class TestCheckSpecs(BaseCliTest):
             (
                 "--check-all",
                 "--packages-dir",
-                str(self.t / "packages"),
+                str(self.packages_dir),
             )
         )
 

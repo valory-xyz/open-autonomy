@@ -434,6 +434,11 @@ class SpecCheck:
                 *packages_dir.glob("**/fsm_specification_composition.yaml"),
             ]
         )
+        # TODO: fix this implementation:
+        # - above file names should be constant and explained in helper text
+        # - investigate: either a) we need to do this in the order of the inverse dependency tree, so that
+        # dependencies are already loaded. Otherwise dependencies might not be present. Or b)
+        # we need to ensure relative modules are loaded too (https://docs.python.org/3/library/importlib.html#importlib.import_module)?
         for spec_file in fsm_specifications:
             with open(str(spec_file), mode="r", encoding="utf-8") as fp:
                 specs = yaml.safe_load(fp)

@@ -26,6 +26,8 @@ from warnings import filterwarnings
 
 import click
 
+from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE
+
 from autonomy.analyse.abci.app_spec import DFA, SpecCheck
 from autonomy.analyse.abci.docstrings import process_module
 from autonomy.analyse.abci.handlers import check_handlers
@@ -33,6 +35,8 @@ from autonomy.analyse.abci.logs import parse_file
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
 from autonomy.cli.utils.click_utils import abci_spec_format_flag
 
+
+BENCHMARKS_DIR = Path("./benchmarks.html")
 
 filterwarnings("ignore")
 
@@ -58,6 +62,7 @@ def generate_abci_app_specs(
 
     module_name, class_name = app_class.rsplit(".", 1)
 
+    # TODO: extract into helper
     try:
         module = importlib.import_module(module_name)
     except Exception as e:
@@ -183,12 +188,13 @@ def parse_logs(file: Path) -> None:
 def run_handler_check(packages_dir: Path, skip: str, common: str) -> None:
     """Check handler definitions."""
 
+    # TODO: use more appropriate input type and apply validation on it
     skip_skills = skip.split(",")
     common_handlers = common.split(",")
     packages_dir = Path(packages_dir)
 
     try:
-        for yaml_file in sorted(packages_dir.glob("**/skill.yaml")):
+        for yaml_file in sorted(packages_dir.glob(f"**/{DEFAULT_SKILL_CONFIG_FILE}")):
             click.echo(f"Checking {yaml_file.parent}")
             check_handlers(yaml_file.resolve(), common_handlers, skip_skills)
     except Exception as e:  # pylint: disable=broad-except
@@ -219,13 +225,12 @@ def run_handler_check(packages_dir: Path, skip: str, common: str) -> None:
     "--output",
     "-o",
     type=click.types.Path(file_okay=True, dir_okay=False, resolve_path=True),
+    default=BENCHMARKS_DIR,
 )
 def benchmark(path: Path, block_type: str, period: int, output: Optional[Path]) -> None:
     """Benchmark aggregator."""
 
-    output = Path("./benchmarks.html" if output is None else output).resolve()
-
     try:
-        aggregate(path=path, block_type=block_type, period=period, output=output)
+        aggregate(path=path, block_type=block_type, period=period, output=Path(output))
     except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e

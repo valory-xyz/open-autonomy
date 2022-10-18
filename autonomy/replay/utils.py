@@ -20,6 +20,7 @@
 """Utils module."""
 
 import json
+from typing import Any, Dict
 from pathlib import Path
 
 from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
@@ -27,6 +28,7 @@ from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
 
 def fix_address_books(build_dir: Path) -> None:
     """Update address books in data dump to use them in replays."""
+    # TODO: add json validation and error handling
     for addr_file in sorted(
         (build_dir / PERSISTENT_DATA_DIR / TM_STATE_DIR).glob("**/addrbook.json")
     ):
@@ -42,6 +44,7 @@ def fix_address_books(build_dir: Path) -> None:
 
 def fix_config_files(build_dir: Path) -> None:
     """Update config.toml in data dump to use them in replays."""
+    # TODO: add json validation and error handling
     for config_file in sorted(
         (build_dir / PERSISTENT_DATA_DIR / TM_STATE_DIR).glob("**/config.toml")
     ):
@@ -49,3 +52,11 @@ def fix_config_files(build_dir: Path) -> None:
         config = config.replace("persistent_peers =", "# persistent_peers =")
         config_file.write_text(config)
         print(f"Updated {config_file}")
+
+
+def load_docker_config(file_path: Path) -> Dict[str, Any]:  # pragma: nocover
+    """Load docker config."""
+    with open(str(file_path), "r", encoding="utf-8") as fp:
+        docker_compose_config = yaml.safe_load(fp)
+
+    return docker_compose_config

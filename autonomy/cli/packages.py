@@ -38,13 +38,12 @@ from autonomy.cli.hash import load_configuration
 )
 @pass_ctx
 def lock_packages(ctx: Context, check: bool) -> None:
-    """Lock packages"""
+    """Lock local packages."""
 
     packages_dir = Path(ctx.registry_path)
 
     try:
         if check:
-            packages_dir = Path(ctx.registry_path)
             click.echo("Verifying packages.json")
             return_code = PackageManager.from_dir(packages_dir).verify(
                 config_loader=load_configuration

@@ -27,13 +27,15 @@ from typing import List
 
 import yaml
 
+from autonomy.configurations.constants import HANDLERS, CLASS_NAME
+
 
 def check_handlers(
     config_file: Path, common_handlers: List[str], skip_skills: List[str]
 ) -> None:
     """Check handlers"""
 
-    handler_file_path = (config_file.parent / "handlers.py").relative_to(
+    handler_file_path = (config_file.parent / f"{HANDLERS}.py").relative_to(
         Path.cwd().resolve()
     )
     module_name = str(handler_file_path).replace(".py", "").replace(os.sep, ".")
@@ -49,13 +51,13 @@ def check_handlers(
     with open(str(config_file), mode="r", encoding="utf-8") as fp:
         config = yaml.safe_load(fp)
         for common_handler in common_handlers:
-            if common_handler not in config["handlers"]:
+            if common_handler not in config[HANDLERS]:
                 raise ValueError(
                     f"Common handler '{common_handler}' is not defined in {config_file}"
                 )
 
-        for handler_info in config["handlers"].values():
+        for handler_info in config[HANDLERS].values():
             if handler_info["class_name"] not in module_attributes:
                 raise ValueError(
-                    f"Handler {handler_info['class_name']} declared in {config_file} is missing from {handler_file_path}"
+                    f"Handler {handler_info[CLASS_NAME]} declared in {config_file} is missing from {handler_file_path}"
                 )

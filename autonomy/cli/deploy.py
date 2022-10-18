@@ -37,7 +37,7 @@ from compose.cli import main as docker_compose
 
 from autonomy.cli.fetch import fetch_service
 from autonomy.cli.utils.click_utils import chain_selection_flag
-from autonomy.configurations.constants import DEFAULT_SERVICE_FILE
+from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
 from autonomy.configurations.loader import load_service_config
 from autonomy.constants import DEFAULT_KEYS_FILE
 from autonomy.deploy.build import generate_deployment
@@ -300,11 +300,11 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     click.echo("Service build successful.")
     run_deployment(build_dir)
 
-
+# TODO: extract into appropriate utils with validations
 def update_multisig_address(service_path: Path, address: str) -> None:
     """Update the multisig address on the service config."""
 
-    with open_file(service_path / DEFAULT_SERVICE_FILE) as fp:
+    with open_file(service_path / DEFAULT_SERVICE_CONFIG_FILE) as fp:
         config, *overrides = yaml_load_all(
             fp,
         )
@@ -315,7 +315,7 @@ def update_multisig_address(service_path: Path, address: str) -> None:
                 address,
             ]
 
-    with open_file(service_path / DEFAULT_SERVICE_FILE, mode="w+") as fp:
+    with open_file(service_path / DEFAULT_SERVICE_CONFIG_FILE, mode="w+") as fp:
         yaml_dump_all([config, *overrides], fp)
 
 

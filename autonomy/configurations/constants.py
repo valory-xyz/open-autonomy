@@ -25,6 +25,10 @@ from pathlib import Path
 
 CONFIG_PATH = Path(__file__).absolute().parent
 SCHEMAS_DIR = CONFIG_PATH / "schemas"
-DEFAULT_SERVICE_FILE = "service.yaml"
+DEFAULT_SERVICE_CONFIG_FILE = "service.yaml"
 SERVICE = "service"
 SERVICES = "services"
+HANDLERS = "handlers"
+CLASS_NAME = 'class_name'
+INIT_PY = "__init__.py"
+PYCACHE = "__pycache__"
