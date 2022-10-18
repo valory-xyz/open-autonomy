@@ -101,7 +101,7 @@ class TestServiceConfig:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "Configuration of component (skill, valory/oracle_abci:0.1.0) occurs more than once."
+                "Configuration of component (skill, valory/dummy_abci:0.1.0) occurs more than once."
             ),
         ):
             load_service_config(self.t)

@@ -225,3 +225,6 @@ fix-abci-app-specs:
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.simple_abci.rounds.SimpleAbciApp packages/valory/skills/simple_abci/fsm_specification.yaml || (echo "Failed to check simple_abci consistency" && exit 1)
 	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
 	echo "Successfully validated abcis!"
+
+release-images:
+	skaffold build -p release --cache-artifacts=false && skaffold build -p release-latest

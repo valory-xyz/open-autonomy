@@ -23,7 +23,7 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeiabow5j6wc63szukedutrx6bia2agnju62avxsbhqkhchcwwpvu5i
 - valory/abstract_round_abci:0.1.0:bafybeiegpewio6lkpikfnohjqmlwkqtxdmjbky4dphof4jvrixlvkiqixi
-- valory/register_reset_abci:0.1.0:bafybeicqjkim6zfvngvgkvsns7h4iseyfhwsoqfvxdeubw4mt4qmrb43ju
+- valory/register_reset_abci:0.1.0:bafybeia6ejlfc4adai7em7zrsauwjony6p2tiq54ezzksduhevlv4pvnbe
 - valory/registration_abci:0.1.0:bafybeigck3gb5tvm5tilzii7kvzqpryxrmxu2meck5empgl7lhuz66mbgq
 - valory/reset_pause_abci:0.1.0:bafybeid65rpcwq3rzxijwrpsbirersuwk2sdtcwnpkplczbszzoq2tbitu
 default_ledger: ethereum
@@ -73,7 +73,7 @@ type: skill
 models:
   benchmark_tool:
     args:
-      log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+      log_dir: ${SKILL_REGISTER_RESET_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
   params:
     args:
       tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
