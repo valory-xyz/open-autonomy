@@ -425,7 +425,8 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             "ledger_api_dialogues", SkillComponentConfiguration("LedgerApiDialogues")
         )
         config.models.create(
-            "contract_api_dialogues", SkillComponentConfiguration("ContractApiDialogues")
+            "contract_api_dialogues",
+            SkillComponentConfiguration("ContractApiDialogues"),
         )
         config.models.create(
             "tendermint_dialogues", SkillComponentConfiguration("TendermintDialogues")
