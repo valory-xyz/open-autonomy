@@ -94,7 +94,7 @@ class TestFetchCommand(BaseCliTest):
         self,
     ) -> None:
         """Test fetch service."""
-        expected_hash = "bafybeihdikpoev7lystaajeektjkr5pa3mhafnp4gowx6ufxlcxncyvrni"
+        expected_hash = "bafybeicqvwvogloyw2ujhedbwv4opn2ngus6dh7ocxg7umhhawcnzpibrq"
 
         service_dir = self.t / "dummy_service"
         service_file = service_dir / "service.yaml"
