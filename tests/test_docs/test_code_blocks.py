@@ -137,18 +137,22 @@ class TestYamlSnippets(BaseTestDocCode):
             "code_files": [
                 "packages/valory/skills/registration_abci/fsm_specification.yaml",
                 "packages/valory/skills/safe_deployment_abci/fsm_specification.yaml",
-                "packages/valory/skills/oracle_deployment_abci/fsm_specification.yaml",
-                "packages/valory/skills/price_estimation_abci/fsm_specification.yaml",
                 "packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml",
                 "packages/valory/skills/reset_pause_abci/fsm_specification.yaml",
-                "packages/valory/skills/oracle_abci/fsm_specification.yaml",
             ],
+            "skip_blocks": [2, 3, 6],
         },
         "docs/demos/simple_abci.md": {
             "code_files": ["packages/valory/skills/simple_abci/fsm_specification.yaml"],
         },
         "docs/networks.md": {"skip_blocks": [0]},
     }
+
+    skipped_files = [
+        "packages/valory/skills/oracle_deployment_abci/fsm_specification.yaml",
+        "packages/valory/skills/price_estimation_abci/fsm_specification.yaml",
+        "packages/valory/skills/oracle_abci/fsm_specification.yaml",
+    ]
 
 
 class TestPythonSnippets(BaseTestDocCode):
@@ -161,7 +165,7 @@ class TestPythonSnippets(BaseTestDocCode):
     # snippets, a list with the target files ordered is provided.
     #
     # Use skip_blocks to specify a list of blocks that need to be skipped
-    # Add by_line:: at the beggining of a code file path so the check is performed line by line
+    # Add by_line:: at the beginning of a code file path so the check is performed line by line
     # instead of checking the code block as a whole.
 
     md_to_code = {
@@ -186,18 +190,6 @@ class TestPythonSnippets(BaseTestDocCode):
                 "packages/valory/skills/hello_world_abci/payloads.py",
             ],
         },
-        "docs/demos/price_oracle_technical_details.md": {
-            "code_files": [
-                "packages/valory/skills/oracle_abci/composition.py",
-                "packages/valory/skills/oracle_abci/behaviours.py",
-            ],
-        },
-        "docs/demos/price_oracle_fsms.md": {
-            "code_files": [
-                "packages/valory/skills/oracle_abci/composition.py",
-                "packages/valory/skills/oracle_abci/composition.py",
-            ],
-        },
         "docs/demos/simple_abci.md": {
             "code_files": [
                 "packages/valory/skills/simple_abci/behaviours.py",
@@ -210,6 +202,8 @@ class TestPythonSnippets(BaseTestDocCode):
         "docs/key_concepts/abci_app_async_behaviour.md",  # just placeholder examples
         "docs/networks.md",  # only irrelevant one-liners,
         "docs/key_concepts/abci_app_abstract_round.md",  # just a placeholder example
+        'docs/demos/price_oracle_fsms.md',  # price oracle has been extracted to a separate repo on #1441
+        'docs/demos/price_oracle_technical_details.md',  # price oracle has been extracted to a separate repo on #1441
     ]
 
 
