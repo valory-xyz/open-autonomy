@@ -37,19 +37,18 @@ class TestDocstrings(BaseCliTest):
     cli_options: Tuple[str, ...] = ("analyse", "abci", "docstrings")
     rounds_file = Path("packages", "valory", "skills", "hello_world_abci", "rounds.py")
 
-    @classmethod
     def setup(
-        cls,
+        self,
     ) -> None:
-        """Setup class."""
+        """Setup test method."""
 
         super().setup()
 
-        shutil.copytree(ROOT_DIR / "packages", cls.t / "packages")
-        os.chdir(cls.t)
+        shutil.copytree(ROOT_DIR / "packages", self.t / "packages")
+        os.chdir(self.t)
 
-        cls.rounds_file_original = Path(*ROOT_DIR.parts, *cls.rounds_file.parts)
-        cls.rounds_file_temp = Path(*cls.t.parts, *cls.rounds_file.parts)
+        self.rounds_file_original = Path(*ROOT_DIR.parts, *self.rounds_file.parts)
+        self.rounds_file_temp = Path(*self.t.parts, *self.rounds_file.parts)
 
     def _get_expected_output(
         self,

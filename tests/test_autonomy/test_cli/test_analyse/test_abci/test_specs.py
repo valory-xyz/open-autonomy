@@ -52,17 +52,16 @@ class TestGenerateSpecs(BaseCliTest):
     cls_name: str
     dfa: DFA
 
-    @classmethod
-    def setup(cls) -> None:
-        """Setup class."""
+    def setup(self) -> None:
+        """Setup test method."""
         super().setup()
 
-        module_name = ".".join(cls.skill_path.parts)
+        module_name = ".".join(self.skill_path.parts)
         module = importlib.import_module(module_name)
-        cls.cls_name = ".".join([module_name, cls.app_name])
+        self.cls_name = ".".join([module_name, self.app_name])
 
-        abci_app_cls = getattr(module, cls.app_name)
-        cls.dfa = DFA.abci_to_dfa(abci_app_cls, cls.cls_name)
+        abci_app_cls = getattr(module, self.app_name)
+        self.dfa = DFA.abci_to_dfa(abci_app_cls, self.cls_name)
 
     def get_expected_output(self, output_format: str) -> str:
         """Get expected output."""
@@ -137,21 +136,20 @@ class TestCheckSpecs(BaseCliTest):
     cls_name: str
     dfa: DFA
 
-    @classmethod
-    def setup(cls) -> None:
+    def setup(self) -> None:
         """Setup class."""
         super().setup()
 
-        module_name = ".".join(cls.skill_path.parts)
+        module_name = ".".join(self.skill_path.parts)
         module = importlib.import_module(module_name)
-        cls.cls_name = ".".join([module_name, cls.app_name])
+        self.cls_name = ".".join([module_name, self.app_name])
 
-        abci_app_cls = getattr(module, cls.app_name)
-        cls.dfa = DFA.abci_to_dfa(abci_app_cls, cls.cls_name)
+        abci_app_cls = getattr(module, self.app_name)
+        self.dfa = DFA.abci_to_dfa(abci_app_cls, self.cls_name)
 
-        cls.specification_path = cls.skill_path.parent / "fsm_specification.yaml"
-        shutil.copytree(ROOT_DIR / "packages", cls.t / "packages")
-        os.chdir(cls.t)
+        self.specification_path = self.skill_path.parent / "fsm_specification.yaml"
+        shutil.copytree(ROOT_DIR / "packages", self.t / "packages")
+        os.chdir(self.t)
 
     def _corrupt_spec_file(
         self,
@@ -254,12 +252,6 @@ class TestCheckSpecs(BaseCliTest):
         assert (
             "Please provide path to specification file." in result.output
         ), result.output
-
-    @classmethod
-    def teardown(cls) -> None:
-        """Teardown method."""
-        os.chdir(cls.cwd)
-        super().teardown()
 
 
 class TestDFA:

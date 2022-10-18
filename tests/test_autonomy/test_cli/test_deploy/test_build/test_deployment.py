@@ -53,24 +53,23 @@ class TestBuildDeployment(BaseCliTest):
 
     keys_file: Path
 
-    @classmethod
-    def setup(cls) -> None:
-        """Setup class."""
+    def setup(self) -> None:
+        """Setup test method."""
 
         super().setup()
 
-        cls.keys_file = cls.t / "keys.json"
+        self.keys_file = self.t / "keys.json"
 
-        shutil.copytree(ROOT_DIR / PACKAGES, cls.t / PACKAGES)
+        shutil.copytree(ROOT_DIR / PACKAGES, self.t / PACKAGES)
         shutil.copy(
-            ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json", cls.keys_file
+            ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json", self.keys_file
         )
 
         shutil.copytree(
-            cls.t / PACKAGES / "valory" / "services" / "hello_world",
-            cls.t / "hello_world",
+            self.t / PACKAGES / "valory" / "services" / "hello_world",
+            self.t / "hello_world",
         )
-        os.chdir(cls.t / "hello_world")
+        os.chdir(self.t / "hello_world")
 
     def test_docker_compose_build(
         self,
@@ -543,10 +542,3 @@ class TestBuildDeployment(BaseCliTest):
 
         assert result.exit_code == 1, result.output
         assert "Please provide proper value for --packages-dir" in result.output
-
-    @classmethod
-    def teardown(cls) -> None:
-        """Teardown method."""
-
-        os.chdir(cls.cwd)
-        super().teardown()

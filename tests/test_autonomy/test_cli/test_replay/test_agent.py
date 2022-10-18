@@ -85,16 +85,15 @@ class TestAgentRunner(BaseCliTest):
     output_dir: Path = ROOT_DIR
     keys_path: Path = ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json"
 
-    @classmethod
-    def setup(cls) -> None:
-        """Setup."""
+    def setup(self) -> None:
+        """Setup test method."""
         super().setup()
 
         shutil.copytree(
-            cls.packages_dir / "valory" / "services" / "hello_world",
-            cls.t / "hello_world",
+            self.packages_dir / "valory" / "services" / "hello_world",
+            self.t / "hello_world",
         )
-        os.chdir(cls.t / "hello_world")
+        os.chdir(self.t / "hello_world")
 
     def test_run(self) -> None:
         """Test run."""
