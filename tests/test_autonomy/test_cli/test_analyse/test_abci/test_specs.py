@@ -30,7 +30,6 @@ from typing import Tuple
 from unittest import mock
 
 import pytest
-
 from aea.configurations.constants import PACKAGES
 
 from autonomy.analyse.abci.app_spec import (
@@ -167,10 +166,7 @@ class TestCheckSpecs(BaseCliTest):
         )
 
         assert result.exit_code == 0
-        assert (
-            result.output
-            == f"Checking : {self.cls_name}\nCheck successful\n"
-        )
+        assert result.output == f"Checking : {self.cls_name}\nCheck successful\n"
 
     def test_one_fail(
         self,
@@ -182,10 +178,7 @@ class TestCheckSpecs(BaseCliTest):
         )
 
         assert result.exit_code == 1
-        assert (
-            result.output
-            == f"Checking : {self.cls_name}\nCheck failed.\n"
-        )
+        assert result.output == f"Checking : {self.cls_name}\nCheck failed.\n"
 
     def test_check_all(
         self,

@@ -50,7 +50,6 @@ KEY_SCHEMA_ADDRESS = "address"
 KEY_SCHEMA_PRIVATE_KEY = "private_key"
 
 
-DEFAULT_ABCI_BUILD_DIR = "abci_build"
 PERSISTENT_DATA_DIR = "persistent_data"
 LOG_DIR = "logs"
 TM_STATE_DIR = "tm_state"

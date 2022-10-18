@@ -25,14 +25,17 @@ from typing import Any, Dict
 
 import click
 import yaml
-
 from aea.configurations.constants import PACKAGES
 
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DOCKER_COMPOSE_YAML
 from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
 from autonomy.replay.agent import AgentRunner
 from autonomy.replay.tendermint import build_tendermint_apps
-from autonomy.replay.utils import fix_address_books, fix_config_files, load_docker_config
+from autonomy.replay.utils import (
+    fix_address_books,
+    fix_config_files,
+    load_docker_config,
+)
 
 
 REGISTRY_PATH = Path(PACKAGES)

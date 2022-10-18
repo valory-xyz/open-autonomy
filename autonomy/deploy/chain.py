@@ -34,23 +34,24 @@ SERVICE_REGISTRY_ABI = (
     DATA_DIR / ABIS_DIR / "service_registry" / "service_registry.json"
 )
 DEFAULT_STAGING_CHAIN = "http://localhost:8545"
+SERVICE_CONTRACT_ADDRESS = "service_contract_address"
 
 CHAIN_CONFIG: Dict[str, Dict[str, Optional[str]]] = {
     "staging": {
         "rpc": os.environ.get("STAGING_CHAIN_RPC", DEFAULT_STAGING_CHAIN),
-        "service_contract_address": os.environ.get(
+        SERVICE_CONTRACT_ADDRESS: os.environ.get(
             "SERVICE_ADDRESS_STAGING", "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
         ),
     },
     "ethereum": {
         "rpc": os.environ.get("ETHEREUM_CHAIN_RPC"),
-        "service_contract_address": os.environ.get(
+        SERVICE_CONTRACT_ADDRESS: os.environ.get(
             "SERVICE_ADDRESS_ETHEREUM", "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA"
         ),
     },
     "goerli": {
         "rpc": os.environ.get("GOERLI_CHAIN_RPC"),
-        "service_contract_address": os.environ.get(
+        SERVICE_CONTRACT_ADDRESS: os.environ.get(
             "SERVICE_ADDRESS_GOERLI", "0x1cEe30D08943EB58EFF84DD1AB44a6ee6FEff63a"
         ),
     },
@@ -87,6 +88,7 @@ class ServiceRegistry:
                 f"RPC url for {chain_type} is not set, please set value for {chain_type.upper()}_CHAIN_RPC"
             )
 
+        # TODO: replace with our plugin for easier extensability
         self.w3 = web3.Web3(
             provider=web3.HTTPProvider(endpoint_uri=rpc_url),
         )
@@ -94,7 +96,7 @@ class ServiceRegistry:
 
         self.service_contract_address = service_contract_address or CHAIN_CONFIG.get(
             chain_type, {}
-        ).get("service_contract_address")
+        ).get(SERVICE_CONTRACT_ADDRESS)
         if self.service_contract_address is None:
             raise ValueError(
                 f"RPC url for {chain_type} is not set, please set value for SERVICE_ADDRESS_{chain_type.upper()}"

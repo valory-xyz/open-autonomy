@@ -29,6 +29,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Dict, List, Optional
 
+from aea_ledger_ethereum.test_tools.constants import ETHEREUM_PRIVATE_KEY_FILE
+
 
 class AgentRunner:
     """Agent runner."""
@@ -38,6 +40,7 @@ class AgentRunner:
     registry_path: Path
     process: Optional[subprocess.Popen]  # nosec
     aea_cli: List[str] = [sys.executable, "-m", "aea.cli"]
+    agent_alias: str = "agent"
 
     def __init__(self, agent_id: int, agent_data: Dict, registry_path: Path) -> None:
         """Initialize object."""
@@ -54,6 +57,7 @@ class AgentRunner:
             key, value = env_var.split("=")
             self.agent_env[key] = value
 
+        # TODO: Create appropriate constants
         self.agent_env["ABCI_HOST"] = "localhost"
         self.agent_env["ABCI_PORT"] = f"2665{self.agent_id}"
         self.agent_env["TENDERMINT_URL"] = f"http://localhost:8080/{self.agent_id}"
@@ -67,6 +71,7 @@ class AgentRunner:
         agent_dir = Path(self.agent_dir.name)
         os.chdir(agent_dir)
 
+        # TODO: replace with more appropriate env var name; we mean an agent here
         print(f"Loading {self.agent_env['VALORY_APPLICATION']}")
         subprocess.run(  # nosec  # pylint: disable=subprocess-run-check
             [
@@ -77,12 +82,12 @@ class AgentRunner:
                 self.agent_env["VALORY_APPLICATION"],
                 "--local",
                 "--alias",
-                "agent",
+                self.agent_alias,
             ],
             env=self.agent_env,
         )
-        os.chdir(agent_dir / "agent")
-        Path(agent_dir, "agent", "ethereum_private_key.txt").write_text(
+        os.chdir(agent_dir / self.agent_alias)
+        Path(agent_dir, self.agent_alias, ETHEREUM_PRIVATE_KEY_FILE).write_text(
             self.agent_env["AEA_KEY"], encoding="utf-8"
         )
 

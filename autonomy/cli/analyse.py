@@ -25,7 +25,6 @@ from typing import Optional
 from warnings import filterwarnings
 
 import click
-
 from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE
 
 from autonomy.analyse.abci.app_spec import DFA, SpecCheck

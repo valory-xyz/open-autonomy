@@ -36,7 +36,7 @@ class BlockTypes:  # pylint: disable=too-few-public-methods
     CONSENSUS = "consensus"
     TOTAL = "total"
 
-    types = ("local", "consensus", "total")
+    types = (LOCAL, CONSENSUS, TOTAL)
 
 
 def read_benchmark_data(path: Path) -> List[Dict]:

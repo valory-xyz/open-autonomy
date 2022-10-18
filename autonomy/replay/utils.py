@@ -20,8 +20,8 @@
 """Utils module."""
 
 import json
-from typing import Any, Dict
 from pathlib import Path
+from typing import Any, Dict
 
 from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
 
@@ -56,6 +56,7 @@ def fix_config_files(build_dir: Path) -> None:
 
 def load_docker_config(file_path: Path) -> Dict[str, Any]:  # pragma: nocover
     """Load docker config."""
+    # TODO: add json validation and error handling
     with open(str(file_path), "r", encoding="utf-8") as fp:
         docker_compose_config = yaml.safe_load(fp)
 

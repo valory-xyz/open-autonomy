@@ -25,6 +25,7 @@ from aea.configurations.constants import DEFAULT_PRIVATE_KEY_FILE
 from docker import from_env
 
 from autonomy.constants import (
+    DOCKER_COMPOSE_YAML,
     OAR_IMAGE,
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
@@ -103,7 +104,7 @@ def build_agent_config(  # pylint: disable=too-many-arguments
 class DockerComposeGenerator(BaseDeploymentGenerator):
     """Class to automate the generation of Deployments."""
 
-    output_name: str = "docker-compose.yaml"
+    output_name: str = DOCKER_COMPOSE_YAML
     deployment_type: str = "docker-compose"
 
     def generate_config_tendermint(self) -> "DockerComposeGenerator":

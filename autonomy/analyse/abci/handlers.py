@@ -27,7 +27,7 @@ from typing import List
 
 import yaml
 
-from autonomy.configurations.constants import HANDLERS, CLASS_NAME
+from autonomy.configurations.constants import CLASS_NAME, HANDLERS
 
 
 def check_handlers(

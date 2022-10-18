@@ -33,8 +33,13 @@ from typing import Any, Dict, List, Set, TextIO, Tuple
 
 import yaml
 
+from autonomy.configurations.constants import DEFAULT_FSM_SPEC_YAML
+
 
 EVENT_PATTERN = re.compile(r"Event\.(\w+)", re.DOTALL)
+
+
+# TODO add schema validation of the spec
 
 
 class DFASpecificationError(Exception):
@@ -430,8 +435,7 @@ class SpecCheck:
         did_not_match = []
         fsm_specifications = sorted(
             [
-                *packages_dir.glob("**/fsm_specification.yaml"),
-                *packages_dir.glob("**/fsm_specification_composition.yaml"),
+                *packages_dir.glob(f"**/{DEFAULT_FSM_SPEC_YAML}"),
             ]
         )
         # TODO: fix this implementation:
