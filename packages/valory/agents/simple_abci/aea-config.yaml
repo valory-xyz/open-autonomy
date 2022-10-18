@@ -98,14 +98,14 @@ type: skill
 models:
   benchmark_tool:
     args:
-      log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+      log_dir: ${SKILL_SIMPLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
   params:
     args:
       consensus:
         max_participants: ${MAX_PARTICIPANTS:int:4}
-      round_timeout_seconds: ${ORACLE_PARAMS_ROUND_TIMEOUT_SECONDS:float:7.0}
+      round_timeout_seconds: ${SIMPLE_ABCI_PARAMS_ROUND_TIMEOUT_SECONDS:float:7.0}
       tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
       tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
-      reset_tendermint_after: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_RESET_TENDERMINT_AFTER:int:10}
-      observation_interval: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:10}
-      max_healthcheck: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:1200}
+      reset_tendermint_after: ${SKILL_SIMPLE_ABCI_MODELS_PARAMS_ARGS_RESET_TENDERMINT_AFTER:int:10}
+      observation_interval: ${SKILL_SIMPLE_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:10}
+      max_healthcheck: ${SKILL_SIMPLE_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:1200}
