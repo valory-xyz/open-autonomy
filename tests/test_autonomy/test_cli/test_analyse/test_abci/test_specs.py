@@ -141,14 +141,12 @@ class TestCheckSpecs(BaseCliTest):
         super().setup()
 
         module_name = ".".join(self.skill_path.parts)
-        module = importlib.import_module(module_name)
         self.cls_name = ".".join([module_name, self.app_name])
 
-        abci_app_cls = getattr(module, self.app_name)
-        self.dfa = DFA.abci_to_dfa(abci_app_cls, self.cls_name)
-
-        self.specification_path = self.skill_path.parent / "fsm_specification.yaml"
         shutil.copytree(ROOT_DIR / "packages", self.t / "packages")
+        self.specification_path = (
+            self.t / self.skill_path.parent / "fsm_specification.yaml"
+        )
         os.chdir(self.t)
 
     def _corrupt_spec_file(
@@ -161,19 +159,10 @@ class TestCheckSpecs(BaseCliTest):
         )
         self.specification_path.write_text(content)
 
-    def _fix_corrupt_file(
-        self,
-    ) -> None:
-        """Fix corrupt file."""
-        self.specification_path.write_text(
-            Path(*ROOT_DIR.absolute().parts, *self.specification_path.parts).read_text()
-        )
-
     def test_one_pass(
         self,
     ) -> None:
         """Test with one class."""
-        self._fix_corrupt_file()
         result = self.run_cli(
             ("--app-class", self.cls_name, "--infile", str(self.specification_path))
         )
@@ -203,8 +192,6 @@ class TestCheckSpecs(BaseCliTest):
         self,
     ) -> None:
         """Test --check-all flag."""
-
-        self._fix_corrupt_file()
         result = self.run_cli(
             (
                 "--check-all",
@@ -220,7 +207,6 @@ class TestCheckSpecs(BaseCliTest):
         self,
     ) -> None:
         """Test --check-all flag."""
-
         self._corrupt_spec_file()
         result = self.run_cli(
             (
@@ -239,8 +225,6 @@ class TestCheckSpecs(BaseCliTest):
         self,
     ) -> None:
         """Test with one class."""
-        self._fix_corrupt_file()
-
         result = self.run_cli(("--infile", str(self.specification_path)))
 
         assert result.exit_code == 1, result.output

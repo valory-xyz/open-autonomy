@@ -31,7 +31,6 @@ from tempfile import TemporaryDirectory
 import click.testing
 import pytest
 from aea.cli.utils.config import get_default_author_from_cli_config
-from aea.configurations.constants import PACKAGES
 from aea.test_tools.test_cases import AEATestCaseMany
 
 # trigger population of autonomy commands
@@ -39,8 +38,6 @@ import autonomy.cli.core  # noqa
 
 from packages.valory import skills
 from packages.valory.skills.abstract_round_abci.base import _MetaPayload
-
-from tests.conftest import ROOT_DIR
 
 
 VALORY_SKILLS_PATH = Path(os.path.join(*skills.__package__.split("."))).absolute()

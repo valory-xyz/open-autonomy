@@ -41,7 +41,8 @@ class BaseCliTest:
     cli_options: Tuple[str, ...]
 
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls) -> None:
+        """Setup test class."""
         cls.cli_runner = CliRunner()
         cls.cwd = Path.cwd().absolute()
 
