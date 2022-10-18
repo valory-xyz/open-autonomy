@@ -148,12 +148,6 @@ class TestYamlSnippets(BaseTestDocCode):
         "docs/networks.md": {"skip_blocks": [0]},
     }
 
-    skipped_files = [
-        "packages/valory/skills/oracle_deployment_abci/fsm_specification.yaml",
-        "packages/valory/skills/price_estimation_abci/fsm_specification.yaml",
-        "packages/valory/skills/oracle_abci/fsm_specification.yaml",
-    ]
-
 
 class TestPythonSnippets(BaseTestDocCode):
     """Test that all the python snippets in the documentation exist in the repository"""
