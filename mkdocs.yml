@@ -61,8 +61,6 @@ nav:
     - Threat model: 'key_concepts/threat_model.md'
   - Advanced reference:
     - 'advanced_reference/index.md'
-    - Version: 'version.md'
-    - Upgrading: 'upgrading.md'
     - Package publishing: 'package_publishing.md'
     - CLI: 'autonomy.md'
     - Developer Tooling:
@@ -223,6 +221,8 @@ nav:
       - Delegate call vs call: 'delegate_call.md'
       - Debugging Using Tenderly: 'debugging.md'
       - Package list: 'package_list.md'
+  - Version: 'version.md'
+  - Upgrading: 'upgrading.md'
   - FAQ: 'questions-and-answers.md'
 
 

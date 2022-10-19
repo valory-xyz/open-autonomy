@@ -56,7 +56,28 @@ Local deployments of a service are recommended to test your service before you p
     autonomy deploy build keys.json --aev
     ```
 
-5. The build configuration will be located in `./abci_build` folder. Run the deployment locally using
+    This will create a deployment environment within the `./abci_build` folder with the following structure:
+    ```bash
+    abci_build/
+    ├── agent_keys
+    │   ├── agent_0
+    │   ├── agent_1
+    │   ├── agent_2
+    │   └── agent_3
+    ├── nodes
+    │   ├── node0
+    │   ├── node1
+    │   ├── node2
+    │   └── node3
+    ├── persistent_data
+    │   ├── benchmarks
+    │   ├── logs
+    │   ├── tm_state
+    │   └── venvs
+    └── docker-compose.yaml
+    ```    
+
+5. Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally using
     ```bash
     cd abci_build
     autonomy deploy run

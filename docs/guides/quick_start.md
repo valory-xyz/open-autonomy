@@ -61,7 +61,7 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
     autonomy deploy build keys.json --aev
     ```
 
-5. The build configuration will be located in `./abci_build` folder. Run the deployment using
+5. Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally using
     ```bash
     cd abci_build
     autonomy deploy run
