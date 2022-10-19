@@ -157,7 +157,7 @@ def generate_all(
     no_wrap: bool,
 ) -> None:
     """Generate IPFS hashes."""
-    packages_dir = packages_dir.absolute()
+    packages_dir = Path(packages_dir).absolute()
     return_code = update_hashes(
         packages_dir, no_wrap, vendor=vendor, config_loader=load_configuration
     )

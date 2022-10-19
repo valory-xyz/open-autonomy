@@ -63,8 +63,8 @@ def replay_group() -> None:
 )
 def run_agent(agent: int, build_path: Path, registry_path: Path) -> None:
     """Agent runner."""
-    build_path = build_path.absolute()
-    registry_path = registry_path.absolute()
+    build_path = Path(build_path).absolute()
+    registry_path = Path(registry_path).absolute()
 
     docker_compose_file = build_path / DOCKER_COMPOSE_YAML
     # TODO: handle file not present, file corrupted
@@ -91,7 +91,7 @@ def run_agent(agent: int, build_path: Path, registry_path: Path) -> None:
 def run_tendermint(build_dir: Path) -> None:
     """Tendermint runner."""
 
-    build_dir = build_dir.absolute()
+    build_dir = Path(build_dir).absolute()
     dump_dir = build_dir / PERSISTENT_DATA_DIR / TM_STATE_DIR
 
     # TODO: missing error handling
