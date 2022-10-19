@@ -227,9 +227,9 @@ class PAYLOADS:
             \"\"\"Initialize a transaction payload.\"\"\"
 
             super().__init__(sender, **kwargs)
-            setattr(self, f"_{{self.transaction_type}}", content)
-            p = property(lambda s: getattr(self, f"_{{self.transaction_type}}"))
-            setattr(self.__class__, f"{{self.transaction_type}}", p)
+            setattr(self, f"_{self.transaction_type}", content)
+            p = property(lambda s: getattr(self, f"_{self.transaction_type}"))
+            setattr(self.__class__, f"{self.transaction_type}", p)
 
         @property
         def data(self) -> Dict[str, Hashable]:
