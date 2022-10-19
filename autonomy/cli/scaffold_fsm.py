@@ -72,7 +72,7 @@ from autonomy.cli.scaffold_fsm_templates import (
     TEST_PAYLOADS,
     TEST_ROUNDS,
 )
-from autonomy.configurations.constants import INIT_PY
+from autonomy.configurations.constants import INIT_PY, PYCACHE
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
 
 

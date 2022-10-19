@@ -21,10 +21,8 @@
 
 import time
 from pathlib import Path
-from typing import Any, Dict
 
 import click
-import yaml
 from aea.configurations.constants import PACKAGES
 
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DOCKER_COMPOSE_YAML

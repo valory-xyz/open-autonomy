@@ -23,6 +23,8 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
+import yaml
+
 from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
 
 
