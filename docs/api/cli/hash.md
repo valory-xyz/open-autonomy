@@ -33,7 +33,7 @@ def update_hashes(packages_dir: Path, no_wrap: bool = False, vendor: Optional[st
     ] = load_configuration) -> int
 ```
 
-Process all AEA packages, update fingerprint, and update hashes.csv files.
+Process all AEA packages, update fingerprint, and update packages.json file.
 
 <a id="autonomy.cli.hash.hash_group"></a>
 

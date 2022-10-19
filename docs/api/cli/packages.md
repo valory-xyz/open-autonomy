@@ -19,5 +19,5 @@ Override for packages command.
 def lock_packages(ctx: Context, check: bool) -> None
 ```
 
-Lock packages
+Lock local packages.
 

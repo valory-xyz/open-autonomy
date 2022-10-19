@@ -20,7 +20,7 @@ Build images.
     type=click.Path(dir_okay=True),
     help="Path to service dir.",
 )
-@click.option("--dev", is_flag=True, help="Build developement image.", default=False)
+@click.option("--dev", is_flag=True, help="Build development image.", default=False)
 @click.option("--pull", is_flag=True, help="Pull latest dependencies.", default=False)
 def build_image(agent: Optional[PublicId], service_dir: Optional[Path], pull: bool = False, dev: bool = False) -> None
 ```
