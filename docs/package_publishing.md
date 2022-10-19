@@ -1,4 +1,6 @@
-# Package publishing
+!!! warning
+       <span style="color:red">**This section is currently being revised and restructured.
+       The current contents might contain redundant, inaccurate, or misplaced information.**<span style="color:blue">
 
 Developers, node operators and service owners interact with each other through the on-chain protocol to register components, agents and services. Let's see how this all works starting with
 a component inception all the way to a service deployment.

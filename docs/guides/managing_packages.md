@@ -1,5 +1,6 @@
 !!! warning
-       The contents of this section are being reviewed and integrated with the corresponding guides above.
+       <span style="color:red">**This section is currently being revised and restructured.
+       The current contents might contain redundant, inaccurate, or misplaced information.**<span style="color:blue">
 
 
 
