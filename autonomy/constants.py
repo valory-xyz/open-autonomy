@@ -34,6 +34,7 @@ HARDHAT_IMAGE_VERSION = os.environ.get("HARDHAT_IMAGE_VERSION", DEFAULT_IMAGE_VE
 SERVICE_REGISTRY_IMAGE_VERSION = os.environ.get(
     "SERVICE_REGISTRY_IMAGE_VERSION", DEFAULT_IMAGE_VERSION
 )
+ACN_IMAGE_VERSION = os.environ.get("ACN_IMAGE_VERSION", DEFAULT_IMAGE_VERSION)
 
 AUTONOMY_IMAGE_NAME = os.environ.get("AUTONOMY_IMAGE_NAME", "valory/open-autonomy")
 TENDERMINT_IMAGE_NAME = os.environ.get(
@@ -49,6 +50,7 @@ SERVICE_REGISTRY_IMAGE_NAME = os.environ.get(
 DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE = (
     f"{SERVICE_REGISTRY_IMAGE_NAME}:{SERVICE_REGISTRY_IMAGE_VERSION}"
 )
+ACN_IMAGE_NAME = os.environ.get("ACN_IMAGE_NAME", "valory/open-acn-node")
 
 OAR_IMAGE = "valory/oar-{agent}:{version}"
-ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeiegpewio6lkpikfnohjqmlwkqtxdmjbky4dphof4jvrixlvkiqixi"
+ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeigggjeqjyk5jape4xnpe5nl2ulum5mdozmex73a6mtjvteb6ijubq"

@@ -49,7 +49,7 @@ Generate the command to configure tendermint testnet.
 #### generate
 
 ```python
-def generate(image_version: Optional[str] = None) -> "DockerComposeGenerator"
+def generate(image_version: Optional[str] = None, use_hardhat: bool = False, use_acn: bool = False) -> "DockerComposeGenerator"
 ```
 
 Generate the new configuration.

@@ -49,6 +49,9 @@ FULL_PACKAGE_REGEX = rf"(?P<full_package>(?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VER
 PACKAGE_TABLE_REGEX = rf"\| {PACKAGE_TYPE_REGEX}\/{VENDOR_REGEX}\/{PACKAGE_REGEX}\/{VERSION_REGEX}(\s|\|)*(?P<hash>{IPFS_HASH_REGEX})\s*\|"
 
 ROOT_DIR = Path(__file__).parent.parent
+# We need to skip the hash for `valory/oracle_hardhat:0.1.0:bafybeie553shfmnds6v7defynjv5kmjkqf2aygj345jbbcssevtnkbodbe`
+# because the demo is not in this repo, but the docs are
+HASH_SKIPS = ("bafybeie553shfmnds6v7defynjv5kmjkqf2aygj345jbbcssevtnkbodbe",)
 
 
 def read_file(filepath: str) -> str:
@@ -250,6 +253,9 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
             doc_cmd = match["cmd"]
             doc_hash = match["hash"]
             flags = match["flags"]
+
+            if doc_hash in HASH_SKIPS:
+                continue
 
             expected_hash = package_manager.get_hash_by_package_line(
                 doc_full_cmd, str(md_file)
