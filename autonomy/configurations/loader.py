@@ -52,6 +52,7 @@ def load_service_config(
 ) -> Service:
     """Load service config from the path."""
 
+    # TODO: align with open-aea _load_service_config & handle data == None and other validation errors
     with open_file(
         service_path / Service.default_configuration_filename, "r", encoding="utf-8"
     ) as fp:

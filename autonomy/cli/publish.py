@@ -66,6 +66,7 @@ def publish(
     """Publish the agent or service on the registry."""
     try:
         if Path(click_context.obj.cwd, DEFAULT_SERVICE_CONFIG_FILE).exists():
+            # TODO: support push_missing
             publish_service_package(click_context, registry)
         elif Path(
             click_context.obj.cwd, DEFAULT_AEA_CONFIG_FILE
@@ -79,6 +80,8 @@ def publish(
 
 def publish_service_package(click_context: click.Context, registry: str) -> None:
     """Publish a service package."""
+
+    # TODO ensure we have error handling here.
     service_config = load_item_config(
         SERVICE, Path(click_context.obj.cwd), PACKAGE_TYPE_TO_CONFIG_CLASS
     )
@@ -130,6 +133,7 @@ def publish_service_local(ctx: Context, public_id: PublicId) -> None:
     author_dir = Path(target_dir).parent
     if not os.path.exists(author_dir):
         os.makedirs(author_dir, exist_ok=True)
+    # TODO: also make services dir?
 
     copytree(ctx.cwd, target_dir)
     click.echo(

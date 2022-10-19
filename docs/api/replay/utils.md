@@ -24,3 +24,13 @@ def fix_config_files(build_dir: Path) -> None
 
 Update config.toml in data dump to use them in replays.
 
+<a id="autonomy.replay.utils.load_docker_config"></a>
+
+#### load`_`docker`_`config
+
+```python
+def load_docker_config(file_path: Path) -> Dict[str, Any]
+```
+
+Load docker config.
+

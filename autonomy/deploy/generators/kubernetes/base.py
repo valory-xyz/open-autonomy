@@ -140,15 +140,27 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             agent.update(TENDERMINT_CONFIGURATION_OVERRIDES[self.deployment_type])
         return agent_params
 
-    def generate(self, image_version: Optional[str] = None) -> "KubernetesGenerator":
+    def generate(
+        self,
+        image_version: Optional[str] = None,
+        use_hardhat: bool = False,
+        use_acn: bool = False,
+    ) -> "KubernetesGenerator":
         """Generate the deployment."""
 
         image_version = image_version or self.service_spec.service.agent.hash
+
         if self.dev_mode:
+            image_version = "dev"
+
+        if use_hardhat:
             self.resources.append(
                 HARDHAT_TEMPLATE % (HARDHAT_IMAGE_NAME, HARDHAT_IMAGE_VERSION)
             )
-            image_version = "dev"
+
+        if use_acn:
+            # insert an ACN node into resources
+            ...
 
         agent_vars = self.service_spec.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)

@@ -91,6 +91,7 @@ def fetch(
         raise click.ClickException(str(e)) from e
 
 
+# TODO: extract below into appropriate UTILS
 def fetch_service(ctx: Context, public_id: PublicId) -> Path:
     """Fetch service."""
 

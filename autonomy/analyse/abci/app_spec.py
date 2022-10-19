@@ -33,8 +33,13 @@ from typing import Any, Dict, List, Set, TextIO, Tuple
 
 import yaml
 
+from autonomy.configurations.constants import DEFAULT_FSM_SPEC_YAML
+
 
 EVENT_PATTERN = re.compile(r"Event\.(\w+)", re.DOTALL)
+
+
+# TODO add schema validation of the spec
 
 
 class DFASpecificationError(Exception):
@@ -430,10 +435,14 @@ class SpecCheck:
         did_not_match = []
         fsm_specifications = sorted(
             [
-                *packages_dir.glob("**/fsm_specification.yaml"),
-                *packages_dir.glob("**/fsm_specification_composition.yaml"),
+                *packages_dir.glob(f"**/{DEFAULT_FSM_SPEC_YAML}"),
             ]
         )
+        # TODO: fix this implementation:
+        # - above file names should be constant and explained in helper text
+        # - investigate: either a) we need to do this in the order of the inverse dependency tree, so that
+        # dependencies are already loaded. Otherwise dependencies might not be present. Or b)
+        # we need to ensure relative modules are loaded too (https://docs.python.org/3/library/importlib.html#importlib.import_module)?
         for spec_file in fsm_specifications:
             with open(str(spec_file), mode="r", encoding="utf-8") as fp:
                 specs = yaml.safe_load(fp)

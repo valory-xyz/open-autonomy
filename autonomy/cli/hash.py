@@ -45,6 +45,7 @@ from aea.helpers.fingerprint import update_fingerprint
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
 
 
+# TODO: extract into utils; probably a duplication?
 def load_configuration(
     package_type: PackageType, package_path: Path
 ) -> PackageConfiguration:
@@ -64,6 +65,8 @@ def load_configuration(
     return cast(PackageConfiguration, configuration_obj)
 
 
+# TODO: extract into utils
+# Add input validations
 def update_hashes(  # pylint: disable=too-many-locals
     packages_dir: Path,
     no_wrap: bool = False,
@@ -72,7 +75,7 @@ def update_hashes(  # pylint: disable=too-many-locals
         [PackageType, Path], PackageConfiguration
     ] = load_configuration,
 ) -> int:
-    """Process all AEA packages, update fingerprint, and update hashes.csv files."""
+    """Process all AEA packages, update fingerprint, and update packages.json file."""
     return_code = 0
     package_hashes: Dict[str, str] = {}
 

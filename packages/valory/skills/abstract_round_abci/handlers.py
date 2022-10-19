@@ -667,7 +667,10 @@ class TendermintHandler(Handler):
             validator_config = json.loads(message.info)
             self.context.logger.error(validator_config)
             parse_result = urlparse(validator_config["tendermint_url"])
-            if parse_result.hostname != "localhost":
+            if (
+                parse_result.hostname != "localhost"
+                and not parse_result.hostname.startswith("node")
+            ):
                 ipaddress.ip_network(parse_result.hostname)
         except ValueError as e:
             log_message = self.LogMessages.failed_to_parse_address.value

@@ -49,7 +49,7 @@ Build configuration job.
 #### generate
 
 ```python
-def generate(image_version: Optional[str] = None) -> "KubernetesGenerator"
+def generate(image_version: Optional[str] = None, use_hardhat: bool = False, use_acn: bool = False) -> "KubernetesGenerator"
 ```
 
 Generate the deployment.
