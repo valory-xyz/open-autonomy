@@ -226,7 +226,7 @@ def run_handler_check(packages_dir: Path, skip: str, common: str) -> None:
     type=click.types.Path(file_okay=True, dir_okay=False, resolve_path=True),
     default=BENCHMARKS_DIR,
 )
-def benchmark(path: Path, block_type: str, period: int, output: Optional[Path]) -> None:
+def benchmark(path: Path, block_type: str, period: int, output: Path) -> None:
     """Benchmark aggregator."""
 
     try:
