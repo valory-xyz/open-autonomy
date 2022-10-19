@@ -62,7 +62,7 @@ class TEST_ROUNDS:
 
         name: str
         initial_data: Dict[str, Hashable]
-        payloads: List[BaseTxPayload]
+        payloads: Mapping[str, BaseTxPayload]
         final_data: Dict[str, Hashable]
         event: Event
         synchronized_data_attr_checks: List[Callable] = field(default_factory=list)
