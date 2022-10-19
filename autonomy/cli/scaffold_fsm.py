@@ -72,6 +72,7 @@ from autonomy.cli.scaffold_fsm_templates import (
     TEST_PAYLOADS,
     TEST_ROUNDS,
 )
+from autonomy.configurations.constants import INIT_PY, PYCACHE
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
 
 
@@ -666,15 +667,15 @@ class ScaffoldABCISkill:
     def _update_init_py(self) -> None:
         """Update Copyright __init__.py files"""
 
-        init_py_path = self.skill_dir / "__init__.py"
+        init_py_path = self.skill_dir / INIT_PY
         lines = init_py_path.read_text().splitlines()
         content = "\n".join(line for line in lines if not line.startswith("#"))
         init_py_path.write_text(f"{COPYRIGHT_HEADER} {content}\n")
-        (Path(self.skill_test_dir) / "__init__.py").write_text(COPYRIGHT_HEADER)
+        (Path(self.skill_test_dir) / INIT_PY).write_text(COPYRIGHT_HEADER)
 
     def _remove_pycache(self) -> None:
         """Remove __pycache__ folders."""
-        for path in self.skill_dir.rglob("*__pycache__*"):
+        for path in self.skill_dir.rglob(f"*{PYCACHE}*"):
             shutil.rmtree(path, ignore_errors=True)
 
 

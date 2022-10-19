@@ -54,6 +54,7 @@ COMPONENT_CONFIGS: Dict = {
 }
 
 
+# TODO: how dpes this relate to `autonomy/services`? Unify
 class ServiceSpecification:
     """Class to assist with generating deployments."""
 

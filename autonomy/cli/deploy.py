@@ -37,15 +37,14 @@ from compose.cli import main as docker_compose
 
 from autonomy.cli.fetch import fetch_service
 from autonomy.cli.utils.click_utils import chain_selection_flag
-from autonomy.configurations.constants import DEFAULT_SERVICE_FILE
+from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
 from autonomy.configurations.loader import load_service_config
-from autonomy.constants import DEFAULT_KEYS_FILE
+from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_KEYS_FILE
 from autonomy.deploy.build import generate_deployment
 from autonomy.deploy.chain import ServiceRegistry
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
     BENCHMARKS_DIR,
-    DEFAULT_ABCI_BUILD_DIR,
     INFO,
     LOGGING_LEVELS,
     LOG_DIR,
@@ -176,7 +175,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     """Build deployment setup for n agents."""
 
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
-    build_dir = Path(output_dir or DEFAULT_ABCI_BUILD_DIR).absolute()
+    build_dir = Path(output_dir or DEFAULT_BUILD_FOLDER).absolute()
 
     packages_dir = Path(packages_dir or Path.cwd() / "packages").absolute()
     open_aea_dir = Path(open_aea_dir or Path.home() / "open-aea").absolute()
@@ -292,7 +291,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     *_, service_hash = metadata["code_uri"].split("//")
     public_id = PublicId(author="valory", name="service", package_hash=service_hash)
     service_path = fetch_service(ctx, public_id)
-    build_dir = service_path / DEFAULT_ABCI_BUILD_DIR
+    build_dir = service_path / DEFAULT_BUILD_FOLDER
 
     update_multisig_address(service_path, multisig_address)
     service = load_service_config(service_path, substitute_env_vars=aev)
@@ -317,10 +316,11 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     run_deployment(build_dir)
 
 
+# TODO: extract into appropriate utils with validations
 def update_multisig_address(service_path: Path, address: str) -> None:
     """Update the multisig address on the service config."""
 
-    with open_file(service_path / DEFAULT_SERVICE_FILE) as fp:
+    with open_file(service_path / DEFAULT_SERVICE_CONFIG_FILE) as fp:
         config, *overrides = yaml_load_all(
             fp,
         )
@@ -331,7 +331,7 @@ def update_multisig_address(service_path: Path, address: str) -> None:
                 address,
             ]
 
-    with open_file(service_path / DEFAULT_SERVICE_FILE, mode="w+") as fp:
+    with open_file(service_path / DEFAULT_SERVICE_CONFIG_FILE, mode="w+") as fp:
         yaml_dump_all([config, *overrides], fp)
 
 

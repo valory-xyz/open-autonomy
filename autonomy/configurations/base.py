@@ -40,7 +40,7 @@ from aea.configurations.constants import CONNECTION, CONTRACT, PROTOCOL, SKILL
 from aea.configurations.data_types import PackageType, PublicId
 from aea.helpers.base import SimpleIdOrStr, cd
 
-from autonomy.configurations.constants import DEFAULT_SERVICE_FILE, SCHEMAS_DIR
+from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE, SCHEMAS_DIR
 from autonomy.configurations.validation import ConfigValidator
 
 
@@ -79,7 +79,7 @@ def _parse_nested_override(env_var_name: str, nested_override_value: Dict) -> Di
 class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attributes
     """Service package configuration."""
 
-    default_configuration_filename = DEFAULT_SERVICE_FILE
+    default_configuration_filename = DEFAULT_SERVICE_CONFIG_FILE
     package_type = PackageType.SERVICE
     schema = str(SCHEMAS_DIR.absolute() / "service_schema.json")
 
