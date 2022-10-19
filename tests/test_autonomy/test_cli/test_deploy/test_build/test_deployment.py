@@ -39,6 +39,7 @@ from autonomy.deploy.constants import (
     DEPLOYMENT_KEY_DIRECTORY,
     KUBERNETES_AGENT_KEY_NAME,
 )
+from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
@@ -87,7 +88,7 @@ class TestBuildDeployment(BaseCliTest):
                 )
             )
 
-        build_dir = self.t / "abci_build"
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
 
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert build_dir.exists()
@@ -96,11 +97,15 @@ class TestBuildDeployment(BaseCliTest):
         assert any(
             [
                 child in build_tree
-                for child in ["persistent_storage", "nodes", "docker-compose.yaml"]
+                for child in [
+                    "persistent_storage",
+                    "nodes",
+                    DockerComposeGenerator.output_name,
+                ]
             ]
         )
 
-        docker_compose_file = build_dir / "docker-compose.yaml"
+        docker_compose_file = build_dir / DockerComposeGenerator.output_name
         with open(docker_compose_file, "r", encoding="utf-8") as fp:
             docker_compose = yaml.safe_load(fp)
 
@@ -136,7 +141,7 @@ class TestBuildDeployment(BaseCliTest):
                 )
             )
 
-        build_dir = self.t / "abci_build"
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
 
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert build_dir.exists()
@@ -145,11 +150,15 @@ class TestBuildDeployment(BaseCliTest):
         assert any(
             [
                 child in build_tree
-                for child in ["persistent_storage", "nodes", "docker-compose.yaml"]
+                for child in [
+                    "persistent_storage",
+                    "nodes",
+                    DockerComposeGenerator.output_name,
+                ]
             ]
         )
 
-        docker_compose_file = build_dir / "docker-compose.yaml"
+        docker_compose_file = build_dir / DockerComposeGenerator.output_name
         with open(docker_compose_file, "r", encoding="utf-8") as fp:
             docker_compose = yaml.safe_load(fp)
 
@@ -187,7 +196,7 @@ class TestBuildDeployment(BaseCliTest):
                 )
             )
 
-        build_dir = self.t / "abci_build"
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
 
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert build_dir.exists()
@@ -196,11 +205,15 @@ class TestBuildDeployment(BaseCliTest):
         assert any(
             [
                 child in build_tree
-                for child in ["persistent_storage", "nodes", "docker-compose.yaml"]
+                for child in [
+                    "persistent_storage",
+                    "nodes",
+                    DockerComposeGenerator.output_name,
+                ]
             ]
         )
 
-        docker_compose_file = build_dir / "docker-compose.yaml"
+        docker_compose_file = build_dir / DockerComposeGenerator.output_name
         with open(docker_compose_file, "r", encoding="utf-8") as fp:
             docker_compose = yaml.safe_load(fp)
 
@@ -235,7 +248,7 @@ class TestBuildDeployment(BaseCliTest):
                 )
             )
 
-        build_dir = self.t / "abci_build"
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
 
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert build_dir.exists()
@@ -264,7 +277,7 @@ class TestBuildDeployment(BaseCliTest):
                 )
             )
 
-        build_dir = self.t / "abci_build"
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
 
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert build_dir.exists()
@@ -305,7 +318,7 @@ class TestBuildDeployment(BaseCliTest):
                 )
             )
 
-        build_dir = self.t / "abci_build"
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
 
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert build_dir.exists()
@@ -336,7 +349,7 @@ class TestBuildDeployment(BaseCliTest):
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert build_dir.exists()
 
-        docker_compose_file = build_dir / "docker-compose.yaml"
+        docker_compose_file = build_dir / DockerComposeGenerator.output_name
         with open(docker_compose_file, "r", encoding="utf-8") as fp:
             docker_compose = yaml.safe_load(fp)
 
@@ -389,7 +402,7 @@ class TestBuildDeployment(BaseCliTest):
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert build_dir.exists()
 
-        docker_compose_file = build_dir / "docker-compose.yaml"
+        docker_compose_file = build_dir / DockerComposeGenerator.output_name
         with open(docker_compose_file, "r", encoding="utf-8") as fp:
             docker_compose = yaml.safe_load(fp)
 
@@ -548,12 +561,12 @@ class TestBuildDeployment(BaseCliTest):
                 )
             )
 
-        build_dir = self.t / "abci_build"
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
 
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert build_dir.exists()
 
-        docker_compose_file = build_dir / "docker-compose.yaml"
+        docker_compose_file = build_dir / DockerComposeGenerator.output_name
         with open(docker_compose_file, "r", encoding="utf-8") as fp:
             docker_compose = yaml.safe_load(fp)
 

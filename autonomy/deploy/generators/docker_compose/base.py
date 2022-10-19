@@ -51,6 +51,8 @@ from autonomy.deploy.generators.docker_compose.templates import (
 )
 
 
+# We will add one ACN and hardhat nodes at the top with IP being 192.167.11.2
+# and 192.167.11.3 so we will start from 192.167.11.4 for abci and tendermint nodes
 N_RESERVED_IP_ADDRESSES = 4
 
 
