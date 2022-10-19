@@ -21,7 +21,6 @@
 import importlib
 import sys
 from pathlib import Path
-from typing import Optional
 from warnings import filterwarnings
 
 import click
