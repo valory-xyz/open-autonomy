@@ -24,6 +24,7 @@ from typing import AbstractSet, Any, Dict, Generic, List, Optional, Tuple, Type,
 
 from aea.skills.base import Behaviour
 
+from packages.valory.skills.abstract_round_abci.background_round import TerminationBehaviour
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciApp,
@@ -165,6 +166,7 @@ class AbstractRoundBehaviour(
         ] = self._get_round_to_behaviour_mapping(self.behaviours)
 
         self.current_behaviour: Optional[BaseBehaviour] = None
+        self.__termination_behaviour: Optional[BaseBehaviour] = None
 
         # keep track of last round height so to detect changes
         self._last_round_height = 0
@@ -221,9 +223,12 @@ class AbstractRoundBehaviour(
         )
 
     def setup(self) -> None:
-        """Set up the behaviour."""
+        """Set up the behaviours."""
         self.current_behaviour = self.instantiate_behaviour_cls(
             self.initial_behaviour_cls
+        )
+        self.__termination_behaviour = self.instantiate_behaviour_cls(
+            TerminationBehaviour
         )
 
     def teardown(self) -> None:
@@ -236,6 +241,7 @@ class AbstractRoundBehaviour(
         if self.current_behaviour is None:
             return
 
+        self.__termination_behaviour.act_wrapper()
         self.current_behaviour.act_wrapper()
 
         if self.current_behaviour.is_done():
