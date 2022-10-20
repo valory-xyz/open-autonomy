@@ -31,7 +31,7 @@ class TEST_ROUNDS:
     HEADER = """\
     \"\"\"This package contains the tests for rounds of {FSMName}.\"\"\"
 
-    from typing import Any, Type, Dict, List, Callable, Hashable
+    from typing import Any, Type, Dict, List, Callable, Hashable, Mapping
     from dataclasses import dataclass, field
 
     import pytest
