@@ -70,7 +70,6 @@ nav:
       - Container Control Flow: 'control_flow.md'
       - Local Deployment: 'application_deployment.md'
       - Cloud Deployment: 'using_stack_deployment.md'
-    - Running on other networks: 'networks.md'
     - API:
       - Library:
         - Constants: 'api/constants.md'
