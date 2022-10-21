@@ -22,6 +22,8 @@ from enum import Enum
 from mailbox import Message
 from typing import Any, Callable, Dict, Generator, Optional, Tuple, cast
 
+from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
+from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     BaseTxPayload,
@@ -132,9 +134,28 @@ class TerminationBehaviour(BaseBehaviour):
         """
         pass
 
-    def get_service_owner(self) -> Generator[None, None, str]:
+    def get_service_owner(self) -> Generator[None, None, Optional[str]]:
         """Method that returns the service owner."""
-        pass
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_id=str(ServiceRegistryContract.contract_id),
+            contract_callable="get_service_owner",
+            contract_address=self.params.service_registry_address,
+            service_id=self.params.service_id,
+        )
+
+        if response.performative != ContractApiMessage.Performative.STATE:
+            self.context.logger.error(
+                f"Couldn't get the service owner for service with id={self.params.service_id}. "
+                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "
+                f"received {response.performative.value}."
+            )
+            return None
+
+        service_owner = cast(
+            Optional[str], response.state.body.get("service_owner", None)
+        )
+        return service_owner
 
     def get_multisend_payload(self) -> Generator[None, None, str]:
         """Prepares and returns the multisend to hand over safe ownership to the service_owner."""
