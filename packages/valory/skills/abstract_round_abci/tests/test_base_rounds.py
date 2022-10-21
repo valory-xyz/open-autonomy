@@ -274,6 +274,9 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
 
         self._test_payload_with_wrong_round_count(test_round)
 
+        test_round.done_event = "DONE_EVENT"
+        assert test_round.end_block()
+
     def test_run_with_none(
         self,
     ) -> None:
