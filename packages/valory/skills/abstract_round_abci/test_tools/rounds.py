@@ -24,6 +24,7 @@ from copy import deepcopy
 from enum import Enum
 from typing import (
     Any,
+    Dict,
     Callable,
     FrozenSet,
     Generator,
@@ -96,6 +97,11 @@ class DummyTxPayload(BaseTxPayload):
     def vote(self) -> Optional[bool]:
         """Get the vote value."""
         return self._vote
+
+    @property
+    def data(self) -> Dict[str, Any]:
+        """Data"""
+        return dict(value=self.value)
 
 
 class DummySynchronizedSata(BaseSynchronizedData):

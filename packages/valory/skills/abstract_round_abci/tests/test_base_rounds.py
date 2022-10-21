@@ -48,26 +48,6 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
     get_dummy_tx_payloads,
 )
 
-from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
-
-
-class DumbDummyTxPayload(BaseTxPayload):
-    """DumbDummyTxPayload"""
-    # must overwrite the empty dict property...
-    transaction_type = "DumbDummyTxPayload"
-
-    @property
-    def value(self):
-        return self.sender
-
-    @property
-    def vote(self):
-        return self.sender
-
-    @property
-    def data(self):
-        return dict(value=self.value)
-
 
 class TestCollectionRound(_BaseRoundTestClass):
     """Test class for CollectionRound."""
@@ -112,11 +92,12 @@ class TestCollectionRound(_BaseRoundTestClass):
         with pytest.raises(
             ABCIAppInternalError,
             match=re.escape(
-                "internal error: Expecting serialized data of chunk size 2, got: None in round_id"
+                "internal error: Expecting serialized data of chunk size 2, got: 0xZZZ in round_id"
             ),
         ):
             test_round._hash_length = 2
-            test_round.process_payload(DummyTxPayload("agent_1", "value"))
+            test_round.process_payload(DummyTxPayload("agent_1", "0xZZZ"))
+            test_round._hash_length = None
 
         with pytest.raises(
             TransactionNotValidError,
@@ -135,10 +116,10 @@ class TestCollectionRound(_BaseRoundTestClass):
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "Expecting serialized data of chunk size 2, got: None in round_id"
+                "Expecting serialized data of chunk size 2, got: 0xZZZ in round_id"
             ),
         ):
-            test_round.check_payload(DummyTxPayload("agent_1", "value"))
+            test_round.check_payload(DummyTxPayload("agent_1", "0xZZZ"))
 
         self._test_payload_with_wrong_round_count(test_round)
 
@@ -309,7 +290,7 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
         test_round.no_majority_event = "NO_MAJORITY_EVENT"
         test_round.collection.clear()
         for participant in self.participants:
-            payload = DumbDummyTxPayload(participant)
+            payload = DummyTxPayload(participant, value=participant)
             test_round.process_payload(payload)
         assert test_round.end_block()[-1] == test_round.no_majority_event
 
@@ -483,8 +464,8 @@ class TestVotingRound(_BaseRoundTestClass):
 
         test_round = self.setup_test_voting_round()
         test_round.no_majority_event = "NO_MAJORITY_EVENT"
-        for participant in self.participants:
-            payload = DumbDummyTxPayload(participant)
+        for i, participant in enumerate(self.participants):
+            payload = DummyTxPayload(participant, value=participant, vote=bool(i % 2))
             test_round.process_payload(payload)
         assert test_round.end_block()[-1] == test_round.no_majority_event
 
@@ -543,7 +524,7 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
 
         assert test_round.end_block() is None
         for participant in self.participants:
-            payload = DumbDummyTxPayload(participant)
+            payload = DummyTxPayload(participant, value=participant)
             test_round.process_payload(payload)
         assert test_round.end_block()[-1] == test_round.done_event
 
