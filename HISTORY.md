@@ -6,14 +6,8 @@
 Autonomy:
 
 - Introduces support for specifying tag versions for runtime image builds.
-- Adds the benchmark tool definition in the scaffolded FSM skill.
+- Adds the benchmark tool definition in the newly scaffolded FSM skill.
 - Adds improvements on the FSM scaffolding
-  - Setting Payload.allowed_tx_type
-  - Importing payloads in behaviours.py
-  - Scaffolding Behaviour.async_act
-  - Payload.data to return data that is compatible with the scaffolded test,
-  - Specifically payload.from_json(payload.json) == payload
-  - Move kwargs in scaffolded tests to the respective TestCase
 - Adds support for ACN and hardhat node in deployment setup using build flags.
 - Fixes regex in analyse to avoid capturing empty strings.
 
@@ -29,20 +23,20 @@ Packages:
   - APY skills, agent, and service
   - Liquidity rebalancing skills.
   - Price oracle skills, agent, and service
-- Fxes the URL check on tendermint handler
+- Fixes the URL check on tendermint handler
 
 Docs:
 
 - Improves to quickstart section. 
 - Improves and on-chain protocol guides.
-- Simplifies and cleanes up the demo sections.
-- Changes the images to follow the new color scheme.
-- Removes redundant information and redirectes to corresponding documentation sections.
+- Simplifies and cleans up the demo sections.
+- Changes the images to follow the new colour scheme.
+- Removes redundant information and redirects to corresponding documentation sections.
 - Replaces the usage of oracle service in CLI documentation with the hello world service. 
 
 Chores:
 
-- Fixe make target for image release to avoid issues on different shells.
+- Fixes make target for image release to avoid issues on different shells.
 - Updates some scripts that perform multiple network requests to use parallelization.
 - Restructures `Running on other networks` section.
 
