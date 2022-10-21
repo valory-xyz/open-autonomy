@@ -18,15 +18,68 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the background behaviour and round classes."""
+from enum import Enum
 from mailbox import Message
-from typing import Generator, Callable
+from typing import Any, Callable, Dict, Generator, Optional, Tuple, cast
 
-from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour, AsyncBehaviour
+from packages.valory.skills.abstract_round_abci.base import (
+    BaseSynchronizedData,
+    BaseTxPayload,
+    CollectSameUntilThresholdRound,
+)
+from packages.valory.skills.abstract_round_abci.behaviour_utils import (
+    AsyncBehaviour,
+    BaseBehaviour,
+)
+
+
+class TransactionType(Enum):
+    """Defines the possible transaction types."""
+
+    TERMINATION = "termination"
 
 
 class TerminationPayload(BaseTxPayload):
-    pass
+    """Defines the termination payload."""
+
+    transaction_type = TransactionType.TERMINATION
+
+    def __init__(self, sender: str, termination_data: str, **kwargs: Any) -> None:
+        """Initialize a 'Termination' transaction payload.
+        :param sender: the sender (Ethereum) address
+        :param termination_data: serialized tx.
+        :param kwargs: the keyword arguments
+        """
+        super().__init__(sender, **kwargs)
+        self._termination_data = termination_data
+
+    @property
+    def termination_data(self) -> str:
+        """Get the termination data."""
+        return self._termination_data
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(termination_data=self.termination_data)
+
+
+class SynchronizedData(BaseSynchronizedData):
+    """
+    Class to represent the synchronized data.
+
+    This data is replicated by the tendermint application.
+    """
+
+    @property
+    def safe_contract_address(self) -> Optional[str]:
+        """Get the safe contract address."""
+        return cast(Optional[str], self.db.get("safe_contract_address", None))
+
+    @property
+    def termination_majority_reached(self) -> bool:
+        """Get the most_voted_tx_hash."""
+        return cast(bool, self.db.get("termination_majority_reached", False))
 
 
 class TerminationBehaviour(BaseBehaviour):
@@ -38,17 +91,32 @@ class TerminationBehaviour(BaseBehaviour):
 
     def async_act(self) -> Generator:
         """Performs the termination logic."""
+        if self._is_termination_majority():
+            # if termination majority has already been reached
+            # there is no need to run the rest of this method
+            yield
+            return
+
         signal_present = yield from self.check_for_signal()
         if not signal_present:
             yield from self.sleep(self.params.sleep_time)
             return
 
-        self.context.logger.info("Terminate signal was received, preparing termination transaction.")
+        self.context.logger.info(
+            "Terminate signal was received, preparing termination transaction."
+        )
 
-        multisend_data = yield from self.get_multisend_payload()
-        payload = TerminationPayload(self.context.agent_address, multisend_data)
-        yield from self.send_a2a_transaction(payload)
+        termination_data = yield from self.get_multisend_payload()
+        termination_payload = TerminationPayload(
+            self.context.agent_address, termination_data=termination_data
+        )
+        yield from self.send_a2a_transaction(termination_payload)
         yield from self.wait_for_termination_majority()
+
+    @property
+    def synchronized_data(self) -> SynchronizedData:
+        """Return the synchronized data."""
+        return cast(SynchronizedData, super().synchronized_data)
 
     def check_for_signal(self) -> Generator[None, None, bool]:
         """
@@ -81,7 +149,7 @@ class TerminationBehaviour(BaseBehaviour):
 
     def _is_termination_majority(self) -> bool:
         """Rely on the round to decide when majority is reached."""
-        return self.synchronized_data.db.get("most_voted_termination", None) is not None
+        return self.synchronized_data.termination_majority_reached
 
     def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
         """Wrapper for callback_request(), overridden to avoid mix-ups with normal (non-background) behaviours."""
@@ -126,3 +194,30 @@ class TerminationBehaviour(BaseBehaviour):
         :return: the termination majority callable
         """
         return self._is_termination_majority
+
+
+class Event(Enum):
+    """Defines the (background) round events."""
+
+    TERMINATE = "terminate"
+
+
+class TerminationRound(CollectSameUntilThresholdRound):
+    """Defines the Termination round. The termination round is running at all times concurrently with other rounds."""
+
+    round_id: str = "termination_round"
+    allowed_tx_type = TerminationPayload.transaction_type
+    payload_attribute: str = "termination_data"
+    synchronized_data_class = SynchronizedData
+
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
+                termination_majority_reached=True,
+                most_voted_tx_hash=self.most_voted_payload,
+            )
+            return state, Event.TERMINATE
+
+        return None
