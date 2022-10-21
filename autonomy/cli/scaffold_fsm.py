@@ -417,6 +417,10 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             "abci_dialogues", SkillComponentConfiguration("AbciDialogues")
         )
         config.models.create(
+            "benchmark_tool",
+            SkillComponentConfiguration("BenchmarkTool", log_dir="/logs"),
+        )
+        config.models.create(
             "http_dialogues", SkillComponentConfiguration("HttpDialogues")
         )
         config.models.create(
