@@ -20,8 +20,12 @@
 """This module contains the background behaviour and round classes."""
 from enum import Enum
 from mailbox import Message
-from typing import Any, Callable, Dict, Generator, Optional, Tuple, cast
+from typing import Any, Callable, Dict, Generator, Optional, Tuple, cast, List
 
+from hexbytes import HexBytes
+
+from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract, SafeOperation
+from packages.valory.contracts.multisend.contract import MultiSendContract, MultiSendOperation
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
@@ -34,6 +38,71 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviour,
 )
 
+# setting the safe gas to 0 means that all available gas will be used
+# which is what we want in most cases
+# more info here: https://safe-docs.dev.gnosisdev.com/safe/docs/contracts_tx_execution/
+_SAFE_GAS = 0
+
+# hardcoded to 0 because we don't need to send any ETH when handing over multisig ownership
+_ETHER_VALUE = 0
+
+NULL_ADDRESS: str = "0x" + "0" * 40
+MAX_UINT256 = 2 ** 256 - 1
+
+# copied from transaction_settlement_abci/payload_tools.py to avoid cyclic dependency
+def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
+    safe_tx_hash: str,
+    ether_value: int,
+    safe_tx_gas: int,
+    to_address: str,
+    data: bytes,
+    operation: int = SafeOperation.CALL.value,
+    base_gas: int = 0,
+    safe_gas_price: int = 0,
+    gas_token: str = NULL_ADDRESS,
+    refund_receiver: str = NULL_ADDRESS,
+) -> str:
+    """Serialise to a hex string."""
+    if len(safe_tx_hash) != 64:  # should be exactly 32 bytes!
+        raise ValueError(
+            "cannot encode safe_tx_hash of non-32 bytes"
+        )  # pragma: nocover
+
+    if len(to_address) != 42 or len(gas_token) != 42 or len(refund_receiver) != 42:
+        raise ValueError("cannot encode address of non 42 length")  # pragma: nocover
+
+    if (
+        ether_value > MAX_UINT256
+        or safe_tx_gas > MAX_UINT256
+        or base_gas > MAX_UINT256
+        or safe_gas_price > MAX_UINT256
+    ):
+        raise ValueError(
+            "Value is bigger than the max 256 bit value"
+        )  # pragma: nocover
+
+    if operation not in [v.value for v in SafeOperation]:
+        raise ValueError("SafeOperation value is not valid")  # pragma: nocover
+
+    ether_value_ = ether_value.to_bytes(32, "big").hex()
+    safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
+    operation_ = operation.to_bytes(1, "big").hex()
+    base_gas_ = base_gas.to_bytes(32, "big").hex()
+    safe_gas_price_ = safe_gas_price.to_bytes(32, "big").hex()
+
+    concatenated = (
+        safe_tx_hash
+        + ether_value_
+        + safe_tx_gas_
+        + to_address
+        + operation_
+        + base_gas_
+        + safe_gas_price_
+        + gas_token
+        + refund_receiver
+        + data.hex()
+    )
+    return concatenated
 
 class TransactionType(Enum):
     """Defines the possible transaction types."""
@@ -80,7 +149,7 @@ class SynchronizedData(BaseSynchronizedData):
 
     @property
     def termination_majority_reached(self) -> bool:
-        """Get the most_voted_tx_hash."""
+        """Get termination_majority_reached."""
         return cast(bool, self.db.get("termination_majority_reached", False))
 
 
@@ -89,7 +158,7 @@ class TerminationBehaviour(BaseBehaviour):
 
     behaviour_id = "termination_behaviour_background"
 
-    _service_owner_address: str
+    _service_owner_address: Optional[str] = None
 
     def async_act(self) -> Generator:
         """Performs the termination logic."""
@@ -157,9 +226,208 @@ class TerminationBehaviour(BaseBehaviour):
         )
         return service_owner
 
-    def get_multisend_payload(self) -> Generator[None, None, str]:
+    def get_multisend_payload(self) -> Generator[None, None, Optional[str]]:
         """Prepares and returns the multisend to hand over safe ownership to the service_owner."""
-        pass
+        multisend_data_str = yield from self._get_multisend_tx()
+        if multisend_data_str is None:
+            return None
+        multisend_data = bytes.fromhex(multisend_data_str)
+        tx_hash = yield from self._get_safe_tx_hash(multisend_data)
+        if tx_hash is None:
+            return None
+
+        payload_data = hash_payload_to_hex(
+            safe_tx_hash=tx_hash,
+            ether_value=_ETHER_VALUE,
+            safe_tx_gas=_SAFE_GAS,
+            operation=SafeOperation.DELEGATE_CALL.value,
+            to_address=self.params.multisend_address,
+            data=multisend_data,
+        )
+        return payload_data
+
+    def _get_safe_owners(self) -> Generator[None, None, Optional[List[str]]]:
+        """Retrieves safe owners."""
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_owners",
+            contract_address=self.synchronized_data.safe_contract_address,
+        )
+
+        if response.performative != ContractApiMessage.Performative.STATE:
+            self.context.logger.error(
+                f"Couldn't get the safe owners for safe deployed at {self.synchronized_data.safe_contract_address}. "
+                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "
+                f"received {response.performative.value}."
+            )
+            return None
+
+        owners = cast(
+            Optional[str], response.state.body.get("owners", None)
+        )
+        return owners
+
+    def _get_remove_owner_tx(self, prev_owner: str, owner: str, threshold: int) -> Generator[None, None, Optional[str]]:
+        """
+        Gets a remove owner tx.
+
+        :param prev_owner: the owner that pointed to the owner to be removed.
+        :param owner: the owner to be removed.
+        :param threshold: the new safe threshold to be set.
+        :return: the tx data
+        """
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_remove_owner_data",
+            contract_address=self.synchronized_data.safe_contract_address,
+            prev_owner=prev_owner,
+            owner=owner,
+            threshold=threshold,
+        )
+
+        if response.performative != ContractApiMessage.Performative.STATE:
+            self.context.logger.error(
+                f"Couldn't get a remove owner tx. "
+                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "
+                f"received {response.performative.value}."
+            )
+            return None
+
+        tx_data = cast(
+            Optional[str], response.state.body.get("data", None)
+        )
+        return tx_data
+
+    def _get_swap_owner_tx(self, prev_owner: str, old_owner: str, new_owner: str) -> Generator[None, None, Optional[str]]:
+        """
+        Gets a swap owner tx.
+
+        :param prev_owner: the owner that pointed to the owner to be replaced.
+        :param old_owner: the owner to be removed.
+        :param new_owner: the new safe threshold to be set.
+        :return: the tx data
+        """
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_swap_owner_data",
+            contract_address=self.synchronized_data.safe_contract_address,
+            prev_owner=prev_owner,
+            old_owner=old_owner,
+            new_owner=new_owner,
+        )
+
+        if response.performative != ContractApiMessage.Performative.STATE:
+            self.context.logger.error(
+                f"Couldn't get a swap owner tx. "
+                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "
+                f"received {response.performative.value}."
+            )
+            return None
+
+        tx_data = cast(
+            Optional[str], response.state.body.get("data", None)
+        )
+        return tx_data
+
+    def _get_safe_tx_hash(self, data: bytes) -> Generator[None, None, Optional[str]]:
+        """
+        Prepares and returns the safe tx hash.
+
+        :param data: the safe tx data.
+        :return: the tx hash
+        """
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+            contract_address=self.synchronized_data.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_raw_safe_transaction_hash",
+            to_address=self.params.multisend_address,
+            value=_ETHER_VALUE,
+            data=data,
+            safe_tx_gas=_SAFE_GAS,
+            operation=SafeOperation.DELEGATE_CALL.value,
+        )
+
+        if response.performative != ContractApiMessage.Performative.STATE:
+            self.context.logger.error(
+                f"Couldn't get safe hash. "
+                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "
+                f"received {response.performative.value}."
+            )
+            return None
+
+        # strip "0x" from the response hash
+        tx_hash = cast(str, response.state.body["tx_hash"])[2:]
+        return tx_hash
+
+    def _get_multisend_tx(self) -> Generator[None, None, Optional[str]]:
+        """This method compiles a multisend transaction to give ownership of the safe contract to the service owner."""
+        transactions: List[Dict] = []
+        owner_to_be_swapped: Optional[str] = None
+        threshold = 1
+        safe_owners = yield from self._get_safe_owners()
+        if safe_owners is None:
+            return None
+
+        # we remove all but one safe owner
+        for owner in safe_owners:
+            if owner_to_be_swapped is None:
+                owner_to_be_swapped = owner
+                continue
+
+            # we generate a tx to remove the current owner
+            remove_tx = yield from self._get_remove_owner_tx(owner_to_be_swapped, owner, threshold)
+            if remove_tx is None:
+                return None
+
+            # we append it to the list of the multisend txs
+            transactions.append(
+                {
+                    "operation": MultiSendOperation.CALL,
+                    "to": self.synchronized_data.safe_contract_address,
+                    "value": _ETHER_VALUE,
+                    "data": HexBytes(remove_tx),
+                }
+            )
+
+        # we swap the last owner with the service owner
+        swap_tx = yield from self._get_swap_owner_tx(
+            owner_to_be_swapped,
+            owner_to_be_swapped,
+            self._service_owner_address,
+        )
+        if swap_tx is None:
+            return None
+
+        transactions.append(
+            {
+                "operation": MultiSendOperation.CALL,
+                "to": self.synchronized_data.safe_contract_address,
+                "value": _ETHER_VALUE,
+                "data": HexBytes(swap_tx),
+            }
+        )
+
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+            contract_address=self.params.multisend_address,
+            contract_id=str(MultiSendContract.contract_id),
+            contract_callable="get_tx_data",
+            multi_send_txs=transactions,
+        )
+        if response.performative != ContractApiMessage.Performative.RAW_MESSAGE:
+            self.context.logger.error(
+                f"Couldn't compile the multisend tx. "
+                f"Expected response performative {ContractApiMessage.Performative.RAW_MESSAGE.value}, "
+                f"received {response.performative.value}."
+            )
+            return None
+
+        multisend_data = cast(str, response.raw_transaction.body["data"])[2:]
+        return multisend_data
 
     def wait_for_termination_majority(self) -> Generator:
         """
