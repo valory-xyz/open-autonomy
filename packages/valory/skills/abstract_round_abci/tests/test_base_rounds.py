@@ -358,6 +358,10 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
 
         self._test_payload_with_wrong_round_count(test_round)
 
+        test_round.done_event = "DONE_EVENT"
+        test_round.payload_key = "dummy_key"
+        assert test_round.end_block()
+
     def test_keeper_payload_is_none(
         self,
     ) -> None:
