@@ -21,7 +21,7 @@
 
 
 import json
-from typing import Dict
+from typing import Dict, Optional
 
 from aea.cli.utils.config import get_default_author_from_cli_config
 from aea.configurations.utils import PublicId
@@ -41,7 +41,12 @@ class ImageProfiles:  # pylint: disable=too-few-public-methods
     ALL = (CLUSTER, DEVELOPMENT, PRODUCTION)
 
 
-def build_image(agent: PublicId, pull: bool = False, dev: bool = False) -> None:
+def build_image(
+    agent: PublicId,
+    pull: bool = False,
+    dev: bool = False,
+    version: Optional[str] = None,
+) -> None:
     """Command to build images from for skaffold deployment."""
 
     tag: str
@@ -61,7 +66,8 @@ def build_image(agent: PublicId, pull: bool = False, dev: bool = False) -> None:
         }
 
     else:
-        tag = OAR_IMAGE.format(agent=agent.name, version=agent.hash)
+        image_version = version or agent.hash
+        tag = OAR_IMAGE.format(agent=agent.name, version=image_version)
         path = str(DATA_DIR / DOCKERFILES / "agent")
         buildargs = {
             "AUTONOMY_IMAGE_NAME": AUTONOMY_IMAGE_NAME,

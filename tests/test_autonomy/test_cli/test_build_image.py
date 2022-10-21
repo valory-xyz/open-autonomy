@@ -23,6 +23,8 @@ import json
 import os
 import shutil
 from pathlib import Path
+from random import choices
+from string import ascii_letters
 from typing import Tuple
 
 import docker
@@ -67,5 +69,29 @@ class TestBuildImage(BaseCliTest):
         assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
         assert (
             len(self.docker_api.images(name=f"valory/oar-hello_world:{self.hash_}"))
+            == 1
+        )
+
+    def test_build_dev(
+        self,
+    ) -> None:
+        """Test prod build."""
+
+        result = self.run_cli(("--dev",))
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert len(self.docker_api.images(name="valory/oar-hello_world:dev")) == 1
+
+    def test_build_version(
+        self,
+    ) -> None:
+        """Test prod build."""
+
+        test_version = "".join(choices(ascii_letters, k=6))
+        result = self.run_cli(("--version", test_version))
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert (
+            len(self.docker_api.images(name=f"valory/oar-hello_world:{test_version}"))
             == 1
         )

@@ -57,10 +57,12 @@ Commands:
     ```bash
     Usage: autonomy build-image [OPTIONS] [PUBLIC_ID_OR_HASH]
 
-      Build image using skaffold.
+      Build runtime images for autonomous agents.
 
     Options:
       --service-dir PATH  Path to service dir.
+      --version TEXT      Specify tag version for the image.
+      --dev               Build development image.
       --pull              Pull latest dependencies.
       --help              Show this message and exit.
     ```
