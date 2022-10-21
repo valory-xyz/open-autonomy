@@ -334,7 +334,7 @@ class BaseCollectSameUntilAllRoundTest(
         for behaviour_attr_getter in synchronized_data_attr_checks:
             assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
                 actual_next_synchronized_data
-            )
+            ), f"Mismatch in synchronized_data. Actual:\n{behaviour_attr_getter(synchronized_data)}\nExpected:\n{behaviour_attr_getter(actual_next_synchronized_data)}"
         assert event == exit_event
         yield
 
@@ -387,7 +387,7 @@ class BaseCollectSameUntilThresholdRoundTest(  # pylint: disable=too-few-public-
         for behaviour_attr_getter in synchronized_data_attr_checks:
             assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
                 actual_next_synchronized_data
-            )
+            ), f"Mismatch in synchronized_data. Actual:\n{behaviour_attr_getter(synchronized_data)}\nExpected:\n{behaviour_attr_getter(actual_next_synchronized_data)}"
         assert event == exit_event
         yield
 
@@ -428,7 +428,7 @@ class BaseOnlyKeeperSendsRoundTest(  # pylint: disable=too-few-public-methods
         for behaviour_attr_getter in synchronized_data_attr_checks:
             assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
                 actual_next_synchronized_data
-            )
+            ), f"Mismatch in synchronized_data. Actual:\n{behaviour_attr_getter(synchronized_data)}\nExpected:\n{behaviour_attr_getter(actual_next_synchronized_data)}"
         assert event == exit_event
         yield
 
@@ -473,7 +473,7 @@ class BaseVotingRoundTest(BaseRoundTestClass):  # pylint: disable=too-few-public
         for behaviour_attr_getter in synchronized_data_attr_checks:
             assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
                 actual_next_synchronized_data
-            )
+            ), f"Mismatch in synchronized_data. Actual:\n{behaviour_attr_getter(synchronized_data)}\nExpected:\n{behaviour_attr_getter(actual_next_synchronized_data)}"
         assert event == exit_event
         yield
 
@@ -576,7 +576,7 @@ class BaseCollectDifferentUntilThresholdRoundTest(  # pylint: disable=too-few-pu
         for behaviour_attr_getter in synchronized_data_attr_checks:
             assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
                 actual_next_synchronized_data
-            )
+            ), f"Mismatch in synchronized_data. Actual:\n{behaviour_attr_getter(synchronized_data)}\nExpected:\n{behaviour_attr_getter(actual_next_synchronized_data)}"
         assert event == exit_event
         yield
 
