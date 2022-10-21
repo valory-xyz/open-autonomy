@@ -61,6 +61,10 @@ class DumbDummyTxPayload(BaseTxPayload):
         return self.sender
 
     @property
+    def vote(self):
+        return self.sender
+
+    @property
     def data(self):
         return dict(value=self.value)
 
@@ -304,7 +308,6 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
 
         test_round.no_majority_event = "NO_MAJORITY_EVENT"
         test_round.collection.clear()
-
         for participant in self.participants:
             payload = DumbDummyTxPayload(participant)
             test_round.process_payload(payload)
@@ -446,9 +449,13 @@ class TestVotingRound(_BaseRoundTestClass):
 
     @pytest.mark.parametrize("vote", [True, False, None])
     def test_threshold(self, vote) -> None:
-        """Runs test."""
+        """Runs threshold test."""
 
         test_round = self.setup_test_voting_round()
+        test_round.collection_key = "dummy_collection_key"
+        test_round.done_event = "DONE_EVENT"
+        test_round.negative_event = "NEGATIVE_EVENT"
+        test_round.none_event = "NONE_EVENT"
 
         expected_threshold = {
             True: lambda: test_round.positive_vote_threshold_reached,
@@ -456,12 +463,30 @@ class TestVotingRound(_BaseRoundTestClass):
             None: lambda: test_round.none_vote_threshold_reached,
         }[vote]
 
+        expected_event = {
+            True: test_round.done_event,
+            False: test_round.negative_event,
+            None: test_round.none_event,
+        }[vote]
+
         first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=vote)
         test_round.process_payload(first_payload)
+        assert test_round.end_block() is None
         assert not expected_threshold()
         for payload in payloads:
             test_round.process_payload(payload)
         assert expected_threshold()
+        assert test_round.end_block()[-1] is expected_event
+
+    def test_end_round_no_majority(self):
+        """Test end round"""
+
+        test_round = self.setup_test_voting_round()
+        test_round.no_majority_event = "NO_MAJORITY_EVENT"
+        for participant in self.participants:
+            payload = DumbDummyTxPayload(participant)
+            test_round.process_payload(payload)
+        assert test_round.end_block()[-1] == test_round.no_majority_event
 
 
 class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
