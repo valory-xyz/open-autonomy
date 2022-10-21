@@ -103,6 +103,7 @@ def main() -> None:  # pylint: disable=too-many-locals
         "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure",
         "https://gateway.autonolas.tech/ipfs/`<hash>`,",
         "https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev",
+        "https://encyclopedia.pub/entry/2959",
     ]
 
     # Configure request retries
