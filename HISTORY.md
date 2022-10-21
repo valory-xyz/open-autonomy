@@ -1,6 +1,52 @@
 # Release History - `open-autonomy`
 
 
+# 0.3.3 (2022-10-21)
+
+Autonomy:
+
+- Introduces support for specifying tag versions for runtime image builds.
+- Adds the benchmark tool definition in the scaffolded FSM skill.
+- Adds improvements on the FSM scaffolding
+  - Setting Payload.allowed_tx_type
+  - Importing payloads in behaviours.py
+  - Scaffolding Behaviour.async_act
+  - Payload.data to return data that is compatible with the scaffolded test,
+  - Specifically payload.from_json(payload.json) == payload
+  - Move kwargs in scaffolded tests to the respective TestCase
+- Adds support for ACN and hardhat node in deployment setup using build flags.
+- Fixes regex in analyse to avoid capturing empty strings.
+
+Tests:
+
+- Adds tests to make sure that scaffolded FSM modules can be tested using the CLI command `autonomy test`.
+- Adds test coverage for the app spec module.
+- Cleans up various test class usage across `tests/test_autonomy/test_cli`.
+
+Packages:
+
+- Ports following packages to their respective github repositories
+  - APY skills, agent, and service
+  - Liquidity rebalancing skills.
+  - Price oracle skills, agent, and service
+- Fxes the URL check on tendermint handler
+
+Docs:
+
+- Improves to quickstart section. 
+- Improves and on-chain protocol guides.
+- Simplifies and cleanes up the demo sections.
+- Changes the images to follow the new color scheme.
+- Removes redundant information and redirectes to corresponding documentation sections.
+- Replaces the usage of oracle service in CLI documentation with the hello world service. 
+
+Chores:
+
+- Fixe make target for image release to avoid issues on different shells.
+- Updates some scripts that perform multiple network requests to use parallelization.
+- Restructures `Running on other networks` section.
+
+
 # 0.3.2 (2022-09-30)
 
 Autonomy:
