@@ -140,3 +140,22 @@ class ServiceRegistryContract(Contract):
             numAgentInstances=service_info[0],
             agentInstances=service_info[1],
         )
+
+    @classmethod
+    def get_service_owner(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        service_id: int,
+    ) -> Dict[str, Any]:
+        """Retrieve the service owner."""
+
+        contract_instance = cls.get_instance(ledger_api, contract_address)
+        service_owner = ledger_api.contract_method_call(
+            contract_instance=contract_instance,
+            method_name="ownerOf",
+            serviceId=service_id,
+        )
+        return dict(
+            service_owner=service_owner,
+        )
