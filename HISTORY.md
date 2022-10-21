@@ -1,6 +1,46 @@
 # Release History - `open-autonomy`
 
 
+# 0.3.3 (2022-10-21)
+
+Autonomy:
+
+- Introduces support for specifying tag versions for runtime image builds.
+- Adds the benchmark tool definition in the newly scaffolded FSM skill.
+- Adds improvements on the FSM scaffolding.
+- Adds support for ACN and hardhat node in deployment setup using build flags.
+- Fixes regex in `autonomy analyse` to avoid capturing empty strings.
+
+Tests:
+
+- Adds tests to make sure that scaffolded FSM modules can be tested using the CLI command `autonomy test`.
+- Adds test coverage for the app specification module.
+- Cleans up various test class usage across `tests/test_autonomy/test_cli`.
+
+Packages:
+
+- Extracts following packages to their respective `GitHub` repositories
+  - APY skills, agent, and service.
+  - Liquidity rebalancing skills.
+  - Price oracle skills, agent, and service.
+- Fixes the URL check on the tendermint handler in `abstract_round_abci`.
+
+Docs:
+
+- Improves the quickstart section. 
+- Improves the on-chain protocol guides.
+- Simplifies and cleans up the demo sections.
+- Changes the images to follow the new colour scheme.
+- Removes redundant information and redirects to corresponding documentation sections.
+- Replaces the usage of oracle service in CLI documentation with the hello world service. 
+
+Chores:
+
+- Fixes make target for image release to avoid issues on different shells.
+- Updates some scripts that perform multiple network requests to use parallelization.
+- Restructures `Running on other networks` section.
+
+
 # 0.3.2 (2022-09-30)
 
 Autonomy:
