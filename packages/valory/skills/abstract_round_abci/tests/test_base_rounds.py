@@ -198,6 +198,12 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
+            match="1 votes are not enough for `CollectSameUntilAllRound`",
+        ):
+            assert test_round.common_payload
+
+        with pytest.raises(
+            ABCIAppInternalError,
             match="internal error: sender agent_0 has already sent value for round: round_id",
         ):
             test_round.process_payload(first_payload)
@@ -231,6 +237,7 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
             test_round.process_payload(payload)
 
         assert test_round.collection_threshold_reached
+        assert test_round.common_payload
         self._test_payload_with_wrong_round_count(test_round, "test")
 
 
