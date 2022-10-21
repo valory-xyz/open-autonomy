@@ -55,6 +55,11 @@ from packages.valory.connections.ledger.connection import (
     PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.abci.custom_types import Header
+from packages.valory.skills.abstract_round_abci.background_round import (
+    Event,
+    TerminationPayload,
+    TerminationRound,
+)
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
@@ -1847,6 +1852,7 @@ class AbciApp(
 
         self._current_round_cls: Optional[AppState] = None
         self._current_round: Optional[AbstractRound] = None
+        self._termination_round: Optional[AbstractRound] = None
         self._last_round: Optional[AbstractRound] = None
         self._previous_rounds: List[AbstractRound] = []
         self._current_round_height: int = 0
@@ -1913,6 +1919,33 @@ class AbciApp(
     def setup(self) -> None:
         """Set up the behaviour."""
         self._schedule_round(self.initial_round_cls)
+        self._termination_round = TerminationRound(
+            self._initial_synchronized_data,
+            self.consensus_params,
+            None,
+        )
+
+    def _get_transaction_settlement_initial_round(
+        self,
+    ) -> Optional[Type[AbstractRound]]:
+        """
+        Returns the initial round of `transaction_settlement_abci`
+
+        This method works under two assumptions.
+            1. The transaction_settlement_abci is present in the running agent.
+            2. The initial round of transaction_settlement_abci is "randomness_transaction_submission".
+        Note that we cannot just reference the round directly, as this would cause a cyclic dependency,
+        abstract_round_abci -> transaction_settlement_abci -> abstract_round_abci
+
+        :return: the initial round of `transaction_settlement_abci`
+        """
+        randomness_transaction_submission = "randomness_transaction_submission"
+        all_rounds = self.transition_function.keys()
+        for round in all_rounds:
+            if round.round_id == randomness_transaction_submission:
+                return round
+
+        return None
 
     def _log_start(self) -> None:
         """Log the entering in the round."""
@@ -2000,6 +2033,13 @@ class AbciApp(
         return self._current_round
 
     @property
+    def termination_round(self) -> AbstractRound:
+        """Get the termination round."""
+        if self._termination_round is None:
+            raise ValueError("termination_round not set!")
+        return self._termination_round
+
+    @property
     def current_round_id(self) -> Optional[str]:
         """Get the current round id."""
         return self._current_round.round_id if self._current_round else None
@@ -2028,20 +2068,30 @@ class AbciApp(
         """
         Check a transaction.
 
-        Forward the call to the current round object.
+        The termination round runs concurrently with other (normal) rounds.
+        First we check if the transaction is meant for the termination round,
+        if not we forward to the current round object.
 
         :param transaction: the transaction.
         """
+        if transaction.payload.transaction_type == TerminationPayload.transaction_type:
+            self._termination_round.check_transaction(transaction)
+            return
         self.current_round.check_transaction(transaction)
 
     def process_transaction(self, transaction: Transaction) -> None:
         """
         Process a transaction.
 
-        Forward the call to the current round object.
+        The termination round runs concurrently with other (normal) rounds.
+        First we check if the transaction is meant for the termination round,
+        if not we forward to the current round object.
 
         :param transaction: the transaction.
         """
+        if transaction.payload.transaction_type == TerminationPayload.transaction_type:
+            self._termination_round.process_transaction(transaction)
+            return
         self.current_round.process_transaction(transaction)
 
     def process_event(
@@ -2054,9 +2104,24 @@ class AbciApp(
             )
             return
 
-        next_round_cls = self.transition_function[self._current_round_cls].get(
-            event, None
-        )
+        # we first check whether the event is the special Termination event.
+        # if that's the case, we move to `transaction_settlement_abci`,
+        # regardless of what the current round is
+        if event == Event.TERMINATE:
+            next_round_cls = self._get_transaction_settlement_initial_round()
+            if next_round_cls is None:
+                raise ValueError(
+                    "Termination majority was reached, "
+                    "but the transition to `transaction_settlement_abci` failed."
+                )
+
+            self.logger.info(
+                f"The termination event was produced, transitioning to `{next_round_cls.round_id}`."
+            )
+        else:
+            next_round_cls = self.transition_function[self._current_round_cls].get(
+                event, None
+            )
         self._extend_previous_rounds_with_current_round()
         if result is not None:
             self._round_results.append(result)
@@ -2201,6 +2266,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_tm_height: Optional[int] = None
         self._tm_height: Optional[int] = None
         self._block_stall_deadline: Optional[datetime.datetime] = None
+        self._termination_called: bool = False
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -2482,11 +2548,23 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         Check whether the round has finished. If so, get the
         new round and set it as the current round.
         """
-        result: Optional[
+        # TODO: exit agent when termination is done ie, transaction_settlement_abci is finished after being scheduled
+        termination_result: Optional[
             Tuple[BaseSynchronizedData, Any]
-        ] = self.current_round.end_block()
+        ] = self.abci_app.termination_round.end_block()
+        if termination_result is not None and not self._termination_called:
+            # when the termination round returns, it takes priority over normal rounds
+            # because the TerminationRound never ends, we should only take into account
+            # its response only once
+            self._termination_called = True
+            result = termination_result
+        else:
+            result = self.abci_app.current_round.end_block()
+
         if result is None:
+            # the termination round, nor the current round returned, so no update needs to be made
             return
+
         self._last_round_transition_timestamp = self._blockchain.last_block.timestamp
         self._last_round_transition_height = self.height
         self._last_round_transition_root_hash = self.root_hash
