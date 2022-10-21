@@ -317,6 +317,7 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
         assert not test_round.has_keeper_sent_payload
         first_payload, *_ = self.tx_payloads
         test_round.process_payload(first_payload)
+        assert test_round.has_keeper_sent_payload
 
         with pytest.raises(
             ABCIAppInternalError,
