@@ -414,6 +414,9 @@ class TestSpecCheck:
         mock_module: dict = {}
         with mock.patch("importlib.import_module", return_value=mock_module):
             with pytest.raises(
-                Exception, match='Class "classfqn" is not in "classfqn"'
+                Exception,
+                match='Class "dummy_class_name" is not in "dummy_module_name"',
             ):
-                SpecCheck.check_one("informat", "infile", "classfqn.classfqn")
+                SpecCheck.check_one(
+                    "informat", "infile", "dummy_module_name.dummy_class_name"
+                )
