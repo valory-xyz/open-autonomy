@@ -253,6 +253,9 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
+        test_round.collection_key = "dummy_collection_key"
+        test_round.selection_key = "dummy_selection_key"
+        assert test_round.end_block() is None
 
         first_payload, *payloads = get_dummy_tx_payloads(
             self.participants, value="vote"
