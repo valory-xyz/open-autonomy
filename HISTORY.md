@@ -7,28 +7,28 @@ Autonomy:
 
 - Introduces support for specifying tag versions for runtime image builds.
 - Adds the benchmark tool definition in the newly scaffolded FSM skill.
-- Adds improvements on the FSM scaffolding
+- Adds improvements on the FSM scaffolding.
 - Adds support for ACN and hardhat node in deployment setup using build flags.
-- Fixes regex in analyse to avoid capturing empty strings.
+- Fixes regex in `autonomy analyse` to avoid capturing empty strings.
 
 Tests:
 
 - Adds tests to make sure that scaffolded FSM modules can be tested using the CLI command `autonomy test`.
-- Adds test coverage for the app spec module.
+- Adds test coverage for the app specification module.
 - Cleans up various test class usage across `tests/test_autonomy/test_cli`.
 
 Packages:
 
-- Ports following packages to their respective github repositories
-  - APY skills, agent, and service
+- Extracts following packages to their respective `GitHub` repositories
+  - APY skills, agent, and service.
   - Liquidity rebalancing skills.
-  - Price oracle skills, agent, and service
-- Fixes the URL check on tendermint handler
+  - Price oracle skills, agent, and service.
+- Fixes the URL check on the tendermint handler in `abstract_round_abci`.
 
 Docs:
 
-- Improves to quickstart section. 
-- Improves and on-chain protocol guides.
+- Improves the quickstart section. 
+- Improves the on-chain protocol guides.
 - Simplifies and cleans up the demo sections.
 - Changes the images to follow the new colour scheme.
 - Removes redundant information and redirects to corresponding documentation sections.
