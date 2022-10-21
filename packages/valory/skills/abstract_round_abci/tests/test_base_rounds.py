@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the base round classes."""
-import logging
+
 # pylint: skip-file
 
 import re
@@ -529,6 +529,23 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
                 assert res[1] == test_round.done_event
         assert test_round.collection_threshold_reached
         self._test_payload_with_wrong_round_count(test_round)
+
+    def test_end_round(self):
+        """Test end round"""
+
+        test_round = DummyCollectDifferentUntilThresholdRound(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+        test_round.collection_key = "dummy_collection_key"
+        test_round.selection_key = "dummy_selection_key"
+        test_round.done_event = "DONE_EVENT"
+
+        assert test_round.end_block() is None
+        for participant in self.participants:
+            payload = DumbDummyTxPayload(participant)
+            test_round.process_payload(payload)
+        assert test_round.end_block()[-1] == test_round.done_event
 
 
 class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
