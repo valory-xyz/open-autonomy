@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the base round classes."""
-
+import logging
 # pylint: skip-file
 
 import re
@@ -47,6 +47,22 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
     _BaseRoundTestClass,
     get_dummy_tx_payloads,
 )
+
+from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
+
+
+class DumbDummyTxPayload(BaseTxPayload):
+    """DumbDummyTxPayload"""
+    # must overwrite the empty dict property...
+    transaction_type = "DumbDummyTxPayload"
+
+    @property
+    def value(self):
+        return self.sender
+
+    @property
+    def data(self):
+        return dict(value=self.value)
 
 
 class TestCollectionRound(_BaseRoundTestClass):
@@ -275,7 +291,24 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
         self._test_payload_with_wrong_round_count(test_round)
 
         test_round.done_event = "DONE_EVENT"
-        assert test_round.end_block()
+        assert test_round.end_block()[-1] == test_round.done_event
+
+        test_round.none_event = "NONE_EVENT"
+        test_round.collection.clear()
+        payloads = get_dummy_tx_payloads(self.participants, value=None)
+        for payload in payloads:  # must overwrite the value...
+            payload._value = None
+            test_round.process_payload(payload)
+        assert test_round.most_voted_payload is None
+        assert test_round.end_block()[-1] == test_round.none_event
+
+        test_round.no_majority_event = "NO_MAJORITY_EVENT"
+        test_round.collection.clear()
+
+        for participant in self.participants:
+            payload = DumbDummyTxPayload(participant)
+            test_round.process_payload(payload)
+        assert test_round.end_block()[-1] == test_round.no_majority_event
 
     def test_run_with_none(
         self,
