@@ -24,7 +24,9 @@ from typing import AbstractSet, Any, Dict, Generic, List, Optional, Tuple, Type,
 
 from aea.skills.base import Behaviour
 
-from packages.valory.skills.abstract_round_abci.background_round import TerminationBehaviour
+from packages.valory.skills.abstract_round_abci.background_round import (
+    TerminationBehaviour,
+)
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciApp,
