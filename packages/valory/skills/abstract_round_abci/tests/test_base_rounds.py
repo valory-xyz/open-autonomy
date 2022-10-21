@@ -444,35 +444,24 @@ class TestVotingRound(_BaseRoundTestClass):
 
         self._test_payload_with_wrong_round_count(test_round)
 
-    def test_negative_threshold(
-        self,
-    ) -> None:
+    @pytest.mark.parametrize("vote", [True, False, None])
+    def test_threshold(self, vote) -> None:
         """Runs test."""
 
         test_round = self.setup_test_voting_round()
-        first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=False)
-        test_round.process_payload(first_payload)
 
-        assert not test_round.negative_vote_threshold_reached
+        expected_threshold = {
+            True: lambda: test_round.positive_vote_threshold_reached,
+            False: lambda: test_round.negative_vote_threshold_reached,
+            None: lambda: test_round.none_vote_threshold_reached,
+        }[vote]
+
+        first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=vote)
+        test_round.process_payload(first_payload)
+        assert not expected_threshold()
         for payload in payloads:
             test_round.process_payload(payload)
-
-        assert test_round.negative_vote_threshold_reached
-
-    def test_positive_threshold(
-        self,
-    ) -> None:
-        """Runs test."""
-
-        test_round = self.setup_test_voting_round()
-        first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=True)
-        test_round.process_payload(first_payload)
-
-        assert not test_round.positive_vote_threshold_reached
-        for payload in payloads:
-            test_round.process_payload(payload)
-
-        assert test_round.positive_vote_threshold_reached
+        assert expected_threshold()
 
 
 class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
