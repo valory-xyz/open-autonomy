@@ -23,7 +23,7 @@
 
 import re
 from enum import Enum
-from typing import Tuple, cast
+from typing import Optional, Tuple, cast
 
 import pytest
 
@@ -276,7 +276,8 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
         self._test_payload_with_wrong_round_count(test_round)
 
         test_round.done_event = "DONE_EVENT"
-        assert test_round.end_block()[-1] == test_round.done_event
+        return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
+        assert return_value[-1] == test_round.done_event
 
         test_round.none_event = "NONE_EVENT"
         test_round.collection.clear()
@@ -285,14 +286,16 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
             payload._value = None
             test_round.process_payload(payload)
         assert test_round.most_voted_payload is None
-        assert test_round.end_block()[-1] == test_round.none_event
+        return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
+        assert return_value[-1] == test_round.none_event
 
         test_round.no_majority_event = "NO_MAJORITY_EVENT"
         test_round.collection.clear()
         for participant in self.participants:
             payload = DummyTxPayload(participant, value=participant)
             test_round.process_payload(payload)
-        assert test_round.end_block()[-1] == test_round.no_majority_event
+        return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
+        assert return_value[-1] == test_round.no_majority_event
 
     def test_run_with_none(
         self,
@@ -429,7 +432,7 @@ class TestVotingRound(_BaseRoundTestClass):
         self._test_payload_with_wrong_round_count(test_round)
 
     @pytest.mark.parametrize("vote", [True, False, None])
-    def test_threshold(self, vote) -> None:
+    def test_threshold(self, vote: Optional[bool]) -> None:
         """Runs threshold test."""
 
         test_round = self.setup_test_voting_round()
@@ -457,9 +460,10 @@ class TestVotingRound(_BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
         assert expected_threshold()
-        assert test_round.end_block()[-1] is expected_event
+        return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
+        assert return_value[-1] == expected_event
 
-    def test_end_round_no_majority(self):
+    def test_end_round_no_majority(self) -> None:
         """Test end round"""
 
         test_round = self.setup_test_voting_round()
@@ -467,7 +471,8 @@ class TestVotingRound(_BaseRoundTestClass):
         for i, participant in enumerate(self.participants):
             payload = DummyTxPayload(participant, value=participant, vote=bool(i % 2))
             test_round.process_payload(payload)
-        assert test_round.end_block()[-1] == test_round.no_majority_event
+        return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
+        assert return_value[-1] == test_round.no_majority_event
 
 
 class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
@@ -511,7 +516,7 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
         assert test_round.collection_threshold_reached
         self._test_payload_with_wrong_round_count(test_round)
 
-    def test_end_round(self):
+    def test_end_round(self) -> None:
         """Test end round"""
 
         test_round = DummyCollectDifferentUntilThresholdRound(
@@ -526,7 +531,8 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
         for participant in self.participants:
             payload = DummyTxPayload(participant, value=participant)
             test_round.process_payload(payload)
-        assert test_round.end_block()[-1] == test_round.done_event
+        return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
+        assert return_value[-1] == test_round.done_event
 
 
 class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
