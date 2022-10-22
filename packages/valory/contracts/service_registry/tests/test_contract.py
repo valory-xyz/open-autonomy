@@ -136,3 +136,23 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
             )
 
         assert result == return_value
+
+    def test_get_service_owner(self) -> None:
+        """Test service owner retrieval."""
+        service_owner = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"
+
+        assert self.contract_address is not None
+
+        with mock.patch.object(
+            self.ledger_api,
+            "contract_method_call",
+            return_value=service_owner,
+        ):
+            actual = self.contract.get_service_owner(
+                self.ledger_api,
+                self.contract_address,
+                VALID_SERVICE_ID,
+            )
+
+        expected = dict(service_owner=service_owner)
+        assert expected == actual
