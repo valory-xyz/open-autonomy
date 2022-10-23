@@ -51,7 +51,7 @@ from packages.valory.protocols.ledger_api.custom_types import (
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    pytestmark = pytest.mark.skip
+    atheris: Any = None  # type: ignore
 
 
 from aea_test_autonomy.helpers.base import try_send
@@ -1128,7 +1128,9 @@ class TestBaseBehaviour:
         ):
             self.behaviour._send_signing_request(b"")
 
-    @pytest.mark.skip
+    @pytest.mark.skipif(
+        not atheris, reason="`atheris` not imported (likely not installed)"
+    )
     def test_fuzz_send_signing_request(self) -> None:
         """Test '_send_signing_request'.
 
@@ -1727,7 +1729,9 @@ class TestBaseBehaviour:
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
 
-    @pytest.mark.skip
+    @pytest.mark.skipif(
+        not atheris, reason="`atheris` not imported (likely not installed)"
+    )
     def test_fuzz_submit_tx(self) -> None:
         """Test '_submit_tx'.
 

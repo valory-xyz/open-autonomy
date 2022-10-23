@@ -22,6 +22,7 @@
 # pylint: skip-file
 
 import sys
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -30,7 +31,7 @@ import pytest
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    pytestmark = pytest.mark.skip
+    atheris: Any = None  # type: ignore
 
 from packages.valory.skills.abstract_round_abci.utils import (
     MAX_UINT64,
@@ -112,7 +113,7 @@ class TestVerifyDrand:
             self.drand_check._int_to_bytes_big(value)
 
 
-@pytest.mark.skip
+@pytest.mark.skipif(not atheris, reason="`atheris` not imported (likely not installed)")
 def test_fuzz_verify_drand() -> None:
     """Fuzz test for VerifyDrand. Run directly as a function, not through pytest"""
 
@@ -144,7 +145,7 @@ def test_to_int_positive() -> None:
     assert to_int(542, 2) == 54200
 
 
-@pytest.mark.skip
+@pytest.mark.skipif(not atheris, reason="`atheris` not imported (likely not installed)")
 def test_fuzz_to_int() -> None:
     """Test fuzz to_int."""
 

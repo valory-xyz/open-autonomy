@@ -42,7 +42,7 @@ from packages.valory.skills.abstract_round_abci.serializer import (
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    pytestmark = pytest.mark.skip
+    atheris: Any = None  # type: ignore
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
@@ -200,7 +200,7 @@ def test_encode_nan() -> None:
     assert math.isnan(deserialized["key"])
 
 
-@pytest.mark.skip
+@pytest.mark.skipif(not atheris, reason="`atheris` not imported (likely not installed)")
 def test_fuzz_encode() -> None:
     """Fuzz test for serializer. Run directly as a function, not through pytest"""
 

@@ -24,7 +24,7 @@
 import logging  # noqa: F401
 import sys
 from types import MappingProxyType
-from typing import Dict, FrozenSet, cast
+from typing import Any, Dict, FrozenSet, cast
 from unittest import mock
 
 import pytest
@@ -55,7 +55,7 @@ from packages.valory.skills.simple_abci.rounds import (
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    pytestmark = pytest.mark.skip
+    atheris: Any = None  # type: ignore
 
 
 MAX_PARTICIPANTS: int = 4
@@ -314,7 +314,7 @@ def test_rotate_list_method() -> None:
     assert rotate_list(ex_list, 2) == [3, 4, 5, 1, 2]
 
 
-@pytest.mark.skip
+@pytest.mark.skipif(not atheris, reason="`atheris` not imported (likely not installed)")
 def test_fuzz_rotate_list() -> None:
     """Test fuzz rotate_list."""
 
