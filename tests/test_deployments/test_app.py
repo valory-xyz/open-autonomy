@@ -27,7 +27,7 @@ import subprocess  # nosec
 import tempfile
 import time
 from pathlib import Path
-from typing import Callable, Dict, List
+from typing import Callable, Dict, Set
 from unittest import mock
 
 import flask
@@ -46,6 +46,7 @@ from deployments.Dockerfiles.tendermint.tendermint import (  # type: ignore
     TendermintParams,
 )
 
+from aea.test_tools.utils import wait_for_condition
 
 ENCODING = "utf-8"
 VERSION = "0.34.19"
@@ -248,30 +249,38 @@ class TestTendermintLogMessages(BaseTendermintServerTest):
                 lines = "".join(f.readlines())
             return lines
 
-        def get_missing(messages: List[str]) -> List[str]:
-            i, max_retries = 0, 5
-            while messages and i < max_retries:
-                i += 1
-                time.sleep(1)
-                messages = [line for line in messages if line not in get_logs()]
+        def get_missing(messages: Set[str]) -> Set[str]:
+            while messages:
+                logs = get_logs()
+                messages -= {line for line in messages if line in logs}
             return messages
 
-        before_stopping = [
+        before_stopping = {
             "Tendermint process started",
             "Monitoring thread started",
             "Starting multiAppConn service",
             "Starting localClient service",
             "This node is a validator",
-        ]
+        }
 
-        after_stopping = [
+        after_stopping = {
             "Monitoring thread terminated",
             "Tendermint process stopped",
-        ]
+        }
 
-        assert not get_missing(before_stopping), get_logs()
+        wait_for_condition(
+            lambda: not get_missing(before_stopping),
+            error_msg=f"Not all `before_stopping` messages found in Tendermint logs: {before_stopping}",
+            timeout=10,
+            period=1
+        )
         self.tendermint_node.stop()
-        assert not get_missing(after_stopping), get_logs()
+        wait_for_condition(
+            lambda: not get_missing(after_stopping),
+            error_msg=f"Not all `after_stopping` messages found in Tendermint logs: {after_stopping}",
+            timeout=10,
+            period=1
+        )
 
 
 def mock_get_node_command_kwargs() -> Dict:
