@@ -42,7 +42,7 @@ from packages.valory.skills.abstract_round_abci.serializer import (
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    atheris: Any = None
+    atheris: Any = None  # type: ignore
 
 
 PACKAGE_DIR = Path(__file__).parent.parent

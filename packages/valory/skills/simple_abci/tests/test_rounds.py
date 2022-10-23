@@ -24,7 +24,7 @@
 import logging  # noqa: F401
 import sys
 from types import MappingProxyType
-from typing import Dict, FrozenSet, Any, cast
+from typing import Any, Dict, FrozenSet, cast
 from unittest import mock
 
 import pytest
@@ -55,7 +55,7 @@ from packages.valory.skills.simple_abci.rounds import (
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    atheris: Any = None
+    atheris: Any = None  # type: ignore
 
 
 MAX_PARTICIPANTS: int = 4

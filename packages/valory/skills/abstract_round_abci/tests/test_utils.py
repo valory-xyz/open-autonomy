@@ -31,7 +31,7 @@ import pytest
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    atheris: Any = None
+    atheris: Any = None  # type: ignore
 
 from packages.valory.skills.abstract_round_abci.utils import (
     MAX_UINT64,
