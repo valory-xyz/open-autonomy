@@ -22,6 +22,7 @@
 # pylint: skip-file
 
 import sys
+from typing import Any
 
 import pytest
 
@@ -40,7 +41,7 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    pytestmark = pytest.mark.skip
+    atheris: Any = None
 
 
 class TestTxHistPayloadEncodingDecoding:
@@ -102,7 +103,7 @@ def test_payload_to_hex_and_back() -> None:
     assert tx_params == skill_input_hex_to_payload(intermediate)
 
 
-@pytest.mark.skip
+@pytest.mark.skipif(not atheris, reason="`atheris` not imported (likely not installed)")
 def test_fuzz_tx_hist_payload_to_hex() -> None:
     """Test fuzz tx_hist_payload_to_hex."""
 
@@ -124,7 +125,7 @@ def test_fuzz_tx_hist_payload_to_hex() -> None:
     atheris.Fuzz()
 
 
-@pytest.mark.skip
+@pytest.mark.skipif(not atheris, reason="`atheris` not imported (likely not installed)")
 def test_fuzz_tx_hist_hex_to_payload() -> None:
     """Test fuzz tx_hist_hex_to_payload."""
 
@@ -143,7 +144,7 @@ def test_fuzz_tx_hist_hex_to_payload() -> None:
     atheris.Fuzz()
 
 
-@pytest.mark.skip
+@pytest.mark.skipif(not atheris, reason="`atheris` not imported (likely not installed)")
 def test_fuzz_hash_payload_to_hex() -> None:
     """Test fuzz hash_payload_to_hex."""
 
@@ -183,7 +184,7 @@ def test_fuzz_hash_payload_to_hex() -> None:
     atheris.Fuzz()
 
 
-@pytest.mark.skip
+@pytest.mark.skipif(not atheris, reason="`atheris` not imported (likely not installed)")
 def test_fuzz_skill_input_hex_to_payload() -> None:
     """Test fuzz skill_input_hex_to_payload."""
 
