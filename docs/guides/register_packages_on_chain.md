@@ -33,7 +33,7 @@ Once the user fills the required information for the package, the {{on_chain_fro
 <figcaption>How a package is registered with the protocol frontend</figcaption>
 </figure>
 
-
+The metadata file is, therefore, the piece of information that is passed to the on-chain smart contract representing the corresponding registry.
 
 ## Register an agent component
 Ensure that you meet the [requirements](#requirements) stated above.
