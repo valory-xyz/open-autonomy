@@ -62,7 +62,7 @@ snippets/quick_start/1_fetch.sh
     autonomy deploy build keys.json --aev
     ```
 
-5. The build configuration will be located in `./abci_build` folder. Run the deployment using
+5. Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally using
     ```bash
     cd abci_build
     autonomy deploy run

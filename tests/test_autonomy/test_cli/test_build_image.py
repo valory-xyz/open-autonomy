@@ -23,6 +23,8 @@ import json
 import os
 import shutil
 from pathlib import Path
+from random import choices
+from string import ascii_letters
 from typing import Tuple
 
 import docker
@@ -41,22 +43,21 @@ class TestBuildImage(BaseCliTest):
     build_dir: Path
     hash_: str
 
-    @classmethod
-    def setup(cls) -> None:
+    def setup(self) -> None:
         """Setup class."""
         super().setup()
 
-        cls.docker_api = docker.APIClient()
+        self.docker_api = docker.APIClient()
 
         with open(ROOT_DIR / PACKAGES / "packages.json") as json_data:
             d = json.load(json_data)
-            cls.hash_ = d["agent/valory/hello_world/0.1.0"]
+            self.hash_ = d["agent/valory/hello_world/0.1.0"]
             json_data.close()
         shutil.copytree(
             ROOT_DIR / PACKAGES / "valory" / "services" / "hello_world",
-            cls.t / "hello_world",
+            self.t / "hello_world",
         )
-        os.chdir(cls.t / "hello_world")
+        os.chdir(self.t / "hello_world")
 
     def test_build_prod(
         self,
@@ -71,9 +72,26 @@ class TestBuildImage(BaseCliTest):
             == 1
         )
 
-    @classmethod
-    def teardown(cls) -> None:
-        """Teardown."""
+    def test_build_dev(
+        self,
+    ) -> None:
+        """Test prod build."""
 
-        os.chdir(cls.cwd)
-        super().teardown()
+        result = self.run_cli(("--dev",))
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert len(self.docker_api.images(name="valory/oar-hello_world:dev")) == 1
+
+    def test_build_version(
+        self,
+    ) -> None:
+        """Test prod build."""
+
+        test_version = "".join(choices(ascii_letters, k=6))
+        result = self.run_cli(("--version", test_version))
+
+        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert (
+            len(self.docker_api.images(name=f"valory/oar-hello_world:{test_version}"))
+            == 1
+        )

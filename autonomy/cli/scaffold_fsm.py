@@ -72,6 +72,7 @@ from autonomy.cli.scaffold_fsm_templates import (
     TEST_PAYLOADS,
     TEST_ROUNDS,
 )
+from autonomy.configurations.constants import INIT_PY, PYCACHE
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
 
 
@@ -125,7 +126,7 @@ class AbstractFileGenerator(ABC):
     @property
     def fsm_name(self) -> str:
         """FSM base name"""
-        return self.abci_app_name.replace(ABCI_APP, "")
+        return re.sub(ABCI_APP, "", self.abci_app_name, flags=re.IGNORECASE)
 
     @property
     def author(self) -> str:
@@ -192,8 +193,12 @@ class AbstractFileGenerator(ABC):
             initial_states=_remove_quotes(str(self.dfa.start_states)),
             transition_function=_indent_wrapper(_remove_quotes(str(tf))),
             final_states=_remove_quotes(str(self.dfa.final_states)),
-            BaseBehaviourCls=self.abci_app_name.replace(ABCI_APP, BASE_BEHAVIOUR),
-            RoundBehaviourCls=self.abci_app_name.replace(ABCI_APP, ROUND_BEHAVIOUR),
+            BaseBehaviourCls=re.sub(
+                ABCI_APP, BASE_BEHAVIOUR, self.abci_app_name, flags=re.IGNORECASE
+            ),
+            RoundBehaviourCls=re.sub(
+                ABCI_APP, ROUND_BEHAVIOUR, self.abci_app_name, flags=re.IGNORECASE
+            ),
             InitialBehaviourCls=self.dfa.default_start_state.replace(ROUND, BEHAVIOUR),
             round_behaviours=_indent_wrapper(_remove_quotes(str(behaviours))),
         )
@@ -412,6 +417,10 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             "abci_dialogues", SkillComponentConfiguration("AbciDialogues")
         )
         config.models.create(
+            "benchmark_tool",
+            SkillComponentConfiguration("BenchmarkTool", log_dir="/logs"),
+        )
+        config.models.create(
             "http_dialogues", SkillComponentConfiguration("HttpDialogues")
         )
         config.models.create(
@@ -421,7 +430,8 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             "ledger_api_dialogues", SkillComponentConfiguration("LedgerApiDialogues")
         )
         config.models.create(
-            "contract_api_dialogues", SkillComponentConfiguration("ContactApiDialogues")
+            "contract_api_dialogues",
+            SkillComponentConfiguration("ContractApiDialogues"),
         )
         config.models.create(
             "tendermint_dialogues", SkillComponentConfiguration("TendermintDialogues")
@@ -661,15 +671,15 @@ class ScaffoldABCISkill:
     def _update_init_py(self) -> None:
         """Update Copyright __init__.py files"""
 
-        init_py_path = self.skill_dir / "__init__.py"
+        init_py_path = self.skill_dir / INIT_PY
         lines = init_py_path.read_text().splitlines()
         content = "\n".join(line for line in lines if not line.startswith("#"))
         init_py_path.write_text(f"{COPYRIGHT_HEADER} {content}\n")
-        (Path(self.skill_test_dir) / "__init__.py").write_text(COPYRIGHT_HEADER)
+        (Path(self.skill_test_dir) / INIT_PY).write_text(COPYRIGHT_HEADER)
 
     def _remove_pycache(self) -> None:
         """Remove __pycache__ folders."""
-        for path in self.skill_dir.rglob("*__pycache__*"):
+        for path in self.skill_dir.rglob(f"*{PYCACHE}*"):
             shutil.rmtree(path, ignore_errors=True)
 
 

@@ -62,30 +62,34 @@ class TestBenchmarks(BaseCliTest):
     benchmarks_dir: Path
     output_file: Path
 
-    @classmethod
-    def setup(cls) -> None:
-        """Setup class."""
+    def setup(self) -> None:
+        """Setup test method."""
 
         super().setup()
 
-        cls.benchmarks_dir = cls.t / BENCHMARKS_DIR
-        cls.benchmarks_dir.mkdir()
-        cls.output_file = cls.t / "benchmarks.html"
+        self.benchmarks_dir = self.t / BENCHMARKS_DIR
+        self.benchmarks_dir.mkdir()
+        self.output_file = self.t / "benchmarks.html"
 
         for agent in range(NUMBER_OF_AGENTS):
-            agent_dir = cls.benchmarks_dir / f"agent_{agent}"
+            agent_dir = self.benchmarks_dir / f"agent_{agent}"
             agent_dir.mkdir()
             for i in range(NUMBER_OF_PERIODS):
                 period_file = agent_dir / f"{i}.json"
                 period_file.write_text(json.dumps(generate_benchmark_data()))
 
-        os.chdir(cls.t)
+        os.chdir(self.t)
 
-    def _run_test(self, block_type: str) -> None:
-        """Test run."""
+    def teardown(self) -> None:
+        """Teardown test method."""
+
+        super().teardown()
 
         with suppress(FileNotFoundError):
             os.remove(self.output_file)
+
+    def _run_test(self, block_type: str) -> None:
+        """Test run."""
 
         result = self.run_cli(
             (
@@ -136,9 +140,3 @@ class TestBenchmarks(BaseCliTest):
         """Test with only total blocks."""
 
         self._run_test(BlockTypes.TOTAL)
-
-    @classmethod
-    def teardown(cls) -> None:
-        """Teardown class."""
-        os.chdir(cls.cwd)
-        super().teardown()

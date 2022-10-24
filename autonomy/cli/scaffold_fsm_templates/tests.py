@@ -31,7 +31,7 @@ class TEST_ROUNDS:
     HEADER = """\
     \"\"\"This package contains the tests for rounds of {FSMName}.\"\"\"
 
-    from typing import Any, Type, Dict, List, Callable, Hashable
+    from typing import Any, Type, Dict, List, Callable, Hashable, Mapping
     from dataclasses import dataclass, field
 
     import pytest
@@ -62,7 +62,7 @@ class TEST_ROUNDS:
 
         name: str
         initial_data: Dict[str, Hashable]
-        payloads: BaseTxPayload
+        payloads: Mapping[str, BaseTxPayload]
         final_data: Dict[str, Hashable]
         event: Event
         synchronized_data_attr_checks: List[Callable] = field(default_factory=list)
@@ -143,8 +143,8 @@ class TEST_BEHAVIOURS:
         make_degenerate_behaviour,
     )
     from packages.{author}.skills.{skill_name}.behaviours import (
-        {FSMName}BaseBehaviour,
-        {FSMName}RoundBehaviour,
+        {BaseBehaviourCls},
+        {RoundBehaviourCls},
         {behaviours},
     )
     from packages.{author}.skills.{skill_name}.rounds import (
@@ -177,9 +177,9 @@ class TEST_BEHAVIOURS:
 
         path_to_skill = Path(__file__).parent.parent
 
-        behaviour: {FSMName}RoundBehaviour
-        behaviour_class: Type[{FSMName}BaseBehaviour]
-        next_behaviour_class: Type[{FSMName}BaseBehaviour]
+        behaviour: {RoundBehaviourCls}
+        behaviour_class: Type[{BaseBehaviourCls}]
+        next_behaviour_class: Type[{BaseBehaviourCls}]
         synchronized_data: SynchronizedData
         done_event = Event.DONE
 

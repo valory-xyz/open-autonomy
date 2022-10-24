@@ -85,16 +85,15 @@ class TestAgentRunner(BaseCliTest):
     output_dir: Path = ROOT_DIR
     keys_path: Path = ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json"
 
-    @classmethod
-    def setup(cls) -> None:
-        """Setup."""
+    def setup(self) -> None:
+        """Setup test method."""
         super().setup()
 
         shutil.copytree(
-            cls.packages_dir / "valory" / "services" / "hello_world",
-            cls.t / "hello_world",
+            self.packages_dir / "valory" / "services" / "hello_world",
+            self.t / "hello_world",
         )
-        os.chdir(cls.t / "hello_world")
+        os.chdir(self.t / "hello_world")
 
     def test_run(self) -> None:
         """Test run."""
@@ -121,6 +120,8 @@ class TestAgentRunner(BaseCliTest):
         ) as stop_mock, mock.patch(
             "autonomy.cli.replay.load_docker_config", new=lambda x: DOCKER_COMPOSE_DATA
         ):
-            result = self.run_cli(("0", "--build", str(build_dir)))
+            result = self.run_cli(
+                ("--registry", str(self.packages_dir), "0", "--build", str(build_dir))
+            )
             assert result.exit_code == 0, result.output
             stop_mock.assert_any_call()

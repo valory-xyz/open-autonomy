@@ -56,7 +56,28 @@ Local deployments of a service are recommended to test your service before you p
     autonomy deploy build keys.json --aev
     ```
 
-5. The build configuration will be located in `./abci_build` folder. Run the deployment locally using
+    This will create a deployment environment within the `./abci_build` folder with the following structure:
+    ```bash
+    abci_build/
+    ├── agent_keys
+    │   ├── agent_0
+    │   ├── agent_1
+    │   ├── agent_2
+    │   └── agent_3
+    ├── nodes
+    │   ├── node0
+    │   ├── node1
+    │   ├── node2
+    │   └── node3
+    ├── persistent_data
+    │   ├── benchmarks
+    │   ├── logs
+    │   ├── tm_state
+    │   └── venvs
+    └── docker-compose.yaml
+    ```    
+
+5. Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally using
     ```bash
     cd abci_build
     autonomy deploy run
@@ -66,7 +87,7 @@ Local deployments of a service are recommended to test your service before you p
 
 
 ## On-chain deployment
-The {{open_autonomy}} framework provides a convenient interface for services that have are [registered in the on-chain protocol](./register_packages_on_chain.md##register-a-service).
+The {{open_autonomy}} framework provides a convenient interface for services that are [registered in the on-chain protocol](./register_packages_on_chain.md##register-a-service).
 
   1. **Find the service ID.** Explore the [services section](https://protocol.autonolas.network/agents) of the protocol frontend, and note the ID of the service that you want to deploy. The service must be in **Finished Registration** state.
 

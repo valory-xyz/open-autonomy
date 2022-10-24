@@ -45,24 +45,22 @@ nav:
       - Technical Details: 'demos/price_oracle_technical_details.md'
       - FSM Specification: 'demos/price_oracle_fsms.md'
   - Key concepts:
-    - 'key_concepts/index.md'
-    - Autonomous Economic Agents: 'aea.md'
-    - Finite State Machines: 'fsm.md'
-    - The Application BlockChain Interface: 'abci.md'
+    - 'key_concepts/index.md'    
+    - Autonomous economic agents: 'key_concepts/aea.md'
+    - Finite-state machines: 'key_concepts/fsm.md'
+    - The Application BlockChain Interface: 'key_concepts/abci.md'
     - FSM Apps:
-      - Introduction to FSM Apps: 'fsm_app_introduction.md'
-      - Components of an FSM App: 'fsm_app_components.md'
-      - The AbciApp Class: 'abci_app_class.md'
-      - The AbstractRoundBehaviour Class: 'abci_app_abstract_round_behaviour.md'
-      - The AsyncBehaviour Class: 'abci_app_async_behaviour.md'
-      - The AbstractRound Class: 'abci_app_abstract_round.md'
-      - Interactions between Components: 'abci_app_interactions.md'
-      - Sequence Diagram: 'poc-diagram.md'
-    - Threat model: 'threat-model.md'
+      - Introduction to FSM Apps: 'key_concepts/fsm_app_introduction.md'
+      - Components of an FSM App: 'key_concepts/fsm_app_components.md'
+      - The AbciApp class: 'key_concepts/abci_app_class.md'
+      - The AbstractRoundBehaviour class: 'key_concepts/abci_app_abstract_round_behaviour.md'
+      - The AsyncBehaviour class: 'key_concepts/abci_app_async_behaviour.md'
+      - The AbstractRound class: 'key_concepts/abci_app_abstract_round.md'
+      - Interactions between components: 'key_concepts/abci_app_interactions.md'
+      - Sequence diagram: 'key_concepts/poc-diagram.md'
+    - Threat model: 'key_concepts/threat_model.md'
   - Advanced reference:
     - 'advanced_reference/index.md'
-    - Version: 'version.md'
-    - Upgrading: 'upgrading.md'
     - Package publishing: 'package_publishing.md'
     - CLI: 'autonomy.md'
     - Developer Tooling:
@@ -72,7 +70,6 @@ nav:
       - Container Control Flow: 'control_flow.md'
       - Local Deployment: 'application_deployment.md'
       - Cloud Deployment: 'using_stack_deployment.md'
-    - Running on other networks: 'networks.md'
     - API:
       - Library:
         - Constants: 'api/constants.md'
@@ -194,26 +191,6 @@ nav:
             - Store: 'api/skills/abstract_round_abci/io_/store.md'
           - Serializer: 'api/skills/abstract_round_abci/serializer.md'
           - Utils: 'api/skills/abstract_round_abci/utils.md'
-        - Oracle Deployment ABCI:
-          - Behaviours: 'api/skills/oracle_deployment_abci/behaviours.md'
-          - Models: 'api/skills/oracle_deployment_abci/models.md'
-          - Payloads: 'api/skills/oracle_deployment_abci/payloads.md'
-          - Rounds: 'api/skills/oracle_deployment_abci/rounds.md'
-          - Dialogues: 'api/skills/oracle_deployment_abci/dialogues.md'
-          - Handlers: 'api/skills/oracle_deployment_abci/handlers.md'
-        - Price Estimation ABCI:
-          - Behaviours: 'api/skills/price_estimation_abci/behaviours.md'
-          - Dialogues: 'api/skills/price_estimation_abci/dialogues.md'
-          - Handlers: 'api/skills/price_estimation_abci/handlers.md'
-          - Models: 'api/skills/price_estimation_abci/models.md'
-          - Payloads: 'api/skills/price_estimation_abci/payloads.md'
-          - Rounds: 'api/skills/price_estimation_abci/rounds.md'
-        - Oracle ABCI:
-          - Behaviours: 'api/skills/oracle_abci/behaviours.md'
-          - Composition: 'api/skills/oracle_abci/composition.md'
-          - Dialogues: 'api/skills/oracle_abci/dialogues.md'
-          - Handlers: 'api/skills/oracle_abci/handlers.md'
-          - Models: 'api/skills/oracle_abci/models.md'
         - Registration ABCI:
           - Behaviours: 'api/skills/registration_abci/behaviours.md'
           - Payloads: 'api/skills/registration_abci/payloads.md'
@@ -243,6 +220,8 @@ nav:
       - Delegate call vs call: 'delegate_call.md'
       - Debugging Using Tenderly: 'debugging.md'
       - Package list: 'package_list.md'
+  - Version: 'version.md'
+  - Upgrading: 'upgrading.md'
   - FAQ: 'questions-and-answers.md'
 
 

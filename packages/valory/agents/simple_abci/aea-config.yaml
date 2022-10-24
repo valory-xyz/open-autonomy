@@ -11,7 +11,7 @@ fingerprint:
   tests/test_simple_abci.py: bafybeibsgdtkfq4ij6xlwogrr3b4rqvljrwoykve5mmwpktsqftfc3tc2y
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeid6p7vwyikn7sntlpc36vymotldfgonjbk3qa5gfacxxamybhmpvy
+- valory/abci:0.1.0:bafybeifdn6eyp7tw3pemycnuuh7e6iairmkdpsohjg2coyxkcmjwfpqavm
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
 - valory/ledger:0.19.0:bafybeihmz5us4ntmzvgikpkx4tththrl7zvou4uiebvletdeliidiuhi6m
 - valory/p2p_libp2p_client:0.1.0:bafybeihf35zfr35qsvfte4vbi7njvuzfx4httysw7owmlux53gvxh2or54
@@ -23,9 +23,9 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 skills:
-- valory/abstract_abci:0.1.0:bafybeiabow5j6wc63szukedutrx6bia2agnju62avxsbhqkhchcwwpvu5i
-- valory/abstract_round_abci:0.1.0:bafybeiegpewio6lkpikfnohjqmlwkqtxdmjbky4dphof4jvrixlvkiqixi
-- valory/simple_abci:0.1.0:bafybeianb6xv3fwf3nqzijjes6vwztf3xhurtgxqfrx6cfrvem2qms2ooi
+- valory/abstract_abci:0.1.0:bafybeiagrbn76jal52v2egtuwelcam3e2huzc6pwjtux2dh5hktxn7em3y
+- valory/abstract_round_abci:0.1.0:bafybeia7ot5bsdcddcxy77t2gaqn6s4psi4w7e3kxajzcums5kl2taatji
+- valory/simple_abci:0.1.0:bafybeicmne5yjcujv6pmxjczm6eg35eukow4wbzvu3usg7sfb62pkh3sk4
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -57,7 +57,7 @@ logging_config:
 dependencies:
   open-aea-ledger-ethereum: {}
   open-aea-test-autonomy:
-    version: ==0.3.2
+    version: ==0.3.3
 default_connection: null
 ---
 public_id: valory/abci:0.1.0
@@ -98,14 +98,14 @@ type: skill
 models:
   benchmark_tool:
     args:
-      log_dir: ${SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+      log_dir: ${SKILL_SIMPLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
   params:
     args:
       consensus:
         max_participants: ${MAX_PARTICIPANTS:int:4}
-      round_timeout_seconds: ${ORACLE_PARAMS_ROUND_TIMEOUT_SECONDS:float:7.0}
+      round_timeout_seconds: ${SIMPLE_ABCI_MODELS_PARAMS_ROUND_TIMEOUT_SECONDS:float:7.0}
       tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
       tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
-      reset_tendermint_after: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_RESET_TENDERMINT_AFTER:int:10}
-      observation_interval: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:10}
-      max_healthcheck: ${SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:1200}
+      reset_tendermint_after: ${SKILL_SIMPLE_ABCI_MODELS_PARAMS_ARGS_RESET_TENDERMINT_AFTER:int:10}
+      observation_interval: ${SKILL_SIMPLE_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:10}
+      max_healthcheck: ${SKILL_SIMPLE_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:1200}

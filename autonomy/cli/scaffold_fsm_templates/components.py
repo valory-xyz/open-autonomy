@@ -259,6 +259,9 @@ class MODELS:
     from typing import Any
 
     from packages.valory.skills.abstract_round_abci.models import BaseParams
+    from packages.valory.skills.abstract_round_abci.models import (
+        BenchmarkTool as BaseBenchmarkTool,
+    )
     from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
     from packages.valory.skills.abstract_round_abci.models import (
         SharedState as BaseSharedState,
@@ -276,6 +279,7 @@ class MODELS:
 
     Params = BaseParams
     Requests = BaseRequests
+    BenchmarkTool = BaseBenchmarkTool
     """
 
 
@@ -381,7 +385,7 @@ class DIALOGUES:
 
 
     ContractApiDialogue = BaseContractApiDialogue
-    ContactApiDialogues = BaseContractApiDialogues
+    ContractApiDialogues = BaseContractApiDialogues
 
 
     TendermintDialogue = BaseTendermintDialogue

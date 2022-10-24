@@ -29,18 +29,18 @@ def get_dummy_service_config() -> List[Dict]:
             "name": "dummy_service",
             "author": "valory",
             "version": "0.1.0",
-            "description": "A set of agents implementing a dummy oracle",
+            "description": "A set of agents implementing a dummy service",
             "aea_version": ">=1.0.0, <2.0.0",
             "license": "Apache-2.0",
             "fingerprint": {
                 "README.md": "QmY4bupJmk4BKkFefNCWNEkj3kUtgmraSDNbWFDx4qgbZf"
             },
             "fingerprint_ignore_patterns": [],
-            "agent": "valory/oracle:0.1.0:QmXuaeUagpuJ4cRiBHTX9ydSnibPyEbdL23zmGyUuWwMYr",
+            "agent": "valory/dummy:0.1.0:QmXuaeUagpuJ4cRiBHTX9ydSnibPyEbdL23zmGyUuWwMYr",
             "number_of_agents": 1,
         },
         {
-            "public_id": "valory/oracle_abci:0.1.0",
+            "public_id": "valory/dummy_abci:0.1.0",
             "type": "skill",
             "models": {
                 0: [

@@ -30,11 +30,8 @@ from unittest import mock
 import flask
 
 from autonomy.cli import cli
-from autonomy.deploy.constants import (
-    DEFAULT_ABCI_BUILD_DIR,
-    PERSISTENT_DATA_DIR,
-    TM_STATE_DIR,
-)
+from autonomy.constants import DEFAULT_BUILD_FOLDER
+from autonomy.deploy.constants import PERSISTENT_DATA_DIR, TM_STATE_DIR
 from autonomy.replay.tendermint import TendermintNetwork
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
@@ -84,15 +81,14 @@ class TestTendermintRunner(BaseCliTest):
     output_dir: Path = ROOT_DIR
     keys_path: Path = ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json"
 
-    @classmethod
-    def setup(cls) -> None:
+    def setup(self) -> None:
         """Setup."""
         super().setup()
         shutil.copytree(
-            cls.packages_dir / "valory" / "services" / "hello_world",
-            cls.t / "hello_world",
+            self.packages_dir / "valory" / "services" / "hello_world",
+            self.t / "hello_world",
         )
-        os.chdir(cls.t)
+        os.chdir(self.t)
 
     def test_run(self) -> None:
         """Test run."""
@@ -106,7 +102,7 @@ class TestTendermintRunner(BaseCliTest):
                 str(self.keys_path),
                 "--force",
                 "--o",
-                str(self.t / DEFAULT_ABCI_BUILD_DIR),
+                str(self.t / DEFAULT_BUILD_FOLDER),
                 "--local",
             ),
         )
@@ -117,7 +113,7 @@ class TestTendermintRunner(BaseCliTest):
         addrbook_file = (
             (
                 self.t
-                / DEFAULT_ABCI_BUILD_DIR
+                / DEFAULT_BUILD_FOLDER
                 / PERSISTENT_DATA_DIR
                 / TM_STATE_DIR
                 / "addrbook.json"
@@ -130,7 +126,7 @@ class TestTendermintRunner(BaseCliTest):
         config_toml = (
             (
                 self.t
-                / DEFAULT_ABCI_BUILD_DIR
+                / DEFAULT_BUILD_FOLDER
                 / PERSISTENT_DATA_DIR
                 / TM_STATE_DIR
                 / "config.toml"
@@ -146,7 +142,7 @@ class TestTendermintRunner(BaseCliTest):
             flask.Flask, "run", new=ctrl_c
         ):
 
-            result = self.run_cli(("--build", str(self.t / DEFAULT_ABCI_BUILD_DIR)))
+            result = self.run_cli(("--build", str(self.t / DEFAULT_BUILD_FOLDER)))
             assert result.exit_code == 0, result.output
             stop_mock.assert_any_call()
 

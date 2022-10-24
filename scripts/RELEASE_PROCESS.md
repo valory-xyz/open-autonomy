@@ -11,7 +11,9 @@
 
 5. Check the package upgrades are correct by running `autonomy check-packages`. Commit if satisfied.
 
-6. Check the docs are up-to-date by running `python scripts/generate_api_documentation.py`. Ensure all links are configured `mkdocs serve`. Commit if satisfied.
+6. Check the docs are up-to-date by running `tox -e generate-api-documentation`. Ensure all links are configured `tox -e docs`. Commit if satisfied.
+
+6. Update hash for `valory/oracle_hardhat:0.1.0` in the docs.
 
 7. Write release notes and place them in `HISTORY.md`. Add upgrading tips in `upgrading.md`. If necessary, adjust version references in `SECURITY.md`. Commit if satisfied.
 

@@ -57,15 +57,16 @@ except ImportError:  # pragma: nocover
 @click.command(name="publish")
 @registry_flag()
 @click.option(
-    "--push-missing", is_flag=True, help="Push missing components to registry."
+    "--push-missing", is_flag=True, help="Push missing components on the registry."
 )
 @click.pass_context
 def publish(
     click_context: click.Context, registry: str, push_missing: bool
 ) -> None:  # pylint: disable=unused-argument
-    """Publish the agent to the registry."""
+    """Publish the agent or service on the registry."""
     try:
         if Path(click_context.obj.cwd, DEFAULT_SERVICE_CONFIG_FILE).exists():
+            # TODO: support push_missing
             publish_service_package(click_context, registry)
         elif Path(
             click_context.obj.cwd, DEFAULT_AEA_CONFIG_FILE
@@ -78,7 +79,9 @@ def publish(
 
 
 def publish_service_package(click_context: click.Context, registry: str) -> None:
-    """Publish an agent package."""
+    """Publish a service package."""
+
+    # TODO ensure we have error handling here.
     service_config = load_item_config(
         SERVICE, Path(click_context.obj.cwd), PACKAGE_TYPE_TO_CONFIG_CLASS
     )
@@ -100,7 +103,7 @@ def publish_service_package(click_context: click.Context, registry: str) -> None
 
 
 def publish_service_ipfs(public_id: PublicId, package_path: Path) -> None:
-    """Publish a service package to the IPFS registry."""
+    """Publish a service package on the IPFS registry."""
 
     if not IS_IPFS_PLUGIN_INSTALLED:  # pragma: nocover
         raise RuntimeError("IPFS plugin not installed.")
@@ -109,12 +112,12 @@ def publish_service_ipfs(public_id: PublicId, package_path: Path) -> None:
     _, package_hash, _ = ipfs_tool.add(str(package_path.resolve()))
     package_hash = to_v1(package_hash)
     click.echo(
-        f"Published service package with\n\tPublicId: {public_id}\n\tPackage hash: {package_hash}"
+        f'Service "{public_id.name}" successfully published on the IPFS registry.\n\tPublicId: {public_id}\n\tPackage hash: {package_hash}'
     )
 
 
 def publish_service_local(ctx: Context, public_id: PublicId) -> None:
-    """Publish a service package to the local packages directory."""
+    """Publish a service package on the local packages directory."""
 
     try:
         registry_path = ctx.registry_path
@@ -130,6 +133,9 @@ def publish_service_local(ctx: Context, public_id: PublicId) -> None:
     author_dir = Path(target_dir).parent
     if not os.path.exists(author_dir):
         os.makedirs(author_dir, exist_ok=True)
+    # TODO: also make services dir?
 
     copytree(ctx.cwd, target_dir)
-    click.echo(f'Service "{public_id.name}" successfully saved in packages folder.')
+    click.echo(
+        f'Service "{public_id.name}" successfully published on the local packages directory.'
+    )

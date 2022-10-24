@@ -14,174 +14,121 @@ Commands:
   build  Build the agent and its components.
 ```
 
-### Build tools.
+### Build tools
 
-1. Service Deployment
+1. Service deployment
 
-```bash
-Usage: autonomy deploy build [OPTIONS] [KEYS_FILE]
+    ```bash
+    Usage: autonomy deploy build [OPTIONS] [KEYS_FILE]
 
-  Build deployment setup for n agents.
+      Build deployment setup for n agents.
 
-Options:
-  --o PATH                        Path to output dir.
-  --n INTEGER                     Number of agents.
-  --docker                        Use docker as a backend.
-  --kubernetes                    Use kubernetes as a backend.
-  --dev                           Create development environment.
-  --force                         Remove existing build and overwrite with new
-                                  one.
-  --log-level [INFO|DEBUG|WARNING|ERROR|CRITICAL]
-                                  Logging level for runtime.
-  --packages-dir PATH             Path to packages dir (Use with dev mode)
-  --open-aea-dir PATH             Path to open-aea repo (Use with dev mode)
-  --open-autonomy-dir PATH        Path to open-autonomy repo (Use with dev
-                                  mode)
-  --remote                        To use a remote registry.
-  --local                         To use a local registry.
-  -p                              Ask for password interactively
-  --password PASSWORD             Set password for key encryption/decryption
-  --help                          Show this message and exit.
-```
+    Options:
+      --o PATH                        Path to output dir.
+      --n INTEGER                     Number of agents.
+      --docker                        Use docker as a backend.
+      --kubernetes                    Use kubernetes as a backend.
+      --dev                           Create development environment.
+      --force                         Remove existing build and overwrite with new
+                                      one.
+      --log-level [INFO|DEBUG|WARNING|ERROR|CRITICAL]
+                                      Logging level for runtime.
+      --packages-dir PATH             Path to packages dir (Use with dev mode)
+      --open-aea-dir PATH             Path to open-aea repo (Use with dev mode)
+      --open-autonomy-dir PATH        Path to open-autonomy repo (Use with dev
+                                      mode)
+      --aev                           Apply environment variable when loading
+                                      service config.
+      --use-hardhat                   Include a hardhat node in the deployment
+                                      setup.
+      --use-acn                       Include an ACN node in the deployment setup.
+      --image-version TEXT            Define runtime image version.
+      --remote                        To use a remote registry.
+      --local                         To use a local registry.
+      -p                              Ask for password interactively
+      --password PASSWORD             Set password for key encryption/decryption
+      --help                          Show this message and exit.
+    ```
 
-To create an environment you'll need a service and a file containing keys with funds for the chain you want to use. The necessary images will be built during the build process.
+    To execute this command you need to be located within a service folder. That is, a folder containing the service definition file (`service.yaml`) and a file containing keys with funds for the chain you want to use. The deployment will be created in the subfolder `./abci_build`.
 
-`PUBLIC_ID_OR_HASH` refers to the public id of the service, eg. `valory/oracle_hardhat`. `KEYS_FILE` refers the the file containing funded keys for the agent instances.
+2. Agent service images
 
-Example keys file
+    ```bash
+    Usage: autonomy build-image [OPTIONS] [PUBLIC_ID_OR_HASH]
 
-```json
-[
-    {
-        "address": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-        "private_key": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-    },
-    {
-        "address": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-        "private_key": "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
-    },
-    {
-        "address": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-        "private_key": "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"
-    },
-    {
-        "address": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-        "private_key": "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6"
-    }
-]
-```
+      Build runtime images for autonomous agents.
 
-These keys can be used for local deployments if you're using the default hardhat image for the local chain. Copy and paste this into `keys.json` file and run following command
+    Options:
+      --service-dir PATH  Path to service dir.
+      --version TEXT      Specify tag version for the image.
+      --dev               Build development image.
+      --pull              Pull latest dependencies.
+      --help              Show this message and exit.
+    ```
 
-```bash
-# fetch a service
-$ autonomy fetch valory/oracle_hardhat:0.1.0:bafybeie553shfmnds6v7defynjv5kmjkqf2aygj345jbbcssevtnkbodbe  --service
-$ cd oracle_hardhat
-# create a docker deployment
-$ autonomy deploy build keys.json
-```
+    ```bash
+    # To build an image, navigate to the service dir and run
+    $ autonomy build-image
+    ```
 
-This will create a deployment environment with following directory structure
+    To execute this command you need to be located within a service directory. That is, a directory containing the service definition file (`service.yaml`) and a file containing keys with funds for the chain you want to use. Images generated by this command will follow `valory/oar-<PUBLIC_ID>` format for labels.
 
-```
-abci_build/
-├── agent_keys
-│   ├── agent_0
-│   ├── agent_1
-│   ├── agent_2
-│   └── agent_3
-├── nodes
-│   ├── node0
-│   ├── node1
-│   ├── node2
-│   └── node3
-├── persistent_data
-│   ├── benchmarks
-│   ├── logs
-│   ├── tm_state
-│   └── venvs
-└── docker-compose.yaml
-```
+    If you just want to build image for a specific agent without fetching a service run
 
-To run this deployment go to the `abci_build` and run `docker-compose up`.
-
-
-2. Deployment images
-
-```bash
-Usage: autonomy build-image [OPTIONS] [PUBLIC_ID_OR_HASH]
-
-  Build image using skaffold.
-
-Options:
-  --service-dir PATH  Path to service dir.
-  --pull              Pull latest dependencies.
-  --help              Show this message and exit.
-```
-
-```bash
-# To build an image, navigate to the service dir and run
-$ autonomy build-image
-```
-
-This will create and image with label `valory/open-autonomy-open-aea:oracle-0.1.0`. Images generated by this command will follow `valory/open-autonomy-open-aea:app_name-version` format for labels.
-
-If you just want to build image for a specific agent without a fetching service run
-
-```bash
-$ autonomy build-image PUBLIC_ID
-```
+    ```bash
+    $ autonomy build-image PUBLIC_ID
+    ```
 
 3. Run deployments
 
-```bash
-Usage: autonomy deploy run [OPTIONS]
+    ```bash
+    Usage: autonomy deploy run [OPTIONS]
 
-  Run deployment.
+      Run deployment.
 
-Options:
-  --build-dir PATH
-  --no-recreate     If containers already exist, dont recreate them.
-  --remove-orphans  Remove containers for services not defined in the Compose
-                    file.
-  --help            Show this message and exit.
-```
+    Options:
+      --build-dir PATH
+      --no-recreate     If containers already exist, dont recreate them.
+      --remove-orphans  Remove containers for services not defined in the Compose
+                        file.
+      --help            Show this message and exit.
+    ```
 
-`autonomy deploy run` is a wrapper around `docker-compose up` command to run the service deployments. To run deployments, navigate to the build directory and run
-
-```bash
-$ autonomy deploy run
-```
+    This command is a wrapper around `docker-compose up` to run the service deployment.  To execute this command you need to be located within the deployment environment subfolder (`./abci_build`).
 
 4. One click deployments
 
-If you have a service registered on-chain you can deploy the services directly using token IDs generated after the minting the service component. Refer [here](./package_publishing.md) for more information.
+    If you have a service registered on-chain you can deploy the services directly using token IDs generated after the minting the service component. See the [register a service on-chain](./guides/register_packages_on_chain.md#register-a-service) guide for more information.
 
-```bash
-Usage: autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
+    ```bash
+    Usage: autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 
-  Run service deployment.
+      Run service deployment.
 
-Options:
-  --rpc TEXT      Custom RPC URL
-  --sca TEXT      Service contract address for custom RPC URL.
-  --n INTEGER     Number of agents to include in the build.
-  --skip-images   Skip building images.
-  --use-goerli    Use goerli chain to resolve the token id.
-  --use-ethereum  Use ethereum chain to resolve the token id.
-  --use-staging   Use staging chain to resolve the token id.
-  --remote        To use a remote registry.
-  --local         To use a local registry.
-  --help          Show this message and exit.
-```
+    Options:
+      --rpc TEXT      Custom RPC URL
+      --sca TEXT      Service contract address for custom RPC URL.
+      --n INTEGER     Number of agents to include in the build.
+      --skip-images   Skip building images.
+      --use-goerli    Use goerli chain to resolve the token id.
+      --use-ethereum  Use ethereum chain to resolve the token id.
+      --use-staging   Use staging chain to resolve the token id.
+      --remote        To use a remote registry.
+      --local         To use a local registry.
+      --help          Show this message and exit.
+    ```
 
-To run a deployment for the on-chain service you'll need the token id for the minted service and funded keys. Save the keys in the `keys.json` and run
+    To run a deployment for the on-chain service you need the token id for the minted service and funded keys. Save the keys in the `keys.json` and run
 
-```bash
-$ autonomy deploy from-token ON_SERVICE_TOKEN_ID keys.json
-```
+    ```bash
+    $ autonomy deploy from-token <TOKEN_ID> keys.json
+    ```
 
-Currently we support Autonolas staging chain, Goerli testnet and Ethereum mainnet for resolving on-chain token ids, but if you have a contract deployed on some other chain you can provide the RPC URL to the chain and contract address using `--rpc` and `--sca`.
+    Currently we support Autonolas staging chain, Görli testnet and Ethereum mainnet for resolving on-chain token ids, but if you have a contract deployed on some other chain you can provide the RPC URL to the chain and contract address using `--rpc` and `--sca`.
+
+
+You can see an example on how to use the commands in this section to build and run a local deployment (Hello world agent service) in the [quick start guide](./guides/quick_start.md).
 
 ## Replay
 

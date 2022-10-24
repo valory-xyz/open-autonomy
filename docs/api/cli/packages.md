@@ -13,11 +13,11 @@ Override for packages command.
 @click.option(
     "--check",
     is_flag=True,
-    help="Check packages.json",
+    help="Check that fingerprints in packages.json match the local packages",
 )
 @pass_ctx
 def lock_packages(ctx: Context, check: bool) -> None
 ```
 
-Lock packages
+Lock local packages.
 
