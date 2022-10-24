@@ -38,6 +38,7 @@ from aea_test_autonomy.configurations import (
     ETHEREUM_KEY_PATH_1,
     ETHEREUM_KEY_PATH_2,
     ETHEREUM_KEY_PATH_3,
+    KEY_PAIRS,
 )
 from aea_test_autonomy.docker.base import skip_docker_tests
 from aea_test_autonomy.helpers.contracts import get_register_contract
@@ -375,6 +376,74 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             self.ledger_api.api.eth.get_balance(self.contract_address) == 110
         ), "incorrect balance"
 
+    def test_get_zero_transfer_events(self) -> None:
+        """Test get_zero_transfer_events."""
+        # check that the safe has no zero transfers
+        res = cast(
+            JSONLike,
+            self.contract.get_zero_transfer_events(
+                ledger_api=self.ledger_api,
+                contract_address=cast(str, self.contract_address),
+                sender_address=self.deployer_crypto.address,
+            ),
+        )
+        data = cast(List[JSONLike], res["data"])
+        assert len(data) == 0, "no zero transfers should be in the safe"
+
+        # make a zero transfer
+        self.ledger_api.api.eth.send_transaction(
+            {
+                "to": self.contract_address,
+                "from": self.deployer_crypto.address,
+                "value": 0,
+            }
+        )
+
+        time.sleep(3)
+
+        res = cast(
+            JSONLike,
+            self.contract.get_zero_transfer_events(
+                ledger_api=self.ledger_api,
+                contract_address=cast(str, self.contract_address),
+                sender_address=self.deployer_crypto.address,
+            ),
+        )
+        data = cast(List[JSONLike], res["data"])
+
+        assert len(res) == 1, "one zero transfer should exist"
+        assert (
+            data[0]["sender"] == self.deployer_crypto.address
+        ), f"{data[0]['sender']} should be the sender"
+        assert data[0]["block_number"] is not None, "tx is still pending"
+
+        # make a second zero transfer
+        prev_block = cast(int, data[0]["block_number"])
+        self.ledger_api.api.eth.send_transaction(
+            {
+                "to": self.contract_address,
+                "from": self.deployer_crypto.address,
+                "value": 0,
+            }
+        )
+
+        time.sleep(3)
+
+        res = self.contract.get_zero_transfer_events(
+            ledger_api=self.ledger_api,
+            contract_address=cast(str, self.contract_address),
+            sender_address=self.deployer_crypto.address,
+            from_block=prev_block
+            + 1,  # this is added to ignore the previous 0 transfer
+        )
+        data = cast(List[JSONLike], res["data"])
+
+        assert len(res) == 1, "one zero transfer should exist"
+        assert (
+            data[0]["sender"] == self.deployer_crypto.address
+        ), f"{data[0]['sender']} should be the sender"
+        assert data[0]["block_number"] is not None, "tx is still pending"
+
 
 @skip_docker_tests
 class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
@@ -628,3 +697,224 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
             signatures_by_owner={},
         )
         assert not res["verified"], "Should not be verified"
+
+
+@skip_docker_tests
+class TestOwnerManagement(BaseContractTestHardHatSafeNet):
+    """Test owner management related ."""
+
+    ledger_api: EthereumApi
+
+    def test_remove(self) -> None:  # pylint: disable=too-many-locals
+        """Test owner removal."""
+        assert self.contract_address is not None
+        owner_to_be_removed = self.owners()[2]
+        threshold = max(self.threshold() - 1, 1)
+        value = 0
+        data_str = self.contract.get_remove_owner_data(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            owner=owner_to_be_removed,
+            threshold=threshold,
+        ).get("data")
+        data = bytes.fromhex(data_str[2:])  # strip 0x before converting to bytes
+
+        sender = crypto_registry.make(
+            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_1
+        )
+        assert sender.address == self.owners()[1]
+        receiver = crypto_registry.make(
+            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_2
+        )
+        assert receiver.address == self.owners()[2]
+        fourth = crypto_registry.make(
+            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_3
+        )
+        assert fourth.address == self.owners()[3]
+        cryptos = [self.deployer_crypto, sender, receiver, fourth]
+        tx_hash = self.contract.get_raw_safe_transaction_hash(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            to_address=self.contract_address,
+            value=value,
+            data=data,
+        )["tx_hash"]
+        b_tx_hash = binascii.unhexlify(cast(str, tx_hash)[2:])
+        signatures_by_owners = {
+            crypto.address: crypto.sign_message(b_tx_hash, is_deprecated_mode=True)[2:]
+            for crypto in cryptos
+        }
+        assert list(signatures_by_owners.keys()) == self.owners()
+
+        tx = self.contract.get_raw_safe_transaction(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            sender_address=sender.address,
+            owners=(self.deployer_crypto.address.lower(),),
+            to_address=self.contract_address,
+            value=value,
+            data=data,
+            signatures_by_owner={
+                self.deployer_crypto.address.lower(): signatures_by_owners[
+                    self.deployer_crypto.address
+                ]
+            },
+        )
+
+        assert all(
+            key
+            in [
+                "chainId",
+                "data",
+                "from",
+                "gas",
+                "maxFeePerGas",
+                "maxPriorityFeePerGas",
+                "nonce",
+                "to",
+                "value",
+            ]
+            for key in tx.keys()
+        ), "Missing key"
+
+        prev_block = cast(int, self.ledger_api.api.eth.get_block_number()) + 1
+        tx_signed = sender.sign_transaction(tx)
+        tx_hash = self.ledger_api.send_signed_transaction(tx_signed)
+
+        assert tx_hash is not None, "Tx hash is `None`"
+
+        verified = self.contract.verify_tx(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            tx_hash=tx_hash,
+            owners=(self.deployer_crypto.address.lower(),),
+            to_address=self.contract_address,
+            value=value,
+            data=data,
+            signatures_by_owner={
+                self.deployer_crypto.address.lower(): signatures_by_owners[
+                    self.deployer_crypto.address
+                ]
+            },
+        )
+        assert verified["verified"], f"Not verified: {verified}"
+        time.sleep(1)
+        remove_events = self.contract.get_removed_owner_events(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            removed_owner=owner_to_be_removed,
+            from_block=prev_block,
+        ).get("data")
+
+        assert remove_events is not None, "a RemovedOwner event was expected"
+        assert len(remove_events) == 1, "1 RemovedOwner event was expected"
+        assert (
+            remove_events[0].get("owner") == owner_to_be_removed
+        ), "a different owner than expected was removed"
+
+    def test_swap(self) -> None:  # pylint: disable=too-many-locals
+        """Test owner swapping."""
+        assert self.contract_address is not None
+        old_owner = self.owners()[1]
+        new_owner = KEY_PAIRS[-1][0]
+        value = 0
+        data_str = self.contract.get_swap_owner_data(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            old_owner=old_owner,
+            new_owner=new_owner,
+        ).get("data")
+        data = bytes.fromhex(data_str[2:])  # strip 0x before converting to bytes
+
+        sender = crypto_registry.make(
+            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_1
+        )
+        assert sender.address == self.owners()[1]
+        receiver = crypto_registry.make(
+            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_2
+        )
+        assert receiver.address == self.owners()[2]
+        fourth = crypto_registry.make(
+            EthereumCrypto.identifier, private_key_path=ETHEREUM_KEY_PATH_3
+        )
+        assert fourth.address == self.owners()[3]
+        cryptos = [self.deployer_crypto, sender, receiver, fourth]
+        tx_hash = self.contract.get_raw_safe_transaction_hash(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            to_address=self.contract_address,
+            value=value,
+            data=data,
+        )["tx_hash"]
+        b_tx_hash = binascii.unhexlify(cast(str, tx_hash)[2:])
+        signatures_by_owners = {
+            crypto.address: crypto.sign_message(b_tx_hash, is_deprecated_mode=True)[2:]
+            for crypto in cryptos
+        }
+        assert list(signatures_by_owners.keys()) == self.owners()
+
+        tx = self.contract.get_raw_safe_transaction(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            sender_address=sender.address,
+            owners=(self.deployer_crypto.address.lower(),),
+            to_address=self.contract_address,
+            value=value,
+            data=data,
+            signatures_by_owner={
+                self.deployer_crypto.address.lower(): signatures_by_owners[
+                    self.deployer_crypto.address
+                ]
+            },
+        )
+
+        assert all(
+            key
+            in [
+                "chainId",
+                "data",
+                "from",
+                "gas",
+                "maxFeePerGas",
+                "maxPriorityFeePerGas",
+                "nonce",
+                "to",
+                "value",
+            ]
+            for key in tx.keys()
+        ), "Missing key"
+
+        prev_block = cast(int, self.ledger_api.api.eth.get_block_number()) + 1
+        tx_signed = sender.sign_transaction(tx)
+        tx_hash = self.ledger_api.send_signed_transaction(tx_signed)
+
+        assert tx_hash is not None, "Tx hash is `None`"
+
+        verified = self.contract.verify_tx(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            tx_hash=tx_hash,
+            owners=(self.deployer_crypto.address.lower(),),
+            to_address=self.contract_address,
+            value=value,
+            data=data,
+            signatures_by_owner={
+                self.deployer_crypto.address.lower(): signatures_by_owners[
+                    self.deployer_crypto.address
+                ]
+            },
+        )
+        assert verified["verified"], f"Not verified: {verified}"
+        time.sleep(1)
+        remove_events = self.contract.get_removed_owner_events(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            removed_owner=old_owner,
+            from_block=prev_block,
+        ).get("data")
+
+        assert remove_events is not None, "a RemovedOwner event was expected"
+        assert len(remove_events) == 1, "1 RemovedOwner event was expected"
+        assert (
+            remove_events[0].get("owner") == old_owner
+        ), "a different owner than expected was removed"
