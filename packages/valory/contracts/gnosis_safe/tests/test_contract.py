@@ -307,17 +307,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
 
     def test_get_incoming_transfers(self) -> None:
         """Run get_incoming txs."""
-        res = cast(
-            JSONLike,
-            self.contract.get_ingoing_transfers(
-                ledger_api=self.ledger_api,
-                contract_address=cast(str, self.contract_address),
-            ),
-        )
-        data = cast(List[JSONLike], res["data"])
-
-        assert len(data) == 0, "no transfers are made to the "
-
+        from_block = cast(int, self.ledger_api.api.eth.get_block_number()) + 1
         self.ledger_api.api.eth.send_transaction(
             {
                 "to": self.contract_address,
@@ -331,6 +321,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             self.contract.get_ingoing_transfers(
                 ledger_api=self.ledger_api,
                 contract_address=cast(str, self.contract_address),
+                from_block=hex(from_block),
             ),
         )
         data = cast(List[JSONLike], res["data"])
@@ -347,8 +338,6 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             self.ledger_api.api.eth.get_balance(self.contract_address) == 10
         ), "incorrect balance"
 
-        prev_block = cast(int, data[0]["blockNumber"])
-
         self.ledger_api.api.eth.send_transaction(
             {
                 "to": self.contract_address,
@@ -356,13 +345,13 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
                 "value": 100,
             }
         )
+        from_block = cast(int, data[0]["blockNumber"]) + 1
 
         time.sleep(3)
-
         res = self.contract.get_ingoing_transfers(
             ledger_api=self.ledger_api,
             contract_address=cast(str, self.contract_address),
-            from_block=hex(prev_block + 1),
+            from_block=hex(from_block),
         )
         data = cast(List[JSONLike], res["data"])
 
@@ -418,7 +407,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
         assert data[0]["block_number"] is not None, "tx is still pending"
 
         # make a second zero transfer
-        prev_block = cast(int, data[0]["block_number"])
+        prev_block = cast(int, self.ledger_api.api.eth.get_block_number()) + 1
         self.ledger_api.api.eth.send_transaction(
             {
                 "to": self.contract_address,
@@ -433,8 +422,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             ledger_api=self.ledger_api,
             contract_address=cast(str, self.contract_address),
             sender_address=self.deployer_crypto.address,
-            from_block=prev_block
-            + 1,  # this is added to ignore the previous 0 transfer
+            from_block=prev_block,
         )
         data = cast(List[JSONLike], res["data"])
 
