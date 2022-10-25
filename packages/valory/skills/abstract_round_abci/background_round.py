@@ -20,12 +20,18 @@
 """This module contains the background behaviour and round classes."""
 from enum import Enum
 from mailbox import Message
-from typing import Any, Callable, Dict, Generator, Optional, Tuple, cast, List
+from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, cast
 
 from hexbytes import HexBytes
 
-from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract, SafeOperation
-from packages.valory.contracts.multisend.contract import MultiSendContract, MultiSendOperation
+from packages.valory.contracts.gnosis_safe.contract import (
+    GnosisSafeContract,
+    SafeOperation,
+)
+from packages.valory.contracts.multisend.contract import (
+    MultiSendContract,
+    MultiSendOperation,
+)
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
@@ -37,6 +43,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseBehaviour,
 )
+
 
 # setting the safe gas to 0 means that all available gas will be used
 # which is what we want in most cases
@@ -103,6 +110,7 @@ def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
         + data.hex()
     )
     return concatenated
+
 
 class TransactionType(Enum):
     """Defines the possible transaction types."""
@@ -201,7 +209,96 @@ class TerminationBehaviour(BaseBehaviour):
 
         :returns: True if the termination signal is found, false otherwise
         """
-        pass
+        if self._service_owner_address is None:
+            self._service_owner_address = yield from self.get_service_owner()
+
+        termination_signal = yield from self._get_latest_termination_signal()
+        if termination_signal is None:
+            # no termination signal has ever been sent to safe
+            return False
+
+        service_owner_removal = yield from self._get_latest_removed_owner_event()
+        if service_owner_removal is None:
+            # the service owner has never been removed from the safe
+            # this means that the observed `termination_signal` is the
+            # first termination signal ever sent to this safe contract
+            # as such it is valid signal for terminating the service
+            return True
+
+        # if both the `termination_signal` and the `service_owner` removal events are present,
+        # we need to make sure this is not a previous termination that is already taken care of
+        # if a termination has been previously made, we assume that:
+        #   1. the service owner has been previously set as the safe owner
+        #   2. since the service is running again, the ownership of the safe has been handed back to the agent instances
+        # for 2. to happen, the service owner needs to be removed from being an owner of the safe. When this is done,
+        # a `RemovedOwner` event is thrown, which is what `_get_latest_removed_owner_event()` captures.
+
+        termination_signal_occurrence = int(termination_signal.get("block_number"))
+        service_owner_removal_occurrence = int(termination_signal.get("block_number"))
+
+        # if the termination signal has occurred after the owner has been removed the service should terminate,
+        # otherwise it's a signal that has already been handled previously
+        return termination_signal_occurrence > service_owner_removal_occurrence
+
+    def _get_latest_removed_owner_event(self) -> Generator[None, None, Optional[Dict]]:
+        """Returns the latest event in which the service owner was removed from the set of owners of the safe."""
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_removed_owner_events",
+            contract_address=self.synchronized_data.safe_contract_address,
+            removed_owner=self._service_owner_address,
+        )
+        if response.performative != ContractApiMessage.Performative.STATE:
+            self.context.logger.error(
+                f"Couldn't get the latest `RemovedOwner` event. "
+                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "
+                f"received {response.performative.value}."
+            )
+            return None
+
+        removed_owner_events = cast(List[Dict], response.state.body.get("data"))
+        if len(removed_owner_events) == 0:
+            return None
+
+        latest_removed_owner_event = removed_owner_events[0]
+        for removed_owner_event in removed_owner_events[1:]:
+            if int(removed_owner_event.get("block_number")) > int(
+                latest_removed_owner_event.get("block_number")
+            ):
+                latest_removed_owner_event = removed_owner_event
+
+        return latest_removed_owner_event
+
+    def _get_latest_termination_signal(self) -> Generator[None, None, Optional[Dict]]:
+        """Get the latest termination signal sent by the service owner."""
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_zero_transfer_events",
+            contract_address=self.synchronized_data.safe_contract_address,
+            sender_address=self._service_owner_address,
+        )
+        if response.performative != ContractApiMessage.Performative.STATE:
+            self.context.logger.error(
+                f"Couldn't get the latest Zero Transfer (`SafeReceived`) event. "
+                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "
+                f"received {response.performative.value}."
+            )
+            return None
+
+        zero_transfer_events = cast(List[Dict], response.state.body.get("data"))
+        if len(zero_transfer_events) == 0:
+            return None
+
+        latest_zero_transfer_event = zero_transfer_events[0]
+        for zero_transfer_event in zero_transfer_events[1:]:
+            if int(zero_transfer_event.get("block_number")) > int(
+                latest_zero_transfer_event.get("block_number")
+            ):
+                latest_zero_transfer_event = zero_transfer_event
+
+        return latest_zero_transfer_event
 
     def get_service_owner(self) -> Generator[None, None, Optional[str]]:
         """Method that returns the service owner."""
@@ -263,12 +360,12 @@ class TerminationBehaviour(BaseBehaviour):
             )
             return None
 
-        owners = cast(
-            Optional[str], response.state.body.get("owners", None)
-        )
+        owners = cast(Optional[str], response.state.body.get("owners", None))
         return owners
 
-    def _get_remove_owner_tx(self, prev_owner: str, owner: str, threshold: int) -> Generator[None, None, Optional[str]]:
+    def _get_remove_owner_tx(
+        self, prev_owner: str, owner: str, threshold: int
+    ) -> Generator[None, None, Optional[str]]:
         """
         Gets a remove owner tx.
 
@@ -295,12 +392,12 @@ class TerminationBehaviour(BaseBehaviour):
             )
             return None
 
-        tx_data = cast(
-            Optional[str], response.state.body.get("data", None)
-        )
+        tx_data = cast(Optional[str], response.state.body.get("data", None))
         return tx_data
 
-    def _get_swap_owner_tx(self, prev_owner: str, old_owner: str, new_owner: str) -> Generator[None, None, Optional[str]]:
+    def _get_swap_owner_tx(
+        self, prev_owner: str, old_owner: str, new_owner: str
+    ) -> Generator[None, None, Optional[str]]:
         """
         Gets a swap owner tx.
 
@@ -327,9 +424,7 @@ class TerminationBehaviour(BaseBehaviour):
             )
             return None
 
-        tx_data = cast(
-            Optional[str], response.state.body.get("data", None)
-        )
+        tx_data = cast(Optional[str], response.state.body.get("data", None))
         return tx_data
 
     def _get_safe_tx_hash(self, data: bytes) -> Generator[None, None, Optional[str]]:
@@ -379,7 +474,9 @@ class TerminationBehaviour(BaseBehaviour):
                 continue
 
             # we generate a tx to remove the current owner
-            remove_tx = yield from self._get_remove_owner_tx(owner_to_be_swapped, owner, threshold)
+            remove_tx = yield from self._get_remove_owner_tx(
+                owner_to_be_swapped, owner, threshold
+            )
             if remove_tx is None:
                 return None
 
