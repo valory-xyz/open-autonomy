@@ -15,7 +15,7 @@ In this guide, you will learn how to:
 This guide is based in the on-chain registry currently deployed in the [Görli testnet](https://goerli.net/). Ensure that you have:
 
   * A **[Görli testnet](https://goerli.net/) wallet address** (e.g., [Metamask](https://metamask.io/)) with some GörliETH funds in it. You can use, for example, a [Görli POW faucet](https://goerli-faucet.pk910.de/) to earn some free GörliETH.
-  * The **package hash** of the agent component, agent or agent service that you want to register on-chain, and which should be already published on a remote registry. See the corresponding guides in case you are in doubt on how to create and publish a package in a remote registry.
+  * The **package hash** of the agent component, agent or agent service that you want to register on-chain, and which should be already published in a remote registry. See the corresponding guides in case you are in doubt on how to create and publish a package.
   * An **NFT image URL**. This image will be used to represent the NFT on marketplaces such as [OpenSea](https://opensea.io/). You can use [this sample image URL](https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev) for testing purposes.
   * If you are registering an agent service, you will also need the [Görli testnet](https://goerli.net/) **addresses of the agents** that are part of the service.
 
@@ -33,7 +33,7 @@ Once the user fills the required information for the package, the {{on_chain_fro
 <figcaption>How a package is registered with the protocol frontend</figcaption>
 </figure>
 
-The metadata file is, therefore, the piece of information that is passed to the on-chain smart contract representing the corresponding registry.
+The metadata file is, therefore, the piece of information that is passed to the smart contract representing the corresponding on-chain registry.
 
 ## Register an agent component
 Ensure that you meet the [requirements](#requirements) stated above.
@@ -47,8 +47,10 @@ There are some data that need to be input directly in this form, whereas additio
       - **Name.** A name for the component.
       - **Description.** A description of the component.
       - **Version.** The component version number, for example, 0.1.0.
-      - **Package hash.** This is the remote registry package hash starting by `bafybei...` that you obtained when published the component on a remote registry.
+      - **Package hash.** This is the remote registry package hash starting by `bafybei...` that you obtained when published the component in a remote registry.
       - **NFT Image URL.** An URL pointing to an image. You can use [this sample image URL](https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev) for testing purposes.
+
+      By pressing _Save File & Generate Hash_ a metadada file with this information will be automatically generated and uploaded in the remote registry. You will notice that the hash will be populated in the component registration form.      
 
   3. **Dependencies.** Comma-separated list of component IDs which the component requires. You can find the IDs by browsing the [components section](https://protocol.autonolas.network/components).
 
@@ -67,8 +69,10 @@ There are some data that need to be input directly in this form, whereas additio
       - **Name.** A name for the agent.
       - **Description.** A description of the agent.
       - **Version.** The agent version number, for example, 0.1.0.
-      - **Package hash.** This is the remote registry package hash starting by `bafybei...` that you obtained when published the agent on a remote registry.
+      - **Package hash.** This is the remote registry package hash starting by `bafybei...` that you obtained when published the agent in a remote registry.
       - **NFT Image URL.** An URL pointing to an image. You can use [this sample image URL](https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev) for testing purposes.
+
+      By pressing _Save File & Generate Hash_ a metadada file with this information will be automatically generated and uploaded in the remote registry. You will notice that the hash will be populated in the agent registration form.
 
   3. **Dependencies.** Comma-separated list of component IDs which the agent requires. You can find the IDs by browsing the [components section](https://protocol.autonolas.network/components).
 
@@ -97,10 +101,10 @@ There are some data that need to be input directly in this form, whereas additio
       - **Name.** A name for the service.
       - **Description.** A description of the service.
       - **Version.** The service version number, for example, 0.1.0.
-      - **Package hash.** This is the remote registry package hash starting by `bafybei...` that you obtained when published the service on a remote registry.
+      - **Package hash.** This is the remote registry package hash starting by `bafybei...` that you obtained when published the service in a remote registry.
       - **NFT Image URL.** An URL pointing to an image. You can use [this sample image URL](https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev) for testing purposes.
 
-      By pressing _Save File & Generate Hash_ a metadada file with this information will be automatically generated in the remote IPFS registry. You will notice that the hash will be populated in the service registration form.
+      By pressing _Save File & Generate Hash_ a metadada file with this information will be automatically generated and uploaded in the remote registry. You will notice that the hash will be populated in the service registration form.
 
   3. **Canonical agent Ids.** Comma-separated list of agent ID(s) which the service requires. These are the ID(s) that you found in an earlier step above.
 
