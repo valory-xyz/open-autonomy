@@ -47,7 +47,7 @@ There are some data that need to be input directly in this form, whereas additio
       - **Name.** A name for the component.
       - **Description.** A description of the component.
       - **Version.** The component version number, for example, 0.1.0.
-      - **Package hash.** This is the remote registry package hash starting by `bafybei...` that you obtained when published the component in a remote registry.
+      - **Package hash.** This is the remote registry package hash starting by `bafybei...` that you obtained when published the component in the remote registry.
       - **NFT Image URL.** An URL pointing to an image. You can use [this sample image URL](https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev) for testing purposes.
 
       By pressing _Save File & Generate Hash_ a metadada file with this information will be automatically generated and uploaded in the remote registry. You will notice that the hash will be populated in the component registration form.      
@@ -69,7 +69,7 @@ There are some data that need to be input directly in this form, whereas additio
       - **Name.** A name for the agent.
       - **Description.** A description of the agent.
       - **Version.** The agent version number, for example, 0.1.0.
-      - **Package hash.** This is the remote registry package hash starting by `bafybei...` that you obtained when published the agent in a remote registry.
+      - **Package hash.** This is the remote registry package hash starting by `bafybei...` that you obtained when published the agent in the remote registry.
       - **NFT Image URL.** An URL pointing to an image. You can use [this sample image URL](https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev) for testing purposes.
 
       By pressing _Save File & Generate Hash_ a metadada file with this information will be automatically generated and uploaded in the remote registry. You will notice that the hash will be populated in the agent registration form.
@@ -101,7 +101,7 @@ There are some data that need to be input directly in this form, whereas additio
       - **Name.** A name for the service.
       - **Description.** A description of the service.
       - **Version.** The service version number, for example, 0.1.0.
-      - **Package hash.** This is the remote registry package hash starting by `bafybei...` that you obtained when published the service in a remote registry.
+      - **Package hash.** This is the remote registry package hash starting by `bafybei...` that you obtained when published the service in the remote registry.
       - **NFT Image URL.** An URL pointing to an image. You can use [this sample image URL](https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev) for testing purposes.
 
       By pressing _Save File & Generate Hash_ a metadada file with this information will be automatically generated and uploaded in the remote registry. You will notice that the hash will be populated in the service registration form.
