@@ -43,7 +43,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseBehaviour,
 )
-
+from packages.valory.skills.transaction_settlement_abci.payload_tools import hash_payload_to_hex
 
 # setting the safe gas to 0 means that all available gas will be used
 # which is what we want in most cases
@@ -55,62 +55,6 @@ _ETHER_VALUE = 0
 
 NULL_ADDRESS: str = "0x" + "0" * 40
 MAX_UINT256 = 2 ** 256 - 1
-
-# copied from transaction_settlement_abci/payload_tools.py to avoid cyclic dependency
-def hash_payload_to_hex(  # pylint: disable=too-many-arguments, too-many-locals
-    safe_tx_hash: str,
-    ether_value: int,
-    safe_tx_gas: int,
-    to_address: str,
-    data: bytes,
-    operation: int = SafeOperation.CALL.value,
-    base_gas: int = 0,
-    safe_gas_price: int = 0,
-    gas_token: str = NULL_ADDRESS,
-    refund_receiver: str = NULL_ADDRESS,
-) -> str:
-    """Serialise to a hex string."""
-    if len(safe_tx_hash) != 64:  # should be exactly 32 bytes!
-        raise ValueError(
-            "cannot encode safe_tx_hash of non-32 bytes"
-        )  # pragma: nocover
-
-    if len(to_address) != 42 or len(gas_token) != 42 or len(refund_receiver) != 42:
-        raise ValueError("cannot encode address of non 42 length")  # pragma: nocover
-
-    if (
-        ether_value > MAX_UINT256
-        or safe_tx_gas > MAX_UINT256
-        or base_gas > MAX_UINT256
-        or safe_gas_price > MAX_UINT256
-    ):
-        raise ValueError(
-            "Value is bigger than the max 256 bit value"
-        )  # pragma: nocover
-
-    if operation not in [v.value for v in SafeOperation]:
-        raise ValueError("SafeOperation value is not valid")  # pragma: nocover
-
-    ether_value_ = ether_value.to_bytes(32, "big").hex()
-    safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
-    operation_ = operation.to_bytes(1, "big").hex()
-    base_gas_ = base_gas.to_bytes(32, "big").hex()
-    safe_gas_price_ = safe_gas_price.to_bytes(32, "big").hex()
-
-    concatenated = (
-        safe_tx_hash
-        + ether_value_
-        + safe_tx_gas_
-        + to_address
-        + operation_
-        + base_gas_
-        + safe_gas_price_
-        + gas_token
-        + refund_receiver
-        + data.hex()
-    )
-    return concatenated
-
 
 class TransactionType(Enum):
     """Defines the possible transaction types."""
