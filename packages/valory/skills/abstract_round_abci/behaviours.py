@@ -106,7 +106,9 @@ class _MetaRoundBehaviour(ABCMeta):
         """Check that matching rounds are: (1) unique across behaviour, and (2) covering."""
         round_to_behaviour: Dict[Type[AbstractRound], List[BehaviourType]] = {
             round_cls: []
-            for round_cls in behaviour_cls.abci_app_cls.get_all_round_classes()
+            for round_cls in behaviour_cls.abci_app_cls.get_all_round_classes(
+                behaviour_cls.is_background_behaviour_set
+            )
         }
 
         # check uniqueness
@@ -233,7 +235,7 @@ class AbstractRoundBehaviour(
         self.current_behaviour = self.instantiate_behaviour_cls(
             self.initial_behaviour_cls
         )
-        if self._is_background_behaviour_set:
+        if self.is_background_behaviour_set:
             self.background_behaviour = self.instantiate_behaviour_cls(
                 self.background_behaviour_cls
             )
