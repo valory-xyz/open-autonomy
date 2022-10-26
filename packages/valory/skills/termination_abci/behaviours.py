@@ -48,13 +48,10 @@ from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.abci_app_chain import chain
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
-    AbciAppTransitionFunction,
     AbstractRound,
-    AppState,
     BaseSynchronizedData,
     BaseTxPayload,
     CollectSameUntilThresholdRound,
-    DegenerateRound,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
@@ -520,7 +517,7 @@ class BackgroundBehaviour(BaseBehaviour):
         """Rely on the round to decide when majority is reached."""
         return self.synchronized_data.termination_majority_reached
 
-    def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
+    def get_callback_request(self) -> Callable[[Message, BaseBehaviour], None]:
         """Wrapper for callback_request(), overridden to avoid mix-ups with normal (non-background) behaviours."""
 
         def callback_request(
@@ -590,3 +587,66 @@ class BackgroundRound(CollectSameUntilThresholdRound):
             return state, Event.TERMINATE
 
         return None
+
+
+class TerminationRound(AbstractRound):
+    """Round to act as the counterpart of the behaviour responsible for terminating the agent."""
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """No logic required here."""
+        pass
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """No logic required here."""
+        pass
+
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
+        """No logic required here."""
+        return None
+
+
+class TerminationBehaviour(BaseBehaviour):
+    """Behaviour responsible for terminating the agent."""
+
+    state_id: str = "termination"
+    behaviour_id = "termination_behaviour"
+    matching_round = TerminationRound
+
+    def async_act(self) -> Generator:
+        """Logs termination and terminates."""
+        self.context.logger.info("Terminating the agent.")
+        ok = 0
+        quit(ok)
+        yield
+
+
+class PostTerminationTxAbciApp(AbciApp):
+    """The abci app running after the multisig transaction has been settled."""
+
+    initial_round_cls = TerminationRound
+    transition_function = {BackgroundRound: {Event.TERMINATE: TerminationRound}}
+
+
+termination_transition_function = {
+    FinishedTransactionSubmissionRound: PostTerminationTxAbciApp.initial_round_cls,
+    FailedRound: TransactionSubmissionAbciApp.initial_round_cls,
+}
+
+TerminationAbciApp = chain(
+    (
+        TransactionSubmissionAbciApp,
+        PostTerminationTxAbciApp,
+    ),
+    termination_transition_function,
+)
+
+
+class TerminationAbciBehaviours(AbstractRoundBehaviour):
+    """This class defines the behaviours required in terminating a service."""
+
+    initial_behaviour_cls = TransactionSettlementRoundBehaviour.initial_behaviour_cls
+    abci_app_cls = TerminationAbciApp
+    behaviours: Set[Type[BaseBehaviour]] = {
+        TerminationBehaviour,
+        *TransactionSettlementRoundBehaviour.behaviours,
+    }
