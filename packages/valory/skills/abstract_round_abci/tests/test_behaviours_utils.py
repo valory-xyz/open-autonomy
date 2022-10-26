@@ -30,7 +30,7 @@ import time
 from abc import ABC
 from collections import OrderedDict
 from contextlib import suppress
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
@@ -1574,8 +1574,8 @@ class TestBaseBehaviour:
     @pytest.mark.parametrize("default", (True, False))
     @given(
         st.datetimes(
-            min_value=datetime(1970, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-            max_value=datetime(9999, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+            min_value=datetime(1970, 1, 1, 0, 0, 0),
+            max_value=datetime(9999, 1, 1, 0, 0, 0),
         ),
         st.integers(),
         st.integers(),

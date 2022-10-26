@@ -14,6 +14,16 @@ def get_participants() -> FrozenSet[str]
 
 Participants
 
+<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummyEvent"></a>
+
+## DummyEvent Objects
+
+```python
+class DummyEvent(Enum)
+```
+
+Dummy Event
+
 <a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummyTxPayload"></a>
 
 ## DummyTxPayload Objects

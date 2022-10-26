@@ -33,6 +33,7 @@ from unittest import mock
 import flask
 import pytest
 import requests
+from aea.test_tools.utils import wait_for_condition
 
 from deployments.Dockerfiles.tendermint.app import TendermintNode  # type: ignore
 from deployments.Dockerfiles.tendermint.app import (  # type: ignore
@@ -46,7 +47,6 @@ from deployments.Dockerfiles.tendermint.tendermint import (  # type: ignore
     TendermintParams,
 )
 
-from aea.test_tools.utils import wait_for_condition
 
 ENCODING = "utf-8"
 VERSION = "0.34.19"
@@ -272,14 +272,14 @@ class TestTendermintLogMessages(BaseTendermintServerTest):
             lambda: not get_missing(before_stopping),
             error_msg=f"Not all `before_stopping` messages found in Tendermint logs: {before_stopping}",
             timeout=10,
-            period=1
+            period=1,
         )
         self.tendermint_node.stop()
         wait_for_condition(
             lambda: not get_missing(after_stopping),
             error_msg=f"Not all `after_stopping` messages found in Tendermint logs: {after_stopping}",
             timeout=10,
-            period=1
+            period=1,
         )
 
 

@@ -40,10 +40,10 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
     DummyCollectSameUntilAllRound,
     DummyCollectSameUntilThresholdRound,
     DummyCollectionRound,
+    DummyEvent,
     DummyOnlyKeeperSendsRound,
     DummyTxPayload,
     DummyVotingRound,
-    DummyEvent,
     MAX_PARTICIPANTS,
     _BaseRoundTestClass,
     get_dummy_tx_payloads,
@@ -603,7 +603,8 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
             assert res is None
 
     @pytest.mark.parametrize(
-        "is_value_none, expected_event", ((True, DummyEvent.NONE), (False, DummyEvent.DONE))
+        "is_value_none, expected_event",
+        ((True, DummyEvent.NONE), (False, DummyEvent.DONE)),
     )
     def test_end_block(self, is_value_none: bool, expected_event: str) -> None:
         """Test `end_block` when collection threshold is reached."""
