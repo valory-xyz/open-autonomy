@@ -31,7 +31,7 @@ import time
 from abc import ABC
 from collections import OrderedDict
 from contextlib import suppress
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
@@ -97,8 +97,8 @@ PACKAGE_DIR = Path(__file__).parent.parent
 # https://github.com/python/cpython/issues/94414
 # https://stackoverflow.com/questions/46133223/maximum-value-of-timestamp
 # NOTE: timezone in behaviour_utils._get_reset_params set to UTC
-#   but hypothesis does not allow passing of the `tzinfo` argument
-#   hence we add and subtract a day from the actual min / max datetime
+#  but hypothesis does not allow passing of the `tzinfo` argument
+#  hence we add and subtract a day from the actual min / max datetime
 MIN_DATETIME_WINDOWS = datetime(1970, 1, 3, 1, 0, 0)
 MAX_DATETIME_WINDOWS = datetime(3000, 12, 30, 23, 59, 59)
 
