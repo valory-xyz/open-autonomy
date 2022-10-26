@@ -112,12 +112,13 @@ class DummySelectKeeperBehaviour(SelectKeeperBehaviour):
     payload_class = MagicMock()
 
 
-class BaseDummyBehaviour:
+DummyBehaviourType = Union[DummyRandomnessBehaviour, DummySelectKeeperBehaviour]
+
+
+class BaseDummyBehaviour:  # pylint: disable=too-few-public-methods
     """A Base dummy behaviour class."""
 
-    dummy_behaviour_cls: Type[
-        Union[DummyRandomnessBehaviour, DummySelectKeeperBehaviour]
-    ]
+    dummy_behaviour_cls: Type[DummyBehaviourType]
 
     @classmethod
     def setup_class(cls) -> None:
