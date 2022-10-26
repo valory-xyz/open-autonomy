@@ -281,19 +281,18 @@ class TestRandomnessBehaviour:
             "sleep",
         ) as sleep_mocked:
             next(gen)
+            last_iteration(gen)
+
             if not failsafe_succeeds or failsafe_succeeds and observation is None:
-                last_iteration(gen)
                 return
 
             # here, the observation is retrieved from either `failsafe_randomness` or `get_randomness_from_api`
             # depending on the test's parametrization
             if not observation:
-                last_iteration(gen)
                 sleep_mocked.assert_called_once_with(irrelevant_config["sleep_time"])
                 self.randomness_behaviour.context.randomness_api.increment_retries.assert_called_once()
                 return
 
-            last_iteration(gen)
             send_a2a_transaction_mocked.assert_called_once()
             wait_until_round_end_mocked.assert_called_once()
             set_done_mocked.assert_called_once()
