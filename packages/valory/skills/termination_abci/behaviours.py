@@ -17,21 +17,9 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the background behaviour and round classes."""
-from enum import Enum
+"""This module contains the termination behaviour classes."""
 from mailbox import Message
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generator,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    cast,
-)
+from typing import Callable, Dict, Generator, List, Optional, Set, Type, cast
 
 from hexbytes import HexBytes
 
@@ -45,29 +33,23 @@ from packages.valory.contracts.multisend.contract import (
 )
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.abci_app_chain import chain
-from packages.valory.skills.abstract_round_abci.base import (
-    AbciApp,
-    AbstractRound,
-    BaseSynchronizedData,
-    BaseTxPayload,
-    CollectSameUntilThresholdRound,
-)
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.termination_abci.payloads import BackgroundPayload
+from packages.valory.skills.termination_abci.rounds import (
+    BackgroundRound,
+    SynchronizedData,
+    TerminationAbciApp,
+    TerminationRound,
+)
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TransactionSettlementRoundBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
-)
-from packages.valory.skills.transaction_settlement_abci.rounds import (
-    FailedRound,
-    FinishedTransactionSubmissionRound,
-    TransactionSubmissionAbciApp,
 )
 
 
@@ -81,82 +63,6 @@ _ETHER_VALUE = 0
 
 NULL_ADDRESS: str = "0x" + "0" * 40
 MAX_UINT256 = 2 ** 256 - 1
-
-
-class TransactionType(Enum):
-    """Defines the possible transaction types."""
-
-    BACKGROUND = "background"
-
-
-class BackgroundPayload(BaseTxPayload):
-    """Defines the background round payload."""
-
-    transaction_type = TransactionType.BACKGROUND
-
-    def __init__(self, sender: str, background_data: str, **kwargs: Any) -> None:
-        """Initialize a 'Termination' transaction payload.
-        :param sender: the sender (Ethereum) address
-        :param background_data: serialized tx.
-        :param kwargs: the keyword arguments
-        """
-        super().__init__(sender, **kwargs)
-        self._background_data = background_data
-
-    @property
-    def background_data(self) -> str:
-        """Get the termination data."""
-        return self._background_data
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(background_data=self.background_data)
-
-
-class SynchronizedData(BaseSynchronizedData):
-    """
-    Class to represent the synchronized data.
-
-    This data is replicated by the tendermint application.
-    """
-
-    @property
-    def safe_contract_address(self) -> Optional[str]:
-        """Get the safe contract address."""
-        return cast(Optional[str], self.db.get("safe_contract_address", None))
-
-    @property
-    def termination_majority_reached(self) -> bool:
-        """Get termination_majority_reached."""
-        return cast(bool, self.db.get("termination_majority_reached", False))
-
-
-class Event(Enum):
-    """Defines the (background) round events."""
-
-    TERMINATE = "terminate"
-
-
-class BackgroundRound(CollectSameUntilThresholdRound):
-    """Defines the background round, which runs concurrently with other rounds."""
-
-    round_id: str = "background_round"
-    allowed_tx_type = BackgroundPayload.transaction_type
-    payload_attribute: str = "background_data"
-    synchronized_data_class = SynchronizedData
-
-    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
-        """Process the end of the block."""
-        if self.threshold_reached:
-            state = self.synchronized_data.update(
-                synchronized_data_class=self.synchronized_data_class,
-                termination_majority_reached=True,
-                most_voted_tx_hash=self.most_voted_payload,
-            )
-            return state, Event.TERMINATE
-
-        return None
 
 
 class BackgroundBehaviour(BaseBehaviour):
@@ -589,24 +495,6 @@ class BackgroundBehaviour(BaseBehaviour):
         return self._is_termination_majority
 
 
-class TerminationRound(AbstractRound):
-    """Round to act as the counterpart of the behaviour responsible for terminating the agent."""
-
-    round_id = "termination_round"
-
-    def check_payload(self, payload: BaseTxPayload) -> None:
-        """No logic required here."""
-        pass
-
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """No logic required here."""
-        pass
-
-    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
-        """No logic required here."""
-        return None
-
-
 class TerminationBehaviour(BaseBehaviour):
     """Behaviour responsible for terminating the agent."""
 
@@ -620,32 +508,6 @@ class TerminationBehaviour(BaseBehaviour):
         ok = 0
         quit(ok)
         yield
-
-
-class PostTerminationTxAbciApp(AbciApp):
-    """The abci app running after the multisig transaction has been settled."""
-
-    initial_round_cls = TerminationRound
-    # the following is not needed, it is added to satisfy the round check
-    # the TerminationRound when run it terminates the agent, so nothing can come after it
-    transition_function = {TerminationRound: {Event.TERMINATE: TerminationRound}}
-
-
-termination_transition_function = {
-    FinishedTransactionSubmissionRound: PostTerminationTxAbciApp.initial_round_cls,
-    FailedRound: TransactionSubmissionAbciApp.initial_round_cls,
-}
-
-TerminationAbciApp = chain(
-    (
-        TransactionSubmissionAbciApp,
-        PostTerminationTxAbciApp,
-    ),
-    termination_transition_function,
-)
-TerminationAbciApp.transition_function[BackgroundRound] = {
-    Event.TERMINATE: TransactionSubmissionAbciApp.initial_round_cls,
-}
 
 
 class TerminationAbciBehaviours(AbstractRoundBehaviour):
