@@ -21,13 +21,23 @@
 
 import random
 import re
-from typing import Any, Callable, Dict, FrozenSet, Generator, Optional, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    FrozenSet,
+    Generator,
+    Optional,
+    TypeVar,
+    Union,
+    Type,
+)
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
+
 from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
     SelectKeeperBehaviour,
@@ -35,7 +45,6 @@ from packages.valory.skills.abstract_round_abci.common import (
 )
 from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
-
 
 ReturnValueType = TypeVar("ReturnValueType")
 
@@ -92,14 +101,38 @@ class DummyRandomnessBehaviour(RandomnessBehaviour):
     """Dummy randomness behaviour."""
 
     behaviour_id = "dummy_randomness"
-    payload_class = MagicMock
+    payload_class = MagicMock()
 
 
 class DummySelectKeeperBehaviour(SelectKeeperBehaviour):
     """Dummy select keeper behaviour."""
 
     behaviour_id = "dummy_select_keeper"
-    payload_class = MagicMock
+    payload_class = MagicMock()
+
+
+class BaseDummyBehaviour:
+    """A Base dummy behaviour class."""
+
+    dummy_behaviour_cls: Type[
+        Union[DummyRandomnessBehaviour, DummySelectKeeperBehaviour]
+    ]
+
+    @classmethod
+    def setup_class(cls) -> None:
+        """Setup the test class."""
+        cls.behaviour = cls.dummy_behaviour_cls(
+            name="test",
+            skill_context=MagicMock(
+                params=BaseParams(
+                    name="test",
+                    skill_context=MagicMock(),
+                    service_id="test_id",
+                    consensus=dict(max_participants=1),
+                    **irrelevant_config,
+                ),
+            ),
+        )
 
 
 def dummy_generator(
@@ -123,26 +156,14 @@ def last_iteration(gen: Generator) -> None:
         next(gen)
 
 
-class TestRandomnessBehaviour:
+class TestRandomnessBehaviour(BaseDummyBehaviour):
     """Test `RandomnessBehaviour`."""
-
-    randomness_behaviour: DummyRandomnessBehaviour
 
     @classmethod
     def setup_class(cls) -> None:
         """Setup the test class."""
-        cls.randomness_behaviour = DummyRandomnessBehaviour(
-            name="test",
-            skill_context=MagicMock(
-                params=BaseParams(
-                    name="test",
-                    skill_context=MagicMock(),
-                    service_id="test_id",
-                    consensus=dict(max_participants=1),
-                    **irrelevant_config,
-                ),
-            ),
-        )
+        cls.dummy_behaviour_cls = DummyRandomnessBehaviour
+        super().setup_class()
 
     @pytest.mark.parametrize(
         "return_value, expected_hash",
@@ -162,7 +183,7 @@ class TestRandomnessBehaviour:
         self, return_value: MagicMock, expected_hash: Optional[str]
     ) -> None:
         """Test `failsafe_randomness`."""
-        gen = self.randomness_behaviour.failsafe_randomness()
+        gen = self.behaviour.failsafe_randomness()
 
         with mock.patch.object(
             DummyRandomnessBehaviour,
@@ -186,10 +207,10 @@ class TestRandomnessBehaviour:
     ) -> None:
         """Test `get_randomness_from_api`."""
         # create a dummy `process_response` for `MagicMock`ed `randomness_api`
-        self.randomness_behaviour.context.randomness_api.process_response = (
+        self.behaviour.context.randomness_api.process_response = (
             lambda res: res + "_processed" if res is not None else None
         )
-        gen = self.randomness_behaviour.get_randomness_from_api()
+        gen = self.behaviour.get_randomness_from_api()
 
         with mock.patch.object(
             DummyRandomnessBehaviour,
@@ -216,14 +237,12 @@ class TestRandomnessBehaviour:
     def test_async_act_could_not_generate_from_chain(self) -> None:
         """Test `async_act` when we cannot generate randomness from chain."""
         # create a dummy `is_retries_exceeded` for `MagicMock`ed `randomness_api`
-        self.randomness_behaviour.context.randomness_api.is_retries_exceeded = (
-            lambda: True
-        )
-        gen = self.randomness_behaviour.async_act()
+        self.behaviour.context.randomness_api.is_retries_exceeded = lambda: True
+        gen = self.behaviour.async_act()
 
         # test when `failsafe_randomness` returns `None`
         with mock.patch.object(
-            self.randomness_behaviour,
+            self.behaviour,
             "failsafe_randomness",
             dummy_generator(None),
         ):
@@ -254,30 +273,30 @@ class TestRandomnessBehaviour:
     ) -> None:
         """Test `async_act`."""
         # create a dummy `is_retries_exceeded` for `MagicMock`ed `randomness_api`
-        self.randomness_behaviour.context.randomness_api.is_retries_exceeded = (
+        self.behaviour.context.randomness_api.is_retries_exceeded = (
             lambda: retries_exceeded
         )
-        gen = self.randomness_behaviour.async_act()
+        gen = self.behaviour.async_act()
 
         with mock.patch.object(
-            self.randomness_behaviour,
+            self.behaviour,
             "failsafe_randomness",
             dummy_generator(observation),
         ), mock.patch.object(
-            self.randomness_behaviour,
+            self.behaviour,
             "get_randomness_from_api",
             dummy_generator(observation),
         ), mock.patch.object(
-            self.randomness_behaviour,
+            self.behaviour,
             "send_a2a_transaction",
         ) as send_a2a_transaction_mocked, mock.patch.object(
-            self.randomness_behaviour,
+            self.behaviour,
             "wait_until_round_end",
         ) as wait_until_round_end_mocked, mock.patch.object(
-            self.randomness_behaviour,
+            self.behaviour,
             "set_done",
         ) as set_done_mocked, mock.patch.object(
-            self.randomness_behaviour,
+            self.behaviour,
             "sleep",
         ) as sleep_mocked:
             next(gen)
@@ -290,7 +309,7 @@ class TestRandomnessBehaviour:
             # depending on the test's parametrization
             if not observation:
                 sleep_mocked.assert_called_once_with(irrelevant_config["sleep_time"])
-                self.randomness_behaviour.context.randomness_api.increment_retries.assert_called_once()
+                self.behaviour.context.randomness_api.increment_retries.assert_called_once()
                 return
 
             send_a2a_transaction_mocked.assert_called_once()
@@ -299,34 +318,22 @@ class TestRandomnessBehaviour:
 
     def test_clean_up(self) -> None:
         """Test `clean_up`."""
-        self.randomness_behaviour.clean_up()
-        self.randomness_behaviour.context.randomness_api.reset_retries.assert_called_once()
+        self.behaviour.clean_up()
+        self.behaviour.context.randomness_api.reset_retries.assert_called_once()
 
     def teardown(self) -> None:
         """Teardown run after each test method."""
-        self.randomness_behaviour.context.randomness_api.increment_retries.reset_mock()
+        self.behaviour.context.randomness_api.increment_retries.reset_mock()
 
 
-class TestSelectKeeperBehaviour:
+class TestSelectKeeperBehaviour(BaseDummyBehaviour):
     """Tests for `SelectKeeperBehaviour`."""
-
-    select_keeper_behaviour: DummySelectKeeperBehaviour
 
     @classmethod
     def setup_class(cls) -> None:
         """Setup the test class."""
-        cls.select_keeper_behaviour = DummySelectKeeperBehaviour(
-            name="test",
-            skill_context=MagicMock(
-                params=BaseParams(
-                    name="test",
-                    skill_context=MagicMock(),
-                    service_id="test_id",
-                    consensus=dict(max_participants=1),
-                    **irrelevant_config,
-                )
-            ),
-        )
+        cls.dummy_behaviour_cls = DummySelectKeeperBehaviour
+        super().setup_class()
 
     @mock.patch.object(random, "shuffle", lambda do_not_shuffle: do_not_shuffle)
     @pytest.mark.parametrize(
@@ -384,13 +391,13 @@ class TestSelectKeeperBehaviour:
             "most_voted_keeper_address",
         ):
             setattr(
-                self.select_keeper_behaviour.context.state.synchronized_data,
+                self.behaviour.context.state.synchronized_data,
                 sync_data_name,
                 locals()[sync_data_name],
             )
 
         select_keeper_method = (
-            self.select_keeper_behaviour._select_keeper  # pylint: disable=protected-access
+            self.behaviour._select_keeper  # pylint: disable=protected-access
         )
 
         if not participants - blacklisted_keepers:
@@ -406,20 +413,20 @@ class TestSelectKeeperBehaviour:
 
     def test_async_act(self) -> None:
         """Test `async_act`."""
-        gen = self.select_keeper_behaviour.async_act()
+        gen = self.behaviour.async_act()
 
         with mock.patch.object(
-            self.select_keeper_behaviour,
+            self.behaviour,
             "_select_keeper",
             return_value="test_keeper",
         ), mock.patch.object(
-            self.select_keeper_behaviour,
+            self.behaviour,
             "send_a2a_transaction",
         ) as send_a2a_transaction_mocked, mock.patch.object(
-            self.select_keeper_behaviour,
+            self.behaviour,
             "wait_until_round_end",
         ) as wait_until_round_end_mocked, mock.patch.object(
-            self.select_keeper_behaviour,
+            self.behaviour,
             "set_done",
         ) as set_done_mocked:
             last_iteration(gen)
