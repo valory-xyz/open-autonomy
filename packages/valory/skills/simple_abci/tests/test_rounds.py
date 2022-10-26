@@ -314,7 +314,7 @@ def test_rotate_list_method() -> None:
     assert rotate_list(ex_list, 2) == [3, 4, 5, 1, 2]
 
 
-@pytest.mark.skipif(not atheris, reason="`atheris` not imported (likely not installed)")
+@pytest.mark.skip
 def test_fuzz_rotate_list() -> None:
     """Test fuzz rotate_list."""
 
