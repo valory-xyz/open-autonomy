@@ -175,7 +175,7 @@ class TestRandomnessBehaviour:
             except StopIteration as e:
                 assert e.value == expected_hash
             else:
-                AssertionError(
+                raise AssertionError(
                     "`get_ledger_api_response`'s generator should have been exhausted."
                 )
 
@@ -209,7 +209,7 @@ class TestRandomnessBehaviour:
                 else:
                     assert e.value == randomness_response + "_processed"
             else:
-                AssertionError(
+                raise AssertionError(
                     "`get_randomness_from_api`'s generator should have been exhausted."
                 )
 
