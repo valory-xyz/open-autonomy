@@ -28,17 +28,17 @@ from typing import (
     FrozenSet,
     Generator,
     Optional,
+    Set,
+    Type,
     TypeVar,
     Union,
-    Type,
-    Set,
 )
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 
+from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
     SelectKeeperBehaviour,
@@ -46,6 +46,7 @@ from packages.valory.skills.abstract_round_abci.common import (
 )
 from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
+
 
 ReturnValueType = TypeVar("ReturnValueType")
 
