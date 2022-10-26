@@ -20,7 +20,18 @@
 """This module contains the background behaviour and round classes."""
 from enum import Enum
 from mailbox import Message
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    cast,
+)
 
 from hexbytes import HexBytes
 
@@ -34,16 +45,34 @@ from packages.valory.contracts.multisend.contract import (
 )
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
 from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.abci_app_chain import chain
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciApp,
+    AbciAppTransitionFunction,
+    AbstractRound,
+    AppState,
     BaseSynchronizedData,
     BaseTxPayload,
     CollectSameUntilThresholdRound,
+    DegenerateRound,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseBehaviour,
 )
-from packages.valory.skills.transaction_settlement_abci.payload_tools import hash_payload_to_hex
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    TransactionSettlementRoundBehaviour,
+)
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    hash_payload_to_hex,
+)
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    FailedRound,
+    FinishedTransactionSubmissionRound,
+    TransactionSubmissionAbciApp,
+)
+
 
 # setting the safe gas to 0 means that all available gas will be used
 # which is what we want in most cases
@@ -56,35 +85,36 @@ _ETHER_VALUE = 0
 NULL_ADDRESS: str = "0x" + "0" * 40
 MAX_UINT256 = 2 ** 256 - 1
 
+
 class TransactionType(Enum):
     """Defines the possible transaction types."""
 
-    TERMINATION = "termination"
+    BACKGROUND = "background"
 
 
-class TerminationPayload(BaseTxPayload):
-    """Defines the termination payload."""
+class BackgroundPayload(BaseTxPayload):
+    """Defines the background round payload."""
 
-    transaction_type = TransactionType.TERMINATION
+    transaction_type = TransactionType.BACKGROUND
 
-    def __init__(self, sender: str, termination_data: str, **kwargs: Any) -> None:
+    def __init__(self, sender: str, background_data: str, **kwargs: Any) -> None:
         """Initialize a 'Termination' transaction payload.
         :param sender: the sender (Ethereum) address
-        :param termination_data: serialized tx.
+        :param background_data: serialized tx.
         :param kwargs: the keyword arguments
         """
         super().__init__(sender, **kwargs)
-        self._termination_data = termination_data
+        self._background_data = background_data
 
     @property
-    def termination_data(self) -> str:
+    def background_data(self) -> str:
         """Get the termination data."""
-        return self._termination_data
+        return self._background_data
 
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(termination_data=self.termination_data)
+        return dict(background_data=self.background_data)
 
 
 class SynchronizedData(BaseSynchronizedData):
@@ -105,15 +135,24 @@ class SynchronizedData(BaseSynchronizedData):
         return cast(bool, self.db.get("termination_majority_reached", False))
 
 
-class TerminationBehaviour(BaseBehaviour):
-    """Defines the behaviour that is responsible for service termination, it runs concurrently with other behaviours."""
+class BackgroundBehaviour(BaseBehaviour):
+    """A behaviour responsible for picking up the termination signal, it runs concurrently with other behaviours."""
 
-    behaviour_id = "termination_behaviour_background"
+    behaviour_id = "background_behaviour"
 
     _service_owner_address: Optional[str] = None
 
     def async_act(self) -> Generator:
-        """Performs the termination logic."""
+        """
+        Performs the termination logic.
+
+        This method responsible for checking whether the on-chain termination signal is present.
+        When an agent picks up the termination signal, it prepares a multisend transaction,
+        on which the majority of agents in the service have to reach consensus on.
+
+        :return: None
+        :yield: None
+        """
         if self._is_termination_majority():
             # if termination majority has already been reached
             # there is no need to run the rest of this method
@@ -129,9 +168,9 @@ class TerminationBehaviour(BaseBehaviour):
             "Terminate signal was received, preparing termination transaction."
         )
 
-        termination_data = yield from self.get_multisend_payload()
-        termination_payload = TerminationPayload(
-            self.context.agent_address, termination_data=termination_data
+        background_data = yield from self.get_multisend_payload()
+        termination_payload = BackgroundPayload(
+            self.context.agent_address, background_data=background_data
         )
         yield from self.send_a2a_transaction(termination_payload)
         yield from self.wait_for_termination_majority()
@@ -532,12 +571,12 @@ class Event(Enum):
     TERMINATE = "terminate"
 
 
-class TerminationRound(CollectSameUntilThresholdRound):
-    """Defines the Termination round. The termination round is running at all times concurrently with other rounds."""
+class BackgroundRound(CollectSameUntilThresholdRound):
+    """Defines the background round, which runs concurrently with other rounds."""
 
-    round_id: str = "termination_round"
-    allowed_tx_type = TerminationPayload.transaction_type
-    payload_attribute: str = "termination_data"
+    round_id: str = "background_round"
+    allowed_tx_type = BackgroundPayload.transaction_type
+    payload_attribute: str = "background_data"
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
