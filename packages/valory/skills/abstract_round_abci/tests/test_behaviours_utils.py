@@ -27,6 +27,7 @@ import math
 import shutil
 import sys
 import time
+import platform
 from abc import ABC
 from collections import OrderedDict
 from contextlib import suppress
@@ -1259,6 +1260,7 @@ class TestBaseBehaviour:
         )
         try_send(gen, success_response)
 
+    @pytest.mark.skipif(platform.system() == "Windows", reason="https://github.com/valory-xyz/open-autonomy/issues/1477")
     def test_wait_until_transaction_delivered_raises_timeout(self, *_: Any) -> None:
         """Test '_wait_until_transaction_delivered' method."""
         gen = self.behaviour._wait_until_transaction_delivered(MagicMock(), timeout=0.0)
