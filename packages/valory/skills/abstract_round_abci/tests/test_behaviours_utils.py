@@ -31,7 +31,7 @@ import time
 from abc import ABC
 from collections import OrderedDict
 from contextlib import suppress
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
@@ -47,6 +47,13 @@ from packages.valory.protocols.ledger_api.custom_types import (
     SignedTransaction,
     TransactionDigest,
 )
+
+
+# https://github.com/python/cpython/issues/94414
+# https://stackoverflow.com/questions/46133223/maximum-value-of-timestamp
+# NOTE: timezone in behaviour_utils._get_reset_params set to UTC
+MIN_DATETIME_WINDOWS = datetime(1970, 1, 2, 1, 0, 0, tzinfo=timezone.utc)
+MAX_DATETIME_WINDOWS = datetime(3000, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
 
 
 try:
@@ -1577,8 +1584,8 @@ class TestBaseBehaviour:
     @pytest.mark.parametrize("default", (True, False))
     @given(
         st.datetimes(
-            min_value=datetime(1970, 1, 2, 0, 0, 0),
-            max_value=datetime(3000, 1, 1, 0, 0, 0),
+            min_value=MIN_DATETIME_WINDOWS,
+            max_value=MAX_DATETIME_WINDOWS,
         ),
         st.integers(),
         st.integers(),
