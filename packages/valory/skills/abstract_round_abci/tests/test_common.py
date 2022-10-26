@@ -31,6 +31,7 @@ from typing import (
     TypeVar,
     Union,
     Type,
+    Set,
 )
 from unittest import mock
 from unittest.mock import MagicMock
@@ -341,37 +342,37 @@ class TestSelectKeeperBehaviour(BaseDummyBehaviour):
         (
             (
                 frozenset((f"test_p{i}" for i in range(4))),
-                frozenset(),
+                set(),
                 "test_p0",
                 "test_p1",
             ),
             (
                 frozenset((f"test_p{i}" for i in range(4))),
-                frozenset(),
+                set(),
                 "test_p1",
                 "test_p2",
             ),
             (
                 frozenset((f"test_p{i}" for i in range(4))),
-                frozenset(),
+                set(),
                 "test_p2",
                 "test_p3",
             ),
             (
                 frozenset((f"test_p{i}" for i in range(4))),
-                frozenset(),
+                set(),
                 "test_p3",
                 "test_p0",
             ),
             (
                 frozenset((f"test_p{i}" for i in range(4))),
-                frozenset((f"test_p{i}" for i in range(1))),
+                {f"test_p{i}" for i in range(1)},
                 "test_p1",
                 "test_p2",
             ),
             (
                 frozenset((f"test_p{i}" for i in range(4))),
-                frozenset((f"test_p{i}" for i in range(4))),
+                {f"test_p{i}" for i in range(4)},
                 "",
                 "",
             ),
@@ -380,7 +381,7 @@ class TestSelectKeeperBehaviour(BaseDummyBehaviour):
     def test_select_keeper(
         self,
         participants: FrozenSet[str],
-        blacklisted_keepers: FrozenSet[str],
+        blacklisted_keepers: Set[str],
         most_voted_keeper_address: str,  # pylint: disable=unused-argument
         expected_keeper: str,
     ) -> None:
