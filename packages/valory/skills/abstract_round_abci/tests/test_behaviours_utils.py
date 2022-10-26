@@ -49,13 +49,6 @@ from packages.valory.protocols.ledger_api.custom_types import (
 )
 
 
-# https://github.com/python/cpython/issues/94414
-# https://stackoverflow.com/questions/46133223/maximum-value-of-timestamp
-# NOTE: timezone in behaviour_utils._get_reset_params set to UTC
-MIN_DATETIME_WINDOWS = datetime(1970, 1, 2, 1, 0, 0, tzinfo=timezone.utc)
-MAX_DATETIME_WINDOWS = datetime(3000, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
-
-
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
@@ -99,6 +92,13 @@ from packages.valory.skills.abstract_round_abci.models import (
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
+
+
+# https://github.com/python/cpython/issues/94414
+# https://stackoverflow.com/questions/46133223/maximum-value-of-timestamp
+# NOTE: timezone in behaviour_utils._get_reset_params set to UTC
+MIN_DATETIME_WINDOWS = datetime(1970, 1, 2, 1, 0, 0, tzinfo=timezone.utc)
+MAX_DATETIME_WINDOWS = datetime(3000, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
 
 
 @pytest.fixture(scope="session", autouse=True)
