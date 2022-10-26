@@ -118,6 +118,7 @@ DummyBehaviourType = Union[DummyRandomnessBehaviour, DummySelectKeeperBehaviour]
 class BaseDummyBehaviour:  # pylint: disable=too-few-public-methods
     """A Base dummy behaviour class."""
 
+    behaviour: DummyBehaviourType
     dummy_behaviour_cls: Type[DummyBehaviourType]
 
     @classmethod
