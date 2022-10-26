@@ -67,6 +67,18 @@ def get_participants() -> FrozenSet[str]:
     return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
 
 
+class DummyEvent(Enum):
+    """Dummy Event"""
+
+    DONE = "done"
+    ROUND_TIMEOUT = "round_timeout"
+    NO_MAJORITY = "no_majority"
+    RESET_TIMEOUT = "reset_timeout"
+    NEGATIVE = "negative"
+    NONE = "none"
+    FAIL = "fail"
+
+
 class DummyTxPayload(BaseTxPayload):
     """Dummy Transaction Payload."""
 
@@ -615,7 +627,7 @@ class _BaseRoundTestClass(BaseRoundTestClass):  # pylint: disable=too-few-public
     def _test_payload_with_wrong_round_count(  # pylint: disable=no-self-use
         self, test_round: AbstractRound, value: Optional[Any] = None
     ) -> None:
-        """Test errors raised by pyaloads with wrong round count."""
+        """Test errors raised by payloads with wrong round count."""
         payload_with_wrong_round_count = DummyTxPayload("sender", value, False, 0)
         with pytest.raises(
             TransactionNotValidError,
