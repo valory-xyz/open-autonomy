@@ -1575,7 +1575,7 @@ class TestBaseBehaviour:
     @given(
         st.datetimes(
             min_value=datetime(1970, 1, 1, 0, 0, 0),
-            max_value=datetime(9999, 1, 1, 0, 0, 0),
+            max_value=datetime(3000, 1, 1, 0, 0, 0),
         ),
         st.integers(),
         st.integers(),
