@@ -16,7 +16,7 @@
     "contract/valory/gnosis_safe_proxy_factory/0.1.0": "bafybeidde42fncwdgkwcuztot2hx7s7qkfusmujplvvwljeylyavrgomcy",
     "skill/valory/registration_abci/0.1.0": "bafybeigyinuxihgqb7l75czt6t2lswkupzb4hdogzq2bidobikdnyzh34y",
     "skill/valory/reset_pause_abci/0.1.0": "bafybeihzmir6t5e3ttyymle6zdejvv5xawfnfilg2bbpn45yw67cq5awhy",
-    "contract/valory/gnosis_safe/0.1.0": "bafybeigoga63majfpe7svjnum5yp36tuwpgeyv26iacidgdbqcydonwvr4",
+    "contract/valory/gnosis_safe/0.1.0": "bafybeidun5jdrffmzpr7hquuxzfyx3nkcevaxac6cci3oyjyh72ebbrwyi",
     "skill/valory/counter/0.1.0": "bafybeibmm7jkzt3wkverlhjpveob3pj7qbvd4mdasffubcfpy454koeaqq",
     "skill/valory/counter_client/0.1.0": "bafybeihr3p2ztqpbgzuo4xi7gwq4hjcc3khibirritnxkajaugshlzxjke",
     "skill/valory/hello_world_abci/0.1.0": "bafybeicffxqyij4kaqbuawjxtbmx4cc63jciikdvpopy5pvvaec3baqwze",
@@ -36,6 +36,6 @@
     "service/valory/hello_world/0.1.0": "bafybeiehpbux76kfkj7vii53dlohptvngaz74j5zefy7fpxccg3upvkigm",
     "service/valory/register_reset/0.1.0": "bafybeify3q437jw6w5yr3e73gnwjsghpjwd2iwabvwxjwo6hzp47v3m6kq",
     "service/valory/simple_abci/0.1.0": "bafybeiap7cqvi2qylfjouhd6la3ghkuh5ba43ec7xmbhrt2wlhgm6a7ffm",
-    "skill/valory/safe_deployment_abci/0.1.0": "bafybeicfroju7pnsebxwdrgupsbnhxiabgtl2wji35y7itc5jnvgv27upi",
-    "skill/valory/transaction_settlement_abci/0.1.0": "bafybeidzdc6co3lx6djf3amhnq2pgkdmwpvh5ejtiadiyuknjuaojyamni"
+    "skill/valory/safe_deployment_abci/0.1.0": "bafybeibbk52sobrulxsmfw3u5fimtyhbn7tq2eba57zmlfrhqive42z63m",
+    "skill/valory/transaction_settlement_abci/0.1.0": "bafybeidtz4vzkpeol5yjrkujdu2ehmp442libhlu5g5many4rz3nstkzae"
 }

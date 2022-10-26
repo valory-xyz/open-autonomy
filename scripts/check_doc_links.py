@@ -104,6 +104,7 @@ def main() -> None:  # pylint: disable=too-many-locals
         "https://gateway.autonolas.tech/ipfs/`<hash>`,",
         "https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev",
         "https://encyclopedia.pub/entry/2959",
+        "https://pmg.csail.mit.edu/papers/osdi99.pdf",
     ]
 
     # Configure request retries
