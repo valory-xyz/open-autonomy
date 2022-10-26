@@ -1915,13 +1915,32 @@ class AbciApp(
             events.update(transitions.keys())
         return events
 
-    @classmethod
-    def get_all_round_classes(cls) -> Set[AppState]:
-        """Get all round classes."""
+    @staticmethod
+    def _get_rounds_from_transition_function(
+        transition_function: Optional[AbciAppTransitionFunction],
+    ) -> Set[AppState]:
+        """Get rounds from a transition function."""
+        if transition_function is None:
+            return set()
         result: Set[AppState] = set()
         for start, transitions in transition_function.items():
             result.add(start)
             result.update(transitions.values())
+        return result
+
+    @classmethod
+    def get_all_round_classes(
+        cls, include_termination_rounds: bool = False
+    ) -> Set[AppState]:
+        """Get all round classes."""
+        result: Set[AppState] = cls._get_rounds_from_transition_function(
+            cls.transition_function
+        )
+        if include_termination_rounds:
+            termination_rounds = cls._get_rounds_from_transition_function(
+                cls.termination_transition_function,
+            )
+            result.update(termination_rounds)
         return result
 
     @property
