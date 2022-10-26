@@ -132,11 +132,38 @@ class SynchronizedData(BaseSynchronizedData):
         return cast(bool, self.db.get("termination_majority_reached", False))
 
 
+class Event(Enum):
+    """Defines the (background) round events."""
+
+    TERMINATE = "terminate"
+
+
+class BackgroundRound(CollectSameUntilThresholdRound):
+    """Defines the background round, which runs concurrently with other rounds."""
+
+    round_id: str = "background_round"
+    allowed_tx_type = BackgroundPayload.transaction_type
+    payload_attribute: str = "background_data"
+    synchronized_data_class = SynchronizedData
+
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
+                termination_majority_reached=True,
+                most_voted_tx_hash=self.most_voted_payload,
+            )
+            return state, Event.TERMINATE
+
+        return None
+
+
 class BackgroundBehaviour(BaseBehaviour):
     """A behaviour responsible for picking up the termination signal, it runs concurrently with other behaviours."""
 
     behaviour_id = "background_behaviour"
-
+    matching_round = BackgroundRound
     _service_owner_address: Optional[str] = None
 
     def async_act(self) -> Generator:
@@ -175,7 +202,7 @@ class BackgroundBehaviour(BaseBehaviour):
     @property
     def synchronized_data(self) -> SynchronizedData:
         """Return the synchronized data."""
-        return cast(SynchronizedData, super().synchronized_data)
+        return SynchronizedData(db=super().synchronized_data.db)
 
     def check_for_signal(self) -> Generator[None, None, bool]:
         """
@@ -562,35 +589,10 @@ class BackgroundBehaviour(BaseBehaviour):
         return self._is_termination_majority
 
 
-class Event(Enum):
-    """Defines the (background) round events."""
-
-    TERMINATE = "terminate"
-
-
-class BackgroundRound(CollectSameUntilThresholdRound):
-    """Defines the background round, which runs concurrently with other rounds."""
-
-    round_id: str = "background_round"
-    allowed_tx_type = BackgroundPayload.transaction_type
-    payload_attribute: str = "background_data"
-    synchronized_data_class = SynchronizedData
-
-    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
-        """Process the end of the block."""
-        if self.threshold_reached:
-            state = self.synchronized_data.update(
-                synchronized_data_class=self.synchronized_data_class,
-                termination_majority_reached=True,
-                most_voted_tx_hash=self.most_voted_payload,
-            )
-            return state, Event.TERMINATE
-
-        return None
-
-
 class TerminationRound(AbstractRound):
     """Round to act as the counterpart of the behaviour responsible for terminating the agent."""
+
+    round_id = "termination_round"
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """No logic required here."""
@@ -624,7 +626,9 @@ class PostTerminationTxAbciApp(AbciApp):
     """The abci app running after the multisig transaction has been settled."""
 
     initial_round_cls = TerminationRound
-    transition_function = {BackgroundRound: {Event.TERMINATE: TerminationRound}}
+    # the following is not needed, it is added to satisfy the round check
+    # the TerminationRound when run it terminates the agent, so nothing can come after it
+    transition_function = {TerminationRound: {Event.TERMINATE: TerminationRound}}
 
 
 termination_transition_function = {
@@ -639,6 +643,9 @@ TerminationAbciApp = chain(
     ),
     termination_transition_function,
 )
+TerminationAbciApp.transition_function[BackgroundRound] = {
+    Event.TERMINATE: TransactionSubmissionAbciApp.initial_round_cls,
+}
 
 
 class TerminationAbciBehaviours(AbstractRoundBehaviour):
@@ -647,6 +654,7 @@ class TerminationAbciBehaviours(AbstractRoundBehaviour):
     initial_behaviour_cls = TransactionSettlementRoundBehaviour.initial_behaviour_cls
     abci_app_cls = TerminationAbciApp
     behaviours: Set[Type[BaseBehaviour]] = {
+        BackgroundBehaviour,
         TerminationBehaviour,
         *TransactionSettlementRoundBehaviour.behaviours,
     }
