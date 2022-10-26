@@ -27,6 +27,7 @@ from copy import copy
 from importlib.machinery import ModuleSpec
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Dict
 
 import click.testing
 import pytest
@@ -50,17 +51,11 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
     _t: TemporaryDirectory
     agent_name: str = "test_agent"
 
+    old_tx_type_to_payload_cls: Dict
+
     @classmethod
     def setup_class(cls) -> None:
         """Setup class."""
-        # we need to store the current value of the meta-class attribute
-        # _MetaPayload.transaction_type_to_payload_cls, and restore it
-        # in the teardown function. We do a shallow copy so we avoid
-        # to modify the old mapping during the execution of the tests.
-        cls.old_tx_type_to_payload_cls = copy(
-            _MetaPayload.transaction_type_to_payload_cls
-        )
-        _MetaPayload.transaction_type_to_payload_cls = {}
         super().setup_class()
 
         cls.author = get_default_author_from_cli_config()
@@ -69,6 +64,15 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
         self,
     ) -> None:
         """Setup test."""
+
+        # we need to store the current value of the meta-class attribute
+        # _MetaPayload.transaction_type_to_payload_cls, and restore it
+        # in the teardown function. We do a shallow copy so we avoid
+        # to modify the old mapping during the execution of the tests.
+        self.old_tx_type_to_payload_cls = copy(
+            _MetaPayload.transaction_type_to_payload_cls
+        )
+        _MetaPayload.transaction_type_to_payload_cls = {}
 
         self.run_cli_command(
             "create",
@@ -83,6 +87,7 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
         self,
     ) -> None:
         """Teardown test."""
+        _MetaPayload.transaction_type_to_payload_cls = self.old_tx_type_to_payload_cls  # type: ignore
         with suppress(OSError, FileExistsError, PermissionError):
             shutil.rmtree(str(Path(self.t, self.agent_name)))
 
@@ -99,12 +104,6 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
         scaffold_result = self.run_cli_command(*cli_args, cwd=self.t / self.agent_name)
 
         return scaffold_result
-
-    @classmethod
-    def teardown_class(cls) -> None:
-        """Teardown the test class."""
-        super().teardown_class()
-        _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
 
 
 class TestScaffoldFSM(BaseScaffoldFSMTest):
@@ -142,10 +141,16 @@ class TestScaffoldFSMAutonomyTests(BaseScaffoldFSMTest):
         scaffold_result = self.scaffold_fsm(fsm_spec_file)
         assert scaffold_result.exit_code == 0
         cli_args = [
+            "-m",
+            "aea.cli",
             "test",
             "by-path",
             str(self.t / self.agent_name / "skills" / skill_name),
         ]
 
-        result = self.run_cli_command(*cli_args)
-        assert result.exit_code == 0
+        # we use a subprocess rather than click.CliRunner because we want to isolate
+        # the Python environment of the current pytest process with the subcall to pytest.main
+        # from the AEA command `aea test by-path ...`
+        result = self.start_subprocess(*cli_args)
+        result.wait(timeout=60.0)
+        assert result.returncode == 0

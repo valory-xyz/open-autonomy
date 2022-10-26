@@ -21,10 +21,12 @@
 
 import os
 import shutil
+import subprocess  # nosec
+import sys
 import tempfile
 from contextlib import suppress
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Sequence, Tuple
 
 from aea.test_tools.click_testing import CliRunner
 from click.testing import Result
@@ -58,6 +60,26 @@ class BaseCliTest:
             return self.cli_runner.invoke(cli=cli, args=self.cli_options)
 
         return self.cli_runner.invoke(cli=cli, args=(*self.cli_options, *commands))
+
+    def run_cli_subprocess(
+        self, commands: Sequence[str], timeout: float = 60.0
+    ) -> Tuple[int, str, str]:
+        """Run CLI using subprocess."""
+        process = subprocess.Popen(  # nosec
+            [sys.executable, "-m", "autonomy.cli"]
+            + list(self.cli_options)
+            + list(commands),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        stdout_bytes, stderr_bytes = process.communicate(timeout=timeout)
+        stdout, stderr = stdout_bytes.decode(), stderr_bytes.decode()
+
+        # for Windows
+        if sys.platform == "win32":
+            stdout = stdout.replace("\r", "")
+            stderr = stderr.replace("\r", "")
+        return process.returncode, stdout, stderr
 
     def teardown(
         self,

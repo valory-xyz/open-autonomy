@@ -347,3 +347,99 @@ Get all the safe tx hashes.
 
 the safe txs
 
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_removed_owner_events"></a>
+
+#### get`_`removed`_`owner`_`events
+
+```python
+@classmethod
+def get_removed_owner_events(cls, ledger_api: EthereumApi, contract_address: str, removed_owner: Optional[str] = None, from_block: BlockIdentifier = "earliest", to_block: BlockIdentifier = "latest") -> JSONLike
+```
+
+Get all RemovedOwner events for a safe contract.
+
+**Arguments**:
+
+- `ledger_api`: the ledger API object
+- `contract_address`: the contract address
+- `removed_owner`: the owner to check for, any owner qualifies if not provided.
+- `from_block`: from which block to search for events
+- `to_block`: to which block to search for events
+
+**Returns**:
+
+the added owner events
+
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_zero_transfer_events"></a>
+
+#### get`_`zero`_`transfer`_`events
+
+```python
+@classmethod
+def get_zero_transfer_events(cls, ledger_api: EthereumApi, contract_address: str, sender_address: str, from_block: BlockIdentifier = "earliest", to_block: BlockIdentifier = "latest") -> JSONLike
+```
+
+Get all zero transfer events from a given sender to the safe address.
+
+**Arguments**:
+
+- `ledger_api`: the ledger API object
+- `contract_address`: the contract address
+- `sender_address`: the owner of the service, ie the address that triggers termination
+- `from_block`: from which block to search for events
+- `to_block`: to which block to search for events
+
+**Returns**:
+
+the zero transfer events
+
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_remove_owner_data"></a>
+
+#### get`_`remove`_`owner`_`data
+
+```python
+@classmethod
+def get_remove_owner_data(cls, ledger_api: EthereumApi, contract_address: str, owner: str, threshold: int) -> JSONLike
+```
+
+Get a removeOwner() encoded tx.
+
+This method acts as a wrapper for `removeOwner()`
+https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L70
+
+**Arguments**:
+
+- `ledger_api`: the ledger API object
+- `contract_address`: the contract address
+- `owner`: the owner to be removed
+- `threshold`: the new safe threshold to be set
+
+**Returns**:
+
+the zero transfer events
+
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_swap_owner_data"></a>
+
+#### get`_`swap`_`owner`_`data
+
+```python
+@classmethod
+def get_swap_owner_data(cls, ledger_api: EthereumApi, contract_address: str, old_owner: str, new_owner: str) -> JSONLike
+```
+
+Get a swapOwner() encoded tx.
+
+This method acts as a wrapper for `swapOwner()`
+https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L94
+
+**Arguments**:
+
+- `ledger_api`: the ledger API object
+- `contract_address`: the contract address
+- `old_owner`: the owner to be replaced
+- `new_owner`: owner to replace old_owner
+
+**Returns**:
+
+the zero transfer events
+
