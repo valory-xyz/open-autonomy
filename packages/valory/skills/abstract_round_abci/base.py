@@ -1869,6 +1869,19 @@ class AbciApp(
         """Return if the abci app is abstract."""
         return cls._is_abstract
 
+    @classmethod
+    def add_termination(
+        cls,
+        background_round_cls: Type[AppState],
+        termination_event: EventType,
+        termination_abci_app: "Type[AbciApp]",
+    ) -> "Type[AbciApp]":
+        """Sets the termination related class variables."""
+        cls.background_round_cls = background_round_cls
+        cls.termination_transition_function = termination_abci_app.transition_function
+        cls.termination_event = termination_event
+        return cls
+
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
         """Return the current synchronized data."""
