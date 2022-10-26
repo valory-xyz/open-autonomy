@@ -43,6 +43,7 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
     DummyOnlyKeeperSendsRound,
     DummyTxPayload,
     DummyVotingRound,
+    DummyEvent,
     MAX_PARTICIPANTS,
     _BaseRoundTestClass,
     get_dummy_tx_payloads,
@@ -275,11 +276,11 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
 
         self._test_payload_with_wrong_round_count(test_round)
 
-        test_round.done_event = "DONE_EVENT"
+        test_round.done_event = DummyEvent.DONE
         return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
         assert return_value[-1] == test_round.done_event
 
-        test_round.none_event = "NONE_EVENT"
+        test_round.none_event = DummyEvent.NONE
         test_round.collection.clear()
         payloads = get_dummy_tx_payloads(self.participants, value=None)
         for payload in payloads:  # must overwrite the value...
@@ -289,7 +290,7 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
         return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
         assert return_value[-1] == test_round.none_event
 
-        test_round.no_majority_event = "NO_MAJORITY_EVENT"
+        test_round.no_majority_event = DummyEvent.NO_MAJORITY
         test_round.collection.clear()
         for participant in self.participants:
             payload = DummyTxPayload(participant, value=participant)
@@ -384,7 +385,7 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
 
         self._test_payload_with_wrong_round_count(test_round)
 
-        test_round.done_event = "DONE_EVENT"
+        test_round.done_event = DummyEvent.DONE
         test_round.payload_key = "dummy_key"
         assert test_round.end_block()
 
@@ -437,9 +438,9 @@ class TestVotingRound(_BaseRoundTestClass):
 
         test_round = self.setup_test_voting_round()
         test_round.collection_key = "dummy_collection_key"
-        test_round.done_event = "DONE_EVENT"
-        test_round.negative_event = "NEGATIVE_EVENT"
-        test_round.none_event = "NONE_EVENT"
+        test_round.done_event = DummyEvent.DONE
+        test_round.negative_event = DummyEvent.NEGATIVE
+        test_round.none_event = DummyEvent.NONE
 
         expected_threshold = {
             True: lambda: test_round.positive_vote_threshold_reached,
@@ -467,7 +468,7 @@ class TestVotingRound(_BaseRoundTestClass):
         """Test end round"""
 
         test_round = self.setup_test_voting_round()
-        test_round.no_majority_event = "NO_MAJORITY_EVENT"
+        test_round.no_majority_event = DummyEvent.NO_MAJORITY
         for i, participant in enumerate(self.participants):
             payload = DummyTxPayload(participant, value=participant, vote=bool(i % 2))
             test_round.process_payload(payload)
@@ -525,7 +526,7 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
         )
         test_round.collection_key = "dummy_collection_key"
         test_round.selection_key = "dummy_selection_key"
-        test_round.done_event = "DONE_EVENT"
+        test_round.done_event = DummyEvent.DONE
 
         assert test_round.end_block() is None
         for participant in self.participants:
@@ -587,7 +588,7 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         )
 
         test_round.is_majority_possible = lambda *_: is_majority_possible  # type: ignore
-        test_round.no_majority_event = "no_majority"
+        test_round.no_majority_event = DummyEvent.NO_MAJORITY
 
         res = test_round.end_block()
 
@@ -602,7 +603,7 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
             assert res is None
 
     @pytest.mark.parametrize(
-        "is_value_none, expected_event", ((True, "none"), (False, "done"))
+        "is_value_none, expected_event", ((True, DummyEvent.NONE), (False, DummyEvent.DONE))
     )
     def test_end_block(self, is_value_none: bool, expected_event: str) -> None:
         """Test `end_block` when collection threshold is reached."""
@@ -618,8 +619,8 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         test_round.collection = {f"test_{i}": payloads[i] for i in range(len(payloads))}
         test_round.selection_key = "test"
         test_round.collection_key = "test"
-        test_round.done_event = "done"
-        test_round.none_event = "none"
+        test_round.done_event = DummyEvent.DONE
+        test_round.none_event = DummyEvent.NONE
 
         res = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
         assert res[0].db == self.synchronized_data.db
