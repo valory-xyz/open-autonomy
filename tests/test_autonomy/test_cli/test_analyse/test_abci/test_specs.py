@@ -161,30 +161,30 @@ class TestCheckSpecs(BaseCliTest):
         self,
     ) -> None:
         """Test with one class."""
-        result = self.run_cli(
+        return_code, stdout, stderr = self.run_cli_subprocess(
             ("--app-class", self.cls_name, "--infile", str(self.specification_path))
         )
 
-        assert result.exit_code == 0
-        assert result.output == f"Checking : {self.cls_name}\nCheck successful\n"
+        assert return_code == 0
+        assert stdout == f"Checking : {self.cls_name}\nCheck successful\n"
 
     def test_one_fail(
         self,
     ) -> None:
         """Test with one class failing."""
         self._corrupt_spec_file()
-        result = self.run_cli(
+        return_code, stdout, stderr = self.run_cli_subprocess(
             ("--app-class", self.cls_name, "--infile", str(self.specification_path))
         )
 
-        assert result.exit_code == 1
-        assert result.output == f"Checking : {self.cls_name}\nCheck failed.\n"
+        assert return_code == 1
+        assert stdout == f"Checking : {self.cls_name}\nCheck failed.\n"
 
     def test_check_all(
         self,
     ) -> None:
         """Test --check-all flag."""
-        result = self.run_cli(
+        return_code, stdout, stderr = self.run_cli_subprocess(
             (
                 "--check-all",
                 "--packages-dir",
@@ -192,15 +192,15 @@ class TestCheckSpecs(BaseCliTest):
             )
         )
 
-        assert result.exit_code == 0
-        assert "Check successful." in result.output
+        assert return_code == 0
+        assert "Check successful." in stdout
 
     def test_check_all_fail(
         self,
     ) -> None:
         """Test --check-all flag."""
         self._corrupt_spec_file()
-        result = self.run_cli(
+        return_code, stdout, stderr = self.run_cli_subprocess(
             (
                 "--check-all",
                 "--packages-dir",
@@ -208,10 +208,8 @@ class TestCheckSpecs(BaseCliTest):
             )
         )
 
-        assert result.exit_code == 1
-        assert (
-            "Specifications did not match for following definitions." in result.output
-        )
+        assert return_code == 1
+        assert "Specifications did not match for following definitions." in stdout
 
     def test_failures(
         self,
@@ -228,6 +226,12 @@ class TestCheckSpecs(BaseCliTest):
         assert (
             "Please provide path to specification file." in result.output
         ), result.output
+
+    def teardown(
+        self,
+    ) -> None:
+        """Tear down the test."""
+        super().teardown()
 
 
 class TestDFA:
