@@ -1588,6 +1588,7 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
                 return synchronized_data, self.none_event
             return synchronized_data, self.done_event
 
+        # TODO: https://github.com/valory-xyz/open-autonomy/pull/1466#issuecomment-1288067700
         if (
             not self.is_majority_possible(
                 self.collection, self.synchronized_data.nb_participants

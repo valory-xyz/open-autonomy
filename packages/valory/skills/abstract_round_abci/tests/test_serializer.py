@@ -200,7 +200,7 @@ def test_encode_nan() -> None:
     assert math.isnan(deserialized["key"])
 
 
-@pytest.mark.skipif(not atheris, reason="`atheris` not imported (likely not installed)")
+@pytest.mark.skip
 def test_fuzz_encode() -> None:
     """Fuzz test for serializer. Run directly as a function, not through pytest"""
 

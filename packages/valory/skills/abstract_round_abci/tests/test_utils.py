@@ -113,7 +113,7 @@ class TestVerifyDrand:
             self.drand_check._int_to_bytes_big(value)
 
 
-@pytest.mark.skipif(not atheris, reason="`atheris` not imported (likely not installed)")
+@pytest.mark.skip
 def test_fuzz_verify_drand() -> None:
     """Fuzz test for VerifyDrand. Run directly as a function, not through pytest"""
 
@@ -145,7 +145,7 @@ def test_to_int_positive() -> None:
     assert to_int(542, 2) == 54200
 
 
-@pytest.mark.skipif(not atheris, reason="`atheris` not imported (likely not installed)")
+@pytest.mark.skip
 def test_fuzz_to_int() -> None:
     """Test fuzz to_int."""
 

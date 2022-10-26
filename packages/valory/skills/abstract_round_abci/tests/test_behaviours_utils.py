@@ -24,6 +24,7 @@
 import json
 import logging
 import math
+import platform
 import shutil
 import sys
 import time
@@ -1128,9 +1129,7 @@ class TestBaseBehaviour:
         ):
             self.behaviour._send_signing_request(b"")
 
-    @pytest.mark.skipif(
-        not atheris, reason="`atheris` not imported (likely not installed)"
-    )
+    @pytest.mark.skip
     def test_fuzz_send_signing_request(self) -> None:
         """Test '_send_signing_request'.
 
@@ -1259,6 +1258,10 @@ class TestBaseBehaviour:
         )
         try_send(gen, success_response)
 
+    @pytest.mark.skipif(
+        platform.system() == "Windows",
+        reason="https://github.com/valory-xyz/open-autonomy/issues/1477",
+    )
     def test_wait_until_transaction_delivered_raises_timeout(self, *_: Any) -> None:
         """Test '_wait_until_transaction_delivered' method."""
         gen = self.behaviour._wait_until_transaction_delivered(MagicMock(), timeout=0.0)
@@ -1574,8 +1577,8 @@ class TestBaseBehaviour:
     @pytest.mark.parametrize("default", (True, False))
     @given(
         st.datetimes(
-            min_value=datetime(2, 1, 1),
-            max_value=datetime(9999, 1, 1),
+            min_value=datetime(1970, 1, 1, 0, 0, 0),
+            max_value=datetime(3000, 1, 1, 0, 0, 0),
         ),
         st.integers(),
         st.integers(),
@@ -1729,9 +1732,7 @@ class TestBaseBehaviour:
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
 
-    @pytest.mark.skipif(
-        not atheris, reason="`atheris` not imported (likely not installed)"
-    )
+    @pytest.mark.skip
     def test_fuzz_submit_tx(self) -> None:
         """Test '_submit_tx'.
 
