@@ -28,7 +28,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeigoga63majfpe7svjnum5yp36tuwpgeyv26iacidgdbqcydonwvr4
+- valory/gnosis_safe:0.1.0:bafybeidun5jdrffmzpr7hquuxzfyx3nkcevaxac6cci3oyjyh72ebbrwyi
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay

@@ -80,6 +80,7 @@ class GnosisSafeContract(Contract):
     """The Gnosis Safe contract."""
 
     contract_id = PUBLIC_ID
+    _SENTINEL_OWNERS = "0x0000000000000000000000000000000000000001"
 
     @classmethod
     def get_raw_transaction(
@@ -774,3 +775,192 @@ class GnosisSafeContract(Contract):
                 )
             )
         )
+
+    @classmethod
+    def get_removed_owner_events(
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        removed_owner: Optional[str] = None,
+        from_block: BlockIdentifier = "earliest",
+        to_block: BlockIdentifier = "latest",
+    ) -> JSONLike:
+        """
+        Get all RemovedOwner events for a safe contract.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :param removed_owner: the owner to check for, any owner qualifies if not provided.
+        :param from_block: from which block to search for events
+        :param to_block: to which block to search for events
+        :return: the added owner events
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        safe_contract = cls.get_instance(ledger_api, contract_address)
+        entries = safe_contract.events.RemovedOwner.createFilter(
+            fromBlock=from_block,
+            toBlock=to_block,
+        ).get_all_entries()
+        if removed_owner is None:
+            removed_owner_events = list(
+                dict(
+                    tx_hash=entry.transactionHash.hex(),
+                    block_number=entry.blockNumber,
+                    owner=entry["args"]["owner"],
+                )
+                for entry in entries
+            )
+            return dict(
+                data=removed_owner_events,
+            )
+
+        checksummed_removed_owner = ledger_api.api.toChecksumAddress(removed_owner)
+        removed_owner_events = list(
+            dict(
+                tx_hash=entry.transactionHash.hex(),
+                block_number=entry.blockNumber,
+                owner=entry["args"]["owner"],
+            )
+            for entry in entries
+            if (
+                ledger_api.api.toChecksumAddress(entry["args"]["owner"])
+                == checksummed_removed_owner
+            )
+        )
+        return dict(
+            data=removed_owner_events,
+        )
+
+    @classmethod
+    def get_zero_transfer_events(
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        sender_address: str,
+        from_block: BlockIdentifier = "earliest",
+        to_block: BlockIdentifier = "latest",
+    ) -> JSONLike:
+        """
+        Get all zero transfer events from a given sender to the safe address.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :param sender_address: the owner of the service, ie the address that triggers termination
+        :param from_block: from which block to search for events
+        :param to_block: to which block to search for events
+         :return: the zero transfer events
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        safe_contract = cls.get_instance(ledger_api, contract_address)
+        sender_address = ledger_api.api.toChecksumAddress(sender_address)
+        entries = safe_contract.events.SafeReceived.createFilter(
+            fromBlock=from_block,
+            toBlock=to_block,
+            argument_filters=dict(sender=sender_address),
+        ).get_all_entries()
+        zero_transfer_events = list(
+            dict(
+                tx_hash=entry.transactionHash.hex(),
+                block_number=entry.blockNumber,
+                sender=ledger_api.api.toChecksumAddress(entry["args"]["sender"]),
+            )
+            for entry in entries
+            if int(entry["args"]["value"]) == 0
+        )
+        return dict(
+            data=zero_transfer_events,
+        )
+
+    @classmethod
+    def get_remove_owner_data(
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        owner: str,
+        threshold: int,
+    ) -> JSONLike:
+        """
+        Get a removeOwner() encoded tx.
+
+        This method acts as a wrapper for `removeOwner()`
+        https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L70
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :param owner: the owner to be removed
+        :param threshold: the new safe threshold to be set
+        :return: the zero transfer events
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        safe_contract = cls.get_instance(ledger_api, contract_address)
+        # Note that owners in the safe are stored as a linked list, we need to know the parent (prev_owner) of an owner
+        # when removing. https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L15
+        owners = [
+            ledger_api.api.toChecksumAddress(owner)
+            for owner in safe_contract.functions.getOwners().call()
+        ]
+        owner = ledger_api.api.toChecksumAddress(owner)
+        prev_owner = cls._get_prev_owner(owners, owner)
+        data = safe_contract.encodeABI(
+            fn_name="removeOwner",
+            args=[
+                ledger_api.api.toChecksumAddress(prev_owner),
+                owner,
+                threshold,
+            ],
+        )
+        return dict(
+            data=data,
+        )
+
+    @classmethod
+    def get_swap_owner_data(
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        old_owner: str,
+        new_owner: str,
+    ) -> JSONLike:
+        """
+        Get a swapOwner() encoded tx.
+
+        This method acts as a wrapper for `swapOwner()`
+        https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L94
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :param old_owner: the owner to be replaced
+        :param new_owner: owner to replace old_owner
+        :return: the zero transfer events
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        safe_contract = cls.get_instance(ledger_api, contract_address)
+        # Note that owners in the safe are stored as a linked list, we need to know the parent (prev_owner) of an owner
+        # when swapping. https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerManager.sol#L15
+        owners = [
+            ledger_api.api.toChecksumAddress(owner)
+            for owner in safe_contract.functions.getOwners().call()
+        ]
+        old_owner = ledger_api.api.toChecksumAddress(old_owner)
+        prev_owner = cls._get_prev_owner(owners, old_owner)
+        data = safe_contract.encodeABI(
+            fn_name="swapOwner",
+            args=[
+                ledger_api.api.toChecksumAddress(prev_owner),
+                old_owner,
+                ledger_api.api.toChecksumAddress(new_owner),
+            ],
+        )
+        return dict(
+            data=data,
+        )
+
+    @classmethod
+    def _get_prev_owner(cls, linked_list: List[str], target: str) -> str:
+        """Given a linked list of strings, it returns the one pointing to target."""
+        root = cls._SENTINEL_OWNERS
+        index = linked_list.index(target) - 1
+        if index < 0:
+            # if target is the first element in the list, the root is pointing to it
+            return root
+        return linked_list[index]
