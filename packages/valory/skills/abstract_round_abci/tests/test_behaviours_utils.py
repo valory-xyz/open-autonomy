@@ -1129,9 +1129,7 @@ class TestBaseBehaviour:
         ):
             self.behaviour._send_signing_request(b"")
 
-    @pytest.mark.skipif(
-        not atheris, reason="`atheris` not imported (likely not installed)"
-    )
+    @pytest.mark.skip
     def test_fuzz_send_signing_request(self) -> None:
         """Test '_send_signing_request'.
 
@@ -1734,9 +1732,7 @@ class TestBaseBehaviour:
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
 
-    @pytest.mark.skipif(
-        not atheris, reason="`atheris` not imported (likely not installed)"
-    )
+    @pytest.mark.skip
     def test_fuzz_submit_tx(self) -> None:
         """Test '_submit_tx'.
 
