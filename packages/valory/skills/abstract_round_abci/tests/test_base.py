@@ -1310,6 +1310,8 @@ class TestAbciApp:
         assert isinstance(self.abci_app.current_round, ConcreteRoundB)
         self.abci_app.process_event("timeout")
         assert isinstance(self.abci_app.current_round, ConcreteRoundA)
+        self.abci_app.process_event(self.abci_app.termination_event)
+        assert isinstance(self.abci_app.current_round, ConcreteTerminationRoundA)
 
     def test_process_event_negative_case(self) -> None:
         """Test the 'process_event' method, negative case."""
@@ -1357,6 +1359,77 @@ class TestAbciApp:
     def test_get_all_events(self) -> None:
         """Test the all events getter."""
         assert {"a", "b", "c", "timeout"} == self.abci_app.get_all_events()
+
+    def test_get_all_rounds_classes(self) -> None:
+        """Test the get all rounds getter."""
+        expected_rounds = {ConcreteRoundA, ConcreteRoundB, ConcreteRoundC}
+        assert expected_rounds == self.abci_app.get_all_round_classes()
+
+    def test_get_all_rounds_classes_including_termination(self) -> None:
+        """Test the get all rounds getter when the termination rounds should be included."""
+        include_termination_rounds = True
+        expected_rounds = {
+            ConcreteRoundA,
+            ConcreteRoundB,
+            ConcreteRoundC,
+            ConcreteBackgroundRound,
+            ConcreteTerminationRoundA,
+            ConcreteTerminationRoundB,
+            ConcreteTerminationRoundC,
+        }
+        assert expected_rounds == self.abci_app.get_all_round_classes(
+            include_termination_rounds
+        )
+
+    def test_get_all_rounds_classes_including_termination_no_termination_rounds(
+        self,
+    ) -> None:
+        """Test the get all rounds when the termination rounds are not set."""
+        # we set termination_transition_function to its default value (None)
+        with mock.patch.object(
+            AbciAppTest, "termination_transition_function", return_value=None
+        ):
+            include_termination_rounds = True
+            expected_rounds = {
+                ConcreteRoundA,
+                ConcreteRoundB,
+                ConcreteRoundC,
+            }
+            assert expected_rounds == self.abci_app.get_all_round_classes(
+                include_termination_rounds
+            )
+
+    def test_add_termination(self) -> None:
+        """Tests the `add_termination` method."""
+
+        class EmptyAbciApp(AbciAppTest):
+            """An AbciApp without termination attrs set."""
+
+            background_round_cls = None
+            termination_transition_function = None
+            termination_event = None
+
+        EmptyAbciApp.add_termination(
+            AbciAppTest.background_round_cls,
+            AbciAppTest.termination_event,
+            AbciAppTest,
+        )
+
+        assert EmptyAbciApp.background_round_cls is not None
+        assert EmptyAbciApp.termination_transition_function is not None
+        assert EmptyAbciApp.termination_event is not None
+
+    def test_background_round(self) -> None:
+        """Test the background_round property."""
+        self.abci_app.setup()
+        assert self.abci_app.background_round is not None
+
+    def test_background_round_negative(self) -> None:
+        """Test the background_round property when _background_round is not set."""
+        # notice that we don't call `self.abci_app.setup()` here
+        # which is why this test works
+        with pytest.raises(ValueError, match="background_round not set!"):
+            self.abci_app.background_round
 
     def test_cleanup(self) -> None:
         """Test the cleanup method."""
@@ -1415,6 +1488,48 @@ class TestAbciApp:
             self.abci_app.synchronized_data.db._data[reset_index]["dummy_key"]
         )
         assert history_len == cleanup_history_depth_current
+
+    @mock.patch.object(ConcreteBackgroundRound, "check_transaction")
+    @pytest.mark.parametrize(
+        "transaction",
+        [
+            mock.MagicMock(
+                payload=MagicMock(
+                    transaction_type=ConcreteBackgroundRound.allowed_tx_type
+                )
+            )
+        ],
+    )
+    def test_check_transaction_for_background_round(
+        self,
+        check_transaction_mock: mock,
+        transaction: Transaction,
+    ) -> None:
+        """Tests process_transaction when it's a transaction meant for the background app."""
+        self.abci_app.setup()
+        self.abci_app.check_transaction(transaction)
+        check_transaction_mock.assert_called_with(transaction)
+
+    @mock.patch.object(ConcreteBackgroundRound, "process_transaction")
+    @pytest.mark.parametrize(
+        "transaction",
+        [
+            mock.MagicMock(
+                payload=MagicMock(
+                    transaction_type=ConcreteBackgroundRound.allowed_tx_type
+                )
+            )
+        ],
+    )
+    def test_process_transaction_for_background_round(
+        self,
+        process_transaction_mock: mock,
+        transaction: Transaction,
+    ) -> None:
+        """Tests process_transaction when it's a transaction meant for the background app."""
+        self.abci_app.setup()
+        self.abci_app.process_transaction(transaction)
+        process_transaction_mock.assert_called_with(transaction)
 
 
 class TestRoundSequence:
