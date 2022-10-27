@@ -61,7 +61,7 @@ class RandomnessBehaviour(BaseBehaviour):
         self,
     ) -> Generator[None, None, RandomnessObservation]:
         """
-        This methods provides a failsafe for randomeness retrival.
+        This methods provides a failsafe for randomness retrieval.
 
         :return: derived randomness
         :yields: derived randomness
@@ -110,7 +110,7 @@ class RandomnessBehaviour(BaseBehaviour):
 
         Steps:
         - Do a http request to the API.
-        - Retry until reciving valid values for randomness or retries exceed.
+        - Retry until receiving valid values for randomness or retries exceed.
         - If retrieved values are valid continue else generate randomness from chain.
         """
         with self.context.benchmark_tool.measure(self.behaviour_id).local():

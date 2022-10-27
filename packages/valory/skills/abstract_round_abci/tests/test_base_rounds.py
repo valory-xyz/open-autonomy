@@ -23,7 +23,7 @@
 
 import re
 from enum import Enum
-from typing import Tuple, cast
+from typing import Optional, Tuple, cast
 
 import pytest
 
@@ -40,6 +40,7 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
     DummyCollectSameUntilAllRound,
     DummyCollectSameUntilThresholdRound,
     DummyCollectionRound,
+    DummyEvent,
     DummyOnlyKeeperSendsRound,
     DummyTxPayload,
     DummyVotingRound,
@@ -92,11 +93,12 @@ class TestCollectionRound(_BaseRoundTestClass):
         with pytest.raises(
             ABCIAppInternalError,
             match=re.escape(
-                "internal error: Expecting serialized data of chunk size 2, got: None in round_id"
+                "internal error: Expecting serialized data of chunk size 2, got: 0xZZZ in round_id"
             ),
         ):
             test_round._hash_length = 2
-            test_round.process_payload(DummyTxPayload("agent_1", "value"))
+            test_round.process_payload(DummyTxPayload("agent_1", "0xZZZ"))
+            test_round._hash_length = None
 
         with pytest.raises(
             TransactionNotValidError,
@@ -115,10 +117,10 @@ class TestCollectionRound(_BaseRoundTestClass):
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "Expecting serialized data of chunk size 2, got: None in round_id"
+                "Expecting serialized data of chunk size 2, got: 0xZZZ in round_id"
             ),
         ):
-            test_round.check_payload(DummyTxPayload("agent_1", "value"))
+            test_round.check_payload(DummyTxPayload("agent_1", "0xZZZ"))
 
         self._test_payload_with_wrong_round_count(test_round)
 
@@ -198,6 +200,12 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
+            match="1 votes are not enough for `CollectSameUntilAllRound`",
+        ):
+            assert test_round.common_payload
+
+        with pytest.raises(
+            ABCIAppInternalError,
             match="internal error: sender agent_0 has already sent value for round: round_id",
         ):
             test_round.process_payload(first_payload)
@@ -231,6 +239,7 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
             test_round.process_payload(payload)
 
         assert test_round.collection_threshold_reached
+        assert test_round.common_payload
         self._test_payload_with_wrong_round_count(test_round, "test")
 
 
@@ -246,6 +255,9 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
+        test_round.collection_key = "dummy_collection_key"
+        test_round.selection_key = "dummy_selection_key"
+        assert test_round.end_block() is None
 
         first_payload, *payloads = get_dummy_tx_payloads(
             self.participants, value="vote"
@@ -263,6 +275,28 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
         assert test_round.most_voted_payload == "vote"
 
         self._test_payload_with_wrong_round_count(test_round)
+
+        test_round.done_event = DummyEvent.DONE
+        return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
+        assert return_value[-1] == test_round.done_event
+
+        test_round.none_event = DummyEvent.NONE
+        test_round.collection.clear()
+        payloads = get_dummy_tx_payloads(self.participants, value=None)
+        for payload in payloads:  # must overwrite the value...
+            payload._value = None
+            test_round.process_payload(payload)
+        assert test_round.most_voted_payload is None
+        return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
+        assert return_value[-1] == test_round.none_event
+
+        test_round.no_majority_event = DummyEvent.NO_MAJORITY
+        test_round.collection.clear()
+        for participant in self.participants:
+            payload = DummyTxPayload(participant, value=participant)
+            test_round.process_payload(payload)
+        return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
+        assert return_value[-1] == test_round.no_majority_event
 
     def test_run_with_none(
         self,
@@ -310,6 +344,7 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
         assert not test_round.has_keeper_sent_payload
         first_payload, *_ = self.tx_payloads
         test_round.process_payload(first_payload)
+        assert test_round.has_keeper_sent_payload
 
         with pytest.raises(
             ABCIAppInternalError,
@@ -349,6 +384,10 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
             test_round.check_payload(DummyTxPayload(sender="agent_1", value="sender"))
 
         self._test_payload_with_wrong_round_count(test_round)
+
+        test_round.done_event = DummyEvent.DONE
+        test_round.payload_key = "dummy_key"
+        assert test_round.end_block()
 
     def test_keeper_payload_is_none(
         self,
@@ -393,35 +432,48 @@ class TestVotingRound(_BaseRoundTestClass):
 
         self._test_payload_with_wrong_round_count(test_round)
 
-    def test_negative_threshold(
-        self,
-    ) -> None:
-        """Runs test."""
+    @pytest.mark.parametrize("vote", [True, False, None])
+    def test_threshold(self, vote: Optional[bool]) -> None:
+        """Runs threshold test."""
 
         test_round = self.setup_test_voting_round()
-        first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=False)
-        test_round.process_payload(first_payload)
+        test_round.collection_key = "dummy_collection_key"
+        test_round.done_event = DummyEvent.DONE
+        test_round.negative_event = DummyEvent.NEGATIVE
+        test_round.none_event = DummyEvent.NONE
 
-        assert not test_round.negative_vote_threshold_reached
+        expected_threshold = {
+            True: lambda: test_round.positive_vote_threshold_reached,
+            False: lambda: test_round.negative_vote_threshold_reached,
+            None: lambda: test_round.none_vote_threshold_reached,
+        }[vote]
+
+        expected_event = {
+            True: test_round.done_event,
+            False: test_round.negative_event,
+            None: test_round.none_event,
+        }[vote]
+
+        first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=vote)
+        test_round.process_payload(first_payload)
+        assert test_round.end_block() is None
+        assert not expected_threshold()
         for payload in payloads:
             test_round.process_payload(payload)
+        assert expected_threshold()
+        return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
+        assert return_value[-1] == expected_event
 
-        assert test_round.negative_vote_threshold_reached
-
-    def test_positive_threshold(
-        self,
-    ) -> None:
-        """Runs test."""
+    def test_end_round_no_majority(self) -> None:
+        """Test end round"""
 
         test_round = self.setup_test_voting_round()
-        first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=True)
-        test_round.process_payload(first_payload)
-
-        assert not test_round.positive_vote_threshold_reached
-        for payload in payloads:
+        test_round.no_majority_event = DummyEvent.NO_MAJORITY
+        for i, participant in enumerate(self.participants):
+            payload = DummyTxPayload(participant, value=participant, vote=bool(i % 2))
             test_round.process_payload(payload)
-
-        assert test_round.positive_vote_threshold_reached
+        return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
+        assert return_value[-1] == test_round.no_majority_event
 
 
 class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
@@ -464,6 +516,24 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
                 assert res[1] == test_round.done_event
         assert test_round.collection_threshold_reached
         self._test_payload_with_wrong_round_count(test_round)
+
+    def test_end_round(self) -> None:
+        """Test end round"""
+
+        test_round = DummyCollectDifferentUntilThresholdRound(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+        test_round.collection_key = "dummy_collection_key"
+        test_round.selection_key = "dummy_selection_key"
+        test_round.done_event = DummyEvent.DONE
+
+        assert test_round.end_block() is None
+        for participant in self.participants:
+            payload = DummyTxPayload(participant, value=participant)
+            test_round.process_payload(payload)
+        return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
+        assert return_value[-1] == test_round.done_event
 
 
 class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
@@ -518,7 +588,7 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         )
 
         test_round.is_majority_possible = lambda *_: is_majority_possible  # type: ignore
-        test_round.no_majority_event = "no_majority"
+        test_round.no_majority_event = DummyEvent.NO_MAJORITY
 
         res = test_round.end_block()
 
@@ -533,7 +603,8 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
             assert res is None
 
     @pytest.mark.parametrize(
-        "is_value_none, expected_event", ((True, "none"), (False, "done"))
+        "is_value_none, expected_event",
+        ((True, DummyEvent.NONE), (False, DummyEvent.DONE)),
     )
     def test_end_block(self, is_value_none: bool, expected_event: str) -> None:
         """Test `end_block` when collection threshold is reached."""
@@ -549,8 +620,8 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         test_round.collection = {f"test_{i}": payloads[i] for i in range(len(payloads))}
         test_round.selection_key = "test"
         test_round.collection_key = "test"
-        test_round.done_event = "done"
-        test_round.none_event = "none"
+        test_round.done_event = DummyEvent.DONE
+        test_round.none_event = DummyEvent.NONE
 
         res = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
         assert res[0].db == self.synchronized_data.db
