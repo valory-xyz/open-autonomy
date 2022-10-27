@@ -155,7 +155,7 @@ class AbstractRoundBehaviour(
     abci_app_cls: Type[AbciApp[EventType]]
     behaviours: AbstractSet[BehaviourType]
     initial_behaviour_cls: BehaviourType
-    background_behaviour_cls: Optional[BehaviourType]
+    background_behaviour_cls: Optional[BehaviourType] = None
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the behaviour."""
