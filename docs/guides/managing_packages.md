@@ -1,28 +1,3 @@
-!!! warning
-       <span style="color:red">**This section is currently being revised and restructured.
-       The current contents might contain redundant, inaccurate, or misplaced information.**<span style="color:blue">
-
-
-
-!!! note
-       Similarly as the Open AEA framework, the Open Autonomy framework also works with the concept of package: a collection of files that implement a specific component or functionality, and which are named as vendor/package:version.
-
-During the development of agents and services, users need to manage other packages, either developing them themselves or fetching already available ones. This guide will show you which are the relevant directories during development and how to get, use and publish packages.
-
-The first thing you need to know is that there are different types of packages: services, agents, connections, contracts, protocols and skills. Services are composed of agents, and agents are composed of connections, contracts, protocols and skills. All these packages can live in different places:
-
-- Inside an agent if they are being used by that agent, with the exception of services which never live inside an agent.
-- In the local registry (packages folder), a local directory that stores packages classified by vendor.
-- In the remote registry, a remote machine that serves packages over IPFS or HTTP.
-
-You can see that this setup is not that different from the one Git uses.
-
-<figure markdown>
-![](../images/package_management.svg){ width="85%" height="85%" style="display: block; margin: 0 auto" }
-<figcaption>Overview of the package managing flows with the Open Autonomy framework</figcaption>
-</figure>
-
-Packages should be developed independently from any agent, inside the local registry (packages folder) and later on they can be added to an agent for running them. **This is the recommended method as it improves separation of concerns and offers the cleanest developer experience.**
 
 ## Creating your agents and services
 
@@ -46,7 +21,6 @@ cd my_agent/
 autonomy add protocol open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 ```
 
-You can find a list with all available packages [here](../package_list.md).
 
 Now we might want to develop our own package, for example a skill. We could do it writing all the skill structure from scratch, but fortunately the CLI also provides a scaffolding option that will create a lot of boilerplate for us using its specification. For this example, we will use the specification from the [hello world skill](https://raw.githubusercontent.com/valory-xyz/open-autonomy/main/packages/valory/skills/hello_world_abci/fsm_specification.yaml). Download it to the agent directory and run:
 

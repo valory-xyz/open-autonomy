@@ -1,0 +1,177 @@
+Similarly as the {{open_aea}} framework, the {{open_autonomy}} framework also works with the concept of **package**: a collection of files that implement a specific component or functionality.
+Publishing a package is simply the process of storing the package into a registry (or in other words, a repository), either locally or remotely.
+
+Remote registries allow to make the package publicly available to other developers. Moreover, it is required that a package be published in a remote registry before [registering the package in the on-chain protocol](./register_packages_on_chain.md).
+
+
+## What will you learn
+In this guide, you will learn to:
+
+  * Manage the life cycle of packages with the framework.
+  * Publish and retrieve packages from local and remote registries.
+
+## How the local and remote registries work
+There are three main types of packages:
+
+  * services,
+  * agents, and
+  * components (which include connections, contracts, protocols and skills).
+
+Services use agent packages, and agents use component packages. Packages are developed locally and stored in a registry to be retrieved and reused in a later stage. Every package has a **public package ID** that follows the naming convention `<author_name>/<package_name>:<version>`.
+
+
+The {{open_autonomy}} framework supports three types of registries:
+
+  * local,
+  * remote [IPFS](https://ipfs.io/), and
+  * remote HTTP.
+
+You can browse the [list of default packages](../package_list.md) of the {{open_autonomy}} framework available on the default remote IPFS registry.
+
+Packages live in a different space when being used by the developer, and they are published in a registry using different commands. The table below presents a summary.
+
+| Package type | Location while being used           | Command to publish in a registry | Command to retrieve from a registry |
+|--------------|-------------------------------------|----------------------------------|-------------------------------------|
+| Service      | Independent folder                  | `autonomy publish`               | `autonomy fetch`                    |
+| Agent        | Independent folder                  | `autonomy publish`               | `autonomy fetch`                    |
+| Component    | `/vendor` folder inside agent folder | `autonomy push`                  | `autonomy add`                      |
+
+
+
+The figure below shows a typical setup, where you might identify some common traits with the Git methodology. Within the workspace folder, the arrows in the diagram point to the locations where the different operations can be executed in the local machine.
+
+<figure markdown>
+![](../images/package_management.svg){ width="85%" height="85%" style="display: block; margin: 0 auto" }
+<figcaption>Overview of the package management flow with the Open Autonomy framework</figcaption>
+</figure>
+
+!!! warning "Important"
+    Do not confuse the **local registry** with a local **workspace folder**. The local registry is simply a repository to store finalized packages, mimicking the role of a remote registry on the local machine.
+
+    For example, you can develop a component package directly in the local registry, or you can develop it in an agent within a workspace folder, and push the component later in the local registry. Then, you can retrieve that component from the registry for use in another agent.
+
+    **Regardless of the methodology that you choose to develop your packages, it is important to have a clear separation of concerns in mind so that they can be reused in other agent projects.**
+
+## How to tell the framework what registry to use
+The `push`, `add`, `publish` and `fetch` commands use, by default, the registry specified when the framework was initiated (command `autonomy init`). See for example the [set up guide](./set_up#set-up), where we initialized the framework to use the default remote [IPFS](https://ipfs.io) registry.
+
+Additionally, the framework configuration can be overridden per command by using the flags `--local` or `--remote` in any of the commands  `push`, `add`, `publish` or `fetch`.
+
+
+## Push and add components
+This section assumes that you have a newly created component, e.g., an {{fsm_app}} skill, within an agent folder. It is out of the scope of this guide how to create agent components. You can review the [guide to create an {{fsm_app}}](./create_fsm_app.md), or the {{open_aea_doc}}. Your component should be located within an agent folder (i.e., a folder containing the file `aea-config.yaml`) in
+```
+<agent_folder>/vendor/<author_name>/<component_type>/<package_name>.
+```
+Here, `<component_type>` is one of `connections`, `contracts`, `protocols` or `skills`.
+
+### Push a component on a registry
+
+1. Ensure that the framework has been [initialized with the desired registry](#how-to-tell-the-framework-what-registry-to-use) (local or remote).
+
+2. Within the agent folder, run the command
+    ```bash
+    autonomy push <component_type> ./vendor/<author_name>/<component_type>/<component_name>
+    ```
+3. You should see a message
+    ```bash
+    Pushed component with:
+    	PublicId: <author_name>/<package_name>:<version>
+    	Package hash: <hash>
+    ```
+
+If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech/tcp/443/https`), you can check that the service has been successfully pushed by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>`, by substituting the appropriate `<hash>` value.
+
+### Add a component from a registry
+
+1. Ensure that the framework has been [initialized with the desired registry](#how-to-tell-the-framework-what-registry-to-use) (local or remote).
+
+2. Within the agent folder, run the command
+    ```bash
+    autonomy add <component_type> <author_name>/<package_name>:<version>:<hash>
+    ```
+3. You should see a message
+    ```bash
+    Adding item from hash: <hash>
+    Successfully added <component_type> '<author_name>/<package_name>:<version>'.
+    ```
+
+## Publish and fetch agents
+This section assumes that you have a newly created agent in a workspace folder. It is out of the scope of this guide how to create agents. You can review the [guide to create a service from scratch](./create_service_from_scratch.md), or the {{open_aea_doc}}. Your agent should be located in an agent folder (i.e., a folder containing the file `aea-config.yaml`).
+
+### Publish an agent on a registry
+
+1. Ensure that the framework has been [initialized with the desired registry](#how-to-tell-the-framework-what-registry-to-use) (local or remote).
+
+2. Within the agent folder, run the command
+    ```bash
+    autonomy publish
+    ```
+
+3. You should see the message
+    ```bash
+    Successfully published agent <package_name> to the Registry with.
+    	Public ID: <author_name>/<package_name>:<version>
+    	Package hash: <hash>
+    ```
+!!!! warning
+    In case the agent contains components not yet pushed, it might be required that you run the command `autonomy publish --push-missing`, which automatically will push any missing component package.
+
+If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech/tcp/443/https`), you can check that the agent has been successfully published by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>`, by substituting the appropriate `<hash>` value.
+
+### Fetch an agent from a registry
+
+1. Ensure that the framework has been [initialized with the desired registry](#how-to-tell-the-framework-what-registry-to-use) (local or remote).
+
+2. Within the workspace folder, run the command
+    ```bash
+    autonomy fetch <author_name>/<package_name>:<version>:<hash>
+    ```
+
+3. You should see a series of messages
+    ```bash
+    Adding item from hash: <hash>
+    Successfully added <component_type> '<author_name>/<package_name>:<version>'.
+    (...)
+    ```
+    for each agent component being added, and a final message
+    ```bash
+    Agent <package_name> successfully fetched.
+    ```
+    indicating that the agent has been successfully fetched.
+
+
+## Publish and fetch services
+This section assumes that you have a newly created service in a workspace folder. It is out of the scope of this guide how to create services. You can review the [guide to create a service with an existing agent](./create_service_existing_agent.md), or the [guide to create a service from scratch](./create_service_from_scratch.md). Your service should be located in an service folder (i.e., a folder containing the file `service.yaml`).
+
+### Publish a service on a registry
+
+1. Ensure that the framework has been [initialized with the desired registry](#how-to-tell-the-framework-what-registry-to-use) (local or remote).
+
+2. Within the service folder, run the command
+    ```bash
+    autonomy publish
+    ```
+
+3. You should see the message
+    ```bash
+    Published service package with
+    	PublicId: <author_name>/<package_name>:<version>
+    	Package hash: <hash>
+    ```
+
+If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech/tcp/443/https`), you can check that the service has been successfully published by accessing the gateway https://gateway.autonolas.tech/ipfs/`<hash>`, by substituting the appropriate `<hash>` value.
+
+### Fetch a service from a registry
+
+1. Ensure that the framework has been [initialized with the desired registry](#how-to-tell-the-framework-what-registry-to-use) (local or remote).
+
+2. Within the workspace folder, run the command
+    ```bash
+    autonomy fetch <author_name>/<package_name>:<version>:<hash> --service
+    ```
+
+3. You should see the message
+    ```bash
+    Downloaded service package <author_name>/<package_name>:<version> @ <workspace_path>
+    ```
