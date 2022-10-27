@@ -14,6 +14,16 @@ def get_participants() -> FrozenSet[str]
 
 Participants
 
+<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummyEvent"></a>
+
+## DummyEvent Objects
+
+```python
+class DummyEvent(Enum)
+```
+
+Dummy Event
+
 <a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummyTxPayload"></a>
 
 ## DummyTxPayload Objects
@@ -55,6 +65,17 @@ def vote() -> Optional[bool]
 ```
 
 Get the vote value.
+
+<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummyTxPayload.data"></a>
+
+#### data
+
+```python
+@property
+def data() -> Dict[str, Any]
+```
+
+Data
 
 <a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummySynchronizedSata"></a>
 

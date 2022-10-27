@@ -22,6 +22,7 @@
 # pylint: skip-file
 
 import sys
+from typing import Any
 
 import pytest
 
@@ -40,7 +41,7 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    pytestmark = pytest.mark.skip
+    atheris: Any = None  # type: ignore
 
 
 class TestTxHistPayloadEncodingDecoding:

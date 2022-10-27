@@ -24,6 +24,7 @@
 import json
 import logging
 import math
+import platform
 import shutil
 import sys
 import time
@@ -51,7 +52,7 @@ from packages.valory.protocols.ledger_api.custom_types import (
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    pytestmark = pytest.mark.skip
+    atheris: Any = None  # type: ignore
 
 
 from aea_test_autonomy.helpers.base import try_send
@@ -91,6 +92,15 @@ from packages.valory.skills.abstract_round_abci.models import (
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
+
+
+# https://github.com/python/cpython/issues/94414
+# https://stackoverflow.com/questions/46133223/maximum-value-of-timestamp
+# NOTE: timezone in behaviour_utils._get_reset_params set to UTC
+#  but hypothesis does not allow passing of the `tzinfo` argument
+#  hence we add and subtract a day from the actual min / max datetime
+MIN_DATETIME_WINDOWS = datetime(1970, 1, 3, 1, 0, 0)
+MAX_DATETIME_WINDOWS = datetime(3000, 12, 30, 23, 59, 59)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -1257,6 +1267,10 @@ class TestBaseBehaviour:
         )
         try_send(gen, success_response)
 
+    @pytest.mark.skipif(
+        platform.system() == "Windows",
+        reason="https://github.com/valory-xyz/open-autonomy/issues/1477",
+    )
     def test_wait_until_transaction_delivered_raises_timeout(self, *_: Any) -> None:
         """Test '_wait_until_transaction_delivered' method."""
         gen = self.behaviour._wait_until_transaction_delivered(MagicMock(), timeout=0.0)
@@ -1572,8 +1586,8 @@ class TestBaseBehaviour:
     @pytest.mark.parametrize("default", (True, False))
     @given(
         st.datetimes(
-            min_value=datetime(2, 1, 1),
-            max_value=datetime(9999, 1, 1),
+            min_value=MIN_DATETIME_WINDOWS,
+            max_value=MAX_DATETIME_WINDOWS,
         ),
         st.integers(),
         st.integers(),
