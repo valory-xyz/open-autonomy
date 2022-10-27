@@ -22,6 +22,7 @@
 # pylint: skip-file
 
 import sys
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -30,7 +31,7 @@ import pytest
 try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    pytestmark = pytest.mark.skip
+    atheris: Any = None  # type: ignore
 
 from packages.valory.skills.abstract_round_abci.utils import (
     MAX_UINT64,
