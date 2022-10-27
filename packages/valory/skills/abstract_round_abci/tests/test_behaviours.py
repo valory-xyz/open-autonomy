@@ -51,8 +51,10 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 BEHAVIOUR_A_ID = "behaviour_a"
 BEHAVIOUR_B_ID = "behaviour_b"
 BEHAVIOUR_C_ID = "behaviour_c"
+CONCRETE_BACKGROUND_BEHAVIOUR_ID = "background_behaviour"
 ROUND_A_ID = "round_a"
 ROUND_B_ID = "round_b"
+CONCRETE_BACKGROUND_ROUND_ID = "background_round"
 
 
 class RoundA(AbstractRound):
@@ -76,6 +78,22 @@ class RoundB(AbstractRound):
 
     round_id = ROUND_B_ID
     allowed_tx_type = "payload_b"
+
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
+        """End block."""
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check payload."""
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
+
+
+class ConcreteBackgroundRound(AbstractRound):
+    """Concrete Background Round."""
+
+    round_id = ROUND_B_ID
+    allowed_tx_type = "background_payload"
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
         """End block."""
@@ -118,6 +136,17 @@ class BehaviourB(BaseBehaviour):
         yield
 
 
+class ConcreteBackgroundBehaviour(BaseBehaviour):
+    """Dummy behaviour."""
+
+    behaviour_id = CONCRETE_BACKGROUND_BEHAVIOUR_ID
+    matching_round = ConcreteBackgroundRound
+
+    def async_act(self) -> Generator:
+        """Dummy act method."""
+        yield
+
+
 class ConcreteAbciApp(AbciApp):
     """Concrete ABCI App."""
 
@@ -132,6 +161,7 @@ class ConcreteRoundBehaviour(AbstractRoundBehaviour):
     abci_app_cls = ConcreteAbciApp
     behaviours = {BehaviourA, BehaviourB}  # type: ignore
     initial_behaviour_cls = BehaviourA
+    background_behaviour_cls = ConcreteBackgroundBehaviour
 
 
 class TestAbstractRoundBehaviour:
@@ -186,7 +216,7 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = MagicMock(
-                    get_all_round_classes=lambda: rounds,
+                    get_all_round_classes=lambda include_termination_rounds: rounds,
                     final_states={
                         rounds[0],
                     },
@@ -402,6 +432,7 @@ class TestAbstractRoundBehaviour:
 
         # instantiate behaviour
         self.behaviour.current_behaviour = self.behaviour.instantiate_behaviour_cls(BehaviourA)  # type: ignore
+        self.behaviour.background_behaviour = self.behaviour.instantiate_behaviour_cls(ConcreteBackgroundBehaviour)  # type: ignore
 
         # check that after act(), current behaviour is same behaviour
         self.behaviour.act()
