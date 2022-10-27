@@ -28,10 +28,15 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import requests
+import urllib3  # type: ignore
 from requests.adapters import HTTPAdapter  # type: ignore
 from requests.packages.urllib3.util.retry import (  # type: ignore # pylint: disable=import-error
     Retry,
 )
+
+
+# Disable insecure request warning (expired SSL certificates)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 MAX_WORKERS = 10
@@ -70,7 +75,10 @@ def check_file(
         if url in url_skips + http_skips:
             continue
         try:
-            status_code = session.get(url, timeout=REQUEST_TIMEOUT).status_code
+            # Do not verify requests. Expired SSL certificates would make those links fail
+            status_code = session.get(
+                url, timeout=REQUEST_TIMEOUT, verify=False
+            ).status_code
             if status_code not in (200, 403):
                 broken_links.append((md_file, url, status_code))
         except (
@@ -99,12 +107,8 @@ def main() -> None:  # pylint: disable=too-many-locals
         "http://host.docker.internal:8545",
     ]
     url_skips = [
-        "https://github.com/valory-xyz/open-autonomy/trunk/packages",
-        "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure",
-        "https://gateway.autonolas.tech/ipfs/`<hash>`,",
-        "https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev",
-        "https://encyclopedia.pub/entry/2959",
-        "https://pmg.csail.mit.edu/papers/osdi99.pdf",
+        "https://gateway.autonolas.tech/ipfs/`<hash>`,",  # non link (400)
+        "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure",  # svn link (404)
     ]
 
     # Configure request retries
@@ -141,7 +145,7 @@ def main() -> None:  # pylint: disable=too-many-locals
         if broken_links:
             broken_links_str = "\n".join(
                 [
-                    f"{file_name}: {[url[1] for url in urls]}"
+                    f"{file_name}: {[(url[1], url[2]) for url in urls]}"
                     for file_name, urls in broken_links.items()
                 ]
             )
