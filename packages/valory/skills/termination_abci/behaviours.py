@@ -17,10 +17,9 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the background behaviour and round classes."""
-from enum import Enum
+"""This module contains the termination behaviour classes."""
 from mailbox import Message
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, cast
+from typing import Callable, Dict, Generator, List, Optional, Set, Type, cast
 
 from hexbytes import HexBytes
 
@@ -34,16 +33,25 @@ from packages.valory.contracts.multisend.contract import (
 )
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.base import (
-    BaseSynchronizedData,
-    BaseTxPayload,
-    CollectSameUntilThresholdRound,
-)
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseBehaviour,
 )
-from packages.valory.skills.transaction_settlement_abci.payload_tools import hash_payload_to_hex
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.termination_abci.payloads import BackgroundPayload
+from packages.valory.skills.termination_abci.rounds import (
+    BackgroundRound,
+    SynchronizedData,
+    TerminationAbciApp,
+    TerminationRound,
+)
+from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    TransactionSettlementRoundBehaviour,
+)
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    hash_payload_to_hex,
+)
+
 
 # setting the safe gas to 0 means that all available gas will be used
 # which is what we want in most cases
@@ -56,64 +64,25 @@ _ETHER_VALUE = 0
 NULL_ADDRESS: str = "0x" + "0" * 40
 MAX_UINT256 = 2 ** 256 - 1
 
-class TransactionType(Enum):
-    """Defines the possible transaction types."""
 
-    TERMINATION = "termination"
+class BackgroundBehaviour(BaseBehaviour):
+    """A behaviour responsible for picking up the termination signal, it runs concurrently with other behaviours."""
 
-
-class TerminationPayload(BaseTxPayload):
-    """Defines the termination payload."""
-
-    transaction_type = TransactionType.TERMINATION
-
-    def __init__(self, sender: str, termination_data: str, **kwargs: Any) -> None:
-        """Initialize a 'Termination' transaction payload.
-        :param sender: the sender (Ethereum) address
-        :param termination_data: serialized tx.
-        :param kwargs: the keyword arguments
-        """
-        super().__init__(sender, **kwargs)
-        self._termination_data = termination_data
-
-    @property
-    def termination_data(self) -> str:
-        """Get the termination data."""
-        return self._termination_data
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(termination_data=self.termination_data)
-
-
-class SynchronizedData(BaseSynchronizedData):
-    """
-    Class to represent the synchronized data.
-
-    This data is replicated by the tendermint application.
-    """
-
-    @property
-    def safe_contract_address(self) -> Optional[str]:
-        """Get the safe contract address."""
-        return cast(Optional[str], self.db.get("safe_contract_address", None))
-
-    @property
-    def termination_majority_reached(self) -> bool:
-        """Get termination_majority_reached."""
-        return cast(bool, self.db.get("termination_majority_reached", False))
-
-
-class TerminationBehaviour(BaseBehaviour):
-    """Defines the behaviour that is responsible for service termination, it runs concurrently with other behaviours."""
-
-    behaviour_id = "termination_behaviour_background"
-
+    behaviour_id = "background_behaviour"
+    matching_round = BackgroundRound
     _service_owner_address: Optional[str] = None
 
     def async_act(self) -> Generator:
-        """Performs the termination logic."""
+        """
+        Performs the termination logic.
+
+        This method responsible for checking whether the on-chain termination signal is present.
+        When an agent picks up the termination signal, it prepares a multisend transaction,
+        on which the majority of agents in the service have to reach consensus on.
+
+        :return: None
+        :yield: None
+        """
         if self._is_termination_majority():
             # if termination majority has already been reached
             # there is no need to run the rest of this method
@@ -129,9 +98,9 @@ class TerminationBehaviour(BaseBehaviour):
             "Terminate signal was received, preparing termination transaction."
         )
 
-        termination_data = yield from self.get_multisend_payload()
-        termination_payload = TerminationPayload(
-            self.context.agent_address, termination_data=termination_data
+        background_data = yield from self.get_multisend_payload()
+        termination_payload = BackgroundPayload(
+            self.context.agent_address, background_data=background_data
         )
         yield from self.send_a2a_transaction(termination_payload)
         yield from self.wait_for_termination_majority()
@@ -139,7 +108,7 @@ class TerminationBehaviour(BaseBehaviour):
     @property
     def synchronized_data(self) -> SynchronizedData:
         """Return the synchronized data."""
-        return cast(SynchronizedData, super().synchronized_data)
+        return SynchronizedData(db=super().synchronized_data.db)
 
     def check_for_signal(self) -> Generator[None, None, bool]:
         """
@@ -481,7 +450,7 @@ class TerminationBehaviour(BaseBehaviour):
         """Rely on the round to decide when majority is reached."""
         return self.synchronized_data.termination_majority_reached
 
-    def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
+    def get_callback_request(self) -> Callable[[Message, BaseBehaviour], None]:
         """Wrapper for callback_request(), overridden to avoid mix-ups with normal (non-background) behaviours."""
 
         def callback_request(
@@ -526,28 +495,28 @@ class TerminationBehaviour(BaseBehaviour):
         return self._is_termination_majority
 
 
-class Event(Enum):
-    """Defines the (background) round events."""
+class TerminationBehaviour(BaseBehaviour):
+    """Behaviour responsible for terminating the agent."""
 
-    TERMINATE = "terminate"
+    state_id: str = "termination"
+    behaviour_id = "termination_behaviour"
+    matching_round = TerminationRound
+
+    def async_act(self) -> Generator:
+        """Logs termination and terminates."""
+        self.context.logger.info("Terminating the agent.")
+        ok = 0
+        quit(ok)
+        yield
 
 
-class TerminationRound(CollectSameUntilThresholdRound):
-    """Defines the Termination round. The termination round is running at all times concurrently with other rounds."""
+class TerminationAbciBehaviours(AbstractRoundBehaviour):
+    """This class defines the behaviours required in terminating a service."""
 
-    round_id: str = "termination_round"
-    allowed_tx_type = TerminationPayload.transaction_type
-    payload_attribute: str = "termination_data"
-    synchronized_data_class = SynchronizedData
-
-    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
-        """Process the end of the block."""
-        if self.threshold_reached:
-            state = self.synchronized_data.update(
-                synchronized_data_class=self.synchronized_data_class,
-                termination_majority_reached=True,
-                most_voted_tx_hash=self.most_voted_payload,
-            )
-            return state, Event.TERMINATE
-
-        return None
+    initial_behaviour_cls = TransactionSettlementRoundBehaviour.initial_behaviour_cls
+    abci_app_cls = TerminationAbciApp
+    behaviours: Set[Type[BaseBehaviour]] = {
+        BackgroundBehaviour,
+        TerminationBehaviour,
+        *TransactionSettlementRoundBehaviour.behaviours,
+    }
