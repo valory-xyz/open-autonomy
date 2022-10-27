@@ -43,6 +43,21 @@ MAX_WORKERS = 10
 URL_REGEX = r'(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)"]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)"]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s)"]{2,}|www\.[a-zA-Z0-9]+\.[^\s)"]{2,})'
 REQUEST_TIMEOUT = 5  # seconds
 
+# Allow some links to be HTTP because there is no HTTPS alternative
+# Remove non-url-allowed characters like ` before adding them here
+HTTP_SKIPS = [
+    "http://www.fipa.org/repository/ips.php3",
+    "http://host.docker.internal:8545",
+]
+
+# Special links that are allowed to respond with an error status
+# Remove non-url-allowed characters like ` before adding them here
+URL_SKIPS = [
+    "https://gateway.autonolas.tech/ipfs/<hash>,",  # non link (400)
+    "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure",  # svn link (404)
+    "http://host.docker.internal:8545",  # internal (ERR_NAME_NOT_RESOLVED)
+]
+
 
 def read_file(filepath: str) -> str:
     """Loads a file into a string"""
@@ -52,7 +67,10 @@ def read_file(filepath: str) -> str:
 
 
 def check_file(
-    session: Any, md_file: str, http_skips: List[str], url_skips: List[str]
+    session: Any,
+    md_file: str,
+    http_skips: List[str] = HTTP_SKIPS,
+    url_skips: List[str] = URL_SKIPS,
 ) -> Dict:
     """Check for broken or HTTP links in a specific file"""
 
@@ -67,19 +85,24 @@ def check_file(
         if "(" in url and ")" not in url:
             url += ")"
 
+        # Remove non allowed chars
+        url = url.replace("`", "")
+
         # Check for HTTP urls
         if not url.startswith("https") and url not in http_skips:
             http_links.append((md_file, url))
 
-        # Check for broken links: 200 and 403 codes are admitted
-        if url in url_skips + http_skips:
+        # Check for url skips
+        if url in url_skips:
             continue
+
+        # Check for broken links: 200 and 403 codes are admitted
         try:
             # Do not verify requests. Expired SSL certificates would make those links fail
             status_code = session.get(
                 url, timeout=REQUEST_TIMEOUT, verify=False
             ).status_code
-            if status_code not in (200, 403):
+            if status_code not in [200, 403]:
                 broken_links.append((md_file, url, status_code))
         except (
             requests.exceptions.RetryError,
@@ -101,16 +124,6 @@ def main() -> None:  # pylint: disable=too-many-locals
     broken_links: Dict[str, List[str]] = {}
     http_links: Dict[str, List[str]] = {}
 
-    http_skips = [
-        "http://www.fipa.org/repository/ips.php3",
-        "http://host.docker.internal:8545```",
-        "http://host.docker.internal:8545",
-    ]
-    url_skips = [
-        "https://gateway.autonolas.tech/ipfs/`<hash>`,",  # non link (400)
-        "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure",  # svn link (404)
-    ]
-
     # Configure request retries
     retry_strategy = Retry(
         total=3,  # number of retries
@@ -126,9 +139,7 @@ def main() -> None:  # pylint: disable=too-many-locals
         futures = []
         for md_file in all_md_files:
             print(f"Checking {str(md_file)}...")
-            futures.append(
-                executor.submit(check_file, session, md_file, http_skips, url_skips)
-            )
+            futures.append(executor.submit(check_file, session, md_file))
 
         # Awaiting for results is blocking
         print("Awaiting for results...")
