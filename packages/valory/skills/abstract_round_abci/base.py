@@ -2359,6 +2359,11 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         return self.abci_app.current_round
 
     @property
+    def background_round(self) -> AbstractRound:
+        """Get the background round."""
+        return self.abci_app.background_round
+
+    @property
     def current_round_id(self) -> Optional[str]:
         """Get the current round id."""
         return self.abci_app.current_round_id
