@@ -238,21 +238,6 @@ class TestRandomnessBehaviour(BaseDummyBehaviour):
                     "`get_randomness_from_api`'s generator should have been exhausted."
                 )
 
-    def test_async_act_could_not_generate_from_chain(self) -> None:
-        """Test `async_act` when we cannot generate randomness from chain."""
-        # create a dummy `is_retries_exceeded` for `MagicMock`ed `randomness_api`
-        self.behaviour.context.randomness_api.is_retries_exceeded = lambda: True
-        gen = self.behaviour.async_act()
-
-        # test when `failsafe_randomness` returns `None`
-        with mock.patch.object(
-            self.behaviour,
-            "failsafe_randomness",
-            dummy_generator(None),
-        ):
-            next(gen)
-            last_iteration(gen)
-
     @pytest.mark.parametrize(
         "retries_exceeded, failsafe_succeeds",
         # (False, False) is not tested, because it does not make sense
