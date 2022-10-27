@@ -82,8 +82,13 @@ from packages.valory.skills.abstract_round_abci.serializer import (
 )
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     AbciAppTest,
+    ConcreteBackgroundRound,
     ConcreteRoundA,
     ConcreteRoundB,
+    ConcreteRoundC,
+    ConcreteTerminationRoundA,
+    ConcreteTerminationRoundB,
+    ConcreteTerminationRoundC,
 )
 
 
@@ -1862,6 +1867,8 @@ class TestRoundSequence:
 
         with mock.patch.object(
             self.round_sequence.current_round, "end_block", return_value=end_block_res
+        ), mock.patch.object(
+            self.round_sequence.abci_app, "_is_termination_set", return_value=False
         ):
             self.round_sequence._update_round()
 
@@ -1903,6 +1910,99 @@ class TestRoundSequence:
             )
             process_event_mock.assert_called_with(
                 end_block_res[-1], result=end_block_res[0]
+            )
+
+    @mock.patch.object(AbciApp, "process_event")
+    @pytest.mark.parametrize(
+        "background_round_result, current_round_result",
+        [
+            (None, None),
+            (None, (MagicMock(), MagicMock())),
+            ((MagicMock(), MagicMock()), None),
+            ((MagicMock(), MagicMock()), (MagicMock(), MagicMock())),
+        ],
+    )
+    def test_update_round_when_background_returns(
+        self,
+        process_event_mock: mock.Mock,
+        background_round_result: Optional[Tuple[BaseSynchronizedData, Any]],
+        current_round_result: Optional[Tuple[BaseSynchronizedData, Any]],
+    ) -> None:
+        """Test '_update_round' method."""
+        self.round_sequence.begin_block(MagicMock(height=1))
+        block = self.round_sequence._block_builder.get_block()
+        self.round_sequence._blockchain.add_block(block)
+
+        with mock.patch.object(
+            self.round_sequence.current_round,
+            "end_block",
+            return_value=current_round_result,
+        ), mock.patch.object(
+            self.round_sequence.background_round,
+            "end_block",
+            return_value=background_round_result,
+        ):
+            self.round_sequence._update_round()
+
+        if background_round_result is None and current_round_result is None:
+            assert (
+                self.round_sequence._last_round_transition_timestamp
+                != self.round_sequence._blockchain.last_block.timestamp
+            )
+            assert (
+                self.round_sequence._last_round_transition_height
+                != self.round_sequence._blockchain.height
+            )
+            assert (
+                self.round_sequence._last_round_transition_root_hash
+                != self.round_sequence.root_hash
+            )
+            assert (
+                self.round_sequence._last_round_transition_tm_height
+                != self.round_sequence.tm_height
+            )
+            process_event_mock.assert_not_called()
+        elif background_round_result is None and current_round_result is not None:
+            assert (
+                self.round_sequence._last_round_transition_timestamp
+                == self.round_sequence._blockchain.last_block.timestamp
+            )
+            assert (
+                self.round_sequence._last_round_transition_height
+                == self.round_sequence._blockchain.height
+            )
+            assert (
+                self.round_sequence._last_round_transition_root_hash
+                == self.round_sequence.root_hash
+            )
+            assert (
+                self.round_sequence._last_round_transition_tm_height
+                == self.round_sequence.tm_height
+            )
+            process_event_mock.assert_called_with(
+                current_round_result[-1],
+                result=current_round_result[0],
+            )
+        elif background_round_result is not None:
+            assert (
+                self.round_sequence._last_round_transition_timestamp
+                == self.round_sequence._blockchain.last_block.timestamp
+            )
+            assert (
+                self.round_sequence._last_round_transition_height
+                == self.round_sequence._blockchain.height
+            )
+            assert (
+                self.round_sequence._last_round_transition_root_hash
+                == self.round_sequence.root_hash
+            )
+            assert (
+                self.round_sequence._last_round_transition_tm_height
+                == self.round_sequence.tm_height
+            )
+            process_event_mock.assert_called_with(
+                background_round_result[-1],
+                result=background_round_result[0],
             )
 
 
