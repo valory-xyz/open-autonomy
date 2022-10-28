@@ -9,21 +9,21 @@ fingerprint:
   __init__.py: bafybeiablk7siopwcfoo4kmk7czhab7csridrxemf2z5ixtep5zw4bmbum
   behaviours.py: bafybeiftv46r3cpvvyau7qso7qh6kezv76b2qedgg3e7qxrj7fyuayuiyi
   dialogues.py: bafybeiggs6cpzhz235k4ws5naeuyhz37mkqrthctq67p4v56wh4nyzgepa
-  handlers.py: bafybeic526kokncp6wa3shga7y4teky5r6vierdu7ki6voczbneudwuxjm
+  handlers.py: bafybeiednyxj5awp6ka6hcgqzmp5mxbqexuptyd73vebo54vf43naapj3q
   models.py: bafybeicqflt63ate4axhggc7ffz5r2ddhkir6kj5okmtssoiosqsmejih4
   payloads.py: bafybeiham2atgdsol5k2laucgvlk6edozfujmrzgvc5s2vd2kbmr6qdnw4
   rounds.py: bafybeib2zvsmrwrcgvbp5c7hei32prfdwx7ls6cknokngz2poipxu2ztqm
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeiaema4xgfolq3nx26zu4o3kafro4aubmsjfwvzi5tfbp3fwg4cmoa
+- valory/gnosis_safe:0.1.0:bafybeidun5jdrffmzpr7hquuxzfyx3nkcevaxac6cci3oyjyh72ebbrwyi
 - valory/multisend:0.1.0:bafybeig45676hbh4c3p3mujrrskxgxww4cxdyyginlg5rmmav6orv4gtya
-- valory/service_registry:0.1.0:bafybeicvmdbhovr247vvunz5rer7sai74jxxavfwxyundiq3ebfxc2pvya
+- valory/service_registry:0.1.0:bafybeig5cydwoi7laokvhrlaj5qzdqcrloaldescakjnk7d7xvxveepzne
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeibduroogfrs2v2hn3qnwquzmsigs3ymt5j5v5hlzbfup6zcn3whxi
-- valory/transaction_settlement_abci:0.1.0:bafybeicrsq2yefkiqvpdbc6igipqz3kpimyhdt5p7nsvvgw54f42aen2vi
+- valory/abstract_round_abci:0.1.0:bafybeid3xhvc2rys4qoalx5ii5t2etx5ihzccxs2rihm4eszk7faqmdqim
+- valory/transaction_settlement_abci:0.1.0:bafybeiapwudsy7nmfaq3fk3xq4zu4dyqh7qm3hkbrq32pj4phm6ep5yvoa
 behaviours:
   main:
     args: {}
@@ -32,9 +32,15 @@ handlers:
   abci:
     args: {}
     class_name: TerminationABCIHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
   http:
     args: {}
     class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
   signing:
     args: {}
     class_name: SigningHandler
