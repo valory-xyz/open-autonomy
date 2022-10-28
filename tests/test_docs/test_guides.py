@@ -112,9 +112,9 @@ class GuideTest:
                     process = subprocess.Popen(  # nosec
                         cmds[0].split(" "), stdout=subprocess.PIPE
                     )
-                    subprocess.check_output(
+                    subprocess.check_output(  # nosec
                         cmds[1].split(" "), stdin=process.stdout
-                    )  # nosec
+                    )
                     process.wait()
                     assert (
                         process.returncode == 0
