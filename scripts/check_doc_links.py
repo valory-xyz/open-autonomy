@@ -113,12 +113,12 @@ def check_file(
                 verify=False,
             ).status_code
             if status_code not in [200, 403]:
-                broken_links.append((md_file, url, status_code))
+                broken_links.append({"url": url, "status_code": status_code})
         except (
             requests.exceptions.RetryError,
             requests.exceptions.ConnectionError,
         ) as e:
-            broken_links.append((md_file, url, e))
+            broken_links.append({"url": url, "status_code": e})
 
     return {
         "file": str(md_file),
@@ -131,7 +131,7 @@ def main() -> None:  # pylint: disable=too-many-locals
     """Check for broken or HTTP links"""
     all_md_files = [str(p.relative_to(".")) for p in Path("docs").rglob("*.md")]
 
-    broken_links: Dict[str, List[str]] = {}
+    broken_links: Dict[str, Dict] = {}
     http_links: Dict[str, List[str]] = {}
 
     # Configure request retries
@@ -169,8 +169,8 @@ def main() -> None:  # pylint: disable=too-many-locals
         if broken_links:
             broken_links_str = "\n".join(
                 [
-                    f"{file_name}: {[(url[1], url[2]) for url in urls]}"
-                    for file_name, urls in broken_links.items()
+                    f"{file_name}: {[entry['url'] + ', status: ' + str(entry['status_code']) for entry in error_data]}"
+                    for file_name, error_data in broken_links.items()
                 ]
             )
             print(f"Found broken url in the docs:\n{broken_links_str}")
