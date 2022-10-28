@@ -14,7 +14,12 @@ In this guide, you will learn to:
   * Publish and retrieve packages from local and remote registries.
 
 ## How the local and remote registries work
-There are three main types of packages:
+Currently, the {{open_autonomy}} framework supports two types of registries:
+
+  * local, and
+  * remote [IPFS](https://ipfs.io/).
+
+There are three main types of packages that can be stored in these registries:
 
   * services,
   * agents, and
@@ -22,23 +27,18 @@ There are three main types of packages:
 
 Services use agent packages, and agents use component packages. Packages are developed locally and stored in a registry to be retrieved and reused in a later stage. Every package has a **public package ID** that follows the naming convention `<author_name>/<package_name>:<version>`.
 
-
-Currently, the {{open_autonomy}} framework supports two types of registries:
-
-  * local,
-  * remote [IPFS](https://ipfs.io/).
-
 You can browse the [list of default packages](../package_list.md) of the {{open_autonomy}} framework available on the default remote IPFS registry.
 
-Packages live in a different space when being used by the developer, and they are published on a registry using different commands. The table below presents a summary.
+Packages live in a different space when being used by the developer, and they are stored on and retrieved from a registry using different commands. The table below presents a summary.
 
-| Package type | Location while being used           | Command to publish on a registry | Command to retrieve from a registry |
-|--------------|-------------------------------------|----------------------------------|-------------------------------------|
-| Service      | Independent folder                  | `autonomy publish`               | `autonomy fetch`                    |
-| Agent        | Independent folder                  | `autonomy publish`               | `autonomy fetch`                    |
-| Component    | `/vendor/<author_name>/<component_type>/<package_name>` folder inside agent folder | `autonomy push`                  | `autonomy add`                      |
+| **Package type** | **Command to store on a registry** | **Command to retrieve from a registry** |
+|--------------|----------------------------------|-------------------------------------|
+| Service      | `autonomy publish`               | `autonomy fetch`                    |
+| Agent        | `autonomy publish`               | `autonomy fetch`                    |
+| Component    | `autonomy push`                  | `autonomy add`                      |
 
 
+### Workspace folder vs local registry
 
 The figure below shows a typical setup, where you might identify some common traits with the Git methodology. Within the workspace folder, the arrows in the diagram point to the locations where the different operations can be executed in the local machine.
 
@@ -47,17 +47,32 @@ The figure below shows a typical setup, where you might identify some common tra
 <figcaption>Overview of the package management flow with the Open Autonomy framework</figcaption>
 </figure>
 
-!!! warning "Important"
-    Do not confuse the **local registry** with a local **workspace folder**. The local registry is simply a repository to store finalized packages, mimicking the role of a remote registry on the local machine.
+It is important not to confuse a **local registry** with a local **workspace folder**. The local registry is simply a repository to store finalized packages, mimicking the role of a remote registry on the local machine. A workspace folder is any folder where you can retrieve the contents of a registry (local or remote). The table below summarizes the main differences between these two locations.
 
-    For example, you can develop a component package directly in the local registry, or you can develop it in an agent within a workspace folder, and push the component later in the local registry. Then, you can retrieve that component from the registry for use in another agent.
+|                            | **Workspace folder**                                                              | **Local registry**                                                                                                                    |
+|----------------------------|-------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| Location                   | Any folder                                                                    | Parent or child `/packages` folder of active folder (default). Alternatively, specified through `--registry-path` top-level flag. |
+| Service package location   | `./<service_package>`                                                         | `./<author_name>/agents/<service_package>`                                                                                        |
+| Agent package location     | `./<agent_package>`                                                           | `./<author_name>/agents/<agent_package>`                                                                                          |
+| Component package location | `./<agent_package>/vendor/<author_name>/<component_type>/<component_package>` | `./<author_name>/<component_type>/<component_package>`                                                                            |
 
-    **Regardless of the methodology that you choose to develop your packages, it is important to have a clear separation of concerns in mind so that they can be reused in other agent projects.**
+
+You can either:
+
+1.  Develop a package in a workspace folder by retrieving a certain component from a registry, modify it and then store it in a local registry.
+2.  Or develop a component directly in a local registry.  **This is the recommended approach.** You can have as many local registries as you want, and you can always store finalized components on a remote registry.
+
+Regardless of the methodology that you choose to develop your packages, it is important that they are developed with a clear separation of concerns, so that they can be reused in other projects.
 
 ## How to tell the framework what registry to use
 The `push`, `add`, `publish` and `fetch` commands use, by default, the registry specified when the framework was initiated (command `autonomy init`). See for example the [set up guide](./set_up#set-up), where we initialized the framework to use the default remote [IPFS](https://ipfs.io) registry.
 
 Additionally, the framework configuration can be overridden per command by using the flags `--local` or `--remote` in any of the commands  `push`, `add`, `publish` or `fetch`.
+
+The framework assumes that the location of the local registry is the subfolder `./packages`, or alternatively, the parent folder `..\packages`. Alternatively, you can specify the local registry folder with the top-level flag `--registry-path`, for example:
+```bash
+autonomy --registry-path=../my_registry publish --local
+```
 
 
 ## Push and add components
