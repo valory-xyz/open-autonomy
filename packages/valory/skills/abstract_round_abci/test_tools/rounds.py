@@ -116,7 +116,7 @@ class DummyTxPayload(BaseTxPayload):
         return dict(value=self.value)
 
 
-class DummySynchronizedSata(BaseSynchronizedData):
+class DummySynchronizedData(BaseSynchronizedData):
     """Dummy synchronized data for tests."""
 
     @property
@@ -613,7 +613,7 @@ class _BaseRoundTestClass(BaseRoundTestClass):  # pylint: disable=too-few-public
     consensus_params: ConsensusParams
     tx_payloads: List[DummyTxPayload]
 
-    _synchronized_data_class = DummySynchronizedSata
+    _synchronized_data_class = DummySynchronizedData
 
     @classmethod
     def setup(
