@@ -1407,7 +1407,7 @@ class TestAbciApp:
     def test_add_termination(self) -> None:
         """Tests the `add_termination` method."""
 
-        class EmptyAbciApp(AbciApp):
+        class EmptyAbciApp(AbciAppTest):
             """An AbciApp without termination attrs set."""
 
         EmptyAbciApp.add_termination(
