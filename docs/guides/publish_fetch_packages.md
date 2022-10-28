@@ -1,7 +1,10 @@
-Similarly as the {{open_aea}} framework, the {{open_autonomy}} framework also works with the concept of **package**: a collection of files that implement a specific component or functionality.
+The {{open_autonomy}} framework works with the concept of **package**: a collection of files that implement a specific component or functionality.
 Publishing a package is simply the process of storing the package into a registry (or in other words, a repository), either locally or remotely.
+By publishing a package on a remote repository, its code is available for other developers to reuse it. Moreover, publishing a package on a public repository also facilitates [registering the package in the on-chain protocol](./register_packages_on_chain.md).
 
-Remote registries allow to make the package publicly available to other developers. Moreover, it is required that a package be published in a remote registry before [registering the package in the on-chain protocol](./register_packages_on_chain.md).
+
+!!! note
+      It is not a strict requirement that a package be publicly available in a remote repository to register it in the on-chain protocol. The developer might want to keep the code private (and share it by different means), and still be able to register the package in the on-chain protocol.
 
 
 ## What will you learn
@@ -20,21 +23,20 @@ There are three main types of packages:
 Services use agent packages, and agents use component packages. Packages are developed locally and stored in a registry to be retrieved and reused in a later stage. Every package has a **public package ID** that follows the naming convention `<author_name>/<package_name>:<version>`.
 
 
-The {{open_autonomy}} framework supports three types of registries:
+Currently, the {{open_autonomy}} framework supports two types of registries:
 
   * local,
-  * remote [IPFS](https://ipfs.io/), and
-  * remote HTTP.
+  * remote [IPFS](https://ipfs.io/).
 
 You can browse the [list of default packages](../package_list.md) of the {{open_autonomy}} framework available on the default remote IPFS registry.
 
-Packages live in a different space when being used by the developer, and they are published in a registry using different commands. The table below presents a summary.
+Packages live in a different space when being used by the developer, and they are published on a registry using different commands. The table below presents a summary.
 
-| Package type | Location while being used           | Command to publish in a registry | Command to retrieve from a registry |
+| Package type | Location while being used           | Command to publish on a registry | Command to retrieve from a registry |
 |--------------|-------------------------------------|----------------------------------|-------------------------------------|
 | Service      | Independent folder                  | `autonomy publish`               | `autonomy fetch`                    |
 | Agent        | Independent folder                  | `autonomy publish`               | `autonomy fetch`                    |
-| Component    | `/vendor` folder inside agent folder | `autonomy push`                  | `autonomy add`                      |
+| Component    | `/vendor/<author_name>/<component_type>/<package_name>` folder inside agent folder | `autonomy push`                  | `autonomy add`                      |
 
 
 
