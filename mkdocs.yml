@@ -36,7 +36,6 @@ nav:
     - Register packages on-chain: 'guides/register_packages_on_chain.md'
     - Deploy a service: 'guides/deploy_service.md'
     - Running a service in different networks: 'guides/running_service_different_networks.md'
-    - Managing packages: 'guides/managing_packages.md'
   - Demo agent services:
     - 'demos/index.md'  
     - Hello World Demo: 'demos/hello_world_demo.md'
