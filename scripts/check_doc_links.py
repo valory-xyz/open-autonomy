@@ -25,18 +25,43 @@ import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import requests
+import urllib3  # type: ignore
 from requests.adapters import HTTPAdapter  # type: ignore
 from requests.packages.urllib3.util.retry import (  # type: ignore # pylint: disable=import-error
     Retry,
 )
 
 
+# Disable insecure request warning (expired SSL certificates)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
 MAX_WORKERS = 10
 URL_REGEX = r'(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)"]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)"]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s)"]{2,}|www\.[a-zA-Z0-9]+\.[^\s)"]{2,})'
-REQUEST_TIMEOUT = 5  # seconds
+DEFAULT_REQUEST_TIMEOUT = 5  # seconds
+
+# Allow some links to be HTTP because there is no HTTPS alternative
+# Remove non-url-allowed characters like ` before adding them here
+HTTP_SKIPS = [
+    "http://www.fipa.org/repository/ips.php3",
+    "http://host.docker.internal:8545",
+]
+
+# Special links that are allowed to respond with an error status
+# Remove non-url-allowed characters like ` before adding them here
+URL_SKIPS = [
+    "https://gateway.autonolas.tech/ipfs/<hash>,",  # non link (400)
+    "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure",  # svn link (404)
+    "http://host.docker.internal:8545",  # internal (ERR_NAME_NOT_RESOLVED)
+]
+
+# Define here custom timeouts for some edge cases
+CUSTOM_TIMEOUTS = {
+    "http://www.fipa.org/repository/ips.php3": 30,
+}
 
 
 def read_file(filepath: str) -> str:
@@ -47,9 +72,15 @@ def read_file(filepath: str) -> str:
 
 
 def check_file(
-    session: Any, md_file: str, http_skips: List[str], url_skips: List[str]
+    session: Any,
+    md_file: str,
+    http_skips: Optional[List[str]] = None,
+    url_skips: Optional[List[str]] = None,
 ) -> Dict:
     """Check for broken or HTTP links in a specific file"""
+
+    http_skips = http_skips or HTTP_SKIPS
+    url_skips = url_skips or URL_SKIPS
 
     text = read_file(md_file)
     m = re.findall(URL_REGEX, text)
@@ -62,22 +93,32 @@ def check_file(
         if "(" in url and ")" not in url:
             url += ")"
 
+        # Remove non allowed chars
+        url = url.replace("`", "")
+
         # Check for HTTP urls
         if not url.startswith("https") and url not in http_skips:
             http_links.append((md_file, url))
 
-        # Check for broken links: 200 and 403 codes are admitted
-        if url in url_skips + http_skips:
+        # Check for url skips
+        if url in url_skips:
             continue
+
+        # Check for broken links: 200 and 403 codes are admitted
         try:
-            status_code = session.get(url, timeout=REQUEST_TIMEOUT).status_code
-            if status_code not in (200, 403):
-                broken_links.append((md_file, url, status_code))
+            # Do not verify requests. Expired SSL certificates would make those links fail
+            status_code = session.get(
+                url,
+                timeout=CUSTOM_TIMEOUTS.get(url, DEFAULT_REQUEST_TIMEOUT),
+                verify=False,
+            ).status_code
+            if status_code not in [200, 403]:
+                broken_links.append({"url": url, "status_code": status_code})
         except (
             requests.exceptions.RetryError,
             requests.exceptions.ConnectionError,
         ) as e:
-            broken_links.append((md_file, url, e))
+            broken_links.append({"url": url, "status_code": e})
 
     return {
         "file": str(md_file),
@@ -90,29 +131,18 @@ def main() -> None:  # pylint: disable=too-many-locals
     """Check for broken or HTTP links"""
     all_md_files = [str(p.relative_to(".")) for p in Path("docs").rglob("*.md")]
 
-    broken_links: Dict[str, List[str]] = {}
+    broken_links: Dict[str, Dict] = {}
     http_links: Dict[str, List[str]] = {}
-
-    http_skips = [
-        "http://www.fipa.org/repository/ips.php3",
-        "http://host.docker.internal:8545```",
-        "http://host.docker.internal:8545",
-    ]
-    url_skips = [
-        "https://github.com/valory-xyz/open-autonomy/trunk/packages",
-        "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure",
-        "https://gateway.autonolas.tech/ipfs/`<hash>`,",
-        "https://gateway.autonolas.tech/ipfs/Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev",
-        "https://encyclopedia.pub/entry/2959",
-        "https://pmg.csail.mit.edu/papers/osdi99.pdf",
-    ]
 
     # Configure request retries
     retry_strategy = Retry(
         total=3,  # number of retries
         status_forcelist=[404, 429, 500, 502, 503, 504],  # codes to retry on
     )
-    adapter = HTTPAdapter(max_retries=retry_strategy)
+    # https://stackoverflow.com/questions/18466079/change-the-connection-pool-size-for-pythons-requests-module-when-in-threading
+    adapter = HTTPAdapter(
+        max_retries=retry_strategy, pool_connections=100, pool_maxsize=100
+    )
     session = requests.Session()
     session.mount("https://", adapter)
     session.mount("http://", adapter)
@@ -122,9 +152,7 @@ def main() -> None:  # pylint: disable=too-many-locals
         futures = []
         for md_file in all_md_files:
             print(f"Checking {str(md_file)}...")
-            futures.append(
-                executor.submit(check_file, session, md_file, http_skips, url_skips)
-            )
+            futures.append(executor.submit(check_file, session, md_file))
 
         # Awaiting for results is blocking
         print("Awaiting for results...")
@@ -141,8 +169,8 @@ def main() -> None:  # pylint: disable=too-many-locals
         if broken_links:
             broken_links_str = "\n".join(
                 [
-                    f"{file_name}: {[url[1] for url in urls]}"
-                    for file_name, urls in broken_links.items()
+                    f"{file_name}: {[entry['url'] + ', status: ' + str(entry['status_code']) for entry in error_data]}"
+                    for file_name, error_data in broken_links.items()
                 ]
             )
             print(f"Found broken url in the docs:\n{broken_links_str}")
