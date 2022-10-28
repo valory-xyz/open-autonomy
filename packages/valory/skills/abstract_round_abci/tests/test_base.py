@@ -1407,12 +1407,8 @@ class TestAbciApp:
     def test_add_termination(self) -> None:
         """Tests the `add_termination` method."""
 
-        class EmptyAbciApp(AbciAppTest):
+        class EmptyAbciApp(AbciApp):
             """An AbciApp without termination attrs set."""
-
-            background_round_cls = None
-            termination_transition_function = None
-            termination_event = None
 
         EmptyAbciApp.add_termination(
             AbciAppTest.background_round_cls,
@@ -1422,7 +1418,7 @@ class TestAbciApp:
 
         assert EmptyAbciApp.background_round_cls is not None
         assert EmptyAbciApp.termination_transition_function is not None
-        assert EmptyAbciApp.termination_event is not None
+        assert EmptyAbciApp.termination_event is not None  # type: ignore
 
     def test_background_round(self) -> None:
         """Test the background_round property."""
@@ -1507,7 +1503,7 @@ class TestAbciApp:
     )
     def test_check_transaction_for_background_round(
         self,
-        check_transaction_mock: mock,
+        check_transaction_mock: mock.Mock,
         transaction: Transaction,
     ) -> None:
         """Tests process_transaction when it's a transaction meant for the background app."""
@@ -1528,7 +1524,7 @@ class TestAbciApp:
     )
     def test_process_transaction_for_background_round(
         self,
-        process_transaction_mock: mock,
+        process_transaction_mock: mock.Mock,
         transaction: Transaction,
     ) -> None:
         """Tests process_transaction when it's a transaction meant for the background app."""
