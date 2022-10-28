@@ -19,7 +19,7 @@
 
 """This module contains the tests for the guides in the documentation."""
 import os
-import subprocess
+import subprocess  # nosec
 import tempfile
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Union
@@ -109,10 +109,12 @@ class GuideTest:
                 if "|" in cmd:
                     cmds = [i.strip() for i in cmd.split("|")]
                     assert len(cmds) == 2, "Only piping two commands is supported"
-                    process = subprocess.Popen(
+                    process = subprocess.Popen(  # nosec
                         cmds[0].split(" "), stdout=subprocess.PIPE
                     )
-                    subprocess.check_output(cmds[1].split(" "), stdin=process.stdout)
+                    subprocess.check_output(
+                        cmds[1].split(" "), stdin=process.stdout
+                    )  # nosec
                     process.wait()
                     assert (
                         process.returncode == 0
@@ -120,7 +122,7 @@ class GuideTest:
                     continue
 
                 # Run command
-                process = subprocess.run(cmd.split(" "), timeout=DEFAULT_TIMEOUT)  # type: ignore
+                process = subprocess.run(cmd.split(" "), timeout=DEFAULT_TIMEOUT)  # type: ignore  # nosec
                 assert (
                     process.returncode == 0
                 ), f"Guide execution has failed at command '{cmd}'\n{process.returncode}"
