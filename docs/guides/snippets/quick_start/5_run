@@ -1,2 +1,2 @@
-    cd abci_build
-    autonomy deploy run
+cd abci_build
+autonomy deploy run

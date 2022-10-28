@@ -16,20 +16,24 @@ Before starting this guide, ensure that your machine satisfies the framework req
 Now that you have set up your machine to work with {{open_autonomy}}, we are in position to use the CLI to fetch the agent service from the remote registry and deploy it locally.
 
 1. Use the CLI to fetch the [Hello World agent service](../demos/hello_world_demo.md). This will connect to the remote registry and download the service specification to the `hello_world` folder:
-    ```bash
-    --8<--
-snippets/quick_start/1_fetch.sh
-    --8<--
-    ```
+```bash
+--8<--
+snippets/quick_start/1_fetch
+--8<--
+```
 
 2. Build the Docker image of the service agents:
-    ```bash
-    autonomy build-image
-    ```
-    After the command finishes building the image, you can see that it has created the image by executing:
-    ```bash
-    docker image ls | grep hello_world
-    ```
+```bash
+--8<--
+snippets/quick_start/2_build_image
+ --8<--
+```
+After the command finishes building the image, you can see that it has created the image by executing:
+```bash
+--8<--
+snippets/quick_start/3_image_check
+--8<--
+```
 
 3. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the agent service. Below you have some sample keys for testing:
 
@@ -58,15 +62,18 @@ snippets/quick_start/1_fetch.sh
         ```
 
 4. Build the deployment setup for the service:
-    ```bash
-    autonomy deploy build keys.json --aev
-    ```
+```bash
+--8<--
+snippets/quick_start/4_build_deployment
+--8<--
+```
 
 5. Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally using
-    ```bash
-    cd abci_build
-    autonomy deploy run
-    ```
+```bash
+--8<--
+snippets/quick_start/5_run
+--8<--
+```
 
     This will deploy the [Hello World agent service](../demos/hello_world_demo.md) locally with four agents connected to four Tendermint nodes.
 
@@ -88,9 +95,11 @@ snippets/quick_start/1_fetch.sh
     ```
 
 6. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
-    ```bash
-    docker logs <container_id> --follow
-    ```
+```bash
+--8<--
+snippets/quick_start/6_check_logs
+--8<--
+```
     where `<container_id>` refers to the Docker container ID for either an agent
     (`abci0`, `abci1`, `abci2` and `abci3`) or a [Tendermint](https://tendermint.com/) node (`node0`, `node1`, `node2` and `node3`).
 
