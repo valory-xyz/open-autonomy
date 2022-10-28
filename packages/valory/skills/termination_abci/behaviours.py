@@ -18,9 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the termination behaviour classes."""
-from mailbox import Message
+import sys
 from typing import Callable, Dict, Generator, List, Optional, Set, Type, cast
 
+from aea.protocols.base import Message
 from hexbytes import HexBytes
 
 from packages.valory.contracts.gnosis_safe.contract import (
@@ -38,6 +39,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.termination_abci.models import TerminationParams
 from packages.valory.skills.termination_abci.payloads import BackgroundPayload
 from packages.valory.skills.termination_abci.rounds import (
     BackgroundRound,
@@ -61,8 +63,8 @@ _SAFE_GAS = 0
 # hardcoded to 0 because we don't need to send any ETH when handing over multisig ownership
 _ETHER_VALUE = 0
 
-NULL_ADDRESS: str = "0x" + "0" * 40
-MAX_UINT256 = 2 ** 256 - 1
+# payload to represent a non-existing event
+_NO_EVENT_FOUND: Dict = {}
 
 
 class BackgroundBehaviour(BaseBehaviour):
@@ -90,15 +92,25 @@ class BackgroundBehaviour(BaseBehaviour):
             return
 
         signal_present = yield from self.check_for_signal()
+        if signal_present is None:
+            # if the response is None, something went wrong
+            self.context.logger.error("Failed checking the termination signal.")
+            return
         if not signal_present:
-            yield from self.sleep(self.params.sleep_time)
+            # the signal is not present, so we sleep and try again
+            yield from self.sleep(self.params.termination_sleep)
             return
 
         self.context.logger.info(
-            "Terminate signal was received, preparing termination transaction."
+            "Termination signal was picked up, preparing termination transaction."
         )
 
         background_data = yield from self.get_multisend_payload()
+        if background_data is None:
+            self.context.logger.error(
+                "Couldn't prepare multisend transaction for termination."
+            )
+            return
         termination_payload = BackgroundPayload(
             self.context.agent_address, background_data=background_data
         )
@@ -110,7 +122,12 @@ class BackgroundBehaviour(BaseBehaviour):
         """Return the synchronized data."""
         return SynchronizedData(db=super().synchronized_data.db)
 
-    def check_for_signal(self) -> Generator[None, None, bool]:
+    @property
+    def params(self) -> TerminationParams:
+        """Return the params."""
+        return cast(TerminationParams, super().params)
+
+    def check_for_signal(self) -> Generator[None, None, Optional[bool]]:
         """
         This method checks for the termination signal.
 
@@ -127,11 +144,17 @@ class BackgroundBehaviour(BaseBehaviour):
 
         termination_signal = yield from self._get_latest_termination_signal()
         if termination_signal is None:
+            # something went wrong, we stop executing the rest of the logic
+            return None
+        if termination_signal == _NO_EVENT_FOUND:
             # no termination signal has ever been sent to safe
             return False
 
         service_owner_removal = yield from self._get_latest_removed_owner_event()
         if service_owner_removal is None:
+            # something went wrong, we stop executing the rest of the logic
+            return None
+        if service_owner_removal == _NO_EVENT_FOUND:
             # the service owner has never been removed from the safe
             # this means that the observed `termination_signal` is the
             # first termination signal ever sent to this safe contract
@@ -146,8 +169,8 @@ class BackgroundBehaviour(BaseBehaviour):
         # for 2. to happen, the service owner needs to be removed from being an owner of the safe. When this is done,
         # a `RemovedOwner` event is thrown, which is what `_get_latest_removed_owner_event()` captures.
 
-        termination_signal_occurrence = int(termination_signal.get("block_number"))
-        service_owner_removal_occurrence = int(termination_signal.get("block_number"))
+        termination_signal_occurrence = int(termination_signal["block_number"])
+        service_owner_removal_occurrence = int(termination_signal["block_number"])
 
         # if the termination signal has occurred after the owner has been removed the service should terminate,
         # otherwise it's a signal that has already been handled previously
@@ -156,7 +179,7 @@ class BackgroundBehaviour(BaseBehaviour):
     def _get_latest_removed_owner_event(self) -> Generator[None, None, Optional[Dict]]:
         """Returns the latest event in which the service owner was removed from the set of owners of the safe."""
         response = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_STATE,
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_removed_owner_events",
             contract_address=self.synchronized_data.safe_contract_address,
@@ -165,19 +188,19 @@ class BackgroundBehaviour(BaseBehaviour):
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
                 f"Couldn't get the latest `RemovedOwner` event. "
-                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "
+                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "  # type: ignore
                 f"received {response.performative.value}."
             )
             return None
 
         removed_owner_events = cast(List[Dict], response.state.body.get("data"))
         if len(removed_owner_events) == 0:
-            return None
+            return _NO_EVENT_FOUND
 
         latest_removed_owner_event = removed_owner_events[0]
         for removed_owner_event in removed_owner_events[1:]:
-            if int(removed_owner_event.get("block_number")) > int(
-                latest_removed_owner_event.get("block_number")
+            if int(removed_owner_event["block_number"]) > int(
+                latest_removed_owner_event["block_number"]
             ):
                 latest_removed_owner_event = removed_owner_event
 
@@ -186,7 +209,7 @@ class BackgroundBehaviour(BaseBehaviour):
     def _get_latest_termination_signal(self) -> Generator[None, None, Optional[Dict]]:
         """Get the latest termination signal sent by the service owner."""
         response = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_STATE,
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_zero_transfer_events",
             contract_address=self.synchronized_data.safe_contract_address,
@@ -195,19 +218,19 @@ class BackgroundBehaviour(BaseBehaviour):
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
                 f"Couldn't get the latest Zero Transfer (`SafeReceived`) event. "
-                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "
+                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "  # type: ignore
                 f"received {response.performative.value}."
             )
             return None
 
         zero_transfer_events = cast(List[Dict], response.state.body.get("data"))
         if len(zero_transfer_events) == 0:
-            return None
+            return _NO_EVENT_FOUND
 
         latest_zero_transfer_event = zero_transfer_events[0]
         for zero_transfer_event in zero_transfer_events[1:]:
-            if int(zero_transfer_event.get("block_number")) > int(
-                latest_zero_transfer_event.get("block_number")
+            if int(zero_transfer_event["block_number"]) > int(
+                latest_zero_transfer_event["block_number"]
             ):
                 latest_zero_transfer_event = zero_transfer_event
 
@@ -216,7 +239,7 @@ class BackgroundBehaviour(BaseBehaviour):
     def get_service_owner(self) -> Generator[None, None, Optional[str]]:
         """Method that returns the service owner."""
         response = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_STATE,
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="get_service_owner",
             contract_address=self.params.service_registry_address,
@@ -226,7 +249,7 @@ class BackgroundBehaviour(BaseBehaviour):
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
                 f"Couldn't get the service owner for service with id={self.params.service_id}. "
-                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "
+                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "  # type: ignore
                 f"received {response.performative.value}."
             )
             return None
@@ -259,7 +282,7 @@ class BackgroundBehaviour(BaseBehaviour):
     def _get_safe_owners(self) -> Generator[None, None, Optional[List[str]]]:
         """Retrieves safe owners."""
         response = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_STATE,
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_owners",
             contract_address=self.synchronized_data.safe_contract_address,
@@ -268,31 +291,29 @@ class BackgroundBehaviour(BaseBehaviour):
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
                 f"Couldn't get the safe owners for safe deployed at {self.synchronized_data.safe_contract_address}. "
-                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "
+                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "  # type: ignore
                 f"received {response.performative.value}."
             )
             return None
 
-        owners = cast(Optional[str], response.state.body.get("owners", None))
+        owners = cast(Optional[List[str]], response.state.body.get("owners", None))
         return owners
 
     def _get_remove_owner_tx(
-        self, prev_owner: str, owner: str, threshold: int
+        self, owner: str, threshold: int
     ) -> Generator[None, None, Optional[str]]:
         """
         Gets a remove owner tx.
 
-        :param prev_owner: the owner that pointed to the owner to be removed.
         :param owner: the owner to be removed.
         :param threshold: the new safe threshold to be set.
         :return: the tx data
         """
         response = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_STATE,
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_remove_owner_data",
             contract_address=self.synchronized_data.safe_contract_address,
-            prev_owner=prev_owner,
             owner=owner,
             threshold=threshold,
         )
@@ -300,7 +321,7 @@ class BackgroundBehaviour(BaseBehaviour):
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
                 f"Couldn't get a remove owner tx. "
-                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "
+                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "  # type: ignore
                 f"received {response.performative.value}."
             )
             return None
@@ -309,22 +330,20 @@ class BackgroundBehaviour(BaseBehaviour):
         return tx_data
 
     def _get_swap_owner_tx(
-        self, prev_owner: str, old_owner: str, new_owner: str
+        self, old_owner: str, new_owner: str
     ) -> Generator[None, None, Optional[str]]:
         """
         Gets a swap owner tx.
 
-        :param prev_owner: the owner that pointed to the owner to be replaced.
         :param old_owner: the owner to be removed.
         :param new_owner: the new safe threshold to be set.
         :return: the tx data
         """
         response = yield from self.get_contract_api_response(
-            performative=ContractApiMessage.Performative.GET_STATE,
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_swap_owner_data",
             contract_address=self.synchronized_data.safe_contract_address,
-            prev_owner=prev_owner,
             old_owner=old_owner,
             new_owner=new_owner,
         )
@@ -332,7 +351,7 @@ class BackgroundBehaviour(BaseBehaviour):
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
                 f"Couldn't get a swap owner tx. "
-                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "
+                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "  # type: ignore
                 f"received {response.performative.value}."
             )
             return None
@@ -362,7 +381,7 @@ class BackgroundBehaviour(BaseBehaviour):
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
                 f"Couldn't get safe hash. "
-                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "
+                f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "  # type: ignore
                 f"received {response.performative.value}."
             )
             return None
@@ -374,22 +393,16 @@ class BackgroundBehaviour(BaseBehaviour):
     def _get_multisend_tx(self) -> Generator[None, None, Optional[str]]:
         """This method compiles a multisend transaction to give ownership of the safe contract to the service owner."""
         transactions: List[Dict] = []
-        owner_to_be_swapped: Optional[str] = None
         threshold = 1
         safe_owners = yield from self._get_safe_owners()
         if safe_owners is None:
             return None
 
+        owner_to_be_swapped = safe_owners[0]
         # we remove all but one safe owner
-        for owner in safe_owners:
-            if owner_to_be_swapped is None:
-                owner_to_be_swapped = owner
-                continue
-
+        for owner in safe_owners[1:]:
             # we generate a tx to remove the current owner
-            remove_tx = yield from self._get_remove_owner_tx(
-                owner_to_be_swapped, owner, threshold
-            )
+            remove_tx = yield from self._get_remove_owner_tx(owner, threshold)
             if remove_tx is None:
                 return None
 
@@ -406,8 +419,7 @@ class BackgroundBehaviour(BaseBehaviour):
         # we swap the last owner with the service owner
         swap_tx = yield from self._get_swap_owner_tx(
             owner_to_be_swapped,
-            owner_to_be_swapped,
-            self._service_owner_address,
+            cast(str, self._service_owner_address),
         )
         if swap_tx is None:
             return None
@@ -431,7 +443,7 @@ class BackgroundBehaviour(BaseBehaviour):
         if response.performative != ContractApiMessage.Performative.RAW_MESSAGE:
             self.context.logger.error(
                 f"Couldn't compile the multisend tx. "
-                f"Expected response performative {ContractApiMessage.Performative.RAW_MESSAGE.value}, "
+                f"Expected response performative {ContractApiMessage.Performative.RAW_MESSAGE.value}, "  # type: ignore
                 f"received {response.performative.value}."
             )
             return None
@@ -442,6 +454,7 @@ class BackgroundBehaviour(BaseBehaviour):
     def wait_for_termination_majority(self) -> Generator:
         """
         Wait until we reach majority on the termination transaction.
+
         :yield: None
         """
         yield from self.wait_for_condition(self._is_termination_majority)
@@ -450,7 +463,7 @@ class BackgroundBehaviour(BaseBehaviour):
         """Rely on the round to decide when majority is reached."""
         return self.synchronized_data.termination_majority_reached
 
-    def get_callback_request(self) -> Callable[[Message, BaseBehaviour], None]:
+    def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
         """Wrapper for callback_request(), overridden to avoid mix-ups with normal (non-background) behaviours."""
 
         def callback_request(
@@ -505,8 +518,7 @@ class TerminationBehaviour(BaseBehaviour):
     def async_act(self) -> Generator:
         """Logs termination and terminates."""
         self.context.logger.info("Terminating the agent.")
-        ok = 0
-        quit(ok)
+        sys.exit()
         yield
 
 
@@ -516,7 +528,7 @@ class TerminationAbciBehaviours(AbstractRoundBehaviour):
     initial_behaviour_cls = TransactionSettlementRoundBehaviour.initial_behaviour_cls
     abci_app_cls = TerminationAbciApp
     behaviours: Set[Type[BaseBehaviour]] = {
-        BackgroundBehaviour,
-        TerminationBehaviour,
+        BackgroundBehaviour,  # type: ignore
+        TerminationBehaviour,  # type: ignore
         *TransactionSettlementRoundBehaviour.behaviours,
     }

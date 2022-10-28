@@ -169,7 +169,6 @@ class AbstractRoundBehaviour(
 
         self.current_behaviour: Optional[BaseBehaviour] = None
         self.background_behaviour: Optional[BaseBehaviour] = None
-        self._is_background_behaviour_set = self.background_behaviour_cls is not None
 
         # keep track of last round height so to detect changes
         self._last_round_height = 0
@@ -228,7 +227,7 @@ class AbstractRoundBehaviour(
     @property
     def is_background_behaviour_set(self) -> bool:
         """Returns whether the background behaviour is set."""
-        return self._is_background_behaviour_set
+        return self.background_behaviour is not None
 
     def setup(self) -> None:
         """Set up the behaviours."""
@@ -236,6 +235,9 @@ class AbstractRoundBehaviour(
             self.initial_behaviour_cls
         )
         if self.is_background_behaviour_set:
+            self.background_behaviour_cls = cast(
+                Type[BaseBehaviour], self.background_behaviour_cls
+            )
             self.background_behaviour = self.instantiate_behaviour_cls(
                 self.background_behaviour_cls
             )
@@ -255,7 +257,7 @@ class AbstractRoundBehaviour(
             self.current_behaviour.clean_up()
             self.current_behaviour = None
 
-        if self.is_background_behaviour_set:
+        if self.background_behaviour is not None:
             self.background_behaviour.act_wrapper()
 
     def _process_current_round(self) -> None:
