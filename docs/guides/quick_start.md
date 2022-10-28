@@ -18,20 +18,20 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
 1. Use the CLI to fetch the [Hello World agent service](../demos/hello_world_demo.md). This will connect to the remote registry and download the service specification to the `hello_world` folder:
 ```bash
 --8<--
-snippets/quick_start/1_fetch
+snippets/quick_start/1_fetch.txt
 --8<--
 ```
 
 2. Build the Docker image of the service agents:
 ```bash
 --8<--
-snippets/quick_start/2_build_image
+snippets/quick_start/2_build_image.txt
  --8<--
 ```
 After the command finishes building the image, you can see that it has created the image by executing:
 ```bash
 --8<--
-snippets/quick_start/3_image_check
+snippets/quick_start/3_image_check.txt
 --8<--
 ```
 
@@ -64,14 +64,14 @@ snippets/quick_start/3_image_check
 4. Build the deployment setup for the service:
 ```bash
 --8<--
-snippets/quick_start/4_build_deployment
+snippets/quick_start/4_build_deployment.txt
 --8<--
 ```
 
 5. Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally using
 ```bash
 --8<--
-snippets/quick_start/5_run
+snippets/quick_start/5_run.txt
 --8<--
 ```
 
@@ -97,7 +97,7 @@ snippets/quick_start/5_run
 6. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
 ```bash
 --8<--
-snippets/quick_start/6_check_logs
+snippets/quick_start/6_check_logs.txt
 --8<--
 ```
     where `<container_id>` refers to the Docker container ID for either an agent
