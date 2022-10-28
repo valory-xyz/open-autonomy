@@ -25,7 +25,7 @@ import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import requests
 import urllib3  # type: ignore
@@ -41,7 +41,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 MAX_WORKERS = 10
 URL_REGEX = r'(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)"]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)"]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s)"]{2,}|www\.[a-zA-Z0-9]+\.[^\s)"]{2,})'
-REQUEST_TIMEOUT = 5  # seconds
+DEFAULT_REQUEST_TIMEOUT = 5  # seconds
 
 # Allow some links to be HTTP because there is no HTTPS alternative
 # Remove non-url-allowed characters like ` before adding them here
@@ -58,6 +58,11 @@ URL_SKIPS = [
     "http://host.docker.internal:8545",  # internal (ERR_NAME_NOT_RESOLVED)
 ]
 
+# Define here custom timeouts for some edge cases
+CUSTOM_TIMEOUTS = {
+    "http://www.fipa.org/repository/ips.php3": 30,
+}
+
 
 def read_file(filepath: str) -> str:
     """Loads a file into a string"""
@@ -69,10 +74,13 @@ def read_file(filepath: str) -> str:
 def check_file(
     session: Any,
     md_file: str,
-    http_skips: List[str] = HTTP_SKIPS,
-    url_skips: List[str] = URL_SKIPS,
+    http_skips: Optional[List[str]] = None,
+    url_skips: Optional[List[str]] = None,
 ) -> Dict:
     """Check for broken or HTTP links in a specific file"""
+
+    http_skips = http_skips or HTTP_SKIPS
+    url_skips = url_skips or URL_SKIPS
 
     text = read_file(md_file)
     m = re.findall(URL_REGEX, text)
@@ -100,7 +108,9 @@ def check_file(
         try:
             # Do not verify requests. Expired SSL certificates would make those links fail
             status_code = session.get(
-                url, timeout=REQUEST_TIMEOUT, verify=False
+                url,
+                timeout=CUSTOM_TIMEOUTS.get(url, DEFAULT_REQUEST_TIMEOUT),
+                verify=False,
             ).status_code
             if status_code not in [200, 403]:
                 broken_links.append((md_file, url, status_code))
@@ -129,7 +139,10 @@ def main() -> None:  # pylint: disable=too-many-locals
         total=3,  # number of retries
         status_forcelist=[404, 429, 500, 502, 503, 504],  # codes to retry on
     )
-    adapter = HTTPAdapter(max_retries=retry_strategy)
+    # https://stackoverflow.com/questions/18466079/change-the-connection-pool-size-for-pythons-requests-module-when-in-threading
+    adapter = HTTPAdapter(
+        max_retries=retry_strategy, pool_connections=100, pool_maxsize=100
+    )
     session = requests.Session()
     session.mount("https://", adapter)
     session.mount("http://", adapter)
