@@ -61,7 +61,6 @@ nav:
     - Threat model: 'key_concepts/threat_model.md'
   - Advanced reference:
     - 'advanced_reference/index.md'
-    - Package publishing: 'package_publishing.md'
     - CLI: 'autonomy.md'
     - Developer Tooling:
       - Dev Mode: 'dev_mode.md'

@@ -39,7 +39,7 @@ Check whether Tendermint nodes are running.
 def failsafe_randomness() -> Generator[None, None, RandomnessObservation]
 ```
 
-This methods provides a failsafe for randomeness retrival.
+This methods provides a failsafe for randomness retrieval.
 
 **Returns**:
 
@@ -67,7 +67,7 @@ Retrieve randomness from API.
 
 Steps:
 - Do a http request to the API.
-- Retry until reciving valid values for randomness or retries exceed.
+- Retry until receiving valid values for randomness or retries exceed.
 - If retrieved values are valid continue else generate randomness from chain.
 
 <a id="packages.valory.skills.abstract_round_abci.common.RandomnessBehaviour.clean_up"></a>
