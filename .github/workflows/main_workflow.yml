@@ -209,7 +209,7 @@ jobs:
           TM_DEPLOYMENT_PATH="deployments/Dockerfiles/tendermint/"
           TM_IMG_NAME="valory/open-autonomy-tendermint"
           docker build $TM_DEPLOYMENT_PATH -t $TM_IMG_NAME:0.1.0 -t $TM_IMG_NAME:1.0.0 -t $TM_IMG_NAME:latest
-          
+
           # pull pre-built images
           docker pull valory/autonolas-registries:latest
           docker pull valory/contracts-amm:latest
@@ -222,7 +222,7 @@ jobs:
         name: Framework unit tests ubuntu-latest
         run: |
           tox -e py${{ matrix.python-version }}-linux -- -m 'not e2e'
-      
+
       - if: matrix.os == 'ubuntu-latest'
         name: Packages unit tests ubuntu-latest
         run: |
@@ -265,7 +265,7 @@ jobs:
         name: Framework unit tests macos-latest
         run: |
           tox -e py${{ matrix.python-version }}-darwin -- -m 'not e2e'
-      
+
       - if: matrix.os == 'macos-latest'
         name: Packages unit tests macos-latest
         run: |
@@ -316,7 +316,7 @@ jobs:
         name: Framework unit tests windows-latest
         run: |
           tox -e py${{ matrix.python-version }}-win -- -m 'not e2e'
-      
+
       - if: matrix.os == 'windows-latest'
         name: Packages unit tests windows-latest
         run: |
@@ -387,12 +387,16 @@ jobs:
           TM_DEPLOYMENT_PATH="deployments/Dockerfiles/tendermint/"
           TM_IMG_NAME="valory/open-autonomy-tendermint"
           docker build $TM_DEPLOYMENT_PATH -t $TM_IMG_NAME:0.1.0 -t $TM_IMG_NAME:1.0.0 -t $TM_IMG_NAME:latest
-          
+
           # pull pre-built images
           docker pull valory/autonolas-registries:latest
           docker pull valory/contracts-amm:latest
           docker pull valory/safe-contract-net:latest
 
-      - name: Unit tests
+      - name: Package e2e tests
         run: |
           tox --develop -e packages-py${{ matrix.python-version }}-linux -- -m 'e2e'
+
+      - name: Guide tests
+        run: |
+          tox --develop -e py${{ matrix.python-version }}-linux -- -m 'e2e'
