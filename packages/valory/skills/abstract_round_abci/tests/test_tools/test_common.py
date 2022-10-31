@@ -47,6 +47,13 @@ test_skill = "transaction_settlement_abci"
 PATH_TO_SKILL = BaseRandomnessBehaviourTest.path_to_skill.parent / test_skill
 
 
+# TODO:
+#  the following doesn't work, because it cannot access the other concrete skill (e.g. simple_abci)
+#  autonomy -s test --cov by-path ./packages/valory/skills/abstract_round_abci/
+#  to run the test one can use the pytest directly
+#  pytest -vv packages/valory/skills/abstract_round_abci/tests/test_tools/test_common.py --cov packages/valory/skills/abstract_round_abci/ --cov-report term-missing
+
+
 class TestBaseRandomnessBehaviourTestSetup:
     """Test BaseRandomnessBehaviourTest setup."""
 
@@ -96,3 +103,12 @@ class TestBaseRandomnessBehaviourTestSetup:
         # -> skill_config.directory = cls.path_to_skill
         with pytest.raises(AttributeError, match="'AbstractRoundBehaviour' object has no attribute 'behaviours'"):
             self.setup_test_cls()
+
+    def test_setup_randomness_behaviour_class_not_set(self):
+        """Test setup randomness_behaviour_class not set."""
+
+        self.set_path_to_skill()
+        test_instance = self.setup_test_cls()
+        expected = f"'{self.test_cls.__name__}' object has no attribute 'randomness_behaviour_class'"
+        with pytest.raises(AttributeError, match=expected):
+            test_instance.test_randomness_behaviour()
