@@ -441,10 +441,10 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_callable="get_tx_data",
             multi_send_txs=transactions,
         )
-        if response.performative != ContractApiMessage.Performative.RAW_MESSAGE:
+        if response.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
             self.context.logger.error(
                 f"Couldn't compile the multisend tx. "
-                f"Expected response performative {ContractApiMessage.Performative.RAW_MESSAGE.value}, "  # type: ignore
+                f"Expected response performative {ContractApiMessage.Performative.RAW_TRANSACTION.value}, "  # type: ignore
                 f"received {response.performative.value}."
             )
             return None
