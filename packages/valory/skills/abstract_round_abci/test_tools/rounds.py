@@ -616,8 +616,9 @@ class _BaseRoundTestClass(BaseRoundTestClass):  # pylint: disable=too-few-public
         super().setup()
         cls.tx_payloads = get_dummy_tx_payloads(cls.participants)
 
-    def _test_payload_with_wrong_round_count(  # pylint: disable=no-self-use
-        self, test_round: AbstractRound, value: Optional[Any] = None
+    @staticmethod
+    def _test_payload_with_wrong_round_count(
+        test_round: AbstractRound, value: Optional[Any] = None
     ) -> None:
         """Test errors raised by payloads with wrong round count."""
         payload_with_wrong_round_count = DummyTxPayload("sender", value, False, 0)
