@@ -403,10 +403,10 @@ class BackgroundBehaviour(BaseBehaviour):
         # we remove all but one safe owner
         for owner in safe_owners[1:]:
             # we generate a tx to remove the current owner
-            remove_tx = yield from self._get_remove_owner_tx(owner, threshold)
-            if remove_tx is None:
+            remove_tx_str = yield from self._get_remove_owner_tx(owner, threshold)
+            if remove_tx_str is None:
                 return None
-
+            remove_tx = bytes.fromhex(remove_tx_str)
             # we append it to the list of the multisend txs
             transactions.append(
                 {
