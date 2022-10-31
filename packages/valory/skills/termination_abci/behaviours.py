@@ -244,7 +244,7 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="get_service_owner",
             contract_address=self.params.service_registry_address,
-            service_id=self.params.service_id,
+            service_id=self.params.on_chain_service_id,
         )
 
         if response.performative != ContractApiMessage.Performative.STATE:
