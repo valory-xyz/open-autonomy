@@ -145,3 +145,12 @@ class TestBaseRandomnessBehaviourTestSetup:
         self.set_done_event()
         self.set_next_behaviour_class()
         assert self.setup_test_cls()
+
+
+class TestBaseRandomnessBehaviourTestRunning(BaseRandomnessBehaviourTest):
+    """Test TestBaseRandomnessBehaviourTestRunning running."""
+
+    path_to_skill = PATH_TO_SKILL
+    randomness_behaviour_class = RandomnessTransactionSubmissionBehaviour
+    next_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
+    done_event = Event.DONE
