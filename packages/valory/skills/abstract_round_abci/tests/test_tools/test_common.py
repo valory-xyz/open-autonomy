@@ -124,3 +124,15 @@ class TestBaseRandomnessBehaviourTestSetup:
         expected = f"'{self.test_cls.__name__}' object has no attribute 'done_event'"
         with pytest.raises(AttributeError, match=expected):
             test_instance.test_randomness_behaviour()
+
+    def test_setup_next_behaviour_class_not_set(self):
+        """Test setup next_behaviour_class not set."""
+
+        self.set_path_to_skill()
+        self.set_randomness_behaviour_class()
+        self.set_done_event()
+
+        test_instance = self.setup_test_cls()
+        expected = f"'{self.test_cls.__name__}' object has no attribute 'next_behaviour_class'"
+        with pytest.raises(AttributeError, match=expected):
+            test_instance.test_randomness_behaviour()
