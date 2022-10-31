@@ -242,7 +242,9 @@ class BaseTestBase:  # pylint: disable=too-few-public-methods
             DummySynchronizedData
         )
         self.base_round_test.setup()
-        self.base_round_test._event_class = DummyEvent  # pylint: disable=protected-access
+        self.base_round_test._event_class = (  # pylint: disable=protected-access
+            DummyEvent
+        )
         self.base_round_test.consensus_params._max_participants = (  # pylint: disable=protected-access
             MAX_PARTICIPANTS
         )
@@ -578,13 +580,19 @@ class TestBaseVotingRoundTest(BaseTestBase):
         )
         if is_keeper_set is None:
             exit_event = DummyEvent.NONE
-            test_method = self.base_round_test._test_voting_round_none  # pylint: disable=protected-access
+            test_method = (
+                self.base_round_test._test_voting_round_none  # pylint: disable=protected-access
+            )
         elif is_keeper_set:
             exit_event = DummyEvent.DONE
-            test_method = self.base_round_test._test_voting_round_positive  # pylint: disable=protected-access
+            test_method = (
+                self.base_round_test._test_voting_round_positive  # pylint: disable=protected-access
+            )
         else:
             exit_event = DummyEvent.NEGATIVE
-            test_method = self.base_round_test._test_voting_round_negative  # pylint: disable=protected-access
+            test_method = (
+                self.base_round_test._test_voting_round_negative  # pylint: disable=protected-access
+            )
 
         test_round = DummyBaseVotingRoundTestWithEndBlock(
             self.base_round_test.synchronized_data,
@@ -599,7 +607,7 @@ class TestBaseVotingRoundTest(BaseTestBase):
         ]
 
         # Create `_test_round` generator and trigger for the first time.
-        gen = test_method(  # pylint: disable=protected-access
+        gen = test_method(
             test_round,
             round_payloads,
             lambda synchronized_data, _: synchronized_data.update(
