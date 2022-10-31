@@ -23,6 +23,8 @@ from typing import cast
 from unittest import mock
 from pathlib import Path
 
+import pytest
+
 from aea.helpers.base import cd
 from aea.components.base import _CheckUsedDependencies  # for temporary patch
 
@@ -86,3 +88,11 @@ class TestBaseRandomnessBehaviourTestSetup:
     def set_next_behaviour_class(self) -> None:
         """Set next_behaviour_class"""
         self.test_cls.next_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
+
+    def test_setup_fails_without_skill_path_overwrite(self):
+        """Test setup fails without skill path overwrite."""
+
+        # we must overwrite since it is accessed in _prepare_skill, else load will fail
+        # -> skill_config.directory = cls.path_to_skill
+        with pytest.raises(AttributeError, match="'AbstractRoundBehaviour' object has no attribute 'behaviours'"):
+            self.setup_test_cls()
