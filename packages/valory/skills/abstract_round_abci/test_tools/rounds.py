@@ -95,10 +95,9 @@ class DummyTxPayload(BaseTxPayload):
     ) -> None:
         """Initialize a dummy transaction payload."""
 
-        super().__init__(sender, None)
+        super().__init__(sender, None, round_count)
         self._value = value
         self._vote = vote
-        self._round_count = round_count
 
     @property
     def value(self) -> Any:
