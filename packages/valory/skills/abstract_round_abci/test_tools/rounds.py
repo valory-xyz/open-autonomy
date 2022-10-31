@@ -195,21 +195,20 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
     _synchronized_data_class: Type[BaseSynchronizedData]
     _event_class: Any
 
-    @classmethod
     def setup(
-        cls,
+        self,
     ) -> None:
         """Setup test class."""
 
-        cls.participants = get_participants()
-        cls.synchronized_data = cls._synchronized_data_class(
+        self.participants = get_participants()
+        self.synchronized_data = self._synchronized_data_class(
             db=AbciAppDB(
                 setup_data=dict(
-                    participants=[cls.participants], all_participants=[cls.participants]
+                    participants=[self.participants], all_participants=[self.participants]
                 ),
             )
         )  # type: ignore
-        cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
+        self.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
     def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
         """Test the NO_MAJORITY event."""
@@ -607,14 +606,13 @@ class _BaseRoundTestClass(BaseRoundTestClass):  # pylint: disable=too-few-public
 
     _synchronized_data_class = DummySynchronizedData
 
-    @classmethod
     def setup(
-        cls,
+        self,
     ) -> None:
         """Setup test class."""
 
         super().setup()
-        cls.tx_payloads = get_dummy_tx_payloads(cls.participants)
+        self.tx_payloads = get_dummy_tx_payloads(self.participants)
 
     @staticmethod
     def _test_payload_with_wrong_round_count(
