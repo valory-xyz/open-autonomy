@@ -32,6 +32,7 @@ from packages.valory.contracts.service_registry.contract import ServiceRegistryC
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.contract_api.custom_types import RawTransaction, State
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+from packages.valory.skills.abstract_round_abci.behaviour_utils import AsyncBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
@@ -502,8 +503,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
     def test_termination_majority_already_reached(self) -> None:
         """Tests the background behaviour when the termination is already reached."""
         self.fast_forward(data=dict(termination_majority_reached=True))
-        with mock.patch(
-            "packages.valory.skills.termination_abci.behaviours.BackgroundBehaviour.check_for_signal"
+        with mock.patch.object(
+            self.behaviour_class, "check_for_signal"
         ) as check_for_signal:
             self.behaviour.act_wrapper()
             check_for_signal.assert_not_called()
@@ -511,9 +512,7 @@ class TestBackgroundBehaviour(BaseTerminationTest):
     def test_no_termination_signal_is_present(self) -> None:
         """Tests the background behaviour when no termination signal is present."""
         self.fast_forward(dict(safe_contract_address=SAFE_ADDRESS))
-        with mock.patch(
-            "packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour.sleep"
-        ) as sleep:
+        with mock.patch.object(AsyncBehaviour, "sleep") as sleep:
             self.behaviour.act_wrapper()
             self._mock_get_service_owner_request()
             self._mock_get_zero_transfer_events_request(num_events=0)
