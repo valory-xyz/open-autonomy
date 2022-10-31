@@ -21,6 +21,7 @@
 
 from typing import cast
 from unittest import mock
+from pathlib import Path
 
 from aea.helpers.base import cd
 from aea.components.base import _CheckUsedDependencies  # for temporary patch
@@ -69,3 +70,19 @@ class TestBaseRandomnessBehaviourTestSetup:
         test_instance = self.test_cls()  # type: ignore
         test_instance.setup()
         return test_instance
+
+    def set_path_to_skill(self, path_to_skill: Path = PATH_TO_SKILL) -> None:
+        """Set path_to_skill"""
+        self.test_cls.path_to_skill = path_to_skill
+
+    def set_randomness_behaviour_class(self) -> None:
+        """Set randomness_behaviour_class"""
+        self.test_cls.randomness_behaviour_class = RandomnessTransactionSubmissionBehaviour
+
+    def set_done_event(self) -> None:
+        """Set done_event"""
+        self.test_cls.done_event = Event.DONE
+
+    def set_next_behaviour_class(self) -> None:
+        """Set next_behaviour_class"""
+        self.test_cls.next_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
