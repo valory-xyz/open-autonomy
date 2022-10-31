@@ -40,6 +40,15 @@ class SharedState(BaseSharedState):
         super().__init__(*args, abci_app_cls=TerminationAbciApp, **kwargs)
 
 
-TerminationParams = BaseParams
+class TerminationParams(BaseParams):
+    """Defines the class to hold the termination parameters."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Set up the termination parameters."""
+        self.termination_sleep = self._ensure("termination_sleep", kwargs)
+        self.multisend_address = self._ensure("multisend_address", kwargs)
+        super().__init__(*args, **kwargs)
+
+
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool

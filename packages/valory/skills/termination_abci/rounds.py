@@ -19,9 +19,12 @@
 
 """This module contains the termination round classes."""
 from enum import Enum
-from typing import Optional, Tuple
+from typing import Optional, Tuple, cast
 
-from packages.valory.skills.abstract_round_abci.abci_app_chain import chain
+from packages.valory.skills.abstract_round_abci.abci_app_chain import (
+    AbciAppTransitionMapping,
+    chain,
+)
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbstractRound,
@@ -89,11 +92,9 @@ class TerminationRound(AbstractRound):
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """No logic required here."""
-        pass
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """No logic required here."""
-        pass
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """No logic required here."""
@@ -109,7 +110,7 @@ class PostTerminationTxAbciApp(AbciApp):
     transition_function = {TerminationRound: {Event.TERMINATE: TerminationRound}}
 
 
-termination_transition_function = {
+termination_transition_function: AbciAppTransitionMapping = {
     FinishedTransactionSubmissionRound: PostTerminationTxAbciApp.initial_round_cls,
     FailedRound: TransactionSubmissionAbciApp.initial_round_cls,
 }
