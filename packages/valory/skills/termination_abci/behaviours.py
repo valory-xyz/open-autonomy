@@ -88,7 +88,6 @@ class BackgroundBehaviour(BaseBehaviour):
         if self._is_termination_majority():
             # if termination majority has already been reached
             # there is no need to run the rest of this method
-            yield
             return
 
         signal_present = yield from self.check_for_signal()
@@ -111,6 +110,8 @@ class BackgroundBehaviour(BaseBehaviour):
                 "Couldn't prepare multisend transaction for termination."
             )
             return
+
+        self.context.logger.info("Successfully prepared termination multisend tx.")
         termination_payload = BackgroundPayload(
             self.context.agent_address, background_data=background_data
         )
@@ -140,7 +141,7 @@ class BackgroundBehaviour(BaseBehaviour):
         :returns: True if the termination signal is found, false otherwise
         """
         if self._service_owner_address is None:
-            self._service_owner_address = yield from self.get_service_owner()
+            self._service_owner_address = yield from self._get_service_owner()
 
         termination_signal = yield from self._get_latest_termination_signal()
         if termination_signal is None:
@@ -236,7 +237,7 @@ class BackgroundBehaviour(BaseBehaviour):
 
         return latest_zero_transfer_event
 
-    def get_service_owner(self) -> Generator[None, None, Optional[str]]:
+    def _get_service_owner(self) -> Generator[None, None, Optional[str]]:
         """Method that returns the service owner."""
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
