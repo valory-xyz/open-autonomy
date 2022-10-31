@@ -171,7 +171,7 @@ class BackgroundBehaviour(BaseBehaviour):
         # a `RemovedOwner` event is thrown, which is what `_get_latest_removed_owner_event()` captures.
 
         termination_signal_occurrence = int(termination_signal["block_number"])
-        service_owner_removal_occurrence = int(termination_signal["block_number"])
+        service_owner_removal_occurrence = int(service_owner_removal["block_number"])
 
         # if the termination signal has occurred after the owner has been removed the service should terminate,
         # otherwise it's a signal that has already been handled previously
