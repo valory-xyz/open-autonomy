@@ -219,7 +219,9 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
             assert event == self._event_class.NO_MAJORITY
 
     @staticmethod
-    def _complete_run(test_runner: Generator, iter_count: int = 4) -> None:
+    def _complete_run(
+        test_runner: Generator, iter_count: int = MAX_PARTICIPANTS
+    ) -> None:
         """
         This method represents logic to execute test logic defined in _test_round method.
 
@@ -318,7 +320,7 @@ class BaseCollectSameUntilAllRoundTest(
         with pytest.raises(
             ABCIAppInternalError,
             match="internal error: 1 votes are not enough for `CollectSameUntilAllRound`. "
-            "Expected: `n_votes = max_participants = 4`",
+            f"Expected: `n_votes = max_participants = {MAX_PARTICIPANTS}`",
         ):
             _ = test_round.common_payload
 
