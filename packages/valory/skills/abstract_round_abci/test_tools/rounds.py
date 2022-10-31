@@ -119,13 +119,6 @@ class DummyTxPayload(BaseTxPayload):
 class DummySynchronizedData(BaseSynchronizedData):
     """Dummy synchronized data for tests."""
 
-    @property
-    def most_voted_keeper_address(
-        self,
-    ) -> str:
-        """Returns value for _most_voted_keeper_address."""
-        return self.db.get_strict("most_voted_keeper_address")
-
 
 def get_dummy_tx_payloads(
     participants: FrozenSet[str],
