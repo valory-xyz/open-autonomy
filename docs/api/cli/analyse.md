@@ -97,25 +97,29 @@ Parse logs of an agent service.
 #### run`_`handler`_`check
 
 ```python
-@abci_group.command(name="check-handlers")
-@click.argument(
-    "packages_dir",
-    type=click.Path(dir_okay=True, exists=True),
-    default=Path.cwd() / "packages",
+@analyse_group.command(name="handlers")
+@pass_ctx
+@click.option(
+    "--common-handlers",
+    "-h",
+    type=str,
+    default=[
+        "abci",
+    ],
+    help="Specify which handlers to check. Eg. -h handler_a -h handler_b -h handler_c",
+    multiple=True,
 )
 @click.option(
-    "--skip",
+    "--ignore",
+    "-i",
     type=str,
-    default="abstract_abci",
-    help="Specify which skills to skip. Eg. skill_0,skill_1,skill_2",
+    default=[
+        "abstract_abci",
+    ],
+    help="Specify which skills to skip. Eg. -i skill_0 -i skill_1 -i skill_2",
+    multiple=True,
 )
-@click.option(
-    "--common",
-    type=str,
-    default="abci",
-    help="Specify which handlers to check. Eg. handler_a,handler_b,handler_c",
-)
-def run_handler_check(packages_dir: Path, skip: str, common: str) -> None
+def run_handler_check(ctx: Context, ignore: List[str], common_handlers: List[str]) -> None
 ```
 
 Check handler definitions.

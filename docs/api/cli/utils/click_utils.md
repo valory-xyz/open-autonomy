@@ -34,3 +34,33 @@ def chain_selection_flag(default: str = "staging", mark_default: bool = True) ->
 
 Flags for abci spec outputs formats.
 
+<a id="autonomy.cli.utils.click_utils.PathArgument"></a>
+
+## PathArgument Objects
+
+```python
+class PathArgument(click.Path)
+```
+
+Path parameter for CLI.
+
+<a id="autonomy.cli.utils.click_utils.PathArgument.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(exists: bool = False, file_okay: bool = True, dir_okay: bool = True, writable: bool = False, readable: bool = True, resolve_path: bool = False, allow_dash: bool = False, path_type: Optional[Type] = None)
+```
+
+Initialze object.
+
+<a id="autonomy.cli.utils.click_utils.PathArgument.convert"></a>
+
+#### convert
+
+```python
+def convert(value: Any, param: Optional[click.Parameter], ctx: Optional[click.Context]) -> Path
+```
+
+Convert path string to `pathlib.Path`
+
