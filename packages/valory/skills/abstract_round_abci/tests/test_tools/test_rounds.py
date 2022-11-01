@@ -21,6 +21,7 @@
 """Test the `rounds` test tool module of the skill."""
 
 
+import os
 import re
 from enum import Enum
 from typing import Any, FrozenSet, Generator, List, Optional, Tuple, Type, cast
@@ -30,6 +31,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
+from packages.valory.skills.abstract_round_abci import CI
 from packages.valory.skills.abstract_round_abci.base import (
     AbciAppDB,
     BaseSynchronizedData,
@@ -61,8 +63,9 @@ from packages.valory.skills.abstract_round_abci.tests.test_common import last_it
 # this is how many times we need to iterate before reaching the last iteration for a base test.
 BASE_TEST_GEN_ITERATIONS = 4
 
-
-settings(deadline=5000)
+running_on_ci = os.getenv(CI)
+if running_on_ci:
+    settings.load_profile(CI)
 
 
 def test_get_participants() -> None:
