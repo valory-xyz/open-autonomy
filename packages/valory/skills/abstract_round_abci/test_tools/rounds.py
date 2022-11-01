@@ -95,10 +95,9 @@ class DummyTxPayload(BaseTxPayload):
     ) -> None:
         """Initialize a dummy transaction payload."""
 
-        super().__init__(sender, None)
+        super().__init__(sender, None, round_count)
         self._value = value
         self._vote = vote
-        self._round_count = round_count
 
     @property
     def value(self) -> Any:
@@ -116,15 +115,8 @@ class DummyTxPayload(BaseTxPayload):
         return dict(value=self.value)
 
 
-class DummySynchronizedSata(BaseSynchronizedData):
+class DummySynchronizedData(BaseSynchronizedData):
     """Dummy synchronized data for tests."""
-
-    @property
-    def most_voted_keeper_address(
-        self,
-    ) -> str:
-        """Returns value for _most_voted_keeper_address."""
-        return self.db.get_strict("most_voted_keeper_address")
 
 
 def get_dummy_tx_payloads(
@@ -203,21 +195,21 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
     _synchronized_data_class: Type[BaseSynchronizedData]
     _event_class: Any
 
-    @classmethod
     def setup(
-        cls,
+        self,
     ) -> None:
         """Setup test class."""
 
-        cls.participants = get_participants()
-        cls.synchronized_data = cls._synchronized_data_class(
+        self.participants = get_participants()
+        self.synchronized_data = self._synchronized_data_class(
             db=AbciAppDB(
                 setup_data=dict(
-                    participants=[cls.participants], all_participants=[cls.participants]
+                    participants=[self.participants],
+                    all_participants=[self.participants],
                 ),
             )
         )  # type: ignore
-        cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
+        self.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
     def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
         """Test the NO_MAJORITY event."""
@@ -228,7 +220,9 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
             assert event == self._event_class.NO_MAJORITY
 
     @staticmethod
-    def _complete_run(test_runner: Generator, iter_count: int = 4) -> None:
+    def _complete_run(
+        test_runner: Generator, iter_count: int = MAX_PARTICIPANTS
+    ) -> None:
         """
         This method represents logic to execute test logic defined in _test_round method.
 
@@ -327,7 +321,7 @@ class BaseCollectSameUntilAllRoundTest(
         with pytest.raises(
             ABCIAppInternalError,
             match="internal error: 1 votes are not enough for `CollectSameUntilAllRound`. "
-            "Expected: `n_votes = max_participants = 4`",
+            f"Expected: `n_votes = max_participants = {MAX_PARTICIPANTS}`",
         ):
             _ = test_round.common_payload
 
@@ -613,19 +607,19 @@ class _BaseRoundTestClass(BaseRoundTestClass):  # pylint: disable=too-few-public
     consensus_params: ConsensusParams
     tx_payloads: List[DummyTxPayload]
 
-    _synchronized_data_class = DummySynchronizedSata
+    _synchronized_data_class = DummySynchronizedData
 
-    @classmethod
     def setup(
-        cls,
+        self,
     ) -> None:
         """Setup test class."""
 
         super().setup()
-        cls.tx_payloads = get_dummy_tx_payloads(cls.participants)
+        self.tx_payloads = get_dummy_tx_payloads(self.participants)
 
-    def _test_payload_with_wrong_round_count(  # pylint: disable=no-self-use
-        self, test_round: AbstractRound, value: Optional[Any] = None
+    @staticmethod
+    def _test_payload_with_wrong_round_count(
+        test_round: AbstractRound, value: Optional[Any] = None
     ) -> None:
         """Test errors raised by payloads with wrong round count."""
         payload_with_wrong_round_count = DummyTxPayload("sender", value, False, 0)

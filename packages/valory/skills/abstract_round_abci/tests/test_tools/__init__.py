@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for abstract_round_abci/test_tools"""
+"""Package for `test_tools` testing."""
