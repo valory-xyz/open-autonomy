@@ -18,10 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """Analyse CLI module."""
-import importlib
-import sys
 from pathlib import Path
-from typing import List
+from typing import List, Optional, cast
 from warnings import filterwarnings
 
 import click
@@ -29,12 +27,14 @@ from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
 from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE
 
-from autonomy.analyse.abci.app_spec import DFA, SpecCheck
 from autonomy.analyse.abci.docstrings import process_module
 from autonomy.analyse.abci.logs import parse_file
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
 from autonomy.analyse.handlers import check_handlers
-from autonomy.cli.utils.click_utils import abci_spec_format_flag
+from autonomy.cli.utils.click_utils import PathArgument, abci_spec_format_flag
+from autonomy.cli.utils.spec_helpers import check_all as check_all_fsm
+from autonomy.cli.utils.spec_helpers import check_one as check_one_fsm
+from autonomy.cli.utils.spec_helpers import update_one as update_one_fsm
 
 
 BENCHMARKS_DIR = Path("./benchmarks.html")
@@ -47,81 +47,59 @@ def analyse_group() -> None:
     """Analyse an agent service."""
 
 
-@analyse_group.group(name="abci")
-def abci_group() -> None:
-    """Analyse ABCI apps of an agent service."""
-
-
-@abci_group.command(name="generate-app-specs")
-@click.argument("app_class", type=str)
-@click.argument("output_file", type=click.Path())
+@analyse_group.command(name="fsm-specs")
+@click.option("--package", type=PathArgument())
+@click.option("--app-class", type=str)
+@click.option("--update", is_flag=True, help="Update FSM definition if check fails.")
 @abci_spec_format_flag()
+@pass_ctx
 def generate_abci_app_specs(
-    app_class: str, output_file: Path, spec_format: str
+    ctx: Context,
+    package: Optional[Path],
+    app_class: Optional[str],
+    spec_format: str,
+    update: bool,
 ) -> None:
     """Generate ABCI app specs."""
 
-    module_name, class_name = app_class.rsplit(".", 1)
+    all_packages = package is None
 
-    # TODO: extract into helper
     try:
-        module = importlib.import_module(module_name)
+        if all_packages:
+            # If package path is not provided check all available packages
+            click.echo("Checking all available packages")
+            check_all_fsm(Path(ctx.registry_path))
+            click.echo("Done")
+            return
+
+        if not all_packages and not update:
+            click.echo(f"Checking {package}")
+            check_one_fsm(
+                package_path=cast(Path, package),
+                app_class=app_class,
+                spec_format=spec_format,
+            )
+            click.echo("Check successful")
+            return
+
+        if not all_packages and update:
+            click.echo(f"Updating {package}")
+            update_one_fsm(
+                package_path=cast(Path, package),
+                app_class=app_class,
+                spec_format=spec_format,
+            )
+            click.echo(f"Updated FSM specification for {package}")
+            return
+
+        click.echo("Please provide valid arguments")
     except Exception as e:
-        raise click.ClickException(
-            f'Failed to load "{module_name}". Please, verify that '
-            "AbciApps and classes are correctly defined within the module. "
-        ) from e
-
-    if not hasattr(module, class_name):
-        raise click.ClickException(f'Class "{class_name}" is not in "{module_name}".')
-
-    abci_app_cls = getattr(module, class_name)
-    output_file = Path(output_file).absolute()
-    dfa = DFA.abci_to_dfa(abci_app_cls, app_class)
-    dfa.dump(output_file, spec_format)
-    click.echo("Done")
+        raise click.ClickException(str(e)) from e
 
 
-@abci_group.command(name="check-app-specs")
-@click.option(
-    "--check-all", type=bool, is_flag=True, help="Check all available definitions."
-)
-@click.option(
-    "--packages-dir",
-    type=click.Path(),
-    default=Path.cwd() / "packages",
-    help="Path to packages directory; Use with `--check-all` flag",
-)
-@abci_spec_format_flag()
-@click.option("--app-class", type=str, help="Dotted path to app definition class.")
-@click.option("--infile", type=click.Path(), help="Path to input file.")
-def check_abci_app_specs(
-    check_all: bool, packages_dir: Path, spec_format: str, app_class: str, infile: Path
-) -> None:
-    """Check ABCI app specs."""
-
-    if check_all:
-        packages_dir = Path(packages_dir).absolute()
-        SpecCheck.check_all(packages_dir)
-    else:
-        if app_class is None:
-            print("Please provide class name for ABCI app.")
-            sys.exit(1)
-
-        if infile is None:
-            print("Please provide path to specification file.")
-            sys.exit(1)
-
-        if SpecCheck.check_one(
-            informat=spec_format,
-            infile=str(infile),
-            classfqn=app_class,
-        ):
-            print("Check successful")
-            sys.exit(0)
-
-        print("Check failed.")
-        sys.exit(1)
+@analyse_group.group(name="abci")
+def abci_group() -> None:
+    """Analyse ABCI apps of an agent service."""
 
 
 @abci_group.command(name="docstrings")
