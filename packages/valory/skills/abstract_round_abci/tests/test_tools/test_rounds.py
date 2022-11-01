@@ -230,9 +230,10 @@ class TestBaseRoundTestClass:
             )
 
 
-class BaseTestBase:  # pylint: disable=too-few-public-methods
+class BaseTestBase:
     """Base class for the Base tests."""
 
+    gen: Generator
     base_round_test: BaseRoundTestClass
     base_round_test_cls: Type[BaseRoundTestClass]
 
@@ -249,6 +250,12 @@ class BaseTestBase:  # pylint: disable=too-few-public-methods
         self.base_round_test.consensus_params._max_participants = (  # pylint: disable=protected-access
             MAX_PARTICIPANTS
         )
+
+    def exhaust_base_test_generator(self) -> None:
+        """Exhaust the base test generator."""
+        for _ in range(BASE_TEST_GEN_ITERATIONS):
+            next(self.gen)
+        last_iteration(self.gen)
 
 
 class DummyCollectDifferentUntilAllRoundWithEndBlock(
@@ -303,7 +310,7 @@ class TestBaseCollectDifferentUntilAllRoundTest(BaseTestBase):
         ]
 
         # Create `_test_round` generator and trigger for the first time.
-        gen = self.base_round_test._test_round(  # pylint: disable=protected-access
+        self.gen = self.base_round_test._test_round(  # pylint: disable=protected-access
             test_round,
             cast(List[BaseTxPayload], round_payloads),
             lambda synchronized_data, _: synchronized_data.update(
@@ -314,9 +321,7 @@ class TestBaseCollectDifferentUntilAllRoundTest(BaseTestBase):
             synchronized_data_attr_checks,
             exit_event,
         )
-        for _ in range(BASE_TEST_GEN_ITERATIONS):
-            next(gen)
-        last_iteration(gen)
+        self.exhaust_base_test_generator()
 
 
 class DummyCollectSameUntilAllRoundWithEndBlock(DummyCollectSameUntilAllRound):
@@ -376,7 +381,7 @@ class TestBaseCollectSameUntilAllRoundTest(BaseTestBase):
         ]
 
         # Create `_test_round` generator and trigger for the first time.
-        gen = self.base_round_test._test_round(  # pylint: disable=protected-access
+        self.gen = self.base_round_test._test_round(  # pylint: disable=protected-access
             test_round,
             round_payloads,
             lambda synchronized_data, _: synchronized_data.update(
@@ -387,9 +392,7 @@ class TestBaseCollectSameUntilAllRoundTest(BaseTestBase):
             exit_event,
             finished,
         )
-        for _ in range(BASE_TEST_GEN_ITERATIONS):
-            next(gen)
-        last_iteration(gen)
+        self.exhaust_base_test_generator()
 
 
 class DummyCollectSameUntilThresholdRoundWithEndBlock(
@@ -454,7 +457,7 @@ class TestBaseCollectSameUntilThresholdRoundTest(BaseTestBase):
         ]
 
         # Create `_test_round` generator and trigger for the first time.
-        gen = self.base_round_test._test_round(  # pylint: disable=protected-access
+        self.gen = self.base_round_test._test_round(  # pylint: disable=protected-access
             test_round,
             round_payloads,
             lambda synchronized_data, _: synchronized_data.update(
@@ -464,9 +467,7 @@ class TestBaseCollectSameUntilThresholdRoundTest(BaseTestBase):
             most_voted_payload,
             exit_event,
         )
-        for _ in range(BASE_TEST_GEN_ITERATIONS):
-            next(gen)
-        last_iteration(gen)
+        self.exhaust_base_test_generator()
 
 
 class DummyOnlyKeeperSendsRoundTest(DummyOnlyKeeperSendsRound):
@@ -525,7 +526,7 @@ class TestBaseOnlyKeeperSendsRoundTest(BaseTestBase):
         ]
 
         # Create `_test_round` generator and trigger for the first time.
-        gen = self.base_round_test._test_round(  # pylint: disable=protected-access
+        self.gen = self.base_round_test._test_round(  # pylint: disable=protected-access
             test_round,
             cast(BaseTxPayload, keeper_payload),
             lambda synchronized_data, _: synchronized_data.update(
@@ -534,9 +535,7 @@ class TestBaseOnlyKeeperSendsRoundTest(BaseTestBase):
             synchronized_data_attr_checks,
             exit_event,
         )
-        for _ in range(BASE_TEST_GEN_ITERATIONS):
-            next(gen)
-        last_iteration(gen)
+        self.exhaust_base_test_generator()
 
 
 class DummyBaseVotingRoundTestWithEndBlock(DummyVotingRound):
@@ -606,7 +605,7 @@ class TestBaseVotingRoundTest(BaseTestBase):
         ]
 
         # Create `_test_round` generator and trigger for the first time.
-        gen = test_method(
+        self.gen = test_method(
             test_round,
             round_payloads,
             lambda synchronized_data, _: synchronized_data.update(
@@ -615,9 +614,7 @@ class TestBaseVotingRoundTest(BaseTestBase):
             synchronized_data_attr_checks,
             exit_event,
         )
-        for _ in range(BASE_TEST_GEN_ITERATIONS):
-            next(gen)
-        last_iteration(gen)
+        self.exhaust_base_test_generator()
 
 
 class DummyCollectDifferentUntilThresholdRoundWithEndBlock(
@@ -672,7 +669,7 @@ class TestBaseCollectDifferentUntilThresholdRoundTest(BaseTestBase):
         ]
 
         # Create `_test_round` generator and trigger for the first time.
-        gen = self.base_round_test._test_round(  # pylint: disable=protected-access
+        self.gen = self.base_round_test._test_round(  # pylint: disable=protected-access
             test_round,
             round_payloads,
             lambda synchronized_data, _: synchronized_data.update(
@@ -683,6 +680,4 @@ class TestBaseCollectDifferentUntilThresholdRoundTest(BaseTestBase):
             synchronized_data_attr_checks,
             exit_event,
         )
-        for _ in range(BASE_TEST_GEN_ITERATIONS):
-            next(gen)
-        last_iteration(gen)
+        self.exhaust_base_test_generator()
