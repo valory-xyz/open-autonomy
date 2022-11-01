@@ -1,0 +1,140 @@
+name: register_termination_abci
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for dummy skill that registers and resets
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: bafybeig7fscmkyf2i4cl2btbpuimvnzdehtl2kyyyaxe7unn6zgdjomhjy
+  __init__.py: bafybeibsbkbm2hjtyhe6l7t6ufwcj5ayfndzodys7wssxykxw4x3cbixyu
+  behaviours.py: bafybeicmgb3hz2f6rhnpctcojeesayvmwicvl4mybbseyscdvzr6luepni
+  composition.py: bafybeid5sd7d5gc3tnoj3awy4swxexpdro747prr3kz6qxkwserpqmihn4
+  dialogues.py: bafybeih3x4egnkh7xwnlawqbu6fpqyqbaum7ivdhqm6r6557dyy2rhzneq
+  fsm_specification.yaml: bafybeia6wnkasc37rkxiww4qrjitssolwpbmqmbm6qvdn5wdzosmwwv2om
+  handlers.py: bafybeiedufmy3yezjed4fmqrzl7zxr3i4npbxefr6bwhrdlnu63egwfm54
+  models.py: bafybeicssp6zqngksutebz32qszi5vdf4uerk63cynqloof6cc6nk24uwu
+  tests/__init__.py: bafybeid2pb3mfobqtzsadxzris67d4hkmcflqfnzay3y3errmtd7tdtvoe
+  tests/test_behaviours.py: bafybeihc7eoat7rztfernupnsytlpg2adjrinfqhtjyornjj5qdyfulu74
+  tests/test_dialogues.py: bafybeifh7hxzvcyqfygpve33vhirtebbu3pmhvg7xcar4rt75t62g4ybk4
+  tests/test_handlers.py: bafybeid5373thvoc5w3ecgsfdtobg3itxvktpbyyvn2k35f7rsnqbjt26q
+  tests/test_models.py: bafybeigwqf6m7ndlpns6qmlan6yakcmwlnbiecchxgx3ubs45orzat5uju
+fingerprint_ignore_patterns: []
+connections: []
+contracts: []
+protocols: []
+skills:
+- valory/abstract_round_abci:0.1.0:bafybeiasrxyu5cjh4gu2pdpiccibsfkernzc2sihot6er4bajb66ipnyhi
+- valory/registration_abci:0.1.0:bafybeidesd4hhuic7gcgce5zpiw5n6auftu2dz2hnnq3455wo7o3er2lda
+- valory/reset_pause_abci:0.1.0:bafybeihdtdkidy2sjjvcbc2jutiljpnahxaemhbibirs6wbmwlmzp2l2vi
+- valory/termination_abci:0.1.0:bafybeifetsailbrvqi2ohhukjtxmdwfqmokhpksgxwj5t2bcet6ezodj7y
+- valory/transaction_settlement_abci:0.1.0:bafybeiawivukwyiouxkxooxidfshhww75hn2m5njfi6cmh7xmrpwjmqaoy
+behaviours:
+  main:
+    args: {}
+    class_name: RegisterTerminationAbciAppConsensusBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIRegisterResetHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      cleanup_history_depth: 1
+      cleanup_history_depth_current: null
+      consensus:
+        max_participants: 4
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      finalize_timeout: 60.0
+      genesis_config:
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_num_blocks: '100000'
+            max_age_duration: '172800000000000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        voting_power: '10'
+      history_check_timeout: 1205
+      keeper_allowed_retries: 3
+      keeper_timeout: 30.0
+      max_healthcheck: 120
+      multisend_address: null
+      observation_interval: 10
+      on_chain_service_id: null
+      reset_tendermint_after: 200
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 15.0
+      service_id: register_termination_abci
+      service_registry_address: null
+      setup:
+        safe_contract_address:
+        - '0xD8dE647170163a981bb3Fdb2063583eAcF7D55AC'
+      share_tm_config_on_startup: false
+      sleep_time: 300
+      tendermint_check_sleep_delay: 3
+      tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
+      tendermint_url: http://localhost:26657
+      termination_sleep: 900
+      validate_timeout: 1205
+    class_name: Params
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: []
+      method: GET
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+dependencies: {}
+is_abstract: false
