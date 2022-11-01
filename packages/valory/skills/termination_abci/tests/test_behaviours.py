@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This package contains round behaviours of FearAndGreedOracleAbciApp."""
+"""This package contains round behaviours of Background Behaviours."""
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, Hashable, List, Optional, Type
