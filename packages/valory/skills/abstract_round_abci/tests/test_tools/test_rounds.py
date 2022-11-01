@@ -59,6 +59,10 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 from packages.valory.skills.abstract_round_abci.tests.test_common import last_iteration
 
 
+# this is how many times we need to iterate before reaching the last iteration for a base test.
+BASE_TEST_GEN_ITERATIONS = 4
+
+
 settings(deadline=5000)
 
 
@@ -315,7 +319,7 @@ class TestBaseCollectDifferentUntilAllRoundTest(BaseTestBase):
             synchronized_data_attr_checks,
             exit_event,
         )
-        for _ in range(4):
+        for _ in range(BASE_TEST_GEN_ITERATIONS):
             next(gen)
         last_iteration(gen)
 
@@ -388,7 +392,7 @@ class TestBaseCollectSameUntilAllRoundTest(BaseTestBase):
             exit_event,
             finished,
         )
-        for _ in range(4):
+        for _ in range(BASE_TEST_GEN_ITERATIONS):
             next(gen)
         last_iteration(gen)
 
@@ -465,7 +469,7 @@ class TestBaseCollectSameUntilThresholdRoundTest(BaseTestBase):
             most_voted_payload,
             exit_event,
         )
-        for _ in range(4):
+        for _ in range(BASE_TEST_GEN_ITERATIONS):
             next(gen)
         last_iteration(gen)
 
@@ -535,7 +539,7 @@ class TestBaseOnlyKeeperSendsRoundTest(BaseTestBase):
             synchronized_data_attr_checks,
             exit_event,
         )
-        for _ in range(4):
+        for _ in range(BASE_TEST_GEN_ITERATIONS):
             next(gen)
         last_iteration(gen)
 
@@ -616,7 +620,7 @@ class TestBaseVotingRoundTest(BaseTestBase):
             synchronized_data_attr_checks,
             exit_event,
         )
-        for _ in range(4):
+        for _ in range(BASE_TEST_GEN_ITERATIONS):
             next(gen)
         last_iteration(gen)
 
@@ -684,6 +688,6 @@ class TestBaseCollectDifferentUntilThresholdRoundTest(BaseTestBase):
             synchronized_data_attr_checks,
             exit_event,
         )
-        for _ in range(4):
+        for _ in range(BASE_TEST_GEN_ITERATIONS):
             next(gen)
         last_iteration(gen)
