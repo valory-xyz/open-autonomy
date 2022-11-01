@@ -35,7 +35,7 @@ you have followed the [setup instructions](../guides/set_up.md#setup). As a resu
 
 2. Use the CLI to fetch the `valory/simple_abci` service.
     ```bash
-    autonomy fetch valory/simple_abci:0.1.0:bafybeidcrg4ggczvkppdnoxjjxdcnjaahle5dx6lgk5dfjwfainzqgtm6m --remote --service
+    autonomy fetch valory/simple_abci:0.1.0:bafybeidx6mj3q5pb2etvwfk6p6jvrublcqfkiaebpqxp6oqne4d3vvtqui --remote --service
     cd simple_abci
     ```
 
