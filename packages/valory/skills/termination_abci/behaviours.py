@@ -424,22 +424,24 @@ class BackgroundBehaviour(BaseBehaviour):
                 }
             )
 
-        # we swap the last owner with the service owner
-        swap_tx = yield from self._get_swap_owner_tx(
-            owner_to_be_swapped,
-            cast(str, self._service_owner_address),
-        )
-        if swap_tx is None:
-            return None
+        if owner_to_be_swapped != cast(str, self._service_owner_address):
+            # if the service owner is not the owner to be swapped
+            # we swap, otherwise it's not necessary
+            swap_tx = yield from self._get_swap_owner_tx(
+                owner_to_be_swapped,
+                cast(str, self._service_owner_address),
+            )
+            if swap_tx is None:
+                return None
 
-        transactions.append(
-            {
-                "operation": MultiSendOperation.CALL,
-                "to": self.synchronized_data.safe_contract_address,
-                "value": _ETHER_VALUE,
-                "data": HexBytes(swap_tx),
-            }
-        )
+            transactions.append(
+                {
+                    "operation": MultiSendOperation.CALL,
+                    "to": self.synchronized_data.safe_contract_address,
+                    "value": _ETHER_VALUE,
+                    "data": HexBytes(swap_tx),
+                }
+            )
 
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
