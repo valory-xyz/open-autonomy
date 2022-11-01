@@ -252,7 +252,7 @@ class BackgroundBehaviour(BaseBehaviour):
 
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
-                f"Couldn't get the service owner for service with id={self.params.service_id}. "
+                f"Couldn't get the service owner for service with id={self.params.on_chain_service_id}. "
                 f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "  # type: ignore
                 f"received {response.performative.value}."
             )
@@ -330,7 +330,8 @@ class BackgroundBehaviour(BaseBehaviour):
             )
             return None
 
-        tx_data = cast(Optional[str], response.state.body.get("data", None))
+        # strip "0x" from the response
+        tx_data = cast(str, response.state.body.get("data", None))[2:]
         return tx_data
 
     def _get_swap_owner_tx(
@@ -360,7 +361,8 @@ class BackgroundBehaviour(BaseBehaviour):
             )
             return None
 
-        tx_data = cast(Optional[str], response.state.body.get("data", None))
+        # strip "0x" from the response
+        tx_data = cast(str, response.state.body.get("data", None))[2:]
         return tx_data
 
     def _get_safe_tx_hash(self, data: bytes) -> Generator[None, None, Optional[str]]:
@@ -401,7 +403,6 @@ class BackgroundBehaviour(BaseBehaviour):
         safe_owners = yield from self._get_safe_owners()
         if safe_owners is None:
             return None
-
         owner_to_be_swapped = safe_owners[0]
         # we remove all but one safe owner
         # reverse the list to avoid errors when removing owners
@@ -458,6 +459,7 @@ class BackgroundBehaviour(BaseBehaviour):
             )
             return None
 
+        # strip "0x" from the response
         multisend_data = cast(str, response.raw_transaction.body["data"])[2:]
         return multisend_data
 
@@ -472,6 +474,13 @@ class BackgroundBehaviour(BaseBehaviour):
     def _is_termination_majority(self) -> bool:
         """Rely on the round to decide when majority is reached."""
         return self.synchronized_data.termination_majority_reached
+
+    def _is_majority_possible(self) -> bool:
+        """Checks whether the service has enough participants to reach consensus."""
+        return (
+            self.synchronized_data.nb_participants
+            >= self.params.consensus_params.consensus_threshold
+        )
 
     def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
         """Wrapper for callback_request(), overridden to avoid mix-ups with normal (non-background) behaviours."""
