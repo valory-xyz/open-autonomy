@@ -26,17 +26,18 @@ import re
 import shutil
 from enum import Enum
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, cast
 from unittest import mock
 
 import pytest
 from aea.configurations.constants import PACKAGES
+from jsonschema.exceptions import ValidationError
 
 from autonomy.analyse.abci.app_spec import (
     DFA,
     DFASpecificationError,
-    SpecCheck,
-    _check_unreferenced_events,
+    FSMSpecificationLoader,
+    check_unreferenced_events,
 )
 
 from tests.conftest import ROOT_DIR
@@ -46,9 +47,9 @@ from tests.test_autonomy.test_cli.base import BaseCliTest
 class TestGenerateSpecs(BaseCliTest):
     """Test generate-app-specs"""
 
-    cli_options: Tuple[str, ...] = ("analyse", "abci", "generate-app-specs")
-    skill_path = Path(PACKAGES, "valory", "skills", "hello_world_abci", "rounds")
-    module_name = ".".join(skill_path.parts)
+    cli_options: Tuple[str, ...] = ("analyse", "fsm-specs")
+    skill_path = Path(PACKAGES, "valory", "skills", "hello_world_abci")
+    module_name = ".".join((*skill_path.parts, "rounds"))
     app_name = "HelloWorldAbciApp"
     cls_name = ".".join([module_name, app_name])
 
@@ -60,23 +61,37 @@ class TestGenerateSpecs(BaseCliTest):
 
         module = importlib.import_module(self.module_name)
         abci_app_cls = getattr(module, self.app_name)
-        self.dfa = DFA.abci_to_dfa(abci_app_cls, self.cls_name)
+        self.dfa = DFA.abci_to_dfa(abci_app_cls)
 
     def get_expected_output(self, output_format: str) -> str:
         """Get expected output."""
 
         temp_file = self.t / "temp"
-        self.dfa.dump(temp_file, output_format)
+        FSMSpecificationLoader.dump(self.dfa, file=temp_file, spec_format=output_format)
 
         return temp_file.read_text(encoding="utf-8")
 
     def _run_test(self, output_format: str) -> None:
         """Run test for given output format type."""
 
-        output_file = self.t / "fsm"
-        result = self.run_cli((self.cls_name, str(output_file), f"--{output_format}"))
+        output_file = self.skill_path / cast(
+            Path,
+            FSMSpecificationLoader.OutputFormats.default_output_files.get(
+                output_format
+            ),
+        )
+        result = self.run_cli(
+            (
+                "--package",
+                str(self.skill_path),
+                f"--{output_format}",
+                "--app-class",
+                self.app_name,
+                "--update",
+            )
+        )
 
-        assert result.exit_code == 0
+        assert result.exit_code == 0, result.output
         assert output_file.read_text() == self.get_expected_output(output_format)
 
     def test_generate_yaml(
@@ -84,21 +99,21 @@ class TestGenerateSpecs(BaseCliTest):
     ) -> None:
         """Run tests."""
 
-        self._run_test(DFA.OutputFormats.YAML)
+        self._run_test(FSMSpecificationLoader.OutputFormats.YAML)
 
     def test_generate_json(
         self,
     ) -> None:
         """Run tests."""
 
-        self._run_test(DFA.OutputFormats.JSON)
+        self._run_test(FSMSpecificationLoader.OutputFormats.JSON)
 
     def test_generate_mermaid(
         self,
     ) -> None:
         """Run tests."""
 
-        self._run_test(DFA.OutputFormats.MERMAID)
+        self._run_test(FSMSpecificationLoader.OutputFormats.MERMAID)
 
     def test_failures(
         self,
@@ -107,7 +122,15 @@ class TestGenerateSpecs(BaseCliTest):
 
         *module, cls = self.cls_name.split(".")
         cls_name = ".".join([*module, "dummy", cls])
-        result = self.run_cli((cls_name, "fsm", "--yaml"))
+        result = self.run_cli(
+            (
+                "--app-class",
+                cls_name,
+                "--package",
+                str(Path(*self.skill_path.parts, "dummy")),
+                "--yaml",
+            )
+        )
 
         assert result.exit_code == 1, result.output
         assert "Failed to load" in result.stdout, result.output
@@ -118,17 +141,28 @@ class TestGenerateSpecs(BaseCliTest):
 
         *module, cls = self.cls_name.split(".")
         cls_name = ".".join([*module, cls[:-1]])
-        result = self.run_cli((cls_name, "fsm", "--yaml"))
+        result = self.run_cli(
+            (
+                "--app-class",
+                "SomeAppName",
+                "--package",
+                str(self.skill_path.parts),
+                "--yaml",
+            )
+        )
 
         assert result.exit_code == 1, result.output
-        assert """Class "HelloWorldAbciAp" is not in""" in result.stdout, result.output
+        assert (
+            "Please, verify that AbciApps and classes are correctly defined within the module"
+            in result.stdout
+        ), result.output
 
 
 class TestCheckSpecs(BaseCliTest):
     """Test `check-app-specs` command."""
 
-    cli_options: Tuple[str, ...] = ("analyse", "abci", "check-app-specs")
-    skill_path = Path(PACKAGES, "valory", "skills", "hello_world_abci", "rounds")
+    cli_options: Tuple[str, ...] = ("analyse", "fsm-specs")
+    skill_path = Path(PACKAGES, "valory", "skills", "hello_world_abci")
     module_name = ".".join(skill_path.parts)
     app_name = "HelloWorldAbciApp"
     cls_name = ".".join([module_name, app_name])
@@ -142,9 +176,7 @@ class TestCheckSpecs(BaseCliTest):
 
         self.packages_dir = self.t / PACKAGES
         shutil.copytree(ROOT_DIR / PACKAGES, self.packages_dir)
-        self.specification_path = (
-            self.t / self.skill_path.parent / "fsm_specification.yaml"
-        )
+        self.specification_path = self.t / self.skill_path / "fsm_specification.yaml"
         os.chdir(self.t)
 
     def _corrupt_spec_file(
@@ -162,11 +194,11 @@ class TestCheckSpecs(BaseCliTest):
     ) -> None:
         """Test with one class."""
         return_code, stdout, stderr = self.run_cli_subprocess(
-            ("--app-class", self.cls_name, "--infile", str(self.specification_path))
+            ("--app-class", self.app_name, "--package", str(self.skill_path))
         )
 
-        assert return_code == 0
-        assert stdout == f"Checking : {self.cls_name}\nCheck successful\n"
+        assert return_code == 0, stderr
+        assert "Check successful" in stdout
 
     def test_one_fail(
         self,
@@ -174,58 +206,33 @@ class TestCheckSpecs(BaseCliTest):
         """Test with one class failing."""
         self._corrupt_spec_file()
         return_code, stdout, stderr = self.run_cli_subprocess(
-            ("--app-class", self.cls_name, "--infile", str(self.specification_path))
+            ("--app-class", self.app_name, "--package", str(self.skill_path))
         )
 
-        assert return_code == 1
-        assert stdout == f"Checking : {self.cls_name}\nCheck failed.\n"
+        assert return_code == 1, stderr
+        assert (
+            "FSM Spec definition does not match in specification file and class definitions"
+            in stderr
+        )
 
     def test_check_all(
         self,
     ) -> None:
         """Test --check-all flag."""
-        return_code, stdout, stderr = self.run_cli_subprocess(
-            (
-                "--check-all",
-                "--packages-dir",
-                str(self.packages_dir),
-            )
-        )
+        return_code, stdout, stderr = self.run_cli_subprocess(())
 
-        assert return_code == 0
-        assert "Check successful." in stdout
+        assert return_code == 0, stderr
+        assert "Done" in stdout
 
     def test_check_all_fail(
         self,
     ) -> None:
         """Test --check-all flag."""
         self._corrupt_spec_file()
-        return_code, stdout, stderr = self.run_cli_subprocess(
-            (
-                "--check-all",
-                "--packages-dir",
-                str(self.packages_dir),
-            )
-        )
+        return_code, stdout, stderr = self.run_cli_subprocess(())
 
         assert return_code == 1
-        assert "Specifications did not match for following definitions." in stdout
-
-    def test_failures(
-        self,
-    ) -> None:
-        """Test with one class."""
-        result = self.run_cli(("--infile", str(self.specification_path)))
-
-        assert result.exit_code == 1, result.output
-        assert "Please provide class name for ABCI app." in result.output, result.output
-
-        result = self.run_cli(("--app-class", self.cls_name))
-
-        assert result.exit_code == 1, result.output
-        assert (
-            "Please provide path to specification file." in result.output
-        ), result.output
+        assert "Specifications check for following packages" in stderr
 
     def teardown(
         self,
@@ -320,7 +327,7 @@ class TestDFA:
             assert good_dfa._str_to_tuple("(, )")
 
         with pytest.raises(
-            DFASpecificationError, match="DFA spec. has the following issues"
+            DFASpecificationError, match="DFA spec has the following issues"
         ):
             DFA(**self.bad_dfa_kwargs)  # type: ignore
 
@@ -334,11 +341,13 @@ class TestDFA:
             "specs",
             "fsm_specification.json",
         )
-        with open(json_spec, "r", encoding="utf-8") as fp:
-            assert isinstance(DFA.load(fp, input_format="json"), DFA)
 
-            with pytest.raises(ValueError):
-                DFA.load(fp, input_format="wrong_format")
+        assert isinstance(
+            DFA.load(json_spec, FSMSpecificationLoader.OutputFormats.JSON), DFA
+        )
+
+        with pytest.raises(ValueError):
+            DFA.load(json_spec, "wrong_format")
 
     def test_load_empty(self) -> None:
         """Test test_load_empty"""
@@ -350,11 +359,9 @@ class TestDFA:
             "specs",
             "fsm_specification_empty.json",
         )
-        with open(json_spec, "r", encoding="utf-8") as fp:
-            with pytest.raises(
-                DFASpecificationError, match="DFA spec. JSON file missing key."
-            ):
-                DFA.load(fp, input_format="json")
+
+        with pytest.raises(ValidationError, match="is a required property"):
+            DFA.load(json_spec, FSMSpecificationLoader.OutputFormats.JSON)
 
     def test_load_extra(self) -> None:
         """Test test_load_extra"""
@@ -366,14 +373,12 @@ class TestDFA:
             "specs",
             "fsm_specification_extra.json",
         )
-        with open(json_spec, "r", encoding="utf-8") as fp:
-            with pytest.raises(
-                DFASpecificationError,
-                match=re.escape(
-                    "DFA spec. JSON file contains unexpected objects: dict_keys(['extra_field'])."
-                ),
-            ):
-                DFA.load(fp, input_format="json")
+
+        with pytest.raises(
+            ValidationError,
+            match=re.escape("Additional properties are not allowed"),
+        ):
+            DFA.load(json_spec, FSMSpecificationLoader.OutputFormats.JSON)
 
     def test_check_unreferenced_events(self) -> None:
         """Test check_unreferenced_events"""
@@ -404,23 +409,5 @@ class TestDFA:
             }
 
         with mock.patch("inspect.getmro", return_value=[]):
-            with pytest.raises(
-                DFASpecificationError, match=r"ABCI App has the following issues"
-            ):
-                _check_unreferenced_events(MockABCIApp)
-
-
-class TestSpecCheck:
-    """Test the SpecCheck class."""
-
-    def test_check_one(self) -> None:
-        """Test check_one."""
-        mock_module: dict = {}
-        with mock.patch("importlib.import_module", return_value=mock_module):
-            with pytest.raises(
-                Exception,
-                match='Class "dummy_class_name" is not in "dummy_module_name"',
-            ):
-                SpecCheck.check_one(
-                    "informat", "infile", "dummy_module_name.dummy_class_name"
-                )
+            strings = check_unreferenced_events(MockABCIApp)
+            assert len(strings) > 0
