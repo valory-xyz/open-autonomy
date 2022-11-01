@@ -280,9 +280,7 @@ class TestBaseCollectDifferentUntilAllRoundTest(BaseTestBase):
     """Test `BaseCollectDifferentUntilAllRoundTest`."""
 
     base_round_test: BaseCollectDifferentUntilAllRoundTest
-    base_round_test_cls: Type[
-        BaseCollectDifferentUntilAllRoundTest
-    ] = BaseCollectDifferentUntilAllRoundTest
+    base_round_test_cls = BaseCollectDifferentUntilAllRoundTest
 
     @given(
         st.one_of(st.none(), st.sampled_from(DummyEvent)),
