@@ -20,7 +20,7 @@
 """Usefule click utils."""
 
 from pathlib import Path
-from typing import Any, Callable, Optional, Type
+from typing import Any, Callable, Optional
 
 import click
 
