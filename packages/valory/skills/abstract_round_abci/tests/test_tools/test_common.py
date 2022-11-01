@@ -87,7 +87,7 @@ class TestBaseRandomnessBehaviourTestSetup:
     def set_randomness_behaviour_class(self) -> None:
         """Set randomness_behaviour_class"""
         self.test_cls.randomness_behaviour_class = (
-            RandomnessTransactionSubmissionBehaviour
+            RandomnessTransactionSubmissionBehaviour  # type: ignore
         )
 
     def set_done_event(self) -> None:
@@ -96,7 +96,9 @@ class TestBaseRandomnessBehaviourTestSetup:
 
     def set_next_behaviour_class(self) -> None:
         """Set next_behaviour_class"""
-        self.test_cls.next_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
+        self.test_cls.next_behaviour_class = (
+            SelectKeeperTransactionSubmissionBehaviourA  # type: ignore
+        )
 
     def test_setup_fails_without_skill_path_overwrite(self) -> None:
         """Test setup fails without skill path overwrite."""
