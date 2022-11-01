@@ -56,7 +56,7 @@ from aea.configurations.constants import (
 from aea.configurations.data_types import CRUDCollection, PublicId
 from aea.protocols.generator.common import _camel_case_to_snake_case
 
-from autonomy.analyse.abci.app_spec import DFA
+from autonomy.analyse.abci.app_spec import DFA, FSMSpecificationLoader
 from autonomy.cli.scaffold_fsm_templates import (
     BEHAVIOURS,
     COPYRIGHT_HEADER,
@@ -699,7 +699,5 @@ def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
 
     # process FSM specification
     spec_path = Path(spec)
-    with spec_path.open(encoding="utf-8") as fp:
-        dfa = DFA.load(fp, input_format="yaml")
-
+    dfa = DFA.load(spec_path, spec_format=FSMSpecificationLoader.OutputFormats.YAML)
     ScaffoldABCISkill(ctx, skill_name, dfa).do_scaffolding()

@@ -32,4 +32,7 @@ HANDLERS = "handlers"
 CLASS_NAME = "class_name"
 INIT_PY = "__init__.py"
 PYCACHE = "__pycache__"
+
 DEFAULT_FSM_SPEC_YAML = "fsm_specification.yaml"
+DEFAULT_FSM_SPEC_JSON = "fsm_specification.json"
+DEFAULT_FSM_SPEC_MERMAID = "fsm_specification.md"
