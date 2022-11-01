@@ -316,7 +316,7 @@ class TestBaseCollectDifferentUntilAllRoundTest(BaseTestBase):
             self.base_round_test.consensus_params,
         )
         round_payloads = [
-            (DummyTxPayload(f"agent_{i}", i)) for i in range(MAX_PARTICIPANTS)
+            DummyTxPayload(f"agent_{i}", i) for i in range(MAX_PARTICIPANTS)
         ]
         synchronized_data_attr_checks = [
             lambda _synchronized_data: _synchronized_data.most_voted_keeper_address
