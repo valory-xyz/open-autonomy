@@ -24,30 +24,22 @@ from typing import Type, cast
 from unittest import mock
 
 import pytest
-from aea.components.base import _CheckUsedDependencies  # for temporary patch
 from aea.helpers.base import cd
 
 from packages.valory.skills.abstract_round_abci.test_tools.common import (
     BaseRandomnessBehaviourTest,
 )
-from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    RandomnessTransactionSubmissionBehaviour,
-    SelectKeeperTransactionSubmissionBehaviourA,
+from packages.valory.skills.abstract_round_abci.tests.data import dummy_abci
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours import (
+    DummyKeeperSelectionBehaviour,
+    DummyRandomnessBehaviour,
+)
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds import (
+    Event,
 )
 
-# need to change
-from packages.valory.skills.transaction_settlement_abci.rounds import Event
 
-
-test_skill = "transaction_settlement_abci"
-PATH_TO_SKILL = BaseRandomnessBehaviourTest.path_to_skill.parent / test_skill
-
-
-# TODO:
-#  the following doesn't work, because it cannot access the other concrete skill (e.g. simple_abci)
-#  autonomy -s test --cov by-path ./packages/valory/skills/abstract_round_abci/
-#  to run the test one can use the pytest directly
-#  pytest -vv packages/valory/skills/abstract_round_abci/tests/test_tools/test_common.py --cov packages/valory/skills/abstract_round_abci/ --cov-report term-missing
+PATH_TO_SKILL = Path(dummy_abci.__file__).parent
 
 
 class TestBaseRandomnessBehaviourTestSetup:
@@ -70,11 +62,7 @@ class TestBaseRandomnessBehaviourTestSetup:
         """Helper method to setup test to be tested"""
 
         with cd(self.test_cls.path_to_skill):
-            # another temporary patch, needed for imports from other modules
-            with mock.patch.object(
-                _CheckUsedDependencies, "run_check", return_value=lambda: None
-            ):
-                self.test_cls.setup_class()
+            self.test_cls.setup_class()
 
         test_instance = self.test_cls()  # type: ignore
         test_instance.setup()
@@ -86,9 +74,7 @@ class TestBaseRandomnessBehaviourTestSetup:
 
     def set_randomness_behaviour_class(self) -> None:
         """Set randomness_behaviour_class"""
-        self.test_cls.randomness_behaviour_class = (
-            RandomnessTransactionSubmissionBehaviour  # type: ignore
-        )
+        self.test_cls.randomness_behaviour_class = DummyRandomnessBehaviour
 
     def set_done_event(self) -> None:
         """Set done_event"""
@@ -96,20 +82,7 @@ class TestBaseRandomnessBehaviourTestSetup:
 
     def set_next_behaviour_class(self) -> None:
         """Set next_behaviour_class"""
-        self.test_cls.next_behaviour_class = (
-            SelectKeeperTransactionSubmissionBehaviourA  # type: ignore
-        )
-
-    def test_setup_fails_without_skill_path_overwrite(self) -> None:
-        """Test setup fails without skill path overwrite."""
-
-        # we must overwrite since it is accessed in _prepare_skill, else load will fail
-        # -> skill_config.directory = cls.path_to_skill
-        with pytest.raises(
-            AttributeError,
-            match="'AbstractRoundBehaviour' object has no attribute 'behaviours'",
-        ):
-            self.setup_test_cls()
+        self.test_cls.next_behaviour_class = DummyKeeperSelectionBehaviour
 
     def test_setup_randomness_behaviour_class_not_set(self) -> None:
         """Test setup randomness_behaviour_class not set."""
@@ -123,7 +96,6 @@ class TestBaseRandomnessBehaviourTestSetup:
     def test_setup_done_event_not_set(self) -> None:
         """Test setup done_event = Event.DONE not set."""
 
-        # NOTE: if moved to top first test fails!? -> reason: _CheckUsedDependencies
         self.set_path_to_skill()
         self.set_randomness_behaviour_class()
 
@@ -161,6 +133,6 @@ class TestBaseRandomnessBehaviourTestRunning(BaseRandomnessBehaviourTest):
     """Test TestBaseRandomnessBehaviourTestRunning running."""
 
     path_to_skill = PATH_TO_SKILL
-    randomness_behaviour_class = RandomnessTransactionSubmissionBehaviour
-    next_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
+    randomness_behaviour_class = DummyRandomnessBehaviour
+    next_behaviour_class = DummyKeeperSelectionBehaviour
     done_event = Event.DONE
