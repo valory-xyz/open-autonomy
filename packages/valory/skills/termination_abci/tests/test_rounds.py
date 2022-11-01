@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -99,8 +99,12 @@ class TestBackgroundRound(BaseRoundTestClass):
         actual_state, event = res
 
         assert (
-            cast(SynchronizedData, actual_state).termination_majority_reached
-            == cast(SynchronizedData, expected_state).termination_majority_reached
+            cast(
+                SynchronizedData, actual_state
+            ).termination_majority_reached  # pylint: disable=no-member
+            == cast(
+                SynchronizedData, expected_state
+            ).termination_majority_reached  # pylint: disable=no-member
         )
 
         assert event == Event.TERMINATE
