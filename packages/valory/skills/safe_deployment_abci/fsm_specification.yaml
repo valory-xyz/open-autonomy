@@ -10,7 +10,7 @@ alphabet_in:
 default_start_state: RandomnessSafeRound
 final_states:
 - FinishedSafeRound
-label: packages.valory.skills.safe_deployment_abci.rounds.SafeDeploymentAbciApp
+label: SafeDeploymentAbciApp
 start_states:
 - RandomnessSafeRound
 states:
