@@ -132,10 +132,7 @@ def test_get_dummy_tx_payloads(
     actual = get_dummy_tx_payloads(participants, value, vote, is_value_none)
 
     assert len(actual) == len(expected) == len(participants)
-    assert all(
-        actual_payload == expected_payload
-        for actual_payload, expected_payload in zip(actual, expected)
-    )
+    assert actual == expected
 
 
 class TestDummyTxPayload:  # pylint: disable=too-few-public-methods
