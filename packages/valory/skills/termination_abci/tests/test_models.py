@@ -16,19 +16,19 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# pylint: disable=unused-import
 
 """Test the models.py module of the skill."""
 
-# pylint: skip-file
 
 from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
 from packages.valory.skills.termination_abci.models import SharedState
 
 
-class TestSharedState:
+class TestSharedState:  # pylint: disable=too-few-public-methods
     """Test SharedState(Model) class."""
 
-    def test_initialization(
+    def test_initialization(  # pylint: disable=no-self-use
         self,
     ) -> None:
         """Test initialization."""

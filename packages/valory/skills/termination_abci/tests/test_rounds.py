@@ -47,21 +47,21 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
     consensus_params: ConsensusParams
     participants: FrozenSet[str]
 
-    @classmethod
     def setup(
-        cls,
+        self,
     ) -> None:
         """Setup the test class."""
 
-        cls.participants = get_participants()
-        cls.synchronized_data = SynchronizedData(
+        self.participants = get_participants()
+        self.synchronized_data = SynchronizedData(
             AbciAppDB(
                 setup_data=dict(
-                    participants=[cls.participants], all_participants=[cls.participants]
+                    participants=[self.participants],
+                    all_participants=[self.participants],
                 ),
             )
         )
-        cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
+        self.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
 
 class TestBackgroundRound(BaseRoundTestClass):

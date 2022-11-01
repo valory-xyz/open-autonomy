@@ -69,7 +69,7 @@ class BehaviourTestCase:
 class BaseTerminationTest(FSMBehaviourBaseCase):
     """Base test case."""
 
-    path_to_skill = Path(__file__).parent.parent
+    path_to_skill = Path(__file__).parents[1]
 
     behaviour: TerminationAbciBehaviours
     behaviour_class: Type[BaseBehaviour]
@@ -479,7 +479,7 @@ class TestBackgroundBehaviour(BaseTerminationTest):
         ],
     )
     def test_run(self, test_case: BehaviourTestCase, caplog: LogCaptureFixture) -> None:
-        """Test the happy path of termination."""
+        """Test multiple paths of termination."""
         self.fast_forward(data=test_case.initial_data)
         self.behaviour.act_wrapper()
 
