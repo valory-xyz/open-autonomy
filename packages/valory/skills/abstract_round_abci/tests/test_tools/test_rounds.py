@@ -57,6 +57,7 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 )
 from packages.valory.skills.abstract_round_abci.tests.test_common import last_iteration
 
+
 # this is how many times we need to iterate before reaching the last iteration for a base test.
 BASE_TEST_GEN_ITERATIONS = 4
 
