@@ -26,65 +26,74 @@ from typing import Tuple
 from unittest import mock
 
 import pytest
+from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE
 
-from autonomy.analyse.abci.handlers import check_handlers
+from autonomy.analyse.handlers import check_handlers
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
+COMMON_HANDLERS = (
+    "abci",
+    "http",
+    "contract_api",
+    "ledger_api",
+    "signing",
+)
+
+IGNORE_SKILLS = (
+    "abstract_abci",
+    "counter",
+    "counter_client",
+    "hello_world_abci",
+)
+
+
 class TestCheckHandlers(BaseCliTest):
     """Test check-handlers command."""
 
-    cli_options: Tuple[str, ...] = ("analyse", "abci", "check-handlers")
+    cli_options: Tuple[str, ...] = ("analyse", "handlers")
     config_file: Path
     config_file_temp: Path
 
     def setup(self) -> None:
         """Setup."""
         super().setup()
+
         shutil.copytree(ROOT_DIR / "packages", self.t / "packages")
         os.chdir(self.t)
 
-    def _get_expected_output(
-        self,
-    ) -> str:
-        """Generate expected output string."""
-        return "\n".join(
-            [f"Checking {file.parent}" for file in sorted(self.t.glob("**/skill.yaml"))]
-        )
+        options = []
+        for h in COMMON_HANDLERS:
+            options += ["-h", h]
+
+        for i in IGNORE_SKILLS:
+            options += ["-i", i]
+
+        self.cli_options = (*self.cli_options, *options)
 
     def test_check_handlers(
         self,
     ) -> None:
         """Run tests."""
 
-        result = self.run_cli(
-            (
-                str(self.t / "packages"),
-                "--common",
-                "abci,http,contract_api,ledger_api,signing",
-                "--skip",
-                "abstract_abci,counter,counter_client,hello_world_abci",
-            )
-        )
-
+        result = self.run_cli()
         assert result.exit_code == 0, result.output
-        assert result.output.strip() == self._get_expected_output()
+
+        for yaml_file in sorted(
+            Path(self.t / "packages").glob(f"*/*/*/{DEFAULT_SKILL_CONFIG_FILE}")
+        ):
+            if yaml_file.parent.name in IGNORE_SKILLS:
+                assert f"Skipping {yaml_file.parent}" in result.output
+            else:
+                assert f"Checking {yaml_file.parent}" in result.output
 
     def test_check_handlers_fail(
         self,
     ) -> None:
         """Test check-handlers command fail."""
-        result = self.run_cli(
-            (
-                str(self.t / "packages"),
-                "--common",
-                "abci,http,contract_api,ledger_api,signing,dummy",
-                "--skip",
-                "abstract_abci,counter,counter_client,hello_world_abci",
-            )
-        )
+        result = self.run_cli(("-h", "dummy"))
 
         assert result.exit_code == 1
         assert "Common handler 'dummy' is not defined in" in result.output
@@ -100,9 +109,12 @@ class TestCheckHandlers(BaseCliTest):
             match=r"Handler ABCIHandler declared in .* is missing from .*",
         ):
             # Mock dir() so module_attributes is = []
-            with mock.patch("autonomy.analyse.abci.handlers.dir", return_value=[]):
+            with mock.patch("autonomy.analyse.handlers.dir", return_value=[]):
                 # Mock Path.relative_to() and return any valid module so import_module does not fail
-                with mock.patch("pathlib.Path.relative_to", return_value="pathlib"):
+                with mock.patch(
+                    "autonomy.analyse.handlers.resolve_handler_path_to_module",
+                    return_value="pathlib",
+                ):
                     check_handlers(
                         Path(
                             self.t,
@@ -113,7 +125,6 @@ class TestCheckHandlers(BaseCliTest):
                             "skill.yaml",
                         ),
                         [],
-                        [],
                     )
 
 
@@ -121,8 +132,6 @@ def test_check_handlers_missing_file() -> None:
     """Test check-handlers missing file."""
 
     # Since the CLI catches exceptions, to test for raises we need to call check_handlers directly
-    with pytest.raises(FileNotFoundError, match="Handler file dummy does not exist"):
-        with mock.patch("pathlib.Path.relative_to", return_value="dummy"):
-            check_handlers(
-                config_file=Path("file", "dummy"), common_handlers=[], skip_skills=[]
-            )
+    with pytest.raises(FileNotFoundError, match="Handler file does not exist in file"):
+        with mock.patch("pathlib.Path.relative_to", return_value=Path("dummy")):
+            check_handlers(config_file=Path("file", "dummy"), common_handlers=[])
