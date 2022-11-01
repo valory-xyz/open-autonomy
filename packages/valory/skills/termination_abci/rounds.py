@@ -19,7 +19,7 @@
 
 """This module contains the termination round classes."""
 from enum import Enum
-from typing import Optional, Tuple, cast
+from typing import List, Optional, Tuple, cast
 
 from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
@@ -62,6 +62,12 @@ class SynchronizedData(BaseSynchronizedData):
     def termination_majority_reached(self) -> bool:
         """Get termination_majority_reached."""
         return cast(bool, self.db.get("termination_majority_reached", False))
+
+    @property
+    def nb_participants(self) -> int:
+        """Get the number of participants."""
+        participants = cast(List, self.db.get("participants", []))
+        return len(participants)
 
 
 class BackgroundRound(CollectSameUntilThresholdRound):
