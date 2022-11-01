@@ -21,7 +21,6 @@
 
 from pathlib import Path
 from typing import Type, cast
-from unittest import mock
 
 import pytest
 from aea.helpers.base import cd
@@ -74,7 +73,7 @@ class TestBaseRandomnessBehaviourTestSetup:
 
     def set_randomness_behaviour_class(self) -> None:
         """Set randomness_behaviour_class"""
-        self.test_cls.randomness_behaviour_class = DummyRandomnessBehaviour
+        self.test_cls.randomness_behaviour_class = DummyRandomnessBehaviour  # type: ignore
 
     def set_done_event(self) -> None:
         """Set done_event"""
@@ -82,7 +81,7 @@ class TestBaseRandomnessBehaviourTestSetup:
 
     def set_next_behaviour_class(self) -> None:
         """Set next_behaviour_class"""
-        self.test_cls.next_behaviour_class = DummyKeeperSelectionBehaviour
+        self.test_cls.next_behaviour_class = DummyKeeperSelectionBehaviour  # type: ignore
 
     def test_setup_randomness_behaviour_class_not_set(self) -> None:
         """Test setup randomness_behaviour_class not set."""
@@ -133,6 +132,6 @@ class TestBaseRandomnessBehaviourTestRunning(BaseRandomnessBehaviourTest):
     """Test TestBaseRandomnessBehaviourTestRunning running."""
 
     path_to_skill = PATH_TO_SKILL
-    randomness_behaviour_class = DummyRandomnessBehaviour
-    next_behaviour_class = DummyKeeperSelectionBehaviour
+    randomness_behaviour_class = DummyRandomnessBehaviour  # type: ignore
+    next_behaviour_class = DummyKeeperSelectionBehaviour  # type: ignore
     done_event = Event.DONE

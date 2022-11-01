@@ -25,19 +25,20 @@ from typing import List, Optional, Set, Tuple, cast
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
+    AbstractRound,
     AppState,
     BaseSynchronizedData,
     CollectSameUntilAllRound,
     CollectSameUntilThresholdRound,
     EventToTimeout,
     OnlyKeeperSendsRound,
-    TransactionType,
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.payloads import (
     DummyFinalPayload,
     DummyKeeperSelectionPayload,
     DummyRandomnessPayload,
     DummyStartingPayload,
+    TransactionType,
 )
 
 
@@ -57,17 +58,17 @@ class SynchronizedData(BaseSynchronizedData):
     """
 
 
-class DummyMixinRound:
+class DummyMixinRound(AbstractRound):
     """DummyMixinRound"""
 
-    synchronized_data_class = SynchronizedData
+    synchronized_data_class = BaseSynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
 
     @property
     def synchronized_data(self) -> SynchronizedData:
         """Return the synchronized data."""
-        return cast(SynchronizedData, self._synchronized_data)
+        return cast(SynchronizedData, self._synchronized_data)  # type: ignore
 
 
 class DummyStartingRound(CollectSameUntilAllRound, DummyMixinRound):

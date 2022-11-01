@@ -21,7 +21,7 @@
 
 from abc import ABC
 from enum import Enum
-from typing import Any, Dict, Hashable, Optional
+from typing import Any, Dict, Hashable
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -71,7 +71,7 @@ class DummyRandomnessPayload(BaseTxPayload):
     def __init__(
         self, sender: str, round_id: int, randomness: str, **kwargs: Any
     ) -> None:
-        """"""
+        """Initialize DummyRandomnessPayload"""
         super().__init__(sender, **kwargs)
         self._round_id = round_id
         self._randomness = randomness
