@@ -91,29 +91,6 @@ def chain_selection_flag(
 class PathArgument(click.Path):
     """Path parameter for CLI."""
 
-    def __init__(
-        self,
-        exists: bool = False,
-        file_okay: bool = True,
-        dir_okay: bool = True,
-        writable: bool = False,
-        readable: bool = True,
-        resolve_path: bool = False,
-        allow_dash: bool = False,
-        path_type: Optional[Type] = None,
-    ):
-        """Initialze object."""
-        super().__init__(
-            exists,
-            file_okay,
-            dir_okay,
-            writable,
-            readable,
-            resolve_path,
-            allow_dash,
-            path_type,
-        )
-
     def convert(
         self, value: Any, param: Optional[click.Parameter], ctx: Optional[click.Context]
     ) -> Path:
