@@ -31,12 +31,10 @@ from autonomy.configurations.constants import CLASS_NAME, HANDLERS
 
 def resolve_handler_path_to_module(skill_path: Path) -> str:
     """Resolve handler path to current workind directory."""
-    handler_file_path = (skill_path / f"{HANDLERS}.py").relative_to(
-        Path.cwd().resolve()
-    )
+    handler_file_path = skill_path.relative_to(Path.cwd().resolve())
     return ".".join(
         (
-            *handler_file_path.parts[:-1],
+            *handler_file_path.parts,
             HANDLERS,
         )
     )
