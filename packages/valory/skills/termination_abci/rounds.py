@@ -88,6 +88,7 @@ class BackgroundRound(CollectSameUntilThresholdRound):
 class TerminationRound(AbstractRound):
     """Round to act as the counterpart of the behaviour responsible for terminating the agent."""
 
+    allowed_tx_type = None
     round_id = "termination_round"
 
     def check_payload(self, payload: BaseTxPayload) -> None:

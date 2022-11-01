@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,6 +26,12 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     AbciDialogues as BaseAbciDialogues,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
+    ContractApiDialogue as BaseContractApiDialogue,
+)
+from packages.valory.skills.abstract_round_abci.dialogues import (
+    ContractApiDialogues as BaseContractApiDialogues,
+)
+from packages.valory.skills.abstract_round_abci.dialogues import (
     HttpDialogue as BaseHttpDialogue,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
@@ -47,3 +53,6 @@ HttpDialogues = BaseHttpDialogues
 
 SigningDialogue = BaseSigningDialogue
 SigningDialogues = BaseSigningDialogues
+
+ContractApiDialogue = BaseContractApiDialogue
+ContractApiDialogues = BaseContractApiDialogues

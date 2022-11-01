@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,6 +32,9 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 from packages.valory.skills.abstract_round_abci.handlers import (
     SigningHandler as BaseSigningHandler,
 )
+from packages.valory.skills.abstract_round_abci.handlers import (
+    TendermintHandler as BaseTendermintHandler,
+)
 
 
 TerminationABCIHandler = ABCIRoundHandler
@@ -39,3 +42,4 @@ HttpHandler = BaseHttpHandler
 ContractApiHandler = BaseContractApiHandler
 LedgerApiHandler = BaseLedgerApiHandler
 SigningHandler = BaseSigningHandler
+TendermintHandler = BaseTendermintHandler

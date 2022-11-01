@@ -88,7 +88,6 @@ class BackgroundBehaviour(BaseBehaviour):
         if self._is_termination_majority():
             # if termination majority has already been reached
             # there is no need to run the rest of this method
-            yield
             return
 
         signal_present = yield from self.check_for_signal()
@@ -111,6 +110,8 @@ class BackgroundBehaviour(BaseBehaviour):
                 "Couldn't prepare multisend transaction for termination."
             )
             return
+
+        self.context.logger.info("Successfully prepared termination multisend tx.")
         termination_payload = BackgroundPayload(
             self.context.agent_address, background_data=background_data
         )
@@ -140,7 +141,7 @@ class BackgroundBehaviour(BaseBehaviour):
         :returns: True if the termination signal is found, false otherwise
         """
         if self._service_owner_address is None:
-            self._service_owner_address = yield from self.get_service_owner()
+            self._service_owner_address = yield from self._get_service_owner()
 
         termination_signal = yield from self._get_latest_termination_signal()
         if termination_signal is None:
@@ -170,7 +171,7 @@ class BackgroundBehaviour(BaseBehaviour):
         # a `RemovedOwner` event is thrown, which is what `_get_latest_removed_owner_event()` captures.
 
         termination_signal_occurrence = int(termination_signal["block_number"])
-        service_owner_removal_occurrence = int(termination_signal["block_number"])
+        service_owner_removal_occurrence = int(service_owner_removal["block_number"])
 
         # if the termination signal has occurred after the owner has been removed the service should terminate,
         # otherwise it's a signal that has already been handled previously
@@ -236,14 +237,14 @@ class BackgroundBehaviour(BaseBehaviour):
 
         return latest_zero_transfer_event
 
-    def get_service_owner(self) -> Generator[None, None, Optional[str]]:
+    def _get_service_owner(self) -> Generator[None, None, Optional[str]]:
         """Method that returns the service owner."""
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="get_service_owner",
             contract_address=self.params.service_registry_address,
-            service_id=self.params.service_id,
+            service_id=self.params.on_chain_service_id,
         )
 
         if response.performative != ContractApiMessage.Performative.STATE:
@@ -402,10 +403,10 @@ class BackgroundBehaviour(BaseBehaviour):
         # we remove all but one safe owner
         for owner in safe_owners[1:]:
             # we generate a tx to remove the current owner
-            remove_tx = yield from self._get_remove_owner_tx(owner, threshold)
-            if remove_tx is None:
+            remove_tx_str = yield from self._get_remove_owner_tx(owner, threshold)
+            if remove_tx_str is None:
                 return None
-
+            remove_tx = bytes.fromhex(remove_tx_str)
             # we append it to the list of the multisend txs
             transactions.append(
                 {
@@ -440,10 +441,10 @@ class BackgroundBehaviour(BaseBehaviour):
             contract_callable="get_tx_data",
             multi_send_txs=transactions,
         )
-        if response.performative != ContractApiMessage.Performative.RAW_MESSAGE:
+        if response.performative != ContractApiMessage.Performative.RAW_TRANSACTION:
             self.context.logger.error(
                 f"Couldn't compile the multisend tx. "
-                f"Expected response performative {ContractApiMessage.Performative.RAW_MESSAGE.value}, "  # type: ignore
+                f"Expected response performative {ContractApiMessage.Performative.RAW_TRANSACTION.value}, "  # type: ignore
                 f"received {response.performative.value}."
             )
             return None

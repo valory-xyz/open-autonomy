@@ -16,10 +16,20 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# pylint: disable=unused-import
 
-"""This module contains the ABCI Termination skill for an AEA."""
-
-from aea.configurations.base import PublicId
+"""Test the models.py module of the skill."""
 
 
-PUBLIC_ID = PublicId.from_str("valory/termination_abci:0.1.0")
+from packages.valory.skills.abstract_round_abci.test_tools.base import DummyContext
+from packages.valory.skills.termination_abci.models import SharedState
+
+
+class TestSharedState:  # pylint: disable=too-few-public-methods
+    """Test SharedState(Model) class."""
+
+    def test_initialization(  # pylint: disable=no-self-use
+        self,
+    ) -> None:
+        """Test initialization."""
+        SharedState(name="", skill_context=DummyContext())

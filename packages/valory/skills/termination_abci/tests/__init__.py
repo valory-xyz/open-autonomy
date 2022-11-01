@@ -17,9 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the ABCI Termination skill for an AEA."""
-
-from aea.configurations.base import PublicId
-
-
-PUBLIC_ID = PublicId.from_str("valory/termination_abci:0.1.0")
+"""Tests for valory/termination_abci skill."""

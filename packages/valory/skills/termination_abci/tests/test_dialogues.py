@@ -16,10 +16,13 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# pylint: disable=unused-import
 
-"""This module contains the ABCI Termination skill for an AEA."""
-
-from aea.configurations.base import PublicId
+"""Test the dialogues.py module of the skill."""
 
 
-PUBLIC_ID = PublicId.from_str("valory/termination_abci:0.1.0")
+import packages.valory.skills.termination_abci.dialogues  # noqa
+
+
+def test_import() -> None:
+    """Test that the 'dialogues.py' Python module can be imported."""

@@ -17,9 +17,20 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the ABCI Termination skill for an AEA."""
-
-from aea.configurations.base import PublicId
+"""Test the payloads.py module of the skill."""
 
 
-PUBLIC_ID = PublicId.from_str("valory/termination_abci:0.1.0")
+from packages.valory.skills.termination_abci.payloads import (
+    BackgroundPayload,
+    TransactionType,
+)
+
+
+def test_background_payload() -> None:
+    """Test `BackgroundPayload`."""
+    data = "0xdata"
+    payload = BackgroundPayload(sender="sender", background_data=data)
+
+    assert payload.background_data == data
+    assert payload.data == {"background_data": data}
+    assert payload.transaction_type == TransactionType.BACKGROUND
