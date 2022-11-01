@@ -21,16 +21,19 @@
 import importlib
 import sys
 from pathlib import Path
+from typing import List
 from warnings import filterwarnings
 
 import click
+from aea.cli.utils.context import Context
+from aea.cli.utils.decorators import pass_ctx
 from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE
 
 from autonomy.analyse.abci.app_spec import DFA, SpecCheck
 from autonomy.analyse.abci.docstrings import process_module
-from autonomy.analyse.abci.handlers import check_handlers
 from autonomy.analyse.abci.logs import parse_file
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
+from autonomy.analyse.handlers import check_handlers
 from autonomy.cli.utils.click_utils import abci_spec_format_flag
 
 
@@ -165,37 +168,47 @@ def parse_logs(file: Path) -> None:
         raise click.ClickException(str(e)) from e
 
 
-@abci_group.command(name="check-handlers")
-@click.argument(
-    "packages_dir",
-    type=click.Path(dir_okay=True, exists=True),
-    default=Path.cwd() / "packages",
+@analyse_group.command(name="handlers")
+@pass_ctx
+@click.option(
+    "--common-handlers",
+    "-h",
+    type=str,
+    default=[
+        "abci",
+    ],
+    help="Specify which handlers to check. Eg. -h handler_a -h handler_b -h handler_c",
+    multiple=True,
 )
 @click.option(
-    "--skip",
+    "--ignore",
+    "-i",
     type=str,
-    default="abstract_abci",
-    help="Specify which skills to skip. Eg. skill_0,skill_1,skill_2",
+    default=[
+        "abstract_abci",
+    ],
+    help="Specify which skills to skip. Eg. -i skill_0 -i skill_1 -i skill_2",
+    multiple=True,
 )
-@click.option(
-    "--common",
-    type=str,
-    default="abci",
-    help="Specify which handlers to check. Eg. handler_a,handler_b,handler_c",
-)
-def run_handler_check(packages_dir: Path, skip: str, common: str) -> None:
+def run_handler_check(
+    ctx: Context, ignore: List[str], common_handlers: List[str]
+) -> None:
     """Check handler definitions."""
 
-    # TODO: use more appropriate input type and apply validation on it
-    skip_skills = skip.split(",")
-    common_handlers = common.split(",")
-    packages_dir = Path(packages_dir)
-
     try:
-        for yaml_file in sorted(packages_dir.glob(f"**/{DEFAULT_SKILL_CONFIG_FILE}")):
+        for yaml_file in sorted(
+            Path(ctx.registry_path).glob(f"*/*/*/{DEFAULT_SKILL_CONFIG_FILE}")
+        ):
+            if yaml_file.parent.name in ignore:
+                click.echo(f"Skipping {yaml_file.parent}")
+                continue
+
             click.echo(f"Checking {yaml_file.parent}")
-            check_handlers(yaml_file.resolve(), common_handlers, skip_skills)
-    except Exception as e:  # pylint: disable=broad-except
+            check_handlers(
+                yaml_file.resolve(),
+                common_handlers=common_handlers,
+            )
+    except (FileNotFoundError, ValueError, ImportError) as e:
         raise click.ClickException(str(e)) from e
 
 
