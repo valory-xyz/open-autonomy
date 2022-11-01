@@ -404,7 +404,11 @@ class BackgroundBehaviour(BaseBehaviour):
 
         owner_to_be_swapped = safe_owners[0]
         # we remove all but one safe owner
-        for owner in safe_owners[1:]:
+        # reverse the list to avoid errors when removing owners
+        # this is because the owners are stored as a linked list
+        # in the safe, hence the order is important
+        safe_owners = list(reversed(safe_owners[1:]))
+        for owner in safe_owners:
             # we generate a tx to remove the current owner
             remove_tx_str = yield from self._get_remove_owner_tx(owner, threshold)
             if remove_tx_str is None:
