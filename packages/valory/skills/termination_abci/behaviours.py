@@ -85,9 +85,12 @@ class BackgroundBehaviour(BaseBehaviour):
         :return: None
         :yield: None
         """
-        if self._is_termination_majority():
-            # if termination majority has already been reached
-            # there is no need to run the rest of this method
+        if not self._is_majority_possible() or self._is_termination_majority():
+            # if the service has not enough participants to reach
+            # consensus or if termination majority has already
+            # been reached, ie the multisend transaction has been
+            # prepared by enough participants,
+            # there is no need to run the rest of the act
             return
 
         signal_present = yield from self.check_for_signal()
