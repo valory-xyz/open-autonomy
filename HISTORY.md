@@ -1,5 +1,26 @@
 # Release History - `open-autonomy`
 
+# 0.3.4 (2022-11-02)
+
+Autonomy:
+- Updates service component to use new override policies
+
+Packages:
+- Adds `get_service_owner` on the `ServiceRegistry` contract implementation
+- Introduces `termination_abci` skill to support service termination
+- Introduces `register_termination` skill and `register_termination` agent to demonstrate `termination_abci` skill
+- Extends gnosis safe contract implementation with
+  - `get_swap_owner_data` to encode a transaction to swap a safe owner
+  - `get_remove_owner_data` to encode a transaction to remove a safe owner
+  - `get_zero_transfer_events` to retrieve 0 value transfer events sent to the safe
+  - `get_removed_owner_events` to retrieve safe owner removal events
+
+Tests:
+- Adds test coverage for core packages
+- Extracts the `background_round` (`termination_round`) to it's own skill
+
+Docs:
+- Removes redundant documentation on package publishing
 
 # 0.3.3 (2022-10-21)
 
