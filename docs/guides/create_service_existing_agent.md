@@ -107,7 +107,7 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
 2. **Use a local deployment to test the service.** This is the recommended approach in order to test your agent service before you publish it to a remote registry. Follow the instructions in the [local deployment guide](./deploy_service.md#local-deployment) to run the local deployment. Note that this process should be somewhat familiar to you if you have followed the [quick start guide](./quick_start.md).
 
 3. **Publish the service on a remote registry.** This will make the service available for other developers to fetch and use it. This step is also recommended if you want to register the service in the on-chain registry. Read the guide to
-[pubish an agent on a registry](./publish_fetch_packages.md#publish-an-agent-on-a-registry) to learn more.
+[publish an agent on a registry](./publish_fetch_packages.md#publish-an-agent-on-a-registry) to learn more.
 
 4. **Register the service in the on-chain registry.** By registering the service in the on-chain registry you ensure that it is crypto-economically secured through the on-chain protocol. Follow the instructions in the [on-chain service registration guide](./register_packages_on_chain.md#register-a-service).
 
