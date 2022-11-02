@@ -11,7 +11,7 @@ fingerprint:
   abci_app_chain.py: bafybeihb3ded23gvjrn426qptkbnkge5cewqm7ywi4j6ebmo3j66ss5wii
   base.py: bafybeid2jhl4c6sgay5poq77pw64vlhzvitakdb4ukh3awk5gdxl67lxfi
   behaviour_utils.py: bafybeid63sroln5feyudtvignapsii3k3ittqr6apmx5kspwglzlx7eg6y
-  behaviours.py: bafybeiaamtk4fv2m43xhwmqsyyhn6w4iq7slg4wpsk57eeelkrnqgmbtou
+  behaviours.py: bafybeib6iuxtyrnmnessimdzhmpg6xovczgr4s2nxh5uuaf4rerwevfmi4
   common.py: bafybeig4binmx32hbak7lmg7kaptfh4qhnwpa2sshykvf3kgvqkztcimfi
   dialogues.py: bafybeibvnmcn7kofol2h6owljhde4llfc3kwwkb5helxsgsy47mokhwb4i
   handlers.py: bafybeidn7y3fyl6vuqewio6gjsjn737j33oxifsfdq7hb2epwdobbmj2ny
@@ -53,7 +53,7 @@ connections:
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
 - valory/ledger:0.19.0:bafybeihmz5us4ntmzvgikpkx4tththrl7zvou4uiebvletdeliidiuhi6m
 contracts:
-- valory/service_registry:0.1.0:bafybeig5cydwoi7laokvhrlaj5qzdqcrloaldescakjnk7d7xvxveepzne
+- valory/service_registry:0.1.0:bafybeifso7yjezl4vqbuwsibjt7nmiztuktvxforzlaqq2jn3vzm3c6qne
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay

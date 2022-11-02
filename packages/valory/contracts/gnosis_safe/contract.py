@@ -964,3 +964,24 @@ class GnosisSafeContract(Contract):
             # if target is the first element in the list, the root is pointing to it
             return root
         return linked_list[index]
+
+    @classmethod
+    def get_owners(
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+    ) -> JSONLike:
+        """
+        Get the safe owners.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :return: the safe owners
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        safe_contract = cls.get_instance(ledger_api, contract_address)
+        owners = [
+            ledger_api.api.toChecksumAddress(owner)
+            for owner in safe_contract.functions.getOwners().call()
+        ]
+        return dict(owners=owners)
