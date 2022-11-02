@@ -2,15 +2,14 @@ agent_name: register_termination
 author: valory
 version: 0.1.0
 license: Apache-2.0
-description: Register reset to replicate Tendermint issue.
+description: Register terminate to test the termination feature.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: bafybeicocdojplie5z4kbs7cn7apunfydbxui2nigp6ci2osuvv3mybzfm
+  README.md: bafybeiamp5k2dtww2rxaxu4kqsi3yon6mhofezlgcyzrialt2rnigkk43y
   __init__.py: bafybeihgxrmmp63exxkdmvlu565kehvuucg4iivnejwutaehb2p7xzxu4q
-  tests/__init__.py: bafybeigkkq3hon4wuyrazwnt5tiu23idpelf6a7kzbmawty7zfrpqnmnhi
-  tests/base.py: bafybeibiskservc5b4gtwyuq32vjfl4q3iczot5xtjtzmzicbr5w6jc7pi
-  tests/fixtures.py: bafybeidmmoxsbaz2ok6dgpvgiltzsjh7hzclw75ls3yk22xhmcjovly3xy
-  tests/test_register_reset.py: bafybeigvese4kxzoysrgqyocb7tqco2alfw4a42ez5x3uo2fdt5iz6hd6e
+  tests/__init__.py: bafybeiftvheymtbp6iilmx7dceh46hplfxa3lss4xghz623gdon7jhpidi
+  tests/base.py: bafybeig37cqcgtwcusq3r2ntx46cf5gsc6oxytilfd26dotixr5vfmryl4
+  tests/test_register_reset.py: bafybeiedw36xhrcfotcqintqel4iq7jvghfbncahjv2zs7vv4fpaxwwx54
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeifdn6eyp7tw3pemycnuuh7e6iairmkdpsohjg2coyxkcmjwfpqavm
@@ -33,7 +32,7 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeiagrbn76jal52v2egtuwelcam3e2huzc6pwjtux2dh5hktxn7em3y
 - valory/abstract_round_abci:0.1.0:bafybeifeu76vagb6r3qakyr6tr5ujpocg6rih2g3mmllliqeauosduzidi
-- valory/register_termination_abci:0.1.0:bafybeig5b53v4kp4xkifwph33kejjmbnbjx2odd6rojvjpyq44iaeli2ni
+- valory/register_termination_abci:0.1.0:bafybeigz2llljo4vfadgn346yqzw22hz3w4b4dsp6gav2c6dvmvzbjv3vy
 - valory/registration_abci:0.1.0:bafybeidvpx7evw4lpxrpcn5aiodpwl4r7kk3vpyh4hmxb4wfcxoalqxjfm
 - valory/reset_pause_abci:0.1.0:bafybeifixswvxio2tkmldvoerryfylq3ppkp2xd4br2byybtw3gslkjw44
 - valory/termination_abci:0.1.0:bafybeibxx2cwlrscuf3zlyrw2j6qrf4teskredfvompozw2r6ekmopz62i

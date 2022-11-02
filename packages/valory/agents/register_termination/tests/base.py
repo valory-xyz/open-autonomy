@@ -55,7 +55,6 @@ class BaseTestTerminationEnd2End(
 
     cli_log_options = ["-v", "INFO"]  # no need for debug
     skill_package = "valory/register_termination_abci:0.1.0"
-    key_pairs = _HARDHAT_KEY_PAIRS
     SAFE_CONTRACT_ADDRESS = _DEFAULT_SAFE_CONTRACT_ADDRESS
     SERVICE_REGISTRY_ADDRESS = _DEFAULT_SERVICE_REGISTRY_ADDRESS
     MULTISEND_ADDRESS = _DEFAULT_MULTISEND_ADDRESS

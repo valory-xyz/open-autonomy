@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the shared state for the register-reset ABCI application."""
+"""This module contains the shared state for the register-termination ABCI application."""
 
 from typing import Any
 

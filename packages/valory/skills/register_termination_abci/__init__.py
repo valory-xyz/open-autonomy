@@ -18,9 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """
-This module contains a dummy ABCI skill in which the agents register and then reset.
+This module contains a dummy ABCI skill in which the agents register and then pick up the termination signal.
 
-It is created only for debugging purposes, regarding the Tendermint reset issue.
+It is created only for testing purposes for the termination feature.
 """
 
 from aea.configurations.base import PublicId

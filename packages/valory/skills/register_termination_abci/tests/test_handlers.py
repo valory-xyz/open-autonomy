@@ -16,10 +16,10 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# pylint: disable=unused-import
 
 """Test the dialogues.py module of the skill."""
 
-# pylint: skip-file
 
 import packages.valory.skills.register_termination_abci.handlers  # noqa
 

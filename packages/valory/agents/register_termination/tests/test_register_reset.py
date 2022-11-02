@@ -16,27 +16,27 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# pylint: disable=unused-import
 
-"""Integration tests for the valory/register_reset skill."""
+"""Integration tests for the valory/register_termination skill."""
 from pathlib import Path
 
 import pytest
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401
+    UseRegistries,
     abci_host,
     abci_port,
     flask_tendermint,
+    hardhat_addr,
+    hardhat_port,
+    key_pairs,
+    registries_scope_class,
     tendermint_port,
 )
 
 from packages.valory.agents.register_termination.tests.base import (
     BaseTestTerminationEnd2End,
 )
-from packages.valory.agents.register_termination.tests.fixtures import (
-    UseHardHatRegistriesTest,
-)
-
-
-# pylint: skip-file
 
 
 TARGET_AGENT = "valory/register_termination:0.1.0"
@@ -62,7 +62,7 @@ TERMINATION_STRINGS = (
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestTermination(
     BaseTestTerminationEnd2End,
-    UseHardHatRegistriesTest,
+    UseRegistries,
 ):
     """Test that termination works right."""
 

@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for register_reset agent."""
+"""Tests for register_termination agent."""

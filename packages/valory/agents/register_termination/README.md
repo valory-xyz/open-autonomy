@@ -1,3 +1,3 @@
-# Register Reset ABCI Agent
+# Register Terminate ABCI Agent
 
-This agent uses the registration and reset skills to debug the Tendermint issue.
+This agent uses the registration and termination skills to test the termination feature.

@@ -1,4 +1,4 @@
-# Register Safe Termination abci
+# Register Termination abci
 
 ## Description
 

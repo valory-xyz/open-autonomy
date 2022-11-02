@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for valory/registration_abci skill's behaviours."""
+"""Tests for valory/termination_abci skill's behaviours."""
 
 from unittest.mock import MagicMock
 

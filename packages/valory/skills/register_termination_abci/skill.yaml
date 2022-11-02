@@ -6,18 +6,18 @@ description: ABCI application for dummy skill that registers and resets
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: bafybeig7fscmkyf2i4cl2btbpuimvnzdehtl2kyyyaxe7unn6zgdjomhjy
-  __init__.py: bafybeibsbkbm2hjtyhe6l7t6ufwcj5ayfndzodys7wssxykxw4x3cbixyu
+  README.md: bafybeieyro2eupexnqdu2mjqbyhp7jphn5rij4hvdgty5plij52tsffhs4
+  __init__.py: bafybeiex6mhypt3mkeflnoppnxxckxwe3f4fpytgqzseelvxg54rzhcwme
   behaviours.py: bafybeicmgb3hz2f6rhnpctcojeesayvmwicvl4mybbseyscdvzr6luepni
   composition.py: bafybeid5sd7d5gc3tnoj3awy4swxexpdro747prr3kz6qxkwserpqmihn4
   dialogues.py: bafybeih3x4egnkh7xwnlawqbu6fpqyqbaum7ivdhqm6r6557dyy2rhzneq
-  handlers.py: bafybeiedufmy3yezjed4fmqrzl7zxr3i4npbxefr6bwhrdlnu63egwfm54
-  models.py: bafybeicssp6zqngksutebz32qszi5vdf4uerk63cynqloof6cc6nk24uwu
+  handlers.py: bafybeibotw5mzjfbzdme5w4oytvqspcql3vbyr3v5k5zt6v3o6y6dypd7e
+  models.py: bafybeigiyjoevfn5lrm4crkt67p22ejifzixghy4uatdwlclofywngfbji
   tests/__init__.py: bafybeid2pb3mfobqtzsadxzris67d4hkmcflqfnzay3y3errmtd7tdtvoe
-  tests/test_behaviours.py: bafybeihc7eoat7rztfernupnsytlpg2adjrinfqhtjyornjj5qdyfulu74
-  tests/test_dialogues.py: bafybeifh7hxzvcyqfygpve33vhirtebbu3pmhvg7xcar4rt75t62g4ybk4
-  tests/test_handlers.py: bafybeid5373thvoc5w3ecgsfdtobg3itxvktpbyyvn2k35f7rsnqbjt26q
-  tests/test_models.py: bafybeigwqf6m7ndlpns6qmlan6yakcmwlnbiecchxgx3ubs45orzat5uju
+  tests/test_behaviours.py: bafybeihdacox5ib2pnpyttlw44m3odd22dr5s3tet7q4axo44wxdckmfsu
+  tests/test_dialogues.py: bafybeiha37jzqmgtfjl52c52xz7osnu7y2ic2sxdp6wkmdgwlbzqtzz3me
+  tests/test_handlers.py: bafybeidxd375se3fx5gpakpauglsmqom3bbizflpw3k265knyy6fxtckra
+  tests/test_models.py: bafybeif2d4kqt7ettspc6fgbeb5y5cm5632rp7dnjcyzy7zfof2m7z6mzq
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
