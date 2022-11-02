@@ -25,6 +25,7 @@ from typing import Type, cast
 import pytest
 from aea.helpers.base import cd
 
+from packages.valory.skills.abstract_round_abci.base import _MetaPayload
 from packages.valory.skills.abstract_round_abci.test_tools.common import (
     BaseRandomnessBehaviourTest,
 )
@@ -45,6 +46,17 @@ class TestBaseRandomnessBehaviourTestSetup:
     """Test BaseRandomnessBehaviourTest setup."""
 
     test_cls: Type[BaseRandomnessBehaviourTest]
+
+    @classmethod
+    def setup_class(cls) -> None:
+        """Setup class"""
+        cls.old_value = _MetaPayload.transaction_type_to_payload_cls.copy()  # type: ignore
+        _MetaPayload.transaction_type_to_payload_cls.clear()
+
+    @classmethod
+    def teardown_class(cls) -> None:
+        """Teardown class"""
+        _MetaPayload.transaction_type_to_payload_cls = cls.old_value  # type: ignore
 
     def setup(self) -> None:
         """Setup test"""
