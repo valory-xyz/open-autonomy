@@ -85,9 +85,9 @@ class TestCheckHandlers(BaseCliTest):
             Path(self.t / "packages").glob(f"*/*/*/{DEFAULT_SKILL_CONFIG_FILE}")
         ):
             if yaml_file.parent.name in IGNORE_SKILLS:
-                assert f"Skipping {yaml_file.parent}" in result.output
+                assert f"Skipping {yaml_file.parent.resolve()}" in result.output
             else:
-                assert f"Checking {yaml_file.parent}" in result.output
+                assert f"Checking {yaml_file.parent.resolve()}" in result.output
 
     def test_check_handlers_fail(
         self,
