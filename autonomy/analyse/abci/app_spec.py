@@ -448,7 +448,7 @@ def check_unreferenced_events(abci_app_cls: Any) -> List[str]:
     statement returning such events.
 
     :param abci_app_cls: AbciApp to check unreferenced events.
-    :raises DFASpecificationError: If there are unreferenced events in the AbciApp.
+    :return: List of error strings
     """
 
     error_strings = []
