@@ -227,7 +227,7 @@ class AbstractRoundBehaviour(
     @property
     def is_background_behaviour_set(self) -> bool:
         """Returns whether the background behaviour is set."""
-        return self.background_behaviour is not None
+        return self.background_behaviour_cls is not None
 
     def setup(self) -> None:
         """Set up the behaviours."""

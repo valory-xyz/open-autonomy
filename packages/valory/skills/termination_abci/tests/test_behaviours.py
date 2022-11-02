@@ -20,7 +20,7 @@
 """This package contains round behaviours of Background Behaviours."""
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Dict, Hashable, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Type
 from unittest import mock
 
 import pytest
@@ -52,7 +52,7 @@ SERVICE_REGISTRY_ADDRESS = "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA"
 SAFE_ADDRESS = "0x0"
 MULTISEND_ADDRESS = "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761"
 SERVICE_OWNER_ADDRESS = "0x0"
-SERVICE_ID = "termination_abci"
+SERVICE_ID = None
 
 
 @dataclass
@@ -60,7 +60,7 @@ class BehaviourTestCase:
     """BehaviourTestCase"""
 
     name: str
-    initial_data: Dict[str, Hashable]
+    initial_data: Dict[str, Any]
     ok_reqs: List[Callable]
     err_reqs: List[Callable]
     expected_logs: List[str]
@@ -129,6 +129,9 @@ class TestBackgroundBehaviour(BaseTerminationTest):
     _SAFE_THRESHOLD = 1
     _MOCK_TX_RESPONSE = b"0xIrrelevantForTests".hex()
     _MOCK_TX_HASH = "0x" + "0" * 64
+    _INITIAL_DATA: Dict[str, Any] = dict(
+        safe_contract_address=SAFE_ADDRESS, participants=_SAFE_OWNERS
+    )
 
     _STATE_ERR_LOG = (
         f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "  # type: ignore
@@ -373,21 +376,21 @@ class TestBackgroundBehaviour(BaseTerminationTest):
         [
             BehaviourTestCase(
                 name="agent fails to get the service owner",
-                initial_data=dict(safe_contract_address=SAFE_ADDRESS),
+                initial_data=_INITIAL_DATA,
                 ok_reqs=[],
                 err_reqs=[_mock_get_service_owner_request],
                 expected_logs=[_SERVICE_OWNER_ERR_LOG],
             ),
             BehaviourTestCase(
                 name="agent fails to get zero transfer event",
-                initial_data=dict(safe_contract_address=SAFE_ADDRESS),
+                initial_data=_INITIAL_DATA,
                 ok_reqs=[_mock_get_service_owner_request],
                 err_reqs=[_mock_get_zero_transfer_events_request],
                 expected_logs=[_ZERO_TRANSFER_EVENTS_ERR_LOG],
             ),
             BehaviourTestCase(
                 name="agent fails to get owner removal event",
-                initial_data=dict(safe_contract_address=SAFE_ADDRESS),
+                initial_data=_INITIAL_DATA,
                 ok_reqs=[
                     _mock_get_service_owner_request,
                     _mock_get_zero_transfer_events_request,
@@ -397,7 +400,7 @@ class TestBackgroundBehaviour(BaseTerminationTest):
             ),
             BehaviourTestCase(
                 name="agent fails to get the safe owners",
-                initial_data=dict(safe_contract_address=SAFE_ADDRESS),
+                initial_data=_INITIAL_DATA,
                 ok_reqs=[
                     _mock_get_service_owner_request,
                     _mock_get_zero_transfer_events_request,
@@ -408,7 +411,7 @@ class TestBackgroundBehaviour(BaseTerminationTest):
             ),
             BehaviourTestCase(
                 name="agent fails to get a remove safe owner tx",
-                initial_data=dict(safe_contract_address=SAFE_ADDRESS),
+                initial_data=_INITIAL_DATA,
                 ok_reqs=[
                     _mock_get_service_owner_request,
                     _mock_get_zero_transfer_events_request,
@@ -420,7 +423,7 @@ class TestBackgroundBehaviour(BaseTerminationTest):
             ),
             BehaviourTestCase(
                 name="agent fails to get a swap safe owner tx",
-                initial_data=dict(safe_contract_address=SAFE_ADDRESS),
+                initial_data=_INITIAL_DATA,
                 ok_reqs=[
                     _mock_get_service_owner_request,
                     _mock_get_zero_transfer_events_request,
@@ -433,7 +436,7 @@ class TestBackgroundBehaviour(BaseTerminationTest):
             ),
             BehaviourTestCase(
                 name="agent fails to prepare multisend tx",
-                initial_data=dict(safe_contract_address=SAFE_ADDRESS),
+                initial_data=_INITIAL_DATA,
                 ok_reqs=[
                     _mock_get_service_owner_request,
                     _mock_get_zero_transfer_events_request,
@@ -447,7 +450,7 @@ class TestBackgroundBehaviour(BaseTerminationTest):
             ),
             BehaviourTestCase(
                 name="agent fails to get a hash for the multisend tx",
-                initial_data=dict(safe_contract_address=SAFE_ADDRESS),
+                initial_data=_INITIAL_DATA,
                 ok_reqs=[
                     _mock_get_service_owner_request,
                     _mock_get_zero_transfer_events_request,
@@ -462,7 +465,7 @@ class TestBackgroundBehaviour(BaseTerminationTest):
             ),
             BehaviourTestCase(
                 name="agent completes the whole flow",
-                initial_data=dict(safe_contract_address=SAFE_ADDRESS),
+                initial_data=_INITIAL_DATA,
                 ok_reqs=[
                     _mock_get_service_owner_request,
                     _mock_get_zero_transfer_events_request,
@@ -511,7 +514,7 @@ class TestBackgroundBehaviour(BaseTerminationTest):
 
     def test_no_termination_signal_is_present(self) -> None:
         """Tests the background behaviour when no termination signal is present."""
-        self.fast_forward(dict(safe_contract_address=SAFE_ADDRESS))
+        self.fast_forward(self._INITIAL_DATA)
         with mock.patch.object(AsyncBehaviour, "sleep") as sleep:
             self.behaviour.act_wrapper()
             self._mock_get_service_owner_request()
@@ -520,7 +523,7 @@ class TestBackgroundBehaviour(BaseTerminationTest):
 
     def test_no_remove_owner_event_is_present(self) -> None:
         """Tests the background behaviour when the safe owner hasn't been removed."""
-        self.fast_forward(dict(safe_contract_address=SAFE_ADDRESS))
+        self.fast_forward(self._INITIAL_DATA)
         self.behaviour.act_wrapper()
         self._mock_get_service_owner_request()
         self._mock_get_zero_transfer_events_request()

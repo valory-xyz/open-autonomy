@@ -85,9 +85,12 @@ class BackgroundBehaviour(BaseBehaviour):
         :return: None
         :yield: None
         """
-        if self._is_termination_majority():
-            # if termination majority has already been reached
-            # there is no need to run the rest of this method
+        if not self._is_majority_possible() or self._is_termination_majority():
+            # if the service has not enough participants to reach
+            # consensus or if termination majority has already
+            # been reached, ie the multisend transaction has been
+            # prepared by enough participants,
+            # there is no need to run the rest of the act
             return
 
         signal_present = yield from self.check_for_signal()
@@ -249,7 +252,7 @@ class BackgroundBehaviour(BaseBehaviour):
 
         if response.performative != ContractApiMessage.Performative.STATE:
             self.context.logger.error(
-                f"Couldn't get the service owner for service with id={self.params.service_id}. "
+                f"Couldn't get the service owner for service with id={self.params.on_chain_service_id}. "
                 f"Expected response performative {ContractApiMessage.Performative.STATE.value}, "  # type: ignore
                 f"received {response.performative.value}."
             )
@@ -327,7 +330,8 @@ class BackgroundBehaviour(BaseBehaviour):
             )
             return None
 
-        tx_data = cast(Optional[str], response.state.body.get("data", None))
+        # strip "0x" from the response
+        tx_data = cast(str, response.state.body.get("data", None))[2:]
         return tx_data
 
     def _get_swap_owner_tx(
@@ -357,7 +361,8 @@ class BackgroundBehaviour(BaseBehaviour):
             )
             return None
 
-        tx_data = cast(Optional[str], response.state.body.get("data", None))
+        # strip "0x" from the response
+        tx_data = cast(str, response.state.body.get("data", None))[2:]
         return tx_data
 
     def _get_safe_tx_hash(self, data: bytes) -> Generator[None, None, Optional[str]]:
@@ -398,10 +403,13 @@ class BackgroundBehaviour(BaseBehaviour):
         safe_owners = yield from self._get_safe_owners()
         if safe_owners is None:
             return None
-
         owner_to_be_swapped = safe_owners[0]
         # we remove all but one safe owner
-        for owner in safe_owners[1:]:
+        # reverse the list to avoid errors when removing owners
+        # this is because the owners are stored as a linked list
+        # in the safe, hence the order is important
+        safe_owners = list(reversed(safe_owners[1:]))
+        for owner in safe_owners:
             # we generate a tx to remove the current owner
             remove_tx_str = yield from self._get_remove_owner_tx(owner, threshold)
             if remove_tx_str is None:
@@ -417,22 +425,24 @@ class BackgroundBehaviour(BaseBehaviour):
                 }
             )
 
-        # we swap the last owner with the service owner
-        swap_tx = yield from self._get_swap_owner_tx(
-            owner_to_be_swapped,
-            cast(str, self._service_owner_address),
-        )
-        if swap_tx is None:
-            return None
+        if owner_to_be_swapped != cast(str, self._service_owner_address):
+            # if the service owner is not the owner to be swapped
+            # we swap, otherwise it's not necessary
+            swap_tx = yield from self._get_swap_owner_tx(
+                owner_to_be_swapped,
+                cast(str, self._service_owner_address),
+            )
+            if swap_tx is None:
+                return None
 
-        transactions.append(
-            {
-                "operation": MultiSendOperation.CALL,
-                "to": self.synchronized_data.safe_contract_address,
-                "value": _ETHER_VALUE,
-                "data": HexBytes(swap_tx),
-            }
-        )
+            transactions.append(
+                {
+                    "operation": MultiSendOperation.CALL,
+                    "to": self.synchronized_data.safe_contract_address,
+                    "value": _ETHER_VALUE,
+                    "data": HexBytes(swap_tx),
+                }
+            )
 
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
@@ -449,6 +459,7 @@ class BackgroundBehaviour(BaseBehaviour):
             )
             return None
 
+        # strip "0x" from the response
         multisend_data = cast(str, response.raw_transaction.body["data"])[2:]
         return multisend_data
 
@@ -463,6 +474,13 @@ class BackgroundBehaviour(BaseBehaviour):
     def _is_termination_majority(self) -> bool:
         """Rely on the round to decide when majority is reached."""
         return self.synchronized_data.termination_majority_reached
+
+    def _is_majority_possible(self) -> bool:
+        """Checks whether the service has enough participants to reach consensus."""
+        return (
+            self.synchronized_data.nb_participants
+            >= self.params.consensus_params.consensus_threshold
+        )
 
     def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
         """Wrapper for callback_request(), overridden to avoid mix-ups with normal (non-background) behaviours."""
