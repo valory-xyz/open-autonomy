@@ -21,7 +21,6 @@
 
 from typing import Any
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -30,6 +29,10 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.termination_abci.rounds import TerminationAbciApp
+from packages.valory.skills.transaction_settlement_abci.models import (
+    RandomnessApi as TransactionSettlementRandomness,
+)
+from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 
 
 class SharedState(BaseSharedState):
@@ -40,7 +43,7 @@ class SharedState(BaseSharedState):
         super().__init__(*args, abci_app_cls=TerminationAbciApp, **kwargs)
 
 
-class TerminationParams(BaseParams):
+class TerminationParams(TransactionParams):
     """Defines the class to hold the termination parameters."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -52,3 +55,4 @@ class TerminationParams(BaseParams):
 
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
+RandomnessApi = TransactionSettlementRandomness
