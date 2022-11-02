@@ -82,6 +82,10 @@ def update_one(
 
     try:
         if app_class is None:
+            if not spec_file.exists():
+                raise click.ClickException(
+                    f"FSM specification file {spec_file} does not exist, please provide app class name to continue."
+                )
             app_class = _get_app_class_from_spec_file(spec_file, spec_format)
     except FileNotFoundError as e:
         raise FileNotFoundError(
