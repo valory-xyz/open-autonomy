@@ -71,10 +71,21 @@ DummyRandomnessBehaviour
 ## DummyKeeperSelectionBehaviour Objects
 
 ```python
-class DummyKeeperSelectionBehaviour(DummyBaseBehaviour)
+class DummyKeeperSelectionBehaviour(SelectKeeperBehaviour)
 ```
 
 DummyKeeperSelectionBehaviour
+
+<a id="packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours.DummyKeeperSelectionBehaviour.serialized_keepers"></a>
+
+#### serialized`_`keepers
+
+```python
+@staticmethod
+def serialized_keepers(keepers: Deque[str], keeper_retries: int = 1) -> str
+```
+
+Get the keepers serialized.
 
 <a id="packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours.DummyKeeperSelectionBehaviour.async_act"></a>
 

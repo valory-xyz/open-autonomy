@@ -19,15 +19,18 @@
 
 """This package contains round behaviours of DummyAbciApp."""
 
-from typing import Generator, Set, Type, Deque, cast
 from collections import deque
+from typing import Deque, Generator, Set, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
-from packages.valory.skills.abstract_round_abci.common import RandomnessBehaviour, SelectKeeperBehaviour
+from packages.valory.skills.abstract_round_abci.common import (
+    RandomnessBehaviour,
+    SelectKeeperBehaviour,
+)
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.models import (
     Params,
 )
