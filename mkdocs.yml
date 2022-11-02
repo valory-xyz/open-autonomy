@@ -225,8 +225,7 @@ nav:
 
 
 plugins:
-  - macros:
-        include_dir: docs/include
+  - macros
 
 markdown_extensions:
   - pymdownx.details
