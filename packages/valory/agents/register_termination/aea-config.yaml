@@ -10,7 +10,7 @@ fingerprint:
   tests/__init__.py: bafybeigkkq3hon4wuyrazwnt5tiu23idpelf6a7kzbmawty7zfrpqnmnhi
   tests/base.py: bafybeibiskservc5b4gtwyuq32vjfl4q3iczot5xtjtzmzicbr5w6jc7pi
   tests/fixtures.py: bafybeidmmoxsbaz2ok6dgpvgiltzsjh7hzclw75ls3yk22xhmcjovly3xy
-  tests/test_register_reset.py: bafybeiewophuxfcrgr3mhqovxa2woga4um4kcj7grh3qimfe6dxrdystly
+  tests/test_register_reset.py: bafybeigvese4kxzoysrgqyocb7tqco2alfw4a42ez5x3uo2fdt5iz6hd6e
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeifdn6eyp7tw3pemycnuuh7e6iairmkdpsohjg2coyxkcmjwfpqavm

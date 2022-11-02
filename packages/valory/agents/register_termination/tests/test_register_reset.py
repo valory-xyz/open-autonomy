@@ -18,8 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Integration tests for the valory/register_reset skill."""
-
-# pylint: skip-file
+from pathlib import Path
 
 import pytest
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401
@@ -35,6 +34,9 @@ from packages.valory.agents.register_termination.tests.base import (
 from packages.valory.agents.register_termination.tests.fixtures import (
     UseHardHatRegistriesTest,
 )
+
+
+# pylint: skip-file
 
 
 TARGET_AGENT = "valory/register_termination:0.1.0"
@@ -64,6 +66,7 @@ class TestTermination(
 ):
     """Test that termination works right."""
 
+    package_registry_src_rel = Path(__file__).parents[4]
     agent_package = TARGET_AGENT
     skill_package = TARGET_SKILL
     wait_to_finish = TIME_TO_FINISH
