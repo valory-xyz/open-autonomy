@@ -28,15 +28,15 @@ from aea.helpers.base import cd
 
 from packages.valory.skills.abstract_round_abci.base import _MetaPayload
 from packages.valory.skills.abstract_round_abci.test_tools.common import (
-    CommonBaseCase,
     BaseRandomnessBehaviourTest,
     BaseSelectKeeperBehaviourTest,
+    CommonBaseCase,
 )
 from packages.valory.skills.abstract_round_abci.tests.data import dummy_abci
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours import (
+    DummyFinalBehaviour,
     DummyKeeperSelectionBehaviour,
     DummyRandomnessBehaviour,
-    DummyFinalBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds import (
     Event,

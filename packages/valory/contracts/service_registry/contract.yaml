@@ -17,5 +17,7 @@ class_name: ServiceRegistryContract
 contract_interface_paths:
   ethereum: build/ServiceRegistry.json
 dependencies:
+  open-aea-ledger-ethereum:
+    version: ==1.22.0
   open-aea-test-autonomy:
     version: ==0.3.3
