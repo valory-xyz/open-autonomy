@@ -31,16 +31,16 @@ from packages.valory.skills.abstract_round_abci.models import (
 from packages.valory.skills.register_termination_abci.composition import (
     RegisterTerminateAbciApp,
 )
-from packages.valory.skills.termination_abci.models import TerminationParams
-from packages.valory.skills.transaction_settlement_abci.models import (
-    RandomnessApi as TransactionSettlementRandomness,
+from packages.valory.skills.termination_abci.models import (
+    RandomnessApi as TerminationRandomness,
 )
-from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
+from packages.valory.skills.termination_abci.models import TerminationParams
 
 
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
-RandomnessApi = TransactionSettlementRandomness
+RandomnessApi = TerminationRandomness
+Params = TerminationParams
 
 
 class SharedState(BaseSharedState):
@@ -49,7 +49,3 @@ class SharedState(BaseSharedState):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
         super().__init__(*args, abci_app_cls=RegisterTerminateAbciApp, **kwargs)
-
-
-class Params(TerminationParams, TransactionParams):
-    """User defined params."""
