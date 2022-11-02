@@ -1,49 +1,41 @@
-name: transaction_settlement_abci
+name: register_termination_abci
 author: valory
 version: 0.1.0
 type: skill
-description: ABCI application for transaction settlement.
+description: ABCI application for dummy skill that registers and resets
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: bafybeihvqvbj2tiiyimz3e27gqhb7ku5rut7hycfahi4qle732kvj5fs7q
-  __init__.py: bafybeicyrp6x2efg43gfdekxuofrlidc3w6aubzmyioqwnryropp6u7sby
-  behaviours.py: bafybeicup5jzp5ld35cdh4fb5db5uxdrfmyyepkji2katb4fhqjd7i2r64
-  dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
-  fsm_specification.yaml: bafybeiasicqrq2jggl5yo6yipyldcphpyvao5cm2zixnyis3eklqk47qpy
-  handlers.py: bafybeihsb2323pqablu3pgf42s4urueivg3yo5wp2ihr6tonj2yyaogtxu
-  models.py: bafybeie2v4bja4c6grzveudzng53ob7ddrjxeuwod5ln4s2fcvhqueruvu
-  payload_tools.py: bafybeifhzehz7lfpeuy7g72wtpvx4xgeaijgbasua43mu7kawno5i6bfeq
-  payloads.py: bafybeibpwhqbjvqi7um2cu4calbdhhzukpi6tn6y3qp4qb4nwx2bzjbmqu
-  rounds.py: bafybeicy5il65kkenbd26uxky2qavygsappvmwqliiydwqxdqthfh7rqo4
-  test_tools/__init__.py: bafybeibj2blgxzvcgdi5gzcnlzs2nt7bpdifzvjjlxlrkeutjy2qrqbwau
-  test_tools/integration.py: bafybeiacii55dbrw3qtdzgdpvooxqcu7dwv7e3by4bu7kcuvmn7gathjmy
-  tests/__init__.py: bafybeihfowyc3zstgtexgbjcuahnfcoq36qlp5nj5jri4rkm3h4cmshgc4
-  tests/test_behaviours.py: bafybeicguis5enl7zm3wpemudfjczoqpfqhzescenzsokxlyx6iasdovbq
-  tests/test_dialogues.py: bafybeictrjf6jzsj4y6u2ftdrb2nyriiipia5b7wc4fsli3lwbjpd3mbam
-  tests/test_handlers.py: bafybeievntkwacpfaom3qabvrlworjqyd4sgfjknjlhys7f5tuq7725xli
-  tests/test_payload_tools.py: bafybeiast6pwi6fr4wtygfbc577gdtsqtptrlbxixn3t2ewddmpata65dm
-  tests/test_payloads.py: bafybeihqelg2m66cxeqtcd5vcy7bmw6xpibeh7nob46olmxyi6fi6i2oci
-  tests/test_rounds.py: bafybeiai4tldcuvhnn673fq7bbiea542tbn7tassxxqb7hn5mw7zmlijpa
+  README.md: bafybeieyro2eupexnqdu2mjqbyhp7jphn5rij4hvdgty5plij52tsffhs4
+  __init__.py: bafybeiex6mhypt3mkeflnoppnxxckxwe3f4fpytgqzseelvxg54rzhcwme
+  behaviours.py: bafybeicmgb3hz2f6rhnpctcojeesayvmwicvl4mybbseyscdvzr6luepni
+  composition.py: bafybeid5sd7d5gc3tnoj3awy4swxexpdro747prr3kz6qxkwserpqmihn4
+  dialogues.py: bafybeih3x4egnkh7xwnlawqbu6fpqyqbaum7ivdhqm6r6557dyy2rhzneq
+  handlers.py: bafybeibotw5mzjfbzdme5w4oytvqspcql3vbyr3v5k5zt6v3o6y6dypd7e
+  models.py: bafybeigiyjoevfn5lrm4crkt67p22ejifzixghy4uatdwlclofywngfbji
+  tests/__init__.py: bafybeid2pb3mfobqtzsadxzris67d4hkmcflqfnzay3y3errmtd7tdtvoe
+  tests/test_behaviours.py: bafybeihdacox5ib2pnpyttlw44m3odd22dr5s3tet7q4axo44wxdckmfsu
+  tests/test_dialogues.py: bafybeiha37jzqmgtfjl52c52xz7osnu7y2ic2sxdp6wkmdgwlbzqtzz3me
+  tests/test_handlers.py: bafybeidxd375se3fx5gpakpauglsmqom3bbizflpw3k265knyy6fxtckra
+  tests/test_models.py: bafybeif2d4kqt7ettspc6fgbeb5y5cm5632rp7dnjcyzy7zfof2m7z6mzq
 fingerprint_ignore_patterns: []
 connections: []
-contracts:
-- valory/gnosis_safe:0.1.0:bafybeifvtrkuk5cd6owlp7q2nbzblds6z4pkt4mkhvqt36xgll57if3cw4
-protocols:
-- open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
-- valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
-- valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
-- valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
+contracts: []
+protocols: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeifeu76vagb6r3qakyr6tr5ujpocg6rih2g3mmllliqeauosduzidi
+- valory/registration_abci:0.1.0:bafybeidvpx7evw4lpxrpcn5aiodpwl4r7kk3vpyh4hmxb4wfcxoalqxjfm
+- valory/reset_pause_abci:0.1.0:bafybeifixswvxio2tkmldvoerryfylq3ppkp2xd4br2byybtw3gslkjw44
+- valory/termination_abci:0.1.0:bafybeibxx2cwlrscuf3zlyrw2j6qrf4teskredfvompozw2r6ekmopz62i
+- valory/transaction_settlement_abci:0.1.0:bafybeie4kbrftustszj5bfw3xvs4z6r2kuqtblovfjl5hjfj7jcdmesjma
 behaviours:
   main:
     args: {}
-    class_name: TransactionSettlementRoundBehaviour
+    class_name: RegisterTerminationAbciAppConsensusBehaviour
 handlers:
   abci:
     args: {}
-    class_name: ABCIHandler
+    class_name: ABCIRegisterResetHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -56,9 +48,6 @@ handlers:
   signing:
     args: {}
     class_name: SigningHandler
-  tendermint:
-    args: {}
-    class_name: TendermintHandler
 models:
   abci_dialogues:
     args: {}
@@ -81,7 +70,7 @@ models:
       cleanup_history_depth: 1
       cleanup_history_depth_current: null
       consensus:
-        max_participants: 1
+        max_participants: 4
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       finalize_timeout: 60.0
       genesis_config:
@@ -105,21 +94,27 @@ models:
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
       max_healthcheck: 120
+      multisend_address: null
       observation_interval: 10
       on_chain_service_id: null
-      reset_tendermint_after: 2
+      reset_tendermint_after: 200
       retry_attempts: 400
       retry_timeout: 3
-      round_timeout_seconds: 30.0
-      service_id: registration
+      round_timeout_seconds: 15.0
+      service_id: register_termination_abci
       service_registry_address: null
-      sleep_time: 1
+      setup:
+        safe_contract_address:
+        - '0xD8dE647170163a981bb3Fdb2063583eAcF7D55AC'
+      share_tm_config_on_startup: false
+      sleep_time: 300
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
+      termination_sleep: 900
       validate_timeout: 1205
-    class_name: TransactionParams
+    class_name: Params
   randomness_api:
     args:
       api_id: cloudflare
@@ -140,7 +135,5 @@ models:
   state:
     args: {}
     class_name: SharedState
-dependencies:
-  open-aea-test-autonomy:
-    version: ==0.3.3
-is_abstract: true
+dependencies: {}
+is_abstract: false
