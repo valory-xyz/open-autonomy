@@ -36,6 +36,7 @@ from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB, _MetaPayload
 from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
+    DummyContext,
     FSMBehaviourBaseCase,
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
@@ -44,6 +45,9 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours import (
     DummyRoundBehaviour,
+)
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.models import (
+    SharedState,
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds import (
     Event,
@@ -191,3 +195,10 @@ class TestFSMBehaviourBaseCaseSetup:
         test_instance.mock_contract_api_request(
             contract_id, request_kwargs, response_kwargs
         )
+
+
+def test_dummy_context_is_abstract_component():
+    """Test dummy context is abstract component"""
+
+    shared_state = SharedState(name="dummy_shared_state", skill_context=DummyContext())
+    assert shared_state.context.is_abstract_component
