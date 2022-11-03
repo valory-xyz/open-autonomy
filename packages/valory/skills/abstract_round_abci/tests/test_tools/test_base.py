@@ -21,7 +21,7 @@
 
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Type, cast
+from typing import Any, Dict, cast
 
 import pytest
 from aea.helpers.base import cd
@@ -58,7 +58,7 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds imp
 class TestFSMBehaviourBaseCaseSetup:
     """test TestFSMBehaviourBaseCaseSetup setup"""
 
-    test_cls = Type[FSMBehaviourBaseCase]
+    test_cls: FSMBehaviourBaseCase
 
     @classmethod
     def setup_class(cls) -> None:
@@ -75,11 +75,11 @@ class TestFSMBehaviourBaseCaseSetup:
         """Setup test"""
 
         # must `copy` the class to avoid test interference
-        self.test_cls = cast(
-            Type[FSMBehaviourBaseCase], copy_class(FSMBehaviourBaseCase)
-        )
+        self.test_cls = cast(FSMBehaviourBaseCase, copy_class(FSMBehaviourBaseCase))
 
-    def setup_test_cls(self, **kwargs) -> FSMBehaviourBaseCase:
+    def setup_test_cls(
+        self, **kwargs: Dict[str, Dict[str, Any]]
+    ) -> FSMBehaviourBaseCase:
         """Helper method to setup test to be tested"""
 
         with cd(self.test_cls.path_to_skill):
@@ -108,7 +108,8 @@ class TestFSMBehaviourBaseCaseSetup:
         self.set_path_to_skill()
         test_instance = self.setup_test_cls()
 
-        round_behaviour = test_instance._skill.skill_context.behaviours.main  # #pylint: disable=protected-access
+        skill = test_instance._skill  # pylint: disable=protected-access
+        round_behaviour = skill.skill_context.behaviours.main
         behaviour_id = behaviour.behaviour_id
         synchronized_data = SynchronizedData(
             AbciAppDB(setup_data=dict(participants=[frozenset("abcd")]))
@@ -122,12 +123,14 @@ class TestFSMBehaviourBaseCaseSetup:
 
     @pytest.mark.parametrize("event", Event)
     @pytest.mark.parametrize("set_none", [False, True])
-    def test_end_round(self, event: Type[Enum], set_none: bool) -> None:
+    def test_end_round(self, event: Enum, set_none: bool) -> None:
         """Test end_round"""
 
         self.set_path_to_skill()
         test_instance = self.setup_test_cls()
-        current_behaviour = test_instance.behaviour.current_behaviour
+        current_behaviour = cast(
+            BaseBehaviour, test_instance.behaviour.current_behaviour
+        )
         abci_app = current_behaviour.context.state.round_sequence.abci_app
         if set_none:
             test_instance.behaviour.current_behaviour = None
@@ -149,14 +152,15 @@ class TestFSMBehaviourBaseCaseSetup:
         ):
             test_instance.mock_ledger_api_request(request_kwargs, response_kwargs)
 
-        message = LedgerApiMessage(**request_kwargs, dialogue_reference=("a", "b"))
+        message = LedgerApiMessage(**request_kwargs, dialogue_reference=("a", "b"))  # type: ignore
         envelope = Envelope(
             to=str(LEDGER_CONNECTION_PUBLIC_ID),
             sender=str(PUBLIC_ID),
             protocol_specification_id=LedgerApiMessage.protocol_specification_id,
             message=message,
         )
-        test_instance._multiplexer.out_queue.put_nowait(envelope)  #pylint: disable=protected-access
+        multiplexer = test_instance._multiplexer  # pylint: disable=protected-access
+        multiplexer.out_queue.put_nowait(envelope)
         test_instance.mock_ledger_api_request(request_kwargs, response_kwargs)
 
     def test_mock_contract_api_request(self) -> None:
@@ -177,7 +181,7 @@ class TestFSMBehaviourBaseCaseSetup:
             )
 
         message = ContractApiMessage(
-            **request_kwargs,
+            **request_kwargs,  # type: ignore
             dialogue_reference=("a", "b"),
             ledger_id="ethereum",
             contract_id=contract_id
@@ -188,13 +192,14 @@ class TestFSMBehaviourBaseCaseSetup:
             protocol_specification_id=ContractApiMessage.protocol_specification_id,
             message=message,
         )
-        test_instance._multiplexer.out_queue.put_nowait(envelope)  #pylint: disable=protected-access
+        multiplexer = test_instance._multiplexer  # pylint: disable=protected-access
+        multiplexer.out_queue.put_nowait(envelope)
         test_instance.mock_contract_api_request(
             contract_id, request_kwargs, response_kwargs
         )
 
 
-def test_dummy_context_is_abstract_component():
+def test_dummy_context_is_abstract_component() -> None:
     """Test dummy context is abstract component"""
 
     shared_state = SharedState(name="dummy_shared_state", skill_context=DummyContext())
