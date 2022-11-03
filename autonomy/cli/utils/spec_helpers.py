@@ -38,6 +38,10 @@ def import_and_validate_app_class(module_path: Path, app_class: str) -> ModuleTy
 
     module_to_look_for = "rounds"
     if not (module_path / "rounds.py").exists():
+        if not (module_path / "composition.py").exists():
+            raise FileNotFoundError(
+                f"Cannot find the rounds module or the composition module for {module_path}"
+            )
         module_to_look_for = "composition"
 
     module_name = ".".join(
@@ -47,13 +51,7 @@ def import_and_validate_app_class(module_path: Path, app_class: str) -> ModuleTy
         )
     )
 
-    try:
-        module = importlib.import_module(module_name)
-    except ModuleNotFoundError as e:
-        raise click.ClickException(
-            f'Failed to load "{module_name}". Please, verify that AbciApps and classes are correctly defined within the module.'
-        ) from e
-
+    module = importlib.import_module(module_name)
     if not hasattr(module, app_class):
         raise click.ClickException(f'Class "{app_class}" is not in "{module_name}".')
 
