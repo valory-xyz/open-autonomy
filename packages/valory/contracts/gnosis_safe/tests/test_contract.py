@@ -432,6 +432,14 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
         ), f"{data[0]['sender']} should be the sender"
         assert data[0]["block_number"] is not None, "tx is still pending"
 
+    def test_get_owners(self) -> None:
+        """Test the owners are as expected."""
+        owners = self.contract.get_owners(
+            ledger_api=self.ledger_api,
+            contract_address=cast(str, self.contract_address),
+        )["owners"]
+        assert owners == self.owners()
+
 
 @skip_docker_tests
 class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):

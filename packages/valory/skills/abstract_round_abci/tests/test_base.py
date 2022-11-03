@@ -82,8 +82,13 @@ from packages.valory.skills.abstract_round_abci.serializer import (
 )
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     AbciAppTest,
+    ConcreteBackgroundRound,
     ConcreteRoundA,
     ConcreteRoundB,
+    ConcreteRoundC,
+    ConcreteTerminationRoundA,
+    ConcreteTerminationRoundB,
+    ConcreteTerminationRoundC,
 )
 
 
@@ -1310,6 +1315,8 @@ class TestAbciApp:
         assert isinstance(self.abci_app.current_round, ConcreteRoundB)
         self.abci_app.process_event("timeout")
         assert isinstance(self.abci_app.current_round, ConcreteRoundA)
+        self.abci_app.process_event(self.abci_app.termination_event)
+        assert isinstance(self.abci_app.current_round, ConcreteTerminationRoundA)
 
     def test_process_event_negative_case(self) -> None:
         """Test the 'process_event' method, negative case."""
@@ -1357,6 +1364,73 @@ class TestAbciApp:
     def test_get_all_events(self) -> None:
         """Test the all events getter."""
         assert {"a", "b", "c", "timeout"} == self.abci_app.get_all_events()
+
+    def test_get_all_rounds_classes(self) -> None:
+        """Test the get all rounds getter."""
+        expected_rounds = {ConcreteRoundA, ConcreteRoundB, ConcreteRoundC}
+        assert expected_rounds == self.abci_app.get_all_round_classes()
+
+    def test_get_all_rounds_classes_including_termination(self) -> None:
+        """Test the get all rounds getter when the termination rounds should be included."""
+        include_termination_rounds = True
+        expected_rounds = {
+            ConcreteRoundA,
+            ConcreteRoundB,
+            ConcreteRoundC,
+            ConcreteBackgroundRound,
+            ConcreteTerminationRoundA,
+            ConcreteTerminationRoundB,
+            ConcreteTerminationRoundC,
+        }
+        assert expected_rounds == self.abci_app.get_all_round_classes(
+            include_termination_rounds
+        )
+
+    def test_get_all_rounds_classes_including_termination_no_termination_rounds(
+        self,
+    ) -> None:
+        """Test the get all rounds when the termination rounds are not set."""
+        # we set termination_transition_function to its default value (None)
+        with mock.patch.object(
+            AbciAppTest, "termination_transition_function", return_value=None
+        ):
+            include_termination_rounds = True
+            expected_rounds = {
+                ConcreteRoundA,
+                ConcreteRoundB,
+                ConcreteRoundC,
+            }
+            assert expected_rounds == self.abci_app.get_all_round_classes(
+                include_termination_rounds
+            )
+
+    def test_add_termination(self) -> None:
+        """Tests the `add_termination` method."""
+
+        class EmptyAbciApp(AbciAppTest):
+            """An AbciApp without termination attrs set."""
+
+        EmptyAbciApp.add_termination(
+            AbciAppTest.background_round_cls,
+            AbciAppTest.termination_event,
+            AbciAppTest,
+        )
+
+        assert EmptyAbciApp.background_round_cls is not None
+        assert EmptyAbciApp.termination_transition_function is not None
+        assert EmptyAbciApp.termination_event is not None  # type: ignore
+
+    def test_background_round(self) -> None:
+        """Test the background_round property."""
+        self.abci_app.setup()
+        assert self.abci_app.background_round is not None
+
+    def test_background_round_negative(self) -> None:
+        """Test the background_round property when _background_round is not set."""
+        # notice that we don't call `self.abci_app.setup()` here
+        # which is why this test works
+        with pytest.raises(ValueError, match="background_round not set!"):
+            self.abci_app.background_round
 
     def test_cleanup(self) -> None:
         """Test the cleanup method."""
@@ -1415,6 +1489,48 @@ class TestAbciApp:
             self.abci_app.synchronized_data.db._data[reset_index]["dummy_key"]
         )
         assert history_len == cleanup_history_depth_current
+
+    @mock.patch.object(ConcreteBackgroundRound, "check_transaction")
+    @pytest.mark.parametrize(
+        "transaction",
+        [
+            mock.MagicMock(
+                payload=MagicMock(
+                    transaction_type=ConcreteBackgroundRound.allowed_tx_type
+                )
+            )
+        ],
+    )
+    def test_check_transaction_for_background_round(
+        self,
+        check_transaction_mock: mock.Mock,
+        transaction: Transaction,
+    ) -> None:
+        """Tests process_transaction when it's a transaction meant for the background app."""
+        self.abci_app.setup()
+        self.abci_app.check_transaction(transaction)
+        check_transaction_mock.assert_called_with(transaction)
+
+    @mock.patch.object(ConcreteBackgroundRound, "process_transaction")
+    @pytest.mark.parametrize(
+        "transaction",
+        [
+            mock.MagicMock(
+                payload=MagicMock(
+                    transaction_type=ConcreteBackgroundRound.allowed_tx_type
+                )
+            )
+        ],
+    )
+    def test_process_transaction_for_background_round(
+        self,
+        process_transaction_mock: mock.Mock,
+        transaction: Transaction,
+    ) -> None:
+        """Tests process_transaction when it's a transaction meant for the background app."""
+        self.abci_app.setup()
+        self.abci_app.process_transaction(transaction)
+        process_transaction_mock.assert_called_with(transaction)
 
 
 class TestRoundSequence:
@@ -1747,6 +1863,8 @@ class TestRoundSequence:
 
         with mock.patch.object(
             self.round_sequence.current_round, "end_block", return_value=end_block_res
+        ), mock.patch.object(
+            self.round_sequence.abci_app, "_is_termination_set", return_value=False
         ):
             self.round_sequence._update_round()
 
@@ -1788,6 +1906,99 @@ class TestRoundSequence:
             )
             process_event_mock.assert_called_with(
                 end_block_res[-1], result=end_block_res[0]
+            )
+
+    @mock.patch.object(AbciApp, "process_event")
+    @pytest.mark.parametrize(
+        "background_round_result, current_round_result",
+        [
+            (None, None),
+            (None, (MagicMock(), MagicMock())),
+            ((MagicMock(), MagicMock()), None),
+            ((MagicMock(), MagicMock()), (MagicMock(), MagicMock())),
+        ],
+    )
+    def test_update_round_when_background_returns(
+        self,
+        process_event_mock: mock.Mock,
+        background_round_result: Optional[Tuple[BaseSynchronizedData, Any]],
+        current_round_result: Optional[Tuple[BaseSynchronizedData, Any]],
+    ) -> None:
+        """Test '_update_round' method."""
+        self.round_sequence.begin_block(MagicMock(height=1))
+        block = self.round_sequence._block_builder.get_block()
+        self.round_sequence._blockchain.add_block(block)
+
+        with mock.patch.object(
+            self.round_sequence.current_round,
+            "end_block",
+            return_value=current_round_result,
+        ), mock.patch.object(
+            self.round_sequence.background_round,
+            "end_block",
+            return_value=background_round_result,
+        ):
+            self.round_sequence._update_round()
+
+        if background_round_result is None and current_round_result is None:
+            assert (
+                self.round_sequence._last_round_transition_timestamp
+                != self.round_sequence._blockchain.last_block.timestamp
+            )
+            assert (
+                self.round_sequence._last_round_transition_height
+                != self.round_sequence._blockchain.height
+            )
+            assert (
+                self.round_sequence._last_round_transition_root_hash
+                != self.round_sequence.root_hash
+            )
+            assert (
+                self.round_sequence._last_round_transition_tm_height
+                != self.round_sequence.tm_height
+            )
+            process_event_mock.assert_not_called()
+        elif background_round_result is None and current_round_result is not None:
+            assert (
+                self.round_sequence._last_round_transition_timestamp
+                == self.round_sequence._blockchain.last_block.timestamp
+            )
+            assert (
+                self.round_sequence._last_round_transition_height
+                == self.round_sequence._blockchain.height
+            )
+            assert (
+                self.round_sequence._last_round_transition_root_hash
+                == self.round_sequence.root_hash
+            )
+            assert (
+                self.round_sequence._last_round_transition_tm_height
+                == self.round_sequence.tm_height
+            )
+            process_event_mock.assert_called_with(
+                current_round_result[-1],
+                result=current_round_result[0],
+            )
+        elif background_round_result is not None:
+            assert (
+                self.round_sequence._last_round_transition_timestamp
+                == self.round_sequence._blockchain.last_block.timestamp
+            )
+            assert (
+                self.round_sequence._last_round_transition_height
+                == self.round_sequence._blockchain.height
+            )
+            assert (
+                self.round_sequence._last_round_transition_root_hash
+                == self.round_sequence.root_hash
+            )
+            assert (
+                self.round_sequence._last_round_transition_tm_height
+                == self.round_sequence.tm_height
+            )
+            process_event_mock.assert_called_with(
+                background_round_result[-1],
+                result=background_round_result[0],
             )
 
 

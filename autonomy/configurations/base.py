@@ -345,7 +345,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
     ) -> Dict:
         """Try to process component with nested overrides."""
         overrides = {}
-        for field in config_class.FIELDS_WITH_NESTED_FIELDS:  # type: ignore
+        for field in config_class.FIELDS_ALLOWED_TO_UPDATE:  # type: ignore
             field_override = component_configuration_json.get(field, {})
             if field_override == {}:
                 continue
