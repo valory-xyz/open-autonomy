@@ -8,6 +8,7 @@ Autonomy:
 Packages:
 - Adds `get_service_owner` on the `ServiceRegistry` contract implementation
 - Introduces `termination_abci` skill to support service termination
+- Extends `abstract_round_abci` to support running the `termination_abci` skill concurrently with the main FSM in order to periodically check for the termination signal.
 - Introduces `register_termination` skill and `register_termination` agent to demonstrate `termination_abci` skill
 - Extends gnosis safe contract implementation with
   - `get_swap_owner_data` to encode a transaction to swap a safe owner
