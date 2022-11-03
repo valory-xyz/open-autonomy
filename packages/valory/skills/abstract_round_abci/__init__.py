@@ -20,6 +20,11 @@
 """This module contains an abstract round ABCI skill template for an AEA."""
 
 from aea.configurations.base import PublicId
+from hypothesis import settings
 
 
 PUBLIC_ID = PublicId.from_str("valory/abstract_round_abci:0.1.0")
+CI = "CI"
+
+
+settings.register_profile(CI, deadline=5000)

@@ -77,26 +77,15 @@ def data() -> Dict[str, Any]
 
 Data
 
-<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummySynchronizedSata"></a>
+<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummySynchronizedData"></a>
 
-## DummySynchronizedSata Objects
+## DummySynchronizedData Objects
 
 ```python
-class DummySynchronizedSata(BaseSynchronizedData)
+class DummySynchronizedData(BaseSynchronizedData)
 ```
 
 Dummy synchronized data for tests.
-
-<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummySynchronizedSata.most_voted_keeper_address"></a>
-
-#### most`_`voted`_`keeper`_`address
-
-```python
-@property
-def most_voted_keeper_address() -> str
-```
-
-Returns value for _most_voted_keeper_address.
 
 <a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.get_dummy_tx_payloads"></a>
 
@@ -225,8 +214,7 @@ Base test class.
 #### setup
 
 ```python
-@classmethod
-def setup(cls) -> None
+def setup() -> None
 ```
 
 Setup test class.
@@ -322,8 +310,7 @@ Base test class.
 #### setup
 
 ```python
-@classmethod
-def setup(cls) -> None
+def setup() -> None
 ```
 
 Setup test class.

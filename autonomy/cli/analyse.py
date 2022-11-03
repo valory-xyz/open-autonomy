@@ -175,7 +175,7 @@ def run_handler_check(
 
     try:
         for yaml_file in sorted(
-            Path(ctx.registry_path).glob(f"*/*/*/{DEFAULT_SKILL_CONFIG_FILE}")
+            Path(ctx.registry_path).resolve().glob(f"*/*/*/{DEFAULT_SKILL_CONFIG_FILE}")
         ):
             if yaml_file.parent.name in ignore:
                 click.echo(f"Skipping {yaml_file.parent}")
