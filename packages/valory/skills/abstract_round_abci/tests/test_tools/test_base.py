@@ -20,8 +20,9 @@
 """Tests for abstract_round_abci/test_tools/base.py"""
 
 from pathlib import Path
-from typing import Type, cast
+from typing import Any, Dict, Type, cast
 
+import pytest
 from aea.helpers.base import cd
 from aea.test_tools.utils import copy_class
 
@@ -74,3 +75,12 @@ class TestFSMBehaviourBaseCaseSetup:
     def set_path_to_skill(self, path_to_skill: Path = PATH_TO_SKILL) -> None:
         """Set path_to_skill"""
         self.test_cls.path_to_skill = path_to_skill
+
+    @pytest.mark.parametrize("kwargs", [{}, {"param_overrides": {"new_p": None}}])
+    def test_setup(self, kwargs: Dict[str, Dict[str, Any]]) -> None:
+        """Test setup"""
+
+        self.set_path_to_skill()
+        test_instance = self.setup_test_cls(**kwargs)
+        assert test_instance
+        assert hasattr(test_instance.behaviour.context.params, "new_p") == bool(kwargs)
