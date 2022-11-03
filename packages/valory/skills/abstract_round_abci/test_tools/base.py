@@ -143,9 +143,6 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
     ) -> None:
         """Fast forward the FSM to a behaviour."""
         next_behaviour = {s.behaviour_id: s for s in behaviour.behaviours}[behaviour_id]
-        assert (  # nosec
-            next_behaviour is not None
-        ), f"Behaviour {behaviour_id} not found"
         next_behaviour = cast(Type[BaseBehaviour], next_behaviour)
         behaviour.current_behaviour = next_behaviour(
             name=next_behaviour.behaviour_id, skill_context=behaviour.context
