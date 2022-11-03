@@ -17,4 +17,7 @@ contracts: []
 class_name: MultiSendContract
 contract_interface_paths:
   ethereum: build/MultiSend.json
-dependencies: {}
+dependencies:
+  hexbytes: {}
+  web3:
+    version: ==5.25.0

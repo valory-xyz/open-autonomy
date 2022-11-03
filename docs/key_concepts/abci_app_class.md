@@ -45,7 +45,9 @@ class AbciApp(
         """
         Process a transaction.
 
-        Forward the call to the current round object.
+        The background round runs concurrently with other (normal) rounds.
+        First we check if the transaction is meant for the background round,
+        if not we forward to the current round object.
 
         :param transaction: the transaction.
         """
