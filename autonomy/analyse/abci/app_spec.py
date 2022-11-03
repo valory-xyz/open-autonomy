@@ -132,19 +132,19 @@ class FSMSpecificationLoader:
     def dump_json(cls, dfa: "DFA", file: Path) -> None:
         """Dump to a json file."""
 
-        with open_file(file, "w+", encoding="utf-8") as fp:
+        with open_file(file, "w", encoding="utf-8") as fp:
             json.dump(dfa.generate(), fp, indent=4)
 
     @classmethod
     def dump_yaml(cls, dfa: "DFA", file: Path) -> None:
         """Dump to a yaml file."""
-        with open_file(file, "w+", encoding="utf-8") as fp:
+        with open_file(file, "w", encoding="utf-8") as fp:
             yaml.safe_dump(dfa.generate(), fp, indent=4)
 
     @classmethod
     def dump_mermaid(cls, dfa: "DFA", file: Path) -> None:
         """Dumps this DFA spec. to a file in Mermaid format."""
-        with open_file(file, "w+", encoding="utf-8") as fp:
+        with open_file(file, "w", encoding="utf-8") as fp:
             print("stateDiagram-v2", file=fp)
             aux_map: Dict[Tuple[str, str], Set[str]] = {}
             for (s1, t), s2 in dfa.transition_func.items():
