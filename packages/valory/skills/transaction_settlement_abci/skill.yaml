@@ -28,14 +28,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeihun5sfcod4dtv2jcq4kudp3nohpcshbzoydgb44jrqtcapzm643a
+- valory/gnosis_safe:0.1.0:bafybeibqsf4sh4f4lshbxnwapzxuul6ywzgq4nfoxd7wye6s3ncb5amlvq
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeibqps4r4dbh4pmeyda6i56lwvpjruay2iv22nkagmn4rpn4wqfbtu
+- valory/abstract_round_abci:0.1.0:bafybeihx3owgbdtbu4zr6v5gaqk6ur6er4wynameikbq6ndi2kfk5vovnu
 behaviours:
   main:
     args: {}
@@ -142,7 +142,7 @@ models:
     class_name: SharedState
 dependencies:
   open-aea-test-autonomy:
-    version: ==0.3.3
+    version: ==0.3.4
   web3:
     version: ==5.25.0
 is_abstract: true
