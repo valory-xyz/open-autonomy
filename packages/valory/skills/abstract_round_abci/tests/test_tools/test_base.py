@@ -25,8 +25,13 @@ from typing import Any, Dict, Type, cast
 
 import pytest
 from aea.helpers.base import cd
+from aea.mail.base import Envelope
 from aea.test_tools.utils import copy_class
 
+from packages.valory.connections.ledger.connection import (
+    PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
+)
+from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB, _MetaPayload
 from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
@@ -34,6 +39,7 @@ from packages.valory.skills.abstract_round_abci.test_tools.base import (
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
     PATH_TO_SKILL,
+    PUBLIC_ID,
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours import (
     DummyRoundBehaviour,
@@ -126,3 +132,27 @@ class TestFSMBehaviourBaseCaseSetup:
         assert abci_app.current_round_height == 0
         test_instance.end_round(event)
         assert abci_app.current_round_height == 1 - int(set_none)
+
+    def test_mock_ledger_api_request(self) -> None:
+        """Test mock_ledger_api_request"""
+
+        self.set_path_to_skill()
+        test_instance = self.setup_test_cls()
+
+        request_kwargs = dict(performative=LedgerApiMessage.Performative.GET_BALANCE)
+        response_kwargs = dict(performative=LedgerApiMessage.Performative.BALANCE)
+        with pytest.raises(
+            AssertionError,
+            match="Invalid number of messages in outbox. Expected 1. Found 0.",
+        ):
+            test_instance.mock_ledger_api_request(request_kwargs, response_kwargs)
+
+        message = LedgerApiMessage(**request_kwargs, dialogue_reference=("a", "b"))
+        envelope = Envelope(
+            to=str(LEDGER_CONNECTION_PUBLIC_ID),
+            sender=str(PUBLIC_ID),
+            protocol_specification_id=LedgerApiMessage.protocol_specification_id,
+            message=message,
+        )
+        test_instance._multiplexer.out_queue.put_nowait(envelope)
+        test_instance.mock_ledger_api_request(request_kwargs, response_kwargs)
