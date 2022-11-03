@@ -19,6 +19,7 @@
 
 """Tests for abstract_round_abci/test_tools/base.py"""
 
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Type, cast
 
@@ -38,6 +39,7 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours
     DummyRoundBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds import (
+    Event,
     SynchronizedData,
 )
 
@@ -109,3 +111,18 @@ class TestFSMBehaviourBaseCaseSetup:
             behaviour_id=behaviour_id,
             synchronized_data=synchronized_data,
         )
+
+    @pytest.mark.parametrize("event", Event)
+    @pytest.mark.parametrize("set_none", [False, True])
+    def test_end_round(self, event: Type[Enum], set_none: bool) -> None:
+        """Test end_round"""
+
+        self.set_path_to_skill()
+        test_instance = self.setup_test_cls()
+        current_behaviour = test_instance.behaviour.current_behaviour
+        abci_app = current_behaviour.context.state.round_sequence.abci_app
+        if set_none:
+            test_instance.behaviour.current_behaviour = None
+        assert abci_app.current_round_height == 0
+        test_instance.end_round(event)
+        assert abci_app.current_round_height == 1 - int(set_none)
