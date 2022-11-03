@@ -55,9 +55,6 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds imp
 )
 
 
-participants = frozenset("abcd")
-
-
 class TestFSMBehaviourBaseCaseSetup:
     """test TestFSMBehaviourBaseCaseSetup setup"""
 
@@ -111,10 +108,10 @@ class TestFSMBehaviourBaseCaseSetup:
         self.set_path_to_skill()
         test_instance = self.setup_test_cls()
 
-        round_behaviour = test_instance._skill.skill_context.behaviours.main
+        round_behaviour = test_instance._skill.skill_context.behaviours.main  # #pylint: disable=protected-access
         behaviour_id = behaviour.behaviour_id
         synchronized_data = SynchronizedData(
-            AbciAppDB(setup_data=dict(participants=[participants]))
+            AbciAppDB(setup_data=dict(participants=[frozenset("abcd")]))
         )
 
         test_instance.fast_forward_to_behaviour(
@@ -159,7 +156,7 @@ class TestFSMBehaviourBaseCaseSetup:
             protocol_specification_id=LedgerApiMessage.protocol_specification_id,
             message=message,
         )
-        test_instance._multiplexer.out_queue.put_nowait(envelope)
+        test_instance._multiplexer.out_queue.put_nowait(envelope)  #pylint: disable=protected-access
         test_instance.mock_ledger_api_request(request_kwargs, response_kwargs)
 
     def test_mock_contract_api_request(self) -> None:
@@ -191,7 +188,7 @@ class TestFSMBehaviourBaseCaseSetup:
             protocol_specification_id=ContractApiMessage.protocol_specification_id,
             message=message,
         )
-        test_instance._multiplexer.out_queue.put_nowait(envelope)
+        test_instance._multiplexer.out_queue.put_nowait(envelope)  #pylint: disable=protected-access
         test_instance.mock_contract_api_request(
             contract_id, request_kwargs, response_kwargs
         )

@@ -32,7 +32,9 @@ from packages.valory.skills.abstract_round_abci.test_tools.common import (
     BaseSelectKeeperBehaviourTest,
     CommonBaseCase,
 )
-from packages.valory.skills.abstract_round_abci.tests.data import dummy_abci
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
+    PATH_TO_SKILL,
+)
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours import (
     DummyFinalBehaviour,
     DummyKeeperSelectionBehaviour,
@@ -41,9 +43,6 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds import (
     Event,
 )
-
-
-PATH_TO_SKILL = Path(dummy_abci.__file__).parent
 
 
 class BaseCommonBaseCaseTestSetup(ABC):
