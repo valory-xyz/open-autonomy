@@ -15,6 +15,22 @@ def analyse_group() -> None
 
 Analyse an agent service.
 
+<a id="autonomy.cli.analyse.generate_abci_app_specs"></a>
+
+#### generate`_`abci`_`app`_`specs
+
+```python
+@analyse_group.command(name="fsm-specs")
+@click.option("--package", type=PathArgument())
+@click.option("--app-class", type=str)
+@click.option("--update", is_flag=True, help="Update FSM definition if check fails.")
+@abci_spec_format_flag()
+@pass_ctx
+def generate_abci_app_specs(ctx: Context, package: Optional[Path], app_class: Optional[str], spec_format: str, update: bool) -> None
+```
+
+Generate ABCI app specs.
+
 <a id="autonomy.cli.analyse.abci_group"></a>
 
 #### abci`_`group
@@ -25,43 +41,6 @@ def abci_group() -> None
 ```
 
 Analyse ABCI apps of an agent service.
-
-<a id="autonomy.cli.analyse.generate_abci_app_specs"></a>
-
-#### generate`_`abci`_`app`_`specs
-
-```python
-@abci_group.command(name="generate-app-specs")
-@click.argument("app_class", type=str)
-@click.argument("output_file", type=click.Path())
-@abci_spec_format_flag()
-def generate_abci_app_specs(app_class: str, output_file: Path, spec_format: str) -> None
-```
-
-Generate ABCI app specs.
-
-<a id="autonomy.cli.analyse.check_abci_app_specs"></a>
-
-#### check`_`abci`_`app`_`specs
-
-```python
-@abci_group.command(name="check-app-specs")
-@click.option(
-    "--check-all", type=bool, is_flag=True, help="Check all available definitions."
-)
-@click.option(
-    "--packages-dir",
-    type=click.Path(),
-    default=Path.cwd() / "packages",
-    help="Path to packages directory; Use with `--check-all` flag",
-)
-@abci_spec_format_flag()
-@click.option("--app-class", type=str, help="Dotted path to app definition class.")
-@click.option("--infile", type=click.Path(), help="Path to input file.")
-def check_abci_app_specs(check_all: bool, packages_dir: Path, spec_format: str, app_class: str, infile: Path) -> None
-```
-
-Check ABCI app specs.
 
 <a id="autonomy.cli.analyse.docstrings"></a>
 

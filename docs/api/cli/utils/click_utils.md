@@ -19,7 +19,7 @@ Choice of one flag between: '--local/--remote'.
 #### abci`_`spec`_`format`_`flag
 
 ```python
-def abci_spec_format_flag(default: str = DFA.OutputFormats.YAML, mark_default: bool = True) -> Callable
+def abci_spec_format_flag(default: str = FSMSpecificationLoader.OutputFormats.YAML, mark_default: bool = True) -> Callable
 ```
 
 Flags for abci spec outputs formats.
