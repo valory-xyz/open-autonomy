@@ -330,11 +330,11 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     package_list_file = Path(ROOT_DIR, "docs", "package_list.md")
     content = read_file(str(package_list_file))
 
-    matches = [m.groupdict() for m in re.finditer(PACKAGE_TABLE_REGEX, content)]
-    if not matches:
+    package_list_matches = [m.groupdict() for m in re.finditer(PACKAGE_TABLE_REGEX, content)]
+    if not package_list_matches:
         raise ValueError(f"Failed pattern match in {package_list_file}")
 
-    for match in [m.groupdict() for m in re.finditer(PACKAGE_TABLE_REGEX, content)]:
+    for match in package_list_matches:
         expected_hash = package_manager.get_hash_by_attributes(
             match["package_type"], match["vendor"], match["package"]
         )
