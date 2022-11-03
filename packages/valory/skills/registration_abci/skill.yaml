@@ -24,7 +24,7 @@ fingerprint:
   tests/test_rounds.py: bafybeiayn23x5rq42b7hlhyb46qbb6p5c4vox4clgtek3ahsmdvnnuoq4u
 fingerprint_ignore_patterns: []
 connections:
-- valory/p2p_libp2p_client:0.1.0:bafybeihf35zfr35qsvfte4vbi7njvuzfx4httysw7owmlux53gvxh2or54
+- valory/p2p_libp2p_client:0.1.0:bafybeidkk33xbga54szmitk6uwsi3ef56hbbdbuasltqtiyki34hgfpnxa
 contracts:
 - valory/service_registry:0.1.0:bafybeihb655nybagmprlhrudnqfr4ptddhplh55thbjaakqpdjssapweb4
 protocols:

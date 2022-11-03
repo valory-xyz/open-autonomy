@@ -14,7 +14,7 @@ connections:
 - valory/abci:0.1.0:bafybeidqqsef6pzg5qn4z7nmw2cwukudnqhtgrtsw3skbi3e2mvc4bgmv4
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
 - valory/ledger:0.19.0:bafybeihmz5us4ntmzvgikpkx4tththrl7zvou4uiebvletdeliidiuhi6m
-- valory/p2p_libp2p_client:0.1.0:bafybeihf35zfr35qsvfte4vbi7njvuzfx4httysw7owmlux53gvxh2or54
+- valory/p2p_libp2p_client:0.1.0:bafybeidkk33xbga54szmitk6uwsi3ef56hbbdbuasltqtiyki34hgfpnxa
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
@@ -23,8 +23,8 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeiezshfhxuxuul3gxe3e72jeqk2ebycisv7rzeakcpfrqzwddkdbdq
 - valory/abstract_round_abci:0.1.0:bafybeiemqhshshvl3nrhnaibplp2mhqfry5fhikved2q4vadj3xg2lz2ka
-- valory/register_reset_abci:0.1.0:bafybeif36zkxfooektd5hgin5bvufvrfezjvaguhj2lxslfoueaoffrpfq
-- valory/registration_abci:0.1.0:bafybeigcjpt6ptrj6ld54hsbhjsihu7tsdp3l6huyuiyeucocgx53ollaa
+- valory/register_reset_abci:0.1.0:bafybeigs6ekz763bvolbfveajl7xuja54fr4zau3qvh7jaioxdobk6smcu
+- valory/registration_abci:0.1.0:bafybeifoholzcpw4rw4eqm76erekirujicx6re6n7viwjgeiqjoq7kexbm
 - valory/reset_pause_abci:0.1.0:bafybeidfkqcle4qzhyf5fbslg2m4dbhzdzbad5bnisrx3yvlysyylclvfq
 default_ledger: ethereum
 required_ledgers:
