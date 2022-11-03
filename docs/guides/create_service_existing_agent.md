@@ -86,7 +86,7 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
         config:
           ledger_apis:
             ethereum:
-              address: ${SERVICE_HELLO_WORLD_RPC:str:http://host.docker.internal:8545}
+              address: http://host.docker.internal:8545
               chain_id: 31337
               poa_chain: false
               default_gas_price_strategy: eip1559
