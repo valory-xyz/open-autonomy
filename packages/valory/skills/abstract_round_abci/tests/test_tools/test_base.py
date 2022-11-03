@@ -31,6 +31,7 @@ from aea.test_tools.utils import copy_class
 from packages.valory.connections.ledger.connection import (
     PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
+from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB, _MetaPayload
 from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
@@ -156,3 +157,37 @@ class TestFSMBehaviourBaseCaseSetup:
         )
         test_instance._multiplexer.out_queue.put_nowait(envelope)
         test_instance.mock_ledger_api_request(request_kwargs, response_kwargs)
+
+    def test_mock_contract_api_request(self) -> None:
+        """Test mock_contract_api_request"""
+
+        self.set_path_to_skill()
+        test_instance = self.setup_test_cls()
+
+        contract_id = "dummy_contract"
+        request_kwargs = dict(performative=ContractApiMessage.Performative.GET_STATE)
+        response_kwargs = dict(performative=ContractApiMessage.Performative.STATE)
+        with pytest.raises(
+            AssertionError,
+            match="Invalid number of messages in outbox. Expected 1. Found 0.",
+        ):
+            test_instance.mock_contract_api_request(
+                contract_id, request_kwargs, response_kwargs
+            )
+
+        message = ContractApiMessage(
+            **request_kwargs,
+            dialogue_reference=("a", "b"),
+            ledger_id="ethereum",
+            contract_id=contract_id
+        )
+        envelope = Envelope(
+            to=str(LEDGER_CONNECTION_PUBLIC_ID),
+            sender=str(PUBLIC_ID),
+            protocol_specification_id=ContractApiMessage.protocol_specification_id,
+            message=message,
+        )
+        test_instance._multiplexer.out_queue.put_nowait(envelope)
+        test_instance.mock_contract_api_request(
+            contract_id, request_kwargs, response_kwargs
+        )
