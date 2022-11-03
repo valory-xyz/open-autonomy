@@ -26,12 +26,19 @@ import pytest
 from aea.helpers.base import cd
 from aea.test_tools.utils import copy_class
 
-from packages.valory.skills.abstract_round_abci.base import _MetaPayload
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB, _MetaPayload
+from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
     PATH_TO_SKILL,
+)
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours import (
+    DummyRoundBehaviour,
+)
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds import (
+    SynchronizedData,
 )
 
 
@@ -84,3 +91,21 @@ class TestFSMBehaviourBaseCaseSetup:
         test_instance = self.setup_test_cls(**kwargs)
         assert test_instance
         assert hasattr(test_instance.behaviour.context.params, "new_p") == bool(kwargs)
+
+    @pytest.mark.parametrize("behaviour", DummyRoundBehaviour.behaviours)
+    def test_fast_forward_to_behaviour(self, behaviour: BaseBehaviour) -> None:
+        """Test fast_forward_to_behaviour"""
+        self.set_path_to_skill()
+        test_instance = self.setup_test_cls()
+
+        round_behaviour = test_instance._skill.skill_context.behaviours.main
+        behaviour_id = behaviour.behaviour_id
+        synchronized_data = SynchronizedData(
+            AbciAppDB(setup_data=dict(participants=[participants]))
+        )
+
+        test_instance.fast_forward_to_behaviour(
+            behaviour=round_behaviour,
+            behaviour_id=behaviour_id,
+            synchronized_data=synchronized_data,
+        )
