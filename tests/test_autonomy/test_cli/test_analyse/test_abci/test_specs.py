@@ -48,20 +48,26 @@ class TestGenerateSpecs(BaseCliTest):
     """Test generate-app-specs"""
 
     cli_options: Tuple[str, ...] = ("analyse", "fsm-specs")
-    skill_path = Path(PACKAGES, "valory", "skills", "hello_world_abci")
-    module_name = ".".join((*skill_path.parts, "rounds"))
-    app_name = "HelloWorldAbciApp"
-    cls_name = ".".join([module_name, app_name])
 
     dfa: DFA
+    app_name: str
+    skill_path: Path
 
     def setup(self) -> None:
         """Setup test method."""
         super().setup()
 
-        module = importlib.import_module(self.module_name)
+        self.app_name = "HelloWorldAbciApp"
+        self.skill_path = Path(PACKAGES, "valory", "skills", "hello_world_abci")
+
+        module_name = ".".join((*self.skill_path.parts, "rounds"))
+        module = importlib.import_module(module_name)
         abci_app_cls = getattr(module, self.app_name)
+
+        shutil.copytree(ROOT_DIR / PACKAGES, self.t / PACKAGES)
+
         self.dfa = DFA.abci_to_dfa(abci_app_cls)
+        os.chdir(self.t)
 
     def get_expected_output(self, output_format: str) -> str:
         """Get expected output."""
@@ -120,12 +126,10 @@ class TestGenerateSpecs(BaseCliTest):
     ) -> None:
         """Test failures."""
 
-        *module, cls = self.cls_name.split(".")
-        cls_name = ".".join([*module, "dummy", cls])
         result = self.run_cli(
             (
                 "--app-class",
-                cls_name,
+                "SOME_CLASS_NAME",
                 "--package",
                 str(Path(*self.skill_path.parts, "dummy")),
                 "--yaml",
@@ -133,29 +137,22 @@ class TestGenerateSpecs(BaseCliTest):
         )
 
         assert result.exit_code == 1, result.output
-        assert "Failed to load" in result.stdout, result.output
         assert (
-            "Please, verify that AbciApps and classes are correctly defined within the module."
-            in result.stdout
+            "Cannot find the rounds module or the composition module" in result.stdout
         ), result.output
 
-        *module, cls = self.cls_name.split(".")
-        cls_name = ".".join([*module, cls[:-1]])
         result = self.run_cli(
             (
                 "--app-class",
                 "SomeAppName",
                 "--package",
-                str(self.skill_path.parts),
+                str(self.skill_path),
                 "--yaml",
             )
         )
 
         assert result.exit_code == 1, result.output
-        assert (
-            "Please, verify that AbciApps and classes are correctly defined within the module"
-            in result.stdout
-        ), result.output
+        assert 'Class "SomeAppName" is not in' in result.stdout, result.output
 
 
 class TestCheckSpecs(BaseCliTest):
