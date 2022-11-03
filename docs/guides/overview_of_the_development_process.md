@@ -28,6 +28,6 @@ We will explore this process in detail in several guides included in this sectio
 
 7. Finally, the next step consists in have the **service deployed**. If you want to deploy the service locally (e.g., for testing purposes), you can do so directly with the {{open_autonomy}} CLI. On the other hand, if you want that your service is secured through the on-chain registry, you need to interact with the on-chain protocol front-end. We will detail how to do this in the guide [deploy a service](./deploy_service.md)
 
-As you can see in the diagram above any developed component can be pushed/pblished to a remote registry, and registered in the on-chain registry. This mechanism allows that developers reuse components written by other developers, thus reducing the invested time in developing common functionalities.
+As you can see in the diagram above any developed component can be pushed/published to a remote registry, and registered in the on-chain registry. This mechanism allows that developers reuse components written by other developers, thus reducing the invested time in developing common functionalities.
 
 We will explore in a number of guides how to navigate through the development process in various scenarios.

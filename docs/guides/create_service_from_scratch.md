@@ -21,7 +21,12 @@ Before starting this guide, ensure that your machine satisfies the framework req
 1. **Draft the service idea.**  Define the business logic of your service as an [FSM](../key_concepts/fsm.md). Determine what are the states, events and transitions that the service needs to transition in order to achieve the desired functionality. Define what kind of consensus need agents to transit from one state to another (e.g., all agents must share a different value, or a threshold of agents need to agree on a common value).
 
     ??? example "Example of a service FSM"
-        Below we show the FSM of the [Hello World](../demos/hello_world_demo.md) demo service.
+        Below we show the sketch of the FSM of the [Hello World](../demos/hello_world_demo.md) demo service. You can learn more about the purpose of each of the individual states and transitions in its [dedicated section](../demos/hello_world_demo.md).
+
+        <figure markdown>
+        ![](../images/hello_world_fsm.svg)
+        <figcaption>FSM of the Hello World agent service</figcaption>
+        </figure>
 
 2. **Write the FSM specification file.** This file formally encodes the FSM designed in the previous step in a language that is understood by the framework.
 
