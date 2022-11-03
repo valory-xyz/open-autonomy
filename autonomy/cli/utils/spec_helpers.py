@@ -174,7 +174,8 @@ def check_all(
             spec_check_failed.append(str(package_path))
 
     if len(spec_check_failed) > 0:
-        error_message = "Specifications check for following packages.\n" + "\n".join(
-            spec_check_failed
+        error_message = (
+            "Specifications check for following packages failed.\n"
+            + "\n".join(spec_check_failed)
         )
         raise DFASpecificationError(error_message)

@@ -37,38 +37,20 @@ from autonomy.configurations.constants import (
     DEFAULT_FSM_SPEC_JSON,
     DEFAULT_FSM_SPEC_MERMAID,
     DEFAULT_FSM_SPEC_YAML,
+    SCHEMAS_DIR,
 )
 
 
+FSM_SCHEMA_FILE = "fsm_specification_schema.json"
 EVENT_PATTERN = re.compile(r"Event\.(\w+)", re.DOTALL)
-FSM_SCHEMA = {
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "additionalProperties": False,
-    "type": "object",
-    "required": [
-        "alphabet_in",
-        "default_start_state",
-        "final_states",
-        "label",
-        "start_states",
-        "states",
-        "transition_func",
-    ],
-    "properties": {
-        "alphabet_in": {"type": "array"},
-        "default_start_state": {"type": "string"},
-        "final_states": {"type": "array"},
-        "label": {"type": "string"},
-        "start_states": {"type": "array"},
-        "states": {"type": "array"},
-        "transition_func": {"type": "object"},
-    },
-}
 
 
 def validate_fsm_spec(data: Dict) -> None:
     """Validate FSM specificaiton file."""
-    validator = jsonschema.Draft4Validator(schema=FSM_SCHEMA)
+    with open_file(SCHEMAS_DIR / FSM_SCHEMA_FILE) as fp:
+        fsm_schema = json.load(fp=fp)
+
+    validator = jsonschema.Draft4Validator(schema=fsm_schema)
     validator.validate(data)
 
 
@@ -93,22 +75,18 @@ class FSMSpecificationLoader:
             MERMAID: DEFAULT_FSM_SPEC_MERMAID,
         }
 
-    @classmethod
-    def from_yaml(cls, file: Path) -> Dict:
+    @staticmethod
+    def from_yaml(file: Path) -> Dict:
         """Load from yaml."""
         with open_file(file, mode="r", encoding="utf-8") as fp:
             data = yaml.safe_load(fp)
-
-        validate_fsm_spec(data)
         return data
 
-    @classmethod
-    def from_json(cls, file: Path) -> Dict:
+    @staticmethod
+    def from_json(file: Path) -> Dict:
         """Load from json."""
         with open_file(file, mode="r", encoding="utf-8") as fp:
             data = json.load(fp=fp)
-
-        validate_fsm_spec(data)
         return data
 
     @classmethod
@@ -126,23 +104,24 @@ class FSMSpecificationLoader:
         else:
             raise ValueError(f"Unrecognized input format {spec_format}.")
 
+        validate_fsm_spec(data)
         return data
 
-    @classmethod
-    def dump_json(cls, dfa: "DFA", file: Path) -> None:
+    @staticmethod
+    def dump_json(dfa: "DFA", file: Path) -> None:
         """Dump to a json file."""
 
         with open_file(file, "w", encoding="utf-8") as fp:
             json.dump(dfa.generate(), fp, indent=4)
 
-    @classmethod
-    def dump_yaml(cls, dfa: "DFA", file: Path) -> None:
+    @staticmethod
+    def dump_yaml(dfa: "DFA", file: Path) -> None:
         """Dump to a yaml file."""
         with open_file(file, "w", encoding="utf-8") as fp:
             yaml.safe_dump(dfa.generate(), fp, indent=4)
 
-    @classmethod
-    def dump_mermaid(cls, dfa: "DFA", file: Path) -> None:
+    @staticmethod
+    def dump_mermaid(dfa: "DFA", file: Path) -> None:
         """Dumps this DFA spec. to a file in Mermaid format."""
         with open_file(file, "w", encoding="utf-8") as fp:
             print("stateDiagram-v2", file=fp)
