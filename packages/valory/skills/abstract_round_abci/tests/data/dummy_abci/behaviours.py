@@ -19,14 +19,18 @@
 
 """This package contains round behaviours of DummyAbciApp."""
 
-from typing import Generator, Set, Type, cast
+from collections import deque
+from typing import Deque, Generator, Set, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
-from packages.valory.skills.abstract_round_abci.common import RandomnessBehaviour
+from packages.valory.skills.abstract_round_abci.common import (
+    RandomnessBehaviour,
+    SelectKeeperBehaviour,
+)
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.models import (
     Params,
 )
@@ -89,19 +93,28 @@ class DummyRandomnessBehaviour(RandomnessBehaviour):
     payload_class = DummyRandomnessPayload
 
 
-class DummyKeeperSelectionBehaviour(DummyBaseBehaviour):
+class DummyKeeperSelectionBehaviour(SelectKeeperBehaviour):
     """DummyKeeperSelectionBehaviour"""
 
     behaviour_id: str = "dummy_keeper_selection"
     matching_round: Type[AbstractRound] = DummyKeeperSelectionRound
+    payload_class = DummyKeeperSelectionPayload
+
+    @staticmethod
+    def serialized_keepers(keepers: Deque[str], keeper_retries: int = 1) -> str:
+        """Get the keepers serialized."""
+        if not keepers:
+            return ""
+        return keeper_retries.to_bytes(32, "big").hex() + "".join(keepers)
 
     def async_act(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            content = True
-            sender = self.context.agent_address
-            payload = DummyKeeperSelectionPayload(sender=sender, content=content)
+            keepers = deque((self._select_keeper(),))
+            payload = self.payload_class(
+                self.context.agent_address, self.serialized_keepers(keepers)
+            )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)

@@ -21,7 +21,7 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Type, cast
+from typing import Any, Type, cast
 
 import pytest
 from aea.helpers.base import cd
@@ -32,7 +32,9 @@ from packages.valory.skills.abstract_round_abci.test_tools.common import (
     BaseSelectKeeperBehaviourTest,
     CommonBaseCase,
 )
-from packages.valory.skills.abstract_round_abci.tests.data import dummy_abci
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
+    PATH_TO_SKILL,
+)
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours import (
     DummyFinalBehaviour,
     DummyKeeperSelectionBehaviour,
@@ -43,9 +45,6 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds imp
 )
 
 
-PATH_TO_SKILL = Path(dummy_abci.__file__).parent
-
-
 class BaseCommonBaseCaseTestSetup(ABC):
     """BaseRandomnessBehaviourTestSetup"""
 
@@ -53,7 +52,7 @@ class BaseCommonBaseCaseTestSetup(ABC):
     _test_cls: Type[CommonBaseCase]
 
     @abstractmethod
-    def run_test(self, test_instance: CommonBaseCase) -> None:
+    def run_test(self, test_instance: Any) -> None:
         """Tun a test"""
 
     @classmethod
@@ -86,7 +85,7 @@ class BaseCommonBaseCaseTestSetup(ABC):
 
         test_instance = self.test_cls()  # type: ignore
         test_instance.setup()
-        return cast(self._test_cls, test_instance)
+        return test_instance
 
     def set_path_to_skill(self, path_to_skill: Path = PATH_TO_SKILL) -> None:
         """Set path_to_skill"""
@@ -102,11 +101,11 @@ class BaseCommonBaseCaseTestSetup(ABC):
 
     def set_done_event(self) -> None:
         """Set done_event"""
-        self.test_cls.done_event = Event.DONE
+        self.test_cls.done_event = Event.DONE  # type: ignore
 
     def set_next_behaviour_class(self, next_behaviour_class: Type) -> None:
         """Set next_behaviour_class"""
-        self.test_cls.next_behaviour_class = next_behaviour_class
+        self.test_cls.next_behaviour_class = next_behaviour_class  # type: ignore
 
 
 class TestBaseRandomnessBehaviourTestSetup(BaseCommonBaseCaseTestSetup):
