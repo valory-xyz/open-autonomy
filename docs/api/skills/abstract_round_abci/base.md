@@ -1935,6 +1935,17 @@ def is_abstract(cls) -> bool
 
 Return if the abci app is abstract.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.add_termination"></a>
+
+#### add`_`termination
+
+```python
+@classmethod
+def add_termination(cls, background_round_cls: AppState, termination_event: EventType, termination_abci_app: Type["AbciApp"]) -> Type["AbciApp"]
+```
+
+Sets the termination related class variables.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.synchronized_data"></a>
 
 #### synchronized`_`data
@@ -1996,7 +2007,7 @@ Get all the events.
 
 ```python
 @classmethod
-def get_all_round_classes(cls) -> Set[AppState]
+def get_all_round_classes(cls, include_termination_rounds: bool = False) -> Set[AppState]
 ```
 
 Get all round classes.
@@ -2032,6 +2043,28 @@ def current_round() -> AbstractRound
 ```
 
 Get the current round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.background_round"></a>
+
+#### background`_`round
+
+```python
+@property
+def background_round() -> AbstractRound
+```
+
+Get the background round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.is_termination_set"></a>
+
+#### is`_`termination`_`set
+
+```python
+@property
+def is_termination_set() -> bool
+```
+
+Get whether termination is set.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.current_round_id"></a>
 
@@ -2088,6 +2121,17 @@ def latest_result() -> Optional[BaseSynchronizedData]
 
 Get the latest result of the round.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.background_round_tx_type"></a>
+
+#### background`_`round`_`tx`_`type
+
+```python
+@property
+def background_round_tx_type() -> Optional[str]
+```
+
+Returns the allowed transaction type for background round.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.check_transaction"></a>
 
 #### check`_`transaction
@@ -2098,7 +2142,9 @@ def check_transaction(transaction: Transaction) -> None
 
 Check a transaction.
 
-Forward the call to the current round object.
+The background round runs concurrently with other (normal) rounds.
+First we check if the transaction is meant for the background round,
+if not we forward to the current round object.
 
 **Arguments**:
 
@@ -2114,7 +2160,9 @@ def process_transaction(transaction: Transaction) -> None
 
 Process a transaction.
 
-Forward the call to the current round object.
+The background round runs concurrently with other (normal) rounds.
+First we check if the transaction is meant for the background round,
+if not we forward to the current round object.
 
 **Arguments**:
 
@@ -2292,6 +2340,17 @@ def current_round() -> AbstractRound
 ```
 
 Get current round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.background_round"></a>
+
+#### background`_`round
+
+```python
+@property
+def background_round() -> AbstractRound
+```
+
+Get the background round.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.current_round_id"></a>
 

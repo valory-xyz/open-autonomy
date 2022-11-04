@@ -381,3 +381,7 @@ misbehavior
  - README.md
 atheris
 information_source
+ - docs/guides/create_service_from_scratch.md
+create_fsm_app.md
+
+
