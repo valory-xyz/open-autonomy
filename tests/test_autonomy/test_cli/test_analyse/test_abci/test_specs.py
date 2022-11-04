@@ -229,7 +229,7 @@ class TestCheckSpecs(BaseCliTest):
         return_code, stdout, stderr = self.run_cli_subprocess(())
 
         assert return_code == 1
-        assert "Specifications check for following packages" in stderr
+        assert "Specifications check for following packages failed" in stderr
 
     def teardown(
         self,

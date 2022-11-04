@@ -164,7 +164,7 @@ def check_all(
     # dependencies are already loaded. Otherwise dependencies might not be present. Or b)
     # we need to ensure relative modules are loaded too (https://docs.python.org/3/library/importlib.html#importlib.import_module)?
     for spec_file in fsm_specifications:
-        package_path = spec_file.parent.relative_to(Path.cwd().resolve())
+        package_path = spec_file.parent.resolve().relative_to(Path.cwd().resolve())
         click.echo(f"Checking {package_path}")
         try:
             check_one(package_path=package_path, spec_format=spec_format)
