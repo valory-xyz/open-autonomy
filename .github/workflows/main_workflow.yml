@@ -28,9 +28,9 @@ jobs:
       run: |
         pip install pipenv
         pipenv --clear
-        pipenv install --dev --skip-lock
-        pipenv run pip install -e .[all]
-        pipenv lock
+        time pipenv install --dev --skip-lock
+        time pipenv run pip install -e .[all]
+        time pipenv lock
 
   copyright_doc_and_pipfile_check:
     continue-on-error: False
