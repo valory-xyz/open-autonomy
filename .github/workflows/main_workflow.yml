@@ -28,7 +28,7 @@ jobs:
       run: |
         pip install pipenv
         pipenv --clear
-        time pipenv install --dev --skip-lock
+        time pipenv install --verbose --dev --skip-lock
         time pipenv run pip install -e .[all]
         time pipenv lock
 
