@@ -5,6 +5,14 @@ Therefore, registering and securing a package in the on-chain registry is the re
 
 The on-chain registry can be accessed through the {{on_chain_frontend}}.
 
+
+<figure markdown>
+![](../images/development_process_register_packages_on_chain.svg)
+<figcaption>Part of the development process covered in this guide</figcaption>
+</figure>
+
+
+
 ## What will you learn
 In this guide, you will learn how to:
 
