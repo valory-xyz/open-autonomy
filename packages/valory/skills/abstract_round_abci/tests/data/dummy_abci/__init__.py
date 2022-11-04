@@ -19,7 +19,10 @@
 
 """This module contains the implementation of the default skill."""
 
+from pathlib import Path
+
 from aea.configurations.base import PublicId
 
 
 PUBLIC_ID = PublicId.from_str("dummy/dummy_abci:0.1.0")
+PATH_TO_SKILL = Path(__file__).parent
