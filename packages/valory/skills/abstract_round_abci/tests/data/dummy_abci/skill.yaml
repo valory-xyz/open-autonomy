@@ -1,47 +1,39 @@
-name: safe_deployment_abci
-author: valory
+name: dummy_abci
+author: dummy
 version: 0.1.0
 type: skill
-description: ABCI application for safe deployments.
+description: The scaffold skill is a scaffold for your own skill implementation.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: bafybeib7wipqo3cwbdtdkbdfsb7qcpsrrmc2qjhge74stytcbalk4xpkmm
-  __init__.py: bafybeigftdgpuynk4j6pqy4i4nrdthomrol5ufzgvuulszjuubpngyl7we
-  behaviours.py: bafybeih7sosfr55b4ygsgijg3omz2thhdtwgahkudbbyhsjkoglniwexa4
-  dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
-  fsm_specification.yaml: bafybeihsy6wstmqszex4rvonjgd67qyrqzqbkhhpdltpmzyijxcgip4ctq
-  handlers.py: bafybeifwwfsblxmkh7lru4ukupmj3ujn67ciaqszpwpjvglspm4xmyi7oi
-  models.py: bafybeicqi64hrfqfloiopfmnkabbahggseu2pt47dcenfqvorxipv6egbi
-  payloads.py: bafybeiajdz24osjwh7qvioa4vjssa73nqssnsgpwhowevmxnwqj4usrn5q
-  rounds.py: bafybeie23qyyxsniohhcbz6mc4rgrswtk5d257genhxn6waocy3fe47ucm
-  tests/__init__.py: bafybeifelbjn35o54vqz62cdblijcrag2pdf5dtj6wqhepbowyifigno4a
-  tests/test_behaviours.py: bafybeidx23aeenlky5gfocytb5dzfupuskevgyh2msoy4ohb7zaas72are
-  tests/test_contract_api.py: bafybeihjmkysmyj3f7t5cqkrodiqatfjvk5tfzwnelmsiskkxjbkkgdem4
-  tests/test_dialogues.py: bafybeibcxsrb2zbnrvzkzxvpdu26iw3k6hynotm4xqm2c3e6p7akpipiua
-  tests/test_handlers.py: bafybeihvvm4onw2ocfvai32mlujjngwkolviwehvw35nendb7b3adlol5e
-  tests/test_models.py: bafybeiap3lhuwichxzla2ug4pcajhrsjawlt26dvdvmpoachsel56apazm
-  tests/test_payloads.py: bafybeihuvl7qwisdgvwppda6bpoe63xiitnyhjyszdcmpxia4lzftzdn5e
-  tests/test_rounds.py: bafybeiaxhdpfrgb24lw7euyxrrk7hkbteqroakvchmnvofrzzgv56r5op4
+  __init__.py: bafybeielxta5wbywv6cb2p65phk73zeodroif7imk33qc7sxgxrcelr62y
+  behaviours.py: bafybeicwwlex4z5ro6hrw5cdwxyp5742klcqsjwcn423wgg3jk6xclzwvi
+  dialogues.py: bafybeiaswubmqa7trhajbjn34okmpftk2sehsqrjg7znzrrd7j32xzx4vq
+  handlers.py: bafybeifik3ftljs63u7nm4gadxpqbcvqj53p7qftzzzfto3ioad57k3x3u
+  models.py: bafybeif4lp5i6an4z4kkquh3x3ttsvfctvsu5excmxahjywbbbo7g3js5y
+  payloads.py: bafybeidllmzsctg3m5jhawbt3kzk6ieodtvgwklrquqehtqtzzwhkxxg4a
+  rounds.py: bafybeiab5q6pzh544uuc672hksh4rv6a74dunt4ztdnqo4gw3hnzd452ti
+  tests/__init__.py: bafybeiaxqzwmh36bhquqztcyrkxjjkz5cctseqetglrwdezgnkjrtg2654
+  tests/test_behaviours.py: bafybeich3uo67gdbxrxsivlrxfgpfuixupl6qtotxxp2qqpyqnck4i67eu
+  tests/test_dialogues.py: bafybeice2v4xnsjhhlnpbejnvpory5spmrewwcfsefzqzq3uhfyya5hypm
+  tests/test_handlers.py: bafybeidrfumnc743qh5s2ahf5rxu3rzrroygxwpbqa7jtqxg5kirjzedjm
+  tests/test_models.py: bafybeifuxjmpv3eet2zn7vc5btprakueqlk2ybc2fxgzbtiho5wdslkeb4
+  tests/test_payloads.py: bafybeicvbisfw5prv6jw3is3vw6gehsplt3teyeo6dbeh37xazh4izeyhq
+  tests/test_rounds.py: bafybeihjepr2hubbgmb7jkeldbam3zmsgwn6nffif7zp4etqlv2bt5rsxy
 fingerprint_ignore_patterns: []
-connections:
-- valory/ledger:0.19.0:bafybeihmz5us4ntmzvgikpkx4tththrl7zvou4uiebvletdeliidiuhi6m
-contracts:
-- valory/gnosis_safe:0.1.0:bafybeibqsf4sh4f4lshbxnwapzxuul6ywzgq4nfoxd7wye6s3ncb5amlvq
-protocols:
-- open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
-- valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
-- valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
+connections: []
+contracts: []
+protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihyaz2lzprngu3ooahxnkz3lj2ajr6awcfxr4e475gto3y6ps4nua
+- valory/abstract_round_abci:0.1.0:bafybeifjnk2v3cw233ke5qhakurvdsex64c5runjctclrh7y64tyh7uqrq
 behaviours:
   main:
     args: {}
-    class_name: SafeDeploymentRoundBehaviour
+    class_name: DummyRoundBehaviour
 handlers:
   abci:
     args: {}
-    class_name: ABCIHandler
+    class_name: ABCIRoundHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -81,8 +73,8 @@ models:
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      finalize_timeout: 60.0
       genesis_config:
-        genesis_time: '2022-05-20T16:00:21.735122717Z'
         chain_id: chain-c4daS1
         consensus_params:
           block:
@@ -90,14 +82,17 @@ models:
             max_gas: '-1'
             time_iota_ms: '1000'
           evidence:
-            max_age_num_blocks: '100000'
             max_age_duration: '172800000000000'
+            max_age_num_blocks: '100000'
             max_bytes: '1048576'
           validator:
             pub_key_types:
             - ed25519
           version: {}
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
         voting_power: '10'
+      history_check_timeout: 1205
+      keeper_allowed_retries: 3
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
@@ -106,8 +101,9 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
-      service_id: registration
+      service_id: dummy
       service_registry_address: null
+      setup: {}
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
@@ -135,9 +131,8 @@ models:
   state:
     args: {}
     class_name: SharedState
-dependencies:
-  open-aea-ledger-ethereum:
-    version: ==1.22.0
-  open-aea-test-autonomy:
-    version: ==0.3.4
-is_abstract: true
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
+dependencies: {}
+is_abstract: false

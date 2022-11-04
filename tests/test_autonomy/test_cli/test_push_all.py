@@ -28,6 +28,7 @@ from unittest import mock
 
 import _strptime  # noqa  # pylint: disable=unsed-import
 from aea.cli.registry.settings import REMOTE_IPFS
+from aea.configurations.constants import PACKAGES
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
@@ -53,7 +54,9 @@ class TestPushAll(BaseCliTest):
     ) -> None:
         """Test run."""
 
-        packages = set([file.parent for file in self.t.glob("**/*yaml")])
+        # packages/<author>/<component>/<name>/<config>.yaml
+        path = f"{PACKAGES}/*/*/*/*.yaml"
+        packages = {file.parent for file in self.t.glob(path)}
         published_packages = []
 
         def _push_patch(_: Any, public_id: Any) -> None:

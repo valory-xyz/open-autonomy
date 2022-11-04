@@ -19,62 +19,69 @@
 
 """Tests for abstract_round_abci/test_tools/common.py"""
 
+from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Type, cast
-from unittest import mock
+from typing import Any, Type, cast
 
 import pytest
-from aea.components.base import _CheckUsedDependencies  # for temporary patch
 from aea.helpers.base import cd
 
+from packages.valory.skills.abstract_round_abci.base import _MetaPayload
 from packages.valory.skills.abstract_round_abci.test_tools.common import (
     BaseRandomnessBehaviourTest,
+    BaseSelectKeeperBehaviourTest,
+    CommonBaseCase,
 )
-from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    RandomnessTransactionSubmissionBehaviour,
-    SelectKeeperTransactionSubmissionBehaviourA,
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
+    PATH_TO_SKILL,
+)
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours import (
+    DummyFinalBehaviour,
+    DummyKeeperSelectionBehaviour,
+    DummyRandomnessBehaviour,
+)
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds import (
+    Event,
 )
 
-# need to change
-from packages.valory.skills.transaction_settlement_abci.rounds import Event
 
+class BaseCommonBaseCaseTestSetup(ABC):
+    """BaseRandomnessBehaviourTestSetup"""
 
-test_skill = "transaction_settlement_abci"
-PATH_TO_SKILL = BaseRandomnessBehaviourTest.path_to_skill.parent / test_skill
+    test_cls: Type[CommonBaseCase]
+    _test_cls: Type[CommonBaseCase]
 
+    @abstractmethod
+    def run_test(self, test_instance: Any) -> None:
+        """Tun a test"""
 
-# TODO:
-#  the following doesn't work, because it cannot access the other concrete skill (e.g. simple_abci)
-#  autonomy -s test --cov by-path ./packages/valory/skills/abstract_round_abci/
-#  to run the test one can use the pytest directly
-#  pytest -vv packages/valory/skills/abstract_round_abci/tests/test_tools/test_common.py --cov packages/valory/skills/abstract_round_abci/ --cov-report term-missing
+    @classmethod
+    def setup_class(cls) -> None:
+        """Setup class"""
+        cls.old_value = _MetaPayload.transaction_type_to_payload_cls.copy()  # type: ignore
+        _MetaPayload.transaction_type_to_payload_cls.clear()
 
-
-class TestBaseRandomnessBehaviourTestSetup:
-    """Test BaseRandomnessBehaviourTest setup."""
-
-    test_cls: Type[BaseRandomnessBehaviourTest]
+    @classmethod
+    def teardown_class(cls) -> None:
+        """Teardown class"""
+        _MetaPayload.transaction_type_to_payload_cls = cls.old_value  # type: ignore
 
     def setup(self) -> None:
         """Setup test"""
 
         # must `copy` the class to avoid test interference
         test_cls = type(
-            "BaseRandomnessBehaviourTest",
-            BaseRandomnessBehaviourTest.__bases__,
-            dict(BaseRandomnessBehaviourTest.__dict__),
+            self._test_cls.__name__,
+            self._test_cls.__bases__,
+            dict(self._test_cls.__dict__),
         )
-        self.test_cls = cast(Type[BaseRandomnessBehaviourTest], test_cls)
+        self.test_cls = cast(Type[CommonBaseCase], test_cls)
 
-    def setup_test_cls(self) -> BaseRandomnessBehaviourTest:
+    def setup_test_cls(self) -> CommonBaseCase:
         """Helper method to setup test to be tested"""
 
         with cd(self.test_cls.path_to_skill):
-            # another temporary patch, needed for imports from other modules
-            with mock.patch.object(
-                _CheckUsedDependencies, "run_check", return_value=lambda: None
-            ):
-                self.test_cls.setup_class()
+            self.test_cls.setup_class()
 
         test_instance = self.test_cls()  # type: ignore
         test_instance.setup()
@@ -86,51 +93,49 @@ class TestBaseRandomnessBehaviourTestSetup:
 
     def set_randomness_behaviour_class(self) -> None:
         """Set randomness_behaviour_class"""
-        self.test_cls.randomness_behaviour_class = (
-            RandomnessTransactionSubmissionBehaviour  # type: ignore
-        )
+        self.test_cls.randomness_behaviour_class = DummyRandomnessBehaviour  # type: ignore
+
+    def set_select_keeper_behaviour_class(self) -> None:
+        """Set randomness_behaviour_class"""
+        self.test_cls.select_keeper_behaviour_class = DummyKeeperSelectionBehaviour  # type: ignore
 
     def set_done_event(self) -> None:
         """Set done_event"""
-        self.test_cls.done_event = Event.DONE
+        self.test_cls.done_event = Event.DONE  # type: ignore
 
-    def set_next_behaviour_class(self) -> None:
+    def set_next_behaviour_class(self, next_behaviour_class: Type) -> None:
         """Set next_behaviour_class"""
-        self.test_cls.next_behaviour_class = (
-            SelectKeeperTransactionSubmissionBehaviourA  # type: ignore
-        )
+        self.test_cls.next_behaviour_class = next_behaviour_class  # type: ignore
 
-    def test_setup_fails_without_skill_path_overwrite(self) -> None:
-        """Test setup fails without skill path overwrite."""
 
-        # we must overwrite since it is accessed in _prepare_skill, else load will fail
-        # -> skill_config.directory = cls.path_to_skill
-        with pytest.raises(
-            AttributeError,
-            match="'AbstractRoundBehaviour' object has no attribute 'behaviours'",
-        ):
-            self.setup_test_cls()
+class TestBaseRandomnessBehaviourTestSetup(BaseCommonBaseCaseTestSetup):
+    """Test BaseRandomnessBehaviourTest setup."""
+
+    _test_cls = BaseRandomnessBehaviourTest
+
+    def run_test(self, test_instance: BaseRandomnessBehaviourTest) -> None:
+        """Run test"""
+        test_instance.test_randomness_behaviour()
 
     def test_setup_randomness_behaviour_class_not_set(self) -> None:
         """Test setup randomness_behaviour_class not set."""
 
         self.set_path_to_skill()
-        test_instance = self.setup_test_cls()
+        test_instance = cast(BaseRandomnessBehaviourTest, self.setup_test_cls())
         expected = f"'{self.test_cls.__name__}' object has no attribute 'randomness_behaviour_class'"
         with pytest.raises(AttributeError, match=expected):
-            test_instance.test_randomness_behaviour()  # pylint: disable=no-member
+            self.run_test(test_instance)
 
     def test_setup_done_event_not_set(self) -> None:
         """Test setup done_event = Event.DONE not set."""
 
-        # NOTE: if moved to top first test fails!? -> reason: _CheckUsedDependencies
         self.set_path_to_skill()
         self.set_randomness_behaviour_class()
 
-        test_instance = self.setup_test_cls()
+        test_instance = cast(BaseRandomnessBehaviourTest, self.setup_test_cls())
         expected = f"'{self.test_cls.__name__}' object has no attribute 'done_event'"
         with pytest.raises(AttributeError, match=expected):
-            test_instance.test_randomness_behaviour()  # pylint: disable=no-member
+            self.run_test(test_instance)
 
     def test_setup_next_behaviour_class_not_set(self) -> None:
         """Test setup next_behaviour_class not set."""
@@ -139,12 +144,12 @@ class TestBaseRandomnessBehaviourTestSetup:
         self.set_randomness_behaviour_class()
         self.set_done_event()
 
-        test_instance = self.setup_test_cls()
+        test_instance = cast(BaseRandomnessBehaviourTest, self.setup_test_cls())
         expected = (
             f"'{self.test_cls.__name__}' object has no attribute 'next_behaviour_class'"
         )
         with pytest.raises(AttributeError, match=expected):
-            test_instance.test_randomness_behaviour()  # pylint: disable=no-member
+            self.run_test(test_instance)
 
     def test_successful_setup_randomness_behaviour_test(self) -> None:
         """Test successful setup of the test class inheriting from BaseRandomnessBehaviourTest."""
@@ -152,15 +157,78 @@ class TestBaseRandomnessBehaviourTestSetup:
         self.set_path_to_skill()
         self.set_randomness_behaviour_class()
         self.set_done_event()
-        self.set_next_behaviour_class()
-        test_instance = self.setup_test_cls()
-        test_instance.test_randomness_behaviour()  # pylint: disable=no-member
+        self.set_next_behaviour_class(DummyKeeperSelectionBehaviour)
+        test_instance = cast(BaseRandomnessBehaviourTest, self.setup_test_cls())
+        self.run_test(test_instance)
 
 
 class TestBaseRandomnessBehaviourTestRunning(BaseRandomnessBehaviourTest):
     """Test TestBaseRandomnessBehaviourTestRunning running."""
 
     path_to_skill = PATH_TO_SKILL
-    randomness_behaviour_class = RandomnessTransactionSubmissionBehaviour
-    next_behaviour_class = SelectKeeperTransactionSubmissionBehaviourA
+    randomness_behaviour_class = DummyRandomnessBehaviour  # type: ignore
+    next_behaviour_class = DummyKeeperSelectionBehaviour  # type: ignore
+    done_event = Event.DONE
+
+
+class TestBaseSelectKeeperBehaviourTestSetup(BaseCommonBaseCaseTestSetup):
+    """Test BaseRandomnessBehaviourTest setup."""
+
+    _test_cls = BaseSelectKeeperBehaviourTest
+
+    def run_test(self, test_instance: BaseSelectKeeperBehaviourTest) -> None:
+        """Run test"""
+        test_instance.test_select_keeper_preexisting_keeper()
+
+    def test_setup_select_keeper_behaviour_class_not_set(self) -> None:
+        """Test setup randomness_behaviour_class not set."""
+
+        self.set_path_to_skill()
+        test_instance = cast(BaseSelectKeeperBehaviourTest, self.setup_test_cls())
+        expected = f"'{self.test_cls.__name__}' object has no attribute 'select_keeper_behaviour_class'"
+        with pytest.raises(AttributeError, match=expected):
+            test_instance.test_select_keeper_preexisting_keeper()
+
+    def test_setup_done_event_not_set(self) -> None:
+        """Test setup done_event = Event.DONE not set."""
+
+        self.set_path_to_skill()
+        self.set_select_keeper_behaviour_class()
+
+        test_instance = cast(BaseSelectKeeperBehaviourTest, self.setup_test_cls())
+        expected = f"'{self.test_cls.__name__}' object has no attribute 'done_event'"
+        with pytest.raises(AttributeError, match=expected):
+            test_instance.test_select_keeper_preexisting_keeper()
+
+    def test_setup_next_behaviour_class_not_set(self) -> None:
+        """Test setup next_behaviour_class not set."""
+
+        self.set_path_to_skill()
+        self.set_select_keeper_behaviour_class()
+        self.set_done_event()
+
+        test_instance = cast(BaseSelectKeeperBehaviourTest, self.setup_test_cls())
+        expected = (
+            f"'{self.test_cls.__name__}' object has no attribute 'next_behaviour_class'"
+        )
+        with pytest.raises(AttributeError, match=expected):
+            test_instance.test_select_keeper_preexisting_keeper()
+
+    def test_successful_setup_select_keeper_behaviour_test(self) -> None:
+        """Test successful setup of the test class inheriting from BaseSelectKeeperBehaviourTest."""
+
+        self.set_path_to_skill()
+        self.set_select_keeper_behaviour_class()
+        self.set_done_event()
+        self.set_next_behaviour_class(DummyFinalBehaviour)
+        test_instance = cast(BaseSelectKeeperBehaviourTest, self.setup_test_cls())
+        test_instance.test_select_keeper_preexisting_keeper()
+
+
+class TestBaseSelectKeeperBehaviourTestRunning(BaseSelectKeeperBehaviourTest):
+    """Test BaseSelectKeeperBehaviourTest running."""
+
+    path_to_skill = PATH_TO_SKILL
+    select_keeper_behaviour_class = DummyKeeperSelectionBehaviour  # type: ignore
+    next_behaviour_class = DummyFinalBehaviour  # type: ignore
     done_event = Event.DONE
