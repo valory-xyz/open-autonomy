@@ -78,17 +78,12 @@ def update_one(
         Path, FSMSpecificationLoader.OutputFormats.default_output_files.get(spec_format)
     )
 
-    try:
-        if app_class is None:
-            if not spec_file.exists():
-                raise click.ClickException(
-                    f"FSM specification file {spec_file} does not exist, please provide app class name to continue."
-                )
-            app_class = _get_app_class_from_spec_file(spec_file, spec_format)
-    except FileNotFoundError as e:
-        raise FileNotFoundError(
-            f"Specification file {spec_file} does not exist, please provide the name for app class to continue."
-        ) from e
+    if app_class is None:
+        if not spec_file.exists():
+            raise click.ClickException(
+                f"FSM specification file {spec_file} does not exist, please provide app class name to continue."
+            )
+        app_class = _get_app_class_from_spec_file(spec_file, spec_format)
 
     if app_class is None:
         raise ValueError(
@@ -158,11 +153,7 @@ def check_all(
             ),
         ]
     )
-    # TODO: fix this implementation:
-    # - above file names should be constant and explained in helper text
-    # - investigate: either a) we need to do this in the order of the inverse dependency tree, so that
-    # dependencies are already loaded. Otherwise dependencies might not be present. Or b)
-    # we need to ensure relative modules are loaded too (https://docs.python.org/3/library/importlib.html#importlib.import_module)?
+
     for spec_file in fsm_specifications:
         package_path = spec_file.parent.resolve().relative_to(Path.cwd().resolve())
         click.echo(f"Checking {package_path}")
