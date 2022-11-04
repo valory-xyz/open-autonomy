@@ -35,7 +35,7 @@ you have followed the [setup instructions](../guides/set_up.md#setup). As a resu
 
 2. Use the CLI to fetch the `valory/simple_abci` service.
     ```bash
-    autonomy fetch valory/simple_abci:0.1.0:bafybeieb5ksw6s6anbfaowwczme4qajg4rsubxwdwuiezbyblhakioxxoe --remote --service
+    autonomy fetch valory/simple_abci:0.1.0:bafybeih66jwdt3m6ko4uczfnjn323xckq6qtrqjjc6kj5ii3wotcppu45y --remote --service
     cd simple_abci
     ```
 
@@ -362,7 +362,7 @@ alphabet_in:
 - ROUND_TIMEOUT
 default_start_state: RegistrationRound
 final_states: []
-label: packages.valory.skills.simple_abci.rounds.SimpleAbciApp
+label: SimpleAbciApp
 start_states:
 - RegistrationRound
 states:

@@ -19,35 +19,47 @@
 """Generates the specification for a given ABCI app in YAML/JSON/Mermaid format."""
 
 
-import importlib
 import inspect
 import json
 import logging
 import re
-import sys
 import textwrap
 from collections import OrderedDict, defaultdict, deque
 from itertools import product
 from pathlib import Path
-from typing import Any, Dict, List, Set, TextIO, Tuple
+from typing import Any, Dict, List, Set, Tuple
 
+import jsonschema
 import yaml
+from aea.helpers.io import open_file
 
-from autonomy.configurations.constants import DEFAULT_FSM_SPEC_YAML
+from autonomy.configurations.constants import (
+    DEFAULT_FSM_SPEC_JSON,
+    DEFAULT_FSM_SPEC_MERMAID,
+    DEFAULT_FSM_SPEC_YAML,
+    SCHEMAS_DIR,
+)
 
 
+FSM_SCHEMA_FILE = "fsm_specification_schema.json"
 EVENT_PATTERN = re.compile(r"Event\.(\w+)", re.DOTALL)
 
 
-# TODO add schema validation of the spec
+def validate_fsm_spec(data: Dict) -> None:
+    """Validate FSM specificaiton file."""
+    with open_file(SCHEMAS_DIR / FSM_SCHEMA_FILE) as fp:
+        fsm_schema = json.load(fp=fp)
+
+    validator = jsonschema.Draft4Validator(schema=fsm_schema)
+    validator.validate(data)
 
 
 class DFASpecificationError(Exception):
     """Simple class to raise errors when parsing a DFA."""
 
 
-class DFA:
-    """Simple specification of a deterministic finite automaton (DFA)."""
+class FSMSpecificationLoader:
+    """FSM specification loader utilities."""
 
     class OutputFormats:  # pylint: disable=too-few-public-methods
         """Output formats."""
@@ -56,6 +68,104 @@ class DFA:
         YAML = "yaml"
         MERMAID = "mermaid"
         ALL = (JSON, YAML, MERMAID)
+
+        default_output_files = {
+            JSON: DEFAULT_FSM_SPEC_JSON,
+            YAML: DEFAULT_FSM_SPEC_YAML,
+            MERMAID: DEFAULT_FSM_SPEC_MERMAID,
+        }
+
+    @staticmethod
+    def from_yaml(file: Path) -> Dict:
+        """Load from yaml."""
+        with open_file(file, mode="r", encoding="utf-8") as fp:
+            data = yaml.safe_load(fp)
+        return data
+
+    @staticmethod
+    def from_json(file: Path) -> Dict:
+        """Load from json."""
+        with open_file(file, mode="r", encoding="utf-8") as fp:
+            data = json.load(fp=fp)
+        return data
+
+    @classmethod
+    def load(
+        cls,
+        file: Path,
+        spec_format: str = OutputFormats.YAML,
+    ) -> Dict:
+        """Load FSM specification."""
+
+        if spec_format == cls.OutputFormats.JSON:
+            data = cls.from_json(file)
+        elif spec_format == cls.OutputFormats.YAML:
+            data = cls.from_yaml(file)
+        else:
+            raise ValueError(f"Unrecognized input format {spec_format}.")
+
+        validate_fsm_spec(data)
+        return data
+
+    @staticmethod
+    def dump_json(dfa: "DFA", file: Path) -> None:
+        """Dump to a json file."""
+
+        with open_file(file, "w", encoding="utf-8") as fp:
+            json.dump(dfa.generate(), fp, indent=4)
+
+    @staticmethod
+    def dump_yaml(dfa: "DFA", file: Path) -> None:
+        """Dump to a yaml file."""
+        with open_file(file, "w", encoding="utf-8") as fp:
+            yaml.safe_dump(dfa.generate(), fp, indent=4)
+
+    @staticmethod
+    def dump_mermaid(dfa: "DFA", file: Path) -> None:
+        """Dumps this DFA spec. to a file in Mermaid format."""
+        with open_file(file, "w", encoding="utf-8") as fp:
+            print("stateDiagram-v2", file=fp)
+            aux_map: Dict[Tuple[str, str], Set[str]] = {}
+            for (s1, t), s2 in dfa.transition_func.items():
+                aux_map.setdefault((s1, s2), set()).add(t)
+
+            # A small optimization to make the output nicer:
+            # (1) First, print the arrows that start from a start_state.
+            for (s1, s2), t_set in aux_map.items():
+                if s1 in dfa.start_states:
+                    print(
+                        f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>",
+                        file=fp,
+                    )
+
+            # (2) Then, print the rest of the arrows.
+            for (s1, s2), t_set in aux_map.items():
+                if s1 not in dfa.start_states:
+                    print(
+                        f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>",
+                        file=fp,
+                    )
+
+    @classmethod
+    def dump(
+        cls, dfa: "DFA", file: Path, spec_format: str = OutputFormats.YAML
+    ) -> None:
+        """Dumps this DFA spec. to a file in YAML/JSON/Mermaid format."""
+
+        validate_fsm_spec(dfa.generate())
+
+        if spec_format == cls.OutputFormats.JSON:
+            cls.dump_json(dfa, file)
+        elif spec_format == cls.OutputFormats.YAML:
+            cls.dump_yaml(dfa, file)
+        elif spec_format == cls.OutputFormats.MERMAID:
+            cls.dump_mermaid(dfa, file)
+        else:
+            raise ValueError(f"Unrecognized input format {spec_format}.")
+
+
+class DFA:
+    """Simple specification of a deterministic finite automaton (DFA)."""
 
     def __init__(
         self,
@@ -117,7 +227,7 @@ class DFA:
 
         if len(error_strings) > 0:
             raise DFASpecificationError(
-                "DFA spec. has the following issues:\n" + "\n".join(error_strings)
+                "DFA spec has the following issues:\n" + "\n".join(error_strings)
             )
 
         self.label = label
@@ -174,46 +284,6 @@ class DFA:
         if not isinstance(other, DFA):
             return NotImplemented  # Try reflected operation
         return self.__dict__ == other.__dict__
-
-    def dump(self, file: Path, output_format: str = "yaml") -> None:
-        """Dumps this DFA spec. to a file in YAML/JSON/Mermaid format."""
-
-        dumper = getattr(self, f"dump_{output_format}")
-        with open(file, "w+", encoding="utf-8") as fp:
-            dumper(fp)
-
-    def dump_json(self, fp: TextIO) -> None:
-        """Dump to a json file."""
-        json.dump(self.generate(), fp, indent=4)
-
-    def dump_yaml(self, fp: TextIO) -> None:
-        """Dump to a yaml file."""
-        yaml.safe_dump(self.generate(), fp, indent=4)
-
-    def dump_mermaid(self, fp: TextIO) -> None:
-        """Dumps this DFA spec. to a file in Mermaid format."""
-        print("stateDiagram-v2", file=fp)
-
-        aux_map: Dict[Tuple[str, str], Set[str]] = {}
-        for (s1, t), s2 in self.transition_func.items():
-            aux_map.setdefault((s1, s2), set()).add(t)
-
-        # A small optimization to make the output nicer:
-        # (1) First, print the arrows that start from a start_state.
-        for (s1, s2), t_set in aux_map.items():
-            if s1 in self.start_states:
-                print(
-                    f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>",
-                    file=fp,
-                )
-
-        # (2) Then, print the rest of the arrows.
-        for (s1, s2), t_set in aux_map.items():
-            if s1 not in self.start_states:
-                print(
-                    f"    {s1} --> {s2}: <center>{'<br />'.join(t_set)}</center>",
-                    file=fp,
-                )
 
     def generate(self) -> Dict[str, Any]:
         """Retrieves an exportable representation for YAML/JSON dump of this DFA."""
@@ -280,34 +350,22 @@ class DFA:
         return match.group(1), match.group(2)
 
     @classmethod
-    def load(cls, fp: TextIO, input_format: str = "yaml") -> "DFA":
+    def load(
+        cls, file: Path, spec_format: str = FSMSpecificationLoader.OutputFormats.YAML
+    ) -> "DFA":
         """Loads a DFA JSON specification from file."""
 
-        if input_format == "json":
-            dfa_simple = json.load(fp)
-        elif input_format == "yaml":
-            dfa_simple = yaml.safe_load(fp)
-        else:
-            raise ValueError(f"Unrecognized input format {input_format}.")
+        dfa_data = FSMSpecificationLoader.load(file=file, spec_format=spec_format)
 
-        try:
-            label = dfa_simple.pop("label")
-            states = DFA._norep_list_to_set(dfa_simple.pop("states"))
-            default_start_state = dfa_simple.pop("default_start_state")
-            start_states = DFA._norep_list_to_set(dfa_simple.pop("start_states"))
-            final_states = DFA._norep_list_to_set(dfa_simple.pop("final_states"))
-            alphabet_in = DFA._norep_list_to_set(dfa_simple.pop("alphabet_in"))
-            transition_func = {
-                DFA._str_to_tuple(k): v
-                for k, v in dfa_simple.pop("transition_func").items()
-            }
-        except KeyError as ke:
-            raise DFASpecificationError("DFA spec. JSON file missing key.") from ke
-
-        if len(dfa_simple) != 0:
-            raise DFASpecificationError(
-                f"DFA spec. JSON file contains unexpected objects: {dfa_simple.keys()}."
-            )
+        label = dfa_data.pop("label")
+        states = DFA._norep_list_to_set(dfa_data.pop("states"))
+        default_start_state = dfa_data.pop("default_start_state")
+        start_states = DFA._norep_list_to_set(dfa_data.pop("start_states"))
+        final_states = DFA._norep_list_to_set(dfa_data.pop("final_states"))
+        alphabet_in = DFA._norep_list_to_set(dfa_data.pop("alphabet_in"))
+        transition_func = {
+            DFA._str_to_tuple(k): v for k, v in dfa_data.pop("transition_func").items()
+        }
 
         return cls(
             label,
@@ -325,11 +383,7 @@ class DFA:
 
         trf = abci_app_cls.transition_function
 
-        label = (
-            label
-            if label != ""
-            else abci_app_cls.__module__ + "." + abci_app_cls.__name__
-        )
+        label = label if label != "" else abci_app_cls.__name__
         default_start_state = abci_app_cls.initial_round_cls.__name__
         start_states = DFA._norep_list_to_set(
             [s.__name__ for s in abci_app_cls.initial_states]
@@ -362,7 +416,7 @@ class DFA:
         )
 
 
-def _check_unreferenced_events(abci_app_cls: Any) -> None:
+def check_unreferenced_events(abci_app_cls: Any) -> List[str]:
     """Checks for unreferenced events in the AbciApp.
 
     Checks that events defined in the AbciApp transition function are referenced
@@ -373,7 +427,7 @@ def _check_unreferenced_events(abci_app_cls: Any) -> None:
     statement returning such events.
 
     :param abci_app_cls: AbciApp to check unreferenced events.
-    :raises DFASpecificationError: If there are unreferenced events in the AbciApp.
+    :return: List of error strings
     """
 
     error_strings = []
@@ -398,62 +452,4 @@ def _check_unreferenced_events(abci_app_cls: Any) -> None:
                 f"do not match referenced events {referenced_events}."
             )
 
-    if len(error_strings) > 0:
-        raise DFASpecificationError(
-            f"{abci_app_cls} ABCI App has the following issues:\n"
-            + "\n".join(error_strings)
-        )
-
-
-class SpecCheck:
-    """Class to represent abci spec checks."""
-
-    @staticmethod
-    def check_one(informat: str, infile: str, classfqn: str) -> bool:
-        """Check for one."""
-
-        print(f"Checking : {classfqn}")
-        module_name, class_name = classfqn.rsplit(".", 1)
-        module = importlib.import_module(module_name)
-        if not hasattr(module, class_name):
-            raise Exception(f'Class "{class_name}" is not in "{module_name}".')
-
-        abci_app_cls = getattr(module, class_name)
-        dfa1 = DFA.abci_to_dfa(abci_app_cls, classfqn)
-
-        with open(infile, "r", encoding="utf-8") as fp:
-            dfa2 = DFA.load(fp, informat)
-
-        _check_unreferenced_events(abci_app_cls)
-
-        return dfa1 == dfa2
-
-    @classmethod
-    def check_all(cls, packages_dir: Path) -> None:
-        """Check all the available definitions."""
-
-        did_not_match = []
-        fsm_specifications = sorted(
-            [
-                *packages_dir.glob(f"**/{DEFAULT_FSM_SPEC_YAML}"),
-            ]
-        )
-        # TODO: fix this implementation:
-        # - above file names should be constant and explained in helper text
-        # - investigate: either a) we need to do this in the order of the inverse dependency tree, so that
-        # dependencies are already loaded. Otherwise dependencies might not be present. Or b)
-        # we need to ensure relative modules are loaded too (https://docs.python.org/3/library/importlib.html#importlib.import_module)?
-        for spec_file in fsm_specifications:
-            with open(str(spec_file), mode="r", encoding="utf-8") as fp:
-                specs = yaml.safe_load(fp)
-                if not cls.check_one(
-                    informat="yaml", infile=str(spec_file), classfqn=specs.get("label")
-                ):
-                    did_not_match.append(f"{specs.get('label')} - {str(spec_file)}")
-
-        if len(did_not_match) > 0:
-            print("\nSpecifications did not match for following definitions.\n")
-            print("\n".join(did_not_match))
-            sys.exit(1)
-
-        print("Check successful.")
+    return error_strings

@@ -24,7 +24,7 @@ from typing import Any, Callable, Optional
 
 import click
 
-from autonomy.analyse.abci.app_spec import DFA
+from autonomy.analyse.abci.app_spec import FSMSpecificationLoader
 from autonomy.deploy.chain import CHAIN_CONFIG
 from autonomy.deploy.image import ImageProfiles
 
@@ -50,12 +50,12 @@ def image_profile_flag(
 
 
 def abci_spec_format_flag(
-    default: str = DFA.OutputFormats.YAML, mark_default: bool = True
+    default: str = FSMSpecificationLoader.OutputFormats.YAML, mark_default: bool = True
 ) -> Callable:
     """Flags for abci spec outputs formats."""
 
     def wrapper(f: Callable) -> Callable:
-        for of in DFA.OutputFormats.ALL:
+        for of in FSMSpecificationLoader.OutputFormats.ALL:
             f = click.option(
                 f"--{of}",
                 "spec_format",

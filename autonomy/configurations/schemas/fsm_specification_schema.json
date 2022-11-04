@@ -1,0 +1,37 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+        "alphabet_in",
+        "default_start_state",
+        "final_states",
+        "label",
+        "start_states",
+        "states",
+        "transition_func"
+    ],
+    "properties": {
+        "alphabet_in": {
+            "type": "array"
+        },
+        "default_start_state": {
+            "type": "string"
+        },
+        "final_states": {
+            "type": "array"
+        },
+        "label": {
+            "type": "string"
+        },
+        "start_states": {
+            "type": "array"
+        },
+        "states": {
+            "type": "array"
+        },
+        "transition_func": {
+            "type": "object"
+        }
+    }
+}
