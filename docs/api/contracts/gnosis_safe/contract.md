@@ -443,3 +443,23 @@ https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/base/OwnerMa
 
 the zero transfer events
 
+<a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_owners"></a>
+
+#### get`_`owners
+
+```python
+@classmethod
+def get_owners(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike
+```
+
+Get the safe owners.
+
+**Arguments**:
+
+- `ledger_api`: the ledger API object
+- `contract_address`: the contract address
+
+**Returns**:
+
+the safe owners
+

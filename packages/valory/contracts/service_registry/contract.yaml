@@ -8,14 +8,16 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidey4syohls5hxmso6qsp5p4uhtzle5txv2mlbym6ktjzknich6oa
   build/ServiceRegistry.json: bafybeia4qi2vstrutejzrxfpbb6eift7va5cjs7bparaal2fafiiczuiyy
-  contract.py: bafybeibbiekd3rzqwz56m36akxsil42egwdpeqhvhnfxe7epqjdc65eu6i
+  contract.py: bafybeieya5qqwfcg7n2j7mg5m2r5fvlziqbapjo32gtedfttpae7l7pxwu
   tests/__init__.py: bafybeicl2oklx774jomlt6wwwegfdzrxh6iazjxwcyc7h4gepjljkpl4ji
-  tests/test_contract.py: bafybeicnk2met6ndvaawlw4mmbobfo4okpqpa2ewqviwz4a7kcm4kjbyzy
+  tests/test_contract.py: bafybeigjvwnywslqt44ayex47lzyuyzzmhof4gxun4p23qdjt6d67l33ei
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ServiceRegistryContract
 contract_interface_paths:
   ethereum: build/ServiceRegistry.json
 dependencies:
+  open-aea-ledger-ethereum:
+    version: ==1.22.0
   open-aea-test-autonomy:
-    version: ==0.3.3
+    version: ==0.3.4

@@ -55,6 +55,17 @@ def instantiate_behaviour_cls(behaviour_cls: BehaviourType) -> BaseBehaviour
 
 Instantiate the behaviours class.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.is_background_behaviour_set"></a>
+
+#### is`_`background`_`behaviour`_`set
+
+```python
+@property
+def is_background_behaviour_set() -> bool
+```
+
+Returns whether the background behaviour is set.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.setup"></a>
 
 #### setup
@@ -63,7 +74,7 @@ Instantiate the behaviours class.
 def setup() -> None
 ```
 
-Set up the behaviour.
+Set up the behaviours.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.teardown"></a>
 

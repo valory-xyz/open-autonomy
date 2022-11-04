@@ -144,8 +144,11 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
         assert self.contract_address is not None
 
         with mock.patch.object(
-            self.ledger_api,
-            "contract_method_call",
+            ServiceRegistryContract,
+            "get_instance",
+        ), mock.patch.object(
+            self.ledger_api.api,
+            "toChecksumAddress",
             return_value=service_owner,
         ):
             actual = self.contract.get_service_owner(
