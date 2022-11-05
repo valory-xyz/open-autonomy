@@ -145,6 +145,15 @@ class TestCheckSpecs(BaseCliTest):
         self.specification_path = (
             self.t / self.skill_path.parent / "fsm_specification.yaml"
         )
+
+        # make a copy of 'packages' in a subdirectory with depth > 1 from cwd
+        subdirectory = self.t / Path("path", "to", "subdirectory")
+        self.packages_dir_in_subdir = subdirectory / PACKAGES
+        self.specification_path_in_subdir = (
+            subdirectory / self.skill_path.parent / "fsm_specification.yaml"
+        )
+        shutil.copytree(self.packages_dir, self.packages_dir_in_subdir)
+
         os.chdir(self.t)
 
     def _corrupt_spec_file(
@@ -163,6 +172,22 @@ class TestCheckSpecs(BaseCliTest):
         """Test with one class."""
         return_code, stdout, stderr = self.run_cli_subprocess(
             ("--app-class", self.cls_name, "--infile", str(self.specification_path))
+        )
+
+        assert return_code == 0
+        assert stdout == f"Checking : {self.cls_name}\nCheck successful\n"
+
+    def test_one_pass_when_packages_is_not_in_working_dir(
+        self,
+    ) -> None:
+        """Test with one class when packages dir is not in working directory."""
+        return_code, stdout, stderr = self.run_cli_subprocess(
+            (
+                "--app-class",
+                self.cls_name,
+                "--infile",
+                str(self.specification_path_in_subdir),
+            )
         )
 
         assert return_code == 0
@@ -194,6 +219,40 @@ class TestCheckSpecs(BaseCliTest):
 
         assert return_code == 0
         assert "Check successful." in stdout
+
+    def test_check_all_when_packages_is_not_in_working_dir(
+        self,
+    ) -> None:
+        """Test --check-all flag when the packages directory is not in the working directory."""
+        return_code, stdout, stderr = self.run_cli_subprocess(
+            (
+                "--check-all",
+                "--packages-dir",
+                str(self.packages_dir_in_subdir),
+            )
+        )
+
+        assert return_code == 0
+        assert "Check successful." in stdout
+
+    def test_check_fail_when_packages_dir_is_not_named_packages(
+        self,
+    ) -> None:
+        """Test --check-all flag when the packages directory is not named 'packages'."""
+        wrong_name = "some-directory"
+        return_code, stdout, stderr = self.run_cli_subprocess(
+            (
+                "--check-all",
+                "--packages-dir",
+                str(self.t / wrong_name),
+            )
+        )
+
+        assert return_code == 1
+        assert (
+            f"packages directory {self.t / wrong_name} is not named '{PACKAGES}'"
+            in stderr
+        )
 
     def test_check_all_fail(
         self,

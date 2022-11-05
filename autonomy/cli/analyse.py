@@ -24,7 +24,7 @@ from pathlib import Path
 from warnings import filterwarnings
 
 import click
-from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE
+from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE, PACKAGES
 
 from autonomy.analyse.abci.app_spec import DFA, SpecCheck
 from autonomy.analyse.abci.docstrings import process_module
@@ -97,8 +97,23 @@ def check_abci_app_specs(
 ) -> None:
     """Check ABCI app specs."""
 
+    # The command expects 'packages_dir' to be named 'packages', so to make import statements to be compatible with
+    # the standard Python import machinery. The directory can be outside the working directory from which the command
+    # is executed.
+    packages_dir = Path(packages_dir).absolute()
+
+    # add parent directory to Python system path
+    # so to give priority to the import of packages modules
+    sys.path.insert(0, str(packages_dir.parent))
+
+    # make sure the package_dir is named "packages", otherwise
+    # the import of packages.* modules won't work
+    if packages_dir.name != PACKAGES:
+        raise click.ClickException(
+            f"packages directory {packages_dir} is not named '{PACKAGES}'"
+        )
+
     if check_all:
-        packages_dir = Path(packages_dir).absolute()
         SpecCheck.check_all(packages_dir)
     else:
         if app_class is None:
