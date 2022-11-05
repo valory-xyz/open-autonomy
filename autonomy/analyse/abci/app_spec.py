@@ -435,7 +435,7 @@ class SpecCheck:
         did_not_match = []
         fsm_specifications = sorted(
             [
-                *packages_dir.glob(f"**/{DEFAULT_FSM_SPEC_YAML}"),
+                *packages_dir.glob(f"*/skills/*/{DEFAULT_FSM_SPEC_YAML}"),
             ]
         )
         # TODO: fix this implementation:
