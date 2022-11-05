@@ -197,3 +197,10 @@ def check_all(cls, packages_dir: Path) -> None
 
 Check all the available definitions.
 
+This function finds all files whose name is 'fsm_specification.yaml' in an AEA skill package, and checks them
+one by one using the 'check_one' function.
+
+**Arguments**:
+
+- `packages_dir`: the package directory where to find the spec files.
+

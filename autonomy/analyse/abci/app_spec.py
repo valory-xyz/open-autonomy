@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 """Generates the specification for a given ABCI app in YAML/JSON/Mermaid format."""
 
-
 import importlib
 import inspect
 import json
@@ -85,26 +84,26 @@ class DFA:
             )
         if not transition_func_states.issubset(states):
             error_strings.append(
-                f" - Transition function contains unexpected states: {transition_func_states-states}."  # type: ignore
+                f" - Transition function contains unexpected states: {transition_func_states - states}."  # type: ignore
             )
         if not transition_func_alphabet_in.issubset(alphabet_in):
             error_strings.append(
                 " - Transition function contains unexpected input symbols: "
-                f"{transition_func_alphabet_in-alphabet_in}."  # type: ignore
+                f"{transition_func_alphabet_in - alphabet_in}."  # type: ignore
             )
         if not alphabet_in.issubset(transition_func_alphabet_in):
             error_strings.append(
-                f" - Unused input symbols: {alphabet_in-transition_func_alphabet_in}."  # type: ignore
+                f" - Unused input symbols: {alphabet_in - transition_func_alphabet_in}."  # type: ignore
             )
         if default_start_state not in start_states:
             error_strings.append(" - Default start state is not in start states set.")
         if not start_states.issubset(states):
             error_strings.append(
-                f" - Start state set contains unexpected states: {start_states-states}."
+                f" - Start state set contains unexpected states: {start_states - states}."
             )
         if not final_states.issubset(states):
             error_strings.append(
-                f" - Final state set contains unexpected states: {final_states-states}."
+                f" - Final state set contains unexpected states: {final_states - states}."
             )
         if start_states & final_states:
             error_strings.append(
@@ -430,7 +429,14 @@ class SpecCheck:
 
     @classmethod
     def check_all(cls, packages_dir: Path) -> None:
-        """Check all the available definitions."""
+        """
+        Check all the available definitions.
+
+        This function finds all files whose name is 'fsm_specification.yaml' in an AEA skill package, and checks them
+        one by one using the 'check_one' function.
+
+        :param packages_dir: the package directory where to find the spec files.
+        """
 
         did_not_match = []
         fsm_specifications = sorted(
@@ -438,11 +444,7 @@ class SpecCheck:
                 *packages_dir.glob(f"*/skills/*/{DEFAULT_FSM_SPEC_YAML}"),
             ]
         )
-        # TODO: fix this implementation:
-        # - above file names should be constant and explained in helper text
-        # - investigate: either a) we need to do this in the order of the inverse dependency tree, so that
-        # dependencies are already loaded. Otherwise dependencies might not be present. Or b)
-        # we need to ensure relative modules are loaded too (https://docs.python.org/3/library/importlib.html#importlib.import_module)?
+
         for spec_file in fsm_specifications:
             with open(str(spec_file), mode="r", encoding="utf-8") as fp:
                 specs = yaml.safe_load(fp)
