@@ -33,6 +33,7 @@ from autonomy.analyse.abci.logs import parse_file
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
 from autonomy.cli.utils.click_utils import abci_spec_format_flag, sys_path_patch
 
+
 BENCHMARKS_DIR = Path("./benchmarks.html")
 
 filterwarnings("ignore")
@@ -53,7 +54,7 @@ def abci_group() -> None:
 @click.argument("output_file", type=click.Path())
 @abci_spec_format_flag()
 def generate_abci_app_specs(
-        app_class: str, output_file: Path, spec_format: str
+    app_class: str, output_file: Path, spec_format: str
 ) -> None:
     """Generate ABCI app specs."""
 
@@ -92,7 +93,7 @@ def generate_abci_app_specs(
 @click.option("--app-class", type=str, help="Dotted path to app definition class.")
 @click.option("--infile", type=click.Path(), help="Path to input file.")
 def check_abci_app_specs(
-        check_all: bool, packages_dir: Path, spec_format: str, app_class: str, infile: Path
+    check_all: bool, packages_dir: Path, spec_format: str, app_class: str, infile: Path
 ) -> None:
     """Check ABCI app specs."""
 
@@ -127,9 +128,9 @@ def check_abci_app_specs(
                 sys.exit(1)
 
             if SpecCheck.check_one(
-                    informat=spec_format,
-                    infile=str(infile),
-                    classfqn=app_class,
+                informat=spec_format,
+                infile=str(infile),
+                classfqn=app_class,
             ):
                 print("Check successful")
                 sys.exit(0)
