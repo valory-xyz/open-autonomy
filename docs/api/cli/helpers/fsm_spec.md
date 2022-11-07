@@ -1,10 +1,10 @@
-<a id="autonomy.cli.utils.spec_helpers"></a>
+<a id="autonomy.cli.helpers.fsm_spec"></a>
 
-# autonomy.cli.utils.spec`_`helpers
+# autonomy.cli.helpers.fsm`_`spec
 
 FSM spec helpers.
 
-<a id="autonomy.cli.utils.spec_helpers.import_and_validate_app_class"></a>
+<a id="autonomy.cli.helpers.fsm_spec.import_and_validate_app_class"></a>
 
 #### import`_`and`_`validate`_`app`_`class
 
@@ -14,7 +14,7 @@ def import_and_validate_app_class(module_path: Path, app_class: str) -> ModuleTy
 
 Import and validate rounds.py module.
 
-<a id="autonomy.cli.utils.spec_helpers.update_one"></a>
+<a id="autonomy.cli.helpers.fsm_spec.update_one"></a>
 
 #### update`_`one
 
@@ -24,7 +24,7 @@ def update_one(package_path: Path, app_class: Optional[str] = None, spec_format:
 
 Update FSM specification for one package.
 
-<a id="autonomy.cli.utils.spec_helpers.check_one"></a>
+<a id="autonomy.cli.helpers.fsm_spec.check_one"></a>
 
 #### check`_`one
 
@@ -34,7 +34,7 @@ def check_one(package_path: Path, app_class: Optional[str] = None, spec_format: 
 
 Check for one.
 
-<a id="autonomy.cli.utils.spec_helpers.check_all"></a>
+<a id="autonomy.cli.helpers.fsm_spec.check_all"></a>
 
 #### check`_`all
 
