@@ -18,9 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Custom objects for the transaction settlement ABCI application."""
-
 from typing import Any, Dict, List, Optional
 
+from aea.exceptions import enforce
 from web3.types import Nonce, Wei
 
 from packages.valory.protocols.contract_api import ContractApiMessage
@@ -83,11 +83,10 @@ class TransactionParams(BaseParams):  # pylint: disable=too-many-instance-attrib
     def _ensure_validate_timeout(self, kwargs: Dict) -> int:
         """Ensure that `validate_timeout` exists, and that it is at least _MINIMUM_VALIDATE_TIMEOUT."""
         validate_timeout = self._ensure("validate_timeout", kwargs)
-        if validate_timeout < _MINIMUM_VALIDATE_TIMEOUT:
-            self.context.logger.warning(
-                f"`validate_timeout` is too low, it will be set to {_MINIMUM_VALIDATE_TIMEOUT}"
-            )
-            validate_timeout = _MINIMUM_VALIDATE_TIMEOUT
+        enforce(
+            validate_timeout >= _MINIMUM_VALIDATE_TIMEOUT,
+            f"`validate_timeout` must be greater than or equal to {_MINIMUM_VALIDATE_TIMEOUT}",
+        )
         return validate_timeout
 
 
