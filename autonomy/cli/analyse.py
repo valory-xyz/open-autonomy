@@ -31,7 +31,7 @@ from autonomy.analyse.abci.docstrings import process_module
 from autonomy.analyse.abci.handlers import check_handlers
 from autonomy.analyse.abci.logs import parse_file
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
-from autonomy.cli.utils.click_utils import abci_spec_format_flag
+from autonomy.cli.utils.click_utils import abci_spec_format_flag, sys_path_patch
 
 
 BENCHMARKS_DIR = Path("./benchmarks.html")
@@ -102,10 +102,6 @@ def check_abci_app_specs(
     # is executed.
     packages_dir = Path(packages_dir).absolute()
 
-    # add parent directory to Python system path
-    # so to give priority to the import of packages modules
-    sys.path.insert(0, str(packages_dir.parent))
-
     # make sure the package_dir is named "packages", otherwise
     # the import of packages.* modules won't work
     if packages_dir.name != PACKAGES:
@@ -113,27 +109,31 @@ def check_abci_app_specs(
             f"packages directory {packages_dir} is not named '{PACKAGES}'"
         )
 
-    if check_all:
-        SpecCheck.check_all(packages_dir)
-    else:
-        if app_class is None:
-            print("Please provide class name for ABCI app.")
+    # add parent directory to Python system path
+    # so to give priority to the import of packages modules
+    with sys_path_patch(packages_dir.parent):
+
+        if check_all:
+            SpecCheck.check_all(packages_dir)
+        else:
+            if app_class is None:
+                print("Please provide class name for ABCI app.")
+                sys.exit(1)
+
+            if infile is None:
+                print("Please provide path to specification file.")
+                sys.exit(1)
+
+            if SpecCheck.check_one(
+                informat=spec_format,
+                infile=str(infile),
+                classfqn=app_class,
+            ):
+                print("Check successful")
+                sys.exit(0)
+
+            print("Check failed.")
             sys.exit(1)
-
-        if infile is None:
-            print("Please provide path to specification file.")
-            sys.exit(1)
-
-        if SpecCheck.check_one(
-            informat=spec_format,
-            infile=str(infile),
-            classfqn=app_class,
-        ):
-            print("Check successful")
-            sys.exit(0)
-
-        print("Check failed.")
-        sys.exit(1)
 
 
 @abci_group.command(name="docstrings")
