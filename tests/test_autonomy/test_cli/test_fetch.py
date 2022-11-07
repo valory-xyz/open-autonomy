@@ -121,16 +121,19 @@ class TestFetchCommand(BaseCliTest):
             assert expected_hash in output, (output, service_file.read_text())
 
         with mock.patch(
-            "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "http"
+            "autonomy.cli.helpers.registry.get_default_remote_registry",
+            new=lambda: "http",
         ), cd(service_dir):
             result = self.run_cli(("--remote", expected_hash))
             assert result.exit_code == 1, result.output
             assert "HTTP registry not supported." in result.output, result.output
 
         with mock.patch(
-            "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "ipfs"
+            "autonomy.cli.helpers.registry.get_default_remote_registry",
+            new=lambda: "ipfs",
         ), mock.patch(
-            "autonomy.cli.fetch.get_ipfs_node_multiaddr", new=lambda: IPFS_REGISTRY
+            "autonomy.cli.helpers.registry.get_ipfs_node_multiaddr",
+            new=lambda: IPFS_REGISTRY,
         ), cd(
             service_dir
         ):
