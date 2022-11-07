@@ -29,6 +29,7 @@ import os
 import re
 import shutil
 from abc import ABC, abstractmethod
+from io import StringIO
 from pathlib import Path
 from textwrap import dedent, indent
 from typing import Dict, List, Type
@@ -635,7 +636,7 @@ class ScaffoldABCISkill:
         self.spec_path = spec_path
 
         # process FSM specification
-        self.dfa = self._parse_spec(self.spec_path)
+        self.dfa = DFA.load(StringIO(spec_path.read_text()), input_format="yaml")
 
     @property
     def skill_dir(self) -> Path:
@@ -646,12 +647,6 @@ class ScaffoldABCISkill:
     def skill_test_dir(self) -> Path:
         """Get the directory to the skill tests."""
         return self.skill_dir / "tests"
-
-    @classmethod
-    def _parse_spec(cls, spec_path: Path) -> DFA:
-        """Parse the FSM specification."""
-        with spec_path.open(encoding="utf-8") as fp:
-            return DFA.load(fp, input_format="yaml")
 
     def do_scaffolding(self) -> None:
         """Do the scaffolding."""
