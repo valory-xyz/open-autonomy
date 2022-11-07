@@ -24,13 +24,23 @@ jobs:
     - uses: actions/setup-python@master
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Pipenv install requirements and check it can be locked
+    - if: matrix.os != 'windows-latest'
+      name: Pipenv install requirements and check it can be locked
       run: |
         pip install pipenv
         pipenv --clear
-        pipenv install --dev --skip-lock
-        pipenv run pip install -e .[all]
-        pipenv lock
+        time pipenv install --verbose --dev --skip-lock
+        time pipenv run pip install -e .[all]
+        time pipenv lock
+    - if: matrix.os == 'windows-latest'
+      name: Pipenv install requirements and check it can be locked
+      run: |
+        choco install ptime
+        pip install pipenv
+        pipenv --clear
+        ptime pipenv install --verbose --dev --skip-lock
+        ptime pipenv run pip install -e .[all]
+        ptime pipenv lock
 
   copyright_doc_and_pipfile_check:
     continue-on-error: False
