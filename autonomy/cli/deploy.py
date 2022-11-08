@@ -19,39 +19,28 @@
 
 """Deploy CLI module."""
 
-import os
 import shutil
 from pathlib import Path
-from typing import List, Optional, cast
+from typing import Optional, cast
 
 import click
 from aea.cli.registry.settings import REGISTRY_REMOTE
 from aea.cli.utils.click_utils import password_option, registry_flag
 from aea.cli.utils.context import Context
-from aea.configurations.constants import SKILL
 from aea.configurations.data_types import PublicId
 from aea.helpers.base import cd
-from aea.helpers.io import open_file
-from aea.helpers.yaml_utils import yaml_dump_all, yaml_load_all
-from compose.cli import main as docker_compose
 
 from autonomy.cli.fetch import fetch_service
+from autonomy.cli.helpers.deployment import (
+    build_deployment,
+    run_deployment,
+    update_multisig_address,
+)
 from autonomy.cli.utils.click_utils import chain_selection_flag
-from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
 from autonomy.configurations.loader import load_service_config
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_KEYS_FILE
-from autonomy.deploy.build import generate_deployment
 from autonomy.deploy.chain import ServiceRegistry
-from autonomy.deploy.constants import (
-    AGENT_KEYS_DIR,
-    BENCHMARKS_DIR,
-    INFO,
-    LOGGING_LEVELS,
-    LOG_DIR,
-    PERSISTENT_DATA_DIR,
-    TM_STATE_DIR,
-    VENVS_DIR,
-)
+from autonomy.deploy.constants import INFO, LOGGING_LEVELS
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 from autonomy.deploy.image import build_image
@@ -314,126 +303,3 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
 
     click.echo("Service build successful.")
     run_deployment(build_dir)
-
-
-# TODO: extract into appropriate utils with validations
-def update_multisig_address(service_path: Path, address: str) -> None:
-    """Update the multisig address on the service config."""
-
-    with open_file(service_path / DEFAULT_SERVICE_CONFIG_FILE) as fp:
-        config, *overrides = yaml_load_all(
-            fp,
-        )
-
-    for override in overrides:
-        if override["type"] == SKILL:
-            override["setup_args"]["args"]["setup"]["safe_contract_address"] = [
-                address,
-            ]
-
-    with open_file(service_path / DEFAULT_SERVICE_CONFIG_FILE, mode="w+") as fp:
-        yaml_dump_all([config, *overrides], fp)
-
-
-def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
-    keys_file: Path,
-    build_dir: Path,
-    deployment_type: str,
-    dev_mode: bool,
-    force_overwrite: bool,
-    number_of_agents: Optional[int] = None,
-    password: Optional[str] = None,
-    packages_dir: Optional[Path] = None,
-    open_aea_dir: Optional[Path] = None,
-    open_autonomy_dir: Optional[Path] = None,
-    agent_instances: Optional[List[str]] = None,
-    log_level: str = INFO,
-    substitute_env_vars: bool = False,
-    image_version: Optional[str] = None,
-    use_hardhat: bool = False,
-    use_acn: bool = False,
-) -> None:
-    """Build deployment."""
-    if build_dir.is_dir():
-        if not force_overwrite:
-            raise click.ClickException(f"Build already exists @ {build_dir}")
-        shutil.rmtree(build_dir)
-
-    click.echo(f"Building deployment @ {build_dir}")
-    build_dir.mkdir()
-    _build_dirs(build_dir)
-
-    report = generate_deployment(
-        service_path=Path.cwd(),
-        type_of_deployment=deployment_type,
-        private_keys_file_path=keys_file,
-        private_keys_password=password,
-        number_of_agents=number_of_agents,
-        build_dir=build_dir,
-        dev_mode=dev_mode,
-        packages_dir=packages_dir,
-        open_aea_dir=open_aea_dir,
-        open_autonomy_dir=open_autonomy_dir,
-        agent_instances=agent_instances,
-        log_level=log_level,
-        substitute_env_vars=substitute_env_vars,
-        image_version=image_version,
-        use_hardhat=use_hardhat,
-        use_acn=use_acn,
-    )
-    click.echo(report)
-
-
-def _build_dirs(build_dir: Path) -> None:
-    """Build necessary directories."""
-
-    for dir_path in [
-        (PERSISTENT_DATA_DIR,),
-        (PERSISTENT_DATA_DIR, LOG_DIR),
-        (PERSISTENT_DATA_DIR, TM_STATE_DIR),
-        (PERSISTENT_DATA_DIR, BENCHMARKS_DIR),
-        (PERSISTENT_DATA_DIR, VENVS_DIR),
-        (AGENT_KEYS_DIR,),
-    ]:
-        path = Path(build_dir, *dir_path)
-        path.mkdir()
-        # TOFIX for macOS
-        try:
-            os.chown(path, 1000, 1000)
-        except PermissionError:
-            click.echo(
-                f"Updating permissions failed for {path}, please do it manually."
-            )
-
-
-def run_deployment(
-    build_dir: Path, no_recreate: bool = False, remove_orphans: bool = False
-) -> None:
-    """Run deployment."""
-
-    click.echo(f"Running build @ {build_dir}")
-    project = docker_compose.project_from_options(build_dir, {})
-    commands = docker_compose.TopLevelCommand(project=project)
-    commands.up(
-        {
-            "--detach": False,
-            "--no-color": False,
-            "--quiet-pull": False,
-            "--no-deps": False,
-            "--force-recreate": not no_recreate,
-            "--always-recreate-deps": False,
-            "--no-recreate": no_recreate,
-            "--no-build": False,
-            "--no-start": False,
-            "--build": True,
-            "--abort-on-container-exit": False,
-            "--attach-dependencies": False,
-            "--timeout": None,
-            "--renew-anon-volumes": False,
-            "--remove-orphans": remove_orphans,
-            "--exit-code-from": None,
-            "--scale": [],
-            "--no-log-prefix": False,
-            "SERVICE": None,
-        }
-    )

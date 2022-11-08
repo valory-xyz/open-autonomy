@@ -257,34 +257,6 @@ Commands:
   logs                Parse logs.
 ```
 
-
-**Generate ABCI App specifications**
-
-```bash
-Usage: autonomy analyse abci generate-app-specs [OPTIONS] APP_CLASS OUTPUT_FILE
-  Generate abci app specs.
-Options:
-  --mermaid  Mermaid file.
-  --yaml     Yaml file.
-  --json     Json file.
-  --help     Show this message and exit.
-```
-
-**Check ABCI App specifications**
-
-```bash
-Usage: autonomy analyse abci check-app-specs [OPTIONS]
-  Check abci app specs.
-Options:
-  --check-all          Check all available definitions.
-  --packages-dir PATH  Path to packages directory; Use with `--check-all` flag
-  --yaml               Yaml file.
-  --json               Json file.
-  --app_class TEXT     Dotted path to app definition class.
-  --infile PATH        Path to input file.
-  --help               Show this message and exit.
-```
-
 **Check ABCI app docstrings**
 
 ```bash

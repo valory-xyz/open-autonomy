@@ -49,7 +49,7 @@ default_start_state: RegistrationStartupRound
 final_states:
 - FinishedRegistrationFFWRound
 - FinishedRegistrationRound
-label: packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp
+label: AgentRegistrationAbciApp
 start_states:
 - RegistrationRound
 - RegistrationStartupRound
@@ -89,7 +89,7 @@ alphabet_in:
 default_start_state: RandomnessSafeRound
 final_states:
 - FinishedSafeRound
-label: packages.valory.skills.safe_deployment_abci.rounds.SafeDeploymentAbciApp
+label: SafeDeploymentAbciApp
 start_states:
 - RandomnessSafeRound
 states:
@@ -254,7 +254,7 @@ default_start_state: RandomnessTransactionSubmissionRound
 final_states:
 - FailedRound
 - FinishedTransactionSubmissionRound
-label: packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp
+label: TransactionSubmissionAbciApp
 start_states:
 - RandomnessTransactionSubmissionRound
 states:
@@ -376,7 +376,7 @@ default_start_state: ResetAndPauseRound
 final_states:
 - FinishedResetAndPauseErrorRound
 - FinishedResetAndPauseRound
-label: packages.valory.skills.reset_pause_abci.rounds.ResetPauseABCIApp
+label: ResetPauseABCIApp
 start_states:
 - ResetAndPauseRound
 states:
