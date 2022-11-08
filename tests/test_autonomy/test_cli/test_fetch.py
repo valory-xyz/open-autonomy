@@ -105,9 +105,10 @@ class TestFetchCommand(BaseCliTest):
             ConfigLoader(Service.schema, Service).dump(service, fp)
 
         with mock.patch(
-            "autonomy.cli.publish.get_default_remote_registry", new=lambda: "ipfs"
+            "autonomy.cli.helpers.registry.get_default_remote_registry",
+            new=lambda: "ipfs",
         ), mock.patch(
-            "autonomy.cli.publish.get_ipfs_node_multiaddr",
+            "autonomy.cli.helpers.registry.get_ipfs_node_multiaddr",
             new=lambda: IPFS_REGISTRY,
         ), mock.patch(
             "click.echo"
