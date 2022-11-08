@@ -49,7 +49,7 @@ class TestTransactionParams:  # pylint: disable=too-few-public-methods
     def test_ensure_validate_timeout(  # pylint: disable=no-self-use
         self,
     ) -> None:
-        """Test that validate applies increases `validate_timeout` when it's lower than the allowed minimum."""
+        """Test that `_ensure_validate_timeout` raises when `validate_timeout` is lower than the allowed minimum."""
         dummy_value = 0
         mock_args, mock_kwargs = (
             MagicMock(),
