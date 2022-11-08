@@ -27,7 +27,7 @@ from aea.cli.packages import PackageManager, package_manager
 from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
 
-from autonomy.cli.hash import load_configuration
+from autonomy.cli.helpers.ipfs_hash import load_configuration
 
 
 @package_manager.command(name="lock")

@@ -31,10 +31,10 @@ from autonomy.analyse.abci.docstrings import process_module
 from autonomy.analyse.abci.logs import parse_file
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
 from autonomy.analyse.handlers import check_handlers
+from autonomy.cli.helpers.fsm_spec import check_all as check_all_fsm
+from autonomy.cli.helpers.fsm_spec import check_one as check_one_fsm
+from autonomy.cli.helpers.fsm_spec import update_one as update_one_fsm
 from autonomy.cli.utils.click_utils import PathArgument, abci_spec_format_flag
-from autonomy.cli.utils.spec_helpers import check_all as check_all_fsm
-from autonomy.cli.utils.spec_helpers import check_one as check_one_fsm
-from autonomy.cli.utils.spec_helpers import update_one as update_one_fsm
 
 
 BENCHMARKS_DIR = Path("./benchmarks.html")

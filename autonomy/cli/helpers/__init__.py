@@ -17,34 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test `run` command."""
-
-
-import os
-from unittest import mock
-
-from tests.test_autonomy.test_cli.base import BaseCliTest
-
-
-class TestRun(BaseCliTest):
-    """Test `run` command."""
-
-    cli_options = ("deploy", "run")
-
-    def setup(self) -> None:
-        """Setup test method."""
-
-        super().setup()
-        os.chdir(self.t)
-
-    def test_run(
-        self,
-    ) -> None:
-        """Run test."""
-
-        with mock.patch(
-            "autonomy.cli.helpers.deployment.docker_compose.project_from_options"
-        ), mock.patch("autonomy.cli.helpers.deployment.docker_compose.TopLevelCommand"):
-            result = self.run_cli()
-            assert result.exit_code == 0, result.output
-            assert "Running build @" in result.output
+"""CLI helpers."""

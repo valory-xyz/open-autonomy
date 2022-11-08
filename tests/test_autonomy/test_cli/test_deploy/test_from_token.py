@@ -63,9 +63,10 @@ class TestFromToken(BaseCliTest):
         ), mock.patch("autonomy.cli.deploy.build_deployment"), mock.patch(
             "click.echo"
         ) as click_mock, mock.patch(
-            "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "ipfs"
+            "autonomy.cli.helpers.registry.get_default_remote_registry",
+            new=lambda: "ipfs",
         ), mock.patch(
-            "autonomy.cli.fetch.get_ipfs_node_multiaddr",
+            "autonomy.cli.helpers.registry.get_ipfs_node_multiaddr",
             new=lambda: "/dns/registry.autonolas.tech/tcp/443/https",
         ), mock.patch(
             "autonomy.deploy.chain.ServiceRegistry._resolve_from_ipfs",
