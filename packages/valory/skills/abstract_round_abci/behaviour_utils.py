@@ -1156,6 +1156,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
             res_body = json.loads(http_response.body)
             num_peers_str = res_body.get("result", {}).get("n_peers", None)
+            if num_peers_str is None:
+                return None
             num_peers = int(num_peers_str)
             # num_peers hold the number of peers the tm node we are
             # making the TX to currently has an active connection

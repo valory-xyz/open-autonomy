@@ -1555,21 +1555,22 @@ class TestBaseBehaviour:
     @pytest.mark.parametrize(
         ("num_peers", "expected_num_peers", "netinfo_status_code"),
         [
-            (0, 1, 200),
-            (0, None, 500),
-            (0, None, None),
+            ("0", 1, 200),
+            ("0", None, 500),
+            ("0", None, None),
+            (None, None, 200),
         ],
     )
     def test_num_active_peers(
         self,
-        num_peers: int,
+        num_peers: Optional[str],
         expected_num_peers: Optional[int],
         netinfo_status_code: Optional[int],
     ) -> None:
         """Test num_active_peers."""
         dummy_res = {
             "result": {
-                "n_peers": str(num_peers),
+                "n_peers": num_peers,
             }
         }
 
