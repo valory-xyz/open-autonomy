@@ -109,6 +109,7 @@ ROOT_HASH = "726F6F743A3"
 RESET_HASH = "72657365743A3"
 APP_HASH_RE = rf"{ROOT_HASH}\d+{RESET_HASH}(\d+)"
 INITIAL_APP_HASH = ""
+TM_REQ_TIMEOUT = 5  # 5 seconds
 
 
 class SendException(Exception):
@@ -622,6 +623,23 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 "The local deadline for the next `begin_block` request from the Tendermint node has expired! "
                 "Trying to reset local Tendermint node as there could be something wrong with the communication."
             )
+            # We assign a timeout to the num_active_peers request because we are trying to check whether the unhealthy
+            # tm communication, i.e. tm not sending blocks to the abci (agent), is caused by not having enough peers
+            # in the network. If that's the case, the node that is being queried has to be healthy, and respond in a
+            # timely fashion. If the tm node doesn't respond in the specified timeout, we assume the problem is not
+            # the lack of peers in the service, and we try to resolve it by hard resetting the tm node.
+            num_active_peers = yield from self.num_active_peers(timeout=TM_REQ_TIMEOUT)
+            if (
+                num_active_peers is not None
+                and num_active_peers < self.params.consensus_params.consensus_threshold
+            ):
+                self.context.logger.error(
+                    f"There should be at least {self.params.consensus_params.consensus_threshold} peers in the service,"
+                    f" only {num_active_peers} are currently active. Shutting down the agent."
+                )
+                not_ok_code = 1
+                sys.exit(not_ok_code)
+
             reset_successfully = yield from self.reset_tendermint_with_wait()
             return reset_successfully
         return True
@@ -1111,6 +1129,43 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         )
         result = yield from self._do_request(request_message, http_dialogue)
         return result
+
+    def _get_netinfo(
+        self, timeout: Optional[float] = None
+    ) -> Generator[None, None, HttpMessage]:
+        """Makes a GET request to it's tendermint node's /net_info endpoint."""
+        request_message, http_dialogue = self._build_http_request_message(
+            method="GET", url=f"{self.context.params.tendermint_url}/net_info"
+        )
+        result = yield from self._do_request(request_message, http_dialogue, timeout)
+        return result
+
+    def num_active_peers(
+        self, timeout: Optional[float] = None
+    ) -> Generator[None, None, Optional[int]]:
+        """Returns the number of active peers in the network."""
+        try:
+            http_response = yield from self._get_netinfo(timeout)
+            http_ok = 200
+            if http_response.status_code != http_ok:
+                # a bad response was received, we cannot retrieve the number of active peers
+                self.context.logger.warning(
+                    f"/net_info responded with status {http_response.status_code}"
+                )
+                return None
+
+            res_body = json.loads(http_response.body)
+            num_peers = int(res_body["result"]["n_peers"])
+            # num_peers hold the number of peers the tm node we are
+            # making the TX to currently has an active connection
+            # we add 1 because the node we are making the request through
+            # is not accounted for in this number
+            return num_peers + 1
+        except TimeoutException:
+            self.context.logger.warning(
+                f"Couldn't retrieve `/net_info` response in {timeout}s."
+            )
+            return None
 
     def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
         """Wrapper for callback request which depends on whether the message has not been handled on time.

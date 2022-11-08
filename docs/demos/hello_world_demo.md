@@ -23,7 +23,7 @@ you have followed the [setup instructions](../guides/set_up.md#setup). As a resu
 
 2. Use the CLI to fetch the `valory/hello_world` service.
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeicy6pr5qcloxcjvhpsv3eqriv445olcvgmy3vvschr33sfsyesksq --remote --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeifb2fkctwy7lvif2uusttvb6ntmfjsstrdkeb7d2ieyv2dmhe5fn4 --remote --service
     cd hello_world
     ```
 
