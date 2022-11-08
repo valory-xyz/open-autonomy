@@ -131,16 +131,16 @@ def yield_and_return_bool_wrapper(
 def yield_and_return_int_wrapper(
     value: Optional[int],
 ) -> Callable[[], Generator[None, None, Optional[int]]]:
-    """Wrapper for a Dummy generator that returns a `bool`."""
+    """Wrapper for a Dummy generator that returns an `int`."""
 
-    def yield_and_return_bool(
-        **_: bool,
+    def yield_and_return_int(
+        **_: int,
     ) -> Generator[None, None, Optional[int]]:
-        """Dummy generator that returns a `bool`."""
+        """Dummy generator that returns an `int`."""
         yield
         return value
 
-    return yield_and_return_bool
+    return yield_and_return_int
 
 
 class AsyncBehaviourTest(AsyncBehaviour, ABC):
