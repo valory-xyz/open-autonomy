@@ -10,7 +10,7 @@
    - `tests/test_base.py`
    - `deployments/Dockerfiles/autonomy-user/requirements.txt`
 
-4. Determine the next `open-aea-test-autonomyy` version. Update the version in `plugins/aea-test-autonomy/setup.py` and relevant component configurations. Commit if satisfied.
+4. Determine the next `open-aea-test-autonomy` version. Update the version in `plugins/aea-test-autonomy/setup.py` and relevant component configurations. Commit if satisfied.
 
 5. [CURRENTLY SKIPPED] Bump all the packages to their latest versions by running `python scripts/update_package_versions.py`.
 
