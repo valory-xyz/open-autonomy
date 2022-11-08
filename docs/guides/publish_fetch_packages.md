@@ -7,6 +7,12 @@ By publishing a package on a remote repository, its code is available for other 
       It is not a strict requirement that a package be publicly available in a remote repository to register it in the on-chain protocol. The developer might want to keep the code private (and share it by different means), and still be able to register the package in the on-chain protocol.
 
 
+<figure markdown>
+![](../images/development_process_publish_fetch_packages.svg)
+<figcaption>Part of the development process covered in this guide</figcaption>
+</figure>
+
+
 ## What will you learn
 In this guide, you will learn to:
 

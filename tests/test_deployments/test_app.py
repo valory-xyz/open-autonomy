@@ -199,13 +199,13 @@ class TestTendermintServerApp(BaseTendermintServerTest):
     @wait_for_node_to_run
     def test_get_app_hash(self) -> None:
         """Test get app hash"""
-        time.sleep(5)  # requires some extra time!
         with self.app.test_client() as client:
-            response = client.get("/app_hash")
-            data = response.get_json()
-            assert response.status_code == 200
-            assert "error" not in data
-            assert "app_hash" in data
+            wait_for_condition(
+                lambda: "app_hash" in client.get("/app_hash").get_json(),
+                timeout=10,
+                period=1,
+                error_msg="Could not retrieve `app_hash` from Tendermint server",
+            )
 
 
 class TestTendermintGentleResetServer(BaseTendermintServerTest):
