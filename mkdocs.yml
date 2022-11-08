@@ -226,6 +226,7 @@ nav:
 
 plugins:
   - macros
+  - search  
 
 markdown_extensions:
   - pymdownx.details

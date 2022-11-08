@@ -52,6 +52,41 @@ class RegistrationPayload(BaseHelloWorldAbciPayload):
     transaction_type = TransactionType.REGISTRATION
 
 
+class CollectRandomnessPayload(BaseHelloWorldAbciPayload):
+    """Represent a transaction payload of type 'randomness'."""
+
+    transaction_type = TransactionType.RANDOMNESS
+
+    def __init__(
+        self, sender: str, round_id: int, randomness: str, **kwargs: Any
+    ) -> None:
+        """Initialize an 'select_keeper' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param round_id: the round id
+        :param randomness: the randomness
+        :param kwargs: the keyword arguments
+        """
+        super().__init__(sender, **kwargs)
+        self._round_id = round_id
+        self._randomness = randomness
+
+    @property
+    def round_id(self) -> int:
+        """Get the round id."""
+        return self._round_id
+
+    @property
+    def randomness(self) -> str:
+        """Get the randomness."""
+        return self._randomness
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(round_id=self._round_id, randomness=self._randomness)
+
+
 class PrintMessagePayload(BaseHelloWorldAbciPayload):
     """Represent a transaction payload of type 'randomness'."""
 

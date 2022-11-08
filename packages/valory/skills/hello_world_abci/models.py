@@ -58,3 +58,7 @@ class SharedState(BaseSharedState):
 
 
 Params = BaseParams
+
+
+class RandomnessApi(ApiSpecs):
+    """A model that wraps ApiSpecs for randomness api specifications."""
