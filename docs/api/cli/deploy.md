@@ -166,33 +166,3 @@ def run_deployment_from_token(click_context: click.Context, token_id: int, keys_
 
 Run service deployment.
 
-<a id="autonomy.cli.deploy.update_multisig_address"></a>
-
-#### update`_`multisig`_`address
-
-```python
-def update_multisig_address(service_path: Path, address: str) -> None
-```
-
-Update the multisig address on the service config.
-
-<a id="autonomy.cli.deploy.build_deployment"></a>
-
-#### build`_`deployment
-
-```python
-def build_deployment(keys_file: Path, build_dir: Path, deployment_type: str, dev_mode: bool, force_overwrite: bool, number_of_agents: Optional[int] = None, password: Optional[str] = None, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, agent_instances: Optional[List[str]] = None, log_level: str = INFO, substitute_env_vars: bool = False, image_version: Optional[str] = None, use_hardhat: bool = False, use_acn: bool = False) -> None
-```
-
-Build deployment.
-
-<a id="autonomy.cli.deploy.run_deployment"></a>
-
-#### run`_`deployment
-
-```python
-def run_deployment(build_dir: Path, no_recreate: bool = False, remove_orphans: bool = False) -> None
-```
-
-Run deployment.
-
