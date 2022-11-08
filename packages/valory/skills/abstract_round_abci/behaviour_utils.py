@@ -24,6 +24,7 @@ import json
 import math
 import pprint
 import re
+import sys
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial, wraps
@@ -1742,14 +1743,16 @@ class DegenerateBehaviour(BaseBehaviour, ABC):
     matching_round: Type[AbstractRound]
     is_degenerate: bool = True
 
-    def async_act(self) -> Generator:
-        """Raise a RuntimeError."""
-        raise RuntimeError(
+    def async_act(self) -> Generator:  # type: ignore
+        """Exit the agent with error when a degenerate round is reached."""
+        self.context.logger.error(
             "The execution reached a degenerate behaviour. "
             "This means a degenerate round has been reached during "
             "the execution of the ABCI application. Please check the "
             "functioning of the ABCI app."
         )
+        error_code = 1
+        sys.exit(error_code)
 
 
 def make_degenerate_behaviour(round_id: str) -> Type[DegenerateBehaviour]:

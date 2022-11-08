@@ -1786,16 +1786,12 @@ def test_degenerate_behaviour_async_act(_: mock._patch) -> None:
     # this is needed to trigger execution of async_act
     context.state.round_sequence.syncing_up = False
     context.state.round_sequence.block_stall_deadline_expired = False
-
     behaviour = ConcreteDegenerateBehaviour(
         name=ConcreteDegenerateBehaviour.behaviour_id, skill_context=context
     )
     behaviour.act()
     with pytest.raises(
-        RuntimeError,
-        match="The execution reached a degenerate behaviour. "
-        "This means a degenerate round has been reached during the execution of the ABCI application. "
-        "Please check the functioning of the ABCI app.",
+        SystemExit,
     ):
         behaviour.act()
 

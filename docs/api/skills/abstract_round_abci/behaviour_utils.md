@@ -730,7 +730,7 @@ An abstract matching behaviour for final and degenerate rounds.
 def async_act() -> Generator
 ```
 
-Raise a RuntimeError.
+Exit the agent with error when a degenerate round is reached.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.make_degenerate_behaviour"></a>
 
