@@ -555,12 +555,14 @@ class AbciAppDB:
         :param cross_period_persisted_keys: data keys that will be kept after a new period starts
         """
         AbciAppDB._check_data(setup_data)
-        self._setup_data = setup_data
-        self._cross_period_persisted_keys = cross_period_persisted_keys or []
+        self._setup_data = deepcopy(setup_data)
+        self._cross_period_persisted_keys = (
+            cross_period_persisted_keys.copy()
+            if cross_period_persisted_keys is not None
+            else []
+        )
         self._data: Dict[int, Dict[str, List[Any]]] = {
-            RESET_COUNT_START: deepcopy(
-                self.setup_data
-            )  # the key represents the reset index
+            RESET_COUNT_START: self.setup_data  # the key represents the reset index
         }
         self._round_count = ROUND_COUNT_DEFAULT  # ensures first round is indexed at 0!
 
@@ -572,7 +574,7 @@ class AbciAppDB:
         :return: the setup_data
         """
         # do not return data if no value has been set
-        return {k: v for k, v in self._setup_data.items() if len(v)}
+        return {k: v for k, v in deepcopy(self._setup_data).items() if len(v)}
 
     @staticmethod
     def _check_data(data: Any) -> None:
@@ -598,12 +600,12 @@ class AbciAppDB:
     @property
     def cross_period_persisted_keys(self) -> List[str]:
         """Keys in the database which are persistent across periods."""
-        return self._cross_period_persisted_keys
+        return self._cross_period_persisted_keys.copy()
 
     def get(self, key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]:
         """Given a key, get its last for the current reset index."""
         if key in self._data[self.reset_index]:
-            return self._data[self.reset_index][key][-1]
+            return deepcopy(self._data[self.reset_index][key][-1])
         if default != VALUE_NOT_PROVIDED:
             return default
         raise ValueError(
@@ -618,18 +620,19 @@ class AbciAppDB:
         """Update the current data."""
         # Append new data to the key history
         data = self._data[self.reset_index]
-        for key, value in kwargs.items():
+        for key, value in deepcopy(kwargs).items():
             data.setdefault(key, []).append(value)
 
-    def create(self, **kwargs: List[Any]) -> None:
+    def create(self, **kwargs: Any) -> None:
         """Add a new entry to the data."""
         AbciAppDB._check_data(kwargs)
-        self._data[self.reset_index + 1] = kwargs
+        self._data[self.reset_index + 1] = deepcopy(kwargs)
 
     def get_latest_from_reset_index(self, reset_index: int) -> Dict[str, Any]:
         """Get the latest key-value pairs from the data dictionary for the specified period."""
         return {
-            key: values[-1] for key, values in self._data.get(reset_index, {}).items()
+            key: values[-1]
+            for key, values in deepcopy(self._data.get(reset_index, {})).items()
         }
 
     def get_latest(self) -> Dict[str, Any]:
