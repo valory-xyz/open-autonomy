@@ -8,20 +8,20 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeidrjtykhovnccj3sovugdn4r3tszuzv7h37vta6o35epi5qfzdpke
   __init__.py: bafybeibiblks3d3s3ditug4hfzl3ob3cibokcz4ofs7cbbsbqw5zzbtd3m
-  behaviours.py: bafybeifqhqg4xli6l2jdmmedrogayxwrkgr6sudarfslo556xghon4lrou
+  behaviours.py: bafybeihfytc5jsmz7huipmivy6svxnqukgftj6pwaau7wuauaptlccqgae
   dialogues.py: bafybeiggs6cpzhz235k4ws5naeuyhz37mkqrthctq67p4v56wh4nyzgepa
   fsm_specification.yaml: bafybeieydqhpzm5pt4xmmv3rmqxcmbpolde6z25xvk4iuv2pihenb7o65q
   handlers.py: bafybeib77umr3prpvc6i6ukdr7xmsoge6gpsfjwpwhiddzjh5bwwpg44mi
   models.py: bafybeicvqhd5qdwctzuqmu2z5tfsih2wlgfwpoflxmyo2qoriqczovxhea
   payloads.py: bafybeia5wefgyzthadab45tklgg36azjvombpreid37lj4kvvbdpyrfypa
-  rounds.py: bafybeicfpazdczmjaxtwok6rfbqpd67a3g5vharua3m2gu2vxtj3abxtei
+  rounds.py: bafybeigzqtkx7lb563vsbuipupzi7ax4grdbkfkvhbtx5avtvqmhoxc6e4
   tests/__init__.py: bafybeibpuwe63mjjwnaanx7wdw63reh6qa5xdtjxdf75o3nksvjercte4y
-  tests/test_behaviours.py: bafybeibbwfr4yeajnt7lmiw3jp2qcyjgm2xazcmoumyoyldtppqwucjjxy
+  tests/test_behaviours.py: bafybeiaur34f4rjxlrsarikyazbypnxkfailkecpep4nuuxsann3tyzrta
   tests/test_dialogues.py: bafybeiarl4wsnljaxkgxdwr47xd4xjjjtkfgqbtazt2v2oem47alhaykj4
   tests/test_handlers.py: bafybeigb2hfysb2v3yjiqemyy52h3onqalrufuqdnw2pnkowtuzvmvcrd4
   tests/test_models.py: bafybeibqrbnemkeurjag2fpqftlpo3df2vnbooid7hcw5nmlm4rhssle7q
-  tests/test_payloads.py: bafybeidguouttloacw2lgqocl6l5eatfqcto5x2rlnmpcjivn72helz3ka
-  tests/test_rounds.py: bafybeialhborwzu52ygzrhnklb6phccpkwdnjj4uu3upwbdyvd343jobge
+  tests/test_payloads.py: bafybeihjpp2uztve6zlmlkrw2fa6gqsc4o2qpgijxkuimh6xwgmzkhcgzq
+  tests/test_rounds.py: bafybeih6jx3uqdelhpwsbryelwmcapz2367ya46yprgev3xznqze2d44uy
 fingerprint_ignore_patterns: []
 connections:
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii

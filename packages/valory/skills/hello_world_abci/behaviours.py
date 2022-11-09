@@ -167,8 +167,8 @@ class SelectKeeperBehaviour(HelloWorldABCIBaseBehaviour, ABC):
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             participants = sorted(self.synchronized_data.participants)
-            random.seed(self.synchronized_data.most_voted_randomness, 2)
-            index = random.randint(0, len(participants) - 1)
+            random.seed(self.synchronized_data.most_voted_randomness, 2)  # nosec
+            index = random.randint(0, len(participants) - 1)  # nosec
 
             keeper_address = participants[index]
 
@@ -205,7 +205,7 @@ class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
             self.context.agent_address
             == self.synchronized_data.most_voted_keeper_address
         ):
-            printed_message += "HELLO WORLD! ---"
+            printed_message += "HELLO WORLD!"
         else:
             printed_message += ":|"
 
