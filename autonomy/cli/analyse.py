@@ -27,10 +27,10 @@ from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
 from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE, PACKAGES
 
-from autonomy.analyse.abci.docstrings import process_module
 from autonomy.analyse.abci.logs import parse_file
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
 from autonomy.analyse.handlers import check_handlers
+from autonomy.cli.helpers.docstring import analyse_docstrings
 from autonomy.cli.helpers.fsm_spec import check_all as check_all_fsm
 from autonomy.cli.helpers.fsm_spec import check_one as check_one_fsm
 from autonomy.cli.helpers.fsm_spec import update_one as update_one_fsm
@@ -124,37 +124,40 @@ def abci_group() -> None:
     """Analyse ABCI apps of an agent service."""
 
 
-@abci_group.command(name="docstrings")
-@click.argument(
-    "packages_dir",
-    type=click.Path(dir_okay=True, file_okay=False, exists=True),
-    default=Path("packages/"),
-)
-@click.option("--check", is_flag=True, default=False)
-def docstrings(packages_dir: Path, check: bool) -> None:
+@analyse_group.command(name="docstrings")
+@click.option("--update", is_flag=True, default=False)
+@pass_ctx
+def docstrings(ctx: Context, update: bool) -> None:
     """Analyse ABCI docstring definitions."""
 
-    packages_dir = Path(packages_dir)
+    packages_dir = Path(ctx.registry_path).resolve()
     needs_update = set()
     abci_compositions = packages_dir.glob("*/skills/*/rounds.py")
 
-    try:
-        for path in sorted(abci_compositions):
-            click.echo(f"Processing: {path}")
-            if process_module(path, check=check):
-                needs_update.add(str(path))
+    if packages_dir.name != PACKAGES:
+        raise click.ClickException(
+            f"packages directory {packages_dir} is not named '{PACKAGES}'"
+        )
 
-        if len(needs_update) > 0:
-            file_string = "\n".join(sorted(needs_update))
-            if check:
-                raise click.ClickException(
-                    f"Following files needs updating.\n\n{file_string}"
-                )
-            click.echo(f"\nUpdated following files.\n\n{file_string}")
-        else:
-            click.echo("No update needed.")
-    except Exception as e:  # pylint: disable=broad-except
-        raise click.ClickException(str(e)) from e
+    with sys_path_patch(packages_dir.parent):
+        try:
+            for path in sorted(abci_compositions):
+                *_, author, _, skill_name, _ = path.parts
+                click.echo(f"Processing skill {skill_name} with author {author}")
+                if analyse_docstrings(path, update=update, packages_dir=packages_dir):
+                    needs_update.add(str(path))
+
+            if len(needs_update) > 0:
+                file_string = "\n".join(sorted(needs_update))
+                if not update:
+                    raise click.ClickException(
+                        f"Following files needs updating.\n\n{file_string}"
+                    )
+                click.echo(f"\nUpdated following files.\n\n{file_string}")
+            else:
+                click.echo("No update needed.")
+        except Exception as e:  # pylint: disable=broad-except
+            raise click.ClickException(str(e)) from e
 
 
 @abci_group.command(name="logs")
