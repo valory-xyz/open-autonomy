@@ -18,9 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """Usefule click utils."""
-
+import contextlib
+import copy
+import sys
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Generator, Optional
 
 import click
 
@@ -86,6 +88,15 @@ def chain_selection_flag(
         return f
 
     return wrapper
+
+
+@contextlib.contextmanager
+def sys_path_patch(path: Path) -> Generator:
+    """Patch sys.path variable with new import path at highest priority."""
+    old_sys_path = copy.copy(sys.path)
+    sys.path.insert(0, str(path))
+    yield
+    sys.path = old_sys_path
 
 
 class PathArgument(click.Path):
