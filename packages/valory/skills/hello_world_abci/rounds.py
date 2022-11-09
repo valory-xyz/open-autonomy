@@ -194,17 +194,21 @@ class HelloWorldAbciApp(AbciApp[Event]):
     Transition states:
         0. RegistrationRound
             - done: 1.
-        1. SelectKeeperRound
+        1. CollectRandomnessRound
             - done: 2.
-            - round timeout: 0.
-            - no majority: 0.
-        2. PrintMessageRound
+            - no majority: 1.
+            - round timeout: 1.
+        2. SelectKeeperRound
             - done: 3.
-            - round timeout: 0.
-        3. ResetAndPauseRound
-            - done: 1.
-            - reset timeout: 0.
             - no majority: 0.
+            - round timeout: 0.
+        3. PrintMessageRound
+            - done: 4.
+            - round timeout: 0.
+        4. ResetAndPauseRound
+            - done: 1.
+            - no majority: 0.
+            - reset timeout: 0.
 
     Final states: {}
 
