@@ -23,20 +23,22 @@ from typing import List, Optional, cast
 from warnings import filterwarnings
 
 import click
-from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE, PACKAGES
 from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
-from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE
+from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE, PACKAGES
 
 from autonomy.analyse.abci.docstrings import process_module
 from autonomy.analyse.abci.logs import parse_file
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
-from autonomy.cli.utils.click_utils import abci_spec_format_flag, sys_path_patch
 from autonomy.analyse.handlers import check_handlers
 from autonomy.cli.helpers.fsm_spec import check_all as check_all_fsm
 from autonomy.cli.helpers.fsm_spec import check_one as check_one_fsm
 from autonomy.cli.helpers.fsm_spec import update_one as update_one_fsm
-from autonomy.cli.utils.click_utils import PathArgument, abci_spec_format_flag
+from autonomy.cli.utils.click_utils import (
+    PathArgument,
+    abci_spec_format_flag,
+    sys_path_patch,
+)
 
 
 BENCHMARKS_DIR = Path("./benchmarks.html")
@@ -55,7 +57,7 @@ def analyse_group() -> None:
 @click.option("--update", is_flag=True, help="Update FSM definition if check fails.")
 @abci_spec_format_flag()
 @pass_ctx
-def generate_abci_app_specs(
+def abci_app_specs(
     ctx: Context,
     package: Optional[Path],
     app_class: Optional[str],
@@ -69,7 +71,7 @@ def generate_abci_app_specs(
     # The command expects 'packages_dir' to be named 'packages', so to make import statements to be compatible with
     # the standard Python import machinery. The directory can be outside the working directory from which the command
     # is executed.
-    packages_dir = Path(packages_dir).absolute()
+    packages_dir = Path(ctx.registry_path)
 
     # make sure the package_dir is named "packages", otherwise
     # the import of packages.* modules won't work
@@ -88,7 +90,7 @@ def generate_abci_app_specs(
             if all_packages:
                 # If package path is not provided check all available packages
                 click.echo("Checking all available packages")
-                check_all_fsm(Path(ctx.registry_path))
+                check_all_fsm(packages_dir=packages_dir)
                 click.echo("Done")
                 return
 

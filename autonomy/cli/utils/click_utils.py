@@ -22,10 +22,7 @@ import contextlib
 import copy
 import sys
 from pathlib import Path
-from typing import Callable, Generator
-
-from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Generator, Optional
 
 import click
 

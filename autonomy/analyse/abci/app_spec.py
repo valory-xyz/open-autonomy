@@ -18,8 +18,6 @@
 # ------------------------------------------------------------------------------
 """Generates the specification for a given ABCI app in YAML/JSON/Mermaid format."""
 
-import importlib
-
 import inspect
 import json
 import logging
