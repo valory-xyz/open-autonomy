@@ -15,9 +15,9 @@ def analyse_group() -> None
 
 Analyse an agent service.
 
-<a id="autonomy.cli.analyse.generate_abci_app_specs"></a>
+<a id="autonomy.cli.analyse.abci_app_specs"></a>
 
-#### generate`_`abci`_`app`_`specs
+#### abci`_`app`_`specs
 
 ```python
 @analyse_group.command(name="fsm-specs")
@@ -26,7 +26,7 @@ Analyse an agent service.
 @click.option("--update", is_flag=True, help="Update FSM definition if check fails.")
 @abci_spec_format_flag()
 @pass_ctx
-def generate_abci_app_specs(ctx: Context, package: Optional[Path], app_class: Optional[str], spec_format: str, update: bool) -> None
+def abci_app_specs(ctx: Context, package: Optional[Path], app_class: Optional[str], spec_format: str, update: bool) -> None
 ```
 
 Generate ABCI app specs.

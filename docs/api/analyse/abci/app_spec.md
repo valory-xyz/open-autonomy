@@ -247,10 +247,3 @@ statement returning such events.
 
 List of error strings
 
-This function finds all files whose name is 'fsm_specification.yaml' in an AEA skill package, and checks them
-one by one using the 'check_one' function.
-
-**Arguments**:
-
-- `packages_dir`: the package directory where to find the spec files.
-

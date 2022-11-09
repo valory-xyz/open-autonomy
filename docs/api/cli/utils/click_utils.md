@@ -44,6 +44,7 @@ def sys_path_patch(path: Path) -> Generator
 ```
 
 Patch sys.path variable with new import path at highest priority.
+
 <a id="autonomy.cli.utils.click_utils.PathArgument"></a>
 
 ## PathArgument Objects
