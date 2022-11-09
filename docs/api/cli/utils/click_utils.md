@@ -60,7 +60,7 @@ Path parameter for CLI.
 #### convert
 
 ```python
-def convert(value: Any, param: Optional[click.Parameter], ctx: Optional[click.Context]) -> Path
+def convert(value: Any, param: Optional[click.Parameter], ctx: Optional[click.Context]) -> Optional[Path]
 ```
 
 Convert path string to `pathlib.Path`
