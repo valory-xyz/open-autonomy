@@ -8,13 +8,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeidrjtykhovnccj3sovugdn4r3tszuzv7h37vta6o35epi5qfzdpke
   __init__.py: bafybeibiblks3d3s3ditug4hfzl3ob3cibokcz4ofs7cbbsbqw5zzbtd3m
-  behaviours.py: bafybeic2n6s67lne52i33vnrsvj26g2ub7ixm7j3sjddd6krnakauwcege
+  behaviours.py: bafybeifqhqg4xli6l2jdmmedrogayxwrkgr6sudarfslo556xghon4lrou
   dialogues.py: bafybeiggs6cpzhz235k4ws5naeuyhz37mkqrthctq67p4v56wh4nyzgepa
-  fsm_specification.yaml: bafybeifyalfzvmqezolt3fedpcornrlxdgbli3phm7ztmwqaepkatcdmri
+  fsm_specification.yaml: bafybeieydqhpzm5pt4xmmv3rmqxcmbpolde6z25xvk4iuv2pihenb7o65q
   handlers.py: bafybeib77umr3prpvc6i6ukdr7xmsoge6gpsfjwpwhiddzjh5bwwpg44mi
-  models.py: bafybeidwxgbytvwg6f7u2k7p2mcy2hfwu5n7w2a5m3ymsid4b3ecx4qb4q
-  payloads.py: bafybeic4ra6f475xge2hgoyoyhey4thuwsuuqwi26zklv5qozavyyfwlfa
-  rounds.py: bafybeic5nmzmuu2zxpdhjwbl5flthg7g4eqcd2rx4p6eo2mfrarfeej2qm
+  models.py: bafybeicvqhd5qdwctzuqmu2z5tfsih2wlgfwpoflxmyo2qoriqczovxhea
+  payloads.py: bafybeia5wefgyzthadab45tklgg36azjvombpreid37lj4kvvbdpyrfypa
+  rounds.py: bafybeicfpazdczmjaxtwok6rfbqpd67a3g5vharua3m2gu2vxtj3abxtei
   tests/__init__.py: bafybeibpuwe63mjjwnaanx7wdw63reh6qa5xdtjxdf75o3nksvjercte4y
   tests/test_behaviours.py: bafybeibbwfr4yeajnt7lmiw3jp2qcyjgm2xazcmoumyoyldtppqwucjjxy
   tests/test_dialogues.py: bafybeiarl4wsnljaxkgxdwr47xd4xjjjtkfgqbtazt2v2oem47alhaykj4
@@ -98,6 +98,17 @@ models:
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
     class_name: Params
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: []
+      method: GET
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
   requests:
     args: {}
     class_name: Requests

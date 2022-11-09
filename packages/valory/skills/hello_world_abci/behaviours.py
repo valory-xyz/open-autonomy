@@ -19,6 +19,8 @@
 
 """This module contains the behaviours for the 'hello_world' skill."""
 
+import random
+
 from abc import ABC
 from typing import Generator, Set, Type, cast
 
@@ -29,6 +31,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 from packages.valory.skills.hello_world_abci.models import Params, SharedState
 from packages.valory.skills.hello_world_abci.payloads import (
     PrintMessagePayload,
+    CollectRandomnessPayload,
     RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
@@ -120,7 +123,7 @@ class CollectRandomnessBehaviour(HelloWorldABCIBaseBehaviour):
 
         if observation:
             self.context.logger.info(f"Retrieved DRAND values: {observation}.")
-            payload = RandomnessPayload(
+            payload = CollectRandomnessPayload(
                 self.context.agent_address,
                 observation["round"],
                 observation["randomness"],
@@ -164,10 +167,11 @@ class SelectKeeperBehaviour(HelloWorldABCIBaseBehaviour, ABC):
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            keeper_address = sorted(self.synchronized_data.participants)[
-                self.synchronized_data.period_count
-                % self.synchronized_data.nb_participants
-            ]
+            participants = sorted(self.synchronized_data.participants)
+            random.seed(self.synchronized_data.most_voted_randomness, 2)
+            index = random.randint(0, len(participants) - 1)
+            
+            keeper_address = participants[index]
 
             self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
             payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
@@ -202,7 +206,7 @@ class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
             self.context.agent_address
             == self.synchronized_data.most_voted_keeper_address
         ):
-            printed_message += "HELLO WORLD!"
+            printed_message += "HELLO WORLD! ---"
         else:
             printed_message += ":|"
 
@@ -264,6 +268,7 @@ class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
     abci_app_cls = HelloWorldAbciApp  # type: ignore
     behaviours: Set[Type[HelloWorldABCIBaseBehaviour]] = {  # type: ignore
         RegistrationBehaviour,  # type: ignore
+        CollectRandomnessBehaviour,  # type: ignore
         SelectKeeperBehaviour,  # type: ignore
         PrintMessageBehaviour,  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
