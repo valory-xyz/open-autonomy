@@ -53,7 +53,7 @@ class TestHashAll(BaseCliTest):
 
     def load_hashes(
         self,
-    ) -> Dict[str, str]:
+    ) -> Dict:
         """Load hashes from CSV file."""
 
         hashes_file = self.packages_dir / "packages.json"
