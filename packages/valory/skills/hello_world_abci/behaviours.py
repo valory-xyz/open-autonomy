@@ -20,7 +20,6 @@
 """This module contains the behaviours for the 'hello_world' skill."""
 
 import random
-
 from abc import ABC
 from typing import Generator, Set, Type, cast
 
@@ -30,15 +29,15 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 )
 from packages.valory.skills.hello_world_abci.models import Params, SharedState
 from packages.valory.skills.hello_world_abci.payloads import (
-    PrintMessagePayload,
     CollectRandomnessPayload,
+    PrintMessagePayload,
     RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
 )
 from packages.valory.skills.hello_world_abci.rounds import (
-    HelloWorldAbciApp,
     CollectRandomnessRound,
+    HelloWorldAbciApp,
     PrintMessageRound,
     RegistrationRound,
     ResetAndPauseRound,
@@ -170,7 +169,7 @@ class SelectKeeperBehaviour(HelloWorldABCIBaseBehaviour, ABC):
             participants = sorted(self.synchronized_data.participants)
             random.seed(self.synchronized_data.most_voted_randomness, 2)
             index = random.randint(0, len(participants) - 1)
-            
+
             keeper_address = participants[index]
 
             self.context.logger.info(f"Selected a new keeper: {keeper_address}.")

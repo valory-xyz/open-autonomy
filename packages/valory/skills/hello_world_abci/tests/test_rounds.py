@@ -40,8 +40,8 @@ from packages.valory.skills.hello_world_abci.payloads import (
     SelectKeeperPayload,
 )
 from packages.valory.skills.hello_world_abci.rounds import (
-    Event,
     CollectRandomnessRound,
+    Event,
     PrintMessageRound,
     RegistrationRound,
     ResetAndPauseRound,
@@ -58,6 +58,7 @@ def get_participants() -> FrozenSet[str]:
     """Participants"""
     return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
 
+
 def get_participant_to_randomness(
     participants: FrozenSet[str], round_id: int
 ) -> Dict[str, CollectRandomnessPayload]:
@@ -70,6 +71,7 @@ def get_participant_to_randomness(
         )
         for participant in participants
     }
+
 
 def get_participant_to_selection(
     participants: FrozenSet[str],
@@ -174,7 +176,9 @@ class TestCollectRandomnessRound(BaseRoundTestClass):
             consensus_params=self.consensus_params,
         )
         first_payload, *payloads = [
-            CollectRandomnessPayload(sender=participant, randomness=RANDOMNESS, round_id=0)
+            CollectRandomnessPayload(
+                sender=participant, randomness=RANDOMNESS, round_id=0
+            )
             for participant in self.participants
         ]
 

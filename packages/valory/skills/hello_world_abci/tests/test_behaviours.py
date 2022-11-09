@@ -49,8 +49,8 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.hello_world_abci.behaviours import (
-    HelloWorldRoundBehaviour,
     CollectRandomnessBehaviour,
+    HelloWorldRoundBehaviour,
     PrintMessageBehaviour,
     RegistrationBehaviour,
     ResetAndPauseBehaviour,
@@ -366,7 +366,9 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round()
 
-        behaviour = cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour)
+        behaviour = cast(
+            BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
+        )
         assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
 
     def test_invalid_response(
@@ -425,9 +427,12 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
             return_value=True,
         ):
             self.hello_world_abci_behaviour.act_wrapper()
-            behaviour = cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour)
+            behaviour = cast(
+                BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
+            )
             assert (
-                behaviour.behaviour_id == self.collect_randomness_behaviour_class.behaviour_id
+                behaviour.behaviour_id
+                == self.collect_randomness_behaviour_class.behaviour_id
             )
             self._test_done_flag_set()
 
@@ -450,7 +455,10 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
         self.hello_world_abci_behaviour.context.randomness_api._retries_attempted = 1
         assert self.hello_world_abci_behaviour.current_behaviour is not None
         self.hello_world_abci_behaviour.current_behaviour.clean_up()
-        assert self.hello_world_abci_behaviour.context.randomness_api._retries_attempted == 0
+        assert (
+            self.hello_world_abci_behaviour.context.randomness_api._retries_attempted
+            == 0
+        )
 
 
 class BaseSelectKeeperBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
@@ -473,7 +481,7 @@ class BaseSelectKeeperBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
                         participants=[participants],
                         most_voted_randomness=[
                             "56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688"
-                        ],                        
+                        ],
                         most_voted_keeper_address=["most_voted_keeper_address"],
                     ),
                 )
@@ -523,11 +531,13 @@ class TestRegistrationBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         )
         assert behaviour.behaviour_id == CollectRandomnessBehaviour.behaviour_id
 
-class TestCollectRandomness(BaseCollectRandomnessBehaviourTest):
+
+class TestCollectRandomnessBehaviour(BaseCollectRandomnessBehaviourTest):
     """Test CollectRandomnessBehaviour."""
 
     collect_randomness_behaviour_class = CollectRandomnessBehaviour
     next_behaviour_class = SelectKeeperBehaviour
+
 
 class TestSelectKeeperBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""

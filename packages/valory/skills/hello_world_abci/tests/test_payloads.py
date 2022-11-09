@@ -22,8 +22,8 @@
 # pylint: skip-file
 
 from packages.valory.skills.hello_world_abci.payloads import (
-    PrintMessagePayload,
     CollectRandomnessPayload,
+    PrintMessagePayload,
     RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
@@ -41,15 +41,16 @@ def test_registration_payload() -> None:
 
 
 def test_collect_randomness_payload() -> None:
-    """Test `RandomnessPayload`"""
+    """Test `CollectRandomnessPayload`"""
 
-    payload = CollectRandomnessPayload(sender="sender", round_id=1, randomness="1", id_="id")
+    payload = CollectRandomnessPayload(
+        sender="sender", round_id=1, randomness="1", id_="id"
+    )
 
     assert payload.round_id == 1
     assert payload.randomness == "1"
     assert payload.id_ == "id"
     assert payload.data == {"round_id": 1, "randomness": "1"}
-
 
 
 def test_print_message_payload() -> None:

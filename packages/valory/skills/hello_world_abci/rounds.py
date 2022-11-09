@@ -97,7 +97,9 @@ class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
         return None
 
 
-class CollectRandomnessRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRound):
+class CollectRandomnessRound(
+    CollectSameUntilThresholdRound, HelloWorldABCIAbstractRound
+):
     """A round for generating randomness"""
 
     round_id = "collect_randomness"
