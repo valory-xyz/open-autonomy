@@ -63,6 +63,17 @@ PACKAGE_DIR = Path(__file__).parent.parent
 DEFAULT_GAS = 1000000
 DEFAULT_MAX_FEE_PER_GAS = 10 ** 15
 DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 15
+EXPECTED_TX_KEYS = {
+    "chainId",
+    "data",
+    "from",
+    "gas",
+    "maxFeePerGas",
+    "maxPriorityFeePerGas",
+    "nonce",
+    "to",
+    "value",
+}
 
 
 class BaseContractTest(BaseGanacheContractTest):
@@ -170,6 +181,59 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
             return cls.SALT_NONCE
         return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
 
+    def _verify_safe_tx(
+        self,
+        tx_hash: str,
+        value: int,
+        data: bytes,
+        to_address: str,
+        signatures_by_owners: Dict,
+    ) -> bool:
+        """Helper to verify tx."""
+        ledger_api = cast(EthereumApi, self.ledger_api)
+        contract_address = cast(str, self.contract_address)
+        return self.contract.verify_tx(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+            tx_hash=tx_hash,
+            owners=(self.deployer_crypto.address.lower(),),
+            to_address=to_address,
+            value=value,
+            data=data,
+            signatures_by_owner={
+                self.deployer_crypto.address.lower(): signatures_by_owners[
+                    self.deployer_crypto.address
+                ]
+            },
+        )["verified"]
+
+    def _get_raw_safe_tx(
+        self,
+        sender_address: str,
+        value: int,
+        data: bytes,
+        to_address: str,
+        signatures_by_owners: Dict,
+    ) -> JSONLike:
+        """Helper to prepare a safe tx."""
+        ledger_api = cast(EthereumApi, self.ledger_api)
+        contract_address = cast(str, self.contract_address)
+        tx = self.contract.get_raw_safe_transaction(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+            sender_address=sender_address,
+            owners=(self.deployer_crypto.address.lower(),),
+            to_address=to_address,
+            value=value,
+            data=data,
+            signatures_by_owner={
+                self.deployer_crypto.address.lower(): signatures_by_owners[
+                    self.deployer_crypto.address
+                ]
+            },
+        )
+        return tx
+
 
 @skip_docker_tests
 class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
@@ -179,7 +243,6 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
 
     def test_deployed(self) -> None:
         """Run tests."""
-
         result = self.contract.get_deploy_transaction(
             ledger_api=self.ledger_api,
             deployer_address=str(self.deployer_crypto.address),
@@ -192,21 +255,12 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
         data = result.pop("data")
         assert isinstance(data, str)
         assert len(data) > 0 and data.startswith("0x")
+        # there is no "data" field on the deploy tx
+        # but there is contract_address
+        expected_deploy_tx_fields = EXPECTED_TX_KEYS - {"data"}
+        expected_deploy_tx_fields.add("contract_address")
         assert all(
-            [
-                key in result
-                for key in [
-                    "value",
-                    "from",
-                    "gas",
-                    "maxFeePerGas",
-                    "maxPriorityFeePerGas",
-                    "chainId",
-                    "nonce",
-                    "to",
-                    "contract_address",
-                ]
-            ]
+            key in result.keys() for key in expected_deploy_tx_fields
         ), "Error, found: {}".format(result)
 
     def test_exceptions(
@@ -227,7 +281,7 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
             )
 
         with pytest.raises(ValueError, match="Client does not have any funds"):
-            # Tests for  `ValueError("Client does not have any funds")`.
+            # Tests for `ValueError("Client does not have any funds")`.
             self.contract.get_deploy_transaction(
                 ledger_api=self.ledger_api,
                 deployer_address=crypto_registry.make(
@@ -277,7 +331,6 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
         self,
     ) -> None:
         """Test `revert_reason` method."""
-
         tx = {
             "to": "to",
             "from": "from",
@@ -415,7 +468,6 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
                 "value": 0,
             }
         )
-
         time.sleep(3)
 
         res = self.contract.get_zero_transfer_events(
@@ -479,87 +531,23 @@ class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
         }
         assert list(signatures_by_owners.keys()) == self.owners()
 
-        tx = self.contract.get_raw_safe_transaction(
-            ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
+        tx = self._get_raw_safe_tx(
             sender_address=sender.address,
-            owners=(self.deployer_crypto.address.lower(),),
-            to_address=receiver.address,
             value=value,
             data=data,
-            gas_price=DEFAULT_MAX_FEE_PER_GAS,
-            signatures_by_owner={
-                self.deployer_crypto.address.lower(): signatures_by_owners[
-                    self.deployer_crypto.address
-                ]
-            },
-        )
-
-        assert all(
-            key
-            in [
-                "chainId",
-                "data",
-                "from",
-                "gas",
-                "gasPrice",
-                "nonce",
-                "to",
-                "value",
-            ]
-            for key in tx.keys()
-        ), "Missing key"
-
-        tx = self.contract.get_raw_safe_transaction(
-            ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
-            sender_address=sender.address,
-            owners=(self.deployer_crypto.address.lower(),),
+            signatures_by_owners=signatures_by_owners,
             to_address=receiver.address,
-            value=value,
-            data=data,
-            signatures_by_owner={
-                self.deployer_crypto.address.lower(): signatures_by_owners[
-                    self.deployer_crypto.address
-                ]
-            },
         )
-
-        assert all(
-            key
-            in [
-                "chainId",
-                "data",
-                "from",
-                "gas",
-                "maxFeePerGas",
-                "maxPriorityFeePerGas",
-                "nonce",
-                "to",
-                "value",
-            ]
-            for key in tx.keys()
-        ), "Missing key"
+        assert all(key in tx.keys() for key in EXPECTED_TX_KEYS), "Missing key"
 
         tx_signed = sender.sign_transaction(tx)
         tx_hash = self.ledger_api.send_signed_transaction(tx_signed)
         assert tx_hash is not None, "Tx hash is `None`"
 
-        verified = self.contract.verify_tx(
-            ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
-            tx_hash=tx_hash,
-            owners=(self.deployer_crypto.address.lower(),),
-            to_address=receiver.address,
-            value=value,
-            data=data,
-            signatures_by_owner={
-                self.deployer_crypto.address.lower(): signatures_by_owners[
-                    self.deployer_crypto.address
-                ]
-            },
+        verified = self._verify_safe_tx(
+            tx_hash, value, data, receiver.address, signatures_by_owners
         )
-        assert verified["verified"], f"Not verified: {verified}"
+        assert verified, f"Not verified: {verified}"
 
     def test_verify_negative(self) -> None:
         """Test verify negative."""
@@ -742,36 +730,14 @@ class TestOwnerManagement(BaseContractTestHardHatSafeNet):
         }
         assert list(signatures_by_owners.keys()) == self.owners()
 
-        tx = self.contract.get_raw_safe_transaction(
-            ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
+        tx = self._get_raw_safe_tx(
             sender_address=sender.address,
-            owners=(self.deployer_crypto.address.lower(),),
-            to_address=self.contract_address,
             value=value,
             data=data,
-            signatures_by_owner={
-                self.deployer_crypto.address.lower(): signatures_by_owners[
-                    self.deployer_crypto.address
-                ]
-            },
+            to_address=self.contract_address,
+            signatures_by_owners=signatures_by_owners,
         )
-
-        assert all(
-            key
-            in [
-                "chainId",
-                "data",
-                "from",
-                "gas",
-                "maxFeePerGas",
-                "maxPriorityFeePerGas",
-                "nonce",
-                "to",
-                "value",
-            ]
-            for key in tx.keys()
-        ), "Missing key"
+        assert all(key in tx.keys() for key in EXPECTED_TX_KEYS), "Missing key"
 
         prev_block = cast(int, self.ledger_api.api.eth.get_block_number()) + 1
         tx_signed = sender.sign_transaction(tx)
@@ -779,21 +745,10 @@ class TestOwnerManagement(BaseContractTestHardHatSafeNet):
 
         assert tx_hash is not None, "Tx hash is `None`"
 
-        verified = self.contract.verify_tx(
-            ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
-            tx_hash=tx_hash,
-            owners=(self.deployer_crypto.address.lower(),),
-            to_address=self.contract_address,
-            value=value,
-            data=data,
-            signatures_by_owner={
-                self.deployer_crypto.address.lower(): signatures_by_owners[
-                    self.deployer_crypto.address
-                ]
-            },
+        verified = self._verify_safe_tx(
+            tx_hash, value, data, self.contract_address, signatures_by_owners
         )
-        assert verified["verified"], f"Not verified: {verified}"
+        assert verified, f"Not verified: {verified}"
         time.sleep(1)
         remove_events = self.contract.get_removed_owner_events(
             ledger_api=self.ledger_api,
@@ -849,36 +804,14 @@ class TestOwnerManagement(BaseContractTestHardHatSafeNet):
         }
         assert list(signatures_by_owners.keys()) == self.owners()
 
-        tx = self.contract.get_raw_safe_transaction(
-            ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
+        tx = self._get_raw_safe_tx(
             sender_address=sender.address,
-            owners=(self.deployer_crypto.address.lower(),),
             to_address=self.contract_address,
             value=value,
             data=data,
-            signatures_by_owner={
-                self.deployer_crypto.address.lower(): signatures_by_owners[
-                    self.deployer_crypto.address
-                ]
-            },
+            signatures_by_owners=signatures_by_owners,
         )
-
-        assert all(
-            key
-            in [
-                "chainId",
-                "data",
-                "from",
-                "gas",
-                "maxFeePerGas",
-                "maxPriorityFeePerGas",
-                "nonce",
-                "to",
-                "value",
-            ]
-            for key in tx.keys()
-        ), "Missing key"
+        assert all(key in tx.keys() for key in EXPECTED_TX_KEYS), "Missing key"
 
         prev_block = cast(int, self.ledger_api.api.eth.get_block_number()) + 1
         tx_signed = sender.sign_transaction(tx)
@@ -886,21 +819,10 @@ class TestOwnerManagement(BaseContractTestHardHatSafeNet):
 
         assert tx_hash is not None, "Tx hash is `None`"
 
-        verified = self.contract.verify_tx(
-            ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
-            tx_hash=tx_hash,
-            owners=(self.deployer_crypto.address.lower(),),
-            to_address=self.contract_address,
-            value=value,
-            data=data,
-            signatures_by_owner={
-                self.deployer_crypto.address.lower(): signatures_by_owners[
-                    self.deployer_crypto.address
-                ]
-            },
+        verified = self._verify_safe_tx(
+            tx_hash, value, data, self.contract_address, signatures_by_owners
         )
-        assert verified["verified"], f"Not verified: {verified}"
+        assert verified, f"Not verified: {verified}"
         time.sleep(1)
         remove_events = self.contract.get_removed_owner_events(
             ledger_api=self.ledger_api,

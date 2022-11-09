@@ -518,6 +518,16 @@ def async_act_wrapper() -> Generator
 
 Do the act, supporting asynchronous execution.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.num_active_peers"></a>
+
+#### num`_`active`_`peers
+
+```python
+def num_active_peers(timeout: Optional[float] = None) -> Generator[None, None, Optional[int]]
+```
+
+Returns the number of active peers in the network.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.get_callback_request"></a>
 
 #### get`_`callback`_`request
