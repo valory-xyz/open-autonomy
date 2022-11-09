@@ -128,6 +128,21 @@ def yield_and_return_bool_wrapper(
     return yield_and_return_bool
 
 
+def yield_and_return_int_wrapper(
+    value: Optional[int],
+) -> Callable[[], Generator[None, None, Optional[int]]]:
+    """Wrapper for a Dummy generator that returns an `int`."""
+
+    def yield_and_return_int(
+        **_: int,
+    ) -> Generator[None, None, Optional[int]]:
+        """Dummy generator that returns an `int`."""
+        yield
+        return value
+
+    return yield_and_return_int
+
+
 class AsyncBehaviourTest(AsyncBehaviour, ABC):
     """Concrete AsyncBehaviour class for testing purposes."""
 
@@ -471,6 +486,8 @@ def _wait_until_transaction_delivered_patch(
 class TestBaseBehaviour:
     """Tests for the 'BaseBehaviour' class."""
 
+    _DUMMY_CONSENSUS_THRESHOLD = 3
+
     def setup(self) -> None:
         """Set up the tests."""
         self.context_mock = MagicMock()
@@ -480,6 +497,9 @@ class TestBaseBehaviour:
             request_retry_delay=_DEFAULT_REQUEST_RETRY_DELAY,
             tx_timeout=_DEFAULT_TX_TIMEOUT,
             max_attempts=_DEFAULT_TX_MAX_ATTEMPTS,
+            consensus_params=MagicMock(
+                consensus_threshold=self._DUMMY_CONSENSUS_THRESHOLD
+            ),
         )
         self.context_state_synchronized_data_mock = MagicMock()
         self.context_mock.params = self.context_params_mock
@@ -611,9 +631,20 @@ class TestBaseBehaviour:
         new_callable=mock.PropertyMock,
         return_value=True,
     )
-    @pytest.mark.parametrize("tm_reset_success", (True, False))
+    @pytest.mark.parametrize(
+        ("tm_reset_success", "num_active_peers"),
+        [
+            (True, 4),
+            (False, 4),
+            (True, 2),
+            (False, None),
+        ],
+    )
     def test__check_tm_communication(
-        self, _: mock._patch, tm_reset_success: bool
+        self,
+        _: mock._patch,
+        tm_reset_success: bool,
+        num_active_peers: Optional[int],
     ) -> None:
         """Test `__check_tm_communication`."""
         gen = self.behaviour._BaseBehaviour__check_tm_communication()
@@ -622,9 +653,20 @@ class TestBaseBehaviour:
             self.behaviour,
             "reset_tendermint_with_wait",
             side_effect=yield_and_return_bool_wrapper(tm_reset_success),
-        ):
+        ), mock.patch.object(
+            self.behaviour,
+            "num_active_peers",
+            side_effect=yield_and_return_int_wrapper(num_active_peers),
+        ), mock.patch(
+            "sys.exit"
+        ) as mock_sys_exit:
             try_send(gen)
             try_send(gen)
+            if (
+                num_active_peers is not None
+                and num_active_peers < self._DUMMY_CONSENSUS_THRESHOLD
+            ):
+                mock_sys_exit.assert_called()
 
     @pytest.mark.parametrize("communication_is_healthy", (True, False))
     def test_async_act_wrapper_communication(
@@ -1484,6 +1526,77 @@ class TestBaseBehaviour:
             res = e.value.args[0]
             assert isinstance(res, MagicMock)
             assert res.body == expected_result
+
+    def test_get_netinfo(self) -> None:
+        """Test _get_netinfo method"""
+        dummy_res = {
+            "result": {
+                "n_peers": "1",
+            }
+        }
+        expected_result = json.dumps(dummy_res).encode()
+
+        def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_do_request` method."""
+            yield
+            return mock.MagicMock(body=expected_result)
+
+        with mock.patch.object(
+            BaseBehaviour, "_do_request", side_effect=dummy_do_request
+        ):
+            get_netinfo_generator = self.behaviour._get_netinfo()
+            next(get_netinfo_generator)
+            with pytest.raises(StopIteration) as e:
+                next(get_netinfo_generator)
+            res = e.value.args[0]
+            assert isinstance(res, MagicMock)
+            assert res.body == expected_result
+
+    @pytest.mark.parametrize(
+        ("num_peers", "expected_num_peers", "netinfo_status_code"),
+        [
+            ("0", 1, 200),
+            ("0", None, 500),
+            ("0", None, None),
+            (None, None, 200),
+        ],
+    )
+    def test_num_active_peers(
+        self,
+        num_peers: Optional[str],
+        expected_num_peers: Optional[int],
+        netinfo_status_code: Optional[int],
+    ) -> None:
+        """Test num_active_peers."""
+        dummy_res = {
+            "result": {
+                "n_peers": num_peers,
+            }
+        }
+
+        def dummy_get_netinfo(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_get_netinfo` method."""
+            yield
+
+            if netinfo_status_code is None:
+                raise TimeoutException()
+
+            return mock.MagicMock(
+                status_code=netinfo_status_code,
+                body=json.dumps(dummy_res).encode(),
+            )
+
+        with mock.patch.object(
+            BaseBehaviour,
+            "_get_netinfo",
+            side_effect=dummy_get_netinfo,
+        ):
+            num_active_peers_generator = self.behaviour.num_active_peers()
+            next(num_active_peers_generator)
+            with pytest.raises(StopIteration) as e:
+                next(num_active_peers_generator)
+            actual_num_peers = e.value.value
+            assert actual_num_peers == expected_num_peers
 
     def test_default_callback_request_stopped(self) -> None:
         """Test 'default_callback_request' when stopped."""

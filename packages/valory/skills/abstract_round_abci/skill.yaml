@@ -10,7 +10,7 @@ fingerprint:
   __init__.py: bafybeihnqe3jevwrc72dmx4ehfjt7iyxo525f6yxz46t3t2uawhnbh3nji
   abci_app_chain.py: bafybeihb3ded23gvjrn426qptkbnkge5cewqm7ywi4j6ebmo3j66ss5wii
   base.py: bafybeid2jhl4c6sgay5poq77pw64vlhzvitakdb4ukh3awk5gdxl67lxfi
-  behaviour_utils.py: bafybeifrshaazsztcftqngv2tm5hiw6q4qbtvpeautufpzbzak6nihpbcu
+  behaviour_utils.py: bafybeiho22oee7nmvgalegw3km6bnxtfpi3soh6j4zq6itkcmkynzsbvqy
   behaviours.py: bafybeib6iuxtyrnmnessimdzhmpg6xovczgr4s2nxh5uuaf4rerwevfmi4
   common.py: bafybeig4binmx32hbak7lmg7kaptfh4qhnwpa2sshykvf3kgvqkztcimfi
   dialogues.py: bafybeibvnmcn7kofol2h6owljhde4llfc3kwwkb5helxsgsy47mokhwb4i
@@ -42,7 +42,7 @@ fingerprint:
   tests/test_base.py: bafybeihudocf2kll2unb5csfrmsybqp7pacmdil5j65pgzmxqz2wsbhymy
   tests/test_base_rounds.py: bafybeibxiiqgssjal2dboecjn5zmoxupav3gfpbzcr6lqfxshm5tctva7i
   tests/test_behaviours.py: bafybeifv44ckvo6qjd2er4rqtb5vuifibfsj3ayxfclzsohtzruowcnbwi
-  tests/test_behaviours_utils.py: bafybeihxgcvejvt7ihmpbwoiycb3dtxrt2n6c2lst2vt3uvxm47zpcmbue
+  tests/test_behaviours_utils.py: bafybeicoyg4oqra2ghjm36yjdch7qo7ffz7rncj56ptvzgff4okl4jds3i
   tests/test_common.py: bafybeianyjmc5uke35o2jz6w66bvuuu2o22hzhjypxqlt4j4f5bubhglmm
   tests/test_dialogues.py: bafybeie4dkivvp3gdqyvvnazebftprwklklkjh6o36l5lxtwxuetgaw2nm
   tests/test_handlers.py: bafybeiduq3fdqmkbzapb5kda4pxsscekktvdzcksshldyqwqhjomgxdvcu
@@ -63,9 +63,9 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiav3mywaeik35huowg6vjekllqiaeorxlc6eesc6aftlb7msh6mdu
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
-- valory/ledger:0.19.0:bafybeihmz5us4ntmzvgikpkx4tththrl7zvou4uiebvletdeliidiuhi6m
+- valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
 contracts:
-- valory/service_registry:0.1.0:bafybeidnlrhq5tphu2bao4uslpku77qpbkyuifm2ov2w6gl36heee4ivuq
+- valory/service_registry:0.1.0:bafybeibvppplg7bjdrubtylabaksukdrvfgi2d5a7vgsylunajsbdbbt6e
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
