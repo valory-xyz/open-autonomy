@@ -29,7 +29,7 @@ class TransactionType(Enum):
     """Enumeration of transaction types."""
 
     REGISTRATION = "registration"
-    RANDOMNESS = "randomness"
+    RANDOMNESS = "collect_randomness"
     SELECT_KEEPER = "select_keeper"
     PRINT_MESSAGE = "print_message"
     RESET = "reset"
