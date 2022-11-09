@@ -50,6 +50,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehav
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.hello_world_abci.behaviours import (
     HelloWorldRoundBehaviour,
+    CollectRandomnessBehaviour,
     PrintMessageBehaviour,
     RegistrationBehaviour,
     ResetAndPauseBehaviour,
@@ -314,6 +315,144 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         self.benchmark_dir.cleanup()
 
 
+class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
+    """Test CollectRandomnessBehaviour."""
+
+    collect_randomness_behaviour_class: Type[BaseBehaviour]
+    next_behaviour_class: Type[BaseBehaviour]
+
+    def test_randomness_behaviour(
+        self,
+    ) -> None:
+        """Test RandomnessBehaviour."""
+
+        self.fast_forward_to_behaviour(
+            self.hello_world_abci_behaviour,
+            self.collect_randomness_behaviour_class.behaviour_id,
+            self.synchronized_data,
+        )
+        assert (
+            cast(
+                BaseBehaviour,
+                cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour),
+            ).behaviour_id
+            == self.collect_randomness_behaviour_class.behaviour_id
+        )
+        self.hello_world_abci_behaviour.act_wrapper()
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                headers="",
+                version="",
+                body=b"",
+                url="https://drand.cloudflare.com/public/latest",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps(
+                    {
+                        "round": 1283255,
+                        "randomness": "04d4866c26e03347d2431caa82ab2d7b7bdbec8b58bca9460c96f5265d878feb",
+                    }
+                ).encode("utf-8"),
+            ),
+        )
+
+        self.hello_world_abci_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round()
+
+        behaviour = cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour)
+        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+
+    def test_invalid_response(
+        self,
+    ) -> None:
+        """Test invalid json response."""
+        self.fast_forward_to_behaviour(
+            self.hello_world_abci_behaviour,
+            self.collect_randomness_behaviour_class.behaviour_id,
+            self.synchronized_data,
+        )
+        assert (
+            cast(
+                BaseBehaviour,
+                cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour),
+            ).behaviour_id
+            == self.collect_randomness_behaviour_class.behaviour_id
+        )
+        self.hello_world_abci_behaviour.act_wrapper()
+
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="GET",
+                headers="",
+                version="",
+                body=b"",
+                url="https://drand.cloudflare.com/public/latest",
+            ),
+            response_kwargs=dict(
+                version="", status_code=200, status_text="", headers="", body=b""
+            ),
+        )
+        self.hello_world_abci_behaviour.act_wrapper()
+        time.sleep(1)
+        self.hello_world_abci_behaviour.act_wrapper()
+
+    def test_max_retries_reached(
+        self,
+    ) -> None:
+        """Test with max retries reached."""
+        self.fast_forward_to_behaviour(
+            self.hello_world_abci_behaviour,
+            self.collect_randomness_behaviour_class.behaviour_id,
+            self.synchronized_data,
+        )
+        assert (
+            cast(
+                BaseBehaviour,
+                cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour),
+            ).behaviour_id
+            == self.collect_randomness_behaviour_class.behaviour_id
+        )
+        with mock.patch.object(
+            self.hello_world_abci_behaviour.context.randomness_api,
+            "is_retries_exceeded",
+            return_value=True,
+        ):
+            self.hello_world_abci_behaviour.act_wrapper()
+            behaviour = cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour)
+            assert (
+                behaviour.behaviour_id == self.collect_randomness_behaviour_class.behaviour_id
+            )
+            self._test_done_flag_set()
+
+    def test_clean_up(
+        self,
+    ) -> None:
+        """Test when `observed` value is none."""
+        self.fast_forward_to_behaviour(
+            self.hello_world_abci_behaviour,
+            self.collect_randomness_behaviour_class.behaviour_id,
+            self.synchronized_data,
+        )
+        assert (
+            cast(
+                BaseBehaviour,
+                cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour),
+            ).behaviour_id
+            == self.collect_randomness_behaviour_class.behaviour_id
+        )
+        self.hello_world_abci_behaviour.context.randomness_api._retries_attempted = 1
+        assert self.hello_world_abci_behaviour.current_behaviour is not None
+        self.hello_world_abci_behaviour.current_behaviour.clean_up()
+        assert self.hello_world_abci_behaviour.context.randomness_api._retries_attempted == 0
+
+
 class BaseSelectKeeperBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
     """Test SelectKeeperBehaviour."""
 
@@ -332,6 +471,9 @@ class BaseSelectKeeperBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
                 AbciAppDB(
                     setup_data=dict(
                         participants=[participants],
+                        most_voted_randomness=[
+                            "56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688"
+                        ],                        
                         most_voted_keeper_address=["most_voted_keeper_address"],
                     ),
                 )
@@ -379,8 +521,13 @@ class TestRegistrationBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         behaviour = cast(
             BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
         )
-        assert behaviour.behaviour_id == SelectKeeperBehaviour.behaviour_id
+        assert behaviour.behaviour_id == CollectRandomnessBehaviour.behaviour_id
 
+class TestCollectRandomness(BaseCollectRandomnessBehaviourTest):
+    """Test CollectRandomnessBehaviour."""
+
+    collect_randomness_behaviour_class = CollectRandomnessBehaviour
+    next_behaviour_class = SelectKeeperBehaviour
 
 class TestSelectKeeperBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
@@ -450,7 +597,7 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
     """Test ResetBehaviour."""
 
     behaviour_class = ResetAndPauseBehaviour
-    next_behaviour_class = SelectKeeperBehaviour
+    next_behaviour_class = CollectRandomnessBehaviour
 
     def test_pause_and_reset_behaviour(
         self,
