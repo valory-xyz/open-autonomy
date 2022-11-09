@@ -67,6 +67,13 @@ class TestGenerateSpecs(BaseCliTest):
         shutil.copytree(ROOT_DIR / PACKAGES, self.t / PACKAGES)
 
         self.dfa = DFA.abci_to_dfa(abci_app_cls)
+        self.cli_options = (
+            "--registry-path",
+            str(self.t / PACKAGES),
+            "analyse",
+            "fsm-specs",
+        )
+
         os.chdir(self.t)
 
     def get_expected_output(self, output_format: str) -> str:
@@ -173,6 +180,18 @@ class TestCheckSpecs(BaseCliTest):
 
         self.packages_dir = self.t / PACKAGES
         shutil.copytree(ROOT_DIR / PACKAGES, self.packages_dir)
+        self.specification_path = (
+            self.t / self.skill_path.parent / "fsm_specification.yaml"
+        )
+
+        # make a copy of 'packages' in a subdirectory with depth > 1 from cwd
+        subdirectory = self.t / Path("path", "to", "subdirectory")
+        self.packages_dir_in_subdir = subdirectory / PACKAGES
+        self.specification_path_in_subdir = (
+            subdirectory / self.skill_path.parent / "fsm_specification.yaml"
+        )
+        shutil.copytree(self.packages_dir, self.packages_dir_in_subdir)
+
         self.specification_path = self.t / self.skill_path / "fsm_specification.yaml"
         os.chdir(self.t)
 
@@ -220,6 +239,34 @@ class TestCheckSpecs(BaseCliTest):
 
         assert return_code == 0, stderr
         assert "Done" in stdout
+
+    def test_check_all_when_packages_is_not_in_working_dir(
+        self,
+    ) -> None:
+        """Test --check-all flag when the packages directory is not in the working directory."""
+        return_code, stdout, stderr = self.run_cli_subprocess(())
+
+        assert return_code == 0
+        assert "Checking all available packages" in stdout
+        assert "Done" in stdout
+
+    def test_check_fail_when_packages_dir_is_not_named_packages(
+        self,
+    ) -> None:
+        """Test --check-all flag when the packages directory is not named 'packages'."""
+        wrong_dir = self.t / "some-directory"
+        wrong_dir.mkdir(exist_ok=True)
+
+        self.cli_options = (
+            "--registry-path",
+            str(wrong_dir),
+            "analyse",
+            "fsm-specs",
+        )
+        return_code, _, stderr = self.run_cli_subprocess(())
+
+        assert return_code == 1, stderr
+        assert f"packages directory {wrong_dir} is not named '{PACKAGES}'" in stderr
 
     def test_check_all_fail(
         self,

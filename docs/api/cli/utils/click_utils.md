@@ -34,6 +34,17 @@ def chain_selection_flag(default: str = "staging", mark_default: bool = True) ->
 
 Flags for abci spec outputs formats.
 
+<a id="autonomy.cli.utils.click_utils.sys_path_patch"></a>
+
+#### sys`_`path`_`patch
+
+```python
+@contextlib.contextmanager
+def sys_path_patch(path: Path) -> Generator
+```
+
+Patch sys.path variable with new import path at highest priority.
+
 <a id="autonomy.cli.utils.click_utils.PathArgument"></a>
 
 ## PathArgument Objects

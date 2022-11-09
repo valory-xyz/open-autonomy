@@ -25,7 +25,7 @@ from warnings import filterwarnings
 import click
 from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
-from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE
+from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE, PACKAGES
 
 from autonomy.analyse.abci.docstrings import process_module
 from autonomy.analyse.abci.logs import parse_file
@@ -34,7 +34,11 @@ from autonomy.analyse.handlers import check_handlers
 from autonomy.cli.helpers.fsm_spec import check_all as check_all_fsm
 from autonomy.cli.helpers.fsm_spec import check_one as check_one_fsm
 from autonomy.cli.helpers.fsm_spec import update_one as update_one_fsm
-from autonomy.cli.utils.click_utils import PathArgument, abci_spec_format_flag
+from autonomy.cli.utils.click_utils import (
+    PathArgument,
+    abci_spec_format_flag,
+    sys_path_patch,
+)
 
 
 BENCHMARKS_DIR = Path("./benchmarks.html")
@@ -53,7 +57,7 @@ def analyse_group() -> None:
 @click.option("--update", is_flag=True, help="Update FSM definition if check fails.")
 @abci_spec_format_flag()
 @pass_ctx
-def generate_abci_app_specs(
+def abci_app_specs(
     ctx: Context,
     package: Optional[Path],
     app_class: Optional[str],
@@ -64,37 +68,55 @@ def generate_abci_app_specs(
 
     all_packages = package is None
 
-    try:
-        if all_packages:
-            # If package path is not provided check all available packages
-            click.echo("Checking all available packages")
-            check_all_fsm(Path(ctx.registry_path))
-            click.echo("Done")
-            return
+    # The command expects 'packages_dir' to be named 'packages', so to make import statements to be compatible with
+    # the standard Python import machinery. The directory can be outside the working directory from which the command
+    # is executed.
+    packages_dir = Path(ctx.registry_path)
 
-        if not all_packages and not update:
-            click.echo(f"Checking {package}")
-            check_one_fsm(
-                package_path=cast(Path, package),
-                app_class=app_class,
-                spec_format=spec_format,
-            )
-            click.echo("Check successful")
-            return
+    # make sure the package_dir is named "packages", otherwise
+    # the import of packages.* modules won't work
+    if packages_dir.name != PACKAGES:
+        raise click.ClickException(
+            f"packages directory {packages_dir} is not named '{PACKAGES}'"
+        )
 
-        if not all_packages and update:
-            click.echo(f"Updating {package}")
-            update_one_fsm(
-                package_path=cast(Path, package),
-                app_class=app_class,
-                spec_format=spec_format,
-            )
-            click.echo(f"Updated FSM specification for {package}")
-            return
+    # add parent directory to Python system path so to give priority to the import of packages modules.
+    # Note that this is a Click command that is run in a separate Python interpreter, and all the execution paths die
+    # with sys.exit in any possible execution, so there are no dangerous side effects. We do not add sys.path
+    # patching in the SpecCheck methods as they implicitly assume that the AEA modules in packages are importable
+    # using standard Python import machinery).
+    with sys_path_patch(packages_dir.parent):
+        try:
+            if all_packages:
+                # If package path is not provided check all available packages
+                click.echo("Checking all available packages")
+                check_all_fsm(packages_dir=packages_dir)
+                click.echo("Done")
+                return
 
-        click.echo("Please provide valid arguments")
-    except Exception as e:
-        raise click.ClickException(str(e)) from e
+            if not all_packages and not update:
+                click.echo(f"Checking {package}")
+                check_one_fsm(
+                    package_path=cast(Path, package),
+                    app_class=app_class,
+                    spec_format=spec_format,
+                )
+                click.echo("Check successful")
+                return
+
+            if not all_packages and update:
+                click.echo(f"Updating {package}")
+                update_one_fsm(
+                    package_path=cast(Path, package),
+                    app_class=app_class,
+                    spec_format=spec_format,
+                )
+                click.echo(f"Updated FSM specification for {package}")
+                return
+
+            click.echo("Please provide valid arguments")
+        except Exception as e:
+            raise click.ClickException(str(e)) from e
 
 
 @analyse_group.group(name="abci")
