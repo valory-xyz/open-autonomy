@@ -6,7 +6,7 @@ default_start_state: ResetAndPauseRound
 final_states:
 - FinishedResetAndPauseErrorRound
 - FinishedResetAndPauseRound
-label: ResetPauseABCIApp
+label: ResetPauseAbciApp
 start_states:
 - ResetAndPauseRound
 states:

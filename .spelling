@@ -242,7 +242,7 @@ SafeDeployment
 OracleDeployment
 PriceAggregation
 TransactionSubmission
-ResetPauseABCIApp
+ResetPauseAbciApp
 OracleAbciApp
 RegistrationRound
 FinishedRegistrationFFWRound

@@ -32,7 +32,7 @@ The summary of the constituent FSMs is as follows:
 | OracleDeployment        |      5  |            1  |            1  |      8  |                      14   |
 | PriceAggregation        |      9  |            1  |            1  |      4  |                       9   |
 | TransactionSubmission   |     10  |            1  |            2  |      9  |                      26   |
-| ResetPauseABCIApp       |      3  |            1  |            2  |      3  |                       3   |
+| ResetPauseAbciApp       |      3  |            1  |            2  |      3  |                       3   |
 | **OracleAbciApp**       | **21**  |        **2**  |        **0**  | **12**  |                  **66**   |
 
 
@@ -365,7 +365,7 @@ stateDiagram-v2
 <figcaption>TransactionSubmissionAbciApp FSM</figcaption>
 </figure>
 
-#### `ResetPauseABCIApp` FSM
+#### `ResetPauseAbciApp` FSM
 
 ```yaml
 alphabet_in:
@@ -376,7 +376,7 @@ default_start_state: ResetAndPauseRound
 final_states:
 - FinishedResetAndPauseErrorRound
 - FinishedResetAndPauseRound
-label: ResetPauseABCIApp
+label: ResetPauseAbciApp
 start_states:
 - ResetAndPauseRound
 states:
@@ -395,7 +395,7 @@ stateDiagram-v2
     ResetAndPauseRound --> FinishedResetAndPauseRound: <center>DONE</center>
     ResetAndPauseRound --> FinishedResetAndPauseErrorRound: <center>NO_MAJORITY<br />RESET_AND_PAUSE_TIMEOUT</center>
 </div>
-<figcaption>ResetPauseABCIApp FSM</figcaption>
+<figcaption>ResetPauseAbciApp FSM</figcaption>
 </figure>
 
 
@@ -412,7 +412,7 @@ OracleAbciApp = chain(
         OracleDeploymentAbciApp,
         PriceAggregationAbciApp,
         TransactionSubmissionAbciApp,
-        ResetPauseABCIApp,
+        ResetPauseAbciApp,
     ),
     abci_app_transition_mapping,
 )
