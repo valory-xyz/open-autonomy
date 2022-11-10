@@ -360,6 +360,7 @@ BaseBehaviour
 SimpleABCIBaseBehaviour
 SpookySwap
  - docs/demos/hello_world_demo.md
+CollectRandomness
 SelectKeeper
 pmod
 ResetAndPause
