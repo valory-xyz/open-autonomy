@@ -1,6 +1,6 @@
-# Hello world agent service demo
-This demo is aimed at giving a general, introductory overview on what are the main elements that make an agent service and how they work. The goal is to provide to new users of the {{open_autonomy}} framework a global understanding on the development process and the relationship between the main components of the stack. You can skip the [running the demo section](./hello_world_demo.md#running-the-demo) on a first read.
+This demo service is aimed at giving a general, introductory overview on what are the main elements that make an agent service and how they work together. The goal is to provide a global understanding on the development process and the relationship between the main components of the stack to new users of the {{open_autonomy}} framework.
 
+Although the functionality of this agent service is very simple, it demonstrates a number of features that are common in many agent services. It can also be considered as a baseline service to which more complex functionalities can be added towards building your own service.
 
 
 ## Architecture of the demo
@@ -10,56 +10,46 @@ The demo is composed of:
 - A set of four AEAs (`abci0`, `abci1`, `abci2`, `abci3`), in one-to-one connection with their corresponding Tendermint
 node.
 
+The agents connect to the remote service [DRAND](https://drand.love) during the execution
+of the demo.
+
 <figure markdown>
   ![](../images/hello_world_demo_architecture.svg){align=center}
-  <figcaption>Hello world agent service demo architecture with four agents</figcaption>
+  <figcaption>Hello World agent service demo architecture with four agents</figcaption>
 </figure>
 
 ## Running the demo
-The steps below will guide you to download the simple agent service definition from the Service Registry, build and run a local deployment.
-
-1. Ensure that your machine satisfies the [framework requirements](../guides/set_up.md#requirements) and that
+Before running the demo, ensure that your machine satisfies the [framework requirements](../guides/set_up.md#requirements) and that
 you have followed the [setup instructions](../guides/set_up.md#setup). As a result you should have a Pipenv workspace folder.
 
-2. Use the CLI to fetch the `valory/hello_world` service.
-    ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeihd3mu3df4q5czgbns2l7vaczmbgoavow6sepa53zd5lqyt3dlycy --remote --service
-    cd hello_world
-    ```
-
-3. Follow the steps in the [local deployment guide](../guides/deploy_service.md#local-deployment) to deploy and run the service locally.
-
-4. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
-    ```bash
-    docker logs <container_id> --follow
-    ```
-    where `<container_id>` refers to the Docker container ID for either an agent
-    (`abci0`, `abci1`, `abci2` and `abci3`) or a [Tendermint](https://tendermint.com/) node (`node0`, `node1`, `node2` and `node3`).
-
+Running the Hello World service demo is demonstrated in the [quick start](../guides/quick_start.md) guide. Therefore, you just need to follow the instructions therein to run the demo.
 
 
 ## Details of the demo
-The service presented in this demo is a "Hello world" agent service, which can be considered as a baseline service to which more complex functionalities can be added. The functionality of the service is extremely simple. Namely, each agent will output (at different times) the following message to its local console:
-> "Agent $i$ in period $j$ says: Hello World!"
+The functionality of the service is extremely simple. Namely, each agent will output (at different times) the following message to its local console:
+```
+Agent [name] (address [address]) in period [period_num] says: HELLO WORLD!
+```
 
-More concretely, we divide the timeline into _periods_, and within each period, _only one designated agent will print the message_. The other agents will print nothing. Think of a period as an interval where the service executes an iteration of its intended functionality (e.g., checking some price on a market, execute an investment strategy, etc.).
+The execution timeline is divided into periods, and within each period, *only one designated agent will print the `HELLO WORLD!` message*. The other agents will just print a neutral face `:|`. In the context of agent services, you cam think of a *period* as an interval where the service executes an iteration of its intended functionality (e.g., checking some price on a market, execute an investment strategy, or in this demo, printing a message).
 
-
-The architecture of this agent service, albeit simple, features four agents that are coordinated through a _consensus gadget_. For clarity and simplicity, we will be using the simplified architecture diagram depicted below.
+Recall that agents are coordinated through the *consensus gadget* (i.e., the consensus gadget nodes + the consensus gadget network). For clarity, we will be using the simplified architecture diagram depicted below.
 
 <figure markdown>
-![](../images/hello_world_demo_architecture_simplified.svg){align="center"}
+![abc](../images/hello_world_demo_architecture_simplified.svg){align="center"}
 <figcaption>A simplified view of the Hello world agent service architecture</figcaption>
 </figure>
 
 
 !!! warning "Important"
 
-    Every agent service has an associated *consensus gadget*:
+    Every agent service is connected to the *consensus gadget* through its *consensus gadget node*:
 
-    * The consensus gadget is the component that makes possible for the agents to synchronise data. This allows them to, e.g. reach agreement on certain actions or reconcile information.
+    * The consensus gadget is the component that makes possible for the agents to synchronise state data. This allows them to, e.g. reach agreement on certain actions or reconcile information.
 
     * Anything happening at the consensus network level is completely abstracted away so that developers simple consume it in their services. An application run by the agent service can be thought and developed as a single "virtual" application.
+
+    * Currently, the consensus gadget is implemented using [Tendermint](https://tendermint.com/).
 
 
 This is what the service would look like in all its glory:
