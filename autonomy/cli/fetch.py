@@ -21,25 +21,13 @@
 from typing import cast
 
 import click
-from aea.cli.fetch import do_fetch
 from aea.cli.fetch import NotAnAgentPackage, do_fetch
-from aea.cli.registry.settings import REGISTRY_REMOTE, REMOTE_IPFS
 from aea.cli.utils.click_utils import PublicIdParameter, registry_flag
 from aea.cli.utils.context import Context
 from aea.configurations.base import PublicId
 from aea.configurations.constants import AGENT, SERVICE
 
 from autonomy.cli.helpers.registry import fetch_service
-from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
-from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
-
-
-try:
-    from aea_cli_ipfs.ipfs_utils import IPFSTool  # type: ignore
-
-    IS_IPFS_PLUGIN_INSTALLED = True
-except ImportError:  # pragma: nocover
-    IS_IPFS_PLUGIN_INSTALLED = False
 
 
 @click.command(name="fetch")
