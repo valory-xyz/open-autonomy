@@ -109,7 +109,7 @@ class CollectRandomnessRound(
         """Process the end of the block."""
         if self.threshold_reached:
             synchronized_data = self.synchronized_data.update(
-                participant_to_randomness=MappingProxyType(self.collection),
+                participant_to_randomness=self.collection,
                 most_voted_randomness=self.most_voted_payload,
             )
             return synchronized_data, Event.DONE

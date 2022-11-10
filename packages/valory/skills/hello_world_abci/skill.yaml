@@ -12,16 +12,16 @@ fingerprint:
   dialogues.py: bafybeiggs6cpzhz235k4ws5naeuyhz37mkqrthctq67p4v56wh4nyzgepa
   fsm_specification.yaml: bafybeieydqhpzm5pt4xmmv3rmqxcmbpolde6z25xvk4iuv2pihenb7o65q
   handlers.py: bafybeib77umr3prpvc6i6ukdr7xmsoge6gpsfjwpwhiddzjh5bwwpg44mi
-  models.py: bafybeidwxgbytvwg6f7u2k7p2mcy2hfwu5n7w2a5m3ymsid4b3ecx4qb4q
-  payloads.py: bafybeic4ra6f475xge2hgoyoyhey4thuwsuuqwi26zklv5qozavyyfwlfa
-  rounds.py: bafybeidwdo5ceszvqwtjbywoons2pwdihmpvyhyf6ge2wbmevw442w7any
+  models.py: bafybeiaistd5v6oyiovq7lha6rlpxgcxbmhf6q4nn5lmpluayn3xyqoqfi
+  payloads.py: bafybeicuvbqd2yyl3ml2nu5rxlvhvetwkdzv4lj4ryuqct7zd7jtpa6coy
+  rounds.py: bafybeiee6sx3yf7v43hq7yl3mejshkjvwkuwrxvmbargb4wiaslwras3qy
   tests/__init__.py: bafybeibpuwe63mjjwnaanx7wdw63reh6qa5xdtjxdf75o3nksvjercte4y
   tests/test_behaviours.py: bafybeiaur34f4rjxlrsarikyazbypnxkfailkecpep4nuuxsann3tyzrta
   tests/test_dialogues.py: bafybeiarl4wsnljaxkgxdwr47xd4xjjjtkfgqbtazt2v2oem47alhaykj4
   tests/test_handlers.py: bafybeigb2hfysb2v3yjiqemyy52h3onqalrufuqdnw2pnkowtuzvmvcrd4
   tests/test_models.py: bafybeibqrbnemkeurjag2fpqftlpo3df2vnbooid7hcw5nmlm4rhssle7q
-  tests/test_payloads.py: bafybeidguouttloacw2lgqocl6l5eatfqcto5x2rlnmpcjivn72helz3ka
-  tests/test_rounds.py: bafybeigdlafpntqncupvdzn5wayc7ioqhwf34vypcetng7uyxlwtbbzxgq
+  tests/test_payloads.py: bafybeihjpp2uztve6zlmlkrw2fa6gqsc4o2qpgijxkuimh6xwgmzkhcgzq
+  tests/test_rounds.py: bafybeibsiox6sp26wolnuotal3x3zd2cjdahuyovulp4cpm4gbg4rslvcq
 fingerprint_ignore_patterns: []
 connections:
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
@@ -30,7 +30,7 @@ protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiekmbzcruww5rcdgjx3uu6cifobzh75oqufdgufli5nha7o6qwpya
+- valory/abstract_round_abci:0.1.0:bafybeiby2hrhmx2rlhe3a52pdjmz22c6zbmfnpdbf7uniqlvaqg4fhfapm
 behaviours:
   main:
     args: {}

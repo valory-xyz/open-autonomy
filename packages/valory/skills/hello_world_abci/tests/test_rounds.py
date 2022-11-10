@@ -191,7 +191,7 @@ class TestCollectRandomnessRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_behaviour = self.synchronized_data.update(
-            participant_to_randomness=MappingProxyType(test_round.collection),
+            participant_to_randomness=test_round.collection,
             most_voted_randomness=test_round.most_voted_payload,
         )
 
