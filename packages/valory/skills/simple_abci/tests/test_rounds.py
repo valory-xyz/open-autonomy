@@ -23,7 +23,6 @@
 
 import logging  # noqa: F401
 import sys
-from types import MappingProxyType
 from typing import Any, Dict, FrozenSet, cast
 from unittest import mock
 
@@ -198,7 +197,7 @@ class TestRandomnessStartupRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_behaviour = self.synchronized_data.update(
-            participant_to_randomness=MappingProxyType(test_round.collection),
+            participant_to_randomness=test_round.collection,
             most_voted_randomness=test_round.most_voted_payload,
         )
 
@@ -245,7 +244,7 @@ class TestSelectKeeperAtStartupRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_behaviour = self.synchronized_data.update(
-            participant_to_selection=MappingProxyType(test_round.collection),
+            participant_to_selection=test_round.collection,
             most_voted_keeper_address=test_round.most_voted_payload,
         )
 

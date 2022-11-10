@@ -22,7 +22,6 @@
 # pylint: skip-file
 
 import logging  # noqa: F401
-from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
 from unittest import mock
 
@@ -239,7 +238,7 @@ class TestSelectKeeperRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_behaviour = self.synchronized_data.update(
-            participant_to_selection=MappingProxyType(test_round.collection),
+            participant_to_selection=test_round.collection,
             most_voted_keeper_address=test_round.most_voted_payload,
         )
 

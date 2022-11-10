@@ -22,7 +22,6 @@
 # pylint: skip-file
 
 import logging  # noqa: F401
-from types import MappingProxyType
 from typing import Any, Dict, FrozenSet, Mapping, Optional, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB, AbstractRound
@@ -151,11 +150,9 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
                     self.participants, most_voted_payload
                 ),
                 synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
-                    participant_to_selection=MappingProxyType(
-                        dict(
-                            self._participant_to_selection(
-                                self.participants, most_voted_payload
-                            )
+                    participant_to_selection=dict(
+                        self._participant_to_selection(
+                            self.participants, most_voted_payload
                         )
                     )
                 ),
@@ -193,8 +190,8 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes=MappingProxyType(
-                        dict(get_participant_to_votes(self.participants))
+                    participant_to_votes=dict(
+                        get_participant_to_votes(self.participants)
                     )
                 ),
                 synchronized_data_attr_checks=[
@@ -219,8 +216,8 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=False),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes=MappingProxyType(
-                        dict(get_participant_to_votes(self.participants, vote=False))
+                    participant_to_votes=dict(
+                        get_participant_to_votes(self.participants, vote=False)
                     )
                 ),
                 synchronized_data_attr_checks=[],
@@ -243,8 +240,8 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=None),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes=MappingProxyType(
-                        dict(get_participant_to_votes(self.participants, vote=None))
+                    participant_to_votes=dict(
+                        get_participant_to_votes(self.participants, vote=None)
                     )
                 ),
                 synchronized_data_attr_checks=[],

@@ -20,7 +20,6 @@
 
 from abc import ABC
 from enum import Enum
-from types import MappingProxyType
 from typing import Dict, Mapping, Optional, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
@@ -132,7 +131,7 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRo
         """Process the end of the block."""
         if self.threshold_reached:
             synchronized_data = self.synchronized_data.update(
-                participant_to_selection=MappingProxyType(self.collection),
+                participant_to_selection=self.collection,
                 most_voted_keeper_address=self.most_voted_payload,
             )
             return synchronized_data, Event.DONE

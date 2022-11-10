@@ -29,6 +29,7 @@ from aea.configurations.loader import ConfigLoader
 from aea.helpers.base import cd
 from aea.helpers.io import open_file
 
+from autonomy.cli.fetch import IPFSTool
 from autonomy.configurations.base import Service
 
 from tests.conftest import ROOT_DIR
@@ -139,3 +140,27 @@ class TestFetchCommand(BaseCliTest):
             assert service_dir.exists()
 
         shutil.rmtree(service_dir)
+
+    def test_not_a_service_package(
+        self,
+    ) -> None:
+        """Test fetch service."""
+        with mock.patch(
+            "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "ipfs"
+        ), mock.patch(
+            "autonomy.cli.fetch.get_ipfs_node_multiaddr", new=lambda: IPFS_REGISTRY
+        ), mock.patch.object(
+            IPFSTool, "download", return_value=self.t
+        ):
+            result = self.run_cli(
+                (
+                    "--remote",
+                    "bafybeicqvwvogloyw2ujhedbwv4opn2ngus6dh7ocxg7umhhawcnzpibrq",
+                )
+            )
+            assert result.exit_code == 1, result.output
+            assert (
+                "Downloaded packages is not a service package, "
+                "if you intend to download an agent please use "
+                "`--agent` flag or check the hash"
+            ) in result.output
