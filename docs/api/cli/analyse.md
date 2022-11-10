@@ -48,7 +48,12 @@ Analyse ABCI apps of an agent service.
 
 ```python
 @analyse_group.command(name="docstrings")
-@click.option("--update", is_flag=True, default=False)
+@click.option(
+    "--update",
+    is_flag=True,
+    default=False,
+    help="Update docstrings if required.",
+)
 @pass_ctx
 def docstrings(ctx: Context, update: bool) -> None
 ```
