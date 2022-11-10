@@ -8,11 +8,11 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeidrjtykhovnccj3sovugdn4r3tszuzv7h37vta6o35epi5qfzdpke
   __init__.py: bafybeibiblks3d3s3ditug4hfzl3ob3cibokcz4ofs7cbbsbqw5zzbtd3m
-  behaviours.py: bafybeihfytc5jsmz7huipmivy6svxnqukgftj6pwaau7wuauaptlccqgae
+  behaviours.py: bafybeihd65b75myj7byekio762bvycdh6q5vbor2g3exzjwakmashiieem
   dialogues.py: bafybeiggs6cpzhz235k4ws5naeuyhz37mkqrthctq67p4v56wh4nyzgepa
   fsm_specification.yaml: bafybeieydqhpzm5pt4xmmv3rmqxcmbpolde6z25xvk4iuv2pihenb7o65q
   handlers.py: bafybeib77umr3prpvc6i6ukdr7xmsoge6gpsfjwpwhiddzjh5bwwpg44mi
-  models.py: bafybeicvqhd5qdwctzuqmu2z5tfsih2wlgfwpoflxmyo2qoriqczovxhea
+  models.py: bafybeib6znvb2pr4uyvsgpwfksz3n6epcjsftbgzgj7agd54wnt3fc46ye
   payloads.py: bafybeicuvbqd2yyl3ml2nu5rxlvhvetwkdzv4lj4ryuqct7zd7jtpa6coy
   rounds.py: bafybeibuyfx65omoikgdm54r4cpmaymzg6vnse47wvgmtx747tggbg4x34
   tests/__init__.py: bafybeibpuwe63mjjwnaanx7wdw63reh6qa5xdtjxdf75o3nksvjercte4y
@@ -80,6 +80,7 @@ models:
             - ed25519
           version: {}
         voting_power: '10'
+      hello_world_message: HELLO WORLD!
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
@@ -97,7 +98,7 @@ models:
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
-    class_name: Params
+    class_name: HelloWorldParams
   randomness_api:
     args:
       api_id: cloudflare

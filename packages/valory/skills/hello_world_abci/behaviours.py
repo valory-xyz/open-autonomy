@@ -27,7 +27,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
-from packages.valory.skills.hello_world_abci.models import Params, SharedState
+from packages.valory.skills.hello_world_abci.models import HelloWorldParams, SharedState
 from packages.valory.skills.hello_world_abci.payloads import (
     CollectRandomnessPayload,
     PrintMessagePayload,
@@ -57,9 +57,9 @@ class HelloWorldABCIBaseBehaviour(BaseBehaviour, ABC):
         )
 
     @property
-    def params(self) -> Params:
+    def params(self) -> HelloWorldParams:
         """Return the params."""
-        return cast(Params, self.context.params)
+        return cast(HelloWorldParams, self.context.params)
 
 
 class RegistrationBehaviour(HelloWorldABCIBaseBehaviour):
@@ -200,14 +200,15 @@ class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
         - Go to the next behaviour (set done event).
         """
 
-        printed_message = f"Agent {self.context.agent_name} (address {self.context.agent_address}) in period {self.synchronized_data.period_count} says: "
         if (
             self.context.agent_address
             == self.synchronized_data.most_voted_keeper_address
         ):
-            printed_message += "HELLO WORLD!"
+            message = self.params.hello_world_string
         else:
-            printed_message += ":|"
+            message = ":|"
+
+        printed_message = f"Agent {self.context.agent_name} (address {self.context.agent_address}) in period {self.synchronized_data.period_count} says: {message}"
 
         print(printed_message)
         self.context.logger.info(f"printed_message={printed_message}")

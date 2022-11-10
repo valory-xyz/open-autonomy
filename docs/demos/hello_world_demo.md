@@ -36,7 +36,7 @@ The execution timeline is divided into periods, and within each period, *only on
 Recall that agents are coordinated through the *consensus gadget* (i.e., the consensus gadget nodes + the consensus gadget network). For clarity, we will be using the simplified architecture diagram depicted below.
 
 <figure markdown>
-![abc](../images/hello_world_demo_architecture_simplified.svg){align="center"}
+![](../images/hello_world_demo_architecture_simplified.svg){align="center"}
 <figcaption>A simplified view of the Hello world agent service architecture</figcaption>
 </figure>
 
@@ -316,19 +316,22 @@ Recall that the skill needs to define the `AbciApp`; `Rounds`, `Behaviours` and 
 
   ```python
   class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
+      """A round in which the agents get registered"""
 
-  # ...
+      round_id = "print_message"
+      allowed_tx_type = PrintMessagePayload.transaction_type
+      payload_attribute = "message"
 
-    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
-        """Process the end of the block."""
-        if self.collection_threshold_reached:
-            synchronized_data = self.synchronized_data.update(
-                participants=self.collection,
-                all_participants=self.collection,
-                synchronized_data_class=SynchronizedData,
-            )
-            return synchronized_data, Event.DONE
-        return None
+      def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
+          """Process the end of the block."""
+          if self.collection_threshold_reached:
+              synchronized_data = self.synchronized_data.update(
+                  participants=self.collection,
+                  all_participants=self.collection,
+                  synchronized_data_class=SynchronizedData,
+              )
+              return synchronized_data, Event.DONE
+          return None
   ```
 
   The method updates a number of variables collected at that point, and returns the appropriate event (`DONE`) so that the `AbciApp` can process and transit to the next round.
@@ -399,14 +402,15 @@ class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
         - Go to the next behaviour (set done event).
         """
 
-        printed_message = f"Agent {self.context.agent_name} (address {self.context.agent_address}) in period {self.synchronized_data.period_count} says: "
         if (
             self.context.agent_address
             == self.synchronized_data.most_voted_keeper_address
         ):
-            printed_message += "HELLO WORLD!"
+            message = self.params.hello_world_string
         else:
-            printed_message += ":|"
+            message = ":|"
+
+        printed_message = f"Agent {self.context.agent_name} (address {self.context.agent_address}) in period {self.synchronized_data.period_count} says: {message}"
 
         print(printed_message)
         self.context.logger.info(f"printed_message={printed_message}")
@@ -440,6 +444,7 @@ class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
     abci_app_cls = HelloWorldAbciApp  # type: ignore
     behaviours: Set[Type[HelloWorldABCIBaseBehaviour]] = {  # type: ignore
         RegistrationBehaviour,  # type: ignore
+        CollectRandomnessBehaviour,  # type: ignore
         SelectKeeperBehaviour,  # type: ignore
         PrintMessageBehaviour,  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
