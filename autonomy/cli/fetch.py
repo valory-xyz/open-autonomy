@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import cast
 
 import click
-from aea.cli.fetch import do_fetch
+from aea.cli.fetch import NotAnAgentPackage, do_fetch
 from aea.cli.registry.settings import REGISTRY_REMOTE, REMOTE_IPFS
 from aea.cli.utils.click_utils import PublicIdParameter, registry_flag
 from aea.cli.utils.config import (
@@ -59,7 +59,7 @@ except ImportError:  # pragma: nocover
 @click.option(
     "--agent",
     "package_type",
-    help="Specify the package type as agent.",
+    help="Specify the package type as agent (default).",
     default=True,
     flag_value=AGENT,
 )
@@ -87,6 +87,12 @@ def fetch(
             do_fetch(ctx, public_id, alias)
         else:
             fetch_service(ctx, public_id)
+    except NotAnAgentPackage:
+        raise click.ClickException(
+            "Downloaded packages is not an agent package, "
+            "if you intend to download a service please use `--service` flag "
+            "or check the hash"
+        )
     except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e
 
@@ -115,6 +121,13 @@ def fetch_service_ipfs(public_id: PublicId) -> Path:
         download_path = Path(ipfs_tool.download(public_id.hash, temp_dir))
         package_path = Path.cwd() / download_path.name
         shutil.copytree(download_path, package_path)
+
+    if not Path(package_path, SERVICE).exists():
+        raise click.ClickException(
+            "Downloaded packages is not a service package, "
+            "if you intend to download an agent please use `--agent` flag "
+            "or check the hash"
+        )
 
     service_config = load_item_config(
         SERVICE, package_path, PACKAGE_TYPE_TO_CONFIG_CLASS
