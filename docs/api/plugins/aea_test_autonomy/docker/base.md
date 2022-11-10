@@ -36,17 +36,17 @@ Check whether the test should be skipped.
 
 By default, nothing happens.
 
-<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.base.DockerImage.tag"></a>
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.base.DockerImage.image"></a>
 
-#### tag
+#### image
 
 ```python
 @property
 @abstractmethod
-def tag() -> str
+def image() -> str
 ```
 
-Return the tag of the image.
+Return the image name.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.base.DockerImage.stop_if_already_running"></a>
 

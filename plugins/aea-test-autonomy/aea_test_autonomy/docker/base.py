@@ -89,15 +89,15 @@ class DockerImage(ABC):
 
     @property
     @abstractmethod
-    def tag(self) -> str:
-        """Return the tag of the image."""
+    def image(self) -> str:
+        """Return the image name."""
 
     def stop_if_already_running(self) -> None:
         """Stop the running images with the same tag, if any."""
         client = docker.from_env()
         for container in client.containers.list():
-            if self.tag in container.image.tags:
-                logger.info(f"Stopping image {self.tag}...")
+            if self.image in container.image.tags:
+                logger.info(f"Stopping image {self.image}...")
                 container.stop()
 
     @abstractmethod
@@ -137,7 +137,7 @@ def _start_container(
     :param max_attempts: max launch attempts
     """
     container.start()
-    logger.info(f"Setting up image {image.tag}...")
+    logger.info(f"Setting up image {image.image}...")
     success = image.wait(max_attempts, timeout)
     if not success:
         container.stop()
@@ -145,7 +145,7 @@ def _start_container(
             f"{SEPARATOR}Logs from container {container.name}:\n{container.logs().decode()}"
         )
         container.remove()
-        pytest.fail(f"{image.tag} doesn't work. Exiting...")
+        pytest.fail(f"{image.image} doesn't work. Exiting...")
     else:
         logger.info("Done!")
         time.sleep(timeout)
@@ -185,7 +185,7 @@ def launch_image(
     container = image.create()
     _start_container(image, container, timeout, max_attempts)
     yield image
-    _stop_container(container, image.tag)
+    _stop_container(container, image.image)
 
 
 def launch_many_containers(
@@ -206,7 +206,7 @@ def launch_many_containers(
         _start_container(image, container, timeout, max_attempts)
     yield image
     for container in containers:
-        _stop_container(container, image.tag)
+        _stop_container(container, image.image)
 
 
 class DockerBaseTest(ABC):
@@ -228,7 +228,7 @@ class DockerBaseTest(ABC):
         cls._image.stop_if_already_running()
         cls._container = cls._image.create()
         cls._container.start()
-        logger.info(f"Setting up image {cls._image.tag}...")
+        logger.info(f"Setting up image {cls._image.image}...")
         success = cls._image.wait(cls.max_attempts, cls.timeout)
         if not success:
             cls._container.stop()
@@ -236,7 +236,7 @@ class DockerBaseTest(ABC):
                 f"{SEPARATOR}Logs from container {cls._container.name}:\n{cls._container.logs().decode()}"
             )
             cls._container.remove()
-            pytest.fail(f"{cls._image.tag} doesn't work. Exiting...")
+            pytest.fail(f"{cls._image.image} doesn't work. Exiting...")
         else:
             logger.info("Done!")
             time.sleep(cls.timeout)
@@ -245,7 +245,7 @@ class DockerBaseTest(ABC):
     @classmethod
     def teardown_class(cls) -> None:
         """Tear down the test."""
-        logger.info(f"Stopping the image {cls._image.tag}...")
+        logger.info(f"Stopping the image {cls._image.image}...")
         cls._container.stop()
         logger.info(
             f"{SEPARATOR}Logs from container {cls._container.name}:\n{cls._container.logs().decode()}"

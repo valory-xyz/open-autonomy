@@ -29,13 +29,13 @@ Initialize the ACNNode Docker image.
 - `client`: the Docker client.
 - `config`: optional configuration to command line.
 
-<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.acn_node.ACNNodeDockerImage.tag"></a>
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.acn_node.ACNNodeDockerImage.image"></a>
 
-#### tag
+#### image
 
 ```python
 @property
-def tag() -> str
+def image() -> str
 ```
 
 Get the image tag.

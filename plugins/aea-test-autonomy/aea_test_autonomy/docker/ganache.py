@@ -61,7 +61,7 @@ class GanacheDockerImage(DockerImage):
         self._gas_limit = gas_limit
 
     @property
-    def tag(self) -> str:
+    def image(self) -> str:
         """Get the image tag."""
         return "trufflesuite/ganache:beta"
 
@@ -83,7 +83,7 @@ class GanacheDockerImage(DockerImage):
         """Create the container."""
         cmd = self._build_command()
         container = self._client.containers.run(
-            self.tag, command=cmd, detach=True, ports=self._make_ports()
+            self.image, command=cmd, detach=True, ports=self._make_ports()
         )
         return container
 

@@ -24,13 +24,13 @@ def __init__(client: docker.DockerClient, addr: str = DEFAULT_HARDHAT_ADDR, port
 
 Initialize.
 
-<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.gnosis_safe_net.GnosisSafeNetDockerImage.tag"></a>
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.gnosis_safe_net.GnosisSafeNetDockerImage.image"></a>
 
-#### tag
+#### image
 
 ```python
 @property
-def tag() -> str
+def image() -> str
 ```
 
 Get the tag.
