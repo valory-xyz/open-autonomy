@@ -87,10 +87,6 @@ class TestDocstrings(BaseCliTest):
     ) -> None:
         """Test after check"""
 
-        packages_dir = (
-            self.t.resolve().absolute().relative_to(Path.cwd().resolve().absolute())
-            / "packages"
-        )
         self.run_cli()
         result = self.run_cli()
 
