@@ -125,7 +125,12 @@ def abci_group() -> None:
 
 
 @analyse_group.command(name="docstrings")
-@click.option("--update", is_flag=True, default=False)
+@click.option(
+    "--update",
+    is_flag=True,
+    default=False,
+    help="Update docstrings if required.",
+)
 @pass_ctx
 def docstrings(ctx: Context, update: bool) -> None:
     """Analyse ABCI docstring definitions."""
