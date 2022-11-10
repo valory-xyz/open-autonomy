@@ -31,7 +31,7 @@ from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 class TestDocstrings(BaseCliTest):
-    """Test `autonomy analyse abci docstrings`."""
+    """Test `autonomy analyse docstrings`."""
 
     rounds_file_original: Path
     rounds_file_temp: Path
