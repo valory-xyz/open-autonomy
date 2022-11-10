@@ -80,7 +80,7 @@ models:
             - ed25519
           version: {}
         voting_power: '10'
-      hello_world_message: HELLO WORLD!
+      hello_world_message: HELLO_WORLD!
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10

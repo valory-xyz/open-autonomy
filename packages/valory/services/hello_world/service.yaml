@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
 fingerprint_ignore_patterns: []
-agent: valory/hello_world:0.1.0:bafybeifoe75szrf5mb4aigcthbym75lbghu4ly5as2n3xcvdpo4os4zphm
+agent: valory/hello_world:0.1.0:bafybeihqzkncz7r563lfkots4fphb7abdymdna4ir7in7fsbzjtx6yyndq
 number_of_agents: 4
 ---
 benchmark_persistence_params:
@@ -19,29 +19,25 @@ models:
   0:
   - params:
       args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:'HELLO WORLD!
-          (by agent 0)'}
+        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
   - benchmark_tool:
       args: *id001
   1:
   - params:
       args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:'HELLO WORLD!
-          (by agent 1)'}
+        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
   - benchmark_tool:
       args: *id001
   2:
   - params:
       args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:'HELLO WORLD!
-          (by agent 2)'}
+        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
   - benchmark_tool:
       args: *id001
   3:
   - params:
       args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:'HELLO WORLD!
-          (by agent 3)'}
+        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
   - benchmark_tool:
       args: *id001
 ---
