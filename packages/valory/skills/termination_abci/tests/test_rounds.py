@@ -164,17 +164,19 @@ class TestBackgroundRound(BaseRoundTestClass):
             ABCIAppInternalError,
             match="Expecting serialized data of chunk size 7, got: 0xdata",
         ):
-            test_round._hash_length = 7  # 7 is a nice prime number
+
+            test_round._hash_length = 7  # pylint: disable=protected-access
             test_round.process_payload(payloads[1])
-            test_round._hash_length = None
+            test_round._hash_length = None  # pylint: disable=protected-access
 
         with pytest.raises(
             TransactionNotValidError,
             match="Expecting serialized data of chunk size 7, got: 0xdata",
         ):
-            test_round._hash_length = 7  # 7 is a nice prime number
+            # 7 is a nice prime number
+            test_round._hash_length = 7  # pylint: disable=protected-access
             test_round.check_payload(payloads[1])
-            test_round._hash_length = None
+            test_round._hash_length = None  # pylint: disable=protected-access
 
 
 class TestTerminationRound(BaseRoundTestClass):
