@@ -80,8 +80,8 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
     abci2    | [2022-01-01 00:00:00,000] [INFO] [agent] scheduling timeout of 30.0 seconds for event Event.ROUND_TIMEOUT with deadline 2022-00-00 00:00:00.000000
     abci2    | [2022-01-01 00:00:00,000] [INFO] [agent] Entered in the 'print_message' round for period 2
     abci2    | [2022-01-01 00:00:00,000] [INFO] [agent] Entered in the 'print_message' behaviour
-    abci2    | Agent agent (address 0x976EA74026E726554dB657fA54763abd0C3a0aa9) in period 2 says: HELLO WORLD!
-    abci2    | [2022-01-01 00:00:00,000] [INFO] [agent] printed_message=Agent agent (address 0x976EA74026E726554dB657fA54763abd0C3a0aa9) in period 2 says: HELLO WORLD!
+    abci2    | Agent agent (address 0x976EA74026E726554dB657fA54763abd0C3a0aa9) in period 2 says: HELLO_WORLD!
+    abci2    | [2022-01-01 00:00:00,000] [INFO] [agent] printed_message=Agent agent (address 0x976EA74026E726554dB657fA54763abd0C3a0aa9) in period 2 says: HELLO_WORLD!
 
     (...)
     ```
@@ -93,4 +93,4 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
     where `<container_id>` refers to the Docker container ID for either an agent
     (`abci0`, `abci1`, `abci2` and `abci3`) or a [Tendermint](https://tendermint.com/) node (`node0`, `node1`, `node2` and `node3`).
 
-    Try to inspect the service agent logs yourself and identify when they say "HELLO WORLD!"
+    Try to inspect the service agent logs yourself and identify when they say "HELLO_WORLD!"
