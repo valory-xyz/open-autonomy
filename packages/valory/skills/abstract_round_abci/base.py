@@ -567,8 +567,9 @@ class AbciAppDB:
     ) -> None:
         """Initialize the AbciApp database.
 
-        setup_data must be passed as a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
-        can be used to convert from Dict[str, Any] to Dict[str, List[Any]] before instantiating this class.
+        setup_data must be passed as a Dict[str, List[Any]] (the database internal format).
+        The staticmethod 'data_to_lists' can be used to convert from Dict[str, Any] to Dict[str, List[Any]]
+        before instantiating this class.
 
         :param setup_data: the setup data
         :param cross_period_persisted_keys: data keys that will be kept after a new period starts
