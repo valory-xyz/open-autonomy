@@ -21,9 +21,10 @@
 
 
 import os
-import shutil
 from pathlib import Path
 from typing import Tuple
+
+from aea.configurations.constants import PACKAGES
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
@@ -34,21 +35,29 @@ class TestDocstrings(BaseCliTest):
 
     rounds_file_original: Path
     rounds_file_temp: Path
-    cli_options: Tuple[str, ...] = ("analyse", "abci", "docstrings")
-    rounds_file = Path("packages", "valory", "skills", "hello_world_abci", "rounds.py")
+    skill_name: str = "hello_world_abci"
+    cli_options: Tuple[str, ...] = ("analyse", "docstrings")
+    rounds_file = Path(PACKAGES, "valory", "skills", skill_name, "rounds.py")
 
     def setup(
         self,
     ) -> None:
         """Setup test method."""
-
         super().setup()
 
-        shutil.copytree(ROOT_DIR / "packages", self.t / "packages")
         os.chdir(self.t)
+
+        packages_dir = self.t / PACKAGES
+        packages_dir.mkdir()
+
+        (packages_dir / "valory").mkdir()
+        (packages_dir / "valory" / "skills").mkdir()
+        (packages_dir / "valory" / "skills" / self.skill_name).mkdir()
 
         self.rounds_file_original = Path(*ROOT_DIR.parts, *self.rounds_file.parts)
         self.rounds_file_temp = Path(*self.t.parts, *self.rounds_file.parts)
+
+        self.rounds_file_temp.write_text(self.rounds_file_original.read_text())
 
     def _get_expected_output(
         self,
@@ -73,12 +82,6 @@ class TestDocstrings(BaseCliTest):
         rounds_file_content = rounds_file_content.replace(string_to_replace, "")
         self.rounds_file_temp.write_text(rounds_file_content)
 
-    def _fix_round_file(
-        self,
-    ) -> None:
-        """Fix the corrupted round file."""
-        self.rounds_file_temp.write_text(self.rounds_file_original.read_text())
-
     def test_docstring_check(
         self,
     ) -> None:
@@ -88,59 +91,37 @@ class TestDocstrings(BaseCliTest):
             self.t.resolve().absolute().relative_to(Path.cwd().resolve().absolute())
             / "packages"
         )
-        self.run_cli((str(packages_dir),))
-        result = self.run_cli((str(packages_dir), "--check"))
+        self.run_cli()
+        result = self.run_cli()
 
-        expcted_output = self._get_expected_output()
-        expcted_output += "No update needed.\n"
         assert result.exit_code == 0, result.output
-        assert result.output == expcted_output
+        assert f"Processing skill {self.skill_name} with author valory" in result.output
+        assert "No update needed." in result.output
 
     def test_docstring_check_fail(
         self,
     ) -> None:
         """Test after check"""
 
-        packages_dir = (
-            self.t.resolve().absolute().relative_to(Path.cwd().resolve().absolute())
-            / "packages"
-        )
-        self.run_cli((str(packages_dir),))
-
+        self.run_cli()
         self._corrupt_round_file()
-        result = self.run_cli((str(packages_dir), "--check"))
-        self._fix_round_file()
+        result = self.run_cli()
 
-        expcted_output = self._get_expected_output()
-        expcted_output += (
-            "Error: Following files needs updating.\n"
-            + "\n"
-            + str(Path("packages", "valory", "skills", "hello_world_abci", "rounds.py"))
-            + "\n"
-        )
         assert result.exit_code == 1, result.output
-        assert result.output == expcted_output
+        assert "Error: Following files needs updating" in result.output
 
     def test_fix_docstring(
         self,
     ) -> None:
         """Test after check"""
 
-        packages_dir = (
-            self.t.resolve().absolute().relative_to(Path.cwd().resolve().absolute())
-            / "packages"
-        )
-        self.run_cli((str(packages_dir),))
-
         self._corrupt_round_file()
-        result = self.run_cli((str(packages_dir),))
-
-        expcted_output = self._get_expected_output()
-        expcted_output += (
-            "\nUpdated following files.\n"
-            + "\n"
-            + str(Path("packages", "valory", "skills", "hello_world_abci", "rounds.py"))
-            + "\n"
+        assert (
+            self.rounds_file_temp.read_text() != self.rounds_file_original.read_text()
         )
+        result = self.run_cli(("--update",))
         assert result.exit_code == 0, result.output
-        assert result.output == expcted_output
+        assert "Updated following files" in result.output
+        assert (
+            self.rounds_file_temp.read_text() == self.rounds_file_original.read_text()
+        )
