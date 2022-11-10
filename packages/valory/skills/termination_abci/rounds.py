@@ -108,8 +108,22 @@ class TerminationRound(AbstractRound):
         return None
 
 
-class PostTerminationTxAbciApp(AbciApp):
-    """The abci app running after the multisig transaction has been settled."""
+class PostTerminationTxAbciApp(AbciApp[Event]):
+    """PostTerminationTxAbciApp
+
+    Initial round: TerminationRound
+
+    Initial states: {TerminationRound}
+
+    Transition states:
+        0. TerminationRound
+            - terminate: 0.
+
+    Final states: {}
+
+    Timeouts:
+
+    """
 
     initial_round_cls = TerminationRound
     # the following is not needed, it is added to satisfy the round check
