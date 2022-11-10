@@ -57,14 +57,13 @@ class SharedState(BaseSharedState):
         )
 
 
-#Params = BaseParams
-
 class HelloWorldParams(BaseParams):
+    """Hello World skill parameters."""
+
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the parameters."""
         super().__init__(*args, **kwargs)
         self.hello_world_string = self._ensure("hello_world_message", kwargs)
-        #self.hello_world_string = kwargs.pop("hello_world_message", "Default Message")
-
 
 
 class RandomnessApi(ApiSpecs):
