@@ -9,7 +9,7 @@ Autonomy:
 - Updates the `autonomy fetch` command to raise proper errors
 
 Packages:
-- Updates exist mechanism on the degenerate round to avoid excessive looping
+- Updates exit mechanism on the degenerate round to avoid excessive looping
 - Adds the functionality to terminate (shutdown) the agent when there are not enough peers in the service
 
 Tests:
