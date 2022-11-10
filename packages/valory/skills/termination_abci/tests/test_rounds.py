@@ -22,7 +22,14 @@
 from copy import deepcopy
 from typing import FrozenSet, cast
 
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB, ConsensusParams
+import pytest
+
+from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppInternalError,
+    AbciAppDB,
+    ConsensusParams,
+    TransactionNotValidError,
+)
 from packages.valory.skills.termination_abci.payloads import BackgroundPayload
 from packages.valory.skills.termination_abci.rounds import (
     BackgroundRound,
@@ -108,6 +115,66 @@ class TestBackgroundRound(BaseRoundTestClass):
         )
 
         assert event == Event.TERMINATE
+
+    def test_bad_payloads(self) -> None:
+        """Tests the background round when bad payloads are sent."""
+        test_round = BackgroundRound(
+            synchronized_data=deepcopy(self.synchronized_data),
+            consensus_params=self.consensus_params,
+        )
+        payload_data = "0xdata"
+        bad_participant = "non_existent"
+        bad_participant_payload = BackgroundPayload(
+            sender=bad_participant, background_data=payload_data
+        )
+        first_payload, *payloads = [
+            BackgroundPayload(sender=participant, background_data=payload_data)
+            for participant in self.participants
+        ]
+
+        with pytest.raises(
+            TransactionNotValidError,
+            match=f"{bad_participant} not in list of participants",
+        ):
+            test_round.check_payload(bad_participant_payload)
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=f"{bad_participant} not in list of participants",
+        ):
+            test_round.process_payload(bad_participant_payload)
+
+        # a valid payload gets sent for the first time and it goes through
+        test_round.process_payload(first_payload)
+
+        # a duplicate (valid) payload will not go through
+        with pytest.raises(
+            TransactionNotValidError,
+            match=f"sender {first_payload.sender} has already sent value for round",
+        ):
+            test_round.check_payload(first_payload)
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=f"sender {first_payload.sender} has already sent value for round",
+        ):
+            test_round.process_payload(first_payload)
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match="Expecting serialized data of chunk size 7, got: 0xdata",
+        ):
+            test_round._hash_length = 7  # 7 is a nice prime number
+            test_round.process_payload(payloads[1])
+            test_round._hash_length = None
+
+        with pytest.raises(
+            TransactionNotValidError,
+            match="Expecting serialized data of chunk size 7, got: 0xdata",
+        ):
+            test_round._hash_length = 7  # 7 is a nice prime number
+            test_round.check_payload(payloads[1])
+            test_round._hash_length = None
 
 
 class TestTerminationRound(BaseRoundTestClass):
