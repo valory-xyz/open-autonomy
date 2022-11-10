@@ -11,6 +11,7 @@ Autonomy:
 Packages:
 - Updates exit mechanism on the degenerate round to avoid excessive looping
 - Adds the functionality to terminate (shutdown) the agent when there are not enough peers in the service
+- Removes `round_count` checks from the background round payload validation
 
 Tests:
 - Refactors the gnosis safe tests.
