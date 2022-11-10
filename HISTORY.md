@@ -1,5 +1,25 @@
 # Release History - `open-autonomy`
 
+# 0.3.5 (2022-11-10)
+
+Autonomy:
+- Updates the storage class to `nfs-ephemeral` in kubernetes template
+- Updates the autonomy image constant  use the framework version as the default tag version
+- Extends the `autonomy packages` command group to use new package manager API
+- Updates the `autonomy fetch` command to raise proper errors
+
+Packages:
+- Updates exist mechanism on the degenerate round to avoid excessive looping
+- Adds the functionality to terminate (shutdown) the agent when there are not enough peers in the service
+
+Tests:
+- Refactors the gnosis safe tests.
+
+Chores:
+- Improves the table hash regex to account for markdown quotes on package list generator
+- Updates release process to use `tox` command instead of direct command invocations
+- Updates `packages.json` to the new format
+
 # 0.3.4 (2022-11-02)
 
 Autonomy:

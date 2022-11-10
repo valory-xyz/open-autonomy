@@ -7,9 +7,7 @@
 | protocol/valory/tendermint/0.1.0                              | `bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq` |
 | skill/valory/abstract_abci/0.1.0                              | `bafybeidpixylwoisuciygaqnerwfk4wnbropwc2ghvtlmqusqxe6pyz5iu` |
 | contract/valory/gnosis_safe/0.1.0                             | `bafybeiaxnlzlnlb34ud6wrsm2el477xnubhpe36gh4pcvmvurfz2uafbve` |
-| protocol/valory/acn/1.1.0                                     | `bafybeifontek6tvaecatoauiule3j3id6xoktpjubvuqi3h2jkzqg7zh7a` |
 | skill/valory/abstract_round_abci/0.1.0                        | `bafybeic6xz54o7657beu5gzbtm3yepvgf7z5nghycnotx5e6lldvcwfd3y` |
-| connection/valory/p2p_libp2p_client/0.1.0                     | `bafybeidkk33xbga54szmitk6uwsi3ef56hbbdbuasltqtiyki34hgfpnxa` |
 | contract/valory/multisend/0.1.0                               | `bafybeiaveffaomsnmsc5hx62o77u7ilma6eipox7m5lrwa56737ektva3i` |
 | skill/valory/transaction_settlement_abci/0.1.0                | `bafybeiglegxfocotztx577k34h6tgagu4w36v6cb7vlfvp7sk2pyjrl45e` |
 | skill/valory/registration_abci/0.1.0                          | `bafybeihqpr3nkdsy5waotekfayeithvrehxxtyzmqwrks53luxmoklaijm` |
@@ -36,3 +34,11 @@
 | service/valory/register_reset/0.1.0                           | `bafybeias67xpao7pofvco5ylhf56xfiosldleqo25mxgbra45u42ue7lx4` |
 | service/valory/simple_abci/0.1.0                              | `bafybeid6lz4er4j6ssnu76wtzo6lbfe43npbakz6zqdf7op7cwpt66ga3a` |
 | skill/valory/safe_deployment_abci/0.1.0                       | `bafybeifkpfct2qajkspqlclofav54fnk5wcg4rmug45a6lv6s5y7vvctiu` |
+| protocol/open_aea/signing/1.0.0                               | `bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44` |
+| protocol/valory/acn/1.1.0                                     | `bafybeifontek6tvaecatoauiule3j3id6xoktpjubvuqi3h2jkzqg7zh7a` |
+| protocol/valory/http/1.0.0                                    | `bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy` |
+| protocol/valory/ledger_api/1.0.0                              | `bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq` |
+| protocol/valory/contract_api/1.0.0                            | `bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64` |
+| connection/valory/http_client/0.23.0                          | `bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii` |
+| connection/valory/ledger/0.19.0                               | `bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44` |
+| connection/valory/p2p_libp2p_client/0.1.0                     | `bafybeidkk33xbga54szmitk6uwsi3ef56hbbdbuasltqtiyki34hgfpnxa` |
