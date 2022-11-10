@@ -23,7 +23,6 @@
 
 import logging  # noqa: F401
 from collections import deque
-from types import MappingProxyType
 from typing import (
     Any,
     Deque,
@@ -250,8 +249,8 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes=MappingProxyType(
-                        dict(get_participant_to_votes(self.participants))
+                    participant_to_votes=dict(
+                        get_participant_to_votes(self.participants)
                     )
                 ),
                 synchronized_data_attr_checks=[
@@ -276,8 +275,8 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=False),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes=MappingProxyType(
-                        dict(get_participant_to_votes(self.participants, vote=False))
+                    participant_to_votes=dict(
+                        get_participant_to_votes(self.participants, vote=False)
                     )
                 ),
                 synchronized_data_attr_checks=[],
@@ -300,8 +299,8 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=None),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes=MappingProxyType(
-                        dict(get_participant_to_votes(self.participants, vote=None))
+                    participant_to_votes=dict(
+                        get_participant_to_votes(self.participants, vote=None)
                     )
                 ),
                 synchronized_data_attr_checks=[],
@@ -346,11 +345,9 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
                     self.participants, most_voted_payload
                 ),
                 synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
-                    participant_to_selection=MappingProxyType(
-                        dict(
-                            self._participant_to_selection(
-                                self.participants, most_voted_payload
-                            )
+                    participant_to_selection=dict(
+                        self._participant_to_selection(
+                            self.participants, most_voted_payload
                         )
                     )
                 ),
@@ -742,11 +739,9 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                     self.participants, expected_status, expected_tx_hash
                 ),
                 synchronized_data_update_fn=lambda synchronized_data, _: synchronized_data.update(
-                    participant_to_check=MappingProxyType(
-                        dict(
-                            get_participant_to_check(
-                                self.participants, expected_status, expected_tx_hash
-                            )
+                    participant_to_check=dict(
+                        get_participant_to_check(
+                            self.participants, expected_status, expected_tx_hash
                         )
                     ),
                     final_verification_status=VerificationStatus(int(expected_status)),

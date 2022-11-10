@@ -100,5 +100,5 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
             synchronized_data=synchronized_data, consensus_params=self.consensus_params
         )
 
-        assert test_round.accepting_payloads_from is not participants
-        assert test_round.accepting_payloads_from is all_participants
+        assert test_round.accepting_payloads_from != participants
+        assert test_round.accepting_payloads_from == all_participants
