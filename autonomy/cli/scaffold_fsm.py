@@ -29,6 +29,7 @@ import os
 import re
 import shutil
 from abc import ABC, abstractmethod
+from io import StringIO
 from pathlib import Path
 from textwrap import dedent, indent
 from typing import Dict, List, Type
@@ -627,11 +628,17 @@ class ScaffoldABCISkill:
         DialoguesTestFileGenerator,
     ]
 
-    def __init__(self, ctx: Context, skill_name: str, dfa: DFA) -> None:
+    def __init__(self, ctx: Context, skill_name: str, spec_path: Path) -> None:
         """Initialize the utility class."""
         self.ctx = ctx
         self.skill_name = skill_name
-        self.dfa = dfa
+
+        self.spec_path = spec_path
+
+        # process FSM specification
+        self.dfa = DFA.load(
+            file=spec_path, spec_format=FSMSpecificationLoader.OutputFormats.YAML
+        )
 
     @property
     def skill_dir(self) -> Path:
@@ -661,12 +668,18 @@ class ScaffoldABCISkill:
 
         self._remove_pycache()
         self._update_init_py()
+        self._copy_spec_file()
         self._update_config()
 
     def _update_config(self) -> None:
         """Update the skill configuration."""
         click.echo("Updating skill configuration...")
         SkillConfigUpdater(self.ctx, self.skill_dir, self.dfa).update()
+
+    def _copy_spec_file(self) -> None:
+        """Copy the spec file in the skill directory."""
+        click.echo("Copying the spec file in the skill directory...")
+        shutil.copy(self.spec_path, self.skill_dir / self.spec_path.name)
 
     def _update_init_py(self) -> None:
         """Update Copyright __init__.py files"""
@@ -696,8 +709,4 @@ def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
 
     # scaffold AEA skill - as usual
     scaffold_item(ctx, SKILL, skill_name)
-
-    # process FSM specification
-    spec_path = Path(spec)
-    dfa = DFA.load(spec_path, spec_format=FSMSpecificationLoader.OutputFormats.YAML)
-    ScaffoldABCISkill(ctx, skill_name, dfa).do_scaffolding()
+    ScaffoldABCISkill(ctx, skill_name, Path(spec)).do_scaffolding()

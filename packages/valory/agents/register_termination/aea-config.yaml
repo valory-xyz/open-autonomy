@@ -12,15 +12,15 @@ fingerprint:
   tests/test_register_reset.py: bafybeiedw36xhrcfotcqintqel4iq7jvghfbncahjv2zs7vv4fpaxwwx54
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeiav3mywaeik35huowg6vjekllqiaeorxlc6eesc6aftlb7msh6mdu
+- valory/abci:0.1.0:bafybeiap2iqpexya667merizj6h75267zurbbxhzcijrxu6hdt2wmkrhai
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
 - valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
 - valory/p2p_libp2p_client:0.1.0:bafybeidkk33xbga54szmitk6uwsi3ef56hbbdbuasltqtiyki34hgfpnxa
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeibqsf4sh4f4lshbxnwapzxuul6ywzgq4nfoxd7wye6s3ncb5amlvq
-- valory/gnosis_safe_proxy_factory:0.1.0:bafybeiddl4gsnngdztzmgvxka72horqcyh6pgdkb6jz3w6ephf2wx6kjie
+- valory/gnosis_safe:0.1.0:bafybeiaxnlzlnlb34ud6wrsm2el477xnubhpe36gh4pcvmvurfz2uafbve
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeidbocfrust66bagafrzqiniyv2p7kp3i5tgpuiepmuztsnjin2qpe
 - valory/multisend:0.1.0:bafybeiaveffaomsnmsc5hx62o77u7ilma6eipox7m5lrwa56737ektva3i
-- valory/service_registry:0.1.0:bafybeidnlrhq5tphu2bao4uslpku77qpbkyuifm2ov2w6gl36heee4ivuq
+- valory/service_registry:0.1.0:bafybeieqj5dvwttrxigie6kffbhysfjimapbp7zhsgojyukxsjns2dtkny
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
@@ -30,13 +30,13 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeidsvczp2wdu63eic7ytv2tdioscr2flaqfys755j5775xqotxqd54
-- valory/abstract_round_abci:0.1.0:bafybeigcebzfcgrpfqjpis55zc5c6lqhreadqpwu3yqzeascjfl3gqio4e
-- valory/register_termination_abci:0.1.0:bafybeiacnckhob43lorcd2rvlcg5lqw2q6j6y4frwnpdpapm4njnxk3x7e
-- valory/registration_abci:0.1.0:bafybeihcudug4itidilzifyhf2hqsz3ha6caph66exe47otpbr3udshtf4
-- valory/reset_pause_abci:0.1.0:bafybeiawxmtulonnxemficykwerdwpez4lz4sj2qtdokixmlbpvppi5ulq
-- valory/termination_abci:0.1.0:bafybeibh7nt3uvx6wzc7vyaqr52rz6peuxae3cg3qpz5tqpk4ne7oceihu
-- valory/transaction_settlement_abci:0.1.0:bafybeibrurxspywhescclkfwsq6uierctyybke6wdihpj675yqb5qdeqra
+- valory/abstract_abci:0.1.0:bafybeidpixylwoisuciygaqnerwfk4wnbropwc2ghvtlmqusqxe6pyz5iu
+- valory/abstract_round_abci:0.1.0:bafybeigqcsyldiu4arougcfaz4kgqa37ko4gzkrrup22hwz344nuv3qx5q
+- valory/register_termination_abci:0.1.0:bafybeih7a6lwlueztrsdyul54kqtvda5x5o3l7nkp5p2uavtfbelioso34
+- valory/registration_abci:0.1.0:bafybeigviuoexm5zavpsqkyvlod5hnzjcf3rs37yflljip4j63yr2rwzre
+- valory/reset_pause_abci:0.1.0:bafybeidyenfuoql25kysv5r6d37xi57q7i5kx62lqx2xwhzw6skdplxmom
+- valory/termination_abci:0.1.0:bafybeicfithbm25fgbevjiws522wnbhwgkpofwsa52tcnnafvfvyiyldxu
+- valory/transaction_settlement_abci:0.1.0:bafybeicezx2c7jt6vlv4r3hb6nv3ee3oxiwl6cqphuvao7ys7wjyjffbay
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -68,7 +68,7 @@ logging_config:
 dependencies:
   open-aea-ledger-ethereum: {}
   open-aea-test-autonomy:
-    version: ==0.3.4
+    version: ==0.3.5
 default_connection: null
 ---
 public_id: valory/abci:0.1.0

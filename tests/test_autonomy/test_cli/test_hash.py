@@ -53,7 +53,7 @@ class TestHashAll(BaseCliTest):
 
     def load_hashes(
         self,
-    ) -> Dict[str, str]:
+    ) -> Dict:
         """Load hashes from CSV file."""
 
         hashes_file = self.packages_dir / "packages.json"
@@ -77,18 +77,18 @@ class TestHashAll(BaseCliTest):
         hashes = self.load_hashes()
         key = f"agent/valory/{service_name}/0.1.0"
 
-        assert key in hashes, (
+        assert key in hashes["dev"], (
             hashes,
             service_config.agent,
         )
-        assert hashes[key] == service_config.agent.hash
+        assert hashes["dev"][key] == service_config.agent.hash
 
         result = self.cli_runner.invoke(
             cli=cli, args=(*("packages", "lock"), *("--check",))
         )
 
         assert result.exit_code == 0, result.output
-        assert "Verification successful" in result.output, result.output
+        assert "Verifying packages.json" in result.output, result.output
 
 
 class TestHashOne(BaseCliTest):

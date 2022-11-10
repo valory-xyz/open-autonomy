@@ -409,7 +409,7 @@ Utility class that implements the scaffolding of the ABCI skill.
 #### `__`init`__`
 
 ```python
-def __init__(ctx: Context, skill_name: str, dfa: DFA) -> None
+def __init__(ctx: Context, skill_name: str, spec_path: Path) -> None
 ```
 
 Initialize the utility class.
