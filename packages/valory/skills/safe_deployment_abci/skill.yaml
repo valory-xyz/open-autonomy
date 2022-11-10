@@ -27,13 +27,13 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeicpdl7zidoew4jggvya76x6cugkt7o7dyweagdyx2pgiubkccrmvu
+- valory/gnosis_safe:0.1.0:bafybeiaxnlzlnlb34ud6wrsm2el477xnubhpe36gh4pcvmvurfz2uafbve
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidqptbdxspqtd3ix4bgl4jbjaxnbmzqxsk54cve27dpvhg76u6xna
+- valory/abstract_round_abci:0.1.0:bafybeic6xz54o7657beu5gzbtm3yepvgf7z5nghycnotx5e6lldvcwfd3y
 behaviours:
   main:
     args: {}
@@ -139,5 +139,5 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==1.23.0
   open-aea-test-autonomy:
-    version: ==0.3.4
+    version: ==0.3.5
 is_abstract: true
