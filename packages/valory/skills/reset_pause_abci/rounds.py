@@ -87,8 +87,8 @@ class FinishedResetAndPauseErrorRound(DegenerateRound):
     round_id = "finished_reset_pause_error"
 
 
-class ResetPauseABCIApp(AbciApp[Event]):
-    """ResetPauseABCIApp
+class ResetPauseAbciApp(AbciApp[Event]):
+    """ResetPauseAbciApp
 
     Initial round: RegistrationRound
 
