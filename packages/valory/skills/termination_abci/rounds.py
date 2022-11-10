@@ -26,11 +26,13 @@ from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     chain,
 )
 from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppInternalError,
     AbciApp,
     AbstractRound,
     BaseSynchronizedData,
     BaseTxPayload,
     CollectSameUntilThresholdRound,
+    TransactionNotValidError,
 )
 from packages.valory.skills.termination_abci.payloads import BackgroundPayload
 from packages.valory.skills.transaction_settlement_abci.rounds import (
@@ -77,6 +79,54 @@ class BackgroundRound(CollectSameUntilThresholdRound):
     allowed_tx_type = BackgroundPayload.transaction_type
     payload_attribute: str = "background_data"
     synchronized_data_class = SynchronizedData
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
+        # for background round payloads, we don't need to check the round_count, as round_count is irrelevant for the
+        # background since it's running concurrently in the background.
+        sender = payload.sender
+        if sender not in self.accepting_payloads_from:
+            raise ABCIAppInternalError(
+                f"{sender} not in list of participants: {sorted(self.accepting_payloads_from)}"
+            )
+
+        if sender in self.collection:
+            raise ABCIAppInternalError(
+                f"sender {sender} has already sent value for round: {self.round_id}"
+            )
+
+        if self._hash_length:
+            content = payload.data.get(self.payload_attribute)
+            if not content or len(content) % self._hash_length:
+                msg = f"Expecting serialized data of chunk size {self._hash_length}"
+                raise ABCIAppInternalError(f"{msg}, got: {content} in {self.round_id}")
+
+        self.collection[sender] = payload
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check Payload"""
+        # NOTE: the TransactionNotValidError is intercepted in ABCIRoundHandler.deliver_tx
+        #  which means it will be logged instead of raised
+        # for background round payloads, we don't need to check the round_count, as round_count is irrelevant for the
+        # background since it's running concurrently in the background.
+        sender_in_participant_set = payload.sender in self.accepting_payloads_from
+        if not sender_in_participant_set:
+            raise TransactionNotValidError(
+                f"{payload.sender} not in list of participants: {sorted(self.accepting_payloads_from)}"
+            )
+
+        if payload.sender in self.collection:
+            raise TransactionNotValidError(
+                f"sender {payload.sender} has already sent value for round: {self.round_id}"
+            )
+
+        if self._hash_length:
+            content = payload.data.get(self.payload_attribute)
+            if not content or len(content) % self._hash_length:
+                msg = f"Expecting serialized data of chunk size {self._hash_length}"
+                raise TransactionNotValidError(
+                    f"{msg}, got: {content} in {self.round_id}"
+                )
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""

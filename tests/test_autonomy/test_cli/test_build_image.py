@@ -51,7 +51,7 @@ class TestBuildImage(BaseCliTest):
 
         with open(ROOT_DIR / PACKAGES / "packages.json") as json_data:
             d = json.load(json_data)
-            self.hash_ = d["agent/valory/hello_world/0.1.0"]
+            self.hash_ = d["dev"]["agent/valory/hello_world/0.1.0"]
             json_data.close()
         shutil.copytree(
             ROOT_DIR / PACKAGES / "valory" / "services" / "hello_world",
