@@ -42,7 +42,7 @@ following parts:
 - `OracleDeploymentAbciApp`
 - `PriceAggregationAbciApp`
 - `TransactionSubmissionAbciApp`
-- `ResetPauseABCIApp`
+- `ResetPauseAbciApp`
 
 ### The `AgentRegistrationAbciApp`
 
@@ -236,7 +236,7 @@ OracleAbciApp = chain(
         OracleDeploymentAbciApp,
         PriceAggregationAbciApp,
         TransactionSubmissionAbciApp,
-        ResetPauseABCIApp,
+        ResetPauseAbciApp,
     ),
     abci_app_transition_mapping,
 )

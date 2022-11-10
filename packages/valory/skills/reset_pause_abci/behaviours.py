@@ -31,7 +31,7 @@ from packages.valory.skills.reset_pause_abci.models import Params, SharedState
 from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 from packages.valory.skills.reset_pause_abci.rounds import (
     ResetAndPauseRound,
-    ResetPauseABCIApp,
+    ResetPauseAbciApp,
 )
 
 
@@ -94,7 +94,7 @@ class ResetPauseABCIConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the reset_pause_abci app."""
 
     initial_behaviour_cls = ResetAndPauseBehaviour
-    abci_app_cls = ResetPauseABCIApp  # type: ignore
+    abci_app_cls = ResetPauseAbciApp  # type: ignore
     behaviours: Set[Type[ResetAndPauseBehaviour]] = {  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }

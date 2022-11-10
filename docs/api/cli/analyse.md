@@ -47,14 +47,15 @@ Analyse ABCI apps of an agent service.
 #### docstrings
 
 ```python
-@abci_group.command(name="docstrings")
-@click.argument(
-    "packages_dir",
-    type=click.Path(dir_okay=True, file_okay=False, exists=True),
-    default=Path("packages/"),
+@analyse_group.command(name="docstrings")
+@click.option(
+    "--update",
+    is_flag=True,
+    default=False,
+    help="Update docstrings if required.",
 )
-@click.option("--check", is_flag=True, default=False)
-def docstrings(packages_dir: Path, check: bool) -> None
+@pass_ctx
+def docstrings(ctx: Context, update: bool) -> None
 ```
 
 Analyse ABCI docstring definitions.

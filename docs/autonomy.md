@@ -260,11 +260,13 @@ Commands:
 **Check ABCI app docstrings**
 
 ```bash
-Usage: autonomy analyse abci docstrings [OPTIONS] [PACKAGES_DIR]
+Usage: autonomy analyse docstrings [OPTIONS]
+
   Analyse ABCI docstring definitions.
+
 Options:
-  --check
-  --help   Show this message and exit.
+  --update  Update docstrings if required.
+  --help    Show this message and exit.
 ```
 
 **Parse logs from a deployment**
