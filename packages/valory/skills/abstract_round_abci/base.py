@@ -539,6 +539,25 @@ class AbciAppDB:
 
     The parameters cleanup_history_depth and cleanup_history_depth_current can also be configured in skill.yaml so they are used automatically
     when the cleanup method is called from AbciApp.cleanup().
+
+    # Memory warning
+    -----------------------------------
+    The database is implemented in such a way to avoid indirect modification of its contents.
+    It copies all the mutable data structures*, which means that it consumes more memory than expected.
+    This is necessary because otherwise it would risk chance of modification from the behaviour side,
+    which is a safety concern.
+
+    The effect of this on the memory usage should not be a big concern, because:
+
+        1. The synchronized data of the agents are not intended to store large amount of data.
+         IPFS should be used in such cases, and only the hash should be synchronized in the db.
+        2. The data are automatically wiped after a predefined `cleanup_history` depth as described above.
+        3. The retrieved data are only meant to be used for a short amount of time,
+         e.g., to perform a decision on a behaviour, which means that the gc will collect them before they are noticed.
+
+    * the in-built `copy` module is used, which automatically detects if an item is immutable and skips copying it.
+    For more information take a look at the `_deepcopy_atomic` method and its usage:
+    https://github.com/python/cpython/blob/3.10/Lib/copy.py#L182-L183
     """
 
     def __init__(
@@ -548,19 +567,22 @@ class AbciAppDB:
     ) -> None:
         """Initialize the AbciApp database.
 
-        setup_data must be passed as a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
-        can be used to convert from Dict[str, Any] to Dict[str, List[Any]] before instantiating this class.
+        setup_data must be passed as a Dict[str, List[Any]] (the database internal format).
+        The staticmethod 'data_to_lists' can be used to convert from Dict[str, Any] to Dict[str, List[Any]]
+        before instantiating this class.
 
         :param setup_data: the setup data
         :param cross_period_persisted_keys: data keys that will be kept after a new period starts
         """
         AbciAppDB._check_data(setup_data)
-        self._setup_data = setup_data
-        self._cross_period_persisted_keys = cross_period_persisted_keys or []
+        self._setup_data = deepcopy(setup_data)
+        self._cross_period_persisted_keys = (
+            cross_period_persisted_keys.copy()
+            if cross_period_persisted_keys is not None
+            else []
+        )
         self._data: Dict[int, Dict[str, List[Any]]] = {
-            RESET_COUNT_START: deepcopy(
-                self.setup_data
-            )  # the key represents the reset index
+            RESET_COUNT_START: self.setup_data  # the key represents the reset index
         }
         self._round_count = ROUND_COUNT_DEFAULT  # ensures first round is indexed at 0!
 
@@ -572,7 +594,7 @@ class AbciAppDB:
         :return: the setup_data
         """
         # do not return data if no value has been set
-        return {k: v for k, v in self._setup_data.items() if len(v)}
+        return {k: v for k, v in deepcopy(self._setup_data).items() if len(v)}
 
     @staticmethod
     def _check_data(data: Any) -> None:
@@ -598,12 +620,12 @@ class AbciAppDB:
     @property
     def cross_period_persisted_keys(self) -> List[str]:
         """Keys in the database which are persistent across periods."""
-        return self._cross_period_persisted_keys
+        return self._cross_period_persisted_keys.copy()
 
     def get(self, key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]:
         """Given a key, get its last for the current reset index."""
         if key in self._data[self.reset_index]:
-            return self._data[self.reset_index][key][-1]
+            return deepcopy(self._data[self.reset_index][key][-1])
         if default != VALUE_NOT_PROVIDED:
             return default
         raise ValueError(
@@ -618,18 +640,19 @@ class AbciAppDB:
         """Update the current data."""
         # Append new data to the key history
         data = self._data[self.reset_index]
-        for key, value in kwargs.items():
+        for key, value in deepcopy(kwargs).items():
             data.setdefault(key, []).append(value)
 
-    def create(self, **kwargs: List[Any]) -> None:
+    def create(self, **kwargs: Any) -> None:
         """Add a new entry to the data."""
         AbciAppDB._check_data(kwargs)
-        self._data[self.reset_index + 1] = kwargs
+        self._data[self.reset_index + 1] = deepcopy(kwargs)
 
     def get_latest_from_reset_index(self, reset_index: int) -> Dict[str, Any]:
         """Get the latest key-value pairs from the data dictionary for the specified period."""
         return {
-            key: values[-1] for key, values in self._data.get(reset_index, {}).items()
+            key: values[-1]
+            for key, values in deepcopy(self._data.get(reset_index, {})).items()
         }
 
     def get_latest(self) -> Dict[str, Any]:

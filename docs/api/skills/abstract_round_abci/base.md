@@ -683,6 +683,26 @@ cleanup_current_histories will be also called (see previous point).
 The parameters cleanup_history_depth and cleanup_history_depth_current can also be configured in skill.yaml so they are used automatically
 when the cleanup method is called from AbciApp.cleanup().
 
+__Memory warning__
+
+-----------------------------------
+The database is implemented in such a way to avoid indirect modification of its contents.
+It copies all the mutable data structures*, which means that it consumes more memory than expected.
+This is necessary because otherwise it would risk chance of modification from the behaviour side,
+which is a safety concern.
+
+The effect of this on the memory usage should not be a big concern, because:
+
+    1. The synchronized data of the agents are not intended to store large amount of data.
+     IPFS should be used in such cases, and only the hash should be synchronized in the db.
+    2. The data are automatically wiped after a predefined `cleanup_history` depth as described above.
+    3. The retrieved data are only meant to be used for a short amount of time,
+     e.g., to perform a decision on a behaviour, which means that the gc will collect them before they are noticed.
+
+* the in-built `copy` module is used, which automatically detects if an item is immutable and skips copying it.
+For more information take a look at the `_deepcopy_atomic` method and its usage:
+https://github.com/python/cpython/blob/3.10/Lib/copy.py#L182-L183
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.__init__"></a>
 
 #### `__`init`__`
@@ -693,8 +713,9 @@ def __init__(setup_data: Dict[str, List[Any]], cross_period_persisted_keys: Opti
 
 Initialize the AbciApp database.
 
-setup_data must be passed as a Dict[str, List[Any]] (the database internal format). The class method 'data_to_lists'
-can be used to convert from Dict[str, Any] to Dict[str, List[Any]] before instantiating this class.
+setup_data must be passed as a Dict[str, List[Any]] (the database internal format).
+The staticmethod 'data_to_lists' can be used to convert from Dict[str, Any] to Dict[str, List[Any]]
+before instantiating this class.
 
 **Arguments**:
 
@@ -784,7 +805,7 @@ Update the current data.
 #### create
 
 ```python
-def create(**kwargs: List[Any]) -> None
+def create(**kwargs: Any) -> None
 ```
 
 Add a new entry to the data.
