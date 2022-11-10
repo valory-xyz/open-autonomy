@@ -38,6 +38,7 @@ from aea.configurations.base import PublicId
 from aea.configurations.constants import AGENT, SERVICE, SERVICES
 
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
+from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
 
 
 try:
@@ -87,12 +88,12 @@ def fetch(
             do_fetch(ctx, public_id, alias)
         else:
             fetch_service(ctx, public_id)
-    except NotAnAgentPackage:
+    except NotAnAgentPackage as e:
         raise click.ClickException(
             "Downloaded packages is not an agent package, "
             "if you intend to download a service please use `--service` flag "
             "or check the hash"
-        )
+        ) from e
     except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e
 
@@ -122,7 +123,7 @@ def fetch_service_ipfs(public_id: PublicId) -> Path:
         package_path = Path.cwd() / download_path.name
         shutil.copytree(download_path, package_path)
 
-    if not Path(package_path, SERVICE).exists():
+    if not Path(package_path, DEFAULT_SERVICE_CONFIG_FILE).exists():
         raise click.ClickException(
             "Downloaded packages is not a service package, "
             "if you intend to download an agent please use `--agent` flag "
