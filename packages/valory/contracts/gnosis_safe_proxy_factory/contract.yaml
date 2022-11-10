@@ -21,7 +21,7 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==1.23.0
   open-aea-test-autonomy:
-    version: ==0.3.4
+    version: ==0.3.5
   py-eth-sig-utils: {}
   web3:
     version: ==5.25.0

@@ -5,6 +5,14 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.3.4` to `v0.3.5`
+
+No backwards incompatible changes
+
+### Upgrade guide
+
+This release introduces a new format for `packages.json` file, the older version is still supported but will be deprecated on `v1.0.0` so make sure to update your projects to use the new format.
+
 ## `v0.3.3` to `v0.3.4`
 
 No backwards incompatible changes

@@ -25,6 +25,7 @@ you have followed the [setup instructions](../guides/set_up.md#setup). As a resu
 Running the Hello World service demo is demonstrated in the [quick start](../guides/quick_start.md) guide. Therefore, you just need to follow the instructions therein to run the demo.
 
 
+
 ## Details of the demo
 The functionality of the service is extremely simple. Namely, each agent will output (at different times) the following message to its local console:
 ```
