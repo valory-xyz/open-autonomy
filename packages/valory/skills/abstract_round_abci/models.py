@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the shared state for the price estimation ABCI application."""
+import builtins
 import inspect
 import json
 from pathlib import Path
@@ -205,13 +206,6 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
 
     _retries_attempted: int
     _retries: int
-    _response_types: Dict[str, Type] = {
-        "int": int,
-        "float": float,
-        "dict": dict,
-        "list": list,
-        "str": str,
-    }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize ApiSpecsModel."""
@@ -268,7 +262,7 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
             for key in keys:
                 value = value[key]
 
-            return self._response_types.get(response_type)(value)  # type: ignore
+            return getattr(builtins, response_type)(value)
 
         except (json.JSONDecodeError, KeyError):
             return None
