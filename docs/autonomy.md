@@ -242,19 +242,20 @@ Then define the relevant environment variables.
 
 ## Analyse
 
+```
+Usage: autonomy analyse [OPTIONS] COMMAND [ARGS]...
 
-### ABCI apps
+  Analyse an agent service.
 
-```bash
-Usage: autonomy analyse abci [OPTIONS] COMMAND [ARGS]...
-  Analyse ABCI apps.
 Options:
   --help  Show this message and exit.
+
 Commands:
-  check-app-specs     Check abci app specs.
-  docstrings          Analyse ABCI docstring definitions.
-  generate-app-specs  Generate abci app specs.
-  logs                Parse logs.
+  benchmarks  Benchmark aggregator.
+  docstrings  Analyse ABCI docstring definitions.
+  fsm-specs   Generate ABCI app specs.
+  handlers    Check handler definitions.
+  logs        Parse logs of an agent service.
 ```
 
 **Check ABCI app docstrings**
@@ -272,7 +273,7 @@ Options:
 **Parse logs from a deployment**
 
 ```bash
-Usage: autonomy analyse abci logs [OPTIONS] FILE
+Usage: autonomy analyse logs [OPTIONS] FILE
   Parse logs.
 Options:
   --help  Show this message and exit.
