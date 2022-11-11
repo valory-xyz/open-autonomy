@@ -248,8 +248,9 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         """Process response from api."""
         return self._get_response_data(response, self.response_key, self.response_type)
 
+    @staticmethod
     def _get_response_data(
-        self, response: HttpMessage, response_key: Optional[str], response_type: str
+        response: HttpMessage, response_key: Optional[str], response_type: str
     ) -> Any:
         """Get response data from api, based on the given response key"""
         try:
