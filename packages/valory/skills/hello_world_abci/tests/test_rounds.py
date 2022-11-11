@@ -32,12 +32,14 @@ from packages.valory.skills.abstract_round_abci.base import (
     MAX_INT_256,
 )
 from packages.valory.skills.hello_world_abci.payloads import (
+    CollectRandomnessPayload,
     PrintMessagePayload,
     RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
 )
 from packages.valory.skills.hello_world_abci.rounds import (
+    CollectRandomnessRound,
     Event,
     PrintMessageRound,
     RegistrationRound,
@@ -48,11 +50,26 @@ from packages.valory.skills.hello_world_abci.rounds import (
 
 
 MAX_PARTICIPANTS: int = 4
+RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
 
 
 def get_participants() -> FrozenSet[str]:
     """Participants"""
     return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
+
+
+def get_participant_to_randomness(
+    participants: FrozenSet[str], round_id: int
+) -> Dict[str, CollectRandomnessPayload]:
+    """participant_to_randomness"""
+    return {
+        participant: CollectRandomnessPayload(
+            sender=participant,
+            round_id=round_id,
+            randomness=RANDOMNESS,
+        )
+        for participant in participants
+    }
 
 
 def get_participant_to_selection(
@@ -141,6 +158,54 @@ class TestRegistrationRound(BaseRoundTestClass):
         assert (
             cast(SynchronizedData, synchronized_data).participants
             == cast(SynchronizedData, actual_next_behaviour).participants
+        )
+        assert event == Event.DONE
+
+
+class TestCollectRandomnessRound(BaseRoundTestClass):
+    """Tests for CollectRandomnessRound."""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        test_round = CollectRandomnessRound(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+        first_payload, *payloads = [
+            CollectRandomnessPayload(
+                sender=participant, randomness=RANDOMNESS, round_id=0
+            )
+            for participant in self.participants
+        ]
+
+        test_round.process_payload(first_payload)
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert test_round.end_block() is None
+
+        self._test_no_majority_event(test_round)
+
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        actual_next_behaviour = self.synchronized_data.update(
+            participant_to_randomness=test_round.collection,
+            most_voted_randomness=test_round.most_voted_payload,
+        )
+
+        res = test_round.end_block()
+        assert res is not None
+        synchronized_data, event = res
+        assert all(
+            [
+                key
+                in cast(SynchronizedData, synchronized_data).participant_to_randomness
+                for key in cast(
+                    SynchronizedData, actual_next_behaviour
+                ).participant_to_randomness
+            ]
         )
         assert event == Event.DONE
 
