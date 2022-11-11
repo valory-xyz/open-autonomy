@@ -43,7 +43,10 @@ from aea.configurations.constants import SERVICE, SERVICES
 from aea.configurations.data_types import PublicId
 from aea.helpers.cid import to_v1
 
-from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
+from autonomy.configurations.base import (
+    DEFAULT_SERVICE_CONFIG_FILE,
+    PACKAGE_TYPE_TO_CONFIG_CLASS,
+)
 
 
 try:
@@ -77,6 +80,13 @@ def fetch_service_ipfs(public_id: PublicId) -> Path:
         download_path = Path(ipfs_tool.download(public_id.hash, temp_dir))
         package_path = Path.cwd() / download_path.name
         shutil.copytree(download_path, package_path)
+
+    if not Path(package_path, DEFAULT_SERVICE_CONFIG_FILE).exists():
+        raise click.ClickException(
+            "Downloaded packages is not a service package, "
+            "if you intend to download an agent please use `--agent` flag "
+            "or check the hash"
+        )
 
     service_config = load_item_config(
         SERVICE, package_path, PACKAGE_TYPE_TO_CONFIG_CLASS

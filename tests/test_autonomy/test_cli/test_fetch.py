@@ -29,7 +29,7 @@ from aea.configurations.loader import ConfigLoader
 from aea.helpers.base import cd
 from aea.helpers.io import open_file
 
-from autonomy.cli.fetch import IPFSTool
+from autonomy.cli.helpers.registry import IPFSTool
 from autonomy.configurations.base import Service
 
 from tests.conftest import ROOT_DIR
@@ -150,9 +150,11 @@ class TestFetchCommand(BaseCliTest):
     ) -> None:
         """Test fetch service."""
         with mock.patch(
-            "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "ipfs"
+            "autonomy.cli.helpers.registry.get_default_remote_registry",
+            new=lambda: "ipfs",
         ), mock.patch(
-            "autonomy.cli.fetch.get_ipfs_node_multiaddr", new=lambda: IPFS_REGISTRY
+            "autonomy.cli.helpers.registry.get_ipfs_node_multiaddr",
+            new=lambda: IPFS_REGISTRY,
         ), mock.patch.object(
             IPFSTool, "download", return_value=self.t
         ):
