@@ -518,6 +518,16 @@ def async_act_wrapper() -> Generator
 
 Do the act, supporting asynchronous execution.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.num_active_peers"></a>
+
+#### num`_`active`_`peers
+
+```python
+def num_active_peers(timeout: Optional[float] = None) -> Generator[None, None, Optional[int]]
+```
+
+Returns the number of active peers in the network.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.get_callback_request"></a>
 
 #### get`_`callback`_`request
@@ -730,7 +740,7 @@ An abstract matching behaviour for final and degenerate rounds.
 def async_act() -> Generator
 ```
 
-Raise a RuntimeError.
+Exit the agent with error when a degenerate round is reached.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.make_degenerate_behaviour"></a>
 

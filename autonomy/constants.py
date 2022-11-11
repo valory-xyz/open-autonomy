@@ -19,6 +19,8 @@
 """Constants"""
 import os
 
+from autonomy.__version__ import __version__ as DEFAULT_AUTONOMY_VERSION
+
 
 DEFAULT_BUILD_FOLDER = "abci_build"
 DEFAULT_KEYS_FILE = "keys.json"
@@ -26,7 +28,9 @@ DEFAULT_IMAGE_VERSION = "latest"
 SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME = "autonolas-registries"
 DOCKER_COMPOSE_YAML = "docker-compose.yaml"
 
-AUTONOMY_IMAGE_VERSION = os.environ.get("AUTONOMY_IMAGE_VERSION", DEFAULT_IMAGE_VERSION)
+AUTONOMY_IMAGE_VERSION = os.environ.get(
+    "AUTONOMY_IMAGE_VERSION", DEFAULT_AUTONOMY_VERSION
+)
 TENDERMINT_IMAGE_VERSION = os.environ.get(
     "TENDERMINT_IMAGE_VERSION", DEFAULT_IMAGE_VERSION
 )
@@ -53,4 +57,4 @@ DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE = (
 ACN_IMAGE_NAME = os.environ.get("ACN_IMAGE_NAME", "valory/open-acn-node")
 
 OAR_IMAGE = "valory/oar-{agent}:{version}"
-ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeihx3owgbdtbu4zr6v5gaqk6ur6er4wynameikbq6ndi2kfk5vovnu"
+ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeigqcsyldiu4arougcfaz4kgqa37ko4gzkrrup22hwz344nuv3qx5q"

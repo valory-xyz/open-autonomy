@@ -128,6 +128,11 @@ class TestScaffoldFSM(BaseScaffoldFSMTest):
             module_type = importlib.util.module_from_spec(module_spec)
             module_spec.loader.exec_module(module_type)  # type: ignore
 
+        # check spec file is in skill directory
+        assert (
+            self.t / self.agent_name / "skills" / skill_name / fsm_spec_file.name
+        ).exists(), "spec file not copied in scaffolded skill"
+
 
 class TestScaffoldFSMAutonomyTests(BaseScaffoldFSMTest):
     """Test `scaffold fsm` subcommand."""

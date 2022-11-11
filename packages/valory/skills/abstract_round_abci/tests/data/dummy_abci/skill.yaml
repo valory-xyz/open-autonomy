@@ -1,0 +1,138 @@
+name: dummy_abci
+author: dummy
+version: 0.1.0
+type: skill
+description: The scaffold skill is a scaffold for your own skill implementation.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: bafybeielxta5wbywv6cb2p65phk73zeodroif7imk33qc7sxgxrcelr62y
+  behaviours.py: bafybeicwwlex4z5ro6hrw5cdwxyp5742klcqsjwcn423wgg3jk6xclzwvi
+  dialogues.py: bafybeiaswubmqa7trhajbjn34okmpftk2sehsqrjg7znzrrd7j32xzx4vq
+  handlers.py: bafybeifik3ftljs63u7nm4gadxpqbcvqj53p7qftzzzfto3ioad57k3x3u
+  models.py: bafybeif4lp5i6an4z4kkquh3x3ttsvfctvsu5excmxahjywbbbo7g3js5y
+  payloads.py: bafybeidllmzsctg3m5jhawbt3kzk6ieodtvgwklrquqehtqtzzwhkxxg4a
+  rounds.py: bafybeiab5q6pzh544uuc672hksh4rv6a74dunt4ztdnqo4gw3hnzd452ti
+  tests/__init__.py: bafybeiaxqzwmh36bhquqztcyrkxjjkz5cctseqetglrwdezgnkjrtg2654
+  tests/test_behaviours.py: bafybeich3uo67gdbxrxsivlrxfgpfuixupl6qtotxxp2qqpyqnck4i67eu
+  tests/test_dialogues.py: bafybeice2v4xnsjhhlnpbejnvpory5spmrewwcfsefzqzq3uhfyya5hypm
+  tests/test_handlers.py: bafybeidrfumnc743qh5s2ahf5rxu3rzrroygxwpbqa7jtqxg5kirjzedjm
+  tests/test_models.py: bafybeifuxjmpv3eet2zn7vc5btprakueqlk2ybc2fxgzbtiho5wdslkeb4
+  tests/test_payloads.py: bafybeicvbisfw5prv6jw3is3vw6gehsplt3teyeo6dbeh37xazh4izeyhq
+  tests/test_rounds.py: bafybeihjepr2hubbgmb7jkeldbam3zmsgwn6nffif7zp4etqlv2bt5rsxy
+fingerprint_ignore_patterns: []
+connections: []
+contracts: []
+protocols: []
+skills:
+- valory/abstract_round_abci:0.1.0:bafybeifjnk2v3cw233ke5qhakurvdsex64c5runjctclrh7y64tyh7uqrq
+behaviours:
+  main:
+    args: {}
+    class_name: DummyRoundBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIRoundHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+  tendermint:
+    args: {}
+    class_name: TendermintHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      cleanup_history_depth: 1
+      cleanup_history_depth_current: null
+      consensus:
+        max_participants: 1
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      finalize_timeout: 60.0
+      genesis_config:
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_duration: '172800000000000'
+            max_age_num_blocks: '100000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
+        voting_power: '10'
+      history_check_timeout: 1205
+      keeper_allowed_retries: 3
+      keeper_timeout: 30.0
+      max_healthcheck: 120
+      observation_interval: 10
+      on_chain_service_id: null
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30.0
+      service_id: dummy
+      service_registry_address: null
+      setup: {}
+      sleep_time: 1
+      tendermint_check_sleep_delay: 3
+      tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
+      tendermint_url: http://localhost:26657
+      validate_timeout: 1205
+    class_name: Params
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: []
+      method: GET
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
+dependencies: {}
+is_abstract: false

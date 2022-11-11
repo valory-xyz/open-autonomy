@@ -64,10 +64,10 @@ class TestDocstrings(BaseCliTest):
     ) -> None:
         """Corrupt a round file."""
 
-        string_to_replace = """3. ResetAndPauseRound
+        string_to_replace = """4. ResetAndPauseRound
             - done: 1.
-            - reset timeout: 0.
-            - no majority: 0.\n"""
+            - no majority: 0.
+            - reset timeout: 0.\n"""
 
         rounds_file_content = self.rounds_file_original.read_text()
         rounds_file_content = rounds_file_content.replace(string_to_replace, "")

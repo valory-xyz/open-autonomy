@@ -18,9 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Custom objects for the transaction settlement ABCI application."""
-
 from typing import Any, Dict, List, Optional
 
+from aea.exceptions import enforce
 from web3.types import Nonce, Wei
 
 from packages.valory.protocols.contract_api import ContractApiMessage
@@ -37,6 +37,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 
 
+_MINIMUM_VALIDATE_TIMEOUT = 300  # 5 minutes
 BenchmarkTool = BaseBenchmarkTool
 
 
@@ -74,10 +75,19 @@ class TransactionParams(BaseParams):  # pylint: disable=too-many-instance-attrib
         self.keeper_allowed_retries: int = self._ensure(
             "keeper_allowed_retries", kwargs
         )
-        self.validate_timeout = self._ensure("validate_timeout", kwargs)
+        self.validate_timeout = self._ensure_validate_timeout(kwargs)
         self.finalize_timeout = self._ensure("finalize_timeout", kwargs)
         self.history_check_timeout = self._ensure("history_check_timeout", kwargs)
         super().__init__(*args, **kwargs)
+
+    def _ensure_validate_timeout(self, kwargs: Dict) -> int:
+        """Ensure that `validate_timeout` exists, and that it is at least _MINIMUM_VALIDATE_TIMEOUT."""
+        validate_timeout = self._ensure("validate_timeout", kwargs)
+        enforce(
+            validate_timeout >= _MINIMUM_VALIDATE_TIMEOUT,
+            f"`validate_timeout` must be greater than or equal to {_MINIMUM_VALIDATE_TIMEOUT}",
+        )
+        return validate_timeout
 
 
 class RandomnessApi(ApiSpecs):

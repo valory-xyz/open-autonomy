@@ -12,25 +12,25 @@ fingerprint:
   handlers.py: bafybeifzwgpoll2psprk7akts5tepbousue2vvyu6glnamu2wm46b7roca
   models.py: bafybeibdy5unp2zw2rf7uhi4qvgzrqxyfybakgbmas42t2lgkipkl3glhq
   payloads.py: bafybeiham2atgdsol5k2laucgvlk6edozfujmrzgvc5s2vd2kbmr6qdnw4
-  rounds.py: bafybeigc3mc6qck3rw3hxrdanz4ykhnl2dizbce62itsybzrc7fhme6lka
+  rounds.py: bafybeigz6skzjdj67ffxsunrafn7cnodnbnzldcps3sflacppcpddzwgqe
   tests/__init__.py: bafybeigsjjibb2gcybzp5yrsy25vyiu54rw6oaeyw5onaqemsvul7bmroi
   tests/test_behaviours.py: bafybeihic7qtqul37fomoljrqbj32faqofvk4c4odt5vadyet2clwpwgvq
   tests/test_dialogues.py: bafybeicb6gfanfyt3wiq3svdlvtxiuzpk72oxp7cfdeq4ezed7ixee5yae
   tests/test_handlers.py: bafybeiefz2ebr5rlyxziwr4bts2r75abpqgji3k47a6hnrj7e7t2yvgmpu
   tests/test_models.py: bafybeih5wtdjuv4hc25fxneeg7mgjiks55xj353zxfamvtrthkw2ydmbbe
   tests/test_payloads.py: bafybeifiglq3bjhzdq6qetxrbvujxwqfi7dbgrryq5bm4dl5tdvrlhgbam
-  tests/test_rounds.py: bafybeicnpiklbcybn6qaimsfccegusfc354g47wy6h4ja6wikz6sgf6y2e
+  tests/test_rounds.py: bafybeibfnhovtgu775y2rxi5xqnta67fibucymraxfsevw3snpfts5sbae
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeibqsf4sh4f4lshbxnwapzxuul6ywzgq4nfoxd7wye6s3ncb5amlvq
+- valory/gnosis_safe:0.1.0:bafybeiaxnlzlnlb34ud6wrsm2el477xnubhpe36gh4pcvmvurfz2uafbve
 - valory/multisend:0.1.0:bafybeiaveffaomsnmsc5hx62o77u7ilma6eipox7m5lrwa56737ektva3i
-- valory/service_registry:0.1.0:bafybeidnlrhq5tphu2bao4uslpku77qpbkyuifm2ov2w6gl36heee4ivuq
+- valory/service_registry:0.1.0:bafybeieqj5dvwttrxigie6kffbhysfjimapbp7zhsgojyukxsjns2dtkny
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihx3owgbdtbu4zr6v5gaqk6ur6er4wynameikbq6ndi2kfk5vovnu
-- valory/transaction_settlement_abci:0.1.0:bafybeiclk72s54inkmlbeama3st2774tcssttorb6jlu3vj3yt7ne2tmkq
+- valory/abstract_round_abci:0.1.0:bafybeigqcsyldiu4arougcfaz4kgqa37ko4gzkrrup22hwz344nuv3qx5q
+- valory/transaction_settlement_abci:0.1.0:bafybeicgvudend6ame7taeqfqreferppqx4sgnteih4lnoq3drm2b7fqwq
 behaviours:
   main:
     args: {}
