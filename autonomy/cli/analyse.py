@@ -119,11 +119,6 @@ def abci_app_specs(
             raise click.ClickException(str(e)) from e
 
 
-@analyse_group.group(name="abci")
-def abci_group() -> None:
-    """Analyse ABCI apps of an agent service."""
-
-
 @analyse_group.command(name="docstrings")
 @click.option(
     "--update",
@@ -165,13 +160,13 @@ def docstrings(ctx: Context, update: bool) -> None:
             raise click.ClickException(str(e)) from e
 
 
-@abci_group.command(name="logs")
+@analyse_group.command(name="logs")
 @click.argument("file", type=click.Path(file_okay=True, dir_okay=False, exists=True))
-def parse_logs(file: Path) -> None:
+def parse_logs(file: str) -> None:
     """Parse logs of an agent service."""
 
     try:
-        parse_file(str(file))
+        parse_file(file)
     except Exception as e:  # pylint: disable=broad-except
         raise click.ClickException(str(e)) from e
 
