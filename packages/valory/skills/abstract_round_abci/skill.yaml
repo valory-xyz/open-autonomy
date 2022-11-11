@@ -39,7 +39,7 @@ fingerprint:
   tests/data/dummy_abci/payloads.py: bafybeifbzve4ht5fld2xxmeoldhrvjujuvzqbet2d7b6zt73qikbgv3rxa
   tests/data/dummy_abci/rounds.py: bafybeiaealtmp2ll4s3b7m2fpa3qwdd4gjzwg7pbqm4joitchl4isjrluy
   tests/test_abci_app_chain.py: bafybeickk5wbqqro3k5h27vu57rtpifuzd5gojxnjtxcge2s5ukdduy27e
-  tests/test_base.py: bafybeiawvipdp54jb3jdj5ohfdemffjirlcbub75rj4kui5dbwyn53pg6u
+  tests/test_base.py: bafybeih3vx3st4uyc6akm4c36pyamxcz5frx5jqupoi6rnzv5iqfxzxile
   tests/test_base_rounds.py: bafybeidajvkfyzuxs3l3o3t7a2cirhzcisz5hjffomgd6h2lbpqvt4lrsa
   tests/test_behaviours.py: bafybeifv44ckvo6qjd2er4rqtb5vuifibfsj3ayxfclzsohtzruowcnbwi
   tests/test_behaviours_utils.py: bafybeicoyg4oqra2ghjm36yjdch7qo7ffz7rncj56ptvzgff4okl4jds3i
