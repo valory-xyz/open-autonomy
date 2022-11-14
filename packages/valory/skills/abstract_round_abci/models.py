@@ -245,6 +245,10 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
             "parameters": self.parameters,
         }
 
+    def _log_response(self, decoded_response: str) -> None:
+        """Log the decoded response message using error level."""
+        self.context.logger.error(f"\nResponse: {decoded_response}")
+
     def _get_value_with_type(self, value: Any) -> None:
         """Get the given value as the specified type."""
         return getattr(builtins, self.response_type)(value)
@@ -265,8 +269,10 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         response_key: Optional[str],
     ) -> Any:
         """Get response data from api, based on the given response key"""
+        decoded_response = response.body.decode()
+
         try:
-            response_data = json.loads(response.body.decode())
+            response_data = json.loads(decoded_response)
             if response_key is None:
                 return self._get_response_from_index(response_data)
 
@@ -277,8 +283,20 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
 
             return self._get_response_from_index(value)
 
-        except (json.JSONDecodeError, KeyError, IndexError):
-            return None
+        except json.JSONDecodeError:
+            self.context.logger.error("Could not parse the response body!")
+        except KeyError:
+            self.context.logger.error(
+                f"Could not access response using the given key(s) ({self.response_key})!"
+            )
+        except IndexError:
+            self.context.logger.error(
+                f"Could not access response using the given key(s) ({self.response_key}) "
+                f"and index ({self.response_index})!"
+            )
+
+        self._log_response(decoded_response)
+        return None
 
     def increment_retries(self) -> None:
         """Increment the retries counter."""
