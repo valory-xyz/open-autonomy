@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
 fingerprint_ignore_patterns: []
-agent: valory/hello_world:0.1.0:bafybeigbmqpiihpjtlsllrxowhdq2dabtf54m2kjdzabusnpgkukghkisu
+agent: valory/hello_world:0.1.0:bafybeignvlcrdnfmdbvi3wj3razj4cjnrlpc66r4lqcwgcw5thwn3blwlm
 number_of_agents: 4
 ---
 benchmark_persistence_params:
@@ -17,15 +17,27 @@ public_id: valory/hello_world_abci:0.1.0
 type: skill
 models:
   0:
+  - params:
+      args:
+        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
   - benchmark_tool:
       args: *id001
   1:
+  - params:
+      args:
+        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
   - benchmark_tool:
       args: *id001
   2:
+  - params:
+      args:
+        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
   - benchmark_tool:
       args: *id001
   3:
+  - params:
+      args:
+        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
   - benchmark_tool:
       args: *id001
 ---

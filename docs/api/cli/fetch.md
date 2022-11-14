@@ -20,7 +20,7 @@ Implementation of the 'autonomy fetch' subcommand.
 @click.option(
     "--agent",
     "package_type",
-    help="Specify the package type as agent.",
+    help="Specify the package type as agent (default).",
     default=True,
     flag_value=AGENT,
 )

@@ -25,10 +25,13 @@ Local deployments of a service are recommended to test your service before you p
     docker image ls | grep <service_agent_name>
     ```
 
-3. Prepare a JSON file `keys.json` containing an address and a key for each of the agents that make up the agent service. Below you have some sample keys for testing:
+3. Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that make up the service.
 
-    !!! warning "Important"
-        Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**
+    ??? example "Example of a `keys.json` file"
+
+        Find below an example of the structure of a `keys.json` file.
+
+        <span style="color:red">**WARNING: Use this file for testing purposes only. Never use the keys or addresses provided in this example in a production environment or for personal use.**</span>
 
         ```json
         [
