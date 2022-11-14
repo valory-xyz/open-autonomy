@@ -244,13 +244,18 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
             "parameters": self.parameters,
         }
 
+    def _get_value_with_type(self, value: Any) -> None:
+        """Get the given value as the specified type."""
+        return getattr(builtins, self.response_type)(value)
+
     def process_response(self, response: HttpMessage) -> Any:
         """Process response from api."""
-        return self._get_response_data(response, self.response_key, self.response_type)
+        return self._get_response_data(response, self.response_key)
 
-    @staticmethod
     def _get_response_data(
-        response: HttpMessage, response_key: Optional[str], response_type: str
+        self,
+        response: HttpMessage,
+        response_key: Optional[str],
     ) -> Any:
         """Get response data from api, based on the given response key"""
         try:
@@ -263,7 +268,7 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
             for key in keys:
                 value = value[key]
 
-            return getattr(builtins, response_type)(value)
+            return self._get_value_with_type(value)
 
         except (json.JSONDecodeError, KeyError):
             return None
