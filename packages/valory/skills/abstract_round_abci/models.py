@@ -222,6 +222,7 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         self.response_key = kwargs.pop("response_key", None)
         self.response_index = kwargs.pop("response_index", None)
         self.response_type = kwargs.pop("response_type", "str")
+        self.backoff_factor = kwargs.pop("backoff_factor", 2)
         self.error_key = kwargs.pop("error_key", None)
         self.error_index = kwargs.pop("error_index", None)
         self.error_type = kwargs.pop("error_type", "str")
@@ -231,6 +232,11 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         self._retries = kwargs.pop("retries", NUMBER_OF_RETRIES)
 
         super().__init__(*args, **kwargs)
+
+    @property
+    def suggested_sleep_time(self) -> float:
+        """The suggested amount of time to sleep."""
+        return self.backoff_factor ** self._retries_attempted
 
     def ensure(self, keyword: str, kwargs: Dict) -> Any:
         """Ensure a keyword argument."""
