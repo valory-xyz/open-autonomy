@@ -46,10 +46,10 @@ HAPPY_PATH = (
 # strict check log messages of the happy path
 STRICT_CHECK_STRINGS = (
     "Period end",
-    " in period 0 says: HELLO WORLD!",
-    " in period 1 says: HELLO WORLD!",
-    " in period 2 says: HELLO WORLD!",
-    " in period 3 says: HELLO WORLD!",
+    " in period 0 says: HELLO_WORLD!",
+    " in period 1 says: HELLO_WORLD!",
+    " in period 2 says: HELLO_WORLD!",
+    " in period 3 says: HELLO_WORLD!",
 )
 
 

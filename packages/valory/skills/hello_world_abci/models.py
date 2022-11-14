@@ -21,7 +21,7 @@
 
 from typing import Any
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -57,4 +57,14 @@ class SharedState(BaseSharedState):
         )
 
 
-Params = BaseParams
+class HelloWorldParams(BaseParams):
+    """Hello World skill parameters."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the parameters."""
+        super().__init__(*args, **kwargs)
+        self.hello_world_string = self._ensure("hello_world_message", kwargs)
+
+
+class RandomnessApi(ApiSpecs):
+    """A model that wraps ApiSpecs for randomness api specifications."""

@@ -17,7 +17,7 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
 
 1. Use the CLI to fetch the [Hello World agent service](../demos/hello_world_demo.md). This will connect to the remote registry and download the service specification to the `hello_world` folder:
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeihrqw2a2nokcmxsz2szpj5iuqmxo6ay4uk5xcfsussrhua4mjwedy --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeid7lncfmioiwuje2vev3xr2savcancwey4rdssdahrdfirwlbyn6i --service
     cd hello_world
     ```
 
@@ -30,10 +30,13 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
     docker image ls | grep hello_world
     ```
 
-3. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the agent service. Below you have some sample keys for testing:
+3. Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that make up the service.
 
-    !!! warning "Important"
-        Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**
+    ??? example "Example of a `keys.json` file"
+
+        Find below an example of the structure of a `keys.json` file.
+
+        <span style="color:red">**WARNING: Use this file for testing purposes only. Never use the keys or addresses provided in this example in a production environment or for personal use.**</span>
 
         ```json
         [
@@ -55,6 +58,7 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
           }
         ]
         ```
+
 
 4. Build the deployment setup for the service:
     ```bash
@@ -80,8 +84,8 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
     abci2    | [2022-01-01 00:00:00,000] [INFO] [agent] scheduling timeout of 30.0 seconds for event Event.ROUND_TIMEOUT with deadline 2022-00-00 00:00:00.000000
     abci2    | [2022-01-01 00:00:00,000] [INFO] [agent] Entered in the 'print_message' round for period 2
     abci2    | [2022-01-01 00:00:00,000] [INFO] [agent] Entered in the 'print_message' behaviour
-    abci2    | Agent agent (address 0x976EA74026E726554dB657fA54763abd0C3a0aa9) in period 2 says: HELLO WORLD!
-    abci2    | [2022-01-01 00:00:00,000] [INFO] [agent] printed_message=Agent agent (address 0x976EA74026E726554dB657fA54763abd0C3a0aa9) in period 2 says: HELLO WORLD!
+    abci2    | Agent agent (address 0x976EA74026E726554dB657fA54763abd0C3a0aa9) in period 2 says: HELLO_WORLD!
+    abci2    | [2022-01-01 00:00:00,000] [INFO] [agent] printed_message=Agent agent (address 0x976EA74026E726554dB657fA54763abd0C3a0aa9) in period 2 says: HELLO_WORLD!
 
     (...)
     ```
@@ -93,4 +97,4 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
     where `<container_id>` refers to the Docker container ID for either an agent
     (`abci0`, `abci1`, `abci2` and `abci3`) or a [Tendermint](https://tendermint.com/) node (`node0`, `node1`, `node2` and `node3`).
 
-    Try to inspect the service agent logs yourself and identify when they say "HELLO WORLD!"
+    Try to inspect the service agent logs yourself and identify when they say "HELLO_WORLD!"

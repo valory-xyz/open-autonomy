@@ -31,6 +31,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
 )
 from packages.valory.skills.hello_world_abci.payloads import (
+    CollectRandomnessPayload,
     PrintMessagePayload,
     RegistrationPayload,
     ResetPayload,
@@ -92,6 +93,30 @@ class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
                 synchronized_data_class=SynchronizedData,
             )
             return synchronized_data, Event.DONE
+        return None
+
+
+class CollectRandomnessRound(
+    CollectSameUntilThresholdRound, HelloWorldABCIAbstractRound
+):
+    """A round for generating randomness"""
+
+    round_id = "collect_randomness"
+    allowed_tx_type = CollectRandomnessPayload.transaction_type
+    payload_attribute = "randomness"
+
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            synchronized_data = self.synchronized_data.update(
+                participant_to_randomness=self.collection,
+                most_voted_randomness=self.most_voted_payload,
+            )
+            return synchronized_data, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.synchronized_data.nb_participants
+        ):
+            return self.synchronized_data, Event.NO_MAJORITY
         return None
 
 
@@ -168,17 +193,21 @@ class HelloWorldAbciApp(AbciApp[Event]):
     Transition states:
         0. RegistrationRound
             - done: 1.
-        1. SelectKeeperRound
+        1. CollectRandomnessRound
             - done: 2.
-            - round timeout: 0.
-            - no majority: 0.
-        2. PrintMessageRound
+            - no majority: 1.
+            - round timeout: 1.
+        2. SelectKeeperRound
             - done: 3.
-            - round timeout: 0.
-        3. ResetAndPauseRound
-            - done: 1.
-            - reset timeout: 0.
             - no majority: 0.
+            - round timeout: 0.
+        3. PrintMessageRound
+            - done: 4.
+            - round timeout: 0.
+        4. ResetAndPauseRound
+            - done: 1.
+            - no majority: 0.
+            - reset timeout: 0.
 
     Final states: {}
 
@@ -190,21 +219,26 @@ class HelloWorldAbciApp(AbciApp[Event]):
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {
+            Event.DONE: CollectRandomnessRound,
+        },
+        CollectRandomnessRound: {
             Event.DONE: SelectKeeperRound,
+            Event.NO_MAJORITY: CollectRandomnessRound,
+            Event.ROUND_TIMEOUT: CollectRandomnessRound,
         },
         SelectKeeperRound: {
             Event.DONE: PrintMessageRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
         },
         PrintMessageRound: {
             Event.DONE: ResetAndPauseRound,
             Event.ROUND_TIMEOUT: RegistrationRound,
         },
         ResetAndPauseRound: {
-            Event.DONE: SelectKeeperRound,
-            Event.RESET_TIMEOUT: RegistrationRound,
+            Event.DONE: CollectRandomnessRound,
             Event.NO_MAJORITY: RegistrationRound,
+            Event.RESET_TIMEOUT: RegistrationRound,
         },
     }
     event_to_timeout: Dict[Event, float] = {

@@ -59,7 +59,7 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
         fingerprint:
           README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
         fingerprint_ignore_patterns: []
-        agent: valory/hello_world:0.1.0:bafybeigvrxkztjuexmk4fn3hywkecqa7zagt4ek7xfxcaguj2725odyfbe
+        agent: valory/hello_world:0.1.0:bafybeihqzkncz7r563lfkots4fphb7abdymdna4ir7in7fsbzjtx6yyndq
         number_of_agents: 4
         ---
         benchmark_persistence_params:
@@ -69,15 +69,27 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
         type: skill
         models:
           0:
+          - params:
+              args:
+                hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
           - benchmark_tool:
               args: *id001
           1:
+          - params:
+              args:
+                hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
           - benchmark_tool:
               args: *id001
           2:
+          - params:
+              args:
+                hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
           - benchmark_tool:
               args: *id001
           3:
+          - params:
+              args:
+                hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
           - benchmark_tool:
               args: *id001
         ---
@@ -90,6 +102,7 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
               chain_id: 31337
               poa_chain: false
               default_gas_price_strategy: eip1559
+
         ```
 
         Most of the parameters in the YAML file are self-explanatory, but let us briefly discuss some of them:
@@ -102,7 +115,9 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
         - `fingerprint_ignore_patterns`: filename patterns whose matches will be ignored.
         - `agent`: references the agent that the service is going to use, in the format `public_id:ipfs_hash`.
 
-        Following the mandatory parameters of the service definition, there is a number of parameter overrides following the operator `---`, which set parameters for the agent components. In this case, the service is setting values for some parameters parameters in the `hello_world_abci` skill, and in the `ledger` connection. For now, you can safely ignore that part of the `service.yaml`file.
+        Following the mandatory parameters of the service definition, there is a number of parameter overrides following the operator `---`, which set parameters for the agent components. In this case, the service is setting values for some parameters parameters in the `hello_world_abci` skill, and in the `ledger` connection.
+
+        You can, for example, override the default `HELLO_WORLD!` string that each agent prints on their console.
 
 2. **Use a local deployment to test the service.** This is the recommended approach in order to test your agent service before you publish it to a remote registry. Follow the instructions in the [local deployment guide](./deploy_service.md#local-deployment) to run the local deployment. Note that this process should be somewhat familiar to you if you have followed the [quick start guide](./quick_start.md).
 
