@@ -31,7 +31,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 2. **Write the FSM specification file.** This file formally encodes the FSM designed in the previous step in a language that is understood by the framework.
 
     ??? example "Example of an `fsm_specification.yaml` file"
-        Given a sketch of the FSM, the structure of the `fsm_specification.yaml` file is quite straightforward. Below we show the FSM specification file of the [Hello World](../demos/hello_world_demo.md) demo service.
+        Given a sketch of the FSM, the structure of the `fsm_specification.yaml` file is quite straightforward. Below we show the FSM specification file of the [Hello World](../demos/hello_world_demo.md) service.
 
         ```yaml
         alphabet_in:
@@ -45,15 +45,19 @@ Before starting this guide, ensure that your machine satisfies the framework req
         start_states:
         - RegistrationRound
         states:
+        - CollectRandomnessRound
         - PrintMessageRound
         - RegistrationRound
         - ResetAndPauseRound
         - SelectKeeperRound
         transition_func:
+            (CollectRandomnessRound, DONE): SelectKeeperRound
+            (CollectRandomnessRound, NO_MAJORITY): CollectRandomnessRound
+            (CollectRandomnessRound, ROUND_TIMEOUT): CollectRandomnessRound
             (PrintMessageRound, DONE): ResetAndPauseRound
             (PrintMessageRound, ROUND_TIMEOUT): RegistrationRound
-            (RegistrationRound, DONE): SelectKeeperRound
-            (ResetAndPauseRound, DONE): SelectKeeperRound
+            (RegistrationRound, DONE): CollectRandomnessRound
+            (ResetAndPauseRound, DONE): CollectRandomnessRound
             (ResetAndPauseRound, NO_MAJORITY): RegistrationRound
             (ResetAndPauseRound, RESET_TIMEOUT): RegistrationRound
             (SelectKeeperRound, DONE): PrintMessageRound

@@ -19,6 +19,7 @@
 
 """This module contains the behaviours for the 'hello_world' skill."""
 
+import random
 from abc import ABC
 from typing import Generator, Set, Type, cast
 
@@ -26,14 +27,16 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
-from packages.valory.skills.hello_world_abci.models import Params, SharedState
+from packages.valory.skills.hello_world_abci.models import HelloWorldParams, SharedState
 from packages.valory.skills.hello_world_abci.payloads import (
+    CollectRandomnessPayload,
     PrintMessagePayload,
     RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
 )
 from packages.valory.skills.hello_world_abci.rounds import (
+    CollectRandomnessRound,
     HelloWorldAbciApp,
     PrintMessageRound,
     RegistrationRound,
@@ -54,9 +57,9 @@ class HelloWorldABCIBaseBehaviour(BaseBehaviour, ABC):
         )
 
     @property
-    def params(self) -> Params:
+    def params(self) -> HelloWorldParams:
         """Return the params."""
-        return cast(Params, self.context.params)
+        return cast(HelloWorldParams, self.context.params)
 
 
 class RegistrationBehaviour(HelloWorldABCIBaseBehaviour):
@@ -86,6 +89,65 @@ class RegistrationBehaviour(HelloWorldABCIBaseBehaviour):
         self.set_done()
 
 
+class CollectRandomnessBehaviour(HelloWorldABCIBaseBehaviour):
+    """Retrieve randomness."""
+
+    behaviour_id = "collect_randomness"
+    matching_round = CollectRandomnessRound
+
+    def async_act(self) -> Generator:
+        """
+        Check whether tendermint is running or not.
+
+        Steps:
+        - Do a http request to the tendermint health check endpoint
+        - Retry until healthcheck passes or timeout is hit.
+        - If healthcheck passes set done event.
+        """
+        if self.context.randomness_api.is_retries_exceeded():
+            # now we need to wait and see if the other agents progress the round
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
+                yield from self.wait_until_round_end()
+            self.set_done()
+            return
+
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
+            api_specs = self.context.randomness_api.get_spec()
+            http_message, http_dialogue = self._build_http_request_message(
+                method=api_specs["method"],
+                url=api_specs["url"],
+            )
+            response = yield from self._do_request(http_message, http_dialogue)
+            observation = self.context.randomness_api.process_response(response)
+
+        if observation:
+            self.context.logger.info(f"Retrieved DRAND values: {observation}.")
+            payload = CollectRandomnessPayload(
+                self.context.agent_address,
+                observation["round"],
+                observation["randomness"],
+            )
+            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
+
+            self.set_done()
+        else:
+            self.context.logger.error(
+                f"Could not get randomness from {self.context.randomness_api.api_id}"
+            )
+            yield from self.sleep(self.params.sleep_time)
+            self.context.randomness_api.increment_retries()
+
+    def clean_up(self) -> None:
+        """
+        Clean up the resources due to a 'stop' event.
+
+        It can be optionally implemented by the concrete classes.
+        """
+        self.context.randomness_api.reset_retries()
+
+
 class SelectKeeperBehaviour(HelloWorldABCIBaseBehaviour, ABC):
     """Select the keeper agent."""
 
@@ -104,10 +166,11 @@ class SelectKeeperBehaviour(HelloWorldABCIBaseBehaviour, ABC):
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            keeper_address = sorted(self.synchronized_data.participants)[
-                self.synchronized_data.period_count
-                % self.synchronized_data.nb_participants
-            ]
+            participants = sorted(self.synchronized_data.participants)
+            random.seed(self.synchronized_data.most_voted_randomness, 2)  # nosec
+            index = random.randint(0, len(participants) - 1)  # nosec
+
+            keeper_address = participants[index]
 
             self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
             payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
@@ -137,14 +200,15 @@ class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
         - Go to the next behaviour (set done event).
         """
 
-        printed_message = f"Agent {self.context.agent_name} (address {self.context.agent_address}) in period {self.synchronized_data.period_count} says: "
         if (
             self.context.agent_address
             == self.synchronized_data.most_voted_keeper_address
         ):
-            printed_message += "HELLO WORLD!"
+            message = self.params.hello_world_string
         else:
-            printed_message += ":|"
+            message = ":|"
+
+        printed_message = f"Agent {self.context.agent_name} (address {self.context.agent_address}) in period {self.synchronized_data.period_count} says: {message}"
 
         print(printed_message)
         self.context.logger.info(f"printed_message={printed_message}")
@@ -204,6 +268,7 @@ class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
     abci_app_cls = HelloWorldAbciApp  # type: ignore
     behaviours: Set[Type[HelloWorldABCIBaseBehaviour]] = {  # type: ignore
         RegistrationBehaviour,  # type: ignore
+        CollectRandomnessBehaviour,  # type: ignore
         SelectKeeperBehaviour,  # type: ignore
         PrintMessageBehaviour,  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
