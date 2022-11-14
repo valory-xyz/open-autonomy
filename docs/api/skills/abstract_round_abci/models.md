@@ -148,6 +148,17 @@ def __init__(*args: Any, **kwargs: Any) -> None
 
 Initialize ApiSpecsModel.
 
+<a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs.suggested_sleep_time"></a>
+
+#### suggested`_`sleep`_`time
+
+```python
+@property
+def suggested_sleep_time() -> float
+```
+
+The suggested amount of time to sleep.
+
 <a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs.ensure"></a>
 
 #### ensure
