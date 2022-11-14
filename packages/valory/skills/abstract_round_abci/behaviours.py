@@ -235,7 +235,7 @@ class AbstractRoundBehaviour(
         self.current_behaviour = self.instantiate_behaviour_cls(
             self.initial_behaviour_cls
         )
-        self.tm_manager = self.instantiate_behaviour_cls(TmManager)
+        self.tm_manager = self.instantiate_behaviour_cls(TmManager)  # type: ignore
         if self.is_background_behaviour_set:
             self.background_behaviour_cls = cast(
                 Type[BaseBehaviour], self.background_behaviour_cls
@@ -249,12 +249,13 @@ class AbstractRoundBehaviour(
 
     def act(self) -> None:
         """Implement the behaviour."""
-        if self.tm_manager.tm_communication_unhealthy or self.tm_manager.is_acting:
+        tm_manager = cast(TmManager, self.tm_manager)
+        if tm_manager.tm_communication_unhealthy or tm_manager.is_acting:
             # tendermint is not healthy, or we are already applying a fix.
             # try_fix() internally uses generators, that's why it's relevant
             # to know whether a fix is already being applied.
             # It might happen that tendermint is healthy, but the fix is not yet finished.
-            self.tm_manager.try_fix()
+            tm_manager.try_fix()
             return
 
         self._process_current_round()

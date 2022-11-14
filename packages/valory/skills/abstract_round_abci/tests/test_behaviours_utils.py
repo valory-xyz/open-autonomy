@@ -81,6 +81,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     RPCResponseStatus,
     SendException,
     TimeoutException,
+    TmManager,
     make_degenerate_behaviour,
 )
 from packages.valory.skills.abstract_round_abci.models import (
@@ -497,9 +498,6 @@ class TestBaseBehaviour:
             request_retry_delay=_DEFAULT_REQUEST_RETRY_DELAY,
             tx_timeout=_DEFAULT_TX_TIMEOUT,
             max_attempts=_DEFAULT_TX_MAX_ATTEMPTS,
-            consensus_params=MagicMock(
-                consensus_threshold=self._DUMMY_CONSENSUS_THRESHOLD
-            ),
         )
         self.context_state_synchronized_data_mock = MagicMock()
         self.context_mock.params = self.context_params_mock
@@ -625,72 +623,6 @@ class TestBaseBehaviour:
         gen = self.behaviour.send_a2a_transaction(MagicMock())
         try_send(gen)
 
-    @mock.patch.object(
-        BaseBehaviour,
-        "tm_communication_unhealthy",
-        new_callable=mock.PropertyMock,
-        return_value=True,
-    )
-    @pytest.mark.parametrize(
-        ("tm_reset_success", "num_active_peers"),
-        [
-            (True, 4),
-            (False, 4),
-            (True, 2),
-            (False, None),
-        ],
-    )
-    def test__check_tm_communication(
-        self,
-        _: mock._patch,
-        tm_reset_success: bool,
-        num_active_peers: Optional[int],
-    ) -> None:
-        """Test `__check_tm_communication`."""
-        gen = self.behaviour._BaseBehaviour__check_tm_communication()
-
-        with mock.patch.object(
-            self.behaviour,
-            "reset_tendermint_with_wait",
-            side_effect=yield_and_return_bool_wrapper(tm_reset_success),
-        ), mock.patch.object(
-            self.behaviour,
-            "num_active_peers",
-            side_effect=yield_and_return_int_wrapper(num_active_peers),
-        ), mock.patch(
-            "sys.exit"
-        ) as mock_sys_exit:
-            try_send(gen)
-            try_send(gen)
-            if (
-                num_active_peers is not None
-                and num_active_peers < self._DUMMY_CONSENSUS_THRESHOLD
-            ):
-                mock_sys_exit.assert_called()
-
-    @pytest.mark.parametrize("communication_is_healthy", (True, False))
-    def test_async_act_wrapper_communication(
-        self, communication_is_healthy: bool
-    ) -> None:
-        """Test 'async_act_wrapper' when tm communication is unhealthy."""
-        gen = self.behaviour.async_act_wrapper()
-
-        with mock.patch.object(
-            self.behaviour,
-            "_BaseBehaviour__check_tm_communication",
-            side_effect=yield_and_return_bool_wrapper(communication_is_healthy),
-        ):
-            try_send(gen)
-            try_send(gen)
-
-        self.behaviour.set_done()
-        with mock.patch.object(BaseBehaviour, "_log_end") as _log_end_mock:
-            try_send(gen)
-            if communication_is_healthy:
-                _log_end_mock.assert_called_once()
-            else:
-                _log_end_mock.assert_not_called()
-
     def test_sync_state(self) -> None:
         """Test `_sync_state`."""
         app_hash = ""
@@ -717,14 +649,8 @@ class TestBaseBehaviour:
         "expected_round_count, expected_reset_index",
         ((None, None), (0, 0), (123, 4), (235235, 754)),
     )
-    @mock.patch.object(
-        BehaviourATest,
-        "_BaseBehaviour__check_tm_communication",
-        side_effect=yield_and_return_bool_wrapper(True),
-    )
     def test_async_act_wrapper_agent_sync_mode(
         self,
-        _: mock._patch,
         expected_round_count: Optional[int],
         expected_reset_index: Optional[int],
     ) -> None:
@@ -767,15 +693,8 @@ class TestBaseBehaviour:
         gen = self.behaviour.async_act_wrapper()
         try_send(gen)
 
-    @mock.patch.object(
-        BehaviourATest,
-        "_BaseBehaviour__check_tm_communication",
-        side_effect=yield_and_return_bool_wrapper(True),
-    )
     @pytest.mark.parametrize("exception_cls", [StopIteration])
-    def test_async_act_wrapper_exception(
-        self, _: mock._patch, exception_cls: Exception
-    ) -> None:
+    def test_async_act_wrapper_exception(self, exception_cls: Exception) -> None:
         """Test 'async_act_wrapper'."""
         with mock.patch.object(self.behaviour, "async_act", side_effect=exception_cls):
             with mock.patch.object(self.behaviour, "clean_up") as clean_up_mock:
@@ -1880,12 +1799,7 @@ class TestBaseBehaviour:
         atheris.Fuzz()
 
 
-@mock.patch.object(
-    DegenerateBehaviour,
-    "_BaseBehaviour__check_tm_communication",
-    side_effect=yield_and_return_bool_wrapper(True),
-)
-def test_degenerate_behaviour_async_act(_: mock._patch) -> None:
+def test_degenerate_behaviour_async_act() -> None:
     """Test DegenerateBehaviour.async_act."""
 
     class ConcreteDegenerateBehaviour(DegenerateBehaviour):
@@ -1902,7 +1816,6 @@ def test_degenerate_behaviour_async_act(_: mock._patch) -> None:
     behaviour = ConcreteDegenerateBehaviour(
         name=ConcreteDegenerateBehaviour.behaviour_id, skill_context=context
     )
-    behaviour.act()
     with pytest.raises(
         SystemExit,
     ):
@@ -1918,3 +1831,110 @@ def test_make_degenerate_behaviour() -> None:
     assert issubclass(new_cls, DegenerateBehaviour)
 
     assert new_cls.behaviour_id == f"degenerate_{round_id}"
+
+
+class TestTmManager:
+    """Class to test the TmManager behaviour."""
+
+    _DUMMY_CONSENSUS_THRESHOLD = 3
+
+    def setup(self) -> None:
+        """Set up the tests."""
+        self.context_mock = MagicMock()
+        self.context_params_mock = MagicMock(
+            ipfs_domain_name=None,
+            request_timeout=_DEFAULT_REQUEST_TIMEOUT,
+            request_retry_delay=_DEFAULT_REQUEST_RETRY_DELAY,
+            tx_timeout=_DEFAULT_TX_TIMEOUT,
+            max_attempts=_DEFAULT_TX_MAX_ATTEMPTS,
+            consensus_params=MagicMock(
+                consensus_threshold=self._DUMMY_CONSENSUS_THRESHOLD
+            ),
+        )
+        self.context_state_synchronized_data_mock = MagicMock()
+        self.context_mock.params = self.context_params_mock
+        self.context_mock.state.synchronized_data = (
+            self.context_state_synchronized_data_mock
+        )
+        self.context_mock.state.round_sequence.current_round_id = "round_a"
+        self.context_mock.state.round_sequence.syncing_up = False
+        self.context_mock.state.round_sequence.block_stall_deadline_expired = False
+        self.context_mock.http_dialogues = HttpDialogues()
+        self.context_mock.handlers.__dict__ = {"http": MagicMock()}
+        self.tm_manager = TmManager(name="", skill_context=self.context_mock)
+
+    def test_async_act(self) -> None:
+        """Test the async_act method of the TmManager."""
+        with pytest.raises(
+            SystemExit,
+        ):
+            self.tm_manager.act_wrapper()
+
+    @pytest.mark.parametrize(
+        ("tm_reset_success", "num_active_peers"),
+        [
+            (True, 4),
+            (False, 4),
+            (True, 2),
+            (False, None),
+        ],
+    )
+    def test_handle_unhealthy_tm(
+        self,
+        tm_reset_success: bool,
+        num_active_peers: Optional[int],
+    ) -> None:
+        """Test _handle_unhealthy_tm."""
+        gen = self.tm_manager._handle_unhealthy_tm()
+        with mock.patch.object(
+            self.tm_manager,
+            "reset_tendermint_with_wait",
+            side_effect=yield_and_return_bool_wrapper(tm_reset_success),
+        ), mock.patch.object(
+            self.tm_manager,
+            "num_active_peers",
+            side_effect=yield_and_return_int_wrapper(num_active_peers),
+        ), mock.patch(
+            "sys.exit"
+        ) as mock_sys_exit:
+            try_send(gen)
+            try_send(gen)
+            try_send(gen)
+            if (
+                num_active_peers is not None
+                and num_active_peers < self._DUMMY_CONSENSUS_THRESHOLD
+            ):
+                mock_sys_exit.assert_called()
+
+    def test_try_fix(self) -> None:
+        """Tests try_fix."""
+
+        def mock_handle_unhealthy_tm() -> Generator:
+            """A mock implementation of _handle_unhealthy_tm."""
+            yield
+            return
+
+        with mock.patch.object(
+            self.tm_manager,
+            "_handle_unhealthy_tm",
+            side_effect=mock_handle_unhealthy_tm,
+        ):
+            # there is no active generator in the begging
+            assert not self.tm_manager.is_acting
+
+            # a generator should be created, and be active
+            self.tm_manager.try_fix()
+            assert self.tm_manager.is_acting
+
+            # the generator has a single yield statement,
+            # a second try_fix() call should finish it
+            self.tm_manager.try_fix()
+            assert not self.tm_manager.is_acting
+
+    def test_is_acting(self) -> None:
+        """Test is_acting."""
+        self.tm_manager._active_generator = MagicMock()
+        assert self.tm_manager.is_acting
+
+        self.tm_manager._active_generator = None
+        assert not self.tm_manager.is_acting
