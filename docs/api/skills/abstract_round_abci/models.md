@@ -118,6 +118,16 @@ def __init__(*args: Any, **kwargs: Any) -> None
 
 Initialize the state.
 
+<a id="packages.valory.skills.abstract_round_abci.models.UnexpectedResponseError"></a>
+
+## UnexpectedResponseError Objects
+
+```python
+class UnexpectedResponseError(Exception)
+```
+
+Exception class for unexpected responses from Apis.
+
 <a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs"></a>
 
 ## ApiSpecs Objects
