@@ -216,6 +216,7 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         self.headers = kwargs.pop("headers", [])
         self.parameters = kwargs.pop("parameters", [])
         self.response_key = kwargs.pop("response_key", None)
+        self.response_index = kwargs.pop("response_index", None)
         self.response_type = kwargs.pop("response_type", "str")
 
         self._retries_attempted = 0
@@ -248,6 +249,12 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         """Get the given value as the specified type."""
         return getattr(builtins, self.response_type)(value)
 
+    def _get_response_from_index(self, value: List[Any]) -> None:
+        """Get the response using the given index."""
+        if self.response_index is not None:
+            value = value[self.response_index]
+        return self._get_value_with_type(value)
+
     def process_response(self, response: HttpMessage) -> Any:
         """Process response from api."""
         return self._get_response_data(response, self.response_key)
@@ -261,16 +268,16 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         try:
             response_data = json.loads(response.body.decode())
             if response_key is None:
-                return response_data
+                return self._get_response_from_index(response_data)
 
             first_key, *keys = response_key.split(":")
             value = response_data[first_key]
             for key in keys:
                 value = value[key]
 
-            return self._get_value_with_type(value)
+            return self._get_response_from_index(value)
 
-        except (json.JSONDecodeError, KeyError):
+        except (json.JSONDecodeError, KeyError, IndexError):
             return None
 
     def increment_retries(self) -> None:
