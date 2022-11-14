@@ -21,6 +21,7 @@
 
 import inspect
 import json
+from dataclasses import dataclass
 from pathlib import Path
 from time import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, cast
@@ -43,11 +44,17 @@ from packages.valory.skills.abstract_round_abci.utils import (
 
 
 NUMBER_OF_RETRIES: int = 5
+DEFAULT_BACKOFF_FACTOR: int = 2
+DEFAULT_TYPE_NAME: str = "str"
 _DEFAULT_REQUEST_TIMEOUT = 10.0
 _DEFAULT_REQUEST_RETRY_DELAY = 1.0
 _DEFAULT_TX_TIMEOUT = 10.0
 _DEFAULT_TX_MAX_ATTEMPTS = 10
 _DEFAULT_CLEANUP_HISTORY_DEPTH_CURRENT = None
+
+
+HeadersType = List[Tuple[str, str]]
+ParametersType = HeadersType
 
 
 class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
@@ -201,46 +208,53 @@ class UnexpectedResponseError(Exception):
     """Exception class for unexpected responses from Apis."""
 
 
-class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
-    """A model that wraps APIs to get cryptocurrency prices."""
+@dataclass
+class ResponseInfo:
+    """A dataclass to hold all the information related to the response."""
 
-    url: str
-    api_id: str
-    method: str
-    response_key: str
-    response_type: str
-    headers: List[Tuple[str, str]]
-    parameters: List[Tuple[str, str]]
+    def __init__(self, kwargs: Dict) -> None:
+        """Initialize a response info object"""
+        self.response_key: Optional[str] = kwargs.pop("response_key", None)
+        self.response_index: Optional[int] = kwargs.pop("response_index", None)
+        self.response_type: str = kwargs.pop("response_type", DEFAULT_TYPE_NAME)
+        self.error_key: Optional[str] = kwargs.pop("error_key", None)
+        self.error_index: Optional[int] = kwargs.pop("error_index", None)
+        self.error_type: str = kwargs.pop("error_type", DEFAULT_TYPE_NAME)
+        self.error_data: Any = None
 
-    _retries_attempted: int
-    _retries: int
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize ApiSpecsModel."""
+@dataclass
+class RetriesInfo:
+    """A dataclass to hold all the information related to the retries."""
 
-        self.url = self.ensure("url", kwargs)
-        self.api_id = self.ensure("api_id", kwargs)
-        self.method = self.ensure("method", kwargs)
-        self.headers = kwargs.pop("headers", [])
-        self.parameters = kwargs.pop("parameters", [])
-        self.response_key = kwargs.pop("response_key", None)
-        self.response_index = kwargs.pop("response_index", None)
-        self.response_type = kwargs.pop("response_type", "str")
-        self.backoff_factor = kwargs.pop("backoff_factor", 2)
-        self.error_key = kwargs.pop("error_key", None)
-        self.error_index = kwargs.pop("error_index", None)
-        self.error_type = kwargs.pop("error_type", "str")
-        self.error_data = None
-
-        self._retries_attempted = 0
-        self._retries = kwargs.pop("retries", NUMBER_OF_RETRIES)
-
-        super().__init__(*args, **kwargs)
+    def __init__(self, kwargs: Dict) -> None:
+        """Initialize a retries info object"""
+        self.retries_attempted: int = 0
+        self.retries: int = kwargs.pop("retries", NUMBER_OF_RETRIES)
+        self.backoff_factor: float = kwargs.pop(
+            "backoff_factor", DEFAULT_BACKOFF_FACTOR
+        )
 
     @property
     def suggested_sleep_time(self) -> float:
         """The suggested amount of time to sleep."""
-        return self.backoff_factor ** self._retries_attempted
+        return self.backoff_factor ** self.retries_attempted
+
+
+class ApiSpecs(Model):
+    """A model that wraps APIs to get cryptocurrency prices."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize ApiSpecsModel."""
+        self.url: str = self.ensure("url", kwargs)
+        self.api_id: str = self.ensure("api_id", kwargs)
+        self.method: str = self.ensure("method", kwargs)
+        self.headers: HeadersType = kwargs.pop("headers", [])
+        self.parameters: ParametersType = kwargs.pop("parameters", [])
+        self.response_info = ResponseInfo(kwargs)
+        self._retries_info = RetriesInfo(kwargs)
+
+        super().__init__(*args, **kwargs)
 
     def ensure(self, keyword: str, kwargs: Dict) -> Any:
         """Ensure a keyword argument."""
@@ -290,12 +304,16 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         """Try to get an error from the response."""
         try:
             return self._parse_response(
-                response_data, self.error_key, self.error_index, self.error_type
+                response_data,
+                self.response_info.error_key,
+                self.response_info.error_index,
+                self.response_info.error_type,
             )
         except (KeyError, IndexError):
             self.context.logger.error(
-                f"Could not parse error from response {response_data} using the given key(s) ({self.error_key}) "
-                f"and index ({self.error_index})!"
+                f"Could not parse error from response {response_data} "
+                f"using the given key(s) ({self.response_info.error_key}) "
+                f"and index ({self.response_info.error_index})!"
             )
             self._log_response(decoded_response)
             return None
@@ -310,15 +328,15 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
     ) -> Any:
         """Get response data from api, based on the given response key"""
         decoded_response = response.body.decode()
-        response_data = self.error_data = None
+        response_data = self.response_info.error_data = None
 
         try:
             response_data = json.loads(decoded_response)
             parsed_response = self._parse_response(
                 response_data,
-                self.response_key,
-                self.response_index,
-                self.response_type,
+                self.response_info.response_key,
+                self.response_info.response_index,
+                self.response_info.response_type,
             )
             if parsed_response is None:
                 raise UnexpectedResponseError()
@@ -334,26 +352,26 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
             raise UnexpectedResponseError from e
         except UnexpectedResponseError:
             self.context.logger.error(
-                f"Could not access response using the given key(s) ({self.response_key}) "
-                f"and index ({self.response_index})!"
+                f"Could not access response using the given key(s) ({self.response_info.response_key}) "
+                f"and index ({self.response_info.response_index})!"
             )
             self._log_response(decoded_response)
-            self.error_data = self._get_error_from_response(
+            self.response_info.error_data = self._get_error_from_response(
                 decoded_response, response_data
             )
             return None
 
     def increment_retries(self) -> None:
         """Increment the retries counter."""
-        self._retries_attempted += 1
+        self._retries_info.retries_attempted += 1
 
     def reset_retries(self) -> None:
         """Reset the retries counter."""
-        self._retries_attempted = 0
+        self._retries_info.retries_attempted = 0
 
     def is_retries_exceeded(self) -> bool:
         """Check if the retries amount has been exceeded."""
-        return self._retries_attempted > self._retries
+        return self._retries_info.retries_attempted > self._retries_info.retries
 
 
 class BenchmarkBlockTypes:  # pylint: disable=too-few-public-methods
