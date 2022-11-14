@@ -22,7 +22,7 @@
 import os
 import shutil
 from pathlib import Path
-from typing import Tuple
+from typing import Dict, List, Tuple
 from unittest import mock
 
 import yaml
@@ -46,7 +46,7 @@ from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 @skip_docker_tests
-class TestBuildDeployment(BaseCliTest):
+class BaseDeployBuildTest(BaseCliTest):
     """Test `autonomy deply build deployment` command."""
 
     cli_options: Tuple[str, ...] = ("deploy", "build")
@@ -56,11 +56,9 @@ class TestBuildDeployment(BaseCliTest):
 
     def setup(self) -> None:
         """Setup test method."""
-
         super().setup()
 
         self.keys_file = self.t / "keys.json"
-
         shutil.copytree(ROOT_DIR / PACKAGES, self.t / PACKAGES)
         shutil.copy(
             ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json", self.keys_file
@@ -72,41 +70,16 @@ class TestBuildDeployment(BaseCliTest):
         )
         os.chdir(self.t / "hello_world")
 
-    def test_docker_compose_build(
-        self,
-    ) -> None:
-        """Run tests."""
 
-        with mock.patch("os.chown"):
-            result = self.run_cli(
-                (
-                    str(self.keys_file),
-                    "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
-                    "--local",
-                )
-            )
+class TestDockerComposeBuilds(BaseDeployBuildTest):
+    """Test docker-compose build."""
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
-
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
-        assert build_dir.exists()
-
-        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
-        assert any(
-            [
-                child in build_tree
-                for child in [
-                    "persistent_storage",
-                    "nodes",
-                    DockerComposeGenerator.output_name,
-                ]
-            ]
-        )
-
-        docker_compose_file = build_dir / DockerComposeGenerator.output_name
-        with open(docker_compose_file, "r", encoding="utf-8") as fp:
+    @staticmethod
+    def load_and_check_docker_compose_file(
+        path: Path,
+    ) -> Dict:
+        """Load docker compose config."""
+        with open(path, "r", encoding="utf-8") as fp:
             docker_compose = yaml.safe_load(fp)
 
         assert any(
@@ -123,11 +96,58 @@ class TestBuildDeployment(BaseCliTest):
             ]
         )
 
+        return docker_compose
+
+    @staticmethod
+    def check_docker_compose_build(
+        build_dir: Path,
+    ) -> None:
+        """Check docker compose build directory."""
+        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
+        assert any(
+            [
+                child in build_tree
+                for child in [
+                    "persistent_storage",
+                    "nodes",
+                    DockerComposeGenerator.output_name,
+                ]
+            ]
+        )
+
+    def test_docker_compose_build(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--force",
+                    "--local",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_docker_compose_build(
+            build_dir=build_dir,
+        )
+        self.load_and_check_docker_compose_file(
+            path=build_dir / DockerComposeGenerator.output_name
+        )
+
     def test_docker_compose_build_log_level(
         self,
     ) -> None:
         """Run tests."""
 
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
@@ -141,29 +161,15 @@ class TestBuildDeployment(BaseCliTest):
                 )
             )
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
-
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert result.exit_code == 0, result.output
         assert build_dir.exists()
 
-        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
-        assert any(
-            [
-                child in build_tree
-                for child in [
-                    "persistent_storage",
-                    "nodes",
-                    DockerComposeGenerator.output_name,
-                ]
-            ]
+        self.check_docker_compose_build(
+            build_dir=build_dir,
         )
 
-        docker_compose_file = build_dir / DockerComposeGenerator.output_name
-        with open(docker_compose_file, "r", encoding="utf-8") as fp:
-            docker_compose = yaml.safe_load(fp)
-
-        assert any(
-            [key in docker_compose for key in ["version", "services", "networks"]]
+        docker_compose = self.load_and_check_docker_compose_file(
+            path=build_dir / DockerComposeGenerator.output_name
         )
 
         assert (
@@ -178,6 +184,7 @@ class TestBuildDeployment(BaseCliTest):
     ) -> None:
         """Run tests."""
 
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
         with mock.patch("os.chown"):
             result = self.run_cli(
                 (
@@ -196,182 +203,26 @@ class TestBuildDeployment(BaseCliTest):
                 )
             )
 
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
-
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert result.exit_code == 0, result.output
         assert build_dir.exists()
 
-        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
-        assert any(
-            [
-                child in build_tree
-                for child in [
-                    "persistent_storage",
-                    "nodes",
-                    DockerComposeGenerator.output_name,
-                ]
-            ]
+        self.check_docker_compose_build(
+            build_dir=build_dir,
         )
 
-        docker_compose_file = build_dir / DockerComposeGenerator.output_name
-        with open(docker_compose_file, "r", encoding="utf-8") as fp:
-            docker_compose = yaml.safe_load(fp)
-
-        assert any(
-            [key in docker_compose for key in ["version", "services", "networks"]]
+        docker_compose = self.load_and_check_docker_compose_file(
+            path=build_dir / DockerComposeGenerator.output_name
         )
 
-        assert any(
-            [
-                service in docker_compose["services"]
-                for service in [
-                    *map(lambda i: f"abci{i}", range(4)),
-                    *map(lambda i: f"node0{i}", range(4)),
-                ]
-            ]
+        assert (
+            f"{ROOT_DIR}:/home/ubuntu/packages:rw"
+            in docker_compose["services"]["abci0"]["volumes"]
         )
-
-    def test_kubernetes_build(
-        self,
-    ) -> None:
-        """Run tests."""
-
-        with mock.patch("os.chown"):
-            result = self.run_cli(
-                (
-                    str(self.keys_file),
-                    "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--kubernetes",
-                    "--force",
-                    "--local",
-                )
-            )
-
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
-
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
-        assert build_dir.exists()
-
-        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
-        assert any(
-            [child in build_tree for child in ["persistent_storage", "build.yaml"]]
+        assert f"{ROOT_DIR}:/open-aea" in docker_compose["services"]["abci0"]["volumes"]
+        assert (
+            f"{ROOT_DIR}:/open-autonomy"
+            in docker_compose["services"]["abci0"]["volumes"]
         )
-
-    def test_kubernetes_build_log_level(
-        self,
-    ) -> None:
-        """Run tests."""
-
-        with mock.patch("os.chown"):
-            result = self.run_cli(
-                (
-                    str(self.keys_file),
-                    "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--kubernetes",
-                    "--force",
-                    "--local",
-                    "--log-level",
-                    DEBUG,
-                )
-            )
-
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
-
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
-        assert build_dir.exists()
-
-        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
-        assert any(
-            [child in build_tree for child in ["persistent_storage", "build.yaml"]]
-        )
-
-        with open(build_dir / "build.yaml", "r") as fp:
-            build_config = list(yaml.safe_load_all(fp))
-
-        assert {"name": "LOG_LEVEL", "value": DEBUG} in build_config[1]["spec"][
-            "template"
-        ]["spec"]["containers"][0]["env"]
-
-    def test_kubernetes_build_dev(
-        self,
-    ) -> None:
-        """Run tests."""
-
-        with mock.patch("os.chown"):
-            result = self.run_cli(
-                (
-                    str(self.keys_file),
-                    "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--kubernetes",
-                    "--force",
-                    "--dev",
-                    "--local",
-                    "--packages-dir",
-                    str(ROOT_DIR),
-                    "--open-aea-dir",
-                    str(ROOT_DIR),
-                    "--open-autonomy-dir",
-                    str(ROOT_DIR),
-                )
-            )
-
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
-
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
-        assert build_dir.exists()
-
-        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
-        assert any(
-            [child in build_tree for child in ["persistent_storage", "build.yaml"]]
-        )
-
-    def test_docker_compose_no_password(
-        self,
-    ) -> None:
-        """Run tests."""
-
-        with mock.patch("os.chown"):
-            result = self.run_cli(
-                (
-                    str(self.keys_file),
-                    "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
-                    "--local",
-                )
-            )
-
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
-
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
-        assert build_dir.exists()
-
-        docker_compose_file = build_dir / DockerComposeGenerator.output_name
-        with open(docker_compose_file, "r", encoding="utf-8") as fp:
-            docker_compose = yaml.safe_load(fp)
-
-        agents = int(len(docker_compose["services"]) / 2)
-        assert all(
-            [
-                (
-                    build_dir
-                    / DEPLOYMENT_KEY_DIRECTORY
-                    / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=i)
-                ).exists()
-                for i in range(agents)
-            ]
-        )
-        for x in range(agents):
-            env = dict(
-                [
-                    f.split("=")
-                    for f in docker_compose["services"][f"abci{x}"]["environment"]
-                ]
-            )
-            assert "AEA_PASSWORD" not in env.keys()
 
     def test_docker_compose_password(
         self,
@@ -394,12 +245,12 @@ class TestBuildDeployment(BaseCliTest):
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
 
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert result.exit_code == 0, result.output
         assert build_dir.exists()
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
 
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert result.exit_code == 0, result.output
         assert build_dir.exists()
 
         docker_compose_file = build_dir / DockerComposeGenerator.output_name
@@ -407,16 +258,13 @@ class TestBuildDeployment(BaseCliTest):
             docker_compose = yaml.safe_load(fp)
 
         agents = int(len(docker_compose["services"]) / 2)
-        assert all(
-            [
-                (
-                    build_dir
-                    / DEPLOYMENT_KEY_DIRECTORY
-                    / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=i)
-                ).exists()
-                for i in range(agents)
-            ]
-        )
+        file_check = lambda n: (
+            build_dir
+            / DEPLOYMENT_KEY_DIRECTORY
+            / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=n)
+        ).exists()
+
+        assert all(file_check(i) for i in range(agents))
         for x in range(agents):
             env = dict(
                 [
@@ -426,115 +274,6 @@ class TestBuildDeployment(BaseCliTest):
             )
             assert "AEA_PASSWORD" in env.keys()
             assert env["AEA_PASSWORD"] == ETHEREUM_ENCRYPTION_PASSWORD
-
-    def test_kubernetes_build_password(
-        self,
-    ) -> None:
-        """Run tests."""
-        keys_file = Path(ETHEREUM_ENCRYPTED_KEYS)
-
-        with mock.patch("os.chown"):
-            result = self.run_cli(
-                (
-                    str(keys_file),
-                    "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
-                    "--kubernetes",
-                    "--password",
-                    ETHEREUM_ENCRYPTION_PASSWORD,
-                    "--local",
-                )
-            )
-
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
-        assert build_dir.exists()
-
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
-        kubernetes_config_file = build_dir / "build.yaml"
-
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
-        assert build_dir.exists()
-        with open(kubernetes_config_file, "r", encoding="utf-8") as fp:
-            kubernetes_config = list(yaml.safe_load_all(fp))
-
-        for resource in kubernetes_config:
-            try:
-                agent_vars = {
-                    f["name"]: f["value"]
-                    for f in resource["spec"]["template"]["spec"]["containers"][1][
-                        "env"
-                    ]
-                }
-            except (KeyError, IndexError):
-                continue
-
-            assert agent_vars["AEA_PASSWORD"] == ETHEREUM_ENCRYPTION_PASSWORD
-
-        assert all(
-            [
-                (
-                    build_dir
-                    / DEPLOYMENT_KEY_DIRECTORY
-                    / KUBERNETES_AGENT_KEY_NAME.format(agent_n=i)
-                ).exists()
-                for i in range(4)
-            ]
-        )
-
-    def test_kubernetes_build_no_password(
-        self,
-    ) -> None:
-        """Run tests."""
-
-        with mock.patch("os.chown"):
-            result = self.run_cli(
-                (
-                    str(self.keys_file),
-                    "--o",
-                    str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
-                    "--kubernetes",
-                    "--local",
-                )
-            )
-
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
-        assert build_dir.exists()
-
-        build_dir = self.t / DEFAULT_BUILD_FOLDER
-        kubernetes_config_file = build_dir / "build.yaml"
-
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
-        assert build_dir.exists()
-        with open(kubernetes_config_file, "r", encoding="utf-8") as fp:
-            kubernetes_config = list(yaml.safe_load_all(fp))
-
-        for resource in kubernetes_config:
-            try:
-                agent_vars = {
-                    f["name"]: f["value"]
-                    for f in resource["spec"]["template"]["spec"]["containers"][1][
-                        "env"
-                    ]
-                }
-            except (KeyError, IndexError):
-                continue
-
-            assert "AEA_PASSWORD" not in agent_vars.keys()
-
-        assert all(
-            [
-                (
-                    build_dir
-                    / DEPLOYMENT_KEY_DIRECTORY
-                    / KUBERNETES_AGENT_KEY_NAME.format(agent_n=i)
-                ).exists()
-                for i in range(4)
-            ]
-        )
 
     def test_include_acn_and_hardhat_nodes(
         self,
@@ -563,13 +302,12 @@ class TestBuildDeployment(BaseCliTest):
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
 
-        assert result.exit_code == 0, f"{result.stdout_bytes}\n{result.stderr_bytes}"
+        assert result.exit_code == 0, result.output
         assert build_dir.exists()
 
-        docker_compose_file = build_dir / DockerComposeGenerator.output_name
-        with open(docker_compose_file, "r", encoding="utf-8") as fp:
-            docker_compose = yaml.safe_load(fp)
-
+        docker_compose = self.load_and_check_docker_compose_file(
+            path=build_dir / DockerComposeGenerator.output_name,
+        )
         assert "acn" in docker_compose["services"]
         assert "hardhat" in docker_compose["services"]
 
@@ -592,3 +330,160 @@ class TestBuildDeployment(BaseCliTest):
 
         assert result.exit_code == 1, result.output
         assert "Please provide proper value for --packages-dir" in result.output
+
+
+class TestKuebernetesBuild(BaseDeployBuildTest):
+    """Test kubernetes builds."""
+
+    @staticmethod
+    def load_kubernetes_config(
+        path: Path,
+    ) -> List[Dict]:
+        """Load kubernetes config."""
+
+        with open(path / "build.yaml", "r") as fp:
+            return list(yaml.safe_load_all(fp))
+
+    @staticmethod
+    def check_kubernetes_build(build_dir: Path) -> None:
+        """Check kubernetes build dir."""
+
+        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
+        assert any(
+            [child in build_tree for child in ["persistent_storage", "build.yaml"]]
+        )
+
+    def test_kubernetes_build(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--kubernetes",
+                    "--force",
+                    "--local",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
+        assert any(
+            [child in build_tree for child in ["persistent_storage", "build.yaml"]]
+        )
+
+    def test_kubernetes_build_log_level(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--kubernetes",
+                    "--force",
+                    "--local",
+                    "--log-level",
+                    DEBUG,
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_kubernetes_build(build_dir=build_dir)
+
+        build_config = self.load_kubernetes_config(build_dir)
+        assert {"name": "LOG_LEVEL", "value": DEBUG} in build_config[1]["spec"][
+            "template"
+        ]["spec"]["containers"][0]["env"]
+
+    def test_kubernetes_build_dev(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--kubernetes",
+                    "--force",
+                    "--dev",
+                    "--local",
+                    "--packages-dir",
+                    str(ROOT_DIR),
+                    "--open-aea-dir",
+                    str(ROOT_DIR),
+                    "--open-autonomy-dir",
+                    str(ROOT_DIR),
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_kubernetes_build(
+            build_dir=build_dir,
+        )
+
+    def test_kubernetes_build_password(
+        self,
+    ) -> None:
+        """Run tests."""
+        keys_file = Path(ETHEREUM_ENCRYPTED_KEYS)
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--force",
+                    "--kubernetes",
+                    "--password",
+                    ETHEREUM_ENCRYPTION_PASSWORD,
+                    "--local",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        kubernetes_config = self.load_kubernetes_config(
+            path=build_dir,
+        )
+        for resource in kubernetes_config:
+            try:
+                container = resource["spec"]["template"]["spec"]["containers"]
+                agent_vars = {f["name"]: f["value"] for f in container[1]["env"]}
+            except (KeyError, IndexError):
+                continue
+
+            assert agent_vars["AEA_PASSWORD"] == ETHEREUM_ENCRYPTION_PASSWORD
+
+        assert all(
+            [
+                (
+                    build_dir
+                    / DEPLOYMENT_KEY_DIRECTORY
+                    / KUBERNETES_AGENT_KEY_NAME.format(agent_n=i)
+                ).exists()
+                for i in range(4)
+            ]
+        )
