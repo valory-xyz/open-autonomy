@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the shared state for the price estimation ABCI application."""
-import builtins
+
 import inspect
 import json
 from pathlib import Path
@@ -35,6 +35,10 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     ConsensusParams,
     RoundSequence,
+)
+from packages.valory.skills.abstract_round_abci.utils import (
+    get_data_from_nested_dict,
+    get_value_with_type,
 )
 
 
@@ -264,39 +268,20 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         self.context.logger.error(f"\nResponse: {decoded_response}")
 
     @staticmethod
-    def _get_value_with_type(value: Any, response_type: str) -> None:
-        """Get the given value as the specified type."""
-        return getattr(builtins, response_type)(value)
-
-    def _get_response_from_index(
-        self, value: List[Any], response_index: Optional[int], type_name: str
-    ) -> None:
-        """Get the response using the given index."""
-        if response_index is not None:
-            value = value[response_index]
-        return self._get_value_with_type(value, type_name)
-
     def _parse_response(
-        self,
         response_data: Any,
         response_keys: Optional[str],
         response_index: Optional[int],
         response_type: str,
     ) -> Any:
         """Parse a response from an API."""
-        if response_keys is None:
-            return self._get_response_from_index(
-                response_data, response_index, response_type
-            )
+        if response_keys is not None:
+            response_data = get_data_from_nested_dict(response_data, response_keys)
 
-        first_key, *keys = response_keys.split(":")
-        response_data = response_data[first_key]
-        for key in keys:
-            response_data = response_data[key]
+        if response_index is not None:
+            response_data = response_data[response_index]
 
-        return self._get_response_from_index(
-            response_data, response_index, response_type
-        )
+        return get_value_with_type(response_data, response_type)
 
     def _get_error_from_response(
         self, decoded_response: str, response_data: Any
