@@ -63,7 +63,7 @@ class AMMNetDockerImage(DockerImage):
 
     @property
     def image(self) -> str:
-        """Get the tag."""
+        """Get the image name."""
         return "valory/contracts-amm:latest"
 
     def create(self) -> Container:

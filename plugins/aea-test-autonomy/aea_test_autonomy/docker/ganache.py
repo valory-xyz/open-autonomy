@@ -62,7 +62,7 @@ class GanacheDockerImage(DockerImage):
 
     @property
     def image(self) -> str:
-        """Get the image tag."""
+        """Get the image name."""
         return "trufflesuite/ganache:beta"
 
     def _make_ports(self) -> Dict:

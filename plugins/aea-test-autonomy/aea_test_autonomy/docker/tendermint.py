@@ -74,7 +74,7 @@ class TendermintDockerImage(DockerImage):
 
     @property
     def image(self) -> str:
-        """Get the tag."""
+        """Get the image name."""
         return "tendermint/tendermint:v0.34.19"
 
     def _build_command(self) -> List[str]:
@@ -136,7 +136,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
 
     @property
     def image(self) -> str:
-        """Get the tag."""
+        """Get the image name."""
         return f"{TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}"
 
     @staticmethod

@@ -33,7 +33,7 @@ Initialize.
 def image() -> str
 ```
 
-Get the tag.
+Get the image name.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.tendermint.TendermintDockerImage.create"></a>
 
@@ -103,7 +103,7 @@ Initialize.
 def image() -> str
 ```
 
-Get the tag.
+Get the image name.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.tendermint.FlaskTendermintDockerImage.get_node_name"></a>
 

@@ -33,7 +33,7 @@ Initialize.
 def image() -> str
 ```
 
-Get the tag.
+Get the image name.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.gnosis_safe_net.GnosisSafeNetDockerImage.create"></a>
 

@@ -41,7 +41,7 @@ Initialize the Ganache Docker image.
 def image() -> str
 ```
 
-Get the image tag.
+Get the image name.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.ganache.GanacheDockerImage.create"></a>
 

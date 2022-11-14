@@ -62,7 +62,7 @@ class GnosisSafeNetDockerImage(DockerImage):
 
     @property
     def image(self) -> str:
-        """Get the tag."""
+        """Get the image name."""
         return "valory/safe-contract-net:latest"
 
     def create(self) -> Container:
