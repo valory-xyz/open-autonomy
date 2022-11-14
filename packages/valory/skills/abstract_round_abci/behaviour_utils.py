@@ -616,46 +616,12 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             stop_condition=stop_condition,
         )
 
-    def __check_tm_communication(self) -> Generator[None, None, bool]:
-        """Check if the Tendermint communication is considered healthy and if not restart the node."""
-        if self.tm_communication_unhealthy:
-            self.context.logger.warning(
-                "The local deadline for the next `begin_block` request from the Tendermint node has expired! "
-                "Trying to reset local Tendermint node as there could be something wrong with the communication."
-            )
-            # We assign a timeout to the num_active_peers request because we are trying to check whether the unhealthy
-            # tm communication, i.e. tm not sending blocks to the abci (agent), is caused by not having enough peers
-            # in the network. If that's the case, the node that is being queried has to be healthy, and respond in a
-            # timely fashion. If the tm node doesn't respond in the specified timeout, we assume the problem is not
-            # the lack of peers in the service, and we try to resolve it by hard resetting the tm node.
-            num_active_peers = yield from self.num_active_peers(timeout=TM_REQ_TIMEOUT)
-            if (
-                num_active_peers is not None
-                and num_active_peers < self.params.consensus_params.consensus_threshold
-            ):
-                self.context.logger.error(
-                    f"There should be at least {self.params.consensus_params.consensus_threshold} peers in the service,"
-                    f" only {num_active_peers} are currently active. Shutting down the agent."
-                )
-                not_ok_code = 1
-                sys.exit(not_ok_code)
-
-            reset_successfully = yield from self.reset_tendermint_with_wait()
-            return reset_successfully
-        return True
-
     def async_act_wrapper(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
         if not self._is_started:
             self._log_start()
             self._is_started = True
-
         try:
-            communication_is_healthy = yield from self.__check_tm_communication()
-            if not communication_is_healthy:
-                # if we end up looping here forever,
-                # then there is probably something serious going on with the communication
-                return
             if self.context.state.round_sequence.syncing_up:
                 yield from self._check_sync()
             else:
@@ -1793,6 +1759,73 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         )
         yield from self.wait_from_last_timestamp(self.params.observation_interval / 2)
         return True
+
+
+class TmManager(BaseBehaviour, ABC):
+    """Util class to be used for managing the tendermint node."""
+
+    behaviour_id = "tm_manager"
+    _active_generator: Optional[Generator] = None
+
+    def async_act(self) -> Generator:  # type: ignore
+        """The behaviour act."""
+        self.context.logger.error(
+            f"{type(self).__name__}'s async_act was called. "
+            f"This is not allowed as this class is not a behaviour. "
+            f"Exiting the agent."
+        )
+        error_code = 1
+        sys.exit(error_code)
+
+    @property
+    def is_acting(self) -> bool:
+        """This method returns whether there is an active fix being applied."""
+        return self._active_generator is not None
+
+    def _handle_unhealthy_tm(self) -> Generator:
+        """This method handles the case when the tendermint node is unhealthy."""
+        self.context.logger.warning(
+            "The local deadline for the next `begin_block` request from the Tendermint node has expired! "
+            "Trying to reset local Tendermint node as there could be something wrong with the communication."
+        )
+        # We assign a timeout to the num_active_peers request because we are trying to check whether the unhealthy
+        # tm communication, i.e. tm not sending blocks to the abci (agent), is caused by not having enough peers
+        # in the network. If that's the case, the node that is being queried has to be healthy, and respond in a
+        # timely fashion. If the tm node doesn't respond in the specified timeout, we assume the problem is not
+        # the lack of peers in the service, and we try to resolve it by hard resetting the tm node.
+        num_active_peers = yield from self.num_active_peers(timeout=TM_REQ_TIMEOUT)
+        if (
+            num_active_peers is not None
+            and num_active_peers < self.params.consensus_params.consensus_threshold
+        ):
+            self.context.logger.error(
+                f"There should be at least {self.params.consensus_params.consensus_threshold} peers in the service,"
+                f" only {num_active_peers} are currently active. Shutting down the agent."
+            )
+            not_ok_code = 1
+            sys.exit(not_ok_code)
+
+        reset_successfully = yield from self.reset_tendermint_with_wait()
+        if not reset_successfully:
+            self.context.logger.error("Failed to reset tendermint.")
+            return
+
+        self.context.logger.info("Tendermint reset was successfully performed. ")
+
+    def try_fix(self) -> None:
+        """This method tries to fix an unhealthy node."""
+        if self._active_generator is None:
+            # There is no active generator set, we need to create one.
+            # A generator being active means that a reset operation is
+            # being performed.
+            self._active_generator = self._handle_unhealthy_tm()
+        try:
+            # this will run the active generator until
+            # the first yield statement is encountered
+            self._active_generator.send(None)
+        except StopIteration:
+            # the generator is finished
+            self._active_generator = None
 
 
 class DegenerateBehaviour(BaseBehaviour, ABC):
