@@ -23,6 +23,8 @@
 import os
 from unittest import mock
 
+from autonomy.constants import DOCKER_COMPOSE_YAML
+
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
@@ -41,10 +43,18 @@ class TestRun(BaseCliTest):
         self,
     ) -> None:
         """Run test."""
-
+        (self.t / DOCKER_COMPOSE_YAML).touch()
         with mock.patch(
             "autonomy.cli.helpers.deployment.docker_compose.project_from_options"
         ), mock.patch("autonomy.cli.helpers.deployment.docker_compose.TopLevelCommand"):
             result = self.run_cli()
             assert result.exit_code == 0, result.output
             assert "Running build @" in result.output
+
+    def test_missing_config_file(
+        self,
+    ) -> None:
+        """Run test."""
+        result = self.run_cli()
+        assert result.exit_code == 1, result.output
+        assert "Deployment configuration does not exist" in result.output
