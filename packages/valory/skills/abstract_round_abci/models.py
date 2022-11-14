@@ -252,7 +252,7 @@ class ApiSpecs(Model):
         self.headers: HeadersType = kwargs.pop("headers", [])
         self.parameters: ParametersType = kwargs.pop("parameters", [])
         self.response_info = ResponseInfo(kwargs)
-        self._retries_info = RetriesInfo(kwargs)
+        self.retries_info = RetriesInfo(kwargs)
 
         super().__init__(*args, **kwargs)
 
@@ -356,15 +356,15 @@ class ApiSpecs(Model):
 
     def increment_retries(self) -> None:
         """Increment the retries counter."""
-        self._retries_info.retries_attempted += 1
+        self.retries_info.retries_attempted += 1
 
     def reset_retries(self) -> None:
         """Reset the retries counter."""
-        self._retries_info.retries_attempted = 0
+        self.retries_info.retries_attempted = 0
 
     def is_retries_exceeded(self) -> bool:
         """Check if the retries amount has been exceeded."""
-        return self._retries_info.retries_attempted > self._retries_info.retries
+        return self.retries_info.retries_attempted > self.retries_info.retries
 
 
 class BenchmarkBlockTypes:  # pylint: disable=too-few-public-methods
