@@ -193,6 +193,10 @@ class Requests(Model):
         self.request_id_to_callback: Dict[str, Callable] = {}
 
 
+class UnexpectedResponseError(Exception):
+    """Exception class for unexpected responses from Apis."""
+
+
 class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
     """A model that wraps APIs to get cryptocurrency prices."""
 
@@ -218,6 +222,10 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         self.response_key = kwargs.pop("response_key", None)
         self.response_index = kwargs.pop("response_index", None)
         self.response_type = kwargs.pop("response_type", "str")
+        self.error_key = kwargs.pop("error_key", None)
+        self.error_index = kwargs.pop("error_index", None)
+        self.error_type = kwargs.pop("error_type", "str")
+        self.error_data = None
 
         self._retries_attempted = 0
         self._retries = kwargs.pop("retries", NUMBER_OF_RETRIES)
@@ -249,54 +257,99 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
         """Log the decoded response message using error level."""
         self.context.logger.error(f"\nResponse: {decoded_response}")
 
-    def _get_value_with_type(self, value: Any) -> None:
+    @staticmethod
+    def _get_value_with_type(value: Any, response_type: str) -> None:
         """Get the given value as the specified type."""
-        return getattr(builtins, self.response_type)(value)
+        return getattr(builtins, response_type)(value)
 
-    def _get_response_from_index(self, value: List[Any]) -> None:
+    def _get_response_from_index(
+        self, value: List[Any], response_index: Optional[int], type_name: str
+    ) -> None:
         """Get the response using the given index."""
-        if self.response_index is not None:
-            value = value[self.response_index]
-        return self._get_value_with_type(value)
+        if response_index is not None:
+            value = value[response_index]
+        return self._get_value_with_type(value, type_name)
+
+    def _parse_response(
+        self,
+        response_data: Any,
+        response_keys: Optional[str],
+        response_index: Optional[int],
+        response_type: str,
+    ) -> Any:
+        """Parse a response from an API."""
+        if response_keys is None:
+            return self._get_response_from_index(
+                response_data, response_index, response_type
+            )
+
+        first_key, *keys = response_keys.split(":")
+        response_data = response_data[first_key]
+        for key in keys:
+            response_data = response_data[key]
+
+        return self._get_response_from_index(
+            response_data, response_index, response_type
+        )
+
+    def _get_error_from_response(
+        self, decoded_response: str, response_data: Any
+    ) -> Any:
+        """Try to get an error from the response."""
+        try:
+            return self._parse_response(
+                response_data, self.error_key, self.error_index, self.error_type
+            )
+        except (KeyError, IndexError):
+            self.context.logger.error(
+                f"Could not parse error from response {response_data} using the given key(s) ({self.error_key}) "
+                f"and index ({self.error_index})!"
+            )
+            self._log_response(decoded_response)
+            return None
 
     def process_response(self, response: HttpMessage) -> Any:
         """Process response from api."""
-        return self._get_response_data(response, self.response_key)
+        return self._get_response_data(response)
 
     def _get_response_data(
         self,
         response: HttpMessage,
-        response_key: Optional[str],
     ) -> Any:
         """Get response data from api, based on the given response key"""
         decoded_response = response.body.decode()
+        response_data = self.error_data = None
 
         try:
             response_data = json.loads(decoded_response)
-            if response_key is None:
-                return self._get_response_from_index(response_data)
-
-            first_key, *keys = response_key.split(":")
-            value = response_data[first_key]
-            for key in keys:
-                value = value[key]
-
-            return self._get_response_from_index(value)
+            parsed_response = self._parse_response(
+                response_data,
+                self.response_key,
+                self.response_index,
+                self.response_type,
+            )
+            if parsed_response is None:
+                raise UnexpectedResponseError()
+            return parsed_response
 
         except json.JSONDecodeError:
             self.context.logger.error("Could not parse the response body!")
-        except KeyError:
-            self.context.logger.error(
-                f"Could not access response using the given key(s) ({self.response_key})!"
-            )
-        except IndexError:
+            self._log_response(decoded_response)
+            return None
+        except KeyError as e:
+            raise UnexpectedResponseError from e
+        except IndexError as e:
+            raise UnexpectedResponseError from e
+        except UnexpectedResponseError:
             self.context.logger.error(
                 f"Could not access response using the given key(s) ({self.response_key}) "
                 f"and index ({self.response_index})!"
             )
-
-        self._log_response(decoded_response)
-        return None
+            self._log_response(decoded_response)
+            self.error_data = self._get_error_from_response(
+                decoded_response, response_data
+            )
+            return None
 
     def increment_retries(self) -> None:
         """Increment the retries counter."""
