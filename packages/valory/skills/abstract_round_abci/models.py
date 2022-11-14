@@ -265,7 +265,8 @@ class ApiSpecs(Model):  # pylint: disable=too-many-instance-attributes
 
     def _log_response(self, decoded_response: str) -> None:
         """Log the decoded response message using error level."""
-        self.context.logger.error(f"\nResponse: {decoded_response}")
+        pretty_json_str = json.dumps(decoded_response, indent=4)
+        self.context.logger.error(f"Response: {pretty_json_str}")
 
     @staticmethod
     def _parse_response(
