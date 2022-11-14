@@ -320,13 +320,6 @@ class ApiSpecs(Model):
 
     def process_response(self, response: HttpMessage) -> Any:
         """Process response from api."""
-        return self._get_response_data(response)
-
-    def _get_response_data(
-        self,
-        response: HttpMessage,
-    ) -> Any:
-        """Get response data from api, based on the given response key"""
         decoded_response = response.body.decode()
         response_data = self.response_info.error_data = None
 
