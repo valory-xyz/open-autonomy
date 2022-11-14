@@ -58,9 +58,10 @@ class TestFromToken(BaseCliTest):
             "image": "bafybeiansmhkoovd6jlnyurm2w4qzhpmi43gxlyenq33ioovy2rh4gziji",
             "attributes": [{"trait_type": "version", "value": "0.1.0"}],
         }
-        with mock.patch("autonomy.cli.deploy.run_deployment"), mock.patch(
-            "autonomy.cli.deploy.build_image"
-        ), mock.patch("autonomy.cli.deploy.build_deployment"), mock.patch(
+
+        with mock.patch("autonomy.cli.helpers.deployment.run_deployment"), mock.patch(
+            "autonomy.cli.helpers.deployment.build_image"
+        ), mock.patch("autonomy.cli.helpers.deployment.build_deployment"), mock.patch(
             "click.echo"
         ) as click_mock, mock.patch(
             "autonomy.cli.helpers.registry.get_default_remote_registry",
