@@ -31,17 +31,6 @@ def abci_app_specs(ctx: Context, package: Optional[Path], app_class: Optional[st
 
 Generate ABCI app specs.
 
-<a id="autonomy.cli.analyse.abci_group"></a>
-
-#### abci`_`group
-
-```python
-@analyse_group.group(name="abci")
-def abci_group() -> None
-```
-
-Analyse ABCI apps of an agent service.
-
 <a id="autonomy.cli.analyse.docstrings"></a>
 
 #### docstrings
@@ -65,9 +54,9 @@ Analyse ABCI docstring definitions.
 #### parse`_`logs
 
 ```python
-@abci_group.command(name="logs")
+@analyse_group.command(name="logs")
 @click.argument("file", type=click.Path(file_okay=True, dir_okay=False, exists=True))
-def parse_logs(file: Path) -> None
+def parse_logs(file: str) -> None
 ```
 
 Parse logs of an agent service.

@@ -4,6 +4,16 @@
 
 Base deployments module.
 
+<a id="autonomy.deploy.base.NotValidKeysFile"></a>
+
+## NotValidKeysFile Objects
+
+```python
+class NotValidKeysFile(Exception)
+```
+
+Raise when provided keys file is not valid.
+
 <a id="autonomy.deploy.base.ServiceSpecification"></a>
 
 ## ServiceSpecification Objects
