@@ -89,8 +89,9 @@ class ServiceRegistry:
             )
 
         # TODO: replace with our plugin for easier extensability
+        self.rpc_url = rpc_url
         self.w3 = web3.Web3(
-            provider=web3.HTTPProvider(endpoint_uri=rpc_url),
+            provider=web3.HTTPProvider(endpoint_uri=self.rpc_url),
         )
         self.abi = get_abi(SERVICE_REGISTRY_ABI)
 

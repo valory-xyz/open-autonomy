@@ -54,6 +54,10 @@ COMPONENT_CONFIGS: Dict = {
 }
 
 
+class NotValidKeysFile(Exception):
+    """Raise when provided keys file is not valid."""
+
+
 # TODO: how dpes this relate to `autonomy/services`? Unify
 class ServiceSpecification:
     """Class to assist with generating deployments."""
@@ -92,22 +96,30 @@ class ServiceSpecification:
     def read_keys(self, file_path: Path) -> None:
         """Read in keys from a file on disk."""
 
-        keys = json.loads(file_path.read_text(encoding=DEFAULT_ENCODING))
+        try:
+            keys = json.loads(file_path.read_text(encoding=DEFAULT_ENCODING))
+        except json.decoder.JSONDecodeError as e:
+            raise NotValidKeysFile(
+                "Error decoding keys file, please check the content of the file"
+            ) from e
+
         for key in keys:
             if {KEY_SCHEMA_ADDRESS, KEY_SCHEMA_PRIVATE_KEY} != set(key.keys()):
-                raise ValueError("Key file incorrectly formatted.")
+                raise NotValidKeysFile("Key file incorrectly formatted.")
 
         if self.agent_instances is not None:
             keys = [kp for kp in keys if kp["address"] in self.agent_instances]
             if not keys:
-                raise ValueError(
+                raise NotValidKeysFile(
                     "Cannot find the provided keys in the list of the agent instances."
                 )
             self.service.number_of_agents = len(keys)
 
         self.keys = keys
         if self.service.number_of_agents > len(self.keys):
-            raise ValueError("Number of agents cannot be greater than available keys.")
+            raise NotValidKeysFile(
+                "Number of agents cannot be greater than available keys."
+            )
 
     def process_model_args_overrides(self, agent_n: int) -> Dict:
         """Generates env vars based on model overrides."""
