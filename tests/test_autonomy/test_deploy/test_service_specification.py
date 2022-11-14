@@ -29,7 +29,7 @@ from typing import Dict, List
 import pytest
 import yaml
 
-from autonomy.deploy.base import ServiceSpecification
+from autonomy.deploy.base import NotValidKeysFile, ServiceSpecification
 
 from tests.test_autonomy.base import get_dummy_service_config
 
@@ -107,7 +107,8 @@ class TestServiceSpecification:
         self._write_service(get_dummy_service_config())
 
         with pytest.raises(
-            ValueError, match="Number of agents cannot be greater than available keys"
+            NotValidKeysFile,
+            match="Number of agents cannot be greater than available keys",
         ):
             ServiceSpecification(
                 self.service_path,
@@ -132,8 +133,7 @@ class TestServiceSpecification:
             )
         )
 
-        with pytest.raises(ValueError, match="Key file incorrectly formatted"):
-
+        with pytest.raises(NotValidKeysFile, match="Key file incorrectly formatted"):
             ServiceSpecification(
                 self.service_path,
                 self.keys_path,
@@ -157,7 +157,7 @@ class TestServiceSpecification:
         assert len(agents) == 1
 
         with pytest.raises(
-            ValueError,
+            NotValidKeysFile,
             match="Cannot find the provided keys in the list of the agent instances",
         ):
             ServiceSpecification(self.service_path, self.keys_path, agent_instances=[])
