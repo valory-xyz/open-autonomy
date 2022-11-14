@@ -49,3 +49,23 @@ def to_int(most_voted_estimate: float, decimals: int) -> int
 
 Convert to int.
 
+<a id="packages.valory.skills.abstract_round_abci.utils.get_data_from_nested_dict"></a>
+
+#### get`_`data`_`from`_`nested`_`dict
+
+```python
+def get_data_from_nested_dict(nested_dict: Dict, keys: str, separator: str = ":") -> Any
+```
+
+Gets content from a nested dictionary, using serialized response keys which are split by a given separator.
+
+<a id="packages.valory.skills.abstract_round_abci.utils.get_value_with_type"></a>
+
+#### get`_`value`_`with`_`type
+
+```python
+def get_value_with_type(value: Any, type_name: str) -> Any
+```
+
+Get the given value as the specified type.
+
