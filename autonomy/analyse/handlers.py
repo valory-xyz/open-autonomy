@@ -21,7 +21,6 @@
 
 
 import importlib
-import os
 from pathlib import Path
 from typing import List
 
@@ -30,23 +29,29 @@ import yaml
 from autonomy.configurations.constants import CLASS_NAME, HANDLERS
 
 
-def check_handlers(
-    config_file: Path, common_handlers: List[str], skip_skills: List[str]
-) -> None:
+def resolve_handler_path_to_module(skill_path: Path) -> str:
+    """Resolve handler path to current workind directory."""
+    handler_file_path = skill_path.relative_to(Path.cwd().resolve())
+    return ".".join(
+        (
+            *handler_file_path.parts,
+            HANDLERS,
+        )
+    )
+
+
+def check_handlers(config_file: Path, common_handlers: List[str]) -> None:
     """Check handlers"""
 
-    handler_file_path = (config_file.parent / f"{HANDLERS}.py").relative_to(
-        Path.cwd().resolve()
-    )
-    module_name = str(handler_file_path).replace(".py", "").replace(os.sep, ".")
-    if config_file.parent.name in skip_skills:
-        return
+    module_name = resolve_handler_path_to_module(config_file.parent)
 
     try:
         module = importlib.import_module(module_name)
         module_attributes = dir(module)
-    except ModuleNotFoundError as exc:
-        raise FileNotFoundError(f"Handler file {module_name} does not exist") from exc
+    except ModuleNotFoundError as e:
+        raise FileNotFoundError(
+            f"Handler file does not exist in {config_file.parent}"
+        ) from e
 
     with open(str(config_file), mode="r", encoding="utf-8") as fp:
         config = yaml.safe_load(fp)
@@ -59,5 +64,5 @@ def check_handlers(
         for handler_info in config[HANDLERS].values():
             if handler_info["class_name"] not in module_attributes:
                 raise ValueError(
-                    f"Handler {handler_info[CLASS_NAME]} declared in {config_file} is missing from {handler_file_path}"
+                    f"Handler {handler_info[CLASS_NAME]} declared in {config_file} is missing from {module_name}"
                 )

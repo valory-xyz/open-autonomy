@@ -42,7 +42,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
 RegisterTerminateAbciApp = chain(
     (
         RegistrationAbci.AgentRegistrationAbciApp,
-        ResetAndPauseAbci.ResetPauseABCIApp,
+        ResetAndPauseAbci.ResetPauseAbciApp,
     ),
     abci_app_transition_mapping,
 ).add_termination(

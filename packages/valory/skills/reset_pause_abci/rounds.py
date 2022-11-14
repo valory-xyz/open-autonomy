@@ -87,34 +87,26 @@ class FinishedResetAndPauseErrorRound(DegenerateRound):
     round_id = "finished_reset_pause_error"
 
 
-class ResetPauseABCIApp(AbciApp[Event]):
-    """ResetPauseABCIApp
+class ResetPauseAbciApp(AbciApp[Event]):
+    """ResetPauseAbciApp
 
-    Initial round: RegistrationRound
+    Initial round: ResetAndPauseRound
 
-    Initial states: {RegistrationRound}
+    Initial states: {ResetAndPauseRound}
 
     Transition states:
+        0. ResetAndPauseRound
+            - done: 1.
+            - reset and pause timeout: 2.
+            - no majority: 2.
+        1. FinishedResetAndPauseRound
+        2. FinishedResetAndPauseErrorRound
 
-    0. ResetAndPauseRound
-        - done: 1.
-        - reset timeout: 0.
-        - no majority: 0.
-    1. FinishedResetAndPauseRound
-    2. FinishedResetAndPauseErrorRound
-
-    Initial states: {
-        ResetAndPauseRound,
-    }
-
-    Final states: {
-        FinishedResetAndPauseRound,
-        FinishedResetAndPauseErrorRound,
-    }
+    Final states: {FinishedResetAndPauseErrorRound, FinishedResetAndPauseRound}
 
     Timeouts:
         round timeout: 30.0
-        reset timeout: 30.0
+        reset and pause timeout: 30.0
     """
 
     initial_round_cls: Type[AbstractRound] = ResetAndPauseRound

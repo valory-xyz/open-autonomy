@@ -19,10 +19,8 @@
 
 """Analyse ABCI app definitions for docstrings."""
 
-import importlib
 import re
-from pathlib import Path
-from typing import Any, cast
+from typing import Any, Tuple, cast
 
 
 INDENT = " " * 4
@@ -78,41 +76,26 @@ def docstring_abci_app(abci_app: Any) -> str:  # pylint: disable-msg=too-many-lo
     )
 
 
-def update_docstrings(
-    module_path: Path, docstring: str, abci_app_name: str, check: bool = False
-) -> bool:
+def compare_docstring_content(
+    file_content: str,
+    docstring: str,
+    abci_app_name: str,
+) -> Tuple[bool, str]:
     """Update docstrings."""
 
-    content = module_path.read_text()
+    # TOFIX: check fails if the docstring is not defined, update regex and add better checks
+
     regex = r'class [A-Za-z]+\(AbciApp\[Event\]\):([a-zA-Z \#:=\-]+)?\n    """[A-Za-z]+\n[a-zA-Z0-9 :{},._\-\n]+"""'
     docstring = "\n".join(
         map(lambda x: f"{INDENT}{x}" if len(x) else x, docstring.split("\n"))
     )
-    match = re.search(regex, content)
-    if match is None:
-        return False
 
+    match = re.search(regex, file_content)
+    if match is None:
+        return False, ""
     group, *_ = cast(re.Match, match).groups()
     markers = group if group is not None else ""
 
     updated_class = f"class {abci_app_name}(AbciApp[Event]):{markers}{docstring}"
-    updated_content = re.sub(regex, updated_class, content, re.MULTILINE)
-    needs_update = updated_content != content
-
-    if check:
-        return needs_update
-
-    module_path.write_text(updated_content, encoding="utf-8")
-    return needs_update
-
-
-def process_module(module_path: Path, check: bool = False) -> bool:
-    """Process module."""
-    module = importlib.import_module(".".join(module_path.parts).replace(".py", ""))
-    for obj in dir(module):
-        if obj.endswith(ABCIAPP) and obj != ABCIAPP:
-            App = getattr(module, obj)
-            docstring = docstring_abci_app(App)
-            return update_docstrings(module_path, docstring, obj, check)
-
-    return False
+    updated_content = re.sub(regex, updated_class, file_content, re.MULTILINE)
+    return True, updated_content

@@ -18,40 +18,17 @@
 # ------------------------------------------------------------------------------
 """Implementation of the 'autonomy publish' subcommand."""
 
-import os
 from pathlib import Path
-from shutil import copytree
-from typing import cast
 
 import click
 from aea.cli.publish import publish_agent_package
-from aea.cli.registry.settings import REGISTRY_REMOTE, REMOTE_IPFS
 from aea.cli.utils.click_utils import registry_flag
-from aea.cli.utils.config import (
-    get_default_remote_registry,
-    get_ipfs_node_multiaddr,
-    load_item_config,
-)
-from aea.cli.utils.context import Context
-from aea.cli.utils.package_utils import try_get_item_target_path
 from aea.configurations.constants import (
     DEFAULT_AEA_CONFIG_FILE,
     DEFAULT_SERVICE_CONFIG_FILE,
-    SERVICE,
-    SERVICES,
 )
-from aea.configurations.data_types import PublicId
-from aea.helpers.cid import to_v1
 
-from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
-
-
-try:
-    from aea_cli_ipfs.ipfs_utils import IPFSTool  # type: ignore
-
-    IS_IPFS_PLUGIN_INSTALLED = True
-except ImportError:  # pragma: nocover
-    IS_IPFS_PLUGIN_INSTALLED = False
+from autonomy.cli.helpers.registry import publish_service_package
 
 
 @click.command(name="publish")
@@ -76,66 +53,3 @@ def publish(
             raise FileNotFoundError("No package config found in this directory.")
     except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
         raise click.ClickException(str(e)) from e
-
-
-def publish_service_package(click_context: click.Context, registry: str) -> None:
-    """Publish a service package."""
-
-    # TODO ensure we have error handling here.
-    service_config = load_item_config(
-        SERVICE, Path(click_context.obj.cwd), PACKAGE_TYPE_TO_CONFIG_CLASS
-    )
-
-    if registry == REGISTRY_REMOTE:
-        if get_default_remote_registry() == REMOTE_IPFS:
-            publish_service_ipfs(service_config.public_id, Path(click_context.obj.cwd))
-        else:
-            raise Exception("HTTP registry not supported.")
-
-    else:
-        publish_service_local(
-            cast(
-                Context,
-                click_context.obj,
-            ),
-            service_config.public_id,
-        )
-
-
-def publish_service_ipfs(public_id: PublicId, package_path: Path) -> None:
-    """Publish a service package on the IPFS registry."""
-
-    if not IS_IPFS_PLUGIN_INSTALLED:  # pragma: nocover
-        raise RuntimeError("IPFS plugin not installed.")
-
-    ipfs_tool = IPFSTool(get_ipfs_node_multiaddr())
-    _, package_hash, _ = ipfs_tool.add(str(package_path.resolve()))
-    package_hash = to_v1(package_hash)
-    click.echo(
-        f'Service "{public_id.name}" successfully published on the IPFS registry.\n\tPublicId: {public_id}\n\tPackage hash: {package_hash}'
-    )
-
-
-def publish_service_local(ctx: Context, public_id: PublicId) -> None:
-    """Publish a service package on the local packages directory."""
-
-    try:
-        registry_path = ctx.registry_path
-    except ValueError as e:  # pragma: nocover
-        raise click.ClickException(str(e))
-
-    target_dir = try_get_item_target_path(
-        registry_path,
-        public_id.author,
-        SERVICES,
-        public_id.name,
-    )
-    author_dir = Path(target_dir).parent
-    if not os.path.exists(author_dir):
-        os.makedirs(author_dir, exist_ok=True)
-    # TODO: also make services dir?
-
-    copytree(ctx.cwd, target_dir)
-    click.echo(
-        f'Service "{public_id.name}" successfully published on the local packages directory.'
-    )

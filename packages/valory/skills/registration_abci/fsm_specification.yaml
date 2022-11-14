@@ -6,7 +6,7 @@ default_start_state: RegistrationStartupRound
 final_states:
 - FinishedRegistrationFFWRound
 - FinishedRegistrationRound
-label: packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp
+label: AgentRegistrationAbciApp
 start_states:
 - RegistrationRound
 - RegistrationStartupRound
