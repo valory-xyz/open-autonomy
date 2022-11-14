@@ -258,13 +258,15 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
             docker_compose = yaml.safe_load(fp)
 
         agents = int(len(docker_compose["services"]) / 2)
-        file_check = lambda n: (
-            build_dir
-            / DEPLOYMENT_KEY_DIRECTORY
-            / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=n)
-        ).exists()
 
-        assert all(file_check(i) for i in range(agents))
+        def _file_check(n: int) -> bool:
+            return (
+                build_dir
+                / DEPLOYMENT_KEY_DIRECTORY
+                / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=n)
+            ).exists()
+
+        assert all(_file_check(i) for i in range(agents))
         for x in range(agents):
             env = dict(
                 [
