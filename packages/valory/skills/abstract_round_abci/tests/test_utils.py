@@ -21,11 +21,17 @@
 
 # pylint: skip-file
 
+import os
 import sys
-from typing import Any
+from collections import defaultdict
+from typing import Any, List, Type
 from unittest import mock
 
 import pytest
+from hypothesis import assume, given, settings
+from hypothesis import strategies as st
+
+from packages.valory.skills.abstract_round_abci import CI
 
 
 try:
@@ -36,6 +42,8 @@ except (ImportError, ModuleNotFoundError):
 from packages.valory.skills.abstract_round_abci.utils import (
     MAX_UINT64,
     VerifyDrand,
+    get_data_from_nested_dict,
+    get_value_with_type,
     to_int,
 )
 
@@ -56,6 +64,11 @@ DRAND_VALUE = {
         "44f02a416480dd117a3ff8b8075b1b7362c58af195573623187463"
     ),
 }
+
+
+running_on_ci = os.getenv(CI)
+if running_on_ci:
+    settings.load_profile(CI)
 
 
 class TestVerifyDrand:
@@ -160,3 +173,54 @@ def test_fuzz_to_int() -> None:
     atheris.instrument_all()
     atheris.Setup(sys.argv, fuzz_to_int)
     atheris.Fuzz()
+
+
+@given(
+    st.lists(st.text(), min_size=1, max_size=50),
+    st.binary(),
+    st.characters(),
+)
+def test_get_data_from_nested_dict(
+    nested_keys: List[str], final_value: bytes, separator: str
+) -> None:
+    """Test `get_data_from_nested_dict`"""
+    assume(not any(separator in key for key in nested_keys))
+
+    def create_nested_dict() -> defaultdict:
+        """Recursively create a nested dict of arbitrary size."""
+        return defaultdict(create_nested_dict)
+
+    nested_dict = create_nested_dict()
+    key_access = (f"[nested_keys[{i}]]" for i in range(len(nested_keys)))
+    expression = "nested_dict" + "".join(key_access)
+    expression += " = final_value"
+    exec(expression)
+
+    serialized_keys = separator.join(nested_keys)
+    actual = get_data_from_nested_dict(nested_dict, serialized_keys, separator)
+    assert actual == final_value
+
+
+@pytest.mark.parametrize(
+    "type_name, type_, value",
+    (
+        ("str", str, "1"),
+        ("int", int, 1),
+        ("float", float, 1.1),
+        ("dict", dict, {1: 1}),
+        ("list", list, [1]),
+        ("non_existent", None, 1),
+    ),
+)
+def test_get_value_with_type(type_name: str, type_: Type, value: Any) -> None:
+    """Test `get_value_with_type`"""
+    if type_ is None:
+        with pytest.raises(
+            AttributeError, match=f"module 'builtins' has no attribute '{type_name}'"
+        ):
+            get_value_with_type(value, type_name)
+        return
+
+    actual = get_value_with_type(value, type_name)
+    assert type(actual) == type_
+    assert actual == value
