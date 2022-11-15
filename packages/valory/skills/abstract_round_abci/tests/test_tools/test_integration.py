@@ -24,23 +24,20 @@ from typing import Type, cast
 
 import pytest
 from aea.test_tools.utils import copy_class
+
 from packages.open_aea.protocols.signing import SigningMessage
-from packages.open_aea.protocols.signing.custom_types import (
-    SignedMessage,
-)
-
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB, _MetaPayload
-from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
-    PATH_TO_SKILL,
-)
+from packages.open_aea.protocols.signing.custom_types import SignedMessage
 from packages.valory.connections.ledger.tests.conftest import make_ledger_api_connection
-
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB, _MetaPayload
 from packages.valory.skills.abstract_round_abci.test_tools.integration import (
     IntegrationBaseCase,
 )
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
+    PATH_TO_SKILL,
+)
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours import (
-    DummyStartingBehaviour,
     DummyRoundBehaviour,
+    DummyStartingBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds import (
     SynchronizedData,
@@ -121,7 +118,9 @@ class TestIntegrationBaseCase:
 
         # must have a handler!
         handlers = [test_instance.signing_handler]
-        expected_content = [{"performative": SigningMessage.Performative.SIGNED_MESSAGE}]
+        expected_content = [
+            {"performative": SigningMessage.Performative.SIGNED_MESSAGE}
+        ]
         expected_types = [{"signed_message": SignedMessage}]
 
         messages = test_instance.process_n_messages(
