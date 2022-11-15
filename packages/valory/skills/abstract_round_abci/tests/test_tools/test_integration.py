@@ -19,13 +19,23 @@
 
 """Tests for abstract_round_abci/test_tools/integration.py"""
 
+from pathlib import Path
 from typing import Type, cast
 
+import pytest
 from aea.test_tools.utils import copy_class
 
 from packages.valory.skills.abstract_round_abci.base import _MetaPayload
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
+    PATH_TO_SKILL,
+)
+from packages.valory.connections.ledger.tests.conftest import make_ledger_api_connection
+
 from packages.valory.skills.abstract_round_abci.test_tools.integration import (
     IntegrationBaseCase,
+)
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours import (
+    DummyRoundBehaviour,
 )
 
 
@@ -64,3 +74,26 @@ class TestIntegrationBaseCase:
         test_instance = self.test_cls()  # type: ignore
         test_instance.setup()
         return test_instance
+
+    def set_path_to_skill(self, path_to_skill: Path = PATH_TO_SKILL) -> None:
+        """Set path_to_skill"""
+        self.test_cls.path_to_skill = path_to_skill
+
+    def test_instantiation(self) -> None:
+        """Test instantiation"""
+
+        self.set_path_to_skill()
+        self.test_cls.make_ledger_api_connection_callable = make_ledger_api_connection
+        self.test_cls.behaviour = DummyRoundBehaviour
+        test_instance = cast(IntegrationBaseCase, self.setup_test_cls())
+
+        assert test_instance
+        assert test_instance.get_message_from_outbox() is None
+        assert test_instance.get_message_from_decision_maker_inbox() is None
+        assert test_instance.process_n_messages(ncycles=0) is tuple()
+
+        expected = "Invalid number of messages in outbox. Expected 1. Found 0."
+        with pytest.raises(AssertionError, match=expected):
+            assert test_instance.process_message_cycle()
+        with pytest.raises(AssertionError, match=expected):
+            assert test_instance.process_n_messages(ncycles=1)
