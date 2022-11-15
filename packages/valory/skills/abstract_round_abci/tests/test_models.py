@@ -178,7 +178,7 @@ class TestApiSpecsModel:
             headers="Dummy-Header:dummy_value",
             parameters="Dummy-Param:dummy_param",
             response_key=None,
-            response_type=None,
+            response_type="dict",
             retries=NUMBER_OF_RETRIES,
         )
 
