@@ -59,6 +59,18 @@ def get_data_from_nested_dict(nested_dict: Dict, keys: str, separator: str = ":"
 
 Gets content from a nested dictionary, using serialized response keys which are split by a given separator.
 
+**Arguments**:
+
+Choose the separator carefully, so that it does not conflict with any character of the keys.
+
+- `nested_dict`: the nested dictionary to get the content from
+- `keys`: the keys to use on the nested dictionary in order to get the content
+- `separator`: the separator to use in order to get the keys list.
+
+**Returns**:
+
+the content result
+
 <a id="packages.valory.skills.abstract_round_abci.utils.get_value_with_type"></a>
 
 #### get`_`value`_`with`_`type
