@@ -20,6 +20,7 @@
 """Test `from-token` command."""
 
 import os
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -78,7 +79,10 @@ class TestFromToken(BaseCliTest):
 
         os.chdir(self.t)
 
-    def test_from_token(self, capsys) -> None:
+    def test_from_token(
+        self,
+        capsys: Any,
+    ) -> None:
         """Run test."""
 
         with run_deployment_patch, build_image_patch, default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch:
