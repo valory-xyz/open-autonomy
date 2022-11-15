@@ -298,9 +298,7 @@ class ApiSpecs(Model):
 
         return get_value_with_type(response_data, response_type)
 
-    def _get_error_from_response(
-        self, decoded_response: str, response_data: Any
-    ) -> Any:
+    def _get_error_from_response(self, response_data: Any) -> Any:
         """Try to get an error from the response."""
         try:
             return self._parse_response(
@@ -309,49 +307,46 @@ class ApiSpecs(Model):
                 self.response_info.error_index,
                 self.response_info.error_type,
             )
-        except (KeyError, IndexError):
+        except (KeyError, IndexError, TypeError):
             self.context.logger.error(
-                f"Could not parse error from response {response_data} "
-                f"using the given key(s) ({self.response_info.error_key}) "
+                f"Could not parse error using the given key(s) ({self.response_info.error_key}) "
                 f"and index ({self.response_info.error_index})!"
             )
-            self._log_response(decoded_response)
             return None
 
-    def process_response(self, response: HttpMessage) -> Any:
-        """Process response from api."""
-        decoded_response = response.body.decode()
-        response_data = self.response_info.error_data = None
-
+    def _parse_response_data(self, response_data: Any) -> Any:
+        """Get the response data."""
         try:
-            response_data = json.loads(decoded_response)
-            parsed_response = self._parse_response(
+            return self._parse_response(
                 response_data,
                 self.response_info.response_key,
                 self.response_info.response_index,
                 self.response_info.response_type,
             )
-            if parsed_response is None:
-                raise UnexpectedResponseError()
-            return parsed_response
+        except (KeyError, IndexError, TypeError) as e:
+            raise UnexpectedResponseError from e
 
+    def process_response(self, response: HttpMessage) -> Any:
+        """Process response from api."""
+        decoded_response = response.body.decode()
+        self.response_info.error_data = None
+
+        try:
+            response_data = json.loads(decoded_response)
         except json.JSONDecodeError:
             self.context.logger.error("Could not parse the response body!")
             self._log_response(decoded_response)
             return None
-        except KeyError as e:
-            raise UnexpectedResponseError from e
-        except IndexError as e:
-            raise UnexpectedResponseError from e
+
+        try:
+            return self._parse_response_data(response_data)
         except UnexpectedResponseError:
             self.context.logger.error(
                 f"Could not access response using the given key(s) ({self.response_info.response_key}) "
                 f"and index ({self.response_info.response_index})!"
             )
             self._log_response(decoded_response)
-            self.response_info.error_data = self._get_error_from_response(
-                decoded_response, response_data
-            )
+            self.response_info.error_data = self._get_error_from_response(response_data)
             return None
 
     def increment_retries(self) -> None:
