@@ -32,7 +32,6 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-from aea.skills.base import SkillContext
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -48,7 +47,17 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import AbciAppTest
-from packages.valory.skills.abstract_round_abci.test_tools.apis import DummyMessage
+
+
+BASE_DUMMY_SPECS_CONFIG = dict(
+    name="dummy",
+    skill_context=MagicMock(),
+    url="http://dummy",
+    api_id="api_id",
+    method="GET",
+    headers=[["Dummy-Header", "dummy_value"]],
+    parameters=[["Dummy-Param", "dummy_param"]],
+)
 
 
 class TestApiSpecsModel:
@@ -62,13 +71,7 @@ class TestApiSpecsModel:
         """Setup test."""
 
         self.api_specs = ApiSpecs(
-            name="price_api",
-            skill_context=SkillContext(),
-            url="http://localhost",
-            api_id="api_id",
-            method="GET",
-            headers=[["Dummy-Header", "dummy_value"]],
-            parameters=[["Dummy-Param", "dummy_param"]],
+            **BASE_DUMMY_SPECS_CONFIG,
             response_key="value",
             response_type="float",
             retries=NUMBER_OF_RETRIES,
@@ -82,14 +85,14 @@ class TestApiSpecsModel:
         # test ensure method.
         with pytest.raises(ValueError, match="Value for url is required by ApiSpecs"):
             _ = ApiSpecs(
-                name="price_api",
-                skill_context=SkillContext(),
+                name="dummy",
+                skill_context=MagicMock(),
             )
 
         assert self.api_specs.retries_info.retries == NUMBER_OF_RETRIES
         assert self.api_specs.retries_info.retries_attempted == 0
 
-        assert self.api_specs.url == "http://localhost"
+        assert self.api_specs.url == "http://dummy"
         assert self.api_specs.api_id == "api_id"
         assert self.api_specs.method == "GET"
         assert self.api_specs.headers == [["Dummy-Header", "dummy_value"]]
@@ -118,7 +121,7 @@ class TestApiSpecsModel:
         """Test get_spec method."""
 
         actual_specs = {
-            "url": "http://localhost",
+            "url": "http://dummy",
             "method": "GET",
             "headers": [["Dummy-Header", "dummy_value"]],
             "parameters": [["Dummy-Param", "dummy_param"]],
