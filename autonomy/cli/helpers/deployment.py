@@ -188,10 +188,12 @@ def update_multisig_address(service_path: Path, address: str) -> None:
                 override["setup_args"]["args"]["setup"]["safe_contract_address"] = [
                     address,
                 ]
-            except KeyError:
+            except KeyError as e:
                 click.echo(
                     "Could not update multisig address for skill "
                     + override["public_id"]
+                    + "; "
+                    + f"Invalid overrides provided, missing `{e}` from override configuration"
                 )
 
     with open_file(service_path / DEFAULT_SERVICE_CONFIG_FILE, mode="w+") as fp:
