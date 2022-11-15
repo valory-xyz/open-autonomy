@@ -276,8 +276,11 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             info = json.dumps(DUMMY_VALIDATOR_CONFIG)
             response_kwargs = dict(info=info)
             self.mock_tendermint_request(request_kwargs, response_kwargs)
-        time.sleep(self.state.params.sleep_time)
-        self.behaviour.act_wrapper()
+        # give room to the behaviour to finish sleeping
+        # using the same sleep time here and in the behaviour
+        # can lead to problems when the sleep here is finished
+        # before the one in the behaviour
+        time.sleep(self.state.params.sleep_time * 2)
         self.behaviour.act_wrapper()
 
     # mock HTTP requests
