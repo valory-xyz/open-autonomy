@@ -17,7 +17,7 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
 
 1. Use the CLI to fetch the [Hello World agent service](../demos/hello_world_demo.md). This will connect to the remote registry and download the service specification to the `hello_world` folder:
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeiaygs4ubxe4otacdaaygx7snqnhwx6efctxqcmervxjnb5id57zma --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeig53cf23r6yrazed7bfdasamzyytrfzumxi7eiifcrtvha2znifti --service
     cd hello_world
     ```
 
@@ -30,13 +30,10 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
     docker image ls | grep hello_world
     ```
 
-3. Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that make up the service.
+3. Prepare a JSON file `keys.json` containing the addresses and keys of the four agents that make up the agent service. Below you have some sample keys for testing:
 
-    ??? example "Example of a `keys.json` file"
-
-        Find below an example of the structure of a `keys.json` file.
-
-        <span style="color:red">**WARNING: Use this file for testing purposes only. Never use the keys or addresses provided in this example in a production environment or for personal use.**</span>
+    !!! warning "Important"
+        Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**
 
         ```json
         [
@@ -58,7 +55,6 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
           }
         ]
         ```
-
 
 4. Build the deployment setup for the service:
     ```bash

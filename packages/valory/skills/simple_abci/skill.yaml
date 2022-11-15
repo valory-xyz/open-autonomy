@@ -10,7 +10,7 @@ fingerprint:
   __init__.py: bafybeihjjq34pkn6xe5flpwzrslvbnd56a754zjho4c3nhvu6axsh7agqe
   behaviours.py: bafybeie6jc4nl2txmlozht3kuiamnrr377vlwjxvjadvfxepb44o5fmu3i
   dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
-  fsm_specification.yaml: bafybeih56ef5hsxmj7jqe5nm3efpii5nqno22diqx5jhpgffrf7etofnli
+  fsm_specification.yaml: bafybeia6sl3aedheiii3ehkyo6d43i7dicvh3ujqtt6gpmsrvukmyubice
   handlers.py: bafybeib4csuruhjiwp5q243frxxujrktsbrqyd4ygtxzsnmdvd2kqpc5ha
   models.py: bafybeiftwakg6lvxxt35uatkx7n5v5rv5eq7zllrz6je4nxn2sodbkqqy4
   payloads.py: bafybeidkaplovx7g276tby2lspttcntt7wbu2um7drr6mejq23k7edfa6y
@@ -31,7 +31,7 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeif6s6gjtj2ct5y3gsta4kix25c2fr75h4mbq6owifixl2upeqne5e
+- valory/abstract_round_abci:0.1.0:bafybeieohs6fw4f55rbogp4ijzns4zw3ksvbc76oxcmghtx5tyepbllkhe
 behaviours:
   main:
     args: {}
