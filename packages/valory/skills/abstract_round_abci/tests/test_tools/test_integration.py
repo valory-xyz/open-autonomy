@@ -24,8 +24,12 @@ from typing import Type, cast
 
 import pytest
 from aea.test_tools.utils import copy_class
+from packages.open_aea.protocols.signing import SigningMessage
+from packages.open_aea.protocols.signing.custom_types import (
+    SignedMessage,
+)
 
-from packages.valory.skills.abstract_round_abci.base import _MetaPayload
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB, _MetaPayload
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
     PATH_TO_SKILL,
 )
@@ -35,7 +39,11 @@ from packages.valory.skills.abstract_round_abci.test_tools.integration import (
     IntegrationBaseCase,
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours import (
+    DummyStartingBehaviour,
     DummyRoundBehaviour,
+)
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds import (
+    SynchronizedData,
 )
 
 
@@ -97,3 +105,32 @@ class TestIntegrationBaseCase:
             assert test_instance.process_message_cycle()
         with pytest.raises(AssertionError, match=expected):
             assert test_instance.process_n_messages(ncycles=1)
+
+    def test_process_n_messages(self) -> None:
+        """Test process_n_messages"""
+
+        self.set_path_to_skill()
+        self.test_cls.make_ledger_api_connection_callable = make_ledger_api_connection
+        self.test_cls.behaviour = DummyRoundBehaviour
+        test_instance = cast(IntegrationBaseCase, self.setup_test_cls())
+
+        behaviour_id = DummyStartingBehaviour.behaviour_id
+        synchronized_data = SynchronizedData(
+            AbciAppDB(setup_data=dict(participants=[frozenset("abcd")]))
+        )
+
+        # must have a handler!
+        handlers = [test_instance.signing_handler]
+        expected_content = [{"performative": SigningMessage.Performative.SIGNED_MESSAGE}]
+        expected_types = [{"signed_message": SignedMessage}]
+
+        messages = test_instance.process_n_messages(
+            ncycles=1,
+            behaviour_id=behaviour_id,
+            synchronized_data=synchronized_data,
+            handlers=handlers,
+            expected_content=expected_content,
+            expected_types=expected_types,
+            fail_send_a2a=True,
+        )
+        assert len(messages) == 1
