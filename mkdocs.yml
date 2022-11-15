@@ -178,7 +178,6 @@ nav:
           - Models: 'api/skills/abstract_round_abci/models.md'
           - Test Tools:
             - ABCI App: 'api/skills/abstract_round_abci/test_tools/abci_app.md'
-            - APIs: 'api/skills/abstract_round_abci/test_tools/apis.md'
             - Base: 'api/skills/abstract_round_abci/test_tools/base.md'
             - Common: 'api/skills/abstract_round_abci/test_tools/common.md'
             - Integration: 'api/skills/abstract_round_abci/test_tools/integration.md'

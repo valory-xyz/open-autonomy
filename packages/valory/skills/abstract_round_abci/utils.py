@@ -18,9 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utility functions for the 'abstract_round_abci' skill."""
+import builtins
 from decimal import Decimal
 from hashlib import sha256
-from typing import Dict, Optional, Tuple, Union, cast
+from typing import Any, Dict, Optional, Tuple, Union, cast
 
 from eth_typing.bls import BLSPubkey, BLSSignature
 from py_ecc.bls import G2Basic as bls  # type: ignore
@@ -110,3 +111,26 @@ def to_int(most_voted_estimate: float, decimals: int) -> int:
     most_voted_estimate_decimal = Decimal(most_voted_estimate_)
     int_value = int(most_voted_estimate_decimal * (10 ** decimals))
     return int_value
+
+
+def get_data_from_nested_dict(
+    nested_dict: Dict, keys: str, separator: str = ":"
+) -> Any:
+    """Gets content from a nested dictionary, using serialized response keys which are split by a given separator.
+
+    :param nested_dict: the nested dictionary to get the content from
+    :param keys: the keys to use on the nested dictionary in order to get the content
+    :param separator: the separator to use in order to get the keys list.
+    Choose the separator carefully, so that it does not conflict with any character of the keys.
+
+    :returns: the content result
+    """
+    parsed_keys = keys.split(separator)
+    for key in parsed_keys:
+        nested_dict = nested_dict[key]
+    return nested_dict
+
+
+def get_value_with_type(value: Any, type_name: str) -> Any:
+    """Get the given value as the specified type."""
+    return getattr(builtins, type_name)(value)

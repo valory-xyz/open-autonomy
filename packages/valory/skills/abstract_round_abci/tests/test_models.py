@@ -21,6 +21,7 @@
 
 # pylint: skip-file
 
+import builtins
 import json
 import logging
 from enum import Enum
@@ -32,7 +33,6 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-from aea.skills.base import SkillContext
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -43,12 +43,23 @@ from packages.valory.skills.abstract_round_abci.models import (
     ApiSpecs,
     BaseParams,
     BenchmarkTool,
+    DEFAULT_BACKOFF_FACTOR,
     NUMBER_OF_RETRIES,
     Requests,
     SharedState,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import AbciAppTest
-from packages.valory.skills.abstract_round_abci.test_tools.apis import DummyMessage
+
+
+BASE_DUMMY_SPECS_CONFIG = dict(
+    name="dummy",
+    skill_context=MagicMock(),
+    url="http://dummy",
+    api_id="api_id",
+    method="GET",
+    headers=[["Dummy-Header", "dummy_value"]],
+    parameters=[["Dummy-Param", "dummy_param"]],
+)
 
 
 class TestApiSpecsModel:
@@ -62,16 +73,14 @@ class TestApiSpecsModel:
         """Setup test."""
 
         self.api_specs = ApiSpecs(
-            name="price_api",
-            skill_context=SkillContext(),
-            url="http://localhost",
-            api_id="api_id",
-            method="GET",
-            headers=[["Dummy-Header", "dummy_value"]],
-            parameters=[["Dummy-Param", "dummy_param"]],
+            **BASE_DUMMY_SPECS_CONFIG,
             response_key="value",
+            response_index=0,
             response_type="float",
-            retries=NUMBER_OF_RETRIES,
+            error_key="error",
+            error_index=None,
+            error_type="str",
+            error_data="error text",
         )
 
     def test_init(
@@ -82,20 +91,35 @@ class TestApiSpecsModel:
         # test ensure method.
         with pytest.raises(ValueError, match="Value for url is required by ApiSpecs"):
             _ = ApiSpecs(
-                name="price_api",
-                skill_context=SkillContext(),
+                name="dummy",
+                skill_context=MagicMock(),
             )
 
-        assert self.api_specs._retries == NUMBER_OF_RETRIES
-        assert self.api_specs._retries_attempted == 0
+        assert self.api_specs.retries_info.backoff_factor == DEFAULT_BACKOFF_FACTOR
+        assert self.api_specs.retries_info.retries == NUMBER_OF_RETRIES
+        assert self.api_specs.retries_info.retries_attempted == 0
 
-        assert self.api_specs.url == "http://localhost"
+        assert self.api_specs.url == "http://dummy"
         assert self.api_specs.api_id == "api_id"
         assert self.api_specs.method == "GET"
         assert self.api_specs.headers == [["Dummy-Header", "dummy_value"]]
         assert self.api_specs.parameters == [["Dummy-Param", "dummy_param"]]
-        assert self.api_specs.response_key == "value"
-        assert self.api_specs.response_type == "float"
+        assert self.api_specs.response_info.response_key == "value"
+        assert self.api_specs.response_info.response_index == 0
+        assert self.api_specs.response_info.response_type == "float"
+        assert self.api_specs.response_info.error_key == "error"
+        assert self.api_specs.response_info.error_index is None
+        assert self.api_specs.response_info.error_type == "str"
+        assert self.api_specs.response_info.error_data is None
+
+    @pytest.mark.parametrize("retries", range(10))
+    def test_suggested_sleep_time(self, retries: int) -> None:
+        """Test `suggested_sleep_time`"""
+        self.api_specs.retries_info.retries_attempted = retries
+        assert (
+            self.api_specs.retries_info.suggested_sleep_time
+            == DEFAULT_BACKOFF_FACTOR ** retries
+        )
 
     def test_retries(
         self,
@@ -103,14 +127,14 @@ class TestApiSpecsModel:
         """Tests for retries."""
 
         self.api_specs.increment_retries()
-        assert self.api_specs._retries_attempted == 1
+        assert self.api_specs.retries_info.retries_attempted == 1
         assert not self.api_specs.is_retries_exceeded()
 
         for _ in range(NUMBER_OF_RETRIES):
             self.api_specs.increment_retries()
         assert self.api_specs.is_retries_exceeded()
         self.api_specs.reset_retries()
-        assert self.api_specs._retries_attempted == 0
+        assert self.api_specs.retries_info.retries_attempted == 0
 
     def test_get_spec(
         self,
@@ -118,7 +142,7 @@ class TestApiSpecsModel:
         """Test get_spec method."""
 
         actual_specs = {
-            "url": "http://localhost",
+            "url": "http://dummy",
             "method": "GET",
             "headers": [["Dummy-Header", "dummy_value"]],
             "parameters": [["Dummy-Param", "dummy_param"]],
@@ -128,64 +152,143 @@ class TestApiSpecsModel:
         assert all([key in specs for key in actual_specs.keys()])
         assert all([specs[key] == actual_specs[key] for key in actual_specs])
 
-    def test_process_response_with_depth_0(
+    @pytest.mark.parametrize(
+        "api_specs_config, message, expected_res, expected_error",
+        (
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="value",
+                    response_index=None,
+                    response_type="float",
+                    error_key=None,
+                    error_index=None,
+                    error_type=None,
+                    error_data=None,
+                ),
+                MagicMock(body=b'{"value": "10.232"}'),
+                10.232,
+                None,
+            ),
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="test:response:key",
+                    response_index=2,
+                    response_type="dict",
+                    error_key="error:key",
+                    error_index=3,
+                    error_type="str",
+                    error_data=None,
+                ),
+                MagicMock(
+                    body=b'{"test": {"response": {"key": ["does_not_matter", "does_not_matter", {"this": "matters"}]}}}'
+                ),
+                {"this": "matters"},
+                None,
+            ),
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="test:response:key",
+                    response_index=2,
+                    response_type=None,
+                    error_key="error:key",
+                    error_index=3,
+                    error_type="str",
+                    error_data=None,
+                ),
+                MagicMock(body=b'{"cannot be parsed'),
+                None,
+                None,
+            ),
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="test:response:key",
+                    response_index=2,
+                    response_type=None,
+                    error_key="error:key",
+                    error_index=3,
+                    error_type="str",
+                    error_data=None,
+                ),
+                MagicMock(
+                    # the null will raise `TypeError` and we test that it is handled
+                    body=b'{"test": {"response": {"key": ["does_not_matter", "does_not_matter", null]}}}'
+                ),
+                None,
+                None,
+            ),
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="test:response:key",
+                    response_index=2,  # this will raise `IndexError` and we test that it is handled
+                    response_type=None,
+                    error_key="error:key",
+                    error_index=3,
+                    error_type="str",
+                    error_data=None,
+                ),
+                MagicMock(
+                    body=b'{"test": {"response": {"key": ["does_not_matter", "does_not_matter"]}}}'
+                ),
+                None,
+                None,
+            ),
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="test:response:key",  # this will raise `KeyError` and we test that it is handled
+                    response_index=2,
+                    response_type=None,
+                    error_key="error:key",
+                    error_index=3,
+                    error_type="str",
+                    error_data=None,
+                ),
+                MagicMock(
+                    body=b'{"test": {"response": {"key_does_not_match": ["does_not_matter", "does_not_matter"]}}}'
+                ),
+                None,
+                None,
+            ),
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="test:response:key",
+                    response_index=2,
+                    response_type=None,
+                    error_key="error:key",
+                    error_index=3,
+                    error_type="str",
+                    error_data=None,
+                ),
+                MagicMock(
+                    body=b'{"test": {"response": {"key_does_not_match": ["does_not_matter", "does_not_matter"]}}, '
+                    b'"error": {"key": [0, 1, 2, "test that the error is being parsed correctly"]}}'
+                ),
+                None,
+                "test that the error is being parsed correctly",
+            ),
+        ),
+    )
+    def test_process_response(
         self,
+        api_specs_config: dict,
+        message: MagicMock,
+        expected_res: Any,
+        expected_error: Any,
     ) -> None:
-        """Test process_response method."""
-
-        value = self.api_specs.process_response(DummyMessage(b""))  # type: ignore
-        assert value is None
-
-        value = self.api_specs.process_response(
-            DummyMessage(b'{"value": "10.232"}')  # type: ignore
-        )
-        assert isinstance(value, float)
-
-    def test_process_response_with_depth_1(
-        self,
-    ) -> None:
-        """Test process_response method."""
-
-        api_specs = ApiSpecs(
-            name="price_api",
-            skill_context=SkillContext(),
-            url="http://localhost",
-            api_id="api_id",
-            method="GET",
-            headers="Dummy-Header:dummy_value",
-            parameters="Dummy-Param:dummy_param",
-            response_key="value_0:value_1",
-            response_type="float",
-            retries=NUMBER_OF_RETRIES,
-        )
-
-        value = api_specs.process_response(
-            DummyMessage(b'{"value_0": {"value_1": "10.232"}}')  # type: ignore
-        )
-        assert isinstance(value, float)
-
-    def test_process_response_with_key_none(
-        self,
-    ) -> None:
-        """Test process_response method."""
-
-        api_specs = ApiSpecs(
-            name="price_api",
-            skill_context=SkillContext(),
-            url="http://localhost",
-            api_id="api_id",
-            method="GET",
-            headers="Dummy-Header:dummy_value",
-            parameters="Dummy-Param:dummy_param",
-            response_key=None,
-            response_type=None,
-            retries=NUMBER_OF_RETRIES,
-        )
-
-        value = api_specs.process_response(
-            DummyMessage(b'{"value": "10.232"}')  # type: ignore
-        )
-        assert isinstance(value, dict)
+        """Test `process_response` method."""
+        api_specs = ApiSpecs(**api_specs_config)
+        actual = api_specs.process_response(message)
+        assert actual == expected_res
+        response_type = api_specs_config["response_type"]
+        if response_type is not None:
+            assert type(actual) == getattr(builtins, response_type)
+        assert api_specs.response_info.error_data == expected_error
 
 
 class ConcreteRound(AbstractRound):
