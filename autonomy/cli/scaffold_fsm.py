@@ -29,7 +29,6 @@ import os
 import re
 import shutil
 from abc import ABC, abstractmethod
-from io import StringIO
 from pathlib import Path
 from textwrap import dedent, indent
 from typing import Dict, List, Type
@@ -57,7 +56,7 @@ from aea.configurations.constants import (
 from aea.configurations.data_types import CRUDCollection, PublicId
 from aea.protocols.generator.common import _camel_case_to_snake_case
 
-from autonomy.analyse.abci.app_spec import DFA
+from autonomy.analyse.abci.app_spec import DFA, FSMSpecificationLoader
 from autonomy.cli.scaffold_fsm_templates import (
     BEHAVIOURS,
     COPYRIGHT_HEADER,
@@ -636,7 +635,9 @@ class ScaffoldABCISkill:
         self.spec_path = spec_path
 
         # process FSM specification
-        self.dfa = DFA.load(StringIO(spec_path.read_text()), input_format="yaml")
+        self.dfa = DFA.load(
+            file=spec_path, spec_format=FSMSpecificationLoader.OutputFormats.YAML
+        )
 
     @property
     def skill_dir(self) -> Path:
@@ -707,5 +708,4 @@ def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
 
     # scaffold AEA skill - as usual
     scaffold_item(ctx, SKILL, skill_name)
-
     ScaffoldABCISkill(ctx, skill_name, Path(spec)).do_scaffolding()

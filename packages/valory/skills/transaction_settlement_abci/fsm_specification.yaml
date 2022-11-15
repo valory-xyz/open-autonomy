@@ -18,7 +18,7 @@ default_start_state: RandomnessTransactionSubmissionRound
 final_states:
 - FailedRound
 - FinishedTransactionSubmissionRound
-label: packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp
+label: TransactionSubmissionAbciApp
 start_states:
 - RandomnessTransactionSubmissionRound
 states:

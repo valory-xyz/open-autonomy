@@ -5,7 +5,7 @@ alphabet_in:
 - RESET_AND_PAUSE_TIMEOUT
 default_start_state: RegistrationStartupRound
 final_states: []
-label: packages.valory.skills.register_reset_abci.composition.RegisterResetAbciApp
+label: RegisterResetAbciApp
 start_states:
 - RegistrationStartupRound
 states:

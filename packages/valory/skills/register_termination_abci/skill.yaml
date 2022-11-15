@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeieyro2eupexnqdu2mjqbyhp7jphn5rij4hvdgty5plij52tsffhs4
   __init__.py: bafybeiex6mhypt3mkeflnoppnxxckxwe3f4fpytgqzseelvxg54rzhcwme
   behaviours.py: bafybeicmgb3hz2f6rhnpctcojeesayvmwicvl4mybbseyscdvzr6luepni
-  composition.py: bafybeid5sd7d5gc3tnoj3awy4swxexpdro747prr3kz6qxkwserpqmihn4
+  composition.py: bafybeiag5qbcubq3fhwraqosgcubkcyzvfogt274xxlmrjd23odbt2padi
   dialogues.py: bafybeih3x4egnkh7xwnlawqbu6fpqyqbaum7ivdhqm6r6557dyy2rhzneq
   handlers.py: bafybeibotw5mzjfbzdme5w4oytvqspcql3vbyr3v5k5zt6v3o6y6dypd7e
   models.py: bafybeiffunjgfpgbnipafnhllqmpkmy7dn4voxj63vvsvvt3ghwmglkut4
@@ -24,9 +24,9 @@ contracts: []
 protocols: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeihinw2a4dnjq6cgto5ramu5hadrtig7ket7d6xmo64zdw6dtj5tqi
-- valory/registration_abci:0.1.0:bafybeidsxmudle3q5lmdwafgsh2k5w6knvmeootmld4dwlsfqvo6kq2odi
-- valory/reset_pause_abci:0.1.0:bafybeigav4ehkoi6xivchtz556uardcsckief2yffbk4yzyclcuhycesdq
-- valory/termination_abci:0.1.0:bafybeieoopxzw65cv76tstqkk3aaq2s65dbqo2r7knak73hba2bfepjjwa
+- valory/registration_abci:0.1.0:bafybeibjgjg2xigcxdeuid3pj5mjalsqp3cvz5hkzbzi7az3p5fxjerwmm
+- valory/reset_pause_abci:0.1.0:bafybeibe3tknx7cdhtzw7x6mox3dazc2a7ow5k56h4ze5ljfp7j3pe4vci
+- valory/termination_abci:0.1.0:bafybeiaszlpnvim5b5w3ictgsm4lbiukbkb4mwn5tcw4i33x6omch65xlq
 behaviours:
   main:
     args: {}

@@ -29,7 +29,7 @@ from aea.configurations.loader import ConfigLoader
 from aea.helpers.base import cd
 from aea.helpers.io import open_file
 
-from autonomy.cli.fetch import IPFSTool
+from autonomy.cli.helpers.registry import IPFSTool
 from autonomy.configurations.base import Service
 
 from tests.conftest import ROOT_DIR
@@ -106,9 +106,10 @@ class TestFetchCommand(BaseCliTest):
             ConfigLoader(Service.schema, Service).dump(service, fp)
 
         with mock.patch(
-            "autonomy.cli.publish.get_default_remote_registry", new=lambda: "ipfs"
+            "autonomy.cli.helpers.registry.get_default_remote_registry",
+            new=lambda: "ipfs",
         ), mock.patch(
-            "autonomy.cli.publish.get_ipfs_node_multiaddr",
+            "autonomy.cli.helpers.registry.get_ipfs_node_multiaddr",
             new=lambda: IPFS_REGISTRY,
         ), mock.patch(
             "click.echo"
@@ -122,16 +123,19 @@ class TestFetchCommand(BaseCliTest):
             assert expected_hash in output, (output, service_file.read_text())
 
         with mock.patch(
-            "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "http"
+            "autonomy.cli.helpers.registry.get_default_remote_registry",
+            new=lambda: "http",
         ), cd(service_dir):
             result = self.run_cli(("--remote", expected_hash))
             assert result.exit_code == 1, result.output
             assert "HTTP registry not supported." in result.output, result.output
 
         with mock.patch(
-            "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "ipfs"
+            "autonomy.cli.helpers.registry.get_default_remote_registry",
+            new=lambda: "ipfs",
         ), mock.patch(
-            "autonomy.cli.fetch.get_ipfs_node_multiaddr", new=lambda: IPFS_REGISTRY
+            "autonomy.cli.helpers.registry.get_ipfs_node_multiaddr",
+            new=lambda: IPFS_REGISTRY,
         ), cd(
             service_dir
         ):
@@ -146,9 +150,11 @@ class TestFetchCommand(BaseCliTest):
     ) -> None:
         """Test fetch service."""
         with mock.patch(
-            "autonomy.cli.fetch.get_default_remote_registry", new=lambda: "ipfs"
+            "autonomy.cli.helpers.registry.get_default_remote_registry",
+            new=lambda: "ipfs",
         ), mock.patch(
-            "autonomy.cli.fetch.get_ipfs_node_multiaddr", new=lambda: IPFS_REGISTRY
+            "autonomy.cli.helpers.registry.get_ipfs_node_multiaddr",
+            new=lambda: IPFS_REGISTRY,
         ), mock.patch.object(
             IPFSTool, "download", return_value=self.t
         ):

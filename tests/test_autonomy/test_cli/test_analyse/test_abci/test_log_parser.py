@@ -86,7 +86,7 @@ ANSI_COLOR_CHARACTERS_REGEX = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])
 class TestLogParser(BaseCliTest):
     """Test log parser."""
 
-    cli_options: Tuple[str, ...] = ("analyse", "abci", "logs")
+    cli_options: Tuple[str, ...] = ("analyse", "logs")
 
     def _check_output(self, logs: str, expected_output: str) -> None:
         """Check outputs."""

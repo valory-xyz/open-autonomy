@@ -24,23 +24,13 @@ This ensures that documentation aligns with the actual implementation
 
 docstring
 
-<a id="autonomy.analyse.abci.docstrings.update_docstrings"></a>
+<a id="autonomy.analyse.abci.docstrings.compare_docstring_content"></a>
 
-#### update`_`docstrings
+#### compare`_`docstring`_`content
 
 ```python
-def update_docstrings(module_path: Path, docstring: str, abci_app_name: str, check: bool = False) -> bool
+def compare_docstring_content(file_content: str, docstring: str, abci_app_name: str) -> Tuple[bool, str]
 ```
 
 Update docstrings.
-
-<a id="autonomy.analyse.abci.docstrings.process_module"></a>
-
-#### process`_`module
-
-```python
-def process_module(module_path: Path, check: bool = False) -> bool
-```
-
-Process module.
 

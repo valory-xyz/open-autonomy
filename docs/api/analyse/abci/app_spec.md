@@ -4,6 +4,16 @@
 
 Generates the specification for a given ABCI app in YAML/JSON/Mermaid format.
 
+<a id="autonomy.analyse.abci.app_spec.validate_fsm_spec"></a>
+
+#### validate`_`fsm`_`spec
+
+```python
+def validate_fsm_spec(data: Dict) -> None
+```
+
+Validate FSM specificaiton file.
+
 <a id="autonomy.analyse.abci.app_spec.DFASpecificationError"></a>
 
 ## DFASpecificationError Objects
@@ -14,6 +24,103 @@ class DFASpecificationError(Exception)
 
 Simple class to raise errors when parsing a DFA.
 
+<a id="autonomy.analyse.abci.app_spec.FSMSpecificationLoader"></a>
+
+## FSMSpecificationLoader Objects
+
+```python
+class FSMSpecificationLoader()
+```
+
+FSM specification loader utilities.
+
+<a id="autonomy.analyse.abci.app_spec.FSMSpecificationLoader.OutputFormats"></a>
+
+## OutputFormats Objects
+
+```python
+class OutputFormats()
+```
+
+Output formats.
+
+<a id="autonomy.analyse.abci.app_spec.FSMSpecificationLoader.from_yaml"></a>
+
+#### from`_`yaml
+
+```python
+@staticmethod
+def from_yaml(file: Path) -> Dict
+```
+
+Load from yaml.
+
+<a id="autonomy.analyse.abci.app_spec.FSMSpecificationLoader.from_json"></a>
+
+#### from`_`json
+
+```python
+@staticmethod
+def from_json(file: Path) -> Dict
+```
+
+Load from json.
+
+<a id="autonomy.analyse.abci.app_spec.FSMSpecificationLoader.load"></a>
+
+#### load
+
+```python
+@classmethod
+def load(cls, file: Path, spec_format: str = OutputFormats.YAML) -> Dict
+```
+
+Load FSM specification.
+
+<a id="autonomy.analyse.abci.app_spec.FSMSpecificationLoader.dump_json"></a>
+
+#### dump`_`json
+
+```python
+@staticmethod
+def dump_json(dfa: "DFA", file: Path) -> None
+```
+
+Dump to a json file.
+
+<a id="autonomy.analyse.abci.app_spec.FSMSpecificationLoader.dump_yaml"></a>
+
+#### dump`_`yaml
+
+```python
+@staticmethod
+def dump_yaml(dfa: "DFA", file: Path) -> None
+```
+
+Dump to a yaml file.
+
+<a id="autonomy.analyse.abci.app_spec.FSMSpecificationLoader.dump_mermaid"></a>
+
+#### dump`_`mermaid
+
+```python
+@staticmethod
+def dump_mermaid(dfa: "DFA", file: Path) -> None
+```
+
+Dumps this DFA spec. to a file in Mermaid format.
+
+<a id="autonomy.analyse.abci.app_spec.FSMSpecificationLoader.dump"></a>
+
+#### dump
+
+```python
+@classmethod
+def dump(cls, dfa: "DFA", file: Path, spec_format: str = OutputFormats.YAML) -> None
+```
+
+Dumps this DFA spec. to a file in YAML/JSON/Mermaid format.
+
 <a id="autonomy.analyse.abci.app_spec.DFA"></a>
 
 ## DFA Objects
@@ -23,16 +130,6 @@ class DFA()
 ```
 
 Simple specification of a deterministic finite automaton (DFA).
-
-<a id="autonomy.analyse.abci.app_spec.DFA.OutputFormats"></a>
-
-## OutputFormats Objects
-
-```python
-class OutputFormats()
-```
-
-Output formats.
 
 <a id="autonomy.analyse.abci.app_spec.DFA.__init__"></a>
 
@@ -93,46 +190,6 @@ def __eq__(other: object) -> bool
 
 Compares two DFAs
 
-<a id="autonomy.analyse.abci.app_spec.DFA.dump"></a>
-
-#### dump
-
-```python
-def dump(file: Path, output_format: str = "yaml") -> None
-```
-
-Dumps this DFA spec. to a file in YAML/JSON/Mermaid format.
-
-<a id="autonomy.analyse.abci.app_spec.DFA.dump_json"></a>
-
-#### dump`_`json
-
-```python
-def dump_json(fp: TextIO) -> None
-```
-
-Dump to a json file.
-
-<a id="autonomy.analyse.abci.app_spec.DFA.dump_yaml"></a>
-
-#### dump`_`yaml
-
-```python
-def dump_yaml(fp: TextIO) -> None
-```
-
-Dump to a yaml file.
-
-<a id="autonomy.analyse.abci.app_spec.DFA.dump_mermaid"></a>
-
-#### dump`_`mermaid
-
-```python
-def dump_mermaid(fp: TextIO) -> None
-```
-
-Dumps this DFA spec. to a file in Mermaid format.
-
 <a id="autonomy.analyse.abci.app_spec.DFA.generate"></a>
 
 #### generate
@@ -149,7 +206,7 @@ Retrieves an exportable representation for YAML/JSON dump of this DFA.
 
 ```python
 @classmethod
-def load(cls, fp: TextIO, input_format: str = "yaml") -> "DFA"
+def load(cls, file: Path, spec_format: str = FSMSpecificationLoader.OutputFormats.YAML) -> "DFA"
 ```
 
 Loads a DFA JSON specification from file.
@@ -165,35 +222,28 @@ def abci_to_dfa(cls, abci_app_cls: Any, label: str = "") -> "DFA"
 
 Translates an AbciApp class into a DFA.
 
-<a id="autonomy.analyse.abci.app_spec.SpecCheck"></a>
+<a id="autonomy.analyse.abci.app_spec.check_unreferenced_events"></a>
 
-## SpecCheck Objects
-
-```python
-class SpecCheck()
-```
-
-Class to represent abci spec checks.
-
-<a id="autonomy.analyse.abci.app_spec.SpecCheck.check_one"></a>
-
-#### check`_`one
+#### check`_`unreferenced`_`events
 
 ```python
-@staticmethod
-def check_one(informat: str, infile: str, classfqn: str) -> bool
+def check_unreferenced_events(abci_app_cls: Any) -> List[str]
 ```
 
-Check for one.
+Checks for unreferenced events in the AbciApp.
 
-<a id="autonomy.analyse.abci.app_spec.SpecCheck.check_all"></a>
+Checks that events defined in the AbciApp transition function are referenced
+in the source code of the corresponding rounds or their superclasses. Note that
+the function simply checks references in the "raw" source code of the rounds and
+their (non builtin) superclasses. Therefore, it does not do any kind of static
+analysis on the source code, nor checks for actual reachability of a return
+statement returning such events.
 
-#### check`_`all
+**Arguments**:
 
-```python
-@classmethod
-def check_all(cls, packages_dir: Path) -> None
-```
+- `abci_app_cls`: AbciApp to check unreferenced events.
 
-Check all the available definitions.
+**Returns**:
+
+List of error strings
 

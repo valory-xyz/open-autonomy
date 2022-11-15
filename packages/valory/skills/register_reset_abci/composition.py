@@ -33,7 +33,7 @@ from packages.valory.skills.reset_pause_abci.rounds import (
     FinishedResetAndPauseErrorRound,
     FinishedResetAndPauseRound,
     ResetAndPauseRound,
-    ResetPauseABCIApp,
+    ResetPauseAbciApp,
 )
 
 
@@ -47,7 +47,7 @@ abci_app_transition_mapping: AbciAppTransitionMapping = {
 RegisterResetAbciApp = chain(
     (
         AgentRegistrationAbciApp,
-        ResetPauseABCIApp,
+        ResetPauseAbciApp,
     ),
     abci_app_transition_mapping,
 )

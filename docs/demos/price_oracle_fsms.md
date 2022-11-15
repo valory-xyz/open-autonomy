@@ -32,7 +32,7 @@ The summary of the constituent FSMs is as follows:
 | OracleDeployment        |      5  |            1  |            1  |      8  |                      14   |
 | PriceAggregation        |      9  |            1  |            1  |      4  |                       9   |
 | TransactionSubmission   |     10  |            1  |            2  |      9  |                      26   |
-| ResetPauseABCIApp       |      3  |            1  |            2  |      3  |                       3   |
+| ResetPauseAbciApp       |      3  |            1  |            2  |      3  |                       3   |
 | **OracleAbciApp**       | **21**  |        **2**  |        **0**  | **12**  |                  **66**   |
 
 
@@ -49,7 +49,7 @@ default_start_state: RegistrationStartupRound
 final_states:
 - FinishedRegistrationFFWRound
 - FinishedRegistrationRound
-label: packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp
+label: AgentRegistrationAbciApp
 start_states:
 - RegistrationRound
 - RegistrationStartupRound
@@ -89,7 +89,7 @@ alphabet_in:
 default_start_state: RandomnessSafeRound
 final_states:
 - FinishedSafeRound
-label: packages.valory.skills.safe_deployment_abci.rounds.SafeDeploymentAbciApp
+label: SafeDeploymentAbciApp
 start_states:
 - RandomnessSafeRound
 states:
@@ -254,7 +254,7 @@ default_start_state: RandomnessTransactionSubmissionRound
 final_states:
 - FailedRound
 - FinishedTransactionSubmissionRound
-label: packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp
+label: TransactionSubmissionAbciApp
 start_states:
 - RandomnessTransactionSubmissionRound
 states:
@@ -365,7 +365,7 @@ stateDiagram-v2
 <figcaption>TransactionSubmissionAbciApp FSM</figcaption>
 </figure>
 
-#### `ResetPauseABCIApp` FSM
+#### `ResetPauseAbciApp` FSM
 
 ```yaml
 alphabet_in:
@@ -376,7 +376,7 @@ default_start_state: ResetAndPauseRound
 final_states:
 - FinishedResetAndPauseErrorRound
 - FinishedResetAndPauseRound
-label: packages.valory.skills.reset_pause_abci.rounds.ResetPauseABCIApp
+label: ResetPauseAbciApp
 start_states:
 - ResetAndPauseRound
 states:
@@ -395,7 +395,7 @@ stateDiagram-v2
     ResetAndPauseRound --> FinishedResetAndPauseRound: <center>DONE</center>
     ResetAndPauseRound --> FinishedResetAndPauseErrorRound: <center>NO_MAJORITY<br />RESET_AND_PAUSE_TIMEOUT</center>
 </div>
-<figcaption>ResetPauseABCIApp FSM</figcaption>
+<figcaption>ResetPauseAbciApp FSM</figcaption>
 </figure>
 
 
@@ -412,7 +412,7 @@ OracleAbciApp = chain(
         OracleDeploymentAbciApp,
         PriceAggregationAbciApp,
         TransactionSubmissionAbciApp,
-        ResetPauseABCIApp,
+        ResetPauseAbciApp,
     ),
     abci_app_transition_mapping,
 )

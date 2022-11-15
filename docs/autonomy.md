@@ -242,63 +242,38 @@ Then define the relevant environment variables.
 
 ## Analyse
 
+```
+Usage: autonomy analyse [OPTIONS] COMMAND [ARGS]...
 
-### ABCI apps
+  Analyse an agent service.
 
-```bash
-Usage: autonomy analyse abci [OPTIONS] COMMAND [ARGS]...
-  Analyse ABCI apps.
 Options:
   --help  Show this message and exit.
+
 Commands:
-  check-app-specs     Check abci app specs.
-  docstrings          Analyse ABCI docstring definitions.
-  generate-app-specs  Generate abci app specs.
-  logs                Parse logs.
-```
-
-
-**Generate ABCI App specifications**
-
-```bash
-Usage: autonomy analyse abci generate-app-specs [OPTIONS] APP_CLASS OUTPUT_FILE
-  Generate abci app specs.
-Options:
-  --mermaid  Mermaid file.
-  --yaml     Yaml file.
-  --json     Json file.
-  --help     Show this message and exit.
-```
-
-**Check ABCI App specifications**
-
-```bash
-Usage: autonomy analyse abci check-app-specs [OPTIONS]
-  Check abci app specs.
-Options:
-  --check-all          Check all available definitions.
-  --packages-dir PATH  Path to packages directory; Use with `--check-all` flag
-  --yaml               Yaml file.
-  --json               Json file.
-  --app_class TEXT     Dotted path to app definition class.
-  --infile PATH        Path to input file.
-  --help               Show this message and exit.
+  benchmarks  Benchmark aggregator.
+  docstrings  Analyse ABCI docstring definitions.
+  fsm-specs   Generate ABCI app specs.
+  handlers    Check handler definitions.
+  logs        Parse logs of an agent service.
 ```
 
 **Check ABCI app docstrings**
 
 ```bash
-Usage: autonomy analyse abci docstrings [OPTIONS] [PACKAGES_DIR]
+Usage: autonomy analyse docstrings [OPTIONS]
+
   Analyse ABCI docstring definitions.
+
 Options:
-  --check
-  --help   Show this message and exit.
+  --update  Update docstrings if required.
+  --help    Show this message and exit.
 ```
 
 **Parse logs from a deployment**
 
 ```bash
-Usage: autonomy analyse abci logs [OPTIONS] FILE
+Usage: autonomy analyse logs [OPTIONS] FILE
   Parse logs.
 Options:
   --help  Show this message and exit.
