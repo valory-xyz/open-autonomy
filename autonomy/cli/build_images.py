@@ -54,11 +54,15 @@ def build_image(
 ) -> None:
     """Build runtime images for autonomous agents."""
 
-    service_dir = Path(service_dir or Path.cwd()).absolute()
-
-    if agent is None:
-        service = load_service_config(service_dir)
-        agent = service.agent
+    try:
+        if agent is None:
+            service_dir = Path(service_dir or Path.cwd()).absolute()
+            service = load_service_config(service_dir)
+            agent = service.agent
+    except FileNotFoundError as e:
+        raise click.ClickException(
+            "Service configuration not found the current directory"
+        ) from e
 
     try:
         click.echo(f"Building image with agent: {agent}\n")
