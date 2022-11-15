@@ -86,16 +86,16 @@ class TestApiSpecsModel:
                 skill_context=SkillContext(),
             )
 
-        assert self.api_specs._retries == NUMBER_OF_RETRIES
-        assert self.api_specs._retries_attempted == 0
+        assert self.api_specs.retries_info.retries == NUMBER_OF_RETRIES
+        assert self.api_specs.retries_info.retries_attempted == 0
 
         assert self.api_specs.url == "http://localhost"
         assert self.api_specs.api_id == "api_id"
         assert self.api_specs.method == "GET"
         assert self.api_specs.headers == [["Dummy-Header", "dummy_value"]]
         assert self.api_specs.parameters == [["Dummy-Param", "dummy_param"]]
-        assert self.api_specs.response_key == "value"
-        assert self.api_specs.response_type == "float"
+        assert self.api_specs.response_info.response_key == "value"
+        assert self.api_specs.response_info.response_type == "float"
 
     def test_retries(
         self,
@@ -103,14 +103,14 @@ class TestApiSpecsModel:
         """Tests for retries."""
 
         self.api_specs.increment_retries()
-        assert self.api_specs._retries_attempted == 1
+        assert self.api_specs.retries_info.retries_attempted == 1
         assert not self.api_specs.is_retries_exceeded()
 
         for _ in range(NUMBER_OF_RETRIES):
             self.api_specs.increment_retries()
         assert self.api_specs.is_retries_exceeded()
         self.api_specs.reset_retries()
-        assert self.api_specs._retries_attempted == 0
+        assert self.api_specs.retries_info.retries_attempted == 0
 
     def test_get_spec(
         self,
@@ -178,7 +178,7 @@ class TestApiSpecsModel:
             headers="Dummy-Header:dummy_value",
             parameters="Dummy-Param:dummy_param",
             response_key=None,
-            response_type=None,
+            response_type="dict",
             retries=NUMBER_OF_RETRIES,
         )
 
