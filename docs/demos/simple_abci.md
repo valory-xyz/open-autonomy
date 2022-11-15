@@ -362,7 +362,7 @@ alphabet_in:
 - ROUND_TIMEOUT
 default_start_state: RegistrationRound
 final_states: []
-label: packages.valory.skills.simple_abci.rounds.SimpleAbciApp
+label: SimpleAbciApp
 start_states:
 - RegistrationRound
 states:
