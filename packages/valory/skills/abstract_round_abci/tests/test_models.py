@@ -42,6 +42,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     ApiSpecs,
     BaseParams,
     BenchmarkTool,
+    DEFAULT_BACKOFF_FACTOR,
     NUMBER_OF_RETRIES,
     Requests,
     SharedState,
@@ -73,8 +74,12 @@ class TestApiSpecsModel:
         self.api_specs = ApiSpecs(
             **BASE_DUMMY_SPECS_CONFIG,
             response_key="value",
+            response_index=0,
             response_type="float",
-            retries=NUMBER_OF_RETRIES,
+            error_key="error",
+            error_index=None,
+            error_type="str",
+            error_data="error text",
         )
 
     def test_init(
@@ -89,6 +94,7 @@ class TestApiSpecsModel:
                 skill_context=MagicMock(),
             )
 
+        assert self.api_specs.retries_info.backoff_factor == DEFAULT_BACKOFF_FACTOR
         assert self.api_specs.retries_info.retries == NUMBER_OF_RETRIES
         assert self.api_specs.retries_info.retries_attempted == 0
 
@@ -98,7 +104,21 @@ class TestApiSpecsModel:
         assert self.api_specs.headers == [["Dummy-Header", "dummy_value"]]
         assert self.api_specs.parameters == [["Dummy-Param", "dummy_param"]]
         assert self.api_specs.response_info.response_key == "value"
+        assert self.api_specs.response_info.response_index == 0
         assert self.api_specs.response_info.response_type == "float"
+        assert self.api_specs.response_info.error_key == "error"
+        assert self.api_specs.response_info.error_index is None
+        assert self.api_specs.response_info.error_type == "str"
+        assert self.api_specs.response_info.error_data is None
+
+    @pytest.mark.parametrize("retries", range(10))
+    def test_suggested_sleep_time(self, retries: int) -> None:
+        """Test `suggested_sleep_time`"""
+        self.api_specs.retries_info.retries_attempted = retries
+        assert (
+            self.api_specs.retries_info.suggested_sleep_time
+            == DEFAULT_BACKOFF_FACTOR ** retries
+        )
 
     def test_retries(
         self,
