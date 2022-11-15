@@ -194,7 +194,7 @@ def test_get_data_from_nested_dict(
     key_access = (f"[nested_keys[{i}]]" for i in range(len(nested_keys)))
     expression = "nested_dict" + "".join(key_access)
     expression += " = final_value"
-    exec(expression)
+    exec(expression)  # nosec
 
     serialized_keys = separator.join(nested_keys)
     actual = get_data_from_nested_dict(nested_dict, serialized_keys, separator)
