@@ -533,7 +533,7 @@ class LongRunningBehaviour(BaseBehaviour):
 
 
 def test_reset_should_be_performed_when_tm_unhealthy() -> None:
-    """Test that tendermint reset is performed when the behaviour is"""
+    """Test that hard reset is performed while a behaviour is running, and tendermint communication is unhealthy."""
     event = MagicMock()
 
     class AbciAppTest(AbciApp):
