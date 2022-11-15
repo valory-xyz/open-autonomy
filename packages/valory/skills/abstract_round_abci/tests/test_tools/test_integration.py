@@ -84,12 +84,16 @@ class TestIntegrationBaseCase:
         """Set path_to_skill"""
         self.test_cls.path_to_skill = path_to_skill
 
+    def set_round_behaviour(self) -> None:
+        """Set path_to_skill"""
+        self.test_cls.behaviour = DummyRoundBehaviour  # type: ignore
+
     def test_instantiation(self) -> None:
         """Test instantiation"""
 
         self.set_path_to_skill()
         self.test_cls.make_ledger_api_connection_callable = make_ledger_api_connection
-        self.test_cls.behaviour = DummyRoundBehaviour
+        self.set_round_behaviour()
         test_instance = cast(IntegrationBaseCase, self.setup_test_cls())
 
         assert test_instance
@@ -108,7 +112,7 @@ class TestIntegrationBaseCase:
 
         self.set_path_to_skill()
         self.test_cls.make_ledger_api_connection_callable = make_ledger_api_connection
-        self.test_cls.behaviour = DummyRoundBehaviour
+        self.set_round_behaviour()
         test_instance = cast(IntegrationBaseCase, self.setup_test_cls())
 
         behaviour_id = DummyStartingBehaviour.behaviour_id
@@ -127,9 +131,9 @@ class TestIntegrationBaseCase:
             ncycles=1,
             behaviour_id=behaviour_id,
             synchronized_data=synchronized_data,
-            handlers=handlers,
-            expected_content=expected_content,
-            expected_types=expected_types,
+            handlers=handlers,  # type: ignore
+            expected_content=expected_content,  # type: ignore
+            expected_types=expected_types,  # type: ignore
             fail_send_a2a=True,
         )
         assert len(messages) == 1
