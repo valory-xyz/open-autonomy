@@ -118,6 +118,69 @@ def __init__(*args: Any, **kwargs: Any) -> None
 
 Initialize the state.
 
+<a id="packages.valory.skills.abstract_round_abci.models.UnexpectedResponseError"></a>
+
+## UnexpectedResponseError Objects
+
+```python
+class UnexpectedResponseError(Exception)
+```
+
+Exception class for unexpected responses from Apis.
+
+<a id="packages.valory.skills.abstract_round_abci.models.ResponseInfo"></a>
+
+## ResponseInfo Objects
+
+```python
+@dataclass
+class ResponseInfo()
+```
+
+A dataclass to hold all the information related to the response.
+
+<a id="packages.valory.skills.abstract_round_abci.models.ResponseInfo.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(kwargs: Dict) -> None
+```
+
+Initialize a response info object
+
+<a id="packages.valory.skills.abstract_round_abci.models.RetriesInfo"></a>
+
+## RetriesInfo Objects
+
+```python
+@dataclass
+class RetriesInfo()
+```
+
+A dataclass to hold all the information related to the retries.
+
+<a id="packages.valory.skills.abstract_round_abci.models.RetriesInfo.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(kwargs: Dict) -> None
+```
+
+Initialize a retries info object
+
+<a id="packages.valory.skills.abstract_round_abci.models.RetriesInfo.suggested_sleep_time"></a>
+
+#### suggested`_`sleep`_`time
+
+```python
+@property
+def suggested_sleep_time() -> float
+```
+
+The suggested amount of time to sleep.
+
 <a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs"></a>
 
 ## ApiSpecs Objects
