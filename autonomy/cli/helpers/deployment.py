@@ -205,7 +205,7 @@ def _resolve_on_chain_token_id(
     chain_type: str,
     rpc_url: Optional[str],
     service_contract_address: Optional[str],
-) -> Tuple[Dict, List, str]:
+) -> Tuple[Dict[str, str], List[str], str]:
     """Resolve service metadata from tokenID"""
 
     service_registry = ServiceRegistry(chain_type, rpc_url, service_contract_address)

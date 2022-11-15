@@ -352,7 +352,7 @@ class TestKuebernetesBuild(BaseDeployBuildTest):
 
         build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
         assert any(
-            [child in build_tree for child in ["persistent_storage", "build.yaml"]]
+            child in build_tree for child in ["persistent_storage", "build.yaml"]
         )
 
     def test_kubernetes_build(
@@ -378,7 +378,7 @@ class TestKuebernetesBuild(BaseDeployBuildTest):
 
         build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
         assert any(
-            [child in build_tree for child in ["persistent_storage", "build.yaml"]]
+            child in build_tree for child in ["persistent_storage", "build.yaml"]
         )
 
     def test_kubernetes_build_log_level(
@@ -480,12 +480,10 @@ class TestKuebernetesBuild(BaseDeployBuildTest):
             assert agent_vars["AEA_PASSWORD"] == ETHEREUM_ENCRYPTION_PASSWORD
 
         assert all(
-            [
-                (
-                    build_dir
-                    / DEPLOYMENT_KEY_DIRECTORY
-                    / KUBERNETES_AGENT_KEY_NAME.format(agent_n=i)
-                ).exists()
-                for i in range(4)
-            ]
+            (
+                build_dir
+                / DEPLOYMENT_KEY_DIRECTORY
+                / KUBERNETES_AGENT_KEY_NAME.format(agent_n=i)
+            ).exists()
+            for i in range(4)
         )
