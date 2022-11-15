@@ -218,7 +218,7 @@ spec:
           - name: PROXY_APP
             value: tcp://localhost:26658
           - name: TMHOME
-            value: /tm
+            value: /tendermint
           - name: CREATE_EMPTY_BLOCKS
             value: "true"
           - name: LOG_FILE
