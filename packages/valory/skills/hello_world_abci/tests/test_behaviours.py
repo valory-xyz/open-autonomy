@@ -452,11 +452,13 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
             ).behaviour_id
             == self.collect_randomness_behaviour_class.behaviour_id
         )
-        self.hello_world_abci_behaviour.context.randomness_api._retries_attempted = 1
+        self.hello_world_abci_behaviour.context.randomness_api.retries_info.retries_attempted = (
+            1
+        )
         assert self.hello_world_abci_behaviour.current_behaviour is not None
         self.hello_world_abci_behaviour.current_behaviour.clean_up()
         assert (
-            self.hello_world_abci_behaviour.context.randomness_api._retries_attempted
+            self.hello_world_abci_behaviour.context.randomness_api.retries_info.retries_attempted
             == 0
         )
 

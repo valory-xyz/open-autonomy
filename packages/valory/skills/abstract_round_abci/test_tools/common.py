@@ -309,13 +309,13 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
             ).behaviour_id
             == self.randomness_behaviour_class.behaviour_id
         )
-        self.behaviour.context.randomness_api._retries_attempted = (  # pylint: disable=protected-access
+        self.behaviour.context.randomness_api.retries_info.retries_attempted = (  # pylint: disable=protected-access
             1
         )
         assert self.behaviour.current_behaviour is not None
         self.behaviour.current_behaviour.clean_up()
         assert (
-            self.behaviour.context.randomness_api._retries_attempted  # pylint: disable=protected-access
+            self.behaviour.context.randomness_api.retries_info.retries_attempted  # pylint: disable=protected-access
             == 0
         )
 
