@@ -21,6 +21,7 @@
 
 # pylint: skip-file
 
+import builtins
 import json
 import logging
 from enum import Enum
@@ -151,64 +152,143 @@ class TestApiSpecsModel:
         assert all([key in specs for key in actual_specs.keys()])
         assert all([specs[key] == actual_specs[key] for key in actual_specs])
 
-    def test_process_response_with_depth_0(
+    @pytest.mark.parametrize(
+        "api_specs_config, message, expected_res, expected_error",
+        (
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="value",
+                    response_index=None,
+                    response_type="float",
+                    error_key=None,
+                    error_index=None,
+                    error_type=None,
+                    error_data=None,
+                ),
+                MagicMock(body=b'{"value": "10.232"}'),
+                10.232,
+                None,
+            ),
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="test:response:key",
+                    response_index=2,
+                    response_type="dict",
+                    error_key="error:key",
+                    error_index=3,
+                    error_type="str",
+                    error_data=None,
+                ),
+                MagicMock(
+                    body=b'{"test": {"response": {"key": ["does_not_matter", "does_not_matter", {"this": "matters"}]}}}'
+                ),
+                {"this": "matters"},
+                None,
+            ),
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="test:response:key",
+                    response_index=2,
+                    response_type=None,
+                    error_key="error:key",
+                    error_index=3,
+                    error_type="str",
+                    error_data=None,
+                ),
+                MagicMock(body=b'{"cannot be parsed'),
+                None,
+                None,
+            ),
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="test:response:key",
+                    response_index=2,
+                    response_type=None,
+                    error_key="error:key",
+                    error_index=3,
+                    error_type="str",
+                    error_data=None,
+                ),
+                MagicMock(
+                    # the null will raise `TypeError` and we test that it is handled
+                    body=b'{"test": {"response": {"key": ["does_not_matter", "does_not_matter", null]}}}'
+                ),
+                None,
+                None,
+            ),
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="test:response:key",
+                    response_index=2,  # this will raise `IndexError` and we test that it is handled
+                    response_type=None,
+                    error_key="error:key",
+                    error_index=3,
+                    error_type="str",
+                    error_data=None,
+                ),
+                MagicMock(
+                    body=b'{"test": {"response": {"key": ["does_not_matter", "does_not_matter"]}}}'
+                ),
+                None,
+                None,
+            ),
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="test:response:key",  # this will raise `KeyError` and we test that it is handled
+                    response_index=2,
+                    response_type=None,
+                    error_key="error:key",
+                    error_index=3,
+                    error_type="str",
+                    error_data=None,
+                ),
+                MagicMock(
+                    body=b'{"test": {"response": {"key_does_not_match": ["does_not_matter", "does_not_matter"]}}}'
+                ),
+                None,
+                None,
+            ),
+            (
+                dict(
+                    **BASE_DUMMY_SPECS_CONFIG,
+                    response_key="test:response:key",
+                    response_index=2,
+                    response_type=None,
+                    error_key="error:key",
+                    error_index=3,
+                    error_type="str",
+                    error_data=None,
+                ),
+                MagicMock(
+                    body=b'{"test": {"response": {"key_does_not_match": ["does_not_matter", "does_not_matter"]}}, '
+                    b'"error": {"key": [0, 1, 2, "test that the error is being parsed correctly"]}}'
+                ),
+                None,
+                "test that the error is being parsed correctly",
+            ),
+        ),
+    )
+    def test_process_response(
         self,
+        api_specs_config: dict,
+        message: MagicMock,
+        expected_res: Any,
+        expected_error: Any,
     ) -> None:
-        """Test process_response method."""
-
-        value = self.api_specs.process_response(DummyMessage(b""))  # type: ignore
-        assert value is None
-
-        value = self.api_specs.process_response(
-            DummyMessage(b'{"value": "10.232"}')  # type: ignore
-        )
-        assert isinstance(value, float)
-
-    def test_process_response_with_depth_1(
-        self,
-    ) -> None:
-        """Test process_response method."""
-
-        api_specs = ApiSpecs(
-            name="price_api",
-            skill_context=SkillContext(),
-            url="http://localhost",
-            api_id="api_id",
-            method="GET",
-            headers="Dummy-Header:dummy_value",
-            parameters="Dummy-Param:dummy_param",
-            response_key="value_0:value_1",
-            response_type="float",
-            retries=NUMBER_OF_RETRIES,
-        )
-
-        value = api_specs.process_response(
-            DummyMessage(b'{"value_0": {"value_1": "10.232"}}')  # type: ignore
-        )
-        assert isinstance(value, float)
-
-    def test_process_response_with_key_none(
-        self,
-    ) -> None:
-        """Test process_response method."""
-
-        api_specs = ApiSpecs(
-            name="price_api",
-            skill_context=SkillContext(),
-            url="http://localhost",
-            api_id="api_id",
-            method="GET",
-            headers="Dummy-Header:dummy_value",
-            parameters="Dummy-Param:dummy_param",
-            response_key=None,
-            response_type="dict",
-            retries=NUMBER_OF_RETRIES,
-        )
-
-        value = api_specs.process_response(
-            DummyMessage(b'{"value": "10.232"}')  # type: ignore
-        )
-        assert isinstance(value, dict)
+        """Test `process_response` method."""
+        api_specs = ApiSpecs(**api_specs_config)
+        actual = api_specs.process_response(message)
+        assert actual == expected_res
+        response_type = api_specs_config["response_type"]
+        if response_type is not None:
+            assert type(actual) == getattr(builtins, response_type)
+        assert api_specs.response_info.error_data == expected_error
 
 
 class ConcreteRound(AbstractRound):
