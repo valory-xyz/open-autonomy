@@ -36,7 +36,6 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
     PATH_TO_SKILL,
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours import (
-    DummyRoundBehaviour,
     DummyStartingBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds import (
