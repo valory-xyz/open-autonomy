@@ -338,8 +338,8 @@ def test_async_behaviour_sleep() -> None:
     assert behaviour.counter == 1
     assert behaviour.state == AsyncBehaviour.AsyncState.RUNNING
 
-    # wait the sleep timeout
-    time.sleep(timedelta)
+    # wait the sleep timeout, we give twice the amount of time it takes the behaviour
+    time.sleep(timedelta * 2)
 
     assert behaviour.counter == 1
     assert behaviour.state == AsyncBehaviour.AsyncState.RUNNING
