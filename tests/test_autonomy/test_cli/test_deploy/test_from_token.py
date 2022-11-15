@@ -23,11 +23,42 @@ import os
 from unittest import mock
 
 import pytest
+from aea.cli.registry.settings import REMOTE_IPFS
 from aea_test_autonomy.docker.registries import SERVICE_REGISTRY
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
+from autonomy.cli.helpers.deployment import (
+    BadFunctionCallOutput,
+    RequestsConnectionError,
+)
+from autonomy.deploy.chain import ServiceRegistry
+
 from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
+
+
+MOCK_IPFS_RESPONSE = {
+    "name": "valory/oracle_hardhat",
+    "description": "Oracle service.",
+    "code_uri": "ipfs://bafybeiansmhkoovd6jlnyurm2w4qzhpmi43gxlyenq33ioovy2rh4gziji",
+    "image": "bafybeiansmhkoovd6jlnyurm2w4qzhpmi43gxlyenq33ioovy2rh4gziji",
+    "attributes": [{"trait_type": "version", "value": "0.1.0"}],
+}
+
+run_deployment_patch = mock.patch("autonomy.cli.helpers.deployment.run_deployment")
+build_image_patch = mock.patch("autonomy.cli.helpers.deployment.build_image")
+default_remote_registry_patch = mock.patch(
+    "autonomy.cli.helpers.registry.get_default_remote_registry",
+    new=lambda: REMOTE_IPFS,
+)
+default_ipfs_node_patch = mock.patch(
+    "autonomy.cli.helpers.registry.get_ipfs_node_multiaddr",
+    new=lambda: "/dns/registry.autonolas.tech/tcp/443/https",
+)
+ipfs_resolve_patch = mock.patch(
+    "autonomy.deploy.chain.ServiceRegistry._resolve_from_ipfs",
+    return_value=MOCK_IPFS_RESPONSE,
+)
 
 
 @pytest.mark.usefixtures("registries_scope_class")
@@ -37,41 +68,44 @@ class TestFromToken(BaseCliTest):
     """Test `from-token` command."""
 
     cli_options = ("deploy", "from-token")
-    keys_file = ROOT_DIR / "deployments" / "hardhat_keys.json"
+    keys_file = ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json"
     token = 1
     chain = "staging"
 
     def setup(self) -> None:
         """Setup test method."""
-
         super().setup()
+
         os.chdir(self.t)
 
-    def test_from_token(
-        self,
-    ) -> None:
+    def test_from_token(self, capsys) -> None:
         """Run test."""
-        mock_ipfs_response = {
-            "name": "valory/oracle_hardhat",
-            "description": "Oracle service.",
-            "code_uri": "ipfs://bafybeiansmhkoovd6jlnyurm2w4qzhpmi43gxlyenq33ioovy2rh4gziji",
-            "image": "bafybeiansmhkoovd6jlnyurm2w4qzhpmi43gxlyenq33ioovy2rh4gziji",
-            "attributes": [{"trait_type": "version", "value": "0.1.0"}],
-        }
 
-        with mock.patch("autonomy.cli.helpers.deployment.run_deployment"), mock.patch(
-            "autonomy.cli.helpers.deployment.build_image"
-        ), mock.patch("autonomy.cli.helpers.deployment.build_deployment"), mock.patch(
-            "click.echo"
-        ) as click_mock, mock.patch(
-            "autonomy.cli.helpers.registry.get_default_remote_registry",
-            new=lambda: "ipfs",
-        ), mock.patch(
-            "autonomy.cli.helpers.registry.get_ipfs_node_multiaddr",
-            new=lambda: "/dns/registry.autonolas.tech/tcp/443/https",
-        ), mock.patch(
-            "autonomy.deploy.chain.ServiceRegistry._resolve_from_ipfs",
-            return_value=mock_ipfs_response,
+        with run_deployment_patch, build_image_patch, default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch:
+            result = self.run_cli(
+                (
+                    str(self.token),
+                    str(self.keys_file),
+                    "--rpc",
+                    "http://localhost:8545/",
+                    "--sca",
+                    SERVICE_REGISTRY,
+                )
+            )
+
+            out, err = capsys.readouterr()
+
+            assert result.exit_code == 0, err
+            assert "Service name: valory/oracle_hardhat" in out, err
+            assert "Downloaded service package valory/oracle_hardhat:0.1.0" in out, err
+            assert "Building required images" in out, err
+            assert "Service build successful" in out, err
+
+    def test_fail_on_chain_resolve_connection_error(self) -> None:
+        """Run test."""
+
+        with run_deployment_patch, build_image_patch, default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch, mock.patch.object(
+            ServiceRegistry, "resolve_token_id", side_effect=RequestsConnectionError
         ):
             result = self.run_cli(
                 (
@@ -84,15 +118,28 @@ class TestFromToken(BaseCliTest):
                 )
             )
 
-            assert result.exit_code == 0, click_mock.call_args_list
+            assert result.exit_code == 1, result.stdout
             assert (
-                "Building service deployment using token ID: 1"
-                in click_mock.call_args_list[0][0][0]
+                "Error connecting RPC endpoint; RPC=http://localhost:8545/"
+                in result.stdout
             )
-            assert "Service name: " in click_mock.call_args_list[1][0][0]
-            assert (
-                "Downloaded service package valory/oracle_hardhat:0.1.0"
-                in click_mock.call_args_list[2][0][0]
+
+    def test_fail_on_chain_resolve_bad_contract_call(self) -> None:
+        """Run test."""
+
+        with run_deployment_patch, build_image_patch, default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch, mock.patch.object(
+            ServiceRegistry, "resolve_token_id", side_effect=BadFunctionCallOutput
+        ):
+            result = self.run_cli(
+                (
+                    str(self.token),
+                    str(self.keys_file),
+                    "--rpc",
+                    "http://localhost:8545/",
+                    "--sca",
+                    SERVICE_REGISTRY,
+                )
             )
-            assert "Building required images" in click_mock.call_args_list[3][0][0]
-            assert "Service build successful" in click_mock.call_args_list[4][0][0]
+
+            assert result.exit_code == 1, result.stdout
+            assert "Cannot find the service registry deployment;" in result.stdout
