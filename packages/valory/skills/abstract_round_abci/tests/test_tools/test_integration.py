@@ -27,8 +27,15 @@ from aea.test_tools.utils import copy_class
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.open_aea.protocols.signing.custom_types import SignedMessage
+from packages.valory.connections.ledger.connection import (
+    PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
+)
 from packages.valory.connections.ledger.tests.conftest import make_ledger_api_connection
+from packages.valory.protocols.ledger_api import LedgerApiMessage
+from packages.valory.protocols.ledger_api.dialogues import LedgerApiDialogue
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB, _MetaPayload
+from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
+from packages.valory.skills.abstract_round_abci.models import Requests
 from packages.valory.skills.abstract_round_abci.test_tools.integration import (
     IntegrationBaseCase,
 )
@@ -41,6 +48,27 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds import (
     SynchronizedData,
 )
+
+
+def simulate_ledger_get_balance_request(test_instance: IntegrationBaseCase) -> None:
+    """Simulate ledger GET_BALANCE request"""
+
+    ledger_api_dialogues = test_instance.skill.skill_context.ledger_api_dialogues
+    ledger_api_msg, ledger_api_dialogue = ledger_api_dialogues.create(
+        counterparty=str(LEDGER_CONNECTION_PUBLIC_ID),
+        performative=LedgerApiMessage.Performative.GET_BALANCE,
+        ledger_id="ethereum",
+        address="0x" + "0" * 40,
+    )
+    ledger_api_dialogue = cast(LedgerApiDialogue, ledger_api_dialogue)
+    current_behaviour = cast(BaseBehaviour, test_instance.behaviour.current_behaviour)
+    request_nonce = current_behaviour._get_request_nonce_from_dialogue(  # type: ignore
+        ledger_api_dialogue
+    )
+    cast(Requests, current_behaviour.context.requests).request_id_to_callback[
+        request_nonce
+    ] = current_behaviour.get_callback_request()
+    current_behaviour.context.outbox.put_message(message=ledger_api_msg)
 
 
 class TestIntegrationBaseCase:
@@ -101,6 +129,27 @@ class TestIntegrationBaseCase:
         with pytest.raises(AssertionError, match=expected):
             assert test_instance.process_n_messages(ncycles=1)
 
+    def test_process_messages_cycle(self) -> None:
+        """Test process_message_cycle"""
+
+        self.set_path_to_skill()
+        self.test_cls.make_ledger_api_connection_callable = make_ledger_api_connection
+        test_instance = cast(IntegrationBaseCase, self.setup_test_cls())
+
+        simulate_ledger_get_balance_request(test_instance)
+        message = test_instance.process_message_cycle(
+            handler=None,
+        )
+        assert message is None
+
+        simulate_ledger_get_balance_request(test_instance)
+        # connection error - cannot dynamically mix in an autouse fixture
+        message = test_instance.process_message_cycle(
+            handler=test_instance.ledger_handler,
+            expected_content={"performative": LedgerApiMessage.Performative.ERROR},
+        )
+        assert message
+
     def test_process_n_messages(self) -> None:
         """Test process_n_messages"""
 
@@ -113,7 +162,6 @@ class TestIntegrationBaseCase:
             AbciAppDB(setup_data=dict(participants=[frozenset("abcd")]))
         )
 
-        # must have a handler!
         handlers = [test_instance.signing_handler]
         expected_content = [
             {"performative": SigningMessage.Performative.SIGNED_MESSAGE}
