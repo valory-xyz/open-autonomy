@@ -24,16 +24,16 @@ def __init__(client: docker.DockerClient, addr: str = DEFAULT_HARDHAT_ADDR, port
 
 Initialize.
 
-<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.amm_net.AMMNetDockerImage.tag"></a>
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.amm_net.AMMNetDockerImage.image"></a>
 
-#### tag
+#### image
 
 ```python
 @property
-def tag() -> str
+def image() -> str
 ```
 
-Get the tag.
+Get the image name.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.amm_net.AMMNetDockerImage.create"></a>
 

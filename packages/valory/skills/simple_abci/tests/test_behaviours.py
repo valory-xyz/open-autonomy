@@ -547,10 +547,13 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
             ).behaviour_id
             == self.randomness_behaviour_class.behaviour_id
         )
-        self.abci_behaviour.context.randomness_api._retries_attempted = 1
+        self.abci_behaviour.context.randomness_api.retries_info.retries_attempted = 1
         assert self.abci_behaviour.current_behaviour is not None
         self.abci_behaviour.current_behaviour.clean_up()
-        assert self.abci_behaviour.context.randomness_api._retries_attempted == 0
+        assert (
+            self.abci_behaviour.context.randomness_api.retries_info.retries_attempted
+            == 0
+        )
 
 
 class BaseSelectKeeperBehaviourTest(SimpleAbciFSMBehaviourBaseCase):

@@ -62,15 +62,15 @@ class AMMNetDockerImage(DockerImage):
         self.port = port
 
     @property
-    def tag(self) -> str:
-        """Get the tag."""
+    def image(self) -> str:
+        """Get the image name."""
         return "valory/contracts-amm:latest"
 
     def create(self) -> Container:
         """Create the container."""
         ports = {f"{self._CONTAINER_PORT}/tcp": ("0.0.0.0", self.port)}  # nosec
         container = self._client.containers.run(
-            self.tag,
+            self.image,
             detach=True,
             ports=ports,
             extra_hosts={"host.docker.internal": "host-gateway"},
