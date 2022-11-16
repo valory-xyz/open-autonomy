@@ -722,6 +722,47 @@ def reset_tendermint_with_wait(on_startup: bool = False) -> Generator[None, None
 
 Resets the tendermint node.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager"></a>
+
+## TmManager Objects
+
+```python
+class TmManager(BaseBehaviour,  ABC)
+```
+
+Util class to be used for managing the tendermint node.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager.async_act"></a>
+
+#### async`_`act
+
+```python
+def async_act() -> Generator
+```
+
+The behaviour act.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager.is_acting"></a>
+
+#### is`_`acting
+
+```python
+@property
+def is_acting() -> bool
+```
+
+This method returns whether there is an active fix being applied.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager.try_fix"></a>
+
+#### try`_`fix
+
+```python
+def try_fix() -> None
+```
+
+This method tries to fix an unhealthy node.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateBehaviour"></a>
 
 ## DegenerateBehaviour Objects

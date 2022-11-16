@@ -41,6 +41,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviour,
     DegenerateBehaviour,
+    TmManager,
 )
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -176,6 +177,7 @@ class TestAbstractRoundBehaviour:
         context_mock.params.ipfs_domain_name = None
         self.round_sequence_mock.block_stall_deadline_expired = False
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
+        self.behaviour.tm_manager = self.behaviour.instantiate_behaviour_cls(TmManager)  # type: ignore
 
     def test_setup(self) -> None:
         """Test 'setup' method."""
@@ -453,6 +455,47 @@ class TestAbstractRoundBehaviour:
         self.behaviour.act()
         assert isinstance(self.behaviour.current_behaviour, BehaviourB)
 
+    @mock.patch.object(
+        AbstractRoundBehaviour,
+        "_process_current_round",
+    )
+    @pytest.mark.parametrize(
+        ("mock_tm_communication_unhealthy", "mock_is_acting", "expected_fix"),
+        [
+            (True, True, True),
+            (False, True, True),
+            (True, False, True),
+            (False, False, False),
+        ],
+    )
+    def test_try_fix_call(
+        self,
+        _: mock._patch,
+        mock_tm_communication_unhealthy: bool,
+        mock_is_acting: bool,
+        expected_fix: bool,
+    ) -> None:
+        """Test that `try_fix` is called when necessary."""
+        with mock.patch.object(
+            TmManager,
+            "tm_communication_unhealthy",
+            new_callable=mock.PropertyMock,
+            return_value=mock_tm_communication_unhealthy,
+        ), mock.patch.object(
+            TmManager,
+            "is_acting",
+            new_callable=mock.PropertyMock,
+            return_value=mock_is_acting,
+        ), mock.patch.object(
+            TmManager,
+            "try_fix",
+        ) as mock_try_fix:
+            self.behaviour.act()
+            if expected_fix:
+                mock_try_fix.assert_called()
+            else:
+                mock_try_fix.assert_not_called()
+
 
 def test_meta_round_behaviour_when_instance_not_subclass_of_abstract_round() -> None:
     """Test instantiation of meta class when instance not a subclass of abstract round."""
@@ -517,3 +560,85 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour(_: mock._patch) -> None:
     assert isinstance(behaviour_2, BehaviourA)
     assert id(behaviour_1) != id(behaviour_2)
     assert behaviour_1 != behaviour_2
+
+
+class LongRunningBehaviour(BaseBehaviour):
+    """A behaviour that runs forevever."""
+
+    behaviour_id = "long_running_behaviour"
+    matching_round = RoundA
+
+    def async_act(self) -> Generator:
+        """An act method that simply cycles forever."""
+        while True:
+            # cycle forever
+            yield
+
+
+def test_reset_should_be_performed_when_tm_unhealthy() -> None:
+    """Test that hard reset is performed while a behaviour is running, and tendermint communication is unhealthy."""
+    event = MagicMock()
+
+    class AbciAppTest(AbciApp):
+        initial_round_cls = RoundA
+        transition_function = {RoundA: {event: RoundA}}
+
+    class RoundBehaviour(AbstractRoundBehaviour):
+        abci_app_cls = AbciAppTest
+        behaviours = {LongRunningBehaviour}  # type: ignore
+        initial_behaviour_cls = LongRunningBehaviour
+
+    round_sequence = RoundSequence(AbciAppTest)
+    round_sequence.end_sync()
+    round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
+    context_mock = MagicMock()
+    context_mock.state.round_sequence = round_sequence
+    context_mock.params.ipfs_domain_name = None
+    behaviour = RoundBehaviour(name="", skill_context=context_mock)
+    behaviour.setup()
+
+    current_behaviour = behaviour.current_behaviour
+    assert isinstance(current_behaviour, LongRunningBehaviour)
+
+    # upon entering the behaviour, the tendermint node communication is working well
+    with mock.patch.object(
+        RoundSequence,
+        "block_stall_deadline_expired",
+        new_callable=mock.PropertyMock,
+        return_value=False,
+    ):
+        behaviour.act()
+
+    def dummy_num_peers(
+        timeout: Optional[float] = None,
+    ) -> Generator[None, None, Optional[int]]:
+        """A dummy method for num_active_peers."""
+        # a None response is acceptable here, because tendermint is not healthy
+        return None
+        yield
+
+    def dummy_reset_tendermint_with_wait() -> Generator[None, None, bool]:
+        """A dummy method for reset_tendermint_with_wait."""
+        # we assume the reset goes through successfully
+        return True
+        yield
+
+    # at this point LongRunningBehaviour is running
+    # while the behaviour is running, the tendermint node
+    # becomes unhealthy, we expect the node to be reset
+    with mock.patch.object(
+        RoundSequence,
+        "block_stall_deadline_expired",
+        new_callable=mock.PropertyMock,
+        return_value=True,
+    ), mock.patch.object(
+        BaseBehaviour,
+        "num_active_peers",
+        side_effect=dummy_num_peers,
+    ), mock.patch.object(
+        BaseBehaviour,
+        "reset_tendermint_with_wait",
+        side_effect=dummy_reset_tendermint_with_wait,
+    ) as mock_reset_tendermint:
+        behaviour.act()
+        mock_reset_tendermint.assert_called()
