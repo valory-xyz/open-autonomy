@@ -73,8 +73,8 @@ class TendermintDockerImage(DockerImage):
         self.proxy_app = f"{_TCP}{self.abci_host}:{self.abci_port}"
 
     @property
-    def tag(self) -> str:
-        """Get the tag."""
+    def image(self) -> str:
+        """Get the image name."""
         return "tendermint/tendermint:v0.34.19"
 
     def _build_command(self) -> List[str]:
@@ -93,7 +93,7 @@ class TendermintDockerImage(DockerImage):
         else:
             extra_hosts_config = {}
         container = self._client.containers.run(
-            self.tag,
+            self.image,
             command=cmd,
             detach=True,
             ports=ports,
@@ -135,8 +135,8 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         super().__init__(client, abci_host, abci_port, port, p2p_port, com_port)
 
     @property
-    def tag(self) -> str:
-        """Get the tag."""
+    def image(self) -> str:
+        """Get the image name."""
         return f"{TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}"
 
     @staticmethod
@@ -221,7 +221,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         extra_hosts.update(self._extra_hosts)
 
         run_kwargs = dict(
-            image=self.tag,
+            image=self.image,
             command=self._build_command(),
             name=name,
             hostname=name,
@@ -320,7 +320,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             "-v",
             f"{os.getcwd()}/nodes:/tendermint:Z",
             "--entrypoint=/usr/bin/tendermint",
-            self.tag,
+            self.image,
             "testnet",
             "--config",
             "/etc/tendermint/config-template.toml",
