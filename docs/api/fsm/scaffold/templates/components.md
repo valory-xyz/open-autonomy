@@ -1,10 +1,10 @@
-<a id="autonomy.cli.scaffold_fsm_templates.components"></a>
+<a id="autonomy.fsm.scaffold.templates.components"></a>
 
-# autonomy.cli.scaffold`_`fsm`_`templates.components
+# autonomy.fsm.scaffold.templates.components
 
 Templates for FSM components
 
-<a id="autonomy.cli.scaffold_fsm_templates.components.ROUNDS"></a>
+<a id="autonomy.fsm.scaffold.templates.components.ROUNDS"></a>
 
 ## ROUNDS Objects
 
@@ -15,7 +15,7 @@ class ROUNDS()
 
 Template for rounds.py
 
-<a id="autonomy.cli.scaffold_fsm_templates.components.BEHAVIOURS"></a>
+<a id="autonomy.fsm.scaffold.templates.components.BEHAVIOURS"></a>
 
 ## BEHAVIOURS Objects
 
@@ -26,7 +26,7 @@ class BEHAVIOURS()
 
 Template for behaviours.py
 
-<a id="autonomy.cli.scaffold_fsm_templates.components.PAYLOADS"></a>
+<a id="autonomy.fsm.scaffold.templates.components.PAYLOADS"></a>
 
 ## PAYLOADS Objects
 
@@ -37,7 +37,7 @@ class PAYLOADS()
 
 Template for payloads.py
 
-<a id="autonomy.cli.scaffold_fsm_templates.components.MODELS"></a>
+<a id="autonomy.fsm.scaffold.templates.components.MODELS"></a>
 
 ## MODELS Objects
 
@@ -48,7 +48,7 @@ class MODELS()
 
 Template for models.py
 
-<a id="autonomy.cli.scaffold_fsm_templates.components.HANDLERS"></a>
+<a id="autonomy.fsm.scaffold.templates.components.HANDLERS"></a>
 
 ## HANDLERS Objects
 
@@ -59,7 +59,7 @@ class HANDLERS()
 
 Template for handlers.py
 
-<a id="autonomy.cli.scaffold_fsm_templates.components.DIALOGUES"></a>
+<a id="autonomy.fsm.scaffold.templates.components.DIALOGUES"></a>
 
 ## DIALOGUES Objects
 
