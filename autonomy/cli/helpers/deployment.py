@@ -21,16 +21,26 @@
 import os
 import shutil
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import click
 from aea.configurations.constants import SKILL
+from aea.configurations.data_types import PublicId
+from aea.helpers.base import cd
 from aea.helpers.io import open_file
 from aea.helpers.yaml_utils import yaml_dump_all, yaml_load_all
 from compose.cli import main as docker_compose
+from compose.config.errors import ConfigurationError
+from docker.errors import NotFound
+from requests.exceptions import ConnectionError as RequestsConnectionError
+from web3.exceptions import BadFunctionCallOutput
 
+from autonomy.cli.helpers.registry import fetch_service_ipfs
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
+from autonomy.configurations.loader import load_service_config
+from autonomy.constants import DEFAULT_BUILD_FOLDER
 from autonomy.deploy.build import generate_deployment
+from autonomy.deploy.chain import ServiceRegistry
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
     BENCHMARKS_DIR,
@@ -40,6 +50,8 @@ from autonomy.deploy.constants import (
     TM_STATE_DIR,
     VENVS_DIR,
 )
+from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
+from autonomy.deploy.image import build_image
 
 
 def _build_dirs(build_dir: Path) -> None:
@@ -70,31 +82,43 @@ def run_deployment(
     """Run deployment."""
 
     click.echo(f"Running build @ {build_dir}")
-    project = docker_compose.project_from_options(build_dir, {})
-    commands = docker_compose.TopLevelCommand(project=project)
-    commands.up(
-        {
-            "--detach": False,
-            "--no-color": False,
-            "--quiet-pull": False,
-            "--no-deps": False,
-            "--force-recreate": not no_recreate,
-            "--always-recreate-deps": False,
-            "--no-recreate": no_recreate,
-            "--no-build": False,
-            "--no-start": False,
-            "--build": True,
-            "--abort-on-container-exit": False,
-            "--attach-dependencies": False,
-            "--timeout": None,
-            "--renew-anon-volumes": False,
-            "--remove-orphans": remove_orphans,
-            "--exit-code-from": None,
-            "--scale": [],
-            "--no-log-prefix": False,
-            "SERVICE": None,
-        }
-    )
+    try:
+        project = docker_compose.project_from_options(build_dir, {})
+    except ConfigurationError as e:
+        if "Invalid interpolation format" in e.msg:
+            raise click.ClickException(
+                "Provided docker compose file contains environment placeholders, "
+                "please use `--aev` flag if you intend to use environment variables."
+            )
+        raise
+
+    try:
+        commands = docker_compose.TopLevelCommand(project=project)
+        commands.up(
+            {
+                "--detach": False,
+                "--no-color": False,
+                "--quiet-pull": False,
+                "--no-deps": False,
+                "--force-recreate": not no_recreate,
+                "--always-recreate-deps": False,
+                "--no-recreate": no_recreate,
+                "--no-build": False,
+                "--no-start": False,
+                "--build": True,
+                "--abort-on-container-exit": False,
+                "--attach-dependencies": False,
+                "--timeout": None,
+                "--renew-anon-volumes": False,
+                "--remove-orphans": remove_orphans,
+                "--exit-code-from": None,
+                "--scale": [],
+                "--no-log-prefix": False,
+                "SERVICE": None,
+            }
+        )
+    except NotFound as e:
+        raise click.ClickException(e.explanation)
 
 
 def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
@@ -121,6 +145,9 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
             raise click.ClickException(f"Build already exists @ {build_dir}")
         shutil.rmtree(build_dir)
 
+    if not (Path.cwd() / DEFAULT_SERVICE_CONFIG_FILE).exists():
+        raise FileNotFoundError(f"No service configuration found at {Path.cwd()}")
+
     click.echo(f"Building deployment @ {build_dir}")
     build_dir.mkdir()
     _build_dirs(build_dir)
@@ -146,10 +173,10 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     click.echo(report)
 
 
-# TODO: add validation
 def update_multisig_address(service_path: Path, address: str) -> None:
     """Update the multisig address on the service config."""
 
+    # TODO: add validation
     with open_file(service_path / DEFAULT_SERVICE_CONFIG_FILE) as fp:
         config, *overrides = yaml_load_all(
             fp,
@@ -157,9 +184,96 @@ def update_multisig_address(service_path: Path, address: str) -> None:
 
     for override in overrides:
         if override["type"] == SKILL:
-            override["setup_args"]["args"]["setup"]["safe_contract_address"] = [
-                address,
-            ]
+            try:
+                override["setup_args"]["args"]["setup"]["safe_contract_address"] = [
+                    address,
+                ]
+            except KeyError as e:
+                click.echo(
+                    "Could not update multisig address for skill "
+                    + override["public_id"]
+                    + "; "
+                    + f"Invalid overrides provided, missing `{e}` from override configuration"
+                )
 
     with open_file(service_path / DEFAULT_SERVICE_CONFIG_FILE, mode="w+") as fp:
         yaml_dump_all([config, *overrides], fp)
+
+
+def _resolve_on_chain_token_id(
+    token_id: int,
+    chain_type: str,
+    rpc_url: Optional[str],
+    service_contract_address: Optional[str],
+) -> Tuple[Dict[str, str], List[str], str]:
+    """Resolve service metadata from tokenID"""
+
+    service_registry = ServiceRegistry(chain_type, rpc_url, service_contract_address)
+    click.echo(
+        "Fetching service metadata using:\n"
+        + f"\tRPC: {service_registry.rpc_url}\n"
+        + f"\tContract: {service_registry.service_contract_address}"
+    )
+
+    try:
+        metadata = service_registry.resolve_token_id(token_id)
+        _, agent_instances = service_registry.get_agent_instances(token_id)
+        _, multisig_address, *_ = service_registry.get_service_info(token_id)
+    except RequestsConnectionError as e:
+        raise click.ClickException(
+            f"Error connecting RPC endpoint; RPC={service_registry.rpc_url}"
+        ) from e
+    except BadFunctionCallOutput as e:
+        raise click.ClickException(
+            f"Cannot find the service registry deployment; Service contract address {service_registry.service_contract_address}"
+        ) from e
+
+    return metadata, agent_instances, multisig_address
+
+
+def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many-locals
+    token_id: int,
+    keys_file: Path,
+    chain_type: str,
+    rpc_url: Optional[str],
+    service_contract_address: Optional[str],
+    skip_image: bool,
+    n: Optional[int],
+    aev: bool = False,
+) -> None:
+    """Build and run deployment from tokenID."""
+
+    click.echo(f"Building service deployment using token ID: {token_id}")
+    service_metadata, agent_instances, multisig_address = _resolve_on_chain_token_id(
+        token_id=token_id,
+        chain_type=chain_type,
+        rpc_url=rpc_url,
+        service_contract_address=service_contract_address,
+    )
+
+    click.echo("Service name: " + service_metadata["name"])
+    *_, service_hash = service_metadata["code_uri"].split("//")
+    public_id = PublicId(author="valory", name="service", package_hash=service_hash)
+    service_path = fetch_service_ipfs(public_id)
+    build_dir = service_path / DEFAULT_BUILD_FOLDER
+
+    update_multisig_address(service_path, multisig_address)
+    service = load_service_config(service_path, substitute_env_vars=aev)
+
+    with cd(service_path):
+        build_deployment(
+            keys_file=keys_file,
+            build_dir=build_dir,
+            deployment_type=DockerComposeGenerator.deployment_type,
+            dev_mode=False,
+            force_overwrite=True,
+            number_of_agents=n,
+            agent_instances=agent_instances,
+            substitute_env_vars=aev,
+        )
+        if not skip_image:
+            click.echo("Building required images.")
+            build_image(agent=service.agent)
+
+    click.echo("Service build successful.")
+    run_deployment(build_dir)

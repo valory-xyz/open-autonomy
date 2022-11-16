@@ -24,16 +24,16 @@ def __init__(client: docker.DockerClient, abci_host: str = DEFAULT_ABCI_HOST, ab
 
 Initialize.
 
-<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.tendermint.TendermintDockerImage.tag"></a>
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.tendermint.TendermintDockerImage.image"></a>
 
-#### tag
+#### image
 
 ```python
 @property
-def tag() -> str
+def image() -> str
 ```
 
-Get the tag.
+Get the image name.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.tendermint.TendermintDockerImage.create"></a>
 
@@ -94,16 +94,16 @@ def __init__(client: docker.DockerClient, abci_host: str = DEFAULT_ABCI_HOST, ab
 
 Initialize.
 
-<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.tendermint.FlaskTendermintDockerImage.tag"></a>
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.tendermint.FlaskTendermintDockerImage.image"></a>
 
-#### tag
+#### image
 
 ```python
 @property
-def tag() -> str
+def image() -> str
 ```
 
-Get the tag.
+Get the image name.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.tendermint.FlaskTendermintDockerImage.get_node_name"></a>
 

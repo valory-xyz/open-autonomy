@@ -66,8 +66,8 @@ class ACNNodeDockerImage(DockerImage):
         self._config = config or {}
 
     @property
-    def tag(self) -> str:
-        """Get the image tag."""
+    def image(self) -> str:
+        """Get the image name."""
         return "valory/acn-node:latest"
 
     def _make_ports(self) -> Dict:
@@ -81,7 +81,7 @@ class ACNNodeDockerImage(DockerImage):
     def create(self) -> Container:
         """Create the container."""
         container = self._client.containers.run(
-            self.tag,
+            self.image,
             "--config-from-env",
             detach=True,
             ports=self._make_ports(),

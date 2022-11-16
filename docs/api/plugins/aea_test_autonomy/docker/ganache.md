@@ -32,16 +32,16 @@ Initialize the Ganache Docker image.
 - `config`: optional configuration to command line.
 - `gas_limit`: the gas limit for blocks.
 
-<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.ganache.GanacheDockerImage.tag"></a>
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.ganache.GanacheDockerImage.image"></a>
 
-#### tag
+#### image
 
 ```python
 @property
-def tag() -> str
+def image() -> str
 ```
 
-Get the image tag.
+Get the image name.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.ganache.GanacheDockerImage.create"></a>
 
