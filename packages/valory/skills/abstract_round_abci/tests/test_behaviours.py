@@ -41,6 +41,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviour,
     DegenerateBehaviour,
+    TmManager,
 )
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -176,6 +177,7 @@ class TestAbstractRoundBehaviour:
         context_mock.params.ipfs_domain_name = None
         self.round_sequence_mock.block_stall_deadline_expired = False
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
+        self.behaviour.tm_manager = self.behaviour.instantiate_behaviour_cls(TmManager)  # type: ignore
 
     def test_setup(self) -> None:
         """Test 'setup' method."""
@@ -452,6 +454,47 @@ class TestAbstractRoundBehaviour:
         # check that if the round is changed, the behaviour transition is taken
         self.behaviour.act()
         assert isinstance(self.behaviour.current_behaviour, BehaviourB)
+
+    @mock.patch.object(
+        AbstractRoundBehaviour,
+        "_process_current_round",
+    )
+    @pytest.mark.parametrize(
+        ("mock_tm_communication_unhealthy", "mock_is_acting", "expected_fix"),
+        [
+            (True, True, True),
+            (False, True, True),
+            (True, False, True),
+            (False, False, False),
+        ],
+    )
+    def test_try_fix_call(
+        self,
+        _: mock._patch,
+        mock_tm_communication_unhealthy: bool,
+        mock_is_acting: bool,
+        expected_fix: bool,
+    ) -> None:
+        """Test that `try_fix` is called when necessary."""
+        with mock.patch.object(
+            TmManager,
+            "tm_communication_unhealthy",
+            new_callable=mock.PropertyMock,
+            return_value=mock_tm_communication_unhealthy,
+        ), mock.patch.object(
+            TmManager,
+            "is_acting",
+            new_callable=mock.PropertyMock,
+            return_value=mock_is_acting,
+        ), mock.patch.object(
+            TmManager,
+            "try_fix",
+        ) as mock_try_fix:
+            self.behaviour.act()
+            if expected_fix:
+                mock_try_fix.assert_called()
+            else:
+                mock_try_fix.assert_not_called()
 
 
 def test_meta_round_behaviour_when_instance_not_subclass_of_abstract_round() -> None:

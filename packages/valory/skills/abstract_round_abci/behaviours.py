@@ -32,6 +32,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviour,
+    TmManager,
     make_degenerate_behaviour,
 )
 
@@ -169,7 +170,7 @@ class AbstractRoundBehaviour(
 
         self.current_behaviour: Optional[BaseBehaviour] = None
         self.background_behaviour: Optional[BaseBehaviour] = None
-
+        self.tm_manager: Optional[TmManager] = None
         # keep track of last round height so to detect changes
         self._last_round_height = 0
 
@@ -234,6 +235,7 @@ class AbstractRoundBehaviour(
         self.current_behaviour = self.instantiate_behaviour_cls(
             self.initial_behaviour_cls
         )
+        self.tm_manager = self.instantiate_behaviour_cls(TmManager)  # type: ignore
         if self.is_background_behaviour_set:
             self.background_behaviour_cls = cast(
                 Type[BaseBehaviour], self.background_behaviour_cls
@@ -247,8 +249,16 @@ class AbstractRoundBehaviour(
 
     def act(self) -> None:
         """Implement the behaviour."""
-        self._process_current_round()
+        tm_manager = cast(TmManager, self.tm_manager)
+        if tm_manager.tm_communication_unhealthy or tm_manager.is_acting:
+            # tendermint is not healthy, or we are already applying a fix.
+            # try_fix() internally uses generators, that's why it's relevant
+            # to know whether a fix is already being applied.
+            # It might happen that tendermint is healthy, but the fix is not yet finished.
+            tm_manager.try_fix()
+            return
 
+        self._process_current_round()
         if self.current_behaviour is None:
             return
 
