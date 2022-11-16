@@ -575,6 +575,11 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
             status = cast(int, contract_api_msg.state.body["status"])
             if status == -1:
                 self.context.logger.info(f"Tx hash {tx_hash} has no receipt!")
+                # this loop might take a long time
+                # we do not want to starve the rest of the behaviour
+                # we yield which freezes this loop here until the
+                # AbstractRoundBehaviour it belongs to, sends a tick to it
+                yield
                 continue
 
             tx_data = cast(TxData, contract_api_msg.state.body["transaction"])
@@ -591,6 +596,11 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
                         f"The safe's nonce has been reused for {tx_hash}. "
                         f"{check_expected_to_be_verified} is expected to be verified!"
                     )
+                    # this loop might take a long time
+                    # we do not want to starve the rest of the behaviour
+                    # we yield which freezes this loop here until the
+                    # AbstractRoundBehaviour it belongs to, sends a tick to it
+                    yield
                     continue
 
                 self.context.logger.warning(
