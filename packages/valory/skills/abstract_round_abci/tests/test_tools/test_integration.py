@@ -62,7 +62,7 @@ def simulate_ledger_get_balance_request(test_instance: IntegrationBaseCase) -> N
     )
     ledger_api_dialogue = cast(LedgerApiDialogue, ledger_api_dialogue)
     current_behaviour = cast(BaseBehaviour, test_instance.behaviour.current_behaviour)
-    request_nonce = current_behaviour._get_request_nonce_from_dialogue(  # type: ignore
+    request_nonce = current_behaviour._get_request_nonce_from_dialogue(  # pylint: disable=protected-access
         ledger_api_dialogue
     )
     cast(Requests, current_behaviour.context.requests).request_id_to_callback[
