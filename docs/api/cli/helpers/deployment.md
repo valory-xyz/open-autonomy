@@ -34,3 +34,13 @@ def update_multisig_address(service_path: Path, address: str) -> None
 
 Update the multisig address on the service config.
 
+<a id="autonomy.cli.helpers.deployment.build_and_deploy_from_token"></a>
+
+#### build`_`and`_`deploy`_`from`_`token
+
+```python
+def build_and_deploy_from_token(token_id: int, keys_file: Path, chain_type: str, rpc_url: Optional[str], service_contract_address: Optional[str], skip_image: bool, n: Optional[int], aev: bool = False) -> None
+```
+
+Build and run deployment from tokenID.
+

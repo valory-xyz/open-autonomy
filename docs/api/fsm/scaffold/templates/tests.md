@@ -1,10 +1,10 @@
-<a id="autonomy.cli.scaffold_fsm_templates.tests"></a>
+<a id="autonomy.fsm.scaffold.templates.tests"></a>
 
-# autonomy.cli.scaffold`_`fsm`_`templates.tests
+# autonomy.fsm.scaffold.templates.tests
 
 Templates for FSM tests
 
-<a id="autonomy.cli.scaffold_fsm_templates.tests.TEST_ROUNDS"></a>
+<a id="autonomy.fsm.scaffold.templates.tests.TEST_ROUNDS"></a>
 
 ## TEST`_`ROUNDS Objects
 
@@ -15,7 +15,7 @@ class TEST_ROUNDS()
 
 Template for test_rounds.py
 
-<a id="autonomy.cli.scaffold_fsm_templates.tests.TEST_BEHAVIOURS"></a>
+<a id="autonomy.fsm.scaffold.templates.tests.TEST_BEHAVIOURS"></a>
 
 ## TEST`_`BEHAVIOURS Objects
 
@@ -26,7 +26,7 @@ class TEST_BEHAVIOURS()
 
 Template for test_behaviours.py
 
-<a id="autonomy.cli.scaffold_fsm_templates.tests.TEST_PAYLOADS"></a>
+<a id="autonomy.fsm.scaffold.templates.tests.TEST_PAYLOADS"></a>
 
 ## TEST`_`PAYLOADS Objects
 
@@ -37,7 +37,7 @@ class TEST_PAYLOADS()
 
 Template for test_payloads.py
 
-<a id="autonomy.cli.scaffold_fsm_templates.tests.TEST_MODELS"></a>
+<a id="autonomy.fsm.scaffold.templates.tests.TEST_MODELS"></a>
 
 ## TEST`_`MODELS Objects
 
@@ -48,7 +48,7 @@ class TEST_MODELS()
 
 Template for test_models.py
 
-<a id="autonomy.cli.scaffold_fsm_templates.tests.TEST_HANDLERS"></a>
+<a id="autonomy.fsm.scaffold.templates.tests.TEST_HANDLERS"></a>
 
 ## TEST`_`HANDLERS Objects
 
@@ -59,7 +59,7 @@ class TEST_HANDLERS()
 
 Template for test_handlers.py
 
-<a id="autonomy.cli.scaffold_fsm_templates.tests.TEST_DIALOGUES"></a>
+<a id="autonomy.fsm.scaffold.templates.tests.TEST_DIALOGUES"></a>
 
 ## TEST`_`DIALOGUES Objects
 

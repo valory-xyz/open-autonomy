@@ -21,23 +21,6 @@
 
 from datetime import datetime
 
-from .components import (  # noqa: F401
-    BEHAVIOURS,
-    DIALOGUES,
-    HANDLERS,
-    MODELS,
-    PAYLOADS,
-    ROUNDS,
-)
-from .tests import (  # noqa: F401
-    TEST_BEHAVIOURS,
-    TEST_DIALOGUES,
-    TEST_HANDLERS,
-    TEST_MODELS,
-    TEST_PAYLOADS,
-    TEST_ROUNDS,
-)
-
 
 COPYRIGHT_HEADER = """\
     # -*- coding: utf-8 -*-
