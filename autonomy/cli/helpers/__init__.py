@@ -17,14 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test tools for api specs."""
-
-
-class DummyMessage:  # pylint: disable=too-few-public-methods
-    """Dummy api specs class."""
-
-    body: bytes
-
-    def __init__(self, body: bytes) -> None:
-        """Initializes DummyMessage"""
-        self.body = body
+"""CLI helpers."""

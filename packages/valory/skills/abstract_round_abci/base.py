@@ -363,6 +363,11 @@ class Blockchain:
         """Add a block to the list."""
         expected_height = self.height + 1
         actual_height = block.header.height
+        if actual_height < self._height_offset:
+            # if the current block has a lower height than the
+            # initial height, ignore it
+            return
+
         if expected_height != actual_height:
             raise AddBlockError(
                 f"expected height {expected_height}, got {actual_height}"

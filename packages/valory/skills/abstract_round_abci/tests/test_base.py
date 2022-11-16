@@ -400,6 +400,13 @@ class TestBlockchain:
         ):
             self.blockchain.add_block(block)
 
+    def test_add_block_before_initial_height(self) -> None:
+        """Test 'add_block', too old height."""
+        height_offset = 42
+        blockchain = Blockchain(height_offset=height_offset)
+        block = Block(MagicMock(height=height_offset - 1), [])
+        blockchain.add_block(block)
+
     def test_blocks(self) -> None:
         """Test 'blocks' property getter."""
         assert self.blockchain.blocks == tuple()

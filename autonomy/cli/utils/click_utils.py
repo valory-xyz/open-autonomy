@@ -18,12 +18,15 @@
 # ------------------------------------------------------------------------------
 
 """Usefule click utils."""
-
-from typing import Callable
+import contextlib
+import copy
+import sys
+from pathlib import Path
+from typing import Any, Callable, Generator, Optional
 
 import click
 
-from autonomy.analyse.abci.app_spec import DFA
+from autonomy.analyse.abci.app_spec import FSMSpecificationLoader
 from autonomy.deploy.chain import CHAIN_CONFIG
 from autonomy.deploy.image import ImageProfiles
 
@@ -49,12 +52,12 @@ def image_profile_flag(
 
 
 def abci_spec_format_flag(
-    default: str = DFA.OutputFormats.YAML, mark_default: bool = True
+    default: str = FSMSpecificationLoader.OutputFormats.YAML, mark_default: bool = True
 ) -> Callable:
     """Flags for abci spec outputs formats."""
 
     def wrapper(f: Callable) -> Callable:
-        for of in DFA.OutputFormats.ALL:
+        for of in FSMSpecificationLoader.OutputFormats.ALL:
             f = click.option(
                 f"--{of}",
                 "spec_format",
@@ -85,3 +88,25 @@ def chain_selection_flag(
         return f
 
     return wrapper
+
+
+@contextlib.contextmanager
+def sys_path_patch(path: Path) -> Generator:
+    """Patch sys.path variable with new import path at highest priority."""
+    old_sys_path = copy.copy(sys.path)
+    sys.path.insert(0, str(path))
+    yield
+    sys.path = old_sys_path
+
+
+class PathArgument(click.Path):
+    """Path parameter for CLI."""
+
+    def convert(
+        self, value: Any, param: Optional[click.Parameter], ctx: Optional[click.Context]
+    ) -> Optional[Path]:
+        """Convert path string to `pathlib.Path`"""
+        path_string = super().convert(value, param, ctx)
+        if path_string is None:
+            return path_string
+        return Path(path_string)

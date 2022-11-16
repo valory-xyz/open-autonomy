@@ -219,11 +219,11 @@ teardown-kubernetes:
 
 .PHONY: fix-abci-app-specs
 fix-abci-app-specs:
-	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.registration_abci.rounds.AgentRegistrationAbciApp packages/valory/skills/registration_abci/fsm_specification.yaml || (echo "Failed to check registration_abci consistency" && exit 1)
-	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.reset_pause_abci.rounds.ResetPauseABCIApp packages/valory/skills/reset_pause_abci/fsm_specification.yaml || (echo "Failed to check reset_pause_abci consistency" && exit 1)
-	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.safe_deployment_abci.rounds.SafeDeploymentAbciApp packages/valory/skills/safe_deployment_abci/fsm_specification.yaml || (echo "Failed to check safe_deployment_abci consistency" && exit 1)
-	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.simple_abci.rounds.SimpleAbciApp packages/valory/skills/simple_abci/fsm_specification.yaml || (echo "Failed to check simple_abci consistency" && exit 1)
-	python -m autonomy.cli analyse abci generate-app-specs packages.valory.skills.transaction_settlement_abci.rounds.TransactionSubmissionAbciApp packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
+	python -m autonomy.cli analyse fsm-specs --app-class AgentRegistrationAbciApp --package packages/valory/skills/registration_abci || (echo "Failed to check registration_abci consistency" && exit 1)
+	python -m autonomy.cli analyse fsm-specs --app-class ResetPauseAbciApp --package packages/valory/skills/reset_pause_abci || (echo "Failed to check reset_pause_abci consistency" && exit 1)
+	python -m autonomy.cli analyse fsm-specs --app-class SafeDeploymentAbciApp --package packages/valory/skills/safe_deployment_abci || (echo "Failed to check safe_deployment_abci consistency" && exit 1)
+	python -m autonomy.cli analyse fsm-specs --app-class SimpleAbciApp --package packages/valory/skills/simple_abci || (echo "Failed to check simple_abci consistency" && exit 1)
+	python -m autonomy.cli analyse fsm-specs --app-class TransactionSubmissionAbciApp --package packages/valory/skills/transaction_settlement_abci || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
 	echo "Successfully validated abcis!"
 
 release-images:

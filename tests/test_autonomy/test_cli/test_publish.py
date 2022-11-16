@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Tuple
 from unittest import mock
 
-from autonomy.cli.publish import IPFSTool, REMOTE_IPFS, to_v1
+from autonomy.cli.helpers.registry import IPFSTool, REMOTE_IPFS, to_v1
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
@@ -81,7 +81,8 @@ class TestPublish(BaseCliTest):
         dummy_hash_v1 = to_v1("QmeU1Cz796TBihCT426pA3HAYC7LhaawsXgGmy1hpyZXj9")
 
         with mock.patch(
-            "autonomy.cli.publish.get_default_remote_registry", new=lambda: REMOTE_IPFS
+            "autonomy.cli.helpers.registry.get_default_remote_registry",
+            new=lambda: REMOTE_IPFS,
         ), mock.patch.object(
             IPFSTool,
             "add",

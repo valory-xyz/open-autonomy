@@ -19,7 +19,7 @@ Choice of one flag between: '--local/--remote'.
 #### abci`_`spec`_`format`_`flag
 
 ```python
-def abci_spec_format_flag(default: str = DFA.OutputFormats.YAML, mark_default: bool = True) -> Callable
+def abci_spec_format_flag(default: str = FSMSpecificationLoader.OutputFormats.YAML, mark_default: bool = True) -> Callable
 ```
 
 Flags for abci spec outputs formats.
@@ -33,4 +33,35 @@ def chain_selection_flag(default: str = "staging", mark_default: bool = True) ->
 ```
 
 Flags for abci spec outputs formats.
+
+<a id="autonomy.cli.utils.click_utils.sys_path_patch"></a>
+
+#### sys`_`path`_`patch
+
+```python
+@contextlib.contextmanager
+def sys_path_patch(path: Path) -> Generator
+```
+
+Patch sys.path variable with new import path at highest priority.
+
+<a id="autonomy.cli.utils.click_utils.PathArgument"></a>
+
+## PathArgument Objects
+
+```python
+class PathArgument(click.Path)
+```
+
+Path parameter for CLI.
+
+<a id="autonomy.cli.utils.click_utils.PathArgument.convert"></a>
+
+#### convert
+
+```python
+def convert(value: Any, param: Optional[click.Parameter], ctx: Optional[click.Context]) -> Optional[Path]
+```
+
+Convert path string to `pathlib.Path`
 

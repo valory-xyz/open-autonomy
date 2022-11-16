@@ -43,8 +43,8 @@ class TestRun(BaseCliTest):
         """Run test."""
 
         with mock.patch(
-            "autonomy.cli.deploy.docker_compose.project_from_options"
-        ), mock.patch("autonomy.cli.deploy.docker_compose.TopLevelCommand"):
+            "autonomy.cli.helpers.deployment.docker_compose.project_from_options"
+        ), mock.patch("autonomy.cli.helpers.deployment.docker_compose.TopLevelCommand"):
             result = self.run_cli()
             assert result.exit_code == 0, result.output
             assert "Running build @" in result.output
