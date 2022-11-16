@@ -100,17 +100,17 @@ Process n message cycles.
 
 tuple of incoming messages
 
-<a id="packages.valory.skills.abstract_round_abci.test_tools.integration._HarHatHelperIntegration"></a>
+<a id="packages.valory.skills.abstract_round_abci.test_tools.integration.HardHatHelperIntegration"></a>
 
-## `_`HarHatHelperIntegration Objects
+## HardHatHelperIntegration Objects
 
 ```python
-class _HarHatHelperIntegration(IntegrationBaseCase)
+class HardHatHelperIntegration(IntegrationBaseCase)
 ```
 
 Base test class for integration tests with HardHat provider.
 
-<a id="packages.valory.skills.abstract_round_abci.test_tools.integration._HarHatHelperIntegration.setup_class"></a>
+<a id="packages.valory.skills.abstract_round_abci.test_tools.integration.HardHatHelperIntegration.setup_class"></a>
 
 #### setup`_`class
 

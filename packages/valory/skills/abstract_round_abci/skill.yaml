@@ -26,7 +26,7 @@ fingerprint:
   test_tools/abci_app.py: bafybeidamvsvilnb2f27gq5idnabyacg6ioa23uqdjcsmzqew3soxzdc7a
   test_tools/base.py: bafybeicvscf3k2ece7sgzhd7rfuzf6e2lknd3b3rwv3bc52niuogcfbk6e
   test_tools/common.py: bafybeifyrckjj3sie2ke4wnc27alxpm5on6eauxo7op4d4g6j2ard4tb3a
-  test_tools/integration.py: bafybeihnvdcemxv2y7w7rokr5atmmzfy7jtwc54qj43paanzir2ppfvsby
+  test_tools/integration.py: bafybeias3iltitbhxtca7ardbm6iqmsufjrcruvqnjlrlwswgkxzyikvpm
   test_tools/rounds.py: bafybeigipcycu6kc4ji46saby5syqwchegewmxunxm2tkgh7t4dskgcnqe
   tests/__init__.py: bafybeiebss5rdfh7tdbw2qi3tjpf6cjgwuonowsw6bimyosfie2ngxhhzy
   tests/data/__init__.py: bafybeifmqjnrqgbau4tshhdtrosru7xyjky72ljlrf3ynrk76fxjcsgfpi
@@ -55,6 +55,7 @@ fingerprint:
   tests/test_tools/__init__.py: bafybeiew6gu4pgp2sjevq4dbnmv2ail5dph7vj4yi7h3eae4gzx7vj7cbq
   tests/test_tools/test_base.py: bafybeiegt7qllyfw7bsddg2fapi56iymbf2b23z7qwplezik4zqg6wgdeq
   tests/test_tools/test_common.py: bafybeiepcdnts7va6oulvh32ogvulb6o2xuiamgsg6p3lapldl2etkgsnu
+  tests/test_tools/test_integration.py: bafybeia6ewjxlaasw776xhtfrgxpikse375tjnjwr2v3myjnpxc7vhgawi
   tests/test_tools/test_rounds.py: bafybeicavetszmscxcjlzub4ycyd7sreliyjrodyvbhefjogabzfsas5rm
   tests/test_utils.py: bafybeif7wpg6fhdhwwyidzpoyhwg22m2kogdddl7s3txotvvzykrcn7yye
   utils.py: bafybeibsklcnvvvx2acumio5xy7hjrbdeggfmnnlfcwbtnz2qjdry7ntay
@@ -62,7 +63,7 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiap2iqpexya667merizj6h75267zurbbxhzcijrxu6hdt2wmkrhai
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
-- valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
+- valory/ledger:0.19.0:bafybeihmz5us4ntmzvgikpkx4tththrl7zvou4uiebvletdeliidiuhi6m
 contracts:
 - valory/service_registry:0.1.0:bafybeieqj5dvwttrxigie6kffbhysfjimapbp7zhsgojyukxsjns2dtkny
 protocols:
