@@ -24,14 +24,19 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, cast
 
 import pytest
 import yaml
 from aea.exceptions import AEAValidationError
+from aea.helpers.env_vars import apply_env_variables
+from aea.helpers.io import open_file
+from aea.helpers.yaml_utils import yaml_load_all
 
+from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
 
+from tests.conftest import ROOT_DIR
 from tests.test_autonomy.base import get_dummy_service_config
 
 
@@ -139,3 +144,27 @@ class TestServiceConfig:
 
         os.chdir(cls.cwd)
         shutil.rmtree(cls.t)
+
+
+@pytest.mark.parametrize(
+    "service_file",
+    Path(
+        ROOT_DIR,
+        "tests",
+        "data",
+        "dummy_service_config_files",
+    ).iterdir(),
+)
+def test_load_service(service_file: Path) -> None:
+    """Test loading and processing service component."""
+
+    with open_file(service_file, "r", encoding="utf-8") as fp:
+        data = yaml_load_all(fp)
+
+    data = cast(List[Dict], apply_env_variables(data, env_variables=os.environ))
+    service_config, *overrides = data
+    Service.validate_config_data(service_config)
+    service_config["license_"] = service_config.pop("license")
+
+    service = Service(**service_config)
+    service.overrides = overrides
