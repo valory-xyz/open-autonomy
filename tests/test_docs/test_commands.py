@@ -158,6 +158,8 @@ def test_validate_doc_commands() -> None:
 
     # Validate all matches
     for file_ in target_files:
+        if file_.name == "upgrading.md":
+            continue
         content = read_file(str(file_))
 
         for match in [m.groupdict() for m in re.finditer(COMMAND_REGEX, content)]:

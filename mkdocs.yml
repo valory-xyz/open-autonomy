@@ -94,6 +94,12 @@ nav:
           - Utils: 'api/cli/utils/click_utils.md'
           - Build Images: 'api/cli/build_images.md'
           - Scaffold FSM: 'api/cli/scaffold_fsm.md'
+          - Helpers:
+            - Deployment: api/cli/helpers/deployment.md
+            - Docstring: api/cli/helpers/docstring.md
+            - FSM Spec: api/cli/helpers/fsm_spec.md
+            - IFPS Hash: api/cli/helpers/ipfs_hash.md
+            - Registry: api/cli/helpers/registry.md
         - Configurations:
           - Base: 'api/configurations/base.md'
           - Constants: 'api/configurations/constants.md'
@@ -116,6 +122,17 @@ nav:
           - Agent: 'api/replay/agent.md'
           - Tendermint: 'api/replay/tendermint.md'
           - Utils: 'api/replay/utils.md'
+        - FSM:
+          - Scaffold:
+            - Constants: api/fsm/scaffold/constants.md
+            - Base: api/fsm/scaffold/base.md
+            - Scaffold tools: api/fsm/scaffold/scaffold_skill.md
+            - Generators:
+              - Components: api/fsm/scaffold/generators/components.md
+              - Tests: api/fsm/scaffold/generators/tests.md
+            - Templates:
+              - Components: api/fsm/scaffold/templates/components.md
+              - Tests: api/fsm/scaffold/templates/tests.md
         - Test Tools:
           - Configurations: 'api/plugins/aea_test_autonomy/configurations.md'
           - Fixture Helpers: 'api/plugins/aea_test_autonomy/fixture_helpers.md'
