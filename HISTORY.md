@@ -15,6 +15,9 @@ Autonomy:
 
 Plugins:
 - Renames the `tag` property to `image` on `aea_test_autonomy.docker.base.DockerImage` class
+- Extends `ApiSpecs` to support getting the response from a list
+- Adds better error `logging` in the `ApiSpecs`
+- Adds backoff logic to the `ApiSpecs`
 
 Packages:
 - Updates the abstract round abci skill to ignore tendermint blocks with a height lower than the initial height of the tendermint chain
@@ -23,6 +26,7 @@ Packages:
 
 Tests:
 - Increases the sleep time in `test_async_behaviour_sleep` and `TestRegistrationStartupBehaviour` tests to avoid flakiness
+- Tests for newly introduced code in the `ApiSpecs` implementation
 
 
 # 0.3.5 (2022-11-10)
