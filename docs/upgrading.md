@@ -33,6 +33,10 @@ Multiple backwards incompatible changes
 
 - `tag` property has been renamed to `image` on `aea_test_autonomy.docker.base.DockerImage` class
 
+### Core packages
+
+- `_HarHatHelperIntegration` has been renamed to `HardHatHelperIntegration` in `packages/valory/skills/abstract_round_abci/test_tools/integration.py`
+
 ## `v0.3.4` to `v0.3.5`
 
 No backwards incompatible changes
