@@ -29,6 +29,7 @@ from unittest import mock
 import _strptime  # noqa  # pylint: disable=unsed-import
 from aea.cli.registry.settings import REMOTE_IPFS
 from aea.configurations.constants import PACKAGES
+from aea.package_manager.v1 import PackageManagerV1
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
@@ -45,8 +46,8 @@ class TestPushAll(BaseCliTest):
 
         super().setup()
 
-        self.packages_dir = self.t / "packages"
-        shutil.copytree(ROOT_DIR / "packages", self.packages_dir)
+        self.packages_dir = self.t / PACKAGES
+        shutil.copytree(ROOT_DIR / PACKAGES, self.packages_dir)
         os.chdir(self.t)
 
     def test_run(
@@ -55,8 +56,9 @@ class TestPushAll(BaseCliTest):
         """Test run."""
 
         # packages/<author>/<component>/<name>/<config>.yaml
-        path = f"{PACKAGES}/*/*/*/*.yaml"
-        packages = {file.parent for file in self.t.glob(path)}
+        available_packages = len(
+            PackageManagerV1.from_dir(ROOT_DIR / PACKAGES).dev_packages
+        )
         published_packages = []
 
         def _push_patch(_: Any, public_id: Any) -> None:
@@ -68,4 +70,4 @@ class TestPushAll(BaseCliTest):
             result = self.run_cli()
 
         assert result.exit_code == 0, result.output
-        assert len(published_packages) == len(packages)
+        assert len(published_packages) == available_packages
