@@ -1,5 +1,30 @@
 # Release History - `open-autonomy`
 
+
+# 0.4.0 (2022-11-17)
+
+Autonomy:
+- Deprecates `autonomy analyse abci` command group has been deprecated
+- Merges `autonomy analyse abci check-app-specs` and `autonomy analyse generate-app-specs` into `autonomy analyse fsm-specs`
+- Moves `autonomy analyse abci check-handlers`  to `autonomy analyse handlers`  
+- Moves `autonomy analyse abci docstrings` to `autonomy analyse docstrings`
+- Moves `autonomy analyse abci logs` has been moved to `autonomy analyse logs`
+- Refactors the FSM command defintion and extract the code to core and helper modules
+- Updates the error messages on `autonomy build-image` command
+- Improves error handling on `autonomy deploy` command group
+
+Plugins:
+- Renames the `tag` property to `image` on `aea_test_autonomy.docker.base.DockerImage` class
+
+Packages:
+- Updates the abstract round abci skill to ignore tendermint blocks with a height lower than the initial height of the tendermint chain
+- Adds add yield statement in `CheckTransactionHistoryBehaviour._check_tx_history` to avoid freezing the entire behaviour
+- Moves the tendermint healthcheck from individual round behaviours to the `AbstractRoundBehaviour` to ensures that tendermint would reset in cases when the communication is unhealthy
+
+Tests:
+- Increases the sleep time in `test_async_behaviour_sleep` and `TestRegistrationStartupBehaviour` tests to avoid flakiness
+
+
 # 0.3.5 (2022-11-10)
 
 Autonomy:
