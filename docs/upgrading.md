@@ -29,6 +29,8 @@ Multiple backwards incompatible changes
 
 - `autonomy analyse abci logs` has been moved to `autonomy analyse logs`
 
+### Autonomy test plugin
+
 - `tag` property has been renamed to `image` on `aea_test_autonomy.docker.base.DockerImage` class
 
 ## `v0.3.4` to `v0.3.5`
