@@ -77,7 +77,7 @@ dependencies:
   hypothesis:
     version: ==6.21.6
   open-aea-test-autonomy:
-    version: ==0.3.5
+    version: ==0.4.0
   protobuf:
     version: ==3.19.4
 is_abstract: false

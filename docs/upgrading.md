@@ -5,6 +5,38 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.3.5` to `v0.4.0`
+
+Multiple backwards incompatible changes
+
+### Autonomy CLI module
+
+- `autonomy analyse abci` command group has been deprecated
+
+- `autonomy analyse abci check-app-specs` and `autonomy analyse generate-app-specs` has been merged into `autonomy analyse fsm-specs`
+  - The usage of `--infile` flag has been deprecated and replaced with the usage of the `--package` flag
+  - Input format for `--app-class` has been changed from `packages.author.skills.skill_name.rounds.SomeAbciApp` to `SomeAbciApp`
+
+- `autonomy analyse abci check-handlers` has been moved to `autonomy analyse handlers`
+  - `--packages-dr` flag has been deprecated, use `--registry-path` at top level instead
+  - Input format for common handlers and skip skills options has been updated
+    - Old format - `--common abci,http,contract_api,ledger_api,signing --skip abstract_abci,counter,counter_client,hello_world_abci`
+    - New format `-h abci -h http -h contract_api -h ledger_api -h signing -i abstract_abci -i counter -i counter_client -i hello_world_abci`
+  
+- `autonomy analyse abci docstrings` has been moved to `autonomy analyse docstrings`
+  - `--check` flag has been deprecated and the command will perform the check by default
+  - `--update` flag has been introduced to update the docstring if necessary
+
+- `autonomy analyse abci logs` has been moved to `autonomy analyse logs`
+
+### Autonomy test plugin
+
+- `tag` property has been renamed to `image` on `aea_test_autonomy.docker.base.DockerImage` class
+
+### Core packages
+
+- `_HarHatHelperIntegration` has been renamed to `HardHatHelperIntegration` in `packages/valory/skills/abstract_round_abci/test_tools/integration.py`
+
 ## `v0.3.4` to `v0.3.5`
 
 No backwards incompatible changes
