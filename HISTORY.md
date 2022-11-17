@@ -9,7 +9,7 @@ Autonomy:
 - Moves `autonomy analyse abci check-handlers`  to `autonomy analyse handlers`  
 - Moves `autonomy analyse abci docstrings` to `autonomy analyse docstrings`
 - Moves `autonomy analyse abci logs` has been moved to `autonomy analyse logs`
-- Refactors the FSM command defintion and extract the code to core and helper modules
+- Refactors the FSM command definition and extract the code to core and helper modules
 - Updates the error messages on `autonomy build-image` command
 - Improves error handling on `autonomy deploy` command group
 
