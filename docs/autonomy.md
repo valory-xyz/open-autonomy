@@ -5,20 +5,24 @@
 ## Deploy
 
 ```
-$ autonomy deploy
 Usage: autonomy deploy [OPTIONS] COMMAND [ARGS]...
-  Deploy an AEA project.
+
+  Deploy an agent service.
+
 Options:
   --help  Show this message and exit.
+
 Commands:
-  build  Build the agent and its components.
+  build       Build deployment setup for n agents.
+  from-token  Run service deployment.
+  run         Run deployment.
 ```
 
 ### Build tools
 
 1. Service deployment
 
-    ```bash
+    ```
     Usage: autonomy deploy build [OPTIONS] [KEYS_FILE]
 
       Build deployment setup for n agents.
@@ -54,7 +58,7 @@ Commands:
 
 2. Agent service images
 
-    ```bash
+    ```
     Usage: autonomy build-image [OPTIONS] [PUBLIC_ID_OR_HASH]
 
       Build runtime images for autonomous agents.
@@ -67,7 +71,7 @@ Commands:
       --help              Show this message and exit.
     ```
 
-    ```bash
+    ```
     # To build an image, navigate to the service dir and run
     $ autonomy build-image
     ```
@@ -76,13 +80,13 @@ Commands:
 
     If you just want to build image for a specific agent without fetching a service run
 
-    ```bash
+    ```
     $ autonomy build-image PUBLIC_ID
     ```
 
 3. Run deployments
 
-    ```bash
+    ```
     Usage: autonomy deploy run [OPTIONS]
 
       Run deployment.
@@ -101,7 +105,7 @@ Commands:
 
     If you have a service registered on-chain you can deploy the services directly using token IDs generated after the minting the service component. See the [register a service on-chain](./guides/register_packages_on_chain.md#register-a-service) guide for more information.
 
-    ```bash
+    ```
     Usage: autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 
       Run service deployment.
@@ -110,18 +114,17 @@ Commands:
       --rpc TEXT      Custom RPC URL
       --sca TEXT      Service contract address for custom RPC URL.
       --n INTEGER     Number of agents to include in the build.
-      --skip-images   Skip building images.
+      --skip-image    Skip building images.
+      --aev           Apply environment variable when loading service config.
       --use-goerli    Use goerli chain to resolve the token id.
       --use-ethereum  Use ethereum chain to resolve the token id.
       --use-staging   Use staging chain to resolve the token id.
-      --remote        To use a remote registry.
-      --local         To use a local registry.
       --help          Show this message and exit.
     ```
 
     To run a deployment for the on-chain service you need the token id for the minted service and funded keys. Save the keys in the `keys.json` and run
 
-    ```bash
+    ```
     $ autonomy deploy from-token <TOKEN_ID> keys.json
     ```
 
@@ -136,7 +139,7 @@ Replay tools can be used to re-run the agents execution using data dumps from pr
 
 **Note: Replay only works for deployments which were ran in dev mode**
 
-```bash
+```
 Usage: autonomy replay [OPTIONS] COMMAND [ARGS]...
   Replay tools.
 Options:
@@ -148,7 +151,7 @@ Commands:
 
 ### agent
 
-```bash
+```
 Usage: autonomy replay agent [OPTIONS] AGENT
   Agent runner.
 Options:
@@ -159,7 +162,7 @@ Options:
 
 ### tendermint
 
-```bash
+```
 Usage: autonomy replay tendermint [OPTIONS]
   Tendermint runner.
 Options:
@@ -172,7 +175,7 @@ Options:
 
 1. Copy and paste the following Makefile into your local environment:
 
-```bash
+```
 .PHONY: run-hardhat
 run-hardhat:
   docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
@@ -260,7 +263,7 @@ Commands:
 
 **Check ABCI app docstrings**
 
-```bash
+```
 Usage: autonomy analyse docstrings [OPTIONS]
 
   Analyse ABCI docstring definitions.
@@ -270,9 +273,77 @@ Options:
   --help    Show this message and exit.
 ```
 
+To analyse docstrings run the command in the directory containing the `packages/` folder
+
+```
+$ autonomy analyse docstrings
+```
+
+To update the docstrings, run the command with `--update` flag
+
+```
+$ autonomy analyse docstrings --update
+```
+
+**Analyse FSM specifications**
+
+```
+Usage: autonomy analyse fsm-specs [OPTIONS]
+
+  Generate ABCI app specs.
+
+Options:
+  --package PATH
+  --app-class TEXT
+  --update          Update FSM definition if check fails.
+  --mermaid         Mermaid file.
+  --yaml            Yaml file.
+  --json            Json file.
+  --help            Show this message and exit.
+```
+
+Analyse specification for one skill package using
+
+```
+$ autonomy analyse fsm-specs --package PATH_TO_SKILL_PACKAGE
+```
+
+To create or update an FSM specification from existing abci app definition run
+
+```
+$ autonomy analyse fsm-specs --update --package PATH_TO_SKILL_PACKAGE --app-class NAME_OF_THE_ABCI_CLASS
+```
+
+To analyse all available FSM specifications in a local repository, navigate to directory containing `packages/` folder and run
+
+```
+$ autonomy analyse fsm-specs
+```
+
+**Analyse handler definitions**
+
+```
+Usage: autonomy analyse handlers [OPTIONS]
+
+  Check handler definitions.
+
+Options:
+  -h, --common-handlers TEXT  Specify which handlers to check. Eg. -h
+                              handler_a -h handler_b -h handler_c
+  -i, --ignore TEXT           Specify which skills to skip. Eg. -i skill_0 -i
+                              skill_1 -i skill_2
+  --help                      Show this message and exit.
+```
+
+To analyse handlers in a local repository, navigate to directory containing `packages/` folder and run
+
+```
+$ autonomy analyse handlers -h COMMON_HANDLER_DEFINITION_TO_CHECK -i SKILL_TO_IGNORE
+```
+
 **Parse logs from a deployment**
 
-```bash
+```
 Usage: autonomy analyse logs [OPTIONS] FILE
   Parse logs.
 Options:
@@ -281,7 +352,7 @@ Options:
 
 ### benchmarks
 
-```bash
+```
 Usage: autonomy analyse benchmarks [OPTIONS] PATH
   Benchmark Aggregator.
 Options:
@@ -303,14 +374,14 @@ By default this will create a 4 agent runtime where you can wait until all 4 age
 
 Run deployment using
 
-```bash
+```
 $ cd abci_build/
 $ docker-compose up
 ```
 
 You can use this tool to aggregate this data.
 
-```bash
+```
 autonomy analyse benchmarks abci_build/persistent_data/benchmarks
 ```
 
@@ -319,7 +390,7 @@ By default tool will generate output for all periods but you can specify which p
 
 ## Fetch
 
-```bash
+```
 Usage: autonomy fetch [OPTIONS] PUBLIC_ID_OR_HASH
 
   Fetch an agent from the registry.
@@ -336,13 +407,13 @@ Options:
 #### Example
 
 
-```bash
+```
 autonomy fetch --local --alias oracle valory/oracle:0.1.0
 ```
 
 ## Run
 
-```bash
+```
 Usage: autonomy run [OPTIONS]
 
   Run the agent. Available for docker compose deployments only, not for kubernetes deployments.
@@ -371,7 +442,7 @@ Options:
 #### Example
 
 
-```bash
+```
 autonomy run --aev
 ```
 
@@ -380,7 +451,7 @@ autonomy run --aev
 The scaffold tool lets users generate boilerplate code that acts as a template to speed-up the development of packages.
 
 
-```bash
+```
 Usage: autonomy scaffold [OPTIONS] COMMAND [ARGS]...
 
   Scaffold a package for the agent.
@@ -405,6 +476,6 @@ Commands:
 #### Example
 
 
-```bash
+```
 autonomy scaffold connection my_connection
 ```
