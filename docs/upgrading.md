@@ -16,7 +16,7 @@ Multiple backwards incompatible changes
 - `autonomy analyse abci check-app-specs` and `autonomy analyse generate-app-specs` has been merged into `autonomy analyse fsm-specs`
   - The usage of `--infile` flag has been deprecated and replaced with the usage of the `--package` flag
   - Input format for `--app-class` has been changed from `packages.author.skills.skill_name.rounds.SomeAbciApp` to `SomeAbciApp`
-  - Users will have to manually switch to the newer version
+  - Users will have to manually switch to the newer version, i.e., remove the path prefix in all their fsm specs. For example an FSM spec with a `label: packages.author.skills.my_abci.rounds.MyAbciApp` now becomes `label: MyAbciApp`
 
 - `autonomy analyse abci check-handlers` has been moved to `autonomy analyse handlers`
   - `--packages-dr` flag has been deprecated, use `--registry-path` at top level instead
