@@ -38,7 +38,7 @@ Multiple backwards incompatible changes
 
 - `_HarHatHelperIntegration` has been renamed to `HardHatHelperIntegration` in `packages/valory/skills/abstract_round_abci/test_tools/integration.py`
 - `ResetPauseABCIApp` has been renamed to `ResetPauseAbciApp` in `packages/valory/skills/reset_pause_abci/rounds.py`
-- `AppSpecs` will use `dataclasses` in order to encapsulate data, which means `response_key`, `response_info`, `error_data`, `retries_attempted` and `backoff_factor` are no longer defined as part of the `AppSpecs` implementation and has been replaced with `response_info` and `retries_info` class variables.
+- `ApiSpecs` now use dataclasses in order to encapsulate data, which means that `response_key`, and `response_type` can be accessed via the `response_info` instance attribute. Moreover, this attribute now includes the new `response_index` and `error_key`, `error_index`, `error_type`, `error_data`. The `retries_info` instance attribute gives access to the `retries_attempted` and `retries` which are now public and also includes the new `backoff_factor`.
 
 ## `v0.3.4` to `v0.3.5`
 
