@@ -21,6 +21,10 @@
 
 # pylint: skip-file
 
+import logging
+from _pytest.logging import LogCaptureFixture
+from unittest.mock import MagicMock
+
 from typing import Tuple, Type
 
 import pytest
@@ -32,8 +36,10 @@ from packages.valory.skills.abstract_round_abci.abci_app_chain import (
 )
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
+    AbciAppDB,
     AbstractRound,
     DegenerateRound,
+    BaseSynchronizedData,
 )
 
 
@@ -317,3 +323,72 @@ class TestAbciAppChaining:
                 self.round_2c: self.round_3a,
             }
             chain((self.app1_class, self.app2_class, self.app3_class), abci_app_transition_mapping)  # type: ignore
+
+    def test_synchronized_data_type(self, caplog: LogCaptureFixture) -> None:
+        """Test synchronized data type"""
+
+        abci_app_transition_mapping: AbciAppTransitionMapping = {
+            self.round_1c: self.round_2a,
+            self.round_2c: self.round_1a,
+        }
+
+        sentinel_app1 = object()
+        sentinel_app2 = object()
+
+        def make_sync_data(sentinel):
+
+            class SynchronizedData(BaseSynchronizedData):
+                """SynchronizedData"""
+                dddd = sentinel
+
+                @property
+                def dummy_attr(self) -> object:
+                    return sentinel
+
+            return SynchronizedData
+
+        def make_concrete(rr):
+
+            class ConcreteRound(rr):
+
+                def check_payload(self):
+                    pass
+                def end_block(self):
+                    pass
+                def process_payload(self):
+                    pass
+
+                allowed_tx_type = ""
+
+            return ConcreteRound
+
+        sync_data_cls_app1 = make_sync_data(sentinel_app1)
+        sync_data_cls_app2 = make_sync_data(sentinel_app2)
+
+        # don't need to mock all of this since setup creates these classes
+        for abci_app_cls, sync_data_cls in (
+            (self.app1_class, sync_data_cls_app1),
+            (self.app2_class, sync_data_cls_app2),
+        ):
+            with caplog.at_level(logging.WARNING):
+                synchronized_data = sync_data_cls(db=AbciAppDB(setup_data={}))
+                abci_app = abci_app_cls(synchronized_data, MagicMock(), logging)  # type: ignore
+                expected = f"No `synchronized_data_class` set on {abci_app}"
+                assert expected in caplog.text
+
+            for r in abci_app_cls.get_all_rounds():
+                r.synchronized_data_class = sync_data_cls
+
+        abci_app_cls = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)
+        abci_app = abci_app_cls(synchronized_data, MagicMock(), logging)  # type: ignore
+
+        assert abci_app.initial_round_cls == self.round_1a
+        assert isinstance(abci_app.synchronized_data, sync_data_cls_app1)
+        assert abci_app.synchronized_data.dummy_attr == sentinel_app1  # type: ignore
+
+        app2_classes = self.app2_class.get_all_rounds()
+        for r in sorted(abci_app.get_all_rounds(), key=str):  # we must start with round_1a
+            abci_app._round_results.append(abci_app.synchronized_data)
+            abci_app._schedule_round(make_concrete(r))
+            expected_cls = (sync_data_cls_app1, sync_data_cls_app2)[r in app2_classes]
+            assert isinstance(abci_app.synchronized_data, expected_cls)
