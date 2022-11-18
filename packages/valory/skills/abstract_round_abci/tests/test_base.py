@@ -21,6 +21,7 @@
 
 # pylint: skip-file
 
+import logging
 import datetime
 import re
 import shutil
@@ -2207,3 +2208,30 @@ def test_meta_abci_app_when_final_round_not_subclass_of_degenerate_round() -> No
             }
             event_to_timeout = {"timeout": 1.0}
             final_states: Set[AppState] = set()
+
+
+def test_synchronized_data_type_on_abci_app_init() -> None:
+    """Test synchronized data access"""
+
+    # NOTE: the synchronized data of a particular AbciApp is only
+    #  updated at the end of a round. However, we want to make sure
+    #  that the instance during the first round of any AbciApp is
+    #  in fact and instance of the locally defined SynchronizedData
+
+    sentinel = object()
+
+    class SynchronizedData(BaseSynchronizedData):
+        """SynchronizedData"""
+
+        @property
+        def dummy_attr(self):
+            return sentinel
+
+    # this is how it's setup in SharedState.setup, using BaseSynchronizedData
+    synchronized_data = BaseSynchronizedData(db=AbciAppDB(setup_data={}))
+
+    with mock.patch.object(AbciAppTest, "initial_round_cls") as m:
+        m.synchronized_data_class = SynchronizedData
+        abci_app = AbciAppTest(synchronized_data, MagicMock(), logging)
+        assert isinstance(abci_app._initial_synchronized_data, SynchronizedData)
+        assert abci_app.synchronized_data.dummy_attr == sentinel
