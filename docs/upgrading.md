@@ -16,6 +16,7 @@ Multiple backwards incompatible changes
 - `autonomy analyse abci check-app-specs` and `autonomy analyse generate-app-specs` has been merged into `autonomy analyse fsm-specs`
   - The usage of `--infile` flag has been deprecated and replaced with the usage of the `--package` flag
   - Input format for `--app-class` has been changed from `packages.author.skills.skill_name.rounds.SomeAbciApp` to `SomeAbciApp`
+  - Users will have to manually switch to the newer version
 
 - `autonomy analyse abci check-handlers` has been moved to `autonomy analyse handlers`
   - `--packages-dr` flag has been deprecated, use `--registry-path` at top level instead
@@ -36,6 +37,8 @@ Multiple backwards incompatible changes
 ### Core packages
 
 - `_HarHatHelperIntegration` has been renamed to `HardHatHelperIntegration` in `packages/valory/skills/abstract_round_abci/test_tools/integration.py`
+- `ResetPauseABCIApp` has been renamed to `ResetPauseAbciApp` in `packages/valory/skills/reset_pause_abci/rounds.py`
+- `AppSpecs` not use dataclasses in order to encapsulate data, which means `response_key`, `response_info`, `error_data`, `retries_attempted` and `backoff_factor` are no longer defined as part of the `AppSpecs` implementation and has been replaced with `response_info` and `retries_info` class variables.
 
 ## `v0.3.4` to `v0.3.5`
 
