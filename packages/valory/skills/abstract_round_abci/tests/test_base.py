@@ -2210,7 +2210,7 @@ def test_meta_abci_app_when_final_round_not_subclass_of_degenerate_round() -> No
             final_states: Set[AppState] = set()
 
 
-def test_synchronized_data_type_on_abci_app_init() -> None:
+def test_synchronized_data_type_on_abci_app_init(caplog) -> None:
     """Test synchronized data access"""
 
     # NOTE: the synchronized data of a particular AbciApp is only
@@ -2229,6 +2229,12 @@ def test_synchronized_data_type_on_abci_app_init() -> None:
 
     # this is how it's setup in SharedState.setup, using BaseSynchronizedData
     synchronized_data = BaseSynchronizedData(db=AbciAppDB(setup_data={}))
+
+    with caplog.at_level(logging.WARNING):
+        abci_app = AbciAppTest(synchronized_data, MagicMock(), logging)
+        expected = f"No `synchronized_data_class` set on {abci_app}"
+        assert expected in caplog.text
+        assert not isinstance(abci_app._initial_synchronized_data, SynchronizedData)
 
     with mock.patch.object(AbciAppTest, "initial_round_cls") as m:
         m.synchronized_data_class = SynchronizedData
