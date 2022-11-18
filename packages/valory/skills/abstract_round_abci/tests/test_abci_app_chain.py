@@ -324,7 +324,7 @@ class TestAbciAppChaining:
             }
             chain((self.app1_class, self.app2_class, self.app3_class), abci_app_transition_mapping)  # type: ignore
 
-    def test_synchronized_data_type(self, caplog: LogCaptureFixture) -> None:
+    def test_synchronized_data_type(self):
         """Test synchronized data type"""
 
         abci_app_transition_mapping: AbciAppTransitionMapping = {
@@ -370,16 +370,11 @@ class TestAbciAppChaining:
             (self.app1_class, sync_data_cls_app1),
             (self.app2_class, sync_data_cls_app2),
         ):
-            with caplog.at_level(logging.WARNING):
-                synchronized_data = sync_data_cls(db=AbciAppDB(setup_data={}))
-                abci_app = abci_app_cls(synchronized_data, MagicMock(), logging)  # type: ignore
-                expected = f"No `synchronized_data_class` set on {abci_app}"
-                assert expected in caplog.text
-
             for r in abci_app_cls.get_all_rounds():
                 r.synchronized_data_class = sync_data_cls
 
         abci_app_cls = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)
+        synchronized_data = sync_data_cls_app2(db=AbciAppDB(setup_data={}))
         abci_app = abci_app_cls(synchronized_data, MagicMock(), logging)  # type: ignore
 
         assert abci_app.initial_round_cls == self.round_1a
@@ -392,3 +387,5 @@ class TestAbciAppChaining:
             abci_app._schedule_round(make_concrete(r))
             expected_cls = (sync_data_cls_app1, sync_data_cls_app2)[r in app2_classes]
             assert isinstance(abci_app.synchronized_data, expected_cls)
+            expected_cls = (sentinel_app1, sentinel_app2)[r in app2_classes]
+            assert abci_app.synchronized_data.dummy_attr == expected_cls  # type: ignore
