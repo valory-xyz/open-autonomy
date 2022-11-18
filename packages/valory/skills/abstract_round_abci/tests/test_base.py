@@ -21,8 +21,8 @@
 
 # pylint: skip-file
 
-import logging
 import datetime
+import logging
 import re
 import shutil
 from abc import ABC
@@ -2224,7 +2224,7 @@ def test_synchronized_data_type_on_abci_app_init() -> None:
         """SynchronizedData"""
 
         @property
-        def dummy_attr(self):
+        def dummy_attr(self) -> object:
             return sentinel
 
     # this is how it's setup in SharedState.setup, using BaseSynchronizedData
@@ -2232,6 +2232,6 @@ def test_synchronized_data_type_on_abci_app_init() -> None:
 
     with mock.patch.object(AbciAppTest, "initial_round_cls") as m:
         m.synchronized_data_class = SynchronizedData
-        abci_app = AbciAppTest(synchronized_data, MagicMock(), logging)
-        assert isinstance(abci_app._initial_synchronized_data, SynchronizedData)
-        assert abci_app.synchronized_data.dummy_attr == sentinel
+        abci_app = AbciAppTest(synchronized_data, MagicMock(), logging)  # type: ignore
+        assert isinstance(abci_app.synchronized_data, SynchronizedData)
+        assert abci_app.synchronized_data.dummy_attr == sentinel  # type: ignore
