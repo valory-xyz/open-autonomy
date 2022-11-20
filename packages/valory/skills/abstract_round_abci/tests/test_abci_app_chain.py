@@ -22,10 +22,8 @@
 # pylint: skip-file
 
 import logging
-from _pytest.logging import LogCaptureFixture
-from unittest.mock import MagicMock
-
 from typing import Tuple, Type
+from unittest.mock import MagicMock
 
 import pytest
 from aea.exceptions import AEAEnforceError
@@ -38,8 +36,9 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
     AbstractRound,
-    DegenerateRound,
     BaseSynchronizedData,
+    BaseTxPayload,
+    DegenerateRound,
 )
 
 
@@ -324,7 +323,7 @@ class TestAbciAppChaining:
             }
             chain((self.app1_class, self.app2_class, self.app3_class), abci_app_transition_mapping)  # type: ignore
 
-    def test_synchronized_data_type(self):
+    def test_synchronized_data_type(self) -> None:
         """Test synchronized data type"""
 
         abci_app_transition_mapping: AbciAppTransitionMapping = {
@@ -335,27 +334,23 @@ class TestAbciAppChaining:
         sentinel_app1 = object()
         sentinel_app2 = object()
 
-        def make_sync_data(sentinel):
-
+        def make_sync_data(sentinel: object) -> Type:
             class SynchronizedData(BaseSynchronizedData):
-                """SynchronizedData"""
-                dddd = sentinel
-
                 @property
                 def dummy_attr(self) -> object:
                     return sentinel
 
             return SynchronizedData
 
-        def make_concrete(rr):
-
-            class ConcreteRound(rr):
-
-                def check_payload(self):
+        def make_concrete(round_cls: Type[AbstractRound]) -> Type[AbstractRound]:
+            class ConcreteRound(round_cls):  # type: ignore
+                def check_payload(self, payload: BaseTxPayload) -> None:
                     pass
-                def end_block(self):
+
+                def process_payload(self, payload: BaseTxPayload) -> None:
                     pass
-                def process_payload(self):
+
+                def end_block(self) -> None:
                     pass
 
                 allowed_tx_type = ""
@@ -371,9 +366,11 @@ class TestAbciAppChaining:
             (self.app2_class, sync_data_cls_app2),
         ):
             for r in abci_app_cls.get_all_rounds():
-                r.synchronized_data_class = sync_data_cls
+                r.synchronized_data_class = sync_data_cls  # type: ignore
 
-        abci_app_cls = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)
+        abci_app_cls = chain(
+            (self.app1_class, self.app2_class), abci_app_transition_mapping
+        )
         synchronized_data = sync_data_cls_app2(db=AbciAppDB(setup_data={}))
         abci_app = abci_app_cls(synchronized_data, MagicMock(), logging)  # type: ignore
 
@@ -382,10 +379,10 @@ class TestAbciAppChaining:
         assert abci_app.synchronized_data.dummy_attr == sentinel_app1  # type: ignore
 
         app2_classes = self.app2_class.get_all_rounds()
-        for r in sorted(abci_app.get_all_rounds(), key=str):  # we must start with round_1a
+        for r in sorted(abci_app.get_all_rounds(), key=str):
             abci_app._round_results.append(abci_app.synchronized_data)
             abci_app._schedule_round(make_concrete(r))
             expected_cls = (sync_data_cls_app1, sync_data_cls_app2)[r in app2_classes]
             assert isinstance(abci_app.synchronized_data, expected_cls)
-            expected_cls = (sentinel_app1, sentinel_app2)[r in app2_classes]
-            assert abci_app.synchronized_data.dummy_attr == expected_cls  # type: ignore
+            expected_sentinel = (sentinel_app1, sentinel_app2)[r in app2_classes]
+            assert abci_app.synchronized_data.dummy_attr == expected_sentinel  # type: ignore
