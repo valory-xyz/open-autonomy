@@ -26,6 +26,7 @@ from typing import Tuple, Type
 from unittest.mock import MagicMock
 
 import pytest
+from _pytest.logging import LogCaptureFixture
 from aea.exceptions import AEAEnforceError
 
 from packages.valory.skills.abstract_round_abci.abci_app_chain import (
@@ -323,7 +324,7 @@ class TestAbciAppChaining:
             }
             chain((self.app1_class, self.app2_class, self.app3_class), abci_app_transition_mapping)  # type: ignore
 
-    def test_synchronized_data_type(self) -> None:
+    def test_synchronized_data_type(self, caplog: LogCaptureFixture) -> None:
         """Test synchronized data type"""
 
         abci_app_transition_mapping: AbciAppTransitionMapping = {
@@ -365,6 +366,11 @@ class TestAbciAppChaining:
             (self.app1_class, sync_data_cls_app1),
             (self.app2_class, sync_data_cls_app2),
         ):
+            with caplog.at_level(logging.WARNING):
+                synchronized_data = sync_data_cls(db=AbciAppDB(setup_data={}))
+                abci_app = abci_app_cls(synchronized_data, MagicMock(), logging)  # type: ignore
+                expected = f"No `synchronized_data_class` set on {abci_app}"
+                assert expected in caplog.text
             for r in abci_app_cls.get_all_rounds():
                 r.synchronized_data_class = sync_data_cls  # type: ignore
 
