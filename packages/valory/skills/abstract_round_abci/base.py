@@ -2052,7 +2052,9 @@ class AbciApp(
         # self.state will point to last result,
         # or if not available to the initial state
         if self._round_results:
-            synchronized_data_class = getattr(round_cls, "synchronized_data_class", None)
+            synchronized_data_class = getattr(
+                round_cls, "synchronized_data_class", None
+            )
             if not synchronized_data_class:
                 self.logger.warning(f"No `synchronized_data_class` set on {self}")
                 last_result = self._round_results[-1]
