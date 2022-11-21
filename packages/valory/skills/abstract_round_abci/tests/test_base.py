@@ -22,6 +22,7 @@
 # pylint: skip-file
 
 import datetime
+import logging
 import re
 import shutil
 from abc import ABC
@@ -36,6 +37,7 @@ from unittest.mock import MagicMock
 
 import hypothesis
 import pytest
+from _pytest.logging import LogCaptureFixture
 from aea.exceptions import AEAEnforceError
 from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given
@@ -2207,3 +2209,39 @@ def test_meta_abci_app_when_final_round_not_subclass_of_degenerate_round() -> No
             }
             event_to_timeout = {"timeout": 1.0}
             final_states: Set[AppState] = set()
+
+
+def test_synchronized_data_type_on_abci_app_init(caplog: LogCaptureFixture) -> None:
+    """Test synchronized data access"""
+
+    # NOTE: the synchronized data of a particular AbciApp is only
+    #  updated at the end of a round. However, we want to make sure
+    #  that the instance during the first round of any AbciApp is
+    #  in fact and instance of the locally defined SynchronizedData
+
+    sentinel = object()
+
+    class SynchronizedData(BaseSynchronizedData):
+        """SynchronizedData"""
+
+        @property
+        def dummy_attr(self) -> object:
+            return sentinel
+
+    # this is how it's setup in SharedState.setup, using BaseSynchronizedData
+    synchronized_data = BaseSynchronizedData(db=AbciAppDB(setup_data={}))
+
+    with caplog.at_level(logging.WARNING):
+        abci_app = AbciAppTest(synchronized_data, MagicMock(), logging)  # type: ignore
+        abci_app.setup()
+        assert abci_app.synchronized_data
+        expected = f"No `synchronized_data_class` set on {abci_app._current_round_cls}"
+        assert expected in caplog.text
+        assert not isinstance(abci_app.synchronized_data, SynchronizedData)
+
+    with mock.patch.object(AbciAppTest, "initial_round_cls") as m:
+        m.synchronized_data_class = SynchronizedData
+        abci_app = AbciAppTest(synchronized_data, MagicMock(), logging)  # type: ignore
+        abci_app.setup()
+        assert isinstance(abci_app.synchronized_data, SynchronizedData)
+        assert abci_app.synchronized_data.dummy_attr == sentinel  # type: ignore
