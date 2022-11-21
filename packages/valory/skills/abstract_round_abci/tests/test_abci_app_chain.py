@@ -369,7 +369,9 @@ class TestAbciAppChaining:
             with caplog.at_level(logging.WARNING):
                 synchronized_data = sync_data_cls(db=AbciAppDB(setup_data={}))
                 abci_app = abci_app_cls(synchronized_data, MagicMock(), logging)  # type: ignore
-                expected = f"No `synchronized_data_class` set on {abci_app.initial_round_cls}"
+                expected = (
+                    f"No `synchronized_data_class` set on {abci_app.initial_round_cls}"
+                )
                 assert expected in caplog.text
             for r in abci_app_cls.get_all_rounds():
                 r.synchronized_data_class = sync_data_cls  # type: ignore

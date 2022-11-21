@@ -1873,7 +1873,9 @@ class AbciApp(
         """Initialize the AbciApp."""
 
         if not hasattr(self.initial_round_cls, "synchronized_data_class"):
-            logger.warning(f"No `synchronized_data_class` set on {self.initial_round_cls}")
+            logger.warning(
+                f"No `synchronized_data_class` set on {self.initial_round_cls}"
+            )
         else:
             synchronized_data_class = self.initial_round_cls.synchronized_data_class  # type: ignore
             synchronized_data = synchronized_data_class(db=synchronized_data.db)
@@ -1921,12 +1923,12 @@ class AbciApp(
     def synchronized_data(self) -> BaseSynchronizedData:
         """Return the current synchronized data."""
         latest_result = self.latest_result or self._initial_synchronized_data
-        synchronized_data_class = getattr(
-            self._current_round_cls, "synchronized_data_class", None
-        )
-        if synchronized_data_class is not None:
+        if hasattr(self._current_round_cls, "synchronized_data_class"):
+            synchronized_data_class = self._current_round_cls.synchronized_data_class  # type: ignore
             return synchronized_data_class(db=latest_result.db)
-        self.logger.warning(f"No `synchronized_data_class` set on {self._current_round_cls}")
+        self.logger.warning(
+            f"No `synchronized_data_class` set on {self._current_round_cls}"
+        )
         return latest_result
 
     @property
