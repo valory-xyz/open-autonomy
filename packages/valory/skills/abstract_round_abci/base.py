@@ -1921,11 +1921,14 @@ class AbciApp(
     def synchronized_data(self) -> BaseSynchronizedData:
         """Return the current synchronized data."""
         latest_result = self.latest_result
-        return (
-            latest_result
-            if latest_result is not None
-            else self._initial_synchronized_data
+        if latest_result is None:
+            return self._initial_synchronized_data
+        synchronized_data_class = getattr(
+            self._current_round_cls, "synchronized_data_class", None
         )
+        if synchronized_data_class is not None:
+            latest_result = synchronized_data_class(db=latest_result.db)
+        return latest_result
 
     @property
     def reset_index(self) -> int:
@@ -2059,9 +2062,9 @@ class AbciApp(
                 self.logger.warning(f"No `synchronized_data_class` set on {self}")
                 last_result = self._round_results[-1]
             else:
-                synchronized_data_class = round_cls.synchronized_data_class  # type: ignore
+                # synchronized_data_class = round_cls.synchronized_data_class  # type: ignore
                 last_result = synchronized_data_class(db=self._round_results[-1].db)
-                self._round_results[-1] = last_result
+                # self._round_results[-1] = last_result
         else:
             last_result = self._initial_synchronized_data
         self._last_round = self._current_round
