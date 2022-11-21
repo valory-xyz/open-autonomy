@@ -43,6 +43,7 @@ Multiple backwards incompatible changes
 ### Test tools
 
 - The `packages.valory.skills.abstract_round_abci.test_tools.apis` module which contained the `DummyMessage` has been removed. `MagicMock` can be used instead. For example, `DummyMessage(my_test_body)` can be converted to `MagicMock(body=my_test_body)`.
+
 ## `v0.3.4` to `v0.3.5`
 
 No backwards incompatible changes
