@@ -1926,9 +1926,6 @@ class AbciApp(
         if hasattr(self._current_round_cls, "synchronized_data_class"):
             synchronized_data_class = self._current_round_cls.synchronized_data_class  # type: ignore
             return synchronized_data_class(db=latest_result.db)
-        self.logger.warning(
-            f"No `synchronized_data_class` set on {self._current_round_cls}"
-        )
         return latest_result
 
     @property
