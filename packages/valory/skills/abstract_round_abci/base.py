@@ -1871,6 +1871,13 @@ class AbciApp(
         logger: logging.Logger,
     ):
         """Initialize the AbciApp."""
+
+        if not hasattr(self.initial_round_cls, "synchronized_data_class"):
+            logger.warning(f"No `synchronized_data_class` set on {self}")
+        else:
+            synchronized_data_class = self.initial_round_cls.synchronized_data_class  # type: ignore
+            synchronized_data = synchronized_data_class(db=synchronized_data.db)
+
         self._initial_synchronized_data = synchronized_data
         self.consensus_params = consensus_params
         self.logger = logger

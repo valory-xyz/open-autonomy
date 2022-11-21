@@ -57,4 +57,4 @@ DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE = (
 ACN_IMAGE_NAME = os.environ.get("ACN_IMAGE_NAME", "valory/open-acn-node")
 
 OAR_IMAGE = "valory/oar-{agent}:{version}"
-ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeiczh4smblkbpglj7zylmwmevzyojwm2bhsp4lfhp3g4unbqtybxfm"
+ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeics7rylijcqg5r4ptd7dt7aaz5x7u2hk7sdds2jegz3pxeeg2kl6q"
