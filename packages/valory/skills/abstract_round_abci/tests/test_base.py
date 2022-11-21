@@ -2233,12 +2233,15 @@ def test_synchronized_data_type_on_abci_app_init(caplog: LogCaptureFixture) -> N
 
     with caplog.at_level(logging.WARNING):
         abci_app = AbciAppTest(synchronized_data, MagicMock(), logging)  # type: ignore
-        expected = f"No `synchronized_data_class` set on {abci_app}"
+        abci_app.setup()
+        assert abci_app.synchronized_data
+        expected = f"No `synchronized_data_class` set on {abci_app._current_round_cls}"
         assert expected in caplog.text
         assert not isinstance(abci_app.synchronized_data, SynchronizedData)
 
     with mock.patch.object(AbciAppTest, "initial_round_cls") as m:
         m.synchronized_data_class = SynchronizedData
         abci_app = AbciAppTest(synchronized_data, MagicMock(), logging)  # type: ignore
+        abci_app.setup()
         assert isinstance(abci_app.synchronized_data, SynchronizedData)
         assert abci_app.synchronized_data.dummy_attr == sentinel  # type: ignore

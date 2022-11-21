@@ -223,6 +223,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
     round_id = "finalization"
     allowed_tx_type = FinalizationTxPayload.transaction_type
     payload_attribute = "tx_data"
+    synchronized_data_class = SynchronizedData
 
     def end_block(
         self,
