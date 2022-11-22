@@ -7,39 +7,15 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
 fingerprint_ignore_patterns: []
-agent: valory/hello_world:0.1.0:bafybeigwvnagav77u5t7auo4h6eystmns5hovbz5jc52e6ms72ddguzjla
+agent: valory/hello_world:0.1.0:bafybeigugqcrgk45t75lizs4s2tq6kiknlpzddtqrk462hwbxwtzmpkdxi
 number_of_agents: 4
 ---
-benchmark_persistence_params:
-  args: &id001
-    log_dir: /benchmarks
 public_id: valory/hello_world_abci:0.1.0
 type: skill
 models:
-  0:
-  - params:
-      args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
-  - benchmark_tool:
-      args: *id001
-  1:
-  - params:
-      args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
-  - benchmark_tool:
-      args: *id001
-  2:
-  - params:
-      args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
-  - benchmark_tool:
-      args: *id001
-  3:
-  - params:
-      args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
-  - benchmark_tool:
-      args: *id001
+  params:
+    args:
+      hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
 ---
 public_id: valory/ledger:0.19.0
 type: connection

@@ -99,25 +99,16 @@ class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
 class CollectRandomnessRound(
     CollectSameUntilThresholdRound, HelloWorldABCIAbstractRound
 ):
-    """A round for generating randomness"""
+    """A round for collecting randomness"""
 
     round_id = "collect_randomness"
     allowed_tx_type = CollectRandomnessPayload.transaction_type
     payload_attribute = "randomness"
-
-    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
-        """Process the end of the block."""
-        if self.threshold_reached:
-            synchronized_data = self.synchronized_data.update(
-                participant_to_randomness=self.collection,
-                most_voted_randomness=self.most_voted_payload,
-            )
-            return synchronized_data, Event.DONE
-        if not self.is_majority_possible(
-            self.collection, self.synchronized_data.nb_participants
-        ):
-            return self.synchronized_data, Event.NO_MAJORITY
-        return None
+    synchronized_data_class = SynchronizedData
+    done_event = Event.DONE
+    no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_randomness"
+    selection_key = "most_voted_randomness"
 
 
 class SelectKeeperRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRound):
@@ -126,24 +117,15 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRo
     round_id = "select_keeper"
     allowed_tx_type = SelectKeeperPayload.transaction_type
     payload_attribute = "keeper"
-
-    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
-        """Process the end of the block."""
-        if self.threshold_reached:
-            synchronized_data = self.synchronized_data.update(
-                participant_to_selection=self.collection,
-                most_voted_keeper_address=self.most_voted_payload,
-            )
-            return synchronized_data, Event.DONE
-        if not self.is_majority_possible(
-            self.collection, self.synchronized_data.nb_participants
-        ):
-            return self.synchronized_data, Event.NO_MAJORITY
-        return None
+    synchronized_data_class = SynchronizedData
+    done_event = Event.DONE
+    no_majority_event = Event.NO_MAJORITY
+    collection_key = "participant_to_selection"
+    selection_key = "most_voted_keeper_address"
 
 
 class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
-    """A round in which the agents get registered"""
+    """A round in which the keeper prints the message"""
 
     round_id = "print_message"
     allowed_tx_type = PrintMessagePayload.transaction_type
