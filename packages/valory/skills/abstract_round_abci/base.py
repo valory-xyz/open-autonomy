@@ -1871,6 +1871,15 @@ class AbciApp(
         logger: logging.Logger,
     ):
         """Initialize the AbciApp."""
+
+        if not hasattr(self.initial_round_cls, "synchronized_data_class"):
+            logger.warning(
+                f"No `synchronized_data_class` set on {self.initial_round_cls}"
+            )
+        else:
+            synchronized_data_class = self.initial_round_cls.synchronized_data_class  # type: ignore
+            synchronized_data = synchronized_data_class(db=synchronized_data.db)
+
         self._initial_synchronized_data = synchronized_data
         self.consensus_params = consensus_params
         self.logger = logger
@@ -1913,12 +1922,11 @@ class AbciApp(
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
         """Return the current synchronized data."""
-        latest_result = self.latest_result
-        return (
-            latest_result
-            if latest_result is not None
-            else self._initial_synchronized_data
-        )
+        latest_result = self.latest_result or self._initial_synchronized_data
+        if hasattr(self._current_round_cls, "synchronized_data_class"):
+            synchronized_data_class = self._current_round_cls.synchronized_data_class  # type: ignore
+            return synchronized_data_class(db=latest_result.db)
+        return latest_result
 
     @property
     def reset_index(self) -> int:
@@ -2042,17 +2050,10 @@ class AbciApp(
                 )
                 self._current_timeout_entries.append(entry_id)
 
-        # self.state will point to last result,
-        # or if not available to the initial state
-        last_result = (
-            self._round_results[-1]
-            if len(self._round_results) > 0
-            else self._initial_synchronized_data
-        )
         self._last_round = self._current_round
         self._current_round_cls = round_cls
         self._current_round = round_cls(
-            last_result,
+            self.synchronized_data,
             self.consensus_params,
             (
                 self._last_round.allowed_tx_type
