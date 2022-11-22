@@ -32,6 +32,7 @@ from threading import Event, Thread
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import grpc  # type: ignore
+from aea.helpers.base import send_control_c
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
 from aea.exceptions import enforce
@@ -99,6 +100,7 @@ DEFAULT_RPC_LISTEN_ADDRESS = f"tcp://{LOCALHOST}:{DEFAULT_RPC_PORT}"
 MAX_READ_IN_BYTES = 2 ** 20  # Max we'll consume on a read stream (1 MiB)
 MAX_VARINT_BYTES = 10  # Max size of varint we support
 DEFAULT_TENDERMINT_LOG_FILE = "tendermint.log"
+TERMINATION_TIMEOUT = 5
 
 
 class DecodeVarintError(Exception):
@@ -1184,22 +1186,25 @@ class TendermintNode:
 
     def _stop_tm_process(self) -> None:
         """Stop a Tendermint node process."""
-        if self._process is None:
+
+        process = self._process
+        if process is None:
             return
 
-        if platform.system() == "Windows":
-            os.kill(self._process.pid, signal.CTRL_C_EVENT)  # type: ignore  # pylint: disable=no-member
-            try:
-                self._process.wait(timeout=5)
-            except subprocess.TimeoutExpired:  # nosec
-                os.kill(self._process.pid, signal.CTRL_BREAK_EVENT)  # type: ignore  # pylint: disable=no-member
-        else:
-            self._process.send_signal(signal.SIGTERM)
-            self._process.wait(timeout=5)
-            poll = self._process.poll()
-            if poll is None:  # pragma: nocover
-                self._process.terminate()
-                self._process.wait(3)
+        process.poll()
+        if process.returncode is not None:
+            return
+
+        send_control_c(process)
+        try:
+            process.wait(timeout=TERMINATION_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            if platform.system() == "Windows":
+                process.send_signal(signal.CTRL_BREAK_EVENT)  # type: ignore  # pylint: disable=no-member
+                process.wait(timeout=TERMINATION_TIMEOUT)
+            else:
+                process.terminate()
+                process.wait(timeout=TERMINATION_TIMEOUT)
 
         self._process = None
         self.write_line("Tendermint process stopped\n")
