@@ -281,12 +281,12 @@ spec:
         - name: nodes
           persistentVolumeClaim:
             claimName: 'nodes'
-        - emptyDir: {}
+        - emptyDir: {{}}
           name: local-tendermint
       initContainers:
         - name: copy-tendermint-configuration
           image: "ubuntu/ubuntu:20.04"
-          command: ["cp", "-r", "/tendermint/*", "/tm"]
+          command: ["cp", "-r", "/tendermint/node{validator_ix}", "/tm"]
           volumeMounts:
             - name: nodes
               mountPath: /tendermint
