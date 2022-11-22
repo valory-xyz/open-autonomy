@@ -23,17 +23,14 @@ import json
 import os
 import shutil
 from pathlib import Path
+from typing import Any
 from unittest import mock
 
-from aea.configurations.loader import ConfigLoader
 from aea.helpers.base import cd
-from aea.helpers.io import open_file
 
 from autonomy.cli.helpers.registry import IPFSTool
-from autonomy.configurations.base import Service
 
 from tests.conftest import ROOT_DIR
-from tests.test_autonomy.base import get_dummy_service_config
 from tests.test_autonomy.test_cli.base import BaseCliTest, cli
 
 
@@ -90,20 +87,23 @@ class TestFetchCommand(BaseCliTest):
 
         shutil.rmtree(service)
 
-    def test_publish_and_fetch_service_ipfs(
-        self,
-    ) -> None:
+    def test_publish_and_fetch_service_ipfs(self, capsys: Any) -> None:
         """Test fetch service."""
-        expected_hash = "bafybeicqvwvogloyw2ujhedbwv4opn2ngus6dh7ocxg7umhhawcnzpibrq"
+        expected_hash = "bafybeidbk4dp3ohvhr24barbi47kmibhn34g5wgo5jcyxwmzmiqdbp3sy4"
 
         service_dir = self.t / "dummy_service"
         service_file = service_dir / "service.yaml"
         service_dir.mkdir()
-        with open_file(service_file, "w+") as fp:
-            service_conf, *overrides = get_dummy_service_config()
-            service_conf["overrides"] = overrides
-            service = Service.from_json(service_conf)
-            ConfigLoader(Service.schema, Service).dump(service, fp)
+
+        service_file.write_text(
+            (
+                ROOT_DIR
+                / "tests"
+                / "data"
+                / "dummy_service_config_files"
+                / "service_2.yaml"
+            ).read_text()
+        )
 
         with mock.patch(
             "autonomy.cli.helpers.registry.get_default_remote_registry",
@@ -111,16 +111,14 @@ class TestFetchCommand(BaseCliTest):
         ), mock.patch(
             "autonomy.cli.helpers.registry.get_ipfs_node_multiaddr",
             new=lambda: IPFS_REGISTRY,
-        ), mock.patch(
-            "click.echo"
-        ) as echo_mock, cd(
+        ), cd(
             service_dir
         ):
             result = self.cli_runner.invoke(cli, ["publish", "--remote"])
-            output = echo_mock.call_args[0][0]
+            output = capsys.readouterr()
 
             assert result.exit_code == 0, output
-            assert expected_hash in output, (output, service_file.read_text())
+            assert expected_hash in output.out, output.err
 
         with mock.patch(
             "autonomy.cli.helpers.registry.get_default_remote_registry",
