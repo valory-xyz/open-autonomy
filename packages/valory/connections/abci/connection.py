@@ -32,10 +32,10 @@ from threading import Event, Thread
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import grpc  # type: ignore
-from aea.helpers.base import send_control_c
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
 from aea.exceptions import enforce
+from aea.helpers.base import send_control_c
 from aea.mail.base import Envelope
 from aea.protocols.dialogue.base import DialogueLabel
 from google.protobuf.message import DecodeError
