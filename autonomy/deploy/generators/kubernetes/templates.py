@@ -286,7 +286,7 @@ spec:
       initContainers:
         - name: copy-tendermint-configuration
           image: "ubuntu/ubuntu:20.04"
-          command: ["cp", "-r", "/tendermint/node{validator_ix}", "/tm"]
+          command: ["cp", "-r", "/tendermint/*", "/tm"]
           volumeMounts:
             - name: nodes
               mountPath: /tendermint
