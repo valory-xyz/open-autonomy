@@ -282,7 +282,7 @@ spec:
           persistentVolumeClaim:
             claimName: 'nodes'
         - emptyDir: {}
-          name: local-tm
+          name: local-tendermint
       initContainers:
         - name: copy-tendermint-configuration
           image: "ubuntu/ubuntu:20.04"
