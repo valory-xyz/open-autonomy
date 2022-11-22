@@ -1201,7 +1201,6 @@ class TendermintNode:
         except subprocess.TimeoutExpired:
             if platform.system() == "Windows":
                 process.send_signal(signal.CTRL_BREAK_EVENT)  # type: ignore  # pylint: disable=no-member
-                process.wait(timeout=TERMINATION_TIMEOUT)
             else:
                 process.terminate()
                 process.wait(timeout=TERMINATION_TIMEOUT)
