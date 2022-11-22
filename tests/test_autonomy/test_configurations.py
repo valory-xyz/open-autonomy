@@ -24,12 +24,11 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict, List, cast
+from typing import Dict, List
 
 import pytest
 import yaml
 from aea.exceptions import AEAValidationError
-from aea.helpers.env_vars import apply_env_variables
 from aea.helpers.io import open_file
 from aea.helpers.yaml_utils import yaml_load_all
 
@@ -83,30 +82,14 @@ class TestServiceConfig:
     ) -> None:
         """Test check_overrides_valid method."""
 
-        dummy_service = get_dummy_service_config()
-        dummy_service[0]["number_of_agents"] = 4
-        self._write_service(dummy_service)
-
-        with pytest.raises(ValueError, match="Not enough items in override"):
-            load_service_config(self.t)
-
-        dummy_service = get_dummy_service_config()
-        dummy_service[1]["models"]["1"] = []  # type: ignore
+        dummy_service = get_dummy_service_config(file_number=2)
+        dummy_service[0]["number_of_agents"] = 6
         self._write_service(dummy_service)
 
         with pytest.raises(
-            ValueError, match="All keys of list like override should be of type int."
-        ):
-            load_service_config(self.t)
-
-        dummy_service = get_dummy_service_config()
-        dummy_service.append(dummy_service[1])
-        self._write_service(dummy_service)
-
-        with pytest.raises(
-            ValueError,
+            AEAValidationError,
             match=re.escape(
-                "Configuration of component (skill, valory/dummy_abci:0.1.0) occurs more than once."
+                "Not enough overrides for component (skill, valory/dummy_skill:0.1.0); Number of agents: 6"
             ),
         ):
             load_service_config(self.t)
@@ -117,17 +100,6 @@ class TestServiceConfig:
         """Test if env vars are properly loaded."""
 
         env_placeholder = "${NUMBER_OF_AGENTS:int:1}"
-        dummy_service = get_dummy_service_config()
-        dummy_service[0]["number_of_agents"] = env_placeholder
-
-        self._write_service(dummy_service)
-
-        with pytest.raises(
-            AEAValidationError,
-            match=re.escape("'${NUMBER_OF_AGENTS:int:1}' is not of type 'integer'"),
-        ):
-            load_service_config(self.t)
-
         dummy_service = get_dummy_service_config()
         dummy_service[0]["number_of_agents"] = env_placeholder
 
@@ -161,7 +133,6 @@ def test_load_service(service_file: Path) -> None:
     with open_file(service_file, "r", encoding="utf-8") as fp:
         data = yaml_load_all(fp)
 
-    data = cast(List[Dict], apply_env_variables(data, env_variables=os.environ))
     service_config, *overrides = data
     Service.validate_config_data(service_config)
     service_config["license_"] = service_config.pop("license")
