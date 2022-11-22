@@ -11,7 +11,7 @@ fingerprint:
   tests/test_hello_world.py: bafybeiai4kulysszgyw62qzrww7laedyh7ypia2kiowtvasbf5kaoksxgy
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeihperhrr3buyzwbq26emm3wwr3fe4kewqz64ulhnwj5e3ydptcvcm
+- valory/abci:0.1.0:bafybeiaqiqhqg53nghdswi5uutrgyenq7oi6g6pjxzryijmrzwlz67gtve
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
 - valory/p2p_libp2p_client:0.1.0:bafybeidkk33xbga54szmitk6uwsi3ef56hbbdbuasltqtiyki34hgfpnxa
 contracts: []
@@ -20,9 +20,9 @@ protocols:
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 skills:
-- valory/abstract_abci:0.1.0:bafybeibhpkol2qnt7tgvzhx72rc2pcd6ixrrfoirlaydaqefryramlvosy
-- valory/abstract_round_abci:0.1.0:bafybeih3jzdjouawzfvduk5xys7qglzk7pwqp5xpzxbfhsbkce5tgj3a5m
-- valory/hello_world_abci:0.1.0:bafybeiel6xfejt5ig22ijssk34mpfostrggn7caa4g5xnsukh4fmcff2cm
+- valory/abstract_abci:0.1.0:bafybeiedyiokagm4vfudw6o6krgbqwlajp3epmbzige6rfj5zqsggi76wm
+- valory/abstract_round_abci:0.1.0:bafybeig37tsbrs5hdv6j3222aejlxosh67fzynwzoownuos2wxs4qk7vhe
+- valory/hello_world_abci:0.1.0:bafybeifeclofjaecngjmulrqlthss2vnw7ag5nsjf65ihjmrk6qjvn3rwa
 default_ledger: ethereum
 required_ledgers:
 - ethereum
