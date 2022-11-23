@@ -53,16 +53,6 @@ def test_collect_randomness_payload() -> None:
     assert payload.data == {"round_id": 1, "randomness": "1"}
 
 
-def test_print_message_payload() -> None:
-    """Test `PrintMessagePayload`."""
-
-    payload = PrintMessagePayload(sender="sender", message="message")
-
-    assert payload.message == "message"
-    assert payload.data == {"message": "message"}
-    assert payload.transaction_type == TransactionType.PRINT_MESSAGE
-
-
 def test_select_keeper_payload() -> None:
     """Test `SelectKeeperPayload`."""
 
@@ -71,6 +61,16 @@ def test_select_keeper_payload() -> None:
     assert payload.keeper == "keeper"
     assert payload.data == {"keeper": "keeper"}
     assert payload.transaction_type == TransactionType.SELECT_KEEPER
+
+
+def test_print_message_payload() -> None:
+    """Test `PrintMessagePayload`."""
+
+    payload = PrintMessagePayload(sender="sender", message="message")
+
+    assert payload.message == "message"
+    assert payload.data == {"message": "message"}
+    assert payload.transaction_type == TransactionType.PRINT_MESSAGE
 
 
 def test_reset_payload() -> None:
