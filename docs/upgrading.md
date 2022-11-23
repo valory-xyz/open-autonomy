@@ -16,6 +16,7 @@ Multiple backwards incompatible changes
 - `autonomy analyse abci check-app-specs` and `autonomy analyse generate-app-specs` has been merged into `autonomy analyse fsm-specs`
   - The usage of `--infile` flag has been deprecated and replaced with the usage of the `--package` flag
   - Input format for `--app-class` has been changed from `packages.author.skills.skill_name.rounds.SomeAbciApp` to `SomeAbciApp`
+  - Users will have to manually switch to the newer version, i.e., remove the path prefix in all their FSM specifications. For example an FSM specification with a `label: packages.author.skills.my_abci.rounds.MyAbciApp` now becomes `label: MyAbciApp`
 
 - `autonomy analyse abci check-handlers` has been moved to `autonomy analyse handlers`
   - `--packages-dr` flag has been deprecated, use `--registry-path` at top level instead
@@ -36,6 +37,12 @@ Multiple backwards incompatible changes
 ### Core packages
 
 - `_HarHatHelperIntegration` has been renamed to `HardHatHelperIntegration` in `packages/valory/skills/abstract_round_abci/test_tools/integration.py`
+- `ResetPauseABCIApp` has been renamed to `ResetPauseAbciApp` in `packages/valory/skills/reset_pause_abci/rounds.py`
+- `ApiSpecs` now use `dataclasses` in order to encapsulate data, which means that `response_key`, and `response_type` can be accessed via the `response_info` instance attribute. Moreover, this attribute now includes the new `response_index` and `error_key`, `error_index`, `error_type`, `error_data`. The `retries_info` instance attribute gives access to the `retries_attempted` and `retries` which are now public and also includes the new `backoff_factor`.
+
+### Test tools
+
+- The `packages.valory.skills.abstract_round_abci.test_tools.apis` module which contained the `DummyMessage` has been removed. `MagicMock` can be used instead. For example, `DummyMessage(my_test_body)` can be converted to `MagicMock(body=my_test_body)`.
 
 ## `v0.3.4` to `v0.3.5`
 
