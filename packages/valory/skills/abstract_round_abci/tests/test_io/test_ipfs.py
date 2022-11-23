@@ -90,7 +90,7 @@ class TestIPFSInteract:
             hash_, str(tmp_path), multiple, "test_file.json", SupportedFiletype.JSON
         )
 
-        remove_path = f"{filepath}/" if multiple else filepath
+        remove_path = f"{filepath}{os.path.sep}" if multiple else filepath
         remove_filepath_mock.assert_called_with(remove_path)
 
         if multiple:
