@@ -4,16 +4,6 @@
 
 Base configurations.
 
-<a id="autonomy.configurations.base.OverrideType"></a>
-
-## OverrideType Objects
-
-```python
-class OverrideType(Enum)
-```
-
-Override types.
-
 <a id="autonomy.configurations.base.Service"></a>
 
 ## Service Objects
@@ -93,8 +83,8 @@ Uses the AEA helper libraries to check individual overrides.
 #### process`_`metadata
 
 ```python
-@staticmethod
-def process_metadata(configuration: Dict) -> Tuple[Dict, ComponentId, OverrideType]
+@classmethod
+def process_metadata(cls, configuration: Dict) -> Tuple[Dict, ComponentId, bool]
 ```
 
 Process component override metadata.
