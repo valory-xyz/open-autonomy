@@ -62,35 +62,40 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
         agent: valory/hello_world:0.1.0:bafybeihqzkncz7r563lfkots4fphb7abdymdna4ir7in7fsbzjtx6yyndq
         number_of_agents: 4
         ---
-        benchmark_persistence_params:
-          args: &id001
-            log_dir: /benchmarks
+        extra:
+          benchmark_persistence_params:
+            args: &id001
+              log_dir: /benchmarks
+        overide_type: multiple
         public_id: valory/hello_world_abci:0.1.0
         type: skill
-        models:
-          0:
-          - params:
+        0:
+          models:
+            params:
               args:
                 hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
-          - benchmark_tool:
+            benchmark_tool:
               args: *id001
-          1:
-          - params:
+        1:
+          models:
+            params:
               args:
                 hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
-          - benchmark_tool:
+            benchmark_tool:
               args: *id001
-          2:
-          - params:
+        2:
+          models:
+            params:
               args:
                 hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
-          - benchmark_tool:
+            benchmark_tool:
               args: *id001
-          3:
-          - params:
+        3:
+          models:
+            params:
               args:
                 hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
-          - benchmark_tool:
+            benchmark_tool:
               args: *id001
         ---
         public_id: valory/ledger:0.19.0
@@ -102,7 +107,7 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
               chain_id: 31337
               poa_chain: false
               default_gas_price_strategy: eip1559
-
+              
         ```
 
         Most of the parameters in the YAML file are self-explanatory, but let us briefly discuss some of them:
