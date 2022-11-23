@@ -24,6 +24,7 @@ import os
 from shutil import rmtree
 from typing import Any, Optional, Type
 
+import requests
 from aea_cli_ipfs.ipfs_utils import DownloadError, IPFSTool, NodeError
 from ipfshttpclient.exceptions import ErrorResponse
 
@@ -82,7 +83,10 @@ class IPFSInteract:
         """
         try:
             _, hash_, _ = self.__ipfs_tool.add(filepath)
-        except ValueError as e:  # pragma: no cover
+        except (
+            ValueError,
+            requests.exceptions.ChunkedEncodingError,
+        ) as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
         finally:
             self.__remove_filepath(filepath)
