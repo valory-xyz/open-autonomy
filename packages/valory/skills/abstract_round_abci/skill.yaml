@@ -143,4 +143,6 @@ dependencies:
     version: ==5.2.0
   pytz:
     version: ==2022.2.1
+  requests:
+    version: ==2.28.1
 is_abstract: true
