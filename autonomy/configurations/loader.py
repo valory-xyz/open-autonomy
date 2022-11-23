@@ -67,6 +67,9 @@ def load_service_config(
     ) as fp:
         data = yaml_load_all(fp)
 
+    # Here we apply the environment variables to base service config only
+    # We apply the environment variables to the overrides when processing
+    # them to export as environment variables
     service_config, *overrides = data
     service_config = apply_env_variables(
         service_config, env_variables=os.environ.copy()
