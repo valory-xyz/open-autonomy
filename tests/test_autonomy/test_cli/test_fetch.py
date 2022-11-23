@@ -26,12 +26,15 @@ from pathlib import Path
 from typing import Any
 from unittest import mock
 
+from aea.configurations.loader import ConfigLoader
 from aea.helpers.base import cd
 from aea.helpers.io import open_file
 
 from autonomy.cli.helpers.registry import IPFSTool
+from autonomy.configurations.base import Service
 
 from tests.conftest import ROOT_DIR
+from tests.test_autonomy.base import get_dummy_service_config
 from tests.test_autonomy.test_cli.base import BaseCliTest, cli
 
 
@@ -90,23 +93,16 @@ class TestFetchCommand(BaseCliTest):
 
     def test_publish_and_fetch_service_ipfs(self, capsys: Any) -> None:
         """Test fetch service."""
-        expected_hash = "bafybeigbjsmtserp2ttkcoyxrsbmavvfbewiomccdon3saq24h4ij2fbhi"
+        expected_hash = "bafybeic7k4hlrozzc6gfoaygnjr22tg6ukua3rdxt5fmkaplysrw3txvii"
 
         service_dir = self.t / "dummy_service"
         service_file = service_dir / "service.yaml"
         service_dir.mkdir()
-
-        with open_file(
-            ROOT_DIR
-            / "tests"
-            / "data"
-            / "dummy_service_config_files"
-            / "service_0.yaml"
-        ) as fp:
-            content = fp.read()
-
-        with open_file(service_file, mode="w") as fp:
-            fp.write(content)
+        with open_file(service_file, "w+") as fp:
+            service_conf, *overrides = get_dummy_service_config()
+            service_conf["overrides"] = overrides
+            service = Service.from_json(service_conf)
+            ConfigLoader(Service.schema, Service).dump(service, fp)
 
         with mock.patch(
             "autonomy.cli.helpers.registry.get_default_remote_registry",
