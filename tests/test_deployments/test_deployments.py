@@ -30,6 +30,7 @@ from typing import Any, List, Tuple, cast
 
 import pytest
 import yaml
+from aea.exceptions import AEAValidationError
 
 from autonomy.configurations.base import Service
 from autonomy.configurations.validation import ConfigValidator
@@ -319,7 +320,6 @@ class TestCliTool(BaseDeploymentTests):
                 )
                 app_instance.generate_agent(0)
 
-    @pytest.mark.skip  # implementation needs updating
     def test_fails_to_generate_with_to_many_overrides(self) -> None:
         """Use a configuration with no overrides."""
         for deployment_generator in deployment_generators:
@@ -327,9 +327,9 @@ class TestCliTool(BaseDeploymentTests):
                 "---\n".join([BASE_DEPLOYMENT, SKILL_OVERRIDE, SKILL_OVERRIDE])
             )
             with pytest.raises(
-                ValueError,
+                AEAValidationError,
                 match=re.escape(
-                    "Configuration of component (skill, valory/price_estimation_abci:0.1.0) occurs more than once"
+                    "Overrides for component (skill, valory/price_estimation_abci:0.1.0) are defined more than once"
                 ),
             ):
                 self.load_deployer_and_app(spec_path, deployment_generator)

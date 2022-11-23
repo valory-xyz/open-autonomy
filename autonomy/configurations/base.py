@@ -204,10 +204,15 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
     ) -> None:
         """Uses the AEA helper libraries to check individual overrides."""
         base_validator = validation.ConfigValidator("definitions.json")
+        processed = []
         for component_configuration_json in overrides:
             configuration, component_id, override_type = self.process_metadata(
                 configuration=copy(component_configuration_json)
             )
+            if component_id in processed:
+                raise AEAValidationError(
+                    f"Overrides for component {component_id} are defined more than once"
+                )
             if override_type == OverrideType.MULTIPLE:
                 for idx in range(self.number_of_agents):
                     try:
@@ -229,6 +234,8 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                     configuration=configuration,
                     env_vars_friendly=env_vars_friendly,
                 )
+
+            processed.append(component_id)
 
     @staticmethod
     def process_metadata(
