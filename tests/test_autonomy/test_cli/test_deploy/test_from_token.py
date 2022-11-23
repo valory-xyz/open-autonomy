@@ -85,7 +85,24 @@ class TestFromToken(BaseCliTest):
     ) -> None:
         """Run test."""
 
-        with run_deployment_patch, build_image_patch, default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch:
+        service_dir = self.t / "service"
+        service_dir.mkdir()
+
+        service_file = service_dir / "service.yaml"
+        service_file.write_text(
+            (
+                ROOT_DIR
+                / "tests"
+                / "data"
+                / "dummy_service_config_files"
+                / "service_0.yaml"
+            ).read_text()
+        )
+
+        with mock.patch(
+            "autonomy.cli.helpers.deployment.fetch_service_ipfs",
+            return_value=service_dir,
+        ), run_deployment_patch, build_image_patch, default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch:
             result = self.run_cli(
                 (
                     str(self.token),
@@ -99,9 +116,8 @@ class TestFromToken(BaseCliTest):
 
             out, err = capsys.readouterr()
 
-            assert result.exit_code == 0, err
+            assert result.exit_code == 0, out
             assert "Service name: valory/oracle_hardhat" in out, err
-            assert "Downloaded service package valory/oracle_hardhat:0.1.0" in out, err
             assert "Building required images" in out, err
             assert "Service build successful" in out, err
 

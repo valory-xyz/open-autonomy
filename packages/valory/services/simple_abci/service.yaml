@@ -10,21 +10,25 @@ fingerprint_ignore_patterns: []
 agent: valory/simple_abci:0.1.0:bafybeibq3knpoegn5hbpnotpmetavvgb3x4uqqpt34ffpcjvhmfh7gxr4u
 number_of_agents: 4
 ---
-benchmark_persistence_params:
-  args: &id001
-    log_dir: /benchmarks
+extra:
+  benchmark_persistence_params:
+    args: &id001
+      log_dir: /benchmarks
 public_id: valory/simple_abci:0.1.0
 type: skill
-models:
-  0:
-  - benchmark_tool:
+0:
+  models:
+    benchmark_tool:
       args: *id001
-  1:
-  - benchmark_tool:
+1:
+  models:
+    benchmark_tool:
       args: *id001
-  2:
-  - benchmark_tool:
+2:
+  models:
+    benchmark_tool:
       args: *id001
-  3:
-  - benchmark_tool:
+3:
+  models:
+    benchmark_tool:
       args: *id001

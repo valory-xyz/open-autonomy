@@ -30,6 +30,7 @@ from typing import Any, List, Tuple, cast
 
 import pytest
 import yaml
+from aea.exceptions import AEAValidationError
 
 from autonomy.configurations.base import Service
 from autonomy.configurations.validation import ConfigValidator
@@ -68,31 +69,32 @@ fingerprint_ignore_patterns: []
 
 LIST_SKILL_OVERRIDE: str = """public_id: valory/price_estimation_abci:0.1.0
 type: skill
-models:
-  0:
-    - price_api:
-        args:
-          url: 'https://api.coingecko.com/api/v3/simple/price'
-          api_id: 'coingecko'
-          parameters:
-          - - ids
-            - bitcoin
-          - - vs_currencies
-            - usd
-          response_key: 'bitcoin:usd'
-          headers: ~
-  1:
-    - price_api:
-        args:
-          url: 'https://api.coingecko.com/api/v3/simple/price'
-          api_id: 'coingecko'
-          parameters:
-          - - ids
-            - bitcoin
-          - - vs_currencies
-            - usd
-          response_key: 'bitcoin:usd'
-          headers: ~
+0:
+  models:
+    price_api:
+      args:
+        url: 'https://api.coingecko.com/api/v3/simple/price'
+        api_id: 'coingecko'
+        parameters:
+        - - ids
+          - bitcoin
+        - - vs_currencies
+          - usd
+        response_key: 'bitcoin:usd'
+        headers: ~
+1:
+  models:
+    price_api:
+      args:
+        url: 'https://api.coingecko.com/api/v3/simple/price'
+        api_id: 'coingecko'
+        parameters:
+        - - ids
+          - bitcoin
+        - - vs_currencies
+          - usd
+        response_key: 'bitcoin:usd'
+        headers: ~
 """
 SKILL_OVERRIDE: str = """public_id: valory/price_estimation_abci:0.1.0
 type: skill
@@ -324,9 +326,9 @@ class TestCliTool(BaseDeploymentTests):
                 "---\n".join([BASE_DEPLOYMENT, SKILL_OVERRIDE, SKILL_OVERRIDE])
             )
             with pytest.raises(
-                ValueError,
+                AEAValidationError,
                 match=re.escape(
-                    "Configuration of component (skill, valory/price_estimation_abci:0.1.0) occurs more than once"
+                    "Overrides for component (skill, valory/price_estimation_abci:0.1.0) are defined more than once"
                 ),
             ):
                 self.load_deployer_and_app(spec_path, deployment_generator)
