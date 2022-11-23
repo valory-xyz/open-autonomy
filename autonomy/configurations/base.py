@@ -23,7 +23,6 @@ import json
 import os
 from collections import OrderedDict
 from copy import copy
-from enum import Enum
 from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, cast
 
 from aea.configurations import validation
@@ -55,13 +54,6 @@ COMPONENT_CONFIGS: Dict = {
         ConnectionConfig,
     ]
 }
-
-
-class OverrideType(Enum):
-    """Override types."""
-
-    SINGULAR = "singular"
-    MULTIPLE = "multiple"
 
 
 class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attributes
@@ -201,14 +193,14 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         base_validator = validation.ConfigValidator("definitions.json")
         processed = []
         for component_configuration_json in overrides:
-            configuration, component_id, override_type = self.process_metadata(
+            configuration, component_id, has_multiple_overrides = self.process_metadata(
                 configuration=copy(component_configuration_json)
             )
             if component_id in processed:
                 raise AEAValidationError(
                     f"Overrides for component {component_id} are defined more than once"
                 )
-            if override_type == OverrideType.MULTIPLE:
+            if has_multiple_overrides:
                 for idx in range(self.number_of_agents):
                     try:
                         _configuration = cast(Dict, configuration[idx])
@@ -232,10 +224,11 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
 
             processed.append(component_id)
 
-    @staticmethod
+    @classmethod
     def process_metadata(
+        cls,
         configuration: Dict,
-    ) -> Tuple[Dict, ComponentId, OverrideType]:
+    ) -> Tuple[Dict, ComponentId, bool]:
         """Process component override metadata."""
 
         component_id = ComponentId(
@@ -248,10 +241,10 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             ),
         )
         _ = configuration.pop("extra", {})
-        overide_type = OverrideType(
-            configuration.pop("override_type", OverrideType.SINGULAR.value)
+        has_multiple_overrides = all(
+            map(lambda x: isinstance(x, int), configuration.keys())
         )
-        return configuration, component_id, overide_type
+        return configuration, component_id, has_multiple_overrides
 
     def process_component_overrides(
         self,
@@ -266,11 +259,11 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         :return: the processed component configuration.
         """
 
-        configuration, component_id, override_type = self.process_metadata(
+        configuration, component_id, has_multiple_overrides = self.process_metadata(
             configuration=copy(component_configuration_json)
         )
 
-        if override_type == OverrideType.MULTIPLE:
+        if has_multiple_overrides:
             configuration = configuration.get(agent_idx, {})
             if configuration == {}:
                 raise ValueError(
