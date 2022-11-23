@@ -56,7 +56,7 @@ def load_service_config(
     if substitute_env_vars:
         warn(
             "`substitute_env_vars` argument is deprecated and will be removed in v1.0.0, "
-            "usage of envrionment varibales is default now.",
+            "usage of environment varibales is default now.",
             DeprecationWarning,
             stacklevel=2,
         )
