@@ -40,7 +40,7 @@ from aea.configurations.base import PackageConfiguration, ProtocolConfig, SkillC
 from aea.configurations.data_types import PackageType, PublicId
 from aea.exceptions import AEAValidationError
 from aea.helpers.base import SimpleIdOrStr
-from aea.helpers.env_vars import apply_env_variables
+from aea.helpers.env_vars import apply_env_variables, export_path_to_env_var_string
 
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE, SCHEMAS_DIR
 from autonomy.configurations.validation import ConfigValidator
@@ -55,11 +55,6 @@ COMPONENT_CONFIGS: Dict = {
         ConnectionConfig,
     ]
 }
-
-
-def export_path_to_string(export_path: List[str]) -> str:
-    """Covert export path to string variable."""
-    return ("_".join(export_path)).upper()
 
 
 class OverrideType(Enum):
@@ -310,12 +305,12 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                 )
             elif isinstance(value, list):
                 env_var_dict[
-                    export_path_to_string(export_path=export_path)
+                    export_path_to_env_var_string(export_path=export_path)
                 ] = json.dumps(value)
             else:
-                env_var_dict[export_path_to_string(export_path=_export_path)] = str(
-                    value
-                )
+                env_var_dict[
+                    export_path_to_env_var_string(export_path=_export_path)
+                ] = str(value)
 
         return env_var_dict
 
