@@ -23,7 +23,6 @@ import json
 import os
 from collections import OrderedDict
 from copy import copy
-from enum import Enum
 from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, cast
 
 from aea.configurations import validation
@@ -40,7 +39,7 @@ from aea.configurations.base import PackageConfiguration, ProtocolConfig, SkillC
 from aea.configurations.data_types import PackageType, PublicId
 from aea.exceptions import AEAValidationError
 from aea.helpers.base import SimpleIdOrStr
-from aea.helpers.env_vars import apply_env_variables
+from aea.helpers.env_vars import apply_env_variables, export_path_to_env_var_string
 
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE, SCHEMAS_DIR
 from autonomy.configurations.validation import ConfigValidator
@@ -55,18 +54,6 @@ COMPONENT_CONFIGS: Dict = {
         ConnectionConfig,
     ]
 }
-
-
-def export_path_to_string(export_path: List[str]) -> str:
-    """Covert export path to string variable."""
-    return ("_".join(export_path)).upper()
-
-
-class OverrideType(Enum):
-    """Override types."""
-
-    SINGULAR = "singular"
-    MULTIPLE = "multiple"
 
 
 class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attributes
@@ -206,14 +193,14 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         base_validator = validation.ConfigValidator("definitions.json")
         processed = []
         for component_configuration_json in overrides:
-            configuration, component_id, override_type = self.process_metadata(
+            configuration, component_id, has_multiple_overrides = self.process_metadata(
                 configuration=copy(component_configuration_json)
             )
             if component_id in processed:
                 raise AEAValidationError(
                     f"Overrides for component {component_id} are defined more than once"
                 )
-            if override_type == OverrideType.MULTIPLE:
+            if has_multiple_overrides:
                 for idx in range(self.number_of_agents):
                     try:
                         _configuration = cast(Dict, configuration[idx])
@@ -237,10 +224,11 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
 
             processed.append(component_id)
 
-    @staticmethod
+    @classmethod
     def process_metadata(
+        cls,
         configuration: Dict,
-    ) -> Tuple[Dict, ComponentId, OverrideType]:
+    ) -> Tuple[Dict, ComponentId, bool]:
         """Process component override metadata."""
 
         component_id = ComponentId(
@@ -253,10 +241,10 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             ),
         )
         _ = configuration.pop("extra", {})
-        overide_type = OverrideType(
-            configuration.pop("override_type", OverrideType.SINGULAR.value)
+        has_multiple_overrides = all(
+            map(lambda x: isinstance(x, int), configuration.keys())
         )
-        return configuration, component_id, overide_type
+        return configuration, component_id, has_multiple_overrides
 
     def process_component_overrides(
         self,
@@ -271,11 +259,11 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         :return: the processed component configuration.
         """
 
-        configuration, component_id, override_type = self.process_metadata(
+        configuration, component_id, has_multiple_overrides = self.process_metadata(
             configuration=copy(component_configuration_json)
         )
 
-        if override_type == OverrideType.MULTIPLE:
+        if has_multiple_overrides:
             configuration = configuration.get(agent_idx, {})
             if configuration == {}:
                 raise ValueError(
@@ -284,7 +272,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         configuration = apply_env_variables(
             data=configuration, env_variables=os.environ.copy()
         )
-        env_var_dict = self.generate_envrionment_variables(
+        env_var_dict = self.generate_environment_variables(
             component_id=component_id,
             component_configuration_json=configuration,
         )
@@ -310,16 +298,16 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                 )
             elif isinstance(value, list):
                 env_var_dict[
-                    export_path_to_string(export_path=export_path)
+                    export_path_to_env_var_string(export_path=export_path)
                 ] = json.dumps(value)
             else:
-                env_var_dict[export_path_to_string(export_path=_export_path)] = str(
-                    value
-                )
+                env_var_dict[
+                    export_path_to_env_var_string(export_path=_export_path)
+                ] = str(value)
 
         return env_var_dict
 
-    def generate_envrionment_variables(
+    def generate_environment_variables(
         self,
         component_id: ComponentId,
         component_configuration_json: Dict,

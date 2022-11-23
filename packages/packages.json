@@ -30,9 +30,9 @@
         "agent/valory/simple_abci/0.1.0": "bafybeibq3knpoegn5hbpnotpmetavvgb3x4uqqpt34ffpcjvhmfh7gxr4u",
         "agent/valory/test_abci/0.1.0": "bafybeieg3lmdywlqo7ytk7iiweuuwvc7cftey2sl4fw2o7bomzrivuc77u",
         "service/valory/counter/0.1.0": "bafybeidqpnr7536niha4qniqbadmzov6plvoailxeb77td6bdbh5abqzia",
-        "service/valory/hello_world/0.1.0": "bafybeib6lnxoueaefrx3maj2ejjjkvwdt3khactyrvl3j5urg2ftn2chpq",
+        "service/valory/hello_world/0.1.0": "bafybeiawgje5gpfjpw7gkynuzqa4wiouqw2nlwh5jswcou7xmp2k257hni",
         "service/valory/register_reset/0.1.0": "bafybeibv4bzbkeqldgnijk7klhekmycpyvpozs3nu7xm2wpqvf2cwn5eyi",
-        "service/valory/simple_abci/0.1.0": "bafybeib4dpqduhfaoswidulu4kplcytj4pgmokfzpnvjhucum2i7oie63i",
+        "service/valory/simple_abci/0.1.0": "bafybeicdp7dgta3y2i3zlyojwndybs7qoiehati2b2jyvqamswkxaywpn4",
         "skill/valory/safe_deployment_abci/0.1.0": "bafybeih2mywgkx2z6fdjdumr3ghdth54gp6glyltrasezyo37bu3zqk7by"
     },
     "third_party": {

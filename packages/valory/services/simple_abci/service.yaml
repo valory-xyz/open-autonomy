@@ -14,7 +14,6 @@ extra:
   benchmark_persistence_params:
     args: &id001
       log_dir: /benchmarks
-override_type: multiple
 public_id: valory/simple_abci:0.1.0
 type: skill
 0:

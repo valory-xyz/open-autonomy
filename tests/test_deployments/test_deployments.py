@@ -67,8 +67,7 @@ fingerprint: {}
 fingerprint_ignore_patterns: []
 """
 
-LIST_SKILL_OVERRIDE: str = """override_type: multiple
-public_id: valory/price_estimation_abci:0.1.0
+LIST_SKILL_OVERRIDE: str = """public_id: valory/price_estimation_abci:0.1.0
 type: skill
 0:
   models:

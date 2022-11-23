@@ -4,26 +4,6 @@
 
 Base configurations.
 
-<a id="autonomy.configurations.base.export_path_to_string"></a>
-
-#### export`_`path`_`to`_`string
-
-```python
-def export_path_to_string(export_path: List[str]) -> str
-```
-
-Covert export path to string variable.
-
-<a id="autonomy.configurations.base.OverrideType"></a>
-
-## OverrideType Objects
-
-```python
-class OverrideType(Enum)
-```
-
-Override types.
-
 <a id="autonomy.configurations.base.Service"></a>
 
 ## Service Objects
@@ -103,8 +83,8 @@ Uses the AEA helper libraries to check individual overrides.
 #### process`_`metadata
 
 ```python
-@staticmethod
-def process_metadata(configuration: Dict) -> Tuple[Dict, ComponentId, OverrideType]
+@classmethod
+def process_metadata(cls, configuration: Dict) -> Tuple[Dict, ComponentId, bool]
 ```
 
 Process component override metadata.
@@ -128,12 +108,12 @@ Process a component configuration in an agent configuration file.
 
 the processed component configuration.
 
-<a id="autonomy.configurations.base.Service.generate_envrionment_variables"></a>
+<a id="autonomy.configurations.base.Service.generate_environment_variables"></a>
 
-#### generate`_`envrionment`_`variables
+#### generate`_`environment`_`variables
 
 ```python
-def generate_envrionment_variables(component_id: ComponentId, component_configuration_json: Dict) -> Dict
+def generate_environment_variables(component_id: ComponentId, component_configuration_json: Dict) -> Dict
 ```
 
 Try to process component with a singular component overrides.
