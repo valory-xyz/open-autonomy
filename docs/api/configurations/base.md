@@ -4,16 +4,6 @@
 
 Base configurations.
 
-<a id="autonomy.configurations.base.export_path_to_string"></a>
-
-#### export`_`path`_`to`_`string
-
-```python
-def export_path_to_string(export_path: List[str]) -> str
-```
-
-Covert export path to string variable.
-
 <a id="autonomy.configurations.base.OverrideType"></a>
 
 ## OverrideType Objects
