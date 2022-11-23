@@ -31,12 +31,11 @@ When generating the deployment environment this override will be used to create 
 
 ### Multiple overrides
 
-The service component allows you to define different override values for different agents using the multiple overrides. To define multiple overrides you'll have to specify that the override is of type `multiple` and use the following format to define the overrides
+The service component allows you to define different override values for different agents using the multiple overrides.
 
 ```yaml
 ...
 ---
-override_type: multiple
 public_id: valory/hello_world_abci:0.1.0
 type: skill
 {agent_number}:
@@ -48,7 +47,6 @@ For example, using the example above the multiple overrides should be defined li
 ```yaml
 ...
 ---
-override_type: multiple
 public_id: valory/hello_world_abci:0.1.0
 type: skill
 public_id: valory/hello_world_abci:0.1.0
@@ -86,7 +84,6 @@ extra:
   benchmark_toole:
     args: &id001
       log_dir: /benchmarks
-override_type: multiple
 public_id: valory/hello_world_abci:0.1.0
 type: skill
 public_id: valory/hello_world_abci:0.1.0
