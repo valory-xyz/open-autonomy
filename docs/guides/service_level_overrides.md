@@ -1,4 +1,4 @@
-This guide will walk you through the process of defining the service level overrides. If you don't know about what are component overrides refer to [component overides](https://open-aea.docs.autonolas.tech/overrides/) to learn about component overrides before moving ahead.
+This guide will walk you through the process of defining the service level overrides. If you don't know about what are component overrides refer to [component overrides](https://open-aea.docs.autonolas.tech/overrides/) to learn about component overrides before moving ahead.
 
 ### Defining service level overrides.
 
@@ -27,7 +27,7 @@ models:
 
 When generating the deployment environment this override will be used to create a environment variable, which later will be picked by the agent in the runtime. 
 
-> The environment variable for the above override should look this `SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_HELLO_WORLD_MESSAGE` since they are genrated from the json path to the value.
+> The environment variable for the above override should look this `SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_HELLO_WORLD_MESSAGE` since they are generated from the `json` path to the value.
 
 ### Multiple overrides
 
