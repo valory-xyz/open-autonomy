@@ -284,7 +284,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         configuration = apply_env_variables(
             data=configuration, env_variables=os.environ.copy()
         )
-        env_var_dict = self.generate_envrionment_variables(
+        env_var_dict = self.generate_environment_variables(
             component_id=component_id,
             component_configuration_json=configuration,
         )
@@ -319,7 +319,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
 
         return env_var_dict
 
-    def generate_envrionment_variables(
+    def generate_environment_variables(
         self,
         component_id: ComponentId,
         component_configuration_json: Dict,

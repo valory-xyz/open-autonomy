@@ -128,12 +128,12 @@ Process a component configuration in an agent configuration file.
 
 the processed component configuration.
 
-<a id="autonomy.configurations.base.Service.generate_envrionment_variables"></a>
+<a id="autonomy.configurations.base.Service.generate_environment_variables"></a>
 
-#### generate`_`envrionment`_`variables
+#### generate`_`environment`_`variables
 
 ```python
-def generate_envrionment_variables(component_id: ComponentId, component_configuration_json: Dict) -> Dict
+def generate_environment_variables(component_id: ComponentId, component_configuration_json: Dict) -> Dict
 ```
 
 Try to process component with a singular component overrides.
