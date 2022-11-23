@@ -142,9 +142,6 @@ class TestYamlSnippets(BaseTestDocCode):
             ],
             "skip_blocks": [2, 3, 6],
         },
-        "docs/demos/simple_abci.md": {
-            "code_files": ["packages/valory/skills/simple_abci/fsm_specification.yaml"],
-        },
         "docs/guides/running_service_different_networks.md": {"skip_blocks": [0]},
     }
 
@@ -182,12 +179,6 @@ class TestPythonSnippets(BaseTestDocCode):
                 "packages/valory/skills/hello_world_abci/behaviours.py",
                 "packages/valory/skills/hello_world_abci/behaviours.py",
                 "packages/valory/skills/hello_world_abci/payloads.py",
-            ],
-        },
-        "docs/demos/simple_abci.md": {
-            "code_files": [
-                "packages/valory/skills/simple_abci/behaviours.py",
-                "packages/valory/skills/simple_abci/rounds.py",
             ],
         },
     }
