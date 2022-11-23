@@ -81,7 +81,7 @@ If you have overrides values which are repetitive you can define them under extr
 ...
 ---
 extra:
-  benchmark_toole:
+  benchmark_tool:
     args: &id001
       log_dir: /benchmarks
 public_id: valory/hello_world_abci:0.1.0
