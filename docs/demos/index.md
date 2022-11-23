@@ -5,8 +5,6 @@ the corresponding agents) from the remote IPFS registry and explore them by your
 
 - [Hello world agent service](hello_world_demo.md): a demo service to showcase
   how to use the main components in an agent service,  without external interactions.
-- [Simple agent service](simple_abci.md): a service to showcase a number of major
-  stages which are quite common in agent services.
 - [Price oracle demo](price_oracle_intro.md): a full service implementing a
   price oracle where each agent collects price estimates from a different source.
   
