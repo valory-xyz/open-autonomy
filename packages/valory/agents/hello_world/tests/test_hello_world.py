@@ -22,6 +22,7 @@
 # pylint: skip-file
 
 from pathlib import Path
+from typing import Tuple
 
 import pytest
 from aea_test_autonomy.base_test_classes.agents import (
@@ -64,7 +65,7 @@ class BaseHelloWorldABCITest(
     skill_package = "valory/hello_world_abci:0.1.0"
     wait_to_finish = 160
     happy_path = HAPPY_PATH
-    strict_check_strings = STRICT_CHECK_STRINGS
+    strict_check_strings: Tuple[str, ...] = STRICT_CHECK_STRINGS
     package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
 
 
