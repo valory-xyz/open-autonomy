@@ -90,7 +90,7 @@ class TestFetchCommand(BaseCliTest):
 
     def test_publish_and_fetch_service_ipfs(self, capsys: Any) -> None:
         """Test fetch service."""
-        expected_hash = "bafybeidbk4dp3ohvhr24barbi47kmibhn34g5wgo5jcyxwmzmiqdbp3sy4"
+        expected_hash = "bafybeigbjsmtserp2ttkcoyxrsbmavvfbewiomccdon3saq24h4ij2fbhi"
 
         service_dir = self.t / "dummy_service"
         service_file = service_dir / "service.yaml"
@@ -101,7 +101,7 @@ class TestFetchCommand(BaseCliTest):
             / "tests"
             / "data"
             / "dummy_service_config_files"
-            / "service_2.yaml"
+            / "service_0.yaml"
         ) as fp:
             content = fp.read()
 
