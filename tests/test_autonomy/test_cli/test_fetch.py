@@ -27,6 +27,7 @@ from typing import Any
 from unittest import mock
 
 from aea.helpers.base import cd
+from aea.helpers.io import open_file
 
 from autonomy.cli.helpers.registry import IPFSTool
 
@@ -95,15 +96,17 @@ class TestFetchCommand(BaseCliTest):
         service_file = service_dir / "service.yaml"
         service_dir.mkdir()
 
-        service_file.write_text(
-            (
-                ROOT_DIR
-                / "tests"
-                / "data"
-                / "dummy_service_config_files"
-                / "service_2.yaml"
-            ).read_text()
-        )
+        with open_file(
+            ROOT_DIR
+            / "tests"
+            / "data"
+            / "dummy_service_config_files"
+            / "service_2.yaml"
+        ) as fp:
+            content = fp.read()
+
+        with open_file(service_file, mode="w") as fp:
+            fp.write(content)
 
         with mock.patch(
             "autonomy.cli.helpers.registry.get_default_remote_registry",
