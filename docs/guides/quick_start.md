@@ -17,7 +17,7 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
 
 1. Use the CLI to fetch the [Hello World agent service](../demos/hello_world_demo.md). This will connect to the remote registry and download the service specification to the `hello_world` folder:
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeifvme5lpm3pd556zk2dj7nbksxr5h7zqry2ezctz5yadb2vbblgoe --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeiffenl74hdzmumukcgb4re7tcr4lrm2d74iul42xw7r7tw4whugvi --service
     cd hello_world
     ```
 
