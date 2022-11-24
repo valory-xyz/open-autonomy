@@ -187,10 +187,13 @@ spec:
   selector:
     matchLabels:
       app: agent-node-{validator_ix}
+      valory: agent-svc
+      
   template:
     metadata:
       labels:
         app: agent-node-{validator_ix}
+        valory: agent-svc
     spec:
       imagePullSecrets:
       - name: regcred
