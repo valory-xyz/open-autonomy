@@ -188,7 +188,6 @@ spec:
     matchLabels:
       app: agent-node-{validator_ix}
       valory: agent-svc
-      
   template:
     metadata:
       labels:
