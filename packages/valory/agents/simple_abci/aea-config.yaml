@@ -1,14 +1,14 @@
-agent_name: register_reset
+agent_name: simple_abci
 author: valory
 version: 0.1.0
 license: Apache-2.0
-description: Register reset to replicate Tendermint issue.
+description: Simple ABCI example.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: bafybeicocdojplie5z4kbs7cn7apunfydbxui2nigp6ci2osuvv3mybzfm
-  __init__.py: bafybeihgxrmmp63exxkdmvlu565kehvuucg4iivnejwutaehb2p7xzxu4q
-  tests/__init__.py: bafybeigkkq3hon4wuyrazwnt5tiu23idpelf6a7kzbmawty7zfrpqnmnhi
-  tests/test_register_reset.py: bafybeibjg33b42lcwizx5747jnw7ywg5djignawkkcva5q7larqujgemuy
+  README.md: bafybeiaj6b3suwbl3lcdm2bixo6puuwp7nzrjbtguvygt4xoboeasxs6lq
+  __init__.py: bafybeihlo4hsgvjwosd4at3d6rkhvkrl7c332hl4bahvwxzzedymfihdmy
+  tests/__init__.py: bafybeif3ougyhkjepu6brew56pck6thqn7hsvpyowxabdccmingqnk32yq
+  tests/test_simple_abci.py: bafybeibsgdtkfq4ij6xlwogrr3b4rqvljrwoykve5mmwpktsqftfc3tc2y
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeics24v7csn2xwyrkdgthrzdbuqutssx3mn572z2tavyr33banqz6u
@@ -19,13 +19,13 @@ contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
+- valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
+- valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 skills:
 - valory/abstract_abci:0.1.0:bafybeicog4eierjad4f542ubhe3ez7sxgrsna7t2e5pci2hncpq5vckw4e
 - valory/abstract_round_abci:0.1.0:bafybeihb5ihfhmbp3kjxp763f7675dltgrho6bj7yv7dkpp5aonczkjqom
-- valory/register_reset_abci:0.1.0:bafybeiajx724wxjywvy42yllc7vhlniplurtxb5s5jeg44f7plf3ttu4cu
-- valory/registration_abci:0.1.0:bafybeidvgg6nui6umqlcnxsikstbam42y4njud5faspqmgrgermwov3bmm
-- valory/reset_pause_abci:0.1.0:bafybeiekk4v5qvfzpic3jxtvt2orlzdoqouxjef5yxecpthikoh7yzbspm
+- valory/simple_abci:0.1.0:bafybeigdvewzc5oukwcisfen2abdyryeinigqxkdu4e3aoshyavpjuipee
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -63,21 +63,10 @@ default_connection: null
 public_id: valory/abci:0.1.0
 type: connection
 config:
-  target_skill_id: valory/register_reset_abci:0.1.0
+  target_skill_id: valory/simple_abci:0.1.0
   host: ${ABCI_HOST:str:localhost}
   port: ${ABCI_PORT:int:26658}
   use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
----
-public_id: valory/register_reset_abci:0.1.0
-type: skill
-models:
-  benchmark_tool:
-    args:
-      log_dir: ${SKILL_REGISTER_RESET_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
-  params:
-    args:
-      tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
-      tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
@@ -103,3 +92,20 @@ cert_requests:
   public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
   save_path: .certs/acn_cosmos_9006.txt
 is_abstract: true
+---
+public_id: valory/simple_abci:0.1.0
+type: skill
+models:
+  benchmark_tool:
+    args:
+      log_dir: ${SKILL_SIMPLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+  params:
+    args:
+      consensus:
+        max_participants: ${MAX_PARTICIPANTS:int:4}
+      round_timeout_seconds: ${SIMPLE_ABCI_MODELS_PARAMS_ROUND_TIMEOUT_SECONDS:float:7.0}
+      tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
+      tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
+      reset_tendermint_after: ${SKILL_SIMPLE_ABCI_MODELS_PARAMS_ARGS_RESET_TENDERMINT_AFTER:int:10}
+      observation_interval: ${SKILL_SIMPLE_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL:int:10}
+      max_healthcheck: ${SKILL_SIMPLE_ABCI_MODELS_PARAMS_ARGS_MAX_HEALTHCHECK:int:1200}
