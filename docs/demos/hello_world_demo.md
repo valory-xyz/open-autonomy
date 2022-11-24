@@ -277,12 +277,20 @@ Note that the agent also includes the `hello_world_abci` skill, which is the one
 Note that although it is possible to develop your own protocols and connections, the {{open_aea}} framework provides a number of typical ones which can be reused. Therefore, it is usual that the developer focuses most of its programming efforts in coding the particular skill(s) for their new agent.
 
 #### Coding the skill
-Recall that the skill needs to define a number of classes: the `AbciApp`; the `Rounds`, `Behaviours` and `Payloads` associated to each state of the FSM; and the main skill class `RoundBehaviour`.
+Recall that the skill needs to define a number of classes:
+
+1. The `Rounds`, `Behaviours` and `Payloads` associated with each FSM state.
+2. The `AbciApp` class defining the FSM transition function.
+3. The `AbstractRoundBehaviour` class, which puts together the above classes.
+
+
 The easiest way to start building these classes is by [using the {{fsm_app}} scaffold tool](../guides/create_fsm_app.md).
 
-Let's look how each of these objects are implemented. If you have fetched the Hello World agent from the remote registry, the files referenced below are located in `<agent_folder>/vendor/valory/skills/hello_world_abci`:
+Let's look how each of these objects are implemented. If you have fetched the Hello World agent from the remote registry, the files referenced below are located in `<agent_folder>/vendor/valory/skills/hello_world_abci/`:
 
-  **`rounds.py`**: This file defines both the `Rounds` and the `AbciApp` class. This is how the `PrintMessageRound` inherits from its parent classes:
+  **`rounds.py`**: This file contains the implementation of the rounds associated to each state and the shared `SynchronizedData` class. It also contains the declaration of the FSM events, and the `HelloWorldAbciApp`, which defines the transition function of the FSM.
+
+  This is how the `PrintMessageRound` inherits from its parent classes:
 
   <figure markdown>
   <div class="mermaid">
@@ -358,7 +366,10 @@ Let's look how each of these objects are implemented. If you have fetched the He
 
   The method updates a number of variables collected at that point, and returns the appropriate event (`DONE`) so that the `AbciApp` can process and transit to the next round.
 
-  Observe that the `RegistrationRound` is very similar to the `PrintMessageRound`, as it simply has to collect the different addresses that each agent sends.
+!!! warning "Important"
+    Most of the code that needs to be implemented for a `Round` is about setting the appropriate attributes for the parent classes, and possibly implementing the `end_block` method.
+
+  Observe that the `RegistrationRound` is very similar to the `PrintMessageRound`, as it simply has to collect the different addresses that each agent sends. On the other hand, the classes `CollectRandomnessRound` and  `SelectKeeperRound` just require to define some parent classes attributes, as they execute fairly standard operations already available in the framework.
 
   After having defined the `Rounds`, the `HelloWorldAbciApp` does not have much mystery. It simply defines the transitions from one state to another in the FSM, arranged as Python dictionaries. For example,
 
@@ -373,7 +384,10 @@ Let's look how each of these objects are implemented. If you have fetched the He
   denotes the three possible transitions from the `SelectKeeperRound` to the corresponding `Rounds`, according to the FSM depicted above.
 
 
-**`behaviours.py`**: This file defines the `Behaviours`, which encode the proactive actions occurring at each state of the FSM. The class diagram for the `PrintMessageBehaviour` is as follows:
+**`behaviours.py`**: This file defines the `Behaviours`, which encode the proactive actions occurring at each state of the FSM. Recall that each behaviour is one-to-one associated to a `Round`. It also contains the `HelloWorldRoundBehaviour` class, which can be thought as the "main" class for the skill behaviour.
+
+
+The class diagram for the `PrintMessageBehaviour` is as follows:
 
   <figure markdown>
   <div class="mermaid">
@@ -449,14 +463,14 @@ class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
 Let us remark a number of noteworthy points from this code:
 
 1.  The `matching_round` variable must be set to the corresponding `Round`.
-2.  Within `async_act()`, The action must be executed (in this case, print 'Hello World' sequentially). Note how the agent reads the `context` and `synchronized_data.period_count` to determine if it is the keeper agent.
+2.  Within `async_act()`, The action must be executed (in this case, the keeper agent prints `HELLO_WORLD!`). Note how the agent reads the `context` and `synchronized_data` information to determine if it is the keeper agent.
 3.  After the action has been executed, the agent must prepare the `Payload` associated with this state. The payload can be anything that other agents might find useful for the action in this or future states. In this case, we simply send the message printed to the console.
 4.  The agent must send the `Payload`, which the consensus gadget will be in charge of synchronizing with all the agents.
 5.  The agent must wait until the consensus gadgets finishes its work, and mark the state as 'done'.
 
 Steps 3, 4, 5 above are common for all the `Behaviours` in the agent service skills.
 
-Once all the `Behaviours` are defined, it is time to define the `RoundBehaviour` class. This class follows a quite standard structure in all the agent services, and the reader can easily infer what is it from the source code:
+Once all the `Behaviours` are defined, it is time to define the `HelloWorldRoundBehaviour` class. This class follows a quite standard structure in all agent services, and the reader can easily infer what is it from the source code:
 
 ```python
 class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
@@ -510,8 +524,8 @@ To conclude this section, let us briefly describe the purposes of each one, and 
 * `handlers.py`: Defines the `Handlers` (implementing reactive actions) used by the skill. It is mandatory that the skill associated to an agent service implements a handler inherited from the `ABCIRoundHandler`. Other handlers are required according to the actions that the skill is performing (e.g., interacting with an HTTP server). As you can see by exploring the file, little coding is expected unless you need to implement a custom protocol.
 * `dialogues.py`: It defines the dialogues associated to the protocols described in the `skill.yaml` configuration file. Again, not much coding is expected in most cases.
 * `models.py`:
-* `fsm_specification.yaml`: It contains a specification of the FSM in a simplified syntax. It is used for checking the consistency of the implementation, and it can be automatically generated using a script.
+* `fsm_specification.yaml`: It contains a specification of the FSM in a simplified syntax. It is used for checking the consistency of the implementation, and it can be used to verify the implementation or to [scaffold the {{fsm_app}}](../guides/create_fsm_app.md) providing an initial structure.
 
 
 ## Further reading
-This walk-through of the Hello World service, together with the [guide to create a service from scratch](../guides/create_service_from_scratch.md)  should give an overview of the development process, and of the main elements that play a role in an agent service. Obviously, there are more elements in the {{open_autonomy}} framework that facilitate building complex applications by enabling to interact with blockchains and other networks. We refer the reader to the more advanced sections of the documentation (e.g., key concepts) where we explore in detail the stack.
+This walk-through to the Hello World service, together with the [guide to create a service from scratch](../guides/create_service_from_scratch.md)  should give an overview of the development process, and of the main elements that play a role in an agent service. Obviously, there are more elements in the {{open_autonomy}} framework that facilitate building complex applications by enabling to interact with blockchains and other networks. We refer the reader to the more advanced sections of the documentation (e.g., key concepts) where we explore in detail the components of the stack.

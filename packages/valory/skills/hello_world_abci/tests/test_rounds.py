@@ -344,6 +344,12 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
 
     participants = get_participants()
     setup_params = {}  # type: ignore
+    participant_to_randomness = {
+        participant: CollectRandomnessPayload(
+            sender=participant, randomness=RANDOMNESS, round_id=0
+        )
+        for participant in participants
+    }
     most_voted_randomness = "0xabcd"
     participant_to_selection = {
         participant: SelectKeeperPayload(sender=participant, keeper="keeper")
@@ -357,6 +363,7 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
                 dict(
                     participants=participants,
                     setup_params=setup_params,
+                    participant_to_randomness=participant_to_randomness,
                     most_voted_randomness=most_voted_randomness,
                     participant_to_selection=participant_to_selection,
                     most_voted_keeper_address=most_voted_keeper_address,
@@ -367,6 +374,7 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
 
     assert synchronized_data.participants == participants
     assert synchronized_data.period_count == 0
+    assert synchronized_data.participant_to_randomness == participant_to_randomness
     assert synchronized_data.most_voted_randomness == most_voted_randomness
     assert synchronized_data.participant_to_selection == participant_to_selection
     assert synchronized_data.most_voted_keeper_address == most_voted_keeper_address
