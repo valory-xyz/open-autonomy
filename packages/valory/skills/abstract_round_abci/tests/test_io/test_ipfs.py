@@ -22,6 +22,7 @@
 # pylint: skip-file
 
 import os.path
+import unittest.mock
 from pathlib import PosixPath
 from typing import Dict, Iterator, cast
 
@@ -59,9 +60,15 @@ class TestIPFSInteract:
         """Setup test class."""
         self.ipfs_interact = IPFSInteract("/dns/localhost/tcp/5001/http")
 
+    @unittest.mock.patch.object(
+        IPFSInteract,
+        "_IPFSInteract__remove_filepath",
+        wraps=IPFSInteract._IPFSInteract__remove_filepath,  # type: ignore
+    )
     @pytest.mark.parametrize("multiple", (True, False))
     def test_store_and_send_and_back(
         self,
+        remove_filepath_mock: unittest.mock.Mock,
         multiple: bool,
         tmp_path: PosixPath,
         dummy_obj: StoredJSONType,
@@ -82,6 +89,9 @@ class TestIPFSInteract:
         result = self.ipfs_interact.get_and_read(
             hash_, str(tmp_path), multiple, "test_file.json", SupportedFiletype.JSON
         )
+
+        remove_path = f"{filepath}{os.path.sep}" if multiple else filepath
+        remove_filepath_mock.assert_called_with(remove_path)
 
         if multiple:
             result = cast(SupportedMultipleObjectsType, result)

@@ -24,6 +24,7 @@ import os
 from shutil import rmtree
 from typing import Any, Optional, Type
 
+import requests
 from aea_cli_ipfs.ipfs_utils import DownloadError, IPFSTool, NodeError
 from ipfshttpclient.exceptions import ErrorResponse
 
@@ -82,7 +83,10 @@ class IPFSInteract:
         """
         try:
             _, hash_, _ = self.__ipfs_tool.add(filepath)
-        except ValueError as e:  # pragma: no cover
+        except (
+            ValueError,
+            requests.exceptions.ChunkedEncodingError,
+        ) as e:  # pragma: no cover
             raise IPFSInteractionError(str(e)) from e
         finally:
             self.__remove_filepath(filepath)
@@ -107,16 +111,16 @@ class IPFSInteract:
         if multiple:
             # IPFS tool creates a folder named as the basename of `target_dir` inside `target_dir`.
             filepath = os.path.join(target_dir, os.path.basename(target_dir))
+            remove_path = target_dir
         elif filename is not None:
-            filepath = os.path.join(target_dir, filename)
+            filepath = remove_path = os.path.join(target_dir, filename)
         else:  # pragma: no cover
             raise IPFSInteractionError(
                 "Filename cannot be `None` when uploading a single file!"
             )
 
-        if os.path.exists(target_dir):  # pragma: no cover
-            # TODO investigate why sometimes the path exists. It shouldn't, because `_send` removes it.
-            self.__remove_filepath(target_dir)
+        if os.path.exists(remove_path):  # pragma: no cover
+            self.__remove_filepath(remove_path)
 
         try:
             self.__ipfs_tool.download(hash_, target_dir)

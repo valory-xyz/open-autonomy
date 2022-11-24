@@ -40,7 +40,6 @@ nav:
   - Demo agent services:
     - 'demos/index.md'  
     - Hello World demo: 'demos/hello_world_demo.md'
-    - Simple demo: 'demos/simple_abci.md'
     - Price Oracle Demo:
       - Introduction: 'demos/price_oracle_intro.md'
       - Technical Details: 'demos/price_oracle_technical_details.md'
