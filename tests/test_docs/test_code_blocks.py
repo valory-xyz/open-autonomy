@@ -148,6 +148,10 @@ class TestYamlSnippets(BaseTestDocCode):
         "docs/guides/running_service_different_networks.md": {"skip_blocks": [0]},
     }
 
+    skipped_files = [
+        "docs/guides/service_level_overrides.md",
+    ]
+
 
 class TestPythonSnippets(BaseTestDocCode):
     """Test that all the python snippets in the documentation exist in the repository"""
