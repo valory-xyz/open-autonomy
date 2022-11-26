@@ -287,7 +287,7 @@ spec:
         - name: copy-tendermint-configuration
           image: "ubuntu:20.04"
           command: ["bash", "-c"]
-          args: 
+          args:
           - "while [ ! -d /tendermint/node{validator_ix} ]; do sleep 1; done; cp -r /tendermint/node{validator_ix}/* /tm/"
           volumeMounts:
             - name: nodes
