@@ -28,6 +28,7 @@ from typing import Dict, List
 
 import pytest
 import yaml
+from aea.configurations.data_types import PublicId
 from aea.exceptions import AEAValidationError
 from aea.helpers.io import open_file
 from aea.helpers.yaml_utils import yaml_load_all
@@ -77,7 +78,7 @@ class TestServiceConfig:
                 continue
             assert value == dummy_service[0][key]
 
-    def test_check_overrides_valid(
+    def test_check_overrides_valid_fail_missing_overrides(
         self,
     ) -> None:
         """Test check_overrides_valid method."""
@@ -93,6 +94,56 @@ class TestServiceConfig:
             ),
         ):
             load_service_config(self.t)
+
+    def test_check_repeatetive_overrides(
+        self,
+    ) -> None:
+        """Test check_overrides_valid method."""
+
+        dummy_service = get_dummy_service_config(file_number=2)
+        dummy_service.append(dummy_service[-1])
+        self._write_service(dummy_service)
+
+        with pytest.raises(
+            AEAValidationError,
+            match=re.escape(
+                "Overrides for component (skill, valory/dummy_skill:0.1.0) are defined more than once"
+            ),
+        ):
+            load_service_config(self.t)
+
+    def test_process_metadata(
+        self,
+    ) -> None:
+        """Test process metadata."""
+
+        _, component_override = get_dummy_service_config(file_number=2)
+        configuration, component_id, has_multiple_overrides = Service.process_metadata(
+            component_override.copy()
+        )
+
+        assert has_multiple_overrides
+        assert "public_id" not in configuration
+        assert "type" not in configuration
+        assert (
+            PublicId.from_str(component_override["public_id"]) == component_id.public_id
+        )
+
+    def test_no_configuration_provided_for_agent_x(
+        self,
+    ) -> None:
+        """Test process metadata."""
+
+        service = Service(name="service", author="author", agent="valory/agent")
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "Overrides not provided for agent 1; component=(skill, valory/skill:latest)"
+            ),
+        ):
+            service.process_component_overrides(
+                1, {"type": "skill", "public_id": "valory/skill"}
+            )
 
     def test_env_vars(
         self,
