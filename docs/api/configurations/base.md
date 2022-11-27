@@ -4,6 +4,50 @@
 
 Base configurations.
 
+<a id="autonomy.configurations.base.is_strict_list"></a>
+
+#### is`_`strict`_`list
+
+```python
+def is_strict_list(data: List) -> bool
+```
+
+Check if a data list is an strict list
+
+The data list contains a mapping object we need to process it as an
+object containing configurable parameters. For example
+
+cert_requests:
+- public_key: example_public_key
+
+This will get exported as `CONNECTION_NAME_CERT_REQUESTS_0_PUBLIC_KEY=example_public_key`
+
+Where as
+
+parameters:
+- hello
+- world
+
+will get exported as `SKILL_NAME_PARAMETERS=["hello", "world"]`
+
+**Arguments**:
+
+- `data`: Data list
+
+**Returns**:
+
+Boolean specifying whether it's a strict list or not
+
+<a id="autonomy.configurations.base.generate_env_vars_recursively"></a>
+
+#### generate`_`env`_`vars`_`recursively
+
+```python
+def generate_env_vars_recursively(data: Union[Dict, List], export_path: List[str]) -> Dict
+```
+
+Generate environment variables recursively.
+
 <a id="autonomy.configurations.base.Service"></a>
 
 ## Service Objects
@@ -83,8 +127,8 @@ Uses the AEA helper libraries to check individual overrides.
 #### process`_`metadata
 
 ```python
-@classmethod
-def process_metadata(cls, configuration: Dict) -> Tuple[Dict, ComponentId, bool]
+@staticmethod
+def process_metadata(configuration: Dict) -> Tuple[Dict, ComponentId, bool]
 ```
 
 Process component override metadata.
@@ -113,6 +157,7 @@ the processed component configuration.
 #### generate`_`environment`_`variables
 
 ```python
+@staticmethod
 def generate_environment_variables(component_id: ComponentId, component_configuration_json: Dict) -> Dict
 ```
 
