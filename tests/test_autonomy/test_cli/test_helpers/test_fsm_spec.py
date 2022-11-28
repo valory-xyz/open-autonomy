@@ -126,3 +126,33 @@ def test_check_one_raises() -> None:
         expected = "FSM Spec definition does not match in specification file and class definitions."
         with pytest.raises(DFASpecificationError, match=expected):
             check_one(package_path)
+
+
+@pytest.mark.parametrize("relative_path", [True, False])
+def test_check_all(relative_path: bool, capsys: CaptureFixture) -> None:
+    """Test check_all"""
+
+    packages_dir = Path(packages.__file__).parent
+    if relative_path:
+        packages_dir = packages_dir.relative_to(ROOT_DIR)
+
+    # there currently exists several fsm_specification.yaml files
+    with mock.patch("autonomy.cli.helpers.fsm_spec.check_one") as m:
+        check_all(packages_dir, FSMSpecificationLoader.OutputFormats.YAML)
+        m.assert_called()
+        captured = capsys.readouterr()
+        assert captured.out.count("Checking") > 3
+
+    # no fsm_specification.json files
+    with mock.patch("autonomy.cli.helpers.fsm_spec.check_one") as m:
+        check_all(packages_dir, FSMSpecificationLoader.OutputFormats.JSON)
+        m.assert_not_called()
+        captured = capsys.readouterr()
+        assert "Checking" not in captured.out
+
+    # no fsm_specification.mermaid files
+    with mock.patch("autonomy.cli.helpers.fsm_spec.check_one") as m:
+        check_all(packages_dir, FSMSpecificationLoader.OutputFormats.MERMAID)
+        m.assert_not_called()
+        captured = capsys.readouterr()
+        assert "Checking" not in captured.out
