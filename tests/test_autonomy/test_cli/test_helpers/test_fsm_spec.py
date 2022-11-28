@@ -27,6 +27,8 @@ from _pytest.capture import CaptureFixture  # type: ignore
 from click import ClickException
 
 from autonomy.analyse.abci.app_spec import (
+    DFA,
+    DFASpecificationError,
     FSMSpecificationLoader,
 )
 from autonomy.cli.helpers.fsm_spec import (
@@ -98,3 +100,29 @@ def test_check_one() -> None:
 
     package_path = Path(hello_world_abci.__file__).parent.relative_to(ROOT_DIR)
     check_one(package_path)
+
+
+def test_check_one_raises() -> None:
+    """Test check_one raises"""
+
+    package_path = Path(hello_world_abci.__file__).parent.relative_to(ROOT_DIR)
+
+    expected = "Please provide name for the app class or make sure FSM specification file is properly defined."
+    with mock.patch.object(FSMSpecificationLoader, "load", return_value={}):
+        with pytest.raises(ValueError, match=expected):
+            update_one(package_path)
+
+    expected = 'Class .* is not in "packages.valory.skills.hello_world_abci.rounds"'
+    with pytest.raises(ClickException, match=expected):
+        check_one(package_path, app_class="DummyAbciApp")
+
+    target = "autonomy.cli.helpers.fsm_spec.check_unreferenced_events"
+    with mock.patch(target, return_value=["Event.WIN_LOTTERY"]):
+        expected = "Event reference check failed with .*"
+        with pytest.raises(DFASpecificationError, match=expected):
+            check_one(package_path)
+
+    with mock.patch.object(DFA, "load", return_value=""):
+        expected = "FSM Spec definition does not match in specification file and class definitions."
+        with pytest.raises(DFASpecificationError, match=expected):
+            check_one(package_path)
