@@ -76,3 +76,18 @@ def test_update_one() -> None:
     with mock.patch.object(FSMSpecificationLoader, "dump") as m:
         update_one(package_path)
         m.assert_called_once()
+
+
+def test_update_one_raises() -> None:
+    """Test update_one raises"""
+
+    package_path = Path(packages.__file__).parent
+    expected = "FSM specification file .* does not exist, please provide app class name to continue."
+    with pytest.raises(ClickException, match=expected):
+        update_one(package_path)
+
+    package_path = Path(hello_world_abci.__file__).parent.relative_to(ROOT_DIR)
+    expected = "Please provide name for the app class or make sure FSM specification file is properly defined."
+    with mock.patch.object(FSMSpecificationLoader, "load", return_value={}):
+        with pytest.raises(ValueError, match=expected):
+            update_one(package_path)
