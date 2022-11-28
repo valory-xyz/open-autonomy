@@ -20,11 +20,15 @@
 """Tests for cli/helpers/fsm_spec.py"""
 
 from pathlib import Path
+from unittest import mock
 
 import pytest
 from _pytest.capture import CaptureFixture  # type: ignore
 from click import ClickException
 
+from autonomy.analyse.abci.app_spec import (
+    FSMSpecificationLoader,
+)
 from autonomy.cli.helpers.fsm_spec import (
     check_all,
     check_one,
@@ -33,7 +37,7 @@ from autonomy.cli.helpers.fsm_spec import (
 )
 
 import packages
-from packages.valory.skills import test_abci
+from packages.valory.skills import hello_world_abci, test_abci
 
 from tests.conftest import ROOT_DIR
 
@@ -63,3 +67,12 @@ def test_import_and_validate_app_class_raises() -> None:
     expected = f'Class "DummyAbciApp" is not in "{test_abci.__name__}.rounds"'
     with pytest.raises(ClickException, match=expected):
         import_and_validate_app_class(module_path, "DummyAbciApp")
+
+
+def test_update_one() -> None:
+    """Test update_one"""
+
+    package_path = Path(hello_world_abci.__file__).parent.relative_to(ROOT_DIR)
+    with mock.patch.object(FSMSpecificationLoader, "dump") as m:
+        update_one(package_path)
+        m.assert_called_once()
