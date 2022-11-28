@@ -146,7 +146,7 @@ class TestYamlSnippets(BaseTestDocCode):
     }
 
     skipped_files = [
-        "docs/guides/service_definition_file.md",
+        "docs/guides/service_configuration_file.md",
     ]
 
 
