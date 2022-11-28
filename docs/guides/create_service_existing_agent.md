@@ -50,7 +50,7 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
 
     ??? example "Example of a service configuration file `service.yaml`"
         The service configuration file `service.yaml` is where
-        the parameters of the agent service are defined, including the particular agent that composes the service. Below you can find an exampe for the [Hello World agent service](../demos/hello_world_demo.md). You can read the [service configuration file section](./service_definition_file.md) to understand its structure.
+        the parameters of the agent service are defined, including the particular agent that composes the service. Below you can find an exampe for the [Hello World agent service](../demos/hello_world_demo.md). You can read the [service configuration file section](./service_configuration_file.md) to understand its structure.
         ```yaml
         name: hello_world
         author: valory
