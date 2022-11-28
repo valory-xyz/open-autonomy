@@ -33,5 +33,5 @@ Process module.
 
 **Returns**:
 
-boolean specifyning whether the update is needed or not
+boolean specifying whether the update is needed or not
 

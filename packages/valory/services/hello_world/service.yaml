@@ -6,8 +6,9 @@ aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
   README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
+  keys.json: bafybeigna34jgvujpejnnswgqhkrvs2fhl7k3udet4buv7psq7xfqiauiq
 fingerprint_ignore_patterns: []
-agent: valory/hello_world:0.1.0:bafybeiamc6t7i574x43xeqifshsbfsyw7xkvwshj4mrqwop5berbmsbpta
+agent: valory/hello_world:0.1.0:bafybeibaxgjkspc2r7lqazhnd6duedzkec5kbtq5kmv43na4ypqw4ztlxy
 number_of_agents: 4
 ---
 public_id: valory/hello_world_abci:0.1.0
