@@ -156,3 +156,15 @@ def test_check_all(relative_path: bool, capsys: CaptureFixture) -> None:
         m.assert_not_called()
         captured = capsys.readouterr()
         assert "Checking" not in captured.out
+
+
+def test_check_all_raises() -> None:
+    """Test check_all raises"""
+
+    package_dir = Path(packages.__file__).parent.relative_to(ROOT_DIR)
+
+    target = "autonomy.cli.helpers.fsm_spec.check_one"
+    with mock.patch(target, side_effect=DFASpecificationError):
+        expected = "Specifications check for following packages failed."
+        with pytest.raises(DFASpecificationError, match=expected):
+            check_all(package_dir)
