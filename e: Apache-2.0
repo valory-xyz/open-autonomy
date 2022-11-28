@@ -1,0 +1,342 @@
+[1mdiff --git a/autonomy/cli/helpers/docstring.py b/autonomy/cli/helpers/docstring.py[m
+[1mindex 45f86871d..0a4118ba0 100644[m
+[1m--- a/autonomy/cli/helpers/docstring.py[m
+[1m+++ b/autonomy/cli/helpers/docstring.py[m
+[36m@@ -57,7 +57,7 @@[m [mdef analyse_docstrings([m
+     :param update: whether to update the content if required[m
+     :param packages_dir: Path to packages directory[m
+ [m
+[31m-    :return: boolean specifyning whether the update is needed or not[m
+[32m+[m[32m    :return: boolean specifying whether the update is needed or not[m
+     """[m
+ [m
+     module = import_rounds_module(module_path=module_path, packages_dir=packages_dir)[m
+[36m@@ -67,20 +67,20 @@[m [mdef analyse_docstrings([m
+             docstring = docstring_abci_app(App)[m
+ [m
+             original_content = module_path.read_text()[m
+[31m-            has_docstring, exptected_content = compare_docstring_content([m
+[32m+[m[32m            has_docstring, expected_content = compare_docstring_content([m
+                 file_content=original_content, docstring=docstring, abci_app_name=obj[m
+             )[m
+ [m
+             if not has_docstring and update:[m
+                 click.echo([m
+[31m-                    f"App defintion in {module_path} does not contain well formatted docstring, please update it manually"[m
+[32m+[m[32m                    f"App definition in {module_path} does not contain well formatted docstring, please update it manually"[m
+                 )[m
+                 return True[m
+ [m
+[31m-            update_needed = original_content != exptected_content[m
+[32m+[m[32m            update_needed = original_content != expected_content[m
+ [m
+             if update and update_needed:[m
+[31m-                module_path.write_text(exptected_content, encoding="utf-8")[m
+[32m+[m[32m                module_path.write_text(expected_content, encoding="utf-8")[m
+                 return True[m
+ [m
+             return update_needed[m
+[1mdiff --git a/docs/api/cli/helpers/docstring.md b/docs/api/cli/helpers/docstring.md[m
+[1mindex 4bc14a1a8..2303331c0 100644[m
+[1m--- a/docs/api/cli/helpers/docstring.md[m
+[1m+++ b/docs/api/cli/helpers/docstring.md[m
+[36m@@ -33,5 +33,5 @@[m [mProcess module.[m
+ [m
+ **Returns**:[m
+ [m
+[31m-boolean specifyning whether the update is needed or not[m
+[32m+[m[32mboolean specifying whether the update is needed or not[m
+ [m
+[1mdiff --git a/docs/guides/quick_start.md b/docs/guides/quick_start.md[m
+[1mindex 277c2bcc5..bce24ab9d 100644[m
+[1m--- a/docs/guides/quick_start.md[m
+[1m+++ b/docs/guides/quick_start.md[m
+[36m@@ -17,7 +17,7 @@[m [mNow that you have set up your machine to work with {{open_autonomy}}, we are in[m
+ [m
+ 1. Use the CLI to fetch the [Hello World agent service](../demos/hello_world_demo.md). This will connect to the remote registry and download the service specification to the `hello_world` folder:[m
+     ```bash[m
+[31m-    autonomy fetch valory/hello_world:0.1.0:bafybeicraeo72ut4qfu564um36bxpdjytf46ryqjvr3ijzelml7jo5pqqm --service[m
+[32m+[m[32m    autonomy fetch valory/hello_world:0.1.0:bafybeibkg2gosxkkrbydsb4jbxjzi4dv54xyrcgwow2nqkfbg6fv3z76wu --service[m
+     cd hello_world[m
+     ```[m
+ [m
+[1mdiff --git a/docs/package_list.md b/docs/package_list.md[m
+[1mindex 48496a7f8..be29c8f3e 100644[m
+[1m--- a/docs/package_list.md[m
+[1m+++ b/docs/package_list.md[m
+[36m@@ -28,7 +28,7 @@[m
+ | agent/valory/registration_start_up/0.1.0                      | `bafybeihzca3fmmwy7hpa7efzak7bf5zvvjs42svliv7pw6pqilxkbqs4sy` |[m
+ | agent/valory/test_abci/0.1.0                                  | `bafybeifbepymwxczveaplzevgpuadps7sgflqltsinjgqp24s4ecwa24vu` |[m
+ | service/valory/counter/0.1.0                                  | `bafybeidqpnr7536niha4qniqbadmzov6plvoailxeb77td6bdbh5abqzia` |[m
+[31m-| service/valory/hello_world/0.1.0                              | `bafybeicraeo72ut4qfu564um36bxpdjytf46ryqjvr3ijzelml7jo5pqqm` |[m
+[32m+[m[32m| service/valory/hello_world/0.1.0                              | `bafybeibkg2gosxkkrbydsb4jbxjzi4dv54xyrcgwow2nqkfbg6fv3z76wu` |[m
+ | service/valory/register_reset/0.1.0                           | `bafybeiefukeful7aukql7mrnsty2qsoh5k2gwi5hgqbjjf7zntodlnzmsm` |[m
+ | skill/valory/safe_deployment_abci/0.1.0                       | `bafybeibdif2zmmu7bioom37tj654az3426yjnr2gfsnzc27n73es7gzjmq` |[m
+ | protocol/open_aea/signing/1.0.0                               | `bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44` |[m
+[1mdiff --git a/packages/packages.json b/packages/packages.json[m
+[1mindex e8fe1378b..ac9f64858 100644[m
+[1m--- a/packages/packages.json[m
+[1m+++ b/packages/packages.json[m
+[36m@@ -28,7 +28,7 @@[m
+         "agent/valory/registration_start_up/0.1.0": "bafybeihzca3fmmwy7hpa7efzak7bf5zvvjs42svliv7pw6pqilxkbqs4sy",[m
+         "agent/valory/test_abci/0.1.0": "bafybeifbepymwxczveaplzevgpuadps7sgflqltsinjgqp24s4ecwa24vu",[m
+         "service/valory/counter/0.1.0": "bafybeidqpnr7536niha4qniqbadmzov6plvoailxeb77td6bdbh5abqzia",[m
+[31m-        "service/valory/hello_world/0.1.0": "bafybeicraeo72ut4qfu564um36bxpdjytf46ryqjvr3ijzelml7jo5pqqm",[m
+[32m+[m[32m        "service/valory/hello_world/0.1.0": "bafybeibkg2gosxkkrbydsb4jbxjzi4dv54xyrcgwow2nqkfbg6fv3z76wu",[m
+         "service/valory/register_reset/0.1.0": "bafybeiefukeful7aukql7mrnsty2qsoh5k2gwi5hgqbjjf7zntodlnzmsm",[m
+         "skill/valory/safe_deployment_abci/0.1.0": "bafybeibdif2zmmu7bioom37tj654az3426yjnr2gfsnzc27n73es7gzjmq"[m
+     },[m
+[1mdiff --git a/packages/valory/services/hello_world/service.yaml b/packages/valory/services/hello_world/service.yaml[m
+[1mindex 186b815af..e53af7c1f 100644[m
+[1m--- a/packages/valory/services/hello_world/service.yaml[m
+[1m+++ b/packages/valory/services/hello_world/service.yaml[m
+[36m@@ -6,6 +6,7 @@[m [maea_version: '>=1.0.0, <2.0.0'[m
+ license: Apache-2.0[m
+ fingerprint:[m
+   README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm[m
+[32m+[m[32m  keys.json: bafybeigna34jgvujpejnnswgqhkrvs2fhl7k3udet4buv7psq7xfqiauiq[m
+ fingerprint_ignore_patterns: [][m
+ agent: valory/hello_world:0.1.0:bafybeiamc6t7i574x43xeqifshsbfsyw7xkvwshj4mrqwop5berbmsbpta[m
+ number_of_agents: 4[m
+[1mdiff --git a/tests/test_autonomy/test_cli/helpers/__init__.py b/tests/test_autonomy/test_cli/helpers/__init__.py[m
+[1mnew file mode 100644[m
+[1mindex 000000000..bccb4eb9d[m
+[1m--- /dev/null[m
+[1m+++ b/tests/test_autonomy/test_cli/helpers/__init__.py[m
+[36m@@ -0,0 +1,20 @@[m
+[32m+[m[32m# -*- coding: utf-8 -*-[m
+[32m+[m[32m# ------------------------------------------------------------------------------[m
+[32m+[m[32m#[m
+[32m+[m[32m#   Copyright 2022 Valory AG[m
+[32m+[m[32m#[m
+[32m+[m[32m#   Licensed under the Apache License, Version 2.0 (the "License");[m
+[32m+[m[32m#   you may not use this file except in compliance with the License.[m
+[32m+[m[32m#   You may obtain a copy of the License at[m
+[32m+[m[32m#[m
+[32m+[m[32m#       http://www.apache.org/licenses/LICENSE-2.0[m
+[32m+[m[32m#[m
+[32m+[m[32m#   Unless required by applicable law or agreed to in writing, software[m
+[32m+[m[32m#   distributed under the License is distributed on an "AS IS" BASIS,[m
+[32m+[m[32m#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.[m
+[32m+[m[32m#   See the License for the specific language governing permissions and[m
+[32m+[m[32m#   limitations under the License.[m
+[32m+[m[32m#[m
+[32m+[m[32m# ------------------------------------------------------------------------------[m
+[32m+[m
+[32m+[m[32m"""The tests module contains the unit tests for CLI helper functions."""[m
+[1mdiff --git a/tests/test_autonomy/test_cli/helpers/test_docstrings.py b/tests/test_autonomy/test_cli/helpers/test_docstrings.py[m
+[1mnew file mode 100644[m
+[1mindex 000000000..3168f84f6[m
+[1m--- /dev/null[m
+[1m+++ b/tests/test_autonomy/test_cli/helpers/test_docstrings.py[m
+[36m@@ -0,0 +1,99 @@[m
+[32m+[m[32m# -*- coding: utf-8 -*-[m
+[32m+[m[32m# ------------------------------------------------------------------------------[m
+[32m+[m[32m#[m
+[32m+[m[32m#   Copyright 2022 Valory AG[m
+[32m+[m[32m#[m
+[32m+[m[32m#   Licensed under the Apache License, Version 2.0 (the "License");[m
+[32m+[m[32m#   you may not use this file except in compliance with the License.[m
+[32m+[m[32m#   You may obtain a copy of the License at[m
+[32m+[m[32m#[m
+[32m+[m[32m#       http://www.apache.org/licenses/LICENSE-2.0[m
+[32m+[m[32m#[m
+[32m+[m[32m#   Unless required by applicable law or agreed to in writing, software[m
+[32m+[m[32m#   distributed under the License is distributed on an "AS IS" BASIS,[m
+[32m+[m[32m#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.[m
+[32m+[m[32m#   See the License for the specific language governing permissions and[m
+[32m+[m[32m#   limitations under the License.[m
+[32m+[m[32m#[m
+[32m+[m[32m# ------------------------------------------------------------------------------[m
+[32m+[m
+[32m+[m[32m"""The module contains helpers for module tests."""[m
+[32m+[m
+[32m+[m[32mimport shutil[m
+[32m+[m[32mimport tempfile[m
+[32m+[m[32mfrom pathlib import Path[m
+[32m+[m[32mfrom types import ModuleType[m
+[32m+[m[32mfrom typing import cast[m
+[32m+[m[32mfrom unittest import mock[m
+[32m+[m
+[32m+[m[32mimport pytest[m
+[32m+[m[32mfrom _pytest.capture import CaptureFixture  # type: ignore[m
+[32m+[m
+[32m+[m[32mfrom autonomy.cli.helpers.docstring import analyse_docstrings, import_rounds_module[m
+[32m+[m
+[32m+[m[32mimport packages[m
+[32m+[m[32mfrom packages.valory.skills import test_abci[m
+[32m+[m[32mfrom packages.valory.skills.test_abci import rounds as test_abci_rounds[m
+[32m+[m
+[32m+[m
+[32m+[m[32m@pytest.mark.parametrize("module", [test_abci, test_abci_rounds])[m
+[32m+[m[32mdef test_import_rounds_module(module: ModuleType) -> None:[m
+[32m+[m[32m    """Test import_rounds_module"""[m
+[32m+[m
+[32m+[m[32m    module_path = Path(module.__file__)[m
+[32m+[m[32m    module = import_rounds_module(module_path)[m
+[32m+[m[32m    assert module is test_abci_rounds[m
+[32m+[m
+[32m+[m
+[32m+[m[32mdef test_import_rounds_module_failure() -> None:[m
+[32m+[m[32m    """Test import_rounds_module"""[m
+[32m+[m
+[32m+[m[32m    with pytest.raises(ModuleNotFoundError, match="No module named 'packages.rounds'"):[m
+[32m+[m[32m        module_path = Path(packages.__file__)[m
+[32m+[m[32m        import_rounds_module(module_path)[m
+[32m+[m
+[32m+[m
+[32m+[m[32mdef test_import_rounds_module_with_non_default_package_dir() -> None:[m
+[32m+[m[32m    """Test import_rounds_module from different package directory"""[m
+[32m+[m
+[32m+[m[32m    with tempfile.TemporaryDirectory() as tmp_dir:[m
+[32m+[m[32m        tmp_path = Path(tmp_dir)[m
+[32m+[m[32m        module_path = Path(packages.__file__)[m
+[32m+[m[32m        shutil.copytree(module_path.parent, tmp_path / packages.__name__)[m
+[32m+[m[32m        new_package_dir = tmp_path / module_path.parts[-1][m
+[32m+[m[32m        module = import_rounds_module(module_path, packages_dir=new_package_dir)[m
+[32m+[m[32m        assert module.__file__.startswith(tmp_dir)[m
+[32m+[m
+[32m+[m
+[32m+[m[32m@pytest.mark.parametrize("module", [test_abci, test_abci_rounds])[m
+[32m+[m[32mdef test_analyse_docstrings_without_update(module: ModuleType) -> None:[m
+[32m+[m[32m    """Test analyse_docstrings"""[m
+[32m+[m
+[32m+[m[32m    module_path = Path(module.__file__)[m
+[32m+[m[32m    updated_needed = analyse_docstrings(module_path)[m
+[32m+[m[32m    assert not updated_needed[m
+[32m+[m
+[32m+[m
+[32m+[m[32mdef test_analyse_docstrings_with_update(capsys: CaptureFixture) -> None:[m
+[32m+[m[32m    """Test analyse_docstrings with update"""[m
+[32m+[m
+[32m+[m[32m    module_path = Path(test_abci_rounds.__file__)[m
+[32m+[m[32m    doc = cast(str, test_abci_rounds.TestAbciApp.__doc__)[m
+[32m+[m[32m    content_with_mutated_abci_doc = module_path.read_text().replace(doc, doc + " ")[m
+[32m+[m
+[32m+[m[32m    with mock.patch.object(Path, "write_text") as mock_write_text:[m
+[32m+[m[32m        with mock.patch.object(Path, "read_text", return_value=""):[m
+[32m+[m[32m            updated_needed = analyse_docstrings(module_path, update=True)[m
+[32m+[m[32m            assert updated_needed[m
+[32m+[m[32m            out, _ = capsys.readouterr()[m
+[32m+[m[32m            expected = ([m
+[32m+[m[32m                "does not contain well formatted docstring, please update it manually"[m
+[32m+[m[32m            )[m
+[32m+[m[32m            assert expected in out[m
+[32m+[m
+[32m+[m[32m        with mock.patch.object([m
+[32m+[m[32m            Path, "read_text", return_value=content_with_mutated_abci_doc[m
+[32m+[m[32m        ):[m
+[32m+[m[32m            updated_needed = analyse_docstrings(module_path, update=True)[m
+[32m+[m[32m            assert updated_needed[m
+[32m+[m[32m            mock_write_text.assert_called_once()[m
+[1mdiff --git a/tests/test_autonomy/test_cli/test_analyse/test_abci/test_docstrings.py b/tests/test_autonomy/test_cli/test_analyse/test_abci/test_docstrings.py[m
+[1mnew file mode 100644[m
+[1mindex 000000000..880f5d2b8[m
+[1m--- /dev/null[m
+[1m+++ b/tests/test_autonomy/test_cli/test_analyse/test_abci/test_docstrings.py[m
+[36m@@ -0,0 +1,91 @@[m
+[32m+[m[32m# -*- coding: utf-8 -*-[m
+[32m+[m[32m# ------------------------------------------------------------------------------[m
+[32m+[m[32m#[m
+[32m+[m[32m#   Copyright 2022 Valory AG[m
+[32m+[m[32m#[m
+[32m+[m[32m#   Licensed under the Apache License, Version 2.0 (the "License");[m
+[32m+[m[32m#   you may not use this file except in compliance with the License.[m
+[32m+[m[32m#   You may obtain a copy of the License at[m
+[32m+[m[32m#[m
+[32m+[m[32m#       http://www.apache.org/licenses/LICENSE-2.0[m
+[32m+[m[32m#[m
+[32m+[m[32m#   Unless required by applicable law or agreed to in writing, software[m
+[32m+[m[32m#   distributed under the License is distributed on an "AS IS" BASIS,[m
+[32m+[m[32m#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.[m
+[32m+[m[32m#   See the License for the specific language governing permissions and[m
+[32m+[m[32m#   limitations under the License.[m
+[32m+[m[32m#[m
+[32m+[m[32m# ------------------------------------------------------------------------------[m
+[32m+[m
+[32m+[m[32m"""Test analyse ABCI docstrings."""[m
+[32m+[m
+[32m+[m[32mimport difflib[m
+[32m+[m[32mimport inspect[m
+[32m+[m[32mfrom pathlib import Path[m
+[32m+[m
+[32m+[m[32mfrom autonomy.analyse.abci.docstrings import ([m
+[32m+[m[32m    compare_docstring_content,[m
+[32m+[m[32m    docstring_abci_app,[m
+[32m+[m[32m)[m
+[32m+[m
+[32m+[m[32mfrom packages.valory.skills.hello_world_abci.rounds import HelloWorldAbciApp[m
+[32m+[m
+[32m+[m
+[32m+[m[32mdef test_docstring_abci_app() -> None:[m
+[32m+[m[32m    """Test docstring_abci_app"""[m
+[32m+[m
+[32m+[m[32m    expected = """\"\"\"HelloWorldAbciApp[m
+[32m+[m
+[32m+[m[32m        Initial round: RegistrationRound[m
+[32m+[m
+[32m+[m[32m        Initial states: {RegistrationRound}[m
+[32m+[m
+[32m+[m[32m        Transition states:[m
+[32m+[m[32m            0. RegistrationRound[m
+[32m+[m[32m                - done: 1.[m
+[32m+[m[32m            1. CollectRandomnessRound[m
+[32m+[m[32m                - done: 2.[m
+[32m+[m[32m                - no majority: 1.[m
+[32m+[m[32m                - round timeout: 1.[m
+[32m+[m[32m            2. SelectKeeperRound[m
+[32m+[m[32m                - done: 3.[m
+[32m+[m[32m                - no majority: 0.[m
+[32m+[m[32m                - round timeout: 0.[m
+[32m+[m[32m            3. PrintMessageRound[m
+[32m+[m[32m                - done: 4.[m
+[32m+[m[32m                - round timeout: 0.[m
+[32m+[m[32m            4. ResetAndPauseRound[m
+[32m+[m[32m                - done: 1.[m
+[32m+[m[32m                - no majority: 0.[m
+[32m+[m[32m                - reset timeout: 0.[m
+[32m+[m
+[32m+[m[32m        Final states: {}[m
+[32m+[m
+[32m+[m[32m        Timeouts:[m
+[32m+[m[32m            round timeout: 30.0[m
+[32m+[m[32m            reset timeout: 30.0[m
+[32m+[m[32m    \"\"\""""[m
+[32m+[m
+[32m+[m[32m    docstring = docstring_abci_app(HelloWorldAbciApp)[m
+[32m+[m[32m    differences = "\n".join(difflib.unified_diff(docstring.split(), expected.split()))[m
+[32m+[m[32m    assert not differences, differences[m
+[32m+[m
+[32m+[m
+[32m+[m[32mdef test_compare_docstring_content() -> None:[m
+[32m+[m[32m    """Test compare_docstring_content"""[m
+[32m+[m
+[32m+[m[32m    # no regex match[m
+[32m+[m[32m    assert compare_docstring_content("", "", "") == (False, "")[m
+[32m+[m
+[32m+[m[32m    # identical - no update[m
+[32m+[m[32m    docstring = docstring_abci_app(HelloWorldAbciApp)[m
+[32m+[m[32m    abci_app_name = HelloWorldAbciApp.__name__[m
+[32m+[m[32m    file_content = Path(inspect.getfile(HelloWorldAbciApp)).read_text()[m
+[32m+[m[32m    result = compare_docstring_content(file_content, docstring, abci_app_name)[m
+[32m+[m[32m    assert result == (True, file_content)[m
+[32m+[m
+[32m+[m[32m    # mutated - update[m
+[32m+[m[32m    mutated_content = file_content.replace("Initial round: RegistrationRound", "")[m
+[32m+[m[32m    assert not mutated_content == file_content[m
+[32m+[m[32m    result = compare_docstring_content(mutated_content, docstring, abci_app_name)[m
+[32m+[m[32m    assert result == (True, file_content)[m
+[1mdiff --git a/tests/test_autonomy/test_cli/test_analyse/test_specs.py b/tests/test_autonomy/test_cli/test_analyse/test_specs.py[m
+[1mindex 312770499..9107e2225 100644[m
+[1m--- a/tests/test_autonomy/test_cli/test_analyse/test_specs.py[m
+[1m+++ b/tests/test_autonomy/test_cli/test_analyse/test_specs.py[m
+[36m@@ -133,6 +133,9 @@[m [mclass TestGenerateSpecs(BaseCliTest):[m
+     ) -> None:[m
+         """Test failures."""[m
+ [m
+[32m+[m[32m        with pytest.raises(ValueError, match="Unrecognized input format .exe"):[m
+[32m+[m[32m            FSMSpecificationLoader.load(self.skill_path, ".exe")[m
+[32m+[m
+         result = self.run_cli([m
+             ([m
+                 "--app-class",[m
