@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""The module contains helpers for module tests."""
+"""The module contains test_helpers for module tests."""
 
 import shutil
 import tempfile
