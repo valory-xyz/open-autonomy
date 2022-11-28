@@ -23,7 +23,7 @@ import json
 import os
 from collections import OrderedDict
 from copy import copy
-from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, cast
+from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Union, cast
 
 from aea.configurations import validation
 from aea.configurations.base import (
@@ -54,6 +54,73 @@ COMPONENT_CONFIGS: Dict = {
         ConnectionConfig,
     ]
 }
+
+
+def is_strict_list(data: List) -> bool:
+    """
+    Check if a data list is an strict list
+
+    The data list contains a mapping object we need to process it as an
+    object containing configurable parameters. For example
+
+    cert_requests:
+      - public_key: example_public_key
+
+    This will get exported as `CONNECTION_NAME_CERT_REQUESTS_0_PUBLIC_KEY=example_public_key`
+
+    Where as
+
+    parameters:
+     - hello
+     - world
+
+     will get exported as `SKILL_NAME_PARAMETERS=["hello", "world"]`
+
+    :param data: Data list
+    :return: Boolean specifying whether it's a strict list or not
+    """
+    is_strict = True
+    for obj in data:
+        if isinstance(obj, dict):
+            return False
+        if isinstance(obj, list):
+            if not is_strict_list(data=obj):
+                return False
+    return is_strict
+
+
+def generate_env_vars_recursively(
+    data: Union[Dict, List],
+    export_path: List[str],
+) -> Dict:
+    """Generate environment variables recursively."""
+    env_var_dict = {}
+
+    if isinstance(data, dict):
+        for key, value in data.items():
+            env_var_dict.update(
+                generate_env_vars_recursively(
+                    data=value,
+                    export_path=[*export_path, key],
+                )
+            )
+    elif isinstance(data, list):
+        if is_strict_list(data=data):
+            env_var_dict[
+                export_path_to_env_var_string(export_path=export_path)
+            ] = json.dumps(data)
+        else:
+            for key, value in enumerate(data):
+                env_var_dict.update(
+                    generate_env_vars_recursively(
+                        data=value,
+                        export_path=[*export_path, key],
+                    )
+                )
+    else:
+        env_var_dict[export_path_to_env_var_string(export_path=export_path)] = data
+
+    return env_var_dict
 
 
 class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attributes
@@ -224,9 +291,8 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
 
             processed.append(component_id)
 
-    @classmethod
+    @staticmethod
     def process_metadata(
-        cls,
         configuration: Dict,
     ) -> Tuple[Dict, ComponentId, bool]:
         """Process component override metadata."""
@@ -279,36 +345,8 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
 
         return env_var_dict
 
-    @classmethod
-    def _generate_env_vars_recursively(
-        cls,
-        data: Dict,
-        export_path: List[str],
-    ) -> Dict:
-        """Generate environment variables recursively."""
-        env_var_dict = {}
-        for key, value in data.items():
-            _export_path = [*export_path, key]
-            if isinstance(value, dict):
-                env_var_dict.update(
-                    cls._generate_env_vars_recursively(
-                        data=value,
-                        export_path=_export_path,
-                    )
-                )
-            elif isinstance(value, list):
-                env_var_dict[
-                    export_path_to_env_var_string(export_path=export_path)
-                ] = json.dumps(value)
-            else:
-                env_var_dict[
-                    export_path_to_env_var_string(export_path=_export_path)
-                ] = str(value)
-
-        return env_var_dict
-
+    @staticmethod
     def generate_environment_variables(
-        self,
         component_id: ComponentId,
         component_configuration_json: Dict,
     ) -> Dict:
@@ -327,7 +365,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             if field_data == {}:
                 continue
             env_var_dict.update(
-                self._generate_env_vars_recursively(
+                generate_env_vars_recursively(
                     data=field_data,
                     export_path=[*export_path_prefix, field],
                 )
