@@ -19,18 +19,19 @@
 
 """Test analyse ABCI docstrings."""
 
-import inspect
 import difflib
+import inspect
 from pathlib import Path
 
 from autonomy.analyse.abci.docstrings import (
-    docstring_abci_app,
     compare_docstring_content,
+    docstring_abci_app,
 )
+
 from packages.valory.skills.hello_world_abci.rounds import HelloWorldAbciApp
 
 
-def test_docstring_abci_app():
+def test_docstring_abci_app() -> None:
     """Test docstring_abci_app"""
 
     expected = """\"\"\"HelloWorldAbciApp
@@ -70,7 +71,7 @@ def test_docstring_abci_app():
     assert not differences, differences
 
 
-def test_compare_docstring_content():
+def test_compare_docstring_content() -> None:
     """Test compare_docstring_content"""
 
     # no regex match

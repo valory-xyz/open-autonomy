@@ -22,21 +22,22 @@
 import shutil
 import tempfile
 from pathlib import Path
-from autonomy.cli.helpers.docstring import (
-    import_rounds_module,
-    analyse_docstrings,
-)
-import pytest
+from types import ModuleType
+from typing import cast
+from unittest import mock
 
+import pytest
+from _pytest.capture import CaptureFixture  # type: ignore
+
+from autonomy.cli.helpers.docstring import analyse_docstrings, import_rounds_module
 
 import packages
 from packages.valory.skills import test_abci
 from packages.valory.skills.test_abci import rounds as test_abci_rounds
-from unittest import mock
 
 
 @pytest.mark.parametrize("module", [test_abci, test_abci_rounds])
-def test_import_rounds_module(module) -> None:
+def test_import_rounds_module(module: ModuleType) -> None:
     """Test import_rounds_module"""
 
     module_path = Path(module.__file__)
@@ -65,29 +66,34 @@ def test_import_rounds_module_with_non_default_package_dir() -> None:
 
 
 @pytest.mark.parametrize("module", [test_abci, test_abci_rounds])
-def test_analyse_docstrings_without_update(module) -> None:
-    """Test analyse docstrings"""
+def test_analyse_docstrings_without_update(module: ModuleType) -> None:
+    """Test analyse_docstrings"""
 
     module_path = Path(module.__file__)
     updated_needed = analyse_docstrings(module_path)
     assert not updated_needed
 
 
-def test_analyse_docstrings_with_update(capsys) -> None:
+def test_analyse_docstrings_with_update(capsys: CaptureFixture) -> None:
+    """Test analyse_docstrings with update"""
 
     module_path = Path(test_abci_rounds.__file__)
-    doc = test_abci_rounds.TestAbciApp.__doc__
+    doc = cast(str, test_abci_rounds.TestAbciApp.__doc__)
     content_with_mutated_abci_doc = module_path.read_text().replace(doc, doc + " ")
 
     with mock.patch.object(Path, "write_text") as mock_write_text:
         with mock.patch.object(Path, "read_text", return_value=""):
             updated_needed = analyse_docstrings(module_path, update=True)
             assert updated_needed
-            out, err = capsys.readouterr()
-            assert "does not contain well formatted docstring, please update it manually" in out
+            out, _ = capsys.readouterr()
+            expected = (
+                "does not contain well formatted docstring, please update it manually"
+            )
+            assert expected in out
 
-        with mock.patch.object(Path, "read_text", return_value=content_with_mutated_abci_doc):
+        with mock.patch.object(
+            Path, "read_text", return_value=content_with_mutated_abci_doc
+        ):
             updated_needed = analyse_docstrings(module_path, update=True)
             assert updated_needed
             mock_write_text.assert_called_once()
-
