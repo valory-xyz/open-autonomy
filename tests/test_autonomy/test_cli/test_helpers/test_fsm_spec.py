@@ -91,3 +91,10 @@ def test_update_one_raises() -> None:
     with mock.patch.object(FSMSpecificationLoader, "load", return_value={}):
         with pytest.raises(ValueError, match=expected):
             update_one(package_path)
+
+
+def test_check_one() -> None:
+    """Test check_one"""
+
+    package_path = Path(hello_world_abci.__file__).parent.relative_to(ROOT_DIR)
+    check_one(package_path)
