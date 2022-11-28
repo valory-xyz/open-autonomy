@@ -176,7 +176,8 @@ spec:
     protocol: TCP
     name: tcp2
   selector:
-    app: agent-node-{validator_ix}
+    app: agent-svc
+    instance: agent-node-{validator_ix}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -186,11 +187,13 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: agent-node-{validator_ix}
+      app: agent-svc
+      instance: agent-node-{validator_ix}
   template:
     metadata:
       labels:
-        app: agent-node-{validator_ix}
+        app: agent-svc
+        instance: agent-node-{validator_ix}
     spec:
       imagePullSecrets:
       - name: regcred
