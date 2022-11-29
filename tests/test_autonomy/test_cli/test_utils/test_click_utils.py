@@ -19,6 +19,8 @@
 
 """Test for cli click utils."""
 
+import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Tuple
@@ -86,3 +88,13 @@ def test_path_argument() -> None:
         dummy, args=("--path", "packages"), standalone_mode=False
     )
     assert result.stdout.strip() == str(True)
+
+
+def test_sys_path_patch() -> None:
+    """Test sys_path_patch"""
+
+    cwd = os.getcwd()
+    assert not cwd == sys.path[0]
+    with sys_path_patch(Path(cwd)):
+        assert cwd == sys.path[0]
+    assert not cwd == sys.path[0]
