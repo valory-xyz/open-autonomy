@@ -34,3 +34,11 @@ class TestPackages(BaseCliTest):
         assert result.exit_code == 0
         assert "Updating hashes..." in result.stdout
         assert "Done" in result.stdout
+
+    def test_lock_check(self) -> None:
+        """Test lock --check"""
+
+        result = self.run_cli(("--check", ))
+        assert result.exit_code == 0
+        assert "Verifying packages.json" in result.stdout
+        assert "Verification successful" in result.stdout
