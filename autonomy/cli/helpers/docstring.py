@@ -66,7 +66,7 @@ def analyse_docstrings(
             App = getattr(module, obj)
             docstring = docstring_abci_app(App)
 
-            original_content = Path(module.__file__).read_text()
+            original_content = Path(module.__file__).read_text(encoding="utf-8")
             has_docstring, expected_content = compare_docstring_content(
                 file_content=original_content, docstring=docstring, abci_app_name=obj
             )

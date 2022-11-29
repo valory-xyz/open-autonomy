@@ -19,8 +19,6 @@
 
 """The module contains test_helpers for module tests."""
 
-import shutil
-import tempfile
 from pathlib import Path
 from types import ModuleType
 from typing import cast
