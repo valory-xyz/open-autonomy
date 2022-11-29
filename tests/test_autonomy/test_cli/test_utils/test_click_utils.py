@@ -23,7 +23,7 @@ import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Tuple
+from typing import Callable, Optional, Tuple
 
 import click
 import pytest
@@ -45,7 +45,7 @@ from autonomy.deploy.image import ImageProfiles
 class ClickFlagTestCase:
     """ClickFlagTestCase"""
 
-    decorator: callable
+    decorator: Callable
     items: Tuple
     opt_prefix: str = ""
 
@@ -64,7 +64,7 @@ def test_flag_decorators(test_case: ClickFlagTestCase) -> None:
     @click.command()
     @test_case.decorator()
     def dummy() -> None:
-        """"""
+        """Dummy"""
 
     assert len(dummy.params) == len(test_case.items)
     for parameter, output_format in zip(dummy.params, reversed(test_case.items)):
@@ -79,8 +79,8 @@ def test_path_argument() -> None:
 
     @click.command()
     @click.option("--path", type=PathArgument())
-    def dummy(path) -> None:
-        """"""
+    def dummy(path: Optional[Path]) -> None:
+        """Dummy"""
         click.echo(isinstance(path, Path))
 
     cli_runner = CliRunner()
