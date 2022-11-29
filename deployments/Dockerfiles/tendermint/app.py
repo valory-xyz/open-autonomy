@@ -127,7 +127,7 @@ class PeriodDumper:
         self.resets += 1
 
 
-def create_app(
+def create_app(  # pylint: disable=too-many-statements
     dump_dir: Optional[Path] = None,
     perform_monitoring: bool = True,
     debug: bool = False,
@@ -219,6 +219,18 @@ def create_app(
                 200,
             )
 
+    @app.route("/stop_node")
+    def stop_node() -> Tuple[Any, int]:
+        """Stop the tendermint node."""
+        try:
+            tendermint_node.stop()
+            return (
+                jsonify({"message": "Successfully stopped the node.", "status": True}),
+                200,
+            )
+        except Exception as e:  # pylint: disable=W0703
+            return jsonify({"message": f"Stop failed: {e}", "status": False}), 200
+
     @app.route("/hard_reset")
     def hard_reset() -> Tuple[Any, int]:
         """Reset the node forcefully, and prune the blocks"""
@@ -237,7 +249,6 @@ def create_app(
                 # default should be 1: https://github.com/tendermint/tendermint/pull/5191/files
                 request.args.get("initial_height", "1"),
             )
-            tendermint_node.start(start_monitoring=perform_monitoring)
             return jsonify({"message": "Reset successful.", "status": True}), 200
         except Exception as e:  # pylint: disable=W0703
             return jsonify({"message": f"Reset failed: {e}", "status": False}), 200

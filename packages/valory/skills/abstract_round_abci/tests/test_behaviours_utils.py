@@ -1659,40 +1659,70 @@ class TestBaseBehaviour:
         with pytest.raises(RuntimeError, match="Error resetting tendermint node."):
             next(self.behaviour.reset_tendermint_with_wait())
 
+    @mock.patch.object(
+        BaseBehaviour, "_build_http_request_message", return_value=(None, None)
+    )
+    def test_stop_tm_node(self, build_http_request_message_mock: mock.Mock) -> None:
+        """Test that stop_tm_node makes a correct http req."""
+
+        def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
+            """Dummy `_do_request` method."""
+            return mock.MagicMock(
+                body=json.dumps({"message": "dummy msg", "status": True}).encode()
+            )
+            yield
+
+        with mock.patch.object(
+            BaseBehaviour, "_do_request", side_effect=dummy_do_request
+        ):
+            gen = self.behaviour._stop_tm_node()
+            try_send(gen)
+            build_http_request_message_mock.assert_called_with(
+                "GET",
+                self.behaviour.context.params.tendermint_com_url + "/stop_node",
+            )
+
     @mock.patch.object(BaseBehaviour, "_start_reset")
     @mock.patch.object(
         BaseBehaviour, "_build_http_request_message", return_value=(None, None)
     )
     @pytest.mark.parametrize(
-        "reset_response, status_response, local_height, n_iter, expecting_success",
+        "reset_response, status_response, local_height, stop_node_status, expecting_success",
         (
             (
                 {"message": "Tendermint reset was successful.", "status": True},
                 {"result": {"sync_info": {"latest_block_height": 1}}},
+                True,
                 1,
-                3,
                 True,
             ),
             (
                 {"message": "Tendermint reset was successful.", "status": True},
                 {"result": {"sync_info": {"latest_block_height": 1}}},
                 3,
-                3,
+                True,
+                False,
+            ),
+            (
+                {"message": "Tendermint reset was successful.", "status": True},
+                {"result": {"sync_info": {"latest_block_height": 1}}},
+                1,
+                False,
                 False,
             ),
             (
                 {"message": "Error resetting tendermint.", "status": False},
                 {},
                 0,
-                2,
+                True,
                 False,
             ),
-            ("wrong_response", {}, 0, 2, False),
+            ("wrong_response", {}, 0, True, False),
             (
                 {"message": "Reset Successful.", "status": True},
                 "not_accepting_txs_yet",
                 0,
-                3,
+                True,
                 False,
             ),
         ),
@@ -1704,24 +1734,38 @@ class TestBaseBehaviour:
         reset_response: Union[Dict[str, Union[bool, str]], str],
         status_response: Union[Dict[str, Union[int, str]], str],
         local_height: int,
-        n_iter: int,
+        stop_node_status: bool,
         expecting_success: bool,
     ) -> None:
         """Test tendermint reset."""
 
         def dummy_do_request(*_: Any) -> Generator[None, None, MagicMock]:
             """Dummy `_do_request` method."""
-            yield
             if reset_response == "wrong_response":
                 return mock.MagicMock(body=b"")
             return mock.MagicMock(body=json.dumps(reset_response).encode())
+            yield
 
         def dummy_get_status(*_: Any) -> Generator[None, None, MagicMock]:
             """Dummy `_get_status` method."""
-            yield
             if status_response == "not_accepting_txs_yet":
                 return mock.MagicMock(body=b"")
             return mock.MagicMock(body=json.dumps(status_response).encode())
+            yield
+
+        def make_dummy_stop_node(status: bool) -> Callable:
+            """A dummy_stop_node factory."""
+
+            def dummy_stop_node(*_: Any) -> Generator[None, None, Tuple[bool, str]]:
+                """A dummy stop node method."""
+                return status, "dummy msg"
+                yield
+
+            return dummy_stop_node
+
+        def dummy_sleep(*_: Any) -> Generator[None, None, None]:
+            return
+            yield
 
         self.behaviour.params.observation_interval = 1
         with mock.patch.object(
@@ -1729,18 +1773,22 @@ class TestBaseBehaviour:
         ), mock.patch.object(
             BaseBehaviour,
             "wait_from_last_timestamp",
-            new_callable=lambda *_: self.dummy_sleep,
+            side_effect=dummy_sleep,
         ), mock.patch.object(
-            BaseBehaviour, "_do_request", new_callable=lambda *_: dummy_do_request
+            BaseBehaviour, "_do_request", side_effect=dummy_do_request
         ), mock.patch.object(
-            BaseBehaviour, "_get_status", new_callable=lambda *_: dummy_get_status
+            BaseBehaviour, "_get_status", side_effect=dummy_get_status
         ), mock.patch.object(
-            BaseBehaviour, "sleep", new_callable=lambda *_: self.dummy_sleep
+            BaseBehaviour,
+            "sleep",
+            side_effect=dummy_sleep,
+        ), mock.patch.object(
+            BaseBehaviour,
+            "_stop_tm_node",
+            side_effect=make_dummy_stop_node(stop_node_status),
         ):
             self.behaviour.context.state.round_sequence.height = local_height
             reset = self.behaviour.reset_tendermint_with_wait()
-            for _ in range(n_iter):
-                next(reset)
             offset = math.ceil(
                 self.behaviour.params.observation_interval * HEIGHT_OFFSET_MULTIPLIER
             )
@@ -1755,21 +1803,23 @@ class TestBaseBehaviour:
             ).strftime(
                 "%Y-%m-%dT%H:%M:%S.%fZ"
             )
-
             expected_parameters = [
                 ("genesis_time", genesis_time),
                 ("initial_height", initial_height),
             ]
-            build_http_request_message_mock.assert_called_with(
-                "GET",
-                self.behaviour.context.params.tendermint_com_url + "/hard_reset",
-                parameters=expected_parameters,
-            )
+
             # perform the last iteration which also returns the result
             try:
                 next(reset)
             except StopIteration as e:
                 assert e.value == expecting_success
+                if stop_node_status:
+                    build_http_request_message_mock.assert_called_with(
+                        "GET",
+                        self.behaviour.context.params.tendermint_com_url
+                        + "/hard_reset",
+                        parameters=expected_parameters,
+                    )
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
 

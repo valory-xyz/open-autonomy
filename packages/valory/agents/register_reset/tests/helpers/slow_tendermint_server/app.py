@@ -30,10 +30,11 @@ from typing import Any, Callable, Dict, Optional, Tuple
 from flask import Flask, Response, jsonify, request
 from werkzeug.exceptions import InternalServerError, NotFound
 
-from packages.valory.agents.register_reset.tests.helpers.slow_tendermint_server.tendermint import (  # type: ignore
-    TendermintNode,
-    TendermintParams,
-)
+
+try:
+    from .tendermint import TendermintNode, TendermintParams  # type: ignore
+except ImportError:
+    from tendermint import TendermintNode, TendermintParams  # type: ignore
 
 
 ENCODING = "utf-8"
@@ -150,6 +151,18 @@ def create_app(
 
     tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
     tendermint_node.start(start_monitoring=perform_monitoring, debug=debug)
+
+    @app.route("/stop_node")
+    def stop_node() -> Tuple[Any, int]:
+        """Stop the tendermint node."""
+        try:
+            tendermint_node.stop()
+            return (
+                jsonify({"message": "Successfully stopped the node.", "status": True}),
+                200,
+            )
+        except Exception as e:  # pylint: disable=W0703
+            return jsonify({"message": f"Stop failed: {e}", "status": False}), 200
 
     @app.route("/hard_reset")
     def hard_reset() -> Tuple[Any, int]:

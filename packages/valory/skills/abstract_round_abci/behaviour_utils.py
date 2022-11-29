@@ -1681,6 +1681,42 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             ("initial_height", initial_height),
         ]
 
+    def _stop_tm_node(self) -> Generator[None, None, Tuple[bool, str]]:
+        """
+        Stop the tendermint node.
+
+        :yields: None
+        :returns: if the stopping was successful.
+        """
+        request_message, http_dialogue = self._build_http_request_message(
+            "GET",
+            self.params.tendermint_com_url + "/stop_node",
+        )
+        result = yield from self._do_request(request_message, http_dialogue)
+        response = json.loads(result.body.decode())
+        return response.get("status"), response.get("message")
+
+    def _hard_reset_tm_node(
+        self,
+        on_startup: bool,
+    ) -> Generator[None, None, Tuple[bool, str]]:
+        """
+        Hard resets the tendermint node.
+
+        :param on_startup: whether this is the first reset.
+        :param reset_params: the params to reset the node with.
+        :yields: None
+        :returns: if the stopping was successful.
+        """
+        request_message, http_dialogue = self._build_http_request_message(
+            "GET",
+            self.params.tendermint_com_url + "/hard_reset",
+            parameters=self._get_reset_params(on_startup),
+        )
+        result = yield from self._do_request(request_message, http_dialogue)
+        response = json.loads(result.body.decode())
+        return response.get("status"), response.get("message")
+
     def reset_tendermint_with_wait(
         self,
         on_startup: bool = False,
@@ -1695,42 +1731,53 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             self.context.logger.info(
                 f"Resetting tendermint node at end of period={self.synchronized_data.period_count}."
             )
-
-            request_message, http_dialogue = self._build_http_request_message(
-                "GET",
-                self.params.tendermint_com_url + "/hard_reset",
-                parameters=self._get_reset_params(on_startup),
-            )
-            result = yield from self._do_request(request_message, http_dialogue)
+            # For hard reset to work, the following steps must be strictly followed:
+            # 1. Tendermint server receives /hard_reset request from the agent.
+            # 2. Tendermint server stops tendermint.
+            # 3. Tendermint server performs unsafe-reset-all.
+            # 4. Tendermint server restarts tendermint.
+            # 5. Agent receives success response, and resets local blockchain.
+            # 6. Tendermint sends a handshake info request to the agent.
+            # to ensure that step 6 doesn't happen before step 5
+            # we back up and reset the local blockchain before calling /hard_reset
+            # in case of failure, we roll back the blockchain
+            backup_blockchain = self.context.state.round_sequence.blockchain
             try:
-                response = json.loads(result.body.decode())
-                if response.get("status"):
-                    self.context.logger.info(response.get("message"))
-                    self.context.logger.info(
-                        "Resetting tendermint node successful! Resetting local blockchain."
-                    )
-                    self.context.state.round_sequence.reset_blockchain(
-                        response.get("is_replay", False)
-                    )
+                # we stop the tendermint node before resetting the local blockchain,
+                # to avoid receiving blocks in the local blockchain meant for the new period.
+                status, msg = yield from self._stop_tm_node()
+                if not status:
+                    self.context.logger.error(f"Error while stopping the node: {msg}")
+                    yield from self.sleep(self.params.sleep_time)
+                    return False
+
+                # the node was stopped successfully, we can safely reset the local blockchain
+                self.context.state.round_sequence.reset_blockchain()
+
+                # we can safely perform hard reset on the tendermint node
+                status, msg = yield from self._hard_reset_tm_node(on_startup)
+                if status:
+                    self.context.logger.info(msg)
+                    self.context.logger.info("Resetting tendermint node successful!")
                     self.context.state.round_sequence.abci_app.cleanup(
                         self.params.cleanup_history_depth,
                         self.params.cleanup_history_depth_current,
                     )
-
                     for handler_name in self.context.handlers.__dict__.keys():
                         dialogues = getattr(self.context, f"{handler_name}_dialogues")
                         dialogues.cleanup()
 
                     self._end_reset()
                 else:
-                    msg = response.get("message")
                     self.context.logger.error(f"Error resetting: {msg}")
+                    self.context.state.round_sequence.blockchain = backup_blockchain
                     yield from self.sleep(self.params.sleep_time)
                     return False
             except json.JSONDecodeError:
                 self.context.logger.error(
                     "Error communicating with tendermint com server."
                 )
+                self.context.state.round_sequence.blockchain = backup_blockchain
                 yield from self.sleep(self.params.sleep_time)
                 return False
 

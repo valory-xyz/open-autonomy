@@ -2377,6 +2377,16 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         return self._abci_app
 
     @property
+    def blockchain(self) -> Blockchain:
+        """Get the Blockchain instance."""
+        return self._blockchain
+
+    @blockchain.setter
+    def blockchain(self, _blockchain: Blockchain) -> None:
+        """Get the Blockchain instance."""
+        self._blockchain = _blockchain
+
+    @property
     def height(self) -> int:
         """Get the height."""
         return self._blockchain.height

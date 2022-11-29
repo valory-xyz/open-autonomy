@@ -2319,6 +2319,28 @@ def abci_app() -> AbciApp
 
 Get the AbciApp.
 
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.blockchain"></a>
+
+#### blockchain
+
+```python
+@property
+def blockchain() -> Blockchain
+```
+
+Get the Blockchain instance.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.blockchain"></a>
+
+#### blockchain
+
+```python
+@blockchain.setter
+def blockchain(_blockchain: Blockchain) -> None
+```
+
+Get the Blockchain instance.
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.height"></a>
 
 #### height
