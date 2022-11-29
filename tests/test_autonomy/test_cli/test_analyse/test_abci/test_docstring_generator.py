@@ -21,15 +21,16 @@
 
 
 import os
-from unittest import mock
 from pathlib import Path
 from typing import Tuple
+from unittest import mock
 
 from aea.configurations.constants import PACKAGES
 
+from packages.valory.skills.hello_world_abci import rounds
+
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
-from packages.valory.skills.hello_world_abci import rounds
 
 
 class TestDocstrings(BaseCliTest):
