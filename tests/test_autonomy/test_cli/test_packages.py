@@ -22,6 +22,8 @@
 from collections import namedtuple
 from unittest import mock
 
+from autonomy.cli.packages import get_package_manager
+
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
@@ -33,18 +35,36 @@ class TestPackages(BaseCliTest):
     def test_lock(self) -> None:
         """Test lock"""
 
-        result = self.run_cli()
-        assert result.exit_code == 0
-        assert "Updating hashes..." in result.stdout
-        assert "Done" in result.stdout
+        target = "autonomy.cli.packages.get_package_manager"
+        with mock.patch(target, return_value=mock.MagicMock()) as m:
+            with mock.patch("sys.exit") as sys_exit_mock:
+                result = self.run_cli()
+                assert result.exit_code == 0
+                assert "Updating hashes..." in result.stdout
+                m.assert_called_once()
+                assert "Done" in result.stdout
+                sys_exit_mock.assert_called_with(0)
 
     def test_lock_check(self) -> None:
         """Test lock --check"""
 
-        result = self.run_cli(("--check",))
-        assert result.exit_code == 0
-        assert "Verifying packages.json" in result.stdout
-        assert "Verification successful" in result.stdout
+        def side_effect(*args, **kwargs):
+            nonlocal ctr
+            if ctr == 0:
+                ctr += 1
+                return get_package_manager(*args, **kwargs)
+            else:
+                return mock.MagicMock()
+
+        ctr = 0
+        target = "autonomy.cli.packages.get_package_manager"
+        with mock.patch(target, side_effect=side_effect):
+            with mock.patch("sys.exit") as sys_exit_mock:
+                result = self.run_cli(("--check",))
+                assert result.exit_code == 0
+                assert "Verifying packages.json" in result.stdout
+                assert "Verification successful" in result.stdout
+                sys_exit_mock.assert_called_with(0)
 
     def test_lock_check_fail(self) -> None:
         """Test lock --check failure"""
@@ -54,5 +74,5 @@ class TestPackages(BaseCliTest):
         target = "autonomy.cli.packages.get_package_manager"
         with mock.patch(target, return_value=return_value):
             result = self.run_cli(("--check",))
-        assert result.exit_code == 1
-        assert "Verification failed." in result.stdout
+            assert result.exit_code == 1
+            assert "Verification failed." in result.stdout
