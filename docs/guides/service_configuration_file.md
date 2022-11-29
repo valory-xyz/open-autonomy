@@ -17,35 +17,34 @@ extra:
   benchmark_persistence_params:
     args: &id001
       log_dir: /benchmarks
-overide_type: multiple
 public_id: valory/hello_world_abci:0.1.0
 type: skill
 0:
   models:
     params:
       args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
+        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD_AGENT_0}
     benchmark_tool:
       args: *id001
 1:
   models:
     params:
       args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
+        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD_AGENT_1}
     benchmark_tool:
       args: *id001
 2:
   models:
     params:
       args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
+        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD_AGENT_2}
     benchmark_tool:
       args: *id001
 3:
   models:
     params:
       args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
+        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD_AGENT_3}
     benchmark_tool:
       args: *id001
 ---
@@ -224,4 +223,82 @@ type: skill
         hello_world_message: Hello, from agent 3
     benchmark_tool:
       args: *id001
+```
+
+
+### Overrides with complicated data structures
+
+If you have nested list the environment export rules will differ as per the inner data structures. If the list is a strict list, meaning the inner values are either primitive data types like `int`, `str`, `float` or `boolean`, the list will be exported as a `json` string.
+
+
+```yaml
+(...)
+---
+extra:
+  benchmark_tool:
+    args: &id001
+      log_dir: /benchmarks
+public_id: valory/hello_world_abci:0.1.0
+type: skill
+models:
+  params:
+    args:
+      simple_list:
+        - 1
+        - 2
+        - 3
+      nested_list:
+      - - foo
+        - bar
+      - - "hello"
+        - "world"
+```
+
+These parameters will be exported as 
+
+```
+SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_SIMPLE_LIST='[1, 2, 3]'
+SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_NESTED_LIST='[["foo", "bar"], ["hello", "world"]]'
+```
+
+If the list contains mapping values, it'll be exported in `COMPONENT_TYPE_COMPONENT_NAME_PARAM_<MAPPING_INDEX>_KEY=value`
+
+
+```yaml
+(...)
+---
+extra:
+  benchmark_tool:
+    args: &id001
+      log_dir: /benchmarks
+public_id: valory/hello_world_abci:0.1.0
+type: skill
+models:
+  params:
+    args:
+      list_with_mappings:
+        - key: value_0
+        - key: value_1
+```
+
+This will be exported as
+
+```
+SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_LIST_WITH_MAPPINGS_0_KEY='value_0'
+SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_LIST_WITH_MAPPINGS_1_KEY='value_1'
+```
+
+So when defining the agent/component level overrides the user will have to explicitly define all the elements of the list like this
+
+```yaml
+(...)
+---
+public_id: valory/hello_world_abci:0.1.0
+type: skill
+models:
+  params:
+    args:
+      list_with_mappings:
+        - key: ${str:default_value}
+        - key: ${str:default_value}
 ```
