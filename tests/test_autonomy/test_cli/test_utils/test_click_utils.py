@@ -19,7 +19,6 @@
 
 """Test for cli click utils."""
 
-import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -67,10 +66,10 @@ def test_flag_decorators(test_case: ClickFlagTestCase) -> None:
         """Dummy"""
 
     assert len(dummy.params) == len(test_case.items)
-    for parameter, output_format in zip(dummy.params, reversed(test_case.items)):
+    for parameter, item in zip(dummy.params, reversed(test_case.items)):
         assert isinstance(parameter, click.Option)
-        assert output_format in parameter.flag_value
-        assert parameter.opts == [f"--{test_case.opt_prefix}{output_format}"]
+        assert item in parameter.flag_value
+        assert parameter.opts == [f"--{test_case.opt_prefix}{item}"]
         assert parameter.help
 
 
@@ -84,16 +83,14 @@ def test_path_argument() -> None:
         click.echo(isinstance(path, Path))
 
     cli_runner = CliRunner()
-    result = cli_runner.invoke(
-        dummy, args=("--path", "packages"), standalone_mode=False
-    )
+    result = cli_runner.invoke(dummy, args=("--path", "packages"))
     assert result.stdout.strip() == str(True)
 
 
 def test_sys_path_patch() -> None:
     """Test sys_path_patch"""
 
-    cwd = os.getcwd()
+    cwd = "dummy"
     assert not cwd == sys.path[0]
     with sys_path_patch(Path(cwd)):
         assert cwd == sys.path[0]
