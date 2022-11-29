@@ -20,10 +20,12 @@
 """Test for cli click utils."""
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Tuple
 
 import click
 import pytest
+from aea.test_tools.click_testing import CliRunner
 
 from autonomy.analyse.abci.app_spec import FSMSpecificationLoader as FSMSpecLoader
 from autonomy.cli.utils.click_utils import (
@@ -68,3 +70,19 @@ def test_flag_decorators(test_case: ClickFlagTestCase) -> None:
         assert output_format in parameter.flag_value
         assert parameter.opts == [f"--{test_case.opt_prefix}{output_format}"]
         assert parameter.help
+
+
+def test_path_argument() -> None:
+    """Test PathArgument"""
+
+    @click.command()
+    @click.option("--path", type=PathArgument())
+    def dummy(path) -> None:
+        """"""
+        click.echo(isinstance(path, Path))
+
+    cli_runner = CliRunner()
+    result = cli_runner.invoke(
+        dummy, args=("--path", "packages"), standalone_mode=False
+    )
+    assert result.stdout.strip() == str(True)
