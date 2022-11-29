@@ -19,6 +19,7 @@
 
 """Test for packages command"""
 
+from collections import namedtuple
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
@@ -42,3 +43,15 @@ class TestPackages(BaseCliTest):
         assert result.exit_code == 0
         assert "Verifying packages.json" in result.stdout
         assert "Verification successful" in result.stdout
+
+    def test_lock_check_fail(self) -> None:
+        """Test lock --check failure"""
+
+        from unittest import mock
+
+        package_manager = namedtuple("DummyPackageManager", "verify")
+        return_value = package_manager(lambda *_, **__: 1)
+        with mock.patch("autonomy.cli.packages.get_package_manager", return_value=return_value):
+            result = self.run_cli(("--check", ), )
+        assert result.exit_code == 1
+        assert "Verification failed." in result.stdout
