@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 """FSM spec helpers."""
 
+import os
 import importlib
 from pathlib import Path
 from types import ModuleType
@@ -44,12 +45,10 @@ def import_and_validate_app_class(module_path: Path, app_class: str) -> ModuleTy
             )
         module_to_look_for = "composition"
 
-    module_name = ".".join(
-        (
-            *module_path.parts,
-            module_to_look_for,
-        )
-    )
+    root_dir = os.path.abspath(os.curdir)
+    if module_path.is_relative_to(root_dir):
+        module_path = module_path.relative_to(root_dir)
+    module_name = ".".join((module_path / module_to_look_for).parts)
 
     module = importlib.import_module(module_name)
     if not hasattr(module, app_class):
