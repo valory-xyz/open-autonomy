@@ -37,32 +37,27 @@ from packages.valory.skills.test_abci import rounds as test_abci_rounds
 
 
 @pytest.mark.parametrize("module", [test_abci, test_abci_rounds])
-def test_import_rounds_module(module: ModuleType) -> None:
+@pytest.mark.parametrize("with_package_dir", [True, False])
+def test_import_rounds_module(module: ModuleType, with_package_dir: bool) -> None:
     """Test import_rounds_module"""
 
+    packages_dir = Path(packages.__file__).parent if with_package_dir else None
     module_path = Path(module.__file__)
-    module = import_rounds_module(module_path)
+    module = import_rounds_module(module_path, packages_dir)
     assert module is test_abci_rounds
 
 
 def test_import_rounds_module_failure() -> None:
     """Test import_rounds_module"""
 
+    packages_module = Path(packages.__file__)
+    module_path = Path(test_abci.__file__)
+
     with pytest.raises(ModuleNotFoundError, match="No module named 'packages.rounds'"):
-        module_path = Path(packages.__file__)
-        import_rounds_module(module_path)
+        import_rounds_module(packages_module)
 
-
-def test_import_rounds_module_with_non_default_package_dir() -> None:
-    """Test import_rounds_module from different package directory"""
-
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp_path = Path(tmp_dir)
-        module_path = Path(packages.__file__)
-        shutil.copytree(module_path.parent, tmp_path / packages.__name__)
-        new_package_dir = tmp_path / module_path.parts[-1]
-        module = import_rounds_module(module_path, packages_dir=new_package_dir)
-        assert module.__file__.startswith(tmp_dir)
+    with pytest.raises(ModuleNotFoundError, match="No module named 'skills'"):
+        import_rounds_module(module_path, packages_dir=module_path.parent.parent)
 
 
 @pytest.mark.parametrize("module", [test_abci, test_abci_rounds])
