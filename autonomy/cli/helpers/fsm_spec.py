@@ -18,8 +18,8 @@
 # ------------------------------------------------------------------------------
 """FSM spec helpers."""
 
-import os
 import importlib
+import os
 from pathlib import Path
 from types import ModuleType
 from typing import Optional, cast
