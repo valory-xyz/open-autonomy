@@ -20,6 +20,7 @@
 """Test for packages command"""
 
 from collections import namedtuple
+from typing import Any
 from unittest import mock
 
 from autonomy.cli.packages import get_package_manager
@@ -48,15 +49,15 @@ class TestPackages(BaseCliTest):
     def test_lock_check(self) -> None:
         """Test lock --check"""
 
-        def side_effect(*args, **kwargs):
+        ctr = 0
+
+        def side_effect(*args: Any, **kwargs: Any) -> Any:
             nonlocal ctr
             if ctr == 0:
                 ctr += 1
                 return get_package_manager(*args, **kwargs)
-            else:
-                return mock.MagicMock()
+            return mock.MagicMock()
 
-        ctr = 0
         target = "autonomy.cli.packages.get_package_manager"
         with mock.patch(target, side_effect=side_effect):
             with mock.patch("sys.exit") as sys_exit_mock:
