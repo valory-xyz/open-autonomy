@@ -139,7 +139,7 @@ def test_check_all(relative_path: bool, capsys: CaptureFixture) -> None:
         check_all(packages_dir, FSMSpecificationLoader.OutputFormats.YAML)
         m.assert_called()
         captured = capsys.readouterr()
-        assert captured.out.count("Checking") > 3
+        assert "Checking" in captured.out
 
     # no fsm_specification.json files
     with mock.patch("autonomy.cli.helpers.fsm_spec.check_one") as m:
