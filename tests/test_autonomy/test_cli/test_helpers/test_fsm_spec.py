@@ -59,9 +59,7 @@ def test_import_and_validate_app_class_raises() -> None:
     """Test import and validate app class raises"""
 
     module_path = Path(packages.__file__).parent
-    expected = (
-        f"Cannot find the rounds module or the composition module for {module_path}"
-    )
+    expected = "Cannot find the rounds module or the composition module for .*"
     with pytest.raises(FileNotFoundError, match=expected):
         import_and_validate_app_class(module_path, "DummyAbciApp")
 

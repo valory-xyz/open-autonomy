@@ -46,7 +46,7 @@ def import_and_validate_app_class(module_path: Path, app_class: str) -> ModuleTy
         module_to_look_for = "composition"
 
     root_dir = os.path.abspath(os.curdir)
-    if module_path.is_relative_to(root_dir):
+    if str(module_path).startswith(root_dir):
         module_path = module_path.relative_to(root_dir)
     module_name = ".".join((module_path / module_to_look_for).parts)
 
