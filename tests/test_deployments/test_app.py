@@ -44,6 +44,7 @@ from deployments.Dockerfiles.tendermint.app import (  # type: ignore
     get_defaults,
     load_genesis,
     override_config_toml,
+    PeriodDumper,
 )
 from deployments.Dockerfiles.tendermint.tendermint import (  # type: ignore
     TendermintParams,
@@ -62,6 +63,19 @@ def readonly_handler(func: Callable, path: str, execinfo) -> None:  # type: igno
     """If permission is readonly, we change and retry."""
     os.chmod(path, stat.S_IWRITE)
     func(path)
+
+
+@pytest.mark.parametrize("dump_dir", [None, Path(tempfile.mkdtemp())])
+def test_period_dumper(dump_dir, monkeypatch) -> None:
+    """Test PeriodDumper"""
+
+    monkeypatch.setenv("ID", "42")
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        monkeypatch.setenv("TMHOME", tmp_dir)
+        period_dumper = PeriodDumper(mock.Mock(), dump_dir=dump_dir)
+        period_dumper.dump_period()
+
+    shutil.rmtree(period_dumper.dump_dir)
 
 
 # base classes
