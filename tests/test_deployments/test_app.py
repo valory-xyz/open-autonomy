@@ -71,10 +71,12 @@ class BaseTendermintTest:
     tendermint: str
     tm_home: str
     path: Path
+    _os_env: Dict
 
     @classmethod
     def setup_class(cls) -> None:
         """Setup the test."""
+        cls._os_env = os.environ.copy()
         cls.tendermint = shutil.which("tendermint")  # type: ignore
         cls.tm_home = os.environ["TMHOME"] = tempfile.mkdtemp()
         cls.path = Path(cls.tm_home)
@@ -88,6 +90,8 @@ class BaseTendermintTest:
     @classmethod
     def teardown_class(cls) -> None:
         """Teardown the test."""
+        os.environ.clear()
+        os.environ.update(cls._os_env)
         shutil.rmtree(cls.tm_home, ignore_errors=True, onerror=readonly_handler)
 
 
