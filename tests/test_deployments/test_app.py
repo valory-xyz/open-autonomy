@@ -20,6 +20,7 @@
 """Tests for the Tendermint com server."""
 
 import json
+import logging
 import os
 import platform
 import shutil
@@ -28,25 +29,26 @@ import subprocess  # nosec
 import tempfile
 import time
 from pathlib import Path
-from typing import Callable, Dict, Set, cast
+from typing import Callable, Dict, Optional, Set, cast
 from unittest import mock
 
 import flask
 import pytest
 import requests
+from _pytest.logging import LogCaptureFixture  # type: ignore
+from _pytest.monkeypatch import MonkeyPatch  # type: ignore
 from aea.common import JSONLike
 from aea.test_tools.utils import wait_for_condition
-import logging
-from deployments.Dockerfiles.tendermint import app
 
+from deployments.Dockerfiles.tendermint import app  # type: ignore
 from deployments.Dockerfiles.tendermint.app import TendermintNode  # type: ignore
 from deployments.Dockerfiles.tendermint.app import (  # type: ignore
     CONFIG_OVERRIDE,
+    PeriodDumper,
     create_app,
     get_defaults,
     load_genesis,
     override_config_toml,
-    PeriodDumper,
 )
 from deployments.Dockerfiles.tendermint.tendermint import (  # type: ignore
     TendermintParams,
@@ -68,7 +70,7 @@ def readonly_handler(func: Callable, path: str, execinfo) -> None:  # type: igno
 
 
 @pytest.mark.parametrize("dump_dir", [None, Path(tempfile.mkdtemp())])
-def test_period_dumper(dump_dir, monkeypatch) -> None:
+def test_period_dumper(dump_dir: Optional[Path], monkeypatch: MonkeyPatch) -> None:
     """Test PeriodDumper"""
 
     monkeypatch.setenv("ID", "42")
@@ -332,7 +334,9 @@ class TestTendermintHardResetServer(BaseTendermintServerTest):
 
     @wait_for_node_to_run
     @pytest.mark.parametrize("dump_dir", [Path(tempfile.mkdtemp())])
-    def test_hard_reset_dev_mode(self, dump_dir: Path, caplog) -> None:
+    def test_hard_reset_dev_mode(
+        self, dump_dir: Path, caplog: LogCaptureFixture
+    ) -> None:
         """Test hard reset"""
 
         resets = 0
@@ -348,11 +352,12 @@ class TestTendermintHardResetServer(BaseTendermintServerTest):
             with mock.patch.object(app, "IS_DEV_MODE", return_value=True):
                 response = client.get("/hard_reset")
                 assert response.status_code == 200
-                data = response.get_json()
+                data = cast(JSONLike, response.get_json())
                 assert data["status"] is True
                 assert "Dumped data for period" in caplog.text
 
         assert path.exists()
+
 
 class TestTendermintLogMessages(BaseTendermintServerTest):
     """Test Tendermint message logging"""
