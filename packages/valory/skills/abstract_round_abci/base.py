@@ -2613,12 +2613,19 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         block = self._block_builder.get_block()
         try:
             if self._blockchain.is_init:
-                # there are occasions where we wait for an init_chain() before accepting txs.
-                # this can happen during hard reset, where we might've reset the local blockchain,
-                # but are still receiving requests from the not yet reset tendermint.
-                # we only process blocks on an init chain.
+                # There are occasions where we wait for an init_chain() before accepting blocks.
+                # This can happen during hard reset, where we might've reset the local blockchain,
+                # But are still receiving requests from the not yet reset tendermint node.
+                # We only process blocks on an initialized local blockchain.
+                # The local blockchain gets initialized upon receiving an init_chain request from
+                # the tendermint node. In cases where we don't want to wait for the init_chain req,
+                # one can create a Blockchain instance with `is_init=True`, i.e. the default args.
                 self._blockchain.add_block(block)
                 self._update_round()
+            else:
+                logging.warning(
+                    f"Received block with height {block.header.height} before the blockchain was initialized."
+                )
             # The ABCI app now waits again for the next block
             self._block_construction_phase = (
                 RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
@@ -2627,7 +2634,12 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             raise exception
 
     def reset_blockchain(self, is_replay: bool = False, is_init: bool = False) -> None:
-        """Reset blockchain after tendermint reset."""
+        """
+        Reset blockchain after tendermint reset.
+
+        :param is_replay: whether we are resetting the blockchain while replaying blocks.
+        :param is_init: whether to process blocks before receiving an init_chain req from tendermint.
+        """
         if is_replay:
             self._block_construction_phase = (
                 RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK

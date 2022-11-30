@@ -2626,3 +2626,8 @@ def reset_blockchain(is_replay: bool = False, is_init: bool = False) -> None
 
 Reset blockchain after tendermint reset.
 
+**Arguments**:
+
+- `is_replay`: whether we are resetting the blockchain while replaying blocks.
+- `is_init`: whether to process blocks before receiving an init_chain req from tendermint.
+
