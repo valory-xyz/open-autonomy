@@ -27,12 +27,13 @@ import subprocess  # nosec
 import tempfile
 import time
 from pathlib import Path
-from typing import Callable, Dict, Set
+from typing import Callable, Dict, Set, cast
 from unittest import mock
 
 import flask
 import pytest
 import requests
+from aea.common import JSONLike
 from aea.test_tools.utils import wait_for_condition
 
 from deployments.Dockerfiles.tendermint.app import TendermintNode  # type: ignore
@@ -214,7 +215,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
         with self.app.test_client() as client:
             response = client.get("/params")
             assert response.status_code == 200
-            data = response.get_json()
+            data = cast(JSONLike, response.get_json())
             assert data["status"] is True
             assert data["error"] is None
             params = data.get("params")
@@ -238,12 +239,13 @@ class TestTendermintServerApp(BaseTendermintServerTest):
         with self.app.test_client() as client:
             response = client.post("/params", json=dummy_data)
             assert response.status_code == 200
-            data = response.get_json()
+            data = cast(JSONLike, response.get_json())
             assert data["status"] is True
             assert data["error"] is None
 
     @wait_for_node_to_run
     def test_get_and_update(self) -> None:
+        """Test get and update Tendermint genesis data"""
 
         genesis_config = load_genesis()
 
@@ -252,7 +254,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             # 1. check params are in validator set
             response = client.get("/params")
             assert response.status_code == 200
-            params = response.get_json().get("params")
+            params = cast(JSONLike, response.get_json()).get("params")
             params["name"], params["power"] = "", "10"
             assert params in genesis_config["validators"]
 
