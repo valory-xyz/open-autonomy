@@ -23,13 +23,13 @@
         "agent/valory/counter/0.1.0": "bafybeia75jx7obyoxx3cs7on4lxmdq6l7uw6vuya2j3ugjvj377t2n7yey",
         "agent/valory/counter_client/0.1.0": "bafybeibyxuqo4itomksd6wvr3loblr2ba4jxa4x3wvtgr3rofpl5xueaaa",
         "agent/valory/hello_world/0.1.0": "bafybeiamc6t7i574x43xeqifshsbfsyw7xkvwshj4mrqwop5berbmsbpta",
-        "agent/valory/register_reset/0.1.0": "bafybeicdkwtc43mukbaocyry4b3dzpaons224karaxmjtkvfpwcpnyehay",
+        "agent/valory/register_reset/0.1.0": "bafybeibvvitqvk67uje6jv5lgudlwpjk5prrwwcbfzhiqx5uphzs75jtay",
         "agent/valory/register_termination/0.1.0": "bafybeigkflej7jl4dr7ksjejivyp45ofngn5ei6di5ueoghcpuajxjy62u",
         "agent/valory/registration_start_up/0.1.0": "bafybeihzca3fmmwy7hpa7efzak7bf5zvvjs42svliv7pw6pqilxkbqs4sy",
         "agent/valory/test_abci/0.1.0": "bafybeifbepymwxczveaplzevgpuadps7sgflqltsinjgqp24s4ecwa24vu",
         "service/valory/counter/0.1.0": "bafybeidqpnr7536niha4qniqbadmzov6plvoailxeb77td6bdbh5abqzia",
         "service/valory/hello_world/0.1.0": "bafybeicraeo72ut4qfu564um36bxpdjytf46ryqjvr3ijzelml7jo5pqqm",
-        "service/valory/register_reset/0.1.0": "bafybeib5hkauv2p3sbva2jjepkwxcm5t7cedglsfogsl7nakq4kjjb5nae",
+        "service/valory/register_reset/0.1.0": "bafybeiae4jdci24qf6utfuzlina3ksolyqoksbo2bjc3gcaamodgfmmfm4",
         "skill/valory/safe_deployment_abci/0.1.0": "bafybeibdif2zmmu7bioom37tj654az3426yjnr2gfsnzc27n73es7gzjmq"
     },
     "third_party": {
