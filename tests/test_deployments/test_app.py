@@ -36,6 +36,8 @@ import pytest
 import requests
 from aea.common import JSONLike
 from aea.test_tools.utils import wait_for_condition
+import logging
+from deployments.Dockerfiles.tendermint import app
 
 from deployments.Dockerfiles.tendermint.app import TendermintNode  # type: ignore
 from deployments.Dockerfiles.tendermint.app import (  # type: ignore
@@ -328,6 +330,29 @@ class TestTendermintHardResetServer(BaseTendermintServerTest):
             assert response.status_code == 200
             assert data["status"] is not prune_fail
 
+    @wait_for_node_to_run
+    @pytest.mark.parametrize("dump_dir", [Path(tempfile.mkdtemp())])
+    def test_hard_reset_dev_mode(self, dump_dir: Path, caplog) -> None:
+        """Test hard reset"""
+
+        resets = 0
+        period_dumper = PeriodDumper(logger=logging.getLogger(), dump_dir=dump_dir)
+        dump_dir = period_dumper.dump_dir
+
+        os.environ["ID"] = "_dummy_ID"
+        store_dir = dump_dir / f"period_{resets}"
+        path = self.tm_home / store_dir / ("node" + os.environ["ID"])
+        assert not path.exists()
+
+        with self.app.test_client() as client:
+            with mock.patch.object(app, "IS_DEV_MODE", return_value=True):
+                response = client.get("/hard_reset")
+                assert response.status_code == 200
+                data = response.get_json()
+                assert data["status"] is True
+                assert "Dumped data for period" in caplog.text
+
+        assert path.exists()
 
 class TestTendermintLogMessages(BaseTendermintServerTest):
     """Test Tendermint message logging"""
