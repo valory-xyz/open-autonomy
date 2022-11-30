@@ -242,6 +242,30 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             assert data["status"] is True
             assert data["error"] is None
 
+    @wait_for_node_to_run
+    def test_get_and_update(self) -> None:
+
+        genesis_config = load_genesis()
+
+        with self.app.test_client() as client:
+
+            # 1. check params are in validator set
+            response = client.get("/params")
+            assert response.status_code == 200
+            params = response.get_json().get("params")
+            params["name"], params["power"] = "", "10"
+            assert params in genesis_config["validators"]
+
+            # 2. clear validators
+            dummy_data = dict(
+                genesis_config=genesis_config,
+                validators=[],
+            )
+            response = client.post("/params", json=dummy_data)
+            assert response.status_code == 200
+            genesis_config = load_genesis()
+            assert params not in genesis_config["validators"]
+
 
 class TestTendermintGentleResetServer(BaseTendermintServerTest):
     """Test Tendermint gentle reset"""
