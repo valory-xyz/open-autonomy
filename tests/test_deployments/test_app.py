@@ -226,6 +226,22 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             # nothing else should be sent, certainly not a private key.
             assert not params
 
+    @wait_for_node_to_run
+    def test_update_params(self) -> None:
+        """Test get app hash"""
+
+        dummy_data = dict(
+            genesis_config=load_genesis(),
+            validators=[],
+        )
+
+        with self.app.test_client() as client:
+            response = client.post("/params", json=dummy_data)
+            assert response.status_code == 200
+            data = response.get_json()
+            assert data["status"] is True
+            assert data["error"] is None
+
 
 class TestTendermintGentleResetServer(BaseTendermintServerTest):
     """Test Tendermint gentle reset"""
