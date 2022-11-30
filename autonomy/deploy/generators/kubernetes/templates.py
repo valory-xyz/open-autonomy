@@ -176,7 +176,8 @@ spec:
     protocol: TCP
     name: tcp2
   selector:
-    app: agent-node-{validator_ix}
+    app: agent-svc
+    instance: agent-node-{validator_ix}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -186,11 +187,13 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: agent-node-{validator_ix}
+      app: agent-svc
+      instance: agent-node-{validator_ix}
   template:
     metadata:
       labels:
-        app: agent-node-{validator_ix}
+        app: agent-svc
+        instance: agent-node-{validator_ix}
     spec:
       imagePullSecrets:
       - name: regcred
@@ -218,7 +221,7 @@ spec:
           - name: PROXY_APP
             value: tcp://localhost:26658
           - name: TMHOME
-            value: /tendermint/node{validator_ix}
+            value: /tendermint
           - name: CREATE_EMPTY_BLOCKS
             value: "true"
           - name: LOG_FILE
@@ -232,7 +235,7 @@ spec:
           - mountPath: /logs
             name: persistent-data
           - mountPath: /tendermint
-            name: nodes
+            name: local-tendermint
 
       - name: aea
         image: {runtime_image}
@@ -281,6 +284,19 @@ spec:
         - name: nodes
           persistentVolumeClaim:
             claimName: 'nodes'
+        - emptyDir: {{}}
+          name: local-tendermint
+      initContainers:
+        - name: copy-tendermint-configuration
+          image: "ubuntu:20.04"
+          command: ["bash", "-c"]
+          args:
+          - "while [ ! -d /tendermint/node{validator_ix} ]; do sleep 1; done; cp -r /tendermint/node{validator_ix}/* /tm/"
+          volumeMounts:
+            - name: nodes
+              mountPath: /tendermint
+            - name: local-tendermint
+              mountPath: /tm
 """
 
 AGENT_SECRET_TEMPLATE: str = """
