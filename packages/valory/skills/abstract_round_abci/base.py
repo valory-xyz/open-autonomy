@@ -2616,9 +2616,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
                 # there are occasions where we wait for an init_chain() before accepting txs.
                 # this can happen during hard reset, where we might've reset the local blockchain,
                 # but are still receiving requests from the not yet reset tendermint.
-                logging.warning(
-                    f"Received block {block.header.height}, before initializing the chain."
-                )
+                # we only process blocks on an init chain.
                 self._blockchain.add_block(block)
                 self._update_round()
             # The ABCI app now waits again for the next block
