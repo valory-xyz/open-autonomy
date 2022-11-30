@@ -19,6 +19,7 @@
 
 """Tests for the Tendermint com server."""
 
+import json
 import os
 import platform
 import shutil
@@ -168,6 +169,18 @@ class TestTendermintServerUtilityFunctions(BaseTendermintTest):
 # integration tests
 class TestTendermintServerApp(BaseTendermintServerTest):
     """Test Tendermint server app"""
+
+    genesis_filepath: Path
+    genesis_config: Dict
+
+    def setup(self) -> None:
+        """Setup"""
+        self.genesis_filepath = Path(os.environ["TMHOME"], "config", "genesis.json")
+        self.genesis_config = load_genesis()
+
+    def teardown(self) -> None:
+        """Teardown"""
+        self.genesis_filepath.write_text(json.dumps(self.genesis_config))
 
     @wait_for_node_to_run
     def test_files_exist(self) -> None:
