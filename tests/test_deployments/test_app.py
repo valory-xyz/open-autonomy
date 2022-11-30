@@ -207,6 +207,25 @@ class TestTendermintServerApp(BaseTendermintServerTest):
                 error_msg="Could not retrieve `app_hash` from Tendermint server",
             )
 
+    @wait_for_node_to_run
+    def test_get_params(self) -> None:
+        """Test get app hash"""
+
+        with self.app.test_client() as client:
+            response = client.get("/params")
+            assert response.status_code == 200
+            data = response.get_json()
+            assert data["status"] is True
+            assert data["error"] is None
+            params = data.get("params")
+            assert params
+            assert params.pop("address")
+            pub_key = params.pop("pub_key")
+            assert pub_key.pop("type")
+            assert pub_key.pop("value")
+            # nothing else should be sent, certainly not a private key.
+            assert not params
+
 
 class TestTendermintGentleResetServer(BaseTendermintServerTest):
     """Test Tendermint gentle reset"""
