@@ -1696,6 +1696,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 f"Resetting tendermint node at end of period={self.synchronized_data.period_count}."
             )
 
+            backup_blockchain = self.context.state.round_sequence.blockchain
+            self.context.state.round_sequence.reset_blockchain()
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
                 self.params.tendermint_com_url + "/hard_reset",
@@ -1706,17 +1708,17 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 response = json.loads(result.body.decode())
                 if response.get("status"):
                     self.context.logger.info(response.get("message"))
-                    self.context.logger.info(
-                        "Resetting tendermint node successful! Resetting local blockchain."
-                    )
-                    self.context.state.round_sequence.reset_blockchain(
-                        response.get("is_replay", False)
-                    )
+                    self.context.logger.info("Resetting tendermint node successful!")
+                    is_replay = response.get("is_replay", False)
+                    if is_replay:
+                        # in case of replay, the local blockchain should be set up differently.
+                        self.context.state.round_sequence.reset_blockchain(
+                            is_replay=is_replay, is_init=True
+                        )
                     self.context.state.round_sequence.abci_app.cleanup(
                         self.params.cleanup_history_depth,
                         self.params.cleanup_history_depth_current,
                     )
-
                     for handler_name in self.context.handlers.__dict__.keys():
                         dialogues = getattr(self.context, f"{handler_name}_dialogues")
                         dialogues.cleanup()
@@ -1724,6 +1726,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     self._end_reset()
                 else:
                     msg = response.get("message")
+                    self.context.state.round_sequence.blockchain = backup_blockchain
                     self.context.logger.error(f"Error resetting: {msg}")
                     yield from self.sleep(self.params.sleep_time)
                     return False
@@ -1731,6 +1734,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                 self.context.logger.error(
                     "Error communicating with tendermint com server."
                 )
+                self.context.state.round_sequence.blockchain = backup_blockchain
                 yield from self.sleep(self.params.sleep_time)
                 return False
 

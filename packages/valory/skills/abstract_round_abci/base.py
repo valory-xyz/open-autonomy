@@ -354,10 +354,16 @@ class Blockchain:
     The consistency of the data in the blocks is guaranteed by Tendermint.
     """
 
-    def __init__(self, height_offset: int = 0) -> None:
+    def __init__(self, height_offset: int = 0, is_init: bool = True) -> None:
         """Initialize the blockchain."""
         self._blocks: List[Block] = []
         self._height_offset = height_offset
+        self._is_init = is_init
+
+    @property
+    def is_init(self) -> bool:
+        """Returns true if the blockchain is initialized."""
+        return self._is_init
 
     def add_block(self, block: Block) -> None:
         """Add a block to the list."""
@@ -2377,6 +2383,16 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         return self._abci_app
 
     @property
+    def blockchain(self) -> Blockchain:
+        """Get the Blockchain instance."""
+        return self._blockchain
+
+    @blockchain.setter
+    def blockchain(self, _blockchain: Blockchain) -> None:
+        """Get the Blockchain instance."""
+        self._blockchain = _blockchain
+
+    @property
     def height(self) -> int:
         """Get the height."""
         return self._blockchain.height
@@ -2596,8 +2612,15 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             )
         block = self._block_builder.get_block()
         try:
-            self._blockchain.add_block(block)
-            self._update_round()
+            if self._blockchain.is_init:
+                # there are occasions where we wait for an init_chain() before accepting txs.
+                # this can happen during hard reset, where we might've reset the local blockchain,
+                # but are still receiving requests from the not yet reset tendermint.
+                logging.warning(
+                    f"Received block {block.header.height}, before initializing the chain."
+                )
+                self._blockchain.add_block(block)
+                self._update_round()
             # The ABCI app now waits again for the next block
             self._block_construction_phase = (
                 RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
@@ -2605,13 +2628,13 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         except AddBlockError as exception:
             raise exception
 
-    def reset_blockchain(self, is_replay: bool = False) -> None:
+    def reset_blockchain(self, is_replay: bool = False, is_init: bool = False) -> None:
         """Reset blockchain after tendermint reset."""
         if is_replay:
             self._block_construction_phase = (
                 RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
             )
-        self._blockchain = Blockchain()
+        self._blockchain = Blockchain(is_init=is_init)
 
     def _update_round(self) -> None:
         """
