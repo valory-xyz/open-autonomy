@@ -10,7 +10,7 @@ smart contracts provide, making it possible to execute **arbitrarily complex ope
 (such as machine-learning algorithms). Most importantly, agent services are
 **decentralized**, **trust-minimized**, **transparent**, and **robust**.
 
-<img src="./images/agent_service_index_page.svg" alt="Multiplexer of an AEA" class="center" style="display: block; margin-left: auto; margin-right: auto;width:35%;">
+<img src="./images/agent_service_index_page.svg" alt="Open Autonomy" class="center" style="display: block; margin-left: auto; margin-right: auto;width:35%;">
 
 
 ##Browse the docs
@@ -53,4 +53,3 @@ Browse through the CLI and API reference documentation.
 Browse our FAQ where you can find commonly asked questions about the framework.
 
 [FAQ](./questions-and-answers.md){ .md-button }
-

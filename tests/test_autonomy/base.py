@@ -21,61 +21,19 @@
 
 from typing import Dict, List
 
+import yaml
 
-def get_dummy_service_config() -> List[Dict]:
+from tests.conftest import ROOT_DIR
+
+
+def get_dummy_service_config(file_number: int = 0) -> List[Dict]:
     """Returns a dummy service config."""
-    return [
-        {
-            "name": "dummy_service",
-            "author": "valory",
-            "version": "0.1.0",
-            "description": "A set of agents implementing a dummy service",
-            "aea_version": ">=1.0.0, <2.0.0",
-            "license": "Apache-2.0",
-            "fingerprint": {
-                "README.md": "QmY4bupJmk4BKkFefNCWNEkj3kUtgmraSDNbWFDx4qgbZf"
-            },
-            "fingerprint_ignore_patterns": [],
-            "agent": "valory/dummy:0.1.0:QmXuaeUagpuJ4cRiBHTX9ydSnibPyEbdL23zmGyUuWwMYr",
-            "number_of_agents": 1,
-        },
-        {
-            "public_id": "valory/dummy_abci:0.1.0",
-            "type": "skill",
-            "models": {
-                0: [
-                    {
-                        "price_api": {
-                            "args": {
-                                "url": "url",
-                                "api_id": "api_id",
-                                "parameters": None,
-                                "response_key": None,
-                                "headers": None,
-                            }
-                        }
-                    },
-                    {
-                        "randomness_api": {
-                            "args": {
-                                "url": "https://drand.cloudflare.com/public/latest",
-                                "api_id": "cloudflare",
-                            }
-                        }
-                    },
-                    {
-                        "params": {
-                            "args": {
-                                "observation_interval": 30,
-                                "broadcast_to_server": False,
-                                "service_registry_address": "address",
-                                "on_chain_service_id": 1,
-                            }
-                        }
-                    },
-                    {"server_api": {"args": {"url": "url"}}},
-                    {"benchmark_tool": {"args": {"log_dir": "/benchmarks"}}},
-                ]
-            },
-        },
-    ]
+
+    with (
+        ROOT_DIR
+        / "tests"
+        / "data"
+        / "dummy_service_config_files"
+        / f"service_{file_number}.yaml"
+    ).open("r") as fp:
+        return list(yaml.safe_load_all(fp))

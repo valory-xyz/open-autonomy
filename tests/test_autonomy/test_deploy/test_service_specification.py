@@ -83,7 +83,7 @@ class TestServiceSpecification:
     ) -> None:
         """Test service spec initialization."""
 
-        self._write_service(get_dummy_service_config())
+        self._write_service(get_dummy_service_config(file_number=1))
         spec = ServiceSpecification(
             self.service_path,
             self.keys_path,
@@ -93,7 +93,7 @@ class TestServiceSpecification:
         assert len(agents) == 1, agents
 
         agent = spec.generate_agent(0)
-        assert len(agent.keys()) == 20, agent
+        assert len(agent.keys()) == 13, agent
 
         spec.service.overrides = []
         agent = spec.generate_agent(0)

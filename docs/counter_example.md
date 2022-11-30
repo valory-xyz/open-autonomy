@@ -18,7 +18,7 @@ node.
 
 
 ## Running the Demo
-The steps below will guide you to download the counter agent service definition from the Service Registry, build and run a deployment that will run locally.
+The steps below will guide you to download the counter agent service configuration from the Service Registry, build and run a deployment that will run locally.
 
 1. Ensure that your machine satisfies the [framework requirements](guides/quick_start.md#requirements) and that
 you have followed the [setup instructions](guides/quick_start.md#setup). As a result you should have a Pipenv workspace folder.
@@ -69,7 +69,7 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
 
     This will build the deployment setup required to run the service locally.
     !!!note
-        It is also possible to generate a deployment using a local service definition. See the [CLI section](./autonomy.md) for the complete details.
+        It is also possible to generate a deployment using a local service configuration. See the [CLI section](./autonomy.md) for the complete details.
 
 6. The build configuration will be located in `./abci_build`. Run the deployment using
     ```bash
