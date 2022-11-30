@@ -57,7 +57,7 @@ def analyse_docstrings(
     :param update: whether to update the content if required
     :param packages_dir: Path to packages directory
 
-    :return: boolean specifyning whether the update is needed or not
+    :return: boolean specifying whether the update is needed or not
     """
 
     module = import_rounds_module(module_path=module_path, packages_dir=packages_dir)
@@ -66,21 +66,21 @@ def analyse_docstrings(
             App = getattr(module, obj)
             docstring = docstring_abci_app(App)
 
-            original_content = module_path.read_text()
-            has_docstring, exptected_content = compare_docstring_content(
+            original_content = Path(module.__file__).read_text(encoding="utf-8")
+            has_docstring, expected_content = compare_docstring_content(
                 file_content=original_content, docstring=docstring, abci_app_name=obj
             )
 
             if not has_docstring and update:
                 click.echo(
-                    f"App defintion in {module_path} does not contain well formatted docstring, please update it manually"
+                    f"App definition in {module_path} does not contain well formatted docstring, please update it manually"
                 )
                 return True
 
-            update_needed = original_content != exptected_content
+            update_needed = original_content != expected_content
 
             if update and update_needed:
-                module_path.write_text(exptected_content, encoding="utf-8")
+                module_path.write_text(expected_content, encoding="utf-8")
                 return True
 
             return update_needed
