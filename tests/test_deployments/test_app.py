@@ -69,13 +69,13 @@ def readonly_handler(func: Callable, path: str, execinfo) -> None:  # type: igno
     func(path)
 
 
-@pytest.mark.parametrize("dump_dir", [None, Path(tempfile.mkdtemp())])
-def test_period_dumper(dump_dir: Optional[Path], monkeypatch: MonkeyPatch) -> None:
+def test_period_dumper(monkeypatch: MonkeyPatch) -> None:
     """Test PeriodDumper"""
 
     monkeypatch.setenv("ID", "42")
     with tempfile.TemporaryDirectory() as tmp_dir:
         monkeypatch.setenv("TMHOME", tmp_dir)
+        dump_dir = Path(tempfile.mkdtemp())
         period_dumper = PeriodDumper(mock.Mock(), dump_dir=dump_dir)
         period_dumper.dump_period()
 
@@ -122,6 +122,7 @@ class BaseTendermintServerTest(BaseTendermintTest):
     perform_monitoring = True
     debug_tendermint = False
     tm_status_endpoint = "http://localhost:26657/status"
+    dump_dir: Path
 
     @classmethod
     def setup_class(cls) -> None:
@@ -130,8 +131,9 @@ class BaseTendermintServerTest(BaseTendermintTest):
         os.environ["PROXY_APP"] = "kvstore"
         os.environ["CREATE_EMPTY_BLOCKS"] = "true"
         os.environ["LOG_FILE"] = str(cls.path / "tendermint.log")
+        cls.dump_dir = Path(tempfile.mkdtemp())
         cls.app, cls.tendermint_node = create_app(
-            dump_dir=cls.path / "tm_state",
+            dump_dir=cls.dump_dir,
             perform_monitoring=cls.perform_monitoring,
             debug=cls.debug_tendermint,
         )
@@ -144,6 +146,7 @@ class BaseTendermintServerTest(BaseTendermintTest):
         """Teardown the test."""
         cls.app_context.pop()
         cls.tendermint_node.stop()
+        shutil.rmtree(cls.dump_dir)
         super().teardown_class()
 
 
@@ -333,19 +336,15 @@ class TestTendermintHardResetServer(BaseTendermintServerTest):
             assert data["status"] is not prune_fail
 
     @wait_for_node_to_run
-    @pytest.mark.parametrize("dump_dir", [Path(tempfile.mkdtemp())])
-    def test_hard_reset_dev_mode(
-        self, dump_dir: Path, caplog: LogCaptureFixture
-    ) -> None:
+    def test_hard_reset_dev_mode(self, caplog: LogCaptureFixture) -> None:
         """Test hard reset"""
 
-        resets = 0
-        period_dumper = PeriodDumper(logger=logging.getLogger(), dump_dir=dump_dir)
-        dump_dir = period_dumper.dump_dir
-
+        resets = 0  # zero since first hard reset
         os.environ["ID"] = "_dummy_ID"
-        store_dir = dump_dir / f"period_{resets}"
-        path = self.tm_home / store_dir / ("node" + os.environ["ID"])
+        period_dumper = PeriodDumper(logger=logging.getLogger(), dump_dir=self.dump_dir)
+        store_dir = period_dumper.dump_dir / f"period_{resets}"
+        path = store_dir / ("node" + os.environ["ID"])
+        logging.error(f"expected: {path}")
         assert not path.exists()
 
         with self.app.test_client() as client:
@@ -357,6 +356,8 @@ class TestTendermintHardResetServer(BaseTendermintServerTest):
                 assert "Dumped data for period" in caplog.text
 
         assert path.exists()
+        expected = {'config', 'tendermint.log', 'data'}
+        assert {p.name for p in path.glob("*")} == expected
 
 
 class TestTendermintLogMessages(BaseTendermintServerTest):
