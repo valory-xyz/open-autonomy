@@ -68,9 +68,10 @@ class BaseFuzzyTests(AEATestCaseMany):
     AGENT_TIMEOUT_SECONDS = 10
 
     @classmethod
-    def setUpClass(cls) -> None:
+    def setup_class(cls) -> None:
         """Sets up the environment for the tests."""
-        logging.disable(logging.INFO)
+
+        super().setup_class()
         cls.fetch_agent(cls.agent_package, cls.agent_name, is_local=cls.IS_LOCAL)
         cls.set_agent_context(cls.agent_name)
         cls.generate_private_key("ethereum", "ethereum_private_key.txt")
@@ -98,12 +99,14 @@ class BaseFuzzyTests(AEATestCaseMany):
         cls.channel = cls.CHANNEL_TYPE(**cls.CHANNEL_ARGS)
         cls.mock_node = MockNode(cls.channel)
         cls.mock_node.connect()
+        logging.disable(logging.INFO)
 
     @classmethod
-    def tearDownClass(cls) -> None:
+    def teardown_class(cls) -> None:
         """Tear down the testing environment."""
         logging.disable(logging.NOTSET)
         cls.mock_node.disconnect()
+        super().teardown_class()
 
     # flake8: noqa:D102
     @given(message=text())
