@@ -137,7 +137,7 @@ models:
     class_name: SharedState
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.24.0
+    version: ==1.25.0
   open-aea-test-autonomy:
     version: ==0.4.0
 is_abstract: true
