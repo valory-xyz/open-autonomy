@@ -120,9 +120,9 @@ class PeriodDumper:
                 os.environ["TMHOME"], str(store_dir / ("node" + os.environ["ID"]))
             )
             self.logger.info(f"Dumped data for period {self.resets}")
-        except OSError:
+        except OSError as e:
             self.logger.info(
-                f"Error occurred while dumping data for period {self.resets}"
+                f"Error occurred while dumping data for period {self.resets}: {e}"
             )
         self.resets += 1
 
