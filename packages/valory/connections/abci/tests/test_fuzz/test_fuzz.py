@@ -35,7 +35,7 @@ class GrpcFuzzyTests(BaseFuzzyTests, TestCase):
 
     CHANNEL_TYPE = GrpcChannel
     USE_GRPC = True
-    AGENT_TIMEOUT = 30  # 3 seconds
+    AGENT_TIMEOUT_SECONDS = 30
 
 
 class TcpFuzzyTests(BaseFuzzyTests, TestCase):
@@ -43,4 +43,4 @@ class TcpFuzzyTests(BaseFuzzyTests, TestCase):
 
     CHANNEL_TYPE = TcpChannel
     USE_GRPC = False
-    AGENT_TIMEOUT = 30  # 3 seconds
+    AGENT_TIMEOUT_SECONDS = 30

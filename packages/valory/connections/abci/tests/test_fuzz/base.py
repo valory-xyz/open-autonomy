@@ -62,7 +62,7 @@ class BaseFuzzyTests(AEATestCaseMany):
     agent_process = None
     cli_log_options = ["-v", "INFO"]
 
-    AGENT_TIMEOUT = 10
+    AGENT_TIMEOUT_SECONDS = 10
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -86,8 +86,8 @@ class BaseFuzzyTests(AEATestCaseMany):
         cls.agent_process = cls.run_agent()
 
         enforce(
-            cls.is_running(cls.agent_process, cls.AGENT_TIMEOUT),
-            f"The agent was not started in the defined timeout ({cls.AGENT_TIMEOUT}s)",
+            cls.is_running(cls.agent_process, cls.AGENT_TIMEOUT_SECONDS),
+            f"The agent was not started in the defined timeout ({cls.AGENT_TIMEOUT_SECONDS}s)",
         )
 
         enforce(cls.CHANNEL_TYPE is not None, "A channel type must be provided")
