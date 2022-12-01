@@ -16,10 +16,10 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Fuzzy tests for valory/abci connection"""
-from unittest import TestCase
 
-import pytest
+"""Fuzzy tests for valory/abci connection"""
+
+from unittest import TestCase
 
 from packages.valory.connections.abci.tests.test_fuzz.base import BaseFuzzyTests
 from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.grpc_channel import (
