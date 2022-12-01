@@ -17,23 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Helpers for autonomy tests."""
-
-from typing import Dict, List
-
-import yaml
-
-from tests.conftest import ROOT_DIR
-
-
-def get_dummy_service_config(file_number: int = 0) -> List[Dict]:
-    """Returns a dummy service config."""
-
-    with (
-        ROOT_DIR
-        / "tests"
-        / "data"
-        / "dummy_service_config_files"
-        / f"service_{file_number}.yaml"
-    ).open("r") as fp:
-        return list(yaml.safe_load_all(fp))
+"""The tests module contains the unit tests for CLI helper functions."""

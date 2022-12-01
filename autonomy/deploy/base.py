@@ -22,6 +22,7 @@ import abc
 import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from warnings import warn
 
 from aea.configurations.base import (
     ConnectionConfig,
@@ -77,11 +78,16 @@ class ServiceSpecification:
         substitute_env_vars: bool = False,
     ) -> None:
         """Initialize the Base Deployment."""
+        if substitute_env_vars:
+            warn(
+                "`substitute_env_vars` argument is deprecated and will be removed in v1.0.0, "
+                "usage of environment varibales is default now.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         self.keys: List = []
         self.private_keys_password = private_keys_password
-        self.service = load_service_config(
-            service_path, substitute_env_vars=substitute_env_vars
-        )
+        self.service = load_service_config(service_path)
         self.log_level = log_level
 
         # we allow configurable number of agents independent of the
@@ -125,7 +131,7 @@ class ServiceSpecification:
         """Generates env vars based on model overrides."""
         final_overrides = {}
         for component_configuration_json in self.service.overrides:
-            _, overrides = self.service.process_component_section(
+            overrides = self.service.process_component_overrides(
                 agent_n, component_configuration_json
             )
             final_overrides.update(overrides)

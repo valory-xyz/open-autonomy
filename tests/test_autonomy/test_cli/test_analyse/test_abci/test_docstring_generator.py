@@ -23,8 +23,11 @@
 import os
 from pathlib import Path
 from typing import Tuple
+from unittest import mock
 
 from aea.configurations.constants import PACKAGES
+
+from packages.valory.skills.hello_world_abci import rounds
 
 from tests.conftest import ROOT_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
@@ -101,7 +104,10 @@ class TestDocstrings(BaseCliTest):
 
         self.run_cli()
         self._corrupt_round_file()
-        result = self.run_cli()
+
+        new_callable = mock.PropertyMock(return_value=str(self.rounds_file_temp))
+        with mock.patch.object(rounds, "__file__", new_callable=new_callable):
+            result = self.run_cli()
 
         assert result.exit_code == 1, result.output
         assert "Error: Following files needs updating" in result.output
@@ -115,7 +121,10 @@ class TestDocstrings(BaseCliTest):
         assert (
             self.rounds_file_temp.read_text() != self.rounds_file_original.read_text()
         )
-        result = self.run_cli(("--update",))
+
+        new_callable = mock.PropertyMock(return_value=str(self.rounds_file_temp))
+        with mock.patch.object(rounds, "__file__", new_callable=new_callable):
+            result = self.run_cli(("--update",))
         assert result.exit_code == 0, result.output
         assert "Updated following files" in result.output
         assert (
