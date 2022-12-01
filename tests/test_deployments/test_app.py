@@ -336,6 +336,7 @@ class TestTendermintHardResetServer(BaseTendermintServerTest):
             assert data["status"] is not prune_fail
 
     @wait_for_node_to_run
+    @pytest.mark.skipif(platform.system() != "Linux", reason="scoped to docker image")
     def test_hard_reset_dev_mode(self, caplog: LogCaptureFixture) -> None:
         """Test hard reset"""
 
