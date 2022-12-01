@@ -29,7 +29,7 @@ import subprocess  # nosec
 import tempfile
 import time
 from pathlib import Path
-from typing import Callable, Dict, Optional, Set, cast
+from typing import Callable, Dict, Set, cast
 from unittest import mock
 
 import flask
@@ -356,7 +356,7 @@ class TestTendermintHardResetServer(BaseTendermintServerTest):
                 assert "Dumped data for period" in caplog.text
 
         assert path.exists()
-        expected = {'config', 'tendermint.log', 'data'}
+        expected = {"config", "tendermint.log", "data"}
         assert {p.name for p in path.glob("*")} == expected
 
 
