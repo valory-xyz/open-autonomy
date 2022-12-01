@@ -50,7 +50,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     use_hardhat: bool = False,
     use_acn: bool = False,
 ) -> str:
-    """Generate the deployment build for the valory app."""
+    """Generate the deployment build for the agent service."""
 
     service_spec = ServiceSpecification(
         service_path=service_path,

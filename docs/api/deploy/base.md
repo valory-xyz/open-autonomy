@@ -72,7 +72,7 @@ Generate multiple agent.
 def generate_common_vars(agent_n: int) -> Dict
 ```
 
-Retrieve vars common for valory apps.
+Retrieve vars common for agent services.
 
 <a id="autonomy.deploy.base.ServiceSpecification.generate_agent"></a>
 

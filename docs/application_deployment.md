@@ -1,8 +1,8 @@
-# Valory Application Deployment
+# Agent Service Deployment
 
 Tooling has been provided to allow for the automatic generation of deployments via deployment specifications.
 
-Valory application deployments can be built on the fly.
+Agent service deployments can be built on the fly.
 
 ## Generate deployment configuration
 
