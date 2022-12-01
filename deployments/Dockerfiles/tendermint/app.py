@@ -115,10 +115,10 @@ class PeriodDumper:
         """Dump tendermint run data for replay"""
         store_dir = self.dump_dir / f"period_{self.resets}"
         store_dir.mkdir(exist_ok=True)
+        source = os.environ["TMHOME"]
+        destination = str(store_dir / ("node" + os.environ["ID"]))
         try:
-            shutil.copytree(
-                os.environ["TMHOME"], str(store_dir / ("node" + os.environ["ID"]))
-            )
+            shutil.copytree(source, destination, copy_function=shutil.copyfile)
             self.logger.info(f"Dumped data for period {self.resets}")
         except OSError as e:
             self.logger.info(
