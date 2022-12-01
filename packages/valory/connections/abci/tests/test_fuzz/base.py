@@ -20,6 +20,7 @@
 
 # pylint: skip-file
 
+import logging
 from typing import Dict, List, Tuple, Type
 
 import numpy as np
@@ -66,6 +67,7 @@ class BaseFuzzyTests(AEATestCaseMany):
     @classmethod
     def setUpClass(cls) -> None:
         """Sets up the environment for the tests."""
+        logging.disable(logging.INFO)
         cls.fetch_agent(cls.agent_package, cls.agent_name, is_local=cls.IS_LOCAL)
         cls.set_agent_context(cls.agent_name)
         cls.generate_private_key("ethereum", "ethereum_private_key.txt")
@@ -97,6 +99,7 @@ class BaseFuzzyTests(AEATestCaseMany):
     @classmethod
     def tearDownClass(cls) -> None:
         """Tear down the testing environment."""
+        logging.disable(logging.NOTSET)
         cls.mock_node.disconnect()
 
     # flake8: noqa:D102
