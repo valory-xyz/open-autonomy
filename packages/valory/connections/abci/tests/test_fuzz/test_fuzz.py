@@ -30,7 +30,6 @@ from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.tcp_cha
 )
 
 
-@pytest.mark.skip(reason="broken & takes too long time to complete on CI")
 class GrpcFuzzyTests(BaseFuzzyTests, TestCase):
     """Test the connection when gRPC is used"""
 
@@ -39,7 +38,6 @@ class GrpcFuzzyTests(BaseFuzzyTests, TestCase):
     AGENT_TIMEOUT = 30  # 3 seconds
 
 
-@pytest.mark.skip(reason="broken & takes too long time to complete on CI")
 class TcpFuzzyTests(BaseFuzzyTests, TestCase):
     """Test the connection when TCP is used"""
 
