@@ -19,6 +19,7 @@
 
 """Tests for the Tendermint com server."""
 
+import json
 import os
 import platform
 import shutil
@@ -27,12 +28,13 @@ import subprocess  # nosec
 import tempfile
 import time
 from pathlib import Path
-from typing import Callable, Dict, Set
+from typing import Callable, Dict, Set, cast
 from unittest import mock
 
 import flask
 import pytest
 import requests
+from aea.common import JSONLike
 from aea.test_tools.utils import wait_for_condition
 
 from deployments.Dockerfiles.tendermint.app import TendermintNode  # type: ignore
@@ -168,6 +170,18 @@ class TestTendermintServerUtilityFunctions(BaseTendermintTest):
 class TestTendermintServerApp(BaseTendermintServerTest):
     """Test Tendermint server app"""
 
+    genesis_filepath: Path
+    genesis_config: Dict
+
+    def setup(self) -> None:
+        """Setup"""
+        self.genesis_filepath = Path(os.environ["TMHOME"], "config", "genesis.json")
+        self.genesis_config = load_genesis()
+
+    def teardown(self) -> None:
+        """Teardown"""
+        self.genesis_filepath.write_text(json.dumps(self.genesis_config))
+
     @wait_for_node_to_run
     def test_files_exist(self) -> None:
         """Test that the necessary files are present"""
@@ -206,6 +220,66 @@ class TestTendermintServerApp(BaseTendermintServerTest):
                 period=1,
                 error_msg="Could not retrieve `app_hash` from Tendermint server",
             )
+
+    @wait_for_node_to_run
+    def test_get_params(self) -> None:
+        """Test get app hash"""
+
+        with self.app.test_client() as client:
+            response = client.get("/params")
+            assert response.status_code == 200
+            data = cast(JSONLike, response.get_json())
+            assert data["status"] is True
+            assert data["error"] is None
+            params = data.get("params")
+            assert params
+            assert params.pop("address")
+            pub_key = params.pop("pub_key")
+            assert pub_key.pop("type")
+            assert pub_key.pop("value")
+            # nothing else should be sent, certainly not a private key.
+            assert not params
+
+    @wait_for_node_to_run
+    def test_update_params(self) -> None:
+        """Test get app hash"""
+
+        dummy_data = dict(
+            genesis_config=load_genesis(),
+            validators=[],
+        )
+
+        with self.app.test_client() as client:
+            response = client.post("/params", json=dummy_data)
+            assert response.status_code == 200
+            data = cast(JSONLike, response.get_json())
+            assert data["status"] is True
+            assert data["error"] is None
+
+    @wait_for_node_to_run
+    def test_get_and_update(self) -> None:
+        """Test get and update Tendermint genesis data"""
+
+        genesis_config = load_genesis()
+
+        with self.app.test_client() as client:
+
+            # 1. check params are in validator set
+            response = client.get("/params")
+            assert response.status_code == 200
+            params = cast(JSONLike, response.get_json()).get("params")
+            params["name"], params["power"] = "", "10"
+            assert params in genesis_config["validators"]
+
+            # 2. clear validators
+            dummy_data = dict(
+                genesis_config=genesis_config,
+                validators=[],
+            )
+            response = client.post("/params", json=dummy_data)
+            assert response.status_code == 200
+            genesis_config = load_genesis()
+            assert params not in genesis_config["validators"]
 
 
 class TestTendermintGentleResetServer(BaseTendermintServerTest):
