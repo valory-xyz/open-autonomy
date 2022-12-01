@@ -21,6 +21,7 @@
 
 import json
 import os
+import re
 import shutil
 import tempfile
 from pathlib import Path
@@ -29,7 +30,7 @@ from typing import Dict, List
 import pytest
 import yaml
 
-from autonomy.deploy.base import NotValidKeysFile, ServiceSpecification
+from autonomy.deploy.base import NotValidKeysFile, ServiceBuilder
 
 from tests.test_autonomy.base import get_dummy_service_config
 
@@ -49,8 +50,8 @@ def get_keys() -> List[Dict]:
     ]
 
 
-class TestServiceSpecification:
-    """Test `ServiceSpecification` class."""
+class TestServiceBuilder:
+    """Test `ServiceBuilder` class."""
 
     t: Path
     cwd: Path
@@ -84,7 +85,7 @@ class TestServiceSpecification:
         """Test service spec initialization."""
 
         self._write_service(get_dummy_service_config(file_number=1))
-        spec = ServiceSpecification(
+        spec = ServiceBuilder.from_dir(
             self.service_path,
             self.keys_path,
         )
@@ -110,7 +111,7 @@ class TestServiceSpecification:
             NotValidKeysFile,
             match="Number of agents cannot be greater than available keys",
         ):
-            ServiceSpecification(
+            ServiceBuilder.from_dir(
                 self.service_path,
                 self.keys_path,
                 number_of_agents=2,
@@ -134,7 +135,7 @@ class TestServiceSpecification:
         )
 
         with pytest.raises(NotValidKeysFile, match="Key file incorrectly formatted"):
-            ServiceSpecification(
+            ServiceBuilder.from_dir(
                 self.service_path,
                 self.keys_path,
                 number_of_agents=2,
@@ -150,7 +151,7 @@ class TestServiceSpecification:
         ]
 
         self._write_service(get_dummy_service_config())
-        spec = ServiceSpecification(
+        spec = ServiceBuilder.from_dir(
             self.service_path, self.keys_path, agent_instances=agent_instances
         )
         agents = spec.generate_agents()
@@ -158,9 +159,26 @@ class TestServiceSpecification:
 
         with pytest.raises(
             NotValidKeysFile,
-            match="Cannot find the provided keys in the list of the agent instances",
+            match="Key file contains keys which are not registered as instances",
         ):
-            ServiceSpecification(self.service_path, self.keys_path, agent_instances=[])
+            ServiceBuilder.from_dir(
+                self.service_path, self.keys_path, agent_instances=[]
+            )
+
+        with pytest.raises(
+            NotValidKeysFile,
+            match=re.escape(
+                "Key file does not contain key pair for following instances {'0xDummyAddress'}"
+            ),
+        ):
+            ServiceBuilder.from_dir(
+                self.service_path,
+                self.keys_path,
+                agent_instances=[
+                    "0xDummyAddress",
+                    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                ],
+            )
 
     @classmethod
     def teardown(
