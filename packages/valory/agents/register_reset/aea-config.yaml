@@ -8,6 +8,17 @@ fingerprint:
   README.md: bafybeicocdojplie5z4kbs7cn7apunfydbxui2nigp6ci2osuvv3mybzfm
   __init__.py: bafybeihgxrmmp63exxkdmvlu565kehvuucg4iivnejwutaehb2p7xzxu4q
   tests/__init__.py: bafybeigkkq3hon4wuyrazwnt5tiu23idpelf6a7kzbmawty7zfrpqnmnhi
+  tests/helpers/__init__.py: bafybeigwjcrcn35vqa57l6j7bhrraurvnls5rc6iuoncvp7an5rhhrnfoe
+  tests/helpers/conftest.py: bafybeigyhefebvmlco4tfuclneracsljsr6xtoy6oo7ckj2njciidavpo4
+  tests/helpers/docker/__init__.py: bafybeid5bzd6ebfglfmvm44rnnrib7qvonxac2w337qyeihpkbucby7fdi
+  tests/helpers/docker/docker.py: bafybeid6n36kkub2vfswnpqffebuhg67mxrukp3jignihrz4v2hn2mmrwi
+  tests/helpers/slow_tendermint_server/Dockerfile: bafybeihextohv7h5z3rowlrkl5egi7h5yuuwtdsn5jhuxqwejjozk2feky
+  tests/helpers/slow_tendermint_server/__init__.py: bafybeieosq65nub4bhueyjug3auh36fpcqcwtyrjkomffyi4jyrrvirlnm
+  tests/helpers/slow_tendermint_server/app.py: bafybeih7vba4ozkvhuhnglmj3rp3uumvfdyb4iu44b2i2nvtkvnqnu6n3e
+  tests/helpers/slow_tendermint_server/config-template.toml: bafybeibzoxwjjn5cacrtx4p2gov75ktg467xoyglistwjn5xt5l6d6tpea
+  tests/helpers/slow_tendermint_server/tendermint.py: bafybeictorpuqrzwid2z5jajj2feohlh3mvi7pt6ur2gymd3iwdvcbslzy
+  tests/helpers/slow_tendermint_server/wrapper.sh: bafybeif2wssashoaw7ifz6q3ocmejkuz32ycwta4w5dcjunns4g2awkv2y
+  tests/test_hard_reset_race_condition.py: bafybeicq72lwuihjfq4qsus3uugxspjjhklwmu233utuhcqrbqv75ja46u
   tests/test_register_reset.py: bafybeibjg33b42lcwizx5747jnw7ywg5djignawkkcva5q7larqujgemuy
 fingerprint_ignore_patterns: []
 connections:
@@ -22,10 +33,10 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 skills:
 - valory/abstract_abci:0.1.0:bafybeicog4eierjad4f542ubhe3ez7sxgrsna7t2e5pci2hncpq5vckw4e
-- valory/abstract_round_abci:0.1.0:bafybeihb5ihfhmbp3kjxp763f7675dltgrho6bj7yv7dkpp5aonczkjqom
-- valory/register_reset_abci:0.1.0:bafybeiajx724wxjywvy42yllc7vhlniplurtxb5s5jeg44f7plf3ttu4cu
-- valory/registration_abci:0.1.0:bafybeidvgg6nui6umqlcnxsikstbam42y4njud5faspqmgrgermwov3bmm
-- valory/reset_pause_abci:0.1.0:bafybeiekk4v5qvfzpic3jxtvt2orlzdoqouxjef5yxecpthikoh7yzbspm
+- valory/abstract_round_abci:0.1.0:bafybeih6fgaoxooltddckaaxg4yoj4pw6erfcyjt644q2tqxfbrrydw6jy
+- valory/register_reset_abci:0.1.0:bafybeias2qnwebo4lot33kh7eiexba6seuzr5prp2iwfevmqmxytyc24sy
+- valory/registration_abci:0.1.0:bafybeic4bstz52jmdu5yzevjzuor5f47p52xvsvb6lqi6foei7f3su4qhi
+- valory/reset_pause_abci:0.1.0:bafybeia4qbyrt5sb6sybiu24cza4vgvxofttpjvt2bosoppfobfb2n6ciq
 default_ledger: ethereum
 required_ledgers:
 - ethereum
