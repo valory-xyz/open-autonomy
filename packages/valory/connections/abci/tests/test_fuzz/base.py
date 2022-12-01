@@ -20,8 +20,8 @@
 
 # pylint: skip-file
 
-from pathlib import Path
 import logging
+from pathlib import Path
 from typing import Dict, List, Tuple, Type
 
 import numpy as np
@@ -40,6 +40,7 @@ class BaseFuzzyTests(AEATestCaseMany):
     """
     Base class for the Fuzzy Tests
     """
+
     package_registry_src_rel = Path(__file__).parents[5]
 
     UINT_64_MAX_VALUE = np.iinfo(np.uint64).max

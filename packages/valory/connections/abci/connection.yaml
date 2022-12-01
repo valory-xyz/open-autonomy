@@ -40,7 +40,7 @@ fingerprint:
   tests/test_abci_fuzz.py: bafybeien7nts67jzopoojy52tvs4dfsfdqflfgzh7ovpuziilxnq2oygb4
   tests/test_abci_spec.py: bafybeifacnizp2mryyb2j64iugnxn5rhtx7xr4emwbw5xcke6le6utpwhu
   tests/test_fuzz/__init__.py: bafybeiggaobawdxpx2j637ldmacq7r7tnyeygukmjuayodj3vytdyqsjze
-  tests/test_fuzz/base.py: bafybeieeay3y5ism7uit2bgwnwwv3oot6wifkma2poz4ygtzmy6cu5sjce
+  tests/test_fuzz/base.py: bafybeia6avcuyiyislj4j4xvgdmyjs2arvdieplhlgy5q4effeldfvw6cy
   tests/test_fuzz/mock_node/__init__.py: bafybeibt3bm4l3wethryy564mzcbhqmnztsbko4c5bt5ila5ghq2e7vz7u
   tests/test_fuzz/mock_node/channels/__init__.py: bafybeifjjnlxtqd4pz76aq6w642n5d6pa635ehkhjxgzyjidakza27adja
   tests/test_fuzz/mock_node/channels/base.py: bafybeiewnctbkmmnnqwsrlwy2rfaypmva7xuclgwzfuwwrua3xpqf43f54
