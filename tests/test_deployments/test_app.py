@@ -20,6 +20,7 @@
 """Tests for the Tendermint com server."""
 
 import json
+import logging
 import os
 import platform
 import shutil
@@ -34,12 +35,16 @@ from unittest import mock
 import flask
 import pytest
 import requests
+from _pytest.logging import LogCaptureFixture  # type: ignore
+from _pytest.monkeypatch import MonkeyPatch  # type: ignore
 from aea.common import JSONLike
 from aea.test_tools.utils import wait_for_condition
 
+from deployments.Dockerfiles.tendermint import app  # type: ignore
 from deployments.Dockerfiles.tendermint.app import TendermintNode  # type: ignore
 from deployments.Dockerfiles.tendermint.app import (  # type: ignore
     CONFIG_OVERRIDE,
+    PeriodDumper,
     create_app,
     get_defaults,
     load_genesis,
@@ -64,6 +69,19 @@ def readonly_handler(func: Callable, path: str, execinfo) -> None:  # type: igno
     func(path)
 
 
+def test_period_dumper(monkeypatch: MonkeyPatch) -> None:
+    """Test PeriodDumper"""
+
+    monkeypatch.setenv("ID", "42")
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        monkeypatch.setenv("TMHOME", tmp_dir)
+        dump_dir = Path(tempfile.mkdtemp())
+        period_dumper = PeriodDumper(mock.Mock(), dump_dir=dump_dir)
+        period_dumper.dump_period()
+
+    shutil.rmtree(period_dumper.dump_dir)
+
+
 # base classes
 class BaseTendermintTest:
     """BaseTendermintTest"""
@@ -71,10 +89,12 @@ class BaseTendermintTest:
     tendermint: str
     tm_home: str
     path: Path
+    _os_env: Dict
 
     @classmethod
     def setup_class(cls) -> None:
         """Setup the test."""
+        cls._os_env = os.environ.copy()
         cls.tendermint = shutil.which("tendermint")  # type: ignore
         cls.tm_home = os.environ["TMHOME"] = tempfile.mkdtemp()
         cls.path = Path(cls.tm_home)
@@ -88,6 +108,8 @@ class BaseTendermintTest:
     @classmethod
     def teardown_class(cls) -> None:
         """Teardown the test."""
+        os.environ.clear()
+        os.environ.update(cls._os_env)
         shutil.rmtree(cls.tm_home, ignore_errors=True, onerror=readonly_handler)
 
 
@@ -100,6 +122,7 @@ class BaseTendermintServerTest(BaseTendermintTest):
     perform_monitoring = True
     debug_tendermint = False
     tm_status_endpoint = "http://localhost:26657/status"
+    dump_dir: Path
 
     @classmethod
     def setup_class(cls) -> None:
@@ -108,8 +131,9 @@ class BaseTendermintServerTest(BaseTendermintTest):
         os.environ["PROXY_APP"] = "kvstore"
         os.environ["CREATE_EMPTY_BLOCKS"] = "true"
         os.environ["LOG_FILE"] = str(cls.path / "tendermint.log")
+        cls.dump_dir = Path(tempfile.mkdtemp())
         cls.app, cls.tendermint_node = create_app(
-            dump_dir=cls.path / "tm_state",
+            dump_dir=cls.dump_dir,
             perform_monitoring=cls.perform_monitoring,
             debug=cls.debug_tendermint,
         )
@@ -122,6 +146,7 @@ class BaseTendermintServerTest(BaseTendermintTest):
         """Teardown the test."""
         cls.app_context.pop()
         cls.tendermint_node.stop()
+        shutil.rmtree(cls.dump_dir)
         super().teardown_class()
 
 
@@ -309,6 +334,31 @@ class TestTendermintHardResetServer(BaseTendermintServerTest):
             data = response.get_json()
             assert response.status_code == 200
             assert data["status"] is not prune_fail
+
+    @wait_for_node_to_run
+    @pytest.mark.skipif(platform.system() != "Linux", reason="scoped to docker image")
+    def test_hard_reset_dev_mode(self, caplog: LogCaptureFixture) -> None:
+        """Test hard reset"""
+
+        resets = 0  # zero since first hard reset
+        os.environ["ID"] = "_dummy_ID"
+        period_dumper = PeriodDumper(logger=logging.getLogger(), dump_dir=self.dump_dir)
+        store_dir = period_dumper.dump_dir / f"period_{resets}"
+        path = store_dir / ("node" + os.environ["ID"])
+        logging.error(f"expected: {path}")
+        assert not path.exists()
+
+        with self.app.test_client() as client:
+            with mock.patch.object(app, "IS_DEV_MODE", return_value=True):
+                response = client.get("/hard_reset")
+                assert response.status_code == 200
+                data = cast(JSONLike, response.get_json())
+                assert data["status"] is True
+                assert "Dumped data for period" in caplog.text
+
+        assert path.exists()
+        expected = {"config", "tendermint.log", "data"}
+        assert {p.name for p in path.glob("*")} == expected
 
 
 class TestTendermintLogMessages(BaseTendermintServerTest):
