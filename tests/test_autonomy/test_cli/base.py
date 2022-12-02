@@ -27,7 +27,8 @@ import tempfile
 from contextlib import suppress
 from pathlib import Path
 from typing import Optional, Sequence, Tuple
-
+import pytest
+from _pytest.capture import CaptureFixture  # type: ignore
 from aea.test_tools.click_testing import CliRunner
 from click.testing import Result
 
@@ -36,6 +37,11 @@ from autonomy.cli import cli
 
 class BaseCliTest:
     """Test `autonomy analyse abci` command."""
+
+    @pytest.fixture(autouse=True)
+    def set_capfd_on_cli_runner(self, capfd: CaptureFixture) -> None:
+        """Set pytest capfd on CLI runner"""
+        self.cli_runner.capfd = capfd
 
     t: Path
     cwd: Path
@@ -53,6 +59,11 @@ class BaseCliTest:
     ) -> None:
         """Setup test."""
         self.t = Path(tempfile.mkdtemp())
+
+    @property
+    def capfd(self) -> CaptureFixture:
+        """CliRunner capfd fixture"""
+        return self.cli_runner.capfd
 
     def run_cli(self, commands: Optional[Tuple[str, ...]] = None) -> Result:
         """Run CLI."""
