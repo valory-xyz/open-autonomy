@@ -4,16 +4,6 @@
 
 Base configurations.
 
-<a id="autonomy.configurations.base.recurse"></a>
-
-#### recurse
-
-```python
-def recurse(obj: Dict[str, Any]) -> Dict[str, Any]
-```
-
-Recursively explore a json object until no dictionaries remain.
-
 <a id="autonomy.configurations.base.Service"></a>
 
 ## Service Objects
@@ -78,80 +68,54 @@ def validate_config_data(cls, json_data: Dict, env_vars_friendly: bool = False) 
 
 Validate config data.
 
-<a id="autonomy.configurations.base.Service.check_overrides_match_spec"></a>
-
-#### check`_`overrides`_`match`_`spec
-
-```python
-def check_overrides_match_spec(overrides: List) -> bool
-```
-
-Check that overrides are valid.
-
-- number of overrides is 1
-- number of overrides == number of agents in spec
-- number of overrides is 0
-
-**Arguments**:
-
-- `overrides`: List of overrides
-
-**Returns**:
-
-True if overrides are valid
-
 <a id="autonomy.configurations.base.Service.check_overrides_valid"></a>
 
 #### check`_`overrides`_`valid
 
 ```python
-def check_overrides_valid(overrides: List, env_vars_friendly: bool = False) -> Dict[ComponentId, Dict[Any, Any]]
+def check_overrides_valid(overrides: List, env_vars_friendly: bool = False) -> None
 ```
 
 Uses the AEA helper libraries to check individual overrides.
 
-<a id="autonomy.configurations.base.Service.process_component_section"></a>
+<a id="autonomy.configurations.base.Service.process_metadata"></a>
 
-#### process`_`component`_`section
+#### process`_`metadata
 
 ```python
-def process_component_section(component_index: int, component_configuration_json: Dict) -> Tuple[ComponentId, Dict]
+@staticmethod
+def process_metadata(configuration: Dict) -> Tuple[Dict, ComponentId, bool]
+```
+
+Process component override metadata.
+
+<a id="autonomy.configurations.base.Service.process_component_overrides"></a>
+
+#### process`_`component`_`overrides
+
+```python
+def process_component_overrides(agent_idx: int, component_configuration_json: Dict) -> Dict
 ```
 
 Process a component configuration in an agent configuration file.
 
-It breaks down in:
-- extract the component id
-- validate the component configuration
-- check that there are only configurable fields
-
 **Arguments**:
 
-- `component_index`: the index of the component in the file.
+- `agent_idx`: Index of the agent.
 - `component_configuration_json`: the JSON object.
 
 **Returns**:
 
 the processed component configuration.
 
-<a id="autonomy.configurations.base.Service.try_to_process_singular_override"></a>
+<a id="autonomy.configurations.base.Service.generate_environment_variables"></a>
 
-#### try`_`to`_`process`_`singular`_`override
+#### generate`_`environment`_`variables
 
 ```python
 @staticmethod
-def try_to_process_singular_override(component_id: ComponentId, config_class: ComponentConfiguration, component_configuration_json: Dict) -> Dict
+def generate_environment_variables(component_id: ComponentId, component_configuration_json: Dict) -> Dict
 ```
 
 Try to process component with a singular component overrides.
-
-<a id="autonomy.configurations.base.Service.try_to_process_nested_fields"></a>
-
-#### try`_`to`_`process`_`nested`_`fields
-
-```python
-def try_to_process_nested_fields(component_id: ComponentId, component_index: int, config_class: ComponentConfiguration, component_configuration_json: Dict) -> Dict
-```
-
-Try to process component with nested overrides.
 

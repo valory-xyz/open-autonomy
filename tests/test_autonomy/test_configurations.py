@@ -28,10 +28,15 @@ from typing import Dict, List
 
 import pytest
 import yaml
+from aea.configurations.data_types import PublicId
 from aea.exceptions import AEAValidationError
+from aea.helpers.io import open_file
+from aea.helpers.yaml_utils import yaml_load_all
 
+from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
 
+from tests.conftest import ROOT_DIR
 from tests.test_autonomy.base import get_dummy_service_config
 
 
@@ -73,38 +78,72 @@ class TestServiceConfig:
                 continue
             assert value == dummy_service[0][key]
 
-    def test_check_overrides_valid(
+    def test_check_overrides_valid_fail_missing_overrides(
         self,
     ) -> None:
         """Test check_overrides_valid method."""
 
-        dummy_service = get_dummy_service_config()
-        dummy_service[0]["number_of_agents"] = 4
-        self._write_service(dummy_service)
-
-        with pytest.raises(ValueError, match="Not enough items in override"):
-            load_service_config(self.t)
-
-        dummy_service = get_dummy_service_config()
-        dummy_service[1]["models"]["1"] = []  # type: ignore
+        dummy_service = get_dummy_service_config(file_number=2)
+        dummy_service[0]["number_of_agents"] = 6
         self._write_service(dummy_service)
 
         with pytest.raises(
-            ValueError, match="All keys of list like override should be of type int."
-        ):
-            load_service_config(self.t)
-
-        dummy_service = get_dummy_service_config()
-        dummy_service.append(dummy_service[1])
-        self._write_service(dummy_service)
-
-        with pytest.raises(
-            ValueError,
+            AEAValidationError,
             match=re.escape(
-                "Configuration of component (skill, valory/dummy_abci:0.1.0) occurs more than once."
+                "Not enough overrides for component (skill, valory/dummy_skill:0.1.0); Number of agents: 6"
             ),
         ):
             load_service_config(self.t)
+
+    def test_check_repeatetive_overrides(
+        self,
+    ) -> None:
+        """Test check_overrides_valid method."""
+
+        dummy_service = get_dummy_service_config(file_number=2)
+        dummy_service.append(dummy_service[-1])
+        self._write_service(dummy_service)
+
+        with pytest.raises(
+            AEAValidationError,
+            match=re.escape(
+                "Overrides for component (skill, valory/dummy_skill:0.1.0) are defined more than once"
+            ),
+        ):
+            load_service_config(self.t)
+
+    def test_process_metadata(
+        self,
+    ) -> None:
+        """Test process metadata."""
+
+        _, component_override = get_dummy_service_config(file_number=2)
+        configuration, component_id, has_multiple_overrides = Service.process_metadata(
+            component_override.copy()
+        )
+
+        assert has_multiple_overrides
+        assert "public_id" not in configuration
+        assert "type" not in configuration
+        assert (
+            PublicId.from_str(component_override["public_id"]) == component_id.public_id
+        )
+
+    def test_no_configuration_provided_for_agent_x(
+        self,
+    ) -> None:
+        """Test process metadata."""
+
+        service = Service(name="service", author="author", agent="valory/agent")
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "Overrides not provided for agent 1; component=(skill, valory/skill:latest)"
+            ),
+        ):
+            service.process_component_overrides(
+                1, {"type": "skill", "public_id": "valory/skill"}
+            )
 
     def test_env_vars(
         self,
@@ -112,17 +151,6 @@ class TestServiceConfig:
         """Test if env vars are properly loaded."""
 
         env_placeholder = "${NUMBER_OF_AGENTS:int:1}"
-        dummy_service = get_dummy_service_config()
-        dummy_service[0]["number_of_agents"] = env_placeholder
-
-        self._write_service(dummy_service)
-
-        with pytest.raises(
-            AEAValidationError,
-            match=re.escape("'${NUMBER_OF_AGENTS:int:1}' is not of type 'integer'"),
-        ):
-            load_service_config(self.t)
-
         dummy_service = get_dummy_service_config()
         dummy_service[0]["number_of_agents"] = env_placeholder
 
@@ -139,3 +167,26 @@ class TestServiceConfig:
 
         os.chdir(cls.cwd)
         shutil.rmtree(cls.t)
+
+
+@pytest.mark.parametrize(
+    "service_file",
+    Path(
+        ROOT_DIR,
+        "tests",
+        "data",
+        "dummy_service_config_files",
+    ).iterdir(),
+)
+def test_load_service(service_file: Path) -> None:
+    """Test loading and processing service component."""
+
+    with open_file(service_file, "r", encoding="utf-8") as fp:
+        data = yaml_load_all(fp)
+
+    service_config, *overrides = data
+    Service.validate_config_data(service_config)
+    service_config["license_"] = service_config.pop("license")
+
+    service = Service(**service_config)
+    service.overrides = overrides

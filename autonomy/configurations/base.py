@@ -19,12 +19,11 @@
 
 """Base configurations."""
 
+import os
 from collections import OrderedDict
 from copy import copy
-from pathlib import Path
 from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, cast
 
-from aea import AEA_DIR
 from aea.configurations import validation
 from aea.configurations.base import (
     ComponentConfiguration,
@@ -36,9 +35,10 @@ from aea.configurations.base import (
     PACKAGE_TYPE_TO_CONFIG_CLASS as _PACKAGE_TYPE_TO_CONFIG_CLASS,
 )
 from aea.configurations.base import PackageConfiguration, ProtocolConfig, SkillConfig
-from aea.configurations.constants import CONNECTION, CONTRACT, PROTOCOL, SKILL
 from aea.configurations.data_types import PackageType, PublicId
-from aea.helpers.base import SimpleIdOrStr, cd
+from aea.exceptions import AEAValidationError
+from aea.helpers.base import SimpleIdOrStr
+from aea.helpers.env_vars import apply_env_variables, generate_env_vars_recursively
 
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE, SCHEMAS_DIR
 from autonomy.configurations.validation import ConfigValidator
@@ -53,27 +53,6 @@ COMPONENT_CONFIGS: Dict = {
         ConnectionConfig,
     ]
 }
-
-
-def recurse(obj: Dict[str, Any]) -> Dict[str, Any]:
-    """Recursively explore a json object until no dictionaries remain."""
-    if not any([isinstance(i, dict) for i in obj.values()]):
-        return obj
-
-    new_obj = {}
-    for k, v in obj.items():
-        if isinstance(v, dict):
-            for k2, v2 in v.items():
-                new_obj["_".join([str(k), str(k2)])] = v2
-        else:
-            new_obj[k] = v
-    return recurse(new_obj)
-
-
-def _parse_nested_override(env_var_name: str, nested_override_value: Dict) -> Dict:
-    """Used for handling dictionary object 1 level below nesting."""
-    overrides = recurse(nested_override_value)
-    return {f"{env_var_name}_{k}".upper(): v for k, v in overrides.items()}
 
 
 class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attributes
@@ -148,7 +127,6 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         """Set overrides."""
 
         self.check_overrides_valid(obj)
-        self.check_overrides_match_spec(obj)
         self._overrides = obj
 
     @property
@@ -207,179 +185,125 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             json_data
         )
 
-    def check_overrides_match_spec(self, overrides: List) -> bool:
-        """Check that overrides are valid.
-
-        - number of overrides is 1
-        - number of overrides == number of agents in spec
-        - number of overrides is 0
-
-        :param overrides: List of overrides
-        :return: True if overrides are valid
-        """
-        valid = []
-        remaining = copy(overrides)
-
-        for component in [
-            CONNECTION,
-            CONTRACT,
-            PROTOCOL,
-            SKILL,
-        ]:
-
-            component_overrides = [f for f in overrides if f["type"] == component]
-            remaining = [f for f in remaining if f not in component_overrides]
-            if any(
-                [
-                    self.number_of_agents == len(component_overrides),
-                    len(component_overrides) == 0,
-                    len(component_overrides) == 1,
-                ]
-            ):
-                valid.append(True)
-
-        if len(remaining) > 0:  # pragma: nocover
-            raise ValueError(f"Override type is misspelled.\n {remaining}")
-
-        if sum(valid) == 4:
-            return True
-
-        raise ValueError("Incorrect number of overrides for count of agents.")
-
     def check_overrides_valid(
         self, overrides: List, env_vars_friendly: bool = False
-    ) -> Dict[ComponentId, Dict[Any, Any]]:
+    ) -> None:
         """Uses the AEA helper libraries to check individual overrides."""
-
-        component_configurations: Dict[ComponentId, Dict] = {}
-        # load the other components.
-
-        for idx, component_configuration_json in enumerate(overrides):
-            component_id, _ = self.process_component_section(
-                idx, component_configuration_json
+        base_validator = validation.ConfigValidator("definitions.json")
+        processed = []
+        for component_configuration_json in overrides:
+            configuration, component_id, has_multiple_overrides = self.process_metadata(
+                configuration=copy(component_configuration_json)
             )
-            if component_id in component_configurations:
-                raise ValueError(
-                    f"Configuration of component {component_id} occurs more than once."
+            if component_id in processed:
+                raise AEAValidationError(
+                    f"Overrides for component {component_id} are defined more than once"
                 )
-            component_configurations[component_id] = component_configuration_json
+            if has_multiple_overrides:
+                for idx in range(self.number_of_agents):
+                    try:
+                        _configuration = cast(Dict, configuration[idx])
+                    except KeyError as e:
+                        raise AEAValidationError(
+                            f"Not enough overrides for component {component_id};"
+                            f" Number of agents: {self.number_of_agents}"
+                        ) from e
 
-        return component_configurations
+                    base_validator.validate_component_configuration(
+                        component_id=component_id,
+                        configuration=_configuration,
+                        env_vars_friendly=env_vars_friendly,
+                    )
+            else:
+                base_validator.validate_component_configuration(
+                    component_id=component_id,
+                    configuration=configuration,
+                    env_vars_friendly=env_vars_friendly,
+                )
 
-    def process_component_section(
+            processed.append(component_id)
+
+    @staticmethod
+    def process_metadata(
+        configuration: Dict,
+    ) -> Tuple[Dict, ComponentId, bool]:
+        """Process component override metadata."""
+
+        component_id = ComponentId(
+            component_type=cast(str, configuration.pop("type")),
+            public_id=PublicId.from_str(
+                cast(
+                    str,
+                    configuration.pop("public_id"),
+                ),
+            ),
+        )
+        _ = configuration.pop("extra", {})
+        has_multiple_overrides = all(
+            map(lambda x: isinstance(x, int), configuration.keys())
+        )
+        return configuration, component_id, has_multiple_overrides
+
+    def process_component_overrides(
         self,
-        component_index: int,
+        agent_idx: int,
         component_configuration_json: Dict,
-    ) -> Tuple[ComponentId, Dict]:
+    ) -> Dict:
         """
         Process a component configuration in an agent configuration file.
 
-        It breaks down in:
-        - extract the component id
-        - validate the component configuration
-        - check that there are only configurable fields
-
-        :param component_index: the index of the component in the file.
+        :param agent_idx: Index of the agent.
         :param component_configuration_json: the JSON object.
         :return: the processed component configuration.
         """
-        configuration = copy(component_configuration_json)
-        component_id = ConfigValidator.split_component_id_and_config(
-            component_index, configuration
+
+        configuration, component_id, has_multiple_overrides = self.process_metadata(
+            configuration=copy(component_configuration_json)
         )
 
-        path = Path(AEA_DIR) / "configurations" / "schemas"
-        config_class = COMPONENT_CONFIGS[component_id.package_type.value]
+        if has_multiple_overrides:
+            configuration = configuration.get(agent_idx, {})
+            if configuration == {}:
+                raise ValueError(
+                    f"Overrides not provided for agent {agent_idx}; component={component_id}"
+                )
+        configuration = apply_env_variables(
+            data=configuration, env_variables=os.environ.copy()
+        )
+        env_var_dict = self.generate_environment_variables(
+            component_id=component_id,
+            component_configuration_json=configuration,
+        )
 
-        with cd(path):  # required to handle protected variable _SCHEMEAS_DIR
-            cv = validation.ConfigValidator("definitions.json")
-            try:
-                cv.validate_component_configuration(component_id, configuration)
-                overrides = self.try_to_process_singular_override(
-                    component_id, config_class, configuration
-                )
-            except (ValueError, AttributeError):
-                overrides = self.try_to_process_nested_fields(
-                    component_id,
-                    component_index,
-                    config_class,
-                    configuration,
-                )
-        return component_id, overrides
+        return env_var_dict
 
     @staticmethod
-    def try_to_process_singular_override(
+    def generate_environment_variables(
         component_id: ComponentId,
-        config_class: ComponentConfiguration,
         component_configuration_json: Dict,
     ) -> Dict:
         """Try to process component with a singular component overrides."""
-        overrides = {}
+        config_class = cast(
+            ComponentConfiguration,
+            COMPONENT_CONFIGS.get(component_id.package_type.value),
+        )
+        env_var_dict = {}
+        export_path_prefix = [
+            component_id.package_type.value,
+            component_id.name,
+        ]
         for field in config_class.FIELDS_ALLOWED_TO_UPDATE:
-            env_var_base = "_".join(
-                [component_id.package_type.value, component_id.name, field]
+            field_data = component_configuration_json.get(field, {})
+            if field_data == {}:
+                continue
+            env_var_dict.update(
+                generate_env_vars_recursively(
+                    data=field_data,
+                    export_path=[*export_path_prefix, field],
+                )
             )
 
-            field_override = component_configuration_json.get(field, {})
-            if field_override == {}:
-                continue
-            for nested_override, nested_value in field_override.items():
-                for (
-                    nested_override_key,
-                    nested_override_value,
-                ) in nested_value.items():
-                    env_var_name = "_".join(
-                        [env_var_base, nested_override, nested_override_key]
-                    )
-                    overrides.update(
-                        _parse_nested_override(env_var_name, nested_override_value)
-                    )
-        return overrides
-
-    def try_to_process_nested_fields(  # pylint: disable=too-many-locals
-        self,
-        component_id: ComponentId,
-        component_index: int,
-        config_class: ComponentConfiguration,
-        component_configuration_json: Dict,
-    ) -> Dict:
-        """Try to process component with nested overrides."""
-        overrides = {}
-        for field in config_class.FIELDS_ALLOWED_TO_UPDATE:  # type: ignore
-            field_override = component_configuration_json.get(field, {})
-            if field_override == {}:
-                continue
-            if not all(isinstance(item, int) for item in field_override.keys()):
-                raise ValueError(
-                    "All keys of list like override should be of type int."
-                )
-            override_index = set(field_override.keys())
-            if self.number_of_agents > len(override_index):
-                raise ValueError(
-                    f"Not enough items in override, Number of agents = {self.number_of_agents}; Number of overrides provided = {len(override_index)}"
-                )
-
-            n_fields = len(field_override)
-            for override in field_override[component_index % n_fields]:
-                for nested_override, nested_value in override.items():
-                    for (
-                        nested_override_key,
-                        nested_override_value,
-                    ) in nested_value.items():
-                        env_var_name = "_".join(
-                            [
-                                component_id.package_type.value,
-                                component_id.name,
-                                field,
-                                nested_override,
-                                nested_override_key,
-                            ]
-                        )
-                        overrides.update(
-                            _parse_nested_override(env_var_name, nested_override_value)
-                        )
-
-        return overrides
+        return env_var_dict
 
 
 PACKAGE_TYPE_TO_CONFIG_CLASS = {

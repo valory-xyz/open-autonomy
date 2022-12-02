@@ -21,7 +21,8 @@
 
 import os
 from pathlib import Path
-from typing import Dict, List, cast
+from typing import Dict
+from warnings import warn
 
 from aea.configurations.base import (
     ConnectionConfig,
@@ -52,16 +53,27 @@ def load_service_config(
 ) -> Service:
     """Load service config from the path."""
 
+    if substitute_env_vars:
+        warn(
+            "`substitute_env_vars` argument is deprecated and will be removed in v1.0.0, "
+            "usage of environment varibales is default now.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
     # TODO: align with open-aea _load_service_config & handle data == None and other validation errors
     with open_file(
         service_path / Service.default_configuration_filename, "r", encoding="utf-8"
     ) as fp:
         data = yaml_load_all(fp)
 
-    if substitute_env_vars:
-        data = cast(List[Dict], apply_env_variables(data, env_variables=os.environ))
-
+    # Here we apply the environment variables to base service config only
+    # We apply the environment variables to the overrides when processing
+    # them to export as environment variables
     service_config, *overrides = data
+    service_config = apply_env_variables(
+        service_config, env_variables=os.environ.copy()
+    )
     Service.validate_config_data(service_config)
     service_config["license_"] = service_config.pop("license")
 

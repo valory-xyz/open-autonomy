@@ -22,7 +22,7 @@ We will explore this process in detail in several guides included in this sectio
 
 4. Having the FSM App for the service coded the next step is the **agent definition**. That is, use the FSM App just defined, and possibly some other readily available components, to define the agent that will run the service.
 
-5. Similarly, the **service definition** declares what agents constitute the service, together with a number of configuration parameters required by the service.
+5. Similarly, the **service configuration** declares what agents constitute the service, together with a number of configuration parameters required by the service.
 
 6. The next step is to **register the service on-chain**. This is required to use the service with the on-chain protocol.
 

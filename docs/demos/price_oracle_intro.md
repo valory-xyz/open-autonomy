@@ -33,7 +33,7 @@ node.
 
 
 ## Running the demo
-The steps below will guide you to download the price oracle agent service definition from the Service Registry, build and run a deployment locally.
+The steps below will guide you to download the price oracle agent service configuration from the Service Registry, build and run a deployment locally.
 
 1. Open a terminal and run a local [HardHat](https://hardhat.org/) node that will emulate a blockchain node. For convenience, we provide a Docker image in [Docker Hub](https://hub.docker.com/) that can be run by executing:
     ```bash

@@ -15,9 +15,9 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 Now that you have set up your machine to work with {{open_autonomy}}, we are in position to use the CLI to fetch the agent service from the remote registry and deploy it locally.
 
-1. Use the CLI to fetch the [Hello World agent service](../demos/hello_world_demo.md). This will connect to the remote registry and download the service specification to the `hello_world` folder:
+1. Use the CLI to fetch the [Hello World agent service](../demos/hello_world_demo.md). This will connect to the remote registry and download the files that make up the service to the `hello_world` folder:
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeicraeo72ut4qfu564um36bxpdjytf46ryqjvr3ijzelml7jo5pqqm --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeih3ra7ii3wy5cjnrgivu5ma2pt24ynrc6yer3ew2mmv2uzx4fxudq --service
     cd hello_world
     ```
 

@@ -161,7 +161,8 @@ Run deployment.
 )
 @chain_selection_flag()
 @click.pass_context
-def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, chain_type: str, rpc_url: Optional[str], service_contract_address: Optional[str], skip_image: bool, n: Optional[int], aev: bool = False) -> None
+@password_option(confirmation_prompt=True)
+def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, chain_type: str, rpc_url: Optional[str], service_contract_address: Optional[str], skip_image: bool, n: Optional[int], aev: bool = False, password: Optional[str] = None) -> None
 ```
 
 Run service deployment.

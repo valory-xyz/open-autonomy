@@ -1,0 +1,20 @@
+name: dummy_service
+author: valory
+version: 0.1.0
+description: A dummy service config file with nested list.
+aea_version: '>=1.0.0, <2.0.0'
+license: Apache-2.0
+fingerprint:
+  README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
+fingerprint_ignore_patterns: []
+agent: valory/hello_world:0.1.0:bafybeiaotnukv7oq2sknot73a4zssrrnjezh6nd2fwptrznxtnovy2rusm
+number_of_agents: 4
+---
+public_id: valory/dummy_connection:0.1.0
+type: connection
+config:
+  nodes:
+  - uri: some_uri
+    public_key: some_key
+  - uri: some_uri
+    public_key: some_key

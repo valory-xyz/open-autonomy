@@ -197,7 +197,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             open_aea_dir=open_aea_dir,
             open_autonomy_dir=open_autonomy_dir,
             log_level=log_level,
-            substitute_env_vars=aev,
+            apply_environment_variables=aev,
             image_version=image_version,
             use_hardhat=use_hardhat,
             use_acn=use_acn,
@@ -256,6 +256,7 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
 )
 @chain_selection_flag()
 @click.pass_context
+@password_option(confirmation_prompt=True)
 def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-locals
     click_context: click.Context,
     token_id: int,
@@ -266,6 +267,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     skip_image: bool,
     n: Optional[int],
     aev: bool = False,
+    password: Optional[str] = None,
 ) -> None:
     """Run service deployment."""
 
@@ -283,6 +285,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
             skip_image=skip_image,
             n=n,
             aev=aev,
+            password=password,
         )
     except (
         NotValidKeysFile,

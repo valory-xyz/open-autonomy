@@ -10,7 +10,7 @@ with a custom configuration. For example, an oracle service customized to serve 
 ##What you will learn
 In this guide, you will learn how to:
 
-  - Create a service definition using an already available agent on the  [IPFS](https://ipfs.io/).
+  - Create a service configuration using an already available agent on the  [IPFS](https://ipfs.io/).
   - Test the service using a local deployment.
   - Publish the service on the [IPFS](https://ipfs.io/).
   - Register the service in the on-chain protocol. We will be using the [Görli testnet](https://goerli.net/).
@@ -37,18 +37,20 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
 
 
 
-1. **Define the service.** Create an empty folder with the service name (e.g., `hello_world_2_service`). Inside that folder, create a `README.md` file, where you can write a description of the service, and a service definition file `service.yaml`, where the agent IPFS hash must be specified. You will need the [IPFS](https://ipfs.io/) hash of the agent to populate the `servie.yaml` file:
+1. **Define the service.** Create an empty folder with the service name. Inside that folder, create:
+    * a `README.md` file, where you can write a description of the service, and
+    * a service configuration file `service.yaml`, where you will indicate the [IPFS](https://ipfs.io/) hash of the agent.
 
     ```bash
-    mkdir hello_world_2_service
-    cd hello_world_2_service
+    mkdir <service_name>
+    cd <service_name>
     touch README.md
     touch service.yaml
     ```
 
-    ??? example "Example of a `service.yaml` file"
-        The service definition file `service.yaml` is where
-        the parameters of the agent service are defined, including the particular agent that composes the service. Here is an example of the [Hello World agent service](../demos/hello_world_demo.md) `service.yaml` file:
+    ??? example "Example of a service configuration file `service.yaml`"
+        The service configuration file `service.yaml` is where
+        the parameters of the agent service are defined, including the particular agent that composes the service. Below you can find an exampe for the [Hello World agent service](../demos/hello_world_demo.md). You can read the [service configuration file section](./service_configuration_file.md) to understand its structure.
         ```yaml
         name: hello_world
         author: valory
@@ -62,35 +64,40 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
         agent: valory/hello_world:0.1.0:bafybeihqzkncz7r563lfkots4fphb7abdymdna4ir7in7fsbzjtx6yyndq
         number_of_agents: 4
         ---
-        benchmark_persistence_params:
-          args: &id001
-            log_dir: /benchmarks
+        extra:
+          benchmark_persistence_params:
+            args: &id001
+              log_dir: /benchmarks
+        overide_type: multiple
         public_id: valory/hello_world_abci:0.1.0
         type: skill
-        models:
-          0:
-          - params:
+        0:
+          models:
+            params:
               args:
                 hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
-          - benchmark_tool:
+            benchmark_tool:
               args: *id001
-          1:
-          - params:
+        1:
+          models:
+            params:
               args:
                 hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
-          - benchmark_tool:
+            benchmark_tool:
               args: *id001
-          2:
-          - params:
+        2:
+          models:
+            params:
               args:
                 hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
-          - benchmark_tool:
+            benchmark_tool:
               args: *id001
-          3:
-          - params:
+        3:
+          models:
+            params:
               args:
                 hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
-          - benchmark_tool:
+            benchmark_tool:
               args: *id001
         ---
         public_id: valory/ledger:0.19.0
@@ -105,19 +112,7 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
 
         ```
 
-        Most of the parameters in the YAML file are self-explanatory, but let us briefly discuss some of them:
 
-        - `fingerprint`: this field contains the IPFS hash for all the files inside the service folder, except the `service.yaml` itself. To get the IPFS hash of a given file you can use the `autonomy hash` command, for example,
-        ```bash
-        autonomy hash one README.md
-        ```
-
-        - `fingerprint_ignore_patterns`: filename patterns whose matches will be ignored.
-        - `agent`: references the agent that the service is going to use, in the format `public_id:ipfs_hash`.
-
-        Following the mandatory parameters of the service definition, there is a number of parameter overrides following the operator `---`, which set parameters for the agent components. In this case, the service is setting values for some parameters parameters in the `hello_world_abci` skill, and in the `ledger` connection.
-
-        You can, for example, override the default `HELLO_WORLD!` string that each agent prints on their console.
 
 2. **Use a local deployment to test the service.** This is the recommended approach in order to test your agent service before you publish it to a remote registry. Follow the instructions in the [local deployment guide](./deploy_service.md#local-deployment) to run the local deployment. Note that this process should be somewhat familiar to you if you have followed the [quick start guide](./quick_start.md).
 

@@ -133,6 +133,9 @@ class TestGenerateSpecs(BaseCliTest):
     ) -> None:
         """Test failures."""
 
+        with pytest.raises(ValueError, match="Unrecognized input format .exe"):
+            FSMSpecificationLoader.load(self.skill_path, ".exe")
+
         result = self.run_cli(
             (
                 "--app-class",

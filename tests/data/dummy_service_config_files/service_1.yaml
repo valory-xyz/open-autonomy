@@ -1,0 +1,34 @@
+name: dummy_service
+author: valory
+version: 0.1.0
+description: A dummy service config file with sigular overrides.
+aea_version: '>=1.0.0, <2.0.0'
+license: Apache-2.0
+fingerprint:
+  README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
+fingerprint_ignore_patterns: []
+agent: valory/hello_world:0.1.0:bafybeiaotnukv7oq2sknot73a4zssrrnjezh6nd2fwptrznxtnovy2rusm
+number_of_agents: 1
+---
+public_id: valory/dummy_skill:0.1.0
+type: skill
+models:
+  params:
+    args:
+      message: ${str:"Hello, World!"}
+      setup:
+        safe_contract_address:
+          - '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'        
+  benchmark_tool:
+      args:
+        log_dir: /logs
+---
+public_id: valory/dummy_connection:0.1.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: ${str:http://host.docker.internal}
+      chain_id: 31337
+      poa_chain: false
+      default_gas_price_strategy: eip1559
