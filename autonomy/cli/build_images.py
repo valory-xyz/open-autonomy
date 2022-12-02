@@ -28,6 +28,7 @@ from aea.cli.utils.click_utils import PublicIdParameter
 from aea.configurations.data_types import PublicId
 
 from autonomy.configurations.loader import load_service_config
+from autonomy.deploy.image import ImageBuildFailed
 from autonomy.deploy.image import build_image as _build_image
 
 
@@ -72,5 +73,5 @@ def build_image(
             dev=dev,
             version=version,
         )
-    except Exception as e:  # pylint: disable=broad-except
+    except ImageBuildFailed as e:
         raise click.ClickException(str(e)) from e
