@@ -31,19 +31,21 @@ import pytest
 import yaml
 
 from autonomy.deploy.base import (
+    ABCI_HOST,
+    ENV_VAR_ABCI_HOST,
+    ENV_VAR_AEA_AGENT,
+    ENV_VAR_AEA_PASSWORD,
+    ENV_VAR_ID,
+    ENV_VAR_LOG_LEVEL,
+    ENV_VAR_MAX_PARTICIPANTS,
+    ENV_VAR_TENDERMINT_COM_URL,
+    ENV_VAR_TENDERMINT_URL,
     NotValidKeysFile,
     ServiceBuilder,
-    ENV_VAR_ID,
-    ENV_VAR_AEA_AGENT,
-    ENV_VAR_ABCI_HOST,
-    ENV_VAR_MAX_PARTICIPANTS,
-    ENV_VAR_TENDERMINT_URL,
-    ENV_VAR_TENDERMINT_COM_URL,
-    ENV_VAR_LOG_LEVEL,
-    ENV_VAR_AEA_PASSWORD,
-    ABCI_HOST,
 )
+
 from tests.test_autonomy.base import get_dummy_service_config
+
 
 COMMON_VARS = (
     ENV_VAR_ID,
@@ -153,7 +155,7 @@ class TestServiceBuilder:
         assert common_vars_without_password[ENV_VAR_AEA_AGENT] == spec.service.agent
         assert common_vars_without_password[ENV_VAR_ABCI_HOST] == ABCI_HOST.format(0)
 
-        spec = ServiceBuilder.from_dir(
+        spec = ServiceBuilder.from_dir(  # nosec
             self.service_path,
             self.keys_path,
             private_keys_password="some_password",
