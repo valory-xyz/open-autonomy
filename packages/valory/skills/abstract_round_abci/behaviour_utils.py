@@ -1861,6 +1861,19 @@ class TmManager(BaseBehaviour, ABC):
 
         self.context.logger.info("Tendermint reset was successfully performed. ")
 
+    def _get_reset_params(self, default: bool) -> Optional[List[Tuple[str, str]]]:
+        """
+        Get the parameters for a hard reset request when trying to recover agent <-> tendermint communication.
+
+        :param default: ignored for this use case.
+        :returns: the reset params.
+        """
+        # we get the params from the latest successful reset, if they are not available,
+        # i.e. no successful reset has been performed, we return None.
+        # Returning None means default params will be used.
+        reset_params = self.context.shared_state.get("reset_params", None)
+        return reset_params
+
     def try_fix(self) -> None:
         """This method tries to fix an unhealthy node."""
         if self._active_generator is None:
