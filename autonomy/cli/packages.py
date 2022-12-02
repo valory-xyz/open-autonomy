@@ -101,7 +101,8 @@ class _PackageManagerWithServicePatch(BasePackageManager):
         """Update dependencies."""
 
         if package_id.package_type != PackageType.SERVICE:
-            return super().update_dependencies(package_id=package_id)
+            super().update_dependencies(package_id=package_id)
+            return
 
         package_path = self.package_path_from_package_id(
             package_id=package_id,
