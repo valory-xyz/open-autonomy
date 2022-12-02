@@ -14,47 +14,113 @@ class NotValidKeysFile(Exception)
 
 Raise when provided keys file is not valid.
 
-<a id="autonomy.deploy.base.ServiceSpecification"></a>
+<a id="autonomy.deploy.base.ServiceBuilder"></a>
 
-## ServiceSpecification Objects
+## ServiceBuilder Objects
 
 ```python
-class ServiceSpecification()
+class ServiceBuilder()
 ```
 
 Class to assist with generating deployments.
 
-<a id="autonomy.deploy.base.ServiceSpecification.__init__"></a>
+<a id="autonomy.deploy.base.ServiceBuilder.__init__"></a>
 
 #### `__`init`__`
 
 ```python
-def __init__(service_path: Path, keys: Path, number_of_agents: Optional[int] = None, private_keys_password: Optional[str] = None, agent_instances: Optional[List[str]] = None, log_level: str = INFO, substitute_env_vars: bool = False) -> None
+def __init__(service: Service, keys: Optional[List[Dict[str, str]]] = None, private_keys_password: Optional[str] = None, agent_instances: Optional[List[str]] = None, apply_environment_variables: bool = False) -> None
 ```
 
 Initialize the Base Deployment.
 
-<a id="autonomy.deploy.base.ServiceSpecification.read_keys"></a>
+<a id="autonomy.deploy.base.ServiceBuilder.private_keys_password"></a>
+
+#### private`_`keys`_`password
+
+```python
+@property
+def private_keys_password() -> Optional[str]
+```
+
+Service password for agent keys.
+
+<a id="autonomy.deploy.base.ServiceBuilder.agent_instances"></a>
+
+#### agent`_`instances
+
+```python
+@property
+def agent_instances() -> Optional[List[str]]
+```
+
+Agent instances.
+
+<a id="autonomy.deploy.base.ServiceBuilder.agent_instances"></a>
+
+#### agent`_`instances
+
+```python
+@agent_instances.setter
+def agent_instances(instances: List[str]) -> None
+```
+
+Agent instances setter.
+
+<a id="autonomy.deploy.base.ServiceBuilder.keys"></a>
+
+#### keys
+
+```python
+@property
+def keys() -> List[Dict[str, str]]
+```
+
+Keys.
+
+<a id="autonomy.deploy.base.ServiceBuilder.from_dir"></a>
+
+#### from`_`dir
+
+```python
+@classmethod
+def from_dir(cls, path: Path, keys_file: Optional[Path] = None, number_of_agents: Optional[int] = None, private_keys_password: Optional[str] = None, agent_instances: Optional[List[str]] = None, apply_environment_variables: bool = False) -> "ServiceBuilder"
+```
+
+Service builder from path.
+
+<a id="autonomy.deploy.base.ServiceBuilder.verify_agent_instances"></a>
+
+#### verify`_`agent`_`instances
+
+```python
+@staticmethod
+def verify_agent_instances(keys: List[Dict[str, str]], agent_instances: List[str]) -> None
+```
+
+Cross verify agent instances with the keys.
+
+<a id="autonomy.deploy.base.ServiceBuilder.read_keys"></a>
 
 #### read`_`keys
 
 ```python
-def read_keys(file_path: Path) -> None
+def read_keys(keys_file: Path) -> None
 ```
 
 Read in keys from a file on disk.
 
-<a id="autonomy.deploy.base.ServiceSpecification.process_model_args_overrides"></a>
+<a id="autonomy.deploy.base.ServiceBuilder.process_component_overrides"></a>
 
-#### process`_`model`_`args`_`overrides
+#### process`_`component`_`overrides
 
 ```python
-def process_model_args_overrides(agent_n: int) -> Dict
+def process_component_overrides(agent_n: int) -> Dict
 ```
 
 Generates env vars based on model overrides.
 
-<a id="autonomy.deploy.base.ServiceSpecification.generate_agents"></a>
+<a id="autonomy.deploy.base.ServiceBuilder.generate_agents"></a>
 
 #### generate`_`agents
 
@@ -64,7 +130,7 @@ def generate_agents() -> List
 
 Generate multiple agent.
 
-<a id="autonomy.deploy.base.ServiceSpecification.generate_common_vars"></a>
+<a id="autonomy.deploy.base.ServiceBuilder.generate_common_vars"></a>
 
 #### generate`_`common`_`vars
 
@@ -74,7 +140,7 @@ def generate_common_vars(agent_n: int) -> Dict
 
 Retrieve vars common for valory apps.
 
-<a id="autonomy.deploy.base.ServiceSpecification.generate_agent"></a>
+<a id="autonomy.deploy.base.ServiceBuilder.generate_agent"></a>
 
 #### generate`_`agent
 
@@ -89,7 +155,7 @@ Generate next agent.
 ## BaseDeploymentGenerator Objects
 
 ```python
-class BaseDeploymentGenerator()
+class BaseDeploymentGenerator(abc.ABC)
 ```
 
 Base Deployment Class.
@@ -99,7 +165,7 @@ Base Deployment Class.
 #### `__`init`__`
 
 ```python
-def __init__(service_spec: ServiceSpecification, build_dir: Path, dev_mode: bool = False, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None)
+def __init__(service_builder: ServiceBuilder, build_dir: Path, dev_mode: bool = False, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None)
 ```
 
 Initialise with only kwargs.
