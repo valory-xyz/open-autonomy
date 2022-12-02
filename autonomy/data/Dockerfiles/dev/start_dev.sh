@@ -4,7 +4,7 @@ sudo chown -R ubuntu:ubuntu /benchmarks
 sudo chown -R ubuntu:ubuntu /home/ubuntu
 sudo chown -R ubuntu:ubuntu /home/ubuntu/packages
 
-echo "Starting Dev image and installing agent service dependencies."
+echo "Starting Dev image and installing agent dependencies."
 
 if [[ "$(ls -l /home/ubuntu/.local/share/virtualenvs | grep ubuntu | wc -l)" -eq "1" ]]
 then
