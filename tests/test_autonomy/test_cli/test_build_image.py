@@ -25,7 +25,7 @@ import shutil
 from pathlib import Path
 from random import choices
 from string import ascii_letters
-from typing import Tuple
+from typing import Any, Tuple
 
 import docker
 from aea.configurations.constants import PACKAGES
@@ -114,3 +114,16 @@ class TestBuildImageFailures(BaseCliTest):
 
         assert result.exit_code == 1, result.output
         assert "Service configuration not found the current directory" in result.output
+
+    def test_image_build_fail(self, capsys: Any) -> None:
+        """Test prod build."""
+
+        result = self.run_cli(
+            commands=(
+                "valory/agent:bafybeihyasfforsfualp6jnhh2jj7nreqmws2ygyfnh4p3idmfkm5yxu11",
+            )
+        )
+
+        out, _ = capsys.readouterr()
+        assert result.exit_code == 1, out
+        assert "Fetching agent failed" in out
