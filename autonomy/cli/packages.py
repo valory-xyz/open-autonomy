@@ -100,7 +100,7 @@ class _PackageManagerWithServicePatch(BasePackageManager):
     def update_dependencies(self, package_id: PackageId) -> None:
         """Update dependencies."""
 
-        if package_id.package_type != PackageType.SERVICE:
+        if package_id.package_type != PackageType.SERVICE:  # pragma: nocover
             super().update_dependencies(package_id=package_id)
             return
 
@@ -127,7 +127,7 @@ class _PackageManagerWithServicePatch(BasePackageManager):
     ) -> List[Tuple[PackageId, DepedencyMismatchErrors]]:
         """Update dependencies."""
 
-        if configuration.package_type != PackageType.SERVICE:
+        if configuration.package_type != PackageType.SERVICE:  # pragma: nocover
             return super().check_dependencies(
                 configuration=configuration,
             )
