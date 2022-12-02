@@ -91,7 +91,7 @@ class TestFetchCommand(BaseCliTest):
 
         shutil.rmtree(service)
 
-    def test_publish_and_fetch_service_ipfs(self, capsys: Any) -> None:
+    def test_publish_and_fetch_service_ipfs(self) -> None:
         """Test fetch service."""
         expected_hash = "bafybeic7k4hlrozzc6gfoaygnjr22tg6ukua3rdxt5fmkaplysrw3txvii"
 
@@ -114,7 +114,7 @@ class TestFetchCommand(BaseCliTest):
             service_dir
         ):
             result = self.cli_runner.invoke(cli, ["publish", "--remote"])
-            output = capsys.readouterr()
+            output = self.capfd.readouterr()
 
             assert result.exit_code == 0, output
             assert expected_hash in output.out, output.err
