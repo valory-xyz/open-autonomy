@@ -20,7 +20,9 @@
 """Base deployments module."""
 import abc
 import json
+import logging
 import os
+from copy import copy
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from warnings import warn
@@ -31,6 +33,8 @@ from aea.configurations.base import (
     ProtocolConfig,
     SkillConfig,
 )
+from aea.configurations.constants import SKILL
+from aea.configurations.data_types import PublicId
 
 from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
@@ -215,6 +219,60 @@ class ServiceBuilder:
             )
 
         self._keys = keys
+
+    @staticmethod
+    def _try_update_safe_contract_address(
+        address: str,
+        override: Dict,
+        skill_id: PublicId,
+        has_multiple_overrides: bool = False,
+    ) -> None:
+        """Try update the `safe_contract_address` parameter"""
+
+        try:
+            if not has_multiple_overrides:
+                override["models"]["params"]["args"]["setup"][
+                    "safe_contract_address"
+                ] = [
+                    address,
+                ]
+                return
+
+            for agent_idx in override:
+                override[agent_idx]["models"]["params"]["args"]["setup"][
+                    "safe_contract_address"
+                ] = [address]
+        except KeyError:
+            logging.warning(
+                f"Could not update the `safe_contract_address` parameter for {skill_id}; "
+                "Configuration does not contain the json path to `safe_contract_address` parameter"
+            )
+
+    def try_update_multisig_address(self, address: str) -> None:
+        """Try and update multisig address if `safe_contract_address` parameter is defined."""
+
+        overrides = copy(self.service.overrides)
+        for override in overrides:
+            (
+                override,
+                component_id,
+                has_multiple_overrides,
+            ) = self.service.process_metadata(
+                configuration=override,
+            )
+
+            if component_id.component_type.value == SKILL:
+                self._try_update_safe_contract_address(
+                    address=address,
+                    override=override,
+                    skill_id=component_id.public_id,
+                    has_multiple_overrides=has_multiple_overrides,
+                )
+
+            override["type"] = component_id.package_type.value
+            override["public_id"] = str(component_id.public_id)
+
+        self.service.overrides = overrides
 
     def process_component_overrides(self, agent_n: int) -> Dict:
         """Generates env vars based on model overrides."""
