@@ -1681,7 +1681,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             ("initial_height", initial_height),
         ]
 
-    def reset_tendermint_with_wait(
+    def reset_tendermint_with_wait(  # pylint: disable= too-many-locals
         self,
         on_startup: bool = False,
     ) -> Generator[None, None, bool]:
@@ -1698,10 +1698,11 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
             backup_blockchain = self.context.state.round_sequence.blockchain
             self.context.state.round_sequence.reset_blockchain()
+            reset_params = self._get_reset_params(on_startup)
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
                 self.params.tendermint_com_url + "/hard_reset",
-                parameters=self._get_reset_params(on_startup),
+                parameters=reset_params,
             )
             result = yield from self._do_request(request_message, http_dialogue)
             try:
