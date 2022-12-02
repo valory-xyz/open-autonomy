@@ -208,7 +208,7 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
             path=Path(app).parent,
             keys_file=DEFAULT_KEY_PATH,
         )
-        instance = deployer(service_spec=app_instance, build_dir=self.temp_dir.name)  # type: ignore
+        instance = deployer(service_builder=app_instance, build_dir=self.temp_dir.name)  # type: ignore
         return instance, app_instance
 
 
