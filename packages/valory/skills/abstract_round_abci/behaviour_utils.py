@@ -1809,6 +1809,28 @@ class TmManager(BaseBehaviour, ABC):
         """This method returns whether there is an active fix being applied."""
         return self._active_generator is not None
 
+    @property
+    def sleep_before_hard_reset(self) -> float:
+        """
+        Amount of time to sleep before performing a hard reset.
+
+        We don't need to wait for half the observation interval, like in normal cases where we perform a hard reset.
+
+        :returns: the amount of time to sleep in seconds
+        """
+        return self._hard_reset_sleep
+
+    @property
+    def sleep_after_hard_reset(self) -> float:
+        """
+        Amount of time to sleep after performing a hard reset.
+
+        We don't need to wait for half the observation interval, like in normal cases where we perform a hard reset.
+
+        :returns: the amount of time to sleep in seconds
+        """
+        return self._hard_reset_sleep
+
     def _handle_unhealthy_tm(self) -> Generator:
         """This method handles the case when the tendermint node is unhealthy."""
         self.context.logger.warning(
