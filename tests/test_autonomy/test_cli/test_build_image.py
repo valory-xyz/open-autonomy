@@ -113,4 +113,5 @@ class TestBuildImageFailures(BaseCliTest):
         result = self.run_cli()
 
         assert result.exit_code == 1, result.output
-        assert "Service configuration not found the current directory" in result.output
+        assert "No such file or directory: " in result.output
+        assert "service.yaml" in result.output

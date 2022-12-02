@@ -23,6 +23,7 @@ import time
 from pathlib import Path
 
 import click
+from aea.cli.utils.click_utils import reraise_as_click_exception
 from aea.configurations.constants import PACKAGES
 
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DOCKER_COMPOSE_YAML
@@ -100,10 +101,8 @@ def run_tendermint(build_dir: Path) -> None:
 
     proxy_app, tendermint_network = build_tendermint_apps()
 
-    try:
+    with reraise_as_click_exception(FileNotFoundError):
         tendermint_network.init(dump_dir)
-    except FileNotFoundError as e:
-        raise click.ClickException(str(e)) from e
 
     try:
         tendermint_network.start()

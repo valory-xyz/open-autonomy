@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
-from aea.cli.utils.click_utils import PublicIdParameter
+from aea.cli.utils.click_utils import PublicIdParameter, reraise_as_click_exception
 from aea.configurations.data_types import PublicId
 
 from autonomy.configurations.loader import load_service_config
@@ -54,17 +54,13 @@ def build_image(
 ) -> None:
     """Build runtime images for autonomous agents."""
 
-    try:
+    with reraise_as_click_exception(FileNotFoundError):
         if agent is None:
             service_dir = Path(service_dir or Path.cwd()).absolute()
             service = load_service_config(service_dir)
             agent = service.agent
-    except FileNotFoundError as e:
-        raise click.ClickException(
-            "Service configuration not found the current directory"
-        ) from e
 
-    try:
+    with reraise_as_click_exception(Exception):
         click.echo(f"Building image with agent: {agent}\n")
         _build_image(
             agent=agent,
@@ -72,5 +68,3 @@ def build_image(
             dev=dev,
             version=version,
         )
-    except Exception as e:  # pylint: disable=broad-except
-        raise click.ClickException(str(e)) from e
