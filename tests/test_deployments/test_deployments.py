@@ -39,7 +39,7 @@ from autonomy.constants import (
     HARDHAT_IMAGE_VERSION,
     TENDERMINT_IMAGE_VERSION,
 )
-from autonomy.deploy.base import BaseDeploymentGenerator, ServiceSpecification
+from autonomy.deploy.base import BaseDeploymentGenerator, ServiceBuilder
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
@@ -202,13 +202,13 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
 
     def load_deployer_and_app(
         self, app: str, deployer: BaseDeploymentGenerator
-    ) -> Tuple[BaseDeploymentGenerator, ServiceSpecification]:
+    ) -> Tuple[BaseDeploymentGenerator, ServiceBuilder]:
         """Handles loading the 2 required instances"""
-        app_instance = ServiceSpecification(
-            service_path=Path(app).parent,
-            keys=DEFAULT_KEY_PATH,
+        app_instance = ServiceBuilder.from_dir(
+            path=Path(app).parent,
+            keys_file=DEFAULT_KEY_PATH,
         )
-        instance = deployer(service_spec=app_instance, build_dir=self.temp_dir.name)  # type: ignore
+        instance = deployer(service_builder=app_instance, build_dir=self.temp_dir.name)  # type: ignore
         return instance, app_instance
 
 

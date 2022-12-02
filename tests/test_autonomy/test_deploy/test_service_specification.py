@@ -21,6 +21,7 @@
 
 import json
 import os
+import re
 import shutil
 import tempfile
 from pathlib import Path
@@ -29,9 +30,33 @@ from typing import Dict, List
 import pytest
 import yaml
 
-from autonomy.deploy.base import NotValidKeysFile, ServiceSpecification
+from autonomy.deploy.base import (
+    ABCI_HOST,
+    ENV_VAR_ABCI_HOST,
+    ENV_VAR_AEA_AGENT,
+    ENV_VAR_AEA_PASSWORD,
+    ENV_VAR_ID,
+    ENV_VAR_LOG_LEVEL,
+    ENV_VAR_MAX_PARTICIPANTS,
+    ENV_VAR_TENDERMINT_COM_URL,
+    ENV_VAR_TENDERMINT_URL,
+    NotValidKeysFile,
+    ServiceBuilder,
+)
 
 from tests.test_autonomy.base import get_dummy_service_config
+
+
+COMMON_VARS = (
+    ENV_VAR_ID,
+    ENV_VAR_AEA_AGENT,
+    ENV_VAR_ABCI_HOST,
+    ENV_VAR_MAX_PARTICIPANTS,
+    ENV_VAR_TENDERMINT_URL,
+    ENV_VAR_TENDERMINT_COM_URL,
+    ENV_VAR_LOG_LEVEL,
+    ENV_VAR_AEA_PASSWORD,
+)
 
 
 def get_keys() -> List[Dict]:
@@ -49,8 +74,8 @@ def get_keys() -> List[Dict]:
     ]
 
 
-class TestServiceSpecification:
-    """Test `ServiceSpecification` class."""
+class TestServiceBuilder:
+    """Test `ServiceBuilder` class."""
 
     t: Path
     cwd: Path
@@ -84,7 +109,22 @@ class TestServiceSpecification:
         """Test service spec initialization."""
 
         self._write_service(get_dummy_service_config(file_number=1))
-        spec = ServiceSpecification(
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+            self.keys_path,
+        )
+
+        assert spec.private_keys_password is None
+        assert spec.agent_instances is None
+        assert len(spec.keys) == 1
+
+    def test_generate_agents(
+        self,
+    ) -> None:
+        """Test service spec initialization."""
+
+        self._write_service(get_dummy_service_config(file_number=1))
+        spec = ServiceBuilder.from_dir(
             self.service_path,
             self.keys_path,
         )
@@ -99,6 +139,79 @@ class TestServiceSpecification:
         agent = spec.generate_agent(0)
         assert len(agent.keys()) == 7, agent
 
+    def test_generate_common_vars(
+        self,
+    ) -> None:
+        """Test service spec initialization."""
+
+        self._write_service(get_dummy_service_config(file_number=1))
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+            self.keys_path,
+        )
+
+        common_vars_without_password = spec.generate_common_vars(agent_n=0)
+        assert all(var in common_vars_without_password for var in COMMON_VARS[:-1])
+        assert common_vars_without_password[ENV_VAR_AEA_AGENT] == spec.service.agent
+        assert common_vars_without_password[ENV_VAR_ABCI_HOST] == ABCI_HOST.format(0)
+
+        spec = ServiceBuilder.from_dir(  # nosec
+            self.service_path,
+            self.keys_path,
+            private_keys_password="some_password",
+        )
+        common_vars_without_password = spec.generate_common_vars(agent_n=0)
+        assert all(var in common_vars_without_password for var in COMMON_VARS)
+
+    def test_agent_instance_setter(
+        self,
+    ) -> None:
+        """Test agent instance setter."""
+
+        self._write_service(get_dummy_service_config(file_number=1))
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+            self.keys_path,
+        )
+
+        with pytest.raises(
+            NotValidKeysFile,
+            match="Key file contains keys which are not registered as instances",
+        ):
+            spec.agent_instances = []
+
+        with pytest.raises(
+            NotValidKeysFile,
+            match="Key file does not contain key pair for following instances",
+        ):
+            spec.agent_instances = [
+                "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                "0xDummyaddress",
+            ]
+
+    def test_verify_agent_instances(
+        self,
+    ) -> None:
+        """Test `verify_agent_instances` method."""
+
+        with pytest.raises(
+            NotValidKeysFile,
+            match=re.escape(
+                "Key file contains keys which are not registered as instances; invalid keys={'0xaddress0'}"
+            ),
+        ):
+            ServiceBuilder.verify_agent_instances([{"address": "0xaddress0"}], [])
+
+        with pytest.raises(
+            NotValidKeysFile,
+            match=re.escape(
+                "Key file does not contain key pair for following instances {'0xaddress1'}"
+            ),
+        ):
+            ServiceBuilder.verify_agent_instances(
+                [{"address": "0xaddress0"}], ["0xaddress0", "0xaddress1"]
+            )
+
     def test_set_number_of_agents(
         self,
     ) -> None:
@@ -110,7 +223,7 @@ class TestServiceSpecification:
             NotValidKeysFile,
             match="Number of agents cannot be greater than available keys",
         ):
-            ServiceSpecification(
+            ServiceBuilder.from_dir(
                 self.service_path,
                 self.keys_path,
                 number_of_agents=2,
@@ -134,7 +247,7 @@ class TestServiceSpecification:
         )
 
         with pytest.raises(NotValidKeysFile, match="Key file incorrectly formatted"):
-            ServiceSpecification(
+            ServiceBuilder.from_dir(
                 self.service_path,
                 self.keys_path,
                 number_of_agents=2,
@@ -150,7 +263,7 @@ class TestServiceSpecification:
         ]
 
         self._write_service(get_dummy_service_config())
-        spec = ServiceSpecification(
+        spec = ServiceBuilder.from_dir(
             self.service_path, self.keys_path, agent_instances=agent_instances
         )
         agents = spec.generate_agents()
@@ -158,9 +271,26 @@ class TestServiceSpecification:
 
         with pytest.raises(
             NotValidKeysFile,
-            match="Cannot find the provided keys in the list of the agent instances",
+            match="Key file contains keys which are not registered as instances",
         ):
-            ServiceSpecification(self.service_path, self.keys_path, agent_instances=[])
+            ServiceBuilder.from_dir(
+                self.service_path, self.keys_path, agent_instances=[]
+            )
+
+        with pytest.raises(
+            NotValidKeysFile,
+            match=re.escape(
+                "Key file does not contain key pair for following instances {'0xDummyAddress'}"
+            ),
+        ):
+            ServiceBuilder.from_dir(
+                self.service_path,
+                self.keys_path,
+                agent_instances=[
+                    "0xDummyAddress",
+                    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                ],
+            )
 
     @classmethod
     def teardown(

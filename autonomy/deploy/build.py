@@ -18,15 +18,15 @@
 # ------------------------------------------------------------------------------
 """Script for generating deployment environments."""
 from pathlib import Path
-from typing import List, Optional, cast
+from typing import Dict, List, Optional, Type
 
-from autonomy.deploy.base import BaseDeploymentGenerator, ServiceSpecification
+from autonomy.deploy.base import BaseDeploymentGenerator, ServiceBuilder
 from autonomy.deploy.constants import DEPLOYMENT_REPORT, INFO
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
 
-DEPLOYMENT_OPTIONS = {
+DEPLOYMENT_OPTIONS: Dict[str, Type[BaseDeploymentGenerator]] = {
     "kubernetes": KubernetesGenerator,
     "docker-compose": DockerComposeGenerator,
 }
@@ -34,7 +34,7 @@ DEPLOYMENT_OPTIONS = {
 
 def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     type_of_deployment: str,
-    private_keys_file_path: Path,
+    keys_file: Path,
     service_path: Path,
     build_dir: Path,
     number_of_agents: Optional[int] = None,
@@ -45,37 +45,31 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     open_autonomy_dir: Optional[Path] = None,
     agent_instances: Optional[List[str]] = None,
     log_level: str = INFO,
-    substitute_env_vars: bool = False,
+    apply_environment_variables: bool = False,
     image_version: Optional[str] = None,
     use_hardhat: bool = False,
     use_acn: bool = False,
 ) -> str:
     """Generate the deployment build for the valory app."""
 
-    service_spec = ServiceSpecification(
-        service_path=service_path,
-        keys=private_keys_file_path,
-        private_keys_password=private_keys_password,
+    service_builder = ServiceBuilder.from_dir(
+        path=service_path,
+        keys_file=keys_file,
         number_of_agents=number_of_agents,
+        private_keys_password=private_keys_password,
         agent_instances=agent_instances,
-        log_level=log_level,
-        substitute_env_vars=substitute_env_vars,
+        apply_environment_variables=apply_environment_variables,
     )
+    service_builder.log_level = log_level
 
-    DeploymentGenerator = DEPLOYMENT_OPTIONS.get(type_of_deployment)
-    if DeploymentGenerator is None:  # pragma: no cover
-        raise ValueError(f"Cannot find deployment generator for {type_of_deployment}")
-
-    deployment = cast(
-        BaseDeploymentGenerator,
-        DeploymentGenerator(
-            service_spec=service_spec,
-            build_dir=build_dir,
-            dev_mode=dev_mode,
-            packages_dir=packages_dir,
-            open_aea_dir=open_aea_dir,
-            open_autonomy_dir=open_autonomy_dir,
-        ),
+    DeploymentGenerator = DEPLOYMENT_OPTIONS[type_of_deployment]
+    deployment = DeploymentGenerator(
+        service_builder=service_builder,
+        build_dir=build_dir,
+        dev_mode=dev_mode,
+        packages_dir=packages_dir,
+        open_aea_dir=open_aea_dir,
+        open_autonomy_dir=open_autonomy_dir,
     )
 
     (
@@ -92,7 +86,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     return DEPLOYMENT_REPORT.substitute(
         **{
             "type": type_of_deployment,
-            "agents": service_spec.service.number_of_agents,
+            "agents": service_builder.service.number_of_agents,
             "size": len(deployment.output),
         }
     )

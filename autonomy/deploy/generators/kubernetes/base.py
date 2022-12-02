@@ -31,7 +31,7 @@ from autonomy.constants import (
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
 )
-from autonomy.deploy.base import BaseDeploymentGenerator, ServiceSpecification
+from autonomy.deploy.base import BaseDeploymentGenerator, ServiceBuilder
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     KEY_SCHEMA_PRIVATE_KEY,
@@ -54,7 +54,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        service_spec: ServiceSpecification,
+        service_builder: ServiceBuilder,
         build_dir: Path,
         dev_mode: bool = False,
         packages_dir: Optional[Path] = None,
@@ -63,7 +63,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     ) -> None:
         """Initialise the deployment generator."""
         super().__init__(
-            service_spec,
+            service_builder,
             build_dir,
             dev_mode,
             packages_dir,
@@ -88,12 +88,12 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_deployment = AGENT_NODE_TEMPLATE.format(
             runtime_image=runtime_image,
             validator_ix=agent_ix,
-            aea_key=self.service_spec.keys[agent_ix][KEY_SCHEMA_PRIVATE_KEY],
+            aea_key=self.service_builder.keys[agent_ix][KEY_SCHEMA_PRIVATE_KEY],
             number_of_validators=number_of_agents,
             host_names=host_names,
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
             tendermint_image_version=TENDERMINT_IMAGE_VERSION,
-            log_level=self.service_spec.log_level,
+            log_level=self.service_builder.log_level,
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
         resources = []
@@ -118,13 +118,13 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         host_names = ", ".join(
             [
                 f'"--hostname=abci{i}"'
-                for i in range(self.service_spec.service.number_of_agents)
+                for i in range(self.service_builder.service.number_of_agents)
             ]
         )
 
         self.tendermint_job_config = CLUSTER_CONFIGURATION_TEMPLATE.format(
-            valory_app=self.service_spec.service.agent.name,
-            number_of_validators=self.service_spec.service.number_of_agents,
+            valory_app=self.service_builder.service.agent.name,
+            number_of_validators=self.service_builder.service.number_of_agents,
             host_names=host_names,
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
             tendermint_image_version=TENDERMINT_IMAGE_VERSION,
@@ -148,7 +148,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     ) -> "KubernetesGenerator":
         """Generate the deployment."""
 
-        image_version = image_version or self.service_spec.service.agent.hash
+        image_version = image_version or self.service_builder.service.agent.hash
 
         if self.dev_mode:
             image_version = "dev"
@@ -162,10 +162,10 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             # insert an ACN node into resources
             ...
 
-        agent_vars = self.service_spec.generate_agents()  # type:ignore
+        agent_vars = self.service_builder.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
         runtime_image = OAR_IMAGE.format(
-            agent=self.service_spec.service.agent.name,
+            agent=self.service_builder.service.agent.name,
             version=image_version,
         )
 
@@ -174,10 +174,10 @@ class KubernetesGenerator(BaseDeploymentGenerator):
                 self.build_agent_deployment(
                     runtime_image=runtime_image,
                     agent_ix=i,
-                    number_of_agents=self.service_spec.service.number_of_agents,
+                    number_of_agents=self.service_builder.service.number_of_agents,
                     agent_vars=agent_vars[i],
                 )
-                for i in range(self.service_spec.service.number_of_agents)
+                for i in range(self.service_builder.service.number_of_agents)
             ]
         )
         self.resources.append(agents)
@@ -202,8 +202,8 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     def populate_private_keys(self) -> "BaseDeploymentGenerator":
         """Populates private keys into a config map for the kubernetes deployment."""
         path = self.build_dir / "agent_keys"
-        for x in range(self.service_spec.service.number_of_agents):
-            key = self.service_spec.keys[x][KEY_SCHEMA_PRIVATE_KEY]
+        for x in range(self.service_builder.service.number_of_agents):
+            key = self.service_builder.keys[x][KEY_SCHEMA_PRIVATE_KEY]
             secret = AGENT_SECRET_TEMPLATE.format(private_key=key, validator_ix=x)
             with open(
                 path / KUBERNETES_AGENT_KEY_NAME.format(agent_n=x), "w", encoding="utf8"
