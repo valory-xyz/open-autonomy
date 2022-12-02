@@ -124,6 +124,7 @@ class TestBuildImageFailures(BaseCliTest):
             )
         )
 
-        out, _ = capsys.readouterr()
+        out, err = capsys.readouterr()
         assert result.exit_code == 1, out
-        assert "Fetching agent failed" in out
+        assert "Error occured while downloading agent" in out
+        assert "Image build failed with error" in err

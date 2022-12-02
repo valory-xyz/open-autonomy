@@ -92,7 +92,10 @@ def build_image(
             if "stream" in stream_data:
                 print("[docker]" + stream_data["stream"], end="")
             elif "errorDetail" in stream_data:
-                raise ImageBuildFailed(stream_data["errorDetail"]["message"])
+                raise ImageBuildFailed(
+                    "Image build failed with error "
+                    + stream_data["errorDetail"]["message"]
+                )
             elif "aux" in stream_data:
                 print("[docker]" + stream_data["aux"]["ID"], end="")
             elif "status" in stream_data:
