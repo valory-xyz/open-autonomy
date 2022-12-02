@@ -151,7 +151,7 @@ class ServiceSpecification:
         return [self.generate_agent(i, idx) for i, idx in agent_override_idx]
 
     def generate_common_vars(self, agent_n: int) -> Dict:
-        """Retrieve vars common for agent services."""
+        """Retrieve vars common for agent."""
         agent_vars = {
             "ID": agent_n,
             "AEA_AGENT": self.service.agent,

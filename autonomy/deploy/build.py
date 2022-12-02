@@ -50,7 +50,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     use_hardhat: bool = False,
     use_acn: bool = False,
 ) -> str:
-    """Generate the deployment build for the agent service."""
+    """Generate the deployment for the service."""
 
     service_spec = ServiceSpecification(
         service_path=service_path,
