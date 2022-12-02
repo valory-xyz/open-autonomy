@@ -401,10 +401,21 @@ The consistency of the data in the blocks is guaranteed by Tendermint.
 #### `__`init`__`
 
 ```python
-def __init__(height_offset: int = 0) -> None
+def __init__(height_offset: int = 0, is_init: bool = True) -> None
 ```
 
 Initialize the blockchain.
+
+<a id="packages.valory.skills.abstract_round_abci.base.Blockchain.is_init"></a>
+
+#### is`_`init
+
+```python
+@property
+def is_init() -> bool
+```
+
+Returns true if the blockchain is initialized.
 
 <a id="packages.valory.skills.abstract_round_abci.base.Blockchain.add_block"></a>
 
@@ -2319,6 +2330,28 @@ def abci_app() -> AbciApp
 
 Get the AbciApp.
 
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.blockchain"></a>
+
+#### blockchain
+
+```python
+@property
+def blockchain() -> Blockchain
+```
+
+Get the Blockchain instance.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.blockchain"></a>
+
+#### blockchain
+
+```python
+@blockchain.setter
+def blockchain(_blockchain: Blockchain) -> None
+```
+
+Get the Blockchain instance.
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.height"></a>
 
 #### height
@@ -2588,8 +2621,13 @@ Process the 'commit' request.
 #### reset`_`blockchain
 
 ```python
-def reset_blockchain(is_replay: bool = False) -> None
+def reset_blockchain(is_replay: bool = False, is_init: bool = False) -> None
 ```
 
 Reset blockchain after tendermint reset.
+
+**Arguments**:
+
+- `is_replay`: whether we are resetting the blockchain while replaying blocks.
+- `is_init`: whether to process blocks before receiving an init_chain req from tendermint.
 

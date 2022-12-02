@@ -33,7 +33,7 @@ protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiapuwscqcpioyin4p5vbls2dioksfbbt57vjkzqx4o66cizu5w5ui
+- valory/abstract_round_abci:0.1.0:bafybeic4wfwn4ykm3in2sagaxmxgsvnvw6z6g3vxxvqkgqu72dyxix7dbi
 behaviours:
   main:
     args: {}
@@ -137,7 +137,7 @@ models:
     class_name: SharedState
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.25.0
+    version: ==1.24.0
   open-aea-test-autonomy:
     version: ==0.4.0
 is_abstract: true

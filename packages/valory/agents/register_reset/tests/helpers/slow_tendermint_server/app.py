@@ -23,19 +23,18 @@ import logging
 import os
 import shutil
 import stat
-import traceback
+import time
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
-import requests
 from flask import Flask, Response, jsonify, request
 from werkzeug.exceptions import InternalServerError, NotFound
 
+from packages.valory.agents.register_reset.tests.helpers.slow_tendermint_server.tendermint import (  # type: ignore
+    TendermintNode,
+    TendermintParams,
+)
 
-try:
-    from .tendermint import TendermintNode, TendermintParams  # type: ignore
-except ImportError:
-    from tendermint import TendermintNode, TendermintParams
 
 ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"
@@ -120,9 +119,9 @@ class PeriodDumper:
                 os.environ["TMHOME"], str(store_dir / ("node" + os.environ["ID"]))
             )
             self.logger.info(f"Dumped data for period {self.resets}")
-        except OSError as e:
+        except OSError:
             self.logger.info(
-                f"Error occurred while dumping data for period {self.resets}: {e}"
+                f"Error occurred while dumping data for period {self.resets}"
             )
         self.resets += 1
 
@@ -132,7 +131,12 @@ def create_app(
     perform_monitoring: bool = True,
     debug: bool = False,
 ) -> Tuple[Flask, TendermintNode]:
-    """Create the Tendermint server app"""
+    """
+    Create a tendermint server app that is slow to respond to /hard_reset response.
+
+    This implementation was copied over from deployments/tendermint.
+    THIS IMPLEMENTATION SHOULD NOT BE USED IN TESTS WHERE NORMAL OPERATION OF THE TENDERMINT SERVER APP IS REQUIRED!
+    """
 
     override_config_toml()
     tendermint_params = TendermintParams(
@@ -146,78 +150,6 @@ def create_app(
 
     tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
     tendermint_node.start(start_monitoring=perform_monitoring, debug=debug)
-
-    @app.get("/params")
-    def get_params() -> Dict:
-        """Get tendermint params."""
-        try:
-            priv_key_file = (
-                Path(os.environ["TMHOME"]) / "config" / "priv_validator_key.json"
-            )
-            priv_key_data = json.loads(priv_key_file.read_text(encoding=ENCODING))
-            del priv_key_data["priv_key"]
-            return {"params": priv_key_data, "status": True, "error": None}
-        except (FileNotFoundError, json.JSONDecodeError):
-            return {"params": {}, "status": False, "error": traceback.format_exc()}
-
-    @app.post("/params")
-    def update_params() -> Dict:
-        """Update validator params."""
-
-        try:
-            data: Any = json.loads(request.get_data().decode(ENCODING))
-            genesis_file = Path(os.environ["TMHOME"]) / "config" / "genesis.json"
-            genesis_data = {}
-            genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]
-            genesis_data["chain_id"] = data["genesis_config"]["chain_id"]
-            genesis_data["initial_height"] = "0"
-            genesis_data["consensus_params"] = data["genesis_config"][
-                "consensus_params"
-            ]
-            genesis_data["validators"] = [
-                {
-                    "address": validator["address"],
-                    "pub_key": validator["pub_key"],
-                    "power": validator["power"],
-                    "name": validator["name"],
-                }
-                for validator in data["validators"]
-            ]
-            genesis_data["app_hash"] = ""
-            genesis_file.write_text(
-                json.dumps(genesis_data, indent=2), encoding=ENCODING
-            )
-
-            return {"status": True, "error": None}
-        except (FileNotFoundError, json.JSONDecodeError, PermissionError):
-            return {"status": False, "error": traceback.format_exc()}
-
-    @app.route("/gentle_reset")
-    def gentle_reset() -> Tuple[Any, int]:
-        """Reset the tendermint node gently."""
-        try:
-            tendermint_node.stop()
-            tendermint_node.start(start_monitoring=perform_monitoring)
-            return jsonify({"message": "Reset successful.", "status": True}), 200
-        except Exception as e:  # pylint: disable=W0703
-            return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
-
-    @app.route("/app_hash")
-    def app_hash() -> Tuple[Any, int]:
-        """Get the app hash."""
-        try:
-            non_routable, loopback = "0.0.0.0", "127.0.0.1"
-            endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http').replace(non_routable, loopback)}/block"
-            height = request.args.get("height")
-            params = {"height": height} if height is not None else None
-            res = requests.get(endpoint, params)
-            app_hash_ = res.json()["result"]["block"]["header"]["app_hash"]
-            return jsonify({"app_hash": app_hash_}), res.status_code
-        except Exception as e:  # pylint: disable=W0703
-            return (
-                jsonify({"error": f"Could not get the app hash: {str(e)}"}),
-                200,
-            )
 
     @app.route("/hard_reset")
     def hard_reset() -> Tuple[Any, int]:
@@ -238,6 +170,13 @@ def create_app(
                 request.args.get("initial_height", "1"),
             )
             tendermint_node.start(start_monitoring=perform_monitoring)
+            # we assume we have a 5 seconds delay between the time the tendermint node starts
+            # and when the agent receiving a response, 5 seconds should be enough for
+            # tendermint to start and perform a Handshake Info request, where the agent
+            # would respond with a non-zero height, because the agent has not wiped its
+            # local blockchain. Checkout https://docs.tendermint.com/v0.33/app-dev/app-development.html#handshake
+            delay = 5
+            time.sleep(delay)
             return jsonify({"message": "Reset successful.", "status": True}), 200
         except Exception as e:  # pylint: disable=W0703
             return jsonify({"message": f"Reset failed: {e}", "status": False}), 200

@@ -8,6 +8,17 @@ fingerprint:
   README.md: bafybeicocdojplie5z4kbs7cn7apunfydbxui2nigp6ci2osuvv3mybzfm
   __init__.py: bafybeihgxrmmp63exxkdmvlu565kehvuucg4iivnejwutaehb2p7xzxu4q
   tests/__init__.py: bafybeigkkq3hon4wuyrazwnt5tiu23idpelf6a7kzbmawty7zfrpqnmnhi
+  tests/helpers/__init__.py: bafybeigwjcrcn35vqa57l6j7bhrraurvnls5rc6iuoncvp7an5rhhrnfoe
+  tests/helpers/conftest.py: bafybeigyhefebvmlco4tfuclneracsljsr6xtoy6oo7ckj2njciidavpo4
+  tests/helpers/docker/__init__.py: bafybeid5bzd6ebfglfmvm44rnnrib7qvonxac2w337qyeihpkbucby7fdi
+  tests/helpers/docker/docker.py: bafybeid6n36kkub2vfswnpqffebuhg67mxrukp3jignihrz4v2hn2mmrwi
+  tests/helpers/slow_tendermint_server/Dockerfile: bafybeihextohv7h5z3rowlrkl5egi7h5yuuwtdsn5jhuxqwejjozk2feky
+  tests/helpers/slow_tendermint_server/__init__.py: bafybeieosq65nub4bhueyjug3auh36fpcqcwtyrjkomffyi4jyrrvirlnm
+  tests/helpers/slow_tendermint_server/app.py: bafybeih7vba4ozkvhuhnglmj3rp3uumvfdyb4iu44b2i2nvtkvnqnu6n3e
+  tests/helpers/slow_tendermint_server/config-template.toml: bafybeibzoxwjjn5cacrtx4p2gov75ktg467xoyglistwjn5xt5l6d6tpea
+  tests/helpers/slow_tendermint_server/tendermint.py: bafybeictorpuqrzwid2z5jajj2feohlh3mvi7pt6ur2gymd3iwdvcbslzy
+  tests/helpers/slow_tendermint_server/wrapper.sh: bafybeif2wssashoaw7ifz6q3ocmejkuz32ycwta4w5dcjunns4g2awkv2y
+  tests/test_hard_reset_race_condition.py: bafybeicq72lwuihjfq4qsus3uugxspjjhklwmu233utuhcqrbqv75ja46u
   tests/test_register_reset.py: bafybeibjg33b42lcwizx5747jnw7ywg5djignawkkcva5q7larqujgemuy
 fingerprint_ignore_patterns: []
 connections:
@@ -22,10 +33,10 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 skills:
 - valory/abstract_abci:0.1.0:bafybeicog4eierjad4f542ubhe3ez7sxgrsna7t2e5pci2hncpq5vckw4e
-- valory/abstract_round_abci:0.1.0:bafybeiapuwscqcpioyin4p5vbls2dioksfbbt57vjkzqx4o66cizu5w5ui
-- valory/register_reset_abci:0.1.0:bafybeic5d4yur6sdvzlg4oarkjg7pvjw4anosuijvi2pouzyyvrxhh4nsq
-- valory/registration_abci:0.1.0:bafybeifqjyhrrrlltbm7r2e667xwlouzfep2zo3os23bmkrmuhi5fypwca
-- valory/reset_pause_abci:0.1.0:bafybeihjefuwzoujrvrfxruye6punwszobmciuplrnl4vggzefcjorfyxq
+- valory/abstract_round_abci:0.1.0:bafybeic4wfwn4ykm3in2sagaxmxgsvnvw6z6g3vxxvqkgqu72dyxix7dbi
+- valory/register_reset_abci:0.1.0:bafybeiheghhuk4us5mvy7jjv2l7zjbkl73ioewjgujyf7utme73azjis3q
+- valory/registration_abci:0.1.0:bafybeia2eynli6bzftnxhql3uuneyx2fvkxdu7jjfbjj73mx7v2hbnlrta
+- valory/reset_pause_abci:0.1.0:bafybeifzyirueb3qkranrarfreiuryrj67owx73ku7cresfp74g47vnx6e
 default_ledger: ethereum
 required_ledgers:
 - ethereum
