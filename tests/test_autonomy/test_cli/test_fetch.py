@@ -23,7 +23,6 @@ import json
 import os
 import shutil
 from pathlib import Path
-from typing import Any
 from unittest import mock
 
 from aea.configurations.loader import ConfigLoader
