@@ -298,7 +298,7 @@ class ServiceBuilder:
         return [self.generate_agent(i, idx) for i, idx in agent_override_idx]
 
     def generate_common_vars(self, agent_n: int) -> Dict:
-        """Retrieve vars common for valory apps."""
+        """Retrieve vars common for agent."""
         agent_vars = {
             ENV_VAR_ID: agent_n,
             ENV_VAR_AEA_AGENT: self.service.agent,

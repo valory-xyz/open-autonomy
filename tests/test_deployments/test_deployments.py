@@ -256,7 +256,7 @@ class TestDeploymentGenerators(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
 
     def test_generates_agent_for_all_valory_apps(self) -> None:
-        """Test generator functions with all valory apps."""
+        """Test generator functions with all agent services."""
         for deployment_generator in deployment_generators:
             for spec in get_valid_deployments():
                 spec_path = self.write_deployment(spec)
@@ -267,7 +267,7 @@ class TestDeploymentGenerators(BaseDeploymentTests):
                 assert len(res) >= 1
 
     def test_generates_agents_for_all_valory_apps(self) -> None:
-        """Test functionality of the valory deployment generators."""
+        """Test functionality of the deployment generators."""
         for deployment_generator in deployment_generators:
             for spec in get_valid_deployments():
                 spec_path = self.write_deployment(spec)

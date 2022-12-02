@@ -1,8 +1,8 @@
-# Valory Application Deployment
+# Agent service deployment
 
 Tooling has been provided to allow for the automatic generation of deployments via deployment specifications.
 
-Valory application deployments can be built on the fly.
+Agent service deployments can be built on the fly.
 
 ## Generate deployment configuration
 
@@ -94,7 +94,7 @@ Conceptually, the image to be used within a deployment should contain all requir
 
 Configuration of containers and agents is done via environment variables.
 
-### Required Dependencies
+### Required dependencies
 
 - [Skaffold](https://skaffold.dev/docs/install/): Deployment Orchestration
 - [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation): Local Cluster deployment and management.
@@ -102,11 +102,11 @@ Configuration of containers and agents is done via environment variables.
 - [Docker](https://docs.docker.com/get-docker/): Container backend
 
 
-## Cluster Deployment
+## Cluster deployment
 
 In addition to Docker-Compose-based deployments, we support cluster deployments using Kubernetes.
 
-### Quick Cluster Deploy
+### Quick cluster deploy
 
 Run the following make targets for a quick deployment of the oracle:
 ```bash
@@ -115,7 +115,7 @@ cd infrastructure
 make localcluster-start
 ```
 
-### To Configure Local Cluster
+### To configure local cluster
 
 1. Create a local cluster and save the kubeconfig locally
 ```bash
@@ -156,7 +156,7 @@ skaffold run --profile dashboard
 echo (kubectl describe secret (kubectl get secret | grep admin | awk '{print $1}') | grep token: | awk '{print $2}')
 ```
 
-### To Deploy Poc
+### To deploy poc
 
 ```bash
 # deploy poc to cluster
