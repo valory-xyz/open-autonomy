@@ -136,12 +136,10 @@ class TestFromToken(BaseCliTest):
                 )
             )
 
-            out, err = self.capfd.readouterr()
-
-            assert result.exit_code == 0, out
-            assert "Service name: valory/oracle_hardhat" in out, err
-            assert "Building required images" in out, err
-            assert "Service build successful" in out, err
+            assert result.exit_code == 0, result.stdout
+            assert "Service name: valory/oracle_hardhat" in result.stdout
+            assert "Building required images" in result.stdout
+            assert "Service build successful" in result.stdout
 
     def test_fail_on_chain_resolve_connection_error(self) -> None:
         """Run test."""

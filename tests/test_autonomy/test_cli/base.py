@@ -60,11 +60,6 @@ class BaseCliTest:
         """Setup test."""
         self.t = Path(tempfile.mkdtemp())
 
-    @property
-    def capfd(self) -> CaptureFixture:
-        """CliRunner capfd fixture"""
-        return self.cli_runner.capfd
-
     def run_cli(self, commands: Optional[Tuple[str, ...]] = None) -> Result:
         """Run CLI."""
         if commands is None:

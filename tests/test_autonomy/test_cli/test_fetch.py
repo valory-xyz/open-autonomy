@@ -114,10 +114,9 @@ class TestFetchCommand(BaseCliTest):
             service_dir
         ):
             result = self.cli_runner.invoke(cli, ["publish", "--remote"])
-            output = self.capfd.readouterr()
 
-            assert result.exit_code == 0, output
-            assert expected_hash in output.out, output.err
+            assert result.exit_code == 0, result.output
+            assert expected_hash in result.output
 
         with mock.patch(
             "autonomy.cli.helpers.registry.get_default_remote_registry",
