@@ -33,10 +33,10 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 skills:
 - valory/abstract_abci:0.1.0:bafybeicog4eierjad4f542ubhe3ez7sxgrsna7t2e5pci2hncpq5vckw4e
-- valory/abstract_round_abci:0.1.0:bafybeih6fgaoxooltddckaaxg4yoj4pw6erfcyjt644q2tqxfbrrydw6jy
-- valory/register_reset_abci:0.1.0:bafybeias2qnwebo4lot33kh7eiexba6seuzr5prp2iwfevmqmxytyc24sy
-- valory/registration_abci:0.1.0:bafybeic4bstz52jmdu5yzevjzuor5f47p52xvsvb6lqi6foei7f3su4qhi
-- valory/reset_pause_abci:0.1.0:bafybeia4qbyrt5sb6sybiu24cza4vgvxofttpjvt2bosoppfobfb2n6ciq
+- valory/abstract_round_abci:0.1.0:bafybeibj2pqj3uzvsku66qkrfcrj6bcmx2zjrf3rfmn3ax4gcdsgnxhbgm
+- valory/register_reset_abci:0.1.0:bafybeihubhp2unry4labnr3jnvtlecjywegs35ecsixd2ce6psp2vjp3te
+- valory/registration_abci:0.1.0:bafybeibwvscoa6ahpkqwbq7j6uiywkawyc3ubkbd4uhltigooyultifuqa
+- valory/reset_pause_abci:0.1.0:bafybeihhlfbao2uxu6dfekzw4lqnbbsprptkblkjih6jp2gce3a3witgt4
 default_ledger: ethereum
 required_ledgers:
 - ethereum

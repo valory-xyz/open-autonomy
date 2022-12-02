@@ -1793,6 +1793,7 @@ class TmManager(BaseBehaviour, ABC):
 
     behaviour_id = "tm_manager"
     _active_generator: Optional[Generator] = None
+    _hard_reset_sleep = 10.0  # 10s
 
     def async_act(self) -> Generator:  # type: ignore
         """The behaviour act."""

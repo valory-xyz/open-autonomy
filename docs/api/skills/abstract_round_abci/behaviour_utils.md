@@ -712,6 +712,40 @@ Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMess
 
 the contract api response
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.sleep_before_hard_reset"></a>
+
+#### sleep`_`before`_`hard`_`reset
+
+```python
+@property
+def sleep_before_hard_reset() -> float
+```
+
+Amount of time to sleep before performing a hard reset.
+
+We sleep for half the observation interval as there are no immediate transactions on either side of the reset.
+
+**Returns**:
+
+the amount of time to sleep in seconds
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.sleep_after_hard_reset"></a>
+
+#### sleep`_`after`_`hard`_`reset
+
+```python
+@property
+def sleep_after_hard_reset() -> float
+```
+
+Amount of time to sleep after performing a hard reset.
+
+We sleep for half the observation interval as there are no immediate transactions on either side of the reset.
+
+**Returns**:
+
+the amount of time to sleep in seconds
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.reset_tendermint_with_wait"></a>
 
 #### reset`_`tendermint`_`with`_`wait
@@ -752,6 +786,40 @@ def is_acting() -> bool
 ```
 
 This method returns whether there is an active fix being applied.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager.sleep_before_hard_reset"></a>
+
+#### sleep`_`before`_`hard`_`reset
+
+```python
+@property
+def sleep_before_hard_reset() -> float
+```
+
+Amount of time to sleep before performing a hard reset.
+
+We don't need to wait for half the observation interval, like in normal cases where we perform a hard reset.
+
+**Returns**:
+
+the amount of time to sleep in seconds
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager.sleep_after_hard_reset"></a>
+
+#### sleep`_`after`_`hard`_`reset
+
+```python
+@property
+def sleep_after_hard_reset() -> float
+```
+
+Amount of time to sleep after performing a hard reset.
+
+We don't need to wait for half the observation interval, like in normal cases where we perform a hard reset.
+
+**Returns**:
+
+the amount of time to sleep in seconds
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager.try_fix"></a>
 

@@ -10,7 +10,7 @@ fingerprint:
   __init__.py: bafybeihnqe3jevwrc72dmx4ehfjt7iyxo525f6yxz46t3t2uawhnbh3nji
   abci_app_chain.py: bafybeihb3ded23gvjrn426qptkbnkge5cewqm7ywi4j6ebmo3j66ss5wii
   base.py: bafybeia6dmoyn24gu63srfo4weotg5qisumbvu6s23qju635qkdsbaql6i
-  behaviour_utils.py: bafybeiecyp7uz7icqfztbyq54rupffymojofrw2whdd6cjziyrldaqomfq
+  behaviour_utils.py: bafybeigqnnraqymq5mxoynkjyjjidna7hjoz63yp43wkd6v2eadfv5h7x4
   behaviours.py: bafybeici5qyx6lqnzb76a5quecwc7b7t4fjjcn5zni5hugpwsh27orho2m
   common.py: bafybeig4binmx32hbak7lmg7kaptfh4qhnwpa2sshykvf3kgvqkztcimfi
   dialogues.py: bafybeibvnmcn7kofol2h6owljhde4llfc3kwwkb5helxsgsy47mokhwb4i
@@ -41,7 +41,7 @@ fingerprint:
   tests/test_base.py: bafybeid7ddbqsysjtk23fzfhie2532mbea4onqrex76ammymhklqprf2zq
   tests/test_base_rounds.py: bafybeidajvkfyzuxs3l3o3t7a2cirhzcisz5hjffomgd6h2lbpqvt4lrsa
   tests/test_behaviours.py: bafybeiglafvvclkhvmtbu4sfzgziyvb3rv47mh77s6lxwbgdkuaww36odm
-  tests/test_behaviours_utils.py: bafybeif7dhiwi3s65jamahzcz5fhy352zcso5amoooiuks72h7watvnjbi
+  tests/test_behaviours_utils.py: bafybeie6n4g5xcfkh242ry65v3sgdmboojv3deehfodcmfvutzm4r732xy
   tests/test_common.py: bafybeianyjmc5uke35o2jz6w66bvuuu2o22hzhjypxqlt4j4f5bubhglmm
   tests/test_dialogues.py: bafybeie4dkivvp3gdqyvvnazebftprwklklkjh6o36l5lxtwxuetgaw2nm
   tests/test_handlers.py: bafybeiduq3fdqmkbzapb5kda4pxsscekktvdzcksshldyqwqhjomgxdvcu
