@@ -26,6 +26,7 @@ from warnings import warn
 
 import click
 from aea.cli.packages import package_manager
+from aea.cli.utils.click_utils import reraise_as_click_exception
 from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
 from aea.configurations.base import PackageConfiguration
@@ -56,7 +57,7 @@ def lock_packages(ctx: Context, check: bool) -> None:
 
     packages_dir = Path(ctx.registry_path)
 
-    try:
+    with reraise_as_click_exception(Exception):
         if check:
             click.echo("Verifying packages.json")
             return_code = get_package_manager(packages_dir).verify(
@@ -73,8 +74,6 @@ def lock_packages(ctx: Context, check: bool) -> None:
         click.echo("Updating hashes...")
         get_package_manager(packages_dir).update_package_hashes().dump()
         click.echo("Done")
-    except Exception as e:  # pylint: disable=broad-except
-        raise click.ClickException(str(e)) from e
 
 
 def get_package_manager(package_dir: Path) -> BasePackageManager:
