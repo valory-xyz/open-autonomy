@@ -104,7 +104,6 @@ class TestFromToken(BaseCliTest):
 
     def test_from_token(
         self,
-        capsys: Any,
     ) -> None:
         """Run test."""
 
@@ -137,7 +136,7 @@ class TestFromToken(BaseCliTest):
                 )
             )
 
-            out, err = capsys.readouterr()
+            out, err = self.capfd.readouterr()
 
             assert result.exit_code == 0, out
             assert "Service name: valory/oracle_hardhat" in out, err
