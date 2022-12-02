@@ -24,3 +24,13 @@ def build_image(agent: PublicId, pull: bool = False, dev: bool = False, version:
 
 Command to build images from for skaffold deployment.
 
+<a id="autonomy.deploy.image.ImageBuildFailed"></a>
+
+## ImageBuildFailed Objects
+
+```python
+class ImageBuildFailed(Exception)
+```
+
+Raise when there's an error while building the agent image.
+
