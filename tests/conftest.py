@@ -21,7 +21,9 @@
 import inspect
 import os
 import platform
+import subprocess
 from pathlib import Path
+from typing import Optional
 
 import pytest
 
@@ -33,3 +35,33 @@ skip_docker_tests = pytest.mark.skipif(
     platform.system() != "Linux",
     reason="Docker daemon is not available in Windows and macOS CI containers.",
 )
+
+
+def get_latest_git_tag() -> str:
+    """Get the latest git tag"""
+    res = subprocess.run(  # nosec
+        [
+            "git",
+            "tag",
+            "--sort=-committerdate",
+        ],  # sort by commit date in descending order
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=True,
+    )
+
+    stdout = res.stdout.decode("utf-8")
+    latest, *_ = stdout.split("\n")
+    return latest.strip()
+
+
+def get_file_from_tag(file_path: str, latest_tag: Optional[str] = None) -> str:
+    """Get a specific file version from the commit history given a tag/commit"""
+    latest_tag = latest_tag or get_latest_git_tag()
+    res = subprocess.run(  # nosec
+        ["git", "show", f"{latest_tag}:{file_path}"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=True,
+    )
+    return res.stdout.decode("utf-8")

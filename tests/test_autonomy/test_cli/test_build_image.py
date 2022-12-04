@@ -21,16 +21,20 @@
 
 import json
 import os
-import shutil
 from pathlib import Path
 from random import choices
 from string import ascii_letters
 from typing import Any, Tuple
 
 import docker
-from aea.configurations.constants import PACKAGES
+from aea.configurations.data_types import PackageId, PackageType, PublicId
+from aea.configurations.loader import ConfigLoader
+from aea.helpers.io import open_file
 
-from tests.conftest import ROOT_DIR, skip_docker_tests
+from autonomy.configurations.base import Service
+
+from tests.conftest import get_file_from_tag, skip_docker_tests
+from tests.test_autonomy.base import get_dummy_service_config
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
@@ -41,23 +45,32 @@ class TestBuildImage(BaseCliTest):
     cli_options: Tuple[str, ...] = ("build-image",)
     docker_api: docker.APIClient
     build_dir: Path
-    hash_: str
+    package_hash: str
+    package_id: PackageId
 
     def setup(self) -> None:
         """Setup class."""
         super().setup()
 
         self.docker_api = docker.APIClient()
-
-        with open(ROOT_DIR / PACKAGES / "packages.json") as json_data:
-            d = json.load(json_data)
-            self.hash_ = d["dev"]["agent/valory/hello_world/0.1.0"]
-            json_data.close()
-        shutil.copytree(
-            ROOT_DIR / PACKAGES / "valory" / "services" / "hello_world",
-            self.t / "hello_world",
+        self.package_id = PackageId(
+            package_type=PackageType.AGENT,
+            public_id=PublicId(author="valory", name="test_abci", version="0.1.0"),
         )
-        os.chdir(self.t / "hello_world")
+
+        packages_json = json.loads(get_file_from_tag("packages/packages.json"))
+        package_hash = packages_json["dev"][self.package_id.to_uri_path]
+        self.package_id = self.package_id.with_hash(package_hash=package_hash)
+
+        os.chdir(self.t)
+
+        service_config, *_ = get_dummy_service_config()
+        service_config["agent"] = str(self.package_id.public_id)
+        service_file = self.t / "service.yaml"
+
+        with open_file(service_file, "w+") as fp:
+            service = Service.from_json(service_config)
+            ConfigLoader(Service.schema, Service).dump(service, fp)
 
     def test_build_prod(
         self,
@@ -68,7 +81,11 @@ class TestBuildImage(BaseCliTest):
 
         assert result.exit_code == 0, result.output
         assert (
-            len(self.docker_api.images(name=f"valory/oar-hello_world:{self.hash_}"))
+            len(
+                self.docker_api.images(
+                    name=f"valory/oar-{self.package_id.name}:{self.package_id.package_hash}"
+                )
+            )
             == 1
         )
 
@@ -80,7 +97,10 @@ class TestBuildImage(BaseCliTest):
         result = self.run_cli(("--dev",))
 
         assert result.exit_code == 0, result.output
-        assert len(self.docker_api.images(name="valory/oar-hello_world:dev")) == 1
+        assert (
+            len(self.docker_api.images(name=f"valory/oar-{self.package_id.name}:dev"))
+            == 1
+        )
 
     def test_build_version(
         self,
@@ -92,18 +112,23 @@ class TestBuildImage(BaseCliTest):
 
         assert result.exit_code == 0, result.output
         assert (
-            len(self.docker_api.images(name=f"valory/oar-hello_world:{test_version}"))
+            len(
+                self.docker_api.images(
+                    name=f"valory/oar-{self.package_id.name}:{test_version}"
+                )
+            )
             == 1
         )
 
 
+@skip_docker_tests
 class TestBuildImageFailures(BaseCliTest):
     """Test build image command."""
 
     cli_options: Tuple[str, ...] = ("build-image",)
     docker_api: docker.APIClient
     build_dir: Path
-    hash_: str
+    package_hash: str
 
     def test_service_file_missing(
         self,
