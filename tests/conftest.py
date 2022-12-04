@@ -28,7 +28,7 @@ import pytest
 
 
 if platform.system() == "Windows":
-    asyncio.set_event_loop_poicy(asyncio.WindowsSelectorEventLoopPolicy())  # type: ignore
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())  # type: ignore
 
 CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
 ROOT_DIR = Path(CUR_PATH, "..").resolve().absolute()
