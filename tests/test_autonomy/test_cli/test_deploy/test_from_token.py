@@ -19,8 +19,9 @@
 
 """Test `from-token` command."""
 
+import json
 import os
-from typing import Any
+from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -45,6 +46,25 @@ MOCK_IPFS_RESPONSE = {
     "image": "bafybeiansmhkoovd6jlnyurm2w4qzhpmi43gxlyenq33ioovy2rh4gziji",
     "attributes": [{"trait_type": "version", "value": "0.1.0"}],
 }
+REGISTERED_KEYS = [
+    {
+        "address": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+        "private_key": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+    },
+    {
+        "address": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "private_key": "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
+    },
+    {
+        "address": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "private_key": "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a",
+    },
+    {
+        "address": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        "private_key": "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6",
+    },
+]
+
 
 run_deployment_patch = mock.patch("autonomy.cli.helpers.deployment.run_deployment")
 build_image_patch = mock.patch("autonomy.cli.helpers.deployment.build_image")
@@ -69,19 +89,20 @@ class TestFromToken(BaseCliTest):
     """Test `from-token` command."""
 
     cli_options = ("deploy", "from-token")
-    keys_file = ROOT_DIR / "deployments" / "keys" / "hardhat_keys.json"
     token = 1
     chain = "staging"
+    keys_file: Path
 
     def setup(self) -> None:
         """Setup test method."""
         super().setup()
 
         os.chdir(self.t)
+        self.keys_file = self.t / "keys.json"
+        self.keys_file.write_text(json.dumps(REGISTERED_KEYS))
 
     def test_from_token(
         self,
-        capsys: Any,
     ) -> None:
         """Run test."""
 
@@ -114,12 +135,10 @@ class TestFromToken(BaseCliTest):
                 )
             )
 
-            out, err = capsys.readouterr()
-
-            assert result.exit_code == 0, out
-            assert "Service name: valory/oracle_hardhat" in out, err
-            assert "Building required images" in out, err
-            assert "Service build successful" in out, err
+            assert result.exit_code == 0, result.stdout
+            assert "Service name: valory/oracle_hardhat" in result.stdout
+            assert "Building required images" in result.stdout
+            assert "Service build successful" in result.stdout
 
     def test_fail_on_chain_resolve_connection_error(self) -> None:
         """Run test."""
