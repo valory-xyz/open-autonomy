@@ -121,7 +121,6 @@ class TestBuildImage(BaseCliTest):
         )
 
 
-@skip_docker_tests
 class TestBuildImageFailures(BaseCliTest):
     """Test build image command."""
 
@@ -139,7 +138,10 @@ class TestBuildImageFailures(BaseCliTest):
 
         assert result.exit_code == 1, result.output
         assert "Service configuration not found the current directory" in result.output
+        assert "No such file or directory: " in result.output
+        assert "service.yaml" in result.output
 
+    @skip_docker_tests
     def test_image_build_fail(self, capsys: Any) -> None:
         """Test prod build."""
 

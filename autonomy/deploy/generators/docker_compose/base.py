@@ -125,12 +125,12 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             " \\\n".join(
                 [
                     f"--hostname=node{k}"
-                    for k in range(self.service_spec.service.number_of_agents)
+                    for k in range(self.service_builder.service.number_of_agents)
                 ]
             ),
         )
         self.tendermint_job_config = TENDERMINT_CONFIG_TEMPLATE.format(
-            validators=self.service_spec.service.number_of_agents, hosts=hosts
+            validators=self.service_builder.service.number_of_agents, hosts=hosts
         )
         client = from_env()
         image = f"{TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}"
@@ -152,21 +152,21 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     ) -> "DockerComposeGenerator":
         """Generate the new configuration."""
 
-        image_version = image_version or self.service_spec.service.agent.hash
+        image_version = image_version or self.service_builder.service.agent.hash
         if self.dev_mode:
             image_version = "dev"
 
-        agent_vars = self.service_spec.generate_agents()
         runtime_image = OAR_IMAGE.format(
-            agent=self.service_spec.service.agent.name,
+            agent=self.service_builder.service.agent.name,
             version=image_version,
         )
+        agent_vars = self.service_builder.generate_agents()
 
         agents = "".join(
             [
                 build_agent_config(
                     node_id=i,
-                    number_of_agents=self.service_spec.service.number_of_agents,
+                    number_of_agents=self.service_builder.service.number_of_agents,
                     runtime_image=runtime_image,
                     agent_vars=agent_vars[i],
                     dev_mode=self.dev_mode,
@@ -174,7 +174,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     open_aea_dir=self.open_aea_dir,
                     open_autonomy_dir=self.open_autonomy_dir,
                 )
-                for i in range(self.service_spec.service.number_of_agents)
+                for i in range(self.service_builder.service.number_of_agents)
             ]
         )
         tendermint_nodes = "".join(
@@ -182,9 +182,9 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                 build_tendermint_node_config(
                     node_id=i,
                     dev_mode=self.dev_mode,
-                    log_level=self.service_spec.log_level,
+                    log_level=self.service_builder.log_level,
                 )
-                for i in range(self.service_spec.service.number_of_agents)
+                for i in range(self.service_builder.service.number_of_agents)
             ]
         )
 
@@ -215,15 +215,14 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
         self,
     ) -> "DockerComposeGenerator":
         """Populate the private keys to the build directory for docker-compose mapping."""
-        for x in range(self.service_spec.service.number_of_agents):
-            path = (
-                self.build_dir
-                / DEPLOYMENT_KEY_DIRECTORY
-                / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=x)
-            )
+        keys_dir = self.build_dir / DEPLOYMENT_KEY_DIRECTORY
+        for x in range(self.service_builder.service.number_of_agents):
+            path = keys_dir / DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA.format(agent_n=x)
+            keys_file = path / DEFAULT_PRIVATE_KEY_FILE
+            key = self.service_builder.keys[x][KEY_SCHEMA_PRIVATE_KEY]
+
             path.mkdir()
-            with open(
-                path / DEFAULT_PRIVATE_KEY_FILE, "w", encoding=DEFAULT_ENCODING
-            ) as f:
-                f.write(str(self.service_spec.keys[x][KEY_SCHEMA_PRIVATE_KEY]))
+            with keys_file.open(mode="w", encoding=DEFAULT_ENCODING) as f:
+                f.write(key)
+
         return self
