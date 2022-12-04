@@ -24,7 +24,7 @@ import os
 from pathlib import Path
 from random import choices
 from string import ascii_letters
-from typing import Any, Tuple
+from typing import Tuple
 
 import docker
 from aea.configurations.data_types import PackageId, PackageType, PublicId
