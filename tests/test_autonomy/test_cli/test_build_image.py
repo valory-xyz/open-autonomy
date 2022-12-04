@@ -137,12 +137,11 @@ class TestBuildImageFailures(BaseCliTest):
         result = self.run_cli()
 
         assert result.exit_code == 1, result.output
-        assert "Service configuration not found the current directory" in result.output
         assert "No such file or directory: " in result.output
         assert "service.yaml" in result.output
 
     @skip_docker_tests
-    def test_image_build_fail(self, capsys: Any) -> None:
+    def test_image_build_fail(self) -> None:
         """Test prod build."""
 
         result = self.run_cli(
@@ -151,7 +150,5 @@ class TestBuildImageFailures(BaseCliTest):
             )
         )
 
-        out, err = capsys.readouterr()
-        assert result.exit_code == 1, out
-        assert "Error occured while downloading agent" in out
-        assert "Image build failed with error" in err
+        assert result.exit_code == 1, result.output
+        assert "Error occured while downloading agent" in result.output
