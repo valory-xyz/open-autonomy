@@ -26,7 +26,6 @@ import logging
 import math
 import platform
 import shutil
-import sys
 import time
 from abc import ABC
 from collections import OrderedDict
@@ -51,19 +50,17 @@ from unittest.mock import MagicMock
 
 import pytest
 import pytz  # type: ignore  # pylint: disable=import-error
+from aea_test_autonomy.helpers.base import try_send
 from hypothesis import given
 from hypothesis import strategies as st
-
-from packages.valory.protocols.ledger_api.custom_types import (
-    SignedTransaction,
-    TransactionDigest,
-)
-
-from aea_test_autonomy.helpers.base import try_send
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import HttpDialogues
 from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.ledger_api.custom_types import (
+    SignedTransaction,
+    TransactionDigest,
+)
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci import behaviour_utils
 from packages.valory.skills.abstract_round_abci.base import (

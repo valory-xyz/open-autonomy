@@ -22,7 +22,6 @@
 
 import math
 import shutil
-import sys
 from collections import defaultdict
 from contextlib import suppress
 from pathlib import Path
