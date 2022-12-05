@@ -22,7 +22,6 @@
 # pylint: skip-file
 
 import os
-import sys
 from collections import defaultdict
 from typing import Any, List, Type
 from unittest import mock
@@ -32,7 +31,6 @@ from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
 from packages.valory.skills.abstract_round_abci import CI
-
 from packages.valory.skills.abstract_round_abci.utils import (
     MAX_UINT64,
     VerifyDrand,
@@ -121,14 +119,14 @@ class TestVerifyDrand:
 
 
 @given(st.integers(min_value=0, max_value=MAX_UINT64))
-def test_verify_int_to_bytes_big_fuzz(integer) -> None:
+def test_verify_int_to_bytes_big_fuzz(integer: int) -> None:
     """Test VerifyDrand."""
 
     VerifyDrand._int_to_bytes_big(integer)
 
 
 @pytest.mark.parametrize("integer", [-1, MAX_UINT64 + 1])
-def test_verify_int_to_bytes_big_raises(integer) -> None:
+def test_verify_int_to_bytes_big_raises(integer: int) -> None:
     """Test VerifyDrand._int_to_bytes_big"""
 
     expected = "VerifyDrand can only handle positive numbers representable with 8 bytes"
@@ -154,9 +152,10 @@ def test_to_int_positive() -> None:
     st.floats(max_value=1e16, min_value=-1e16, allow_nan=False, allow_infinity=False),
     st.integers(min_value=0, max_value=20),
 )
-def test_fuzz_to_int(estimate, decimals) -> None:
+def test_fuzz_to_int(estimate: float, decimals: int) -> None:
     """Test fuzz to_int."""
     import logging
+
     logging.info(f"{estimate}, {decimals}")
     to_int(estimate, decimals)
 
