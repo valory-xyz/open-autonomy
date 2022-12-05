@@ -23,6 +23,7 @@ from typing import List, Optional, cast
 from warnings import filterwarnings
 
 import click
+from aea.cli.utils.click_utils import reraise_as_click_exception
 from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
 from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE, PACKAGES
@@ -86,7 +87,7 @@ def abci_app_specs(
     # patching in the SpecCheck methods as they implicitly assume that the AEA modules in packages are importable
     # using standard Python import machinery).
     with sys_path_patch(packages_dir.parent):
-        try:
+        with reraise_as_click_exception(Exception):
             if all_packages:
                 # If package path is not provided check all available packages
                 click.echo("Checking all available packages")
@@ -115,8 +116,6 @@ def abci_app_specs(
                 return
 
             click.echo("Please provide valid arguments")
-        except Exception as e:
-            raise click.ClickException(str(e)) from e
 
 
 @analyse_group.command(name="docstrings")
@@ -140,7 +139,7 @@ def docstrings(ctx: Context, update: bool) -> None:
         )
 
     with sys_path_patch(packages_dir.parent):
-        try:
+        with reraise_as_click_exception(Exception):
             for path in sorted(abci_compositions):
                 *_, author, _, skill_name, _ = path.parts
                 click.echo(f"Processing skill {skill_name} with author {author}")
@@ -156,8 +155,6 @@ def docstrings(ctx: Context, update: bool) -> None:
                 click.echo(f"\nUpdated following files.\n\n{file_string}")
             else:
                 click.echo("No update needed.")
-        except Exception as e:  # pylint: disable=broad-except
-            raise click.ClickException(str(e)) from e
 
 
 @analyse_group.command(name="logs")
@@ -165,10 +162,8 @@ def docstrings(ctx: Context, update: bool) -> None:
 def parse_logs(file: str) -> None:
     """Parse logs of an agent service."""
 
-    try:
+    with reraise_as_click_exception(Exception):
         parse_file(file)
-    except Exception as e:  # pylint: disable=broad-except
-        raise click.ClickException(str(e)) from e
 
 
 @analyse_group.command(name="handlers")
@@ -198,7 +193,7 @@ def run_handler_check(
 ) -> None:
     """Check handler definitions."""
 
-    try:
+    with reraise_as_click_exception(FileNotFoundError, ValueError, ImportError):
         for yaml_file in sorted(
             Path(ctx.registry_path).resolve().glob(f"*/*/*/{DEFAULT_SKILL_CONFIG_FILE}")
         ):
@@ -211,8 +206,6 @@ def run_handler_check(
                 yaml_file.resolve(),
                 common_handlers=common_handlers,
             )
-    except (FileNotFoundError, ValueError, ImportError) as e:
-        raise click.ClickException(str(e)) from e
 
 
 @analyse_group.command(name="benchmarks")
@@ -244,7 +237,5 @@ def run_handler_check(
 def benchmark(path: Path, block_type: str, period: int, output: Path) -> None:
     """Benchmark aggregator."""
 
-    try:
+    with reraise_as_click_exception(Exception):
         aggregate(path=path, block_type=block_type, period=period, output=Path(output))
-    except Exception as e:  # pylint: disable=broad-except
-        raise click.ClickException(str(e)) from e

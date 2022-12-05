@@ -25,7 +25,11 @@ from typing import Optional, cast
 
 import click
 from aea.cli.registry.settings import REGISTRY_REMOTE
-from aea.cli.utils.click_utils import password_option, registry_flag
+from aea.cli.utils.click_utils import (
+    password_option,
+    registry_flag,
+    reraise_as_click_exception,
+)
 from aea.cli.utils.context import Context
 
 from autonomy.cli.helpers.deployment import (
@@ -197,7 +201,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             open_aea_dir=open_aea_dir,
             open_autonomy_dir=open_autonomy_dir,
             log_level=log_level,
-            substitute_env_vars=aev,
+            apply_environment_variables=aev,
             image_version=image_version,
             use_hardhat=use_hardhat,
             use_acn=use_acn,
@@ -275,7 +279,9 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     ctx.registry_type = REGISTRY_REMOTE
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
 
-    try:
+    with reraise_as_click_exception(
+        NotValidKeysFile, FileNotFoundError, FileExistsError
+    ):
         build_and_deploy_from_token(
             token_id=token_id,
             keys_file=keys_file,
@@ -287,9 +293,3 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
             aev=aev,
             password=password,
         )
-    except (
-        NotValidKeysFile,
-        FileNotFoundError,
-        FileExistsError,
-    ) as e:
-        raise click.ClickException(str(e)) from e

@@ -447,7 +447,7 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
         # don't pop before termination, seems to lead to failure!
         for i in range(self.n_terminal):
             agent_name = self._get_agent_name(i)
-            self.terminate_agents(self.processes[i], timeout=0)
+            self.processes[i].terminate()
             self.processes.pop(i)
             logging.info(f"Terminated {agent_name}")
 

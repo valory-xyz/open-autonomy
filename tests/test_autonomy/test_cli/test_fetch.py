@@ -23,7 +23,6 @@ import json
 import os
 import shutil
 from pathlib import Path
-from typing import Any
 from unittest import mock
 
 from aea.configurations.loader import ConfigLoader
@@ -91,7 +90,7 @@ class TestFetchCommand(BaseCliTest):
 
         shutil.rmtree(service)
 
-    def test_publish_and_fetch_service_ipfs(self, capsys: Any) -> None:
+    def test_publish_and_fetch_service_ipfs(self) -> None:
         """Test fetch service."""
         expected_hash = "bafybeic7k4hlrozzc6gfoaygnjr22tg6ukua3rdxt5fmkaplysrw3txvii"
 
@@ -114,10 +113,9 @@ class TestFetchCommand(BaseCliTest):
             service_dir
         ):
             result = self.cli_runner.invoke(cli, ["publish", "--remote"])
-            output = capsys.readouterr()
 
-            assert result.exit_code == 0, output
-            assert expected_hash in output.out, output.err
+            assert result.exit_code == 0, result.output
+            assert expected_hash in result.output
 
         with mock.patch(
             "autonomy.cli.helpers.registry.get_default_remote_registry",
