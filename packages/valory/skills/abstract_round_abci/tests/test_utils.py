@@ -19,8 +19,6 @@
 
 """Test the utils.py module of the skill."""
 
-# pylint: skip-file
-
 import os
 from collections import defaultdict
 from typing import Any, List, Type
@@ -38,6 +36,9 @@ from packages.valory.skills.abstract_round_abci.utils import (
     get_value_with_type,
     to_int,
 )
+
+
+# pylint: skip-file
 
 
 DRAND_PUBLIC_KEY: str = "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31"
@@ -149,12 +150,12 @@ def test_to_int_positive() -> None:
 
 
 @given(
-    st.floats(max_value=1e16, min_value=-1e16, allow_nan=False, allow_infinity=False),
+    st.floats(width=64, allow_nan=False, allow_infinity=False),
     st.integers(min_value=0, max_value=20),
 )
+@pytest.mark.skip(reason="https://github.com/valory-xyz/open-autonomy/issues/1614")
 def test_fuzz_to_int(estimate: float, decimals: int) -> None:
     """Test fuzz to_int."""
-
     to_int(estimate, decimals)
 
 
