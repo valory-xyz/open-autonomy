@@ -1608,20 +1608,9 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         return RPCResponseStatus.UNCLASSIFIED_ERROR
 
     @property
-    def sleep_before_hard_reset(self) -> float:
+    def hard_reset_sleep(self) -> float:
         """
-        Amount of time to sleep before performing a hard reset.
-
-        We sleep for half the observation interval as there are no immediate transactions on either side of the reset.
-
-        :returns: the amount of time to sleep in seconds
-        """
-        return self.params.observation_interval / 2
-
-    @property
-    def sleep_after_hard_reset(self) -> float:
-        """
-        Amount of time to sleep after performing a hard reset.
+        Amount of time to sleep before and after performing a hard reset.
 
         We sleep for half the observation interval as there are no immediate transactions on either side of the reset.
 
@@ -1638,7 +1627,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :yield: None
         """
         if self._check_started is None and not self._is_healthy:
-            yield from self.wait_from_last_timestamp(self.sleep_before_hard_reset)
+            yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
             self._check_started = datetime.datetime.now()
             self._timeout = self.params.max_healthcheck
             self._is_healthy = False
@@ -1784,7 +1773,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self.context.logger.info(
             "local height == remote height; continuing execution..."
         )
-        yield from self.wait_from_last_timestamp(self.sleep_after_hard_reset)
+        yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
         return True
 
 
@@ -1811,20 +1800,9 @@ class TmManager(BaseBehaviour, ABC):
         return self._active_generator is not None
 
     @property
-    def sleep_before_hard_reset(self) -> float:
+    def hard_reset_sleep(self) -> float:
         """
-        Amount of time to sleep before performing a hard reset.
-
-        We don't need to wait for half the observation interval, like in normal cases where we perform a hard reset.
-
-        :returns: the amount of time to sleep in seconds
-        """
-        return self._hard_reset_sleep
-
-    @property
-    def sleep_after_hard_reset(self) -> float:
-        """
-        Amount of time to sleep after performing a hard reset.
+        Amount of time to sleep before and after performing a hard reset.
 
         We don't need to wait for half the observation interval, like in normal cases where we perform a hard reset.
 

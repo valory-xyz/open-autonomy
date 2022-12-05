@@ -1947,16 +1947,10 @@ class TestTmManager:
         actual_reset_params = self.tm_manager._get_reset_params(True)
         assert expected_reset_params == actual_reset_params
 
-    def test_sleep_before_hard_reset(self) -> None:
-        """Check that sleep_before_hard_reset returns the expected amount of time."""
-        expected = self.tm_manager._hard_reset_sleep
-        actual = self.tm_manager.sleep_before_hard_reset
-        assert actual == expected
-
     def test_sleep_after_hard_reset(self) -> None:
-        """Check that sleep_after_hard_reset returns the expected amount of time."""
+        """Check that hard_reset_sleep returns the expected amount of time."""
         expected = self.tm_manager._hard_reset_sleep
-        actual = self.tm_manager.sleep_after_hard_reset
+        actual = self.tm_manager.hard_reset_sleep
         assert actual == expected
 
     def test_try_fix(self) -> None:
