@@ -95,6 +95,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     make_degenerate_behaviour,
 )
 from packages.valory.skills.abstract_round_abci.models import (
+    SharedState,
     _DEFAULT_REQUEST_RETRY_DELAY,
     _DEFAULT_REQUEST_TIMEOUT,
     _DEFAULT_TX_MAX_ATTEMPTS,
@@ -1781,11 +1782,16 @@ class TestBaseBehaviour:
             except StopIteration as e:
                 assert e.value == expecting_success
                 if expecting_success:
-                    # upon having a sucessful reset we expect the reset params of that
+                    # upon having a successful reset we expect the reset params of that
                     # reset to be stored in the shared state, as they could be used
                     # later for performing hard reset in cases when the agent <-> tendermint
                     # communication is broken
-                    assert "reset_params" in self.behaviour.context.shared_state
+                    assert (
+                        cast(
+                            SharedState, self.behaviour.context.state
+                        ).last_reset_params
+                        == expected_parameters
+                    )
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
 
@@ -1867,13 +1873,12 @@ class TestTmManager:
                 consensus_threshold=self._DUMMY_CONSENSUS_THRESHOLD
             ),
         )
-        self.shared_state: Dict[str, Any] = {}
         self.context_state_synchronized_data_mock = MagicMock()
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.synchronized_data = (
             self.context_state_synchronized_data_mock
         )
-        self.context_mock.shared_state = self.shared_state
+        self.context_mock.state.last_reset_params = None
         self.context_mock.state.round_sequence.current_round_id = "round_a"
         self.context_mock.state.round_sequence.syncing_up = False
         self.context_mock.state.round_sequence.block_stall_deadline_expired = False
@@ -1939,7 +1944,7 @@ class TestTmManager:
     ) -> None:
         """Test that reset params returns the correct params."""
         if expected_reset_params is not None:
-            self.shared_state["reset_params"] = expected_reset_params
+            self.context_mock.state.last_reset_params = expected_reset_params
         actual_reset_params = self.tm_manager._get_reset_params(False)
         assert expected_reset_params == actual_reset_params
 

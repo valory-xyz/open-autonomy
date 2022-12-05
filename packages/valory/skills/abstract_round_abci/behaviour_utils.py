@@ -1734,7 +1734,9 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     # in case of successful reset we store the reset params in the shared state,
                     # so that in the future if the communication with tendermint breaks, and we need to
                     # perform a hard reset to restore it, we can use these as the right ones
-                    self.context.shared_state["reset_params"] = reset_params
+                    cast(
+                        SharedState, self.context.state
+                    ).last_reset_params = reset_params
                     self._end_reset()
                 else:
                     msg = response.get("message")
@@ -1850,7 +1852,7 @@ class TmManager(BaseBehaviour, ABC):
         # we get the params from the latest successful reset, if they are not available,
         # i.e. no successful reset has been performed, we return None.
         # Returning None means default params will be used.
-        reset_params = self.context.shared_state.get("reset_params", None)
+        reset_params = cast(SharedState, self.context.state).last_reset_params
         return reset_params
 
     def try_fix(self) -> None:

@@ -148,6 +148,7 @@ class SharedState(Model):
         self.abci_app_cls = self._process_abci_app_cls(abci_app_cls)
         self.abci_app_cls._is_abstract = skill_context.is_abstract_component
         self._round_sequence: Optional[RoundSequence] = None
+        self.last_reset_params: Optional[List[Tuple[str, str]]] = None
         kwargs["skill_context"] = skill_context
         super().__init__(*args, **kwargs)
 
