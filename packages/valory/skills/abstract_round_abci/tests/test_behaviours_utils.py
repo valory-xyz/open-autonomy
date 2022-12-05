@@ -34,7 +34,18 @@ from contextlib import suppress
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -53,7 +64,6 @@ try:
     import atheris  # type: ignore
 except (ImportError, ModuleNotFoundError):
     atheris: Any = None  # type: ignore
-
 
 from aea_test_autonomy.helpers.base import try_send
 
@@ -85,6 +95,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     make_degenerate_behaviour,
 )
 from packages.valory.skills.abstract_round_abci.models import (
+    SharedState,
     _DEFAULT_REQUEST_RETRY_DELAY,
     _DEFAULT_REQUEST_TIMEOUT,
     _DEFAULT_TX_MAX_ATTEMPTS,
@@ -93,7 +104,6 @@ from packages.valory.skills.abstract_round_abci.models import (
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
-
 
 # https://github.com/python/cpython/issues/94414
 # https://stackoverflow.com/questions/46133223/maximum-value-of-timestamp
@@ -499,6 +509,7 @@ class TestBaseBehaviour:
             tx_timeout=_DEFAULT_TX_TIMEOUT,
             max_attempts=_DEFAULT_TX_MAX_ATTEMPTS,
         )
+        self.context_mock.shared_state = {}
         self.context_state_synchronized_data_mock = MagicMock()
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.synchronized_data = (
@@ -1770,6 +1781,17 @@ class TestBaseBehaviour:
                 next(reset)
             except StopIteration as e:
                 assert e.value == expecting_success
+                if expecting_success:
+                    # upon having a successful reset we expect the reset params of that
+                    # reset to be stored in the shared state, as they could be used
+                    # later for performing hard reset in cases when the agent <-> tendermint
+                    # communication is broken
+                    assert (
+                        cast(
+                            SharedState, self.behaviour.context.state
+                        ).last_reset_params
+                        == expected_parameters
+                    )
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
 
@@ -1856,6 +1878,7 @@ class TestTmManager:
         self.context_mock.state.synchronized_data = (
             self.context_state_synchronized_data_mock
         )
+        self.context_mock.state.last_reset_params = None
         self.context_mock.state.round_sequence.current_round_id = "round_a"
         self.context_mock.state.round_sequence.syncing_up = False
         self.context_mock.state.round_sequence.block_stall_deadline_expired = False
@@ -1905,6 +1928,35 @@ class TestTmManager:
                 and num_active_peers < self._DUMMY_CONSENSUS_THRESHOLD
             ):
                 mock_sys_exit.assert_called()
+
+    @pytest.mark.parametrize(
+        "expected_reset_params",
+        (
+            [
+                ("genesis_time", "genesis-time"),
+                ("initial_height", "1"),
+            ],
+            None,
+        ),
+    )
+    def test_get_reset_params(
+        self, expected_reset_params: Optional[List[Tuple[str, str]]]
+    ) -> None:
+        """Test that reset params returns the correct params."""
+        if expected_reset_params is not None:
+            self.context_mock.state.last_reset_params = expected_reset_params
+        actual_reset_params = self.tm_manager._get_reset_params(False)
+        assert expected_reset_params == actual_reset_params
+
+        # setting the "default" arg to true should have no effect
+        actual_reset_params = self.tm_manager._get_reset_params(True)
+        assert expected_reset_params == actual_reset_params
+
+    def test_sleep_after_hard_reset(self) -> None:
+        """Check that hard_reset_sleep returns the expected amount of time."""
+        expected = self.tm_manager._hard_reset_sleep
+        actual = self.tm_manager.hard_reset_sleep
+        assert actual == expected
 
     def test_try_fix(self) -> None:
         """Tests try_fix."""
