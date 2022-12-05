@@ -182,15 +182,6 @@ class TestServiceBuilder:
         ):
             spec.agent_instances = []
 
-        with pytest.raises(
-            NotValidKeysFile,
-            match="Key file does not contain key pair for following instances",
-        ):
-            spec.agent_instances = [
-                "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-                "0xDummyaddress",
-            ]
-
     def test_try_update_multisig_address_failure(self, caplog: Any) -> None:
         """Test `try_update_multisig_address` method."""
         multisig_address = "0xMULTISIGADDRESS"
@@ -264,16 +255,6 @@ class TestServiceBuilder:
         ):
             ServiceBuilder.verify_agent_instances([{"address": "0xaddress0"}], [])
 
-        with pytest.raises(
-            NotValidKeysFile,
-            match=re.escape(
-                "Key file does not contain key pair for following instances {'0xaddress1'}"
-            ),
-        ):
-            ServiceBuilder.verify_agent_instances(
-                [{"address": "0xaddress0"}], ["0xaddress0", "0xaddress1"]
-            )
-
     def test_set_number_of_agents(
         self,
     ) -> None:
@@ -337,21 +318,6 @@ class TestServiceBuilder:
         ):
             ServiceBuilder.from_dir(
                 self.service_path, self.keys_path, agent_instances=[]
-            )
-
-        with pytest.raises(
-            NotValidKeysFile,
-            match=re.escape(
-                "Key file does not contain key pair for following instances {'0xDummyAddress'}"
-            ),
-        ):
-            ServiceBuilder.from_dir(
-                self.service_path,
-                self.keys_path,
-                agent_instances=[
-                    "0xDummyAddress",
-                    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-                ],
             )
 
     @classmethod
