@@ -59,12 +59,6 @@ from packages.valory.protocols.ledger_api.custom_types import (
     TransactionDigest,
 )
 
-
-try:
-    import atheris  # type: ignore
-except (ImportError, ModuleNotFoundError):
-    atheris: Any = None  # type: ignore
-
 from aea_test_autonomy.helpers.base import try_send
 
 from packages.open_aea.protocols.signing import SigningMessage
@@ -1110,37 +1104,22 @@ class TestBaseBehaviour:
         ):
             self.behaviour._send_signing_request(b"")
 
-    @pytest.mark.skip
-    def test_fuzz_send_signing_request(self) -> None:
-        """Test '_send_signing_request'.
+    @given(st.binary())
+    def test_fuzz_send_signing_request(self, input_bytes: bytes) -> None:
+        """Fuzz '_send_signing_request'.
 
-        Do not run this test through pytest. Add the following lines at the bottom
-        of the file and run it as a script:
-        t = TestBaseBehaviour()
-        t.setup()
-        t.test_fuzz_send_signing_request()
+        Mock context manager decorators don't work here.
+
+        :param input_bytes: fuzz input
         """
-
-        @atheris.instrument_func
-        def fuzz_send_signing_request(input_bytes: bytes) -> None:
-            """Fuzz '_send_signing_request'.
-
-            Mock context manager decorators don't work here.
-
-            :param input_bytes: fuzz input
-            """
-            with mock.patch.object(
-                self.behaviour.context.signing_dialogues,
-                "create",
-                return_value=(MagicMock(), MagicMock()),
-            ):
-                with mock.patch.object(behaviour_utils, "RawMessage"):
-                    with mock.patch.object(behaviour_utils, "Terms"):
-                        self.behaviour._send_signing_request(input_bytes)
-
-        atheris.instrument_all()
-        atheris.Setup(sys.argv, fuzz_send_signing_request)
-        atheris.Fuzz()
+        with mock.patch.object(
+            self.behaviour.context.signing_dialogues,
+            "create",
+            return_value=(MagicMock(), MagicMock()),
+        ):
+            with mock.patch.object(behaviour_utils, "RawMessage"):
+                with mock.patch.object(behaviour_utils, "Terms"):
+                    self.behaviour._send_signing_request(input_bytes)
 
     @mock.patch.object(BaseBehaviour, "_get_request_nonce_from_dialogue")
     @mock.patch.object(behaviour_utils, "RawMessage")
@@ -1795,30 +1774,15 @@ class TestBaseBehaviour:
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
 
-    @pytest.mark.skip
-    def test_fuzz_submit_tx(self) -> None:
-        """Test '_submit_tx'.
+    @given(st.binary())
+    def test_fuzz_submit_tx(self, input_bytes: bytes) -> None:
+        """Fuzz '_submit_tx'.
 
-        Do not run this test through pytest. Add the following lines at the bottom
-        of the file and run it as a script:
-        t = TestBaseBehaviour()
-        t.setup()
-        t.test_fuzz_submit_tx()
+        Mock context manager decorators don't work here.
+
+        :param input_bytes: fuzz input
         """
-
-        @atheris.instrument_func
-        def fuzz_submit_tx(input_bytes: bytes) -> None:
-            """Fuzz '_submit_tx'.
-
-            Mock context manager decorators don't work here.
-
-            :param input_bytes: fuzz input
-            """
-            self.behaviour._submit_tx(input_bytes)
-
-        atheris.instrument_all()
-        atheris.Setup(sys.argv, fuzz_submit_tx)
-        atheris.Fuzz()
+        self.behaviour._submit_tx(input_bytes)
 
 
 def test_degenerate_behaviour_async_act() -> None:
