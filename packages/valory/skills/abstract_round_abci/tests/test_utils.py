@@ -33,12 +33,6 @@ from hypothesis import strategies as st
 
 from packages.valory.skills.abstract_round_abci import CI
 
-
-try:
-    import atheris  # type: ignore
-except (ImportError, ModuleNotFoundError):
-    atheris: Any = None  # type: ignore
-
 from packages.valory.skills.abstract_round_abci.utils import (
     MAX_UINT64,
     VerifyDrand,
@@ -126,29 +120,27 @@ class TestVerifyDrand:
             self.drand_check._int_to_bytes_big(value)
 
 
-@pytest.mark.skip
-def test_fuzz_verify_drand() -> None:
-    """Fuzz test for VerifyDrand. Run directly as a function, not through pytest"""
+@given(st.integers(min_value=0, max_value=MAX_UINT64))
+def test_verify_int_to_bytes_big_fuzz(integer) -> None:
+    """Test VerifyDrand."""
 
-    @atheris.instrument_func
-    def test_verify_int_to_bytes_big(input_bytes: bytes) -> None:
-        """Test VerifyDrand."""
-        fdp = atheris.FuzzedDataProvider(input_bytes)
-        VerifyDrand._int_to_bytes_big(
-            fdp.ConsumeInt(16)
-        )  # pylint: disable=protected-access
+    VerifyDrand._int_to_bytes_big(integer)
 
-    @atheris.instrument_func
-    def test_verify_randomness_hash(input_bytes: bytes) -> None:
-        """Test VerifyDrand."""
-        fdp = atheris.FuzzedDataProvider(input_bytes)
-        VerifyDrand._verify_randomness_hash(
-            fdp.ConsumeBytes(16), fdp.ConsumeBytes(16)
-        )  # pylint: disable=protected-access
 
-    atheris.instrument_all()
-    atheris.Setup(sys.argv, test_verify_int_to_bytes_big)
-    atheris.Fuzz()
+@pytest.mark.parametrize("integer", [-1, MAX_UINT64 + 1])
+def test_verify_int_to_bytes_big_raises(integer) -> None:
+    """Test VerifyDrand._int_to_bytes_big"""
+
+    expected = "VerifyDrand can only handle positive numbers representable with 8 bytes"
+    with pytest.raises(ValueError, match=expected):
+        VerifyDrand._int_to_bytes_big(integer)
+
+
+@given(st.binary())
+def test_verify_randomness_hash_fuzz(input_bytes: bytes) -> None:
+    """Test VerifyDrand._verify_randomness_hash"""
+
+    VerifyDrand._verify_randomness_hash(input_bytes, input_bytes)
 
 
 def test_to_int_positive() -> None:
@@ -158,21 +150,15 @@ def test_to_int_positive() -> None:
     assert to_int(542, 2) == 54200
 
 
-@pytest.mark.skip
-def test_fuzz_to_int() -> None:
+@given(
+    st.floats(max_value=1e16, min_value=-1e16, allow_nan=False, allow_infinity=False),
+    st.integers(min_value=0, max_value=20),
+)
+def test_fuzz_to_int(estimate, decimals) -> None:
     """Test fuzz to_int."""
-
-    @atheris.instrument_func
-    def fuzz_to_int(input_bytes: bytes) -> None:
-        """Fuzz to_int."""
-        fdp = atheris.FuzzedDataProvider(input_bytes)
-        estimate = fdp.ConsumeFloat()
-        decimals = fdp.ConsumeInt(4)
-        to_int(estimate, decimals)
-
-    atheris.instrument_all()
-    atheris.Setup(sys.argv, fuzz_to_int)
-    atheris.Fuzz()
+    import logging
+    logging.info(f"{estimate}, {decimals}")
+    to_int(estimate, decimals)
 
 
 @given(
