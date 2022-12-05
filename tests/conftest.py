@@ -21,7 +21,7 @@
 import inspect
 import os
 import platform
-import subprocess
+import subprocess  # nosec
 from pathlib import Path
 from typing import Optional
 
