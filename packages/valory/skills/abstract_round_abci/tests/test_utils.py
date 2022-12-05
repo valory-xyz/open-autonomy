@@ -154,9 +154,7 @@ def test_to_int_positive() -> None:
 )
 def test_fuzz_to_int(estimate: float, decimals: int) -> None:
     """Test fuzz to_int."""
-    import logging
 
-    logging.info(f"{estimate}, {decimals}")
     to_int(estimate, decimals)
 
 
