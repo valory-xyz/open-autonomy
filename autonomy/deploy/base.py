@@ -186,12 +186,6 @@ class ServiceBuilder:
                 f"Key file contains keys which are not registered as instances; invalid keys={key_not_in_instances}"
             )
 
-        instances_not_in_keys = instances.difference(addresses)
-        if instances_not_in_keys:
-            raise NotValidKeysFile(
-                f"Key file does not contain key pair for following instances {instances_not_in_keys}"
-            )
-
     def read_keys(self, keys_file: Path) -> None:
         """Read in keys from a file on disk."""
 
