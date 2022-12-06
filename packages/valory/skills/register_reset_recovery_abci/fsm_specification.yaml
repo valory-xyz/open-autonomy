@@ -1,0 +1,22 @@
+alphabet_in:
+- DONE
+- FAST_FORWARD
+- NO_MAJORITY
+- RESET_AND_PAUSE_TIMEOUT
+default_start_state: RegistrationStartupRound
+final_states: []
+label: RegisterResetAbciApp
+start_states:
+- RegistrationStartupRound
+states:
+- RegistrationRound
+- RegistrationStartupRound
+- ResetAndPauseRound
+transition_func:
+    (RegistrationRound, DONE): ResetAndPauseRound
+    (RegistrationRound, NO_MAJORITY): RegistrationRound
+    (RegistrationStartupRound, DONE): ResetAndPauseRound
+    (RegistrationStartupRound, FAST_FORWARD): ResetAndPauseRound
+    (ResetAndPauseRound, DONE): RegistrationRound
+    (ResetAndPauseRound, NO_MAJORITY): RegistrationRound
+    (ResetAndPauseRound, RESET_AND_PAUSE_TIMEOUT): RegistrationRound
