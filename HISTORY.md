@@ -28,7 +28,7 @@ Tests:
 Docs:
 - Adds documentation on the usage of the service level overrides
 - Makes sure that naming convention for autonomous services is consistent throughout the documentation
-- 
+
 
 # 0.4.0 (2022-11-17)
 
