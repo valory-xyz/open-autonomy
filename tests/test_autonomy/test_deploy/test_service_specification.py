@@ -167,6 +167,7 @@ class TestServiceBuilder:
 
     def test_agent_instance_setter(
         self,
+        caplog: Any,
     ) -> None:
         """Test agent instance setter."""
 
@@ -182,14 +183,24 @@ class TestServiceBuilder:
         ):
             spec.agent_instances = []
 
-        with pytest.raises(
-            NotValidKeysFile,
-            match="Key file does not contain key pair for following instances",
-        ):
+        with caplog.at_level(logging.WARNING):
             spec.agent_instances = [
                 "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
                 "0xDummyaddress",
             ]
+            assert (
+                "Key file does not contain key pair for following instances {'0xDummyaddress'}"
+                in caplog.text
+            )
+
+        with caplog.at_level(logging.INFO):
+            spec.agent_instances = [
+                "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+            ]
+            assert (
+                "Found following keys with registered instances {'0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'}"
+                in caplog.text
+            )
 
     def test_try_update_multisig_address_failure(self, caplog: Any) -> None:
         """Test `try_update_multisig_address` method."""
@@ -253,6 +264,7 @@ class TestServiceBuilder:
 
     def test_verify_agent_instances(
         self,
+        caplog: Any,
     ) -> None:
         """Test `verify_agent_instances` method."""
 
@@ -264,14 +276,22 @@ class TestServiceBuilder:
         ):
             ServiceBuilder.verify_agent_instances([{"address": "0xaddress0"}], [])
 
-        with pytest.raises(
-            NotValidKeysFile,
-            match=re.escape(
-                "Key file does not contain key pair for following instances {'0xaddress1'}"
-            ),
-        ):
+        with caplog.at_level(logging.WARNING):
             ServiceBuilder.verify_agent_instances(
                 [{"address": "0xaddress0"}], ["0xaddress0", "0xaddress1"]
+            )
+            assert (
+                "Key file does not contain key pair for following instances {'0xaddress1'}"
+                in caplog.text
+            )
+
+        with caplog.at_level(logging.INFO):
+            ServiceBuilder.verify_agent_instances(
+                [{"address": "0xaddress0"}], ["0xaddress0"]
+            )
+            assert (
+                "Found following keys with registered instances {'0xaddress0'}"
+                in caplog.text
             )
 
     def test_set_number_of_agents(
@@ -337,21 +357,6 @@ class TestServiceBuilder:
         ):
             ServiceBuilder.from_dir(
                 self.service_path, self.keys_path, agent_instances=[]
-            )
-
-        with pytest.raises(
-            NotValidKeysFile,
-            match=re.escape(
-                "Key file does not contain key pair for following instances {'0xDummyAddress'}"
-            ),
-        ):
-            ServiceBuilder.from_dir(
-                self.service_path,
-                self.keys_path,
-                agent_instances=[
-                    "0xDummyAddress",
-                    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-                ],
             )
 
     @classmethod
