@@ -333,7 +333,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         assert result.exit_code == 1, result.output
         assert "Please provide proper value for --packages-dir" in result.output
 
-    def test_non_existent_keys_file_raises(self):
+    def test_non_existent_keys_file_raises(self) -> None:
         """Test non-existent keys file"""
 
         keys_file = "non_existent_keys.json"
@@ -342,14 +342,14 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         assert result.exit_code == 1
         assert expected in result.stdout
 
-    def test_remove_build_dir_on_exception(self):
+    def test_remove_build_dir_on_exception(self) -> None:
         """Test non-existent keys file"""
 
         target = "autonomy.cli.deploy.build_deployment"
         side_effect = FileNotFoundError("Mocked file not found")
         with mock.patch(target, side_effect=side_effect) as m:
             with mock.patch("shutil.rmtree") as rmtree_mock:
-                result = self.run_cli((str(self.keys_file), ))
+                result = self.run_cli((str(self.keys_file),))
                 m.assert_called_once()
                 rmtree_mock.assert_called_once()
                 assert str(side_effect) in result.stdout
