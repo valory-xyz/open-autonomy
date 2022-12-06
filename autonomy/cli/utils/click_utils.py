@@ -107,6 +107,4 @@ class PathArgument(click.Path):
     ) -> Optional[Path]:
         """Convert path string to `pathlib.Path`"""
         path_string = super().convert(value, param, ctx)
-        if path_string is None:
-            return path_string
-        return Path(path_string)
+        return path_string and Path(path_string)
