@@ -51,6 +51,7 @@ from unittest.mock import MagicMock
 
 import pytest
 import pytz  # type: ignore  # pylint: disable=import-error
+from _pytest.logging import LogCaptureFixture
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -93,6 +94,10 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     TimeoutException,
     TmManager,
     make_degenerate_behaviour,
+)
+from packages.valory.skills.abstract_round_abci.io_.ipfs import (
+    IPFSInteract,
+    IPFSInteractionError,
 )
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState,
@@ -521,6 +526,31 @@ class TestBaseBehaviour:
         self.context_mock.http_dialogues = HttpDialogues()
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.behaviour = BehaviourATest(name="", skill_context=self.context_mock)
+        self.behaviour.context.logger = logging
+
+    def test_send_to_ipfs(self, caplog: LogCaptureFixture) -> None:
+        """Test send_to_ipfs"""
+
+        assert self.behaviour.ipfs_enabled is False
+        expected = "Trying to perform an IPFS operation, but IPFS has not been enabled!"
+        with pytest.raises(ValueError, match=expected):
+            self.behaviour.send_to_ipfs("filepath", [])
+
+        self.behaviour.ipfs_enabled = True
+        self.behaviour._ipfs_interact = IPFSInteract(None)
+        with mock.patch.object(
+            IPFSInteract, "store_and_send", return_value="mock_hash"
+        ):
+            with caplog.at_level(logging.INFO):
+                self.behaviour.send_to_ipfs("filepath", [])
+                assert "IPFS hash is: mock_hash" in caplog.text
+
+        side_effect = IPFSInteractionError
+        with mock.patch.object(IPFSInteract, "store_and_send", side_effect=side_effect):
+            with caplog.at_level(logging.ERROR):
+                self.behaviour.send_to_ipfs("filepath", [])
+                expected = "An error occurred while trying to send a file to IPFS:"
+                assert expected in caplog.text
 
     def test_params_property(self) -> None:
         """Test the 'params' property."""
