@@ -379,6 +379,23 @@ class TestSharedState:
 
         SharedState._process_abci_app_cls(AbciAppTest)
 
+    def test_last_reset_params_on_init(self) -> None:
+        """Test that `last_reset_params` gets initialized correctly."""
+        # by default `last_reset_params` should be None
+        shared_state = SharedState(
+            abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
+        )
+        assert shared_state.last_reset_params is None
+
+    def test_set_last_reset_params(self) -> None:
+        """Test that `last_reset_params` get set correctly."""
+        shared_state = SharedState(
+            abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
+        )
+        test_params = [("genesis_time", "some-time"), ("initial_height", "0")]
+        shared_state.last_reset_params = test_params
+        assert shared_state.last_reset_params == test_params
+
 
 class TestBenchmarkTool:
     """Test BenchmarkTool"""
