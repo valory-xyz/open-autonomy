@@ -422,7 +422,12 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
             self._restart_agents()
 
         self.check_aea_messages()
-        self.terminate_agents(timeout=TERMINATION_TIMEOUT)
+        try:
+            self.terminate_agents(timeout=TERMINATION_TIMEOUT)
+        except TimeoutError:
+            # This is rare, though it has occurred that even after a kill signal
+            # with a 30s timeout the subprocess did not terminate.
+            logging.error(f"Failed to terminate agents after {TERMINATION_TIMEOUT}s")
 
     def _restart_agents(self) -> None:
         """Stops and restarts agents after stop string is found."""
