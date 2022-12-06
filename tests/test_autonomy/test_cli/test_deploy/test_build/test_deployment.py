@@ -333,8 +333,25 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         assert result.exit_code == 1, result.output
         assert "Please provide proper value for --packages-dir" in result.output
 
+    def test_non_existent_keys_file_raises(self):
+        """Test non-existent keys file"""
 
-class TestKuebernetesBuild(BaseDeployBuildTest):
+        keys_file = "non_existent_keys.json"
+        result = self.run_cli((keys_file,))
+        expected = f"No such file or directory: {Path.cwd() / keys_file}. Please provide valid path for keys file."
+        assert expected in result.stdout
+
+    def test_remove_build_dir_on_exception(self):
+        """Test non-existent keys file"""
+
+        target = "autonomy.cli.deploy.build_deployment"
+        with mock.patch(target, side_effect=FileNotFoundError):
+            with mock.patch("shutil.rmtree", wraps=shutil.rmtree) as m:
+                self.run_cli((str(self.keys_file), ))
+                m.assert_called_once()
+
+
+class TestKubernetesBuild(BaseDeployBuildTest):
     """Test kubernetes builds."""
 
     @staticmethod
