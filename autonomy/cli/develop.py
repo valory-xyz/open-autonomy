@@ -19,20 +19,47 @@
 
 """Develop CLI module."""
 
+from pathlib import Path
+from typing import Optional, Tuple
+
 import click
+from aea.configurations.data_types import PackageType
+from aea_ledger_ethereum.ethereum import EthereumCrypto
 from docker import from_env
 
+from autonomy.cli.helpers.chain import publish_component
+from autonomy.cli.utils.click_utils import PathArgument
 from autonomy.constants import (
     DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE,
     SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME,
 )
 
 
+package_path_decorator = click.argument(
+    "package_path",
+    type=PathArgument(exists=True, file_okay=False, dir_okay=True),
+)
+key_path_decorator = click.argument(
+    "keys",
+    type=PathArgument(exists=True, file_okay=True, dir_okay=False),
+)
+password_decorator = click.option(
+    "--password",
+    type=str,
+    help="Password for key pair",
+)
+dependencies_decorator = click.option(
+    "-d",
+    "--dependencies",
+    type=str,
+    multiple=True,
+    help="Password for key pair",
+)
+
+
 @click.group(name="develop")
 def develop_group() -> None:
     """Develop an agent service."""
-
-    click.echo("Develop module.")  # pragma: nocover
 
 
 @develop_group.command(name="service-registry-network")
@@ -64,3 +91,31 @@ def run_service_locally(image: str) -> None:
 
     click.echo("Stopping container.")
     container.stop()
+
+
+@develop_group.group("publish")
+def publish_component_on_chain() -> None:
+    """Publish component on-chain."""
+
+
+@publish_component_on_chain.command()
+@package_path_decorator
+@key_path_decorator
+@password_decorator
+@dependencies_decorator
+def protocol(
+    package_path: Path, keys: Path, password: Optional[str], dependencies: Tuple[str]
+) -> None:
+    """Publish a protocol component."""
+
+    account = EthereumCrypto(
+        private_key_path=keys,
+        password=password,
+    )
+
+    publish_component(
+        package_path=package_path,
+        package_type=PackageType.PROTOCOL,
+        crypto=account,
+        dependencies=list(map(int, dependencies)),
+    )
