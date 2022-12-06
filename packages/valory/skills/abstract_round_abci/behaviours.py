@@ -288,6 +288,7 @@ class AbstractRoundBehaviour(
         #  Stop the current behaviours and replace it with the new behaviour
         if self.current_behaviour is not None:
             current_behaviour = cast(BaseBehaviour, self.current_behaviour)
+            current_behaviour.clean_up()
             current_behaviour.stop()
             self.context.logger.debug(
                 "overriding transition: current behaviours: '%s', next behaviours: '%s'",
