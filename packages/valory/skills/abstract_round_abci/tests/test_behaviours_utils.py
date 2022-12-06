@@ -552,6 +552,27 @@ class TestBaseBehaviour:
                 expected = "An error occurred while trying to send a file to IPFS:"
                 assert expected in caplog.text
 
+    def test_get_from_ipfs(self, caplog: LogCaptureFixture) -> None:
+        """Test get_from_ipfs"""
+
+        assert self.behaviour.ipfs_enabled is False
+        expected = "Trying to perform an IPFS operation, but IPFS has not been enabled!"
+        with pytest.raises(ValueError, match=expected):
+            self.behaviour.get_from_ipfs("mock_hash", "target_dir")
+
+        self.behaviour.ipfs_enabled = True
+        self.behaviour._ipfs_interact = IPFSInteract(None)
+        with mock.patch.object(IPFSInteract, "get_and_read"):
+            with caplog.at_level(logging.INFO):
+                self.behaviour.get_from_ipfs("mock_hash", "target_dir")
+
+        side_effect = IPFSInteractionError
+        with mock.patch.object(IPFSInteract, "store_and_send", side_effect=side_effect):
+            with caplog.at_level(logging.ERROR):
+                self.behaviour.get_from_ipfs("mock_hash", "target_dir")
+                expected = "An error occurred while trying to fetch a file from IPFS:"
+                assert expected in caplog.text
+
     def test_params_property(self) -> None:
         """Test the 'params' property."""
         assert self.behaviour.params == self.context_params_mock
