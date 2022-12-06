@@ -5,6 +5,14 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.4.0` to `v0.5.0`
+
+
+One backwards incompatible changes
+## Service component
+
+- This release introduces a new format for defining multiple overrides for an agent on a service configuration. Please follow this [guide](https://docs.autonolas.network/guides/service_configuration_file/) to update your service configurations accordingly. 
+
 ## `v0.3.5` to `v0.4.0`
 
 Multiple backwards incompatible changes
