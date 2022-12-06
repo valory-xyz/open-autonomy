@@ -18,7 +18,7 @@ Packages:
   - Remove the correct path before downloading
 - Fixes the tendermint reset mechanism to 
   - Avoid race conditions when performing a hard reset
-  - Not updated the initial height and genesis time when resetting
+  - Not update the initial height and genesis time when resetting for recovering agent to tendermint communication
   - Update the waiting interval
 
 Tests:
