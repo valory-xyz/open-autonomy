@@ -27,7 +27,7 @@ from aea.configurations.data_types import PackageType
 from aea_ledger_ethereum.ethereum import EthereumCrypto
 from docker import from_env
 
-from autonomy.cli.helpers.chain import publish_component
+from autonomy.cli.helpers.chain import mint_component
 from autonomy.cli.utils.click_utils import PathArgument
 from autonomy.constants import (
     DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE,
@@ -93,12 +93,12 @@ def run_service_locally(image: str) -> None:
     container.stop()
 
 
-@develop_group.group("publish")
-def publish_component_on_chain() -> None:
-    """Publish component on-chain."""
+@develop_group.group("mint")
+def mint_component_on_chain() -> None:
+    """Mint component on-chain."""
 
 
-@publish_component_on_chain.command()
+@mint_component_on_chain.command()
 @package_path_decorator
 @key_path_decorator
 @password_decorator
@@ -106,14 +106,14 @@ def publish_component_on_chain() -> None:
 def protocol(
     package_path: Path, keys: Path, password: Optional[str], dependencies: Tuple[str]
 ) -> None:
-    """Publish a protocol component."""
+    """Mint a protocol component."""
 
     account = EthereumCrypto(
         private_key_path=keys,
         password=password,
     )
 
-    publish_component(
+    mint_component(
         package_path=package_path,
         package_type=PackageType.PROTOCOL,
         crypto=account,

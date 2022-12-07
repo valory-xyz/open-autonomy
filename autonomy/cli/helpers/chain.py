@@ -111,7 +111,7 @@ def verify_and_fetch_token_id_from_event(
     return None
 
 
-def _publish_component(
+def _mint_component(
     ledger_api: LedgerApi,
     crypto: Crypto,
     metadata_hash: str,
@@ -150,13 +150,13 @@ def _publish_component(
     return None
 
 
-def publish_component(
+def mint_component(
     package_path: Path,
     package_type: PackageType,
     crypto: Crypto,
     dependencies: Optional[List[int]] = None,
 ) -> None:
-    """Publish component to on-chain contract."""
+    """Mint a component to on-chain contract."""
 
     ipfs_tool = IPFSTool()
     ledger_api = EthereumApi(
@@ -178,7 +178,7 @@ def publish_component(
         ipfs_tool=ipfs_tool,
     )
 
-    token_id = _publish_component(
+    token_id = _mint_component(
         ledger_api=ledger_api,
         crypto=crypto,
         metadata_hash=metadata_hash,
@@ -186,7 +186,7 @@ def publish_component(
         dependencies=dependencies,
     )
 
-    click.echo("Component published with:")
+    click.echo("Component minted with:")
     click.echo(f"\tPublic ID: {package_configuration.public_id}")
     click.echo(f"\tMetadata Hash: {metadata_hash}")
     if token_id is not None:
