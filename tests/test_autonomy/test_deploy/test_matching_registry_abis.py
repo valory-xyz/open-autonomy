@@ -21,7 +21,8 @@
 import json
 from pathlib import Path
 
-from autonomy.deploy.chain import SERVICE_REGISTRY_ABI, get_abi
+from autonomy.chain.config import get_abi
+from autonomy.chain.constants import SERVICE_REGISTRY_ABI_FILENAME
 
 from tests.conftest import ROOT_DIR
 
@@ -40,7 +41,7 @@ def test_service_abi_matches_contract() -> None:
     with open(expected_abi_path, encoding="utf-8") as expected_abi_file:
         expected_abi = json.load(expected_abi_file)["abi"]
 
-    actual_abi = get_abi(SERVICE_REGISTRY_ABI)
+    actual_abi = get_abi(SERVICE_REGISTRY_ABI_FILENAME)
 
     # the abi on autonomy is at autonomy/data/abis/service_registry/service_registry.json
     assert expected_abi == actual_abi, (

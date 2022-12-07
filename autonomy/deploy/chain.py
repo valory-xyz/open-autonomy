@@ -18,9 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """Utils to support on-chain contract interactions."""
-import json
+
 import os
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import requests
@@ -28,8 +27,8 @@ import web3
 
 from autonomy.chain.config import get_abi
 from autonomy.chain.constants import (
+    SERVICE_REGISTRY_ABI_FILENAME,
     SERVICE_REGISTRY_ADDRESS_LOCAL,
-    SERVICE_REGISTRY_FILENAME,
 )
 
 
@@ -85,7 +84,7 @@ class ServiceRegistry:
         self.w3 = web3.Web3(
             provider=web3.HTTPProvider(endpoint_uri=self.rpc_url),
         )
-        self.abi = get_abi(filename=SERVICE_REGISTRY_FILENAME)
+        self.abi = get_abi(filename=SERVICE_REGISTRY_ABI_FILENAME)
 
         self.service_contract_address = service_contract_address or CHAIN_CONFIG.get(
             chain_type, {}
