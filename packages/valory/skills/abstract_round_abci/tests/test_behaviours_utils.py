@@ -25,41 +25,40 @@ import json
 import logging
 import math
 import platform
-import shutil
-import sys
 import time
 from abc import ABC
 from collections import OrderedDict
-from contextlib import suppress
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
 import pytz  # type: ignore  # pylint: disable=import-error
-from hypothesis import given
-from hypothesis import strategies as st
-
-from packages.valory.protocols.ledger_api.custom_types import (
-    SignedTransaction,
-    TransactionDigest,
-)
-
-
-try:
-    import atheris  # type: ignore
-except (ImportError, ModuleNotFoundError):
-    atheris: Any = None  # type: ignore
-
-
 from aea_test_autonomy.helpers.base import try_send
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import HttpDialogues
 from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.ledger_api.custom_types import (
+    SignedTransaction,
+    TransactionDigest,
+)
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci import behaviour_utils
 from packages.valory.skills.abstract_round_abci.base import (
@@ -85,6 +84,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     make_degenerate_behaviour,
 )
 from packages.valory.skills.abstract_round_abci.models import (
+    SharedState,
     _DEFAULT_REQUEST_RETRY_DELAY,
     _DEFAULT_REQUEST_TIMEOUT,
     _DEFAULT_TX_MAX_ATTEMPTS,
@@ -94,7 +94,6 @@ from packages.valory.skills.abstract_round_abci.models import (
 
 PACKAGE_DIR = Path(__file__).parent.parent
 
-
 # https://github.com/python/cpython/issues/94414
 # https://stackoverflow.com/questions/46133223/maximum-value-of-timestamp
 # NOTE: timezone in behaviour_utils._get_reset_params set to UTC
@@ -102,16 +101,6 @@ PACKAGE_DIR = Path(__file__).parent.parent
 #  hence we add and subtract a day from the actual min / max datetime
 MIN_DATETIME_WINDOWS = datetime(1970, 1, 3, 1, 0, 0)
 MAX_DATETIME_WINDOWS = datetime(3000, 12, 30, 23, 59, 59)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def hypothesis_cleanup() -> Generator:
-    """Fixture to remove hypothesis directory after tests."""
-    yield
-    hypothesis_dir = PACKAGE_DIR / ".hypothesis"
-    if hypothesis_dir.exists():
-        with suppress(OSError, PermissionError):
-            shutil.rmtree(hypothesis_dir)
 
 
 def yield_and_return_bool_wrapper(
@@ -499,6 +488,7 @@ class TestBaseBehaviour:
             tx_timeout=_DEFAULT_TX_TIMEOUT,
             max_attempts=_DEFAULT_TX_MAX_ATTEMPTS,
         )
+        self.context_mock.shared_state = {}
         self.context_state_synchronized_data_mock = MagicMock()
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.synchronized_data = (
@@ -1099,37 +1089,23 @@ class TestBaseBehaviour:
         ):
             self.behaviour._send_signing_request(b"")
 
-    @pytest.mark.skip
-    def test_fuzz_send_signing_request(self) -> None:
-        """Test '_send_signing_request'.
+    @given(st.binary())
+    @settings(deadline=None)  # somehow autouse fixture in conftest doesn't work here
+    def test_fuzz_send_signing_request(self, input_bytes: bytes) -> None:
+        """Fuzz '_send_signing_request'.
 
-        Do not run this test through pytest. Add the following lines at the bottom
-        of the file and run it as a script:
-        t = TestBaseBehaviour()
-        t.setup()
-        t.test_fuzz_send_signing_request()
+        Mock context manager decorators don't work here.
+
+        :param input_bytes: fuzz input
         """
-
-        @atheris.instrument_func
-        def fuzz_send_signing_request(input_bytes: bytes) -> None:
-            """Fuzz '_send_signing_request'.
-
-            Mock context manager decorators don't work here.
-
-            :param input_bytes: fuzz input
-            """
-            with mock.patch.object(
-                self.behaviour.context.signing_dialogues,
-                "create",
-                return_value=(MagicMock(), MagicMock()),
-            ):
-                with mock.patch.object(behaviour_utils, "RawMessage"):
-                    with mock.patch.object(behaviour_utils, "Terms"):
-                        self.behaviour._send_signing_request(input_bytes)
-
-        atheris.instrument_all()
-        atheris.Setup(sys.argv, fuzz_send_signing_request)
-        atheris.Fuzz()
+        with mock.patch.object(
+            self.behaviour.context.signing_dialogues,
+            "create",
+            return_value=(MagicMock(), MagicMock()),
+        ):
+            with mock.patch.object(behaviour_utils, "RawMessage"):
+                with mock.patch.object(behaviour_utils, "Terms"):
+                    self.behaviour._send_signing_request(input_bytes)
 
     @mock.patch.object(BaseBehaviour, "_get_request_nonce_from_dialogue")
     @mock.patch.object(behaviour_utils, "RawMessage")
@@ -1770,33 +1746,29 @@ class TestBaseBehaviour:
                 next(reset)
             except StopIteration as e:
                 assert e.value == expecting_success
+                if expecting_success:
+                    # upon having a successful reset we expect the reset params of that
+                    # reset to be stored in the shared state, as they could be used
+                    # later for performing hard reset in cases when the agent <-> tendermint
+                    # communication is broken
+                    assert (
+                        cast(
+                            SharedState, self.behaviour.context.state
+                        ).last_reset_params
+                        == expected_parameters
+                    )
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
 
-    @pytest.mark.skip
-    def test_fuzz_submit_tx(self) -> None:
-        """Test '_submit_tx'.
+    @given(st.binary())
+    def test_fuzz_submit_tx(self, input_bytes: bytes) -> None:
+        """Fuzz '_submit_tx'.
 
-        Do not run this test through pytest. Add the following lines at the bottom
-        of the file and run it as a script:
-        t = TestBaseBehaviour()
-        t.setup()
-        t.test_fuzz_submit_tx()
+        Mock context manager decorators don't work here.
+
+        :param input_bytes: fuzz input
         """
-
-        @atheris.instrument_func
-        def fuzz_submit_tx(input_bytes: bytes) -> None:
-            """Fuzz '_submit_tx'.
-
-            Mock context manager decorators don't work here.
-
-            :param input_bytes: fuzz input
-            """
-            self.behaviour._submit_tx(input_bytes)
-
-        atheris.instrument_all()
-        atheris.Setup(sys.argv, fuzz_submit_tx)
-        atheris.Fuzz()
+        self.behaviour._submit_tx(input_bytes)
 
 
 def test_degenerate_behaviour_async_act() -> None:
@@ -1856,6 +1828,7 @@ class TestTmManager:
         self.context_mock.state.synchronized_data = (
             self.context_state_synchronized_data_mock
         )
+        self.context_mock.state.last_reset_params = None
         self.context_mock.state.round_sequence.current_round_id = "round_a"
         self.context_mock.state.round_sequence.syncing_up = False
         self.context_mock.state.round_sequence.block_stall_deadline_expired = False
@@ -1905,6 +1878,35 @@ class TestTmManager:
                 and num_active_peers < self._DUMMY_CONSENSUS_THRESHOLD
             ):
                 mock_sys_exit.assert_called()
+
+    @pytest.mark.parametrize(
+        "expected_reset_params",
+        (
+            [
+                ("genesis_time", "genesis-time"),
+                ("initial_height", "1"),
+            ],
+            None,
+        ),
+    )
+    def test_get_reset_params(
+        self, expected_reset_params: Optional[List[Tuple[str, str]]]
+    ) -> None:
+        """Test that reset params returns the correct params."""
+        if expected_reset_params is not None:
+            self.context_mock.state.last_reset_params = expected_reset_params
+        actual_reset_params = self.tm_manager._get_reset_params(False)
+        assert expected_reset_params == actual_reset_params
+
+        # setting the "default" arg to true should have no effect
+        actual_reset_params = self.tm_manager._get_reset_params(True)
+        assert expected_reset_params == actual_reset_params
+
+    def test_sleep_after_hard_reset(self) -> None:
+        """Check that hard_reset_sleep returns the expected amount of time."""
+        expected = self.tm_manager._hard_reset_sleep
+        actual = self.tm_manager.hard_reset_sleep
+        assert actual == expected
 
     def test_try_fix(self) -> None:
         """Tests try_fix."""

@@ -28,6 +28,7 @@ from aea.cli.utils.click_utils import PublicIdParameter, reraise_as_click_except
 from aea.configurations.data_types import PublicId
 
 from autonomy.configurations.loader import load_service_config
+from autonomy.deploy.image import ImageBuildFailed
 from autonomy.deploy.image import build_image as _build_image
 
 
@@ -60,7 +61,7 @@ def build_image(
             service = load_service_config(service_dir)
             agent = service.agent
 
-    with reraise_as_click_exception(Exception):
+    with reraise_as_click_exception(ImageBuildFailed):
         click.echo(f"Building image with agent: {agent}\n")
         _build_image(
             agent=agent,
