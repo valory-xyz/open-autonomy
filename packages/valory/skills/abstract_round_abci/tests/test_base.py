@@ -1817,7 +1817,7 @@ class TestRoundSequence:
             ):
                 _ = self.round_sequence.last_round_transition_height
 
-    def test_warning_block_before_blockchain_initialization(self, caplog: LogCaptureFixture) -> None:
+    def test_block_before_blockchain_is_init(self, caplog: LogCaptureFixture) -> None:
         """Test block received before blockchain initialized."""
 
         self.round_sequence.begin_block(MagicMock(height=1))

@@ -49,6 +49,7 @@ from typing import (
 from unittest import mock
 from unittest.mock import MagicMock
 
+from aea.test_tools.utils import as_context
 import pytest
 import pytz  # type: ignore  # pylint: disable=import-error
 from _pytest.logging import LogCaptureFixture
@@ -127,6 +128,19 @@ def hypothesis_cleanup() -> Generator:
     if hypothesis_dir.exists():
         with suppress(OSError, PermissionError):
             shutil.rmtree(hypothesis_dir)
+
+
+def mock_yield_and_return(
+    return_value: Any,
+) -> Callable[[], Generator[None, None, Any]]:
+    """Wrapper for a Dummy generator that returns a `bool`."""
+
+    def yield_and_return(*_: Any, **__: Any) -> Generator[None, None, Any]:
+        """Dummy generator that returns a `bool`."""
+        yield
+        return return_value
+
+    return yield_and_return
 
 
 def yield_and_return_bool_wrapper(
@@ -1464,6 +1478,27 @@ class TestBaseBehaviour:
 
         assert tx_hash is None
         assert status == RPCResponseStatus.UNCLASSIFIED_ERROR
+
+    def test_get_transaction_receipt(self, caplog) -> None:
+        """Test get_transaction_receipt."""
+
+        expected = {"dummy": "tx_receipt"}
+        transaction_receipt = LedgerApiMessage.TransactionReceipt("", expected, {})
+        tx_receipt_message = LedgerApiMessage(
+            LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
+            transaction_receipt=transaction_receipt
+        )
+        side_effect = mock_yield_and_return(tx_receipt_message)
+        with as_context(
+            mock.patch.object(self.behaviour, "_send_transaction_receipt_request"),
+            mock.patch.object(self.behaviour, "wait_for_message", side_effect=side_effect),
+        ):
+            gen = self.behaviour.get_transaction_receipt("tx_digest")
+            try:
+                while True:
+                    next(gen)
+            except StopIteration as e:
+                assert e.value == expected
 
     @pytest.mark.parametrize("contract_address", [None, "contract_address"])
     def test_get_contract_api_response(self, contract_address: Optional[str]) -> None:
