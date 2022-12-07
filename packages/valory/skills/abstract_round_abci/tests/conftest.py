@@ -21,17 +21,28 @@
 
 # pylint: skip-file
 
+import os
 import shutil
 from contextlib import suppress
 from pathlib import Path
 from typing import Dict, Generator
-
+from hypothesis import settings
 import pytest
 
 from packages.valory.skills.abstract_round_abci.io_.store import StoredJSONType
 
 
+CI = "CI"
 PACKAGE_DIR = Path(__file__).parent.parent
+settings.register_profile(CI, deadline=5000)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def load_hypothesis_settings() -> Generator:
+    """Fixture to load hypothesis CI settings."""
+    if os.getenv(CI):
+        settings.load_profile(CI)
+    yield
 
 
 @pytest.fixture

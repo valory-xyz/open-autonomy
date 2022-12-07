@@ -19,16 +19,14 @@
 
 """Test the utils.py module of the skill."""
 
-import os
 from collections import defaultdict
 from typing import Any, List, Type
 from unittest import mock
 
 import pytest
-from hypothesis import assume, given, settings
+from hypothesis import assume, given
 from hypothesis import strategies as st
 
-from packages.valory.skills.abstract_round_abci import CI
 from packages.valory.skills.abstract_round_abci.utils import (
     MAX_UINT64,
     VerifyDrand,
@@ -57,11 +55,6 @@ DRAND_VALUE = {
         "44f02a416480dd117a3ff8b8075b1b7362c58af195573623187463"
     ),
 }
-
-
-running_on_ci = os.getenv(CI)
-if running_on_ci:
-    settings.load_profile(CI)
 
 
 class TestVerifyDrand:
