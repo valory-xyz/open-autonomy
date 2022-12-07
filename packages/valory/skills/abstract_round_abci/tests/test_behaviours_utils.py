@@ -49,7 +49,7 @@ from unittest.mock import MagicMock
 import pytest
 import pytz  # type: ignore  # pylint: disable=import-error
 from aea_test_autonomy.helpers.base import try_send
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from packages.open_aea.protocols.signing import SigningMessage
@@ -1090,6 +1090,7 @@ class TestBaseBehaviour:
             self.behaviour._send_signing_request(b"")
 
     @given(st.binary())
+    @settings(deadline=None)  # somehow autouse fixture in conftest doesn't work here
     def test_fuzz_send_signing_request(self, input_bytes: bytes) -> None:
         """Fuzz '_send_signing_request'.
 
