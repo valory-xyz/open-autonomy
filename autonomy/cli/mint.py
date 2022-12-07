@@ -26,7 +26,6 @@ import click
 from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
 from aea.configurations.data_types import PackageType
-from aea_ledger_ethereum.ethereum import EthereumCrypto
 
 from autonomy.chain.config import ChainType
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
@@ -54,6 +53,11 @@ dependencies_decorator = click.option(
     multiple=True,
     help="Password for key pair",
 )
+nft_decorator = click.option(
+    "--nft",
+    type=str,
+    help="IPFS hash for the NFT image",
+)
 
 
 @click.group("mint")
@@ -70,6 +74,7 @@ def mint(ctx: Context, chain_type: str) -> None:
 @key_path_decorator
 @password_decorator
 @dependencies_decorator
+@nft_decorator
 @pass_ctx
 def protocol(
     ctx: Context,
@@ -77,10 +82,11 @@ def protocol(
     keys: Path,
     password: Optional[str],
     dependencies: Tuple[str],
+    nft: Optional[str],
 ) -> None:
     """Mint a protocol component."""
 
-    _mint_component(
+    mint_component(
         package_path=package_path,
         package_type=PackageType.PROTOCOL,
         keys=keys,
@@ -88,36 +94,3 @@ def protocol(
         dependencies=dependencies,
         password=password,
     )
-
-
-def _mint_component(
-    package_path: Path,
-    package_type: PackageType,
-    keys: Path,
-    chain_type: ChainType,
-    dependencies: Tuple[str],
-    password: Optional[str] = None,
-) -> None:
-    """Mint component."""
-
-    account = EthereumCrypto(
-        private_key_path=keys,
-        password=password,
-    )
-
-    try:
-        mint_component(
-            package_path=package_path,
-            package_type=package_type,
-            crypto=account,
-            chain_type=chain_type,
-            dependencies=list(map(int, dependencies)),
-        )
-    except ComponentMintFailed as e:
-        raise click.ClickException(
-            f"Component mint failed with following error; {e}"
-        ) from e
-    except FailedToRetrieveTokenId as e:
-        raise click.ClickException(
-            f"Component mint was successful but token ID retrieving failed with following error; {e}"
-        ) from e
