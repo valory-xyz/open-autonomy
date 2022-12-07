@@ -38,10 +38,10 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
+from packages.valory.skills.reset_pause_abci import PUBLIC_ID
 from packages.valory.skills.reset_pause_abci.behaviours import ResetAndPauseBehaviour
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
 from packages.valory.skills.reset_pause_abci.rounds import FinishedResetAndPauseRound
-from packages.valory.skills.reset_pause_abci import PUBLIC_ID
 
 
 PACKAGE_DIR = Path(__file__).parent.parent

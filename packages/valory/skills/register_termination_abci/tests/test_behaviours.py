@@ -22,6 +22,7 @@
 from pathlib import Path
 from unittest.mock import MagicMock
 
+from packages.valory.skills.register_termination_abci import PUBLIC_ID
 from packages.valory.skills.register_termination_abci.behaviours import (
     RegisterTerminationAbciAppConsensusBehaviour,
 )
@@ -39,7 +40,6 @@ from packages.valory.skills.termination_abci.behaviours import (
     BackgroundBehaviour,
     TerminationAbciBehaviours,
 )
-from packages.valory.skills.register_termination_abci import PUBLIC_ID
 
 
 def test_skill_public_id() -> None:

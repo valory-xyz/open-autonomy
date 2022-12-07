@@ -34,6 +34,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehav
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
+from packages.valory.skills.test_abci import PUBLIC_ID
 from packages.valory.skills.test_abci.behaviours import (
     DummyBehaviour,
     TestAbciConsensusBehaviour,
@@ -44,7 +45,6 @@ from packages.valory.skills.test_abci.handlers import (
     LedgerApiHandler,
     SigningHandler,
 )
-from packages.valory.skills.test_abci import PUBLIC_ID
 
 
 PACKAGE_DIR = Path(__file__).parent.parent

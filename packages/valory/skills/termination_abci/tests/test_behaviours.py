@@ -37,6 +37,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
+from packages.valory.skills.termination_abci import PUBLIC_ID
 from packages.valory.skills.termination_abci.behaviours import (
     BackgroundBehaviour,
     TerminationAbciBehaviours,
@@ -46,7 +47,6 @@ from packages.valory.skills.termination_abci.rounds import Event, SynchronizedDa
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TransactionSettlementRoundBehaviour,
 )
-from packages.valory.skills.termination_abci import PUBLIC_ID
 
 
 SERVICE_REGISTRY_ADDRESS = "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA"

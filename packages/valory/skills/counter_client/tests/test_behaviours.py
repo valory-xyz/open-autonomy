@@ -31,9 +31,10 @@ from aea.test_tools.test_skill import BaseSkillTestCase
 from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
+from packages.valory.skills.counter_client import PUBLIC_ID
 from packages.valory.skills.counter_client.behaviours import BaseBehaviour
 from packages.valory.skills.counter_client.handlers import HttpHandler, HttpMessage
-from packages.valory.skills.counter_client import PUBLIC_ID
+
 
 PACKAGE_DIR = Path(__file__).parent.parent
 

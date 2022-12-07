@@ -29,7 +29,9 @@ from unittest.mock import patch
 
 from aea.test_tools.test_skill import BaseSkillTestCase
 
-from packages.valory.connections.abci.connection import PUBLIC_ID as ABCI_CONNECTION_PUBLIC_ID
+from packages.valory.connections.abci.connection import (
+    PUBLIC_ID as ABCI_CONNECTION_PUBLIC_ID,
+)
 from packages.valory.protocols.abci.custom_types import (
     CheckTxType,
     CheckTxTypeEnum,
@@ -38,9 +40,9 @@ from packages.valory.protocols.abci.custom_types import (
     ValidatorUpdates,
 )
 from packages.valory.protocols.abci.message import AbciMessage
+from packages.valory.skills.counter import PUBLIC_ID
 from packages.valory.skills.counter.dialogues import AbciDialogue, AbciDialogues
 from packages.valory.skills.counter.handlers import ABCICounterHandler
-from packages.valory.skills.counter import PUBLIC_ID
 
 
 def test_skill_public_id() -> None:
@@ -87,7 +89,9 @@ class TestCounterHandler(BaseSkillTestCase):
         """Test the setup method of the echo handler."""
         with patch.object(self.logger, "log") as mock_logger:
             self.abci_counter_handler.setup()
-            expected = f"ABCI Handler: setup method called. Using {ABCI_CONNECTION_PUBLIC_ID}."
+            expected = (
+                f"ABCI Handler: setup method called. Using {ABCI_CONNECTION_PUBLIC_ID}."
+            )
             mock_logger.assert_any_call(logging.DEBUG, expected)
 
         # after

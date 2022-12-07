@@ -24,6 +24,7 @@
 from pathlib import Path
 from unittest.mock import MagicMock
 
+from packages.valory.skills.register_reset_abci import PUBLIC_ID
 from packages.valory.skills.register_reset_abci.behaviours import (
     RegisterResetAbciAppConsensusBehaviour,
 )
@@ -35,7 +36,6 @@ from packages.valory.skills.registration_abci.behaviours import (
 from packages.valory.skills.reset_pause_abci.behaviours import (
     ResetPauseABCIConsensusBehaviour,
 )
-from packages.valory.skills.register_reset_abci import PUBLIC_ID
 
 
 def test_public_id() -> None:

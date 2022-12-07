@@ -29,6 +29,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from packages.valory.skills.abstract_round_abci import PUBLIC_ID
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciApp,
@@ -48,7 +49,6 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     _MetaRoundBehaviour,
 )
-from packages.valory.skills.abstract_round_abci import PUBLIC_ID
 
 
 BEHAVIOUR_A_ID = "behaviour_a"

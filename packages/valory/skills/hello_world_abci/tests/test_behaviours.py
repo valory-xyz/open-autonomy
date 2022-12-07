@@ -48,6 +48,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.hello_world_abci import PUBLIC_ID
 from packages.valory.skills.hello_world_abci.behaviours import (
     CollectRandomnessBehaviour,
     HelloWorldRoundBehaviour,
@@ -58,7 +59,7 @@ from packages.valory.skills.hello_world_abci.behaviours import (
 )
 from packages.valory.skills.hello_world_abci.handlers import HttpHandler, SigningHandler
 from packages.valory.skills.hello_world_abci.rounds import Event, SynchronizedData
-from packages.valory.skills.hello_world_abci import PUBLIC_ID
+
 
 PACKAGE_DIR = Path(__file__).parent.parent
 

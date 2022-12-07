@@ -45,6 +45,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
+from packages.valory.skills.registration_abci import PUBLIC_ID
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationBaseBehaviour,
     RegistrationBehaviour,
@@ -58,7 +59,6 @@ from packages.valory.skills.registration_abci.rounds import (
     FinishedRegistrationFFWRound,
     FinishedRegistrationRound,
 )
-from packages.valory.skills.registration_abci import PUBLIC_ID
 
 
 PACKAGE_DIR = Path(__file__).parent.parent

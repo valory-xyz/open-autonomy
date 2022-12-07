@@ -71,6 +71,7 @@ from packages.valory.skills.abstract_round_abci.test_tools.common import (
     BaseRandomnessBehaviourTest,
     BaseSelectKeeperBehaviourTest,
 )
+from packages.valory.skills.transaction_settlement_abci import PUBLIC_ID
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     CheckLateTxHashesBehaviour,
     CheckTransactionHistoryBehaviour,
@@ -99,7 +100,6 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TransactionSettlementSynchronizedSata,
 )
-from packages.valory.skills.transaction_settlement_abci import PUBLIC_ID
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
