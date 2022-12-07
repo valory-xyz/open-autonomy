@@ -19,25 +19,15 @@
 
 """Chain interaction base classes."""
 
-import json
 from enum import Enum
 from typing import Any, Dict, Iterable, List, Optional
 
 from aea.crypto.base import Crypto, LedgerApi
 
-from autonomy.chain.config import ContractConfig
-from autonomy.data import DATA_DIR
+from autonomy.chain.config import ContractConfig, get_abi
 
-
-ABI_DIR = DATA_DIR / "abis"
 
 ContractInterfaceType = Any
-
-
-def get_abi(filename: str) -> Dict:
-    """Service contract ABI."""
-    with (ABI_DIR / filename).open(mode="r", encoding="utf-8") as fp:
-        return json.load(fp=fp)
 
 
 class BaseContract:  # pylint: disable=too-few-public-methods

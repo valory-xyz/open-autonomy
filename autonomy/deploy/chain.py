@@ -26,13 +26,13 @@ from typing import Dict, List, Optional, Tuple
 import requests
 import web3
 
-from autonomy.data import DATA_DIR
-
-
-ABIS_DIR = "abis"
-SERVICE_REGISTRY_ABI = (
-    DATA_DIR / ABIS_DIR / "service_registry" / "service_registry.json"
+from autonomy.chain.config import get_abi
+from autonomy.chain.constants import (
+    SERVICE_REGISTRY_ADDRESS_LOCAL,
+    SERVICE_REGISTRY_FILENAME,
 )
+
+
 DEFAULT_STAGING_CHAIN = "http://localhost:8545"
 SERVICE_CONTRACT_ADDRESS = "service_contract_address"
 
@@ -40,7 +40,7 @@ CHAIN_CONFIG: Dict[str, Dict[str, Optional[str]]] = {
     "staging": {
         "rpc": os.environ.get("STAGING_CHAIN_RPC", DEFAULT_STAGING_CHAIN),
         SERVICE_CONTRACT_ADDRESS: os.environ.get(
-            "SERVICE_ADDRESS_STAGING", "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
+            "SERVICE_ADDRESS_STAGING", SERVICE_REGISTRY_ADDRESS_LOCAL
         ),
     },
     "ethereum": {
@@ -58,14 +58,6 @@ CHAIN_CONFIG: Dict[str, Dict[str, Optional[str]]] = {
 }
 
 ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
-
-
-def get_abi(path: Path) -> Dict:
-    """Read the ABI from the provided path."""
-
-    with open(path, encoding="utf-8") as f:
-        abi = json.load(f)
-    return abi
 
 
 class ServiceRegistry:
@@ -93,7 +85,7 @@ class ServiceRegistry:
         self.w3 = web3.Web3(
             provider=web3.HTTPProvider(endpoint_uri=self.rpc_url),
         )
-        self.abi = get_abi(SERVICE_REGISTRY_ABI)
+        self.abi = get_abi(filename=SERVICE_REGISTRY_FILENAME)
 
         self.service_contract_address = service_contract_address or CHAIN_CONFIG.get(
             chain_type, {}
