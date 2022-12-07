@@ -26,8 +26,9 @@ import shutil
 from contextlib import suppress
 from pathlib import Path
 from typing import Dict, Generator
-from hypothesis import settings
+
 import pytest
+from hypothesis import settings
 
 from packages.valory.skills.abstract_round_abci.io_.store import StoredJSONType
 
