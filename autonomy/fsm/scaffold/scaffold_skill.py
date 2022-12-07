@@ -168,7 +168,14 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
 
     def _load_agent_config(self) -> AgentConfig:
         """Load the current agent configuration."""
-        with (Path(self.ctx.cwd) / DEFAULT_AEA_CONFIG_FILE).open() as f:
+        agent_config_path = Path(self.ctx.cwd) / DEFAULT_AEA_CONFIG_FILE
+        if self.ctx.config.get("to_local_registry"):
+            # by default it creates all agent stuff in current directory
+            # ctx.cwd set to packages/author in open aea code and needs fix
+            # TODO: fix after openaea scaffold.py:280 `ctx.cwd =` hack fixed
+            agent_config_path = Path(".") / DEFAULT_AEA_CONFIG_FILE
+
+        with agent_config_path.open() as f:
             return self.ctx.agent_loader.load(f)
 
     @property
@@ -260,7 +267,14 @@ class ScaffoldABCISkill:
     @property
     def skill_dir(self) -> Path:
         """Get the directory to the skill."""
-        return Path(SKILLS, self.skill_name)
+        if self.ctx.config.get("to_local_registry"):
+            return Path(
+                self.ctx.registry_path,
+                self.ctx.agent_config.author,
+                SKILLS,
+                self.skill_name,
+            )
+        return Path(self.ctx.cwd, SKILLS, self.skill_name)
 
     @property
     def skill_test_dir(self) -> Path:
@@ -269,9 +283,8 @@ class ScaffoldABCISkill:
 
     def do_scaffolding(self) -> None:
         """Do the scaffolding."""
-
-        self.skill_dir.mkdir(exist_ok=True)
-        self.skill_test_dir.mkdir(exist_ok=True)
+        self.skill_dir.mkdir(parents=True, exist_ok=True)
+        self.skill_test_dir.mkdir(parents=True, exist_ok=True)
 
         file_dirs = self.skill_dir, self.skill_test_dir
         file_gens = self.file_generators, self.test_file_generators

@@ -68,5 +68,6 @@ def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
     _add_abstract_round_abci_if_not_present(ctx)
 
     # scaffold AEA skill - as usual
+
     scaffold_item(ctx, SKILL, skill_name)
     ScaffoldABCISkill(ctx, skill_name, Path(spec)).do_scaffolding()
