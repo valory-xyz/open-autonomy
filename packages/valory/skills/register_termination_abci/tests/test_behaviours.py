@@ -19,6 +19,7 @@
 
 """Tests for valory/termination_abci skill's behaviours."""
 
+from pathlib import Path
 from unittest.mock import MagicMock
 
 from packages.valory.skills.register_termination_abci.behaviours import (
@@ -38,6 +39,14 @@ from packages.valory.skills.termination_abci.behaviours import (
     BackgroundBehaviour,
     TerminationAbciBehaviours,
 )
+from packages.valory.skills.register_termination_abci import PUBLIC_ID
+
+
+def test_skill_public_id() -> None:
+    """Test skill module public ID"""
+
+    assert PUBLIC_ID.name == Path(__file__).parents[1].name
+    assert PUBLIC_ID.author == Path(__file__).parents[3].name
 
 
 def test_RegisterSafeTerminationAbciAppConsensusBehaviour() -> None:

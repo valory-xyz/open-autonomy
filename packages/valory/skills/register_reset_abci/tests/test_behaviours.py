@@ -21,6 +21,7 @@
 
 # pylint: skip-file
 
+from pathlib import Path
 from unittest.mock import MagicMock
 
 from packages.valory.skills.register_reset_abci.behaviours import (
@@ -34,6 +35,14 @@ from packages.valory.skills.registration_abci.behaviours import (
 from packages.valory.skills.reset_pause_abci.behaviours import (
     ResetPauseABCIConsensusBehaviour,
 )
+from packages.valory.skills.register_reset_abci import PUBLIC_ID
+
+
+def test_public_id() -> None:
+    """Test skill module public ID"""
+
+    assert PUBLIC_ID.name == Path(__file__).parents[1].name
+    assert PUBLIC_ID.author == Path(__file__).parents[3].name
 
 
 def test_RegisterResetAbciAppConsensusBehaviour() -> None:

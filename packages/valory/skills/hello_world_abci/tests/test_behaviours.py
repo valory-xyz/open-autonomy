@@ -58,9 +58,16 @@ from packages.valory.skills.hello_world_abci.behaviours import (
 )
 from packages.valory.skills.hello_world_abci.handlers import HttpHandler, SigningHandler
 from packages.valory.skills.hello_world_abci.rounds import Event, SynchronizedData
-
+from packages.valory.skills.hello_world_abci import PUBLIC_ID
 
 PACKAGE_DIR = Path(__file__).parent.parent
+
+
+def test_skill_public_id() -> None:
+    """Test skill module public ID"""
+
+    assert PUBLIC_ID.name == Path(__file__).parents[1].name
+    assert PUBLIC_ID.author == Path(__file__).parents[3].name
 
 
 class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):

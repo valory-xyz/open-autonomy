@@ -41,9 +41,17 @@ from packages.valory.skills.abstract_round_abci.test_tools.base import (
 from packages.valory.skills.reset_pause_abci.behaviours import ResetAndPauseBehaviour
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetEvent
 from packages.valory.skills.reset_pause_abci.rounds import FinishedResetAndPauseRound
+from packages.valory.skills.reset_pause_abci import PUBLIC_ID
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
+
+
+def test_skill_public_id() -> None:
+    """Test skill module public ID"""
+
+    assert PUBLIC_ID.name == Path(__file__).parents[1].name
+    assert PUBLIC_ID.author == Path(__file__).parents[3].name
 
 
 class ResetPauseAbciFSMBehaviourBaseCase(FSMBehaviourBaseCase):

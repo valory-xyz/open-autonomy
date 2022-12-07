@@ -46,6 +46,7 @@ from packages.valory.skills.termination_abci.rounds import Event, SynchronizedDa
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TransactionSettlementRoundBehaviour,
 )
+from packages.valory.skills.termination_abci import PUBLIC_ID
 
 
 SERVICE_REGISTRY_ADDRESS = "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA"
@@ -53,6 +54,13 @@ SAFE_ADDRESS = "0x0"
 MULTISEND_ADDRESS = "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761"
 SERVICE_OWNER_ADDRESS = "0x0"
 SERVICE_ID = None
+
+
+def test_skill_public_id() -> None:
+    """Test skill module public ID"""
+
+    assert PUBLIC_ID.name == Path(__file__).parents[1].name
+    assert PUBLIC_ID.author == Path(__file__).parents[3].name
 
 
 @dataclass

@@ -22,6 +22,7 @@
 # pylint: skip-file
 
 from enum import Enum
+from pathlib import Path
 from typing import Any, Dict, Generator, Optional, Tuple
 from unittest import mock
 from unittest.mock import MagicMock
@@ -47,6 +48,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     _MetaRoundBehaviour,
 )
+from packages.valory.skills.abstract_round_abci import PUBLIC_ID
 
 
 BEHAVIOUR_A_ID = "behaviour_a"
@@ -56,6 +58,13 @@ CONCRETE_BACKGROUND_BEHAVIOUR_ID = "background_behaviour"
 ROUND_A_ID = "round_a"
 ROUND_B_ID = "round_b"
 CONCRETE_BACKGROUND_ROUND_ID = "background_round"
+
+
+def test_skill_public_id() -> None:
+    """Test skill module public ID"""
+
+    assert PUBLIC_ID.name == Path(__file__).parents[1].name
+    assert PUBLIC_ID.author == Path(__file__).parents[3].name
 
 
 class RoundA(AbstractRound):
