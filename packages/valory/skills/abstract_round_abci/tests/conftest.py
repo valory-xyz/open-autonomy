@@ -18,9 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Conftest module for io tests."""
-
-# pylint: skip-file
-
+import logging
 import os
 import shutil
 from contextlib import suppress
@@ -33,16 +31,21 @@ from hypothesis import settings
 from packages.valory.skills.abstract_round_abci.io_.store import StoredJSONType
 
 
+# pylint: skip-file
+
+
 CI = "CI"
 PACKAGE_DIR = Path(__file__).parent.parent
 settings.register_profile(CI, deadline=5000)
 
 
 @pytest.fixture(scope="session", autouse=True)
-def load_hypothesis_settings() -> Generator:
+def load_hypothesis_profile() -> Generator:
     """Fixture to load hypothesis CI settings."""
     if os.getenv(CI):
         settings.load_profile(CI)
+    profile = settings.get_profile(settings._current_profile)
+    logging.info(f"Using hypothesis profile from {__file__}:\n{profile}")
     yield
 
 

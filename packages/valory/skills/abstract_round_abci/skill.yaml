@@ -6,6 +6,7 @@ description: abstract round-based ABCI application
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
+  .coverage: bafybeieycebn2zt3mdi4aff2webumw5w2b4rc6hzwkldqzbmjtjuvfincy
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeihnqe3jevwrc72dmx4ehfjt7iyxo525f6yxz46t3t2uawhnbh3nji
   abci_app_chain.py: bafybeihb3ded23gvjrn426qptkbnkge5cewqm7ywi4j6ebmo3j66ss5wii
@@ -29,7 +30,7 @@ fingerprint:
   test_tools/integration.py: bafybeias3iltitbhxtca7ardbm6iqmsufjrcruvqnjlrlwswgkxzyikvpm
   test_tools/rounds.py: bafybeigipcycu6kc4ji46saby5syqwchegewmxunxm2tkgh7t4dskgcnqe
   tests/__init__.py: bafybeiebss5rdfh7tdbw2qi3tjpf6cjgwuonowsw6bimyosfie2ngxhhzy
-  tests/conftest.py: bafybeiej5fz2nfozggsy3f6xkru6xnr44evx6ic3pdrmmveyqyc4bxndme
+  tests/conftest.py: bafybeiclvkii57pjvcocnwwenasgaseimbcmsoj25ulc7ge7n2t5ckmnei
   tests/data/__init__.py: bafybeifmqjnrqgbau4tshhdtrosru7xyjky72ljlrf3ynrk76fxjcsgfpi
   tests/data/dummy_abci/__init__.py: bafybeiaoqyjlgez5gkvutl22ihebcjk3zskve5gdt5wbap5zkmhehoddca
   tests/data/dummy_abci/behaviours.py: bafybeify7ajsepvqgowdmfv2i33opqk4qbydwpfu4kuplizb4uum5czi54
