@@ -21,11 +21,8 @@
 # pylint: skip-file
 
 import math
-import shutil
 from collections import defaultdict
-from contextlib import suppress
-from pathlib import Path
-from typing import Any, Dict, Generator
+from typing import Any, Dict
 
 import hypothesis.strategies as st
 import pytest
@@ -36,19 +33,6 @@ from packages.valory.skills.abstract_round_abci import serializer
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
-
-
-PACKAGE_DIR = Path(__file__).parent.parent
-
-
-@pytest.fixture(scope="session", autouse=True)
-def hypothesis_cleanup() -> Generator:
-    """Fixture to remove hypothesis directory after tests."""
-    yield
-    hypothesis_dir = PACKAGE_DIR / ".hypothesis"
-    if hypothesis_dir.exists():
-        with suppress(OSError, PermissionError):
-            shutil.rmtree(hypothesis_dir)
 
 
 def test_encode_decode_i() -> None:
