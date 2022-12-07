@@ -24,10 +24,17 @@ from typing import FrozenSet
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciAppDB,
-    ConsensusParams, BaseSynchronizedData,
+    BaseSynchronizedData,
+    ConsensusParams,
 )
-from packages.valory.skills.register_reset_recovery_abci.payloads import RoundCountPayload
-from packages.valory.skills.register_reset_recovery_abci.rounds import RoundCountRound, Event
+from packages.valory.skills.register_reset_recovery_abci.payloads import (
+    RoundCountPayload,
+)
+from packages.valory.skills.register_reset_recovery_abci.rounds import (
+    Event,
+    RoundCountRound,
+)
+
 
 MAX_PARTICIPANTS: int = 4
 
@@ -86,9 +93,8 @@ class TestTerminationRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-
         res = test_round.end_block()
         assert res is not None
-        actual_state, event = res
+        _, event = res
 
         assert event == Event.DONE

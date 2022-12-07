@@ -19,13 +19,20 @@
 
 """Tests for valory/registration_abci skill's behaviours."""
 from pathlib import Path
-from typing import Type, Optional, Dict, Any
+from typing import Any, Dict, Optional, Type
 
-from packages.valory.skills.abstract_round_abci.base import BaseSynchronizedData, AbciAppDB
+from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
+    BaseSynchronizedData,
+)
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
-from packages.valory.skills.abstract_round_abci.test_tools.base import FSMBehaviourBaseCase
-from packages.valory.skills.register_reset_recovery_abci.behaviours import \
-    RegisterResetRecoveryAbciAppConsensusBehaviour, ShareRoundCountBehaviour
+from packages.valory.skills.abstract_round_abci.test_tools.base import (
+    FSMBehaviourBaseCase,
+)
+from packages.valory.skills.register_reset_recovery_abci.behaviours import (
+    RegisterResetRecoveryAbciAppConsensusBehaviour,
+    ShareRoundCountBehaviour,
+)
 from packages.valory.skills.register_reset_recovery_abci.rounds import Event
 
 
@@ -58,6 +65,7 @@ class BaseTerminationTest(FSMBehaviourBaseCase):
         """Complete test"""
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round(done_event=self.done_event)
         assert (
             self.behaviour.current_behaviour.behaviour_id  # type: ignore
@@ -67,8 +75,10 @@ class BaseTerminationTest(FSMBehaviourBaseCase):
 
 class TestShareRoundCountBehaviour(BaseTerminationTest):
     """Tests the ShareRoundCountBehaviour."""
+
     behaviour_class = ShareRoundCountBehaviour
 
     def test_run(self) -> None:
+        """Run the behaviour."""
         self.fast_forward()
         self.complete()

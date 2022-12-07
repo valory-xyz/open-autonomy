@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,7 +29,10 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.register_reset_recovery_abci.composition import RegisterResetRecoveryAbciApp
+from packages.valory.skills.register_reset_recovery_abci.composition import (
+    RegisterResetRecoveryAbciApp,
+)
+
 
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool

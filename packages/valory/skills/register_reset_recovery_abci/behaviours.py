@@ -19,15 +19,19 @@
 
 """This module contains the behaviours for the 'abci' skill."""
 
-from typing import Set, Type, Generator, cast
+from typing import Generator, Set, Type, cast
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
-from packages.valory.skills.register_reset_recovery_abci.composition import RegisterResetRecoveryAbciApp
+from packages.valory.skills.register_reset_recovery_abci.composition import (
+    RegisterResetRecoveryAbciApp,
+)
 from packages.valory.skills.register_reset_recovery_abci.models import SharedState
-from packages.valory.skills.register_reset_recovery_abci.payloads import RoundCountPayload
+from packages.valory.skills.register_reset_recovery_abci.payloads import (
+    RoundCountPayload,
+)
 from packages.valory.skills.register_reset_recovery_abci.rounds import RoundCountRound
 from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,
@@ -49,8 +53,18 @@ class ShareRoundCountBehaviour(BaseBehaviour):
         ).synchronized_data.round_count
 
         self.context.logger.info(f"Current round count is {round_count}. ")
-        payload = RoundCountPayload(sender=self.context.agent_address, current_round_count=round_count)
-
+        payload = RoundCountPayload(
+            sender=self.context.agent_address, current_round_count=round_count
+        )
+        # the following sleep acts as a buffer so that
+        # we are sure that all agents have enough time to print the log above
+        # in contrary, it might happen that majority is reached before 1 agent
+        # has printed the round count log, which might lead to a failing test.
+        # This is because a new round is scheduled as soon as the desired majority
+        # is reached. There is no guarantee that all behaviours across all agents
+        # will finish given an `CollectSameUntilThresholdRound` round.
+        buffer = 5
+        yield from self.sleep(buffer)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
         self.set_done()
@@ -63,5 +77,5 @@ class RegisterResetRecoveryAbciAppConsensusBehaviour(AbstractRoundBehaviour):
     abci_app_cls = RegisterResetRecoveryAbciApp
     behaviours: Set[Type[BaseBehaviour]] = {
         *AgentRegistrationRoundBehaviour.behaviours,
-        ShareRoundCountBehaviour,
+        ShareRoundCountBehaviour,  # type: ignore
     }

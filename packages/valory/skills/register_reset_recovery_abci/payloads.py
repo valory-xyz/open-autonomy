@@ -54,4 +54,3 @@ class RoundCountPayload(BaseTxPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(current_round_count=self.current_round_count)
-
