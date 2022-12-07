@@ -20,7 +20,7 @@
 """On-chain interaction helpers."""
 
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, cast
 
 import click
 from aea.configurations.data_types import PackageType
@@ -36,12 +36,12 @@ from autonomy.chain.mint import publish_metadata
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
 
 
-def mint_component(
+def mint_component(  # pylint: disable=too-many-arguments
     package_path: Path,
     package_type: PackageType,
     keys: Path,
     chain_type: ChainType,
-    dependencies: Optional[List[str]] = None,
+    dependencies: Optional[List[int]] = None,
     nft_image_hash: Optional[str] = None,
     password: Optional[str] = None,
 ) -> None:
@@ -81,6 +81,7 @@ def mint_component(
     metadata_hash = publish_metadata(
         public_id=package_configuration.public_id,
         package_path=package_path,
+        nft_image_hash=cast(str, nft_image_hash),
     )
 
     try:

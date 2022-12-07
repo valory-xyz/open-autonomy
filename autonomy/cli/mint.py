@@ -28,7 +28,6 @@ from aea.cli.utils.decorators import pass_ctx
 from aea.configurations.data_types import PackageType
 
 from autonomy.chain.config import ChainType
-from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
 from autonomy.cli.helpers.chain import mint_component
 from autonomy.cli.utils.click_utils import PathArgument, chain_selection_flag_
 
@@ -91,6 +90,7 @@ def protocol(
         package_type=PackageType.PROTOCOL,
         keys=keys,
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
-        dependencies=dependencies,
+        dependencies=list(map(int, dependencies)),
         password=password,
+        nft_image_hash=nft,
     )
