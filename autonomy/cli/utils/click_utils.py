@@ -22,11 +22,12 @@ import contextlib
 import copy
 import sys
 from pathlib import Path
-from typing import Any, Callable, Generator, Optional
+from typing import Any, Callable, Generator, Optional, cast
 
 import click
 
 from autonomy.analyse.abci.app_spec import FSMSpecificationLoader
+from autonomy.chain.config import ChainTypes
 from autonomy.deploy.chain import CHAIN_CONFIG
 from autonomy.deploy.image import ImageProfiles
 
@@ -84,6 +85,27 @@ def chain_selection_flag(
                 flag_value=chain,
                 help=f"Use {chain} chain to resolve the token id.",
                 default=(chain == default) and mark_default,
+            )(f)
+        return f
+
+    return wrapper
+
+
+def chain_selection_flag_(
+    default: ChainTypes = ChainTypes.LOCAL,
+    mark_default: bool = True,
+) -> Callable:
+    """Flags for abci spec outputs formats."""
+
+    def wrapper(f: Callable) -> Callable:
+        for chain_type in ChainTypes:
+            chain_name = cast(str, chain_type.value).replace("_", "-")
+            f = click.option(
+                f"--use-{chain_name}",
+                "chain_type",
+                flag_value=chain_type.value,
+                help=f"Use {chain_name} to resolve the token id.",
+                default=(chain_type == default) and mark_default,
             )(f)
         return f
 
