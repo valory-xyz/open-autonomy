@@ -104,7 +104,6 @@ class ConcreteTerminationRoundA(AbstractRound):
 
     def end_block(self) -> Tuple[MagicMock, MagicMock]:
         """End block."""
-        return MagicMock(), MagicMock()
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check payloads of type 'payload_termination_a'."""
