@@ -1,0 +1,70 @@
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2021-2022 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
+
+"""Integration tests for the valory/register_reset skill."""
+
+# pylint: skip-file
+
+from pathlib import Path
+
+import pytest
+from aea.configurations.data_types import PublicId
+from aea_test_autonomy.base_test_classes.agents import RoundChecks
+from aea_test_autonomy.fixture_helpers import (  # noqa: F401
+    abci_host,
+    abci_port,
+    flask_tendermint,
+    tendermint_port,
+)
+
+from packages.valory.agents.register_reset_recovery.tests.base import (
+    BaseTestRegisterResetRecoveryEnd2End,
+)
+
+
+HAPPY_PATH = (RoundChecks("registration_startup"),)
+
+# the string used to trigger the breaking of the first tm node (node0).
+TM_BREAK_STRING = "Current round count is 5."
+
+# we make sure that all agents are able to reach round 10.
+# the first one will communication wth tendermint at round 5.
+STRICT_CHECK_STRINGS = ("Current round count is 10.",)
+
+
+@pytest.mark.e2e
+@pytest.mark.integration
+@pytest.mark.parametrize("nb_nodes", (4,))
+class TestRegisterResetRecoverStartup(BaseTestRegisterResetRecoveryEnd2End):
+    """Test the ABCI register-reset skill with 4 agents starting up."""
+
+    agent_package = "valory/register_reset_recovery:0.1.0"
+    skill_package = "valory/register_reset_recovery_abci:0.1.0"
+    happy_path = HAPPY_PATH
+    tm_break_string = TM_BREAK_STRING
+    strict_check_strings = STRICT_CHECK_STRINGS
+    wait_to_finish = 300
+    package_registry_src_rel = Path(__file__).parents[4]
+    __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
+    extra_configs = [
+        {
+            "dotted_path": f"{__args_prefix}.observation_interval",
+            "value": 15,
+        },
+    ]
