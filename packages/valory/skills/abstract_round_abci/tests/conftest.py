@@ -39,7 +39,7 @@ PACKAGE_DIR = Path(__file__).parent.parent
 settings.register_profile(CI, deadline=5000)
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def load_hypothesis_profile() -> Generator:
     """Fixture to load hypothesis CI settings."""
     if os.getenv(CI):
