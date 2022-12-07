@@ -19,12 +19,12 @@
 
 """Test fetch command."""
 
-import json
 import os
 import shutil
 from pathlib import Path
 from unittest import mock
 
+from aea.cli.fetch import NotAnAgentPackage
 from aea.configurations.loader import ConfigLoader
 from aea.helpers.base import cd
 from aea.helpers.io import open_file
@@ -40,10 +40,11 @@ from tests.test_autonomy.test_cli.base import BaseCliTest, cli
 IPFS_REGISTRY = "/dns/registry.autonolas.tech/tcp/443/https"
 
 
-class TestFetchCommand(BaseCliTest):
-    """Test fetch command."""
+class FetchTest(BaseCliTest):
+    """FetchTest base class"""
 
     packages_dir: Path
+    package_type: str  # agent or service
 
     def setup(self) -> None:
         """Setup class."""
@@ -55,21 +56,39 @@ class TestFetchCommand(BaseCliTest):
             "--registry-path",
             str(self.packages_dir),
             "fetch",
-            "--service",
+            f"--{self.package_type}",
         )
 
         shutil.copytree(ROOT_DIR / "packages", self.packages_dir)
         os.chdir(self.t)
 
-    def get_service_hash(
-        self,
-    ) -> str:
-        """Load hashes from CSV file."""
 
-        hashes_file = self.packages_dir / "packages.json"
-        with open(str(hashes_file), "r") as file:
-            hashes = json.load(file)
-        return hashes["service/valory/counter/0.1.0"]
+class TestFetchAgentCommand(FetchTest):
+    """Test fetch agent command"""
+
+    package_type = "agent"
+
+    def test_fetch_agent(self) -> None:
+        """Test fetch agent"""
+
+        result = self.run_cli(("--local", "valory/counter"))
+        assert result.exit_code == 0
+        assert "Agent counter successfully fetched." in result.stdout
+
+    def test_not_an_agent_package_raises(self) -> None:
+        """Test fetch agent"""
+
+        expected = "Error: Downloaded packages is not an agent package, if you intend to download a service please use `--service` flag or check the hash"
+        with mock.patch("autonomy.cli.fetch.do_fetch", side_effect=NotAnAgentPackage):
+            result = self.run_cli(("--remote", "valory/counter"))
+            assert result.exit_code == 1
+            assert expected in result.stdout
+
+
+class TestFetchServiceCommand(FetchTest):
+    """Test fetch service command."""
+
+    package_type = "service"
 
     def test_fetch_service_local(
         self,
