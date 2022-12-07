@@ -32,9 +32,11 @@ from aea.helpers.cid import CID
 from aea.helpers.ipfs.base import IPFSHashOnly
 from aea_cli_ipfs.ipfs_utils import IPFSTool
 from aea_ledger_ethereum.ethereum import EthereumApi
+from requests.exceptions import ConnectionError as RequestsConnectionError
 
-from autonomy.chain.base import ComponentRegistry, RegistryManager
-from autonomy.chain.config import COMPONENT_REGISTRY_LOCAL, REGISTRIES_MANAGER_LOCAL
+from autonomy.chain.base import ComponentRegistry, RegistriesManager
+from autonomy.chain.config import ChainConfigs, ChainTypes
+from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
 
 
@@ -95,7 +97,7 @@ def publish_metadata(
 
 def verify_and_fetch_token_id_from_event(
     event: Dict,
-    unit_type: RegistryManager.UnitType,
+    unit_type: RegistriesManager.UnitType,
     metadata_hash: str,
     ledger_api: LedgerApi,
 ) -> Optional[int]:
@@ -115,37 +117,47 @@ def _mint_component(
     ledger_api: LedgerApi,
     crypto: Crypto,
     metadata_hash: str,
-    component_type: RegistryManager.UnitType,
+    component_type: RegistriesManager.UnitType,
+    chain_type: ChainTypes,
     dependencies: Optional[List[int]] = None,
 ) -> Optional[int]:
     """Publish component on-chain."""
 
-    registries_manager = RegistryManager(
+    registries_manager = RegistriesManager(
         ledger_api=ledger_api,
-        contract_config=REGISTRIES_MANAGER_LOCAL,
         crypto=crypto,
+        chain_type=chain_type,
     )
+
     component_registry = ComponentRegistry(
         ledger_api=ledger_api,
-        contract_config=COMPONENT_REGISTRY_LOCAL,
         crypto=crypto,
+        chain_type=chain_type,
     )
 
-    registries_manager.create(
-        component_type=component_type,
-        metadata_hash=metadata_hash,
-        dependencies=dependencies,
-    )
-
-    for event_dict in component_registry.get_create_unit_event_filter():
-        token_id = verify_and_fetch_token_id_from_event(
-            event=event_dict,
-            unit_type=component_type,
+    try:
+        registries_manager.create(
+            component_type=component_type,
             metadata_hash=metadata_hash,
-            ledger_api=ledger_api,
+            dependencies=dependencies,
         )
-        if token_id is not None:
-            return token_id
+    except RequestsConnectionError as e:
+        raise ComponentMintFailed("Cannot connect to the given RPC") from e
+
+    try:
+        for event_dict in component_registry.get_create_unit_event_filter():
+            token_id = verify_and_fetch_token_id_from_event(
+                event=event_dict,
+                unit_type=component_type,
+                metadata_hash=metadata_hash,
+                ledger_api=ledger_api,
+            )
+            if token_id is not None:
+                return token_id
+    except RequestsConnectionError as e:
+        raise FailedToRetrieveTokenId(
+            "Cannot retrieve token ID for minted component"
+        ) from e
 
     return None
 
@@ -154,15 +166,22 @@ def mint_component(
     package_path: Path,
     package_type: PackageType,
     crypto: Crypto,
+    chain_type: ChainTypes,
     dependencies: Optional[List[int]] = None,
 ) -> None:
     """Mint a component to on-chain contract."""
 
+    chain_config = ChainConfigs.get(chain_type=chain_type)
+    if chain_config.rpc is None:
+        raise click.ClickException(
+            f"RPC cannot be `None` for chain config; chain_type={chain_type}"
+        )
+
     ipfs_tool = IPFSTool()
     ledger_api = EthereumApi(
         **{
-            "address": REGISTRIES_MANAGER_LOCAL.rpc,
-            "chain_id": REGISTRIES_MANAGER_LOCAL.chain_id,
+            "address": chain_config.rpc,
+            "chain_id": chain_config.chain_id,
         }
     )
 
@@ -182,7 +201,8 @@ def mint_component(
         ledger_api=ledger_api,
         crypto=crypto,
         metadata_hash=metadata_hash,
-        component_type=RegistryManager.UnitType.COMPONENT,
+        component_type=RegistriesManager.UnitType.COMPONENT,
+        chain_type=chain_type,
         dependencies=dependencies,
     )
 
@@ -193,3 +213,4 @@ def mint_component(
         click.echo(f"\tToken ID: {token_id}")
     else:
         click.echo("Could not verify metadata hash to retrieve the token ID")
+        return
