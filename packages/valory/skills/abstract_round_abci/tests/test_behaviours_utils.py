@@ -49,10 +49,10 @@ from typing import (
 from unittest import mock
 from unittest.mock import MagicMock
 
-from aea.test_tools.utils import as_context
 import pytest
 import pytz  # type: ignore  # pylint: disable=import-error
 from _pytest.logging import LogCaptureFixture
+from aea.test_tools.utils import as_context
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -734,7 +734,6 @@ class TestBaseBehaviour:
         self.behaviour.context.state.round_sequence.syncing_up = True
         self.behaviour.context.state.round_sequence.height = 0
         self.behaviour.matching_round = MagicMock()
-        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
         with mock.patch.object(logging, "info") as log_mock, mock.patch.object(
             BaseBehaviour,
@@ -764,7 +763,6 @@ class TestBaseBehaviour:
         self.behaviour.context.state.round_sequence.height = 0
         self.behaviour.context.params.tendermint_check_sleep_delay = 3
         self.behaviour.matching_round = MagicMock()
-        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
         gen = self.behaviour.async_act_wrapper()
         try_send(gen)
@@ -1486,12 +1484,14 @@ class TestBaseBehaviour:
         transaction_receipt = LedgerApiMessage.TransactionReceipt("", expected, {})
         tx_receipt_message = LedgerApiMessage(
             LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
-            transaction_receipt=transaction_receipt
+            transaction_receipt=transaction_receipt,
         )
         side_effect = mock_yield_and_return(tx_receipt_message)
         with as_context(
             mock.patch.object(self.behaviour, "_send_transaction_receipt_request"),
-            mock.patch.object(self.behaviour, "wait_for_message", side_effect=side_effect),
+            mock.patch.object(
+                self.behaviour, "wait_for_message", side_effect=side_effect
+            ),
         ):
             gen = self.behaviour.get_transaction_receipt("tx_digest")
             try:
@@ -1507,7 +1507,9 @@ class TestBaseBehaviour:
         side_effect = mock_yield_and_return(error_message)
         with as_context(
             mock.patch.object(self.behaviour, "_send_transaction_receipt_request"),
-            mock.patch.object(self.behaviour, "wait_for_message", side_effect=side_effect),
+            mock.patch.object(
+                self.behaviour, "wait_for_message", side_effect=side_effect
+            ),
         ):
             gen = self.behaviour.get_transaction_receipt("tx_digest")
             try_send(gen)

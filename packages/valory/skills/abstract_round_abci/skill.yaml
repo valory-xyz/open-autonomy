@@ -38,10 +38,10 @@ fingerprint:
   tests/data/dummy_abci/payloads.py: bafybeifbzve4ht5fld2xxmeoldhrvjujuvzqbet2d7b6zt73qikbgv3rxa
   tests/data/dummy_abci/rounds.py: bafybeiaealtmp2ll4s3b7m2fpa3qwdd4gjzwg7pbqm4joitchl4isjrluy
   tests/test_abci_app_chain.py: bafybeibbmlp4kvozwr5y5reqyz3qbxcowmlqb57v6bis6mipkh3xeih3zi
-  tests/test_base.py: bafybeid7ddbqsysjtk23fzfhie2532mbea4onqrex76ammymhklqprf2zq
+  tests/test_base.py: bafybeibcxbivyupkeo2cmh2dcaam62kbvenem6uzjlymm24i4g62pshxtu
   tests/test_base_rounds.py: bafybeidajvkfyzuxs3l3o3t7a2cirhzcisz5hjffomgd6h2lbpqvt4lrsa
   tests/test_behaviours.py: bafybeih6bnzr4ydz43kbbdez4hn2lqv6f27xapsxebbyvosin7ohedlw4u
-  tests/test_behaviours_utils.py: bafybeif2ypcnaex3k5aonbl7qv7pp5tdv25vy64tgsb5el4ccbw6oxgs6m
+  tests/test_behaviours_utils.py: bafybeidkq22sbmilsuwcgbg6eh7cmuiiu3ubi27inwxoa6fpcv6tb6b3xq
   tests/test_common.py: bafybeidtezcopwpvvgln66voqgzlfsk55yb4qvt2gtptbclrgafe7xmnza
   tests/test_dialogues.py: bafybeie4dkivvp3gdqyvvnazebftprwklklkjh6o36l5lxtwxuetgaw2nm
   tests/test_handlers.py: bafybeiduq3fdqmkbzapb5kda4pxsscekktvdzcksshldyqwqhjomgxdvcu
