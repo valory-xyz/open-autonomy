@@ -297,7 +297,9 @@ class TestRandomnessBehaviour(BaseDummyBehaviour):
             # here, the observation is retrieved from either `failsafe_randomness` or `get_randomness_from_api`
             # depending on the test's parametrization
             if not observation:
-                sleep_mocked.assert_called_once_with(irrelevant_config["sleep_time"])
+                sleep_mocked.assert_called_once_with(
+                    self.behaviour.context.randomness_api.retries_info.suggested_sleep_time
+                )
                 self.behaviour.context.randomness_api.increment_retries.assert_called_once()
                 return
 

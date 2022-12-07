@@ -374,15 +374,20 @@ class TestAbstractRoundBehaviour:
         self.behaviour.setup()
         assert isinstance(self.behaviour.current_behaviour, BehaviourA)
 
-        # check that after act(), current behaviour is initial behaviour
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_behaviour, BehaviourA)
+        with mock.patch.object(
+            self.behaviour.current_behaviour, "clean_up"
+        ) as clean_up_mock:
+            # check that after act(), current behaviour is initial behaviour and `clean_up()` has not been called
+            self.behaviour.act()
+            assert isinstance(self.behaviour.current_behaviour, BehaviourA)
+            clean_up_mock.assert_not_called()
 
-        # check that once the flag done is set, tries to schedule
-        # the next behaviour, but without success
-        self.behaviour.current_behaviour.set_done()
-        self.behaviour.act()
-        assert self.behaviour.current_behaviour is None
+            # check that once the flag done is set, the `clean_up()` has been called
+            # and `current_behaviour` is set to `None`.
+            self.behaviour.current_behaviour.set_done()
+            self.behaviour.act()
+            assert self.behaviour.current_behaviour is None
+            clean_up_mock.assert_called_once()
 
     def test_act_behaviour_setup(self) -> None:
         """Test the 'act' method of the FSM behaviour triggers setup() of the behaviour."""
@@ -395,14 +400,20 @@ class TestAbstractRoundBehaviour:
 
         assert self.behaviour.current_behaviour.count == 0
 
-        # check that after act() first time, a call to setup has been made
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_behaviour, BehaviourA)
-        assert self.behaviour.current_behaviour.count == 1
+        with mock.patch.object(
+            self.behaviour.current_behaviour, "clean_up"
+        ) as clean_up_mock:
+            # check that after act() first time, a call to setup has been made
+            self.behaviour.act()
+            assert isinstance(self.behaviour.current_behaviour, BehaviourA)
+            assert self.behaviour.current_behaviour.count == 1
 
-        # check that after act() second time, no further call to setup
-        self.behaviour.act()
-        assert self.behaviour.current_behaviour.count == 1
+            # check that after act() second time, no further call to setup
+            self.behaviour.act()
+            assert self.behaviour.current_behaviour.count == 1
+
+            # check that the `clean_up()` has not been called
+            clean_up_mock.assert_not_called()
 
     def test_act_with_round_change(self) -> None:
         """Test the 'act' method of the behaviour, with round change."""
@@ -414,18 +425,23 @@ class TestAbstractRoundBehaviour:
         assert isinstance(self.behaviour.current_behaviour, BehaviourA)
 
         # check that after act(), current behaviour is initial behaviour
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_behaviour, BehaviourA)
+        with mock.patch.object(
+            self.behaviour.current_behaviour, "clean_up"
+        ) as clean_up_mock:
+            self.behaviour.act()
+            assert isinstance(self.behaviour.current_behaviour, BehaviourA)
+            clean_up_mock.assert_not_called()
 
-        # change the round
-        self.round_sequence_mock.current_round = RoundB(MagicMock(), MagicMock())
-        self.round_sequence_mock.current_round_height = (
-            self.round_sequence_mock.current_round_height + 1
-        )
+            # change the round
+            self.round_sequence_mock.current_round = RoundB(MagicMock(), MagicMock())
+            self.round_sequence_mock.current_round_height = (
+                self.round_sequence_mock.current_round_height + 1
+            )
 
-        # check that if the round is changed, the behaviour transition is taken
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_behaviour, BehaviourB)
+            # check that if the round is changed, the behaviour transition is performed and the clean-up is called
+            self.behaviour.act()
+            assert isinstance(self.behaviour.current_behaviour, BehaviourB)
+            clean_up_mock.assert_called_once()
 
     def test_act_with_round_change_after_current_behaviour_is_none(self) -> None:
         """Test the 'act' method of the behaviour, with round change, after cur behaviour is none."""
@@ -436,24 +452,30 @@ class TestAbstractRoundBehaviour:
         self.behaviour.current_behaviour = self.behaviour.instantiate_behaviour_cls(BehaviourA)  # type: ignore
         self.behaviour.background_behaviour = self.behaviour.instantiate_behaviour_cls(ConcreteBackgroundBehaviour)  # type: ignore
 
-        # check that after act(), current behaviour is same behaviour
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_behaviour, BehaviourA)
+        with mock.patch.object(
+            self.behaviour.current_behaviour, "clean_up"
+        ) as clean_up_mock:
+            # check that after act(), current behaviour is same behaviour
+            self.behaviour.act()
+            assert isinstance(self.behaviour.current_behaviour, BehaviourA)
+            clean_up_mock.assert_not_called()
 
-        # check that after the behaviour is done, current behaviour is None
-        self.behaviour.current_behaviour.set_done()
-        self.behaviour.act()
-        assert self.behaviour.current_behaviour is None
+            # check that after the behaviour is done, current behaviour is None
+            self.behaviour.current_behaviour.set_done()
+            self.behaviour.act()
+            assert self.behaviour.current_behaviour is None
+            clean_up_mock.assert_called_once()
 
-        # change the round
-        self.round_sequence_mock.current_round = RoundB(MagicMock(), MagicMock())
-        self.round_sequence_mock.current_round_height = (
-            self.round_sequence_mock.current_round_height + 1
-        )
+            # change the round
+            self.round_sequence_mock.current_round = RoundB(MagicMock(), MagicMock())
+            self.round_sequence_mock.current_round_height = (
+                self.round_sequence_mock.current_round_height + 1
+            )
 
-        # check that if the round is changed, the behaviour transition is taken
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_behaviour, BehaviourB)
+            # check that if the round is changed, the behaviour transition is taken
+            self.behaviour.act()
+            assert isinstance(self.behaviour.current_behaviour, BehaviourB)
+            clean_up_mock.assert_called_once()
 
     @mock.patch.object(
         AbstractRoundBehaviour,
