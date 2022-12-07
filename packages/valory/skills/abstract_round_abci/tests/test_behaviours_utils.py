@@ -25,11 +25,9 @@ import json
 import logging
 import math
 import platform
-import shutil
 import time
 from abc import ABC
 from collections import OrderedDict
-from contextlib import suppress
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -103,16 +101,6 @@ PACKAGE_DIR = Path(__file__).parent.parent
 #  hence we add and subtract a day from the actual min / max datetime
 MIN_DATETIME_WINDOWS = datetime(1970, 1, 3, 1, 0, 0)
 MAX_DATETIME_WINDOWS = datetime(3000, 12, 30, 23, 59, 59)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def hypothesis_cleanup() -> Generator:
-    """Fixture to remove hypothesis directory after tests."""
-    yield
-    hypothesis_dir = PACKAGE_DIR / ".hypothesis"
-    if hypothesis_dir.exists():
-        with suppress(OSError, PermissionError):
-            shutil.rmtree(hypothesis_dir)
 
 
 def yield_and_return_bool_wrapper(
