@@ -4,16 +4,6 @@
 
 Chain interaction base classes.
 
-<a id="autonomy.chain.base.get_abi"></a>
-
-#### get`_`abi
-
-```python
-def get_abi(filename: str) -> Dict
-```
-
-Service contract ABI.
-
 <a id="autonomy.chain.base.BaseContract"></a>
 
 ## BaseContract Objects
@@ -29,7 +19,7 @@ Base contract interface.
 #### `__`init`__`
 
 ```python
-def __init__(ledger_api: LedgerApi, contract_config: ContractConfig, crypto: Crypto) -> None
+def __init__(ledger_api: LedgerApi, crypto: Crypto, chain_type: ChainType) -> None
 ```
 
 Initialize contract interface.
@@ -45,17 +35,17 @@ def contract() -> ContractInterfaceType
 
 Contract interface.
 
-<a id="autonomy.chain.base.RegistryManager"></a>
+<a id="autonomy.chain.base.RegistriesManager"></a>
 
-## RegistryManager Objects
+## RegistriesManager Objects
 
 ```python
-class RegistryManager(BaseContract)
+class RegistriesManager(BaseContract)
 ```
 
 Registry manager contract interface.
 
-<a id="autonomy.chain.base.RegistryManager.UnitType"></a>
+<a id="autonomy.chain.base.RegistriesManager.UnitType"></a>
 
 ## UnitType Objects
 
@@ -65,7 +55,7 @@ class UnitType(Enum)
 
 Unit type.
 
-<a id="autonomy.chain.base.RegistryManager.create"></a>
+<a id="autonomy.chain.base.RegistriesManager.create"></a>
 
 #### create
 

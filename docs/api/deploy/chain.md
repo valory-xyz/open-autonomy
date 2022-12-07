@@ -4,16 +4,6 @@
 
 Utils to support on-chain contract interactions.
 
-<a id="autonomy.deploy.chain.get_abi"></a>
-
-#### get`_`abi
-
-```python
-def get_abi(path: Path) -> Dict
-```
-
-Read the ABI from the provided path.
-
 <a id="autonomy.deploy.chain.ServiceRegistry"></a>
 
 ## ServiceRegistry Objects
