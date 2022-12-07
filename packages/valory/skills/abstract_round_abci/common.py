@@ -143,7 +143,9 @@ class RandomnessBehaviour(BaseBehaviour):
             self.context.logger.error(
                 f"Could not get randomness from {self.context.randomness_api.api_id}"
             )
-            yield from self.sleep(self.params.sleep_time)
+            yield from self.sleep(
+                self.context.randomness_api.retries_info.suggested_sleep_time
+            )
             self.context.randomness_api.increment_retries()
 
     def clean_up(self) -> None:
