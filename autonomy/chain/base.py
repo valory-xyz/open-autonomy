@@ -24,7 +24,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 from aea.crypto.base import Crypto, LedgerApi
 
-from autonomy.chain.config import ChainTypes, ContractConfig, ContractConfigs, get_abi
+from autonomy.chain.config import ChainType, ContractConfig, ContractConfigs, get_abi
 
 
 ContractInterfaceType = Any
@@ -40,7 +40,7 @@ class BaseContract:  # pylint: disable=too-few-public-methods
         self,
         ledger_api: LedgerApi,
         crypto: Crypto,
-        chain_type: ChainTypes,
+        chain_type: ChainType,
     ) -> None:
         """Initialize contract interface."""
 

@@ -47,7 +47,7 @@ def _get_chain_id_for_custom_chain() -> Optional[int]:
     return int(chain_id)
 
 
-class ChainTypes(Enum):
+class ChainType(Enum):
     """Chain types."""
 
     LOCAL = "local"
@@ -61,7 +61,7 @@ class ContractConfig:
     """Contract config class."""
 
     name: str
-    contracts: Dict[ChainTypes, str]
+    contracts: Dict[ChainType, str]
     abi_file: str
 
 
@@ -69,7 +69,7 @@ class ContractConfig:
 class ChainConfig:
     """Chain config"""
 
-    chain_type: ChainTypes
+    chain_type: ChainType
     rpc: Optional[str]
     chain_id: Optional[int]
 
@@ -78,31 +78,31 @@ class ChainConfigs:  # pylint: disable=too-few-public-methods
     """Name space for chain configs."""
 
     local = ChainConfig(
-        chain_type=ChainTypes.LOCAL,
+        chain_type=ChainType.LOCAL,
         rpc=DEFAULT_LOCAL_RPC,
         chain_id=DEFAULT_LOCAL_CHAIN_ID,
     )
 
     custom = ChainConfig(
-        chain_type=ChainTypes.CUSTOM,
+        chain_type=ChainType.CUSTOM,
         rpc=os.environ.get("CUSTOM_CHAIN_RPC"),
         chain_id=_get_chain_id_for_custom_chain(),
     )
 
     goerli = ChainConfig(
-        chain_type=ChainTypes.GOERLI,
+        chain_type=ChainType.GOERLI,
         rpc=os.environ.get("GOERLI_CHAIN_RPC"),
         chain_id=5,
     )
 
     ethereum = ChainConfig(
-        chain_type=ChainTypes.ETHEREUM,
+        chain_type=ChainType.ETHEREUM,
         rpc=os.environ.get("ETHEREUM_CHAIN_RPC"),
         chain_id=1,
     )
 
     @classmethod
-    def get(cls, chain_type: ChainTypes) -> ChainConfig:
+    def get(cls, chain_type: ChainType) -> ChainConfig:
         """Return chain config for given chain type."""
 
         return cast(ChainConfig, getattr(cls, chain_type.value))
@@ -117,7 +117,7 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
             chain_type: getattr(
                 chain_constants, f"COMPONENT_REGISTRY_ADDRESS_{chain_type.name}"
             )
-            for chain_type in ChainTypes
+            for chain_type in ChainType
         },
         abi_file=chain_constants.COMPONENT_REGISTRY_ABI_FILENAME,
     )
@@ -128,7 +128,7 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
             chain_type: getattr(
                 chain_constants, f"AGENT_REGISTRY_ADDRESS_{chain_type.name}"
             )
-            for chain_type in ChainTypes
+            for chain_type in ChainType
         },
         abi_file=chain_constants.AGENT_REGISTRY_ABI_FILENAME,
     )
@@ -139,7 +139,7 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
             chain_type: getattr(
                 chain_constants, f"SERVICE_REGISTRY_ADDRESS_{chain_type.name}"
             )
-            for chain_type in ChainTypes
+            for chain_type in ChainType
         },
         abi_file=chain_constants.SERVICE_REGISTRY_ABI_FILENAME,
     )
@@ -150,7 +150,7 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
             chain_type: getattr(
                 chain_constants, f"SERVICE_MANAGER_ADDRESS_{chain_type.name}"
             )
-            for chain_type in ChainTypes
+            for chain_type in ChainType
         },
         abi_file=chain_constants.SERVICE_MANAGER_ABI_FILENAME,
     )
@@ -161,7 +161,7 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
             chain_type: getattr(
                 chain_constants, f"REGISTRIES_MANAGER_ADDRESS_{chain_type.name}"
             )
-            for chain_type in ChainTypes
+            for chain_type in ChainType
         },
         abi_file=chain_constants.REGISTRIES_MANAGER_ABI_FILENAME,
     )

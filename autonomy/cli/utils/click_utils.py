@@ -27,7 +27,7 @@ from typing import Any, Callable, Generator, Optional, cast
 import click
 
 from autonomy.analyse.abci.app_spec import FSMSpecificationLoader
-from autonomy.chain.config import ChainTypes
+from autonomy.chain.config import ChainType
 from autonomy.deploy.chain import CHAIN_CONFIG
 from autonomy.deploy.image import ImageProfiles
 
@@ -92,13 +92,13 @@ def chain_selection_flag(
 
 
 def chain_selection_flag_(
-    default: ChainTypes = ChainTypes.LOCAL,
+    default: ChainType = ChainType.LOCAL,
     mark_default: bool = True,
 ) -> Callable:
     """Flags for abci spec outputs formats."""
 
     def wrapper(f: Callable) -> Callable:
-        for chain_type in ChainTypes:
+        for chain_type in ChainType:
             chain_name = cast(str, chain_type.value).replace("_", "-")
             f = click.option(
                 f"--use-{chain_name}",

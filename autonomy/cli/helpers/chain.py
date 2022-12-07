@@ -35,7 +35,7 @@ from aea_ledger_ethereum.ethereum import EthereumApi
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from autonomy.chain.base import ComponentRegistry, RegistriesManager
-from autonomy.chain.config import ChainConfigs, ChainTypes
+from autonomy.chain.config import ChainConfigs, ChainType
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
 
@@ -118,7 +118,7 @@ def _mint_component(
     crypto: Crypto,
     metadata_hash: str,
     component_type: RegistriesManager.UnitType,
-    chain_type: ChainTypes,
+    chain_type: ChainType,
     dependencies: Optional[List[int]] = None,
 ) -> Optional[int]:
     """Publish component on-chain."""
@@ -166,7 +166,7 @@ def mint_component(
     package_path: Path,
     package_type: PackageType,
     crypto: Crypto,
-    chain_type: ChainTypes,
+    chain_type: ChainType,
     dependencies: Optional[List[int]] = None,
 ) -> None:
     """Mint a component to on-chain contract."""
