@@ -164,7 +164,8 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
 
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
     if not keys_file.exists():
-        raise click.ClickException("Please provide valid path for keys file.")
+        message = f"No such file or directory: {keys_file}. Please provide valid path for keys file."
+        raise click.ClickException(message)
 
     build_dir = Path(output_dir or DEFAULT_BUILD_FOLDER).absolute()
     packages_dir = Path(packages_dir or Path.cwd() / "packages").absolute()
