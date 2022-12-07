@@ -41,7 +41,7 @@ fingerprint:
   tests/test_base.py: bafybeid7ddbqsysjtk23fzfhie2532mbea4onqrex76ammymhklqprf2zq
   tests/test_base_rounds.py: bafybeidajvkfyzuxs3l3o3t7a2cirhzcisz5hjffomgd6h2lbpqvt4lrsa
   tests/test_behaviours.py: bafybeih6bnzr4ydz43kbbdez4hn2lqv6f27xapsxebbyvosin7ohedlw4u
-  tests/test_behaviours_utils.py: bafybeif2ypcnaex3k5aonbl7qv7pp5tdv25vy64tgsb5el4ccbw6oxgs6m
+  tests/test_behaviours_utils.py: bafybeibgaudhlygdjfyyhzpjpv7igwmqnyhhgiatdangu75i57uwjw47ry
   tests/test_common.py: bafybeidtezcopwpvvgln66voqgzlfsk55yb4qvt2gtptbclrgafe7xmnza
   tests/test_dialogues.py: bafybeie4dkivvp3gdqyvvnazebftprwklklkjh6o36l5lxtwxuetgaw2nm
   tests/test_handlers.py: bafybeiduq3fdqmkbzapb5kda4pxsscekktvdzcksshldyqwqhjomgxdvcu
@@ -51,13 +51,13 @@ fingerprint:
   tests/test_io/test_load.py: bafybeih5qt3etx3bi2zt2kebra322obxq7s77g3r6xzztsix3ihdpfdixy
   tests/test_io/test_store.py: bafybeibqfdgj7unktgkwligf4jnhlytijz7wyczykghylpy2smx76q3d5a
   tests/test_models.py: bafybeihy65vjpcevmkftoom4rdah7uvr5ix6qs5cohdhmss3qrdmxbgm4i
-  tests/test_serializer.py: bafybeiarn2xtro3ko66dgzhtslhw5s2g4gzjriw5gqgytmgrquwfnj56oy
+  tests/test_serializer.py: bafybeifrt3g2bpft4q3bx5u4asi2s2x4noafmrox6hqzwz3dcka2hzqnxq
   tests/test_tools/__init__.py: bafybeiew6gu4pgp2sjevq4dbnmv2ail5dph7vj4yi7h3eae4gzx7vj7cbq
   tests/test_tools/test_base.py: bafybeiegt7qllyfw7bsddg2fapi56iymbf2b23z7qwplezik4zqg6wgdeq
   tests/test_tools/test_common.py: bafybeiepcdnts7va6oulvh32ogvulb6o2xuiamgsg6p3lapldl2etkgsnu
   tests/test_tools/test_integration.py: bafybeia6ewjxlaasw776xhtfrgxpikse375tjnjwr2v3myjnpxc7vhgawi
   tests/test_tools/test_rounds.py: bafybeicavetszmscxcjlzub4ycyd7sreliyjrodyvbhefjogabzfsas5rm
-  tests/test_utils.py: bafybeif7wpg6fhdhwwyidzpoyhwg22m2kogdddl7s3txotvvzykrcn7yye
+  tests/test_utils.py: bafybeif7jo6pbpnirctlitsbss7bcjtkj5ourwrwvmefvh5ndt6qvvp6ri
   utils.py: bafybeibsklcnvvvx2acumio5xy7hjrbdeggfmnnlfcwbtnz2qjdry7ntay
 fingerprint_ignore_patterns: []
 connections:
