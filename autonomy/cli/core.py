@@ -32,6 +32,7 @@ from autonomy.cli.deploy import deploy_group
 from autonomy.cli.develop import develop_group
 from autonomy.cli.fetch import fetch
 from autonomy.cli.hash import hash_group
+from autonomy.cli.mint import mint
 from autonomy.cli.packages import package_manager
 from autonomy.cli.publish import publish
 from autonomy.cli.push_all import push_all
@@ -48,6 +49,7 @@ cli.add_command(publish)
 cli.add_command(fetch)
 cli.add_command(build_image)
 cli.add_command(package_manager)
+cli.add_command(mint)
 
 
 click.version_option(autonomy.__version__, prog_name="autonomy")(cli)
