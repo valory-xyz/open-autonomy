@@ -1479,7 +1479,7 @@ class TestBaseBehaviour:
         assert tx_hash is None
         assert status == RPCResponseStatus.UNCLASSIFIED_ERROR
 
-    def test_get_transaction_receipt(self, caplog) -> None:
+    def test_get_transaction_receipt(self, caplog: LogCaptureFixture) -> None:
         """Test get_transaction_receipt."""
 
         expected = {"dummy": "tx_receipt"}
@@ -1499,6 +1499,20 @@ class TestBaseBehaviour:
                     next(gen)
             except StopIteration as e:
                 assert e.value == expected
+
+    def test_get_transaction_receipt_error(self, caplog: LogCaptureFixture) -> None:
+        """Test get_transaction_receipt with error performative."""
+
+        error_message = LedgerApiMessage(LedgerApiMessage.Performative.ERROR, code=0)
+        side_effect = mock_yield_and_return(error_message)
+        with as_context(
+            mock.patch.object(self.behaviour, "_send_transaction_receipt_request"),
+            mock.patch.object(self.behaviour, "wait_for_message", side_effect=side_effect),
+        ):
+            gen = self.behaviour.get_transaction_receipt("tx_digest")
+            try_send(gen)
+            try_send(gen)
+            assert "Error when requesting transaction receipt" in caplog.text
 
     @pytest.mark.parametrize("contract_address", [None, "contract_address"])
     def test_get_contract_api_response(self, contract_address: Optional[str]) -> None:
