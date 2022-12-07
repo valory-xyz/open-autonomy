@@ -24,7 +24,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 from aea.crypto.base import Crypto, LedgerApi
 
-from autonomy.chain.config import ContractConfig, get_abi
+from autonomy.chain.config import ChainTypes, ContractConfig, ContractConfigs, get_abi
 
 
 ContractInterfaceType = Any
@@ -34,9 +34,13 @@ class BaseContract:  # pylint: disable=too-few-public-methods
     """Base contract interface."""
 
     _contract_interface: ContractInterfaceType
+    contract_config: ContractConfig
 
     def __init__(
-        self, ledger_api: LedgerApi, contract_config: ContractConfig, crypto: Crypto
+        self,
+        ledger_api: LedgerApi,
+        crypto: Crypto,
+        chain_type: ChainTypes,
     ) -> None:
         """Initialize contract interface."""
 
@@ -44,9 +48,9 @@ class BaseContract:  # pylint: disable=too-few-public-methods
         self.crypto = crypto
 
         self._contract_interface = ledger_api.api.eth.contract(
-            address=contract_config.contract_address,
+            address=self.contract_config.contracts.get(chain_type),
             abi=get_abi(
-                filename=contract_config.abi_file,
+                filename=self.contract_config.abi_file,
             ),
         )
 
@@ -59,8 +63,10 @@ class BaseContract:  # pylint: disable=too-few-public-methods
         return self._contract_interface
 
 
-class RegistryManager(BaseContract):
+class RegistriesManager(BaseContract):
     """Registry manager contract interface."""
+
+    contract_config = ContractConfigs.registries_manager
 
     class UnitType(Enum):
         """Unit type."""
@@ -90,6 +96,8 @@ class RegistryManager(BaseContract):
 
 class ComponentRegistry(BaseContract):
     """Component registry contract interface."""
+
+    contract_config = ContractConfigs.component_registry
 
     def get_create_unit_event_filter(
         self,
