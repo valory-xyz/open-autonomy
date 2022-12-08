@@ -48,7 +48,8 @@ logging_config:
       - console
       propagate: true
 dependencies:
-  open-aea-ledger-ethereum: {}
+  open-aea-ledger-ethereum:
+    version: ==1.25.0
   open-aea-test-autonomy:
     version: ==0.5.0.post1
 default_connection: valory/abci:0.1.0
