@@ -66,6 +66,7 @@ OK_CODE = 0
 ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 ROUND_COUNT_DEFAULT = -1
+RESET_INDEX_DEFAULT = -1
 MIN_HISTORY_DEPTH = 1
 ADDRESS_LENGTH = 42
 MAX_INT_256 = 2 ** 256 - 1
@@ -627,6 +628,11 @@ class AbciAppDB:
     def round_count(self) -> int:
         """Get the round count."""
         return self._round_count
+
+    @round_count.setter
+    def round_count(self, round_count: int) -> None:
+        """Set the round count."""
+        self._round_count = round_count
 
     @property
     def cross_period_persisted_keys(self) -> List[str]:
