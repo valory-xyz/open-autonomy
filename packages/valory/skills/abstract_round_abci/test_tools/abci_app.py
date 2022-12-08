@@ -20,7 +20,7 @@
 """ABCI App test tools."""
 
 
-from typing import Dict, Tuple, Type
+from typing import Dict, Tuple, Type, Union
 from unittest.mock import MagicMock
 
 from packages.valory.protocols.abci.custom_types import Events
@@ -31,7 +31,20 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 
 
-class ConcreteRoundA(AbstractRound):
+class _ConcreteRound(AbstractRound):
+    """ConcreteRound"""
+
+    def end_block(self) -> Union[None, Tuple[MagicMock, MagicMock]]:
+        """End block."""
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """Check payload."""
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """Process payload."""
+
+
+class ConcreteRoundA(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
     round_id = "concrete_a"
@@ -41,62 +54,29 @@ class ConcreteRoundA(AbstractRound):
         """End block."""
         return MagicMock(), MagicMock()
 
-    def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check payloads of type 'payload_a'."""
 
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """Process payloads of type 'payload_a'."""
-
-
-class ConcreteRoundB(AbstractRound):
+class ConcreteRoundB(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
     round_id = "concrete_b"
     allowed_tx_type = "payload_b"
 
-    def end_block(self) -> None:
-        """End block."""
 
-    def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check payloads of type 'payload_b'."""
-
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """Process payloads of type 'payload_b'."""
-
-
-class ConcreteRoundC(AbstractRound):
+class ConcreteRoundC(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
     round_id = "concrete_c"
     allowed_tx_type = "payload_c"
 
-    def end_block(self) -> None:
-        """End block."""
 
-    def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check payloads of type 'payload_c'."""
-
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """Process payloads of type 'payload_c'."""
-
-
-class ConcreteBackgroundRound(AbstractRound):
+class ConcreteBackgroundRound(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
     round_id = "concrete_background"
     allowed_tx_type = "payload_background_c"
 
-    def end_block(self) -> None:
-        """End block."""
 
-    def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check payloads of type 'payload_background_c'."""
-
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """Process payloads of type 'payload_background_c'."""
-
-
-class ConcreteTerminationRoundA(AbstractRound):
+class ConcreteTerminationRoundA(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
     round_id = "concrete_termination_a"
@@ -106,43 +86,19 @@ class ConcreteTerminationRoundA(AbstractRound):
         """End block."""
         return MagicMock(), MagicMock()
 
-    def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check payloads of type 'payload_termination_a'."""
 
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """Process payloads of type 'payload_termination_a'."""
-
-
-class ConcreteTerminationRoundB(AbstractRound):
+class ConcreteTerminationRoundB(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
     round_id = "concrete_termination_b"
     allowed_tx_type = "payload_termination_b"
 
-    def end_block(self) -> None:
-        """End block."""
 
-    def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check payloads of type 'payload_termination_b'."""
-
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """Process payloads of type 'payload_termination_b'."""
-
-
-class ConcreteTerminationRoundC(AbstractRound):
+class ConcreteTerminationRoundC(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
     round_id = "concrete_termination_c"
     allowed_tx_type = "payload_termination_c"
-
-    def end_block(self) -> None:
-        """End block."""
-
-    def check_payload(self, payload: BaseTxPayload) -> None:
-        """Check payloads of type 'payload_termination_c'."""
-
-    def process_payload(self, payload: BaseTxPayload) -> None:
-        """Process payloads of type 'payload_termination_c'."""
 
 
 class ConcreteEvents(Events):

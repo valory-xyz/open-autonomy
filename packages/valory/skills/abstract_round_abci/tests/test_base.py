@@ -1817,6 +1817,18 @@ class TestRoundSequence:
             ):
                 _ = self.round_sequence.last_round_transition_height
 
+    def test_block_before_blockchain_is_init(self, caplog: LogCaptureFixture) -> None:
+        """Test block received before blockchain initialized."""
+
+        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.end_block()
+        blockchain = self.round_sequence.blockchain
+        blockchain._is_init = False
+        self.round_sequence.blockchain = blockchain
+        self.round_sequence.commit()
+        expected = "Received block with height 1 before the blockchain was initialized."
+        assert expected in caplog.text
+
     @pytest.mark.parametrize("last_round_transition_root_hash", (b"", b"test"))
     @pytest.mark.parametrize("round_count, reset_index", ((0, 0), (4, 2), (8, 1)))
     def test_last_round_transition_root_hash(
