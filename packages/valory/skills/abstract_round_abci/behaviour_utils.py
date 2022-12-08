@@ -1874,12 +1874,44 @@ class TmManager(BaseBehaviour, ABC):
             not_ok_code = 1
             sys.exit(not_ok_code)
 
-        reset_successfully = yield from self.reset_tendermint_with_wait()
-        if not reset_successfully:
-            self.context.logger.error("Failed to reset tendermint.")
-            return
+    def _handle_unhealthy_tm(self) -> Generator:
+        """This method handles the case when the tendermint node is unhealthy."""
+        self.context.logger.warning(
+            "The local deadline for the next `begin_block` request from the Tendermint node has expired! "
+            "Trying to reset local Tendermint node as there could be something wrong with the communication."
+        )
 
-        self.context.logger.info("Tendermint reset was successfully performed. ")
+        # we first check whether the reason why we haven't received blocks for more than we allow is because
+        # there are not enough peers in the network to reach majority.
+        yield from self._kill_if_no_majority_peers()
+
+        # since we have reached this point that means that
+        shared_state = cast(SharedState, self.context.state)
+        recovery_params = shared_state.tm_recovery_params
+        shared_state.round_sequence.reset_state(
+            restart_from_round=recovery_params.reset_from_round,
+            round_count=recovery_params.round_count,
+            reset_index=recovery_params.reset_index,
+        )
+
+        for _ in range(self._max_reset_retry):
+            reset_successfully = yield from self.reset_tendermint_with_wait(
+                is_recovery=True
+            )
+            if reset_successfully:
+                self.context.logger.info(
+                    "Tendermint reset was successfully performed. "
+                )
+                # we sleep to give some time for tendermint to start sending us blocks
+                # otherwise we might end-up assuming that tendermint is still not working.
+                # Note that the wait_from_last_timestamp() in reset_tendermint_with_wait()
+                # doesn't guarantee us this, since the block stall deadline is greater than the
+                # hard_reset_sleep, 60s vs 20s. In other words, we haven't received a block for at
+                # least 60s, so if wait_from_last_timestamp() will return immediately.
+                yield from self.sleep(self.hard_reset_sleep)
+                return
+
+        self.context.logger.info("Failed to reset tendermint.")
 
     def _get_reset_params(self, default: bool) -> Optional[List[Tuple[str, str]]]:
         """
@@ -1891,7 +1923,9 @@ class TmManager(BaseBehaviour, ABC):
         # we get the params from the latest successful reset, if they are not available,
         # i.e. no successful reset has been performed, we return None.
         # Returning None means default params will be used.
-        reset_params = cast(SharedState, self.context.state).last_reset_params
+        reset_params = cast(
+            SharedState, self.context.state
+        ).tm_recovery_params.reset_params
         return reset_params
 
     def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
