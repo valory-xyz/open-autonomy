@@ -70,6 +70,8 @@ class SynchronizedData(
 class HelloWorldABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the Hello World ABCI skill."""
 
+    synchronized_data_class = SynchronizedData
+
     @property
     def synchronized_data(self) -> SynchronizedData:
         """Return the synchronized data."""
