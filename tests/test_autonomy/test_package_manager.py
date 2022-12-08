@@ -148,7 +148,7 @@ def test_get_package_manager() -> None:
             json.dumps({"service/valory/service/0.1.0": DUMMY_HASH})
         )
 
-        pm_v0 = get_package_manager(package_dir=packages_dir)
+        pm_v0 = get_package_manager(packages_dir=packages_dir)
         assert isinstance(pm_v0, PackageManagerV0)
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -159,5 +159,5 @@ def test_get_package_manager() -> None:
             )
         )
 
-        pm_v0 = get_package_manager(package_dir=packages_dir)
+        pm_v0 = get_package_manager(packages_dir=packages_dir)
         assert isinstance(pm_v0, PackageManagerV1)

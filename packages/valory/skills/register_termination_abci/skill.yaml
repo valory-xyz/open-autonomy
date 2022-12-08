@@ -14,7 +14,7 @@ fingerprint:
   handlers.py: bafybeibotw5mzjfbzdme5w4oytvqspcql3vbyr3v5k5zt6v3o6y6dypd7e
   models.py: bafybeiffunjgfpgbnipafnhllqmpkmy7dn4voxj63vvsvvt3ghwmglkut4
   tests/__init__.py: bafybeid2pb3mfobqtzsadxzris67d4hkmcflqfnzay3y3errmtd7tdtvoe
-  tests/test_behaviours.py: bafybeiawbfepzyltckutgb3hettltrn5pladutcbzlqnpd3jdu4bixlb3i
+  tests/test_behaviours.py: bafybeihdacox5ib2pnpyttlw44m3odd22dr5s3tet7q4axo44wxdckmfsu
   tests/test_dialogues.py: bafybeiha37jzqmgtfjl52c52xz7osnu7y2ic2sxdp6wkmdgwlbzqtzz3me
   tests/test_handlers.py: bafybeidxd375se3fx5gpakpauglsmqom3bbizflpw3k265knyy6fxtckra
   tests/test_models.py: bafybeif2d4kqt7ettspc6fgbeb5y5cm5632rp7dnjcyzy7zfof2m7z6mzq
@@ -23,10 +23,10 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeibfqo7th542sywxiy5d5l26wct5on4dyjgdjmjudzwnrh5aplxj4e
-- valory/registration_abci:0.1.0:bafybeidgeuqibjst7da5cenhxgvnjgbq4lme5m2d3yvy6kw3wspfbgoibi
-- valory/reset_pause_abci:0.1.0:bafybeienoitaciejs57gm6hmhxljkhemq6zcp57zyy7fuo6hpg33dr3syq
-- valory/termination_abci:0.1.0:bafybeicc7jc2fhejj5dljs5xjq64oiz3jbt45aeytncb6adc3oipe2lbri
+- valory/abstract_round_abci:0.1.0:bafybeihcp5arzsm6btzj2d25hd4bxqouu3nnmwjfhpcapc4ugq22tlxswa
+- valory/registration_abci:0.1.0:bafybeia3xu4slpgovvcgiappzgmotil2mfvgl4iejwpi6vawkm3jr5w5le
+- valory/reset_pause_abci:0.1.0:bafybeic56oda27soy7yoo7nwhq4ke2rf3alohxjhnurh5ozaelzsjlehry
+- valory/termination_abci:0.1.0:bafybeiexzb4lwmm63rpydcos6vhu3itincc2n5ta6b5h7xlq6oidoqhabe
 behaviours:
   main:
     args: {}

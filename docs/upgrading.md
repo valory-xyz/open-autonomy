@@ -5,6 +5,11 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.5.0` to `v0.5.0.post1`
+
+
+No backwards incompatible changes
+
 ## `v0.4.0` to `v0.5.0`
 
 

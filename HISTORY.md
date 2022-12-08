@@ -1,6 +1,14 @@
 # Release History - `open-autonomy`
 
 
+# 0.5.0.post1 (2022-12-08)
+
+Autonomy:
+- Patches packages command group to adapt latest changes from `open-aea`
+
+Packages:
+- Fixes version specifiers for `open-aea-test-autonomy` and `open-aea-ledger-ethereum`
+
 # 0.5.0 (2022-12-05)
 
 Autonomy:
