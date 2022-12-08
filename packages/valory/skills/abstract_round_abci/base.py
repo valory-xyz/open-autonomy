@@ -2000,7 +2000,7 @@ class AbciApp(
 
     def setup(self) -> None:
         """Set up the behaviour."""
-        self._schedule_round(self.initial_round_cls)
+        self.schedule_round(self.initial_round_cls)
         if self.is_termination_set:
             self.background_round_cls = cast(AppState, self.background_round_cls)
             self._background_round = self.background_round_cls(
@@ -2025,7 +2025,7 @@ class AbciApp(
         self._previous_rounds.append(self.current_round)
         self._current_round_height += 1
 
-    def _schedule_round(self, round_cls: AppState) -> None:
+    def schedule_round(self, round_cls: AppState) -> None:
         """
         Schedule a round class.
 
@@ -2210,7 +2210,7 @@ class AbciApp(
 
         self._log_end(event)
         if next_round_cls is not None:
-            self._schedule_round(next_round_cls)
+            self.schedule_round(next_round_cls)
         else:
             self.logger.warning("AbciApp has reached a dead end.")
             self._current_round_cls = None
