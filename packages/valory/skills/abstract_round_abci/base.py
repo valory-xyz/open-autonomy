@@ -2684,3 +2684,31 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"
         )
         self.abci_app.process_event(event, result=round_result)
+
+    def _reset_to_default_params(self) -> None:
+        """Resets the instance params to their default value."""
+        self._last_round_transition_timestamp = None
+        self._last_round_transition_height = 0
+        self._last_round_transition_root_hash = b""
+        self._last_round_transition_tm_height = None
+        self._tm_height = None
+
+    def reset_state(
+        self,
+        restart_from_round: AppState,
+        round_count: int,
+        reset_index: int,
+    ) -> None:
+        """
+        This method resets the state of RoundSequence to the begging of the period.
+
+        Note: This is intended to be used only for agent <-> tendermint communication recovery only!
+
+        :param restart_from_round: from which round to restart the abci. This round should be the first round in the last period.
+        :param round_count: the round count at the beginning of the period -1.
+        :param reset_index: the reset index (a.k.a. period count) -1.
+        """
+        self._reset_to_default_params()
+        self.abci_app.synchronized_data.db.round_count = round_count
+        self.abci_app.reset_index = reset_index
+        self.abci_app.schedule_round(restart_from_round)
