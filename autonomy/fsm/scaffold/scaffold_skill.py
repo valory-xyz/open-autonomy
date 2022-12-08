@@ -24,7 +24,7 @@ import os
 import re
 import shutil
 from pathlib import Path
-from typing import Dict, List, Type
+from typing import Dict, List, Optional, Type
 
 import click
 from aea.cli.fingerprint import fingerprint_item
@@ -42,7 +42,8 @@ from aea.configurations.constants import (
 )
 
 # the decoration does side-effect on the 'aea scaffold' command
-from aea.configurations.data_types import CRUDCollection
+from aea.configurations.data_types import CRUDCollection, PackageType, PublicId
+from aea.package_manager.v1 import PackageManagerV1
 
 from autonomy.analyse.abci.app_spec import DFA, FSMSpecificationLoader
 from autonomy.configurations.constants import INIT_PY, PYCACHE
@@ -92,7 +93,12 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         self._update_models(config)
         self._update_dependencies(config)
         self.ctx.skill_loader.dump(config, self.skill_config_path.open("w"))
+        # TODO: update fingerprint_item to use path instead of context
+        preserve_cwd = self.ctx.cwd
+        if self.ctx.config.get("to_local_registry"):
+            self.ctx.cwd = Path(self.ctx.registry_path) / self.ctx.agent_config.author
         fingerprint_item(self.ctx, SKILL, config.public_id)
+        self.ctx.cwd = preserve_cwd
 
     def _update_behaviours(self, config: SkillConfig) -> None:
         """Update the behaviours section of the skill configuration."""
@@ -155,26 +161,48 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             "tendermint_dialogues", SkillComponentConfiguration("TendermintDialogues")
         )
 
+    @classmethod
+    def get_actual_abstract_round_abci_package_public_id(
+        cls, ctx: Context
+    ) -> Optional[PublicId]:
+        """Get abstract round abci pacakge id from the registry."""
+        package_manager = PackageManagerV1.from_dir(Path(ctx.registry_path))
+        packages = [
+            package_id.public_id
+            for package_id in package_manager.dev_packages.keys()
+            if package_id.author == "valory"
+            and package_id.name == "abstract_round_abci"
+            and package_id.package_type == PackageType.SKILL
+        ]
+        if not packages:
+            return None
+        abstract_round_abci = packages[0]
+        return abstract_round_abci
+
     def _update_dependencies(self, config: SkillConfig) -> None:
         """Update skill dependencies."""
         # retrieve the actual valory/abstract_round_abci package
-        agent_config = self._load_agent_config()
-        abstract_round_abci = [
-            public_id
-            for public_id in agent_config.skills
-            if public_id.author == "valory" and public_id.name == "abstract_round_abci"
-        ][0]
+
+        if self.ctx.config.get("to_local_registry"):
+            abstract_round_abci = self.get_actual_abstract_round_abci_package_public_id(
+                self.ctx
+            )
+            if not abstract_round_abci:
+                raise ValueError("valory/abstract_round_abci package not found")
+        else:
+            agent_config = self._load_agent_config()
+            abstract_round_abci = [
+                public_id
+                for public_id in agent_config.skills
+                if public_id.author == "valory"
+                and public_id.name == "abstract_round_abci"
+            ][0]
+
         config.skills.add(abstract_round_abci)
 
     def _load_agent_config(self) -> AgentConfig:
         """Load the current agent configuration."""
         agent_config_path = Path(self.ctx.cwd) / DEFAULT_AEA_CONFIG_FILE
-        if self.ctx.config.get("to_local_registry"):
-            # by default it creates all agent stuff in current directory
-            # ctx.cwd set to packages/author in open aea code and needs fix
-            # TODO: fix after openaea scaffold.py:280 `ctx.cwd =` hack fixed
-            agent_config_path = Path(".") / DEFAULT_AEA_CONFIG_FILE
-
         with agent_config_path.open() as f:
             return self.ctx.agent_loader.load(f)
 
