@@ -27,8 +27,8 @@ protocols:
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
 - valory/abstract_abci:0.1.0:bafybeihhwkp6ggbsmaowlhagfdakrjmrrrcq4rzpszuaegfap5ukdrrdcm
-- valory/abstract_round_abci:0.1.0:bafybeieuvibh2xaj2snvclxbk6izqdmxpgjiwtl6evfxdxcohkdmme5cv4
-- valory/registration_abci:0.1.0:bafybeihje2hxphxu5swlcoutnd72dpdxoapeay5g6vkpo3tqqfv3mmok44
+- valory/abstract_round_abci:0.1.0:bafybeieath3s5voornqum34uh75tqzpesedfpwspffgfbw4ld4ry2yvicy
+- valory/registration_abci:0.1.0:bafybeiamio6jf7jfgf2b6niw2jwd7eju2dsma4tttapritjmirf4ancwvy
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -59,8 +59,10 @@ logging_config:
       - console
       propagate: true
 dependencies:
-  open-aea-ledger-cosmos: {}
-  open-aea-ledger-ethereum: {}
+  open-aea-ledger-cosmos:
+    version: ==1.25.0
+  open-aea-ledger-ethereum:
+    version: ==1.25.0
   open-aea-test-autonomy:
     version: ==0.5.0
 skill_exception_policy: just_log

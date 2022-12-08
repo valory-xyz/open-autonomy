@@ -21,8 +21,8 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 skills:
 - valory/abstract_abci:0.1.0:bafybeihhwkp6ggbsmaowlhagfdakrjmrrrcq4rzpszuaegfap5ukdrrdcm
-- valory/abstract_round_abci:0.1.0:bafybeieuvibh2xaj2snvclxbk6izqdmxpgjiwtl6evfxdxcohkdmme5cv4
-- valory/hello_world_abci:0.1.0:bafybeidgzkhxqvefyd7wqocv2rburiajdsz5h4pj4bgdklf6ppgnbvsj5i
+- valory/abstract_round_abci:0.1.0:bafybeieath3s5voornqum34uh75tqzpesedfpwspffgfbw4ld4ry2yvicy
+- valory/hello_world_abci:0.1.0:bafybeiamcidk7zogouoebbzabxzoalwovgheaxytalfs6p2h2bncyp66iy
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -52,7 +52,8 @@ logging_config:
       - console
       propagate: true
 dependencies:
-  open-aea-ledger-ethereum: {}
+  open-aea-ledger-ethereum:
+    version: ==1.25.0
   open-aea-test-autonomy:
     version: ==0.5.0
 default_connection: null
