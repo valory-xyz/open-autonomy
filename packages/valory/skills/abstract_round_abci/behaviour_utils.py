@@ -1895,19 +1895,39 @@ class TmManager(BaseBehaviour, ABC):
         return reset_params
 
     def try_fix(self) -> None:
-        """This method tries to fix an unhealthy node."""
+        """This method tries to fix an unhealthy tendermint node."""
         if self._active_generator is None:
             # There is no active generator set, we need to create one.
             # A generator being active means that a reset operation is
             # being performed.
             self._active_generator = self._handle_unhealthy_tm()
         try:
+            # if the behaviour is waiting for a message
+            # we check whether one has arrived, and if it has
+            # we send it to the generator.
+            if self.state == self.AsyncState.WAITING_MESSAGE:
+                if self.is_notified:
+                    self._active_generator.send(self.received_message)
+                    self._on_sent_message()
+                # note that if the behaviour is waiting for
+                # a message, we deliberately don't send a tick
+                # this was done to have consistency between
+                # the act here, and acts on normal AsyncBehaviours
+                return
             # this will run the active generator until
             # the first yield statement is encountered
             self._active_generator.send(None)
+
         except StopIteration:
             # the generator is finished
+            self.context.logger.info("Applying tendermint fix finished.")
             self._active_generator = None
+            # the following is required because the message
+            # 'tick' might be the last one the generator needs
+            # to complete. In that scenario, we need to call
+            # the callback here
+            if self.is_notified:
+                self._on_sent_message()
 
 
 class DegenerateBehaviour(BaseBehaviour, ABC):
