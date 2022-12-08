@@ -62,7 +62,7 @@ dependencies:
   open-aea-ledger-cosmos: {}
   open-aea-ledger-ethereum: {}
   open-aea-test-autonomy:
-    version: ==0.5.0
+    version: ==0.5.0.post1
 skill_exception_policy: just_log
 connection_exception_policy: just_log
 default_connection: null
