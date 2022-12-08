@@ -50,7 +50,7 @@ class ConcreteRoundA(_ConcreteRound):
     round_id = "concrete_a"
     allowed_tx_type = "payload_a"
 
-    def end_block(self) -> Tuple[MagicMock, MagicMock]:
+    def end_block(self) -> Tuple[MagicMock, MagicMock]:  # type: ignore
         """End block."""
         return MagicMock(), MagicMock()
 

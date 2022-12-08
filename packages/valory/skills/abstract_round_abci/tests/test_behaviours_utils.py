@@ -19,8 +19,6 @@
 
 """Test the behaviours_utils.py module of the skill."""
 
-# pylint: skip-file
-
 import json
 import logging
 import math
@@ -48,6 +46,11 @@ from unittest.mock import MagicMock
 
 import pytest
 import pytz  # type: ignore  # pylint: disable=import-error
+from _pytest.logging import LogCaptureFixture
+
+# pylint: skip-file
+from aea.common import JSONLike
+from aea.test_tools.utils import as_context
 from aea_test_autonomy.helpers.base import try_send
 from hypothesis import given, settings
 from hypothesis import strategies as st
@@ -105,8 +108,6 @@ PACKAGE_DIR = Path(__file__).parent.parent
 #  hence we add and subtract a day from the actual min / max datetime
 MIN_DATETIME_WINDOWS = datetime(1970, 1, 3, 1, 0, 0)
 MAX_DATETIME_WINDOWS = datetime(3000, 12, 30, 23, 59, 59)
-
-
 
 
 def mock_yield_and_return(
@@ -519,7 +520,7 @@ class TestBaseBehaviour:
         self.context_mock.http_dialogues = HttpDialogues()
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.behaviour = BehaviourATest(name="", skill_context=self.context_mock)
-        self.behaviour.context.logger = logging
+        self.behaviour.context.logger = logging  # type: ignore
 
     def test_send_to_ipfs(self, caplog: LogCaptureFixture) -> None:
         """Test send_to_ipfs"""
@@ -530,7 +531,7 @@ class TestBaseBehaviour:
             self.behaviour.send_to_ipfs("filepath", [])
 
         self.behaviour.ipfs_enabled = True
-        self.behaviour._ipfs_interact = IPFSInteract(None)
+        self.behaviour._ipfs_interact = IPFSInteract(None)  # type: ignore
         with mock.patch.object(
             IPFSInteract, "store_and_send", return_value="mock_hash"
         ):
@@ -554,7 +555,7 @@ class TestBaseBehaviour:
             self.behaviour.get_from_ipfs("mock_hash", "target_dir")
 
         self.behaviour.ipfs_enabled = True
-        self.behaviour._ipfs_interact = IPFSInteract(None)
+        self.behaviour._ipfs_interact = IPFSInteract(None)  # type: ignore
         with mock.patch.object(IPFSInteract, "get_and_read"):
             with caplog.at_level(logging.INFO):
                 self.behaviour.get_from_ipfs("mock_hash", "target_dir")
@@ -1445,7 +1446,7 @@ class TestBaseBehaviour:
     def test_get_transaction_receipt(self, caplog: LogCaptureFixture) -> None:
         """Test get_transaction_receipt."""
 
-        expected = {"dummy": "tx_receipt"}
+        expected: JSONLike = {"dummy": "tx_receipt"}
         transaction_receipt = LedgerApiMessage.TransactionReceipt("", expected, {})
         tx_receipt_message = LedgerApiMessage(
             LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
