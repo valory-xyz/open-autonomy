@@ -60,9 +60,7 @@ def lock_packages(ctx: Context, check: bool) -> None:
     with reraise_as_click_exception(Exception):
         if check:
             click.echo("Verifying packages.json")
-            return_code = get_package_manager(packages_dir).verify(
-                config_loader=load_configuration
-            )
+            return_code = get_package_manager(packages_dir).verify()
 
             if return_code:
                 click.echo("Verification failed.")
@@ -76,11 +74,13 @@ def lock_packages(ctx: Context, check: bool) -> None:
         click.echo("Done")
 
 
-def get_package_manager(package_dir: Path) -> BasePackageManager:
+def get_package_manager(packages_dir: Path) -> BasePackageManager:
     """Get package manager."""
 
     try:
-        return PackageManagerV1.from_dir(package_dir)
+        return PackageManagerV1.from_dir(
+            packages_dir=packages_dir, config_loader=load_configuration
+        )
     except PackageFileNotValid:
         warn(
             "The provided `packages.json` still follows an older format which will be deprecated on v2.0.0",
@@ -90,7 +90,9 @@ def get_package_manager(package_dir: Path) -> BasePackageManager:
         click.echo(
             "The provided `packages.json` still follows an older format which will be deprecated on v2.0.0"
         )
-        return PackageManagerV0.from_dir(package_dir)
+        return PackageManagerV0.from_dir(
+            packages_dir=packages_dir, config_loader=load_configuration
+        )
 
 
 class _PackageManagerWithServicePatch(BasePackageManager):
