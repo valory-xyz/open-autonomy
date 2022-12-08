@@ -25,12 +25,9 @@ import json
 import logging
 import math
 import platform
-import shutil
-import sys
 import time
 from abc import ABC
 from collections import OrderedDict
-from contextlib import suppress
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -51,27 +48,17 @@ from unittest.mock import MagicMock
 
 import pytest
 import pytz  # type: ignore  # pylint: disable=import-error
-from _pytest.logging import LogCaptureFixture
-from aea.test_tools.utils import as_context
-from hypothesis import given
-from hypothesis import strategies as st
-
-from packages.valory.protocols.ledger_api.custom_types import (
-    SignedTransaction,
-    TransactionDigest,
-)
-
-
-try:
-    import atheris  # type: ignore
-except (ImportError, ModuleNotFoundError):
-    atheris: Any = None  # type: ignore
-
 from aea_test_autonomy.helpers.base import try_send
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import HttpDialogues
 from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.ledger_api.custom_types import (
+    SignedTransaction,
+    TransactionDigest,
+)
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci import behaviour_utils
 from packages.valory.skills.abstract_round_abci.base import (
@@ -120,14 +107,6 @@ MIN_DATETIME_WINDOWS = datetime(1970, 1, 3, 1, 0, 0)
 MAX_DATETIME_WINDOWS = datetime(3000, 12, 30, 23, 59, 59)
 
 
-@pytest.fixture(scope="session", autouse=True)
-def hypothesis_cleanup() -> Generator:
-    """Fixture to remove hypothesis directory after tests."""
-    yield
-    hypothesis_dir = PACKAGE_DIR / ".hypothesis"
-    if hypothesis_dir.exists():
-        with suppress(OSError, PermissionError):
-            shutil.rmtree(hypothesis_dir)
 
 
 def mock_yield_and_return(
@@ -1173,37 +1152,23 @@ class TestBaseBehaviour:
         ):
             self.behaviour._send_signing_request(b"")
 
-    @pytest.mark.skip
-    def test_fuzz_send_signing_request(self) -> None:
-        """Test '_send_signing_request'.
+    @given(st.binary())
+    @settings(deadline=None)  # somehow autouse fixture in conftest doesn't work here
+    def test_fuzz_send_signing_request(self, input_bytes: bytes) -> None:
+        """Fuzz '_send_signing_request'.
 
-        Do not run this test through pytest. Add the following lines at the bottom
-        of the file and run it as a script:
-        t = TestBaseBehaviour()
-        t.setup()
-        t.test_fuzz_send_signing_request()
+        Mock context manager decorators don't work here.
+
+        :param input_bytes: fuzz input
         """
-
-        @atheris.instrument_func
-        def fuzz_send_signing_request(input_bytes: bytes) -> None:
-            """Fuzz '_send_signing_request'.
-
-            Mock context manager decorators don't work here.
-
-            :param input_bytes: fuzz input
-            """
-            with mock.patch.object(
-                self.behaviour.context.signing_dialogues,
-                "create",
-                return_value=(MagicMock(), MagicMock()),
-            ):
-                with mock.patch.object(behaviour_utils, "RawMessage"):
-                    with mock.patch.object(behaviour_utils, "Terms"):
-                        self.behaviour._send_signing_request(input_bytes)
-
-        atheris.instrument_all()
-        atheris.Setup(sys.argv, fuzz_send_signing_request)
-        atheris.Fuzz()
+        with mock.patch.object(
+            self.behaviour.context.signing_dialogues,
+            "create",
+            return_value=(MagicMock(), MagicMock()),
+        ):
+            with mock.patch.object(behaviour_utils, "RawMessage"):
+                with mock.patch.object(behaviour_utils, "Terms"):
+                    self.behaviour._send_signing_request(input_bytes)
 
     @mock.patch.object(BaseBehaviour, "_get_request_nonce_from_dialogue")
     @mock.patch.object(behaviour_utils, "RawMessage")
@@ -1897,30 +1862,15 @@ class TestBaseBehaviour:
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
 
-    @pytest.mark.skip
-    def test_fuzz_submit_tx(self) -> None:
-        """Test '_submit_tx'.
+    @given(st.binary())
+    def test_fuzz_submit_tx(self, input_bytes: bytes) -> None:
+        """Fuzz '_submit_tx'.
 
-        Do not run this test through pytest. Add the following lines at the bottom
-        of the file and run it as a script:
-        t = TestBaseBehaviour()
-        t.setup()
-        t.test_fuzz_submit_tx()
+        Mock context manager decorators don't work here.
+
+        :param input_bytes: fuzz input
         """
-
-        @atheris.instrument_func
-        def fuzz_submit_tx(input_bytes: bytes) -> None:
-            """Fuzz '_submit_tx'.
-
-            Mock context manager decorators don't work here.
-
-            :param input_bytes: fuzz input
-            """
-            self.behaviour._submit_tx(input_bytes)
-
-        atheris.instrument_all()
-        atheris.Setup(sys.argv, fuzz_submit_tx)
-        atheris.Fuzz()
+        self.behaviour._submit_tx(input_bytes)
 
 
 def test_degenerate_behaviour_async_act() -> None:

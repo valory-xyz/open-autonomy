@@ -18,14 +18,35 @@
 # ------------------------------------------------------------------------------
 
 """Conftest module for io tests."""
+import logging
+import os
+import shutil
+from contextlib import suppress
+from pathlib import Path
+from typing import Dict, Generator
+
+import pytest
+from hypothesis import settings
+
+from packages.valory.skills.abstract_round_abci.io_.store import StoredJSONType
+
 
 # pylint: skip-file
 
-from typing import Dict
 
-import pytest
+CI = "CI"
+PACKAGE_DIR = Path(__file__).parent.parent
+settings.register_profile(CI, deadline=5000)
 
-from packages.valory.skills.abstract_round_abci.io_.store import StoredJSONType
+
+@pytest.fixture(scope="module", autouse=True)
+def load_hypothesis_profile() -> Generator:
+    """Fixture to load hypothesis CI settings."""
+    if os.getenv(CI):
+        settings.load_profile(CI)
+    profile = settings.get_profile(settings._current_profile)
+    logging.info(f"Using hypothesis profile from {__file__}:\n{profile}")
+    yield
 
 
 @pytest.fixture
@@ -38,3 +59,13 @@ def dummy_obj() -> StoredJSONType:
 def dummy_multiple_obj(dummy_obj: StoredJSONType) -> Dict[str, StoredJSONType]:
     """Many dummy custom objects to test the storing with."""
     return {f"test_obj_{i}": dummy_obj for i in range(10)}
+
+
+@pytest.fixture(scope="session", autouse=True)
+def hypothesis_cleanup() -> Generator:
+    """Fixture to remove hypothesis directory after tests."""
+    yield
+    hypothesis_dir = PACKAGE_DIR / ".hypothesis"
+    if hypothesis_dir.exists():
+        with suppress(OSError, PermissionError):
+            shutil.rmtree(hypothesis_dir)

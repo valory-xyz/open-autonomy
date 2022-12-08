@@ -16,7 +16,7 @@ fingerprint:
   payloads.py: bafybeiajdz24osjwh7qvioa4vjssa73nqssnsgpwhowevmxnwqj4usrn5q
   rounds.py: bafybeie23qyyxsniohhcbz6mc4rgrswtk5d257genhxn6waocy3fe47ucm
   tests/__init__.py: bafybeifelbjn35o54vqz62cdblijcrag2pdf5dtj6wqhepbowyifigno4a
-  tests/test_behaviours.py: bafybeidx23aeenlky5gfocytb5dzfupuskevgyh2msoy4ohb7zaas72are
+  tests/test_behaviours.py: bafybeibj2ltxipwbxk45o4chprt7y2u6sal3vlh4ycglembqxxgeomz2em
   tests/test_contract_api.py: bafybeihjmkysmyj3f7t5cqkrodiqatfjvk5tfzwnelmsiskkxjbkkgdem4
   tests/test_dialogues.py: bafybeibcxsrb2zbnrvzkzxvpdu26iw3k6hynotm4xqm2c3e6p7akpipiua
   tests/test_handlers.py: bafybeihvvm4onw2ocfvai32mlujjngwkolviwehvw35nendb7b3adlol5e
@@ -27,13 +27,13 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeidkj37sx2kcdut2hzohfrlpdbzg5mtc2jegk5g5rzktyb7fh4lwf4
+- valory/gnosis_safe:0.1.0:bafybeifhppiz5wnvwcf5ucf4yfklef4twh7fveixqy5vf2pfnt5dr37hbm
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiec2j4uyfphbqmed5zstykfpynnxkywppwvi4radrvrl3g5vx2so4
+- valory/abstract_round_abci:0.1.0:bafybeietltyuphkdlnolyserdmqn3w7pga3g6mzwzqfiicrhuhdqpmnwi4
 behaviours:
   main:
     args: {}
@@ -137,7 +137,7 @@ models:
     class_name: SharedState
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.24.0
+    version: ==1.25.0
   open-aea-test-autonomy:
-    version: ==0.4.0
+    version: ==0.5.0.post1
 is_abstract: true
