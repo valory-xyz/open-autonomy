@@ -714,6 +714,19 @@ class AbciAppDB:
         return {k: [v] for k, v in data.items()}
 
 
+class BaseDBKeys(Enum):
+    """Database keys for the base synchronized data db."""
+
+    PARTICIPANTS = "participants"
+    ALL_PARTICIPANTS = "all_participants"
+    MOST_VOTED_RANDOMNESS = "most_voted_randomness"
+    MOST_VOTED_KEEPER_ADDRESS = "most_voted_keeper_address"
+    BLACKLISTED_KEEPERS = "blacklisted_keepers"
+    PARTICIPANT_TO_SELECTION = "participant_to_selection"
+    PARTICIPANT_TO_RANDOMNESS = "participant_to_randomness"
+    PARTICIPANT_TO_VOTES = "participant_to_votes"
+
+
 class BaseSynchronizedData:
     """
     Class to represent the synchronized data.
@@ -754,7 +767,7 @@ class BaseSynchronizedData:
     @property
     def participants(self) -> FrozenSet[str]:
         """Get the currently active participants."""
-        participants = self.db.get_strict("participants")
+        participants = self.db.get_strict(BaseDBKeys.PARTICIPANTS.value)
         if len(participants) == 0:
             raise ValueError("List participants cannot be empty.")
         return cast(FrozenSet[str], participants)
@@ -762,7 +775,7 @@ class BaseSynchronizedData:
     @property
     def all_participants(self) -> FrozenSet[str]:
         """Get all registered participants."""
-        all_participants = self.db.get_strict("all_participants")
+        all_participants = self.db.get_strict(BaseDBKeys.ALL_PARTICIPANTS.value)
         if len(all_participants) == 0:
             raise ValueError("List participants cannot be empty.")
         return cast(FrozenSet[str], all_participants)
@@ -825,38 +838,42 @@ class BaseSynchronizedData:
     @property
     def most_voted_randomness(self) -> str:
         """Get the most_voted_randomness."""
-        return cast(str, self.db.get_strict("most_voted_randomness"))
+        return cast(str, self.db.get_strict(BaseDBKeys.MOST_VOTED_RANDOMNESS.value))
 
     @property
     def most_voted_keeper_address(self) -> str:
         """Get the most_voted_keeper_address."""
-        return cast(str, self.db.get_strict("most_voted_keeper_address"))
+        return cast(str, self.db.get_strict(BaseDBKeys.MOST_VOTED_KEEPER_ADDRESS.value))
 
     @property
     def is_keeper_set(self) -> bool:
         """Check whether keeper is set."""
-        return self.db.get("most_voted_keeper_address", None) is not None
+        return self.db.get(BaseDBKeys.MOST_VOTED_KEEPER_ADDRESS.value, None) is not None
 
     @property
     def blacklisted_keepers(self) -> Set[str]:
         """Get the current cycle's blacklisted keepers who cannot submit a transaction."""
-        raw = cast(str, self.db.get("blacklisted_keepers", ""))
+        raw = cast(str, self.db.get(BaseDBKeys.BLACKLISTED_KEEPERS.value, ""))
         return set(textwrap.wrap(raw, ADDRESS_LENGTH))
 
+    # TODO: check if this is actually needed!
     @property
     def participant_to_selection(self) -> Mapping:
         """Check whether keeper is set."""
-        return cast(Dict, self.db.get_strict("participant_to_selection"))
+        return cast(Dict, self.db.get_strict(BaseDBKeys.PARTICIPANT_TO_SELECTION.value))
 
     @property
     def participant_to_randomness(self) -> Mapping:
         """Check whether keeper is set."""
-        return cast(Dict, self.db.get_strict("participant_to_randomness"))
+        return cast(
+            Dict, self.db.get_strict(BaseDBKeys.PARTICIPANT_TO_RANDOMNESS.value)
+        )
 
+    # TODO: check if this is actually needed!
     @property
     def participant_to_votes(self) -> Mapping:
         """Check whether keeper is set."""
-        return cast(Dict, self.db.get_strict("participant_to_votes"))
+        return cast(Dict, self.db.get_strict(BaseDBKeys.PARTICIPANT_TO_VOTES.value))
 
 
 class AbstractRound(Generic[EventType, TransactionType], ABC):

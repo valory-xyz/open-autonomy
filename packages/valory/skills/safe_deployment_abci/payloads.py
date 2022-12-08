@@ -19,29 +19,19 @@
 
 """This module contains the transaction payloads for the safe deployment app."""
 
-from enum import Enum
 from typing import Any, Dict, Optional
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
+from packages.valory.skills.safe_deployment_abci import States
 
 
-class TransactionType(Enum):
-    """Enumeration of transaction types."""
-
-    DEPLOY_SAFE = "deploy_safe"
-    VALIDATE = "validate_safe"
-    RANDOMNESS = "randomness_safe"
-    SELECT_KEEPER = "select_keeper_safe"
-
-    def __str__(self) -> str:
-        """Get the string value of the transaction type."""
-        return self.value
+TransactionType = States
 
 
 class RandomnessPayload(BaseTxPayload):
     """Represent a transaction payload of type 'randomness'."""
 
-    transaction_type = TransactionType.RANDOMNESS
+    transaction_type = TransactionType.RANDOMNESS_SAFE
 
     def __init__(
         self, sender: str, round_id: int, randomness: str, **kwargs: Any
@@ -76,7 +66,7 @@ class RandomnessPayload(BaseTxPayload):
 class SelectKeeperPayload(BaseTxPayload):
     """Represent a transaction payload of type 'select_keeper'."""
 
-    transaction_type = TransactionType.SELECT_KEEPER
+    transaction_type = TransactionType.SELECT_KEEPER_SAFE
 
     def __init__(self, sender: str, keeper: str, **kwargs: Any) -> None:
         """Initialize an 'select_keeper' transaction payload.
@@ -102,7 +92,7 @@ class SelectKeeperPayload(BaseTxPayload):
 class ValidatePayload(BaseTxPayload):
     """Represent a transaction payload of type 'validate'."""
 
-    transaction_type = TransactionType.VALIDATE
+    transaction_type = TransactionType.VALIDATE_SAFE
 
     def __init__(self, sender: str, vote: Optional[bool] = None, **kwargs: Any) -> None:
         """Initialize an 'validate' transaction payload.

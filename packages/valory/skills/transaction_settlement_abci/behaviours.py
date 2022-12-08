@@ -53,6 +53,7 @@ from packages.valory.skills.abstract_round_abci.common import (
     SelectKeeperBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
+from packages.valory.skills.transaction_settlement_abci import States
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
@@ -323,7 +324,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
 class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
     """Retrieve randomness."""
 
-    behaviour_id = "randomness_transaction_submission"
+    behaviour_id = States.RANDOMNESS_TRANSACTION_SUBMISSION.value
     matching_round = RandomnessTransactionSubmissionRound
     payload_class = RandomnessPayload
 
@@ -333,7 +334,7 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
 ):
     """Select the keeper agent."""
 
-    behaviour_id = "select_keeper_transaction_submission_a"
+    behaviour_id = States.SELECT_KEEPER_TRANSACTION_SUBMISSION_A.value
     matching_round = SelectKeeperTransactionSubmissionRoundA
     payload_class = SelectKeeperPayload
 
@@ -358,7 +359,7 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
 ):
     """Select the keeper b agent."""
 
-    behaviour_id = "select_keeper_transaction_submission_b"
+    behaviour_id = States.SELECT_KEEPER_TRANSACTION_SUBMISSION_B.value
     matching_round = SelectKeeperTransactionSubmissionRoundB
 
     def async_act(self) -> Generator:
@@ -418,14 +419,14 @@ class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disabl
 ):
     """Select the keeper b agent after a timeout."""
 
-    behaviour_id = "select_keeper_transaction_submission_b_after_timeout"
+    behaviour_id = States.SELECT_KEEPER_TRANSACTION_SUBMISSION_B_AFTER_TIMEOUT.value
     matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
 
 
 class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
     """Validate a transaction."""
 
-    behaviour_id = "validate_transaction"
+    behaviour_id = States.VALIDATE_TRANSACTION.value
     matching_round = ValidateTransactionRound
 
     def async_act(self) -> Generator:
@@ -490,13 +491,10 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
         return verified
 
 
-CHECK_TX_HISTORY = "check_transaction_history"
-
-
 class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
     """Check the transaction history."""
 
-    behaviour_id = CHECK_TX_HISTORY
+    behaviour_id = States.CHECK_TRANSACTION_HISTORY.value
     matching_round = CheckTransactionHistoryRound
 
     def async_act(self) -> Generator:
@@ -535,7 +533,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
         """Check the transaction history."""
         history = (
             self.synchronized_data.tx_hashes_history
-            if self.behaviour_id == CHECK_TX_HISTORY
+            if self.behaviour_id == States.CHECK_TRANSACTION_HISTORY.value
             else self.synchronized_data.late_arriving_tx_hashes
         )
 
@@ -589,7 +587,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
                 if self._safe_nonce_reused(revert_reason):
                     check_expected_to_be_verified = (
                         "The next tx check"
-                        if self.behaviour_id == CHECK_TX_HISTORY
+                        if self.behaviour_id == States.CHECK_TRANSACTION_HISTORY.value
                         else "One of the next tx checks"
                     )
                     self.context.logger.info(
@@ -637,14 +635,14 @@ class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
 ):
     """Check the late-arriving transaction hashes."""
 
-    behaviour_id = "check_late_tx_hashes"
+    behaviour_id = States.CHECK_LATE_TX_HASHES.value
     matching_round = CheckLateTxHashesRound
 
 
 class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
     """Synchronize late-arriving messages behaviour."""
 
-    behaviour_id = "sync_late_messages"
+    behaviour_id = States.SYNC_LATE_MESSAGES.value
     matching_round = SynchronizeLateMessagesRound
 
     def __init__(self, **kwargs: Any):
@@ -688,7 +686,7 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
 class SignatureBehaviour(TransactionSettlementBaseBehaviour):
     """Signature behaviour."""
 
-    behaviour_id = "sign"
+    behaviour_id = States.SIGN.value
     matching_round = CollectSignatureRound
 
     def async_act(self) -> Generator:
@@ -735,7 +733,7 @@ class SignatureBehaviour(TransactionSettlementBaseBehaviour):
 class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
     """Finalize behaviour."""
 
-    behaviour_id = "finalize"
+    behaviour_id = States.FINALIZE.value
     matching_round = FinalizationRound
 
     def _i_am_not_sending(self) -> bool:
@@ -877,7 +875,7 @@ class ResetBehaviour(TransactionSettlementBaseBehaviour):
     """Reset behaviour."""
 
     matching_round = ResetRound
-    behaviour_id = "reset"
+    behaviour_id = States.RESET.value
 
     def async_act(self) -> Generator:
         """Do the action."""

@@ -38,7 +38,7 @@ def test_select_keeper_payload() -> None:
 
     assert payload.keeper == "keeper"
     assert payload.data == {"keeper": "keeper"}
-    assert payload.transaction_type == DSTransactionType.SELECT_KEEPER
+    assert payload.transaction_type == DSTransactionType.SELECT_KEEPER_SAFE
 
 
 def test_deploy_safe_payload() -> None:
@@ -61,4 +61,4 @@ def test_randomness_payload() -> None:
     assert payload.id_ == "id"
     assert payload.data == {"round_id": 1, "randomness": "1"}
 
-    assert payload.transaction_type == DSTransactionType.RANDOMNESS
+    assert payload.transaction_type == DSTransactionType.RANDOMNESS_SAFE

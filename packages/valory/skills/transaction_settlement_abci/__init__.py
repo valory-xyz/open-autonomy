@@ -19,7 +19,27 @@
 
 """This module contains the ABCI transaction settlement skill for an AEA."""
 
+from enum import Enum
+
 from aea.configurations.base import PublicId
 
 
 PUBLIC_ID = PublicId.from_str("valory/transaction_settlement_abci:0.1.0")
+
+
+class States(Enum):
+    """Enumeration of states."""
+
+    RANDOMNESS_TRANSACTION_SUBMISSION = "randomness_transaction_submission"
+    SELECT_KEEPER_TRANSACTION_SUBMISSION_A = "select_keeper_transaction_submission_a"
+    SELECT_KEEPER_TRANSACTION_SUBMISSION_B = "select_keeper_transaction_submission_b"
+    SELECT_KEEPER_TRANSACTION_SUBMISSION_B_AFTER_TIMEOUT = (
+        "select_keeper_transaction_submission_b_after_timeout"
+    )
+    VALIDATE_TRANSACTION = "validate_transaction"
+    CHECK_TRANSACTION_HISTORY = "check_transaction_history"
+    CHECK_LATE_TX_HASHES = "check_late_tx_hashes"
+    SYNC_LATE_MESSAGES = "sync_late_messages"
+    SIGN = "sign"
+    FINALIZE = "finalize"
+    RESET = "reset"

@@ -19,7 +19,22 @@
 
 """This module contains the ABCI safe deployment skill for an AEA."""
 
+from enum import Enum
+
 from aea.configurations.base import PublicId
 
 
 PUBLIC_ID = PublicId.from_str("valory/safe_deployment_abci:0.1.0")
+
+
+class States(Enum):
+    """Enumeration of states."""
+
+    DEPLOY_SAFE = "deploy_safe"
+    VALIDATE_SAFE = "validate_safe"
+    RANDOMNESS_SAFE = "randomness_safe"
+    SELECT_KEEPER_SAFE = "select_keeper_safe"
+
+    def __str__(self) -> str:
+        """Get the string value of the state."""
+        return self.value

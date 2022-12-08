@@ -31,6 +31,7 @@ from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
     SelectKeeperBehaviour,
 )
+from packages.valory.skills.safe_deployment_abci import States
 from packages.valory.skills.safe_deployment_abci.payloads import (
     DeploySafePayload,
     RandomnessPayload,
@@ -59,7 +60,7 @@ class SafeDeploymentBaseBehaviour(BaseBehaviour):
 class RandomnessSafeBehaviour(RandomnessBehaviour):
     """Retrieve randomness for oracle deployment."""
 
-    behaviour_id = "randomness_safe"
+    behaviour_id = States.RANDOMNESS_SAFE.value
     matching_round = RandomnessSafeRound
     payload_class = RandomnessPayload
 
@@ -67,7 +68,7 @@ class RandomnessSafeBehaviour(RandomnessBehaviour):
 class SelectKeeperSafeBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent."""
 
-    behaviour_id = "select_keeper_safe"
+    behaviour_id = States.SELECT_KEEPER_SAFE.value
     matching_round = SelectKeeperSafeRound
     payload_class = SelectKeeperPayload
 
@@ -75,7 +76,7 @@ class SelectKeeperSafeBehaviour(SelectKeeperBehaviour):
 class DeploySafeBehaviour(SafeDeploymentBaseBehaviour):
     """Deploy Safe."""
 
-    behaviour_id = "deploy_safe"
+    behaviour_id = States.DEPLOY_SAFE.value
     matching_round = DeploySafeRound
 
     def async_act(self) -> Generator:
@@ -170,7 +171,7 @@ class DeploySafeBehaviour(SafeDeploymentBaseBehaviour):
 class ValidateSafeBehaviour(SafeDeploymentBaseBehaviour):
     """Validate Safe."""
 
-    behaviour_id = "validate_safe"
+    behaviour_id = States.VALIDATE_SAFE.value
     matching_round = ValidateSafeRound
 
     def async_act(self) -> Generator:

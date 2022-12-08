@@ -30,6 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
+    BaseDBKeys,
     BaseSynchronizedData,
     CollectDifferentUntilThresholdRound,
     CollectNonEmptyUntilThresholdRound,
@@ -38,6 +39,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     OnlyKeeperSendsRound,
     VotingRound,
 )
+from packages.valory.skills.transaction_settlement_abci import States
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
     tx_hist_hex_to_payload,
@@ -79,6 +81,20 @@ class Event(Enum):
     INCORRECT_SERIALIZATION = "incorrect_serialization"
 
 
+class DBKeys(Enum):
+    """Database keys for the synchronized data db."""
+
+    SAFE_CONTRACT_ADDRESS = "safe_contract_address"
+    PARTICIPANT_TO_SIGNATURE = "participant_to_signature"
+    TX_HASHES_HISTORY = "tx_hashes_history"
+    KEEPERS = "keepers"
+    FINAL_TX_HASH = "final_tx_hash"
+    FINAL_VERIFICATION_STATUS = "final_verification_status"
+    MOST_VOTED_TX_HASH = "most_voted_tx_hash"
+    MISSED_MESSAGES = "missed_messages"
+    LATE_ARRIVING_TX_HASHES = "late_arriving_tx_hashes"
+
+
 class SynchronizedData(
     BaseSynchronizedData
 ):  # pylint: disable=too-many-instance-attributes
@@ -91,27 +107,27 @@ class SynchronizedData(
     @property
     def safe_contract_address(self) -> str:
         """Get the safe contract address."""
-        return cast(str, self.db.get_strict("safe_contract_address"))
+        return cast(str, self.db.get_strict(DBKeys.SAFE_CONTRACT_ADDRESS.value))
 
     @property
     def participant_to_signature(self) -> Mapping[str, SignaturePayload]:
         """Get the participant_to_signature."""
         return cast(
             Mapping[str, SignaturePayload],
-            self.db.get_strict("participant_to_signature"),
+            self.db.get_strict(DBKeys.PARTICIPANT_TO_SIGNATURE.value),
         )
 
     @property
     def tx_hashes_history(self) -> List[str]:
         """Get the current cycle's tx hashes history, which has not yet been verified."""
-        raw = cast(str, self.db.get("tx_hashes_history", ""))
+        raw = cast(str, self.db.get(DBKeys.TX_HASHES_HISTORY.value, ""))
         return textwrap.wrap(raw, TX_HASH_LENGTH)
 
     @property
     def keepers(self) -> Deque[str]:
         """Get the current cycle's keepers who have tried to submit a transaction."""
         if self.is_keeper_set:
-            keepers_unparsed = cast(str, self.db.get_strict("keepers"))
+            keepers_unparsed = cast(str, self.db.get_strict(DBKeys.KEEPERS.value))
             keepers_parsed = textwrap.wrap(
                 keepers_unparsed[RETRIES_LENGTH:], ADDRESS_LENGTH
             )
@@ -132,13 +148,13 @@ class SynchronizedData(
     @property
     def is_keeper_set(self) -> bool:
         """Check whether keeper is set."""
-        return bool(self.db.get("keepers", False))
+        return bool(self.db.get(DBKeys.KEEPERS.value, False))
 
     @property
     def keeper_retries(self) -> int:
         """Get the number of times the current keeper has retried."""
         if self.is_keeper_set:
-            keepers_unparsed = cast(str, self.db.get_strict("keepers"))
+            keepers_unparsed = cast(str, self.db.get_strict(DBKeys.KEEPERS.value))
             keeper_retries = int.from_bytes(
                 bytes.fromhex(keepers_unparsed[:RETRIES_LENGTH]), "big"
             )
@@ -165,25 +181,27 @@ class SynchronizedData(
     @property
     def final_tx_hash(self) -> str:
         """Get the verified tx hash."""
-        return cast(str, self.db.get_strict("final_tx_hash"))
+        return cast(str, self.db.get_strict(DBKeys.FINAL_TX_HASH.value))
 
     @property
     def final_verification_status(self) -> VerificationStatus:
         """Get the final verification status."""
         return cast(
             VerificationStatus,
-            self.db.get("final_verification_status", VerificationStatus.NOT_VERIFIED),
+            self.db.get(
+                DBKeys.FINAL_VERIFICATION_STATUS.value, VerificationStatus.NOT_VERIFIED
+            ),
         )
 
     @property
     def most_voted_tx_hash(self) -> str:
         """Get the most_voted_tx_hash."""
-        return cast(str, self.db.get_strict("most_voted_tx_hash"))
+        return cast(str, self.db.get_strict(DBKeys.MOST_VOTED_TX_HASH.value))
 
     @property
     def missed_messages(self) -> int:
         """Check the number of missed messages."""
-        return cast(int, self.db.get("missed_messages", 0))
+        return cast(int, self.db.get(DBKeys.MISSED_MESSAGES.value, 0))
 
     @property
     def should_check_late_messages(self) -> bool:
@@ -193,7 +211,9 @@ class SynchronizedData(
     @property
     def late_arriving_tx_hashes(self) -> List[str]:
         """Get the late_arriving_tx_hashes."""
-        late_arrivals = cast(List[str], self.db.get_strict("late_arriving_tx_hashes"))
+        late_arrivals = cast(
+            List[str], self.db.get_strict(DBKeys.LATE_ARRIVING_TX_HASHES.value)
+        )
         parsed_hashes = map(lambda h: textwrap.wrap(h, TX_HASH_LENGTH), late_arrivals)
         return [h for hashes in parsed_hashes for h in hashes]
 
@@ -207,22 +227,22 @@ class FailedRound(DegenerateRound, ABC):
 class CollectSignatureRound(CollectDifferentUntilThresholdRound):
     """A round in which agents sign the transaction"""
 
-    round_id = "collect_signature"
+    round_id = States.SIGN.value
     allowed_tx_type = SignaturePayload.transaction_type
-    payload_attribute = "signature"
+    payload_attribute = SignaturePayload.signature.fget.__name__  # type: ignore
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     selection_key = "participant"
-    collection_key = "participant_to_signature"
+    collection_key = DBKeys.PARTICIPANT_TO_SIGNATURE.value
 
 
 class FinalizationRound(OnlyKeeperSendsRound):
     """A round that represents transaction signing has finished"""
 
-    round_id = "finalization"
+    round_id = States.FINALIZE.value
     allowed_tx_type = FinalizationTxPayload.transaction_type
-    payload_attribute = "tx_data"
+    payload_attribute = FinalizationTxPayload.tx_data.fget.__name__  # type: ignore
     synchronized_data_class = SynchronizedData
 
     def end_block(
@@ -279,27 +299,27 @@ class FinalizationRound(OnlyKeeperSendsRound):
 class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
     """A round for generating randomness"""
 
-    round_id = "randomness_transaction_submission"
+    round_id = States.RANDOMNESS_TRANSACTION_SUBMISSION.value
     allowed_tx_type = RandomnessPayload.transaction_type
-    payload_attribute = "randomness"
+    payload_attribute = RandomnessPayload.randomness.fget.__name__  # type: ignore
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_randomness"
-    selection_key = "most_voted_randomness"
+    collection_key = BaseDBKeys.PARTICIPANT_TO_RANDOMNESS.value
+    selection_key = BaseDBKeys.MOST_VOTED_RANDOMNESS.value
 
 
 class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound):
     """A round in which a keeper is selected for transaction submission"""
 
-    round_id = "select_keeper_transaction_submission_a"
+    round_id = States.SELECT_KEEPER_TRANSACTION_SUBMISSION_A.value
     allowed_tx_type = SelectKeeperPayload.transaction_type
-    payload_attribute = "keepers"
+    payload_attribute = SelectKeeperPayload.keepers.fget.__name__  # type: ignore
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_selection"
-    selection_key = "keepers"
+    collection_key = BaseDBKeys.PARTICIPANT_TO_SELECTION.value
+    selection_key = DBKeys.KEEPERS.value
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
@@ -318,7 +338,7 @@ class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound):
 class SelectKeeperTransactionSubmissionRoundB(SelectKeeperTransactionSubmissionRoundA):
     """A round in which a new keeper is selected for transaction submission"""
 
-    round_id = "select_keeper_transaction_submission_b"
+    round_id = States.SELECT_KEEPER_TRANSACTION_SUBMISSION_B.value
 
 
 class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
@@ -326,7 +346,7 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
 ):
     """A round in which a new keeper is selected for tx submission after a round timeout of the previous keeper"""
 
-    round_id = "select_keeper_transaction_submission_b_after_timeout"
+    round_id = States.SELECT_KEEPER_TRANSACTION_SUBMISSION_B_AFTER_TIMEOUT.value
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
@@ -352,15 +372,15 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
 class ValidateTransactionRound(VotingRound):
     """A round in which agents validate the transaction"""
 
-    round_id = "validate_transaction"
+    round_id = States.VALIDATE_TRANSACTION.value
     allowed_tx_type = ValidatePayload.transaction_type
-    payload_attribute = "vote"
+    payload_attribute = ValidatePayload.vote.fget.__name__  # type: ignore
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     negative_event = Event.NEGATIVE
     none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_votes"
+    collection_key = BaseDBKeys.PARTICIPANT_TO_VOTES.value
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
@@ -399,9 +419,9 @@ class ValidateTransactionRound(VotingRound):
 class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
     """A round in which agents check the transaction history to see if any previous tx has been validated"""
 
-    round_id = "check_transaction_history"
+    round_id = States.CHECK_TRANSACTION_HISTORY.value
     allowed_tx_type = CheckTransactionHistoryPayload.transaction_type
-    payload_attribute = "verified_res"
+    payload_attribute = CheckTransactionHistoryPayload.verified_res.fget.__name__  # type: ignore
     synchronized_data_class = SynchronizedData
     selection_key = "most_voted_check_result"
 
@@ -450,21 +470,21 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
 class CheckLateTxHashesRound(CheckTransactionHistoryRound):
     """A round in which agents check the late-arriving transaction hashes to see if any of them has been validated"""
 
-    round_id = "check_late_tx_hashes"
+    round_id = States.CHECK_LATE_TX_HASHES.value
 
 
 class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
     """A round in which agents synchronize potentially late arriving messages"""
 
-    round_id = "synchronize_late_messages"
+    round_id = States.SYNC_LATE_MESSAGES.value
     allowed_tx_type = SynchronizeLateMessagesPayload.transaction_type
-    payload_attribute = "tx_hashes"
+    payload_attribute = SynchronizeLateMessagesPayload.tx_hashes.fget.__name__  # type: ignore
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     none_event = Event.NONE
     selection_key = "participant"
-    collection_key = "late_arriving_tx_hashes"
+    collection_key = DBKeys.LATE_ARRIVING_TX_HASHES.value
     _hash_length = TX_HASH_LENGTH
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -494,9 +514,9 @@ class FinishedTransactionSubmissionRound(DegenerateRound, ABC):
 class ResetRound(CollectSameUntilThresholdRound):
     """A round that represents the reset of a period"""
 
-    round_id = "reset"
+    round_id = States.RESET.value
     allowed_tx_type = ResetPayload.transaction_type
-    payload_attribute = "period_count"
+    payload_attribute = ResetPayload.period_count.fget.__name__  # type: ignore
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
