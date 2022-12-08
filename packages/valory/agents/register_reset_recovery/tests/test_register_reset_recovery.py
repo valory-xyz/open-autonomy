@@ -40,12 +40,12 @@ from packages.valory.agents.register_reset_recovery.tests.base import (
 
 HAPPY_PATH = (RoundChecks("registration_startup"),)
 
-# the string used to trigger the breaking of the first tm node (node0).
-TM_BREAK_STRING = "Current round count is 5."
+# the string used to trigger the breaking of the 3rd tm node (node3).
+TM_BREAK_STRING = "Current round count is 3."
 
-# we make sure that all agents are able to reach round 10.
-# the first one will communication wth tendermint at round 5.
-STRICT_CHECK_STRINGS = ("Current round count is 10.",)
+# we make sure that all agents are able to reach round 6.
+# the first one will communication wth tendermint at round 3.
+STRICT_CHECK_STRINGS = ("Current round count is 6.",)
 
 
 @pytest.mark.e2e
