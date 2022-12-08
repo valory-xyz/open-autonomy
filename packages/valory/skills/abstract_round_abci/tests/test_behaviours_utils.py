@@ -1449,7 +1449,7 @@ class TestBaseBehaviour:
         expected: JSONLike = {"dummy": "tx_receipt"}
         transaction_receipt = LedgerApiMessage.TransactionReceipt("", expected, {})
         tx_receipt_message = LedgerApiMessage(
-            LedgerApiMessage.Performative.TRANSACTION_RECEIPT,
+            LedgerApiMessage.Performative.TRANSACTION_RECEIPT,  # type: ignore
             transaction_receipt=transaction_receipt,
         )
         side_effect = mock_yield_and_return(tx_receipt_message)
@@ -1469,7 +1469,7 @@ class TestBaseBehaviour:
     def test_get_transaction_receipt_error(self, caplog: LogCaptureFixture) -> None:
         """Test get_transaction_receipt with error performative."""
 
-        error_message = LedgerApiMessage(LedgerApiMessage.Performative.ERROR, code=0)
+        error_message = LedgerApiMessage(LedgerApiMessage.Performative.ERROR, code=0)  # type: ignore
         side_effect = mock_yield_and_return(error_message)
         with as_context(
             mock.patch.object(self.behaviour, "_send_transaction_receipt_request"),

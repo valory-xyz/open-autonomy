@@ -20,7 +20,7 @@
 """ABCI App test tools."""
 
 
-from typing import Dict, Tuple, Type
+from typing import Dict, Tuple, Type, Union
 from unittest.mock import MagicMock
 
 from packages.valory.protocols.abci.custom_types import Events
@@ -34,7 +34,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 class _ConcreteRound(AbstractRound):
     """ConcreteRound"""
 
-    def end_block(self) -> None:
+    def end_block(self) -> Union[None, Tuple[MagicMock, MagicMock]]:
         """End block."""
 
     def check_payload(self, payload: BaseTxPayload) -> None:
@@ -50,7 +50,7 @@ class ConcreteRoundA(_ConcreteRound):
     round_id = "concrete_a"
     allowed_tx_type = "payload_a"
 
-    def end_block(self) -> Tuple[MagicMock, MagicMock]:  # type: ignore
+    def end_block(self) -> Tuple[MagicMock, MagicMock]:
         """End block."""
         return MagicMock(), MagicMock()
 
@@ -76,11 +76,15 @@ class ConcreteBackgroundRound(_ConcreteRound):
     allowed_tx_type = "payload_background_c"
 
 
-class ConcreteTerminationRoundA(ConcreteRoundA):
+class ConcreteTerminationRoundA(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
     round_id = "concrete_termination_a"
     allowed_tx_type = "payload_termination_a"
+
+    def end_block(self) -> Tuple[MagicMock, MagicMock]:
+        """End block."""
+        return MagicMock(), MagicMock()
 
 
 class ConcreteTerminationRoundB(_ConcreteRound):

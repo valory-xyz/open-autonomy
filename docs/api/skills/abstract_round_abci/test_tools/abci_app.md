@@ -19,7 +19,7 @@ ConcreteRound
 #### end`_`block
 
 ```python
-def end_block() -> None
+def end_block() -> Union[None, Tuple[MagicMock, MagicMock]]
 ```
 
 End block.
@@ -99,10 +99,20 @@ Dummy instantiation of the AbstractRound class.
 ## ConcreteTerminationRoundA Objects
 
 ```python
-class ConcreteTerminationRoundA(ConcreteRoundA)
+class ConcreteTerminationRoundA(_ConcreteRound)
 ```
 
 Dummy instantiation of the AbstractRound class.
+
+<a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.ConcreteTerminationRoundA.end_block"></a>
+
+#### end`_`block
+
+```python
+def end_block() -> Tuple[MagicMock, MagicMock]
+```
+
+End block.
 
 <a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.ConcreteTerminationRoundB"></a>
 
