@@ -162,6 +162,21 @@ class AsyncBehaviour(ABC):
         return self.__state
 
     @property
+    def is_notified(self) -> bool:
+        """Returns whether the behaviour has been notified about the arrival of a message."""
+        return self.__notified
+
+    @property
+    def received_message(self) -> Any:
+        """Returns the message the behaviour has received. "__message" should be None if not availble or already consumed."""
+        return self.__message
+
+    def _on_sent_message(self) -> None:
+        """To be called after the message received is consumed. Removes the already sent notification and message."""
+        self.__notified = False
+        self.__message = None
+
+    @property
     def is_stopped(self) -> bool:
         """Check whether the behaviour has stopped."""
         return self.__stopped
