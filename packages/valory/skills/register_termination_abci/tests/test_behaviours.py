@@ -45,6 +45,7 @@ from packages.valory.skills.termination_abci.behaviours import (
 def test_skill_public_id() -> None:
     """Test skill module public ID"""
 
+    # pylint: disable=no-member
     assert PUBLIC_ID.name == Path(__file__).parents[1].name
     assert PUBLIC_ID.author == Path(__file__).parents[3].name
 
