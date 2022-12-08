@@ -1894,6 +1894,31 @@ class TmManager(BaseBehaviour, ABC):
         reset_params = cast(SharedState, self.context.state).last_reset_params
         return reset_params
 
+    def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
+        """Wrapper for callback_request(), overridden to remove checks not applicable to TmManager."""
+
+        def callback_request(
+            message: Message, _current_behaviour: BaseBehaviour
+        ) -> None:
+            """
+            This method gets called when a response for a prior request is received.
+
+            Overridden to remove the check that checks whether the behaviour that made the request is still active.
+            The received message gets passed to the behaviour that invoked it, in this case it's always the TmManager.
+
+            :param message: the response.
+            :param _current_behaviour: not used, left in to satisfy the interface.
+            :return: none
+            """
+            if self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
+                self.try_send(message)
+            else:
+                self.context.logger.warning(
+                    "could not send message to TmManager: %s", message
+                )
+
+        return callback_request
+
     def try_fix(self) -> None:
         """This method tries to fix an unhealthy tendermint node."""
         if self._active_generator is None:
