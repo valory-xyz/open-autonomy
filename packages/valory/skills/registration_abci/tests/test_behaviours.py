@@ -45,6 +45,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
+from packages.valory.skills.registration_abci import PUBLIC_ID
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationBaseBehaviour,
     RegistrationBehaviour,
@@ -75,6 +76,13 @@ DUMMY_VALIDATOR_CONFIG = {
         "value": "7y7ycBMMABj5Onf74ITYtUS3uZ6SsCQKZML87mIX",
     },
 }
+
+
+def test_skill_public_id() -> None:
+    """Test skill module public ID"""
+
+    assert PUBLIC_ID.name == Path(__file__).parents[1].name
+    assert PUBLIC_ID.author == Path(__file__).parents[3].name
 
 
 def consume(iterator: Iterable) -> None:

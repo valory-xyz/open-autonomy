@@ -48,6 +48,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.hello_world_abci import PUBLIC_ID
 from packages.valory.skills.hello_world_abci.behaviours import (
     CollectRandomnessBehaviour,
     HelloWorldRoundBehaviour,
@@ -61,6 +62,13 @@ from packages.valory.skills.hello_world_abci.rounds import Event, SynchronizedDa
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
+
+
+def test_skill_public_id() -> None:
+    """Test skill module public ID"""
+
+    assert PUBLIC_ID.name == Path(__file__).parents[1].name
+    assert PUBLIC_ID.author == Path(__file__).parents[3].name
 
 
 class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):

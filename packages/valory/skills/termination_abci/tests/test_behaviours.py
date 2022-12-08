@@ -37,6 +37,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
+from packages.valory.skills.termination_abci import PUBLIC_ID
 from packages.valory.skills.termination_abci.behaviours import (
     BackgroundBehaviour,
     TerminationAbciBehaviours,
@@ -53,6 +54,14 @@ SAFE_ADDRESS = "0x0"
 MULTISEND_ADDRESS = "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761"
 SERVICE_OWNER_ADDRESS = "0x0"
 SERVICE_ID = None
+
+
+def test_skill_public_id() -> None:
+    """Test skill module public ID"""
+
+    # pylint: disable=no-member
+    assert PUBLIC_ID.name == Path(__file__).parents[1].name
+    assert PUBLIC_ID.author == Path(__file__).parents[3].name
 
 
 @dataclass
