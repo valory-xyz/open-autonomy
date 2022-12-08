@@ -95,6 +95,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     BaseParams,
     Requests,
     SharedState,
+    TendermintRecoveryParams,
 )
 
 
@@ -1704,11 +1705,19 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             ("initial_height", initial_height),
         ]
 
-    def reset_tendermint_with_wait(  # pylint: disable= too-many-locals
+    def reset_tendermint_with_wait(  # pylint: disable=too-many-locals, too-many-statements
         self,
         on_startup: bool = False,
+        is_recovery: bool = False,
     ) -> Generator[None, None, bool]:
-        """Resets the tendermint node."""
+        """
+        Performs a hard reset (unsafe-reset-all) on the tendermint node.
+
+        :param on_startup: whether we are resetting on the start of the agent.
+        :param is_recovery: whether the reset is being performed to recover the agent <-> tm communication.
+        :yields: None
+        :returns: whether the reset was successful.
+        """
         yield from self._start_reset()
         if self._is_timeout_expired():
             # if the Tendermint node cannot update the app then the app cannot work
@@ -1746,13 +1755,31 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     for handler_name in self.context.handlers.__dict__.keys():
                         dialogues = getattr(self.context, f"{handler_name}_dialogues")
                         dialogues.cleanup()
-                    # in case of successful reset we store the reset params in the shared state,
-                    # so that in the future if the communication with tendermint breaks, and we need to
-                    # perform a hard reset to restore it, we can use these as the right ones
-                    cast(
-                        SharedState, self.context.state
-                    ).last_reset_params = reset_params
+                    if not is_recovery:
+                        # in case of successful reset we store the reset params in the shared state,
+                        # so that in the future if the communication with tendermint breaks, and we need to
+                        # perform a hard reset to restore it, we can use these as the right ones
+                        shared_state = cast(SharedState, self.context.state)
+                        # we take one from the reset index and round count because they are incremented
+                        # when resetting and scheduling rounds respectively
+                        reset_index = (
+                            shared_state.round_sequence.abci_app.reset_index - 1
+                        )
+                        round_count = (
+                            shared_state.round_sequence.abci_app.synchronized_data.db.round_count
+                            - 1
+                        )
+                        # in case we need to reset in order to recover agent <-> tm communication
+                        # we store this round as the one to start from
+                        restart_from_round = self.matching_round
+                        shared_state.tm_recovery_params = TendermintRecoveryParams(
+                            reset_params=reset_params,
+                            reset_index=reset_index,
+                            round_count=round_count,
+                            reset_from_round=restart_from_round,
+                        )
                     self._end_reset()
+
                 else:
                     msg = response.get("message")
                     self.context.state.round_sequence.blockchain = backup_blockchain
