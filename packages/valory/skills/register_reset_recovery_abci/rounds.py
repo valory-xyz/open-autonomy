@@ -69,9 +69,24 @@ class RoundCountRound(CollectSameUntilThresholdRound):
 
 
 class RoundCountAbciApp(AbciApp[Event]):
-    """RoundCountAbciApp that simply transitions to the same round infinitely."""
+    """RoundCountAbciApp
+
+    Initial round: RoundCountRound
+
+    Initial states: {RoundCountRound}
+
+    Transition states:
+        0. RoundCountRound
+            - done: 0.
+
+    Final states: {}
+
+    Timeouts:
+        round timeout: 30.0
+    """
 
     initial_round_cls: Type[AbstractRound] = RoundCountRound
+    initial_states = {RoundCountRound}
     transition_function: AbciAppTransitionFunction = {
         RoundCountRound: {
             Event.DONE: RoundCountRound,

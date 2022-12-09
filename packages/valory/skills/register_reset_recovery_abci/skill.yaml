@@ -6,16 +6,15 @@ description: ABCI application for dummy skill that registers and resets
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: bafybeibzc4tev4broyndp7vkyihpzjfx4qthdx2u3netg7kryp3akes54i
+  README.md: bafybeigmjag2ddtrfsrcklillz7iiyzwoulyp7ns4xrxlqejfgsqe74dmu
   __init__.py: bafybeigstxhr6bts7xwyx62cokwkwf3wrunratprkrg5vzokuq7ioqtsp4
   behaviours.py: bafybeigec2h2qgmgw3nawl47twagkhotsqaqecjk5koo7o5viaqgb2en4y
   composition.py: bafybeig2st4q56icagf5crmmtc7deyn55tdti534ehtrvxfjr424z4j3ma
   dialogues.py: bafybeiflpquascygrfxcgb4ufiigqykmvbxlgbrxxa6cxmiy6f4w3aknmq
-  fsm_specification.yaml: bafybeib7br3a73q3tlsaowz24mggm42c3mwezpcbebrk7rwjjvwwfpl67i
   handlers.py: bafybeig467ffh6apduswzgap5xm42jrynylzl332jnpizgrny72nwb7kra
   models.py: bafybeia2xdaltqi4luc6vgbhprijsdgqnlw7qzvrcosa3izrzpek56ek7q
   payloads.py: bafybeif3xvmrd6enjexvhpwp4ypsyk4j5tyecyphpf2lba665xonmd2cjy
-  rounds.py: bafybeibopc57mac36omt43zp2snvjhh62uk6srl37evlyqcv2yzqx4wvsa
+  rounds.py: bafybeig6lr4htbe7yqxyqabp33foba6fepobq6c5ohrs4lhrr2o4ji7qu4
   tests/__init__.py: bafybeigl6apxxiffa4ls45lukhbquaunzm2cspxdyf6thy5dz2rya44seq
   tests/test_behaviours.py: bafybeihnpneays4ibb6hkhzi73h7npggfgiy4mbz7no6fyvz3q74xqrkgq
   tests/test_dialogues.py: bafybeifna75wlo2zpymsx2oa5ct7uzujgo6ahnvd5yhzvnn6ekoxrgeaei
