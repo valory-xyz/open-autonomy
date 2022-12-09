@@ -617,7 +617,9 @@ def test_reset_should_be_performed_when_tm_unhealthy() -> None:
         return None
         yield
 
-    def dummy_reset_tendermint_with_wait() -> Generator[None, None, bool]:
+    def dummy_reset_tendermint_with_wait(
+        is_recovery: bool = False,
+    ) -> Generator[None, None, bool]:
         """A dummy method for reset_tendermint_with_wait."""
         # we assume the reset goes through successfully
         return True
