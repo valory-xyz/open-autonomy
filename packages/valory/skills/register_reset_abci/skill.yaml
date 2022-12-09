@@ -24,9 +24,9 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifh4qtjurq5637ykxexzexca5l4n6t4ujw26tpnern2swajanvhny
-- valory/registration_abci:0.1.0:bafybeicuz3f4tvowd2xwcl5w4ck56rm5abfoyng3cmbprovpch4u6eexge
-- valory/reset_pause_abci:0.1.0:bafybeihlsjhy4dpiulgdof3noh6dlzvr6wkywcwbsrti45labn7htrfg3y
+- valory/abstract_round_abci:0.1.0:bafybeiekne3x2zfgrgnipimfytrym7yilvqoij3qpzsxhge7gnkzggjowu
+- valory/registration_abci:0.1.0:bafybeieifpfy6reenosvdfls7xtmyclxy73ljoczxukrjwpo2sodf6jrfm
+- valory/reset_pause_abci:0.1.0:bafybeih3dexqlhwdsjx5zbljo72zjmaris3ktxv2ryjhlzimy4fxy7okv4
 behaviours:
   main:
     args: {}
@@ -69,7 +69,7 @@ models:
       cleanup_history_depth: 1
       cleanup_history_depth_current: null
       consensus:
-        max_participants: 1
+        max_participants: 4
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       genesis_config:
         genesis_time: '2022-05-20T16:00:21.735122717Z'

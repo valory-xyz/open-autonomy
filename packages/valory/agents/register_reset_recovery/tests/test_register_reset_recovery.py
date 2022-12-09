@@ -43,9 +43,9 @@ HAPPY_PATH = (RoundChecks("registration_startup"),)
 # the string used to trigger the breaking of the 3rd tm node (node3).
 TM_BREAK_STRING = "Current round count is 3."
 
-# we make sure that all agents are able to reach round 6.
-# the first one will communication wth tendermint at round 3.
-STRICT_CHECK_STRINGS = ("Current round count is 6.",)
+# we make sure that all agents are able to reach round 25.
+# the third one will communication wth tendermint at round 3.
+STRICT_CHECK_STRINGS = ("Current round count is 25.",)
 
 
 @pytest.mark.e2e

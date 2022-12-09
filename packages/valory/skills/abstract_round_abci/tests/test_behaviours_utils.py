@@ -50,6 +50,7 @@ from _pytest.logging import LogCaptureFixture
 
 # pylint: skip-file
 from aea.common import JSONLike
+from aea.protocols.base import Message
 from aea.test_tools.utils import as_context
 from aea_test_autonomy.helpers.base import try_send
 from hypothesis import given, settings

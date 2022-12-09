@@ -597,6 +597,18 @@ class TestAbciAppDB:
                 "by updating an item passed via the `__init__`!"
             )
 
+    def test_round_count_setter(self) -> None:
+        """Tests the round count setter."""
+        expected_value = 1
+
+        # assume the round count is 0 in the begging
+        self.db._round_count = 0
+
+        # update to one via the setter
+        self.db.round_count = expected_value
+
+        assert self.db.round_count == expected_value
+
     def test_try_alter_init_data(self) -> None:
         """Test trying to alter the init data."""
         data_key = "test"
