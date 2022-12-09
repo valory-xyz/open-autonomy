@@ -21,6 +21,7 @@
 """This module contains the tools for checking that all packages have been pushed to the ipfs registry."""
 
 import json
+import logging
 import subprocess  # nosec
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -31,7 +32,7 @@ import requests
 
 IPFS_ENDPOINT = "https://gateway.autonolas.tech/ipfs"
 MAX_WORKERS = 5
-REQUEST_TIMEOUT = 20  # seconds
+REQUEST_TIMEOUT = 30  # seconds
 
 
 def check_ipfs_hash_pushed(ipfs_hash: str) -> Tuple[str, bool]:
@@ -40,8 +41,10 @@ def check_ipfs_hash_pushed(ipfs_hash: str) -> Tuple[str, bool]:
     try:
         url = f"{IPFS_ENDPOINT}/{ipfs_hash.strip()}"
         res = requests.get(url, timeout=REQUEST_TIMEOUT)
+        logging.info(f"check_ipfs_hash_pushed response: {res.status_code}")
         return ipfs_hash, res.status_code == 200
-    except requests.RequestException:
+    except requests.RequestException as e:
+        logging.error(f"check_ipfs_hash_pushed failed to find {ipfs_hash} on IPFS: {e}")
         return ipfs_hash, False
 
 
