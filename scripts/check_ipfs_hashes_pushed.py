@@ -31,11 +31,11 @@ import requests
 
 
 IPFS_ENDPOINT = "https://gateway.autonolas.tech/ipfs"
-MAX_WORKERS = 5
-REQUEST_TIMEOUT = 30  # seconds
+MAX_WORKERS = 10
+REQUEST_TIMEOUT = 10  # seconds
 
 
-def check_ipfs_hash_pushed(ipfs_hash: str) -> Tuple[str, bool]:
+def check_ipfs_hash_pushed(ipfs_hash: str, retries: int = 5) -> Tuple[str, bool]:
     """Check that the given ipfs hash exists in the registry"""
 
     def check_ipfs() -> Tuple[str, bool]:
@@ -50,9 +50,8 @@ def check_ipfs_hash_pushed(ipfs_hash: str) -> Tuple[str, bool]:
             )
             return ipfs_hash, False
 
-    retries = 5
-    while not (found := check_ipfs()[1]) and (retries := retries - 1):
-        continue
+    while not (found := check_ipfs()[1]) and retries:
+        retries -= 1
 
     return ipfs_hash, found
 
