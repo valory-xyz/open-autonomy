@@ -38,14 +38,22 @@ REQUEST_TIMEOUT = 30  # seconds
 def check_ipfs_hash_pushed(ipfs_hash: str) -> Tuple[str, bool]:
     """Check that the given ipfs hash exists in the registry"""
 
-    try:
-        url = f"{IPFS_ENDPOINT}/{ipfs_hash.strip()}"
-        res = requests.get(url, timeout=REQUEST_TIMEOUT)
-        logging.info(f"check_ipfs_hash_pushed response: {res.status_code}")
-        return ipfs_hash, res.status_code == 200
-    except requests.RequestException as e:
-        logging.error(f"check_ipfs_hash_pushed failed to find {ipfs_hash} on IPFS: {e}")
-        return ipfs_hash, False
+    def check_ipfs():
+        try:
+            url = f"{IPFS_ENDPOINT}/{ipfs_hash.strip()}"
+            res = requests.get(url, timeout=REQUEST_TIMEOUT)
+            logging.info(f"check_ipfs_hash_pushed response: {res.status_code}")
+            return ipfs_hash, res.status_code == 200
+        except requests.RequestException as e:
+            logging.error(f"check_ipfs_hash_pushed failed to find {ipfs_hash} on IPFS: {e}")
+            return ipfs_hash, False
+
+    retries = 5
+    while not (found := check_ipfs()[1]) and retries:
+        retries -= 1
+
+    return ipfs_hash, found
+
 
 
 def get_latest_git_tag() -> str:
