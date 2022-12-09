@@ -40,7 +40,11 @@ from aea.configurations.data_types import PackageId, PackageType, PublicId
 from aea.package_manager.v1 import PackageManagerV1
 
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
-from autonomy.fsm.scaffold.scaffold_skill import ScaffoldABCISkill, SkillConfigUpdater
+from autonomy.fsm.scaffold.scaffold_skill import (
+    ScaffoldABCISkill,
+    SkillConfigUpdater,
+    TO_LOCAL_REGISTRY_FLAG,
+)
 
 
 def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
@@ -49,7 +53,7 @@ def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
         "Skill valory/abstract_round_abci not found in agent dependencies, adding it..."
     )
 
-    if ctx.config.get("to_local_registry"):
+    if ctx.config.get(TO_LOCAL_REGISTRY_FLAG):
         skill_id = SkillConfigUpdater.get_actual_abstract_round_abci_package_public_id(
             ctx
         )
@@ -62,11 +66,7 @@ def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
                 package_type=PackageType.SKILL,
                 public_id=PublicId.from_str(ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH),
             )
-            package_manager.add_package(package_id)
-            # TODO: should be done in add packages?
-            package_manager.dev_packages[
-                package_id
-            ] = package_manager.calculate_hash_from_package_id(package_id=package_id)
+            package_manager.add_package(package_id, with_dependencies=True)
             package_manager.dump()
     else:
         # add package to agent

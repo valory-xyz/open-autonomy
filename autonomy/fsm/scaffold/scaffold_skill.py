@@ -47,6 +47,7 @@ from aea.package_manager.v1 import PackageManagerV1
 
 from autonomy.analyse.abci.app_spec import DFA, FSMSpecificationLoader
 from autonomy.configurations.constants import INIT_PY, PYCACHE
+from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
 from autonomy.fsm.scaffold.base import AbstractFileGenerator
 from autonomy.fsm.scaffold.constants import ABCI_APP, ROUND_BEHAVIOUR
 from autonomy.fsm.scaffold.generators.components import (
@@ -66,6 +67,11 @@ from autonomy.fsm.scaffold.generators.tests import (
     RoundTestsFileGenerator,
 )
 from autonomy.fsm.scaffold.templates import COPYRIGHT_HEADER
+
+
+TO_LOCAL_REGISTRY_FLAG = "to_local_registry"
+
+ABSTRACT_ROUND_SKILL_PUBLIC_ID = PublicId.from_str(ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH)
 
 
 class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
@@ -95,7 +101,7 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         self.ctx.skill_loader.dump(config, self.skill_config_path.open("w"))
         # TODO: update fingerprint_item to use path instead of context
         preserve_cwd = self.ctx.cwd
-        if self.ctx.config.get("to_local_registry"):
+        if self.ctx.config.get(TO_LOCAL_REGISTRY_FLAG):
             self.ctx.cwd = Path(self.ctx.registry_path) / self.ctx.agent_config.author
         fingerprint_item(self.ctx, SKILL, config.public_id)
         self.ctx.cwd = preserve_cwd
@@ -170,8 +176,8 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         packages = [
             package_id.public_id
             for package_id in package_manager.dev_packages.keys()
-            if package_id.author == "valory"
-            and package_id.name == "abstract_round_abci"
+            if package_id.author == ABSTRACT_ROUND_SKILL_PUBLIC_ID.author
+            and package_id.name == ABSTRACT_ROUND_SKILL_PUBLIC_ID.name
             and package_id.package_type == PackageType.SKILL
         ]
         if not packages:
@@ -183,7 +189,7 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         """Update skill dependencies."""
         # retrieve the actual valory/abstract_round_abci package
 
-        if self.ctx.config.get("to_local_registry"):
+        if self.ctx.config.get(TO_LOCAL_REGISTRY_FLAG):
             abstract_round_abci = self.get_actual_abstract_round_abci_package_public_id(
                 self.ctx
             )
@@ -194,8 +200,8 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             abstract_round_abci = [
                 public_id
                 for public_id in agent_config.skills
-                if public_id.author == "valory"
-                and public_id.name == "abstract_round_abci"
+                if public_id.author == ABSTRACT_ROUND_SKILL_PUBLIC_ID.author
+                and public_id.name == ABSTRACT_ROUND_SKILL_PUBLIC_ID.name
             ][0]
 
         config.skills.add(abstract_round_abci)
@@ -295,7 +301,7 @@ class ScaffoldABCISkill:
     @property
     def skill_dir(self) -> Path:
         """Get the directory to the skill."""
-        if self.ctx.config.get("to_local_registry"):
+        if self.ctx.config.get(TO_LOCAL_REGISTRY_FLAG):
             return Path(
                 self.ctx.registry_path,
                 self.ctx.agent_config.author,
