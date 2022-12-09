@@ -470,6 +470,7 @@ class RPCResponseStatus(Enum):
 class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
     """Base class for FSM behaviours."""
 
+    __pattern = re.compile(r"(?<!^)(?=[A-Z])")
     is_programmatically_defined = True
     behaviour_id = ""
     matching_round: Type[AbstractRound]
@@ -487,6 +488,26 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self._is_healthy: bool = False
         self._non_200_return_code_count: int = 0
         enforce(self.behaviour_id != "", "State id not set.")
+
+    @classmethod
+    def auto_behaviour_id(cls) -> str:
+        """
+        Get behaviour id automatically.
+
+        This method returns the auto generated id from the class name if the
+        class variable behaviour_id is not set on the child class.
+        Otherwise, it returns the class variable behaviour_id.
+        """
+        return (
+            cls.behaviour_id
+            if type(cls.behaviour_id) == str and cls.behaviour_id != ""
+            else cls.__pattern.sub("_", cls.__name__).lower()
+        )
+
+    @property
+    def behaviour_id(self) -> str:
+        """Get behaviour id."""
+        return self.auto_behaviour_id()
 
     @property
     def params(self) -> BaseParams:

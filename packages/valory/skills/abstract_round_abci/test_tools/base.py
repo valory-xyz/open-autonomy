@@ -130,9 +130,10 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
 
         self.benchmark_dir = TemporaryDirectory()
         self._skill.skill_context.benchmark_tool.log_dir = Path(self.benchmark_dir.name)
+        # import pdb; pdb.set_trace()  # noqa: E402
         assert (  # nosec
             cast(BaseBehaviour, self.behaviour.current_behaviour).behaviour_id
-            == self.behaviour.initial_behaviour_cls.behaviour_id
+            == self.behaviour.initial_behaviour_cls.auto_behaviour_id()
         )
 
     def fast_forward_to_behaviour(
@@ -142,10 +143,12 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         synchronized_data: BaseSynchronizedData,
     ) -> None:
         """Fast forward the FSM to a behaviour."""
-        next_behaviour = {s.behaviour_id: s for s in behaviour.behaviours}[behaviour_id]
+        next_behaviour = {s.auto_behaviour_id(): s for s in behaviour.behaviours}[
+            behaviour_id
+        ]
         next_behaviour = cast(Type[BaseBehaviour], next_behaviour)
         behaviour.current_behaviour = next_behaviour(
-            name=next_behaviour.behaviour_id, skill_context=behaviour.context
+            name=next_behaviour.auto_behaviour_id(), skill_context=behaviour.context
         )
         self.skill.skill_context.state.round_sequence.abci_app._round_results.append(
             synchronized_data
