@@ -65,7 +65,7 @@ def fetch(
     ctx.registry_type = registry
 
     try:
-        if package_type == AGENT:  # pragma: nocover
+        if package_type == AGENT:
             do_fetch(ctx, public_id, alias)
         else:
             fetch_service(ctx, public_id)

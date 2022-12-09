@@ -146,6 +146,7 @@ class TerminationRound(AbstractRound):
 
     allowed_tx_type = None
     round_id = "termination_round"
+    synchronized_data_class = SynchronizedData
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """No logic required here."""

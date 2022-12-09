@@ -285,12 +285,13 @@ class AbstractRoundBehaviour(
         # each round has a behaviour associated to it
         next_behaviour_cls = self._round_to_behaviour[current_round_cls]
 
-        #  Stop the current behaviours and replace it with the new behaviour
+        # stop the current behaviour and replace it with the new behaviour
         if self.current_behaviour is not None:
             current_behaviour = cast(BaseBehaviour, self.current_behaviour)
+            current_behaviour.clean_up()
             current_behaviour.stop()
             self.context.logger.debug(
-                "overriding transition: current behaviours: '%s', next behaviours: '%s'",
+                "overriding transition: current behaviour: '%s', next behaviour: '%s'",
                 self.current_behaviour.behaviour_id if self.current_behaviour else None,
                 next_behaviour_cls.behaviour_id,
             )

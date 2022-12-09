@@ -21,9 +21,6 @@
 
 # pylint: skip-file
 
-import sys
-from typing import Any
-
 import pytest
 
 from packages.valory.contracts.gnosis_safe.contract import SafeOperation
@@ -36,12 +33,6 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     tx_hist_hex_to_payload,
     tx_hist_payload_to_hex,
 )
-
-
-try:
-    import atheris  # type: ignore
-except (ImportError, ModuleNotFoundError):
-    atheris: Any = None  # type: ignore
 
 
 class TestTxHistPayloadEncodingDecoding:
@@ -101,105 +92,3 @@ def test_payload_to_hex_and_back() -> None:
 
     intermediate = hash_payload_to_hex(**tx_params)  # type: ignore
     assert tx_params == skill_input_hex_to_payload(intermediate)
-
-
-@pytest.mark.skip
-def test_fuzz_tx_hist_payload_to_hex() -> None:
-    """Test fuzz tx_hist_payload_to_hex."""
-
-    @atheris.instrument_func
-    def fuzz_tx_hist_payload_to_hex(input_bytes: bytes) -> None:
-        """Fuzz tx_hist_payload_to_hex."""
-        fdp = atheris.FuzzedDataProvider(input_bytes)
-        verification_int = fdp.ConsumeInt(4)
-        if verification_int < 1 or verification_int > 6:
-            return
-        verification = VerificationStatus(verification_int)
-        tx_hash = fdp.ConsumeString(12)
-        if len(tx_hash) != 64:
-            return
-        tx_hist_payload_to_hex(verification, tx_hash)
-
-    atheris.instrument_all()
-    atheris.Setup(sys.argv, fuzz_tx_hist_payload_to_hex)
-    atheris.Fuzz()
-
-
-@pytest.mark.skip
-def test_fuzz_tx_hist_hex_to_payload() -> None:
-    """Test fuzz tx_hist_hex_to_payload."""
-
-    @atheris.instrument_func
-    def fuzz_tx_hist_hex_to_payload(input_bytes: bytes) -> None:
-        """Fuzz tx_hist_hex_to_payload."""
-        fdp = atheris.FuzzedDataProvider(input_bytes)
-        try:
-            payload = fdp.ConsumeString(12)
-            tx_hist_hex_to_payload(payload)
-        except PayloadDeserializationError:
-            pass
-
-    atheris.instrument_all()
-    atheris.Setup(sys.argv, fuzz_tx_hist_hex_to_payload)
-    atheris.Fuzz()
-
-
-@pytest.mark.skip
-def test_fuzz_hash_payload_to_hex() -> None:
-    """Test fuzz hash_payload_to_hex."""
-
-    @atheris.instrument_func
-    def fuzz_hash_payload_to_hex(input_bytes: bytes) -> None:
-        """Fuzz hash_payload_to_hex."""
-        fdp = atheris.FuzzedDataProvider(input_bytes)
-
-        safe_tx_hash = fdp.ConsumeString(64)
-        ether_value = fdp.ConsumeInt(4)
-        safe_tx_gas = fdp.ConsumeInt(4)
-        to_address = fdp.ConsumeString(42)
-        data = fdp.ConsumeBytes(12)
-        operation = fdp.ConsumeInt(4)
-        base_gas = fdp.ConsumeInt(4)
-        safe_gas_price = fdp.ConsumeInt(4)
-
-        if len(safe_tx_hash) != 64:
-            return
-
-        if len(to_address) != 42:
-            return
-
-        hash_payload_to_hex(
-            safe_tx_hash,
-            ether_value,
-            safe_tx_gas,
-            to_address,
-            data,
-            operation,
-            base_gas,
-            safe_gas_price,
-        )
-
-    atheris.instrument_all()
-    atheris.Setup(sys.argv, fuzz_hash_payload_to_hex)
-    atheris.Fuzz()
-
-
-@pytest.mark.skip
-def test_fuzz_skill_input_hex_to_payload() -> None:
-    """Test fuzz skill_input_hex_to_payload."""
-
-    @atheris.instrument_func
-    def fuzz_skill_input_hex_to_payload(input_bytes: bytes) -> None:
-        """Fuzz skill_input_hex_to_payload."""
-        fdp = atheris.FuzzedDataProvider(input_bytes)
-        payload = fdp.ConsumeString(500)
-        if len(payload) < 500:
-            return
-        try:
-            skill_input_hex_to_payload(payload)
-        except TypeError:
-            pass
-
-    atheris.instrument_all()
-    atheris.Setup(sys.argv, fuzz_skill_input_hex_to_payload)
-    atheris.Fuzz()

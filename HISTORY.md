@@ -1,6 +1,30 @@
 # Release History - `open-autonomy`
 
 
+# 0.5.0.post2 (2022-12-09)
+
+Packages:
+- Fixes synchronized data for safe deployment
+- Ensures that the synchronized data class is set everywhere and added a warning when it is not
+
+Tests:
+- Adds tests for checking `PUBLIC_ID` in `__init__.py` files
+- Adds tests for small coverage gaps in `open-autonomy`
+- Adds tests for registration behaviours
+- Adds tests for `abstract_round_abci` skill
+
+Chores:
+- Pins `tox` using `tomte` on CI
+
+
+# 0.5.0.post1 (2022-12-08)
+
+Autonomy:
+- Patches packages command group to adapt latest changes from `open-aea`
+
+Packages:
+- Fixes version specifiers for `open-aea-test-autonomy` and `open-aea-ledger-ethereum`
+
 # 0.5.0 (2022-12-05)
 
 Autonomy:
