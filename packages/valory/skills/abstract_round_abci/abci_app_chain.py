@@ -74,7 +74,7 @@ def chain(  # pylint: disable=too-many-locals
     # Get the apps rounds
     rounds = tuple(app.get_all_rounds() for app in abci_apps)
     round_ids = tuple(
-        {round_.round_id for round_ in app.get_all_rounds()} for app in abci_apps
+        {round_.auto_round_id() for round_ in app.get_all_rounds()} for app in abci_apps
     )
 
     # Ensure there are no common rounds

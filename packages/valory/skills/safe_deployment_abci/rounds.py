@@ -70,7 +70,6 @@ class SynchronizedData(BaseSynchronizedData):
 class RandomnessSafeRound(CollectSameUntilThresholdRound):
     """A round for generating randomness"""
 
-    round_id = "randomness_safe"
     allowed_tx_type = RandomnessPayload.transaction_type
     payload_attribute = "randomness"
     synchronized_data_class = SynchronizedData
@@ -83,7 +82,6 @@ class RandomnessSafeRound(CollectSameUntilThresholdRound):
 class SelectKeeperSafeRound(CollectSameUntilThresholdRound):
     """A round in a which keeper is selected"""
 
-    round_id = "select_keeper_safe"
     allowed_tx_type = SelectKeeperPayload.transaction_type
     payload_attribute = "keeper"
     synchronized_data_class = SynchronizedData
@@ -96,7 +94,6 @@ class SelectKeeperSafeRound(CollectSameUntilThresholdRound):
 class DeploySafeRound(OnlyKeeperSendsRound):
     """A round in a which the safe is deployed"""
 
-    round_id = "deploy_safe"
     allowed_tx_type = DeploySafePayload.transaction_type
     payload_attribute = "safe_contract_address"
     synchronized_data_class = SynchronizedData
@@ -108,7 +105,6 @@ class DeploySafeRound(OnlyKeeperSendsRound):
 class ValidateSafeRound(VotingRound):
     """A round in a which the safe address is validated"""
 
-    round_id = "validate_safe"
     allowed_tx_type = ValidatePayload.transaction_type
     payload_attribute = "vote"
     done_event = Event.DONE
@@ -121,8 +117,6 @@ class ValidateSafeRound(VotingRound):
 
 class FinishedSafeRound(DegenerateRound):
     """A round that represents that the safe has been deployed"""
-
-    round_id = "finished_safe"
 
 
 class SafeDeploymentAbciApp(AbciApp[Event]):

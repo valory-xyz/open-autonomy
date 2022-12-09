@@ -1162,6 +1162,32 @@ def __init__(synchronized_data: BaseSynchronizedData, consensus_params: Consensu
 
 Initialize the round.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.auto_round_id"></a>
+
+#### auto`_`round`_`id
+
+```python
+@classmethod
+def auto_round_id(cls) -> str
+```
+
+Get round id automatically.
+
+This method returns the auto generated id from the class name if the
+class variable behaviour_id is not set on the child class.
+Otherwise, it returns the class variable behaviour_id.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.round_id"></a>
+
+#### round`_`id
+
+```python
+@property
+def round_id() -> str
+```
+
+Get round id.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.synchronized_data"></a>
 
 #### synchronized`_`data

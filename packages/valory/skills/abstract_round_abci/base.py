@@ -22,6 +22,7 @@ import datetime
 import heapq
 import itertools
 import logging
+import re
 import sys
 import textwrap
 import uuid
@@ -872,6 +873,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     - allowed_tx_type: the transaction type that is allowed for this round.
     """
 
+    __pattern = re.compile(r"(?<!^)(?=[A-Z])")
     round_id: str
     allowed_tx_type: Optional[TransactionType]
     payload_attribute: str
@@ -905,6 +907,26 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
             raise ABCIAppInternalError("'allowed_tx_type' field not set") from exc
         if not hasattr(self, "synchronized_data_class"):
             logging.warning(f"No `synchronized_data_class` set on {self}")
+
+    @classmethod
+    def auto_round_id(cls) -> str:
+        """
+        Get round id automatically.
+
+        This method returns the auto generated id from the class name if the
+        class variable behaviour_id is not set on the child class.
+        Otherwise, it returns the class variable behaviour_id.
+        """
+        return (
+            cls.round_id
+            if isinstance(cls.round_id, str)
+            else cls.__pattern.sub("_", cls.__name__).lower()
+        )
+
+    @property  # type: ignore
+    def round_id(self) -> str:
+        """Get round id."""
+        return self.auto_round_id()
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
@@ -2192,7 +2214,7 @@ class AbciApp(
             # through the necessary rounds
             self.transition_function = self.termination_transition_function
             self.logger.info(
-                f"The termination event was produced, transitioning to `{cast(AppState, next_round_cls).round_id}`."
+                f"The termination event was produced, transitioning to `{cast(AppState, next_round_cls).auto_round_id()}`."
             )
         else:
             next_round_cls = self.transition_function[self._current_round_cls].get(

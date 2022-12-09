@@ -1772,7 +1772,7 @@ class TestRoundSequence:
 
     def test_current_round_id(self) -> None:
         """Test 'current_round_id' property getter"""
-        assert self.round_sequence.current_round_id == ConcreteRoundA.round_id
+        assert self.round_sequence.current_round_id == ConcreteRoundA.auto_round_id()
 
     def test_latest_result(self) -> None:
         """Test 'latest_result' property getter."""
