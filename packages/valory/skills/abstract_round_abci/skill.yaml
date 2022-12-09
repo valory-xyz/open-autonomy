@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeihnqe3jevwrc72dmx4ehfjt7iyxo525f6yxz46t3t2uawhnbh3nji
   abci_app_chain.py: bafybeihb3ded23gvjrn426qptkbnkge5cewqm7ywi4j6ebmo3j66ss5wii
-  base.py: bafybeia6dmoyn24gu63srfo4weotg5qisumbvu6s23qju635qkdsbaql6i
+  base.py: bafybeifbop6pn4vtbion4aitevujptt6be53vpivjwpf3vvenbyqdpj37e
   behaviour_utils.py: bafybeianhpb2unmyfmxbmytwk36vczrl4u7a5ir6r2qp7indcrhv5rgey4
   behaviours.py: bafybeig4s4dseqeqa7wp5symjlmr3wtes63ps72vxktytuvysgeo66nk5e
   common.py: bafybeigpgcuw5ookbgsp77ha426wwhkvqxngm42s7vjduaxpksswhs3eyy
@@ -134,7 +134,7 @@ dependencies:
   ipfshttpclient:
     version: ==0.8.0a2
   open-aea-cli-ipfs:
-    version: ==1.25.0
+    version: ==1.25.0.post1
   open-aea-test-autonomy:
     version: ==0.5.0.post1
   protobuf:
