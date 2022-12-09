@@ -31,6 +31,8 @@
 | service/valory/hello_world/0.1.0                              | `bafybeigppw3cn65mf3wo7drikoydceseecnyid3mjewbfwmi2opcuxgdza` |
 | service/valory/register_reset/0.1.0                           | `bafybeic4gzktim5nx2qnxmxi45vogqcdntn5hkdafyycbmwanbrgfi64h4` |
 | skill/valory/safe_deployment_abci/0.1.0                       | `bafybeialtmsamypffjpriow4l6ddmsgzmui6tz4uuyo44c3sczffyhq2li` |
+| agent/valory/register_reset_recovery/0.1.0                    | `bafybeiaasoe4wlnnmgk4ycnvr2tvu7k5jq4p246f66ypeuzzietx3uoiii` |
+| skill/valory/register_reset_recovery_abci/0.1.0               | `bafybeif6c7rrus575ppejtpalaul6eti6bcyevbeuu3tbdhx32j3jwgv3u` |
 | protocol/open_aea/signing/1.0.0                               | `bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44` |
 | protocol/valory/acn/1.1.0                                     | `bafybeifontek6tvaecatoauiule3j3id6xoktpjubvuqi3h2jkzqg7zh7a` |
 | protocol/valory/http/1.0.0                                    | `bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy` |
