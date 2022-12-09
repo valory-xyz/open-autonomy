@@ -1,6 +1,13 @@
 # Release History - `open-autonomy`
 
 
+# 0.5.0.post2 (2022-12-09)
+
+Packages:
+- Fixes synchronized data for safe deployment
+- Ensures that the synchronized data class is set everywhere and added a warning when it is not
+
+
 # 0.5.0.post1 (2022-12-08)
 
 Autonomy:
