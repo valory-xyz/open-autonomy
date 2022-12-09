@@ -30,8 +30,8 @@ import requests
 
 
 IPFS_ENDPOINT = "https://gateway.autonolas.tech/ipfs"
-MAX_WORKERS = 10
-REQUEST_TIMEOUT = 30  # seconds
+MAX_WORKERS = 5
+REQUEST_TIMEOUT = 20  # seconds
 
 
 def check_ipfs_hash_pushed(ipfs_hash: str) -> Tuple[str, bool]:
