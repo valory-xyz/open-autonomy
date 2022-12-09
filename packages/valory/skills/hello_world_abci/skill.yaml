@@ -30,7 +30,7 @@ protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihdb4voipzmbsrrfi5gxzr7lxzui3c4rd3ebr4gn4sn72z3rvmwqa
+- valory/abstract_round_abci:0.1.0:bafybeibrqpmshn3dq2p7rsmydgdylop2aiiyt3usbyuea4fryt5b7ag34u
 behaviours:
   main:
     args: {}

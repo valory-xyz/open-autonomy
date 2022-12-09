@@ -472,7 +472,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
     __pattern = re.compile(r"(?<!^)(?=[A-Z])")
     is_programmatically_defined = True
-    behaviour_id = ""
+    behaviour_id: str
     matching_round: Type[AbstractRound]
     is_degenerate: bool = False
 
@@ -500,11 +500,11 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """
         return (
             cls.behaviour_id
-            if type(cls.behaviour_id) == str and cls.behaviour_id != ""
+            if isinstance(cls.behaviour_id, str)
             else cls.__pattern.sub("_", cls.__name__).lower()
         )
 
-    @property
+    @property  # type: ignore
     def behaviour_id(self) -> str:
         """Get behaviour id."""
         return self.auto_behaviour_id()

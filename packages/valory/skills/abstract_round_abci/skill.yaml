@@ -10,7 +10,7 @@ fingerprint:
   __init__.py: bafybeihnqe3jevwrc72dmx4ehfjt7iyxo525f6yxz46t3t2uawhnbh3nji
   abci_app_chain.py: bafybeihb3ded23gvjrn426qptkbnkge5cewqm7ywi4j6ebmo3j66ss5wii
   base.py: bafybeifbop6pn4vtbion4aitevujptt6be53vpivjwpf3vvenbyqdpj37e
-  behaviour_utils.py: bafybeidce5hk36hedolhw5vfs4wvbvwfy3ogshpzfyyg7yxhhktfc5rwtm
+  behaviour_utils.py: bafybeibbjghvj5m2w6ns6e4ykt5abjxeqmhqq7xezomhpshp4jlvjupvwa
   behaviours.py: bafybeifk2ersfk6pnrq7bexjykwhqdmytzoia6z2cgmirx67hvpmie6ajm
   common.py: bafybeigpgcuw5ookbgsp77ha426wwhkvqxngm42s7vjduaxpksswhs3eyy
   dialogues.py: bafybeibvnmcn7kofol2h6owljhde4llfc3kwwkb5helxsgsy47mokhwb4i
@@ -24,7 +24,7 @@ fingerprint:
   serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
   test_tools/__init__.py: bafybeigicwqumbl3jorusndtfa6ag7lnf3saa6cbqn7fazur4n6nxmsdva
   test_tools/abci_app.py: bafybeiajkmka3qrswenathzz4erqn2y5rgjwbznps2b5bri6fchms7y5k4
-  test_tools/base.py: bafybeihywbtjrng76sar3h2yxn7ujdgv7gk6wvg23n5ruhvn2d62b535ia
+  test_tools/base.py: bafybeienjmdofhvreakacleswzynkavfvrrsifry4ennmsc27stoqpgvpe
   test_tools/common.py: bafybeidjlnq7yksyhz3hjmpyrudvgzhgpttjhlsdk5mecjvrkei6ix7gk4
   test_tools/integration.py: bafybeidndngfj7wpvuaea5lzp7ps3lzfpg2qklx7rh4yicoifk2f2qdft4
   test_tools/rounds.py: bafybeigipcycu6kc4ji46saby5syqwchegewmxunxm2tkgh7t4dskgcnqe
