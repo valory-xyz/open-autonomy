@@ -97,6 +97,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
 )
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState,
+    TendermintRecoveryParams,
     _DEFAULT_REQUEST_RETRY_DELAY,
     _DEFAULT_REQUEST_TIMEOUT,
     _DEFAULT_TX_MAX_ATTEMPTS,
@@ -515,6 +516,11 @@ class TestBaseBehaviour:
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.synchronized_data = (
             self.context_state_synchronized_data_mock
+        )
+        self.current_round_count = 10
+        self.current_reset_index = 10
+        self.context_mock.state.synchronized_data.db = MagicMock(
+            round_count=self.current_round_count, reset_index=self.current_reset_index
         )
         self.context_mock.state.round_sequence.current_round_id = "round_a"
         self.context_mock.state.round_sequence.syncing_up = False
@@ -1686,6 +1692,17 @@ class TestBaseBehaviour:
                 True,
             ),
             (
+                {
+                    "message": "Tendermint reset was successful.",
+                    "status": True,
+                    "is_replay": True,
+                },
+                {"result": {"sync_info": {"latest_block_height": 1}}},
+                1,
+                3,
+                True,
+            ),
+            (
                 {"message": "Tendermint reset was successful.", "status": True},
                 {"result": {"sync_info": {"latest_block_height": 1}}},
                 3,
@@ -1787,11 +1804,20 @@ class TestBaseBehaviour:
                     # reset to be stored in the shared state, as they could be used
                     # later for performing hard reset in cases when the agent <-> tendermint
                     # communication is broken
+                    shared_state = cast(SharedState, self.behaviour.context.state)
+                    tm_recovery_params = shared_state.tm_recovery_params
+                    assert tm_recovery_params.reset_params == expected_parameters
                     assert (
-                        cast(
-                            SharedState, self.behaviour.context.state
-                        ).last_reset_params
-                        == expected_parameters
+                        tm_recovery_params.round_count
+                        == shared_state.synchronized_data.db.round_count - 1
+                    )
+                    assert (
+                        tm_recovery_params.reset_index
+                        == shared_state.round_sequence.abci_app.reset_index - 1
+                    )
+                    assert (
+                        tm_recovery_params.reset_from_round
+                        == self.behaviour.matching_round
                     )
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
