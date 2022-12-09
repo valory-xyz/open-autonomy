@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the reset_pause_abci application."""
+
 from enum import Enum
 from typing import Dict, Optional, Set, Tuple, Type
 
@@ -50,6 +51,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
     allowed_tx_type = ResetPausePayload.transaction_type
     payload_attribute = "period_count"
     _allow_rejoin_payloads = True
+    synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""

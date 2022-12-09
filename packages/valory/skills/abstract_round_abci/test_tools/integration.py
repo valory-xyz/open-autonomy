@@ -169,10 +169,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         :param mining_interval_secs: the mining interval used in the tests
         :return: the incoming message
         """
-        if (
-            expected_types is not None
-            and tuple(expected_types.keys())[0] == "transaction_receipt"
-        ):
+        if expected_types and tuple(expected_types)[0] == "transaction_receipt":
             time.sleep(mining_interval_secs)
         self.behaviour.act_wrapper()
         incoming_message = None

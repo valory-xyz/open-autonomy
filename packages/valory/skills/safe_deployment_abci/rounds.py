@@ -116,6 +116,7 @@ class ValidateSafeRound(VotingRound):
     none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = "participant_to_votes"
+    synchronized_data_class = SynchronizedData
 
 
 class FinishedSafeRound(DegenerateRound):
