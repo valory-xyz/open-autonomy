@@ -1765,10 +1765,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                         reset_index = (
                             shared_state.round_sequence.abci_app.reset_index - 1
                         )
-                        round_count = (
-                            shared_state.round_sequence.abci_app.synchronized_data.db.round_count
-                            - 1
-                        )
+                        round_count = shared_state.synchronized_data.db.round_count - 1
                         # in case we need to reset in order to recover agent <-> tm communication
                         # we store this round as the one to start from
                         restart_from_round = self.matching_round
@@ -1907,7 +1904,7 @@ class TmManager(BaseBehaviour, ABC):
                 # Note that the wait_from_last_timestamp() in reset_tendermint_with_wait()
                 # doesn't guarantee us this, since the block stall deadline is greater than the
                 # hard_reset_sleep, 60s vs 20s. In other words, we haven't received a block for at
-                # least 60s, so if wait_from_last_timestamp() will return immediately.
+                # least 60s, so wait_from_last_timestamp() will return immediately.
                 yield from self.sleep(self.hard_reset_sleep)
                 return
 
