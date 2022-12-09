@@ -205,6 +205,11 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             return_value=ON_CHAIN_SERVICE_ID,
         )
 
+    @property
+    def mocked_yield_from_sleep(self) -> mock._patch:
+        """Mock yield from sleep"""
+        return mock.patch.object(self.behaviour.current_behaviour, "sleep")
+
     # mock contract calls
     def mock_is_correct_contract(self, error_response: bool = False) -> None:
         """Mock service registry contract call to for contract verification"""
@@ -344,9 +349,9 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
 
     def test_no_contract_address(self, caplog: LogCaptureFixture) -> None:
         """Test service registry contract address not provided"""
-        with caplog.at_level(
-            logging.INFO,
-            logger=self.logger,
+        with as_context(
+            caplog.at_level(logging.INFO, logger=self.logger),
+            self.mocked_yield_from_sleep,
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
@@ -365,6 +370,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         with as_context(
             caplog.at_level(logging.INFO, logger=self.logger),
             self.mocked_service_registry_address,
+            self.mocked_yield_from_sleep,
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params(valid_response=valid_response)
@@ -480,6 +486,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             caplog.at_level(logging.INFO, logger=self.logger),
             self.mocked_service_registry_address,
             self.mocked_on_chain_service_id,
+            self.mocked_yield_from_sleep,
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
