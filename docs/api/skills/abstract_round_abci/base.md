@@ -4,6 +4,16 @@
 
 This module contains the base classes for the models classes of the skill.
 
+<a id="packages.valory.skills.abstract_round_abci.base.get_name"></a>
+
+#### get`_`name
+
+```python
+def get_name(prop: Any) -> str
+```
+
+Get the name of a property.
+
 <a id="packages.valory.skills.abstract_round_abci.base.consensus_threshold"></a>
 
 #### consensus`_`threshold

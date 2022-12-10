@@ -1803,7 +1803,6 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 class TmManager(BaseBehaviour, ABC):
     """Util class to be used for managing the tendermint node."""
 
-    behaviour_id = "tm_manager"
     _active_generator: Optional[Generator] = None
     _hard_reset_sleep = 10.0  # 10s
 

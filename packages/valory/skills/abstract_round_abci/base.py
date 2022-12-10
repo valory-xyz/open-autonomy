@@ -79,6 +79,15 @@ EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
 
 
+def get_name(prop: Any) -> str:
+    """Get the name of a property."""
+    if not (isinstance(prop, property) and hasattr(prop, "fget")):
+        raise ValueError(f"{prop} is not a property")
+    if prop.fget is None:
+        raise ValueError(f"{prop.fget} is None")
+    return prop.fget.__name__
+
+
 def consensus_threshold(n: int) -> int:  # pylint: disable=invalid-name
     """
     Get consensus threshold.
