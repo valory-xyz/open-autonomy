@@ -65,7 +65,6 @@ class HelloWorldABCIBaseBehaviour(BaseBehaviour, ABC):
 class RegistrationBehaviour(HelloWorldABCIBaseBehaviour):
     """Register to the next round."""
 
-    behaviour_id = "register"
     matching_round = RegistrationRound
 
     def async_act(self) -> Generator:
@@ -92,7 +91,6 @@ class RegistrationBehaviour(HelloWorldABCIBaseBehaviour):
 class CollectRandomnessBehaviour(HelloWorldABCIBaseBehaviour):
     """Retrieve randomness."""
 
-    behaviour_id = "collect_randomness"
     matching_round = CollectRandomnessRound
 
     def async_act(self) -> Generator:
@@ -151,7 +149,6 @@ class CollectRandomnessBehaviour(HelloWorldABCIBaseBehaviour):
 class SelectKeeperBehaviour(HelloWorldABCIBaseBehaviour, ABC):
     """Select the keeper agent."""
 
-    behaviour_id = "select_keeper"
     matching_round = SelectKeeperRound
 
     def async_act(self) -> Generator:
@@ -185,7 +182,6 @@ class SelectKeeperBehaviour(HelloWorldABCIBaseBehaviour, ABC):
 class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
     """Prints the celebrated 'HELLO WORLD!' message."""
 
-    behaviour_id = "print_message"
     matching_round = PrintMessageRound
 
     def async_act(self) -> Generator:
@@ -226,9 +222,6 @@ class ResetAndPauseBehaviour(HelloWorldABCIBaseBehaviour):
     """Reset behaviour."""
 
     matching_round = ResetAndPauseRound
-    behaviour_id = "reset_and_pause"
-    pause = True
-
     pause = True
 
     def async_act(self) -> Generator:

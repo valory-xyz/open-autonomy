@@ -63,6 +63,9 @@ class CollectRandomnessPayload(BaseHelloWorldAbciPayload):
     ) -> None:
         """Initialize an 'select_keeper' transaction payload.
 
+        We send the DRAND "round_id" to be able to discriminate between payloads
+        from different DRAND rounds more easily.
+
         :param sender: the sender (Ethereum) address
         :param round_id: the round id
         :param randomness: the randomness

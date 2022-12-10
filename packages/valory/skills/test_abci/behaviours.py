@@ -32,7 +32,6 @@ from packages.valory.skills.test_abci.rounds import DummyRound, TestAbciApp
 class DummyBehaviour(BaseBehaviour, ABC):
     """Check whether Tendermint nodes are running."""
 
-    behaviour_id = "dummy"
     matching_round = DummyRound
 
     def async_act(self) -> Generator:

@@ -30,6 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilAllRound,
     CollectSameUntilThresholdRound,
     DegenerateRound,
+    get_name,
 )
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 
@@ -46,21 +47,16 @@ class Event(Enum):
 class FinishedRegistrationRound(DegenerateRound):
     """A round representing that agent registration has finished"""
 
-    round_id = "finished_registration"
-
 
 class FinishedRegistrationFFWRound(DegenerateRound):
     """A fast-forward round representing that agent registration has finished"""
-
-    round_id = "finished_registration_ffw"
 
 
 class RegistrationStartupRound(CollectSameUntilAllRound):
     """A round in which the agents get registered"""
 
-    round_id = "registration_startup"
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "initialisation"
+    payload_attribute = get_name(RegistrationPayload.initialisation)
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -87,9 +83,8 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
 class RegistrationRound(CollectSameUntilThresholdRound):
     """A round in which the agents get registered"""
 
-    round_id = "registration"
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "initialisation"
+    payload_attribute = get_name(RegistrationPayload.initialisation)
     required_block_confirmations = 10
     done_event = Event.DONE
     synchronized_data_class = BaseSynchronizedData

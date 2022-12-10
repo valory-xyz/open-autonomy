@@ -28,6 +28,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
     CollectDifferentUntilAllRound,
+    get_name,
 )
 from packages.valory.skills.test_abci.payloads import DummyPayload, TransactionType
 
@@ -52,9 +53,8 @@ class DummyRound(
     It schedules the SelectKeeperARound.
     """
 
-    round_id = "dummy"
     allowed_tx_type = DummyPayload.transaction_type
-    payload_attribute = "sender"
+    payload_attribute = get_name(DummyPayload.sender)
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""

@@ -44,6 +44,9 @@ def __init__(sender: str, round_id: int, randomness: str, **kwargs: Any) -> None
 
 Initialize an 'select_keeper' transaction payload.
 
+We send the DRAND "round_id" to be able to discriminate between payloads
+from different DRAND rounds more easily.
+
 **Arguments**:
 
 - `sender`: the sender (Ethereum) address

@@ -167,6 +167,17 @@ Initialize a transaction payload.
 - `id_`: the id of the transaction
 - `round_count`: the count of the round in which the payload was sent
 
+<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.sender"></a>
+
+#### sender
+
+```python
+@property
+def sender() -> str
+```
+
+Get the sender.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.round_count"></a>
 
 #### round`_`count

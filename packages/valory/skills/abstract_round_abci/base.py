@@ -208,7 +208,12 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
         """
         self.id_ = uuid.uuid4().hex if id_ is None else id_
         self._round_count = round_count
-        self.sender = sender
+        self._sender = sender
+
+    @property
+    def sender(self) -> str:
+        """Get the sender."""
+        return self._sender
 
     @property
     def round_count(self) -> int:
@@ -1144,7 +1149,6 @@ class DegenerateRound(AbstractRound):
     It is a sink round.
     """
 
-    round_id = "finished"
     allowed_tx_type = None
     payload_attribute = ""
 

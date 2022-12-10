@@ -19,7 +19,7 @@
 
 """This module contains the termination round classes."""
 from enum import Enum
-from typing import List, Optional, Tuple, cast
+from typing import Optional, Tuple, cast
 
 from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
@@ -33,6 +33,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     CollectSameUntilThresholdRound,
     TransactionNotValidError,
+    get_name,
 )
 from packages.valory.skills.termination_abci.payloads import BackgroundPayload
 from packages.valory.skills.transaction_settlement_abci.rounds import (
@@ -65,19 +66,12 @@ class SynchronizedData(BaseSynchronizedData):
         """Get termination_majority_reached."""
         return cast(bool, self.db.get("termination_majority_reached", False))
 
-    @property
-    def nb_participants(self) -> int:
-        """Get the number of participants."""
-        participants = cast(List, self.db.get("participants", []))
-        return len(participants)
-
 
 class BackgroundRound(CollectSameUntilThresholdRound):
     """Defines the background round, which runs concurrently with other rounds."""
 
-    round_id: str = "background_round"
     allowed_tx_type = BackgroundPayload.transaction_type
-    payload_attribute: str = "background_data"
+    payload_attribute: str = get_name(BackgroundPayload.background_data)
     synchronized_data_class = SynchronizedData
 
     def process_payload(self, payload: BaseTxPayload) -> None:
@@ -145,7 +139,6 @@ class TerminationRound(AbstractRound):
     """Round to act as the counterpart of the behaviour responsible for terminating the agent."""
 
     allowed_tx_type = None
-    round_id = "termination_round"
     synchronized_data_class = SynchronizedData
 
     def check_payload(self, payload: BaseTxPayload) -> None:
@@ -180,7 +173,7 @@ class PostTerminationTxAbciApp(AbciApp[Event]):
     # the following is not needed, it is added to satisfy the round check
     # the TerminationRound when run it terminates the agent, so nothing can come after it
     transition_function = {TerminationRound: {Event.TERMINATE: TerminationRound}}
-    cross_period_persisted_keys = ["safe_contract_address"]
+    cross_period_persisted_keys = [get_name(SynchronizedData.safe_contract_address)]
 
 
 termination_transition_function: AbciAppTransitionMapping = {

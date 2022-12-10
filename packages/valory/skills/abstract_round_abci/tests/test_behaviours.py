@@ -321,7 +321,8 @@ class TestAbstractRoundBehaviour:
         final_behaviour = behaviour._round_to_behaviour[FinalRound]
         assert issubclass(final_behaviour, DegenerateBehaviour)
         assert (
-            final_behaviour.behaviour_id == f"degenerate_{FinalRound.auto_round_id()}"
+            final_behaviour.auto_behaviour_id()
+            == f"degenerate_behaviour_{FinalRound.auto_round_id()}"
         )
 
     def test_check_behaviour_id_uniqueness_negative(self) -> None:
