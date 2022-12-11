@@ -200,3 +200,9 @@ TerminationAbciApp = chain(
 TerminationAbciApp.transition_function[BackgroundRound] = {
     Event.TERMINATE: TransactionSubmissionAbciApp.initial_round_cls,
 }
+TerminationAbciApp.db_pre_conditions = {
+    TerminationRound: [
+        get_name(SynchronizedData.safe_contract_address),
+        get_name(SynchronizedData.nb_participants),
+    ]
+}

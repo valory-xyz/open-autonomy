@@ -50,11 +50,18 @@ def check_set_uniqueness(sets: Tuple) -> Optional[Any]:
     return None
 
 
-def chain(  # pylint: disable=too-many-locals
+def chain(  # pylint: disable=too-many-locals, too-many-statements
     abci_apps: Tuple[Type[AbciApp], ...],
     abci_app_transition_mapping: AbciAppTransitionMapping,
 ) -> Type[AbciApp]:
-    """Concatenate multiple AbciApp types."""
+    """
+    Concatenate multiple AbciApp types.
+
+    The consistency checks assume that the first element in
+    abci_apps is the entry-point abci_app (i.e. the associated round of
+    the  initial_behaviour_cls of the AbstractRoundBehaviour in which
+    the chained AbciApp is used is one of the initial_states of the first element.)
+    """
     enforce(
         len(abci_apps) > 1,
         f"there must be a minimum of two AbciApps to chain, found ({len(abci_apps)})",
@@ -108,6 +115,75 @@ def chain(  # pylint: disable=too-many-locals
                 f"Found non-initial state {value} specified in abci_app_transition_mapping."
             )
 
+    # Ensure all DB pre- and post-conditions are consistent
+    # Since we know which app is the "entry-point" we can
+    # simply work forward from there through all branches. When
+    # we loop back on an earlier node we stop.
+    initial_state_to_app: Dict[AppState, Type[AbciApp]] = {}
+    for value in abci_app_transition_mapping.values():
+        for app in abci_apps:
+            if value in app.initial_states or value == app.initial_round_cls:
+                initial_state_to_app[value] = app
+                break
+
+    def get_paths(
+        app: Type[AbciApp],
+        previous_apps: List[Type[AbciApp]] = [],
+    ) -> List[List[Tuple[Type[AbciApp], Optional[AppState]]]]:
+        """Get paths."""
+        if app.final_states == {}:
+            return [[(app, None)]]
+        paths: List[List[Tuple[Type[AbciApp], Optional[AppState]]]] = []
+        for final_state in app.final_states:
+            if final_state not in abci_app_transition_mapping:
+                # no linkage defined
+                continue
+            inital_state = abci_app_transition_mapping[final_state]
+            next_app = initial_state_to_app[inital_state]
+            element: Tuple[Type[AbciApp], Optional[AppState]] = (app, final_state)
+            if next_app in previous_apps:
+                # self-loops do not require attention
+                paths.append([element])
+                continue
+            new_previous_apps = previous_apps + [app]
+            for path in get_paths(next_app, new_previous_apps):
+
+                # if element not in path:
+                paths.append([element] + path)
+        return paths
+
+    all_paths: List[List[Tuple[Type[AbciApp], Optional[AppState]]]] = get_paths(
+        abci_apps[0]
+    )
+    new_db_post_conditions: Dict[AppState, List[str]] = {}
+    for path in all_paths:
+        current_app, current_final_state = path[0]
+        accumulated_post_conditions: Set[str] = set()
+        for (next_app, next_final_state) in path[1:]:
+            if current_final_state is None:
+                # No outwards transition, nothing to check.
+                current_app = next_app
+                current_final_state = next_final_state
+                continue
+            accumulated_post_conditions.union(
+                set(current_app.db_post_conditions[current_final_state])
+            )
+            # we now check that the pre conditions of the next app
+            # are compatible with the post conditions of the current app.
+            diff = set.difference(
+                set(next_app.db_pre_conditions), accumulated_post_conditions
+            )
+            if len(diff) != 0:
+                raise ValueError(
+                    f"Pre conditions '{diff}' of app '{next_app}' not a post condition of app '{current_app}' or any preceding app."
+                )
+            current_app = next_app
+            current_final_state = next_final_state
+        if current_app != path[0][0] and current_final_state is not None:
+            new_db_post_conditions[current_final_state] = list(
+                accumulated_post_conditions
+            )
+
     # Warn about events duplicated in multiple apps
     app_to_events = {app: app.get_all_events() for app in abci_apps}
     all_events = set.union(*app_to_events.values())
@@ -120,8 +196,11 @@ def chain(  # pylint: disable=too-many-locals
                 " If this is not the intented behaviour, please rename it to enforce its uniqueness."
             )
 
-    # Merge the transition functions, final states and events
     new_initial_round_cls = abci_apps[0].initial_round_cls
+    new_initial_states = abci_apps[0].initial_states
+    new_db_pre_conditions = abci_apps[0].db_pre_conditions
+
+    # Merge the transition functions, final states and events
     potential_final_states = set.union(*(app.final_states for app in abci_apps))
     potential_events_to_timeout: EventToTimeout = {}
     for app in abci_apps:
@@ -178,9 +257,12 @@ def chain(  # pylint: disable=too-many-locals
         """Composed abci app class."""
 
         initial_round_cls: AppState = new_initial_round_cls
+        initial_states: Set[AppState] = new_initial_states
         transition_function: AbciAppTransitionFunction = new_transition_function
         final_states: Set[AppState] = new_final_states
         event_to_timeout: EventToTimeout = new_events_to_timeout
         cross_period_persisted_keys: List[str] = new_cross_period_persisted_keys
+        db_pre_conditions: Dict[AppState, List[str]] = new_db_pre_conditions
+        db_post_conditions: Dict[AppState, List[str]] = new_db_post_conditions
 
     return ComposedAbciApp

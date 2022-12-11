@@ -19,12 +19,11 @@
 
 """This module contains the data classes for common apps ABCI application."""
 from enum import Enum
-from typing import Dict, Optional, Set, Tuple, Type
+from typing import Dict, List, Optional, Set, Tuple
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
-    AbstractRound,
     AppState,
     BaseSynchronizedData,
     CollectSameUntilAllRound,
@@ -145,7 +144,7 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
         round timeout: 30.0
     """
 
-    initial_round_cls: Type[AbstractRound] = RegistrationStartupRound
+    initial_round_cls: AppState = RegistrationStartupRound
     initial_states: Set[AppState] = {RegistrationStartupRound, RegistrationRound}
     transition_function: AbciAppTransitionFunction = {
         RegistrationStartupRound: {
@@ -165,4 +164,18 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
+    }
+    db_pre_conditions: Dict[AppState, List[str]] = {
+        RegistrationStartupRound: [],
+        RegistrationRound: [],
+    }
+    db_post_conditions: Dict[AppState, List[str]] = {
+        FinishedRegistrationRound: [
+            get_name(BaseSynchronizedData.participants),
+            get_name(BaseSynchronizedData.all_participants),
+        ],
+        FinishedRegistrationFFWRound: [
+            get_name(BaseSynchronizedData.participants),
+            get_name(BaseSynchronizedData.all_participants),
+        ],
     }
