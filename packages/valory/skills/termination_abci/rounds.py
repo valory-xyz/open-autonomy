@@ -66,6 +66,11 @@ class SynchronizedData(BaseSynchronizedData):
         """Get termination_majority_reached."""
         return cast(bool, self.db.get("termination_majority_reached", False))
 
+    @property
+    def most_voted_tx_hash(self) -> str:
+        """Get the most_voted_tx_hash."""
+        return cast(str, self.db.get_strict("most_voted_tx_hash"))
+
 
 class BackgroundRound(CollectSameUntilThresholdRound):
     """Defines the background round, which runs concurrently with other rounds."""
@@ -127,8 +132,12 @@ class BackgroundRound(CollectSameUntilThresholdRound):
         if self.threshold_reached:
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                termination_majority_reached=True,
-                most_voted_tx_hash=self.most_voted_payload,
+                **{
+                    get_name(SynchronizedData.termination_majority_reached): True,
+                    get_name(
+                        SynchronizedData.most_voted_tx_hash
+                    ): self.most_voted_payload,
+                },
             )
             return state, Event.TERMINATE
 

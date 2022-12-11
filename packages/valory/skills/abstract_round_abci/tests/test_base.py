@@ -85,6 +85,7 @@ from packages.valory.skills.abstract_round_abci.serializer import (
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     AbciAppTest,
     ConcreteBackgroundRound,
+    ConcreteEvents,
     ConcreteRoundA,
     ConcreteRoundB,
     ConcreteRoundC,
@@ -1475,9 +1476,9 @@ class TestAbciApp:
         self.abci_app.setup()
         self.abci_app._last_timestamp = MagicMock()
         assert isinstance(self.abci_app.current_round, ConcreteRoundA)
-        self.abci_app.process_event("b")
+        self.abci_app.process_event(ConcreteEvents.B)
         assert isinstance(self.abci_app.current_round, ConcreteRoundB)
-        self.abci_app.process_event("timeout")
+        self.abci_app.process_event(ConcreteEvents.TIMEOUT)
         assert isinstance(self.abci_app.current_round, ConcreteRoundA)
         self.abci_app.process_event(self.abci_app.termination_event)
         assert isinstance(self.abci_app.current_round, ConcreteTerminationRoundA)
@@ -1485,7 +1486,7 @@ class TestAbciApp:
     def test_process_event_negative_case(self) -> None:
         """Test the 'process_event' method, negative case."""
         with mock.patch.object(self.abci_app.logger, "info") as mock_info:
-            self.abci_app.process_event("a")
+            self.abci_app.process_event(ConcreteEvents.A)
             mock_info.assert_called_with(
                 "cannot process event 'a' as current state is not set"
             )
@@ -1498,8 +1499,8 @@ class TestAbciApp:
         self.abci_app._last_timestamp = current_time
 
         # move to round_b that schedules timeout events
-        self.abci_app.process_event("b")
-        assert self.abci_app.current_round_id == "concrete_b"
+        self.abci_app.process_event(ConcreteEvents.B)
+        assert self.abci_app.current_round_id == "concrete_round_b"
 
         # simulate most recent timestamp beyond earliest deadline
         # after pop, len(timeouts) == 0, because round_a does not schedule new timeout events
@@ -1507,18 +1508,18 @@ class TestAbciApp:
         self.abci_app.update_time(current_time)
 
         # now we are back to round_a
-        assert self.abci_app.current_round_id == "concrete_a"
+        assert self.abci_app.current_round_id == "concrete_round_a"
 
         # move to round_c that schedules timeout events to itself
-        self.abci_app.process_event("c")
-        assert self.abci_app.current_round_id == "concrete_c"
+        self.abci_app.process_event(ConcreteEvents.C)
+        assert self.abci_app.current_round_id == "concrete_round_c"
 
         # simulate most recent timestamp beyond earliest deadline
         # after pop, len(timeouts) == 0, because round_c schedules timeout events
         current_time = current_time + datetime.timedelta(0, AbciAppTest.TIMEOUT)
         self.abci_app.update_time(current_time)
 
-        assert self.abci_app.current_round_id == "concrete_c"
+        assert self.abci_app.current_round_id == "concrete_round_c"
 
         # further update changes nothing
         height = self.abci_app.current_round_height
@@ -1527,7 +1528,12 @@ class TestAbciApp:
 
     def test_get_all_events(self) -> None:
         """Test the all events getter."""
-        assert {"a", "b", "c", "timeout"} == self.abci_app.get_all_events()
+        assert {
+            ConcreteEvents.A,
+            ConcreteEvents.B,
+            ConcreteEvents.C,
+            ConcreteEvents.TIMEOUT,
+        } == self.abci_app.get_all_events()
 
     def test_get_all_rounds_classes(self) -> None:
         """Test the get all rounds getter."""

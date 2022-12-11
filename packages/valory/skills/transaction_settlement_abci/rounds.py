@@ -130,7 +130,7 @@ class SynchronizedData(
         """Get the first in priority keeper to try to re-submit a transaction."""
         return self.keepers[0]
 
-    @property
+    @property  # TODO: overrides base property, investigate
     def is_keeper_set(self) -> bool:
         """Check whether keeper is set."""
         return bool(self.db.get("keepers", False))
@@ -198,6 +198,19 @@ class SynchronizedData(
         parsed_hashes = map(lambda h: textwrap.wrap(h, TX_HASH_LENGTH), late_arrivals)
         return [h for hashes in parsed_hashes for h in hashes]
 
+    @property
+    def most_voted_check_result(self) -> str:
+        """Get the most voted checked result."""
+        return cast(str, self.db.get_strict("most_voted_check_result"))
+
+    @property
+    def participant_to_check(self) -> Mapping[str, CheckTransactionHistoryPayload]:
+        """Get the mapping from pariticipants to checks."""
+        return cast(
+            Mapping[str, CheckTransactionHistoryPayload],
+            self.db.get_strict("participant_to_check"),
+        )
+
 
 class FailedRound(DegenerateRound, ABC):
     """A round that represents that the period failed"""
@@ -211,7 +224,6 @@ class CollectSignatureRound(CollectDifferentUntilThresholdRound):
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
-    selection_key = "participant"
     collection_key = get_name(SynchronizedData.participant_to_signature)
 
 
@@ -238,11 +250,21 @@ class FinalizationRound(OnlyKeeperSendsRound):
         synchronized_data = cast(
             SynchronizedData,
             self.synchronized_data.update(
-                synchronized_data_class=SynchronizedData,
-                tx_hashes_history=self.keeper_payload["tx_hashes_history"],
-                final_verification_status=verification_status,
-                keepers=self.keeper_payload["serialized_keepers"],
-                blacklisted_keepers=self.keeper_payload["blacklisted_keepers"],
+                synchronized_data_class=self.synchronized_data_class,
+                **{
+                    get_name(SynchronizedData.tx_hashes_history): self.keeper_payload[
+                        "tx_hashes_history"
+                    ],
+                    get_name(
+                        SynchronizedData.final_verification_status
+                    ): verification_status,
+                    get_name(SynchronizedData.keepers): self.keeper_payload[
+                        "serialized_keepers"
+                    ],
+                    get_name(SynchronizedData.blacklisted_keepers): self.keeper_payload[
+                        "blacklisted_keepers"
+                    ],
+                },
             ),
         )
 
@@ -325,10 +347,13 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
             synchronized_data = cast(
                 SynchronizedData,
                 self.synchronized_data.update(
-                    missed_messages=cast(
-                        SynchronizedData, self.synchronized_data
-                    ).missed_messages
-                    + 1
+                    synchronized_data_class=self.synchronized_data_class,
+                    **{
+                        get_name(SynchronizedData.missed_messages): cast(
+                            SynchronizedData, self.synchronized_data
+                        ).missed_messages
+                        + 1
+                    },
                 ),
             )
             if synchronized_data.keepers_threshold_exceeded:
@@ -370,9 +395,13 @@ class ValidateTransactionRound(VotingRound):
             # and if it is None, then it means that the transaction has failed.
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                participant_to_votes=self.collection,
-                final_verification_status=VerificationStatus.VERIFIED,
-                final_tx_hash=final_tx_hash,
+                **{
+                    self.collection_key: self.collection,
+                    get_name(
+                        SynchronizedData.final_verification_status
+                    ): VerificationStatus.VERIFIED,
+                    get_name(SynchronizedData.final_tx_hash): final_tx_hash,
+                },
             )  # type: ignore
             return synchronized_data, self.done_event
         if self.negative_vote_threshold_reached:
@@ -392,7 +421,8 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
     allowed_tx_type = CheckTransactionHistoryPayload.transaction_type
     payload_attribute = get_name(CheckTransactionHistoryPayload.verified_res)
     synchronized_data_class = SynchronizedData
-    selection_key = "most_voted_check_result"
+    collection_key = get_name(SynchronizedData.participant_to_check)
+    selection_key = get_name(SynchronizedData.most_voted_check_result)
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
@@ -410,9 +440,14 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 # and if it is None, then it means that the transaction has failed.
                 synchronized_data = self.synchronized_data.update(
                     synchronized_data_class=self.synchronized_data_class,
-                    participant_to_check=self.collection,
-                    final_verification_status=return_status,
-                    final_tx_hash=return_tx_hash,
+                    **{
+                        self.collection_key: self.collection,
+                        self.selection_key: self.most_voted_payload,
+                        get_name(
+                            SynchronizedData.final_verification_status
+                        ): return_status,
+                        get_name(SynchronizedData.final_tx_hash): return_tx_hash,
+                    },
                 )
 
             if return_status == VerificationStatus.VERIFIED:
@@ -449,7 +484,6 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     none_event = Event.NONE
-    selection_key = "participant"
     collection_key = get_name(SynchronizedData.late_arriving_tx_hashes)
     _hash_length = TX_HASH_LENGTH
 
@@ -467,7 +501,10 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
             return synchronized_data, Event.MISSED_AND_LATE_MESSAGES_MISMATCH
 
         still_missing = synchronized_data.missed_messages - n_late_arriving_tx_hashes
-        synchronized_data = synchronized_data.update(missed_messages=still_missing)
+        synchronized_data = synchronized_data.update(
+            synchronized_data_class=self.synchronized_data_class,
+            **{get_name(SynchronizedData.missed_messages): still_missing},
+        )
         return synchronized_data, event
 
 

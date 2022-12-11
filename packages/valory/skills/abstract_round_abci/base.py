@@ -1576,7 +1576,6 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
 
     done_event: Any
     no_majority_event: Any
-    selection_key: str
     collection_key: str
     required_block_confirmations: int = 0
     synchronized_data_class = BaseSynchronizedData
@@ -1600,7 +1599,6 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
-                    self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: self.collection,
                 },
             )
@@ -1651,7 +1649,6 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
-                    self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: non_empty_values,
                 },
             )

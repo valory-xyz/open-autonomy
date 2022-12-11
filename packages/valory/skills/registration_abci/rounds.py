@@ -53,7 +53,11 @@ class FinishedRegistrationFFWRound(DegenerateRound):
 
 
 class RegistrationStartupRound(CollectSameUntilAllRound):
-    """A round in which the agents get registered"""
+    """
+    A round in which the agents get registered.
+
+    This round waits until all agents have registered.
+    """
 
     allowed_tx_type = RegistrationPayload.transaction_type
     payload_attribute = get_name(RegistrationPayload.initialisation)
@@ -81,7 +85,12 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
 
 
 class RegistrationRound(CollectSameUntilThresholdRound):
-    """A round in which the agents get registered"""
+    """
+    A round in which the agents get registered.
+
+    This rounds waits until the threshold of agents has been reached
+    and then a further x block confirmations.
+    """
 
     allowed_tx_type = RegistrationPayload.transaction_type
     payload_attribute = get_name(RegistrationPayload.initialisation)
@@ -93,7 +102,7 @@ class RegistrationRound(CollectSameUntilThresholdRound):
         """Process the end of the block."""
         if self.threshold_reached:
             self.block_confirmations += 1
-        if (  # contracts are set from previous rounds
+        if (
             self.threshold_reached
             and self.block_confirmations
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
