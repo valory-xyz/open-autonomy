@@ -200,7 +200,7 @@ class TestBaseRoundTestClass:
         )
 
     @staticmethod
-    @settings(deadline=None)  # somehow autouse fixture in conftest doesn't work here
+    @settings(deadline=None)
     @given(st.integers(min_value=0, max_value=100), st.integers(min_value=1))
     def test_complete_run(iter_count: int, shift: int) -> None:
         """Test `_complete_run`."""
@@ -299,6 +299,7 @@ class TestBaseCollectDifferentUntilAllRoundTest(BaseTestBase):
     @given(
         st.one_of(st.none(), st.sampled_from(DummyEvent)),
     )
+    @settings(deadline=None)
     def test_test_round(self, exit_event: DummyEvent) -> None:
         """Test `_test_round`."""
         self.base_round_test.consensus_params._max_participants = (  # pylint: disable=protected-access
