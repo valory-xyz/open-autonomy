@@ -111,7 +111,7 @@ class AgentRunner:
             shutil.rmtree(str(self.agent_dir))
 
         if self.process is None:
-            return
+            return  # pragma: no cover
 
         self.process.poll()
         if self.process.returncode is None:  # stop only pending processes
