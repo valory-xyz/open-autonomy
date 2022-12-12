@@ -19,6 +19,7 @@
 
 """This package contains the rounds of DummyAbciApp."""
 
+from abc import ABC
 from enum import Enum
 from typing import List, Optional, Set, Tuple, cast
 
@@ -58,7 +59,7 @@ class SynchronizedData(BaseSynchronizedData):
     """
 
 
-class DummyMixinRound(AbstractRound):
+class DummyMixinRound(AbstractRound, ABC):
     """DummyMixinRound"""
 
     done_event = Event.DONE
