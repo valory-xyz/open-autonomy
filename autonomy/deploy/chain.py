@@ -80,7 +80,9 @@ class ServiceRegistry:
         """Initialize object."""
 
         if chain_type not in CHAIN_CONFIG:
-            raise ValueError(f"{chain_type} Currently not supported.")  # pragma: no cover
+            raise ValueError(
+                f"{chain_type} Currently not supported."
+            )  # pragma: no cover
 
         rpc_url = rpc_url or CHAIN_CONFIG.get(chain_type, {}).get("rpc")
         if rpc_url is None:

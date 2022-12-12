@@ -144,7 +144,9 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         shutil.rmtree(build_dir)
 
     if not (Path.cwd() / DEFAULT_SERVICE_CONFIG_FILE).exists():
-        raise FileNotFoundError(f"No service configuration found at {Path.cwd()}")  # pragma: no cover
+        raise FileNotFoundError(
+            f"No service configuration found at {Path.cwd()}"
+        )  # pragma: no cover
 
     click.echo(f"Building deployment @ {build_dir}")
     build_dir.mkdir()
