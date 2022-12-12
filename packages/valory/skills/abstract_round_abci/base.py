@@ -799,7 +799,8 @@ class BaseSynchronizedData:
     @property
     def nb_participants(self) -> int:
         """Get the number of participants."""
-        return len(self.participants)
+        participants = cast(List, self.db.get("participants", []))
+        return len(participants)
 
     def update(
         self,

@@ -19,7 +19,7 @@
 
 """This module contains the data classes for common apps ABCI application."""
 from enum import Enum
-from typing import Dict, Optional, Set, Tuple, Type
+from typing import Dict, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -44,6 +44,19 @@ class Event(Enum):
     FAST_FORWARD = "fast_forward"
 
 
+class SynchronizedData(BaseSynchronizedData):
+    """
+    Class to represent the synchronized data.
+
+    This data is replicated by the tendermint application.
+    """
+
+    @property
+    def safe_contract_address(self) -> str:
+        """Get the safe contract address."""
+        return cast(str, self.db.get_strict("safe_contract_address"))
+
+
 class FinishedRegistrationRound(DegenerateRound):
     """A round representing that agent registration has finished"""
 
@@ -61,7 +74,7 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
 
     allowed_tx_type = RegistrationPayload.transaction_type
     payload_attribute = get_name(RegistrationPayload.initialisation)
-    synchronized_data_class = BaseSynchronizedData
+    synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -71,14 +84,14 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
-                synchronized_data_class=BaseSynchronizedData,
+                synchronized_data_class=self.synchronized_data_class,
             )
             return synchronized_data, Event.FAST_FORWARD
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
-                synchronized_data_class=BaseSynchronizedData,
+                synchronized_data_class=self.synchronized_data_class,
             )
             return synchronized_data, Event.DONE
         return None
@@ -96,7 +109,7 @@ class RegistrationRound(CollectSameUntilThresholdRound):
     payload_attribute = get_name(RegistrationPayload.initialisation)
     required_block_confirmations = 10
     done_event = Event.DONE
-    synchronized_data_class = BaseSynchronizedData
+    synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -109,7 +122,7 @@ class RegistrationRound(CollectSameUntilThresholdRound):
         ):
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
-                synchronized_data_class=BaseSynchronizedData,
+                synchronized_data_class=self.synchronized_data_class,
             )
             return synchronized_data, Event.DONE
         if (
@@ -166,3 +179,5 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
     }
+    # This is required as the safe address might be provided as a setup argument
+    cross_period_persisted_keys = [get_name(SynchronizedData.safe_contract_address)]
