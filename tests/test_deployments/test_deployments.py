@@ -265,6 +265,24 @@ class TestDeploymentGenerators(BaseDeploymentTests):
             with pytest.raises(NotValidKeysFile, match=expected):
                 ServiceBuilder.read_keys(mock.Mock(), DEFAULT_KEY_PATH)
 
+    def test_update_agent_number_based_on_keys_file(self) -> None:
+        """Test JSONDecodeError on read_keys"""
+
+        public_id = PublicId("Georg Wilhelm Friedrich", "Hegel")
+        service = Service("Arthur", "Schopenhauer", public_id, number_of_agents=1_000_000)
+        kwargs = dict(
+            service=service,
+            keys=None,
+            private_keys_password=None,
+            agent_instances=list("abcdefg"),
+        )
+        builder = ServiceBuilder(**kwargs)
+        assert builder.service.number_of_agents == 1_000_000
+        return_value = [dict(address="a", private_key="")]
+        with mock.patch.object(json, "loads", return_value=return_value):
+            builder.read_keys(mock.Mock())
+        assert builder.service.number_of_agents == 1
+
     def test_generates_agent_for_all_valory_apps(self) -> None:
         """Test generator functions with all agent services."""
         for deployment_generator in deployment_generators:
