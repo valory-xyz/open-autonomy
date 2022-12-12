@@ -26,7 +26,7 @@ Lock local packages.
 #### get`_`package`_`manager
 
 ```python
-def get_package_manager(package_dir: Path) -> BasePackageManager
+def get_package_manager(packages_dir: Path) -> BasePackageManager
 ```
 
 Get package manager.

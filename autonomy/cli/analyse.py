@@ -115,8 +115,6 @@ def abci_app_specs(
                 click.echo(f"Updated FSM specification for {package}")
                 return
 
-            click.echo("Please provide valid arguments")
-
 
 @analyse_group.command(name="docstrings")
 @click.option(

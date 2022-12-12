@@ -877,6 +877,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     payload_attribute: str
 
     _previous_round_tx_type: Optional[TransactionType]
+    synchronized_data_class: Type[BaseSynchronizedData]
 
     def __init__(
         self,
@@ -902,6 +903,8 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
             self.allowed_tx_type
         except AttributeError as exc:
             raise ABCIAppInternalError("'allowed_tx_type' field not set") from exc
+        if not hasattr(self, "synchronized_data_class"):
+            logging.warning(f"No `synchronized_data_class` set on {self}")
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
