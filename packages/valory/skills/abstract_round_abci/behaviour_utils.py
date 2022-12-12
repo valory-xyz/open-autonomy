@@ -1634,16 +1634,21 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """
         return self.params.observation_interval / 2
 
-    def _start_reset(self) -> Generator:
-        """Start tendermint reset.
+    def _start_reset(self, on_startup: bool = False) -> Generator:
+        """
+        Start tendermint reset.
 
         This is a local method that does not depend on the global clock,
         so the usage of datetime.now() is acceptable here.
 
+        :param on_startup: Whether we are resetting on the start of the agent.
         :yield: None
         """
         if self._check_started is None and not self._is_healthy:
-            yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
+            if not on_startup:
+                # if we are on startup we don't need to wait for the observation interval
+                # as the reset is being performed to update the tm config.
+                yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
             self._check_started = datetime.datetime.now()
             self._timeout = self.params.max_healthcheck
             self._is_healthy = False
@@ -1718,7 +1723,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :yields: None
         :returns: whether the reset was successful.
         """
-        yield from self._start_reset()
+        yield from self._start_reset(on_startup=on_startup)
         if self._is_timeout_expired():
             # if the Tendermint node cannot update the app then the app cannot work
             raise RuntimeError("Error resetting tendermint node.")
@@ -1814,7 +1819,10 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self.context.logger.info(
             "local height == remote height; continuing execution..."
         )
-        yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
+        if not on_startup:
+            # if we are on startup we don't need to wait for the observation interval
+            # as the reset is being performed to update the tm config.
+            yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
         return True
 
 
@@ -1882,7 +1890,8 @@ class TmManager(BaseBehaviour, ABC):
         # there are not enough peers in the network to reach majority.
         yield from self._kill_if_no_majority_peers()
 
-        # since we have reached this point that means that
+        # since we have reached this point that means that the cause of blocks not being received
+        # cannot be attributed to a lack of peers in the network
         shared_state = cast(SharedState, self.context.state)
         recovery_params = shared_state.tm_recovery_params
         shared_state.round_sequence.reset_state(
