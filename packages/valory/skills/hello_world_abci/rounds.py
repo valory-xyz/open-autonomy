@@ -59,6 +59,8 @@ class SynchronizedData(
     This state is replicated by the tendermint application.
     """
 
+    # TODO: pointless as already defined on base, although
+    # educative. But see my comment below...
     @property
     def participant_to_selection(self) -> Mapping[str, SelectKeeperPayload]:
         """Get the participant_to_selection."""
@@ -90,8 +92,8 @@ class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
 
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
-                participants=self.collection,
-                all_participants=self.collection,
+                participants=frozenset(self.collection),
+                all_participants=frozenset(self.collection),
                 synchronized_data_class=SynchronizedData,
             )
             return synchronized_data, Event.DONE
@@ -130,6 +132,9 @@ class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
     allowed_tx_type = PrintMessagePayload.transaction_type
     payload_attribute = get_name(PrintMessagePayload.message)
 
+    # TODO: what's the point of this? It might be better
+    # to store the messages on the synchronized state so
+    # the dev actually learns something (see todo above)
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:

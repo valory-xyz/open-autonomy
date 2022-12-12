@@ -149,7 +149,7 @@ class TestRegistrationRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_behaviour = SynchronizedData(
-            AbciAppDB(setup_data=dict(participants=[test_round.collection]))
+            AbciAppDB(setup_data=dict(participants=[frozenset(test_round.collection)]))
         )
 
         res = test_round.end_block()
