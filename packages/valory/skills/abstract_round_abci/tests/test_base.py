@@ -1029,7 +1029,7 @@ class TestAbstractRound:
         )
         self.round = ConcreteRoundA(self.base_synchronized_data, self.params)
 
-    def test_must_set_round_id(self) -> None:
+    def test_must_not_set_round_id(self) -> None:
         """Test that the 'round_id' must be set in concrete classes."""
 
         class MyConcreteRound(AbstractRound):
@@ -1046,8 +1046,9 @@ class TestAbstractRound:
             def process_payload(self, payload: BaseTxPayload) -> None:
                 pass
 
-        with pytest.raises(ABCIAppInternalError, match="'round_id' field not set"):
-            MyConcreteRound(MagicMock(), MagicMock())
+        # no exception as round id is auto-assigned
+        my_concrete_round = MyConcreteRound(MagicMock(), MagicMock())
+        assert my_concrete_round.round_id == "my_concrete_round"
 
     def test_must_set_allowed_tx_type(self) -> None:
         """Test that the 'allowed_tx_type' must be set in concrete classes."""
