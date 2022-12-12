@@ -18,15 +18,16 @@
 # ------------------------------------------------------------------------------
 
 """Test `service-registry-network` command."""
-import logging
+
 import multiprocessing
 import os
 import time
-from typing import Optional, Tuple
+from typing import Tuple, cast
 
 import docker
 import pytest
 import requests
+from _pytest.capture import CaptureFixture  # type: ignore
 
 from autonomy.constants import (
     SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME as CONTAINER_NAME,
@@ -83,8 +84,8 @@ class TestRunServiceLocally(BaseCliTest):
                 assert res.status_code == 200, "bad response from the network"
                 # we return in this case
                 self._stop_cli_process()
-                output = self.cli_runner.capfd.readouterr().out
-                missing = set(expected).difference(output.split("\n"))
+                captured = cast(CaptureFixture, self.cli_runner.capfd).readouterr()
+                missing = set(expected).difference(captured.out.split("\n"))
                 assert not missing, missing
                 return
             except requests.ConnectionError:

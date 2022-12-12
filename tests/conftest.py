@@ -30,7 +30,7 @@ import pytest
 
 # https://pytest-cov.readthedocs.io/en/latest/subprocess-support.html#if-you-use-multiprocessing-process
 try:
-    from pytest_cov.embed import cleanup_on_sigterm
+    from pytest_cov.embed import cleanup_on_sigterm  # type: ignore
 except ImportError:
     pass
 else:
