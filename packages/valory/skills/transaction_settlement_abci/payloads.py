@@ -51,6 +51,9 @@ class RandomnessPayload(BaseTxPayload):
     ) -> None:
         """Initialize an 'select_keeper' transaction payload.
 
+        We send the DRAND "round_id" to be able to discriminate between payloads
+        from different DRAND rounds more easily.
+
         :param sender: the sender (Ethereum) address
         :param round_id: the round id
         :param randomness: the randomness
@@ -73,7 +76,7 @@ class RandomnessPayload(BaseTxPayload):
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(round_id=self._round_id, randomness=self._randomness)
+        return dict(round_id=self.round_id, randomness=self.randomness)
 
 
 class SelectKeeperPayload(BaseTxPayload):
@@ -234,7 +237,7 @@ class FinalizationTxPayload(BaseTxPayload):
     @property
     def data(self) -> Dict[str, Dict[str, Union[str, int, bool]]]:
         """Get the data."""
-        return dict(tx_data=self._tx_data) if self._tx_data is not None else {}
+        return dict(tx_data=self.tx_data) if self.tx_data is not None else {}
 
 
 class ResetPayload(BaseTxPayload):

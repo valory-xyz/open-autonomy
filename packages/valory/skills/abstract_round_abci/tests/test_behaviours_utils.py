@@ -1905,7 +1905,7 @@ def test_make_degenerate_behaviour() -> None:
     assert isinstance(new_cls, type)
     assert issubclass(new_cls, DegenerateBehaviour)
 
-    assert new_cls.auto_behaviour_id() == f"degenerate_{round_id}"
+    assert new_cls.auto_behaviour_id() == f"degenerate_behaviour_{round_id}"
 
 
 class TestTmManager:

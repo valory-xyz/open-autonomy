@@ -1915,8 +1915,6 @@ def make_degenerate_behaviour(round_id: str) -> Type[DegenerateBehaviour]:
     class NewDegenerateBehaviour(DegenerateBehaviour):
         """A newly defined degenerate behaviour class."""
 
-        behaviour_id = f"degenerate_{round_id}"
-
     new_behaviour_cls = NewDegenerateBehaviour
     new_behaviour_cls.__name__ = f"DegenerateBehaviour_{round_id}"  # type: ignore # pylint: disable=attribute-defined-outside-init
     return new_behaviour_cls  # type: ignore

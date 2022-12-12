@@ -348,9 +348,8 @@ Let's look how each of these objects are implemented. If you have fetched the He
   class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
       """A round in which the agents get registered"""
 
-      round_id = "print_message"
       allowed_tx_type = PrintMessagePayload.transaction_type
-      payload_attribute = "message"
+      payload_attribute = get_name(PrintMessagePayload.message)
 
       def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
           """Process the end of the block."""
@@ -423,7 +422,6 @@ Again, the `HelloWorldABCIBaseBehaviour` is a convenience class, and the upper c
 class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
     """Prints the celebrated 'HELLO WORLD!' message."""
 
-    behaviour_id = "print_message"
     matching_round = PrintMessageRound
 
     def async_act(self) -> Generator:

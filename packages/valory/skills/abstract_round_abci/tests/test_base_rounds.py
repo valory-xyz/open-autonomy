@@ -158,7 +158,7 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
             ABCIAppInternalError,
             match="internal error: `CollectDifferentUntilAllRound` encountered a value 'agent_0' that already exists.",
         ):
-            first_payload.sender = "other"
+            first_payload._sender = "other"
             test_round.process_payload(first_payload)
 
         with pytest.raises(

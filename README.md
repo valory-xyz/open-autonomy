@@ -76,8 +76,10 @@ Read the [Open Autonomy documentation](https://docs.autonolas.network/) to learn
 - Pull pre-built images:
 
       docker pull valory/autonolas-registries:latest
+      docker pull valory/acn-node:latest
       docker pull valory/contracts-amm:latest
       docker pull valory/safe-contract-net:latest
+      docker pull valory/slow-tendermint-server:0.1.0
 
 - Create and launch a virtual environment. Also, run this during development,
 every time you need to re-create and launch the virtual environment and update
