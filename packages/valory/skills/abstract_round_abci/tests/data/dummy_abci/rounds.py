@@ -61,7 +61,6 @@ class SynchronizedData(BaseSynchronizedData):
 class DummyMixinRound(AbstractRound):
     """DummyMixinRound"""
 
-    synchronized_data_class = BaseSynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
 
