@@ -20,8 +20,8 @@
 
 # pylint: skip-file
 
-import os
 import math
+import os
 from collections import defaultdict
 from typing import Any, Dict
 
@@ -34,6 +34,7 @@ from packages.valory.skills.abstract_round_abci import serializer
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
+
 
 settings.load_profile(os.getenv("CI", "default"))
 

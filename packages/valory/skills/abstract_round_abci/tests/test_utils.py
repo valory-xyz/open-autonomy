@@ -36,6 +36,7 @@ from packages.valory.skills.abstract_round_abci.utils import (
     to_int,
 )
 
+
 settings.load_profile(os.getenv("CI", "default"))
 
 # pylint: skip-file

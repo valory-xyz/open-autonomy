@@ -21,9 +21,9 @@
 
 # pylint: skip-file
 
-import os
 import datetime
 import logging
+import os
 import re
 import shutil
 from abc import ABC
@@ -36,7 +36,6 @@ from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
-import hypothesis
 import pytest
 from _pytest.logging import LogCaptureFixture
 from aea.exceptions import AEAEnforceError
@@ -93,6 +92,7 @@ from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     ConcreteTerminationRoundB,
     ConcreteTerminationRoundC,
 )
+
 
 settings.load_profile(os.getenv("CI", "default"))
 

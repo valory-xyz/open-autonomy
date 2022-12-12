@@ -18,8 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Conftest module for io tests."""
-import logging
-import os
+
 import shutil
 from contextlib import suppress
 from pathlib import Path

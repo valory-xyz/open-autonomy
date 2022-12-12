@@ -56,6 +56,7 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 )
 from packages.valory.skills.abstract_round_abci.tests.test_common import last_iteration
 
+
 settings.load_profile(os.getenv("CI", "default"))
 
 # this is how many times we need to iterate before reaching the last iteration for a base test.
@@ -204,11 +205,6 @@ class TestBaseRoundTestClass:
     @given(st.integers(min_value=0, max_value=100), st.integers(min_value=1))
     def test_complete_run(iter_count: int, shift: int) -> None:
         """Test `_complete_run`."""
-
-        import logging
-        profile = settings.get_profile(settings._current_profile)
-        logging.info("> " * 100)
-        logging.info(f"Using hypothesis profile from {__file__}:\n{profile}")
 
         def dummy_gen() -> Generator[MagicMock, None, None]:
             """A dummy generator."""
