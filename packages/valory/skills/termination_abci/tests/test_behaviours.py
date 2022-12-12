@@ -170,6 +170,7 @@ class TestBackgroundBehaviour(BaseTerminationTest):
     _SAFE_HASH_ERR_LOG = f"Couldn't get safe hash. " f"{_STATE_ERR_LOG}"
     _MULTISEND_ERR_LOG = "Couldn't compile the multisend tx. "
     _SUCCESS_LOG = "Successfully prepared termination multisend tx."
+    _IS_STOPPED_LOG = "dropping message as behaviour has stopped:"
 
     def _mock_get_service_owner_request(
         self,
@@ -380,6 +381,13 @@ class TestBackgroundBehaviour(BaseTerminationTest):
             ),
         )
 
+    def _mock_is_stopped(
+        self,
+        error: bool = False,
+    ) -> None:
+        """Mock a MultiSendContract.get_tx_data() request."""
+        self.behaviour.current_behaviour._AsyncBehaviour__stopped = True
+
     @pytest.mark.parametrize(
         "test_case",
         [
@@ -487,6 +495,16 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                 ],
                 err_reqs=[],
                 expected_logs=[_SUCCESS_LOG],
+            ),
+            BehaviourTestCase(
+                name="agent drops message because app already stopped",
+                initial_data=_INITIAL_DATA,
+                ok_reqs=[],
+                err_reqs=[
+                    _mock_is_stopped,
+                    _mock_get_service_owner_request,
+                ],
+                expected_logs=[_IS_STOPPED_LOG],
             ),
         ],
     )
