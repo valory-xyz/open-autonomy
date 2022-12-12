@@ -26,7 +26,7 @@ from typing import Any, FrozenSet, Generator, List, Optional, Tuple, Type, cast
 from unittest.mock import MagicMock
 
 import pytest
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from packages.valory.skills.abstract_round_abci.base import (
@@ -200,6 +200,7 @@ class TestBaseRoundTestClass:
         )
 
     @staticmethod
+    @settings(deadline=None)  # somehow autouse fixture in conftest doesn't work here
     @given(st.integers(min_value=0, max_value=100), st.integers(min_value=1))
     def test_complete_run(iter_count: int, shift: int) -> None:
         """Test `_complete_run`."""
