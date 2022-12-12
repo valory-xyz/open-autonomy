@@ -303,7 +303,7 @@ class TestValidateSafeBehaviour(BaseValidateBehaviourTest, SafeDeploymentAbciBas
     """Test ValidateSafeBehaviour."""
 
     behaviour_class = ValidateSafeBehaviour
-    next_behaviour_class = make_degenerate_behaviour(FinishedSafeRound.round_id)
+    next_behaviour_class = make_degenerate_behaviour(FinishedSafeRound.auto_round_id())
     synchronized_data_kwargs = dict(safe_contract_address="safe_contract_address")
     contract_id = str(GNOSIS_SAFE_CONTRACT_ID)
     done_event = SafeDeploymentEvent.DONE

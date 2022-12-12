@@ -575,7 +575,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param timeout: the timeout for the wait
         :yield: None
         """
-        round_id = self.matching_round.round_id
+        round_id = self.matching_round.auto_round_id()
         round_height = cast(
             SharedState, self.context.state
         ).round_sequence.current_round_height
@@ -627,7 +627,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param: resetting: flag indicating if we are resetting Tendermint nodes in this round.
         :yield: the responses
         """
-        stop_condition = self.is_round_ended(self.matching_round.round_id)
+        stop_condition = self.is_round_ended(self.matching_round.auto_round_id())
         payload.round_count = cast(
             SharedState, self.context.state
         ).synchronized_data.round_count
@@ -1803,7 +1803,6 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 class TmManager(BaseBehaviour, ABC):
     """Util class to be used for managing the tendermint node."""
 
-    behaviour_id = "tm_manager"
     _active_generator: Optional[Generator] = None
     _hard_reset_sleep = 10.0  # 10s
 

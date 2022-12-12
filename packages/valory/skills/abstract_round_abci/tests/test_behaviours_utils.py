@@ -783,13 +783,13 @@ class TestBaseBehaviour:
         # assert that everything is pre-set correctly
         assert (
             self.behaviour.context.state.round_sequence.current_round_id
-            == self.behaviour.matching_round.round_id
+            == self.behaviour.matching_round.auto_round_id()
             == "round_a"
         )
 
         # create the exact same stop condition that we create in the `send_a2a_transaction` method
         stop_condition = self.behaviour.is_round_ended(
-            self.behaviour.matching_round.round_id
+            self.behaviour.matching_round.auto_round_id()
         )
         gen = self.behaviour._send_transaction(
             MagicMock(),
@@ -807,7 +807,7 @@ class TestBaseBehaviour:
         # assert that everything was set as expected
         assert (
             self.behaviour.context.state.round_sequence.current_round_id
-            != self.behaviour.matching_round.round_id
+            != self.behaviour.matching_round.auto_round_id()
             and self.behaviour.context.state.round_sequence.current_round_id == "test"
         )
         # assert that the stop condition now applies

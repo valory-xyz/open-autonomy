@@ -121,7 +121,7 @@ class _MetaRoundBehaviour(ABCMeta):
                     for _behaviour_cls in round_to_behaviour[b.matching_round]
                 ]
                 raise ABCIAppInternalError(
-                    f"behaviours {behaviour_class_ids} have the same matching round '{b.matching_round.round_id}'"
+                    f"behaviours {behaviour_class_ids} have the same matching round '{b.matching_round.auto_round_id()}'"
                 )
 
         # check covering
@@ -129,12 +129,12 @@ class _MetaRoundBehaviour(ABCMeta):
             if round_cls in behaviour_cls.abci_app_cls.final_states:
                 if len(behaviours) != 0:
                     raise ABCIAppInternalError(
-                        f"round {round_cls.round_id} is a final round it shouldn't have any matching behaviours."
+                        f"round {round_cls.auto_round_id()} is a final round it shouldn't have any matching behaviours."
                     )
                 continue  # pragma: nocover
             if len(behaviours) == 0:
                 raise ABCIAppInternalError(
-                    f"round {round_cls.round_id} is not a matching round of any behaviour"
+                    f"round {round_cls.auto_round_id()} is not a matching round of any behaviour"
                 )
 
     @classmethod
@@ -204,7 +204,7 @@ class AbstractRoundBehaviour(
             round_cls = behaviour_cls.matching_round
             if round_cls in result:
                 raise ValueError(
-                    f"the behaviours '{behaviour_cls.auto_behaviour_id()}' and '{result[round_cls].auto_behaviour_id()}' point to the same matching round '{round_cls.round_id}'"
+                    f"the behaviours '{behaviour_cls.auto_behaviour_id()}' and '{result[round_cls].auto_behaviour_id()}' point to the same matching round '{round_cls.auto_round_id()}'"
                 )
             result[round_cls] = behaviour_cls
 
@@ -212,7 +212,7 @@ class AbstractRoundBehaviour(
         #  to the degenerate behaviour class
         for final_round_cls in cls.abci_app_cls.final_states:
             new_degenerate_behaviour = make_degenerate_behaviour(
-                final_round_cls.round_id
+                final_round_cls.auto_round_id()
             )
             new_degenerate_behaviour.matching_round = final_round_cls  # type: ignore
             result[final_round_cls] = new_degenerate_behaviour  # type: ignore

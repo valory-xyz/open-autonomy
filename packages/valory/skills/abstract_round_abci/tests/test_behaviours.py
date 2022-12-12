@@ -208,7 +208,9 @@ class TestAbstractRoundBehaviour:
 
     def test_check_matching_round_consistency(self) -> None:
         """Test classmethod '_get_behaviour_id_to_behaviour_mapping', negative case."""
-        rounds = [MagicMock(round_id=f"round_{i}") for i in range(3)]
+        rounds = [
+            MagicMock(**{"auto_round_id.return_value": f"round_{i}"}) for i in range(3)
+        ]
         mock_behaviours = [
             MagicMock(matching_round=round, behaviour_id=f"behaviour_{i}")
             for i, round in enumerate(rounds)
@@ -261,7 +263,7 @@ class TestAbstractRoundBehaviour:
         behaviour_id_1 = "behaviour_id_1"
         behaviour_id_2 = "behaviour_id_2"
         round_cls = RoundA
-        round_id = round_cls.round_id
+        round_id = round_cls.auto_round_id()
         behaviour_1 = MagicMock(
             matching_round=round_cls,
             **{"auto_behaviour_id.return_value": behaviour_id_1},
@@ -318,7 +320,9 @@ class TestAbstractRoundBehaviour:
         behaviour = MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
         final_behaviour = behaviour._round_to_behaviour[FinalRound]
         assert issubclass(final_behaviour, DegenerateBehaviour)
-        assert final_behaviour.behaviour_id == f"degenerate_{FinalRound.round_id}"
+        assert (
+            final_behaviour.behaviour_id == f"degenerate_{FinalRound.auto_round_id()}"
+        )
 
     def test_check_behaviour_id_uniqueness_negative(self) -> None:
         """Test metaclass method '_check_consistency', negative case."""
@@ -349,7 +353,7 @@ class TestAbstractRoundBehaviour:
         behaviour_id_1 = "behaviour_id_1"
         behaviour_id_2 = "behaviour_id_2"
         round_cls = RoundA
-        round_id = round_cls.round_id
+        round_id = round_cls.auto_round_id()
         behaviour_1 = MagicMock(
             matching_round=round_cls,
             **{"auto_behaviour_id.return_value": "behaviour_id_1"},

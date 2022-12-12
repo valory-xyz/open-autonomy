@@ -383,7 +383,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         ) as mock_round_sequence:
             mock_round_sequence.last_round_id = cast(
                 AbstractRound, current_behaviour.matching_round
-            ).round_id
+            ).auto_round_id()
             current_behaviour.act_wrapper()
             assert current_behaviour.is_done()  # nosec
 
