@@ -19,7 +19,7 @@
 
 
 """Test the `rounds` test tool module of the skill."""
-
+import os
 import re
 from enum import Enum
 from typing import Any, FrozenSet, Generator, List, Optional, Tuple, Type, cast
@@ -56,6 +56,7 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 )
 from packages.valory.skills.abstract_round_abci.tests.test_common import last_iteration
 
+settings.load_profile(os.getenv("CI", "default"))
 
 # this is how many times we need to iterate before reaching the last iteration for a base test.
 BASE_TEST_GEN_ITERATIONS = 4
@@ -200,10 +201,14 @@ class TestBaseRoundTestClass:
         )
 
     @staticmethod
-    @settings(deadline=None)
     @given(st.integers(min_value=0, max_value=100), st.integers(min_value=1))
     def test_complete_run(iter_count: int, shift: int) -> None:
         """Test `_complete_run`."""
+
+        import logging
+        profile = settings.get_profile(settings._current_profile)
+        logging.info("> " * 100)
+        logging.info(f"Using hypothesis profile from {__file__}:\n{profile}")
 
         def dummy_gen() -> Generator[MagicMock, None, None]:
             """A dummy generator."""
@@ -299,7 +304,6 @@ class TestBaseCollectDifferentUntilAllRoundTest(BaseTestBase):
     @given(
         st.one_of(st.none(), st.sampled_from(DummyEvent)),
     )
-    @settings(deadline=None)
     def test_test_round(self, exit_event: DummyEvent) -> None:
         """Test `_test_round`."""
         self.base_round_test.consensus_params._max_participants = (  # pylint: disable=protected-access

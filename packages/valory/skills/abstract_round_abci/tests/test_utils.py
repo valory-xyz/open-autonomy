@@ -19,12 +19,13 @@
 
 """Test the utils.py module of the skill."""
 
+import os
 from collections import defaultdict
 from typing import Any, List, Type
 from unittest import mock
 
 import pytest
-from hypothesis import assume, given
+from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
 from packages.valory.skills.abstract_round_abci.utils import (
@@ -35,6 +36,7 @@ from packages.valory.skills.abstract_round_abci.utils import (
     to_int,
 )
 
+settings.load_profile(os.getenv("CI", "default"))
 
 # pylint: skip-file
 

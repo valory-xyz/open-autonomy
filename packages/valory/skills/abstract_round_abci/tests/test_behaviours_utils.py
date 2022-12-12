@@ -1154,7 +1154,6 @@ class TestBaseBehaviour:
             self.behaviour._send_signing_request(b"")
 
     @given(st.binary())
-    @settings(deadline=None)  # somehow autouse fixture in conftest doesn't work here
     def test_fuzz_send_signing_request(self, input_bytes: bytes) -> None:
         """Fuzz '_send_signing_request'.
 

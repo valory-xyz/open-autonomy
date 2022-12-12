@@ -20,6 +20,7 @@
 
 # pylint: skip-file
 
+import os
 import math
 from collections import defaultdict
 from typing import Any, Dict
@@ -27,12 +28,14 @@ from typing import Any, Dict
 import hypothesis.strategies as st
 import pytest
 from google.protobuf.struct_pb2 import Struct
-from hypothesis import given
+from hypothesis import given, settings
 
 from packages.valory.skills.abstract_round_abci import serializer
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
+
+settings.load_profile(os.getenv("CI", "default"))
 
 
 def test_encode_decode_i() -> None:
