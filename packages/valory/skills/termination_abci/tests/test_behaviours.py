@@ -382,19 +382,21 @@ class TestBackgroundBehaviour(BaseTerminationTest):
             ),
         )
 
-    def _mock_is_stopped(
+    def _mock_is_stopped(  # pylint: disable=unused-argument, disable=protected-access
         self,
         error: bool = False,
     ) -> None:
         """Mock a MultiSendContract.get_tx_data() request."""
-        self.behaviour.current_behaviour._AsyncBehaviour__stopped = True
+        self.behaviour.current_behaviour._AsyncBehaviour__stopped = True  # type: ignore
 
-    def _mock_state_is_not_waiting_message(
+    def _mock_state_is_not_waiting_message(  # pylint: disable=unused-argument, disable=protected-access
         self,
         error: bool = False,
     ) -> None:
         """Mock a MultiSendContract.get_tx_data() request."""
-        self.behaviour.current_behaviour._AsyncBehaviour__state = AsyncBehaviour.AsyncState.RUNNING
+        self.behaviour.current_behaviour._AsyncBehaviour__state = (  # type: ignore
+            AsyncBehaviour.AsyncState.RUNNING
+        )
 
     @pytest.mark.parametrize(
         "test_case",

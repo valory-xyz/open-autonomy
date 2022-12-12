@@ -32,10 +32,10 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeihkcgjgyoleu6jgwhpffkzvflmybajlz5k2fkxhl3nngbbo6xzlsy
 - valory/abstract_round_abci:0.1.0:bafybeifh4qtjurq5637ykxexzexca5l4n6t4ujw26tpnern2swajanvhny
-- valory/register_termination_abci:0.1.0:bafybeidgyexpkwtxs3gfvulisdautpq5ulm7pblqkkzy4ms7tviw5sxqfm
+- valory/register_termination_abci:0.1.0:bafybeiap3dvpnaqaotdfdbo5arbocemagbo36fztolg6fmrtgdrbmlykpi
 - valory/registration_abci:0.1.0:bafybeicuz3f4tvowd2xwcl5w4ck56rm5abfoyng3cmbprovpch4u6eexge
 - valory/reset_pause_abci:0.1.0:bafybeihlsjhy4dpiulgdof3noh6dlzvr6wkywcwbsrti45labn7htrfg3y
-- valory/termination_abci:0.1.0:bafybeie3ycxfi7b7i5awx5ejumexctv2lbjqtoqi6ho33lkzck4relbb4m
+- valory/termination_abci:0.1.0:bafybeidlrxzmlmkdfgwvtwhetqqgjbh3u5kuugpuk4hxcxipp7m7zu4apq
 - valory/transaction_settlement_abci:0.1.0:bafybeicvdtbelmvhabmrsyej4zh7gbl25vusxrpgapvdrtadwnerknlt6e
 default_ledger: ethereum
 required_ledgers:
