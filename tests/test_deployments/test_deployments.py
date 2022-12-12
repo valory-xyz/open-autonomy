@@ -20,6 +20,8 @@
 """Tests package for the 'deployments' functionality."""
 import os
 import re
+import json
+from unittest import mock
 import shutil
 import tempfile
 from abc import ABC
@@ -31,6 +33,7 @@ from typing import Any, List, Tuple, cast
 import pytest
 import yaml
 from aea.exceptions import AEAValidationError
+from aea.configurations.data_types import PublicId
 
 from autonomy.configurations.base import Service
 from autonomy.configurations.validation import ConfigValidator
@@ -39,12 +42,11 @@ from autonomy.constants import (
     HARDHAT_IMAGE_VERSION,
     TENDERMINT_IMAGE_VERSION,
 )
-from autonomy.deploy.base import BaseDeploymentGenerator, ServiceBuilder
+from autonomy.deploy.base import BaseDeploymentGenerator, ServiceBuilder, NotValidKeysFile
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
-
 
 deployment_generators: List[Any] = [
     DockerComposeGenerator,
@@ -119,7 +121,6 @@ config:
       address: 'http://hardhat:8545'
       chain_id: '31337'
 """
-
 
 TEST_DEPLOYMENT_PATH: str = "service.yaml"
 IMAGE_VERSIONS = {
@@ -254,6 +255,15 @@ class TestKubernetesDeployment(BaseDeploymentTests):
 
 class TestDeploymentGenerators(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
+
+    def test_read_invalid_keys_file(self) -> None:
+        """Test JSONDecodeError on read_keys"""
+
+        side_effect = json.decoder.JSONDecodeError("", "", 0)
+        expected = "Error decoding keys file, please check the content of the file"
+        with mock.patch.object(json, "loads", side_effect=side_effect):
+            with pytest.raises(NotValidKeysFile, match=expected):
+                ServiceBuilder.read_keys(mock.Mock(), DEFAULT_KEY_PATH)
 
     def test_generates_agent_for_all_valory_apps(self) -> None:
         """Test generator functions with all agent services."""
