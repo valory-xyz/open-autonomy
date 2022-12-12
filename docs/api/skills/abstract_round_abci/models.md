@@ -181,6 +181,17 @@ def suggested_sleep_time() -> float
 
 The suggested amount of time to sleep.
 
+<a id="packages.valory.skills.abstract_round_abci.models.TendermintRecoveryParams"></a>
+
+## TendermintRecoveryParams Objects
+
+```python
+@dataclass
+class TendermintRecoveryParams()
+```
+
+A dataclass to hold all parameters related to agent <-> tendermint recovery procedures.
+
 <a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs"></a>
 
 ## ApiSpecs Objects

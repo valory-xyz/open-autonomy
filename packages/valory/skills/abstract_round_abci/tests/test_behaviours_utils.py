@@ -50,6 +50,7 @@ from _pytest.logging import LogCaptureFixture
 
 # pylint: skip-file
 from aea.common import JSONLike
+from aea.protocols.base import Message
 from aea.test_tools.utils import as_context
 from aea_test_autonomy.helpers.base import try_send
 from hypothesis import given, settings
@@ -92,6 +93,7 @@ from packages.valory.skills.abstract_round_abci.io_.ipfs import (
 )
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState,
+    TendermintRecoveryParams,
     _DEFAULT_REQUEST_RETRY_DELAY,
     _DEFAULT_REQUEST_TIMEOUT,
     _DEFAULT_TX_MAX_ATTEMPTS,
@@ -513,6 +515,11 @@ class TestBaseBehaviour:
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.synchronized_data = (
             self.context_state_synchronized_data_mock
+        )
+        self.current_round_count = 10
+        self.current_reset_index = 10
+        self.context_mock.state.synchronized_data.db = MagicMock(
+            round_count=self.current_round_count, reset_index=self.current_reset_index
         )
         self.context_mock.state.round_sequence.current_round_id = "round_a"
         self.context_mock.state.round_sequence.syncing_up = False
@@ -1753,6 +1760,17 @@ class TestBaseBehaviour:
                 True,
             ),
             (
+                {
+                    "message": "Tendermint reset was successful.",
+                    "status": True,
+                    "is_replay": True,
+                },
+                {"result": {"sync_info": {"latest_block_height": 1}}},
+                1,
+                3,
+                True,
+            ),
+            (
                 {"message": "Tendermint reset was successful.", "status": True},
                 {"result": {"sync_info": {"latest_block_height": 1}}},
                 3,
@@ -1854,11 +1872,20 @@ class TestBaseBehaviour:
                     # reset to be stored in the shared state, as they could be used
                     # later for performing hard reset in cases when the agent <-> tendermint
                     # communication is broken
+                    shared_state = cast(SharedState, self.behaviour.context.state)
+                    tm_recovery_params = shared_state.tm_recovery_params
+                    assert tm_recovery_params.reset_params == expected_parameters
                     assert (
-                        cast(
-                            SharedState, self.behaviour.context.state
-                        ).last_reset_params
-                        == expected_parameters
+                        tm_recovery_params.round_count
+                        == shared_state.synchronized_data.db.round_count - 1
+                    )
+                    assert (
+                        tm_recovery_params.reset_index
+                        == shared_state.round_sequence.abci_app.reset_index - 1
+                    )
+                    assert (
+                        tm_recovery_params.reset_from_round
+                        == self.behaviour.matching_round
                     )
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
@@ -1931,13 +1958,15 @@ class TestTmManager:
         self.context_mock.state.synchronized_data = (
             self.context_state_synchronized_data_mock
         )
-        self.context_mock.state.last_reset_params = None
+        self.recovery_params = TendermintRecoveryParams(MagicMock())
+        self.context_mock.state.tm_recovery_params = self.recovery_params
         self.context_mock.state.round_sequence.current_round_id = "round_a"
         self.context_mock.state.round_sequence.syncing_up = False
         self.context_mock.state.round_sequence.block_stall_deadline_expired = False
         self.context_mock.http_dialogues = HttpDialogues()
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.tm_manager = TmManager(name="", skill_context=self.context_mock)
+        self.tm_manager._max_reset_retry = 1
 
     def test_async_act(self) -> None:
         """Test the async_act method of the TmManager."""
@@ -1961,6 +1990,12 @@ class TestTmManager:
         num_active_peers: Optional[int],
     ) -> None:
         """Test _handle_unhealthy_tm."""
+
+        def mock_sleep(_seconds: int) -> Generator:
+            """A method that mocks sleep."""
+            return
+            yield
+
         gen = self.tm_manager._handle_unhealthy_tm()
         with mock.patch.object(
             self.tm_manager,
@@ -1970,6 +2005,8 @@ class TestTmManager:
             self.tm_manager,
             "num_active_peers",
             side_effect=yield_and_return_int_wrapper(num_active_peers),
+        ), mock.patch.object(
+            self.tm_manager, "sleep", side_effect=mock_sleep
         ), mock.patch(
             "sys.exit"
         ) as mock_sys_exit:
@@ -1997,7 +2034,7 @@ class TestTmManager:
     ) -> None:
         """Test that reset params returns the correct params."""
         if expected_reset_params is not None:
-            self.context_mock.state.last_reset_params = expected_reset_params
+            self.recovery_params.reset_params = expected_reset_params
         actual_reset_params = self.tm_manager._get_reset_params(False)
         assert expected_reset_params == actual_reset_params
 
@@ -2011,12 +2048,32 @@ class TestTmManager:
         actual = self.tm_manager.hard_reset_sleep
         assert actual == expected
 
-    def test_try_fix(self) -> None:
+    @pytest.mark.parametrize(
+        ("state", "notified", "message", "num_iter"),
+        [
+            (AsyncBehaviour.AsyncState.READY, False, None, 1),
+            (AsyncBehaviour.AsyncState.WAITING_MESSAGE, True, Message(), 2),
+            (AsyncBehaviour.AsyncState.WAITING_MESSAGE, True, Message(), 1),
+        ],
+    )
+    def test_try_fix(
+        self,
+        state: AsyncBehaviour.AsyncState,
+        notified: bool,
+        message: Optional[Message],
+        num_iter: int,
+    ) -> None:
         """Tests try_fix."""
 
         def mock_handle_unhealthy_tm() -> Generator:
             """A mock implementation of _handle_unhealthy_tm."""
-            yield
+            for _ in range(num_iter):
+                msg = yield
+                if msg is not None:
+                    # if a message is recieved, the state of the behviour should be "RUNNING"
+                    self.tm_manager._AsyncBehaviour__state = (
+                        AsyncBehaviour.AsyncState.RUNNING
+                    )
             return
 
         with mock.patch.object(
@@ -2024,17 +2081,38 @@ class TestTmManager:
             "_handle_unhealthy_tm",
             side_effect=mock_handle_unhealthy_tm,
         ):
-            # there is no active generator in the begging
+            # there is no active generator in the beginning
             assert not self.tm_manager.is_acting
 
             # a generator should be created, and be active
             self.tm_manager.try_fix()
             assert self.tm_manager.is_acting
 
+            # a message may (or may not) arrive
+            self.tm_manager._AsyncBehaviour__notified = notified
+            self.tm_manager._AsyncBehaviour__state = state
+            self.tm_manager._AsyncBehaviour__message = message
+
             # the generator has a single yield statement,
             # a second try_fix() call should finish it
-            self.tm_manager.try_fix()
-            assert not self.tm_manager.is_acting
+            for _ in range(num_iter):
+                self.tm_manager.try_fix()
+            assert not self.tm_manager.is_acting, num_iter
+
+    @pytest.mark.parametrize(
+        "state",
+        [
+            AsyncBehaviour.AsyncState.WAITING_MESSAGE,
+            AsyncBehaviour.AsyncState.READY,
+        ],
+    )
+    def test_get_callback_request(self, state: AsyncBehaviour.AsyncState) -> None:
+        """Tests get_callback_request."""
+        self.tm_manager._AsyncBehaviour__state = state
+        dummy_msg, dummy_behaviour = MagicMock(), MagicMock()
+        callback_req = self.tm_manager.get_callback_request()
+        with mock.patch.object(self.tm_manager, "try_send"):
+            callback_req(dummy_msg, dummy_behaviour)
 
     def test_is_acting(self) -> None:
         """Test is_acting."""

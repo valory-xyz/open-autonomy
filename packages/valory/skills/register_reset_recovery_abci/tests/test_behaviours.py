@@ -17,9 +17,10 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for valory/registration_abci skill's behaviours."""
+"""Tests for valory/register_reset_recovery skill's behaviours."""
 from pathlib import Path
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, Generator, Optional, Type
+from unittest import mock
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciAppDB,
@@ -80,5 +81,15 @@ class TestShareRoundCountBehaviour(BaseTerminationTest):
 
     def test_run(self) -> None:
         """Run the behaviour."""
+
+        def mock_sleep() -> Generator:
+            """Mocks BaseBehaviour.sleep()"""
+            return
+            yield
+
         self.fast_forward()
-        self.complete()
+        with mock.patch.object(
+            self.behaviour.current_behaviour, "sleep", side_effects=mock_sleep()
+        ):
+            self.behaviour.act_wrapper()
+            self.complete()
