@@ -68,7 +68,7 @@ class DummyMixinRound(AbstractRound):
     @property
     def synchronized_data(self) -> SynchronizedData:
         """Return the synchronized data."""
-        return cast(SynchronizedData, self._synchronized_data)  # type: ignore
+        return cast(SynchronizedData, self._synchronized_data)
 
 
 class DummyStartingRound(CollectSameUntilAllRound, DummyMixinRound):
