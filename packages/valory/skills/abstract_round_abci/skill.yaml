@@ -56,7 +56,7 @@ fingerprint:
   tests/test_tools/test_base.py: bafybeighheft3kibosjooqcfoiytxnl47hmi5n4qwd47xxc7ln7xg77wgy
   tests/test_tools/test_common.py: bafybeiepcdnts7va6oulvh32ogvulb6o2xuiamgsg6p3lapldl2etkgsnu
   tests/test_tools/test_integration.py: bafybeia6ewjxlaasw776xhtfrgxpikse375tjnjwr2v3myjnpxc7vhgawi
-  tests/test_tools/test_rounds.py: bafybeic2b542zeot6eyw3d3d4knhw56nwqaerq6fko4eaj2r3z5fspthui
+  tests/test_tools/test_rounds.py: bafybeidkmye7iyomtybp42zabjooajuwqsdu5yupw3uvnomc6v6n2lzbcy
   tests/test_utils.py: bafybeigb4qb57swkbo6mzklxsdmtc2tqnb4sojpdmgz6etphpmhhaw5s7i
   utils.py: bafybeibsklcnvvvx2acumio5xy7hjrbdeggfmnnlfcwbtnz2qjdry7ntay
 fingerprint_ignore_patterns: []
