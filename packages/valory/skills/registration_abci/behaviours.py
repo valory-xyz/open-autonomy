@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abci' skill."""
-
+import datetime
 import json
 from enum import Enum
 from typing import Any, Dict, Generator, Optional, Set, Type, cast
@@ -32,11 +32,14 @@ from packages.valory.contracts.service_registry.contract import ServiceRegistryC
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.tendermint import TendermintMessage
+from packages.valory.skills.abstract_round_abci.base import ABCIAppInternalError
+from packages.valory.skills.abstract_round_abci.behaviour_utils import TimeoutException
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
 from packages.valory.skills.registration_abci.dialogues import TendermintDialogues
+from packages.valory.skills.registration_abci.models import SharedState
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
@@ -44,8 +47,8 @@ from packages.valory.skills.registration_abci.rounds import (
     RegistrationStartupRound,
 )
 
-
 NODE = "node{i}"
+WAIT_FOR_BLOCK_TIMEOUT = 60.0  # 1 minute
 
 
 class RegistrationBaseBehaviour(BaseBehaviour):
@@ -335,6 +338,35 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.updated_genesis_data.update(genesis_data)
         return True
 
+    def wait_for_block(self, timeout: float) -> Generator[None, None, bool]:
+        """Wait for a block to be received in the specified timeout."""
+        # every agent will finish with the reset at a different time
+        # hence the following will be different for all agents
+        start_time = datetime.datetime.now()
+
+        def received_block() -> bool:
+            """Check whether we have received a block after "start_time"."""
+            try:
+                shared_state = cast(SharedState, self.context.state)
+                last_timestamp = shared_state.round_sequence.last_timestamp
+                if last_timestamp > start_time:
+                    return True
+                return False
+            except ABCIAppInternalError:
+                # this can happen if we haven't received a block yet
+                return False
+
+        try:
+            yield from self.wait_for_condition(
+                condition=received_block, timeout=timeout
+            )
+            # if the `wait_for_condition` finish without an exception,
+            # it means that the condition has been satisfied on time
+            return True
+        except TimeoutException:
+            # the agent wasn't able to receive blocks in the given amount of time (timeout)
+            return False
+
     def async_act(self) -> Generator:
         """
         Do the action.
@@ -391,6 +423,15 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         # restart Tendermint with updated configuration
         successful = yield from self.reset_tendermint_with_wait(on_startup=True)
+        if not successful:
+            yield from self.sleep(self.params.sleep_time)
+            return
+
+        # the reset has gone through, and at this point tendermint should start
+        # sending blocks to the agent. However, that might take a while, since
+        # we rely on 2/3 of the voting power to be active in order for block production
+        # to begin. In other words, we wait for >=2/3 of the agents to become active.
+        successful = yield from self.wait_for_block(timeout=WAIT_FOR_BLOCK_TIMEOUT)
         if not successful:
             yield from self.sleep(self.params.sleep_time)
             return

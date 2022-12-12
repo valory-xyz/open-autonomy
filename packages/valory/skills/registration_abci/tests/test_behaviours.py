@@ -22,6 +22,7 @@
 # pylint: skip-file
 
 import collections
+import datetime
 import json
 import logging
 import time
@@ -40,6 +41,7 @@ from packages.valory.protocols.tendermint.message import TendermintMessage
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviour,
+    TimeoutException,
     make_degenerate_behaviour,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
@@ -51,6 +53,7 @@ from packages.valory.skills.registration_abci.behaviours import (
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
 )
+from packages.valory.skills.registration_abci.models import SharedState
 from packages.valory.skills.registration_abci.rounds import (
     BaseSynchronizedData as RegistrationSynchronizedData,
 )
@@ -164,6 +167,8 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     next_behaviour_class = make_degenerate_behaviour(FinishedRegistrationRound.round_id)
 
     other_agents: List[str] = ["0xAlice", "0xBob", "0xCharlie"]
+    _time_in_future = datetime.datetime.now() + datetime.timedelta(hours=10)
+    _time_in_past = datetime.datetime.now() - datetime.timedelta(hours=10)
 
     def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Setup"""
@@ -203,6 +208,27 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.state.params,
             "on_chain_service_id",
             return_value=ON_CHAIN_SERVICE_ID,
+        )
+
+    def mocked_wait_for_condition(self, should_timeout: bool) -> mock._patch:
+        """Mock BaseBehaviour.wait_for_condition"""
+
+        def dummy_wait_for_condition(
+            condition: Callable[[], bool], timeout: Optional[float] = None
+        ) -> Generator[None, None, None]:
+            """A mock implementation of BaseBehaviour.wait_for_condition"""
+            # call the condition
+            condition()
+            if should_timeout:
+                # raise in case required
+                raise TimeoutException()
+            return
+            yield
+
+        return mock.patch.object(
+            self.behaviour.current_behaviour,
+            "wait_for_condition",
+            side_effect=dummy_wait_for_condition,
         )
 
     @property
@@ -324,6 +350,14 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         )
         response_kwargs = dict(status_code=200, body=body)
         self.mock_http_request(request_kwargs, response_kwargs)
+
+    def set_last_timestamp(self, last_timestamp: datetime.datetime) -> None:
+        """Set last timestamp"""
+        if last_timestamp is not None:
+            state = cast(SharedState, self._skill.skill_context.state)
+            state.round_sequence.blockchain._blocks.append(
+                MagicMock(timestamp=last_timestamp)
+            )
 
     @staticmethod
     def dummy_reset_tendermint_with_wait_wrapper(
@@ -496,16 +530,35 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mock_tendermint_update(valid_response)
             assert log_message.value in caplog.text
 
-    @pytest.mark.parametrize("valid_response", [True, False])
+    @pytest.mark.parametrize(
+        "valid_response, last_timestamp, timeout",
+        [
+            (True, _time_in_past, False),
+            (False, _time_in_past, False),
+            (True, _time_in_future, False),
+            (False, _time_in_future, False),
+            (True, None, False),
+            (False, None, False),
+            (True, None, True),
+            (False, None, True),
+        ],
+    )
     def test_request_restart(
-        self, valid_response: bool, caplog: LogCaptureFixture
+        self,
+        valid_response: bool,
+        last_timestamp: Optional[datetime.datetime],
+        timeout: bool,
+        caplog: LogCaptureFixture,
     ) -> None:
         """Test Tendermint start"""
         self.state.updated_genesis_data = {}
+        self.set_last_timestamp(last_timestamp)
         with as_context(
             caplog.at_level(logging.INFO, logger=self.logger),
             self.mocked_service_registry_address,
             self.mocked_on_chain_service_id,
+            self.mocked_wait_for_condition(timeout),
+            self.mocked_yield_from_sleep,
             mock.patch.object(
                 self.behaviour.current_behaviour,
                 "reset_tendermint_with_wait",
