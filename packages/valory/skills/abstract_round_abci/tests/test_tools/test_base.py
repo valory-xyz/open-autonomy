@@ -121,6 +121,19 @@ class TestFSMBehaviourBaseCaseSetup:
             synchronized_data=synchronized_data,
         )
 
+        current_behaviour = test_instance.behaviour.current_behaviour
+        assert current_behaviour is not None
+        assert isinstance(
+            current_behaviour.synchronized_data,
+            SynchronizedData,
+        )
+        assert current_behaviour.behaviour_id == behaviour.behaviour_id
+        assert (  # pylint: disable=protected-access
+            test_instance.skill.skill_context.state.round_sequence.abci_app._current_round_cls
+            == current_behaviour.matching_round
+            == behaviour.matching_round
+        )
+
     @pytest.mark.parametrize("event", Event)
     @pytest.mark.parametrize("set_none", [False, True])
     def test_end_round(self, event: Enum, set_none: bool) -> None:
