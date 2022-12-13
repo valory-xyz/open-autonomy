@@ -93,6 +93,9 @@ class TestAbciAppChaining:
         self.timeout2 = 15.0
         self.timeout3 = 20.0
 
+        self.cross_period_persisted_keys_1 = ["1", "2"]
+        self.cross_period_persisted_keys_2 = ["2", "3"]
+
         class AbciApp1(AbciApp):
             initial_round_cls = self.round_1a
             transition_function = {
@@ -110,6 +113,7 @@ class TestAbciAppChaining:
             event_to_timeout = {self.event_timeout1: self.timeout1}
             db_pre_conditions = {self.round_1a: []}  # type: ignore
             db_post_conditions = {self.round_1c: [self.key_1]}  # type: ignore
+            cross_period_persisted_keys = self.cross_period_persisted_keys_1
 
         self.app1_class = AbciApp1
 
@@ -130,6 +134,7 @@ class TestAbciAppChaining:
             event_to_timeout = {self.event_timeout2: self.timeout2}
             db_pre_conditions = {self.round_2a: [self.key_1]}  # type: ignore
             db_post_conditions = {self.round_2c: [self.key_2]}  # type: ignore
+            cross_period_persisted_keys = self.cross_period_persisted_keys_2
 
         self.app2_class = AbciApp2
 
@@ -228,6 +233,13 @@ class TestAbciAppChaining:
             self.event_timeout1: self.timeout1,
             self.event_timeout2: self.timeout2,
         }
+        assert sorted(ComposedAbciApp.cross_period_persisted_keys) == sorted(
+            list(
+                set(self.cross_period_persisted_keys_1).union(
+                    set(self.cross_period_persisted_keys_2)
+                )
+            )
+        )
 
     def test_chain_three(self) -> None:
         """Test the AbciApp chain function."""

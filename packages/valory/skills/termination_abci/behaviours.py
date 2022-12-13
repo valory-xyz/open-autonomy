@@ -504,7 +504,7 @@ class BackgroundBehaviour(BaseBehaviour):
             :return: none
             """
             if self.is_stopped:
-                self.context.logger.debug(
+                self.context.logger.info(
                     "dropping message as behaviour has stopped: %s", message
                 )
                 return

@@ -156,6 +156,9 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         self.skill.skill_context.behaviours.main._last_round_height = (
             self.skill.skill_context.state.round_sequence.abci_app.current_round_height
         )
+        self.skill.skill_context.state.round_sequence.abci_app._current_round_cls = (
+            next_behaviour.matching_round
+        )
         self.skill.skill_context.state.round_sequence.abci_app._current_round = (
             next_behaviour.matching_round(
                 synchronized_data, self.skill.skill_context.params.consensus_params

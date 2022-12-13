@@ -35,12 +35,11 @@ from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
-import hypothesis
 import pytest
 from _pytest.logging import LogCaptureFixture
 from aea.exceptions import AEAEnforceError
 from aea_ledger_ethereum import EthereumCrypto
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis.strategies import (
     booleans,
     datetimes,
@@ -79,6 +78,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.base import _logger as default_logger
+from packages.valory.skills.abstract_round_abci.base import get_name
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
@@ -93,6 +93,10 @@ from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     ConcreteTerminationRoundB,
     ConcreteTerminationRoundC,
 )
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
+
+
+settings.load_profile(profile_name)
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
@@ -308,7 +312,6 @@ def test_verify_transaction_negative_case(*_mocks: Any) -> None:
         transaction.verify("")
 
 
-@hypothesis.settings(deadline=2000)
 @given(
     dictionaries(
         keys=text(),
@@ -1030,6 +1033,24 @@ class TestAbstractRound:
         )
         self.round = ConcreteRoundA(self.base_synchronized_data, self.params)
 
+    def test_auto_round_id(self) -> None:
+        """Test that the 'auto_round_id()' method works as expected."""
+
+        class MyConcreteRound(AbstractRound):
+
+            allowed_tx_type = MagicMock()
+
+            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
+                pass
+
+            def check_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+            def process_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+        assert MyConcreteRound.auto_round_id() == "my_concrete_round"
+
     def test_must_not_set_round_id(self) -> None:
         """Test that the 'round_id' must be set in concrete classes."""
 
@@ -1580,15 +1601,23 @@ class TestAbciApp:
         class EmptyAbciApp(AbciAppTest):
             """An AbciApp without termination attrs set."""
 
+            cross_period_persisted_keys = ["1", "2"]
+
+        class TerminationAbciApp(AbciAppTest):
+            """A moch termination AbciApp."""
+
+            cross_period_persisted_keys = ["2", "3"]
+
         EmptyAbciApp.add_termination(
-            AbciAppTest.background_round_cls,
-            AbciAppTest.termination_event,
-            AbciAppTest,
+            TerminationAbciApp.background_round_cls,
+            TerminationAbciApp.termination_event,
+            TerminationAbciApp,
         )
 
         assert EmptyAbciApp.background_round_cls is not None
         assert EmptyAbciApp.termination_transition_function is not None
         assert EmptyAbciApp.termination_event is not None  # type: ignore
+        assert sorted(EmptyAbciApp.cross_period_persisted_keys) == ["1", "2", "3"]
 
     def test_background_round(self) -> None:
         """Test the background_round property."""
@@ -2264,3 +2293,17 @@ def test_synchronized_data_type_on_abci_app_init(caplog: LogCaptureFixture) -> N
         abci_app.setup()
         assert isinstance(abci_app.synchronized_data, SynchronizedData)
         assert abci_app.synchronized_data.dummy_attr == sentinel  # type: ignore
+
+
+def test_get_name() -> None:
+    """Test the get_name method."""
+
+    class SomeObject:
+        @property
+        def some_property(self) -> Any:
+            """Some getter."""
+            return object()
+
+    assert get_name(SomeObject.some_property) == "some_property"
+    with pytest.raises(ValueError, match="1 is not a property"):
+        get_name(1)

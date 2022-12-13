@@ -88,7 +88,7 @@ class ServiceBuilder:
     ) -> None:
         """Initialize the Base Deployment."""
         if apply_environment_variables:
-            warn(
+            warn(  # pragma: no cover
                 "`apply_environment_variables` argument is deprecated and will be removed in v1.0.0, "
                 "usage of environment varibales is default now.",
                 DeprecationWarning,

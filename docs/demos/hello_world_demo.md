@@ -451,9 +451,8 @@ class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
 
         payload = PrintMessagePayload(self.context.agent_address, printed_message)
 
-        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
 
         self.set_done()
 ```
@@ -511,7 +510,7 @@ class PrintMessagePayload(BaseHelloWorldAbciPayload):
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(message=self._message)
+        return dict(message=self.message)
 ```
 
 

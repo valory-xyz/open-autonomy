@@ -70,14 +70,14 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
-                synchronized_data_class=BaseSynchronizedData,
+                synchronized_data_class=self.synchronized_data_class,
             )
             return synchronized_data, Event.FAST_FORWARD
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
-                synchronized_data_class=BaseSynchronizedData,
+                synchronized_data_class=self.synchronized_data_class,
             )
             return synchronized_data, Event.DONE
         return None
@@ -108,7 +108,7 @@ class RegistrationRound(CollectSameUntilThresholdRound):
         ):
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
-                synchronized_data_class=BaseSynchronizedData,
+                synchronized_data_class=self.synchronized_data_class,
             )
             return synchronized_data, Event.DONE
         if (

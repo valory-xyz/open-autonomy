@@ -51,7 +51,7 @@ def check_set_uniqueness(sets: Tuple) -> Optional[Any]:
     return None
 
 
-def chain(  # pylint: disable=too-many-locals, too-many-statements
+def chain(  # pylint: disable=too-many-locals,too-many-statements
     abci_apps: Tuple[Type[AbciApp], ...],
     abci_app_transition_mapping: AbciAppTransitionMapping,
 ) -> Type[AbciApp]:
@@ -265,6 +265,7 @@ def chain(  # pylint: disable=too-many-locals, too-many-statements
     new_cross_period_persisted_keys = []
     for app in abci_apps:
         new_cross_period_persisted_keys.extend(app.cross_period_persisted_keys)
+    new_cross_period_persisted_keys = list(set(new_cross_period_persisted_keys))
 
     # Return the composed result
     class ComposedAbciApp(AbciApp[EventType]):

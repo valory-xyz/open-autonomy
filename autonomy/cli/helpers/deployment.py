@@ -67,7 +67,7 @@ def _build_dirs(build_dir: Path) -> None:
         # TOFIX: remove this safely
         try:
             os.chown(path, 1000, 1000)
-        except PermissionError:
+        except PermissionError:  # pragma: no cover
             click.echo(
                 f"Updating permissions failed for {path}, please do it manually."
             )
@@ -81,7 +81,7 @@ def run_deployment(
     click.echo(f"Running build @ {build_dir}")
     try:
         project = docker_compose.project_from_options(build_dir, {})
-    except ConfigurationError as e:
+    except ConfigurationError as e:  # pragma: no cover
         if "Invalid interpolation format" in e.msg:
             raise click.ClickException(
                 "Provided docker compose file contains environment placeholders, "
@@ -114,7 +114,7 @@ def run_deployment(
                 "SERVICE": None,
             }
         )
-    except NotFound as e:
+    except NotFound as e:  # pragma: no cover
         raise click.ClickException(e.explanation)
 
 
@@ -138,13 +138,15 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     use_acn: bool = False,
 ) -> None:
     """Build deployment."""
-    if build_dir.is_dir():
+    if build_dir.is_dir():  # pragma: no cover
         if not force_overwrite:
             raise click.ClickException(f"Build already exists @ {build_dir}")
         shutil.rmtree(build_dir)
 
     if not (Path.cwd() / DEFAULT_SERVICE_CONFIG_FILE).exists():
-        raise FileNotFoundError(f"No service configuration found at {Path.cwd()}")
+        raise FileNotFoundError(
+            f"No service configuration found at {Path.cwd()}"
+        )  # pragma: no cover
 
     click.echo(f"Building deployment @ {build_dir}")
     build_dir.mkdir()

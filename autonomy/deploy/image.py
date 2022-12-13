@@ -98,7 +98,7 @@ def build_image(
                 )
             elif "aux" in stream_data:
                 print("[docker]" + stream_data["aux"]["ID"], end="")
-            elif "status" in stream_data:
+            elif "status" in stream_data:  # pragma: no cover
                 print("[docker]" + stream_data["status"], end="")
 
 
