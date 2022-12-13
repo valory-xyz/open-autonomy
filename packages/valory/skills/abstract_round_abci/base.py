@@ -736,6 +736,10 @@ class BaseSynchronizedData:
     This is the relevant data constructed and replicated by the agents.
     """
 
+    # Keys always set by default
+    # TODO: round_count and period_count need to be guaranteed to be synchronized too.
+    default_db_keys: List[str] = ["round_count", "period_count", "nb_participants"]
+
     def __init__(
         self,
         db: AbciAppDB,
@@ -1851,24 +1855,58 @@ class _MetaAbciApp(ABCMeta):
 
     @classmethod
     def _check_db_constraints_consistency(mcs, abci_app_cls: Type["AbciApp"]) -> None:
-        """Check that the pre and post constraints on the db are consistent with the initial and final states."""
+        """Check that the pre and post conditions on the db are consistent with the initial and final states."""
         expected = abci_app_cls.initial_states
         actual = abci_app_cls.db_pre_conditions.keys()
+        is_pre_conditions_set = len(actual) != 0
         invalid_initial_states = (
-            set.difference(expected, actual) if len(actual) != 0 else set()
+            set.difference(expected, actual) if is_pre_conditions_set else set()
         )
         enforce(
             len(invalid_initial_states) == 0,
-            f"db pre constraints contain invalid initial states: {invalid_initial_states}",
+            f"db pre conditions contain invalid initial states: {invalid_initial_states}",
         )
         expected = abci_app_cls.final_states
         actual = abci_app_cls.db_post_conditions.keys()
+        is_post_conditions_set = len(actual) != 0
         invalid_final_states = (
-            set.difference(expected, actual) if len(actual) != 0 else set()
+            set.difference(expected, actual) if is_post_conditions_set else set()
         )
         enforce(
             len(invalid_final_states) == 0,
-            f"db post constraints contain invalid final states: {invalid_final_states}",
+            f"db post conditions contain invalid final states: {invalid_final_states}",
+        )
+        all_pre_conditions = set(  # pylint: disable=consider-using-set-comprehension
+            [
+                value
+                for values in abci_app_cls.db_pre_conditions.values()
+                for value in values
+            ]
+        )
+        all_post_conditions = set(  # pylint: disable=consider-using-set-comprehension
+            [
+                value
+                for values in abci_app_cls.db_post_conditions.values()
+                for value in values
+            ]
+        )
+        enforce(
+            len(all_pre_conditions.intersection(all_post_conditions)) == 0,
+            "db pre and post conditions intersect",
+        )
+        intersection = set(abci_app_cls.default_db_preconditions).intersection(
+            all_pre_conditions
+        )
+        enforce(
+            len(intersection) == 0,
+            f"db pre conditions contain value that is a default pre condition: {intersection}",
+        )
+        intersection = set(abci_app_cls.default_db_preconditions).intersection(
+            all_post_conditions
+        )
+        enforce(
+            len(intersection) == 0,
+            f"db post conditions contain value that is a default post condition: {intersection}",
         )
 
     @classmethod
@@ -1927,6 +1965,7 @@ class AbciApp(
     background_round_cls: Optional[AppState] = None
     termination_transition_function: Optional[AbciAppTransitionFunction] = None
     termination_event: Optional[EventType] = None
+    default_db_preconditions: List[str] = BaseSynchronizedData.default_db_keys
     db_pre_conditions: Dict[AppState, List[str]] = {}
     db_post_conditions: Dict[AppState, List[str]] = {}
     _is_abstract: bool = True

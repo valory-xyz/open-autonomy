@@ -186,9 +186,9 @@ class PostTerminationTxAbciApp(AbciApp[Event]):
     db_pre_conditions = {
         TerminationRound: [
             get_name(SynchronizedData.safe_contract_address),
-            get_name(SynchronizedData.nb_participants),
         ]
     }
+
 
 termination_transition_function: AbciAppTransitionMapping = {
     FinishedTransactionSubmissionRound: PostTerminationTxAbciApp.initial_round_cls,

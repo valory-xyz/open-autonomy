@@ -124,9 +124,7 @@ class ResetPauseAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_AND_PAUSE_TIMEOUT: 30.0,
     }
-    db_pre_conditions: Dict[AppState, List[str]] = {
-        ResetAndPauseRound: [get_name(BaseSynchronizedData.period_count)]
-    }
+    db_pre_conditions: Dict[AppState, List[str]] = {ResetAndPauseRound: []}
     db_post_conditions: Dict[AppState, List[str]] = {
         FinishedResetAndPauseRound: [],
         FinishedResetAndPauseErrorRound: [],

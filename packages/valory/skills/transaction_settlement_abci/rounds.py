@@ -712,7 +712,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             get_name(SynchronizedData.safe_contract_address),
             get_name(SynchronizedData.most_voted_tx_hash),
             get_name(SynchronizedData.participants),
-            get_name(SynchronizedData.nb_participants),
         ]
     }
     db_post_conditions: Dict[AppState, List[str]] = {

@@ -156,7 +156,7 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
             next_app = initial_state_to_app[next_initial_state]
             if next_app in previous_apps_:
                 # self-loops do not require attention
-                # paths.append([element])
+                # we don't append to path
                 continue
             new_previous_apps = previous_apps_ + [app]
             for path in get_paths(next_initial_state, next_app, new_previous_apps):
@@ -170,7 +170,9 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
     new_db_post_conditions: Dict[AppState, List[str]] = {}
     for path in all_paths:
         current_initial_state, current_app, current_final_state = path[0]
-        accumulated_post_conditions: Set[str] = set(current_app.db_pre_conditions.get(current_initial_state, []))
+        accumulated_post_conditions: Set[str] = set(
+            current_app.db_pre_conditions.get(current_initial_state, [])
+        )
         for (next_initial_state, next_app, next_final_state) in path[1:]:
             if current_final_state is None:
                 # No outwards transition, nothing to check.
