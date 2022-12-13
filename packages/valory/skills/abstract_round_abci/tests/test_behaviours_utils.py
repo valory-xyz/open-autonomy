@@ -99,6 +99,10 @@ from packages.valory.skills.abstract_round_abci.models import (
     _DEFAULT_TX_MAX_ATTEMPTS,
     _DEFAULT_TX_TIMEOUT,
 )
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
+
+
+settings.load_profile(profile_name)
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
@@ -1161,7 +1165,6 @@ class TestBaseBehaviour:
             self.behaviour._send_signing_request(b"")
 
     @given(st.binary())
-    @settings(deadline=None)  # somehow autouse fixture in conftest doesn't work here
     def test_fuzz_send_signing_request(self, input_bytes: bytes) -> None:
         """Fuzz '_send_signing_request'.
 

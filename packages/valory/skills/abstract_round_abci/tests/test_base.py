@@ -35,12 +35,11 @@ from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
-import hypothesis
 import pytest
 from _pytest.logging import LogCaptureFixture
 from aea.exceptions import AEAEnforceError
 from aea_ledger_ethereum import EthereumCrypto
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis.strategies import (
     booleans,
     datetimes,
@@ -92,6 +91,10 @@ from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     ConcreteTerminationRoundB,
     ConcreteTerminationRoundC,
 )
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
+
+
+settings.load_profile(profile_name)
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
@@ -307,7 +310,6 @@ def test_verify_transaction_negative_case(*_mocks: Any) -> None:
         transaction.verify("")
 
 
-@hypothesis.settings(deadline=2000)
 @given(
     dictionaries(
         keys=text(),
