@@ -27,7 +27,7 @@ from aea.configurations.data_types import PackageType
 from aea.configurations.loader import load_configuration_object
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 
-from autonomy.chain.base import RegistriesManager
+from autonomy.chain.base import UnitType
 from autonomy.chain.config import ChainConfigs, ChainType
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
@@ -89,7 +89,7 @@ def mint_component(  # pylint: disable=too-many-arguments
             ledger_api=ledger_api,
             crypto=crypto,
             metadata_hash=metadata_hash,
-            component_type=RegistriesManager.UnitType.COMPONENT,
+            component_type=UnitType.COMPONENT,
             chain_type=chain_type,
             dependencies=dependencies,
         )
