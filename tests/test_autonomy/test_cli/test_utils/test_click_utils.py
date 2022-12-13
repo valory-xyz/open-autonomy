@@ -19,7 +19,9 @@
 
 """Test for cli click utils."""
 
+import shutil
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Optional, Tuple
@@ -28,6 +30,7 @@ import click
 import pytest
 from aea.test_tools.click_testing import CliRunner
 
+import autonomy
 from autonomy.analyse.abci.app_spec import FSMSpecificationLoader as FSMSpecLoader
 from autonomy.cli.utils.click_utils import (
     PathArgument,
@@ -95,3 +98,23 @@ def test_sys_path_patch() -> None:
     with sys_path_patch(Path(cwd)):
         assert cwd == sys.path[0]
     assert not cwd == sys.path[0]
+
+
+def test_sys_path_patch_import() -> None:
+    """Test sys_path_patch import"""
+
+    module_path = str(Path(autonomy.__file__).parent)
+    module_name = autonomy.__name__
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        target_path = str(Path(tmp_dir, module_name))
+        shutil.copytree(module_path, target_path)
+
+        assert not target_path == sys.path[0]
+        with sys_path_patch(Path(target_path)):
+            assert target_path == sys.path[0]
+            from autonomy import cli
+
+            assert cli.__file__.startswith(target_path)
+            assert not cli.__file__.startswith(module_path)
+        assert not target_path == sys.path[0]
