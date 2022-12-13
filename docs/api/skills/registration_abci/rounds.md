@@ -14,29 +14,6 @@ class Event(Enum)
 
 Event enumeration for the price estimation demo.
 
-<a id="packages.valory.skills.registration_abci.rounds.SynchronizedData"></a>
-
-## SynchronizedData Objects
-
-```python
-class SynchronizedData(BaseSynchronizedData)
-```
-
-Class to represent the synchronized data.
-
-This data is replicated by the tendermint application.
-
-<a id="packages.valory.skills.registration_abci.rounds.SynchronizedData.safe_contract_address"></a>
-
-#### safe`_`contract`_`address
-
-```python
-@property
-def safe_contract_address() -> str
-```
-
-Get the safe contract address.
-
 <a id="packages.valory.skills.registration_abci.rounds.FinishedRegistrationRound"></a>
 
 ## FinishedRegistrationRound Objects

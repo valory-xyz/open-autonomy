@@ -146,6 +146,23 @@ class BehaviourB(BaseBehaviour):
         yield
 
 
+class BehaviourC(BaseBehaviour):
+    """Dummy behaviour."""
+
+    def async_act(self) -> Generator:
+        """Dummy act method."""
+        yield
+
+
+def test_auto_behaviour_id() -> None:
+    """Test that the 'auto_behaviour_id()' method works as expected."""
+
+    assert BehaviourB.auto_behaviour_id() == BEHAVIOUR_B_ID
+    assert BehaviourB.behaviour_id == BEHAVIOUR_B_ID
+    assert BehaviourC.auto_behaviour_id() == "behaviour_c"
+    assert isinstance(BehaviourC.behaviour_id, property)
+
+
 class ConcreteBackgroundBehaviour(BaseBehaviour):
     """Dummy behaviour."""
 

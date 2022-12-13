@@ -84,7 +84,7 @@ def get_name(prop: Any) -> str:
     if not (isinstance(prop, property) and hasattr(prop, "fget")):
         raise ValueError(f"{prop} is not a property")
     if prop.fget is None:
-        raise ValueError(f"{prop.fget} is None")
+        raise ValueError(f"fget of {prop} is None")  # pragma: nocover
     return prop.fget.__name__
 
 
@@ -1959,6 +1959,12 @@ class AbciApp(
         cls.background_round_cls = background_round_cls
         cls.termination_transition_function = termination_abci_app.transition_function
         cls.termination_event = termination_event
+        new_cross_period_persisted_keys = copy(cls.cross_period_persisted_keys)
+        new_cross_period_persisted_keys.extend(
+            termination_abci_app.cross_period_persisted_keys
+        )
+        new_cross_period_persisted_keys = list(set(new_cross_period_persisted_keys))
+        cls.cross_period_persisted_keys = new_cross_period_persisted_keys
         return cls
 
     @property
