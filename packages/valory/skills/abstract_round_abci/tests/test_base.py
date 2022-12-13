@@ -23,7 +23,6 @@
 
 import datetime
 import logging
-import os
 import re
 import shutil
 from abc import ABC
@@ -92,9 +91,11 @@ from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     ConcreteTerminationRoundB,
     ConcreteTerminationRoundC,
 )
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
 
-settings.load_profile(os.getenv("CI", "default"))
+settings.load_profile(profile_name)
+
 
 PACKAGE_DIR = Path(__file__).parent.parent
 

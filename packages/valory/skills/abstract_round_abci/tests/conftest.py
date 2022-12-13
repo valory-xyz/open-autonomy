@@ -19,6 +19,7 @@
 
 """Conftest module for io tests."""
 
+import os
 import shutil
 from contextlib import suppress
 from pathlib import Path
@@ -36,6 +37,7 @@ from packages.valory.skills.abstract_round_abci.io_.store import StoredJSONType
 CI = "CI"
 PACKAGE_DIR = Path(__file__).parent.parent
 settings.register_profile(CI, deadline=5000)
+profile_name = ("default", "CI")[bool(os.getenv("CI"))]
 
 
 @pytest.fixture

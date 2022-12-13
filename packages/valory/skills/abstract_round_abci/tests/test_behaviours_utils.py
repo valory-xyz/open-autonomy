@@ -22,7 +22,6 @@
 import json
 import logging
 import math
-import os
 import platform
 import time
 from abc import ABC
@@ -98,9 +97,10 @@ from packages.valory.skills.abstract_round_abci.models import (
     _DEFAULT_TX_MAX_ATTEMPTS,
     _DEFAULT_TX_TIMEOUT,
 )
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
 
-settings.load_profile(os.getenv("CI", "default"))
+settings.load_profile(profile_name)
 
 
 PACKAGE_DIR = Path(__file__).parent.parent

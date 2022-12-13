@@ -21,7 +21,6 @@
 # pylint: skip-file
 
 import math
-import os
 from collections import defaultdict
 from typing import Any, Dict
 
@@ -34,9 +33,10 @@ from packages.valory.skills.abstract_round_abci import serializer
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
 
-settings.load_profile(os.getenv("CI", "default"))
+settings.load_profile(profile_name)
 
 
 def test_encode_decode_i() -> None:
