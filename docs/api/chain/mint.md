@@ -29,17 +29,27 @@ Publish service metadata.
 #### verify`_`and`_`fetch`_`token`_`id`_`from`_`event
 
 ```python
-def verify_and_fetch_token_id_from_event(event: Dict, unit_type: RegistriesManager.UnitType, metadata_hash: str, ledger_api: LedgerApi) -> Optional[int]
+def verify_and_fetch_token_id_from_event(event: Dict, unit_type: UnitType, metadata_hash: str, ledger_api: LedgerApi) -> Optional[int]
 ```
 
 Verify and extract token id from a registry event
+
+<a id="autonomy.chain.mint.get_contract"></a>
+
+#### get`_`contract
+
+```python
+def get_contract(public_id: PublicId) -> Contract
+```
+
+Load contract for given public id.
 
 <a id="autonomy.chain.mint.mint_component"></a>
 
 #### mint`_`component
 
 ```python
-def mint_component(ledger_api: LedgerApi, crypto: Crypto, metadata_hash: str, component_type: RegistriesManager.UnitType, chain_type: ChainType, dependencies: Optional[List[int]] = None) -> Optional[int]
+def mint_component(ledger_api: LedgerApi, crypto: Crypto, metadata_hash: str, component_type: UnitType, chain_type: ChainType, dependencies: Optional[List[int]] = None) -> Optional[int]
 ```
 
 Publish component on-chain.

@@ -77,3 +77,14 @@ class ContractConfigs()
 
 A namespace for contract configs.
 
+<a id="autonomy.chain.config.ContractConfigs.get"></a>
+
+#### get
+
+```python
+@classmethod
+def get(cls, name: str) -> ContractConfig
+```
+
+Return chain config for given chain type.
+
