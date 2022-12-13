@@ -220,9 +220,11 @@ class TestAbciAppChaining:
             self.event_timeout1: self.timeout1,
             self.event_timeout2: self.timeout2,
         }
-        assert ComposedAbciApp.cross_period_persisted_keys == list(
-            set(self.cross_period_persisted_keys_1).union(
-                set(self.cross_period_persisted_keys_2)
+        assert sorted(ComposedAbciApp.cross_period_persisted_keys) == sorted(
+            list(
+                set(self.cross_period_persisted_keys_1).union(
+                    set(self.cross_period_persisted_keys_2)
+                )
             )
         )
 

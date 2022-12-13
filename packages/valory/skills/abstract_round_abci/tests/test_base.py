@@ -1617,7 +1617,7 @@ class TestAbciApp:
         assert EmptyAbciApp.background_round_cls is not None
         assert EmptyAbciApp.termination_transition_function is not None
         assert EmptyAbciApp.termination_event is not None  # type: ignore
-        assert EmptyAbciApp.cross_period_persisted_keys == ["1", "2", "3"]
+        assert sorted(EmptyAbciApp.cross_period_persisted_keys) == ["1", "2", "3"]
 
     def test_background_round(self) -> None:
         """Test the background_round property."""
