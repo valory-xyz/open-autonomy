@@ -43,6 +43,7 @@ publish_metadata_patch = mock.patch(
 )
 
 
+@pytest.mark.skip
 class TestMintComponentMethod:
     """Test `mint_component` method."""
 

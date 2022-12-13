@@ -31,6 +31,7 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
+@pytest.mark.skip
 @skip_docker_tests
 @pytest.mark.usefixtures("registries_scope_class")
 class TestMintProtocol(BaseCliTest):
