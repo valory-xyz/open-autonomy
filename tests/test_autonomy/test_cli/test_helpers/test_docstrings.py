@@ -27,6 +27,7 @@ from unittest import mock
 import pytest
 from _pytest.capture import CaptureFixture  # type: ignore
 
+from autonomy.cli.helpers import docstring
 from autonomy.cli.helpers.docstring import analyse_docstrings, import_rounds_module
 
 import packages
@@ -65,6 +66,18 @@ def test_analyse_docstrings_without_update(module: ModuleType) -> None:
     module_path = Path(module.__file__)
     updated_needed = analyse_docstrings(module_path)
     assert not updated_needed
+
+
+def test_analyse_docstrings_no_abci_app_definition(capsys: CaptureFixture) -> None:
+    """Test analyse_docstrings no ABCIApp definition found"""
+
+    with mock.patch.object(docstring, "import_rounds_module", return_value=docstring):
+        module_path = Path(test_abci.__file__)
+        updated_needed = analyse_docstrings(module_path)
+        stdout = capsys.readouterr().out
+        expected = f"WARNING: No AbciApp definition found in: {docstring.__file__}"
+        assert updated_needed
+        assert expected in stdout
 
 
 def test_analyse_docstrings_with_update(capsys: CaptureFixture) -> None:
