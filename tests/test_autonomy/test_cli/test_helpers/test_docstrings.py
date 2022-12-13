@@ -76,7 +76,7 @@ def test_analyse_docstrings_no_abci_app_definition(capsys: CaptureFixture) -> No
         updated_needed = analyse_docstrings(module_path)
         stdout = capsys.readouterr().out
         expected = f"WARNING: No AbciApp definition found in: {docstring.__file__}"
-        assert not updated_needed
+        assert updated_needed
         assert expected in stdout
 
 
