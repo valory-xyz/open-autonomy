@@ -25,7 +25,7 @@ class AbstractRoundBehaviour(
 
     def instantiate_behaviour_cls(self, behaviour_cls: BehaviourType) -> BaseBehaviour:
         return behaviour_cls(
-            name=behaviour_cls.behaviour_id, skill_context=self.context
+            name=behaviour_cls.auto_behaviour_id(), skill_context=self.context
         )
 
     def setup(self) -> None:

@@ -56,6 +56,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ROUND_COUNT_DEFAULT,
     TransactionNotValidError,
     VotingRound,
+    get_name,
 )
 
 
@@ -139,9 +140,8 @@ def get_dummy_tx_payloads(
 class DummyRound(AbstractRound):
     """Dummy round."""
 
-    round_id = "round_id"
     allowed_tx_type = DummyTxPayload.transaction_type
-    payload_attribute = "value"
+    payload_attribute = get_name(DummyTxPayload.value)
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """end_block method."""

@@ -39,12 +39,17 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
 from packages.valory.agents.register_reset.tests.helpers.conftest import (  # noqa: F401
     flask_tendermint,
 )
+from packages.valory.skills.registration_abci.rounds import (
+    RegistrationRound,
+    RegistrationStartupRound,
+)
+from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
 
 
 HAPPY_PATH = (
-    RoundChecks("registration_startup"),
-    RoundChecks("registration", n_periods=2),
-    RoundChecks("reset_and_pause", n_periods=3),
+    RoundChecks(RegistrationStartupRound.auto_round_id()),
+    RoundChecks(RegistrationRound.auto_round_id(), n_periods=2),
+    RoundChecks(ResetAndPauseRound.auto_round_id(), n_periods=3),
 )
 
 
