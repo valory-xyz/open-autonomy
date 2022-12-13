@@ -26,14 +26,20 @@ from typing import Any, Dict, List, Optional, cast
 
 from aea.configurations.constants import DEFAULT_README_FILE
 from aea.configurations.data_types import PublicId
+from aea.contracts.base import Contract
 from aea.crypto.base import Crypto, LedgerApi
 from aea.helpers.cid import CID
 from aea.helpers.ipfs.base import IPFSHashOnly
 from aea_cli_ipfs.ipfs_utils import IPFSTool
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
-from autonomy.chain.base import ComponentRegistry, RegistriesManager
-from autonomy.chain.config import ChainType
+from autonomy.chain.base import UnitType
+from autonomy.chain.config import ChainType, ContractConfigs
+from autonomy.chain.constants import (
+    COMPONENT_REGISTRY_CONTRACT,
+    CONTRACTS_DIR,
+    REGISTRIES_MANAGER_CONTRACT,
+)
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
 
 
@@ -94,7 +100,7 @@ def publish_metadata(
 
 def verify_and_fetch_token_id_from_event(
     event: Dict,
-    unit_type: RegistriesManager.UnitType,
+    unit_type: UnitType,
     metadata_hash: str,
     ledger_api: LedgerApi,
 ) -> Optional[int]:
@@ -110,30 +116,38 @@ def verify_and_fetch_token_id_from_event(
     return None
 
 
+def get_contract(public_id: PublicId) -> Contract:
+    """Load contract for given public id."""
+
+    package_dir = CONTRACTS_DIR / public_id.name
+    return Contract.from_dir(directory=package_dir)
+
+
 def mint_component(
     ledger_api: LedgerApi,
     crypto: Crypto,
     metadata_hash: str,
-    component_type: RegistriesManager.UnitType,
+    component_type: UnitType,
     chain_type: ChainType,
     dependencies: Optional[List[int]] = None,
 ) -> Optional[int]:
     """Publish component on-chain."""
 
-    registries_manager = RegistriesManager(
-        ledger_api=ledger_api,
-        crypto=crypto,
-        chain_type=chain_type,
+    registries_manager = get_contract(
+        public_id=REGISTRIES_MANAGER_CONTRACT,
     )
 
-    component_registry = ComponentRegistry(
-        ledger_api=ledger_api,
-        crypto=crypto,
-        chain_type=chain_type,
+    component_registry = get_contract(
+        public_id=COMPONENT_REGISTRY_CONTRACT,
     )
 
     try:
         registries_manager.create(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                REGISTRIES_MANAGER_CONTRACT.name
+            ).contracts[chain_type],
+            owner=crypto.address,
             component_type=component_type,
             metadata_hash=metadata_hash,
             dependencies=dependencies,
@@ -142,7 +156,12 @@ def mint_component(
         raise ComponentMintFailed("Cannot connect to the given RPC") from e
 
     try:
-        for event_dict in component_registry.get_create_unit_event_filter():
+        for event_dict in component_registry.get_create_unit_event_filter(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                COMPONENT_REGISTRY_CONTRACT.name
+            ).contracts[chain_type],
+        ):
             token_id = verify_and_fetch_token_id_from_event(
                 event=event_dict,
                 unit_type=component_type,
