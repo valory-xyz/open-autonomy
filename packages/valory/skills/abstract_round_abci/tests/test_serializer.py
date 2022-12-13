@@ -27,12 +27,16 @@ from typing import Any, Dict
 import hypothesis.strategies as st
 import pytest
 from google.protobuf.struct_pb2 import Struct
-from hypothesis import given
+from hypothesis import given, settings
 
 from packages.valory.skills.abstract_round_abci import serializer
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
+
+
+settings.load_profile(profile_name)
 
 
 def test_encode_decode_i() -> None:
