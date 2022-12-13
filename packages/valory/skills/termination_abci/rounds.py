@@ -183,7 +183,12 @@ class PostTerminationTxAbciApp(AbciApp[Event]):
     # the TerminationRound when run it terminates the agent, so nothing can come after it
     transition_function = {TerminationRound: {Event.TERMINATE: TerminationRound}}
     cross_period_persisted_keys = [get_name(SynchronizedData.safe_contract_address)]
-
+    db_pre_conditions = {
+        TerminationRound: [
+            get_name(SynchronizedData.safe_contract_address),
+            get_name(SynchronizedData.nb_participants),
+        ]
+    }
 
 termination_transition_function: AbciAppTransitionMapping = {
     FinishedTransactionSubmissionRound: PostTerminationTxAbciApp.initial_round_cls,
@@ -199,10 +204,4 @@ TerminationAbciApp = chain(
 
 TerminationAbciApp.transition_function[BackgroundRound] = {
     Event.TERMINATE: TransactionSubmissionAbciApp.initial_round_cls,
-}
-TerminationAbciApp.db_pre_conditions = {
-    TerminationRound: [
-        get_name(SynchronizedData.safe_contract_address),
-        get_name(SynchronizedData.nb_participants),
-    ]
 }
