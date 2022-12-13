@@ -124,13 +124,13 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
         """Test registration."""
         self.fast_forward_to_behaviour(
             self.behaviour,
-            self.behaviour_class.behaviour_id,
+            self.behaviour_class.auto_behaviour_id(),
             RegistrationSynchronizedData(AbciAppDB(setup_data=setup_data)),
         )
         assert isinstance(self.behaviour.current_behaviour, BaseBehaviour)
         assert (
             self.behaviour.current_behaviour.behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
         with mock.patch.object(
             self.behaviour.current_behaviour,
@@ -153,7 +153,7 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
         self.end_round(Event.DONE)
         assert (
             self.behaviour.current_behaviour.behaviour_id
-            == self.next_behaviour_class.behaviour_id
+            == self.next_behaviour_class.auto_behaviour_id()
         )
 
 
@@ -161,7 +161,9 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     """Test case to test RegistrationStartupBehaviour."""
 
     behaviour_class = RegistrationStartupBehaviour
-    next_behaviour_class = make_degenerate_behaviour(FinishedRegistrationRound.round_id)
+    next_behaviour_class = make_degenerate_behaviour(
+        FinishedRegistrationRound.auto_round_id()
+    )
 
     other_agents: List[str] = ["0xAlice", "0xBob", "0xCharlie"]
 
@@ -527,7 +529,9 @@ class TestRegistrationStartupBehaviourNoConfigShare(BaseRegistrationTestBehaviou
     """Test case to test RegistrationBehaviour."""
 
     behaviour_class = RegistrationStartupBehaviour
-    next_behaviour_class = make_degenerate_behaviour(FinishedRegistrationRound.round_id)
+    next_behaviour_class = make_degenerate_behaviour(
+        FinishedRegistrationRound.auto_round_id()
+    )
 
 
 class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
@@ -535,5 +539,5 @@ class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
 
     behaviour_class = RegistrationBehaviour
     next_behaviour_class = make_degenerate_behaviour(
-        FinishedRegistrationFFWRound.round_id
+        FinishedRegistrationFFWRound.auto_round_id()
     )

@@ -78,7 +78,7 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
 
     behaviour_class = ResetAndPauseBehaviour
     next_behaviour_class = make_degenerate_behaviour(
-        FinishedResetAndPauseRound.round_id
+        FinishedResetAndPauseRound.auto_round_id()
     )
 
     @pytest.mark.parametrize("tendermint_reset_status", (None, True, False))
@@ -90,7 +90,7 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
 
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=self.behaviour_class.behaviour_id,
+            behaviour_id=self.behaviour_class.auto_behaviour_id(),
             synchronized_data=ResetSynchronizedSata(
                 AbciAppDB(
                     setup_data=dict(
@@ -104,7 +104,7 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
         assert self.behaviour.current_behaviour is not None
         assert (
             self.behaviour.current_behaviour.behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with mock.patch.object(
@@ -147,5 +147,5 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
         self.end_round(ResetEvent.DONE)
         assert (
             self.behaviour.current_behaviour.behaviour_id
-            == self.next_behaviour_class.behaviour_id
+            == self.next_behaviour_class.auto_behaviour_id()
         )

@@ -94,12 +94,12 @@ class BaseTerminationTest(FSMBehaviourBaseCase):
         data = data if data is not None else {}
         self.fast_forward_to_behaviour(
             self.behaviour,  # type: ignore
-            self.behaviour_class.behaviour_id,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(AbciAppDB(setup_data=AbciAppDB.data_to_lists(data))),
         )
         assert (
             self.behaviour.current_behaviour.behaviour_id  # type: ignore
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
     def complete(self) -> None:
@@ -109,7 +109,7 @@ class BaseTerminationTest(FSMBehaviourBaseCase):
         self.end_round(done_event=self.done_event)
         assert (
             self.behaviour.current_behaviour.behaviour_id  # type: ignore
-            == self.next_behaviour_class.behaviour_id
+            == self.next_behaviour_class.auto_behaviour_id()
         )
 
 
@@ -552,7 +552,9 @@ class TestBackgroundBehaviour(BaseTerminationTest):
 
     def test_termination_majority_already_reached(self) -> None:
         """Tests the background behaviour when the termination is already reached."""
-        self.fast_forward(data=dict(termination_majority_reached=True))
+        self.fast_forward(
+            data=dict(termination_majority_reached=True, participants=["a"])
+        )
         with mock.patch.object(
             self.behaviour_class, "check_for_signal"
         ) as check_for_signal:

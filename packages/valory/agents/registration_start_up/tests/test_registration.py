@@ -51,6 +51,7 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationStartupBehaviour,
 )
+from packages.valory.skills.registration_abci.rounds import RegistrationStartupRound
 
 
 log_messages = RegistrationStartupBehaviour.LogMessages
@@ -78,7 +79,7 @@ STRICT_CHECK_STRINGS = (
 )
 
 
-HAPPY_PATH = (RoundChecks("registration_startup"),)
+HAPPY_PATH = (RoundChecks(RegistrationStartupRound.auto_round_id()),)
 
 
 class RegistrationStartUpTestConfig(UseRegistries, UseACNNode, BaseTestEnd2End):
