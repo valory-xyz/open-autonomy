@@ -20,8 +20,11 @@
 """Test importing all modules"""
 
 import pkgutil
+from importlib.machinery import FileFinder, SourceFileLoader
+from typing import cast
 
 import autonomy
+
 import packages
 
 
@@ -29,5 +32,6 @@ def test_import_all_modules() -> None:
     """Test importing all modules."""
 
     package_names = [autonomy.__name__, packages.__name__]
-    for loader, module_name, c in pkgutil.walk_packages(package_names):
-        loader.find_module(module_name).load_module(module_name)
+    for file_finder, module_name, _ in pkgutil.walk_packages(package_names):
+        loader = cast(FileFinder, file_finder).find_module(module_name)
+        cast(SourceFileLoader, loader).load_module(module_name)
