@@ -19,6 +19,7 @@
 
 """This package contains the rounds of DummyAbciApp."""
 
+from abc import ABC
 from enum import Enum
 from typing import List, Optional, Set, Tuple, cast
 
@@ -58,17 +59,16 @@ class SynchronizedData(BaseSynchronizedData):
     """
 
 
-class DummyMixinRound(AbstractRound):
+class DummyMixinRound(AbstractRound, ABC):
     """DummyMixinRound"""
 
-    synchronized_data_class = BaseSynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
 
     @property
     def synchronized_data(self) -> SynchronizedData:
         """Return the synchronized data."""
-        return cast(SynchronizedData, self._synchronized_data)  # type: ignore
+        return cast(SynchronizedData, self._synchronized_data)
 
 
 class DummyStartingRound(CollectSameUntilAllRound, DummyMixinRound):
@@ -77,6 +77,7 @@ class DummyStartingRound(CollectSameUntilAllRound, DummyMixinRound):
     round_id: str = "dummy_starting"
     allowed_tx_type: Optional[TransactionType] = DummyStartingPayload.transaction_type
     payload_attribute: str = "dummy_starting"
+    synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -99,6 +100,7 @@ class DummyRandomnessRound(CollectSameUntilThresholdRound, DummyMixinRound):
     payload_attribute: str = "dummy_randomness"
     collection_key = "participant_to_randomness"
     selection_key = "most_voted_randomness"
+    synchronized_data_class = SynchronizedData
 
 
 class DummyKeeperSelectionRound(CollectSameUntilThresholdRound, DummyMixinRound):
@@ -111,6 +113,7 @@ class DummyKeeperSelectionRound(CollectSameUntilThresholdRound, DummyMixinRound)
     payload_attribute: str = "dummy_keeper_selection"
     collection_key = "participant_to_keeper"
     selection_key = "most_voted_keeper"
+    synchronized_data_class = SynchronizedData
 
 
 class DummyFinalRound(OnlyKeeperSendsRound, DummyMixinRound):
@@ -119,6 +122,7 @@ class DummyFinalRound(OnlyKeeperSendsRound, DummyMixinRound):
     round_id: str = "dummy_final"
     allowed_tx_type: Optional[TransactionType] = DummyFinalPayload.transaction_type
     payload_attribute: str = "dummy_final"
+    synchronized_data_class = SynchronizedData
 
 
 class DummyAbciApp(AbciApp[Event]):

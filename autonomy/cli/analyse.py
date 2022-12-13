@@ -132,7 +132,7 @@ def docstrings(ctx: Context, update: bool) -> None:
     abci_compositions = packages_dir.glob("*/skills/*/rounds.py")
 
     if packages_dir.name != PACKAGES:
-        raise click.ClickException(
+        raise click.ClickException(  # pragma: no cover
             f"packages directory {packages_dir} is not named '{PACKAGES}'"
         )
 

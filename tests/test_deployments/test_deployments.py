@@ -18,10 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for the 'deployments' functionality."""
+import json
 import os
 import re
-import json
-from unittest import mock
 import shutil
 import tempfile
 from abc import ABC
@@ -29,11 +28,12 @@ from contextlib import suppress
 from glob import glob
 from pathlib import Path
 from typing import Any, List, Tuple, cast
+from unittest import mock
 
 import pytest
 import yaml
-from aea.exceptions import AEAValidationError
 from aea.configurations.data_types import PublicId
+from aea.exceptions import AEAValidationError
 
 from autonomy.configurations.base import Service
 from autonomy.configurations.validation import ConfigValidator
@@ -42,11 +42,16 @@ from autonomy.constants import (
     HARDHAT_IMAGE_VERSION,
     TENDERMINT_IMAGE_VERSION,
 )
-from autonomy.deploy.base import BaseDeploymentGenerator, ServiceBuilder, NotValidKeysFile
+from autonomy.deploy.base import (
+    BaseDeploymentGenerator,
+    NotValidKeysFile,
+    ServiceBuilder,
+)
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
+
 
 deployment_generators: List[Any] = [
     DockerComposeGenerator,
@@ -268,15 +273,16 @@ class TestDeploymentGenerators(BaseDeploymentTests):
     def test_update_agent_number_based_on_keys_file(self) -> None:
         """Test JSONDecodeError on read_keys"""
 
-        public_id = PublicId("Georg Wilhelm Friedrich", "Hegel")
-        service = Service("Arthur", "Schopenhauer", public_id, number_of_agents=1_000_000)
-        kwargs = dict(
+        public_id = PublicId("Georg", "Hegel")
+        service = Service(
+            "Arthur", "Schopenhauer", public_id, number_of_agents=1_000_000
+        )
+        builder = ServiceBuilder(
             service=service,
             keys=None,
             private_keys_password=None,
             agent_instances=list("abcdefg"),
         )
-        builder = ServiceBuilder(**kwargs)
         assert builder.service.number_of_agents == 1_000_000
         return_value = [dict(address="a", private_key="")]
         with mock.patch.object(json, "loads", return_value=return_value):

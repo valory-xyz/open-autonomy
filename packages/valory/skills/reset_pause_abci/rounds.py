@@ -31,6 +31,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     CollectSameUntilThresholdRound,
     DegenerateRound,
+    get_name,
 )
 from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 
@@ -47,9 +48,8 @@ class Event(Enum):
 class ResetAndPauseRound(CollectSameUntilThresholdRound):
     """A round that represents that consensus is reached (the final round)"""
 
-    round_id = "reset_and_pause"
     allowed_tx_type = ResetPausePayload.transaction_type
-    payload_attribute = "period_count"
+    payload_attribute = get_name(ResetPausePayload.period_count)
     _allow_rejoin_payloads = True
     synchronized_data_class = BaseSynchronizedData
 
@@ -80,13 +80,9 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
 class FinishedResetAndPauseRound(DegenerateRound):
     """A round that represents reset and pause has finished"""
 
-    round_id = "finished_reset_pause"
-
 
 class FinishedResetAndPauseErrorRound(DegenerateRound):
     """A round that represents reset and pause has finished with errors"""
-
-    round_id = "finished_reset_pause_error"
 
 
 class ResetPauseAbciApp(AbciApp[Event]):

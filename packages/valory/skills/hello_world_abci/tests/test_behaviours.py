@@ -129,7 +129,7 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
             cast(
                 BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.hello_world_abci_behaviour.initial_behaviour_cls.behaviour_id
+            == self.hello_world_abci_behaviour.initial_behaviour_cls.auto_behaviour_id()
         )
         self.synchronized_data = SynchronizedData(
             AbciAppDB(
@@ -146,7 +146,9 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         synchronized_data: BaseSynchronizedData,
     ) -> None:
         """Fast forward the FSM to a behaviour."""
-        next_behaviour = {s.behaviour_id: s for s in behaviour.behaviours}[behaviour_id]
+        next_behaviour = {s.auto_behaviour_id(): s for s in behaviour.behaviours}[
+            behaviour_id
+        ]
         assert next_behaviour is not None, f"Behaviour {behaviour_id} not found"
         next_behaviour = cast(Type[BaseBehaviour], next_behaviour)
         behaviour.current_behaviour = next_behaviour(
@@ -336,7 +338,7 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
 
         self.fast_forward_to_behaviour(
             self.hello_world_abci_behaviour,
-            self.collect_randomness_behaviour_class.behaviour_id,
+            self.collect_randomness_behaviour_class.auto_behaviour_id(),
             self.synchronized_data,
         )
         assert (
@@ -344,7 +346,7 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour),
             ).behaviour_id
-            == self.collect_randomness_behaviour_class.behaviour_id
+            == self.collect_randomness_behaviour_class.auto_behaviour_id()
         )
         self.hello_world_abci_behaviour.act_wrapper()
         self.mock_http_request(
@@ -377,7 +379,7 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
         behaviour = cast(
             BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
         )
-        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert behaviour.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_invalid_response(
         self,
@@ -385,7 +387,7 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
         """Test invalid json response."""
         self.fast_forward_to_behaviour(
             self.hello_world_abci_behaviour,
-            self.collect_randomness_behaviour_class.behaviour_id,
+            self.collect_randomness_behaviour_class.auto_behaviour_id(),
             self.synchronized_data,
         )
         assert (
@@ -393,7 +395,7 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour),
             ).behaviour_id
-            == self.collect_randomness_behaviour_class.behaviour_id
+            == self.collect_randomness_behaviour_class.auto_behaviour_id()
         )
         self.hello_world_abci_behaviour.act_wrapper()
 
@@ -419,7 +421,7 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
         """Test with max retries reached."""
         self.fast_forward_to_behaviour(
             self.hello_world_abci_behaviour,
-            self.collect_randomness_behaviour_class.behaviour_id,
+            self.collect_randomness_behaviour_class.auto_behaviour_id(),
             self.synchronized_data,
         )
         assert (
@@ -427,7 +429,7 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour),
             ).behaviour_id
-            == self.collect_randomness_behaviour_class.behaviour_id
+            == self.collect_randomness_behaviour_class.auto_behaviour_id()
         )
         with mock.patch.object(
             self.hello_world_abci_behaviour.context.randomness_api,
@@ -440,7 +442,7 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
             )
             assert (
                 behaviour.behaviour_id
-                == self.collect_randomness_behaviour_class.behaviour_id
+                == self.collect_randomness_behaviour_class.auto_behaviour_id()
             )
             self._test_done_flag_set()
 
@@ -450,7 +452,7 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
         """Test when `observed` value is none."""
         self.fast_forward_to_behaviour(
             self.hello_world_abci_behaviour,
-            self.collect_randomness_behaviour_class.behaviour_id,
+            self.collect_randomness_behaviour_class.auto_behaviour_id(),
             self.synchronized_data,
         )
         assert (
@@ -458,7 +460,7 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour),
             ).behaviour_id
-            == self.collect_randomness_behaviour_class.behaviour_id
+            == self.collect_randomness_behaviour_class.auto_behaviour_id()
         )
         self.hello_world_abci_behaviour.context.randomness_api.retries_info.retries_attempted = (
             1
@@ -484,7 +486,7 @@ class BaseSelectKeeperBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_behaviour(
             behaviour=self.hello_world_abci_behaviour,
-            behaviour_id=self.select_keeper_behaviour_class.behaviour_id,
+            behaviour_id=self.select_keeper_behaviour_class.auto_behaviour_id(),
             synchronized_data=SynchronizedData(
                 AbciAppDB(
                     setup_data=dict(
@@ -502,7 +504,7 @@ class BaseSelectKeeperBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour),
             ).behaviour_id
-            == self.select_keeper_behaviour_class.behaviour_id
+            == self.select_keeper_behaviour_class.auto_behaviour_id()
         )
         self.hello_world_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
@@ -511,7 +513,7 @@ class BaseSelectKeeperBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
         behaviour = cast(
             BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
         )
-        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert behaviour.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
 
 class TestRegistrationBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
@@ -521,7 +523,7 @@ class TestRegistrationBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         """Test registration."""
         self.fast_forward_to_behaviour(
             self.hello_world_abci_behaviour,
-            RegistrationBehaviour.behaviour_id,
+            RegistrationBehaviour.auto_behaviour_id(),
             self.synchronized_data,
         )
         assert (
@@ -529,7 +531,7 @@ class TestRegistrationBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour),
             ).behaviour_id
-            == RegistrationBehaviour.behaviour_id
+            == RegistrationBehaviour.auto_behaviour_id()
         )
         self.hello_world_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
@@ -539,7 +541,7 @@ class TestRegistrationBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         behaviour = cast(
             BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
         )
-        assert behaviour.behaviour_id == CollectRandomnessBehaviour.behaviour_id
+        assert behaviour.behaviour_id == CollectRandomnessBehaviour.auto_behaviour_id()
 
 
 class TestCollectRandomnessBehaviour(BaseCollectRandomnessBehaviourTest):
@@ -563,7 +565,7 @@ class TestPrintMessageBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         """Test print_message."""
         self.fast_forward_to_behaviour(
             self.hello_world_abci_behaviour,
-            PrintMessageBehaviour.behaviour_id,
+            PrintMessageBehaviour.auto_behaviour_id(),
             self.synchronized_data,
         )
         assert (
@@ -571,7 +573,7 @@ class TestPrintMessageBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour),
             ).behaviour_id
-            == PrintMessageBehaviour.behaviour_id
+            == PrintMessageBehaviour.auto_behaviour_id()
         )
         self.hello_world_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
@@ -581,7 +583,7 @@ class TestPrintMessageBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         behaviour = cast(
             BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
         )
-        assert behaviour.behaviour_id == ResetAndPauseBehaviour.behaviour_id
+        assert behaviour.behaviour_id == ResetAndPauseBehaviour.auto_behaviour_id()
 
     @mock.patch.object(SkillContext, "agent_address", new_callable=mock.PropertyMock)
     def test_print_message_keeper(
@@ -592,7 +594,7 @@ class TestPrintMessageBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         agent_address_mock.return_value = "most_voted_keeper_address"
         self.fast_forward_to_behaviour(
             self.hello_world_abci_behaviour,
-            PrintMessageBehaviour.behaviour_id,
+            PrintMessageBehaviour.auto_behaviour_id(),
             self.synchronized_data,
         )
         assert (
@@ -600,7 +602,7 @@ class TestPrintMessageBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour),
             ).behaviour_id
-            == PrintMessageBehaviour.behaviour_id
+            == PrintMessageBehaviour.auto_behaviour_id()
         )
         self.hello_world_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
@@ -610,7 +612,7 @@ class TestPrintMessageBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         behaviour = cast(
             BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
         )
-        assert behaviour.behaviour_id == ResetAndPauseBehaviour.behaviour_id
+        assert behaviour.behaviour_id == ResetAndPauseBehaviour.auto_behaviour_id()
 
 
 class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
@@ -625,7 +627,7 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         """Test pause and reset behaviour."""
         self.fast_forward_to_behaviour(
             behaviour=self.hello_world_abci_behaviour,
-            behaviour_id=self.behaviour_class.behaviour_id,
+            behaviour_id=self.behaviour_class.auto_behaviour_id(),
             synchronized_data=self.synchronized_data,
         )
         assert (
@@ -633,7 +635,7 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour),
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
         self.hello_world_abci_behaviour.context.params.observation_interval = 0.1
         self.hello_world_abci_behaviour.act_wrapper()
@@ -645,7 +647,7 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         behaviour = cast(
             BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
         )
-        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert behaviour.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_reset_behaviour(
         self,
@@ -653,7 +655,7 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         """Test reset behaviour."""
         self.fast_forward_to_behaviour(
             behaviour=self.hello_world_abci_behaviour,
-            behaviour_id=self.behaviour_class.behaviour_id,
+            behaviour_id=self.behaviour_class.auto_behaviour_id(),
             synchronized_data=self.synchronized_data,
         )
         self.hello_world_abci_behaviour.current_behaviour.pause = False  # type: ignore
@@ -662,7 +664,7 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour),
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
         self.hello_world_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
@@ -671,4 +673,4 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
         behaviour = cast(
             BaseBehaviour, self.hello_world_abci_behaviour.current_behaviour
         )
-        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert behaviour.behaviour_id == self.next_behaviour_class.auto_behaviour_id()

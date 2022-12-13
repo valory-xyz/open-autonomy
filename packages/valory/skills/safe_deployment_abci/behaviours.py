@@ -59,7 +59,6 @@ class SafeDeploymentBaseBehaviour(BaseBehaviour):
 class RandomnessSafeBehaviour(RandomnessBehaviour):
     """Retrieve randomness for oracle deployment."""
 
-    behaviour_id = "randomness_safe"
     matching_round = RandomnessSafeRound
     payload_class = RandomnessPayload
 
@@ -67,7 +66,6 @@ class RandomnessSafeBehaviour(RandomnessBehaviour):
 class SelectKeeperSafeBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent."""
 
-    behaviour_id = "select_keeper_safe"
     matching_round = SelectKeeperSafeRound
     payload_class = SelectKeeperPayload
 
@@ -75,7 +73,6 @@ class SelectKeeperSafeBehaviour(SelectKeeperBehaviour):
 class DeploySafeBehaviour(SafeDeploymentBaseBehaviour):
     """Deploy Safe."""
 
-    behaviour_id = "deploy_safe"
     matching_round = DeploySafeRound
 
     def async_act(self) -> Generator:
@@ -170,7 +167,6 @@ class DeploySafeBehaviour(SafeDeploymentBaseBehaviour):
 class ValidateSafeBehaviour(SafeDeploymentBaseBehaviour):
     """Validate Safe."""
 
-    behaviour_id = "validate_safe"
     matching_round = ValidateSafeRound
 
     def async_act(self) -> Generator:
