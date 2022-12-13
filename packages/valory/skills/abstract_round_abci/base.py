@@ -1850,17 +1850,21 @@ class _MetaAbciApp(ABCMeta):
 
     @classmethod
     def _check_db_constraints_consistency(mcs, abci_app_cls: Type["AbciApp"]) -> None:
-        """Check that the post constraints on the db are consistent with the initial and final states."""
+        """Check that the pre and post constraints on the db are consistent with the initial and final states."""
         expected = abci_app_cls.initial_states
         actual = abci_app_cls.db_pre_conditions.keys()
-        invalid_initial_states = set.difference(expected, actual)
+        invalid_initial_states = (
+            set.difference(expected, actual) if len(actual) != 0 else set()
+        )
         enforce(
             len(invalid_initial_states) == 0,
             f"db pre constraints contain invalid initial states: {invalid_initial_states}",
         )
         expected = abci_app_cls.final_states
         actual = abci_app_cls.db_post_conditions.keys()
-        invalid_final_states = set.difference(expected, actual)
+        invalid_final_states = (
+            set.difference(expected, actual) if len(actual) != 0 else set()
+        )
         enforce(
             len(invalid_final_states) == 0,
             f"db post constraints contain invalid final states: {invalid_final_states}",

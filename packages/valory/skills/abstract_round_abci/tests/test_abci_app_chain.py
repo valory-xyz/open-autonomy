@@ -108,8 +108,8 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_1c}
             event_to_timeout = {self.event_timeout1: self.timeout1}
-            db_pre_conditions = {self.round_1a: []}
-            db_post_conditions = {self.round_1c: [self.key_1]}
+            db_pre_conditions = {self.round_1a: []}  # type: ignore
+            db_post_conditions = {self.round_1c: [self.key_1]}  # type: ignore
 
         self.app1_class = AbciApp1
 
@@ -128,7 +128,8 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_2c}
             event_to_timeout = {self.event_timeout2: self.timeout2}
-            db_post_conditions = {self.round_2c: [self.key_2]}
+            db_pre_conditions = {self.round_2a: [self.key_1]}  # type: ignore
+            db_post_conditions = {self.round_2c: [self.key_2]}  # type: ignore
 
         self.app2_class = AbciApp2
 
@@ -148,6 +149,7 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_3c}
             event_to_timeout = {self.event_timeout3: self.timeout3}
+            db_pre_conditions = {self.round_3a: [self.key_1, self.key_2]}  # type: ignore
             db_post_conditions = {self.round_3c: [self.key_3]}
 
         self.app3_class = AbciApp3
@@ -168,7 +170,7 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_3c}
             event_to_timeout = {self.event_timeout3: self.timeout3}
-            db_post_conditions = {self.round_3c: []}
+            db_post_conditions = {self.round_3c: []}  # type: ignore
 
         self.app3_class_dupe = AbciApp3Dupe
 
@@ -187,7 +189,8 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_2c}
             event_to_timeout = {self.event_timeout1: self.timeout2}
-            db_post_conditions = {self.round_2c: []}
+            db_pre_conditions = {self.round_2a: [self.key_1]}  # type: ignore
+            db_post_conditions = {self.round_2c: [self.key_2]}  # type: ignore
 
         self.app2_class_faulty1 = AbciApp2Faulty1
 

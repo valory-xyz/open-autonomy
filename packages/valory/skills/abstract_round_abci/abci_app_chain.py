@@ -19,6 +19,7 @@
 
 """This module contains utilities for AbciApps."""
 import logging
+from copy import deepcopy
 from typing import Any, Dict, List, Optional, Set, Tuple, Type
 
 from aea.exceptions import enforce
@@ -127,59 +128,72 @@ def chain(  # pylint: disable=too-many-locals, too-many-statements
                 break
 
     def get_paths(
+        initial_state: AppState,
         app: Type[AbciApp],
-        previous_apps: List[Type[AbciApp]] = [],
-    ) -> List[List[Tuple[Type[AbciApp], Optional[AppState]]]]:
+        previous_apps: Optional[List[Type[AbciApp]]] = None,
+    ) -> List[List[Tuple[AppState, Type[AbciApp], Optional[AppState]]]]:
         """Get paths."""
+        previous_apps_: List[Type[AbciApp]] = (
+            deepcopy(previous_apps) if previous_apps is not None else []
+        )
+        default: List[List[Tuple[AppState, Type[AbciApp], Optional[AppState]]]] = [
+            [(initial_state, app, None)]
+        ]
         if app.final_states == {}:
-            return [[(app, None)]]
-        paths: List[List[Tuple[Type[AbciApp], Optional[AppState]]]] = []
+            return default
+        paths: List[List[Tuple[AppState, Type[AbciApp], Optional[AppState]]]] = []
         for final_state in app.final_states:
+            element: Tuple[AppState, Type[AbciApp], Optional[AppState]] = (
+                initial_state,
+                app,
+                final_state,
+            )
             if final_state not in abci_app_transition_mapping:
                 # no linkage defined
+                paths.append([element])
                 continue
-            inital_state = abci_app_transition_mapping[final_state]
-            next_app = initial_state_to_app[inital_state]
-            element: Tuple[Type[AbciApp], Optional[AppState]] = (app, final_state)
-            if next_app in previous_apps:
+            next_initial_state = abci_app_transition_mapping[final_state]
+            next_app = initial_state_to_app[next_initial_state]
+            if next_app in previous_apps_:
                 # self-loops do not require attention
                 paths.append([element])
                 continue
-            new_previous_apps = previous_apps + [app]
-            for path in get_paths(next_app, new_previous_apps):
-
+            new_previous_apps = previous_apps_ + [app]
+            for path in get_paths(next_initial_state, next_app, new_previous_apps):
                 # if element not in path:
                 paths.append([element] + path)
-        return paths
+        return paths if paths != [] else default
 
-    all_paths: List[List[Tuple[Type[AbciApp], Optional[AppState]]]] = get_paths(
-        abci_apps[0]
-    )
+    all_paths: List[
+        List[Tuple[AppState, Type[AbciApp], Optional[AppState]]]
+    ] = get_paths(abci_apps[0].initial_round_cls, abci_apps[0])
     new_db_post_conditions: Dict[AppState, List[str]] = {}
     for path in all_paths:
-        current_app, current_final_state = path[0]
+        _, current_app, current_final_state = path[0]
         accumulated_post_conditions: Set[str] = set()
-        for (next_app, next_final_state) in path[1:]:
+        for (next_initial_state, next_app, next_final_state) in path[1:]:
             if current_final_state is None:
                 # No outwards transition, nothing to check.
-                current_app = next_app
-                current_final_state = next_final_state
-                continue
-            accumulated_post_conditions.union(
+                # we are at the end of a path where the last
+                # app has no final state and therefore no post conditions
+                break
+            accumulated_post_conditions = accumulated_post_conditions.union(
                 set(current_app.db_post_conditions[current_final_state])
             )
             # we now check that the pre conditions of the next app
-            # are compatible with the post conditions of the current app.
+            # are compatible with the post conditions of the current apps.
             diff = set.difference(
-                set(next_app.db_pre_conditions), accumulated_post_conditions
+                set(next_app.db_pre_conditions[next_initial_state]),
+                accumulated_post_conditions,
             )
             if len(diff) != 0:
                 raise ValueError(
-                    f"Pre conditions '{diff}' of app '{next_app}' not a post condition of app '{current_app}' or any preceding app."
+                    f"Pre conditions '{diff}' of app '{next_app}' not a post condition of app '{current_app}' or any preceding app in path {path}."
                 )
             current_app = next_app
             current_final_state = next_final_state
-        if current_app != path[0][0] and current_final_state is not None:
+
+        if current_final_state is not None:
             new_db_post_conditions[current_final_state] = list(
                 accumulated_post_conditions
             )
