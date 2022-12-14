@@ -77,6 +77,7 @@ DUMMY_VALIDATOR_CONFIG = {
         "value": "7y7ycBMMABj5Onf74ITYtUS3uZ6SsCQKZML87mIX",
     },
     "peer_id": "peer_id",
+    "p2p_port": 80,
 }
 
 
