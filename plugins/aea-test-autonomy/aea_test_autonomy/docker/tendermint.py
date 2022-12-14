@@ -19,7 +19,6 @@
 
 """Tendermint Docker image."""
 import os
-import re
 import subprocess  # nosec
 import time
 from pathlib import Path
@@ -269,33 +268,25 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         added node. Therefore, we need to override the default persistent peers in the config files,
         in order for them to use the correct ports.
         """
-        nodes_config_files = list(Path().cwd().glob("**/config.toml"))
-        assert (  # nosec
-            nodes_config_files != []
-        ), "Could not detect any config files for the nodes!"
-
-        for config_file in nodes_config_files:
-            config_text = config_file.read_text(encoding="utf-8")
-            peers = re.findall(r"[a-z\d]+@node\d:\d+", config_text)
-
-            updated_peers = []
-            for peer in peers:
-                peer_id, address = peer.split("@")
-                peer_name, _ = address.split(":")
-                *_, peer_number_string = peer_name
-
-                peer_number = int(peer_number_string)
-                new_port = self.get_p2p_port(peer_number)
-                updated_peers.append(f"{peer_id}@{peer_name}:{new_port}")
-
-            persistent_peers_string = (
-                'persistent_peers = "' + ",".join(updated_peers) + '"\n'
-            )
-            updated_config = re.sub(
-                'persistent_peers = ".*\n', persistent_peers_string, config_text
-            )
-
-            config_file.write_text(updated_config, encoding="utf-8")
+        replace_cmd = ""
+        for node_num in range(self.nb_nodes):
+            preconfigured_endpoint = f"node{node_num}:26656"
+            correct_endpoint = f"node{node_num}:{self.get_p2p_port(node_num)}"
+            if replace_cmd != "":
+                replace_cmd += " && "
+            replace_cmd += f"sed -i 's/{preconfigured_endpoint}/{correct_endpoint}/g' /tendermint/node*/config/config.toml"
+        cmd = [
+            "docker",
+            "run",
+            "--rm",
+            "-v",
+            f"{os.getcwd()}/nodes:/tendermint:Z",
+            "--entrypoint=/bin/bash",
+            self.image,
+            "-c",
+            replace_cmd,
+        ]
+        subprocess.run(cmd)  # nosec  # pylint: disable=subprocess-run-check
 
     def _grant_permissions(self) -> None:
         """
