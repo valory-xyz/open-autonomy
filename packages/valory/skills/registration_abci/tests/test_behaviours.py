@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, cast
 from unittest import mock
 from unittest.mock import MagicMock
+from urllib.parse import urlparse
 
 import pytest
 from _pytest.logging import LogCaptureFixture
@@ -67,14 +68,15 @@ PACKAGE_DIR = Path(__file__).parent.parent
 SERVICE_REGISTRY_ADDRESS = "0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"
 CONTRACT_ID = str(ServiceRegistryContract.contract_id)
 ON_CHAIN_SERVICE_ID = 42
-DUMMY_ADDRESS = "http://0.0.0.0:25567"
+DUMMY_ADDRESS = "0.0.0.0"
 DUMMY_VALIDATOR_CONFIG = {
-    "tendermint_url": DUMMY_ADDRESS,
+    "hostname": DUMMY_ADDRESS,
     "address": "address",
     "pub_key": {
         "type": "tendermint/PubKeyEd25519",
         "value": "7y7ycBMMABj5Onf74ITYtUS3uZ6SsCQKZML87mIX",
     },
+    "peer_id": "peer_id",
 }
 
 
@@ -451,7 +453,10 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
 
             assert set(self.state.registered_addresses) == set(self.agent_instances)
             my_info = self.state.registered_addresses[self.state.context.agent_address]
-            assert my_info["tendermint_url"] == self.state.context.params.tendermint_url
+            assert (
+                my_info["hostname"]
+                == urlparse(self.state.context.params.tendermint_url).hostname
+            )
             assert not any(map(self.state.registered_addresses.get, self.other_agents))
             log_message = self.state.LogMessages.response_service_info
             assert log_message.value in caplog.text
