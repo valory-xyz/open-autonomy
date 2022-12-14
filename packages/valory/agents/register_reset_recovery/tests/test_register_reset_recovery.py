@@ -36,9 +36,10 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
 from packages.valory.agents.register_reset_recovery.tests.base import (
     BaseTestRegisterResetRecoveryEnd2End,
 )
+from packages.valory.skills.registration_abci.rounds import RegistrationStartupRound
 
 
-HAPPY_PATH = (RoundChecks("registration_startup"),)
+HAPPY_PATH = (RoundChecks(RegistrationStartupRound.auto_round_id()),)
 
 # the string used to trigger the breaking of the 3rd tm node (node3).
 TM_BREAK_STRING = "Current round count is 3."
