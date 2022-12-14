@@ -68,7 +68,7 @@ PACKAGE_DIR = Path(__file__).parent.parent
 SERVICE_REGISTRY_ADDRESS = "0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"
 CONTRACT_ID = str(ServiceRegistryContract.contract_id)
 ON_CHAIN_SERVICE_ID = 42
-DUMMY_ADDRESS = "0.0.0.0"
+DUMMY_ADDRESS = "localhost"
 DUMMY_VALIDATOR_CONFIG = {
     "hostname": DUMMY_ADDRESS,
     "address": "address",
