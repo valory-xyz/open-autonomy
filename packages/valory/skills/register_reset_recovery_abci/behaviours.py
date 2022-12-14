@@ -42,8 +42,6 @@ from packages.valory.skills.registration_abci.behaviours import (
 class ShareRoundCountBehaviour(BaseBehaviour):
     """A dummy behaviour that sync the round count."""
 
-    state_id = "share_round"
-    behaviour_id = "share_round_behaviour"
     matching_round = RoundCountRound
 
     def async_act(self) -> Generator:
