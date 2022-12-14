@@ -270,7 +270,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         """
         replace_cmd = ""
         for node_num in range(self.nb_nodes):
-            preconfigured_endpoint = f"node{node_num}:26656"
+            preconfigured_endpoint = f"node{node_num}:{DEFAULT_P2P_PORT}"
             correct_endpoint = f"node{node_num}:{self.get_p2p_port(node_num)}"
             if replace_cmd != "":
                 replace_cmd += " && "
