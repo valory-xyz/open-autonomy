@@ -43,6 +43,7 @@ from packages.valory.skills.abstract_round_abci.utils import (
 )
 
 
+DEFAULT_TENDERMINT_P2P_PORT = 26656
 NUMBER_OF_RETRIES: int = 5
 DEFAULT_BACKOFF_FACTOR: int = 2
 DEFAULT_TYPE_NAME: str = "str"
@@ -117,6 +118,9 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         self.on_chain_service_id = kwargs.pop("on_chain_service_id", None)
         self.share_tm_config_on_startup = kwargs.pop(
             "share_tm_config_on_startup", False
+        )
+        self.tendermint_p2p_port = kwargs.pop(
+            "tendermint_p2p_port", DEFAULT_TENDERMINT_P2P_PORT
         )
         setup_params = kwargs.pop("setup", {})
         # we sanitize for null values as these are just kept for schema definitions
