@@ -87,8 +87,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     """Agent registration to the FSM App."""
 
     ENCODING: str = "utf-8"
-    state_id = "registration_startup"
-    behaviour_id = "registration_startup"
     matching_round = RegistrationStartupRound
     local_tendermint_params: Dict[str, Any] = {}
     updated_genesis_data: Dict[str, Any] = {}
@@ -443,7 +441,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 class RegistrationBehaviour(RegistrationBaseBehaviour):
     """Agent registration to the FSM App."""
 
-    behaviour_id = "registration"
     matching_round = RegistrationRound
 
 

@@ -486,8 +486,9 @@ class RPCResponseStatus(Enum):
 class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
     """Base class for FSM behaviours."""
 
+    __pattern = re.compile(r"(?<!^)(?=[A-Z])")
     is_programmatically_defined = True
-    behaviour_id = ""
+    behaviour_id: str
     matching_round: Type[AbstractRound]
     is_degenerate: bool = False
 
@@ -503,6 +504,26 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self._is_healthy: bool = False
         self._non_200_return_code_count: int = 0
         enforce(self.behaviour_id != "", "State id not set.")
+
+    @classmethod
+    def auto_behaviour_id(cls) -> str:
+        """
+        Get behaviour id automatically.
+
+        This method returns the auto generated id from the class name if the
+        class variable behaviour_id is not set on the child class.
+        Otherwise, it returns the class variable behaviour_id.
+        """
+        return (
+            cls.behaviour_id
+            if isinstance(cls.behaviour_id, str)
+            else cls.__pattern.sub("_", cls.__name__).lower()
+        )
+
+    @property  # type: ignore
+    def behaviour_id(self) -> str:
+        """Get behaviour id."""
+        return self.auto_behaviour_id()
 
     @property
     def params(self) -> BaseParams:
@@ -570,7 +591,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param timeout: the timeout for the wait
         :yield: None
         """
-        round_id = self.matching_round.round_id
+        round_id = self.matching_round.auto_round_id()
         round_height = cast(
             SharedState, self.context.state
         ).round_sequence.current_round_height
@@ -622,7 +643,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param: resetting: flag indicating if we are resetting Tendermint nodes in this round.
         :yield: the responses
         """
-        stop_condition = self.is_round_ended(self.matching_round.round_id)
+        stop_condition = self.is_round_ended(self.matching_round.auto_round_id())
         payload.round_count = cast(
             SharedState, self.context.state
         ).synchronized_data.round_count
@@ -1829,7 +1850,6 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 class TmManager(BaseBehaviour, ABC):
     """Util class to be used for managing the tendermint node."""
 
-    behaviour_id = "tm_manager"
     _active_generator: Optional[Generator] = None
     _hard_reset_sleep = 20.0  # 20s
     _max_reset_retry = 5
@@ -2018,8 +2038,6 @@ def make_degenerate_behaviour(round_id: str) -> Type[DegenerateBehaviour]:
 
     class NewDegenerateBehaviour(DegenerateBehaviour):
         """A newly defined degenerate behaviour class."""
-
-        behaviour_id = f"degenerate_{round_id}"
 
     new_behaviour_cls = NewDegenerateBehaviour
     new_behaviour_cls.__name__ = f"DegenerateBehaviour_{round_id}"  # type: ignore # pylint: disable=attribute-defined-outside-init

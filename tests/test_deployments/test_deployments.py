@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for the 'deployments' functionality."""
+import json
 import os
 import re
 import shutil
@@ -27,9 +28,11 @@ from contextlib import suppress
 from glob import glob
 from pathlib import Path
 from typing import Any, List, Tuple, cast
+from unittest import mock
 
 import pytest
 import yaml
+from aea.configurations.data_types import PublicId
 from aea.exceptions import AEAValidationError
 
 from autonomy.configurations.base import Service
@@ -39,7 +42,11 @@ from autonomy.constants import (
     HARDHAT_IMAGE_VERSION,
     TENDERMINT_IMAGE_VERSION,
 )
-from autonomy.deploy.base import BaseDeploymentGenerator, ServiceBuilder
+from autonomy.deploy.base import (
+    BaseDeploymentGenerator,
+    NotValidKeysFile,
+    ServiceBuilder,
+)
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
@@ -119,7 +126,6 @@ config:
       address: 'http://hardhat:8545'
       chain_id: '31337'
 """
-
 
 TEST_DEPLOYMENT_PATH: str = "service.yaml"
 IMAGE_VERSIONS = {
@@ -254,6 +260,34 @@ class TestKubernetesDeployment(BaseDeploymentTests):
 
 class TestDeploymentGenerators(BaseDeploymentTests):
     """Test functionality of the deployment generators."""
+
+    def test_read_invalid_keys_file(self) -> None:
+        """Test JSONDecodeError on read_keys"""
+
+        side_effect = json.decoder.JSONDecodeError("", "", 0)
+        expected = "Error decoding keys file, please check the content of the file"
+        with mock.patch.object(json, "loads", side_effect=side_effect):
+            with pytest.raises(NotValidKeysFile, match=expected):
+                ServiceBuilder.read_keys(mock.Mock(), DEFAULT_KEY_PATH)
+
+    def test_update_agent_number_based_on_keys_file(self) -> None:
+        """Test JSONDecodeError on read_keys"""
+
+        public_id = PublicId("Georg", "Hegel")
+        service = Service(
+            "Arthur", "Schopenhauer", public_id, number_of_agents=1_000_000
+        )
+        builder = ServiceBuilder(
+            service=service,
+            keys=None,
+            private_keys_password=None,
+            agent_instances=list("abcdefg"),
+        )
+        assert builder.service.number_of_agents == 1_000_000
+        return_value = [dict(address="a", private_key="")]
+        with mock.patch.object(json, "loads", return_value=return_value):
+            builder.read_keys(mock.Mock())
+        assert builder.service.number_of_agents == 1
 
     def test_generates_agent_for_all_valory_apps(self) -> None:
         """Test generator functions with all agent services."""

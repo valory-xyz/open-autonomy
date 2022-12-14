@@ -29,7 +29,6 @@ from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 class TransactionType(Enum):
     """Enumeration of transaction types."""
 
-    # TODO: define transaction types: e.g. TX_HASH: "tx_hash"
     DUMMY_FINAL = "dummy_final"
     DUMMY_KEEPER_SELECTION = "dummy_keeper_selection"
     DUMMY_RANDOMNESS = "dummy_randomness"
@@ -89,7 +88,7 @@ class DummyRandomnessPayload(BaseTxPayload):
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(round_id=self._round_id, randomness=self._randomness)
+        return dict(round_id=self.round_id, randomness=self.randomness)
 
 
 class DummyKeeperSelectionPayload(BaseDummyPayload):

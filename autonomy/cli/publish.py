@@ -51,4 +51,6 @@ def publish(
         ).exists():  # pragma: nocover
             publish_agent_package(click_context, registry, push_missing)
         else:
-            raise FileNotFoundError("No package config found in this directory.")
+            raise FileNotFoundError(
+                "No package config found in this directory."
+            )  # pragma: no cover

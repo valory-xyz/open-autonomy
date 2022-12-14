@@ -62,6 +62,7 @@ class TestCollectionRound(_BaseRoundTestClass):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
+        round_id = DummyCollectionRound.auto_round_id()
 
         # collection round may set a flag to allow payments from inactive agents (rejoin)
         assert test_round._allow_rejoin_payloads is False  # default
@@ -78,7 +79,7 @@ class TestCollectionRound(_BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: round_id",
+            match=f"internal error: sender agent_0 has already sent value for round: {round_id}",
         ):
             test_round.process_payload(first_payload)
 
@@ -93,7 +94,7 @@ class TestCollectionRound(_BaseRoundTestClass):
         with pytest.raises(
             ABCIAppInternalError,
             match=re.escape(
-                "internal error: Expecting serialized data of chunk size 2, got: 0xZZZ in round_id"
+                f"internal error: Expecting serialized data of chunk size 2, got: 0xZZZ in {round_id}"
             ),
         ):
             test_round._hash_length = 2
@@ -102,7 +103,7 @@ class TestCollectionRound(_BaseRoundTestClass):
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: round_id",
+            match=f"sender agent_0 has already sent value for round: {round_id}",
         ):
             test_round.check_payload(first_payload)
 
@@ -117,7 +118,7 @@ class TestCollectionRound(_BaseRoundTestClass):
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape(
-                "Expecting serialized data of chunk size 2, got: 0xZZZ in round_id"
+                f"Expecting serialized data of chunk size 2, got: 0xZZZ in {round_id}"
             ),
         ):
             test_round.check_payload(DummyTxPayload("agent_1", "0xZZZ"))
@@ -137,6 +138,7 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
+        round_id = DummyCollectDifferentUntilAllRound.auto_round_id()
 
         first_payload, *payloads = self.tx_payloads
         test_round.process_payload(first_payload)
@@ -144,13 +146,13 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: round_id",
+            match=f"internal error: sender agent_0 has already sent value for round: {round_id}",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: round_id",
+            match=f"sender agent_0 has already sent value for round: {round_id}",
         ):
             test_round.check_payload(first_payload)
 
@@ -158,7 +160,7 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
             ABCIAppInternalError,
             match="internal error: `CollectDifferentUntilAllRound` encountered a value 'agent_0' that already exists.",
         ):
-            first_payload.sender = "other"
+            first_payload._sender = "other"
             test_round.process_payload(first_payload)
 
         with pytest.raises(
@@ -187,6 +189,7 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
+        round_id = DummyCollectSameUntilAllRound.auto_round_id()
 
         first_payload, *payloads = [
             DummyTxPayload(
@@ -206,13 +209,13 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: round_id",
+            match=f"internal error: sender agent_0 has already sent value for round: {round_id}",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: round_id",
+            match=f"sender agent_0 has already sent value for round: {round_id}",
         ):
             test_round.check_payload(first_payload)
 
@@ -494,7 +497,6 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
         )
         test_round.block_confirmations = 0
         test_round.required_block_confirmations = required_confirmations
-        test_round.selection_key = "selection_key"
         test_round.collection_key = "collection_key"
         test_round.done_event = 0
         test_round.no_majority_event = 1
@@ -525,7 +527,6 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
             consensus_params=self.consensus_params,
         )
         test_round.collection_key = "dummy_collection_key"
-        test_round.selection_key = "dummy_selection_key"
         test_round.done_event = DummyEvent.DONE
 
         assert test_round.end_block() is None
@@ -618,7 +619,6 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
             test_round.process_payload(payload)
 
         test_round.collection = {f"test_{i}": payloads[i] for i in range(len(payloads))}
-        test_round.selection_key = "test"
         test_round.collection_key = "test"
         test_round.done_event = DummyEvent.DONE
         test_round.none_event = DummyEvent.NONE

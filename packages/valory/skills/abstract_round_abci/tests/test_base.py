@@ -35,12 +35,11 @@ from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
-import hypothesis
 import pytest
 from _pytest.logging import LogCaptureFixture
 from aea.exceptions import AEAEnforceError
 from aea_ledger_ethereum import EthereumCrypto
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis.strategies import (
     booleans,
     datetimes,
@@ -79,12 +78,14 @@ from packages.valory.skills.abstract_round_abci.base import (
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.base import _logger as default_logger
+from packages.valory.skills.abstract_round_abci.base import get_name
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     AbciAppTest,
     ConcreteBackgroundRound,
+    ConcreteEvents,
     ConcreteRoundA,
     ConcreteRoundB,
     ConcreteRoundC,
@@ -92,6 +93,10 @@ from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     ConcreteTerminationRoundB,
     ConcreteTerminationRoundC,
 )
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
+
+
+settings.load_profile(profile_name)
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
@@ -307,7 +312,6 @@ def test_verify_transaction_negative_case(*_mocks: Any) -> None:
         transaction.verify("")
 
 
-@hypothesis.settings(deadline=2000)
 @given(
     dictionaries(
         keys=text(),
@@ -1041,7 +1045,25 @@ class TestAbstractRound:
         )
         self.round = ConcreteRoundA(self.base_synchronized_data, self.params)
 
-    def test_must_set_round_id(self) -> None:
+    def test_auto_round_id(self) -> None:
+        """Test that the 'auto_round_id()' method works as expected."""
+
+        class MyConcreteRound(AbstractRound):
+
+            allowed_tx_type = MagicMock()
+
+            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
+                pass
+
+            def check_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+            def process_payload(self, payload: BaseTxPayload) -> None:
+                pass
+
+        assert MyConcreteRound.auto_round_id() == "my_concrete_round"
+
+    def test_must_not_set_round_id(self) -> None:
         """Test that the 'round_id' must be set in concrete classes."""
 
         class MyConcreteRound(AbstractRound):
@@ -1058,8 +1080,9 @@ class TestAbstractRound:
             def process_payload(self, payload: BaseTxPayload) -> None:
                 pass
 
-        with pytest.raises(ABCIAppInternalError, match="'round_id' field not set"):
-            MyConcreteRound(MagicMock(), MagicMock())
+        # no exception as round id is auto-assigned
+        my_concrete_round = MyConcreteRound(MagicMock(), MagicMock())
+        assert my_concrete_round.round_id == "my_concrete_round"
 
     def test_must_set_allowed_tx_type(self) -> None:
         """Test that the 'allowed_tx_type' must be set in concrete classes."""
@@ -1486,9 +1509,9 @@ class TestAbciApp:
         self.abci_app.setup()
         self.abci_app._last_timestamp = MagicMock()
         assert isinstance(self.abci_app.current_round, ConcreteRoundA)
-        self.abci_app.process_event("b")
+        self.abci_app.process_event(ConcreteEvents.B)
         assert isinstance(self.abci_app.current_round, ConcreteRoundB)
-        self.abci_app.process_event("timeout")
+        self.abci_app.process_event(ConcreteEvents.TIMEOUT)
         assert isinstance(self.abci_app.current_round, ConcreteRoundA)
         self.abci_app.process_event(self.abci_app.termination_event)
         assert isinstance(self.abci_app.current_round, ConcreteTerminationRoundA)
@@ -1496,7 +1519,7 @@ class TestAbciApp:
     def test_process_event_negative_case(self) -> None:
         """Test the 'process_event' method, negative case."""
         with mock.patch.object(self.abci_app.logger, "info") as mock_info:
-            self.abci_app.process_event("a")
+            self.abci_app.process_event(ConcreteEvents.A)
             mock_info.assert_called_with(
                 "cannot process event 'a' as current state is not set"
             )
@@ -1509,8 +1532,8 @@ class TestAbciApp:
         self.abci_app._last_timestamp = current_time
 
         # move to round_b that schedules timeout events
-        self.abci_app.process_event("b")
-        assert self.abci_app.current_round_id == "concrete_b"
+        self.abci_app.process_event(ConcreteEvents.B)
+        assert self.abci_app.current_round_id == "concrete_round_b"
 
         # simulate most recent timestamp beyond earliest deadline
         # after pop, len(timeouts) == 0, because round_a does not schedule new timeout events
@@ -1518,18 +1541,18 @@ class TestAbciApp:
         self.abci_app.update_time(current_time)
 
         # now we are back to round_a
-        assert self.abci_app.current_round_id == "concrete_a"
+        assert self.abci_app.current_round_id == "concrete_round_a"
 
         # move to round_c that schedules timeout events to itself
-        self.abci_app.process_event("c")
-        assert self.abci_app.current_round_id == "concrete_c"
+        self.abci_app.process_event(ConcreteEvents.C)
+        assert self.abci_app.current_round_id == "concrete_round_c"
 
         # simulate most recent timestamp beyond earliest deadline
         # after pop, len(timeouts) == 0, because round_c schedules timeout events
         current_time = current_time + datetime.timedelta(0, AbciAppTest.TIMEOUT)
         self.abci_app.update_time(current_time)
 
-        assert self.abci_app.current_round_id == "concrete_c"
+        assert self.abci_app.current_round_id == "concrete_round_c"
 
         # further update changes nothing
         height = self.abci_app.current_round_height
@@ -1538,7 +1561,12 @@ class TestAbciApp:
 
     def test_get_all_events(self) -> None:
         """Test the all events getter."""
-        assert {"a", "b", "c", "timeout"} == self.abci_app.get_all_events()
+        assert {
+            ConcreteEvents.A,
+            ConcreteEvents.B,
+            ConcreteEvents.C,
+            ConcreteEvents.TIMEOUT,
+        } == self.abci_app.get_all_events()
 
     def test_get_all_rounds_classes(self) -> None:
         """Test the get all rounds getter."""
@@ -1585,15 +1613,23 @@ class TestAbciApp:
         class EmptyAbciApp(AbciAppTest):
             """An AbciApp without termination attrs set."""
 
+            cross_period_persisted_keys = ["1", "2"]
+
+        class TerminationAbciApp(AbciAppTest):
+            """A moch termination AbciApp."""
+
+            cross_period_persisted_keys = ["2", "3"]
+
         EmptyAbciApp.add_termination(
-            AbciAppTest.background_round_cls,
-            AbciAppTest.termination_event,
-            AbciAppTest,
+            TerminationAbciApp.background_round_cls,
+            TerminationAbciApp.termination_event,
+            TerminationAbciApp,
         )
 
         assert EmptyAbciApp.background_round_cls is not None
         assert EmptyAbciApp.termination_transition_function is not None
         assert EmptyAbciApp.termination_event is not None  # type: ignore
+        assert sorted(EmptyAbciApp.cross_period_persisted_keys) == ["1", "2", "3"]
 
     def test_background_round(self) -> None:
         """Test the background_round property."""
@@ -1784,7 +1820,7 @@ class TestRoundSequence:
 
     def test_current_round_id(self) -> None:
         """Test 'current_round_id' property getter"""
-        assert self.round_sequence.current_round_id == ConcreteRoundA.round_id
+        assert self.round_sequence.current_round_id == ConcreteRoundA.auto_round_id()
 
     def test_latest_result(self) -> None:
         """Test 'latest_result' property getter."""
@@ -2301,3 +2337,17 @@ def test_synchronized_data_type_on_abci_app_init(caplog: LogCaptureFixture) -> N
         abci_app.setup()
         assert isinstance(abci_app.synchronized_data, SynchronizedData)
         assert abci_app.synchronized_data.dummy_attr == sentinel  # type: ignore
+
+
+def test_get_name() -> None:
+    """Test the get_name method."""
+
+    class SomeObject:
+        @property
+        def some_property(self) -> Any:
+            """Some getter."""
+            return object()
+
+    assert get_name(SomeObject.some_property) == "some_property"
+    with pytest.raises(ValueError, match="1 is not a property"):
+        get_name(1)

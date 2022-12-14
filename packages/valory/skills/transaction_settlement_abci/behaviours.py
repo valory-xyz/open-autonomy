@@ -323,7 +323,6 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
 class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
     """Retrieve randomness."""
 
-    behaviour_id = "randomness_transaction_submission"
     matching_round = RandomnessTransactionSubmissionRound
     payload_class = RandomnessPayload
 
@@ -333,7 +332,6 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
 ):
     """Select the keeper agent."""
 
-    behaviour_id = "select_keeper_transaction_submission_a"
     matching_round = SelectKeeperTransactionSubmissionRoundA
     payload_class = SelectKeeperPayload
 
@@ -358,7 +356,6 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
 ):
     """Select the keeper b agent."""
 
-    behaviour_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
 
     def async_act(self) -> Generator:
@@ -418,14 +415,12 @@ class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disabl
 ):
     """Select the keeper b agent after a timeout."""
 
-    behaviour_id = "select_keeper_transaction_submission_b_after_timeout"
     matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
 
 
 class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
     """Validate a transaction."""
 
-    behaviour_id = "validate_transaction"
     matching_round = ValidateTransactionRound
 
     def async_act(self) -> Generator:
@@ -490,14 +485,16 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
         return verified
 
 
-CHECK_TX_HISTORY = "check_transaction_history"
-
-
 class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
     """Check the transaction history."""
 
-    behaviour_id = CHECK_TX_HISTORY
     matching_round = CheckTransactionHistoryRound
+    check_expected_to_be_verified = "The next tx check"
+
+    @property
+    def history(self) -> List[str]:
+        """Get the history of hashes."""
+        return self.synchronized_data.tx_hashes_history
 
     def async_act(self) -> Generator:
         """Do the action."""
@@ -533,13 +530,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
         self,
     ) -> Generator[None, None, Tuple[VerificationStatus, Optional[str]]]:
         """Check the transaction history."""
-        history = (
-            self.synchronized_data.tx_hashes_history
-            if self.behaviour_id == CHECK_TX_HISTORY
-            else self.synchronized_data.late_arriving_tx_hashes
-        )
-
-        if not history:
+        if not self.history:
             self.context.logger.error(
                 "An unexpected error occurred! The synchronized data do not contain any transaction hashes, "
                 f"but entered the `{self.behaviour_id}` behaviour."
@@ -547,9 +538,9 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
             return VerificationStatus.ERROR, None
 
         self.context.logger.info(
-            f"Starting check for the transaction history: {history}."
+            f"Starting check for the transaction history: {self.history}."
         )
-        for tx_hash in history[::-1]:
+        for tx_hash in self.history[::-1]:
             self.context.logger.info(f"Checking hash {tx_hash}...")
             contract_api_msg = yield from self._verify_tx(tx_hash)
 
@@ -587,14 +578,9 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
 
             if revert_reason is not None:
                 if self._safe_nonce_reused(revert_reason):
-                    check_expected_to_be_verified = (
-                        "The next tx check"
-                        if self.behaviour_id == CHECK_TX_HISTORY
-                        else "One of the next tx checks"
-                    )
                     self.context.logger.info(
                         f"The safe's nonce has been reused for {tx_hash}. "
-                        f"{check_expected_to_be_verified} is expected to be verified!"
+                        f"{self.check_expected_to_be_verified} is expected to be verified!"
                     )
                     # this loop might take a long time
                     # we do not want to starve the rest of the behaviour
@@ -637,14 +623,18 @@ class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
 ):
     """Check the late-arriving transaction hashes."""
 
-    behaviour_id = "check_late_tx_hashes"
     matching_round = CheckLateTxHashesRound
+    check_expected_to_be_verified = "One of the next tx checks"
+
+    @property
+    def history(self) -> List[str]:
+        """Get the history of hashes."""
+        return self.synchronized_data.late_arriving_tx_hashes
 
 
 class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
     """Synchronize late-arriving messages behaviour."""
 
-    behaviour_id = "sync_late_messages"
     matching_round = SynchronizeLateMessagesRound
 
     def __init__(self, **kwargs: Any):
@@ -688,7 +678,6 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
 class SignatureBehaviour(TransactionSettlementBaseBehaviour):
     """Signature behaviour."""
 
-    behaviour_id = "sign"
     matching_round = CollectSignatureRound
 
     def async_act(self) -> Generator:
@@ -735,7 +724,6 @@ class SignatureBehaviour(TransactionSettlementBaseBehaviour):
 class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
     """Finalize behaviour."""
 
-    behaviour_id = "finalize"
     matching_round = FinalizationRound
 
     def _i_am_not_sending(self) -> bool:
@@ -877,7 +865,6 @@ class ResetBehaviour(TransactionSettlementBaseBehaviour):
     """Reset behaviour."""
 
     matching_round = ResetRound
-    behaviour_id = "reset"
 
     def async_act(self) -> Generator:
         """Do the action."""
