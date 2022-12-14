@@ -157,7 +157,7 @@ class TestIntegrationBaseCase:
         self.test_cls.make_ledger_api_connection_callable = make_ledger_api_connection
         test_instance = cast(IntegrationBaseCase, self.setup_test_cls())
 
-        behaviour_id = DummyStartingBehaviour.behaviour_id
+        behaviour_id = DummyStartingBehaviour.auto_behaviour_id()
         synchronized_data = SynchronizedData(
             AbciAppDB(setup_data=dict(participants=[frozenset("abcd")]))
         )

@@ -794,13 +794,13 @@ class TestBaseBehaviour:
         # assert that everything is pre-set correctly
         assert (
             self.behaviour.context.state.round_sequence.current_round_id
-            == self.behaviour.matching_round.round_id
+            == self.behaviour.matching_round.auto_round_id()
             == "round_a"
         )
 
         # create the exact same stop condition that we create in the `send_a2a_transaction` method
         stop_condition = self.behaviour.is_round_ended(
-            self.behaviour.matching_round.round_id
+            self.behaviour.matching_round.auto_round_id()
         )
         gen = self.behaviour._send_transaction(
             MagicMock(),
@@ -818,7 +818,7 @@ class TestBaseBehaviour:
         # assert that everything was set as expected
         assert (
             self.behaviour.context.state.round_sequence.current_round_id
-            != self.behaviour.matching_round.round_id
+            != self.behaviour.matching_round.auto_round_id()
             and self.behaviour.context.state.round_sequence.current_round_id == "test"
         )
         # assert that the stop condition now applies
@@ -1919,7 +1919,7 @@ def test_degenerate_behaviour_async_act() -> None:
     context.state.round_sequence.syncing_up = False
     context.state.round_sequence.block_stall_deadline_expired = False
     behaviour = ConcreteDegenerateBehaviour(
-        name=ConcreteDegenerateBehaviour.behaviour_id, skill_context=context
+        name=ConcreteDegenerateBehaviour.auto_behaviour_id(), skill_context=context
     )
     with pytest.raises(
         SystemExit,
@@ -1935,7 +1935,7 @@ def test_make_degenerate_behaviour() -> None:
     assert isinstance(new_cls, type)
     assert issubclass(new_cls, DegenerateBehaviour)
 
-    assert new_cls.behaviour_id == f"degenerate_{round_id}"
+    assert new_cls.auto_behaviour_id() == f"degenerate_behaviour_{round_id}"
 
 
 class TestTmManager:

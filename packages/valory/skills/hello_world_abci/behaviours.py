@@ -65,7 +65,6 @@ class HelloWorldABCIBaseBehaviour(BaseBehaviour, ABC):
 class RegistrationBehaviour(HelloWorldABCIBaseBehaviour):
     """Register to the next round."""
 
-    behaviour_id = "register"
     matching_round = RegistrationRound
 
     def async_act(self) -> Generator:
@@ -78,21 +77,15 @@ class RegistrationBehaviour(HelloWorldABCIBaseBehaviour):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour (set done event).
         """
-
-        with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            payload = RegistrationPayload(self.context.agent_address)
-
-        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
+        payload = RegistrationPayload(self.context.agent_address)
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
         self.set_done()
 
 
 class CollectRandomnessBehaviour(HelloWorldABCIBaseBehaviour):
     """Retrieve randomness."""
 
-    behaviour_id = "collect_randomness"
     matching_round = CollectRandomnessRound
 
     def async_act(self) -> Generator:
@@ -106,19 +99,17 @@ class CollectRandomnessBehaviour(HelloWorldABCIBaseBehaviour):
         """
         if self.context.randomness_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round
-            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
-                yield from self.wait_until_round_end()
+            yield from self.wait_until_round_end()
             self.set_done()
             return
 
-        with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            api_specs = self.context.randomness_api.get_spec()
-            http_message, http_dialogue = self._build_http_request_message(
-                method=api_specs["method"],
-                url=api_specs["url"],
-            )
-            response = yield from self._do_request(http_message, http_dialogue)
-            observation = self.context.randomness_api.process_response(response)
+        api_specs = self.context.randomness_api.get_spec()
+        http_message, http_dialogue = self._build_http_request_message(
+            method=api_specs["method"],
+            url=api_specs["url"],
+        )
+        response = yield from self._do_request(http_message, http_dialogue)
+        observation = self.context.randomness_api.process_response(response)
 
         if observation:
             self.context.logger.info(f"Retrieved DRAND values: {observation}.")
@@ -127,10 +118,8 @@ class CollectRandomnessBehaviour(HelloWorldABCIBaseBehaviour):
                 observation["round"],
                 observation["randomness"],
             )
-            with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
-                yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_round_end()
-
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
             self.set_done()
         else:
             self.context.logger.error(
@@ -151,7 +140,6 @@ class CollectRandomnessBehaviour(HelloWorldABCIBaseBehaviour):
 class SelectKeeperBehaviour(HelloWorldABCIBaseBehaviour, ABC):
     """Select the keeper agent."""
 
-    behaviour_id = "select_keeper"
     matching_round = SelectKeeperRound
 
     def async_act(self) -> Generator:
@@ -165,19 +153,17 @@ class SelectKeeperBehaviour(HelloWorldABCIBaseBehaviour, ABC):
         - Go to the next behaviour (set done event).
         """
 
-        with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            participants = sorted(self.synchronized_data.participants)
-            random.seed(self.synchronized_data.most_voted_randomness, 2)  # nosec
-            index = random.randint(0, len(participants) - 1)  # nosec
+        participants = sorted(self.synchronized_data.participants)
+        random.seed(self.synchronized_data.most_voted_randomness, 2)  # nosec
+        index = random.randint(0, len(participants) - 1)  # nosec
 
-            keeper_address = participants[index]
+        keeper_address = participants[index]
 
-            self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
-            payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
+        self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
+        payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
 
-        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
 
         self.set_done()
 
@@ -185,7 +171,6 @@ class SelectKeeperBehaviour(HelloWorldABCIBaseBehaviour, ABC):
 class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
     """Prints the celebrated 'HELLO WORLD!' message."""
 
-    behaviour_id = "print_message"
     matching_round = PrintMessageRound
 
     def async_act(self) -> Generator:
@@ -215,9 +200,8 @@ class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
 
         payload = PrintMessagePayload(self.context.agent_address, printed_message)
 
-        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
 
         self.set_done()
 
@@ -226,9 +210,6 @@ class ResetAndPauseBehaviour(HelloWorldABCIBaseBehaviour):
     """Reset behaviour."""
 
     matching_round = ResetAndPauseRound
-    behaviour_id = "reset_and_pause"
-    pause = True
-
     pause = True
 
     def async_act(self) -> Generator:
@@ -245,7 +226,6 @@ class ResetAndPauseBehaviour(HelloWorldABCIBaseBehaviour):
         """
         if self.pause:
             self.context.logger.info("Period end.")
-            self.context.benchmark_tool.save()
             yield from self.sleep(self.params.observation_interval)
         else:
             self.context.logger.info(

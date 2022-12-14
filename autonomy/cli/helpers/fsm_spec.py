@@ -115,12 +115,12 @@ def check_one(
         app_class = _get_app_class_from_spec_file(spec_file, spec_format)
 
     if app_class is None:
-        raise ValueError(
+        raise ValueError(  # pragma: no cover
             "Please provide name for the app class or make sure FSM specification file is properly defined."
         )
 
     module = import_and_validate_app_class(package_path, app_class)
-    if not hasattr(module, app_class):
+    if not hasattr(module, app_class):  # pragma: no cover
         raise Exception(f'Class "{app_class}" is not in "{module}".')
 
     abci_app_class = getattr(module, app_class)

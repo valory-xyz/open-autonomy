@@ -359,6 +359,32 @@ def __init__(**kwargs: Any)
 
 Initialize a base behaviour.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.auto_behaviour_id"></a>
+
+#### auto`_`behaviour`_`id
+
+```python
+@classmethod
+def auto_behaviour_id(cls) -> str
+```
+
+Get behaviour id automatically.
+
+This method returns the auto generated id from the class name if the
+class variable behaviour_id is not set on the child class.
+Otherwise, it returns the class variable behaviour_id.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.behaviour_id"></a>
+
+#### behaviour`_`id
+
+```python
+@property
+def behaviour_id() -> str
+```
+
+Get behaviour id.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.params"></a>
 
 #### params

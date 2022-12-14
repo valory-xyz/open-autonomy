@@ -181,6 +181,17 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour)
 
 Check the transaction history.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.CheckTransactionHistoryBehaviour.history"></a>
+
+#### history
+
+```python
+@property
+def history() -> List[str]
+```
+
+Get the history of hashes.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.CheckTransactionHistoryBehaviour.async_act"></a>
 
 #### async`_`act
@@ -201,6 +212,17 @@ class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
 ```
 
 Check the late-arriving transaction hashes.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.CheckLateTxHashesBehaviour.history"></a>
+
+#### history
+
+```python
+@property
+def history() -> List[str]
+```
+
+Get the history of hashes.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour"></a>
 
