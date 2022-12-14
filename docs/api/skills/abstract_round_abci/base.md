@@ -1155,6 +1155,17 @@ def participant_to_votes() -> Mapping
 
 Check whether keeper is set.
 
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.safe_contract_address"></a>
+
+#### safe`_`contract`_`address
+
+```python
+@property
+def safe_contract_address() -> str
+```
+
+Get the safe contract address.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbstractRound"></a>
 
 ## AbstractRound Objects
