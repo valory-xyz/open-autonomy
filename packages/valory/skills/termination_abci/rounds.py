@@ -57,7 +57,7 @@ class SynchronizedData(BaseSynchronizedData):
     """
 
     @property
-    def safe_contract_address(self) -> Optional[str]:
+    def safe_contract_address(self) -> Optional[str]:  # type: ignore
         """Get the safe contract address."""
         return cast(Optional[str], self.db.get("safe_contract_address", None))
 

@@ -878,6 +878,11 @@ class BaseSynchronizedData:
         """Check whether keeper is set."""
         return cast(Dict, self.db.get_strict("participant_to_votes"))
 
+    @property
+    def safe_contract_address(self) -> str:
+        """Get the safe contract address."""
+        return cast(str, self.db.get_strict("safe_contract_address"))
+
 
 class AbstractRound(Generic[EventType, TransactionType], ABC):
     """
