@@ -34,7 +34,7 @@ from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.tcp_cha
 
 @pytest.mark.skipif(
     platform.system() == "Windows",
-    reason="<IocpProactor overlapped#=1175 result#=0> is running after closing for ... seconds (windows_events.py:871)"
+    reason="<IocpProactor overlapped#=1175 result#=0> is running after closing for ... seconds (windows_events.py:871)",
 )
 class TestFuzzyGrpc(BaseFuzzyTests):
     """Test the connection when gRPC is used"""
