@@ -341,9 +341,10 @@ class TestTendermintHandler:
         """Dummy validator config"""
         return {
             self.agent_name: {
-                "tendermint_url": "http://0.0.0.0:25567",
+                "hostname": "localhost",
                 "address": "address",
                 "pub_key": "pub_key",
+                "peer_id": "peer_id",
             }
         }
 
@@ -410,7 +411,7 @@ class TestTendermintHandler:
     def test_handle_response_invalid_addresses(self, caplog: LogCaptureFixture) -> None:
         """Test handle response invalid address"""
         validator_config = self.dummy_validator_config
-        validator_config[self.agent_name]["tendermint_url"] = "http://some.random.uri"
+        validator_config[self.agent_name]["hostname"] = "random"
         performative = TendermintMessage.Performative.RESPONSE
         info = json.dumps(validator_config[self.agent_name])
         message = TendermintMessage(performative, info=info)  # type: ignore
