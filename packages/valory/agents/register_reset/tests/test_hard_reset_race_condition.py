@@ -58,7 +58,7 @@ class TestRaceConditionTendermintReset(BaseTestEnd2EndExecution):
     agent_package = "valory/register_reset:0.1.0"
     skill_package = "valory/register_reset_abci:0.1.0"
     happy_path = HAPPY_PATH
-    wait_to_finish = 200
+    wait_to_finish = 3000
     __reset_tendermint_every = 1
     package_registry_src_rel = Path(__file__).parents[4]
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
@@ -69,6 +69,6 @@ class TestRaceConditionTendermintReset(BaseTestEnd2EndExecution):
         },
         {
             "dotted_path": f"{__args_prefix}.observation_interval",
-            "value": 15,
+            "value": 3000,
         },
     ]

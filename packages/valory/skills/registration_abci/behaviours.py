@@ -47,6 +47,7 @@ from packages.valory.skills.registration_abci.rounds import (
     RegistrationStartupRound,
 )
 
+
 NODE = "node{i}"
 WAIT_FOR_BLOCK_TIMEOUT = 60.0  # 1 minute
 
@@ -367,7 +368,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             # the agent wasn't able to receive blocks in the given amount of time (timeout)
             return False
 
-    def async_act(self) -> Generator:
+    def async_act(self) -> Generator:  # pylint: disable=too-many-return-statements
         """
         Do the action.
 

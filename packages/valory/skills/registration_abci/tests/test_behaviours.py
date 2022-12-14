@@ -351,7 +351,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         response_kwargs = dict(status_code=200, body=body)
         self.mock_http_request(request_kwargs, response_kwargs)
 
-    def set_last_timestamp(self, last_timestamp: datetime.datetime) -> None:
+    def set_last_timestamp(self, last_timestamp: Optional[datetime.datetime]) -> None:
         """Set last timestamp"""
         if last_timestamp is not None:
             state = cast(SharedState, self._skill.skill_context.state)
