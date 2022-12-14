@@ -44,6 +44,10 @@ class TestFuzzyGrpc(BaseFuzzyTests):
     AGENT_TIMEOUT_SECONDS = 30
 
 
+@pytest.mark.skipif(
+    platform.system() == "Windows",
+    reason="<IocpProactor overlapped#=1175 result#=0> is running after closing for ... seconds (windows_events.py:871)",
+)
 class TestFuzzyTcp(BaseFuzzyTests):
     """Test the connection when TCP is used"""
 
