@@ -47,7 +47,7 @@ fingerprint:
   tests/test_fuzz/mock_node/channels/grpc_channel.py: bafybeicbzhegdifb3wgssfkjwgj5stxre52ek7pj4j3h333ttmnyxpken4
   tests/test_fuzz/mock_node/channels/tcp_channel.py: bafybeifbmo7tm6gqtoge6mcq6lmukydr7etqjdoccg5yomx43rnruixudu
   tests/test_fuzz/mock_node/node.py: bafybeieyq4vbddnk5qnvwttmralv6soadz276rapembzjp5sbhcnmvaida
-  tests/test_fuzz/test_fuzz.py: bafybeidud5i6dhrtvi4ax5ynnjo2tslurbhl35t6u6bfh7tvmgrx7xo3vu
+  tests/test_fuzz/test_fuzz.py: bafybeifw4andpz4kgegfuxxxtd637do3wabndyfmmsalzpenh46sfnswai
   tests/test_tendermint_decoder.py: bafybeihogt3aopyln5newihm3rbiqimoc4aw6za2cngplnjnwatv6nakea
   tests/test_tendermint_encoder.py: bafybeigpun2ybwr5tu7b52his3b5apyrlmdytlgofcszbctsmmabo3sjg4
   version.txt: bafybeifjb44fd7qve2ku62ythui6z4mvd4k7qkjomlcdnl3ymb3bnq6xee
