@@ -136,7 +136,6 @@ class TestYamlSnippets(BaseTestDocCode):
         "docs/demos/price_oracle_fsms.md": {
             "code_files": [
                 "packages/valory/skills/registration_abci/fsm_specification.yaml",
-                "packages/valory/skills/safe_deployment_abci/fsm_specification.yaml",
                 "packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml",
                 "packages/valory/skills/reset_pause_abci/fsm_specification.yaml",
             ],
