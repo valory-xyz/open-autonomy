@@ -46,6 +46,7 @@ CONFIG_OVERRIDE = [
     ("max_num_outbound_peers = 10", "max_num_outbound_peers = 0"),
     ("pex = true", "pex = false"),
 ]
+DOCKER_INTERNAL_HOST = "host.docker.internal"
 
 logging.basicConfig(
     filename=os.environ.get("LOG_FILE", DEFAULT_LOG_FILE),
@@ -92,7 +93,12 @@ def update_peers(validators: List[Dict]) -> None:
 
     new_peer_string = 'persistent_peers = "'
     for peer in validators:
-        new_peer_string += peer["peer_id"] + "@" + peer["hostname"] + ":" + "26656,"
+        hostname = peer["hostname"]
+        if hostname in ("localhost", "0.0.0.0"):
+            hostname = DOCKER_INTERNAL_HOST
+        new_peer_string += (
+            peer["peer_id"] + "@" + hostname + ":" + str(peer["p2p_port"]) + ","
+        )
     new_peer_string = new_peer_string[:-1] + '"\n'
 
     updated_config = re.sub('persistent_peers = ".*\n', new_peer_string, config_text)
