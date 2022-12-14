@@ -259,6 +259,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             params = data.get("params")
             assert params
             assert params.pop("address")
+            assert params.pop("peer_id")
             pub_key = params.pop("pub_key")
             assert pub_key.pop("type")
             assert pub_key.pop("value")
@@ -292,7 +293,9 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             # 1. check params are in validator set
             response = client.get("/params")
             assert response.status_code == 200
-            params = cast(JSONLike, response.get_json()).get("params")
+            response_data = cast(Dict, response.get_json())
+            params = cast(Dict, response_data["params"])
+            params.pop("peer_id", None)
             params["name"], params["power"] = "", "10"
             assert params in genesis_config["validators"]
 
