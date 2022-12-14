@@ -241,6 +241,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         tm_url = urlparse(self.context.params.tendermint_url)
         validator_config = dict(
             hostname=tm_url.hostname,
+            p2p_port=self.context.params.tendermint_p2p_port,
             address=self.local_tendermint_params["address"],
             pub_key=self.local_tendermint_params["pub_key"],
             peer_id=self.local_tendermint_params["peer_id"],
@@ -303,6 +304,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         for address, validator_config in collected_agent_info.items():
             validator = dict(
                 hostname=validator_config["hostname"],
+                p2p_port=validator_config["p2p_port"],
                 address=validator_config["address"],
                 pub_key=validator_config["pub_key"],
                 peer_id=validator_config["peer_id"],
