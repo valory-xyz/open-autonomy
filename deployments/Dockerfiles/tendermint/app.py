@@ -85,10 +85,9 @@ def override_config_toml() -> None:
         fp.write(config)
 
 
-def update_peers(validators: List[Dict]) -> None:
+def update_peers(validators: List[Dict], config_path: Path) -> None:
     """Fix peers."""
 
-    config_path = Path(os.environ["TMHOME"]) / "config" / "config.toml"
     config_text = config_path.read_text(encoding="utf-8")
 
     new_peer_string = 'persistent_peers = "'
@@ -231,7 +230,10 @@ def create_app(
             cast(logging.Logger, app.logger).info(  # pylint: disable=no-member
                 "Updating peristent peers."
             )
-            update_peers(validators=data["validators"])
+            update_peers(
+                validators=data["validators"],
+                config_path=Path(os.environ["TMHOME"]) / "config" / "config.toml",
+            )
 
             return {"status": True, "error": None}
         except (FileNotFoundError, json.JSONDecodeError, PermissionError):
