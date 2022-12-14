@@ -22,6 +22,7 @@ import datetime
 import json
 from enum import Enum
 from typing import Any, Dict, Generator, Optional, Set, Type, cast
+from urllib.parse import urlparse
 
 from aea.mail.base import EnvelopeContext
 
@@ -48,7 +49,7 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 
-NODE = "node{i}"
+NODE = "node_{address}"
 WAIT_FOR_BLOCK_TIMEOUT = 60.0  # 1 minute
 
 
@@ -241,10 +242,13 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         # put service info in the shared state for p2p message handler
         info: Dict[str, Dict[str, str]] = dict.fromkeys(registered_addresses)
+        tm_url = urlparse(self.context.params.tendermint_url)
         validator_config = dict(
-            tendermint_url=self.context.params.tendermint_url,
+            hostname=tm_url.hostname,
+            p2p_port=self.context.params.tendermint_p2p_port,
             address=self.local_tendermint_params["address"],
             pub_key=self.local_tendermint_params["pub_key"],
+            peer_id=self.local_tendermint_params["peer_id"],
         )
         info[self.context.agent_address] = validator_config
         self.synchronized_data.db.update(registered_addresses=info)
@@ -301,12 +305,15 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Format collected agent info for genesis update"""
 
         validators = []
-        for i, validator_config in enumerate(collected_agent_info.values()):
+        for address, validator_config in collected_agent_info.items():
             validator = dict(
+                hostname=validator_config["hostname"],
+                p2p_port=validator_config["p2p_port"],
                 address=validator_config["address"],
                 pub_key=validator_config["pub_key"],
+                peer_id=validator_config["peer_id"],
                 power=self.params.voting_power,
-                name=NODE.format(i=i),
+                name=NODE.format(address=address[2:]),  # skip 0x part
             )
             validators.append(validator)
 

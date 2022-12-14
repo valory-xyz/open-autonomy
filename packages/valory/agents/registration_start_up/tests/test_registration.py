@@ -107,6 +107,16 @@ class RegistrationStartUpTestConfig(UseRegistries, UseACNNode, BaseTestEnd2End):
         },
     ]
 
+    def __set_configs(self, i: int, nb_agents: int) -> None:
+        """Set the current agent's config overrides."""
+        super().__set_configs(i=i, nb_agents=nb_agents)
+
+        self.set_config(
+            dotted_path=f"{self.__args_prefix}.tendermint_p2p_port",
+            value=self._tendermint_image.get_p2p_port(i=i),
+            type_="int",
+        )
+
 
 @pytest.mark.e2e
 @pytest.mark.integration

@@ -26,7 +26,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     BaseSynchronizedData,
-    CollectSameUntilThresholdRound,
+    CollectSameUntilThresholdRound, get_name,
 )
 from packages.valory.skills.register_reset_recovery_abci.payloads import (
     RoundCountPayload,
@@ -43,9 +43,8 @@ class Event(Enum):
 class RoundCountRound(CollectSameUntilThresholdRound):
     """A round in which the round count is stored as a list."""
 
-    round_id = "round_count_round"
     allowed_tx_type = RoundCountPayload.transaction_type
-    payload_attribute = "current_round_count"
+    payload_attribute = get_name(RoundCountPayload.current_round_count)
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -59,9 +58,6 @@ class RoundCountRound(CollectSameUntilThresholdRound):
             )
             all_round_counts.append(self.most_voted_payload)
             synchronized_data = self.synchronized_data.update(
-                synchronized_data_class=self.synchronized_data_class,
-                participants=self.collection,
-                all_participants=self.collection,
                 round_counts=all_round_counts,
             )
             return synchronized_data, Event.DONE
