@@ -1,6 +1,59 @@
 # Release History - `open-autonomy`
 
 
+# 0.5.0.post2 (2022-12-09)
+
+Packages:
+- Fixes synchronized data for safe deployment
+- Ensures that the synchronized data class is set everywhere and added a warning when it is not
+
+Tests:
+- Adds tests for checking `PUBLIC_ID` in `__init__.py` files
+- Adds tests for small coverage gaps in `open-autonomy`
+- Adds tests for registration behaviours
+- Adds tests for `abstract_round_abci` skill
+
+Chores:
+- Pins `tox` using `tomte` on CI
+
+
+# 0.5.0.post1 (2022-12-08)
+
+Autonomy:
+- Patches packages command group to adapt latest changes from `open-aea`
+
+Packages:
+- Fixes version specifiers for `open-aea-test-autonomy` and `open-aea-ledger-ethereum`
+
+# 0.5.0 (2022-12-05)
+
+Autonomy:
+- Introduces more flexible approach to defining the overrides for multiple agents in a service component
+- Deprecates the usage of `autonomy hash all` command, `autonomy packages lock` can be used to perform package dependency hash updates and checks
+- Updates the override serialisation mechanism to be consistent with the environment variable parser
+- Extends the `from-token` command to provide password for encrypted private keys at the runtime
+- Updates the process of overriding the safe contract address at the runtime to be more generalised
+- Fixes a bug that allowed the image build to continue even after a command run failed when building the image on `build-image` command
+ 
+Packages:
+- Fixes the `AbciApp` initialization to ensure that synchronized data is retrieved as an instance of the `synchronized_data_class` specified on the round.
+- Updates the `IPFSInteract` tool to
+  - Catch the broken connection exceptions
+  - Remove the correct path before downloading
+- Fixes the tendermint reset mechanism to 
+  - Avoid race conditions when performing a hard reset
+  - Not update the initial height and genesis time when resetting for recovering agent to tendermint communication
+  - Update the waiting interval
+
+Tests:
+- Tests for the service config loader
+- Adds test coverage for `autonomy` framework
+
+Docs:
+- Adds documentation on the usage of the service level overrides
+- Makes sure that naming convention for autonomous services is consistent throughout the documentation
+
+
 # 0.4.0 (2022-11-17)
 
 Autonomy:

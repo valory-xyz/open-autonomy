@@ -92,8 +92,15 @@ def build_image(
             if "stream" in stream_data:
                 print("[docker]" + stream_data["stream"], end="")
             elif "errorDetail" in stream_data:
-                print("[error]" + stream_data["errorDetail"]["message"], end="")
+                raise ImageBuildFailed(
+                    "Image build failed with error "
+                    + stream_data["errorDetail"]["message"]
+                )
             elif "aux" in stream_data:
-                print("[docker]" + stream_data["aux"]["ID"])
-            elif "status" in stream_data:
-                print("[docker]" + stream_data["status"])
+                print("[docker]" + stream_data["aux"]["ID"], end="")
+            elif "status" in stream_data:  # pragma: no cover
+                print("[docker]" + stream_data["status"], end="")
+
+
+class ImageBuildFailed(Exception):
+    """Raise when there's an error while building the agent image."""

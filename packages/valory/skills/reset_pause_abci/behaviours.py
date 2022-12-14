@@ -56,7 +56,6 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseBehaviour):
     """Reset and pause behaviour."""
 
     matching_round = ResetAndPauseRound
-    behaviour_id = "reset_and_pause"
 
     def async_act(self) -> Generator:
         """

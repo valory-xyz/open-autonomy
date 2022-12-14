@@ -22,7 +22,7 @@ from pathlib import Path
 
 import click
 from aea.cli.publish import publish_agent_package
-from aea.cli.utils.click_utils import registry_flag
+from aea.cli.utils.click_utils import registry_flag, reraise_as_click_exception
 from aea.configurations.constants import (
     DEFAULT_AEA_CONFIG_FILE,
     DEFAULT_SERVICE_CONFIG_FILE,
@@ -41,7 +41,8 @@ def publish(
     click_context: click.Context, registry: str, push_missing: bool
 ) -> None:  # pylint: disable=unused-argument
     """Publish the agent or service on the registry."""
-    try:
+
+    with reraise_as_click_exception(Exception):
         if Path(click_context.obj.cwd, DEFAULT_SERVICE_CONFIG_FILE).exists():
             # TODO: support push_missing
             publish_service_package(click_context, registry)
@@ -50,6 +51,6 @@ def publish(
         ).exists():  # pragma: nocover
             publish_agent_package(click_context, registry, push_missing)
         else:
-            raise FileNotFoundError("No package config found in this directory.")
-    except Exception as e:  # pylint: disable=broad-except  # pragma: nocover
-        raise click.ClickException(str(e)) from e
+            raise FileNotFoundError(
+                "No package config found in this directory."
+            )  # pragma: no cover

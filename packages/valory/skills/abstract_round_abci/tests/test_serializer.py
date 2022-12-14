@@ -21,41 +21,22 @@
 # pylint: skip-file
 
 import math
-import shutil
-import sys
 from collections import defaultdict
-from contextlib import suppress
-from pathlib import Path
-from typing import Any, Dict, Generator
+from typing import Any, Dict
 
 import hypothesis.strategies as st
 import pytest
 from google.protobuf.struct_pb2 import Struct
-from hypothesis import given
+from hypothesis import given, settings
 
 from packages.valory.skills.abstract_round_abci import serializer
 from packages.valory.skills.abstract_round_abci.serializer import (
     DictProtobufStructSerializer,
 )
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
 
-try:
-    import atheris  # type: ignore
-except (ImportError, ModuleNotFoundError):
-    atheris: Any = None  # type: ignore
-
-
-PACKAGE_DIR = Path(__file__).parent.parent
-
-
-@pytest.fixture(scope="session", autouse=True)
-def hypothesis_cleanup() -> Generator:
-    """Fixture to remove hypothesis directory after tests."""
-    yield
-    hypothesis_dir = PACKAGE_DIR / ".hypothesis"
-    if hypothesis_dir.exists():
-        with suppress(OSError, PermissionError):
-            shutil.rmtree(hypothesis_dir)
+settings.load_profile(profile_name)
 
 
 def test_encode_decode_i() -> None:
@@ -198,30 +179,6 @@ def test_encode_nan() -> None:
     serialized = serializer.DictProtobufStructSerializer.encode(case)
     deserialized = serializer.DictProtobufStructSerializer.decode(serialized)
     assert math.isnan(deserialized["key"])
-
-
-@pytest.mark.skip
-def test_fuzz_encode() -> None:
-    """Fuzz test for serializer. Run directly as a function, not through pytest"""
-
-    @atheris.instrument_func
-    def test_encode(input_bytes: bytes) -> None:
-        """Test encode decode logic."""
-        fdp = atheris.FuzzedDataProvider(input_bytes)
-        case = {
-            "key1": fdp.ConsumeBool(),
-            "key2": fdp.ConsumeFloat(),
-            "key3": fdp.ConsumeInt(4),
-            "key4": fdp.ConsumeString(12),
-            "key5": fdp.ConsumeBytes(12),
-            "key6": Struct(),
-            "_need_patch": {},
-        }
-        serializer.to_bytes(case)
-
-    atheris.instrument_all()
-    atheris.Setup(sys.argv, test_encode)
-    atheris.Fuzz()
 
 
 def test_encode_non_unicode_raises() -> None:

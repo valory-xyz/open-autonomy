@@ -45,6 +45,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
+from packages.valory.skills.registration_abci import PUBLIC_ID
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationBaseBehaviour,
     RegistrationBehaviour,
@@ -75,6 +76,13 @@ DUMMY_VALIDATOR_CONFIG = {
         "value": "7y7ycBMMABj5Onf74ITYtUS3uZ6SsCQKZML87mIX",
     },
 }
+
+
+def test_skill_public_id() -> None:
+    """Test skill module public ID"""
+
+    assert PUBLIC_ID.name == Path(__file__).parents[1].name
+    assert PUBLIC_ID.author == Path(__file__).parents[3].name
 
 
 def consume(iterator: Iterable) -> None:
@@ -116,13 +124,13 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
         """Test registration."""
         self.fast_forward_to_behaviour(
             self.behaviour,
-            self.behaviour_class.behaviour_id,
+            self.behaviour_class.auto_behaviour_id(),
             RegistrationSynchronizedData(AbciAppDB(setup_data=setup_data)),
         )
         assert isinstance(self.behaviour.current_behaviour, BaseBehaviour)
         assert (
             self.behaviour.current_behaviour.behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
         with mock.patch.object(
             self.behaviour.current_behaviour,
@@ -145,7 +153,7 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
         self.end_round(Event.DONE)
         assert (
             self.behaviour.current_behaviour.behaviour_id
-            == self.next_behaviour_class.behaviour_id
+            == self.next_behaviour_class.auto_behaviour_id()
         )
 
 
@@ -153,7 +161,9 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     """Test case to test RegistrationStartupBehaviour."""
 
     behaviour_class = RegistrationStartupBehaviour
-    next_behaviour_class = make_degenerate_behaviour(FinishedRegistrationRound.round_id)
+    next_behaviour_class = make_degenerate_behaviour(
+        FinishedRegistrationRound.auto_round_id()
+    )
 
     other_agents: List[str] = ["0xAlice", "0xBob", "0xCharlie"]
 
@@ -196,6 +206,11 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             "on_chain_service_id",
             return_value=ON_CHAIN_SERVICE_ID,
         )
+
+    @property
+    def mocked_yield_from_sleep(self) -> mock._patch:
+        """Mock yield from sleep"""
+        return mock.patch.object(self.behaviour.current_behaviour, "sleep")
 
     # mock contract calls
     def mock_is_correct_contract(self, error_response: bool = False) -> None:
@@ -336,9 +351,9 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
 
     def test_no_contract_address(self, caplog: LogCaptureFixture) -> None:
         """Test service registry contract address not provided"""
-        with caplog.at_level(
-            logging.INFO,
-            logger=self.logger,
+        with as_context(
+            caplog.at_level(logging.INFO, logger=self.logger),
+            self.mocked_yield_from_sleep,
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
@@ -357,6 +372,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         with as_context(
             caplog.at_level(logging.INFO, logger=self.logger),
             self.mocked_service_registry_address,
+            self.mocked_yield_from_sleep,
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params(valid_response=valid_response)
@@ -472,6 +488,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             caplog.at_level(logging.INFO, logger=self.logger),
             self.mocked_service_registry_address,
             self.mocked_on_chain_service_id,
+            self.mocked_yield_from_sleep,
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
@@ -512,7 +529,9 @@ class TestRegistrationStartupBehaviourNoConfigShare(BaseRegistrationTestBehaviou
     """Test case to test RegistrationBehaviour."""
 
     behaviour_class = RegistrationStartupBehaviour
-    next_behaviour_class = make_degenerate_behaviour(FinishedRegistrationRound.round_id)
+    next_behaviour_class = make_degenerate_behaviour(
+        FinishedRegistrationRound.auto_round_id()
+    )
 
 
 class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
@@ -520,5 +539,5 @@ class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
 
     behaviour_class = RegistrationBehaviour
     next_behaviour_class = make_degenerate_behaviour(
-        FinishedRegistrationFFWRound.round_id
+        FinishedRegistrationFFWRound.auto_round_id()
     )

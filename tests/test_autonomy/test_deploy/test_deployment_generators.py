@@ -21,7 +21,7 @@
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, cast
+from typing import Any, Optional, cast
 from unittest import mock
 
 import pytest
@@ -29,7 +29,7 @@ from aea.configurations.data_types import PublicId
 from aea.helpers.base import cd
 
 from autonomy.configurations.base import Service
-from autonomy.deploy.base import BaseDeploymentGenerator, ServiceSpecification
+from autonomy.deploy.base import BaseDeploymentGenerator, ServiceBuilder
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 
@@ -51,31 +51,36 @@ def get_dummy_service() -> Service:
 
 
 @pytest.mark.parametrize("generator_cls", (DockerComposeGenerator, KubernetesGenerator))
-def test_versioning(generator_cls: Any) -> None:
+@pytest.mark.parametrize("image_version", [None, "0.1.0"])
+@pytest.mark.parametrize("use_hardhat", [False, True])
+@pytest.mark.parametrize("use_acn", [False, True])
+def test_versioning(
+    generator_cls: Any, image_version: Optional[str], use_hardhat: bool, use_acn: bool
+) -> None:
     """Test versioning in builds."""
+
+    generate_kwargs = locals()
+    generate_kwargs.pop("generator_cls")
 
     with TemporaryDirectory() as temp_dir:
         with cd(temp_dir), mock.patch(
             "autonomy.deploy.base.load_service_config",
             return_value=get_dummy_service(),
         ):
-            service_spec = ServiceSpecification(
-                service_path=Path.cwd(),
-                keys=KEYS_PATH,
+            service_builder = ServiceBuilder.from_dir(
+                path=Path.cwd(),
+                keys_file=KEYS_PATH,
                 number_of_agents=1,
             )
 
             deployment_generator = cast(
                 BaseDeploymentGenerator,
                 generator_cls(
-                    service_spec=service_spec,
+                    service_builder=service_builder,
                     build_dir=Path.cwd(),
                 ),
             )
 
-            deployment_generator.generate()
-            assert f"valory/oar-oracle:{AGENT.hash}" in deployment_generator.output
-
-            image_version = "0.1.0"
-            deployment_generator.generate(image_version=image_version)
-            assert f"valory/oar-oracle:{image_version}" in deployment_generator.output
+            deployment_generator.generate(**generate_kwargs)
+            expected = f"valory/oar-oracle:{image_version or AGENT.hash}"
+            assert expected in deployment_generator.output

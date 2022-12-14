@@ -85,4 +85,5 @@ def analyse_docstrings(
 
             return update_needed
 
+    click.echo(f"WARNING: No AbciApp definition found in: {module.__file__}")
     return True

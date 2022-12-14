@@ -31,11 +31,19 @@ from aea.test_tools.test_skill import BaseSkillTestCase
 from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
+from packages.valory.skills.counter_client import PUBLIC_ID
 from packages.valory.skills.counter_client.behaviours import BaseBehaviour
 from packages.valory.skills.counter_client.handlers import HttpHandler, HttpMessage
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
+
+
+def test_skill_public_id() -> None:
+    """Test skill module public ID"""
+
+    assert PUBLIC_ID.name == Path(__file__).parents[1].name
+    assert PUBLIC_ID.author == Path(__file__).parents[3].name
 
 
 class BaseTestClass(BaseSkillTestCase):

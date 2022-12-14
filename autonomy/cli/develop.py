@@ -55,12 +55,8 @@ def run_service_locally(image: str) -> None:
     try:
         for line in client.api.logs(container.id, follow=True, stream=True):
             click.echo(line.decode())
-    except KeyboardInterrupt:
-        click.echo("Stopping container.")
-    except Exception:  # pyline: disable=broad-except
+    except KeyboardInterrupt:  # pragma: no cover
+        pass
+    finally:  # pragma: no cover
         click.echo("Stopping container.")
         container.stop()
-        raise
-
-    click.echo("Stopping container.")
-    container.stop()

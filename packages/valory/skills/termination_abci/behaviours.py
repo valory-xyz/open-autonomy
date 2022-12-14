@@ -70,7 +70,6 @@ _NO_EVENT_FOUND: Dict = {}
 class BackgroundBehaviour(BaseBehaviour):
     """A behaviour responsible for picking up the termination signal, it runs concurrently with other behaviours."""
 
-    behaviour_id = "background_behaviour"
     matching_round = BackgroundRound
     _service_owner_address: Optional[str] = None
 
@@ -500,7 +499,7 @@ class BackgroundBehaviour(BaseBehaviour):
             :return: none
             """
             if self.is_stopped:
-                self.context.logger.debug(
+                self.context.logger.info(
                     "dropping message as behaviour has stopped: %s", message
                 )
                 return
@@ -530,8 +529,6 @@ class BackgroundBehaviour(BaseBehaviour):
 class TerminationBehaviour(BaseBehaviour):
     """Behaviour responsible for terminating the agent."""
 
-    state_id: str = "termination"
-    behaviour_id = "termination_behaviour"
     matching_round = TerminationRound
 
     def async_act(self) -> Generator:

@@ -34,6 +34,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehav
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
+from packages.valory.skills.test_abci import PUBLIC_ID
 from packages.valory.skills.test_abci.behaviours import (
     DummyBehaviour,
     TestAbciConsensusBehaviour,
@@ -47,6 +48,13 @@ from packages.valory.skills.test_abci.handlers import (
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
+
+
+def test_skill_public_id() -> None:
+    """Test skill module public ID"""
+
+    assert PUBLIC_ID.name == Path(__file__).parents[1].name
+    assert PUBLIC_ID.author == Path(__file__).parents[3].name
 
 
 class AbciFSMBehaviourBaseCase(FSMBehaviourBaseCase):
@@ -73,7 +81,7 @@ class TestDummyBehaviour(AbciFSMBehaviourBaseCase):
 
         self.fast_forward_to_behaviour(
             self.behaviour,
-            DummyBehaviour.behaviour_id,
+            DummyBehaviour.auto_behaviour_id(),
             self.synchronized_data,
         )
         assert (
@@ -81,7 +89,7 @@ class TestDummyBehaviour(AbciFSMBehaviourBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
-            == DummyBehaviour.behaviour_id
+            == DummyBehaviour.auto_behaviour_id()
         )
         self.behaviour.act_wrapper()
         assert self.behaviour.current_behaviour is None

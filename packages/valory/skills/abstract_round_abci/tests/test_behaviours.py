@@ -22,12 +22,14 @@
 # pylint: skip-file
 
 from enum import Enum
+from pathlib import Path
 from typing import Any, Dict, Generator, Optional, Tuple
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
 
+from packages.valory.skills.abstract_round_abci import PUBLIC_ID
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciApp,
@@ -56,6 +58,13 @@ CONCRETE_BACKGROUND_BEHAVIOUR_ID = "background_behaviour"
 ROUND_A_ID = "round_a"
 ROUND_B_ID = "round_b"
 CONCRETE_BACKGROUND_ROUND_ID = "background_round"
+
+
+def test_skill_public_id() -> None:
+    """Test skill module public ID"""
+
+    assert PUBLIC_ID.name == Path(__file__).parents[1].name
+    assert PUBLIC_ID.author == Path(__file__).parents[3].name
 
 
 class RoundA(AbstractRound):
@@ -137,6 +146,23 @@ class BehaviourB(BaseBehaviour):
         yield
 
 
+class BehaviourC(BaseBehaviour):
+    """Dummy behaviour."""
+
+    def async_act(self) -> Generator:
+        """Dummy act method."""
+        yield
+
+
+def test_auto_behaviour_id() -> None:
+    """Test that the 'auto_behaviour_id()' method works as expected."""
+
+    assert BehaviourB.auto_behaviour_id() == BEHAVIOUR_B_ID
+    assert BehaviourB.behaviour_id == BEHAVIOUR_B_ID
+    assert BehaviourC.auto_behaviour_id() == "behaviour_c"
+    assert isinstance(BehaviourC.behaviour_id, property)
+
+
 class ConcreteBackgroundBehaviour(BaseBehaviour):
     """Dummy behaviour."""
 
@@ -199,7 +225,9 @@ class TestAbstractRoundBehaviour:
 
     def test_check_matching_round_consistency(self) -> None:
         """Test classmethod '_get_behaviour_id_to_behaviour_mapping', negative case."""
-        rounds = [MagicMock(round_id=f"round_{i}") for i in range(3)]
+        rounds = [
+            MagicMock(**{"auto_round_id.return_value": f"round_{i}"}) for i in range(3)
+        ]
         mock_behaviours = [
             MagicMock(matching_round=round, behaviour_id=f"behaviour_{i}")
             for i, round in enumerate(rounds)
@@ -231,8 +259,8 @@ class TestAbstractRoundBehaviour:
     def test_get_behaviour_id_to_behaviour_mapping_negative(self) -> None:
         """Test classmethod '_get_behaviour_id_to_behaviour_mapping', negative case."""
         behaviour_id = "behaviour_id"
-        behaviour_1 = MagicMock(behaviour_id=behaviour_id)
-        behaviour_2 = MagicMock(behaviour_id=behaviour_id)
+        behaviour_1 = MagicMock(**{"auto_behaviour_id.return_value": behaviour_id})
+        behaviour_2 = MagicMock(**{"auto_behaviour_id.return_value": behaviour_id})
 
         with pytest.raises(
             ValueError,
@@ -252,13 +280,19 @@ class TestAbstractRoundBehaviour:
         behaviour_id_1 = "behaviour_id_1"
         behaviour_id_2 = "behaviour_id_2"
         round_cls = RoundA
-        round_id = round_cls.round_id
-        behaviour_1 = MagicMock(behaviour_id=behaviour_id_1, matching_round=round_cls)
-        behaviour_2 = MagicMock(behaviour_id=behaviour_id_2, matching_round=round_cls)
+        round_id = round_cls.auto_round_id()
+        behaviour_1 = MagicMock(
+            matching_round=round_cls,
+            **{"auto_behaviour_id.return_value": behaviour_id_1},
+        )
+        behaviour_2 = MagicMock(
+            matching_round=round_cls,
+            **{"auto_behaviour_id.return_value": behaviour_id_2},
+        )
 
         with pytest.raises(
             ValueError,
-            match=f"the behaviours '{behaviour_id_2}' and '{behaviour_id_1}' point to the same matching round '{round_id}'",
+            match=f"the behaviours '{behaviour_2.auto_behaviour_id()}' and '{behaviour_1.auto_behaviour_id()}' point to the same matching round '{round_id}'",
         ):
             with mock.patch.object(_MetaRoundBehaviour, "_check_consistency"):
 
@@ -303,7 +337,10 @@ class TestAbstractRoundBehaviour:
         behaviour = MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
         final_behaviour = behaviour._round_to_behaviour[FinalRound]
         assert issubclass(final_behaviour, DegenerateBehaviour)
-        assert final_behaviour.behaviour_id == f"degenerate_{FinalRound.round_id}"
+        assert (
+            final_behaviour.auto_behaviour_id()
+            == f"degenerate_behaviour_{FinalRound.auto_round_id()}"
+        )
 
     def test_check_behaviour_id_uniqueness_negative(self) -> None:
         """Test metaclass method '_check_consistency', negative case."""
@@ -311,10 +348,12 @@ class TestAbstractRoundBehaviour:
         behaviour_1_cls_name = "Behaviour1"
         behaviour_2_cls_name = "Behaviour2"
         behaviour_1 = MagicMock(
-            behaviour_id=behaviour_id, __name__=behaviour_1_cls_name
+            __name__=behaviour_1_cls_name,
+            **{"auto_behaviour_id.return_value": behaviour_id},
         )
         behaviour_2 = MagicMock(
-            behaviour_id=behaviour_id, __name__=behaviour_2_cls_name
+            __name__=behaviour_2_cls_name,
+            **{"auto_behaviour_id.return_value": behaviour_id},
         )
 
         with pytest.raises(
@@ -332,9 +371,15 @@ class TestAbstractRoundBehaviour:
         behaviour_id_1 = "behaviour_id_1"
         behaviour_id_2 = "behaviour_id_2"
         round_cls = RoundA
-        round_id = round_cls.round_id
-        behaviour_1 = MagicMock(behaviour_id=behaviour_id_1, matching_round=round_cls)
-        behaviour_2 = MagicMock(behaviour_id=behaviour_id_2, matching_round=round_cls)
+        round_id = round_cls.auto_round_id()
+        behaviour_1 = MagicMock(
+            matching_round=round_cls,
+            **{"auto_behaviour_id.return_value": "behaviour_id_1"},
+        )
+        behaviour_2 = MagicMock(
+            matching_round=round_cls,
+            **{"auto_behaviour_id.return_value": "behaviour_id_2"},
+        )
 
         with pytest.raises(
             ABCIAppInternalError,
@@ -349,15 +394,17 @@ class TestAbstractRoundBehaviour:
     def test_check_initial_behaviour_in_set_of_behaviours_negative_case(self) -> None:
         """Test classmethod '_check_initial_behaviour_in_set_of_behaviours' when initial behaviour is NOT in the set."""
         behaviour_1 = MagicMock(
-            behaviour_id="behaviour_id_1", matching_round=MagicMock()
+            matching_round=MagicMock(),
+            **{"auto_behaviour_id.return_value": "behaviour_id_1"},
         )
         behaviour_2 = MagicMock(
-            behaviour_id="behaviour_id_2", matching_round=MagicMock()
+            matching_round=MagicMock(),
+            **{"auto_behaviour_id.return_value": "behaviour_id_2"},
         )
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="initial behaviour behaviour_id_2 is not in the set of behaviours",
+            match=f"initial behaviour {behaviour_2.auto_behaviour_id()} is not in the set of behaviours",
         ):
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
@@ -374,15 +421,20 @@ class TestAbstractRoundBehaviour:
         self.behaviour.setup()
         assert isinstance(self.behaviour.current_behaviour, BehaviourA)
 
-        # check that after act(), current behaviour is initial behaviour
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_behaviour, BehaviourA)
+        with mock.patch.object(
+            self.behaviour.current_behaviour, "clean_up"
+        ) as clean_up_mock:
+            # check that after act(), current behaviour is initial behaviour and `clean_up()` has not been called
+            self.behaviour.act()
+            assert isinstance(self.behaviour.current_behaviour, BehaviourA)
+            clean_up_mock.assert_not_called()
 
-        # check that once the flag done is set, tries to schedule
-        # the next behaviour, but without success
-        self.behaviour.current_behaviour.set_done()
-        self.behaviour.act()
-        assert self.behaviour.current_behaviour is None
+            # check that once the flag done is set, the `clean_up()` has been called
+            # and `current_behaviour` is set to `None`.
+            self.behaviour.current_behaviour.set_done()
+            self.behaviour.act()
+            assert self.behaviour.current_behaviour is None
+            clean_up_mock.assert_called_once()
 
     def test_act_behaviour_setup(self) -> None:
         """Test the 'act' method of the FSM behaviour triggers setup() of the behaviour."""
@@ -395,14 +447,20 @@ class TestAbstractRoundBehaviour:
 
         assert self.behaviour.current_behaviour.count == 0
 
-        # check that after act() first time, a call to setup has been made
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_behaviour, BehaviourA)
-        assert self.behaviour.current_behaviour.count == 1
+        with mock.patch.object(
+            self.behaviour.current_behaviour, "clean_up"
+        ) as clean_up_mock:
+            # check that after act() first time, a call to setup has been made
+            self.behaviour.act()
+            assert isinstance(self.behaviour.current_behaviour, BehaviourA)
+            assert self.behaviour.current_behaviour.count == 1
 
-        # check that after act() second time, no further call to setup
-        self.behaviour.act()
-        assert self.behaviour.current_behaviour.count == 1
+            # check that after act() second time, no further call to setup
+            self.behaviour.act()
+            assert self.behaviour.current_behaviour.count == 1
+
+            # check that the `clean_up()` has not been called
+            clean_up_mock.assert_not_called()
 
     def test_act_with_round_change(self) -> None:
         """Test the 'act' method of the behaviour, with round change."""
@@ -414,18 +472,23 @@ class TestAbstractRoundBehaviour:
         assert isinstance(self.behaviour.current_behaviour, BehaviourA)
 
         # check that after act(), current behaviour is initial behaviour
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_behaviour, BehaviourA)
+        with mock.patch.object(
+            self.behaviour.current_behaviour, "clean_up"
+        ) as clean_up_mock:
+            self.behaviour.act()
+            assert isinstance(self.behaviour.current_behaviour, BehaviourA)
+            clean_up_mock.assert_not_called()
 
-        # change the round
-        self.round_sequence_mock.current_round = RoundB(MagicMock(), MagicMock())
-        self.round_sequence_mock.current_round_height = (
-            self.round_sequence_mock.current_round_height + 1
-        )
+            # change the round
+            self.round_sequence_mock.current_round = RoundB(MagicMock(), MagicMock())
+            self.round_sequence_mock.current_round_height = (
+                self.round_sequence_mock.current_round_height + 1
+            )
 
-        # check that if the round is changed, the behaviour transition is taken
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_behaviour, BehaviourB)
+            # check that if the round is changed, the behaviour transition is performed and the clean-up is called
+            self.behaviour.act()
+            assert isinstance(self.behaviour.current_behaviour, BehaviourB)
+            clean_up_mock.assert_called_once()
 
     def test_act_with_round_change_after_current_behaviour_is_none(self) -> None:
         """Test the 'act' method of the behaviour, with round change, after cur behaviour is none."""
@@ -436,24 +499,30 @@ class TestAbstractRoundBehaviour:
         self.behaviour.current_behaviour = self.behaviour.instantiate_behaviour_cls(BehaviourA)  # type: ignore
         self.behaviour.background_behaviour = self.behaviour.instantiate_behaviour_cls(ConcreteBackgroundBehaviour)  # type: ignore
 
-        # check that after act(), current behaviour is same behaviour
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_behaviour, BehaviourA)
+        with mock.patch.object(
+            self.behaviour.current_behaviour, "clean_up"
+        ) as clean_up_mock:
+            # check that after act(), current behaviour is same behaviour
+            self.behaviour.act()
+            assert isinstance(self.behaviour.current_behaviour, BehaviourA)
+            clean_up_mock.assert_not_called()
 
-        # check that after the behaviour is done, current behaviour is None
-        self.behaviour.current_behaviour.set_done()
-        self.behaviour.act()
-        assert self.behaviour.current_behaviour is None
+            # check that after the behaviour is done, current behaviour is None
+            self.behaviour.current_behaviour.set_done()
+            self.behaviour.act()
+            assert self.behaviour.current_behaviour is None
+            clean_up_mock.assert_called_once()
 
-        # change the round
-        self.round_sequence_mock.current_round = RoundB(MagicMock(), MagicMock())
-        self.round_sequence_mock.current_round_height = (
-            self.round_sequence_mock.current_round_height + 1
-        )
+            # change the round
+            self.round_sequence_mock.current_round = RoundB(MagicMock(), MagicMock())
+            self.round_sequence_mock.current_round_height = (
+                self.round_sequence_mock.current_round_height + 1
+            )
 
-        # check that if the round is changed, the behaviour transition is taken
-        self.behaviour.act()
-        assert isinstance(self.behaviour.current_behaviour, BehaviourB)
+            # check that if the round is changed, the behaviour transition is taken
+            self.behaviour.act()
+            assert isinstance(self.behaviour.current_behaviour, BehaviourB)
+            clean_up_mock.assert_called_once()
 
     @mock.patch.object(
         AbstractRoundBehaviour,

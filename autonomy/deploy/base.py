@@ -20,6 +20,9 @@
 """Base deployments module."""
 import abc
 import json
+import logging
+import os
+from copy import copy
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from warnings import warn
@@ -30,6 +33,8 @@ from aea.configurations.base import (
     ProtocolConfig,
     SkillConfig,
 )
+from aea.configurations.constants import SKILL
+from aea.configurations.data_types import PublicId
 
 from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
@@ -40,6 +45,15 @@ from autonomy.deploy.constants import (
     KEY_SCHEMA_PRIVATE_KEY,
 )
 
+
+ENV_VAR_ID = "ID"
+ENV_VAR_AEA_AGENT = "AEA_AGENT"
+ENV_VAR_ABCI_HOST = "ABCI_HOST"
+ENV_VAR_MAX_PARTICIPANTS = "MAX_PARTICIPANTS"
+ENV_VAR_TENDERMINT_URL = "TENDERMINT_URL"
+ENV_VAR_TENDERMINT_COM_URL = "TENDERMINT_COM_URL"
+ENV_VAR_LOG_LEVEL = "LOG_LEVEL"
+ENV_VAR_AEA_PASSWORD = "AEA_PASSWORD"  # nosec
 
 ABCI_HOST = "abci{}"
 TENDERMINT_NODE = "http://node{}:26657"
@@ -59,51 +73,135 @@ class NotValidKeysFile(Exception):
     """Raise when provided keys file is not valid."""
 
 
-# TODO: how dpes this relate to `autonomy/services`? Unify
-class ServiceSpecification:
+class ServiceBuilder:
     """Class to assist with generating deployments."""
 
-    service: Service
-    overrides: List
-    packages_dir: Path
+    log_level: str = INFO
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        service_path: Path,
-        keys: Path,
-        number_of_agents: Optional[int] = None,
+        service: Service,
+        keys: Optional[List[Dict[str, str]]] = None,
         private_keys_password: Optional[str] = None,
         agent_instances: Optional[List[str]] = None,
-        log_level: str = INFO,
-        substitute_env_vars: bool = False,
+        apply_environment_variables: bool = False,
     ) -> None:
         """Initialize the Base Deployment."""
-        if substitute_env_vars:
-            warn(
-                "`substitute_env_vars` argument is deprecated and will be removed in v1.0.0, "
+        if apply_environment_variables:
+            warn(  # pragma: no cover
+                "`apply_environment_variables` argument is deprecated and will be removed in v1.0.0, "
                 "usage of environment varibales is default now.",
                 DeprecationWarning,
                 stacklevel=2,
             )
-        self.keys: List = []
-        self.private_keys_password = private_keys_password
-        self.service = load_service_config(service_path)
-        self.log_level = log_level
 
-        # we allow configurable number of agents independent of the
-        # number of agent instances for local development purposes
+        self.service = service
 
+        self._keys = keys or []
+        self._agent_instances = agent_instances
+        self._private_keys_password = private_keys_password
+
+    @property
+    def private_keys_password(
+        self,
+    ) -> Optional[str]:
+        """Service password for agent keys."""
+
+        password = self._private_keys_password
+        if password is None:
+            password = os.environ.get("AUTONOLAS_SERVICE_PASSWORD")
+
+        return password
+
+    @property
+    def agent_instances(
+        self,
+    ) -> Optional[List[str]]:
+        """Agent instances."""
+
+        return self._agent_instances
+
+    @agent_instances.setter
+    def agent_instances(self, instances: List[str]) -> None:
+        """Agent instances setter."""
+
+        if self.keys:
+            self.verify_agent_instances(
+                keys=self.keys,
+                agent_instances=instances,
+            )
+
+        self._agent_instances = instances
+
+    @property
+    def keys(
+        self,
+    ) -> List[Dict[str, str]]:
+        """Keys."""
+        return self._keys
+
+    @classmethod
+    def from_dir(  # pylint: disable=too-many-arguments
+        cls,
+        path: Path,
+        keys_file: Optional[Path] = None,
+        number_of_agents: Optional[int] = None,
+        private_keys_password: Optional[str] = None,
+        agent_instances: Optional[List[str]] = None,
+        apply_environment_variables: bool = False,
+    ) -> "ServiceBuilder":
+        """Service builder from path."""
+        service = load_service_config(
+            service_path=path,
+        )
         if number_of_agents is not None:
-            self.service.number_of_agents = number_of_agents
+            service.number_of_agents = number_of_agents
 
-        self.agent_instances = agent_instances
-        self.read_keys(keys)
+        service_builder = cls(
+            service=service,
+            apply_environment_variables=apply_environment_variables,
+            private_keys_password=private_keys_password,
+        )
 
-    def read_keys(self, file_path: Path) -> None:
+        if keys_file is not None:
+            service_builder.read_keys(keys_file=keys_file)
+
+        if agent_instances is not None:
+            service_builder.agent_instances = agent_instances
+
+        return service_builder
+
+    @staticmethod
+    def verify_agent_instances(
+        keys: List[Dict[str, str]],
+        agent_instances: List[str],
+    ) -> None:
+        """Cross verify agent instances with the keys."""
+        addresses = {kp["address"] for kp in keys}
+        instances = set(agent_instances)
+
+        key_not_in_instances = addresses.difference(instances)
+        if key_not_in_instances:
+            raise NotValidKeysFile(
+                f"Key file contains keys which are not registered as instances; invalid keys={key_not_in_instances}"
+            )
+
+        instances_not_in_keys = instances.difference(addresses)
+        if instances_not_in_keys:
+            logging.warning(
+                f"Key file does not contain key pair for following instances {instances_not_in_keys}"
+            )
+
+        keys_found_with_instances = instances.intersection(addresses)
+        logging.info(
+            f"Found following keys with registered instances {keys_found_with_instances}"
+        )
+
+    def read_keys(self, keys_file: Path) -> None:
         """Read in keys from a file on disk."""
 
         try:
-            keys = json.loads(file_path.read_text(encoding=DEFAULT_ENCODING))
+            keys = json.loads(keys_file.read_text(encoding=DEFAULT_ENCODING))
         except json.decoder.JSONDecodeError as e:
             raise NotValidKeysFile(
                 "Error decoding keys file, please check the content of the file"
@@ -114,27 +212,81 @@ class ServiceSpecification:
                 raise NotValidKeysFile("Key file incorrectly formatted.")
 
         if self.agent_instances is not None:
-            keys = [kp for kp in keys if kp["address"] in self.agent_instances]
-            if not keys:
-                raise NotValidKeysFile(
-                    "Cannot find the provided keys in the list of the agent instances."
-                )
+            self.verify_agent_instances(
+                keys=keys,
+                agent_instances=self.agent_instances,
+            )
             self.service.number_of_agents = len(keys)
 
-        self.keys = keys
-        if self.service.number_of_agents > len(self.keys):
+        if self.service.number_of_agents > len(keys):
             raise NotValidKeysFile(
                 "Number of agents cannot be greater than available keys."
             )
 
-    def process_model_args_overrides(self, agent_n: int) -> Dict:
+        self._keys = keys
+
+    @staticmethod
+    def _try_update_safe_contract_address(
+        address: str,
+        override: Dict,
+        skill_id: PublicId,
+        has_multiple_overrides: bool = False,
+    ) -> None:
+        """Try update the `safe_contract_address` parameter"""
+
+        try:
+            if not has_multiple_overrides:
+                override["models"]["params"]["args"]["setup"][
+                    "safe_contract_address"
+                ] = [
+                    address,
+                ]
+                return
+
+            for agent_idx in override:
+                override[agent_idx]["models"]["params"]["args"]["setup"][
+                    "safe_contract_address"
+                ] = [address]
+        except KeyError:
+            logging.warning(
+                f"Could not update the `safe_contract_address` parameter for {skill_id}; "
+                "Configuration does not contain the json path to `safe_contract_address` parameter"
+            )
+
+    def try_update_multisig_address(self, address: str) -> None:
+        """Try and update multisig address if `safe_contract_address` parameter is defined."""
+
+        overrides = copy(self.service.overrides)
+        for override in overrides:
+            (
+                override,
+                component_id,
+                has_multiple_overrides,
+            ) = self.service.process_metadata(
+                configuration=override,
+            )
+
+            if component_id.component_type.value == SKILL:
+                self._try_update_safe_contract_address(
+                    address=address,
+                    override=override,
+                    skill_id=component_id.public_id,
+                    has_multiple_overrides=has_multiple_overrides,
+                )
+
+            override["type"] = component_id.package_type.value
+            override["public_id"] = str(component_id.public_id)
+
+        self.service.overrides = overrides
+
+    def process_component_overrides(self, agent_n: int) -> Dict:
         """Generates env vars based on model overrides."""
         final_overrides = {}
         for component_configuration_json in self.service.overrides:
-            overrides = self.service.process_component_overrides(
+            env_var_dict = self.service.process_component_overrides(
                 agent_n, component_configuration_json
             )
-            final_overrides.update(overrides)
+            final_overrides.update(env_var_dict)
         return final_overrides
 
     def generate_agents(self) -> List:
@@ -151,19 +303,20 @@ class ServiceSpecification:
         return [self.generate_agent(i, idx) for i, idx in agent_override_idx]
 
     def generate_common_vars(self, agent_n: int) -> Dict:
-        """Retrieve vars common for valory apps."""
+        """Retrieve vars common for agent."""
         agent_vars = {
-            "ID": agent_n,
-            "AEA_AGENT": self.service.agent,
-            "ABCI_HOST": ABCI_HOST.format(agent_n),
-            "MAX_PARTICIPANTS": self.service.number_of_agents,
-            "TENDERMINT_URL": TENDERMINT_NODE.format(agent_n),
-            "TENDERMINT_COM_URL": TENDERMINT_COM.format(agent_n),
-            "LOG_LEVEL": self.log_level,
+            ENV_VAR_ID: agent_n,
+            ENV_VAR_AEA_AGENT: self.service.agent,
+            ENV_VAR_ABCI_HOST: ABCI_HOST.format(agent_n),
+            ENV_VAR_MAX_PARTICIPANTS: self.service.number_of_agents,
+            ENV_VAR_TENDERMINT_URL: TENDERMINT_NODE.format(agent_n),
+            ENV_VAR_TENDERMINT_COM_URL: TENDERMINT_COM.format(agent_n),
+            ENV_VAR_LOG_LEVEL: self.log_level,
         }
 
         if self.private_keys_password is not None:
-            agent_vars["AEA_PASSWORD"] = self.private_keys_password
+            agent_vars[ENV_VAR_AEA_PASSWORD] = self.private_keys_password
+
         return agent_vars
 
     def generate_agent(
@@ -177,31 +330,30 @@ class ServiceSpecification:
         if override_idx is None:
             override_idx = agent_n
 
-        overrides = self.process_model_args_overrides(override_idx)
-        agent_vars.update(overrides)
-        for var_name, value in agent_vars.items():
-            if any([isinstance(value, list), isinstance(value, dict)]):
-                agent_vars[var_name] = json.dumps(value)
+        agent_vars.update(
+            self.process_component_overrides(agent_n=override_idx),
+        )
         return agent_vars
 
 
-class BaseDeploymentGenerator:
+class BaseDeploymentGenerator(abc.ABC):
     """Base Deployment Class."""
 
-    service_spec: ServiceSpecification
+    service_builder: ServiceBuilder
     output_name: str
     deployment_type: str
     build_dir: Path
     output: str
     tendermint_job_config: Optional[str]
     dev_mode: bool
+
     packages_dir: Path
     open_aea_dir: Path
     open_autonomy_dir: Path
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        service_spec: ServiceSpecification,
+        service_builder: ServiceBuilder,
         build_dir: Path,
         dev_mode: bool = False,
         packages_dir: Optional[Path] = None,
@@ -209,15 +361,17 @@ class BaseDeploymentGenerator:
         open_autonomy_dir: Optional[Path] = None,
     ):
         """Initialise with only kwargs."""
-        self.service_spec = service_spec
-        self.build_dir = Path(build_dir)
-        self.tendermint_job_config: Optional[str] = None
+
+        self.service_builder = service_builder
+        self.build_dir = build_dir
         self.dev_mode = dev_mode
         self.packages_dir = packages_dir or Path.cwd().absolute() / "packages"
         self.open_aea_dir = open_aea_dir or Path.home().absolute() / "open-aea"
         self.open_autonomy_dir = (
             open_autonomy_dir or Path.home().absolute() / "open-autonomy"
         )
+
+        self.tendermint_job_config: Optional[str] = None
 
     @abc.abstractmethod
     def generate(

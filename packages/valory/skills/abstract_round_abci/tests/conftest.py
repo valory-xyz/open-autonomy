@@ -19,13 +19,25 @@
 
 """Conftest module for io tests."""
 
-# pylint: skip-file
-
-from typing import Dict
+import os
+import shutil
+from contextlib import suppress
+from pathlib import Path
+from typing import Dict, Generator
 
 import pytest
+from hypothesis import settings
 
 from packages.valory.skills.abstract_round_abci.io_.store import StoredJSONType
+
+
+# pylint: skip-file
+
+
+CI = "CI"
+PACKAGE_DIR = Path(__file__).parent.parent
+settings.register_profile(CI, deadline=5000)
+profile_name = ("default", "CI")[bool(os.getenv("CI"))]
 
 
 @pytest.fixture
@@ -38,3 +50,13 @@ def dummy_obj() -> StoredJSONType:
 def dummy_multiple_obj(dummy_obj: StoredJSONType) -> Dict[str, StoredJSONType]:
     """Many dummy custom objects to test the storing with."""
     return {f"test_obj_{i}": dummy_obj for i in range(10)}
+
+
+@pytest.fixture(scope="session", autouse=True)
+def hypothesis_cleanup() -> Generator:
+    """Fixture to remove hypothesis directory after tests."""
+    yield
+    hypothesis_dir = PACKAGE_DIR / ".hypothesis"
+    if hypothesis_dir.exists():
+        with suppress(OSError, PermissionError):
+            shutil.rmtree(hypothesis_dir)

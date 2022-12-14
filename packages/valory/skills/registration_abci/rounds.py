@@ -30,6 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilAllRound,
     CollectSameUntilThresholdRound,
     DegenerateRound,
+    get_name,
 )
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 
@@ -46,21 +47,21 @@ class Event(Enum):
 class FinishedRegistrationRound(DegenerateRound):
     """A round representing that agent registration has finished"""
 
-    round_id = "finished_registration"
-
 
 class FinishedRegistrationFFWRound(DegenerateRound):
     """A fast-forward round representing that agent registration has finished"""
 
-    round_id = "finished_registration_ffw"
-
 
 class RegistrationStartupRound(CollectSameUntilAllRound):
-    """A round in which the agents get registered"""
+    """
+    A round in which the agents get registered.
 
-    round_id = "registration_startup"
+    This round waits until all agents have registered.
+    """
+
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "initialisation"
+    payload_attribute = get_name(RegistrationPayload.initialisation)
+    synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -70,40 +71,45 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
-                synchronized_data_class=BaseSynchronizedData,
+                synchronized_data_class=self.synchronized_data_class,
             )
             return synchronized_data, Event.FAST_FORWARD
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
                 all_participants=frozenset(self.collection),
-                synchronized_data_class=BaseSynchronizedData,
+                synchronized_data_class=self.synchronized_data_class,
             )
             return synchronized_data, Event.DONE
         return None
 
 
 class RegistrationRound(CollectSameUntilThresholdRound):
-    """A round in which the agents get registered"""
+    """
+    A round in which the agents get registered.
 
-    round_id = "registration"
+    This rounds waits until the threshold of agents has been reached
+    and then a further x block confirmations.
+    """
+
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "initialisation"
+    payload_attribute = get_name(RegistrationPayload.initialisation)
     required_block_confirmations = 10
     done_event = Event.DONE
+    synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             self.block_confirmations += 1
-        if (  # contracts are set from previous rounds
+        if (
             self.threshold_reached
             and self.block_confirmations
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
-                synchronized_data_class=BaseSynchronizedData,
+                synchronized_data_class=self.synchronized_data_class,
             )
             return synchronized_data, Event.DONE
         if (

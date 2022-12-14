@@ -32,6 +32,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     DegenerateRound,
     OnlyKeeperSendsRound,
     VotingRound,
+    get_name,
 )
 from packages.valory.skills.safe_deployment_abci.payloads import (
     DeploySafePayload,
@@ -70,58 +71,53 @@ class SynchronizedData(BaseSynchronizedData):
 class RandomnessSafeRound(CollectSameUntilThresholdRound):
     """A round for generating randomness"""
 
-    round_id = "randomness_safe"
     allowed_tx_type = RandomnessPayload.transaction_type
-    payload_attribute = "randomness"
+    payload_attribute = get_name(RandomnessPayload.randomness)
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_randomness"
-    selection_key = "most_voted_randomness"
+    collection_key = get_name(SynchronizedData.participant_to_randomness)
+    selection_key = get_name(SynchronizedData.most_voted_randomness)
 
 
 class SelectKeeperSafeRound(CollectSameUntilThresholdRound):
     """A round in a which keeper is selected"""
 
-    round_id = "select_keeper_safe"
     allowed_tx_type = SelectKeeperPayload.transaction_type
-    payload_attribute = "keeper"
+    payload_attribute = get_name(SelectKeeperPayload.keeper)
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_selection"
-    selection_key = "most_voted_keeper_address"
+    collection_key = get_name(SynchronizedData.participant_to_selection)
+    selection_key = get_name(SynchronizedData.most_voted_keeper_address)
 
 
 class DeploySafeRound(OnlyKeeperSendsRound):
     """A round in a which the safe is deployed"""
 
-    round_id = "deploy_safe"
     allowed_tx_type = DeploySafePayload.transaction_type
-    payload_attribute = "safe_contract_address"
+    payload_attribute = get_name(DeploySafePayload.safe_contract_address)
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     fail_event = Event.FAILED
-    payload_key = "safe_contract_address"
+    payload_key = get_name(SynchronizedData.safe_contract_address)
 
 
 class ValidateSafeRound(VotingRound):
     """A round in a which the safe address is validated"""
 
-    round_id = "validate_safe"
     allowed_tx_type = ValidatePayload.transaction_type
-    payload_attribute = "vote"
+    payload_attribute = get_name(ValidatePayload.vote)
     done_event = Event.DONE
     negative_event = Event.NEGATIVE
     none_event = Event.NONE
     no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_votes"
+    collection_key = get_name(SynchronizedData.participant_to_votes)
+    synchronized_data_class = SynchronizedData
 
 
 class FinishedSafeRound(DegenerateRound):
     """A round that represents that the safe has been deployed"""
-
-    round_id = "finished_safe"
 
 
 class SafeDeploymentAbciApp(AbciApp[Event]):
@@ -196,4 +192,4 @@ class SafeDeploymentAbciApp(AbciApp[Event]):
         Event.VALIDATE_TIMEOUT: 30.0,
         Event.DEPLOY_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = ["safe_contract_address"]
+    cross_period_persisted_keys = [get_name(SynchronizedData.safe_contract_address)]

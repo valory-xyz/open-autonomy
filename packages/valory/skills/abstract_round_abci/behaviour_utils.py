@@ -470,8 +470,9 @@ class RPCResponseStatus(Enum):
 class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
     """Base class for FSM behaviours."""
 
+    __pattern = re.compile(r"(?<!^)(?=[A-Z])")
     is_programmatically_defined = True
-    behaviour_id = ""
+    behaviour_id: str
     matching_round: Type[AbstractRound]
     is_degenerate: bool = False
 
@@ -487,6 +488,26 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self._is_healthy: bool = False
         self._non_200_return_code_count: int = 0
         enforce(self.behaviour_id != "", "State id not set.")
+
+    @classmethod
+    def auto_behaviour_id(cls) -> str:
+        """
+        Get behaviour id automatically.
+
+        This method returns the auto generated id from the class name if the
+        class variable behaviour_id is not set on the child class.
+        Otherwise, it returns the class variable behaviour_id.
+        """
+        return (
+            cls.behaviour_id
+            if isinstance(cls.behaviour_id, str)
+            else cls.__pattern.sub("_", cls.__name__).lower()
+        )
+
+    @property  # type: ignore
+    def behaviour_id(self) -> str:
+        """Get behaviour id."""
+        return self.auto_behaviour_id()
 
     @property
     def params(self) -> BaseParams:
@@ -554,7 +575,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param timeout: the timeout for the wait
         :yield: None
         """
-        round_id = self.matching_round.round_id
+        round_id = self.matching_round.auto_round_id()
         round_height = cast(
             SharedState, self.context.state
         ).round_sequence.current_round_height
@@ -606,7 +627,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param: resetting: flag indicating if we are resetting Tendermint nodes in this round.
         :yield: the responses
         """
-        stop_condition = self.is_round_ended(self.matching_round.round_id)
+        stop_condition = self.is_round_ended(self.matching_round.auto_round_id())
         payload.round_count = cast(
             SharedState, self.context.state
         ).synchronized_data.round_count
@@ -1607,6 +1628,17 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             return RPCResponseStatus.ALREADY_KNOWN
         return RPCResponseStatus.UNCLASSIFIED_ERROR
 
+    @property
+    def hard_reset_sleep(self) -> float:
+        """
+        Amount of time to sleep before and after performing a hard reset.
+
+        We sleep for half the observation interval as there are no immediate transactions on either side of the reset.
+
+        :returns: the amount of time to sleep in seconds
+        """
+        return self.params.observation_interval / 2
+
     def _start_reset(self) -> Generator:
         """Start tendermint reset.
 
@@ -1616,10 +1648,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :yield: None
         """
         if self._check_started is None and not self._is_healthy:
-            # we do the reset in the middle of the pause as there are no immediate transactions on either side of the reset
-            yield from self.wait_from_last_timestamp(
-                self.params.observation_interval / 2
-            )
+            yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
             self._check_started = datetime.datetime.now()
             self._timeout = self.params.max_healthcheck
             self._is_healthy = False
@@ -1681,7 +1710,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             ("initial_height", initial_height),
         ]
 
-    def reset_tendermint_with_wait(
+    def reset_tendermint_with_wait(  # pylint: disable= too-many-locals
         self,
         on_startup: bool = False,
     ) -> Generator[None, None, bool]:
@@ -1698,10 +1727,11 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
 
             backup_blockchain = self.context.state.round_sequence.blockchain
             self.context.state.round_sequence.reset_blockchain()
+            reset_params = self._get_reset_params(on_startup)
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
                 self.params.tendermint_com_url + "/hard_reset",
-                parameters=self._get_reset_params(on_startup),
+                parameters=reset_params,
             )
             result = yield from self._do_request(request_message, http_dialogue)
             try:
@@ -1722,7 +1752,12 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     for handler_name in self.context.handlers.__dict__.keys():
                         dialogues = getattr(self.context, f"{handler_name}_dialogues")
                         dialogues.cleanup()
-
+                    # in case of successful reset we store the reset params in the shared state,
+                    # so that in the future if the communication with tendermint breaks, and we need to
+                    # perform a hard reset to restore it, we can use these as the right ones
+                    cast(
+                        SharedState, self.context.state
+                    ).last_reset_params = reset_params
                     self._end_reset()
                 else:
                     msg = response.get("message")
@@ -1761,15 +1796,15 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self.context.logger.info(
             "local height == remote height; continuing execution..."
         )
-        yield from self.wait_from_last_timestamp(self.params.observation_interval / 2)
+        yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
         return True
 
 
 class TmManager(BaseBehaviour, ABC):
     """Util class to be used for managing the tendermint node."""
 
-    behaviour_id = "tm_manager"
     _active_generator: Optional[Generator] = None
+    _hard_reset_sleep = 10.0  # 10s
 
     def async_act(self) -> Generator:  # type: ignore
         """The behaviour act."""
@@ -1785,6 +1820,17 @@ class TmManager(BaseBehaviour, ABC):
     def is_acting(self) -> bool:
         """This method returns whether there is an active fix being applied."""
         return self._active_generator is not None
+
+    @property
+    def hard_reset_sleep(self) -> float:
+        """
+        Amount of time to sleep before and after performing a hard reset.
+
+        We don't need to wait for half the observation interval, like in normal cases where we perform a hard reset.
+
+        :returns: the amount of time to sleep in seconds
+        """
+        return self._hard_reset_sleep
 
     def _handle_unhealthy_tm(self) -> Generator:
         """This method handles the case when the tendermint node is unhealthy."""
@@ -1815,6 +1861,19 @@ class TmManager(BaseBehaviour, ABC):
             return
 
         self.context.logger.info("Tendermint reset was successfully performed. ")
+
+    def _get_reset_params(self, default: bool) -> Optional[List[Tuple[str, str]]]:
+        """
+        Get the parameters for a hard reset request when trying to recover agent <-> tendermint communication.
+
+        :param default: ignored for this use case.
+        :returns: the reset params.
+        """
+        # we get the params from the latest successful reset, if they are not available,
+        # i.e. no successful reset has been performed, we return None.
+        # Returning None means default params will be used.
+        reset_params = cast(SharedState, self.context.state).last_reset_params
+        return reset_params
 
     def try_fix(self) -> None:
         """This method tries to fix an unhealthy node."""
@@ -1855,8 +1914,6 @@ def make_degenerate_behaviour(round_id: str) -> Type[DegenerateBehaviour]:
 
     class NewDegenerateBehaviour(DegenerateBehaviour):
         """A newly defined degenerate behaviour class."""
-
-        behaviour_id = f"degenerate_{round_id}"
 
     new_behaviour_cls = NewDegenerateBehaviour
     new_behaviour_cls.__name__ = f"DegenerateBehaviour_{round_id}"  # type: ignore # pylint: disable=attribute-defined-outside-init

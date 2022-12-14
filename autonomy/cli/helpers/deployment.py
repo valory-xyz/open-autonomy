@@ -24,11 +24,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import click
-from aea.configurations.constants import SKILL
 from aea.configurations.data_types import PublicId
 from aea.helpers.base import cd
-from aea.helpers.io import open_file
-from aea.helpers.yaml_utils import yaml_dump_all, yaml_load_all
 from compose.cli import main as docker_compose
 from compose.config.errors import ConfigurationError
 from docker.errors import NotFound
@@ -70,7 +67,7 @@ def _build_dirs(build_dir: Path) -> None:
         # TOFIX: remove this safely
         try:
             os.chown(path, 1000, 1000)
-        except PermissionError:
+        except PermissionError:  # pragma: no cover
             click.echo(
                 f"Updating permissions failed for {path}, please do it manually."
             )
@@ -84,7 +81,7 @@ def run_deployment(
     click.echo(f"Running build @ {build_dir}")
     try:
         project = docker_compose.project_from_options(build_dir, {})
-    except ConfigurationError as e:
+    except ConfigurationError as e:  # pragma: no cover
         if "Invalid interpolation format" in e.msg:
             raise click.ClickException(
                 "Provided docker compose file contains environment placeholders, "
@@ -117,7 +114,7 @@ def run_deployment(
                 "SERVICE": None,
             }
         )
-    except NotFound as e:
+    except NotFound as e:  # pragma: no cover
         raise click.ClickException(e.explanation)
 
 
@@ -133,20 +130,23 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     open_aea_dir: Optional[Path] = None,
     open_autonomy_dir: Optional[Path] = None,
     agent_instances: Optional[List[str]] = None,
+    multisig_address: Optional[str] = None,
     log_level: str = INFO,
-    substitute_env_vars: bool = False,
+    apply_environment_variables: bool = False,
     image_version: Optional[str] = None,
     use_hardhat: bool = False,
     use_acn: bool = False,
 ) -> None:
     """Build deployment."""
-    if build_dir.is_dir():
+    if build_dir.is_dir():  # pragma: no cover
         if not force_overwrite:
             raise click.ClickException(f"Build already exists @ {build_dir}")
         shutil.rmtree(build_dir)
 
     if not (Path.cwd() / DEFAULT_SERVICE_CONFIG_FILE).exists():
-        raise FileNotFoundError(f"No service configuration found at {Path.cwd()}")
+        raise FileNotFoundError(
+            f"No service configuration found at {Path.cwd()}"
+        )  # pragma: no cover
 
     click.echo(f"Building deployment @ {build_dir}")
     build_dir.mkdir()
@@ -155,7 +155,7 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     report = generate_deployment(
         service_path=Path.cwd(),
         type_of_deployment=deployment_type,
-        private_keys_file_path=keys_file,
+        keys_file=keys_file,
         private_keys_password=password,
         number_of_agents=number_of_agents,
         build_dir=build_dir,
@@ -164,40 +164,14 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         open_aea_dir=open_aea_dir,
         open_autonomy_dir=open_autonomy_dir,
         agent_instances=agent_instances,
+        multisig_address=multisig_address,
         log_level=log_level,
-        substitute_env_vars=substitute_env_vars,
+        apply_environment_variables=apply_environment_variables,
         image_version=image_version,
         use_hardhat=use_hardhat,
         use_acn=use_acn,
     )
     click.echo(report)
-
-
-def update_multisig_address(service_path: Path, address: str) -> None:
-    """Update the multisig address on the service config."""
-
-    # TODO: add validation
-    with open_file(service_path / DEFAULT_SERVICE_CONFIG_FILE) as fp:
-        config, *overrides = yaml_load_all(
-            fp,
-        )
-
-    for override in overrides:
-        if override["type"] == SKILL:
-            try:
-                override["setup_args"]["args"]["setup"]["safe_contract_address"] = [
-                    address,
-                ]
-            except KeyError as e:
-                click.echo(
-                    "Could not update multisig address for skill "
-                    + override["public_id"]
-                    + "; "
-                    + f"Invalid overrides provided, missing `{e}` from override configuration"
-                )
-
-    with open_file(service_path / DEFAULT_SERVICE_CONFIG_FILE, mode="w+") as fp:
-        yaml_dump_all([config, *overrides], fp)
 
 
 def _resolve_on_chain_token_id(
@@ -258,9 +232,6 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
     service_path = fetch_service_ipfs(public_id)
     build_dir = service_path / DEFAULT_BUILD_FOLDER
 
-    update_multisig_address(service_path, multisig_address)
-    service = load_service_config(service_path, substitute_env_vars=aev)
-
     with cd(service_path):
         build_deployment(
             keys_file=keys_file,
@@ -270,11 +241,13 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
             force_overwrite=True,
             number_of_agents=n,
             agent_instances=agent_instances,
-            substitute_env_vars=aev,
+            multisig_address=multisig_address,
+            apply_environment_variables=aev,
             password=password,
         )
         if not skip_image:
             click.echo("Building required images.")
+            service = load_service_config(service_path, substitute_env_vars=aev)
             build_image(agent=service.agent)
 
     click.echo("Service build successful.")

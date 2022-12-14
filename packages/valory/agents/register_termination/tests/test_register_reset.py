@@ -37,6 +37,10 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
 from packages.valory.agents.register_termination.tests.base import (
     BaseTestTerminationEnd2End,
 )
+from packages.valory.skills.registration_abci.rounds import RegistrationStartupRound
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    ValidateTransactionRound,
+)
 
 
 TARGET_AGENT = "valory/register_termination:0.1.0"
@@ -44,11 +48,11 @@ TARGET_SKILL = "valory/register_termination_abci:0.1.0"
 TIME_TO_FINISH = 60  # 1 minute
 
 REGISTRATION_CHECK_STRINGS = (
-    "Entered in the 'registration_startup' round for period 0",
-    "'registration_startup' round is done",
+    f"Entered in the '{RegistrationStartupRound.auto_round_id()}' round for period 0",
+    f"'{RegistrationStartupRound.auto_round_id()}' round is done",
 )
 TRANSACTION_SUBMISSION_STRINGS = (
-    "Entered in the 'validate_transaction' round for period 0",
+    f"Entered in the '{ValidateTransactionRound.auto_round_id()}' round for period 0",
     "Verified result: True",
 )
 TERMINATION_STRINGS = (

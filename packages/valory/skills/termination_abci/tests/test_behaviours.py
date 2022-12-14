@@ -37,6 +37,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
 )
+from packages.valory.skills.termination_abci import PUBLIC_ID
 from packages.valory.skills.termination_abci.behaviours import (
     BackgroundBehaviour,
     TerminationAbciBehaviours,
@@ -53,6 +54,14 @@ SAFE_ADDRESS = "0x0"
 MULTISEND_ADDRESS = "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761"
 SERVICE_OWNER_ADDRESS = "0x0"
 SERVICE_ID = None
+
+
+def test_skill_public_id() -> None:
+    """Test skill module public ID"""
+
+    # pylint: disable=no-member
+    assert PUBLIC_ID.name == Path(__file__).parents[1].name
+    assert PUBLIC_ID.author == Path(__file__).parents[3].name
 
 
 @dataclass
@@ -85,12 +94,12 @@ class BaseTerminationTest(FSMBehaviourBaseCase):
         data = data if data is not None else {}
         self.fast_forward_to_behaviour(
             self.behaviour,  # type: ignore
-            self.behaviour_class.behaviour_id,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(AbciAppDB(setup_data=AbciAppDB.data_to_lists(data))),
         )
         assert (
             self.behaviour.current_behaviour.behaviour_id  # type: ignore
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
     def complete(self) -> None:
@@ -100,7 +109,7 @@ class BaseTerminationTest(FSMBehaviourBaseCase):
         self.end_round(done_event=self.done_event)
         assert (
             self.behaviour.current_behaviour.behaviour_id  # type: ignore
-            == self.next_behaviour_class.behaviour_id
+            == self.next_behaviour_class.auto_behaviour_id()
         )
 
 
@@ -161,6 +170,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
     _SAFE_HASH_ERR_LOG = f"Couldn't get safe hash. " f"{_STATE_ERR_LOG}"
     _MULTISEND_ERR_LOG = "Couldn't compile the multisend tx. "
     _SUCCESS_LOG = "Successfully prepared termination multisend tx."
+    _IS_STOPPED_LOG = "dropping message as behaviour has stopped:"
+    _IS_NOT_WAITING_MESSAGE = "could not send message"
 
     def _mock_get_service_owner_request(
         self,
@@ -371,6 +382,22 @@ class TestBackgroundBehaviour(BaseTerminationTest):
             ),
         )
 
+    def _mock_is_stopped(  # pylint: disable=unused-argument, disable=protected-access
+        self,
+        error: bool = False,
+    ) -> None:
+        """Mock a MultiSendContract.get_tx_data() request."""
+        self.behaviour.current_behaviour._AsyncBehaviour__stopped = True  # type: ignore
+
+    def _mock_state_is_not_waiting_message(  # pylint: disable=unused-argument, disable=protected-access
+        self,
+        error: bool = False,
+    ) -> None:
+        """Mock a MultiSendContract.get_tx_data() request."""
+        self.behaviour.current_behaviour._AsyncBehaviour__state = (  # type: ignore
+            AsyncBehaviour.AsyncState.RUNNING
+        )
+
     @pytest.mark.parametrize(
         "test_case",
         [
@@ -479,6 +506,26 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                 err_reqs=[],
                 expected_logs=[_SUCCESS_LOG],
             ),
+            BehaviourTestCase(
+                name="agent drops message because app already stopped",
+                initial_data=_INITIAL_DATA,
+                ok_reqs=[],
+                err_reqs=[
+                    _mock_is_stopped,
+                    _mock_get_service_owner_request,
+                ],
+                expected_logs=[_IS_STOPPED_LOG],
+            ),
+            BehaviourTestCase(
+                name="agent could not send message because state != WAITING_MESSAGE",
+                initial_data=_INITIAL_DATA,
+                ok_reqs=[],
+                err_reqs=[
+                    _mock_state_is_not_waiting_message,
+                    _mock_get_service_owner_request,
+                ],
+                expected_logs=[_IS_NOT_WAITING_MESSAGE],
+            ),
         ],
     )
     def test_run(self, test_case: BehaviourTestCase, caplog: LogCaptureFixture) -> None:
@@ -505,7 +552,9 @@ class TestBackgroundBehaviour(BaseTerminationTest):
 
     def test_termination_majority_already_reached(self) -> None:
         """Tests the background behaviour when the termination is already reached."""
-        self.fast_forward(data=dict(termination_majority_reached=True))
+        self.fast_forward(
+            data=dict(termination_majority_reached=True, participants=["a"])
+        )
         with mock.patch.object(
             self.behaviour_class, "check_for_signal"
         ) as check_for_signal:

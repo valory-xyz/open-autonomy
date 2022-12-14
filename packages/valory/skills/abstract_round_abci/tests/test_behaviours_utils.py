@@ -19,47 +19,49 @@
 
 """Test the behaviours_utils.py module of the skill."""
 
-# pylint: skip-file
-
 import json
 import logging
 import math
 import platform
-import shutil
-import sys
 import time
 from abc import ABC
 from collections import OrderedDict
-from contextlib import suppress
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
 import pytz  # type: ignore  # pylint: disable=import-error
-from hypothesis import given
-from hypothesis import strategies as st
+from _pytest.logging import LogCaptureFixture
 
-from packages.valory.protocols.ledger_api.custom_types import (
-    SignedTransaction,
-    TransactionDigest,
-)
-
-
-try:
-    import atheris  # type: ignore
-except (ImportError, ModuleNotFoundError):
-    atheris: Any = None  # type: ignore
-
-
+# pylint: skip-file
+from aea.common import JSONLike
+from aea.test_tools.utils import as_context
 from aea_test_autonomy.helpers.base import try_send
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import HttpDialogues
 from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.ledger_api.custom_types import (
+    SignedTransaction,
+    TransactionDigest,
+)
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci import behaviour_utils
 from packages.valory.skills.abstract_round_abci.base import (
@@ -84,16 +86,24 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     TmManager,
     make_degenerate_behaviour,
 )
+from packages.valory.skills.abstract_round_abci.io_.ipfs import (
+    IPFSInteract,
+    IPFSInteractionError,
+)
 from packages.valory.skills.abstract_round_abci.models import (
+    SharedState,
     _DEFAULT_REQUEST_RETRY_DELAY,
     _DEFAULT_REQUEST_TIMEOUT,
     _DEFAULT_TX_MAX_ATTEMPTS,
     _DEFAULT_TX_TIMEOUT,
 )
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
+
+
+settings.load_profile(profile_name)
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
-
 
 # https://github.com/python/cpython/issues/94414
 # https://stackoverflow.com/questions/46133223/maximum-value-of-timestamp
@@ -104,14 +114,17 @@ MIN_DATETIME_WINDOWS = datetime(1970, 1, 3, 1, 0, 0)
 MAX_DATETIME_WINDOWS = datetime(3000, 12, 30, 23, 59, 59)
 
 
-@pytest.fixture(scope="session", autouse=True)
-def hypothesis_cleanup() -> Generator:
-    """Fixture to remove hypothesis directory after tests."""
-    yield
-    hypothesis_dir = PACKAGE_DIR / ".hypothesis"
-    if hypothesis_dir.exists():
-        with suppress(OSError, PermissionError):
-            shutil.rmtree(hypothesis_dir)
+def mock_yield_and_return(
+    return_value: Any,
+) -> Callable[[], Generator[None, None, Any]]:
+    """Wrapper for a Dummy generator that returns a `bool`."""
+
+    def yield_and_return(*_: Any, **__: Any) -> Generator[None, None, Any]:
+        """Dummy generator that returns a `bool`."""
+        yield
+        return return_value
+
+    return yield_and_return
 
 
 def yield_and_return_bool_wrapper(
@@ -499,6 +512,7 @@ class TestBaseBehaviour:
             tx_timeout=_DEFAULT_TX_TIMEOUT,
             max_attempts=_DEFAULT_TX_MAX_ATTEMPTS,
         )
+        self.context_mock.shared_state = {}
         self.context_state_synchronized_data_mock = MagicMock()
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.synchronized_data = (
@@ -510,6 +524,52 @@ class TestBaseBehaviour:
         self.context_mock.http_dialogues = HttpDialogues()
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.behaviour = BehaviourATest(name="", skill_context=self.context_mock)
+        self.behaviour.context.logger = logging  # type: ignore
+
+    def test_send_to_ipfs(self, caplog: LogCaptureFixture) -> None:
+        """Test send_to_ipfs"""
+
+        assert self.behaviour.ipfs_enabled is False
+        expected = "Trying to perform an IPFS operation, but IPFS has not been enabled!"
+        with pytest.raises(ValueError, match=expected):
+            self.behaviour.send_to_ipfs("filepath", [])
+
+        self.behaviour.ipfs_enabled = True
+        self.behaviour._ipfs_interact = IPFSInteract(None)  # type: ignore
+        with mock.patch.object(
+            IPFSInteract, "store_and_send", return_value="mock_hash"
+        ):
+            with caplog.at_level(logging.INFO):
+                self.behaviour.send_to_ipfs("filepath", [])
+                assert "IPFS hash is: mock_hash" in caplog.text
+
+        side_effect = IPFSInteractionError
+        with mock.patch.object(IPFSInteract, "store_and_send", side_effect=side_effect):
+            with caplog.at_level(logging.ERROR):
+                self.behaviour.send_to_ipfs("filepath", [])
+                expected = "An error occurred while trying to send a file to IPFS:"
+                assert expected in caplog.text
+
+    def test_get_from_ipfs(self, caplog: LogCaptureFixture) -> None:
+        """Test get_from_ipfs"""
+
+        assert self.behaviour.ipfs_enabled is False
+        expected = "Trying to perform an IPFS operation, but IPFS has not been enabled!"
+        with pytest.raises(ValueError, match=expected):
+            self.behaviour.get_from_ipfs("mock_hash", "target_dir")
+
+        self.behaviour.ipfs_enabled = True
+        self.behaviour._ipfs_interact = IPFSInteract(None)  # type: ignore
+        with mock.patch.object(IPFSInteract, "get_and_read"):
+            with caplog.at_level(logging.INFO):
+                self.behaviour.get_from_ipfs("mock_hash", "target_dir")
+
+        side_effect = IPFSInteractionError
+        with mock.patch.object(IPFSInteract, "store_and_send", side_effect=side_effect):
+            with caplog.at_level(logging.ERROR):
+                self.behaviour.get_from_ipfs("mock_hash", "target_dir")
+                expected = "An error occurred while trying to fetch a file from IPFS:"
+                assert expected in caplog.text
 
     def test_params_property(self) -> None:
         """Test the 'params' property."""
@@ -658,7 +718,6 @@ class TestBaseBehaviour:
         self.behaviour.context.state.round_sequence.syncing_up = True
         self.behaviour.context.state.round_sequence.height = 0
         self.behaviour.matching_round = MagicMock()
-        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
         with mock.patch.object(logging, "info") as log_mock, mock.patch.object(
             BaseBehaviour,
@@ -688,7 +747,6 @@ class TestBaseBehaviour:
         self.behaviour.context.state.round_sequence.height = 0
         self.behaviour.context.params.tendermint_check_sleep_delay = 3
         self.behaviour.matching_round = MagicMock()
-        self.behaviour.context.logger.info = lambda msg: logging.info(msg)  # type: ignore
 
         gen = self.behaviour.async_act_wrapper()
         try_send(gen)
@@ -729,13 +787,13 @@ class TestBaseBehaviour:
         # assert that everything is pre-set correctly
         assert (
             self.behaviour.context.state.round_sequence.current_round_id
-            == self.behaviour.matching_round.round_id
+            == self.behaviour.matching_round.auto_round_id()
             == "round_a"
         )
 
         # create the exact same stop condition that we create in the `send_a2a_transaction` method
         stop_condition = self.behaviour.is_round_ended(
-            self.behaviour.matching_round.round_id
+            self.behaviour.matching_round.auto_round_id()
         )
         gen = self.behaviour._send_transaction(
             MagicMock(),
@@ -753,7 +811,7 @@ class TestBaseBehaviour:
         # assert that everything was set as expected
         assert (
             self.behaviour.context.state.round_sequence.current_round_id
-            != self.behaviour.matching_round.round_id
+            != self.behaviour.matching_round.auto_round_id()
             and self.behaviour.context.state.round_sequence.current_round_id == "test"
         )
         # assert that the stop condition now applies
@@ -1099,37 +1157,22 @@ class TestBaseBehaviour:
         ):
             self.behaviour._send_signing_request(b"")
 
-    @pytest.mark.skip
-    def test_fuzz_send_signing_request(self) -> None:
-        """Test '_send_signing_request'.
+    @given(st.binary())
+    def test_fuzz_send_signing_request(self, input_bytes: bytes) -> None:
+        """Fuzz '_send_signing_request'.
 
-        Do not run this test through pytest. Add the following lines at the bottom
-        of the file and run it as a script:
-        t = TestBaseBehaviour()
-        t.setup()
-        t.test_fuzz_send_signing_request()
+        Mock context manager decorators don't work here.
+
+        :param input_bytes: fuzz input
         """
-
-        @atheris.instrument_func
-        def fuzz_send_signing_request(input_bytes: bytes) -> None:
-            """Fuzz '_send_signing_request'.
-
-            Mock context manager decorators don't work here.
-
-            :param input_bytes: fuzz input
-            """
-            with mock.patch.object(
-                self.behaviour.context.signing_dialogues,
-                "create",
-                return_value=(MagicMock(), MagicMock()),
-            ):
-                with mock.patch.object(behaviour_utils, "RawMessage"):
-                    with mock.patch.object(behaviour_utils, "Terms"):
-                        self.behaviour._send_signing_request(input_bytes)
-
-        atheris.instrument_all()
-        atheris.Setup(sys.argv, fuzz_send_signing_request)
-        atheris.Fuzz()
+        with mock.patch.object(
+            self.behaviour.context.signing_dialogues,
+            "create",
+            return_value=(MagicMock(), MagicMock()),
+        ):
+            with mock.patch.object(behaviour_utils, "RawMessage"):
+                with mock.patch.object(behaviour_utils, "Terms"):
+                    self.behaviour._send_signing_request(input_bytes)
 
     @mock.patch.object(BaseBehaviour, "_get_request_nonce_from_dialogue")
     @mock.patch.object(behaviour_utils, "RawMessage")
@@ -1402,6 +1445,45 @@ class TestBaseBehaviour:
 
         assert tx_hash is None
         assert status == RPCResponseStatus.UNCLASSIFIED_ERROR
+
+    def test_get_transaction_receipt(self, caplog: LogCaptureFixture) -> None:
+        """Test get_transaction_receipt."""
+
+        expected: JSONLike = {"dummy": "tx_receipt"}
+        transaction_receipt = LedgerApiMessage.TransactionReceipt("", expected, {})
+        tx_receipt_message = LedgerApiMessage(
+            LedgerApiMessage.Performative.TRANSACTION_RECEIPT,  # type: ignore
+            transaction_receipt=transaction_receipt,
+        )
+        side_effect = mock_yield_and_return(tx_receipt_message)
+        with as_context(
+            mock.patch.object(self.behaviour, "_send_transaction_receipt_request"),
+            mock.patch.object(
+                self.behaviour, "wait_for_message", side_effect=side_effect
+            ),
+        ):
+            gen = self.behaviour.get_transaction_receipt("tx_digest")
+            try:
+                while True:
+                    next(gen)
+            except StopIteration as e:
+                assert e.value == expected
+
+    def test_get_transaction_receipt_error(self, caplog: LogCaptureFixture) -> None:
+        """Test get_transaction_receipt with error performative."""
+
+        error_message = LedgerApiMessage(LedgerApiMessage.Performative.ERROR, code=0)  # type: ignore
+        side_effect = mock_yield_and_return(error_message)
+        with as_context(
+            mock.patch.object(self.behaviour, "_send_transaction_receipt_request"),
+            mock.patch.object(
+                self.behaviour, "wait_for_message", side_effect=side_effect
+            ),
+        ):
+            gen = self.behaviour.get_transaction_receipt("tx_digest")
+            try_send(gen)
+            try_send(gen)
+            assert "Error when requesting transaction receipt" in caplog.text
 
     @pytest.mark.parametrize("contract_address", [None, "contract_address"])
     def test_get_contract_api_response(self, contract_address: Optional[str]) -> None:
@@ -1770,33 +1852,29 @@ class TestBaseBehaviour:
                 next(reset)
             except StopIteration as e:
                 assert e.value == expecting_success
+                if expecting_success:
+                    # upon having a successful reset we expect the reset params of that
+                    # reset to be stored in the shared state, as they could be used
+                    # later for performing hard reset in cases when the agent <-> tendermint
+                    # communication is broken
+                    assert (
+                        cast(
+                            SharedState, self.behaviour.context.state
+                        ).last_reset_params
+                        == expected_parameters
+                    )
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
 
-    @pytest.mark.skip
-    def test_fuzz_submit_tx(self) -> None:
-        """Test '_submit_tx'.
+    @given(st.binary())
+    def test_fuzz_submit_tx(self, input_bytes: bytes) -> None:
+        """Fuzz '_submit_tx'.
 
-        Do not run this test through pytest. Add the following lines at the bottom
-        of the file and run it as a script:
-        t = TestBaseBehaviour()
-        t.setup()
-        t.test_fuzz_submit_tx()
+        Mock context manager decorators don't work here.
+
+        :param input_bytes: fuzz input
         """
-
-        @atheris.instrument_func
-        def fuzz_submit_tx(input_bytes: bytes) -> None:
-            """Fuzz '_submit_tx'.
-
-            Mock context manager decorators don't work here.
-
-            :param input_bytes: fuzz input
-            """
-            self.behaviour._submit_tx(input_bytes)
-
-        atheris.instrument_all()
-        atheris.Setup(sys.argv, fuzz_submit_tx)
-        atheris.Fuzz()
+        self.behaviour._submit_tx(input_bytes)
 
 
 def test_degenerate_behaviour_async_act() -> None:
@@ -1814,7 +1892,7 @@ def test_degenerate_behaviour_async_act() -> None:
     context.state.round_sequence.syncing_up = False
     context.state.round_sequence.block_stall_deadline_expired = False
     behaviour = ConcreteDegenerateBehaviour(
-        name=ConcreteDegenerateBehaviour.behaviour_id, skill_context=context
+        name=ConcreteDegenerateBehaviour.auto_behaviour_id(), skill_context=context
     )
     with pytest.raises(
         SystemExit,
@@ -1830,7 +1908,7 @@ def test_make_degenerate_behaviour() -> None:
     assert isinstance(new_cls, type)
     assert issubclass(new_cls, DegenerateBehaviour)
 
-    assert new_cls.behaviour_id == f"degenerate_{round_id}"
+    assert new_cls.auto_behaviour_id() == f"degenerate_behaviour_{round_id}"
 
 
 class TestTmManager:
@@ -1856,6 +1934,7 @@ class TestTmManager:
         self.context_mock.state.synchronized_data = (
             self.context_state_synchronized_data_mock
         )
+        self.context_mock.state.last_reset_params = None
         self.context_mock.state.round_sequence.current_round_id = "round_a"
         self.context_mock.state.round_sequence.syncing_up = False
         self.context_mock.state.round_sequence.block_stall_deadline_expired = False
@@ -1905,6 +1984,35 @@ class TestTmManager:
                 and num_active_peers < self._DUMMY_CONSENSUS_THRESHOLD
             ):
                 mock_sys_exit.assert_called()
+
+    @pytest.mark.parametrize(
+        "expected_reset_params",
+        (
+            [
+                ("genesis_time", "genesis-time"),
+                ("initial_height", "1"),
+            ],
+            None,
+        ),
+    )
+    def test_get_reset_params(
+        self, expected_reset_params: Optional[List[Tuple[str, str]]]
+    ) -> None:
+        """Test that reset params returns the correct params."""
+        if expected_reset_params is not None:
+            self.context_mock.state.last_reset_params = expected_reset_params
+        actual_reset_params = self.tm_manager._get_reset_params(False)
+        assert expected_reset_params == actual_reset_params
+
+        # setting the "default" arg to true should have no effect
+        actual_reset_params = self.tm_manager._get_reset_params(True)
+        assert expected_reset_params == actual_reset_params
+
+    def test_sleep_after_hard_reset(self) -> None:
+        """Check that hard_reset_sleep returns the expected amount of time."""
+        expected = self.tm_manager._hard_reset_sleep
+        actual = self.tm_manager.hard_reset_sleep
+        assert actual == expected
 
     def test_try_fix(self) -> None:
         """Tests try_fix."""
