@@ -704,7 +704,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     }
     db_pre_conditions: Dict[AppState, List[str]] = {
         RandomnessTransactionSubmissionRound: [
-            get_name(SynchronizedData.safe_contract_address),
             get_name(SynchronizedData.most_voted_tx_hash),
             get_name(SynchronizedData.participants),
         ]

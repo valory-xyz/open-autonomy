@@ -738,7 +738,12 @@ class BaseSynchronizedData:
 
     # Keys always set by default
     # TODO: round_count and period_count need to be guaranteed to be synchronized too.
-    default_db_keys: List[str] = ["round_count", "period_count", "nb_participants"]
+    default_db_keys: List[str] = [
+        "round_count",
+        "period_count",
+        "nb_participants",
+        "safe_contract_address",
+    ]
 
     def __init__(
         self,
