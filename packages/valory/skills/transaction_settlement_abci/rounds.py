@@ -22,13 +22,12 @@ import textwrap
 from abc import ABC
 from collections import deque
 from enum import Enum
-from typing import Deque, Dict, List, Mapping, Optional, Set, Tuple, Type, cast
+from typing import Deque, Dict, List, Mapping, Optional, Set, Tuple, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
     AbciAppTransitionFunction,
-    AbstractRound,
     AppState,
     BaseSynchronizedData,
     CollectDifferentUntilThresholdRound,
@@ -618,7 +617,8 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         reset timeout: 30.0
     """
 
-    initial_round_cls: Type[AbstractRound] = RandomnessTransactionSubmissionRound
+    initial_round_cls: AppState = RandomnessTransactionSubmissionRound
+    initial_states: Set[AppState] = {RandomnessTransactionSubmissionRound}
     transition_function: AbciAppTransitionFunction = {
         RandomnessTransactionSubmissionRound: {
             Event.DONE: SelectKeeperTransactionSubmissionRoundA,
@@ -706,4 +706,18 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         Event.VALIDATE_TIMEOUT: 30.0,
         Event.CHECK_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
+    }
+    db_pre_conditions: Dict[AppState, List[str]] = {
+        RandomnessTransactionSubmissionRound: [
+            get_name(SynchronizedData.safe_contract_address),
+            get_name(SynchronizedData.most_voted_tx_hash),
+            get_name(SynchronizedData.participants),
+        ]
+    }
+    db_post_conditions: Dict[AppState, List[str]] = {
+        FinishedTransactionSubmissionRound: [
+            get_name(SynchronizedData.final_tx_hash),
+            get_name(SynchronizedData.final_verification_status),
+        ],
+        FailedRound: [],
     }

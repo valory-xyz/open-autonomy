@@ -56,7 +56,6 @@ URL_SKIPS = [
     "https://gateway.autonolas.tech/ipfs/<hash>,",  # non link (400)
     "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure",  # svn link (404)
     "http://host.docker.internal:8545",  # internal (ERR_NAME_NOT_RESOLVED)
-    "https://notes.ethereum.org/@vbuterin/eip-1559-faq",  # temporarily down
 ]
 
 # Define here custom timeouts for some edge cases
