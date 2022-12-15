@@ -19,6 +19,7 @@
 
 """Test importing all modules"""
 
+import sys
 import pkgutil
 from importlib.machinery import FileFinder, SourceFileLoader
 from typing import cast
@@ -31,7 +32,11 @@ import packages
 def test_import_all_modules() -> None:
     """Test importing all modules."""
 
-    package_names = [autonomy.__name__, packages.__name__]
-    for file_finder, module_name, _ in pkgutil.walk_packages(package_names):
-        loader = cast(FileFinder, file_finder).find_module(module_name)
-        cast(SourceFileLoader, loader).load_module(module_name)
+    old_modules = sys.modules.copy()
+    try:
+        package_names = [autonomy.__name__, packages.__name__]
+        for file_finder, module_name, _ in pkgutil.walk_packages(package_names):
+            loader = cast(FileFinder, file_finder).find_module(module_name)
+            cast(SourceFileLoader, loader).load_module(module_name)
+    finally:
+        sys.modules = old_modules
