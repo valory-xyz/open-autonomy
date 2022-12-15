@@ -36,7 +36,9 @@ DEFAULT_RPC_LISTEN_ADDRESS = "tcp://0.0.0.0:26657"
 DEFAULT_TENDERMINT_LOG_FILE = "tendermint.log"
 
 
-class StoppableThread(Thread):
+class StoppableThread(
+    Thread
+):
     """Thread class with a stop() method."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
