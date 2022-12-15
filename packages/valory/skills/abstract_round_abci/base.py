@@ -600,6 +600,7 @@ class AbciAppDB:
         :param setup_data: the setup data
         :param cross_period_persisted_keys: data keys that will be kept after a new period starts
         """
+        self._initialized = False
         AbciAppDB._check_data(setup_data)
         self._setup_data = deepcopy(setup_data)
         self._cross_period_persisted_keys = (
@@ -607,15 +608,15 @@ class AbciAppDB:
             if cross_period_persisted_keys is not None
             else []
         )
-        self._data: Dict[int, Dict[str, List[Any]]] = {
-            RESET_COUNT_START: self.setup_data  # the key represents the reset index
-        }
+        self._data: Dict[int, Dict[str, List[Any]]] = {}
         self._round_count = ROUND_COUNT_DEFAULT  # ensures first round is indexed at 0!
 
     @property
     def setup_data(self) -> Dict[str, Any]:
         """
         Get the setup_data without entries which have empty values.
+
+        Please keep in mind that the setup data are not synced among the agents and contain local values.
 
         :return: the setup_data
         """
@@ -648,8 +649,32 @@ class AbciAppDB:
         """Keys in the database which are persistent across periods."""
         return self._cross_period_persisted_keys.copy()
 
+    def initialize(self, synced_setup_data: Dict[str, List[Any]]) -> None:
+        """Initialize the data of the db.
+
+        This method should only be used to initialize the db, once,
+        and only after the agents have reached consensus about the initial setup data.
+        `RegistrationStartupRound` is meant to utilize this method.
+
+        :param synced_setup_data: the synchronized setup data to initialize the database with.
+        """
+        enforce(not self._initialized, "The database has already been initialized!")
+        enforce(
+            self.reset_index == RESET_COUNT_START,
+            "The database contains data before initialization!",
+        )
+        self._data = {
+            RESET_COUNT_START: synced_setup_data  # the key represents the reset index
+        }
+        self._initialized = True
+
+    def _enforce_initialized(self) -> None:
+        """Enforce that the database has been initialized, otherwise raise an error."""
+        enforce(self._initialized, "The database has not been initialized yet!")
+
     def get(self, key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]:
         """Given a key, get its last for the current reset index."""
+        self._enforce_initialized()
         if key in self._data[self.reset_index]:
             return deepcopy(self._data[self.reset_index][key][-1])
         if default != VALUE_NOT_PROVIDED:
@@ -664,6 +689,7 @@ class AbciAppDB:
 
     def update(self, **kwargs: Any) -> None:
         """Update the current data."""
+        self._enforce_initialized()
         # Append new data to the key history
         data = self._data[self.reset_index]
         for key, value in deepcopy(kwargs).items():
@@ -671,11 +697,13 @@ class AbciAppDB:
 
     def create(self, **kwargs: Any) -> None:
         """Add a new entry to the data."""
+        self._enforce_initialized()
         AbciAppDB._check_data(kwargs)
         self._data[self.reset_index + 1] = deepcopy(kwargs)
 
     def get_latest_from_reset_index(self, reset_index: int) -> Dict[str, Any]:
         """Get the latest key-value pairs from the data dictionary for the specified period."""
+        self._enforce_initialized()
         return {
             key: values[-1]
             for key, values in deepcopy(self._data.get(reset_index, {})).items()
@@ -705,6 +733,7 @@ class AbciAppDB:
         :param cleanup_history_depth: depth to clean up history
         :param cleanup_history_depth_current: whether or not to clean up current entry too.
         """
+        self._enforce_initialized()
         cleanup_history_depth = max(cleanup_history_depth, MIN_HISTORY_DEPTH)
         self._data = {
             key: self._data[key]
@@ -715,6 +744,7 @@ class AbciAppDB:
 
     def cleanup_current_histories(self, cleanup_history_depth_current: int) -> None:
         """Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter."""
+        self._enforce_initialized()
         cleanup_history_depth_current = max(
             cleanup_history_depth_current, MIN_HISTORY_DEPTH
         )
@@ -810,6 +840,17 @@ class BaseSynchronizedData:
         """Get the number of participants."""
         participants = cast(List, self.db.get("participants", []))
         return len(participants)
+
+    def initialize(self, synced_setup_data: Dict[str, List[Any]]) -> None:
+        """Initialize the synchronized data.
+
+        This method should only be used to initialize the data, once,
+        and only after the agents have reached consensus about the initial setup data.
+        `RegistrationStartupRound` is meant to utilize this method.
+
+        :param synced_setup_data: the synchronized setup data to initialize the database with.
+        """
+        self.db.initialize(synced_setup_data)
 
     def update(
         self,
