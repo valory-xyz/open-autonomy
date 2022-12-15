@@ -85,6 +85,7 @@ class BaseHelloWorldABCITest(
 @pytest.mark.usefixtures(
     "flask_tendermint", "tendermint_port", "abci_host", "abci_port"
 )
+@pytest.mark.hello_world()
 @pytest.mark.parametrize("nb_nodes", (1,))
 class TestHelloWorldABCISingleAgent(BaseHelloWorldABCITest):
     """Test the hello_world_abci skill with only one agent."""
@@ -94,6 +95,7 @@ class TestHelloWorldABCISingleAgent(BaseHelloWorldABCITest):
     "flask_tendermint", "tendermint_port", "abci_host", "abci_port"
 )
 @pytest.mark.parametrize("nb_nodes", (2,))
+@pytest.mark.hello_world()
 class TestHelloWorldABCITwoAgents(BaseHelloWorldABCITest):
     """Test the hello_world_abci skill with two agents."""
 
@@ -102,6 +104,7 @@ class TestHelloWorldABCITwoAgents(BaseHelloWorldABCITest):
     "flask_tendermint", "tendermint_port", "abci_host", "abci_port"
 )
 @pytest.mark.parametrize("nb_nodes", (4,))
+@pytest.mark.hello_world()
 class TestHelloWorldABCIFourAgents(BaseHelloWorldABCITest):
     """Test the hello_world_abci skill with four agents."""
 
@@ -117,6 +120,7 @@ class BaseHelloWorldABCITestCatchup(BaseHelloWorldABCITest):
 
 # four behaviours and different stages of termination and restart
 @pytest.mark.parametrize("nb_nodes", (4,))
+@pytest.mark.hello_world()
 class TestHelloWorldABCIFourAgentsCatchupOnRegister(BaseHelloWorldABCITestCatchup):
     """Test hello_world_abci skill with four agents; one restarting on `register`."""
 
@@ -124,6 +128,7 @@ class TestHelloWorldABCIFourAgentsCatchupOnRegister(BaseHelloWorldABCITestCatchu
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
+@pytest.mark.hello_world()
 class TestHelloWorldABCIFourAgentsCatchupRetrieveRandomness(
     BaseHelloWorldABCITestCatchup
 ):
@@ -133,6 +138,7 @@ class TestHelloWorldABCIFourAgentsCatchupRetrieveRandomness(
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
+@pytest.mark.hello_world()
 class TestHelloWorldABCIFourAgentsCatchupSelectKeeper(BaseHelloWorldABCITestCatchup):
     """Test hello_world_abci skill with four agents; one restarting on `select_keeper`."""
 
