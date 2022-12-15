@@ -1753,13 +1753,22 @@ class TestBaseBehaviour:
         BaseBehaviour, "_build_http_request_message", return_value=(None, None)
     )
     @pytest.mark.parametrize(
-        "reset_response, status_response, local_height, n_iter, expecting_success",
+        "reset_response, status_response, local_height, on_startup, n_iter, expecting_success",
         (
             (
                 {"message": "Tendermint reset was successful.", "status": True},
                 {"result": {"sync_info": {"latest_block_height": 1}}},
                 1,
+                False,
                 3,
+                True,
+            ),
+            (
+                {"message": "Tendermint reset was successful.", "status": True},
+                {"result": {"sync_info": {"latest_block_height": 1}}},
+                1,
+                True,
+                2,
                 True,
             ),
             (
@@ -1770,6 +1779,7 @@ class TestBaseBehaviour:
                 },
                 {"result": {"sync_info": {"latest_block_height": 1}}},
                 1,
+                False,
                 3,
                 True,
             ),
@@ -1777,6 +1787,7 @@ class TestBaseBehaviour:
                 {"message": "Tendermint reset was successful.", "status": True},
                 {"result": {"sync_info": {"latest_block_height": 1}}},
                 3,
+                False,
                 3,
                 False,
             ),
@@ -1784,14 +1795,16 @@ class TestBaseBehaviour:
                 {"message": "Error resetting tendermint.", "status": False},
                 {},
                 0,
+                False,
                 2,
                 False,
             ),
-            ("wrong_response", {}, 0, 2, False),
+            ("wrong_response", {}, 0, False, 2, False),
             (
                 {"message": "Reset Successful.", "status": True},
                 "not_accepting_txs_yet",
                 0,
+                False,
                 3,
                 False,
             ),
@@ -1804,6 +1817,7 @@ class TestBaseBehaviour:
         reset_response: Union[Dict[str, Union[bool, str]], str],
         status_response: Union[Dict[str, Union[int, str]], str],
         local_height: int,
+        on_startup: bool,
         n_iter: int,
         expecting_success: bool,
     ) -> None:
@@ -1838,7 +1852,7 @@ class TestBaseBehaviour:
             BaseBehaviour, "sleep", new_callable=lambda *_: self.dummy_sleep
         ):
             self.behaviour.context.state.round_sequence.height = local_height
-            reset = self.behaviour.reset_tendermint_with_wait()
+            reset = self.behaviour.reset_tendermint_with_wait(on_startup=on_startup)
             for _ in range(n_iter):
                 next(reset)
             offset = math.ceil(
@@ -1856,10 +1870,15 @@ class TestBaseBehaviour:
                 "%Y-%m-%dT%H:%M:%S.%fZ"
             )
 
-            expected_parameters = [
-                ("genesis_time", genesis_time),
-                ("initial_height", initial_height),
-            ]
+            expected_parameters = (
+                [
+                    ("genesis_time", genesis_time),
+                    ("initial_height", initial_height),
+                ]
+                if not on_startup
+                else None
+            )
+
             build_http_request_message_mock.assert_called_with(
                 "GET",
                 self.behaviour.context.params.tendermint_com_url + "/hard_reset",

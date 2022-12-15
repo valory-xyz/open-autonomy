@@ -48,11 +48,11 @@ TARGET_SKILL = "valory/register_termination_abci:0.1.0"
 TIME_TO_FINISH = 60  # 1 minute
 
 REGISTRATION_CHECK_STRINGS = (
-    f"Entered in the '{RegistrationStartupRound.auto_round_id()}' round for period 0",
+    f"Entered in the '{RegistrationStartupRound.auto_round_id()}' round for period",
     f"'{RegistrationStartupRound.auto_round_id()}' round is done",
 )
 TRANSACTION_SUBMISSION_STRINGS = (
-    f"Entered in the '{ValidateTransactionRound.auto_round_id()}' round for period 0",
+    f"Entered in the '{ValidateTransactionRound.auto_round_id()}' round for period",
     "Verified result: True",
 )
 TERMINATION_STRINGS = (
