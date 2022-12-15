@@ -640,7 +640,7 @@ Send a message.
 ## StoppableThread Objects
 
 ```python
-class StoppableThread(  # pragma: no cover (covered via deployments/Dockerfiles/tendermint/tendermint.py)
+class StoppableThread(
     Thread)
 ```
 
