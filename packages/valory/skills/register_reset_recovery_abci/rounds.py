@@ -25,6 +25,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
+    AppState,
     BaseSynchronizedData,
     CollectSameUntilThresholdRound,
     get_name,
@@ -92,3 +93,4 @@ class RoundCountAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
     }
+    db_pre_conditions: Dict[AppState, List[str]] = {RoundCountRound: []}
