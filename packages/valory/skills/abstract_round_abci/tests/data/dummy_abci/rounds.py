@@ -129,7 +129,6 @@ class DummyAbciApp(AbciApp[Event]):
     """DummyAbciApp"""
 
     initial_round_cls: AppState = DummyStartingRound
-    initial_states: Set[AppState] = {DummyStartingRound}
     transition_function: AbciAppTransitionFunction = {
         DummyStartingRound: {
             Event.DONE: DummyRandomnessRound,

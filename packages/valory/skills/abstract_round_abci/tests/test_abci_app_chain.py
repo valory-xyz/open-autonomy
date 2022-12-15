@@ -70,6 +70,10 @@ class TestAbciAppChaining:
         self.round_3b = make_round_class("round_3b")
         self.round_3c = make_round_class("round_3c", (DegenerateRound,))
 
+        self.key_1 = "1"
+        self.key_2 = "2"
+        self.key_3 = "3"
+
         self.event_1a = "event_1a"
         self.event_1b = "event_1b"
         self.event_1c = "event_1c"
@@ -107,6 +111,8 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_1c}
             event_to_timeout = {self.event_timeout1: self.timeout1}
+            db_pre_conditions = {self.round_1a: []}  # type: ignore
+            db_post_conditions = {self.round_1c: [self.key_1]}  # type: ignore
             cross_period_persisted_keys = self.cross_period_persisted_keys_1
 
         self.app1_class = AbciApp1
@@ -126,6 +132,8 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_2c}
             event_to_timeout = {self.event_timeout2: self.timeout2}
+            db_pre_conditions = {self.round_2a: [self.key_1]}  # type: ignore
+            db_post_conditions = {self.round_2c: [self.key_2]}  # type: ignore
             cross_period_persisted_keys = self.cross_period_persisted_keys_2
 
         self.app2_class = AbciApp2
@@ -146,6 +154,8 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_3c}
             event_to_timeout = {self.event_timeout3: self.timeout3}
+            db_pre_conditions = {self.round_3a: [self.key_1, self.key_2]}  # type: ignore
+            db_post_conditions = {self.round_3c: [self.key_3]}
 
         self.app3_class = AbciApp3
 
@@ -165,6 +175,7 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_3c}
             event_to_timeout = {self.event_timeout3: self.timeout3}
+            db_post_conditions = {self.round_3c: []}  # type: ignore
 
         self.app3_class_dupe = AbciApp3Dupe
 
@@ -183,6 +194,8 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_2c}
             event_to_timeout = {self.event_timeout1: self.timeout2}
+            db_pre_conditions = {self.round_2a: [self.key_1]}  # type: ignore
+            db_post_conditions = {self.round_2c: [self.key_2]}  # type: ignore
 
         self.app2_class_faulty1 = AbciApp2Faulty1
 
@@ -401,7 +414,7 @@ class TestAbciAppChaining:
         app2_classes = self.app2_class.get_all_rounds()
         for r in sorted(abci_app.get_all_rounds(), key=str):
             abci_app._round_results.append(abci_app.synchronized_data)
-            abci_app._schedule_round(make_concrete(r))
+            abci_app.schedule_round(make_concrete(r))
             expected_cls = (sync_data_cls_app1, sync_data_cls_app2)[r in app2_classes]
             assert isinstance(abci_app.synchronized_data, expected_cls)
             expected_sentinel = (sentinel_app1, sentinel_app2)[r in app2_classes]

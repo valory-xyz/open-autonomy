@@ -47,6 +47,7 @@ CONFIG_OVERRIDE = [
     ("pex = true", "pex = false"),
 ]
 DOCKER_INTERNAL_HOST = "host.docker.internal"
+TM_STATUS_ENDPOINT = "http://localhost:26657/status"
 
 logging.basicConfig(
     filename=os.environ.get("LOG_FILE", DEFAULT_LOG_FILE),
@@ -94,6 +95,11 @@ def update_peers(validators: List[Dict], config_path: Path) -> None:
     for peer in validators:
         hostname = peer["hostname"]
         if hostname in ("localhost", "0.0.0.0"):
+            # This (tendermint) node will be running in a docker container and no other node
+            # will be running in the same container. If we receive either localhost or 0.0.0.0,
+            # we make an assumption that the address belongs to a node running on the
+            # same machine with a different docker container and different p2p port so,
+            # we replace the hostname with the docker's internal host url.
             hostname = DOCKER_INTERNAL_HOST
         new_peer_string += (
             peer["peer_id"] + "@" + hostname + ":" + str(peer["p2p_port"]) + ","
@@ -202,7 +208,7 @@ def create_app(
             )
             priv_key_data = json.loads(priv_key_file.read_text(encoding=ENCODING))
             del priv_key_data["priv_key"]
-            status = requests.get("http://localhost:26657/status").json()
+            status = requests.get(TM_STATUS_ENDPOINT).json()
             priv_key_data["peer_id"] = status["result"]["node_info"]["id"]
             return {
                 "params": priv_key_data,

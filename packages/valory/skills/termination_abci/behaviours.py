@@ -122,7 +122,12 @@ class BackgroundBehaviour(BaseBehaviour):
 
     @property
     def synchronized_data(self) -> SynchronizedData:
-        """Return the synchronized data."""
+        """
+        Return the synchronized data.
+
+        Note: we instantiate here, rather than cast, as this runs
+        concurrently and so the instantiation needs to happen somewhere.
+        """
         return SynchronizedData(db=super().synchronized_data.db)
 
     @property
