@@ -221,9 +221,7 @@ class TestDocBashSnippets:
         if skipped_files:
             files_with_blocks = [f for f in files_with_blocks if f not in skipped_files]
 
-        all_mk_files = [
-            str(p.relative_to(ROOT_DIR)) for p in Path(ROOT_DIR).rglob("*Makefile")
-        ]
+        all_mk_files = [str(p.absolute()) for p in Path(ROOT_DIR).rglob("*Makefile")]
 
         all_mk_files = list(
             filter(
