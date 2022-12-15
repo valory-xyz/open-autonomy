@@ -1042,9 +1042,9 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         writer.write(data)
 
 
-class StoppableThread(  # pragma: no cover (covered via deployments/Dockerfiles/tendermint/tendermint.py)
-    Thread
-):
+class StoppableThread(
+    Thread,
+):  # pragma: no cover (covered via deployments/Dockerfiles/tendermint/tendermint.py)
     """Thread class with a stop() method."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:

@@ -46,7 +46,7 @@ def test_deployment_class_identical(package_cls: Type, deployment_cls: Type) -> 
 
     pragma = "  # pragma: no cover (covered via deployments/Dockerfiles/tendermint/tendermint.py)"
     p_code, d_code = map(get_lines, (deployment_cls, package_cls))
-    p_code[0] = p_code[0].replace(pragma, "")
+    p_code = [s.replace(pragma, "") for s in p_code]
     differences = "\n".join(difflib.unified_diff(p_code, d_code, lineterm=""))
     if differences:
         logging.error(differences)
