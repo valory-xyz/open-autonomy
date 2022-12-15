@@ -601,6 +601,18 @@ class TestAbciAppDB:
                 "by updating an item passed via the `__init__`!"
             )
 
+    def test_round_count_setter(self) -> None:
+        """Tests the round count setter."""
+        expected_value = 1
+
+        # assume the round count is 0 in the begging
+        self.db._round_count = 0
+
+        # update to one via the setter
+        self.db.round_count = expected_value
+
+        assert self.db.round_count == expected_value
+
     def test_try_alter_init_data(self) -> None:
         """Test trying to alter the init data."""
         data_key = "test"
@@ -2211,6 +2223,38 @@ class TestRoundSequence:
                 background_round_result[-1],
                 result=background_round_result[0],
             )
+
+    def test_reset_state(self) -> None:
+        """Tests reset_state"""
+        restart_from_round = ConcreteRoundA
+        round_count, reset_index = 1, 1
+        with mock.patch.object(
+            self.round_sequence,
+            "_reset_to_default_params",
+        ) as mock_reset:
+            self.round_sequence.reset_state(
+                restart_from_round, round_count, reset_index
+            )
+            mock_reset.assert_called()
+
+    def test_reset_to_default_params(self) -> None:
+        """Tests _reset_to_default_params."""
+        # we set some values to the parameters, to make sure that they are not "empty"
+        self.round_sequence._last_round_transition_timestamp = MagicMock()
+        self.round_sequence._last_round_transition_height = MagicMock()
+        self.round_sequence._last_round_transition_root_hash = MagicMock()
+        self.round_sequence._last_round_transition_tm_height = MagicMock()
+        self.round_sequence._tm_height = MagicMock()
+
+        # we reset them
+        self.round_sequence._reset_to_default_params()
+
+        # we check whether they have been reset
+        assert self.round_sequence._last_round_transition_timestamp is None
+        assert self.round_sequence._last_round_transition_height == 0
+        assert self.round_sequence._last_round_transition_root_hash == b""
+        assert self.round_sequence._last_round_transition_tm_height is None
+        assert self.round_sequence._tm_height is None
 
 
 def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:
