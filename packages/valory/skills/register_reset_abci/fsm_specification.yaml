@@ -7,6 +7,7 @@ default_start_state: RegistrationStartupRound
 final_states: []
 label: RegisterResetAbciApp
 start_states:
+- RegistrationRound
 - RegistrationStartupRound
 states:
 - RegistrationRound

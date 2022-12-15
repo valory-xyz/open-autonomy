@@ -70,9 +70,9 @@ class ROUNDS:
         \"\"\"{RoundCls}\"\"\"
 
         {todo_abstract_round_cls}
-        round_id: str = "{round_id}"
         allowed_tx_type: Optional[TransactionType] = {PayloadCls}.transaction_type
-        payload_attribute: str = "{round_id}"
+        # TODO: set the correct payload attribute
+        payload_attribute: str
 
         def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
             \"\"\"Process the end of the block.\"\"\"
@@ -91,8 +91,6 @@ class ROUNDS:
     DEGENERATE_ROUND_CLS = """\
     class {RoundCls}({ABCRoundCls}):
         \"\"\"{RoundCls}\"\"\"
-
-        round_id: str = "{round_id}"
 
     """
 
@@ -158,9 +156,6 @@ class BEHAVIOURS:
     class {BehaviourCls}({BaseBehaviourCls}):
         \"\"\"{BehaviourCls}\"\"\"
 
-        # TODO: set the following class attributes
-        state_id: str
-        behaviour_id: str = "{behaviour_id}"
         matching_round: Type[AbstractRound] = {matching_round}
 
         # TODO: implement logic required to set payload content (e.g. synchronized_data)
