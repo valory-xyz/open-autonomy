@@ -194,8 +194,9 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
                         f"Pre conditions '{diff}' of app '{next_app}' not a post condition of app '{current_app}' or any preceding app in path {path}."
                     )
             else:
-                _default_logger.warning(
-                    f"No pre-conditions have been set for {next_initial_state}!"
+                raise ValueError(
+                    f"No pre-conditions have been set for {next_initial_state}! "
+                    f"You need to explicitly specify them as empty if there are no pre-conditions for this FSM."
                 )
             current_app = next_app
             current_final_state = next_final_state
