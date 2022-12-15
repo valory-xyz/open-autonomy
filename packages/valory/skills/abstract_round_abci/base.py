@@ -743,7 +743,13 @@ class BaseSynchronizedData:
     """
 
     # Keys always set by default
-    # TODO: round_count and period_count need to be guaranteed to be synchronized too.
+    # `round_count` and `period_count` need to be guaranteed to be synchronized too:
+    #
+    # * `round_count` is only incremented when scheduling a new round,
+    #    which is by definition always a synchronized action.
+    # * `period_count` comes from the `reset_index` which is the last key of the `self._data`.
+    #    The `self._data` keys are only updated on create, and cleanup operations,
+    #    which are also meant to be synchronized since they are used at the rounds.
     default_db_keys: List[str] = ["round_count", "period_count", "nb_participants"]
 
     def __init__(
