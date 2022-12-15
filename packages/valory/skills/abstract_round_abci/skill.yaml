@@ -8,9 +8,9 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeihnqe3jevwrc72dmx4ehfjt7iyxo525f6yxz46t3t2uawhnbh3nji
-  abci_app_chain.py: bafybeibsn5x45gyh5f4h44cxgkfdezfagyajkbp7qpi7psiqz6dhtalfia
-  base.py: bafybeieril7zbqqv5ei326tapcg5n2np7fzs3xp34ivmjt3lm4xvwep2ou
-  behaviour_utils.py: bafybeidyqplsr7nnzngprb4suqtstppp7o5yedsaakabsoeubrw3yovwkq
+  abci_app_chain.py: bafybeihosazmb2hrhtotddkcaorvwehykv5f7spqlizuqxmms7b25d2apy
+  base.py: bafybeienafnlbxurjjc5l7ujzpm2hllv2kzcqtkimwqilzxrl62cykwuje
+  behaviour_utils.py: bafybeifywzdda4rxrwx7dipdexrh6vcqwboa3pu7nrx3hfngphridxrwsi
   behaviours.py: bafybeibnilnarbqaq5zh2ex6n26l5yw3nqhwr7k3idt5gg5z3jb5hpfuwi
   common.py: bafybeigpgcuw5ookbgsp77ha426wwhkvqxngm42s7vjduaxpksswhs3eyy
   dialogues.py: bafybeibvnmcn7kofol2h6owljhde4llfc3kwwkb5helxsgsy47mokhwb4i
@@ -37,12 +37,12 @@ fingerprint:
   tests/data/dummy_abci/handlers.py: bafybeifik3ftljs63u7nm4gadxpqbcvqj53p7qftzzzfto3ioad57k3x3u
   tests/data/dummy_abci/models.py: bafybeicbo55kojhegbzwhjf7mn3v2o3g3dpafs63ufjmvw6d5abnnq2zym
   tests/data/dummy_abci/payloads.py: bafybeidjxq2caqfnwrncjn442ywmpzrlub53pfxqnij4xqejthdhjpvpf4
-  tests/data/dummy_abci/rounds.py: bafybeibsbshcotpxbateqb5lpdrdq7hm2ploy3gfkxhbk24dj3rrsmnvja
-  tests/test_abci_app_chain.py: bafybeid3sjmc4msgcrhcztksdocb33zohqltzogtironfl7day7lwhyhgy
+  tests/data/dummy_abci/rounds.py: bafybeib6q3h3nutevbfzz3t6p65qrhdhkys7ih6lsw4budlkuaufdkb7te
+  tests/test_abci_app_chain.py: bafybeigaix76mptfvqdo3vie4mwhy5ujccwys4seaxcvkcpo67norjo4mm
   tests/test_base.py: bafybeidzjf4sfsna2tztw5dnfhd747naoteli5u7romkpzx7z7fl5t5nlu
   tests/test_base_rounds.py: bafybeice2fdgsxypt64zkiv5a6urkx3faqgpndex4fy4t2dy3zypcpenti
   tests/test_behaviours.py: bafybeie3zdtasvarrsc3bk3w4mhfzlsypbaum5lpyv6hinuubom364ozsa
-  tests/test_behaviours_utils.py: bafybeicqfvure5wl64gagbl4c2ue4pqkaecldd6iwvaqgngl7x4525syre
+  tests/test_behaviours_utils.py: bafybeidgshz4xqefvfvdiuvk5clp6rbwpa5mtaasmdiexfyn3rt6aif4ta
   tests/test_common.py: bafybeidtezcopwpvvgln66voqgzlfsk55yb4qvt2gtptbclrgafe7xmnza
   tests/test_dialogues.py: bafybeie4dkivvp3gdqyvvnazebftprwklklkjh6o36l5lxtwxuetgaw2nm
   tests/test_handlers.py: bafybeiebpx5k2iqhnun4mesd5ee7ln6ctdltfnycndreo2y7zqqdjjue2i

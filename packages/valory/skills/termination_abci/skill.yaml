@@ -7,12 +7,12 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidztixckwwbn4ujl6kkvghgsk23xecbgnbiw3e4t3owxldhyjo3au
-  behaviours.py: bafybeif7wfzm22lj4tzsgrrmx5gaejbjlel5oaal7xkc273kmeaeotsgu4
+  behaviours.py: bafybeiasqtp7kcowd5o62gesb6kpab2cj3uuudzx3qnfgq66334k4aktia
   dialogues.py: bafybeidy3xcgjvt2f2zluudxjvqyusj7g2fbb6kyugifpgaobmmrmnc7py
   handlers.py: bafybeifzwgpoll2psprk7akts5tepbousue2vvyu6glnamu2wm46b7roca
   models.py: bafybeibdy5unp2zw2rf7uhi4qvgzrqxyfybakgbmas42t2lgkipkl3glhq
   payloads.py: bafybeiham2atgdsol5k2laucgvlk6edozfujmrzgvc5s2vd2kbmr6qdnw4
-  rounds.py: bafybeifiga4trngitdy7ctb5vavh35gfpswnytvm6ce6ecgfna5hqnzbge
+  rounds.py: bafybeia5x3kvlqjh4cm2ier7um6x745kfkl5j4dtppbvrsgaxsdmrywawq
   tests/__init__.py: bafybeigsjjibb2gcybzp5yrsy25vyiu54rw6oaeyw5onaqemsvul7bmroi
   tests/test_behaviours.py: bafybeicmsbimj3ew25jnjux3klcv3plfovslgk6pr7eyzvlyppt5kzxvv4
   tests/test_dialogues.py: bafybeicb6gfanfyt3wiq3svdlvtxiuzpk72oxp7cfdeq4ezed7ixee5yae
@@ -23,14 +23,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeih6ra3wv3izpllj6ctd4fbrieuyy3samokyv6kowrjstvvpc2lcce
+- valory/gnosis_safe:0.1.0:bafybeia7taspp5boe5235fdv5ejdix7fdhyy4kwp26qx2ng2oo3k7kk7iy
 - valory/multisend:0.1.0:bafybeiaveffaomsnmsc5hx62o77u7ilma6eipox7m5lrwa56737ektva3i
-- valory/service_registry:0.1.0:bafybeie33alyh23nrcycjnhmeyxzwtztlxzfhmmtjfqpapusvr64qrkofa
+- valory/service_registry:0.1.0:bafybeiew24hgsjdasaqiikhulfa2rxgnh7pzpv2zzfwnsyfzbnrcj6dvjm
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigimvuswjrgvqylsqyuv36q23ah5md5mucq3l32i2mybnnwuq7pki
-- valory/transaction_settlement_abci:0.1.0:bafybeiguslbmvf5xijoasu4a53wvkflotfvmkdttrvcd4mm3bzuyzad2eu
+- valory/abstract_round_abci:0.1.0:bafybeibyj6tbdo5vxceqn2xqkrnevdq5pckfyo4a4isehhzbh2sojfkpk4
+- valory/transaction_settlement_abci:0.1.0:bafybeibxkq7m3skd5zmbvieeoh7yg2tlu2o6v6tx4m5qu6vjuwv6bstlxe
 behaviours:
   main:
     args: {}

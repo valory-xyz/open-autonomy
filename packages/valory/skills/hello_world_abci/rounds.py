@@ -26,6 +26,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
+    AppState,
     BaseSynchronizedData,
     CollectDifferentUntilAllRound,
     CollectSameUntilThresholdRound,
@@ -201,7 +202,7 @@ class HelloWorldAbciApp(AbciApp[Event]):
         reset timeout: 30.0
     """
 
-    initial_round_cls: Type[AbstractRound] = RegistrationRound
+    initial_round_cls: AppState = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {
             Event.DONE: CollectRandomnessRound,
