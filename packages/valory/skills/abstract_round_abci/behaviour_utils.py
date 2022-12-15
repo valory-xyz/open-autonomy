@@ -95,6 +95,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     BaseParams,
     Requests,
     SharedState,
+    TendermintRecoveryParams,
 )
 
 
@@ -160,6 +161,21 @@ class AsyncBehaviour(ABC):
     def state(self) -> AsyncState:
         """Get the 'async state'."""
         return self.__state
+
+    @property
+    def is_notified(self) -> bool:
+        """Returns whether the behaviour has been notified about the arrival of a message."""
+        return self.__notified
+
+    @property
+    def received_message(self) -> Any:
+        """Returns the message the behaviour has received. "__message" should be None if not availble or already consumed."""
+        return self.__message
+
+    def _on_sent_message(self) -> None:
+        """To be called after the message received is consumed. Removes the already sent notification and message."""
+        self.__notified = False
+        self.__message = None
 
     @property
     def is_stopped(self) -> bool:
@@ -1710,11 +1726,19 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             ("initial_height", initial_height),
         ]
 
-    def reset_tendermint_with_wait(  # pylint: disable= too-many-locals
+    def reset_tendermint_with_wait(  # pylint: disable=too-many-locals, too-many-statements
         self,
         on_startup: bool = False,
+        is_recovery: bool = False,
     ) -> Generator[None, None, bool]:
-        """Resets the tendermint node."""
+        """
+        Performs a hard reset (unsafe-reset-all) on the tendermint node.
+
+        :param on_startup: whether we are resetting on the start of the agent.
+        :param is_recovery: whether the reset is being performed to recover the agent <-> tm communication.
+        :yields: None
+        :returns: whether the reset was successful.
+        """
         yield from self._start_reset()
         if self._is_timeout_expired():
             # if the Tendermint node cannot update the app then the app cannot work
@@ -1752,13 +1776,28 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     for handler_name in self.context.handlers.__dict__.keys():
                         dialogues = getattr(self.context, f"{handler_name}_dialogues")
                         dialogues.cleanup()
-                    # in case of successful reset we store the reset params in the shared state,
-                    # so that in the future if the communication with tendermint breaks, and we need to
-                    # perform a hard reset to restore it, we can use these as the right ones
-                    cast(
-                        SharedState, self.context.state
-                    ).last_reset_params = reset_params
+                    if not is_recovery:
+                        # in case of successful reset we store the reset params in the shared state,
+                        # so that in the future if the communication with tendermint breaks, and we need to
+                        # perform a hard reset to restore it, we can use these as the right ones
+                        shared_state = cast(SharedState, self.context.state)
+                        # we take one from the reset index and round count because they are incremented
+                        # when resetting and scheduling rounds respectively
+                        reset_index = (
+                            shared_state.round_sequence.abci_app.reset_index - 1
+                        )
+                        round_count = shared_state.synchronized_data.db.round_count - 1
+                        # in case we need to reset in order to recover agent <-> tm communication
+                        # we store this round as the one to start from
+                        restart_from_round = self.matching_round
+                        shared_state.tm_recovery_params = TendermintRecoveryParams(
+                            reset_params=reset_params,
+                            reset_index=reset_index,
+                            round_count=round_count,
+                            reset_from_round=restart_from_round,
+                        )
                     self._end_reset()
+
                 else:
                     msg = response.get("message")
                     self.context.state.round_sequence.blockchain = backup_blockchain
@@ -1804,7 +1843,8 @@ class TmManager(BaseBehaviour, ABC):
     """Util class to be used for managing the tendermint node."""
 
     _active_generator: Optional[Generator] = None
-    _hard_reset_sleep = 10.0  # 10s
+    _hard_reset_sleep = 20.0  # 20s
+    _max_reset_retry = 5
 
     def async_act(self) -> Generator:  # type: ignore
         """The behaviour act."""
@@ -1832,17 +1872,13 @@ class TmManager(BaseBehaviour, ABC):
         """
         return self._hard_reset_sleep
 
-    def _handle_unhealthy_tm(self) -> Generator:
-        """This method handles the case when the tendermint node is unhealthy."""
-        self.context.logger.warning(
-            "The local deadline for the next `begin_block` request from the Tendermint node has expired! "
-            "Trying to reset local Tendermint node as there could be something wrong with the communication."
-        )
+    def _kill_if_no_majority_peers(self) -> Generator[None, None, None]:
+        """This method checks whether there are enough peers in the network to reach majority. If not, the agent is shut down."""
         # We assign a timeout to the num_active_peers request because we are trying to check whether the unhealthy
         # tm communication, i.e. tm not sending blocks to the abci (agent), is caused by not having enough peers
         # in the network. If that's the case, the node that is being queried has to be healthy, and respond in a
         # timely fashion. If the tm node doesn't respond in the specified timeout, we assume the problem is not
-        # the lack of peers in the service, and we try to resolve it by hard resetting the tm node.
+        # the lack of peers in the service.
         num_active_peers = yield from self.num_active_peers(timeout=TM_REQ_TIMEOUT)
         if (
             num_active_peers is not None
@@ -1855,12 +1891,44 @@ class TmManager(BaseBehaviour, ABC):
             not_ok_code = 1
             sys.exit(not_ok_code)
 
-        reset_successfully = yield from self.reset_tendermint_with_wait()
-        if not reset_successfully:
-            self.context.logger.error("Failed to reset tendermint.")
-            return
+    def _handle_unhealthy_tm(self) -> Generator:
+        """This method handles the case when the tendermint node is unhealthy."""
+        self.context.logger.warning(
+            "The local deadline for the next `begin_block` request from the Tendermint node has expired! "
+            "Trying to reset local Tendermint node as there could be something wrong with the communication."
+        )
 
-        self.context.logger.info("Tendermint reset was successfully performed. ")
+        # we first check whether the reason why we haven't received blocks for more than we allow is because
+        # there are not enough peers in the network to reach majority.
+        yield from self._kill_if_no_majority_peers()
+
+        # since we have reached this point that means that
+        shared_state = cast(SharedState, self.context.state)
+        recovery_params = shared_state.tm_recovery_params
+        shared_state.round_sequence.reset_state(
+            restart_from_round=recovery_params.reset_from_round,
+            round_count=recovery_params.round_count,
+            reset_index=recovery_params.reset_index,
+        )
+
+        for _ in range(self._max_reset_retry):
+            reset_successfully = yield from self.reset_tendermint_with_wait(
+                is_recovery=True
+            )
+            if reset_successfully:
+                self.context.logger.info(
+                    "Tendermint reset was successfully performed. "
+                )
+                # we sleep to give some time for tendermint to start sending us blocks
+                # otherwise we might end-up assuming that tendermint is still not working.
+                # Note that the wait_from_last_timestamp() in reset_tendermint_with_wait()
+                # doesn't guarantee us this, since the block stall deadline is greater than the
+                # hard_reset_sleep, 60s vs 20s. In other words, we haven't received a block for at
+                # least 60s, so wait_from_last_timestamp() will return immediately.
+                yield from self.sleep(self.hard_reset_sleep)
+                return
+
+        self.context.logger.info("Failed to reset tendermint.")
 
     def _get_reset_params(self, default: bool) -> Optional[List[Tuple[str, str]]]:
         """
@@ -1872,23 +1940,70 @@ class TmManager(BaseBehaviour, ABC):
         # we get the params from the latest successful reset, if they are not available,
         # i.e. no successful reset has been performed, we return None.
         # Returning None means default params will be used.
-        reset_params = cast(SharedState, self.context.state).last_reset_params
+        reset_params = cast(
+            SharedState, self.context.state
+        ).tm_recovery_params.reset_params
         return reset_params
 
+    def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
+        """Wrapper for callback_request(), overridden to remove checks not applicable to TmManager."""
+
+        def callback_request(
+            message: Message, _current_behaviour: BaseBehaviour
+        ) -> None:
+            """
+            This method gets called when a response for a prior request is received.
+
+            Overridden to remove the check that checks whether the behaviour that made the request is still active.
+            The received message gets passed to the behaviour that invoked it, in this case it's always the TmManager.
+
+            :param message: the response.
+            :param _current_behaviour: not used, left in to satisfy the interface.
+            :return: none
+            """
+            if self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
+                self.try_send(message)
+            else:
+                self.context.logger.warning(
+                    "could not send message to TmManager: %s", message
+                )
+
+        return callback_request
+
     def try_fix(self) -> None:
-        """This method tries to fix an unhealthy node."""
+        """This method tries to fix an unhealthy tendermint node."""
         if self._active_generator is None:
             # There is no active generator set, we need to create one.
             # A generator being active means that a reset operation is
             # being performed.
             self._active_generator = self._handle_unhealthy_tm()
         try:
+            # if the behaviour is waiting for a message
+            # we check whether one has arrived, and if it has
+            # we send it to the generator.
+            if self.state == self.AsyncState.WAITING_MESSAGE:
+                if self.is_notified:
+                    self._active_generator.send(self.received_message)
+                    self._on_sent_message()
+                # note that if the behaviour is waiting for
+                # a message, we deliberately don't send a tick
+                # this was done to have consistency between
+                # the act here, and acts on normal AsyncBehaviours
+                return
             # this will run the active generator until
             # the first yield statement is encountered
             self._active_generator.send(None)
+
         except StopIteration:
             # the generator is finished
+            self.context.logger.info("Applying tendermint fix finished.")
             self._active_generator = None
+            # the following is required because the message
+            # 'tick' might be the last one the generator needs
+            # to complete. In that scenario, we need to call
+            # the callback here
+            if self.is_notified:
+                self._on_sent_message()
 
 
 class DegenerateBehaviour(BaseBehaviour, ABC):
