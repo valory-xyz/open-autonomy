@@ -851,6 +851,16 @@ class BaseSynchronizedData:
         :param synced_setup_data: the synchronized setup data to initialize the database with.
         """
         self.db.initialize(synced_setup_data)
+        missing_keys = []
+        for mandatory_key in self.default_db_keys:
+            # we do not check if the attribute exists since this is done during the chaining
+            if not getattr(self, mandatory_key):
+                missing_keys.append(mandatory_key)
+
+        enforce(
+            not missing_keys,
+            f"There are missing setup data {missing_keys} after initialization!",
+        )
 
     def update(
         self,
