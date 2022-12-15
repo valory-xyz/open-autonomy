@@ -184,13 +184,18 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
             )
             # we now check that the pre conditions of the next app
             # are compatible with the post conditions of the current apps.
-            diff = set.difference(
-                set(next_app.db_pre_conditions[next_initial_state]),
-                accumulated_post_conditions,
-            )
-            if len(diff) != 0:
-                raise ValueError(
-                    f"Pre conditions '{diff}' of app '{next_app}' not a post condition of app '{current_app}' or any preceding app in path {path}."
+            if next_initial_state in next_app.db_pre_conditions:
+                diff = set.difference(
+                    set(next_app.db_pre_conditions[next_initial_state]),
+                    accumulated_post_conditions,
+                )
+                if len(diff) != 0:
+                    raise ValueError(
+                        f"Pre conditions '{diff}' of app '{next_app}' not a post condition of app '{current_app}' or any preceding app in path {path}."
+                    )
+            else:
+                _default_logger.warning(
+                    f"No pre-conditions have been set for {next_initial_state}!"
                 )
             current_app = next_app
             current_final_state = next_final_state
