@@ -1,41 +1,41 @@
-name: test_abci
+name: register_reset_recovery_abci
 author: valory
 version: 0.1.0
 type: skill
-description: ABCI application for testing the ABCI connection.
+description: ABCI application for dummy skill that registers and resets
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: bafybeihrn52tx65lerztcuqmuyncrctfvpu2do7wwjycxxj56orejx2cu4
-  __init__.py: bafybeie63javimotebwcrwaydwe2gc7a7h7cjhol6l6e5ushlgreorm7hi
-  behaviours.py: bafybeifzc3slkefi6kvs77muchzp5jwvb5kerqyjwdudncxntdgbr57oz4
-  dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
-  handlers.py: bafybeieeau32pkuhlfxmgk5je7lcmqccn5pohi7pgahbqcmfdiyb4q2boq
-  models.py: bafybeidlcic7cpxbqlxoeg56d3chnuoepk3inbn3yryyxtskp3msge75ci
-  payloads.py: bafybeibp4ty4dnrpkezdmxqdv6icp5d23chkfs5ufygrxb2eouvxsdvv2e
-  rounds.py: bafybeigr7jegz4ldcssmlg3bzdfj4vssjjmsosdvu445sh3fdc5675kirq
-  tests/__init__.py: bafybeicmlbk5j45t5qgvrlv7n3e3kpih2s3ibmjremouifdgcig6cajryq
-  tests/test_behaviours.py: bafybeig5eoozzy37eyw247vuegufula4pbptlgqopkqlre4dyt2qabzjrq
-  tests/test_dialogues.py: bafybeicd4f6di6m527d724vo6xcmbmpxgqr22rtzkkcvcqpjzievb5imra
-  tests/test_handlers.py: bafybeigwsx5yhtxruoqai3cckiupm3wbu3vucxyxnc6us27oa3nnqgs2xe
-  tests/test_models.py: bafybeihtud7c4q4eaop4knivs5yzo6ktaqefrbyjtthuwy34mytcbtpeqq
-  tests/test_payloads.py: bafybeigdkysovfmacsvdcw4gsjfijjcwza64zsospifl2v7hwgmz27af5y
-  tests/test_rounds.py: bafybeiac7wlch6uso33fng6qiwgmqhdyetvb64hnlls2oxqe4g3mhggmwa
+  README.md: bafybeigmjag2ddtrfsrcklillz7iiyzwoulyp7ns4xrxlqejfgsqe74dmu
+  __init__.py: bafybeigstxhr6bts7xwyx62cokwkwf3wrunratprkrg5vzokuq7ioqtsp4
+  behaviours.py: bafybeiaynfsluc7vfmel7vhcxcsqwjh6dyl7mcrwgnr7k7dfhsip4fvkjq
+  composition.py: bafybeig2st4q56icagf5crmmtc7deyn55tdti534ehtrvxfjr424z4j3ma
+  dialogues.py: bafybeiflpquascygrfxcgb4ufiigqykmvbxlgbrxxa6cxmiy6f4w3aknmq
+  handlers.py: bafybeig467ffh6apduswzgap5xm42jrynylzl332jnpizgrny72nwb7kra
+  models.py: bafybeia2xdaltqi4luc6vgbhprijsdgqnlw7qzvrcosa3izrzpek56ek7q
+  payloads.py: bafybeif3xvmrd6enjexvhpwp4ypsyk4j5tyecyphpf2lba665xonmd2cjy
+  rounds.py: bafybeieezp7kpotaverxo2qqqvqucqoddcnk46gxnfe5csxkayair2lloy
+  tests/__init__.py: bafybeigl6apxxiffa4ls45lukhbquaunzm2cspxdyf6thy5dz2rya44seq
+  tests/test_behaviours.py: bafybeifmxxby5cio3dp5cothzrpqz6bmgftu27mbo6b3lux62smbg7h5by
+  tests/test_dialogues.py: bafybeifna75wlo2zpymsx2oa5ct7uzujgo6ahnvd5yhzvnn6ekoxrgeaei
+  tests/test_handlers.py: bafybeichmiuqpbxog66ma5kiwlvns6jlbe74vyotq3s75lkvs3g44cruvq
+  tests/test_models.py: bafybeiepyi7jgllfbnpfu6zoy3noha3usukpxiiavcdi272q6z2acqjphq
+  tests/test_rounds.py: bafybeiatwkm5guwvncronpdfoh22c3fiqsmvf4cgz4e5325gbuv2wts4aq
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_abci:0.1.0:bafybeickobpknzpdtlezxdvuuasudjvrauv6wlyiw2cwooatwntl56ibvy
 - valory/abstract_round_abci:0.1.0:bafybeigimvuswjrgvqylsqyuv36q23ah5md5mucq3l32i2mybnnwuq7pki
+- valory/registration_abci:0.1.0:bafybeiekee2c4phvoe2v45prvmxgepbmc4arb4kqy5wukmhgmht7yjznfq
 behaviours:
   main:
     args: {}
-    class_name: TestAbciConsensusBehaviour
+    class_name: RegisterResetRecoveryAbciAppConsensusBehaviour
 handlers:
   abci:
     args: {}
-    class_name: TestABCIHandler
+    class_name: ABCIRegisterResetHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -73,7 +73,7 @@ models:
       cleanup_history_depth: 1
       cleanup_history_depth_current: null
       consensus:
-        max_participants: 1
+        max_participants: 4
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       genesis_config:
         genesis_time: '2022-05-20T16:00:21.735122717Z'
@@ -94,30 +94,22 @@ models:
         voting_power: '10'
       keeper_timeout: 30.0
       max_healthcheck: 120
-      observation_interval: 10
-      reset_tendermint_after: 2
+      observation_interval: 15
+      on_chain_service_id: null
+      reset_tendermint_after: 1
       retry_attempts: 400
       retry_timeout: 3
-      round_timeout_seconds: 30
-      service_id: test_abci
+      round_timeout_seconds: 15.0
+      service_id: register_reset_recovery_abci
+      service_registry_address: null
       setup: {}
+      share_tm_config_on_startup: false
       sleep_time: 1
-      tendermint_check_sleep_delay: 10
+      tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
     class_name: Params
-  randomness_api:
-    args:
-      api_id: cloudflare
-      headers: []
-      method: GET
-      parameters: []
-      response_key: null
-      response_type: dict
-      retries: 5
-      url: https://drand.cloudflare.com/public/latest
-    class_name: RandomnessApi
   requests:
     args: {}
     class_name: Requests
@@ -127,5 +119,8 @@ models:
   state:
     args: {}
     class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
 dependencies: {}
 is_abstract: false
