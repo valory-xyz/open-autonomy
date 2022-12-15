@@ -63,13 +63,13 @@ class TestTendermintStartup(BaseTestEnd2EndExecution):
         RoundChecks(RegistrationStartupRound.auto_round_id()),
         RoundChecks(ResetAndPauseRound.auto_round_id()),
     )
-    wait_to_finish = 3000
+    wait_to_finish = 60
     package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     extra_configs = [
         {
             "dotted_path": f"{__args_prefix}.observation_interval",
-            "value": 3000,
+            "value": 15,
         },
     ]
 
