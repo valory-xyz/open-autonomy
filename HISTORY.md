@@ -5,7 +5,6 @@
 
 Autonomy:
 - Removes the need for the intermediate agent layer when scaffolding an `FSM` app using specification
-- 
 - Updates the tendermint communication server
   - `GET /params` endpoint to return `peer_id` for the local tendermint node
   - `POST /params` endpoint to update `persistent_peers` when updating the chain config
