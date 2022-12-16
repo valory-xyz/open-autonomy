@@ -166,3 +166,29 @@ class TestBaseTestEnd2EndExecution(BaseTest):
             expected = 'Item "agent_00000" already exists in target folder "."'
             with pytest.raises(click.exceptions.ClickException, match=expected):
                 test_instance.test_run(nb_nodes)
+
+    def test_test_run_with_agent(self) -> None:
+        """Test test_run"""
+
+        nb_nodes = 1
+        test_instance = self.setup_test()
+        test_instance._tendermint_image = self.mocked_flask_tendermint_image(nb_nodes)
+        test_instance.wait_to_finish = mock.Mock()
+
+        agent_package = "valory/hello_world:0.1.0"
+        skill_package = "valory/hello_world_abci:0.1.0"
+        setattr(test_instance, "agent_package", agent_package)
+        setattr(test_instance, "skill_package", skill_package)
+
+        mocked_missing_from_output = as_context(
+            mock.patch.object(test_instance.__class__.__mro__[1], "missing_from_output"),
+            mock.patch.object(test_instance, "missing_from_output", return_value=("", "")),
+        )
+
+        with mock.patch.object(test_instance, "run_agent") as mocked_run_agent:
+            with mock.patch.object(test_instance, "health_check") as mocked_health_check:
+                with mocked_missing_from_output:
+                    test_instance.test_run(nb_nodes)
+
+        mocked_run_agent.assert_called_once()
+        mocked_health_check.assert_called_once()
