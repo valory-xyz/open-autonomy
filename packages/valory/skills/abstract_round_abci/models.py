@@ -24,7 +24,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 from time import time
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, cast
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Type, cast
 
 from aea.exceptions import enforce
 from aea.skills.base import Model, SkillContext
@@ -36,6 +36,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     ConsensusParams,
     RoundSequence,
+    get_name,
 )
 from packages.valory.skills.abstract_round_abci.utils import (
     get_data_from_nested_dict,
@@ -126,12 +127,25 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         self.setup_params = setup_params
         super().__init__(*args, **kwargs)
 
+        if not self.context.is_abstract_component:
+            # setup data are mandatory for non-abstract skills,
+            # and they should always contain at least the `safe_contract_address`
+            self._ensure_setup({get_name(BaseSynchronizedData.safe_contract_address)})
+
     @classmethod
     def _ensure(cls, key: str, kwargs: Dict) -> Any:
         """Get and ensure the configuration field is not None."""
         value = kwargs.pop(key, None)
         enforce(value is not None, f"'{key}' required, but it is not set")
         return value
+
+    def _ensure_setup(self, necessary_keys: Iterable[str]) -> Any:
+        """Ensure that the `setup` params contain all the `necessary_keys`."""
+        enforce(bool(self.setup_params), "`setup` params contain no values!")
+        not_found_keys = set(necessary_keys) - set(self.setup_params)
+        found = not not_found_keys
+        fail_msg = f"Values for `{not_found_keys}` missing from the `setup` params."
+        enforce(found, fail_msg)
 
 
 class SharedState(Model):
