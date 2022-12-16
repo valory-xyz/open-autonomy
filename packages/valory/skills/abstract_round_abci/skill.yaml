@@ -20,7 +20,7 @@ fingerprint:
   io_/load.py: bafybeifdki3qeq4aplu6chpozysmeqrt23lxhvcmlefsbesdrklh4wxu64
   io_/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
   io_/store.py: bafybeihksp4ch67ae3lum5ou62mmctbl4xnodkiewdlbilmgy752m4pwc4
-  models.py: bafybeihg66m2i53vajqzdfi25z3s5vle6h2chmzkdfiyeuovvuw4t5wgo4
+  models.py: bafybeicqke6f536zmmwcht5rrn5hxnwpvrrqv4shujxql4jy2gml6weg2i
   serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
   test_tools/__init__.py: bafybeigicwqumbl3jorusndtfa6ag7lnf3saa6cbqn7fazur4n6nxmsdva
   test_tools/abci_app.py: bafybeibcxxisb2wiysgca3kgfpourzmszrnm5wtokbipph4eplaeuzefqy
