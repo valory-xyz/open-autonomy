@@ -1,6 +1,33 @@
 # Release History - `open-autonomy`
 
 
+# 0.6.0 (2022-12-16)
+
+Autonomy:
+- Removes the need for the intermediate agent layer when scaffolding an `FSM` app using specification
+- 
+- Updates the tendermint communication server
+  - `GET /params` endpoint to return `peer_id` for the local tendermint node
+  - `POST /params` endpoint to update `persistent_peers` when updating the chain config
+
+Packages:
+- Fixes the `fast_forward_to_behaviour` in the `abci` skill test tools
+- Adds support for auto generated behaviour IDs
+- Adds support for auto-generated round IDs
+- Introduces the `get_name` method as part of the `abstract_round_abci`skill to retrieve the name of a property dynamically
+- Updates the various packages to to newly introduced auto generate functionalities
+- Removes sleep on `reset_tendermint_with_wait` on startup
+- Updates the `a2a` transaction logic to wait for block production to begin before sending an `a2a` transaction via tendermint
+- Updates the `RegistrationStartupBehaviour` and `TendermintHandler` to make sure we update the persistent peers when establishing a new chain
+- Adds support for specifying the external host name for the tendermint P2P connection
+
+Tests
+- Adds tests for `termination_abci`
+- Adds tests for docstring analyser when no `AbciApp` definition is found in the provided module
+- Adds test coverage for `autonomy develop` command group
+- Introduces pre and post conditions checks on the `SynchronizedData` for each initial and final state
+
+
 # 0.5.0.post2 (2022-12-09)
 
 Packages:

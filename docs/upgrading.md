@@ -5,6 +5,13 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.5.0.post2` to `v0.6.0`
+
+Breaking changes
+
+- The pre and post conditions needs to be defined while the FSM
+
+
 ## `v0.5.0.post1` to `v0.5.0.post2`
 
 
