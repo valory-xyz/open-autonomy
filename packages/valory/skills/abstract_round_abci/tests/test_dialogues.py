@@ -38,10 +38,10 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     HttpDialogues,
     LedgerApiDialogue,
     LedgerApiDialogues,
-    TendermintDialogue,
-    TendermintDialogues,
     SigningDialogue,
     SigningDialogues,
+    TendermintDialogue,
+    TendermintDialogues,
 )
 
 
