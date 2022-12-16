@@ -20,7 +20,7 @@ fingerprint:
   io_/load.py: bafybeifdki3qeq4aplu6chpozysmeqrt23lxhvcmlefsbesdrklh4wxu64
   io_/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
   io_/store.py: bafybeihksp4ch67ae3lum5ou62mmctbl4xnodkiewdlbilmgy752m4pwc4
-  models.py: bafybeihct3vrlyknlbzj7kcc5onkexllxwdfdglf4didzyh2ih5w2ztyoy
+  models.py: bafybeidbyf2ocgwneej7tz3qm77pw3hw6mqn7rgcke332zyyjnbekniygm
   serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
   test_tools/__init__.py: bafybeigicwqumbl3jorusndtfa6ag7lnf3saa6cbqn7fazur4n6nxmsdva
   test_tools/abci_app.py: bafybeibcxxisb2wiysgca3kgfpourzmszrnm5wtokbipph4eplaeuzefqy
@@ -57,8 +57,8 @@ fingerprint:
   tests/test_tools/test_common.py: bafybeiepcdnts7va6oulvh32ogvulb6o2xuiamgsg6p3lapldl2etkgsnu
   tests/test_tools/test_integration.py: bafybeic2xcpyjf4ojtjkhwevc5myxivaevani5gwra36qvqxl545vot4pe
   tests/test_tools/test_rounds.py: bafybeicyz47ec4njsue67nltjv4fpr53d34qcjdr2rxipl5jbgbn3joybu
-  tests/test_utils.py: bafybeias4ij6gvzomeilezsfwu3enxh57r24nhrbarbgt6fhr3qqszb7am
-  utils.py: bafybeibsklcnvvvx2acumio5xy7hjrbdeggfmnnlfcwbtnz2qjdry7ntay
+  tests/test_utils.py: bafybeigkob3r2tfsgazviaiwylmtyzhufodgrswf4byptqqm7k6uxdg5bq
+  utils.py: bafybeigrraoi5qfzbxkaadkcz5yoerewdlzjjsvrn6pntzdbezxorq5nsq
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeiddcwxvbsule5ore6odypykvi6m62uj4ikfplkgdokf7qnxb7ygcq
