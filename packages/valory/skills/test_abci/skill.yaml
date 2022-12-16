@@ -100,7 +100,9 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 30
       service_id: test_abci
-      setup: {}
+      setup:
+        safe_contract_address:
+        - '0x0000000000000000000000000000000000000000'
       sleep_time: 1
       tendermint_check_sleep_delay: 10
       tendermint_com_url: http://localhost:8080
