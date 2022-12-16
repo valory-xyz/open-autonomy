@@ -12,7 +12,7 @@ fingerprint:
   tests/test_register_reset.py: bafybeiclnr2ozprldqhcy6fwltzptr4aenvddtxc5kjunrcv32752xl4xe
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeibx3r7prcax25awn3mdnxlb2gzdgnq2zvkoaoc26hooyv37ictyte
+- valory/abci:0.1.0:bafybeigbt54fhvjpkzrr76oykl3pcuotpvdhm4p7rzeel5xao3o4xozlti
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
 - valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
 - valory/p2p_libp2p_client:0.1.0:bafybeidkk33xbga54szmitk6uwsi3ef56hbbdbuasltqtiyki34hgfpnxa
@@ -30,13 +30,13 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeiegonwusyfaixwx7vten3tdco6r5ldhhzjpek2byuwgxp6i3fjdzi
-- valory/abstract_round_abci:0.1.0:bafybeidtzighscsnecnosktniuutcso6etx3l7kutaybotvaknb2dayk4a
-- valory/register_termination_abci:0.1.0:bafybeiezk4ppvbalcbc7n2cro74zcyent5ggjqyk5by4tz4ct22vvyrqje
-- valory/registration_abci:0.1.0:bafybeicynu4df4kcp5anxjb2g7hbv72ddcx3paucyjh4ueo5h7z7mvb5jq
-- valory/reset_pause_abci:0.1.0:bafybeibymdwabaatm7qnh6uydqxfd6aacz2yfxnc3e2p2mghmrpjy7zwmu
-- valory/termination_abci:0.1.0:bafybeibcium53nu72br5vdjstnx7wronryglfbvqs664sqt6xjvdg5pilu
-- valory/transaction_settlement_abci:0.1.0:bafybeibbh4c6fsx7grnkacphtwhkfquz4x275oy2clrwjza2a6pn5a4suq
+- valory/abstract_abci:0.1.0:bafybeiacjfmhflnhqaxzd2mj5yolprjatfdqi7y46oub4uizbo7x7xcmjy
+- valory/abstract_round_abci:0.1.0:bafybeig6xhqbybbrmspi4b7hzrgsvi63tl26hyzg5hhls6lvueqo3yeqx4
+- valory/register_termination_abci:0.1.0:bafybeifrcjzlkcqmx6sst5fh5xe5vbp5exscydo4yifl5hrnglfhr7fkwy
+- valory/registration_abci:0.1.0:bafybeidj444oyh4jx4dbs2y3765dat3wrfqfjkdl6iwzyqi2xktppdpbsu
+- valory/reset_pause_abci:0.1.0:bafybeick4lnlhpd5ko4m3k6qg5v74llc725areibs5r7wg5zpi6gkkgslq
+- valory/termination_abci:0.1.0:bafybeiby7cinejswoomipufbqulbfglmxa7r63vdo3qcysx527ahjpsecu
+- valory/transaction_settlement_abci:0.1.0:bafybeig5z5upryh7s2dgdifotddcbbfrfhqufhnkh3yrzsis3x2p7rntwy
 default_ledger: ethereum
 required_ledgers:
 - ethereum
