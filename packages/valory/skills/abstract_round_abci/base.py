@@ -22,6 +22,7 @@ import datetime
 import heapq
 import itertools
 import logging
+import re
 import sys
 import textwrap
 import uuid
@@ -66,6 +67,7 @@ OK_CODE = 0
 ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 ROUND_COUNT_DEFAULT = -1
+RESET_INDEX_DEFAULT = -1
 MIN_HISTORY_DEPTH = 1
 ADDRESS_LENGTH = 42
 MAX_INT_256 = 2 ** 256 - 1
@@ -76,6 +78,15 @@ BLOCKS_STALL_TOLERANCE = 60
 
 EventType = TypeVar("EventType")
 TransactionType = TypeVar("TransactionType")
+
+
+def get_name(prop: Any) -> str:
+    """Get the name of a property."""
+    if not (isinstance(prop, property) and hasattr(prop, "fget")):
+        raise ValueError(f"{prop} is not a property")
+    if prop.fget is None:
+        raise ValueError(f"fget of {prop} is None")  # pragma: nocover
+    return prop.fget.__name__
 
 
 def consensus_threshold(n: int) -> int:  # pylint: disable=invalid-name
@@ -198,7 +209,12 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
         """
         self.id_ = uuid.uuid4().hex if id_ is None else id_
         self._round_count = round_count
-        self.sender = sender
+        self._sender = sender
+
+    @property
+    def sender(self) -> str:
+        """Get the sender."""
+        return self._sender
 
     @property
     def round_count(self) -> int:
@@ -628,6 +644,11 @@ class AbciAppDB:
         """Get the round count."""
         return self._round_count
 
+    @round_count.setter
+    def round_count(self, round_count: int) -> None:
+        """Set the round count."""
+        self._round_count = round_count
+
     @property
     def cross_period_persisted_keys(self) -> List[str]:
         """Keys in the database which are persistent across periods."""
@@ -721,6 +742,16 @@ class BaseSynchronizedData:
     This is the relevant data constructed and replicated by the agents.
     """
 
+    # Keys always set by default
+    # `round_count` and `period_count` need to be guaranteed to be synchronized too:
+    #
+    # * `round_count` is only incremented when scheduling a new round,
+    #    which is by definition always a synchronized action.
+    # * `period_count` comes from the `reset_index` which is the last key of the `self._data`.
+    #    The `self._data` keys are only updated on create, and cleanup operations,
+    #    which are also meant to be synchronized since they are used at the rounds.
+    default_db_keys: List[str] = ["round_count", "period_count", "nb_participants"]
+
     def __init__(
         self,
         db: AbciAppDB,
@@ -784,7 +815,8 @@ class BaseSynchronizedData:
     @property
     def nb_participants(self) -> int:
         """Get the number of participants."""
-        return len(self.participants)
+        participants = cast(List, self.db.get("participants", []))
+        return len(participants)
 
     def update(
         self,
@@ -872,6 +904,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     - allowed_tx_type: the transaction type that is allowed for this round.
     """
 
+    __pattern = re.compile(r"(?<!^)(?=[A-Z])")
     round_id: str
     allowed_tx_type: Optional[TransactionType]
     payload_attribute: str
@@ -905,6 +938,26 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
             raise ABCIAppInternalError("'allowed_tx_type' field not set") from exc
         if not hasattr(self, "synchronized_data_class"):
             logging.warning(f"No `synchronized_data_class` set on {self}")
+
+    @classmethod
+    def auto_round_id(cls) -> str:
+        """
+        Get round id automatically.
+
+        This method returns the auto generated id from the class name if the
+        class variable behaviour_id is not set on the child class.
+        Otherwise, it returns the class variable behaviour_id.
+        """
+        return (
+            cls.round_id
+            if isinstance(cls.round_id, str)
+            else cls.__pattern.sub("_", cls.__name__).lower()
+        )
+
+    @property  # type: ignore
+    def round_id(self) -> str:
+        """Get round id."""
+        return self.auto_round_id()
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
@@ -1113,7 +1166,6 @@ class DegenerateRound(AbstractRound):
     It is a sink round.
     """
 
-    round_id = "finished"
     allowed_tx_type = None
     payload_attribute = ""
 
@@ -1541,7 +1593,6 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
 
     done_event: Any
     no_majority_event: Any
-    selection_key: str
     collection_key: str
     required_block_confirmations: int = 0
     synchronized_data_class = BaseSynchronizedData
@@ -1565,7 +1616,6 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
-                    self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: self.collection,
                 },
             )
@@ -1616,7 +1666,6 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
-                    self.selection_key: frozenset(list(self.collection.keys())),
                     self.collection_key: non_empty_values,
                 },
             )
@@ -1735,6 +1784,7 @@ class _MetaAbciApp(ABCMeta):
         mcs._check_required_class_attributes(abci_app_cls)
         mcs._check_initial_states_and_final_states(abci_app_cls)
         mcs._check_consistency_outgoing_transitions_from_non_final_states(abci_app_cls)
+        mcs._check_db_constraints_consistency(abci_app_cls)
 
     @classmethod
     def _check_required_class_attributes(mcs, abci_app_cls: Type["AbciApp"]) -> None:
@@ -1816,6 +1866,62 @@ class _MetaAbciApp(ABCMeta):
         )
 
     @classmethod
+    def _check_db_constraints_consistency(mcs, abci_app_cls: Type["AbciApp"]) -> None:
+        """Check that the pre and post conditions on the db are consistent with the initial and final states."""
+        expected = abci_app_cls.initial_states
+        actual = abci_app_cls.db_pre_conditions.keys()
+        is_pre_conditions_set = len(actual) != 0
+        invalid_initial_states = (
+            set.difference(expected, actual) if is_pre_conditions_set else set()
+        )
+        enforce(
+            len(invalid_initial_states) == 0,
+            f"db pre conditions contain invalid initial states: {invalid_initial_states}",
+        )
+        expected = abci_app_cls.final_states
+        actual = abci_app_cls.db_post_conditions.keys()
+        is_post_conditions_set = len(actual) != 0
+        invalid_final_states = (
+            set.difference(expected, actual) if is_post_conditions_set else set()
+        )
+        enforce(
+            len(invalid_final_states) == 0,
+            f"db post conditions contain invalid final states: {invalid_final_states}",
+        )
+        all_pre_conditions = set(  # pylint: disable=consider-using-set-comprehension
+            [
+                value
+                for values in abci_app_cls.db_pre_conditions.values()
+                for value in values
+            ]
+        )
+        all_post_conditions = set(  # pylint: disable=consider-using-set-comprehension
+            [
+                value
+                for values in abci_app_cls.db_post_conditions.values()
+                for value in values
+            ]
+        )
+        enforce(
+            len(all_pre_conditions.intersection(all_post_conditions)) == 0,
+            "db pre and post conditions intersect",
+        )
+        intersection = set(abci_app_cls.default_db_preconditions).intersection(
+            all_pre_conditions
+        )
+        enforce(
+            len(intersection) == 0,
+            f"db pre conditions contain value that is a default pre condition: {intersection}",
+        )
+        intersection = set(abci_app_cls.default_db_preconditions).intersection(
+            all_post_conditions
+        )
+        enforce(
+            len(intersection) == 0,
+            f"db post conditions contain value that is a default post condition: {intersection}",
+        )
+
+    @classmethod
     def _check_consistency_outgoing_transitions_from_non_final_states(
         mcs, abci_app_cls: Type["AbciApp"]
     ) -> None:
@@ -1871,6 +1977,9 @@ class AbciApp(
     background_round_cls: Optional[AppState] = None
     termination_transition_function: Optional[AbciAppTransitionFunction] = None
     termination_event: Optional[EventType] = None
+    default_db_preconditions: List[str] = BaseSynchronizedData.default_db_keys
+    db_pre_conditions: Dict[AppState, List[str]] = {}
+    db_post_conditions: Dict[AppState, List[str]] = {}
     _is_abstract: bool = True
 
     def __init__(
@@ -1926,6 +2035,12 @@ class AbciApp(
         cls.background_round_cls = background_round_cls
         cls.termination_transition_function = termination_abci_app.transition_function
         cls.termination_event = termination_event
+        new_cross_period_persisted_keys = copy(cls.cross_period_persisted_keys)
+        new_cross_period_persisted_keys.extend(
+            termination_abci_app.cross_period_persisted_keys
+        )
+        new_cross_period_persisted_keys = list(set(new_cross_period_persisted_keys))
+        cls.cross_period_persisted_keys = new_cross_period_persisted_keys
         return cls
 
     @property
@@ -1997,7 +2112,7 @@ class AbciApp(
 
     def setup(self) -> None:
         """Set up the behaviour."""
-        self._schedule_round(self.initial_round_cls)
+        self.schedule_round(self.initial_round_cls)
         if self.is_termination_set:
             self.background_round_cls = cast(AppState, self.background_round_cls)
             self._background_round = self.background_round_cls(
@@ -2022,7 +2137,7 @@ class AbciApp(
         self._previous_rounds.append(self.current_round)
         self._current_round_height += 1
 
-    def _schedule_round(self, round_cls: AppState) -> None:
+    def schedule_round(self, round_cls: AppState) -> None:
         """
         Schedule a round class.
 
@@ -2192,7 +2307,7 @@ class AbciApp(
             # through the necessary rounds
             self.transition_function = self.termination_transition_function
             self.logger.info(
-                f"The termination event was produced, transitioning to `{cast(AppState, next_round_cls).round_id}`."
+                f"The termination event was produced, transitioning to `{cast(AppState, next_round_cls).auto_round_id()}`."
             )
         else:
             next_round_cls = self.transition_function[self._current_round_cls].get(
@@ -2207,7 +2322,7 @@ class AbciApp(
 
         self._log_end(event)
         if next_round_cls is not None:
-            self._schedule_round(next_round_cls)
+            self.schedule_round(next_round_cls)
         else:
             self.logger.warning("AbciApp has reached a dead end.")
             self._current_round_cls = None
@@ -2681,3 +2796,31 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"
         )
         self.abci_app.process_event(event, result=round_result)
+
+    def _reset_to_default_params(self) -> None:
+        """Resets the instance params to their default value."""
+        self._last_round_transition_timestamp = None
+        self._last_round_transition_height = 0
+        self._last_round_transition_root_hash = b""
+        self._last_round_transition_tm_height = None
+        self._tm_height = None
+
+    def reset_state(
+        self,
+        restart_from_round: AppState,
+        round_count: int,
+        reset_index: int,
+    ) -> None:
+        """
+        This method resets the state of RoundSequence to the begging of the period.
+
+        Note: This is intended to be used only for agent <-> tendermint communication recovery only!
+
+        :param restart_from_round: from which round to restart the abci. This round should be the first round in the last period.
+        :param round_count: the round count at the beginning of the period -1.
+        :param reset_index: the reset index (a.k.a. period count) -1.
+        """
+        self._reset_to_default_params()
+        self.abci_app.synchronized_data.db.round_count = round_count
+        self.abci_app.reset_index = reset_index
+        self.abci_app.schedule_round(restart_from_round)

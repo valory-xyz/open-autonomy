@@ -4,6 +4,16 @@
 
 This module contains the base classes for the models classes of the skill.
 
+<a id="packages.valory.skills.abstract_round_abci.base.get_name"></a>
+
+#### get`_`name
+
+```python
+def get_name(prop: Any) -> str
+```
+
+Get the name of a property.
+
 <a id="packages.valory.skills.abstract_round_abci.base.consensus_threshold"></a>
 
 #### consensus`_`threshold
@@ -156,6 +166,17 @@ Initialize a transaction payload.
 - `sender`: the sender (Ethereum) address
 - `id_`: the id of the transaction
 - `round_count`: the count of the round in which the payload was sent
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.sender"></a>
+
+#### sender
+
+```python
+@property
+def sender() -> str
+```
+
+Get the sender.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.round_count"></a>
 
@@ -770,6 +791,17 @@ def round_count() -> int
 
 Get the round count.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.round_count"></a>
+
+#### round`_`count
+
+```python
+@round_count.setter
+def round_count(round_count: int) -> None
+```
+
+Set the round count.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cross_period_persisted_keys"></a>
 
 #### cross`_`period`_`persisted`_`keys
@@ -1161,6 +1193,32 @@ def __init__(synchronized_data: BaseSynchronizedData, consensus_params: Consensu
 ```
 
 Initialize the round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.auto_round_id"></a>
+
+#### auto`_`round`_`id
+
+```python
+@classmethod
+def auto_round_id(cls) -> str
+```
+
+Get round id automatically.
+
+This method returns the auto generated id from the class name if the
+class variable behaviour_id is not set on the child class.
+Otherwise, it returns the class variable behaviour_id.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.round_id"></a>
+
+#### round`_`id
+
+```python
+@property
+def round_id() -> str
+```
+
+Get round id.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.synchronized_data"></a>
 
@@ -2065,6 +2123,26 @@ def setup() -> None
 
 Set up the behaviour.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.schedule_round"></a>
+
+#### schedule`_`round
+
+```python
+def schedule_round(round_cls: AppState) -> None
+```
+
+Schedule a round class.
+
+this means:
+- cancel timeout events belonging to the current round;
+- instantiate the new round class and set it as current round;
+- create new timeout events and schedule them according to the latest
+timestamp.
+
+**Arguments**:
+
+- `round_cls`: the class of the new round.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.current_round"></a>
 
 #### current`_`round
@@ -2630,4 +2708,22 @@ Reset blockchain after tendermint reset.
 
 - `is_replay`: whether we are resetting the blockchain while replaying blocks.
 - `is_init`: whether to process blocks before receiving an init_chain req from tendermint.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.reset_state"></a>
+
+#### reset`_`state
+
+```python
+def reset_state(restart_from_round: AppState, round_count: int, reset_index: int) -> None
+```
+
+This method resets the state of RoundSequence to the begging of the period.
+
+Note: This is intended to be used only for agent <-> tendermint communication recovery only!
+
+**Arguments**:
+
+- `restart_from_round`: from which round to restart the abci. This round should be the first round in the last period.
+- `round_count`: the round count at the beginning of the period -1.
+- `reset_index`: the reset index (a.k.a. period count) -1.
 

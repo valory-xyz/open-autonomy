@@ -36,13 +36,26 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     tendermint_port,
 )
 
+from packages.valory.skills.hello_world_abci.behaviours import (
+    CollectRandomnessBehaviour,
+    RegistrationBehaviour,
+    SelectKeeperBehaviour,
+)
+from packages.valory.skills.hello_world_abci.rounds import (
+    CollectRandomnessRound,
+    PrintMessageRound,
+    RegistrationRound,
+    ResetAndPauseRound,
+    SelectKeeperRound,
+)
+
 
 HAPPY_PATH = (
-    RoundChecks("registration"),
-    RoundChecks("print_message", n_periods=3),
-    RoundChecks("collect_randomness", n_periods=3),
-    RoundChecks("select_keeper", n_periods=2),
-    RoundChecks("reset_and_pause", n_periods=2),
+    RoundChecks(RegistrationRound.auto_round_id()),
+    RoundChecks(PrintMessageRound.auto_round_id(), n_periods=3),
+    RoundChecks(CollectRandomnessRound.auto_round_id(), n_periods=3),
+    RoundChecks(SelectKeeperRound.auto_round_id(), n_periods=2),
+    RoundChecks(ResetAndPauseRound.auto_round_id(), n_periods=2),
 )
 
 # strict check log messages of the happy path
@@ -97,7 +110,7 @@ class TestHelloWorldABCIFourAgents(BaseHelloWorldABCITest):
 class BaseHelloWorldABCITestCatchup(BaseHelloWorldABCITest):
     """Test the hello_world_abci skill with catch up behaviour."""
 
-    stop_string = "register"
+    stop_string = RegistrationBehaviour.auto_behaviour_id()
     restart_after = 10
     n_terminal = 1
 
@@ -107,7 +120,7 @@ class BaseHelloWorldABCITestCatchup(BaseHelloWorldABCITest):
 class TestHelloWorldABCIFourAgentsCatchupOnRegister(BaseHelloWorldABCITestCatchup):
     """Test hello_world_abci skill with four agents; one restarting on `register`."""
 
-    stop_string = "register"
+    stop_string = RegistrationBehaviour.auto_behaviour_id()
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
@@ -116,14 +129,14 @@ class TestHelloWorldABCIFourAgentsCatchupRetrieveRandomness(
 ):
     """Test hello_world_abci skill with four agents; one restarting on `collect_randomness`."""
 
-    stop_string = "collect_randomness"
+    stop_string = CollectRandomnessBehaviour.auto_behaviour_id()
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestHelloWorldABCIFourAgentsCatchupSelectKeeper(BaseHelloWorldABCITestCatchup):
     """Test hello_world_abci skill with four agents; one restarting on `select_keeper`."""
 
-    stop_string = "select_keeper"
+    stop_string = SelectKeeperBehaviour.auto_behaviour_id()
 
 
 # multiple agents terminating and restarting

@@ -202,6 +202,28 @@ def late_arriving_tx_hashes() -> List[str]
 
 Get the late_arriving_tx_hashes.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.most_voted_check_result"></a>
+
+#### most`_`voted`_`check`_`result
+
+```python
+@property
+def most_voted_check_result() -> str
+```
+
+Get the most voted checked result.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.participant_to_check"></a>
+
+#### participant`_`to`_`check
+
+```python
+@property
+def participant_to_check() -> Mapping[str, CheckTransactionHistoryPayload]
+```
+
+Get the mapping from pariticipants to checks.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FailedRound"></a>
 
 ## FailedRound Objects

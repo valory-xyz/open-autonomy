@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,5 +16,12 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# pylint: disable=unused-import
 
-"""Development of agent services."""
+"""Test the dialogues.py module of the skill."""
+
+import packages.valory.skills.register_reset_recovery_abci.dialogues  # noqa
+
+
+def test_import() -> None:
+    """Test that the 'dialogues.py' Python module can be imported."""

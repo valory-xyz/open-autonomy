@@ -348,9 +348,8 @@ Let's look how each of these objects are implemented. If you have fetched the He
   class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
       """A round in which the agents get registered"""
 
-      round_id = "print_message"
       allowed_tx_type = PrintMessagePayload.transaction_type
-      payload_attribute = "message"
+      payload_attribute = get_name(PrintMessagePayload.message)
 
       def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
           """Process the end of the block."""
@@ -423,7 +422,6 @@ Again, the `HelloWorldABCIBaseBehaviour` is a convenience class, and the upper c
 class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
     """Prints the celebrated 'HELLO WORLD!' message."""
 
-    behaviour_id = "print_message"
     matching_round = PrintMessageRound
 
     def async_act(self) -> Generator:
@@ -453,9 +451,8 @@ class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
 
         payload = PrintMessagePayload(self.context.agent_address, printed_message)
 
-        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
 
         self.set_done()
 ```
@@ -513,7 +510,7 @@ class PrintMessagePayload(BaseHelloWorldAbciPayload):
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(message=self._message)
+        return dict(message=self.message)
 ```
 
 

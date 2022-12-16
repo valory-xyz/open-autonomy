@@ -20,17 +20,17 @@
 """This module contains the data classes for the reset_pause_abci application."""
 
 from enum import Enum
-from typing import Dict, Optional, Set, Tuple, Type
+from typing import Dict, List, Optional, Set, Tuple
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
     AbciAppTransitionFunction,
-    AbstractRound,
     AppState,
     BaseSynchronizedData,
     CollectSameUntilThresholdRound,
     DegenerateRound,
+    get_name,
 )
 from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 
@@ -47,9 +47,8 @@ class Event(Enum):
 class ResetAndPauseRound(CollectSameUntilThresholdRound):
     """A round that represents that consensus is reached (the final round)"""
 
-    round_id = "reset_and_pause"
     allowed_tx_type = ResetPausePayload.transaction_type
-    payload_attribute = "period_count"
+    payload_attribute = get_name(ResetPausePayload.period_count)
     _allow_rejoin_payloads = True
     synchronized_data_class = BaseSynchronizedData
 
@@ -80,13 +79,9 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
 class FinishedResetAndPauseRound(DegenerateRound):
     """A round that represents reset and pause has finished"""
 
-    round_id = "finished_reset_pause"
-
 
 class FinishedResetAndPauseErrorRound(DegenerateRound):
     """A round that represents reset and pause has finished with errors"""
-
-    round_id = "finished_reset_pause_error"
 
 
 class ResetPauseAbciApp(AbciApp[Event]):
@@ -111,7 +106,7 @@ class ResetPauseAbciApp(AbciApp[Event]):
         reset and pause timeout: 30.0
     """
 
-    initial_round_cls: Type[AbstractRound] = ResetAndPauseRound
+    initial_round_cls: AppState = ResetAndPauseRound
     transition_function: AbciAppTransitionFunction = {
         ResetAndPauseRound: {
             Event.DONE: FinishedResetAndPauseRound,
@@ -128,4 +123,9 @@ class ResetPauseAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_AND_PAUSE_TIMEOUT: 30.0,
+    }
+    db_pre_conditions: Dict[AppState, List[str]] = {ResetAndPauseRound: []}
+    db_post_conditions: Dict[AppState, List[str]] = {
+        FinishedResetAndPauseRound: [],
+        FinishedResetAndPauseErrorRound: [],
     }

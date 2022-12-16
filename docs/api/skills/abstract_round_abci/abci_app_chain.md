@@ -24,3 +24,8 @@ def chain(abci_apps: Tuple[Type[AbciApp], ...], abci_app_transition_mapping: Abc
 
 Concatenate multiple AbciApp types.
 
+The consistency checks assume that the first element in
+abci_apps is the entry-point abci_app (i.e. the associated round of
+the  initial_behaviour_cls of the AbstractRoundBehaviour in which
+the chained AbciApp is used is one of the initial_states of the first element.)
+

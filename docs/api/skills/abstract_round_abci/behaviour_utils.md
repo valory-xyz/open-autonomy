@@ -92,6 +92,28 @@ def state() -> AsyncState
 
 Get the 'async state'.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour.is_notified"></a>
+
+#### is`_`notified
+
+```python
+@property
+def is_notified() -> bool
+```
+
+Returns whether the behaviour has been notified about the arrival of a message.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour.received_message"></a>
+
+#### received`_`message
+
+```python
+@property
+def received_message() -> Any
+```
+
+Returns the message the behaviour has received. "__message" should be None if not availble or already consumed.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.AsyncBehaviour.is_stopped"></a>
 
 #### is`_`stopped
@@ -336,6 +358,32 @@ def __init__(**kwargs: Any)
 ```
 
 Initialize a base behaviour.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.auto_behaviour_id"></a>
+
+#### auto`_`behaviour`_`id
+
+```python
+@classmethod
+def auto_behaviour_id(cls) -> str
+```
+
+Get behaviour id automatically.
+
+This method returns the auto generated id from the class name if the
+class variable behaviour_id is not set on the child class.
+Otherwise, it returns the class variable behaviour_id.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.behaviour_id"></a>
+
+#### behaviour`_`id
+
+```python
+@property
+def behaviour_id() -> str
+```
+
+Get behaviour id.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.params"></a>
 
@@ -734,10 +782,20 @@ the amount of time to sleep in seconds
 #### reset`_`tendermint`_`with`_`wait
 
 ```python
-def reset_tendermint_with_wait(on_startup: bool = False) -> Generator[None, None, bool]
+def reset_tendermint_with_wait(on_startup: bool = False, is_recovery: bool = False) -> Generator[None, None, bool]
 ```
 
-Resets the tendermint node.
+Performs a hard reset (unsafe-reset-all) on the tendermint node.
+
+**Arguments**:
+
+:yields: None
+- `on_startup`: whether we are resetting on the start of the agent.
+- `is_recovery`: whether the reset is being performed to recover the agent <-> tm communication.
+
+**Returns**:
+
+whether the reset was successful.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager"></a>
 
@@ -787,6 +845,16 @@ We don't need to wait for half the observation interval, like in normal cases wh
 
 the amount of time to sleep in seconds
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager.get_callback_request"></a>
+
+#### get`_`callback`_`request
+
+```python
+def get_callback_request() -> Callable[[Message, "BaseBehaviour"], None]
+```
+
+Wrapper for callback_request(), overridden to remove checks not applicable to TmManager.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager.try_fix"></a>
 
 #### try`_`fix
@@ -795,7 +863,7 @@ the amount of time to sleep in seconds
 def try_fix() -> None
 ```
 
-This method tries to fix an unhealthy node.
+This method tries to fix an unhealthy tendermint node.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.DegenerateBehaviour"></a>
 
