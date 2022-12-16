@@ -1622,7 +1622,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
             )
             and self.block_confirmations > self.required_block_confirmations
         ):
-            return self.synchronized_data, self.no_majority_event
+            return self.synchronized_data, self.no_majority_event  # pragma: no cover
         return None
 
 
