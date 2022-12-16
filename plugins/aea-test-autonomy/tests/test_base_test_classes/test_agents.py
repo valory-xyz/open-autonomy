@@ -38,7 +38,7 @@ class BaseTest:
     test_cls: Type[BaseTestEnd2End]
     setup_class_called: bool
 
-    def setup(self):
+    def setup(self) -> None:
         """Setup test"""
 
         self.setup_class_called = False
