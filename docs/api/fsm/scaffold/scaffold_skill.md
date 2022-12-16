@@ -40,6 +40,17 @@ def update() -> None
 
 Update the skill configuration file.
 
+<a id="autonomy.fsm.scaffold.scaffold_skill.SkillConfigUpdater.get_actual_abstract_round_abci_package_public_id"></a>
+
+#### get`_`actual`_`abstract`_`round`_`abci`_`package`_`public`_`id
+
+```python
+@classmethod
+def get_actual_abstract_round_abci_package_public_id(cls, ctx: Context) -> Optional[PublicId]
+```
+
+Get abstract round abci pacakge id from the registry.
+
 <a id="autonomy.fsm.scaffold.scaffold_skill.ScaffoldABCISkill"></a>
 
 ## ScaffoldABCISkill Objects
