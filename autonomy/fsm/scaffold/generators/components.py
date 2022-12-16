@@ -24,7 +24,7 @@ from typing import List
 
 from aea.protocols.generator.common import _camel_case_to_snake_case
 
-from autonomy.fsm.scaffold.base import AbstractFileGenerator
+from autonomy.fsm.scaffold.base import AbstractFileGenerator, _indent_wrapper
 from autonomy.fsm.scaffold.constants import (
     ABCI_APP,
     ABSTRACT_ROUND,
@@ -70,10 +70,24 @@ class RoundFileGenerator(AbstractFileGenerator, ROUNDS):
             COPYRIGHT_HEADER,
             ROUNDS.HEADER.format(**self.template_kwargs),
             self._get_rounds_section(),
-            self.ABCI_APP_CLS.format(**self.template_kwargs),
+            self.ABCI_APP_CLS.format(
+                **self.template_kwargs,
+                db_pre_conditions=self._get_pre_condition_rounds_str(),
+                db_post_conditions=self._get_post_condition_rounds_str(),
+            ),
         ]
 
         return "\n".join(file_content)
+
+    def _get_pre_condition_rounds_str(self) -> str:
+        """Get string with pre_conditions rounds."""
+        return _indent_wrapper("\n".join([f"\t{round}: []," for round in self.rounds]))
+
+    def _get_post_condition_rounds_str(self) -> str:
+        """Get string with pre_conditions rounds."""
+        return _indent_wrapper(
+            "\n".join([f"\t{round}: []," for round in self.degenerate_rounds])
+        )
 
     def _get_rounds_section(self) -> str:
         """Get the round section of the module (i.e. the round classes)."""
