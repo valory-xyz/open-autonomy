@@ -20,12 +20,11 @@
 """This module contains the data classes for the safe deployment ABCI application."""
 
 from enum import Enum
-from typing import Dict, Set, Type, cast
+from typing import Dict, List, Set, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
-    AbstractRound,
     AppState,
     BaseSynchronizedData,
     CollectSameUntilThresholdRound,
@@ -156,7 +155,7 @@ class SafeDeploymentAbciApp(AbciApp[Event]):
         deploy timeout: 30.0
     """
 
-    initial_round_cls: Type[AbstractRound] = RandomnessSafeRound
+    initial_round_cls: AppState = RandomnessSafeRound
     transition_function: AbciAppTransitionFunction = {
         RandomnessSafeRound: {
             Event.DONE: SelectKeeperSafeRound,
@@ -192,4 +191,12 @@ class SafeDeploymentAbciApp(AbciApp[Event]):
         Event.VALIDATE_TIMEOUT: 30.0,
         Event.DEPLOY_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = [get_name(SynchronizedData.safe_contract_address)]
+    cross_period_persisted_keys: List[str] = [
+        get_name(SynchronizedData.safe_contract_address)
+    ]
+    db_pre_conditions: Dict[AppState, List[str]] = {
+        RandomnessSafeRound: [get_name(BaseSynchronizedData.participants)]
+    }
+    db_post_conditions: Dict[AppState, List[str]] = {
+        FinishedSafeRound: [get_name(SynchronizedData.safe_contract_address)]
+    }

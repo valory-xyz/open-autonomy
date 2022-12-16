@@ -20,13 +20,12 @@
 """This module contains the data classes for the reset_pause_abci application."""
 
 from enum import Enum
-from typing import Dict, Optional, Set, Tuple, Type
+from typing import Dict, List, Optional, Set, Tuple
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
     AbciAppTransitionFunction,
-    AbstractRound,
     AppState,
     BaseSynchronizedData,
     CollectSameUntilThresholdRound,
@@ -107,7 +106,7 @@ class ResetPauseAbciApp(AbciApp[Event]):
         reset and pause timeout: 30.0
     """
 
-    initial_round_cls: Type[AbstractRound] = ResetAndPauseRound
+    initial_round_cls: AppState = ResetAndPauseRound
     transition_function: AbciAppTransitionFunction = {
         ResetAndPauseRound: {
             Event.DONE: FinishedResetAndPauseRound,
@@ -124,4 +123,9 @@ class ResetPauseAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_AND_PAUSE_TIMEOUT: 30.0,
+    }
+    db_pre_conditions: Dict[AppState, List[str]] = {ResetAndPauseRound: []}
+    db_post_conditions: Dict[AppState, List[str]] = {
+        FinishedResetAndPauseRound: [],
+        FinishedResetAndPauseErrorRound: [],
     }
