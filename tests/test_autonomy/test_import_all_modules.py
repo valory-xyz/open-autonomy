@@ -19,8 +19,8 @@
 
 """Test importing all modules"""
 
-import sys
 import pkgutil
+import sys
 from importlib.machinery import FileFinder, SourceFileLoader
 from typing import cast
 
