@@ -284,7 +284,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         return tuple(incoming_messages)
 
 
-class HardHatHelperIntegration(IntegrationBaseCase):
+class HardHatHelperIntegration(IntegrationBaseCase):  # pragma: no cover
     """Base test class for integration tests with HardHat provider."""
 
     hardhat_provider: BaseProvider
