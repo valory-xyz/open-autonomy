@@ -147,3 +147,22 @@ class TestBaseTestEnd2EndExecution(BaseTest):
         setattr(test_instance, attribute, wrong_version)
         with pytest.raises(click.exceptions.ClickException, match=expected):
             test_instance.test_run(nb_nodes)
+
+    def test_test_run_incorrect_skill_package(self) -> None:
+        """Test incorrect skill package"""
+
+        nb_nodes = 1
+        test_instance = self.setup_test()
+        test_instance._tendermint_image = self.mocked_flask_tendermint_image(nb_nodes)
+
+        test_instance.agent_package = "valory/hello_world:0.1.0"
+        attribute = "skill_package"
+
+        with pytest.raises(AttributeError, match=f"has no attribute '{attribute}'"):
+            test_instance.test_run(nb_nodes)
+
+        for item in ("", "author/package", "valory/hello_world:0.0.0"):
+            setattr(test_instance, attribute, item)  # same for "author/package"
+            expected = 'Item "agent_00000" already exists in target folder "."'
+            with pytest.raises(click.exceptions.ClickException, match=expected):
+                test_instance.test_run(nb_nodes)
