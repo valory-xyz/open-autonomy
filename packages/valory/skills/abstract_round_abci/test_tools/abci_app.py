@@ -77,10 +77,6 @@ class ConcreteTerminationRoundA(_ConcreteRound):
 
     allowed_tx_type = "payload_termination_a"
 
-    def end_block(self) -> Tuple[MagicMock, MagicMock]:
-        """End block."""
-        return MagicMock(), MagicMock()
-
 
 class ConcreteTerminationRoundB(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
