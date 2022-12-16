@@ -22,6 +22,9 @@
 from unittest import mock
 from typing import Type
 
+import click
+import pytest
+from aea.test_tools.utils import as_context
 from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2End,
     BaseTestEnd2EndExecution,
@@ -116,3 +119,31 @@ class TestBaseTestEnd2EndExecution(BaseTest):
         test_instance = self.setup_test()
         test_instance._tendermint_image = self.mocked_flask_tendermint_image(nb_nodes)
         test_instance.test_run(nb_nodes=nb_nodes)
+
+    def test_test_run_incorrect_agent_package(self) -> None:
+        """Test test_run with one agent"""
+
+        nb_nodes = 1
+        test_instance = self.setup_test()
+        test_instance._tendermint_image = self.mocked_flask_tendermint_image(nb_nodes)
+
+        attribute = "agent_package"
+
+        with pytest.raises(AttributeError, match=f"has no attribute '{attribute}'"):
+            test_instance.test_run(nb_nodes)
+
+        setattr(test_instance, attribute, "")
+        with pytest.raises(click.exceptions.BadParameter):
+            test_instance.test_run(nb_nodes)
+
+        non_existent = "author/package"
+        expected = f'Item "{non_existent}" not found in source folder'
+        setattr(test_instance, attribute, non_existent)
+        with pytest.raises(click.exceptions.ClickException, match=expected):
+            test_instance.test_run(nb_nodes)
+
+        wrong_version = "valory/hello_world:0.0.0"
+        expected = "Wrong agent version in public ID: specified 0.0.0, found"
+        setattr(test_instance, attribute, wrong_version)
+        with pytest.raises(click.exceptions.ClickException, match=expected):
+            test_instance.test_run(nb_nodes)
