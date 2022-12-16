@@ -8,15 +8,15 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeieztbubb6yn5umyt5ulknvb2xxppz5ecxaosxqsaejnrcrrwfu2ji
   __init__.py: bafybeigqj2uodavhrygpqn6iah3ljp53z54c5fxyh5ykgkxuhh5lof6pda
-  behaviours.py: bafybeidluvngjkqq7t6fjqhngd7rb6l7ysfzhteggouf3sdcdbjrr462m4
+  behaviours.py: bafybeihehmd56rnf3lj6fi5c35r4a4v7g4o5z6b5lbowrwrhlp3nklftyi
   dialogues.py: bafybeicgx2bato2ctlceydqbhwowxpoznmlo3lfmqt5x5h3fribfe63g6y
   fsm_specification.yaml: bafybeidaasu2bmkscwotx5nvvje5utc6dwgnmjba7vvhmjfma3mpj44644
   handlers.py: bafybeigbp24xqejoukl52srcsasbljz4rap7xaa2qbfh4lyewbnkman7jm
   models.py: bafybeiaka4eit5vsjh7j2pr7oq7vvmxbk526z35pqzfojfb6kvpnm3yrpy
   payloads.py: bafybeig6hh4vg2zjivr26xxbab54nn2xcragqlh7ff4s2sql24tchz3yia
-  rounds.py: bafybeiey6ynlw5vp3c7vzhm7peq5sdoyu2jc5y4slf6oyuof5ywsfiyqqy
+  rounds.py: bafybeiemv2sllhmqztyjxohtygple5meke5szpelecqu6e5xxudzeqnmay
   tests/__init__.py: bafybeiab2s4vkmbz5bc4wggcclapdbp65bosv4en5zaazk5dwmldojpqja
-  tests/test_behaviours.py: bafybeig6pyt4igjwafdowugstxgcsvzkq2drm7sww6ilsuh2i5v7ewukci
+  tests/test_behaviours.py: bafybeif5mbwq2c2j2h6uycql7xfvupitt6cvxvah4a2j4cwkqjff7jhw2e
   tests/test_dialogues.py: bafybeibeqnpzuzgcfb6yz76htslwsbbpenihswbp7j3qdyq42yswjq25l4
   tests/test_handlers.py: bafybeifpnwaktxckbvclklo6flkm5zqs7apmb33ffs4jrmunoykjbl5lni
   tests/test_models.py: bafybeiewxl7nio5av2aukql2u7hlhodzdvjjneleba32abr42xeirrycb4
@@ -32,7 +32,7 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigimvuswjrgvqylsqyuv36q23ah5md5mucq3l32i2mybnnwuq7pki
+- valory/abstract_round_abci:0.1.0:bafybeib7v5p6efbhmcwsabqdhcdxqgmqpctmey2bd744xd3kfrjcv6757a
 behaviours:
   main:
     args: {}
@@ -112,8 +112,8 @@ models:
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
-      tendermint_url: http://localhost:26657
       tendermint_p2p_port: 26656
+      tendermint_url: http://localhost:26657
     class_name: Params
   requests:
     args: {}

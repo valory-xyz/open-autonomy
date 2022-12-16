@@ -126,6 +126,7 @@ class TestRegistrationStartUpFourAgents(
 ):
     """Test registration start-up skill with four agents."""
 
+    cli_log_options = ["-v", "INFO"]
     package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
 
 
@@ -137,6 +138,7 @@ class TestRegistrationStartUpFourAgentsCatchUp(
 ):
     """Test registration start-up skill with four agents and catch up."""
 
+    cli_log_options = ["-v", "INFO"]
     stop_string = "My address: "
     restart_after = 10
     n_terminal = 1
