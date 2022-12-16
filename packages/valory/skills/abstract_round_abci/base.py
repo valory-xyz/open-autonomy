@@ -2236,7 +2236,7 @@ class AbciApp(
         """Returns the allowed transaction type for background round."""
         if self.is_termination_set:
             return cast(AppState, self.background_round_cls).allowed_tx_type
-        return None
+        return None  # pragma: no cover
 
     def check_transaction(self, transaction: Transaction) -> None:
         """
