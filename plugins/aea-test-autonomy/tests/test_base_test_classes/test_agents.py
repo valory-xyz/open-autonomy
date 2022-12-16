@@ -19,8 +19,8 @@
 
 """Tests for aea-test-autonomy plugin base test classes for agent e2e tests."""
 
+from typing import Type, Union
 from unittest import mock
-from typing import Type
 
 import click
 import pytest
@@ -29,15 +29,14 @@ from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2End,
     BaseTestEnd2EndExecution,
 )
-from aea_test_autonomy.docker.tendermint import (
-    FlaskTendermintDockerImage,
-)
+from aea_test_autonomy.docker.tendermint import FlaskTendermintDockerImage
 
 
 class BaseTest:
     """BaseTest"""
 
     test_cls: Type[BaseTestEnd2End]
+    setup_class_called: bool
 
     def setup(self):
         """Setup test"""
@@ -50,7 +49,7 @@ class BaseTest:
         if self.setup_class_called:
             self.test_cls.teardown_class()
 
-    def setup_test(self) -> BaseTestEnd2End:
+    def setup_test(self) -> Union[BaseTestEnd2End, BaseTestEnd2EndExecution]:
         """Setup test"""
 
         self.test_cls.setup_class()
@@ -74,17 +73,20 @@ class TestBaseTestEnd2End(BaseTest):
     def test_default_test_class(self) -> None:
         """Test default class attributes, prior to setup_class"""
 
+        def get_package_name(cls: Type) -> str:
+            return cls.__module__.split(".", maxsplit=1)[0]
+
         # BaseTestEnd2End overrides of BaseAEATestCase
-        assert BaseTestEnd2End.capture_log is True
-        assert BaseTestEnd2End.cli_log_options == ["-v", "DEBUG"]
+        assert self.test_cls.capture_log is True
+        assert self.test_cls.cli_log_options == ["-v", "DEBUG"]
 
         # default values likely to change
-        assert BaseTestEnd2End.happy_path == ()
-        assert BaseTestEnd2End.strict_check_strings == ()
+        assert self.test_cls.happy_path == ()
+        assert self.test_cls.strict_check_strings == ()
 
         # no overwrite of parent class setup_class -> no tests needed for setup_class
-        child, parent = BaseTestEnd2End, BaseTestEnd2End.__mro__[1]
-        assert not child.__module__.split(".")[0] == parent.__module__.split(".")[0]
+        child, parent = self.test_cls, self.test_cls.__mro__[1]
+        assert not get_package_name(child) == get_package_name(parent)
         assert child.setup_class.__func__ == parent.setup_class.__func__
 
     def test_defaults_test_instance(self) -> None:
@@ -103,13 +105,16 @@ class TestBaseTestEnd2EndExecution(BaseTest):
     test_cls = BaseTestEnd2EndExecution
 
     @staticmethod
-    def mocked_flask_tendermint_image(nb_nodes: int) -> FlaskTendermintDockerImage:
+    def set_mocked_flask_tendermint_image(
+        test_instance: BaseTestEnd2EndExecution, nb_nodes: int
+    ) -> None:
         """Mocked FlaskTendermintDockerImage"""  # autouse fixture sets this
 
+        # pylint: disable=protected-access
         tendermint_image = FlaskTendermintDockerImage(mock.Mock())
         FlaskTendermintDockerImage._extra_hosts = {}
         tendermint_image.nb_nodes = nb_nodes
-        return tendermint_image
+        test_instance._tendermint_image = tendermint_image
 
     def test_test_run_without_agents(self) -> None:
         """Test test_run without agents"""
@@ -117,7 +122,7 @@ class TestBaseTestEnd2EndExecution(BaseTest):
         nb_nodes = 0
 
         test_instance = self.setup_test()
-        test_instance._tendermint_image = self.mocked_flask_tendermint_image(nb_nodes)
+        self.set_mocked_flask_tendermint_image(test_instance, nb_nodes)
         test_instance.test_run(nb_nodes=nb_nodes)
 
     def test_test_run_incorrect_agent_package(self) -> None:
@@ -125,7 +130,6 @@ class TestBaseTestEnd2EndExecution(BaseTest):
 
         nb_nodes = 1
         test_instance = self.setup_test()
-        test_instance._tendermint_image = self.mocked_flask_tendermint_image(nb_nodes)
 
         attribute = "agent_package"
 
@@ -153,7 +157,7 @@ class TestBaseTestEnd2EndExecution(BaseTest):
 
         nb_nodes = 1
         test_instance = self.setup_test()
-        test_instance._tendermint_image = self.mocked_flask_tendermint_image(nb_nodes)
+        self.set_mocked_flask_tendermint_image(test_instance, nb_nodes)
 
         test_instance.agent_package = "valory/hello_world:0.1.0"
         attribute = "skill_package"
@@ -172,21 +176,25 @@ class TestBaseTestEnd2EndExecution(BaseTest):
 
         nb_nodes = 1
         test_instance = self.setup_test()
-        test_instance._tendermint_image = self.mocked_flask_tendermint_image(nb_nodes)
+        self.set_mocked_flask_tendermint_image(test_instance, nb_nodes)
         test_instance.wait_to_finish = mock.Mock()
 
-        agent_package = "valory/hello_world:0.1.0"
-        skill_package = "valory/hello_world_abci:0.1.0"
-        setattr(test_instance, "agent_package", agent_package)
-        setattr(test_instance, "skill_package", skill_package)
+        test_instance.agent_package = "valory/hello_world:0.1.0"
+        test_instance.skill_package = "valory/hello_world_abci:0.1.0"
 
         mocked_missing_from_output = as_context(
-            mock.patch.object(test_instance.__class__.__mro__[1], "missing_from_output"),
-            mock.patch.object(test_instance, "missing_from_output", return_value=("", "")),
+            mock.patch.object(
+                test_instance.__class__.__mro__[1], "missing_from_output"
+            ),
+            mock.patch.object(
+                test_instance, "missing_from_output", return_value=("", "")
+            ),
         )
 
         with mock.patch.object(test_instance, "run_agent") as mocked_run_agent:
-            with mock.patch.object(test_instance, "health_check") as mocked_health_check:
+            with mock.patch.object(
+                test_instance, "health_check"
+            ) as mocked_health_check:
                 with mocked_missing_from_output:
                     test_instance.test_run(nb_nodes)
 
