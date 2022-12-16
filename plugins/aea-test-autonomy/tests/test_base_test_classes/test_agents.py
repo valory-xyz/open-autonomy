@@ -19,10 +19,15 @@
 
 """Tests for aea-test-autonomy plugin base test classes for agent e2e tests."""
 
+from unittest import mock
 from typing import Type
 
 from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2End,
+    BaseTestEnd2EndExecution,
+)
+from aea_test_autonomy.docker.tendermint import (
+    FlaskTendermintDockerImage,
 )
 
 
@@ -88,3 +93,26 @@ class TestBaseTestEnd2End(BaseTest):
         # no setup -> no tests needed for setup
         assert not hasattr(self.test_cls, "setup")
 
+
+class TestBaseTestEnd2EndExecution(BaseTest):
+    """TestBaseTestEnd2EndExecution"""
+
+    test_cls = BaseTestEnd2EndExecution
+
+    @staticmethod
+    def mocked_flask_tendermint_image(nb_nodes: int) -> FlaskTendermintDockerImage:
+        """Mocked FlaskTendermintDockerImage"""  # autouse fixture sets this
+
+        tendermint_image = FlaskTendermintDockerImage(mock.Mock())
+        FlaskTendermintDockerImage._extra_hosts = {}
+        tendermint_image.nb_nodes = nb_nodes
+        return tendermint_image
+
+    def test_test_run_without_agents(self) -> None:
+        """Test test_run without agents"""
+
+        nb_nodes = 0
+
+        test_instance = self.setup_test()
+        test_instance._tendermint_image = self.mocked_flask_tendermint_image(nb_nodes)
+        test_instance.test_run(nb_nodes=nb_nodes)
