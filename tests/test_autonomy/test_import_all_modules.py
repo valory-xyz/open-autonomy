@@ -18,10 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """Test importing all modules"""
+
 import importlib
 import pkgutil
 import sys
-from importlib import reload
 from importlib.machinery import FileFinder, SourceFileLoader
 from typing import cast
 
@@ -39,6 +39,8 @@ def test_import_all_modules() -> None:
     try:
         package_names = [autonomy.__name__, packages.__name__]
         for file_finder, module_name, _ in pkgutil.walk_packages(package_names):
+            if "cli.packages" in module_name:  # makes test_packages.py flaky
+                continue
             loader = cast(FileFinder, file_finder).find_module(module_name)
             cast(SourceFileLoader, loader).load_module(module_name)
             cast(FileFinder, file_finder).invalidate_caches()
