@@ -170,7 +170,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         :return: the incoming message
         """
         if expected_types and tuple(expected_types)[0] == "transaction_receipt":
-            time.sleep(mining_interval_secs)
+            time.sleep(mining_interval_secs)  # pragma: no cover
         self.behaviour.act_wrapper()
         incoming_message = None
 
