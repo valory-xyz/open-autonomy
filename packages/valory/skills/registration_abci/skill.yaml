@@ -112,7 +112,7 @@ models:
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
-      tendermint_p2p_port: 26656
+      tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
     class_name: Params
   requests:
