@@ -40,6 +40,8 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     LedgerApiDialogues,
     SigningDialogue,
     SigningDialogues,
+    TendermintDialogue,
+    TendermintDialogues,
 )
 
 
@@ -51,6 +53,7 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
         (SigningDialogues, SigningDialogue.Role.SKILL),
         (LedgerApiDialogues, LedgerApiDialogue.Role.AGENT),
         (ContractApiDialogues, ContractApiDialogue.Role.AGENT),
+        (TendermintDialogues, TendermintDialogue.Role.AGENT),
     ],
 )
 def test_dialogues_creation(
