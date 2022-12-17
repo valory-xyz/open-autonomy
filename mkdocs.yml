@@ -64,9 +64,12 @@ nav:
     - CLI: 'autonomy.md'
     - Commands:
       - autonomy deploy: 'advanced_reference/commands/autonomy_deploy.md'
-      - autonomy deploy build: 'advanced_reference/commands/autonomy_deploy_build.md'
-      - autonomy deploy from-token: 'advanced_reference/commands/autonomy_deploy_from-token.md'
-      - autonomy deploy run: 'advanced_reference/commands/autonomy_deploy_run.md'       
+      - autonomy build-image: 'advanced_reference/commands/autonomy_build-image.md'
+      - autonomy replay: 'advanced_reference/commands/autonomy_replay.md'
+      - autonomy analyse: 'advanced_reference/commands/autonomy_analyse.md'
+      - autonomy fetch: 'advanced_reference/commands/autonomy_fetch.md'
+      - autonomy run: 'advanced_reference/commands/autonomy_run.md'
+      - autonomy scaffold: 'advanced_reference/commands/autonomy_scaffold.md'           
     - Developer Tooling:
       - Dev Mode: 'dev_mode.md'
       - Benchmarking: 'benchmarks.md'
