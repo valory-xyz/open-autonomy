@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeihnqe3jevwrc72dmx4ehfjt7iyxo525f6yxz46t3t2uawhnbh3nji
   abci_app_chain.py: bafybeihosazmb2hrhtotddkcaorvwehykv5f7spqlizuqxmms7b25d2apy
-  base.py: bafybeienafnlbxurjjc5l7ujzpm2hllv2kzcqtkimwqilzxrl62cykwuje
+  base.py: bafybeif5yc6afuwiojin4lwxcqqcsyd4lxqmywrpawm3ncefvurjzht7ly
   behaviour_utils.py: bafybeifywzdda4rxrwx7dipdexrh6vcqwboa3pu7nrx3hfngphridxrwsi
   behaviours.py: bafybeibnilnarbqaq5zh2ex6n26l5yw3nqhwr7k3idt5gg5z3jb5hpfuwi
   common.py: bafybeigpgcuw5ookbgsp77ha426wwhkvqxngm42s7vjduaxpksswhs3eyy
@@ -20,13 +20,13 @@ fingerprint:
   io_/load.py: bafybeifdki3qeq4aplu6chpozysmeqrt23lxhvcmlefsbesdrklh4wxu64
   io_/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
   io_/store.py: bafybeihksp4ch67ae3lum5ou62mmctbl4xnodkiewdlbilmgy752m4pwc4
-  models.py: bafybeihct3vrlyknlbzj7kcc5onkexllxwdfdglf4didzyh2ih5w2ztyoy
+  models.py: bafybeidbyf2ocgwneej7tz3qm77pw3hw6mqn7rgcke332zyyjnbekniygm
   serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
   test_tools/__init__.py: bafybeigicwqumbl3jorusndtfa6ag7lnf3saa6cbqn7fazur4n6nxmsdva
-  test_tools/abci_app.py: bafybeibcxxisb2wiysgca3kgfpourzmszrnm5wtokbipph4eplaeuzefqy
+  test_tools/abci_app.py: bafybeic6gwtz7xlxvbgpoogyqf5xybtaemfyivdzj6qzwadtoz2xgznsfu
   test_tools/base.py: bafybeieca32bonaejoo7l2uepzn2fpqv6fcdspjqnfmczzoxxwkqcr6iyi
   test_tools/common.py: bafybeidjlnq7yksyhz3hjmpyrudvgzhgpttjhlsdk5mecjvrkei6ix7gk4
-  test_tools/integration.py: bafybeidndngfj7wpvuaea5lzp7ps3lzfpg2qklx7rh4yicoifk2f2qdft4
+  test_tools/integration.py: bafybeihtxpu7xlzigixsp2skamr73yjvc6xoqrli33ldsl2bdyhbcayllu
   test_tools/rounds.py: bafybeiemcei7kktfce5uwcrt534fyyqnjpjbtdoovyn47le3ih6hqukcje
   tests/__init__.py: bafybeiebss5rdfh7tdbw2qi3tjpf6cjgwuonowsw6bimyosfie2ngxhhzy
   tests/conftest.py: bafybeiadr2qag36lntmkzwypbwvxwbyzxo5cojns7gnxxa42phlxucwmei
@@ -44,7 +44,7 @@ fingerprint:
   tests/test_behaviours.py: bafybeie3zdtasvarrsc3bk3w4mhfzlsypbaum5lpyv6hinuubom364ozsa
   tests/test_behaviours_utils.py: bafybeidgshz4xqefvfvdiuvk5clp6rbwpa5mtaasmdiexfyn3rt6aif4ta
   tests/test_common.py: bafybeidtezcopwpvvgln66voqgzlfsk55yb4qvt2gtptbclrgafe7xmnza
-  tests/test_dialogues.py: bafybeie4dkivvp3gdqyvvnazebftprwklklkjh6o36l5lxtwxuetgaw2nm
+  tests/test_dialogues.py: bafybeihgvpbqee6wjgetg2c453vqhc5f4sklwvuvx7vhg4fjr7kvpzicui
   tests/test_handlers.py: bafybeiebpx5k2iqhnun4mesd5ee7ln6ctdltfnycndreo2y7zqqdjjue2i
   tests/test_io/__init__.py: bafybeid3sssvbbyju4snrdssxyafleuo57sqyuepl25btxcbuj3p5oonsm
   tests/test_io/test_ipfs.py: bafybeigablspercc233scupiajflzqjqzxnjzinlkq6wday3fzg4adegvq
@@ -57,11 +57,11 @@ fingerprint:
   tests/test_tools/test_common.py: bafybeiepcdnts7va6oulvh32ogvulb6o2xuiamgsg6p3lapldl2etkgsnu
   tests/test_tools/test_integration.py: bafybeic2xcpyjf4ojtjkhwevc5myxivaevani5gwra36qvqxl545vot4pe
   tests/test_tools/test_rounds.py: bafybeicyz47ec4njsue67nltjv4fpr53d34qcjdr2rxipl5jbgbn3joybu
-  tests/test_utils.py: bafybeias4ij6gvzomeilezsfwu3enxh57r24nhrbarbgt6fhr3qqszb7am
-  utils.py: bafybeibsklcnvvvx2acumio5xy7hjrbdeggfmnnlfcwbtnz2qjdry7ntay
+  tests/test_utils.py: bafybeigkob3r2tfsgazviaiwylmtyzhufodgrswf4byptqqm7k6uxdg5bq
+  utils.py: bafybeigrraoi5qfzbxkaadkcz5yoerewdlzjjsvrn6pntzdbezxorq5nsq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeic36lnv7gqqypq7lrxkmdgii4pfjdmdrwerzihfgvxbcakpzf3nma
+- valory/abci:0.1.0:bafybeigbt54fhvjpkzrr76oykl3pcuotpvdhm4p7rzeel5xao3o4xozlti
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
 - valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
 contracts:
@@ -74,7 +74,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeicjzvzm6jaxl2h2b7sqbwmb6ejfu2bck76ujy3soxfvvlkxqlmqt4
+- valory/abstract_abci:0.1.0:bafybeiacjfmhflnhqaxzd2mj5yolprjatfdqi7y46oub4uizbo7x7xcmjy
 behaviours:
   main:
     args: {}

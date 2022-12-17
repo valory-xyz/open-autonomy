@@ -20,6 +20,8 @@
 
 # pylint: skip-file
 
+import logging
+from pathlib import Path
 from typing import Dict, List, Tuple, Type
 
 import numpy as np
@@ -38,6 +40,8 @@ class BaseFuzzyTests(AEATestCaseMany):
     """
     Base class for the Fuzzy Tests
     """
+
+    package_registry_src_rel = Path(__file__).parents[5]
 
     UINT_64_MAX_VALUE = np.iinfo(np.uint64).max
     UINT_64_MIN_VALUE = 0
@@ -61,11 +65,13 @@ class BaseFuzzyTests(AEATestCaseMany):
     agent_process = None
     cli_log_options = ["-v", "INFO"]
 
-    AGENT_TIMEOUT = 10
+    AGENT_TIMEOUT_SECONDS = 10
 
     @classmethod
-    def setUpClass(cls) -> None:
+    def setup_class(cls) -> None:
         """Sets up the environment for the tests."""
+
+        super().setup_class()
         cls.fetch_agent(cls.agent_package, cls.agent_name, is_local=cls.IS_LOCAL)
         cls.set_agent_context(cls.agent_name)
         cls.generate_private_key("ethereum", "ethereum_private_key.txt")
@@ -84,8 +90,8 @@ class BaseFuzzyTests(AEATestCaseMany):
         cls.agent_process = cls.run_agent()
 
         enforce(
-            cls.is_running(cls.agent_process, cls.AGENT_TIMEOUT),
-            f"The agent was not started in the defined timeout ({cls.AGENT_TIMEOUT}s)",
+            cls.is_running(cls.agent_process, cls.AGENT_TIMEOUT_SECONDS),
+            f"The agent was not started in the defined timeout ({cls.AGENT_TIMEOUT_SECONDS}s)",
         )
 
         enforce(cls.CHANNEL_TYPE is not None, "A channel type must be provided")
@@ -93,11 +99,14 @@ class BaseFuzzyTests(AEATestCaseMany):
         cls.channel = cls.CHANNEL_TYPE(**cls.CHANNEL_ARGS)
         cls.mock_node = MockNode(cls.channel)
         cls.mock_node.connect()
+        logging.disable(logging.INFO)
 
     @classmethod
-    def tearDownClass(cls) -> None:
+    def teardown_class(cls) -> None:
         """Tear down the testing environment."""
+        logging.disable(logging.NOTSET)
         cls.mock_node.disconnect()
+        super().teardown_class()
 
     # flake8: noqa:D102
     @given(message=text())
