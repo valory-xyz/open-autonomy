@@ -929,10 +929,6 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     def _check_class_attributes(self) -> None:
         """Check that required class attributes are set."""
         try:
-            self.round_id
-        except AttributeError as exc:
-            raise ABCIAppInternalError("'round_id' field not set") from exc
-        try:
             self.allowed_tx_type
         except AttributeError as exc:
             raise ABCIAppInternalError("'allowed_tx_type' field not set") from exc
@@ -1626,7 +1622,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
             )
             and self.block_confirmations > self.required_block_confirmations
         ):
-            return self.synchronized_data, self.no_majority_event
+            return self.synchronized_data, self.no_majority_event  # pragma: no cover
         return None
 
 
@@ -2240,7 +2236,7 @@ class AbciApp(
         """Returns the allowed transaction type for background round."""
         if self.is_termination_set:
             return cast(AppState, self.background_round_cls).allowed_tx_type
-        return None
+        return None  # pragma: no cover
 
     def check_transaction(self, transaction: Transaction) -> None:
         """
