@@ -640,7 +640,8 @@ Send a message.
 ## StoppableThread Objects
 
 ```python
-class StoppableThread(Thread)
+class StoppableThread(
+    Thread)
 ```
 
 Thread class with a stop() method.
