@@ -22,7 +22,6 @@ import datetime
 import json
 from enum import Enum
 from typing import Any, Dict, Generator, Optional, Set, Type, cast
-from urllib.parse import urlparse
 
 from aea.mail.base import EnvelopeContext
 
@@ -39,6 +38,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
+from packages.valory.skills.abstract_round_abci.utils import parse_tendermint_p2p_url
 from packages.valory.skills.registration_abci.dialogues import TendermintDialogues
 from packages.valory.skills.registration_abci.models import SharedState
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
@@ -242,10 +242,12 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         # put service info in the shared state for p2p message handler
         info: Dict[str, Dict[str, str]] = dict.fromkeys(registered_addresses)
-        tm_url = urlparse(self.context.params.tendermint_url)
+        tm_host, tm_port = parse_tendermint_p2p_url(
+            url=self.context.params.tendermint_p2p_url
+        )
         validator_config = dict(
-            hostname=tm_url.hostname,
-            p2p_port=self.context.params.tendermint_p2p_port,
+            hostname=tm_host,
+            p2p_port=tm_port,
             address=self.local_tendermint_params["address"],
             pub_key=self.local_tendermint_params["pub_key"],
             peer_id=self.local_tendermint_params["peer_id"],
