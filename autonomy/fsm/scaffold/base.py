@@ -153,4 +153,10 @@ class AbstractFileGenerator(ABC):
             ),
             InitialBehaviourCls=self.dfa.default_start_state.replace(ROUND, BEHAVIOUR),
             round_behaviours=_indent_wrapper(_remove_quotes(str(behaviours))),
+            db_pre_conditions=_indent_wrapper(
+                "\n".join([f"\t{round}: []," for round in self.dfa.start_states])
+            ),
+            db_post_conditions=_indent_wrapper(
+                "\n".join([f"\t{round}: []," for round in self.dfa.final_states])
+            ),
         )
