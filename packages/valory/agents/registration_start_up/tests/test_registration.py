@@ -112,9 +112,9 @@ class RegistrationStartUpTestConfig(UseRegistries, UseACNNode, BaseTestEnd2End):
         super().__set_configs(i=i, nb_agents=nb_agents)
 
         self.set_config(
-            dotted_path=f"{self.__args_prefix}.tendermint_p2p_port",
-            value=self._tendermint_image.get_p2p_port(i=i),
-            type_="int",
+            dotted_path=f"{self.__args_prefix}.tendermint_p2p_url",
+            value=f"localhost:{self._tendermint_image.get_p2p_port(i=i)}",
+            type_="str",
         )
 
 

@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeieztbubb6yn5umyt5ulknvb2xxppz5ecxaosxqsaejnrcrrwfu2ji
   __init__.py: bafybeigqj2uodavhrygpqn6iah3ljp53z54c5fxyh5ykgkxuhh5lof6pda
-  behaviours.py: bafybeihehmd56rnf3lj6fi5c35r4a4v7g4o5z6b5lbowrwrhlp3nklftyi
+  behaviours.py: bafybeicnnmqbd2epyq3nde7olfcfyhw6oiecq26knzo3422nmmvrpttx4q
   dialogues.py: bafybeicgx2bato2ctlceydqbhwowxpoznmlo3lfmqt5x5h3fribfe63g6y
   fsm_specification.yaml: bafybeidaasu2bmkscwotx5nvvje5utc6dwgnmjba7vvhmjfma3mpj44644
   handlers.py: bafybeigbp24xqejoukl52srcsasbljz4rap7xaa2qbfh4lyewbnkman7jm
@@ -32,7 +32,7 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeig6xhqbybbrmspi4b7hzrgsvi63tl26hyzg5hhls6lvueqo3yeqx4
+- valory/abstract_round_abci:0.1.0:bafybeiciazm2btdynfwfskfrc2wmcuk4wqbapddvxawnr337322yktshhi
 behaviours:
   main:
     args: {}
@@ -112,7 +112,7 @@ models:
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
-      tendermint_p2p_port: 26656
+      tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
     class_name: Params
   requests:

@@ -70,7 +70,9 @@ class RoundFileGenerator(AbstractFileGenerator, ROUNDS):
             COPYRIGHT_HEADER,
             ROUNDS.HEADER.format(**self.template_kwargs),
             self._get_rounds_section(),
-            self.ABCI_APP_CLS.format(**self.template_kwargs),
+            self.ABCI_APP_CLS.format(
+                **self.template_kwargs,
+            ),
         ]
 
         return "\n".join(file_content)
