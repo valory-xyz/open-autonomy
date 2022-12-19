@@ -72,7 +72,7 @@ DUMMY_MAX_PRIORITY_FEE_PER_GAS = 3000000000
 DUMMY_REPRICING_MULTIPLIER = 1.1
 
 
-class _SafeConfiguredHelperIntegration(IntegrationBaseCase):
+class _SafeConfiguredHelperIntegration(IntegrationBaseCase):  # pragma: no cover
     """Base test class for integration tests with Gnosis, but no contract, deployed."""
 
     safe_owners: Dict[str, Crypto]
@@ -97,7 +97,7 @@ class _SafeConfiguredHelperIntegration(IntegrationBaseCase):
         assert cls.keeper_address in cls.safe_owners  # nosec
 
 
-class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
+class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):  # pragma: no cover
     """Class that assists Gnosis instantiation."""
 
     safe_contract_address: str = "0x68FCdF52066CcE5612827E872c45767E5a1f6551"
@@ -118,7 +118,7 @@ class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
         )
 
 
-class _TxHelperIntegration(_GnosisHelperIntegration):
+class _TxHelperIntegration(_GnosisHelperIntegration):  # pragma: no cover
     """Class that assists tx settlement related operations."""
 
     tx_settlement_synchronized_data: TxSettlementSynchronizedSata
@@ -155,7 +155,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             for owner, signer in zip(actual_safe_owners, expected_safe_owners)
         )
 
-    def send_tx(self, simulate_timeout: bool = False) -> None:
+    def send_tx(self, simulate_timeout: bool = False) -> None:  # pragma: no cover
         """Send a transaction"""
 
         self.fast_forward_to_behaviour(
