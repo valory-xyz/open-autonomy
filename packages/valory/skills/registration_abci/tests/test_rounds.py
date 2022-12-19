@@ -82,8 +82,7 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
 
         assert self.synchronized_data.db._data[0] == {
             "all_participants": [
-                frozenset({"agent_1", "agent_3", "agent_0", "agent_2"}),
-                frozenset({"agent_1", "agent_3", "agent_0", "agent_2"}),
+                frozenset({"agent_0", "agent_1", "agent_2", "agent_3"}),
             ],
             "oracle_contract_address": ["stub_oracle_contract_address"],
             "participants": [
