@@ -21,9 +21,11 @@
 This module contains a dummy ABCI skill in which the agents register and then pick up the termination signal.
 
 It is created only for testing purposes for the termination feature.
-"""
+"""  # pragma: nocover
 
-from aea.configurations.base import PublicId
+from aea.configurations.base import PublicId  # pragma: nocover
 
 
-PUBLIC_ID = PublicId.from_str("valory/register_termination_abci:0.1.0")
+PUBLIC_ID = PublicId.from_str(  # pragma: nocover
+    "valory/register_termination_abci:0.1.0"
+)

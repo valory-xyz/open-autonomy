@@ -21,10 +21,12 @@
 This module contains the support resources for the abci protocol.
 
 It was created with protocol buffer compiler version `libprotoc 3.19.4` and aea protocol generator version `1.0.0`.
-"""
+"""  # pragma: nocover
 
-from packages.valory.protocols.abci.message import AbciMessage
-from packages.valory.protocols.abci.serialization import AbciSerializer
+from packages.valory.protocols.abci.message import AbciMessage  # pragma: nocover
+from packages.valory.protocols.abci.serialization import (  # pragma: nocover
+    AbciSerializer,
+)
 
 
-AbciMessage.serializer = AbciSerializer
+AbciMessage.serializer = AbciSerializer  # pragma: nocover

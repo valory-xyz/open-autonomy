@@ -21,10 +21,14 @@
 This module contains the support resources for the tendermint protocol.
 
 It was created with protocol buffer compiler version `libprotoc 3.19.4` and aea protocol generator version `1.0.0`.
-"""
+"""  # pragma: nocover
 
-from packages.valory.protocols.tendermint.message import TendermintMessage
-from packages.valory.protocols.tendermint.serialization import TendermintSerializer
+from packages.valory.protocols.tendermint.message import (  # pragma: nocover
+    TendermintMessage,
+)
+from packages.valory.protocols.tendermint.serialization import (  # pragma: nocover
+    TendermintSerializer,
+)
 
 
-TendermintMessage.serializer = TendermintSerializer
+TendermintMessage.serializer = TendermintSerializer  # pragma: nocover
