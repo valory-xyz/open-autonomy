@@ -20,7 +20,7 @@ fingerprint:
   io_/load.py: bafybeifdki3qeq4aplu6chpozysmeqrt23lxhvcmlefsbesdrklh4wxu64
   io_/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
   io_/store.py: bafybeihksp4ch67ae3lum5ou62mmctbl4xnodkiewdlbilmgy752m4pwc4
-  models.py: bafybeihct3vrlyknlbzj7kcc5onkexllxwdfdglf4didzyh2ih5w2ztyoy
+  models.py: bafybeidbyf2ocgwneej7tz3qm77pw3hw6mqn7rgcke332zyyjnbekniygm
   serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
   test_tools/__init__.py: bafybeigicwqumbl3jorusndtfa6ag7lnf3saa6cbqn7fazur4n6nxmsdva
   test_tools/abci_app.py: bafybeic6gwtz7xlxvbgpoogyqf5xybtaemfyivdzj6qzwadtoz2xgznsfu
@@ -57,15 +57,15 @@ fingerprint:
   tests/test_tools/test_common.py: bafybeiepcdnts7va6oulvh32ogvulb6o2xuiamgsg6p3lapldl2etkgsnu
   tests/test_tools/test_integration.py: bafybeic2xcpyjf4ojtjkhwevc5myxivaevani5gwra36qvqxl545vot4pe
   tests/test_tools/test_rounds.py: bafybeicyz47ec4njsue67nltjv4fpr53d34qcjdr2rxipl5jbgbn3joybu
-  tests/test_utils.py: bafybeias4ij6gvzomeilezsfwu3enxh57r24nhrbarbgt6fhr3qqszb7am
-  utils.py: bafybeibsklcnvvvx2acumio5xy7hjrbdeggfmnnlfcwbtnz2qjdry7ntay
+  tests/test_utils.py: bafybeigkob3r2tfsgazviaiwylmtyzhufodgrswf4byptqqm7k6uxdg5bq
+  utils.py: bafybeigrraoi5qfzbxkaadkcz5yoerewdlzjjsvrn6pntzdbezxorq5nsq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeigbt54fhvjpkzrr76oykl3pcuotpvdhm4p7rzeel5xao3o4xozlti
+- valory/abci:0.1.0:bafybeihgmvw7m7eyexwbqx4kkg5o4shqvmpnreizv743n5bmes3jdz6jr4
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
 - valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
 contracts:
-- valory/service_registry:0.1.0:bafybeie33alyh23nrcycjnhmeyxzwtztlxzfhmmtjfqpapusvr64qrkofa
+- valory/service_registry:0.1.0:bafybeigs4cvpzyubnyw4cblgzqgkvrkrbpzsexxppcufxvssltxyx3ahua
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
@@ -74,7 +74,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- valory/abstract_abci:0.1.0:bafybeiacjfmhflnhqaxzd2mj5yolprjatfdqi7y46oub4uizbo7x7xcmjy
+- valory/abstract_abci:0.1.0:bafybeibqgoxd25itxyuauou6xybiwu3nxkhqwxklggvdwcg42b7expnflq
 behaviours:
   main:
     args: {}
@@ -136,7 +136,7 @@ dependencies:
   open-aea-cli-ipfs:
     version: ==1.26.0
   open-aea-test-autonomy:
-    version: ==0.5.0.post2
+    version: ==0.6.0
   protobuf:
     version: ==3.19.4
   py-ecc:

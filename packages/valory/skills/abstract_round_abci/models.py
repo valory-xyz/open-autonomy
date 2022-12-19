@@ -41,12 +41,12 @@ from packages.valory.skills.abstract_round_abci.base import (
     RoundSequence,
 )
 from packages.valory.skills.abstract_round_abci.utils import (
+    DEFAULT_TENDERMINT_P2P_URL,
     get_data_from_nested_dict,
     get_value_with_type,
 )
 
 
-DEFAULT_TENDERMINT_P2P_PORT = 26656
 NUMBER_OF_RETRIES: int = 5
 DEFAULT_BACKOFF_FACTOR: int = 2
 DEFAULT_TYPE_NAME: str = "str"
@@ -122,8 +122,8 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         self.share_tm_config_on_startup = kwargs.pop(
             "share_tm_config_on_startup", False
         )
-        self.tendermint_p2p_port = kwargs.pop(
-            "tendermint_p2p_port", DEFAULT_TENDERMINT_P2P_PORT
+        self.tendermint_p2p_url = kwargs.pop(
+            "tendermint_p2p_url", DEFAULT_TENDERMINT_P2P_URL
         )
         setup_params = kwargs.pop("setup", {})
         # we sanitize for null values as these are just kept for schema definitions

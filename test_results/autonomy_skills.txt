@@ -1,0 +1,214 @@
+
+
+
+---------- coverage: platform linux, python 3.10.4-final-0 -----------
+Name                                                Stmts   Miss  Cover
+-----------------------------------------------------------------------
+packages/valory/skills/abstract_abci/__init__.py        3      0   100%
+packages/valory/skills/abstract_abci/dialogues.py      14      0   100%
+packages/valory/skills/abstract_abci/handlers.py       83      0   100%
+-----------------------------------------------------------------------
+TOTAL                                                 100      0   100%
+
+
+---------- coverage: platform linux, python 3.10.4-final-0 -----------
+Name                                                                   Stmts   Miss  Cover
+------------------------------------------------------------------------------------------
+packages/valory/skills/abstract_round_abci/__init__.py                     6      6     0%
+packages/valory/skills/abstract_round_abci/abci_app_chain.py             126      4    97%
+packages/valory/skills/abstract_round_abci/base.py                      1153      4    99%
+packages/valory/skills/abstract_round_abci/behaviour_utils.py            720      0   100%
+packages/valory/skills/abstract_round_abci/behaviours.py                 134      0   100%
+packages/valory/skills/abstract_round_abci/common.py                      83      0   100%
+packages/valory/skills/abstract_round_abci/dialogues.py                   90      1    99%
+packages/valory/skills/abstract_round_abci/handlers.py                   242      0   100%
+packages/valory/skills/abstract_round_abci/io_/__init__.py                 1      1     0%
+packages/valory/skills/abstract_round_abci/io_/ipfs.py                    51      0   100%
+packages/valory/skills/abstract_round_abci/io_/load.py                    36      0   100%
+packages/valory/skills/abstract_round_abci/io_/paths.py                    6      0   100%
+packages/valory/skills/abstract_round_abci/io_/store.py                   51      0   100%
+packages/valory/skills/abstract_round_abci/models.py                     241      0   100%
+packages/valory/skills/abstract_round_abci/serializer.py                  47      0   100%
+packages/valory/skills/abstract_round_abci/test_tools/__init__.py          1      1     0%
+packages/valory/skills/abstract_round_abci/test_tools/abci_app.py         43      1    98%
+packages/valory/skills/abstract_round_abci/test_tools/base.py            139      0   100%
+packages/valory/skills/abstract_round_abci/test_tools/common.py          114      0   100%
+packages/valory/skills/abstract_round_abci/test_tools/integration.py     119      3    97%
+packages/valory/skills/abstract_round_abci/test_tools/rounds.py          232      0   100%
+packages/valory/skills/abstract_round_abci/utils.py                       55      0   100%
+------------------------------------------------------------------------------------------
+TOTAL                                                                   3690     21    99%
+
+
+---------- coverage: platform linux, python 3.10.4-final-0 -----------
+Name                                          Stmts   Miss  Cover
+-----------------------------------------------------------------
+packages/valory/skills/counter/__init__.py        3      0   100%
+packages/valory/skills/counter/dialogues.py       5      0   100%
+packages/valory/skills/counter/handlers.py       51      0   100%
+-----------------------------------------------------------------
+TOTAL                                            59      0   100%
+
+
+---------- coverage: platform linux, python 3.10.4-final-0 -----------
+Name                                                  Stmts   Miss  Cover
+-------------------------------------------------------------------------
+packages/valory/skills/counter_client/__init__.py         3      0   100%
+packages/valory/skills/counter_client/behaviours.py      37      0   100%
+packages/valory/skills/counter_client/dialogues.py       14      0   100%
+packages/valory/skills/counter_client/handlers.py        34      0   100%
+packages/valory/skills/counter_client/models.py          12      0   100%
+packages/valory/skills/counter_client/utils.py           16      0   100%
+-------------------------------------------------------------------------
+TOTAL                                                   116      0   100%
+
+
+---------- coverage: platform linux, python 3.10.4-final-0 -----------
+Name                                                    Stmts   Miss  Cover
+---------------------------------------------------------------------------
+packages/valory/skills/hello_world_abci/__init__.py         3      0   100%
+packages/valory/skills/hello_world_abci/behaviours.py      85      0   100%
+packages/valory/skills/hello_world_abci/dialogues.py       13      0   100%
+packages/valory/skills/hello_world_abci/handlers.py         7      0   100%
+packages/valory/skills/hello_world_abci/models.py          22      0   100%
+packages/valory/skills/hello_world_abci/payloads.py        66      0   100%
+packages/valory/skills/hello_world_abci/rounds.py          66      0   100%
+---------------------------------------------------------------------------
+TOTAL                                                     262      0   100%
+
+
+---------- coverage: platform linux, python 3.10.4-final-0 -----------
+Name                                                        Stmts   Miss  Cover
+-------------------------------------------------------------------------------
+packages/valory/skills/register_reset_abci/__init__.py          3      3     0%
+packages/valory/skills/register_reset_abci/behaviours.py       10      0   100%
+packages/valory/skills/register_reset_abci/composition.py       6      0   100%
+packages/valory/skills/register_reset_abci/dialogues.py        21      0   100%
+packages/valory/skills/register_reset_abci/handlers.py         11      0   100%
+packages/valory/skills/register_reset_abci/models.py           13      0   100%
+-------------------------------------------------------------------------------
+TOTAL                                                          64      3    95%
+
+
+---------- coverage: platform linux, python 3.10.4-final-0 -----------
+Name                                                                 Stmts   Miss  Cover
+----------------------------------------------------------------------------------------
+packages/valory/skills/register_reset_recovery_abci/__init__.py          3      0   100%
+packages/valory/skills/register_reset_recovery_abci/behaviours.py       23      0   100%
+packages/valory/skills/register_reset_recovery_abci/composition.py       6      0   100%
+packages/valory/skills/register_reset_recovery_abci/dialogues.py        25      0   100%
+packages/valory/skills/register_reset_recovery_abci/handlers.py         13      0   100%
+packages/valory/skills/register_reset_recovery_abci/models.py           13      0   100%
+packages/valory/skills/register_reset_recovery_abci/payloads.py         17      0   100%
+packages/valory/skills/register_reset_recovery_abci/rounds.py           25      0   100%
+----------------------------------------------------------------------------------------
+TOTAL                                                                  125      0   100%
+
+
+---------- coverage: platform linux, python 3.10.4-final-0 -----------
+Name                                                              Stmts   Miss  Cover
+-------------------------------------------------------------------------------------
+packages/valory/skills/register_termination_abci/__init__.py          3      3     0%
+packages/valory/skills/register_termination_abci/behaviours.py       12      0   100%
+packages/valory/skills/register_termination_abci/composition.py       7      0   100%
+packages/valory/skills/register_termination_abci/dialogues.py        21      0   100%
+packages/valory/skills/register_termination_abci/handlers.py         11      0   100%
+packages/valory/skills/register_termination_abci/models.py           15      0   100%
+-------------------------------------------------------------------------------------
+TOTAL                                                                69      3    96%
+
+
+---------- coverage: platform linux, python 3.10.4-final-0 -----------
+Name                                                     Stmts   Miss  Cover
+----------------------------------------------------------------------------
+packages/valory/skills/registration_abci/__init__.py         3      0   100%
+packages/valory/skills/registration_abci/behaviours.py     236      0   100%
+packages/valory/skills/registration_abci/dialogues.py       25      0   100%
+packages/valory/skills/registration_abci/handlers.py        13      0   100%
+packages/valory/skills/registration_abci/models.py          13      0   100%
+packages/valory/skills/registration_abci/payloads.py        19      0   100%
+packages/valory/skills/registration_abci/rounds.py          47      0   100%
+----------------------------------------------------------------------------
+TOTAL                                                      356      0   100%
+
+
+---------- coverage: platform linux, python 3.10.4-final-0 -----------
+Name                                                    Stmts   Miss  Cover
+---------------------------------------------------------------------------
+packages/valory/skills/reset_pause_abci/__init__.py         3      0   100%
+packages/valory/skills/reset_pause_abci/behaviours.py      35      0   100%
+packages/valory/skills/reset_pause_abci/dialogues.py       13      0   100%
+packages/valory/skills/reset_pause_abci/handlers.py        13      0   100%
+packages/valory/skills/reset_pause_abci/models.py          18      0   100%
+packages/valory/skills/reset_pause_abci/payloads.py        19      0   100%
+packages/valory/skills/reset_pause_abci/rounds.py          34      0   100%
+---------------------------------------------------------------------------
+TOTAL                                                     135      0   100%
+
+
+---------- coverage: platform linux, python 3.10.4-final-0 -----------
+Name                                                        Stmts   Miss  Cover
+-------------------------------------------------------------------------------
+packages/valory/skills/safe_deployment_abci/__init__.py         3      0   100%
+packages/valory/skills/safe_deployment_abci/behaviours.py      69      0   100%
+packages/valory/skills/safe_deployment_abci/dialogues.py       21      0   100%
+packages/valory/skills/safe_deployment_abci/handlers.py        13      0   100%
+packages/valory/skills/safe_deployment_abci/models.py          17      0   100%
+packages/valory/skills/safe_deployment_abci/payloads.py        59      0   100%
+packages/valory/skills/safe_deployment_abci/rounds.py          59      0   100%
+-------------------------------------------------------------------------------
+TOTAL                                                         241      0   100%
+
+
+---------- coverage: platform linux, python 3.10.4-final-0 -----------
+Name                                                    Stmts   Miss  Cover
+---------------------------------------------------------------------------
+packages/valory/skills/termination_abci/__init__.py         3      0   100%
+packages/valory/skills/termination_abci/behaviours.py     187      0   100%
+packages/valory/skills/termination_abci/dialogues.py       17      0   100%
+packages/valory/skills/termination_abci/handlers.py        13      0   100%
+packages/valory/skills/termination_abci/models.py          19      0   100%
+packages/valory/skills/termination_abci/payloads.py        17      0   100%
+packages/valory/skills/termination_abci/rounds.py          66      1    98%
+---------------------------------------------------------------------------
+TOTAL                                                     322      1    99%
+
+
+---------- coverage: platform linux, python 3.10.4-final-0 -----------
+Name                                             Stmts   Miss  Cover
+--------------------------------------------------------------------
+packages/valory/skills/test_abci/__init__.py         3      0   100%
+packages/valory/skills/test_abci/behaviours.py      14      0   100%
+packages/valory/skills/test_abci/dialogues.py       21      0   100%
+packages/valory/skills/test_abci/handlers.py        13      0   100%
+packages/valory/skills/test_abci/models.py          19      0   100%
+packages/valory/skills/test_abci/payloads.py        10      0   100%
+packages/valory/skills/test_abci/rounds.py          19      0   100%
+--------------------------------------------------------------------
+TOTAL                                               99      0   100%
+
+
+---------- coverage: platform linux, python 3.10.4-final-0 -----------
+Name                                                                           Stmts   Miss  Cover
+--------------------------------------------------------------------------------------------------
+packages/valory/skills/transaction_settlement_abci/__init__.py                     3      0   100%
+packages/valory/skills/transaction_settlement_abci/behaviours.py                 312      6    98%
+packages/valory/skills/transaction_settlement_abci/dialogues.py                   21      0   100%
+packages/valory/skills/transaction_settlement_abci/handlers.py                    13      0   100%
+packages/valory/skills/transaction_settlement_abci/models.py                      33      0   100%
+packages/valory/skills/transaction_settlement_abci/payload_tools.py               55      0   100%
+packages/valory/skills/transaction_settlement_abci/payloads.py                   105      0   100%
+packages/valory/skills/transaction_settlement_abci/rounds.py                     240      3    99%
+packages/valory/skills/transaction_settlement_abci/test_tools/__init__.py          1      0   100%
+packages/valory/skills/transaction_settlement_abci/test_tools/integration.py     113     72    36%
+--------------------------------------------------------------------------------------------------
+TOTAL                                                                            896     81    91%
+
+
+
+
+
+
+
+
+
