@@ -140,7 +140,7 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
             [(initial_state, app, None)]
         ]
         if app.final_states == {}:
-            return default
+            return default  # pragma: no cover
         paths: List[List[Tuple[AppState, Type[AbciApp], Optional[AppState]]]] = []
         for final_state in app.final_states:
             element: Tuple[AppState, Type[AbciApp], Optional[AppState]] = (
@@ -178,7 +178,7 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
                 # No outwards transition, nothing to check.
                 # we are at the end of a path where the last
                 # app has no final state and therefore no post conditions
-                break
+                break  # pragma: no cover
             accumulated_post_conditions = accumulated_post_conditions.union(
                 set(current_app.db_post_conditions[current_final_state])
             )
@@ -190,11 +190,11 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
                     accumulated_post_conditions,
                 )
                 if len(diff) != 0:
-                    raise ValueError(
+                    raise ValueError(  # pragma: no cover
                         f"Pre conditions '{diff}' of app '{next_app}' not a post condition of app '{current_app}' or any preceding app in path {path}."
                     )
             else:
-                raise ValueError(
+                raise ValueError(  # pragma: no cover
                     f"No pre-conditions have been set for {next_initial_state}! "
                     f"You need to explicitly specify them as empty if there are no pre-conditions for this FSM."
                 )
