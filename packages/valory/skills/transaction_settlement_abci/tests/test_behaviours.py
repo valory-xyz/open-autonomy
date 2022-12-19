@@ -100,7 +100,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TransactionSettlementSynchronizedSata,
 )
-
+import logging
 
 PACKAGE_DIR = Path(__file__).parent.parent
 
@@ -547,6 +547,19 @@ class TestSelectKeeperTransactionSubmissionBehaviourB(
         keepers_mock.return_value = keepers
         keeper_retries_mock.return_value = keeper_retries
         super().test_select_keeper(blacklisted_keepers=blacklisted_keepers)
+
+    @mock.patch.object(
+        TransactionSettlementSynchronizedSata,
+        "final_verification_status",
+        new_callable=mock.PropertyMock,
+        return_value=VerificationStatus.PENDING,
+    )
+    def test_select_keeper_tx_pending(self, _, caplog):  # LogCaptureFixture
+        """"""
+
+        with caplog.at_level(logging.INFO):
+            super().test_select_keeper(blacklisted_keepers=set())
+            assert "Kept keepers and incremented retries" in caplog.text
 
 
 class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
