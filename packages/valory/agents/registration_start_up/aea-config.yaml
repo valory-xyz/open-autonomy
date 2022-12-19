@@ -24,11 +24,11 @@ protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
-- valory/tendermint:0.1.0:bafybeifofgujm4pokiijex4lxh65ymxtoxhvbslgwc3ggvoddau23jujmq
+- valory/tendermint:0.1.0:bafybeifojb34outerrnw4qrgnpcsigcauprhrfih3bz7e2rxkcc42fvm34
 skills:
 - valory/abstract_abci:0.1.0:bafybeibqgoxd25itxyuauou6xybiwu3nxkhqwxklggvdwcg42b7expnflq
-- valory/abstract_round_abci:0.1.0:bafybeihbzkghbfo5hbfnsgrany7l234j77sojpxkdnxun4xaksfkbijxcm
-- valory/registration_abci:0.1.0:bafybeiarjesuuvzjoynkjhtefvdewebvvnn4ksjlgvoxu5epv7kqjtlw7u
+- valory/abstract_round_abci:0.1.0:bafybeign5ukyxaet3jg7uxzjqm6cekoefn6qqm7syaul2o46jzsyuwgbde
+- valory/registration_abci:0.1.0:bafybeied2yme6z6dzgwhv2emhnmnz5aizcwn3hhk57enbh5o7rgtaospcm
 default_ledger: ethereum
 required_ledgers:
 - ethereum

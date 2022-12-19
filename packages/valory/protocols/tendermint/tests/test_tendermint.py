@@ -40,21 +40,21 @@ from packages.valory.protocols.tendermint.dialogues import (
     "msg",
     [
         TendermintMessage(
-            performative=TendermintMessage.Performative.REQUEST,
+            performative=TendermintMessage.Performative.REQUEST,  # type: ignore
         ),
         TendermintMessage(
-            performative=TendermintMessage.Performative.RESPONSE,
+            performative=TendermintMessage.Performative.RESPONSE,  # type: ignore
             info="",
         ),
         TendermintMessage(
-            performative=TendermintMessage.Performative.ERROR,
+            performative=TendermintMessage.Performative.ERROR,  # type: ignore
             error_code=ErrorCode.INVALID_REQUEST,
             error_msg="",
             error_data={},
         ),
     ],
 )
-def test_get_balance_serialization(msg: TendermintMessage):
+def test_get_balance_serialization(msg: TendermintMessage) -> None:
     """Test the serialization for 'get_balance' speech-act works."""
 
     msg.to = "receiver"
@@ -142,20 +142,21 @@ class AgentDialogues(TendermintDialogues):
 class TestDialogues:
     """Tests abci dialogues."""
 
-    def setup(self):
-        """Setup"""
+    agent_dialogues: AgentDialogues
 
-        self.agent_dialogues = AgentDialogues("agent_address")
+    @classmethod
+    def setup_class(cls) -> None:
+        """Setup test class"""
+
+        cls.agent_dialogues = AgentDialogues("agent_address")
 
     def test_create_self_initiated(self) -> None:
         """Test the self initialisation of a dialogue."""
 
-        result = (
-            self.agent_dialogues._create_self_initiated(  # pylint: disable=protected-access
-                dialogue_opponent_addr="dummy_address",
-                dialogue_reference=(str(0), ""),
-                role=TendermintDialogue.Role.AGENT,
-            )
+        result = self.agent_dialogues._create_self_initiated(  # pylint: disable=protected-access
+            dialogue_opponent_addr="dummy_address",
+            dialogue_reference=(str(0), ""),
+            role=TendermintDialogue.Role.AGENT,
         )
         assert isinstance(result, TendermintDialogue)
         assert result.role == TendermintDialogue.Role.AGENT, "The role must be agent."
