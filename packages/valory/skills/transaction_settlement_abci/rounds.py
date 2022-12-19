@@ -159,7 +159,9 @@ class SynchronizedData(
         :return: the tx hash which is ready for validation.
         """
         if not self.tx_hashes_history:
-            raise ValueError("FSM design error: tx hash should exist")  # pragma: no cover
+            raise ValueError(
+                "FSM design error: tx hash should exist"
+            )  # pragma: no cover
         return self.tx_hashes_history[-1]
 
     @property
@@ -203,7 +205,9 @@ class SynchronizedData(
         return cast(str, self.db.get_strict("most_voted_check_result"))
 
     @property
-    def participant_to_check(self) -> Mapping[str, CheckTransactionHistoryPayload]:  # pragma: no cover
+    def participant_to_check(
+        self,
+    ) -> Mapping[str, CheckTransactionHistoryPayload]:  # pragma: no cover
         """Get the mapping from participants to checks."""
         return cast(
             Mapping[str, CheckTransactionHistoryPayload],

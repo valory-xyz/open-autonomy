@@ -785,7 +785,9 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
 
             tx_hashes_history = self.synchronized_data.tx_hashes_history
             if tx_data["tx_digest"] != "":
-                tx_hashes_history.append(cast(str, tx_data["tx_digest"]))  # pragma: no cover
+                tx_hashes_history.append(
+                    cast(str, tx_data["tx_digest"])
+                )  # pragma: no cover
 
             tx_data_serialized = {
                 "status_value": cast(VerificationStatus, tx_data["status"]).value,

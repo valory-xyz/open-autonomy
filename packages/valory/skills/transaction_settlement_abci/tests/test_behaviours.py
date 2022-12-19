@@ -21,6 +21,7 @@
 
 # pylint: skip-file
 
+import logging
 import time
 from collections import deque
 from pathlib import Path
@@ -41,6 +42,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+from _pytest.logging import LogCaptureFixture
 from _pytest.monkeypatch import MonkeyPatch
 from aea.helpers.transaction.base import (
     RawTransaction,
@@ -100,7 +102,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     SynchronizedData as TransactionSettlementSynchronizedSata,
 )
-import logging
+
 
 PACKAGE_DIR = Path(__file__).parent.parent
 
@@ -554,8 +556,10 @@ class TestSelectKeeperTransactionSubmissionBehaviourB(
         new_callable=mock.PropertyMock,
         return_value=VerificationStatus.PENDING,
     )
-    def test_select_keeper_tx_pending(self, _, caplog):  # LogCaptureFixture
-        """"""
+    def test_select_keeper_tx_pending(
+        self, _: mock.PropertyMock, caplog: LogCaptureFixture
+    ) -> None:
+        """Test select keeper while tx is pending"""
 
         with caplog.at_level(logging.INFO):
             super().test_select_keeper(blacklisted_keepers=set())

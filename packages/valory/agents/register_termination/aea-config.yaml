@@ -32,11 +32,11 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeibqgoxd25itxyuauou6xybiwu3nxkhqwxklggvdwcg42b7expnflq
 - valory/abstract_round_abci:0.1.0:bafybeih7sibc3evofk3fnmfijavyp6hhkku7fg4l336qysqwlnhvjhsvlm
-- valory/register_termination_abci:0.1.0:bafybeiev6pcxoci77qgibtga62uwftypuolfp337iu5stggnlabyfbt2qa
+- valory/register_termination_abci:0.1.0:bafybeieizqzr7k2wdkqd37wllptm5n4uliemklh43tuocdj6znitkpmofa
 - valory/registration_abci:0.1.0:bafybeibvuyylbaxqits6eskh5i3wrtyglr4l7gmahvcaqevphv7haj5mbi
 - valory/reset_pause_abci:0.1.0:bafybeibq5tl6xf4g22ojzzeglylbanu5nxfsf6s6g7uf3yubogpv3acc4q
-- valory/termination_abci:0.1.0:bafybeictwhzizllmr4cd3jwxsmkhkspgwinipynoxdtfe4vwdeyov2zary
-- valory/transaction_settlement_abci:0.1.0:bafybeibmivn3szn4iuim5dqrnilgiag2hf6oidqgjhnjxqaumru4aewlca
+- valory/termination_abci:0.1.0:bafybeiccto5cm7msgcygekhv3weskaz4eoabelghbke7mvn42gq2q6us6e
+- valory/transaction_settlement_abci:0.1.0:bafybeib6dhw3qgq7dv4syyor6euv3oapfmt2aasb3xirwtdflexgejv6sy
 default_ledger: ethereum
 required_ledgers:
 - ethereum
