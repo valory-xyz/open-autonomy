@@ -54,8 +54,8 @@ from packages.valory.protocols.tendermint.dialogues import (
         ),
     ],
 )
-def test_get_balance_serialization(msg: TendermintMessage) -> None:
-    """Test the serialization for 'get_balance' speech-act works."""
+def test_serialization(msg: TendermintMessage) -> None:
+    """Test the serialization of Tendermint speech-act messages."""
 
     msg.to = "receiver"
     envelope = Envelope(
