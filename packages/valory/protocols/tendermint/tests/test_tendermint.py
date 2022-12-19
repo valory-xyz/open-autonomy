@@ -24,9 +24,6 @@ from abc import abstractmethod
 from aea.mail.base import Envelope
 
 from packages.valory.protocols.tendermint import TendermintMessage
-from packages.valory.protocols.tendermint.message import (
-    _default_logger as abci_message_logger,
-)
 
 
 class BaseTestMessageConstruction:

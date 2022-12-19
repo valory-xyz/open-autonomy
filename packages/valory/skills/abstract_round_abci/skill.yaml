@@ -72,7 +72,7 @@ protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
-- valory/tendermint:0.1.0:bafybeifrajsnjiklygpvil3rcag7ftrqzmu7vuougxvmjux3qzi32zgjm4
+- valory/tendermint:0.1.0:bafybeid5qw5n4jaw3d5c34vyzu6l65st2lrncqzb5fcimlfeu52fshyfdy
 skills:
 - valory/abstract_abci:0.1.0:bafybeiby3psc4hw5klkwyjyzdmrapa5sdsu2ikn4ecxyd7r7lppfuf4fkm
 behaviours:
