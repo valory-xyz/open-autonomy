@@ -155,7 +155,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):  # pragma: no cover
             for owner, signer in zip(actual_safe_owners, expected_safe_owners)
         )
 
-    def send_tx(self, simulate_timeout: bool = False) -> None:  # pragma: no cover
+    def send_tx(self, simulate_timeout: bool = False) -> None:
         """Send a transaction"""
 
         self.fast_forward_to_behaviour(
