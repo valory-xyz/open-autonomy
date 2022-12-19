@@ -69,7 +69,7 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
     )
     enforce(
         len(set(abci_apps)) == len(abci_apps),
-        "Found multiple occurences of same Abci App",
+        "Found multiple occurrences of same Abci App",
     )
     non_abstract_abci_apps = [
         abci_app.__name__ for abci_app in abci_apps if not abci_app.is_abstract()
