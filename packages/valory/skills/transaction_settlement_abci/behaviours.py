@@ -627,7 +627,7 @@ class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
     check_expected_to_be_verified = "One of the next tx checks"
 
     @property
-    def history(self) -> List[str]:
+    def history(self) -> List[str]:  # pragma: no cover
         """Get the history of hashes."""
         return self.synchronized_data.late_arriving_tx_hashes
 
