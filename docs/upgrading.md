@@ -9,7 +9,8 @@ Below we describe the additional manual steps required to upgrade between differ
 
 Breaking changes
 
-- The pre and post conditions needs to be defined while the FSM
+- Optional: The developer can update to use the auto-generated behaviour and round ids. In this case, the `behaviour_id` and `round_id` need no longer be set on the class. When accessing the auto generated ids on the class use `auto_behaviour_id()` and `auto_round_id()` class methods. On the instance `behaviour_id` and `round_id` properties resolve the auto id class methods, so no change is required.
+- Required: The pre- (`db_pre_conditions`) and post- (`db_post_conditions`) conditions on the synchronized data need to be defined for each initial and final state in an `AbciApp`. See `transaction_settlement_abci` for an example.
 
 
 ## `v0.5.0.post1` to `v0.5.0.post2`

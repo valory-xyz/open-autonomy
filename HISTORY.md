@@ -4,13 +4,14 @@
 # 0.6.0 (2022-12-16)
 
 Autonomy:
-- Removes the need for the intermediate agent layer when scaffolding an `FSM` app using specification
+- Removes the need for the agent project when scaffolding an `FSM` app using specification. Now when scaffolding the FSM app using the `-tlr` flag, the skill will be directly scaffolded to the local packages directory
+- Updates the FMM scaffolding templates to support defining pre and post conditions for the synchronized data
 - Updates the tendermint communication server
   - `GET /params` endpoint to return `peer_id` for the local tendermint node
   - `POST /params` endpoint to update `persistent_peers` when updating the chain config
 
 Packages:
-- Fixes the `fast_forward_to_behaviour` in the `abci` skill test tools
+- Fixes the `fast_forward_to_behaviour` in the `abci` skill test tools by setting the `_current_round_cls` which is necessary for retrieving the correct class for the synchronized data
 - Adds support for auto generated behaviour IDs
 - Adds support for auto-generated round IDs
 - Introduces the `get_name` method as part of the `abstract_round_abci`skill to retrieve the name of a property dynamically
@@ -19,12 +20,18 @@ Packages:
 - Updates the `a2a` transaction logic to wait for block production to begin before sending an `a2a` transaction via tendermint
 - Updates the `RegistrationStartupBehaviour` and `TendermintHandler` to make sure we update the persistent peers when establishing a new chain
 - Adds support for specifying the external host name for the tendermint P2P connection
+- Introduces pre and post conditions on the synchronized data for each initial and final state of an FSM app (including default pre conditions). These are verified during chaining of the apps
+- Updates all FSM apps to specify their pre- and post-conditions
+- Added message handling support to `TmManager`.
+- Reset the app hash to the app hash in the begging of the period when hard resetting for recovery
 
 Tests
 - Adds tests for `termination_abci`
 - Adds tests for docstring analyser when no `AbciApp` definition is found in the provided module
 - Adds test coverage for `autonomy develop` command group
 - Introduces pre and post conditions checks on the `SynchronizedData` for each initial and final state
+- Adds tests for `abci` connection
+- Adds an e2e test to showcase hard reset being used as a recovery mechanism
 
 
 # 0.5.0.post2 (2022-12-09)
