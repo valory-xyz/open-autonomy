@@ -1173,8 +1173,6 @@ class TendermintNode:  # pragma: no cover (covered via deployments/Dockerfiles/t
             "tendermint",
             "init",
         ]
-        if self.params.use_grpc:
-            cmd += ["--abci=grpc"]
         if self.params.home is not None:  # pragma: nocover
             cmd += ["--home", self.params.home]
         return cmd
