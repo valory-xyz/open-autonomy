@@ -88,14 +88,18 @@ from packages.valory.protocols.abci import AbciMessage
 
 PUBLIC_ID = PublicId.from_str("valory/abci:0.1.0")
 
+
+_TCP = "tcp://"
+_GRPC = "grpc://"
+
 ENCODING = "utf-8"
 LOCALHOST = "127.0.0.1"
 DEFAULT_ABCI_PORT = 26658
 DEFAULT_P2P_PORT = 26656
 DEFAULT_RPC_PORT = 26657
 DEFAULT_LISTEN_ADDRESS = "0.0.0.0"  # nosec
-DEFAULT_P2P_LISTEN_ADDRESS = f"tcp://{DEFAULT_LISTEN_ADDRESS}:{DEFAULT_P2P_PORT}"
-DEFAULT_RPC_LISTEN_ADDRESS = f"tcp://{LOCALHOST}:{DEFAULT_RPC_PORT}"
+DEFAULT_P2P_LISTEN_ADDRESS = f"{_TCP}{DEFAULT_LISTEN_ADDRESS}:{DEFAULT_P2P_PORT}"
+DEFAULT_RPC_LISTEN_ADDRESS = f"{_TCP}{LOCALHOST}:{DEFAULT_RPC_PORT}"
 MAX_READ_IN_BYTES = 2 ** 20  # Max we'll consume on a read stream (1 MiB)
 MAX_VARINT_BYTES = 10  # Max size of varint we support
 DEFAULT_TENDERMINT_LOG_FILE = "tendermint.log"
@@ -1085,6 +1089,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods  # pragma: no 
         :param home: Tendermint's home directory.
         :param use_grpc: Wheter to use a gRPC server, or TSP
         """
+
         self.proxy_app = proxy_app
         self.rpc_laddr = rpc_laddr
         self.p2p_laddr = p2p_laddr
@@ -1187,10 +1192,13 @@ class TendermintNode:  # pragma: no cover (covered via deployments/Dockerfiles/t
 
     def _start_tm_process(self, monitoring: bool = False, debug: bool = False) -> None:
         """Start a Tendermint node process."""
+
         if self._process is not None:  # pragma: nocover
             return
+
         cmd = self.params.build_node_command(debug)
         kwargs = self.params.get_node_command_kwargs(monitoring)
+
         self._process = subprocess.Popen(cmd, **kwargs)  # type: ignore # nosec # pylint: disable=consider-using-with,W1509
 
         self.write_line("Tendermint process started\n")
@@ -1358,7 +1366,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         if not self.use_tendermint:
             return
         tendermint_config = self.configuration.config.get("tendermint_config", {})
-        rpc_laddr = cast(str, tendermint_config.get("rpc_laddr", DEFAULT_RPC_PORT))
+        rpc_laddr = cast(str, tendermint_config.get("rpc_laddr", DEFAULT_RPC_LISTEN_ADDRESS))
         p2p_laddr = cast(
             str, tendermint_config.get("p2p_laddr", DEFAULT_P2P_LISTEN_ADDRESS)
         )
