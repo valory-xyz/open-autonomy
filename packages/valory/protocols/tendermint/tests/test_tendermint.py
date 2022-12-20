@@ -22,6 +22,7 @@
 from typing import Type
 
 import pytest
+from _pytest.logging import LogCaptureFixture  # type: ignore
 from aea.common import Address
 from aea.mail.base import Envelope
 from aea.protocols.base import Message
@@ -41,6 +42,7 @@ from packages.valory.protocols.tendermint.dialogues import (
     [
         TendermintMessage(
             performative=TendermintMessage.Performative.REQUEST,  # type: ignore
+            query="",
         ),
         TendermintMessage(
             performative=TendermintMessage.Performative.RESPONSE,  # type: ignore
@@ -50,7 +52,7 @@ from packages.valory.protocols.tendermint.dialogues import (
             performative=TendermintMessage.Performative.ERROR,  # type: ignore
             error_code=ErrorCode.INVALID_REQUEST,
             error_msg="",
-            error_data={},
+            error_data=dict(message="dummy"),
         ),
     ],
 )
@@ -80,6 +82,19 @@ def test_serialization(msg: TendermintMessage) -> None:
     actual_msg.sender = actual_envelope.sender
     expected_msg = msg
     assert expected_msg == actual_msg
+
+
+def test_incorrect_error_data_logged(caplog: LogCaptureFixture) -> None:
+    """Test incorrect error_data is logged"""
+
+    TendermintMessage(
+        performative=TendermintMessage.Performative.ERROR,  # type: ignore
+        error_code=ErrorCode.INVALID_REQUEST,
+        error_msg="",
+        error_data=dict(message=1),  # incorrect type
+    )
+    expected = "Invalid type for dictionary values in content 'error_data'. Expected 'str'. Found '<class 'int'>'."
+    assert expected in caplog.text
 
 
 class AgentDialogue(TendermintDialogue):
