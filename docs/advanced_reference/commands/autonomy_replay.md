@@ -1,21 +1,9 @@
-## Usage
-```bash
-autonomy replay [OPTIONS] COMMAND [ARGS]
-```
-
-## Description
-
 Tools for replay agent execution.
 
-This meta-command aggregates a number of functionalities for re-running agents using data dumps from previous runs. See the appropriate subcommands for more information. Note that **replay functionalities only work for deployments which were ran in dev mode.**
+This command group consists of a number of functionalities for re-running agents using data dumps from previous runs. See the appropriate subcommands for more information. Note that **replay functionalities only work for deployments which were ran in dev mode.**
 
 
-## Options
-
-`--help`
-:   Show the help message and exit.
-
-## Subcommand `autonomy replay agent`
+## `autonomy replay agent`
 
 ### Usage
 ```bash
@@ -36,7 +24,7 @@ Re-run agent execution.
 `--help`
 :   Show the help message and exit.
 
-## Subcommand `autonomy replay tendermint`
+## `autonomy replay tendermint`
 
 ### Usage
 ```bash

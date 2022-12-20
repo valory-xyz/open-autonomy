@@ -68,7 +68,6 @@ nav:
       - autonomy replay: 'advanced_reference/commands/autonomy_replay.md'
       - autonomy analyse: 'advanced_reference/commands/autonomy_analyse.md'
       - autonomy fetch: 'advanced_reference/commands/autonomy_fetch.md'
-      - autonomy run: 'advanced_reference/commands/autonomy_run.md'
       - autonomy scaffold: 'advanced_reference/commands/autonomy_scaffold.md'           
     - Developer Tooling:
       - Dev Mode: 'dev_mode.md'

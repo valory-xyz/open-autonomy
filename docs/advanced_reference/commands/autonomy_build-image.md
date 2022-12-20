@@ -1,11 +1,3 @@
-## Usage
-
-```bash
-autonomy build-image [OPTIONS] [PUBLIC_ID_OR_HASH]
-```
-
-## Description
-
 Builds the agent image for a service.
 
 The command must be executed within the service directory. That is, a directory containing the service configuration file (`service.yaml`). Labels for images generated using this command will follow the format `valory/oar-<PUBLIC_ID>`.
@@ -16,6 +8,11 @@ autonomy build-image PUBLIC_ID_OR_HASH
 ```
 where `PUBLIC_ID_OR_HASH` refers to the agent public ID or hash as stored in a local or remote repository.
 
+## Usage
+
+```bash
+autonomy build-image [OPTIONS] [PUBLIC_ID_OR_HASH]
+```
 
 ## Options
 ```

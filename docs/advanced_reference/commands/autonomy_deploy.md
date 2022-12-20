@@ -1,39 +1,19 @@
-
-## Usage
-
-```bash
-autonomy deploy [OPTIONS] COMMAND [ARGS]
-```
-
-## Description
-
 Build or run agent service deployments.
 
-This meta-command aggregates a number of functionalities for building service deployments, run locally stored service deployments, and run service deployments defined in the on-chain protocol. See the appropriate subcommands for more information.
+This command group consists of a number of functionalities for building service deployments, run locally stored service deployments, and run service deployments defined in the on-chain protocol. See the appropriate subcommands for more information.
 
 
-## Options
-`--help`
+## `autonomy deploy build`
 
-:   Show the help message and exit.
+Build a service deployment.
 
-
-
-
-## Subcommand `autonomy deploy build`
+This command must be executed within a service folder. That is, a folder containing the service configuration file (`service.yaml`). The deployment will be created in the subfolder `./abci_build`.
 
 ### Usage
 
 ```bash
 autonomy deploy build [OPTIONS] [KEYS_FILE]
 ```
-
-### Description
-
-Build a service deployment.
-
-This command must be executed within a service folder. That is, a folder containing the service configuration file (`service.yaml`). The deployment will be created in the subfolder `./abci_build`.
-
 
 ### Options
 
@@ -105,19 +85,17 @@ Builds a service deployment using the keys stored in the file `keys.json` and ap
 
 
 
-## Subcommand `autonomy deploy run`
+## `autonomy deploy run`
+
+Run a service deployment locally stored.
+
+This command is a wrapper around `docker-compose up` to run the service deployment. To execute this command you need to be located within the deployment environment subfolder (`./abci_build`), or specify it with the option `--build-dir`.
 
 ### Usage
 
 ```bash
 autonomy deploy run [OPTIONS]
 ```
-
-### Description
-
-Run a service deployment locally stored.
-
-This command is a wrapper around `docker-compose up` to run the service deployment. To execute this command you need to be located within the deployment environment subfolder (`./abci_build`), or specify it with the option `--build-dir`.
 
 ### Options
 
@@ -141,22 +119,19 @@ autonomy deploy run --build-dir ./abci_build
 Runs the service deployment stored locally in the directory `./abci_build`.
 
 
-## Subcommand `autonomy deploy from-token`
-
-
-### Usage
-
-```bash
-autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
-```
-
-### Description
+## `autonomy deploy from-token`
 
 Run a service deployment registered in the on-chain protocol.
 
 This command allows to deploy services directly without having the need to explicitly fetch them locally (also known as "one-click deployment"). The command requires the `TOKEN_ID` which can be checked in the {{on_chain_frontend}}. See the [register a service on-chain](../../guides/register_packages_on_chain.md#register-a-service) guide for more information.
 
 Currently, the command supports Autonolas staging chain, Görli testnet and Ethereum mainnet for resolving `TOKEN_ID`s, but if you have a contract deployed on some other chain you can provide the RPC URL to the chain and contract address using `--rpc` and `--sca`, respectively.
+
+### Usage
+
+```bash
+autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
+```
 
 ### Options
 `--rpc RPC_URL`
