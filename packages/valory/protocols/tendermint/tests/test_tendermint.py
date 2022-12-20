@@ -19,6 +19,7 @@
 
 """Tests package for the 'valory/tendermint' protocol."""
 
+from unittest import mock
 from typing import Type
 
 import pytest
@@ -95,6 +96,22 @@ def test_incorrect_error_data_logged(caplog: LogCaptureFixture) -> None:
     )
     expected = "Invalid type for dictionary values in content 'error_data'. Expected 'str'. Found '<class 'int'>'."
     assert expected in caplog.text
+
+
+def test_serialization_performative_not_valid() -> None:
+    """Test serialization performative not valid"""
+
+    msg = TendermintMessage(
+        performative=TendermintMessage.Performative.REQUEST,  # type: ignore
+        query="",
+    )
+    encoded_msg = msg.encode()
+
+    with mock.patch.object(TendermintMessage, "Performative"):
+        with pytest.raises(ValueError, match="Performative not valid: "):
+            msg.encode()
+        with pytest.raises(ValueError, match="Performative not valid: "):
+            msg.decode(encoded_msg)
 
 
 class AgentDialogue(TendermintDialogue):
