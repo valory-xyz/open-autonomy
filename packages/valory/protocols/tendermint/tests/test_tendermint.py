@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for the 'valory/tendermint' protocol."""
-
+import logging
 from typing import Type
 from unittest import mock
 
@@ -30,7 +30,7 @@ from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.protocols.dialogue.base import DialogueLabel
 
-from packages.valory.protocols.tendermint import TendermintMessage
+from packages.valory.protocols.tendermint.message import TendermintMessage, _default_logger
 from packages.valory.protocols.tendermint.custom_types import ErrorCode
 from packages.valory.protocols.tendermint.dialogues import (
     TendermintDialogue,
@@ -95,7 +95,8 @@ def test_incorrect_error_data_logged(caplog: LogCaptureFixture) -> None:
         error_data=dict(message=1),  # incorrect type
     )
     expected = "Invalid type for dictionary values in content 'error_data'. Expected 'str'. Found '<class 'int'>'."
-    assert expected in caplog.text
+    with caplog.at_level(logging.ERROR, logger=_default_logger.name):
+        assert expected in caplog.text
 
 
 def test_serialization_performative_not_valid() -> None:
