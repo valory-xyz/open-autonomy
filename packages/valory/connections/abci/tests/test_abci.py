@@ -543,6 +543,8 @@ def test_ensure_connected_raises_connection_error() -> None:
         target_skill_id="dummy_author/dummy:0.1.0",
         host=DEFAULT_LISTEN_ADDRESS,
         port=DEFAULT_ABCI_PORT,
+        use_tendermint=False,
+        use_grpc=False,
     )
     connection = ABCIServerConnection(
         identity=MagicMock(), configuration=configuration_mock, data_dir=""
