@@ -1042,7 +1042,9 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         writer.write(data)
 
 
-class StoppableThread(Thread):
+class StoppableThread(
+    Thread,
+):  # pragma: no cover (covered via deployments/Dockerfiles/tendermint/tendermint.py)
     """Thread class with a stop() method."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -1059,7 +1061,7 @@ class StoppableThread(Thread):
         return self._stop_event.is_set()
 
 
-class TendermintParams:  # pylint: disable=too-few-public-methods
+class TendermintParams:  # pylint: disable=too-few-public-methods  # pragma: no cover (covered via deployments/Dockerfiles/tendermint/tendermint.py)
     """Tendermint node parameters."""
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -1144,7 +1146,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         return kwargs
 
 
-class TendermintNode:
+class TendermintNode:  # pragma: no cover (covered via deployments/Dockerfiles/tendermint/tendermint.py)
     """A class to manage a Tendermint node."""
 
     def __init__(self, params: TendermintParams, logger: Optional[Logger] = None):

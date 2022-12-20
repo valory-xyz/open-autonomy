@@ -81,3 +81,13 @@ def get_value_with_type(value: Any, type_name: str) -> Any
 
 Get the given value as the specified type.
 
+<a id="packages.valory.skills.abstract_round_abci.utils.parse_tendermint_p2p_url"></a>
+
+#### parse`_`tendermint`_`p2p`_`url
+
+```python
+def parse_tendermint_p2p_url(url: str) -> Tuple[str, int]
+```
+
+Parse tendermint P2P url.
+

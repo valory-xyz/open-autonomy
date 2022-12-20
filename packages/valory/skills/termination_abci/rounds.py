@@ -69,7 +69,7 @@ class SynchronizedData(BaseSynchronizedData):
     @property
     def most_voted_tx_hash(self) -> str:
         """Get the most_voted_tx_hash."""
-        return cast(str, self.db.get_strict("most_voted_tx_hash"))
+        return cast(str, self.db.get_strict("most_voted_tx_hash"))  # pragma: no cover
 
 
 class BackgroundRound(CollectSameUntilThresholdRound):
