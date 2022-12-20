@@ -30,11 +30,14 @@ from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.protocols.dialogue.base import DialogueLabel
 
-from packages.valory.protocols.tendermint.message import TendermintMessage, _default_logger
 from packages.valory.protocols.tendermint.custom_types import ErrorCode
 from packages.valory.protocols.tendermint.dialogues import (
     TendermintDialogue,
     TendermintDialogues,
+)
+from packages.valory.protocols.tendermint.message import (
+    TendermintMessage,
+    _default_logger,
 )
 
 
