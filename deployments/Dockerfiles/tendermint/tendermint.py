@@ -30,9 +30,12 @@ from threading import Event, Thread
 from typing import Any, Dict, List, Optional
 
 
+_TCP = "tcp://"
+_GRPC = "grpc://"
+
 ENCODING = "utf-8"
-DEFAULT_P2P_LISTEN_ADDRESS = "tcp://0.0.0.0:26656"
-DEFAULT_RPC_LISTEN_ADDRESS = "tcp://0.0.0.0:26657"
+DEFAULT_P2P_LISTEN_ADDRESS = f"{_TCP}0.0.0.0:26656"
+DEFAULT_RPC_LISTEN_ADDRESS = f"{_TCP}0.0.0.0:26657"
 DEFAULT_TENDERMINT_LOG_FILE = "tendermint.log"
 
 
@@ -77,8 +80,12 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         :param p2p_seeds: P2P seeds.
         :param consensus_create_empty_blocks: if true, Tendermint node creates empty blocks.
         :param home: Tendermint's home directory.
-        :param use_grpc: Wheter to use a gRPC server, or TSP
+        :param use_grpc: Whether to use a gRPC server, or TCP
         """
+
+        if use_grpc:
+            proxy_app = proxy_app.replace(_TCP, _GRPC)
+
         self.proxy_app = proxy_app
         self.rpc_laddr = rpc_laddr
         self.p2p_laddr = p2p_laddr
@@ -111,6 +118,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
             f"--p2p.laddr={self.p2p_laddr}",
             f"--p2p.seeds={p2p_seeds}",
             f"--consensus.create_empty_blocks={str(self.consensus_create_empty_blocks).lower()}",
+            f"--abci={'grpc' if self.use_grpc else 'socket'}",
         ]
         if debug:
             cmd.append("--log_level=debug")
@@ -162,8 +170,6 @@ class TendermintNode:
             "tendermint",
             "init",
         ]
-        if self.params.use_grpc:
-            cmd += ["--abci=grpc"]
         if self.params.home is not None:  # pragma: nocover
             cmd += ["--home", self.params.home]
         return cmd
@@ -181,10 +187,14 @@ class TendermintNode:
 
     def _start_tm_process(self, monitoring: bool = False, debug: bool = False) -> None:
         """Start a Tendermint node process."""
+
         if self._process is not None:  # pragma: nocover
             return
+
         cmd = self.params.build_node_command(debug)
         kwargs = self.params.get_node_command_kwargs(monitoring)
+
+        logging.info(f"Starting Tendermint: {cmd}")
         self._process = subprocess.Popen(cmd, **kwargs)  # type: ignore # nosec # pylint: disable=consider-using-with,W1509
 
         self.write_line("Tendermint process started\n")
