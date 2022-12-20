@@ -171,6 +171,17 @@ class ABCIAppTest:
         assert abci_dialogue is not None, "cannot update dialogue"
         return cast(AbciDialogue, abci_dialogue)
 
+    def echo(self, request: AbciMessage) -> AbciMessage:
+        """Process echo request"""
+
+        abci_dialogue = self._update_dialogues(request)
+        reply = abci_dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_ECHO,
+            target_message=request,
+            message=request.message,
+        )
+        return cast(AbciMessage, reply)
+
     def info(self, request: AbciMessage) -> AbciMessage:
         """Process an info request."""
         abci_dialogue = self._update_dialogues(request)
