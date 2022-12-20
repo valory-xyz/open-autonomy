@@ -346,17 +346,22 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
 
     def setup(self) -> None:
         """Set up the test."""
+
         super().setup()
+
         self.agent_identity = Identity(
             "name", address=self.ADDRESS, public_key=self.PUBLIC_KEY
         )
+
         self.configuration = ConnectionConfig(
             connection_id=ABCIServerConnection.connection_id,
             host=DEFAULT_LISTEN_ADDRESS,
             port=DEFAULT_ABCI_PORT,
             target_skill_id=self.TARGET_SKILL_ID,
             use_tendermint=False,
+            use_grpc=False,
         )
+
         self.connection = ABCIServerConnection(
             identity=self.agent_identity, configuration=self.configuration, data_dir=""
         )
