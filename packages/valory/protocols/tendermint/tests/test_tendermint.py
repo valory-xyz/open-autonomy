@@ -91,14 +91,14 @@ def test_serialization(msg: TendermintMessage) -> None:
 def test_incorrect_error_data_logged(caplog: LogCaptureFixture) -> None:
     """Test incorrect error_data is logged"""
 
-    TendermintMessage(
-        performative=TendermintMessage.Performative.ERROR,  # type: ignore
-        error_code=ErrorCode.INVALID_REQUEST,
-        error_msg="",
-        error_data=dict(message=1),  # incorrect type
-    )
     expected = "Invalid type for dictionary values in content 'error_data'. Expected 'str'. Found '<class 'int'>'."
     with caplog.at_level(logging.ERROR, logger=_default_logger.name):
+        TendermintMessage(
+            performative=TendermintMessage.Performative.ERROR,  # type: ignore
+            error_code=ErrorCode.INVALID_REQUEST,
+            error_msg="",
+            error_data=dict(message=1),  # incorrect type
+        )
         assert expected in caplog.text
 
 
