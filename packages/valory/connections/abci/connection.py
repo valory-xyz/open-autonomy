@@ -1364,7 +1364,9 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         self.use_tendermint = cast(
             bool, self.configuration.config.get("use_tendermint")
         )
-        self.use_grpc = cast(bool, self.configuration.config.get("use_grpc"))
+        if not isinstance(self.use_tendermint, bool):
+            raise TypeError(f"use_tendermint must be bool, got {self.use_tendermint}")
+        self.use_grpc = cast(bool, self.configuration.config.get("use_grpc", False))
 
         if not self.use_tendermint:
             return
