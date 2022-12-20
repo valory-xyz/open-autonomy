@@ -35,6 +35,7 @@ from typing import Any, Callable, Generator, List, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
+import docker
 import pytest
 import requests
 from aea.configurations.base import ConnectionConfig
@@ -45,11 +46,12 @@ from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea_test_autonomy.configurations import ANY_ADDRESS, HTTP_LOCALHOST
 from aea_test_autonomy.docker.base import skip_docker_tests
+from aea_test_autonomy.docker.tendermint import TendermintDockerImage
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     DEFAULT_TENDERMINT_PORT,
     abci_host,
     abci_port,
-    tendermint,
+    tendermint,  # cannot use autouse fixture with gRPC
     tendermint_port,
 )
 from aea_test_autonomy.helpers.async_utils import (
@@ -327,8 +329,19 @@ class BaseABCITest:
         return ABCIAppTest(self.TARGET_SKILL_ID)  # type: ignore
 
 
+def start_tendermint_docker_image() -> None:
+    """Start TendermintDockerImage"""
+
+    client = docker.from_env()
+    image = TendermintDockerImage(client)  # abci_host, abci_port, tendermint_port)
+    container = image.create()
+    container.start()
+    logging.info(f"Setting up image {image.image}...")
+    success = image.wait()
+    logging.info(f"TendermintDockerImage running: {success}...")
+
+
 @pytest.mark.integration
-@pytest.mark.usefixtures("tendermint")
 class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
     """
     Integration test between ABCI connection and Tendermint node.
@@ -373,6 +386,11 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
         self.receiving_task: AnotherThreadTask = self.loop.call(
             self.process_incoming_messages()
         )
+
+        # connection must be established,
+        # unlike TCP, only a single ECHO request is send with gRPC
+        time.sleep(5)
+        start_tendermint_docker_image()
 
         # wait until tendermint node synchronized with abci
         wait_for_condition(self.health_check, period=5, timeout=1000000)
