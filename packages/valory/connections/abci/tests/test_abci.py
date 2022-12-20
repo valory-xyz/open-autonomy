@@ -51,7 +51,6 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     DEFAULT_TENDERMINT_PORT,
     abci_host,
     abci_port,
-    tendermint,  # cannot use autouse fixture with gRPC
     tendermint_port,
 )
 from aea_test_autonomy.helpers.async_utils import (

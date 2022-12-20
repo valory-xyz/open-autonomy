@@ -75,7 +75,7 @@ class TendermintDockerImage(DockerImage):
         self.use_grpc = use_grpc
 
     @property
-    def proxy_app(self):
+    def proxy_app(self) -> str:
         """Proxy app"""
 
         netloc = f"{self.abci_host}:{self.abci_port}"
@@ -145,7 +145,9 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         use_grpc: bool = False,
     ):
         """Initialize."""
-        super().__init__(client, abci_host, abci_port, port, p2p_port, com_port, use_grpc)
+        super().__init__(
+            client, abci_host, abci_port, port, p2p_port, com_port, use_grpc
+        )
 
     @property
     def image(self) -> str:

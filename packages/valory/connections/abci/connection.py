@@ -1369,7 +1369,9 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         if not self.use_tendermint:
             return
         tendermint_config = self.configuration.config.get("tendermint_config", {})
-        rpc_laddr = cast(str, tendermint_config.get("rpc_laddr", DEFAULT_RPC_LISTEN_ADDRESS))
+        rpc_laddr = cast(
+            str, tendermint_config.get("rpc_laddr", DEFAULT_RPC_LISTEN_ADDRESS)
+        )
         p2p_laddr = cast(
             str, tendermint_config.get("p2p_laddr", DEFAULT_P2P_LISTEN_ADDRESS)
         )
