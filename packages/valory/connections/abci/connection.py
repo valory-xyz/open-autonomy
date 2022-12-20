@@ -1087,8 +1087,11 @@ class TendermintParams:  # pylint: disable=too-few-public-methods  # pragma: no 
         :param p2p_seeds: P2P seeds.
         :param consensus_create_empty_blocks: if true, Tendermint node creates empty blocks.
         :param home: Tendermint's home directory.
-        :param use_grpc: Wheter to use a gRPC server, or TSP
+        :param use_grpc: Whether to use a gRPC server, or TCP
         """
+
+        if use_grpc:
+            proxy_app = proxy_app.replace(_TCP, _GRPC)
 
         self.proxy_app = proxy_app
         self.rpc_laddr = rpc_laddr
