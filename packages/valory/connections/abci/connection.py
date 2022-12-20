@@ -1125,6 +1125,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods  # pragma: no 
             f"--p2p.laddr={self.p2p_laddr}",
             f"--p2p.seeds={p2p_seeds}",
             f"--consensus.create_empty_blocks={str(self.consensus_create_empty_blocks).lower()}",
+            f"--abci={'grpc' if self.use_grpc else 'socket'}",
         ]
         if debug:
             cmd.append("--log_level=debug")
@@ -1200,6 +1201,7 @@ class TendermintNode:  # pragma: no cover (covered via deployments/Dockerfiles/t
         cmd = self.params.build_node_command(debug)
         kwargs = self.params.get_node_command_kwargs(monitoring)
 
+        logging.info(f"Starting Tendermint: {cmd}")
         self._process = subprocess.Popen(cmd, **kwargs)  # type: ignore # nosec # pylint: disable=consider-using-with,W1509
 
         self.write_line("Tendermint process started\n")
