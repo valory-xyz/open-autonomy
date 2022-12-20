@@ -16,8 +16,8 @@ fingerprint:
   serialization.py: bafybeiap76eao4kujtfwifyetk6kdfew2crh5mbiv6azhvzyvbchy7tyjm
   tendermint.proto: bafybeifl55fxdrmlawk5xss2eljvg7kt4vhcpg2mksssoxwdcva2mypwbm
   tendermint_pb2.py: bafybeiheuz4m3oq6w25fjynq7kheomubg4tary2jq6m4nerwtmyhwfg6uy
-  tests/__init__.py: bafybeieqnnhijtbclc4jcok63fghl2hr4zavadnd7ox6zkm3tl4flf3gbm
-  tests/test_tendermint.py: bafybeihajrbnqxpl6hznzlwj26bsggcoeim7qgfj7ecxl5hcfxok6a5viq
+  tests/__init__.py: bafybeiguds53xs5tmygjd26a7xxilzdrgi2x262relfagdlvdzymacumie
+  tests/test_tendermint.py: bafybeia77s5glgibwz2os26fzzsnjlmlztrqvz3ryspgarbqrwbztlcwdy
 fingerprint_ignore_patterns: []
 dependencies:
   protobuf: {}
