@@ -1378,7 +1378,8 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         consensus_create_empty_blocks = cast(
             bool, tendermint_config.get("consensus_create_empty_blocks", True)
         )
-        proxy_app = f"tcp://{self.host}:{self.port}"
+        netloc = f"{self.host}:{self.port}"
+        proxy_app = (_TCP, _GRPC)[self.use_grpc] + netloc
         self.params = TendermintParams(
             proxy_app,
             rpc_laddr,
