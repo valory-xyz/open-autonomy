@@ -19,8 +19,8 @@
 
 """Tests package for the 'valory/tendermint' protocol."""
 
-from unittest import mock
 from typing import Type
+from unittest import mock
 
 import pytest
 from _pytest.logging import LogCaptureFixture  # type: ignore
