@@ -24,9 +24,9 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifnqi6inlqly272ihsxxfgtam7tedobmsxb2qf6vx5tnbw2dovqfu
-- valory/registration_abci:0.1.0:bafybeichthcko6ujfsrrqwzouk4igaatyhn3yhdtutdggqppai27ivu37q
-- valory/reset_pause_abci:0.1.0:bafybeihzngeprpucf6cgddxyyefk6afnomdx2u6ir7nsgl4vabznld7deu
+- valory/abstract_round_abci:0.1.0:bafybeifgchkdpj4isizx7wdrbtjj2tvddtj3wsfb7p4yizugqvaq4lvg4u
+- valory/registration_abci:0.1.0:bafybeieltsslrfruhsn4gt5guw3stodkrjumgda2kcuypuv76k5t2bko4i
+- valory/reset_pause_abci:0.1.0:bafybeifrovmzcudwt6gygrlkitpnylstmv2fxyzbbljf7w6oqy2567bi5m
 behaviours:
   main:
     args: {}
@@ -99,6 +99,8 @@ models:
       service_id: register_reset_abci
       service_registry_address: null
       setup:
+        all_participants:
+        - - '0x0000000000000000000000000000000000000000'
         safe_contract_address:
         - '0x0000000000000000000000000000000000000000'
       share_tm_config_on_startup: false

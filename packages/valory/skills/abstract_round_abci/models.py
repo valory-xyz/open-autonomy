@@ -129,8 +129,13 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
 
         if not self.context.is_abstract_component:
             # setup data are mandatory for non-abstract skills,
-            # and they should always contain at least the `safe_contract_address`
-            self._ensure_setup({get_name(BaseSynchronizedData.safe_contract_address)})
+            # and they should always contain at least `all_participants` and `safe_contract_address`
+            self._ensure_setup(
+                {
+                    get_name(BaseSynchronizedData.safe_contract_address),
+                    get_name(BaseSynchronizedData.all_participants),
+                }
+            )
 
     @classmethod
     def _ensure(cls, key: str, kwargs: Dict) -> Any:

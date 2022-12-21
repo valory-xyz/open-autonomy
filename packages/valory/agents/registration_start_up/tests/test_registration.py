@@ -97,6 +97,11 @@ class RegistrationStartUpTestConfig(UseRegistries, UseACNNode, BaseTestEnd2End):
             "dotted_path": f"{__args_prefix}.share_tm_config_on_startup",
             "value": True,
         },
+        # setting the skill to non-abstract and setting a safe contract address is necessary to run an agent
+        # We have set a null safe address in the `skill.yaml` because the safe address will not be utilized by the agent
+        # We cannot set an override here, because of a limitation on the `open-aea`'s override mechanism that leads to:
+        # Attribute `models.params.args.setup.safe_contract_address` is not allowed to be updated!
+        # This exception is raised because the dict keys need to pre-exist in the config file in order to be overriden
         {
             "dotted_path": f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.is_abstract",
             "value": False,

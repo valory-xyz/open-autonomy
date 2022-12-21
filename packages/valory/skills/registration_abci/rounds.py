@@ -64,7 +64,6 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
 
         synchronized_data = self.synchronized_data.update(
             participants=frozenset(self.collection),
-            all_participants=frozenset(self.collection),
             synchronized_data_class=self.synchronized_data_class,
         )
 
