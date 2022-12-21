@@ -29,6 +29,7 @@ from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2EndExecution,
     RoundChecks,
 )
+from aea_test_autonomy.configurations import KEY_PAIRS
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     abci_host,
     abci_port,
@@ -78,6 +79,7 @@ class BaseHelloWorldABCITest(
     skill_package = "valory/hello_world_abci:0.1.0"
     wait_to_finish = 160
     happy_path = HAPPY_PATH
+    key_pairs = KEY_PAIRS
     strict_check_strings: Tuple[str, ...] = STRICT_CHECK_STRINGS
     package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
 

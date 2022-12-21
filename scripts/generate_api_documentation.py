@@ -44,7 +44,6 @@ DEFAULT_PACKAGES = {
     (ComponentType.SKILL, "valory/abstract_abci:latest"),
     (ComponentType.SKILL, "valory/abstract_round_abci:latest"),
     (ComponentType.SKILL, "valory/registration_abci:latest"),
-    (ComponentType.SKILL, "valory/safe_deployment_abci:latest"),
     (ComponentType.SKILL, "valory/transaction_settlement_abci:latest"),
 }
 

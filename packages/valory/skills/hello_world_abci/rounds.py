@@ -94,7 +94,6 @@ class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
-                all_participants=frozenset(self.collection),
                 synchronized_data_class=SynchronizedData,
             )
             return synchronized_data, Event.DONE
@@ -141,7 +140,6 @@ class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 participants=self.collection,
-                all_participants=self.collection,
                 synchronized_data_class=SynchronizedData,
             )
             return synchronized_data, Event.DONE
@@ -157,6 +155,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractR
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            # TODO `cross_period_persisted_keys` should be used here instead
             synchronized_data = self.synchronized_data.create(
                 participants=[self.synchronized_data.participants],
                 all_participants=[self.synchronized_data.all_participants],

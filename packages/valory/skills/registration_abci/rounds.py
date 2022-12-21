@@ -40,15 +40,10 @@ class Event(Enum):
     DONE = "done"
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
-    FAST_FORWARD = "fast_forward"
 
 
 class FinishedRegistrationRound(DegenerateRound):
     """A round representing that agent registration has finished"""
-
-
-class FinishedRegistrationFFWRound(DegenerateRound):
-    """A fast-forward round representing that agent registration has finished"""
 
 
 class RegistrationStartupRound(CollectSameUntilAllRound):
@@ -64,23 +59,15 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
-        if (  # fast forward at setup
-            self.collection_threshold_reached and self.common_payload is not None
-        ):
-            synchronized_data = self.synchronized_data.update(
-                participants=frozenset(self.collection),
-                all_participants=frozenset(self.collection),
-                synchronized_data_class=self.synchronized_data_class,
-            )
-            return synchronized_data, Event.FAST_FORWARD
-        if self.collection_threshold_reached:
-            synchronized_data = self.synchronized_data.update(
-                participants=frozenset(self.collection),
-                all_participants=frozenset(self.collection),
-                synchronized_data_class=self.synchronized_data_class,
-            )
-            return synchronized_data, Event.DONE
-        return None
+        if not self.collection_threshold_reached:
+            return None
+
+        synchronized_data = self.synchronized_data.update(
+            participants=frozenset(self.collection),
+            synchronized_data_class=self.synchronized_data_class,
+        )
+
+        return synchronized_data, Event.DONE
 
 
 class RegistrationRound(CollectSameUntilThresholdRound):
@@ -131,14 +118,12 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     Transition states:
         0. RegistrationStartupRound
             - done: 2.
-            - fast forward: 3.
         1. RegistrationRound
-            - done: 3.
+            - done: 2.
             - no majority: 1.
         2. FinishedRegistrationRound
-        3. FinishedRegistrationFFWRound
 
-    Final states: {FinishedRegistrationFFWRound, FinishedRegistrationRound}
+    Final states: {FinishedRegistrationRound}
 
     Timeouts:
         round timeout: 30.0
@@ -149,18 +134,15 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         RegistrationStartupRound: {
             Event.DONE: FinishedRegistrationRound,
-            Event.FAST_FORWARD: FinishedRegistrationFFWRound,
         },
         RegistrationRound: {
-            Event.DONE: FinishedRegistrationFFWRound,
+            Event.DONE: FinishedRegistrationRound,
             Event.NO_MAJORITY: RegistrationRound,
         },
         FinishedRegistrationRound: {},
-        FinishedRegistrationFFWRound: {},
     }
     final_states: Set[AppState] = {
         FinishedRegistrationRound,
-        FinishedRegistrationFFWRound,
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
@@ -171,10 +153,6 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     }
     db_post_conditions: Dict[AppState, List[str]] = {
         FinishedRegistrationRound: [
-            get_name(BaseSynchronizedData.participants),
-            get_name(BaseSynchronizedData.all_participants),
-        ],
-        FinishedRegistrationFFWRound: [
             get_name(BaseSynchronizedData.participants),
             get_name(BaseSynchronizedData.all_participants),
         ],
