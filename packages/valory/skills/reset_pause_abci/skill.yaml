@@ -26,7 +26,7 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeib4xqi57pmub4yhz6lrwnpuqedv3rwhfjcwc4y63lx5fosqvwqiw4
+- valory/abstract_round_abci:0.1.0:bafybeifgchkdpj4isizx7wdrbtjj2tvddtj3wsfb7p4yizugqvaq4lvg4u
 behaviours:
   main:
     args: {}
@@ -95,7 +95,11 @@ models:
       round_timeout_seconds: 30.0
       service_id: reset_pause_abci
       service_registry_address: null
-      setup: {}
+      setup:
+        all_participants:
+        - - '0x0000000000000000000000000000000000000000'
+        safe_contract_address:
+        - '0x0000000000000000000000000000000000000000'
       share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 3

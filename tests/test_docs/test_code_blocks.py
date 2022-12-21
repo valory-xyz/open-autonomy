@@ -201,7 +201,7 @@ class TestDocBashSnippets:
     """Class for doc bash snippet testing"""
 
     def test_run_check(self) -> None:
-        """Check the documentaion code"""
+        """Check the documentation code"""
 
         code_type = CodeType.BASH
 

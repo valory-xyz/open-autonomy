@@ -56,7 +56,6 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 from packages.valory.skills.registration_abci.rounds import (
     Event,
-    FinishedRegistrationFFWRound,
     FinishedRegistrationRound,
 )
 
@@ -539,5 +538,5 @@ class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
 
     behaviour_class = RegistrationBehaviour
     next_behaviour_class = make_degenerate_behaviour(
-        FinishedRegistrationFFWRound.auto_round_id()
+        FinishedRegistrationRound.auto_round_id()
     )

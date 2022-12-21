@@ -32,6 +32,7 @@ from aea.test_tools.test_cases import AEATestCaseMany, Result
 from aea_test_autonomy.configurations import ANY_ADDRESS
 from aea_test_autonomy.docker.registries import SERVICE_REGISTRY
 from aea_test_autonomy.fixture_helpers import UseFlaskTendermintNode
+from web3 import Web3
 
 
 TERMINATION_TIMEOUT = 120
@@ -157,6 +158,20 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.consensus.max_participants",
             nb_agents,
         )
+        key_pairs = getattr(self, "key_pairs", None)
+        if key_pairs is not None:
+            self.set_config(
+                f"vendor.{skill.author}.skills.{skill.name}.models.params.args.setup.all_participants",
+                json.dumps(
+                    [
+                        [
+                            Web3.toChecksumAddress(pairs[0])
+                            for pairs in key_pairs[:nb_agents]
+                        ]
+                    ]
+                ),
+                "list",
+            )
         self.set_config(
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.reset_tendermint_after",
             5,

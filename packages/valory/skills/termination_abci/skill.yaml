@@ -29,8 +29,8 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeib4xqi57pmub4yhz6lrwnpuqedv3rwhfjcwc4y63lx5fosqvwqiw4
-- valory/transaction_settlement_abci:0.1.0:bafybeidfx2p6berbwkwj3xelg3ekg3q6al32zxpv6f5zupvt3lct5yge2e
+- valory/abstract_round_abci:0.1.0:bafybeifgchkdpj4isizx7wdrbtjj2tvddtj3wsfb7p4yizugqvaq4lvg4u
+- valory/transaction_settlement_abci:0.1.0:bafybeifjdp3b56ywcwp6sjwhl6ogom6e3oczhmvjnekn2vha2lpvtyjkoi
 behaviours:
   main:
     args: {}
@@ -106,7 +106,11 @@ models:
       round_timeout_seconds: 30.0
       service_id: termination_abci
       service_registry_address: '0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA'
-      setup: {}
+      setup:
+        all_participants:
+        - - '0x0000000000000000000000000000000000000000'
+        safe_contract_address:
+        - '0x0000000000000000000000000000000000000000'
       share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 3
