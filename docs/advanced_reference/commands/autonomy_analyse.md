@@ -1,14 +1,8 @@
+Tools for anaysing and verifying agent services.
 
-## Analyse
+This command group consists of a number of functionalities to analyse and verify agent services, including {{fsm_app}} skill consistency checks. See the appropriate subcommands for more information.
 
 ```
-Usage: autonomy analyse [OPTIONS] COMMAND [ARGS]...
-
-  Analyse an agent service.
-
-Options:
-  --help  Show this message and exit.
-
 Commands:
   benchmarks  Benchmark aggregator.
   docstrings  Analyse ABCI docstring definitions.
@@ -17,45 +11,118 @@ Commands:
   logs        Parse logs of an agent service.
 ```
 
-**Check ABCI app docstrings**
+## `autonomy analyse docstrings `
 
+Analyse {{fsm_app}} skill docstring definitions.
+
+This command verifies that the [`AbciApp` class](../../key_concepts/abci_app_class.md) docstring is follows a standard format.
+
+??? example
+
+    The docstring corresponding to the [Hello World agent service](../../demos/hello_world_demo.md) is
+
+
+    ```python
+    """HelloWorldAbciApp
+
+    Initial round: RegistrationRound
+
+    Initial states: {RegistrationRound}
+
+    Transition states:
+        0. RegistrationRound
+            - done: 1.
+        1. CollectRandomnessRound
+            - done: 2.
+            - no majority: 1.
+            - round timeout: 1.
+        2. SelectKeeperRound
+            - done: 3.
+            - no majority: 0.
+            - round timeout: 0.
+        3. PrintMessageRound
+            - done: 4.
+            - round timeout: 0.
+        4. ResetAndPauseRound
+            - done: 1.
+            - no majority: 0.
+            - reset timeout: 0.
+
+    Final states: {}
+
+    Timeouts:
+        round timeout: 30.0
+        reset timeout: 30.0
+    """
+    ```
+
+### Usage
+```bash
+autonomy analyse docstrings [OPTIONS]
 ```
-Usage: autonomy analyse docstrings [OPTIONS]
 
-  Analyse ABCI docstring definitions.
+### Options
+`--update`
+:   Update docstrings if required.
 
-Options:
-  --update  Update docstrings if required.
-  --help    Show this message and exit.
+`--help`
+:   Show the help message and exit.
+
+### Examples
+To analyse all the {{fsm_app}} skill docstrings within the local registry, run the following command in the directory containing the registry:
+
+```bash
+autonomy analyse docstrings
 ```
 
-To analyse docstrings run the command in the directory containing the `packages/` folder
 
-```
-$ autonomy analyse docstrings
-```
-
-To update the docstrings, run the command with `--update` flag
-
-```
-$ autonomy analyse docstrings --update
+To update/fix the {{fsm_app}} skill docstrings, run the following command:
+```bash
+autonomy analyse docstrings --update
 ```
 
-**Analyse FSM specifications**
+## `autonomy analyse fsm-specs`
 
-```
+Generate ABCI app specs.
+
+```bash
 Usage: autonomy analyse fsm-specs [OPTIONS]
+```
 
-  Generate ABCI app specs.
+```
+--package PATH
+```
+:   
 
-Options:
-  --package PATH
-  --app-class TEXT
-  --update          Update FSM definition if check fails.
-  --mermaid         Mermaid file.
-  --yaml            Yaml file.
-  --json            Json file.
-  --help            Show this message and exit.
+```
+--app-class TEXT
+```
+:   
+
+```
+--update
+```
+:    Update FSM definition if check fails.
+
+```
+--mermaid
+```
+:    Mermaid file.
+
+```
+--yaml
+```
+:    Yaml file.
+
+```
+--json
+```
+:    Json file.
+
+```
+--help
+```
+:    Show this message and exit.
 ```
 
 Analyse specification for one skill package using
@@ -131,8 +198,8 @@ By default this will create a 4 agent runtime where you can wait until all 4 age
 Run deployment using
 
 ```
-$ cd abci_build/
-$ docker-compose up
+cd abci_build/
+docker-compose up
 ```
 
 You can use this tool to aggregate this data.
