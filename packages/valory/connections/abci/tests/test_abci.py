@@ -373,7 +373,7 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
         """Set up the test."""
 
         use_grpc = request.param
-        logging.info(f"Using gRPC: {use_grpc}")
+        logging.info(f"Tendermint abci connection using: {('TCP', 'gRPC')[use_grpc]}")
 
         self.agent_identity = Identity(
             "name", address=self.ADDRESS, public_key=self.PUBLIC_KEY
@@ -384,7 +384,7 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
             host=DEFAULT_LISTEN_ADDRESS,
             port=DEFAULT_ABCI_PORT,
             target_skill_id=self.TARGET_SKILL_ID,
-            use_tendermint=False,
+            use_tendermint=False,  # using docker image instead
             use_grpc=use_grpc,
         )
 
