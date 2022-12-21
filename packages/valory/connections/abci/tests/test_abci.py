@@ -344,8 +344,9 @@ class BaseABCITest:
 def start_tendermint_docker_image(use_grpc: bool) -> Container:
     """Start TendermintDockerImage"""
 
+    TendermintDockerImage.use_grpc = use_grpc
     client = docker.from_env()
-    image = TendermintDockerImage(client, use_grpc=use_grpc)
+    image = TendermintDockerImage(client)
     container = image.create()
     container.start()
     logging.info(f"Setting up image {image.image}...")
