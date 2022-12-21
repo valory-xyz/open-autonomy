@@ -31,8 +31,6 @@ from typing import Any, Dict, List, Optional
 
 
 _TCP = "tcp://"
-_GRPC = "grpc://"
-
 ENCODING = "utf-8"
 DEFAULT_P2P_LISTEN_ADDRESS = f"{_TCP}0.0.0.0:26656"
 DEFAULT_RPC_LISTEN_ADDRESS = f"{_TCP}0.0.0.0:26657"
@@ -82,9 +80,6 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         :param home: Tendermint's home directory.
         :param use_grpc: Whether to use a gRPC server, or TCP
         """
-
-        if use_grpc:
-            proxy_app = proxy_app.replace(_TCP, _GRPC)
 
         self.proxy_app = proxy_app
         self.rpc_laddr = rpc_laddr

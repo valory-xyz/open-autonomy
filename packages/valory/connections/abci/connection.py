@@ -90,8 +90,6 @@ PUBLIC_ID = PublicId.from_str("valory/abci:0.1.0")
 
 
 _TCP = "tcp://"
-_GRPC = "grpc://"
-
 ENCODING = "utf-8"
 LOCALHOST = "127.0.0.1"
 DEFAULT_ABCI_PORT = 26658
@@ -1090,9 +1088,6 @@ class TendermintParams:  # pylint: disable=too-few-public-methods  # pragma: no 
         :param use_grpc: Whether to use a gRPC server, or TCP
         """
 
-        if use_grpc:
-            proxy_app = proxy_app.replace(_TCP, _GRPC)
-
         self.proxy_app = proxy_app
         self.rpc_laddr = rpc_laddr
         self.p2p_laddr = p2p_laddr
@@ -1382,8 +1377,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         consensus_create_empty_blocks = cast(
             bool, tendermint_config.get("consensus_create_empty_blocks", True)
         )
-        netloc = f"{self.host}:{self.port}"
-        proxy_app = (_TCP, _GRPC)[self.use_grpc] + netloc
+        proxy_app = f"{_TCP}{self.host}:{self.port}"
         self.params = TendermintParams(
             proxy_app,
             rpc_laddr,
