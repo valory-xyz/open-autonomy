@@ -36,10 +36,9 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import docker
-from docker.models.containers import Container
 import pytest
-from _pytest.fixtures import SubRequest  # type: ignore
 import requests
+from _pytest.fixtures import SubRequest  # type: ignore
 from aea.configurations.base import ConnectionConfig
 from aea.connections.base import ConnectionStates
 from aea.identity.base import Identity
@@ -60,6 +59,7 @@ from aea_test_autonomy.helpers.async_utils import (
     BaseThreadedAsyncLoop,
     wait_for_condition,
 )
+from docker.models.containers import Container
 from hypothesis import database, given, settings
 from hypothesis.strategies import integers
 
@@ -345,7 +345,7 @@ def start_tendermint_docker_image(use_grpc: bool) -> Container:
     """Start TendermintDockerImage"""
 
     client = docker.from_env()
-    image = TendermintDockerImage(client, use_grpc=use_grpc)  # abci_host, abci_port, tendermint_port)
+    image = TendermintDockerImage(client, use_grpc=use_grpc)
     container = image.create()
     container.start()
     logging.info(f"Setting up image {image.image}...")
@@ -371,7 +371,7 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
     tendermint_port = DEFAULT_TENDERMINT_PORT  # noqa: F811
 
     @pytest.fixture(autouse=True, params=[False, True])
-    def setup_and_teardown(self, request: SubRequest) -> None:
+    def setup_and_teardown(self, request: SubRequest) -> Generator:
         """Set up the test."""
 
         use_grpc = request.param

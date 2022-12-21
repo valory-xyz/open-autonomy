@@ -24,17 +24,6 @@ def __init__(client: docker.DockerClient, abci_host: str = DEFAULT_ABCI_HOST, ab
 
 Initialize.
 
-<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.tendermint.TendermintDockerImage.proxy_app"></a>
-
-#### proxy`_`app
-
-```python
-@property
-def proxy_app() -> str
-```
-
-Proxy app
-
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.tendermint.TendermintDockerImage.image"></a>
 
 #### image
