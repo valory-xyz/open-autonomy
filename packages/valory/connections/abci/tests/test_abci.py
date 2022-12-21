@@ -340,11 +340,11 @@ class BaseABCITest:
         return ABCIAppTest(self.TARGET_SKILL_ID)  # type: ignore
 
 
-def start_tendermint_docker_image() -> None:
+def start_tendermint_docker_image(use_grpc: bool) -> None:
     """Start TendermintDockerImage"""
 
     client = docker.from_env()
-    image = TendermintDockerImage(client)  # abci_host, abci_port, tendermint_port)
+    image = TendermintDockerImage(client, use_grpc=use_grpc)  # abci_host, abci_port, tendermint_port)
     container = image.create()
     container.start()
     logging.info(f"Setting up image {image.image}...")
@@ -403,7 +403,7 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
         # connection must be established,
         # unlike TCP, only a single ECHO request is send with gRPC
         time.sleep(5)
-        start_tendermint_docker_image()
+        start_tendermint_docker_image(use_grpc=use_grpc)
 
         # wait until tendermint node synchronized with abci
         wait_for_condition(self.health_check, period=5, timeout=1000000)
