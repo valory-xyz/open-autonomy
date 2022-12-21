@@ -143,6 +143,7 @@ class BaseTendermintServerTest(BaseTendermintTest):
         super().setup_class()
         os.environ["PROXY_APP"] = "kvstore"
         os.environ["CREATE_EMPTY_BLOCKS"] = "true"
+        os.environ["USE_GRPC"] = "false"
         os.environ["LOG_FILE"] = str(cls.path / "tendermint.log")
         cls.dump_dir = Path(tempfile.mkdtemp())
         cls.app, cls.tendermint_node = create_app(
