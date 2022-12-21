@@ -136,7 +136,7 @@ class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
         """Process the end of the block."""
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
-                participants=self.collection.keys(),
+                participants=list(self.collection.keys()),
                 participant_to_selection=self.collection,
                 printed_messages=[
                     cast(PrintMessagePayload, payload).message
