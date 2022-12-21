@@ -38,6 +38,17 @@ of 'n' nodes, one for each agent.
 
 Test subclasses must set `agent_package`, `wait_to_finish` and `check_strings`.
 
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2End.setup_class"></a>
+
+#### setup`_`class
+
+```python
+@classmethod
+def setup_class(cls) -> None
+```
+
+Setup class
+
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2End.set_config"></a>
 
 #### set`_`config

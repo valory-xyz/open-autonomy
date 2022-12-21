@@ -31,7 +31,10 @@ from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany, Result
 from aea_test_autonomy.configurations import ANY_ADDRESS
 from aea_test_autonomy.docker.registries import SERVICE_REGISTRY
-from aea_test_autonomy.fixture_helpers import UseFlaskTendermintNode, FlaskTendermintDockerImage
+from aea_test_autonomy.fixture_helpers import (
+    FlaskTendermintDockerImage,
+    UseFlaskTendermintNode,
+)
 from web3 import Web3
 
 

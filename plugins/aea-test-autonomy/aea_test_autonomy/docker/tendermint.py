@@ -35,6 +35,7 @@ from aea_test_autonomy.docker.base import DockerImage
 from aea_test_autonomy.helpers.base import tendermint_health_check
 from docker.models.containers import Container
 
+
 _TCP = "tcp://"
 _HTTP = "http://"
 _LOCAL_ADDRESS = "0.0.0.0"  # nosec
@@ -240,7 +241,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
                 "CREATE_EMPTY_BLOCKS": "true",
                 "DEV_MODE": "1",
                 "LOG_FILE": f"/logs/{name}.txt",
-                "USE_GRPC": ("false", "true")[self.use_grpc]
+                "USE_GRPC": ("false", "true")[self.use_grpc],
             },
             working_dir="/tendermint",
             volumes=[
