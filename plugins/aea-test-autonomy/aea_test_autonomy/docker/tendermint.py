@@ -90,7 +90,11 @@ class TendermintDockerImage(DockerImage):
         """Build command."""
 
         abci = "grpc" if self.use_grpc else "socket"
-        cmd = ["node", f"--proxy_app={self.proxy_app}", f"--abci={abci}"]
+        cmd = [
+            "node",
+            f"--abci=grpc",
+            f"--proxy_app=tcp://127.0.0.1:26658",
+        ]
 
         return cmd
 
@@ -108,7 +112,7 @@ class TendermintDockerImage(DockerImage):
             self.image,
             command=cmd,
             detach=True,
-            ports=ports,
+            network="host",
             extra_hosts=extra_hosts_config,
         )
         return container

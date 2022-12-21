@@ -382,7 +382,7 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
             port=DEFAULT_ABCI_PORT,
             target_skill_id=self.TARGET_SKILL_ID,
             use_tendermint=False,
-            use_grpc=False,
+            use_grpc=True,
         )
 
         self.connection = ABCIServerConnection(
