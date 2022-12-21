@@ -195,7 +195,10 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             "round_timeout_seconds": 30.0,
             "service_id": service_id,
             "service_registry_address": None,
-            "setup": {},
+            "setup": {
+                "all_participants": [["0x0000000000000000000000000000000000000000"]],
+                "safe_contract_address": ["0x0000000000000000000000000000000000000000"],
+            },
             "sleep_time": 1,
             "tendermint_check_sleep_delay": 3,
             "tendermint_com_url": "http://localhost:8080",
