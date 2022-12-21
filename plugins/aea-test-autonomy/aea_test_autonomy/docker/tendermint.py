@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
-
+import logging
 import os
 import subprocess  # nosec
 import time
@@ -34,7 +34,6 @@ from aea_test_autonomy.configurations import (
 from aea_test_autonomy.docker.base import DockerImage
 from aea_test_autonomy.helpers.base import tendermint_health_check
 from docker.models.containers import Container
-
 
 _TCP = "tcp://"
 _HTTP = "http://"
@@ -54,6 +53,8 @@ _SLEEP_TIME = 1
 class TendermintDockerImage(DockerImage):
     """Tendermint Docker image."""
 
+    use_grpc: bool = False
+
     def __init__(  # pylint: disable=too-many-arguments
         self,
         client: docker.DockerClient,
@@ -62,7 +63,6 @@ class TendermintDockerImage(DockerImage):
         port: int = DEFAULT_TENDERMINT_PORT,
         p2p_port: int = DEFAULT_P2P_PORT,
         com_port: int = DEFAULT_TENDERMINT_COM_PORT,
-        use_grpc: bool = False,
     ):
         """Initialize."""
         super().__init__(client)
@@ -71,7 +71,6 @@ class TendermintDockerImage(DockerImage):
         self.port = port
         self.p2p_port = p2p_port
         self.com_port = com_port
-        self.use_grpc = use_grpc
         self.proxy_app = f"{_TCP}{self.abci_host}:{self.abci_port}"
 
     @property
@@ -84,6 +83,7 @@ class TendermintDockerImage(DockerImage):
 
         abci = "grpc" if self.use_grpc else "socket"
         cmd = ["node", f"--abci={abci}", f"--proxy_app={self.proxy_app}"]
+        logging.info(f"TendermintDockerImage: {cmd}")
 
         return cmd
 
@@ -132,12 +132,9 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         port: int = DEFAULT_TENDERMINT_PORT,
         p2p_port: int = DEFAULT_P2P_PORT,
         com_port: int = DEFAULT_TENDERMINT_COM_PORT + 2,
-        use_grpc: bool = False,
     ):
         """Initialize."""
-        super().__init__(
-            client, abci_host, abci_port, port, p2p_port, com_port, use_grpc
-        )
+        super().__init__(client, abci_host, abci_port, port, p2p_port, com_port)
 
     @property
     def image(self) -> str:
@@ -243,6 +240,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
                 "CREATE_EMPTY_BLOCKS": "true",
                 "DEV_MODE": "1",
                 "LOG_FILE": f"/logs/{name}.txt",
+                "USE_GRPC": ("false", "true")[self.use_grpc]
             },
             working_dir="/tendermint",
             volumes=[
