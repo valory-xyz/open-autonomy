@@ -139,7 +139,8 @@ class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
                 participants=self.collection.keys(),
                 participant_to_selection=self.collection,
                 printed_messages=[
-                    payload.message for payload in self.collection.values()
+                    payload.message
+                    for payload in cast(SynchronizedData, self.collection).values()
                 ],
                 synchronized_data_class=SynchronizedData,
             )
