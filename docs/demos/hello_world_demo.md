@@ -346,7 +346,7 @@ Let's look how each of these objects are implemented. If you have fetched the He
 
   ```python
   class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
-      """A round in which the agents get registered"""
+      """A round in which the keeper prints the message"""
 
       allowed_tx_type = PrintMessagePayload.transaction_type
       payload_attribute = get_name(PrintMessagePayload.message)
@@ -355,8 +355,12 @@ Let's look how each of these objects are implemented. If you have fetched the He
           """Process the end of the block."""
           if self.collection_threshold_reached:
               synchronized_data = self.synchronized_data.update(
-                  participants=self.collection,
-                  all_participants=self.collection,
+                  participants=self.collection.keys(),
+                  participant_to_selection=self.collection,
+                  printed_messages=[
+                      cast(PrintMessagePayload, payload).message
+                      for payload in self.collection.values()
+                  ],
                   synchronized_data_class=SynchronizedData,
               )
               return synchronized_data, Event.DONE
