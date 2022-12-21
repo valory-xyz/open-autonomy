@@ -791,6 +791,17 @@ def round_count() -> int
 
 Get the round count.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.round_count"></a>
+
+#### round`_`count
+
+```python
+@round_count.setter
+def round_count(round_count: int) -> None
+```
+
+Set the round count.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.cross_period_persisted_keys"></a>
 
 #### cross`_`period`_`persisted`_`keys
@@ -2123,6 +2134,26 @@ def setup() -> None
 
 Set up the behaviour.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.schedule_round"></a>
+
+#### schedule`_`round
+
+```python
+def schedule_round(round_cls: AppState) -> None
+```
+
+Schedule a round class.
+
+this means:
+- cancel timeout events belonging to the current round;
+- instantiate the new round class and set it as current round;
+- create new timeout events and schedule them according to the latest
+timestamp.
+
+**Arguments**:
+
+- `round_cls`: the class of the new round.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.current_round"></a>
 
 #### current`_`round
@@ -2688,4 +2719,22 @@ Reset blockchain after tendermint reset.
 
 - `is_replay`: whether we are resetting the blockchain while replaying blocks.
 - `is_init`: whether to process blocks before receiving an init_chain req from tendermint.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.reset_state"></a>
+
+#### reset`_`state
+
+```python
+def reset_state(restart_from_round: AppState, round_count: int, reset_index: int) -> None
+```
+
+This method resets the state of RoundSequence to the begging of the period.
+
+Note: This is intended to be used only for agent <-> tendermint communication recovery only!
+
+**Arguments**:
+
+- `restart_from_round`: from which round to restart the abci. This round should be the first round in the last period.
+- `round_count`: the round count at the beginning of the period -1.
+- `reset_index`: the reset index (a.k.a. period count) -1.
 

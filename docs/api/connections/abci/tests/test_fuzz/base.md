@@ -14,24 +14,24 @@ class BaseFuzzyTests(AEATestCaseMany)
 
 Base class for the Fuzzy Tests
 
-<a id="packages.valory.connections.abci.tests.test_fuzz.base.BaseFuzzyTests.setUpClass"></a>
+<a id="packages.valory.connections.abci.tests.test_fuzz.base.BaseFuzzyTests.setup_class"></a>
 
-#### setUpClass
+#### setup`_`class
 
 ```python
 @classmethod
-def setUpClass(cls) -> None
+def setup_class(cls) -> None
 ```
 
 Sets up the environment for the tests.
 
-<a id="packages.valory.connections.abci.tests.test_fuzz.base.BaseFuzzyTests.tearDownClass"></a>
+<a id="packages.valory.connections.abci.tests.test_fuzz.base.BaseFuzzyTests.teardown_class"></a>
 
-#### tearDownClass
+#### teardown`_`class
 
 ```python
 @classmethod
-def tearDownClass(cls) -> None
+def teardown_class(cls) -> None
 ```
 
 Tear down the testing environment.

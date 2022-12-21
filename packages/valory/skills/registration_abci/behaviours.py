@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abci' skill."""
-
+import datetime
 import json
 from enum import Enum
 from typing import Any, Dict, Generator, Optional, Set, Type, cast
@@ -32,11 +32,15 @@ from packages.valory.contracts.service_registry.contract import ServiceRegistryC
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.tendermint import TendermintMessage
+from packages.valory.skills.abstract_round_abci.base import ABCIAppInternalError
+from packages.valory.skills.abstract_round_abci.behaviour_utils import TimeoutException
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
+from packages.valory.skills.abstract_round_abci.utils import parse_tendermint_p2p_url
 from packages.valory.skills.registration_abci.dialogues import TendermintDialogues
+from packages.valory.skills.registration_abci.models import SharedState
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
@@ -45,7 +49,8 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 
-NODE = "node{i}"
+NODE = "node_{address}"
+WAIT_FOR_BLOCK_TIMEOUT = 60.0  # 1 minute
 
 
 class RegistrationBaseBehaviour(BaseBehaviour):
@@ -237,10 +242,15 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         # put service info in the shared state for p2p message handler
         info: Dict[str, Dict[str, str]] = dict.fromkeys(registered_addresses)
+        tm_host, tm_port = parse_tendermint_p2p_url(
+            url=self.context.params.tendermint_p2p_url
+        )
         validator_config = dict(
-            tendermint_url=self.context.params.tendermint_url,
+            hostname=tm_host,
+            p2p_port=tm_port,
             address=self.local_tendermint_params["address"],
             pub_key=self.local_tendermint_params["pub_key"],
+            peer_id=self.local_tendermint_params["peer_id"],
         )
         info[self.context.agent_address] = validator_config
         self.synchronized_data.db.update(registered_addresses=info)
@@ -297,12 +307,15 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Format collected agent info for genesis update"""
 
         validators = []
-        for i, validator_config in enumerate(collected_agent_info.values()):
+        for address, validator_config in collected_agent_info.items():
             validator = dict(
+                hostname=validator_config["hostname"],
+                p2p_port=validator_config["p2p_port"],
                 address=validator_config["address"],
                 pub_key=validator_config["pub_key"],
+                peer_id=validator_config["peer_id"],
                 power=self.params.voting_power,
-                name=NODE.format(i=i),
+                name=NODE.format(address=address[2:]),  # skip 0x part
             )
             validators.append(validator)
 
@@ -333,7 +346,36 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.updated_genesis_data.update(genesis_data)
         return True
 
-    def async_act(self) -> Generator:
+    def wait_for_block(self, timeout: float) -> Generator[None, None, bool]:
+        """Wait for a block to be received in the specified timeout."""
+        # every agent will finish with the reset at a different time
+        # hence the following will be different for all agents
+        start_time = datetime.datetime.now()
+
+        def received_block() -> bool:
+            """Check whether we have received a block after "start_time"."""
+            try:
+                shared_state = cast(SharedState, self.context.state)
+                last_timestamp = shared_state.round_sequence.last_timestamp
+                if last_timestamp > start_time:
+                    return True
+                return False
+            except ABCIAppInternalError:
+                # this can happen if we haven't received a block yet
+                return False
+
+        try:
+            yield from self.wait_for_condition(
+                condition=received_block, timeout=timeout
+            )
+            # if the `wait_for_condition` finish without an exception,
+            # it means that the condition has been satisfied on time
+            return True
+        except TimeoutException:
+            # the agent wasn't able to receive blocks in the given amount of time (timeout)
+            return False
+
+    def async_act(self) -> Generator:  # pylint: disable=too-many-return-statements
         """
         Do the action.
 
@@ -389,6 +431,15 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         # restart Tendermint with updated configuration
         successful = yield from self.reset_tendermint_with_wait(on_startup=True)
+        if not successful:
+            yield from self.sleep(self.params.sleep_time)
+            return
+
+        # the reset has gone through, and at this point tendermint should start
+        # sending blocks to the agent. However, that might take a while, since
+        # we rely on 2/3 of the voting power to be active in order for block production
+        # to begin. In other words, we wait for >=2/3 of the agents to become active.
+        successful = yield from self.wait_for_block(timeout=WAIT_FOR_BLOCK_TIMEOUT)
         if not successful:
             yield from self.sleep(self.params.sleep_time)
             return

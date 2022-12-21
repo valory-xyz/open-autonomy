@@ -67,6 +67,7 @@ OK_CODE = 0
 ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 ROUND_COUNT_DEFAULT = -1
+RESET_INDEX_DEFAULT = -1
 MIN_HISTORY_DEPTH = 1
 ADDRESS_LENGTH = 42
 MAX_INT_256 = 2 ** 256 - 1
@@ -643,6 +644,11 @@ class AbciAppDB:
         """Get the round count."""
         return self._round_count
 
+    @round_count.setter
+    def round_count(self, round_count: int) -> None:
+        """Set the round count."""
+        self._round_count = round_count
+
     @property
     def cross_period_persisted_keys(self) -> List[str]:
         """Keys in the database which are persistent across periods."""
@@ -737,7 +743,13 @@ class BaseSynchronizedData:
     """
 
     # Keys always set by default
-    # TODO: round_count and period_count need to be guaranteed to be synchronized too.
+    # `round_count` and `period_count` need to be guaranteed to be synchronized too:
+    #
+    # * `round_count` is only incremented when scheduling a new round,
+    #    which is by definition always a synchronized action.
+    # * `period_count` comes from the `reset_index` which is the last key of the `self._data`.
+    #    The `self._data` keys are only updated on create, and cleanup operations,
+    #    which are also meant to be synchronized since they are used at the rounds.
     default_db_keys: List[str] = [
         "round_count",
         "period_count",
@@ -926,10 +938,6 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
     def _check_class_attributes(self) -> None:
         """Check that required class attributes are set."""
-        try:
-            self.round_id
-        except AttributeError as exc:
-            raise ABCIAppInternalError("'round_id' field not set") from exc
         try:
             self.allowed_tx_type
         except AttributeError as exc:
@@ -1624,7 +1632,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
             )
             and self.block_confirmations > self.required_block_confirmations
         ):
-            return self.synchronized_data, self.no_majority_event
+            return self.synchronized_data, self.no_majority_event  # pragma: no cover
         return None
 
 
@@ -2110,7 +2118,7 @@ class AbciApp(
 
     def setup(self) -> None:
         """Set up the behaviour."""
-        self._schedule_round(self.initial_round_cls)
+        self.schedule_round(self.initial_round_cls)
         if self.is_termination_set:
             self.background_round_cls = cast(AppState, self.background_round_cls)
             self._background_round = self.background_round_cls(
@@ -2135,7 +2143,7 @@ class AbciApp(
         self._previous_rounds.append(self.current_round)
         self._current_round_height += 1
 
-    def _schedule_round(self, round_cls: AppState) -> None:
+    def schedule_round(self, round_cls: AppState) -> None:
         """
         Schedule a round class.
 
@@ -2238,7 +2246,7 @@ class AbciApp(
         """Returns the allowed transaction type for background round."""
         if self.is_termination_set:
             return cast(AppState, self.background_round_cls).allowed_tx_type
-        return None
+        return None  # pragma: no cover
 
     def check_transaction(self, transaction: Transaction) -> None:
         """
@@ -2320,7 +2328,7 @@ class AbciApp(
 
         self._log_end(event)
         if next_round_cls is not None:
-            self._schedule_round(next_round_cls)
+            self.schedule_round(next_round_cls)
         else:
             self.logger.warning("AbciApp has reached a dead end.")
             self._current_round_cls = None
@@ -2794,3 +2802,31 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"
         )
         self.abci_app.process_event(event, result=round_result)
+
+    def _reset_to_default_params(self) -> None:
+        """Resets the instance params to their default value."""
+        self._last_round_transition_timestamp = None
+        self._last_round_transition_height = 0
+        self._last_round_transition_root_hash = b""
+        self._last_round_transition_tm_height = None
+        self._tm_height = None
+
+    def reset_state(
+        self,
+        restart_from_round: AppState,
+        round_count: int,
+        reset_index: int,
+    ) -> None:
+        """
+        This method resets the state of RoundSequence to the begging of the period.
+
+        Note: This is intended to be used only for agent <-> tendermint communication recovery only!
+
+        :param restart_from_round: from which round to restart the abci. This round should be the first round in the last period.
+        :param round_count: the round count at the beginning of the period -1.
+        :param reset_index: the reset index (a.k.a. period count) -1.
+        """
+        self._reset_to_default_params()
+        self.abci_app.synchronized_data.db.round_count = round_count
+        self.abci_app.reset_index = reset_index
+        self.abci_app.schedule_round(restart_from_round)

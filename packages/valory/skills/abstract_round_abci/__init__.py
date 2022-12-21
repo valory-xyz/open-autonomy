@@ -17,14 +17,14 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains an abstract round ABCI skill template for an AEA."""
+"""This module contains an abstract round ABCI skill template for an AEA."""  # pragma: nocover
 
-from aea.configurations.base import PublicId
-from hypothesis import settings
+from aea.configurations.base import PublicId  # pragma: nocover
+from hypothesis import settings  # pragma: nocover
 
 
 PUBLIC_ID = PublicId.from_str("valory/abstract_round_abci:0.1.0")
-CI = "CI"
+CI = "CI"  # pragma: nocover
 
 
-settings.register_profile(CI, deadline=5000)
+settings.register_profile(CI, deadline=5000)  # pragma: nocover

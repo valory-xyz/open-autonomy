@@ -22,6 +22,7 @@
 # pylint: skip-file
 
 import collections
+import datetime
 import json
 import logging
 import time
@@ -30,6 +31,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, cast
 from unittest import mock
 from unittest.mock import MagicMock
+from urllib.parse import urlparse
 
 import pytest
 from _pytest.logging import LogCaptureFixture
@@ -40,6 +42,7 @@ from packages.valory.protocols.tendermint.message import TendermintMessage
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviour,
+    TimeoutException,
     make_degenerate_behaviour,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
@@ -51,6 +54,7 @@ from packages.valory.skills.registration_abci.behaviours import (
     RegistrationBehaviour,
     RegistrationStartupBehaviour,
 )
+from packages.valory.skills.registration_abci.models import SharedState
 from packages.valory.skills.registration_abci.rounds import (
     BaseSynchronizedData as RegistrationSynchronizedData,
 )
@@ -66,14 +70,16 @@ PACKAGE_DIR = Path(__file__).parent.parent
 SERVICE_REGISTRY_ADDRESS = "0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"
 CONTRACT_ID = str(ServiceRegistryContract.contract_id)
 ON_CHAIN_SERVICE_ID = 42
-DUMMY_ADDRESS = "http://0.0.0.0:25567"
+DUMMY_ADDRESS = "localhost"
 DUMMY_VALIDATOR_CONFIG = {
-    "tendermint_url": DUMMY_ADDRESS,
+    "hostname": DUMMY_ADDRESS,
     "address": "address",
     "pub_key": {
         "type": "tendermint/PubKeyEd25519",
         "value": "7y7ycBMMABj5Onf74ITYtUS3uZ6SsCQKZML87mIX",
     },
+    "peer_id": "peer_id",
+    "p2p_port": 80,
 }
 
 
@@ -165,6 +171,8 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     )
 
     other_agents: List[str] = ["0xAlice", "0xBob", "0xCharlie"]
+    _time_in_future = datetime.datetime.now() + datetime.timedelta(hours=10)
+    _time_in_past = datetime.datetime.now() - datetime.timedelta(hours=10)
 
     def setup(self, **kwargs: Any) -> None:  # type: ignore
         """Setup"""
@@ -204,6 +212,27 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.state.params,
             "on_chain_service_id",
             return_value=ON_CHAIN_SERVICE_ID,
+        )
+
+    def mocked_wait_for_condition(self, should_timeout: bool) -> mock._patch:
+        """Mock BaseBehaviour.wait_for_condition"""
+
+        def dummy_wait_for_condition(
+            condition: Callable[[], bool], timeout: Optional[float] = None
+        ) -> Generator[None, None, None]:
+            """A mock implementation of BaseBehaviour.wait_for_condition"""
+            # call the condition
+            condition()
+            if should_timeout:
+                # raise in case required
+                raise TimeoutException()
+            return
+            yield
+
+        return mock.patch.object(
+            self.behaviour.current_behaviour,
+            "wait_for_condition",
+            side_effect=dummy_wait_for_condition,
         )
 
     @property
@@ -325,6 +354,14 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         )
         response_kwargs = dict(status_code=200, body=body)
         self.mock_http_request(request_kwargs, response_kwargs)
+
+    def set_last_timestamp(self, last_timestamp: Optional[datetime.datetime]) -> None:
+        """Set last timestamp"""
+        if last_timestamp is not None:
+            state = cast(SharedState, self._skill.skill_context.state)
+            state.round_sequence.blockchain._blocks.append(
+                MagicMock(timestamp=last_timestamp)
+            )
 
     @staticmethod
     def dummy_reset_tendermint_with_wait_wrapper(
@@ -450,7 +487,10 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
 
             assert set(self.state.registered_addresses) == set(self.agent_instances)
             my_info = self.state.registered_addresses[self.state.context.agent_address]
-            assert my_info["tendermint_url"] == self.state.context.params.tendermint_url
+            assert (
+                my_info["hostname"]
+                == urlparse(self.state.context.params.tendermint_url).hostname
+            )
             assert not any(map(self.state.registered_addresses.get, self.other_agents))
             log_message = self.state.LogMessages.response_service_info
             assert log_message.value in caplog.text
@@ -497,16 +537,35 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mock_tendermint_update(valid_response)
             assert log_message.value in caplog.text
 
-    @pytest.mark.parametrize("valid_response", [True, False])
+    @pytest.mark.parametrize(
+        "valid_response, last_timestamp, timeout",
+        [
+            (True, _time_in_past, False),
+            (False, _time_in_past, False),
+            (True, _time_in_future, False),
+            (False, _time_in_future, False),
+            (True, None, False),
+            (False, None, False),
+            (True, None, True),
+            (False, None, True),
+        ],
+    )
     def test_request_restart(
-        self, valid_response: bool, caplog: LogCaptureFixture
+        self,
+        valid_response: bool,
+        last_timestamp: Optional[datetime.datetime],
+        timeout: bool,
+        caplog: LogCaptureFixture,
     ) -> None:
         """Test Tendermint start"""
         self.state.updated_genesis_data = {}
+        self.set_last_timestamp(last_timestamp)
         with as_context(
             caplog.at_level(logging.INFO, logger=self.logger),
             self.mocked_service_registry_address,
             self.mocked_on_chain_service_id,
+            self.mocked_wait_for_condition(timeout),
+            self.mocked_yield_from_sleep,
             mock.patch.object(
                 self.behaviour.current_behaviour,
                 "reset_tendermint_with_wait",

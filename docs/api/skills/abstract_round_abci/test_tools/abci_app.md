@@ -104,16 +104,6 @@ class ConcreteTerminationRoundA(_ConcreteRound)
 
 Dummy instantiation of the AbstractRound class.
 
-<a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.ConcreteTerminationRoundA.end_block"></a>
-
-#### end`_`block
-
-```python
-def end_block() -> Tuple[MagicMock, MagicMock]
-```
-
-End block.
-
 <a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.ConcreteTerminationRoundB"></a>
 
 ## ConcreteTerminationRoundB Objects

@@ -414,7 +414,7 @@ class TestAbciAppChaining:
         app2_classes = self.app2_class.get_all_rounds()
         for r in sorted(abci_app.get_all_rounds(), key=str):
             abci_app._round_results.append(abci_app.synchronized_data)
-            abci_app._schedule_round(make_concrete(r))
+            abci_app.schedule_round(make_concrete(r))
             expected_cls = (sync_data_cls_app1, sync_data_cls_app2)[r in app2_classes]
             assert isinstance(abci_app.synchronized_data, expected_cls)
             expected_sentinel = (sentinel_app1, sentinel_app2)[r in app2_classes]

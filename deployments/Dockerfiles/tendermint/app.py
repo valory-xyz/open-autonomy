@@ -21,11 +21,12 @@
 import json
 import logging
 import os
+import re
 import shutil
 import stat
 import traceback
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 
 import requests
 from flask import Flask, Response, jsonify, request
@@ -45,6 +46,8 @@ CONFIG_OVERRIDE = [
     ("max_num_outbound_peers = 10", "max_num_outbound_peers = 0"),
     ("pex = true", "pex = false"),
 ]
+DOCKER_INTERNAL_HOST = "host.docker.internal"
+TM_STATUS_ENDPOINT = "http://localhost:26657/status"
 
 logging.basicConfig(
     filename=os.environ.get("LOG_FILE", DEFAULT_LOG_FILE),
@@ -72,6 +75,7 @@ def override_config_toml() -> None:
     """Update sync method."""
 
     config_path = str(Path(os.environ["TMHOME"]) / "config" / "config.toml")
+    logging.info(config_path)
     with open(config_path, "r", encoding=ENCODING) as fp:
         config = fp.read()
 
@@ -80,6 +84,52 @@ def override_config_toml() -> None:
 
     with open(config_path, "w+", encoding=ENCODING) as fp:
         fp.write(config)
+
+
+def update_peers(validators: List[Dict], config_path: Path) -> None:
+    """Fix peers."""
+
+    config_text = config_path.read_text(encoding="utf-8")
+
+    new_peer_string = 'persistent_peers = "'
+    for peer in validators:
+        hostname = peer["hostname"]
+        if hostname in ("localhost", "0.0.0.0"):
+            # This (tendermint) node will be running in a docker container and no other node
+            # will be running in the same container. If we receive either localhost or 0.0.0.0,
+            # we make an assumption that the address belongs to a node running on the
+            # same machine with a different docker container and different p2p port so,
+            # we replace the hostname with the docker's internal host url.
+            hostname = DOCKER_INTERNAL_HOST
+        new_peer_string += (
+            peer["peer_id"] + "@" + hostname + ":" + str(peer["p2p_port"]) + ","
+        )
+    new_peer_string = new_peer_string[:-1] + '"\n'
+
+    updated_config = re.sub('persistent_peers = ".*\n', new_peer_string, config_text)
+    config_path.write_text(updated_config, encoding="utf-8")
+
+
+def update_genesis_config(data: Dict) -> None:
+    """Update genesis.json file for the tendermint node."""
+
+    genesis_file = Path(os.environ["TMHOME"]) / "config" / "genesis.json"
+    genesis_data = {}
+    genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]
+    genesis_data["chain_id"] = data["genesis_config"]["chain_id"]
+    genesis_data["initial_height"] = "0"
+    genesis_data["consensus_params"] = data["genesis_config"]["consensus_params"]
+    genesis_data["validators"] = [
+        {
+            "address": validator["address"],
+            "pub_key": validator["pub_key"],
+            "power": validator["power"],
+            "name": validator["name"],
+        }
+        for validator in data["validators"]
+    ]
+    genesis_data["app_hash"] = ""
+    genesis_file.write_text(json.dumps(genesis_data, indent=2), encoding=ENCODING)
 
 
 class PeriodDumper:
@@ -134,7 +184,6 @@ def create_app(
 ) -> Tuple[Flask, TendermintNode]:
     """Create the Tendermint server app"""
 
-    override_config_toml()
     tendermint_params = TendermintParams(
         proxy_app=os.environ["PROXY_APP"],
         consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
@@ -143,8 +192,11 @@ def create_app(
 
     app = Flask(__name__)
     period_dumper = PeriodDumper(logger=app.logger, dump_dir=dump_dir)
-
     tendermint_node = TendermintNode(tendermint_params, logger=app.logger)
+    tendermint_node.init()
+
+    override_config_toml()
+
     tendermint_node.start(start_monitoring=perform_monitoring, debug=debug)
 
     @app.get("/params")
@@ -156,7 +208,13 @@ def create_app(
             )
             priv_key_data = json.loads(priv_key_file.read_text(encoding=ENCODING))
             del priv_key_data["priv_key"]
-            return {"params": priv_key_data, "status": True, "error": None}
+            status = requests.get(TM_STATUS_ENDPOINT).json()
+            priv_key_data["peer_id"] = status["result"]["node_info"]["id"]
+            return {
+                "params": priv_key_data,
+                "status": True,
+                "error": None,
+            }
         except (FileNotFoundError, json.JSONDecodeError):
             return {"params": {}, "status": False, "error": traceback.format_exc()}
 
@@ -165,27 +223,22 @@ def create_app(
         """Update validator params."""
 
         try:
-            data: Any = json.loads(request.get_data().decode(ENCODING))
-            genesis_file = Path(os.environ["TMHOME"]) / "config" / "genesis.json"
-            genesis_data = {}
-            genesis_data["genesis_time"] = data["genesis_config"]["genesis_time"]
-            genesis_data["chain_id"] = data["genesis_config"]["chain_id"]
-            genesis_data["initial_height"] = "0"
-            genesis_data["consensus_params"] = data["genesis_config"][
-                "consensus_params"
-            ]
-            genesis_data["validators"] = [
-                {
-                    "address": validator["address"],
-                    "pub_key": validator["pub_key"],
-                    "power": validator["power"],
-                    "name": validator["name"],
-                }
-                for validator in data["validators"]
-            ]
-            genesis_data["app_hash"] = ""
-            genesis_file.write_text(
-                json.dumps(genesis_data, indent=2), encoding=ENCODING
+            data: Dict = json.loads(request.get_data().decode(ENCODING))
+            cast(logging.Logger, app.logger).debug(  # pylint: disable=no-member
+                f"Data update requested with data={data}"
+            )
+
+            cast(logging.Logger, app.logger).info(  # pylint: disable=no-member
+                "Updating genesis config."
+            )
+            update_genesis_config(data=data)
+
+            cast(logging.Logger, app.logger).info(  # pylint: disable=no-member
+                "Updating peristent peers."
+            )
+            update_peers(
+                validators=data["validators"],
+                config_path=Path(os.environ["TMHOME"]) / "config" / "config.toml",
             )
 
             return {"status": True, "error": None}
@@ -245,13 +298,13 @@ def create_app(
     @app.errorhandler(404)  # type: ignore
     def handle_notfound(e: NotFound) -> Response:
         """Handle server error."""
-        app.logger.info(e)  # pylint: disable=E
+        cast(logging.Logger, app.logger).info(e)  # pylint: disable=E
         return Response("Not Found", status=404, mimetype="application/json")
 
     @app.errorhandler(500)  # type: ignore
     def handle_server_error(e: InternalServerError) -> Response:
         """Handle server error."""
-        app.logger.info(e)  # pylint: disable=E
+        cast(logging.Logger, app.logger).info(e)  # pylint: disable=E
         return Response("Error Closing Node", status=500, mimetype="application/json")
 
     return app, tendermint_node
