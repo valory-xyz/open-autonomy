@@ -29,14 +29,12 @@ from packages.valory.skills.register_reset_recovery_abci.rounds import (
 )
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
-    FinishedRegistrationFFWRound,
     FinishedRegistrationRound,
 )
 
 
 abci_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: RoundCountRound,
-    FinishedRegistrationFFWRound: RoundCountRound,
 }
 
 RegisterResetRecoveryAbciApp = chain(

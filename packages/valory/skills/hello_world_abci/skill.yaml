@@ -14,7 +14,7 @@ fingerprint:
   handlers.py: bafybeib77umr3prpvc6i6ukdr7xmsoge6gpsfjwpwhiddzjh5bwwpg44mi
   models.py: bafybeiaistd5v6oyiovq7lha6rlpxgcxbmhf6q4nn5lmpluayn3xyqoqfi
   payloads.py: bafybeihpff5dpq3muh46h6icxl5c2f37jnnaox6hop3orpkh5jyzy34cqi
-  rounds.py: bafybeictyzyiz7zddzcryhpbvwjdcqm3iqh4atdciwzt6s35khy6uzefh4
+  rounds.py: bafybeicnrauhao7oqihv2i6xtkangzhld6dflmziphskpjjlpczttxl4ki
   tests/__init__.py: bafybeibpuwe63mjjwnaanx7wdw63reh6qa5xdtjxdf75o3nksvjercte4y
   tests/test_behaviours.py: bafybeiebefu463c5cxe64lrbq46d6igamv4jdzmctrveess7ezr4vhh4kq
   tests/test_dialogues.py: bafybeiarl4wsnljaxkgxdwr47xd4xjjjtkfgqbtazt2v2oem47alhaykj4
@@ -30,7 +30,7 @@ protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeibyn72ayqh7boppa27paem7x6mmhqnabsfjfhrd7hrixfwblywlwi
+- valory/abstract_round_abci:0.1.0:bafybeih62cwullzkc2cr6cfubepgmf6rdprcijjini66f4zzluqpde62x4
 behaviours:
   main:
     args: {}
@@ -91,7 +91,11 @@ models:
       round_timeout_seconds: 30.0
       service_id: hello_world_abci
       service_registry_address: null
-      setup: {}
+      setup:
+        all_participants:
+        - - '0x0000000000000000000000000000000000000000'
+        safe_contract_address:
+        - '0x0000000000000000000000000000000000000000'
       share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 3
