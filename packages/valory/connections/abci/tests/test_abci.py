@@ -36,6 +36,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import docker
+from docker.models.containers import Container
 import pytest
 from _pytest.fixtures import SubRequest  # type: ignore
 import requests
@@ -340,7 +341,7 @@ class BaseABCITest:
         return ABCIAppTest(self.TARGET_SKILL_ID)  # type: ignore
 
 
-def start_tendermint_docker_image(use_grpc: bool) -> None:
+def start_tendermint_docker_image(use_grpc: bool) -> Container:
     """Start TendermintDockerImage"""
 
     client = docker.from_env()
@@ -350,6 +351,7 @@ def start_tendermint_docker_image(use_grpc: bool) -> None:
     logging.info(f"Setting up image {image.image}...")
     success = image.wait()
     logging.info(f"TendermintDockerImage running: {success}...")
+    return container
 
 
 @pytest.mark.integration
@@ -403,7 +405,7 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
         # connection must be established,
         # unlike TCP, only a single ECHO request is send with gRPC
         time.sleep(5)
-        start_tendermint_docker_image(use_grpc=use_grpc)
+        container = start_tendermint_docker_image(use_grpc=use_grpc)
 
         # wait until tendermint node synchronized with abci
         wait_for_condition(self.health_check, period=5, timeout=1000000)
@@ -414,6 +416,8 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
         self.stopped = True
         self.receiving_task.cancel()
         self.execute(self.connection.disconnect())
+        container.stop()
+        container.remove()
 
     @abstractmethod
     def make_app(self) -> Any:
