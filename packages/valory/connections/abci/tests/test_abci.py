@@ -37,6 +37,7 @@ from unittest.mock import MagicMock
 
 import docker
 import pytest
+from _pytest.fixtures import SubRequest  # type: ignore
 import requests
 from aea.configurations.base import ConnectionConfig
 from aea.connections.base import ConnectionStates
@@ -367,10 +368,12 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
     PUBLIC_KEY = "agent_public_key"
     tendermint_port = DEFAULT_TENDERMINT_PORT  # noqa: F811
 
-    def setup(self) -> None:
+    @pytest.fixture(autouse=True, params=[False, True])
+    def setup_and_teardown(self, request: SubRequest) -> None:
         """Set up the test."""
 
-        super().setup()
+        use_grpc = request.param
+        logging.info(f"Using gRPC: {use_grpc}")
 
         self.agent_identity = Identity(
             "name", address=self.ADDRESS, public_key=self.PUBLIC_KEY
@@ -382,7 +385,7 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
             port=DEFAULT_ABCI_PORT,
             target_skill_id=self.TARGET_SKILL_ID,
             use_tendermint=False,
-            use_grpc=True,
+            use_grpc=use_grpc,
         )
 
         self.connection = ABCIServerConnection(
@@ -405,6 +408,13 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
         # wait until tendermint node synchronized with abci
         wait_for_condition(self.health_check, period=5, timeout=1000000)
 
+        yield  # execute test
+
+        # teardown
+        self.stopped = True
+        self.receiving_task.cancel()
+        self.execute(self.connection.disconnect())
+
     @abstractmethod
     def make_app(self) -> Any:
         """Make an ABCI app."""
@@ -423,13 +433,6 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
     def tendermint_url(self) -> str:
         """Get the current Tendermint URL."""
         return f"{HTTP_LOCALHOST}:{self.tendermint_port}"
-
-    def teardown(self) -> None:
-        """Tear down the test."""
-        self.stopped = True
-        self.receiving_task.cancel()
-        self.execute(self.connection.disconnect())
-        super().teardown()
 
     async def process_incoming_messages(self) -> None:
         """Receive requests and send responses from/to the Tendermint node"""
