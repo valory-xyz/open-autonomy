@@ -89,11 +89,6 @@ class SynchronizedData(
     """
 
     @property
-    def safe_contract_address(self) -> str:
-        """Get the safe contract address."""
-        return cast(str, self.db.get_strict("safe_contract_address"))
-
-    @property
     def participant_to_signature(self) -> Mapping[str, SignaturePayload]:
         """Get the participant_to_signature."""
         return cast(
@@ -713,7 +708,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     }
     db_pre_conditions: Dict[AppState, List[str]] = {
         RandomnessTransactionSubmissionRound: [
-            get_name(SynchronizedData.safe_contract_address),
             get_name(SynchronizedData.most_voted_tx_hash),
             get_name(SynchronizedData.participants),
         ]

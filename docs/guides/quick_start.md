@@ -17,7 +17,7 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
 
 1. Use the CLI to fetch the [Hello World agent service](../demos/hello_world_demo.md). This will connect to the remote registry and download the files that make up the service to the `hello_world` folder:
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeig3bb2gaxwdxiwu7h6gguqtx5rsri6it4of7oyuhpdyfbucs374bu --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeicmkityt4tlguv2rwdtb5lcrhproqlpibktcrcvce6viahyzkg24i --service
     cd hello_world
     ```
 
@@ -85,6 +85,8 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
 
     (...)
     ```
+
+    You can cancel the servie run at any time by pressing Ctrl-C.
 
 6. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
     ```bash

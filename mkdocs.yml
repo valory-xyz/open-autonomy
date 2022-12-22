@@ -61,7 +61,13 @@ nav:
     - Threat model: 'key_concepts/threat_model.md'
   - Advanced reference:
     - 'advanced_reference/index.md'
-    - CLI: 'autonomy.md'
+    - Commands:
+      - autonomy deploy: 'advanced_reference/commands/autonomy_deploy.md'
+      - autonomy build-image: 'advanced_reference/commands/autonomy_build-image.md'
+      - autonomy replay: 'advanced_reference/commands/autonomy_replay.md'
+      - autonomy analyse: 'advanced_reference/commands/autonomy_analyse.md'
+      - autonomy fetch: 'advanced_reference/commands/autonomy_fetch.md'
+      - autonomy scaffold: 'advanced_reference/commands/autonomy_scaffold.md'           
     - Developer Tooling:
       - Dev Mode: 'dev_mode.md'
       - Benchmarking: 'benchmarks.md'
@@ -213,13 +219,6 @@ nav:
           - Dialogues: 'api/skills/registration_abci/dialogues.md'
           - Handlers: 'api/skills/registration_abci/handlers.md'
           - Models: 'api/skills/registration_abci/models.md'
-        - Safe Deployment ABCI:
-          - Behaviours: 'api/skills/safe_deployment_abci/behaviours.md'
-          - Payloads: 'api/skills/safe_deployment_abci/payloads.md'
-          - Rounds: 'api/skills/safe_deployment_abci/rounds.md'
-          - Dialogues: 'api/skills/safe_deployment_abci/dialogues.md'
-          - Handlers: 'api/skills/safe_deployment_abci/handlers.md'
-          - Models: 'api/skills/safe_deployment_abci/models.md'
         - Transaction Settlement ABCI:
           - Behaviours: 'api/skills/transaction_settlement_abci/behaviours.md'
           - Payloads: 'api/skills/transaction_settlement_abci/payloads.md'
@@ -254,6 +253,7 @@ markdown_extensions:
   - admonition
   - pymdownx.arithmatex
   - attr_list
+  - def_list  
   - md_in_html
 
 extra:

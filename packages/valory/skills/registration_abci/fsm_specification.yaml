@@ -1,22 +1,18 @@
 alphabet_in:
 - DONE
-- FAST_FORWARD
 - NO_MAJORITY
 default_start_state: RegistrationStartupRound
 final_states:
-- FinishedRegistrationFFWRound
 - FinishedRegistrationRound
 label: AgentRegistrationAbciApp
 start_states:
 - RegistrationRound
 - RegistrationStartupRound
 states:
-- FinishedRegistrationFFWRound
 - FinishedRegistrationRound
 - RegistrationRound
 - RegistrationStartupRound
 transition_func:
-    (RegistrationRound, DONE): FinishedRegistrationFFWRound
+    (RegistrationRound, DONE): FinishedRegistrationRound
     (RegistrationRound, NO_MAJORITY): RegistrationRound
     (RegistrationStartupRound, DONE): FinishedRegistrationRound
-    (RegistrationStartupRound, FAST_FORWARD): FinishedRegistrationFFWRound

@@ -73,9 +73,6 @@ class TestBaseTestEnd2End(BaseTest):
     def test_default_test_class(self) -> None:
         """Test default class attributes, prior to setup_class"""
 
-        def get_package_name(cls: Type) -> str:
-            return cls.__module__.split(".", maxsplit=1)[0]
-
         # BaseTestEnd2End overrides of BaseAEATestCase
         assert self.test_cls.capture_log is True
         assert self.test_cls.cli_log_options == ["-v", "DEBUG"]
@@ -83,11 +80,6 @@ class TestBaseTestEnd2End(BaseTest):
         # default values likely to change
         assert self.test_cls.happy_path == ()
         assert self.test_cls.strict_check_strings == ()
-
-        # no overwrite of parent class setup_class -> no tests needed for setup_class
-        child, parent = self.test_cls, self.test_cls.__mro__[1]
-        assert not get_package_name(child) == get_package_name(parent)
-        assert child.setup_class.__func__ == parent.setup_class.__func__
 
     def test_defaults_test_instance(self) -> None:
         """Test defaults, after setup_class"""

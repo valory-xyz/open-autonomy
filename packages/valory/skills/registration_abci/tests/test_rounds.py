@@ -47,52 +47,6 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
     _synchronized_data_class = SynchronizedData
     _event_class = RegistrationEvent
 
-    def test_run_fastforward(
-        self,
-    ) -> None:
-        """Run test."""
-
-        self.synchronized_data = cast(
-            SynchronizedData,
-            self.synchronized_data.update(
-                safe_contract_address="stub_safe_contract_address",
-                oracle_contract_address="stub_oracle_contract_address",
-            ),
-        )
-
-        test_round = RegistrationStartupRound(
-            synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
-        )
-
-        round_payloads = {
-            participant: RegistrationPayload(
-                sender=participant,
-                initialisation='{"dummy_key": "dummy_value"}',
-            )
-            for participant in self.participants
-        }
-
-        self._run_with_round(
-            test_round,
-            round_payloads,
-            '{"dummy_key": "dummy_value"}',
-            RegistrationEvent.FAST_FORWARD,
-        )
-
-        assert self.synchronized_data.db._data[0] == {
-            "all_participants": [
-                frozenset({"agent_1", "agent_3", "agent_0", "agent_2"}),
-                frozenset({"agent_1", "agent_3", "agent_0", "agent_2"}),
-            ],
-            "oracle_contract_address": ["stub_oracle_contract_address"],
-            "participants": [
-                frozenset({"agent_1", "agent_3", "agent_0", "agent_2"}),
-                frozenset({"agent_1", "agent_3", "agent_0", "agent_2"}),
-            ],
-            "safe_contract_address": ["stub_safe_contract_address"],
-        }
-
     def test_run_default(
         self,
     ) -> None:
@@ -128,8 +82,7 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
 
         assert self.synchronized_data.db._data[0] == {
             "all_participants": [
-                frozenset({"agent_1", "agent_3", "agent_0", "agent_2"}),
-                frozenset({"agent_1", "agent_3", "agent_0", "agent_2"}),
+                frozenset({"agent_0", "agent_1", "agent_2", "agent_3"}),
             ],
             "oracle_contract_address": ["stub_oracle_contract_address"],
             "participants": [

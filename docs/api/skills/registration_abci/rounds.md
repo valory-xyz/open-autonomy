@@ -24,16 +24,6 @@ class FinishedRegistrationRound(DegenerateRound)
 
 A round representing that agent registration has finished
 
-<a id="packages.valory.skills.registration_abci.rounds.FinishedRegistrationFFWRound"></a>
-
-## FinishedRegistrationFFWRound Objects
-
-```python
-class FinishedRegistrationFFWRound(DegenerateRound)
-```
-
-A fast-forward round representing that agent registration has finished
-
 <a id="packages.valory.skills.registration_abci.rounds.RegistrationStartupRound"></a>
 
 ## RegistrationStartupRound Objects
@@ -96,14 +86,12 @@ Initial states: {RegistrationRound, RegistrationStartupRound}
 Transition states:
     0. RegistrationStartupRound
         - done: 2.
-        - fast forward: 3.
     1. RegistrationRound
-        - done: 3.
+        - done: 2.
         - no majority: 1.
     2. FinishedRegistrationRound
-    3. FinishedRegistrationFFWRound
 
-Final states: {FinishedRegistrationFFWRound, FinishedRegistrationRound}
+Final states: {FinishedRegistrationRound}
 
 Timeouts:
     round timeout: 30.0

@@ -25,7 +25,7 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
 
 2. Use the CLI to download the `valory/counter` service.
     ```bash
-    autonomy fetch valory/counter:0.1.0:bafybeiblafvzxd5tuo2xusuqblvnngm6f7waux3q2p7oqmvrdekw2sjbuq --remote --service
+    autonomy fetch valory/counter:0.1.0:bafybeifmqfg2rzphxoepjko7db5vvv5wvzek4opfi7rzgsjmr4vwj6ctua --remote --service
     cd counter
     ```
 
@@ -69,7 +69,7 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
 
     This will build the deployment setup required to run the service locally.
     !!!note
-        It is also possible to generate a deployment using a local service configuration. See the [CLI section](./autonomy.md) for the complete details.
+        It is also possible to generate a deployment using a local service configuration. See the Commands section for the complete details.
 
 6. The build configuration will be located in `./abci_build`. Run the deployment using
     ```bash
