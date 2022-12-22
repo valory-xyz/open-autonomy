@@ -300,7 +300,8 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         """
         message = cast(AbciMessage, envelope.message)
         dialogue = self._dialogues.update(message)
-        if dialogue is None:
+        if dialogue is None:  # pragma: nocover
+            logging.warning(f"Could not create dialogue for message={message}")
             return
 
         await self._response_queues[message.performative].put(envelope)
@@ -338,7 +339,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
     async def Flush(
         self, request: RequestFlush, context: grpc.ServicerContext
-    ) -> ResponseFlush:
+    ) -> ResponseFlush:  # pragma: no cover
         """
         Handles "Flush" gRPC requests
 
@@ -400,7 +401,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
     async def SetOption(
         self, request: RequestSetOption, context: grpc.ServicerContext
-    ) -> ResponseSetOption:
+    ) -> ResponseSetOption:  # pragma: no cover
         """
         Handles "SetOption" gRPC requests
 
@@ -648,7 +649,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
     async def ListSnapshots(
         self, request: RequestListSnapshots, context: grpc.ServicerContext
-    ) -> ResponseListSnapshots:
+    ) -> ResponseListSnapshots:  # pragma: no cover
         """
         Handles "ListSnapshots" gRPC requests
 
@@ -679,7 +680,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
     async def OfferSnapshot(
         self, request: RequestOfferSnapshot, context: grpc.ServicerContext
-    ) -> ResponseOfferSnapshot:
+    ) -> ResponseOfferSnapshot:  # pragma: no cover
         """
         Handles "OfferSnapshot" gRPC requests
 
@@ -710,7 +711,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
     async def LoadSnapshotChunk(
         self, request: RequestLoadSnapshotChunk, context: grpc.ServicerContext
-    ) -> ResponseLoadSnapshotChunk:
+    ) -> ResponseLoadSnapshotChunk:  # pragma: no cover
         """
         Handles "LoadSnapshotChunk" gRPC requests
 
@@ -741,7 +742,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
     async def ApplySnapshotChunk(
         self, request: RequestApplySnapshotChunk, context: grpc.ServicerContext
-    ) -> ResponseApplySnapshotChunk:
+    ) -> ResponseApplySnapshotChunk:  # pragma: no cover
         """
         Handles "ApplySnapshotChunk" gRPC requests
 
@@ -1019,7 +1020,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                 self.logger.info(f"Successfully put envelope in queue={envelope}.")
             else:  # pragma: nocover
                 self.logger.warning(f"Decoded request {req_type} was not a match.")
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:  # pylint: disable=broad-except  # pragma: no cover
             self.logger.error(f"Unhandled exception {type(e).__name__}: {e}")
 
     async def get_message(self) -> Envelope:
