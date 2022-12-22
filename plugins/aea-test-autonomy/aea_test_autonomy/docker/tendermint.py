@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
+import logging
 import os
 import subprocess  # nosec
 import time
@@ -53,6 +54,8 @@ _SLEEP_TIME = 1
 class TendermintDockerImage(DockerImage):
     """Tendermint Docker image."""
 
+    use_grpc: bool = False
+
     def __init__(  # pylint: disable=too-many-arguments
         self,
         client: docker.DockerClient,
@@ -78,15 +81,16 @@ class TendermintDockerImage(DockerImage):
 
     def _build_command(self) -> List[str]:
         """Build command."""
-        cmd = ["node", f"--proxy_app={self.proxy_app}"]
+
+        abci = "grpc" if self.use_grpc else "socket"
+        cmd = ["node", f"--abci={abci}", f"--proxy_app={self.proxy_app}"]
+        logging.info(f"TendermintDockerImage: {cmd}")
+
         return cmd
 
     def create(self) -> Container:
         """Create the container."""
         cmd = self._build_command()
-        ports = {
-            f"{DEFAULT_TENDERMINT_PORT}/tcp": (_LOCAL_ADDRESS, self.port),  # nosec
-        }
         if self.abci_host == DEFAULT_ABCI_HOST:
             extra_hosts_config = {self.abci_host: "host-gateway"}
         else:
@@ -95,7 +99,7 @@ class TendermintDockerImage(DockerImage):
             self.image,
             command=cmd,
             detach=True,
-            ports=ports,
+            network="host",
             extra_hosts=extra_hosts_config,
         )
         return container
@@ -211,6 +215,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
 
     def _create_one(self, i: int) -> Container:
         """Create a node container."""
+
         name = self.get_node_name(i)
         extra_hosts = (
             {self.abci_host: "host-gateway"}
@@ -218,6 +223,8 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             else {}
         )
         extra_hosts.update(self._extra_hosts)
+
+        proxy_app = f"{_TCP}{self.abci_host}:{self.get_abci_port(i)}"
 
         run_kwargs = dict(
             image=self.image,
@@ -229,11 +236,12 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             mem_reservation="256M",
             environment={
                 "ID": i,
-                "PROXY_APP": f"{_TCP}{self.abci_host}:{self.get_abci_port(i)}",
+                "PROXY_APP": proxy_app,
                 "TMHOME": f"/tendermint/{name}",
                 "CREATE_EMPTY_BLOCKS": "true",
                 "DEV_MODE": "1",
                 "LOG_FILE": f"/logs/{name}.txt",
+                "USE_GRPC": ("false", "true")[self.use_grpc],
             },
             working_dir="/tendermint",
             volumes=[

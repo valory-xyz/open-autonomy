@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeieyro2eupexnqdu2mjqbyhp7jphn5rij4hvdgty5plij52tsffhs4
   __init__.py: bafybeicc7zwcm4vljmtobhmgkqinpjgoztznwhfzkndvnnsrolr6eivmsm
   behaviours.py: bafybeicmgb3hz2f6rhnpctcojeesayvmwicvl4mybbseyscdvzr6luepni
-  composition.py: bafybeiag5qbcubq3fhwraqosgcubkcyzvfogt274xxlmrjd23odbt2padi
+  composition.py: bafybeiadbacacvh4bshv3butbcomyjyxm45vcguivos5ghtflsrwxzv66y
   dialogues.py: bafybeih3x4egnkh7xwnlawqbu6fpqyqbaum7ivdhqm6r6557dyy2rhzneq
   handlers.py: bafybeibotw5mzjfbzdme5w4oytvqspcql3vbyr3v5k5zt6v3o6y6dypd7e
   models.py: bafybeiffunjgfpgbnipafnhllqmpkmy7dn4voxj63vvsvvt3ghwmglkut4
@@ -23,10 +23,10 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidjhxwfkfaxsltiyy5yjcujr7y5bpcabzldbbd7rktxzjtrt552oq
-- valory/registration_abci:0.1.0:bafybeigm6kzd6utkb7yl6klxanx7i7azdtrrpx4yzj5qqocpmjudxybjvi
-- valory/reset_pause_abci:0.1.0:bafybeieumiwkjvkvwdy6c5zhpfrcovrkhjbrr2zp5kkl3nkfh7y76ytkgq
-- valory/termination_abci:0.1.0:bafybeidxt4ezttocpuegdpbmkwhhcameceie7hnkhhiamiqxxmdqraih2i
+- valory/abstract_round_abci:0.1.0:bafybeicchybe73ega5ez5qfhb7cgkxbadselqpxwtannbscd3xttobgwwa
+- valory/registration_abci:0.1.0:bafybeigz27jh2gpvyh4pigw5vhhwqg6jcbzmv2bwezhb7crhbbz5p7uod4
+- valory/reset_pause_abci:0.1.0:bafybeianclb2aqs2d4yadxwuz6reejbu4ctvdqkyhvjpnhxqmzduf63tai
+- valory/termination_abci:0.1.0:bafybeigliimpf6l2wy6ikw272uky476z2hkzmzzrsffsu3k7rvdngm23i4
 behaviours:
   main:
     args: {}
@@ -103,6 +103,8 @@ models:
       service_id: register_termination_abci
       service_registry_address: null
       setup:
+        all_participants:
+        - - '0x0000000000000000000000000000000000000000'
         safe_contract_address:
         - '0xD8dE647170163a981bb3Fdb2063583eAcF7D55AC'
       share_tm_config_on_startup: false

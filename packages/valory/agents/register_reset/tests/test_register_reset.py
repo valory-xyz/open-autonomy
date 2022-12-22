@@ -29,6 +29,7 @@ from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2EndExecution,
     RoundChecks,
 )
+from aea_test_autonomy.configurations import KEY_PAIRS
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     abci_host,
     abci_port,
@@ -63,6 +64,7 @@ class TestTendermintStartup(BaseTestEnd2EndExecution):
         RoundChecks(RegistrationStartupRound.auto_round_id()),
         RoundChecks(ResetAndPauseRound.auto_round_id()),
     )
+    key_pairs = KEY_PAIRS
     wait_to_finish = 60
     package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
@@ -84,6 +86,7 @@ class TestTendermintReset(BaseTestEnd2EndExecution):
     agent_package = "valory/register_reset:0.1.0"
     skill_package = "valory/register_reset_abci:0.1.0"
     happy_path = HAPPY_PATH
+    key_pairs = KEY_PAIRS
     wait_to_finish = 200
     __reset_tendermint_every = 1
     package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
@@ -111,6 +114,7 @@ class TestTendermintResetInterrupt(BaseTestEnd2EndExecution):
     agent_package = "valory/register_reset:0.1.0"
     skill_package = "valory/register_reset_abci:0.1.0"
     cli_log_options = ["-v", "INFO"]
+    key_pairs = KEY_PAIRS
     wait_before_stop = 60
     wait_to_finish = 300
     restart_after = 1

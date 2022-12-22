@@ -18,8 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the termination round classes."""
+
 from enum import Enum
-from typing import Optional, Tuple, cast
+from typing import Dict, List, Optional, Tuple, cast
 
 from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
@@ -29,6 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciApp,
     AbstractRound,
+    AppState,
     BaseSynchronizedData,
     BaseTxPayload,
     CollectSameUntilThresholdRound,
@@ -55,11 +57,6 @@ class SynchronizedData(BaseSynchronizedData):
 
     This data is replicated by the tendermint application.
     """
-
-    @property
-    def safe_contract_address(self) -> Optional[str]:
-        """Get the safe contract address."""
-        return cast(Optional[str], self.db.get("safe_contract_address", None))
 
     @property
     def termination_majority_reached(self) -> bool:
@@ -182,12 +179,7 @@ class PostTerminationTxAbciApp(AbciApp[Event]):
     # the following is not needed, it is added to satisfy the round check
     # the TerminationRound when run it terminates the agent, so nothing can come after it
     transition_function = {TerminationRound: {Event.TERMINATE: TerminationRound}}
-    cross_period_persisted_keys = [get_name(SynchronizedData.safe_contract_address)]
-    db_pre_conditions = {
-        TerminationRound: [
-            get_name(SynchronizedData.safe_contract_address),
-        ]
-    }
+    db_pre_conditions: Dict[AppState, List[str]] = {TerminationRound: []}
 
 
 termination_transition_function: AbciAppTransitionMapping = {
