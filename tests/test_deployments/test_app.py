@@ -95,6 +95,48 @@ def test_period_dumper(monkeypatch: MonkeyPatch) -> None:
     shutil.rmtree(period_dumper.dump_dir)
 
 
+def get_network() -> str:
+    """Return the local node's network."""
+    res = requests.get("http://localhost:26657/status")
+    assert (
+        res.status_code == 200
+    ), "Something went wrong while trying to communicate with the node."
+    return res.json()["result"]["node_info"]["network"]
+
+
+def create_app_and_get_network() -> str:
+    """Create an app and a node, and return the node's network"""
+    temp_dir = os.environ["TMHOME"] = tempfile.mkdtemp()
+    app_, tendermint_node = create_app(Path(temp_dir))
+
+    app_.config["TESTING"] = True
+    app_context = app_.app_context()
+    app_context.push()
+
+    time.sleep(1)
+    network = get_network()
+
+    app_context.pop()
+    tendermint_node.stop()
+    shutil.rmtree(temp_dir)
+
+    return network
+
+
+def test_ensure_same_network() -> None:
+    """Ensure that all the nodes share the same network."""
+    n_nodes = 2
+    os.environ["PROXY_APP"] = "kvstore"
+    os.environ["CREATE_EMPTY_BLOCKS"] = "true"
+    os.environ["USE_GRPC"] = "false"
+
+    networks = {create_app_and_get_network() for _ in range(n_nodes)}
+    existing_networks = len(networks)
+    assert (
+        existing_networks == 1
+    ), f"Expected all {n_nodes} nodes to share the same network! Found {existing_networks} networks instead: {networks}"
+
+
 # base classes
 class BaseTendermintTest:
     """BaseTendermintTest"""
