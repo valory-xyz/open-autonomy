@@ -1085,6 +1085,47 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
         )
 
 
+class TestCheckLateTxHashesBehaviour(TransactionSettlementFSMBehaviourBaseCase):
+    """Test CheckLateTxHashesBehaviour."""
+
+    def _fast_forward(self, late_arriving_tx_hashes: str) -> None:
+        """Fast-forward to relevant behaviour."""
+
+        agent_address = self.skill.skill_context.agent_address
+        kwargs = dict(
+            safe_contract_address="safe_contract_address",
+            participants=frozenset({agent_address, "a_1", "a_2"}),
+            participant_to_signature={},
+            most_voted_tx_hash="",
+            late_arriving_tx_hashes=late_arriving_tx_hashes,
+        )
+        abci_app_db = AbciAppDB(setup_data=AbciAppDB.data_to_lists(kwargs))
+
+        self.fast_forward_to_behaviour(
+            behaviour=self.behaviour,
+            behaviour_id=CheckLateTxHashesBehaviour.auto_behaviour_id(),
+            synchronized_data=TransactionSettlementSynchronizedSata(abci_app_db),
+        )
+
+        current_behaviour = self.behaviour.current_behaviour
+        current_behaviour_id = cast(BaseBehaviour, current_behaviour).behaviour_id
+        assert current_behaviour_id == CheckLateTxHashesBehaviour.auto_behaviour_id()
+
+    def test_check_tx_history_behaviour(self) -> None:
+        """Test CheckTransactionHistoryBehaviour."""
+
+        self._fast_forward(late_arriving_tx_hashes="")
+        self.behaviour.act_wrapper()
+        self.behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(TransactionSettlementEvent.DONE)
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        next_behaviour_id = FinishedTransactionSubmissionRound.auto_round_id()
+        next_degen_behaviour = make_degenerate_behaviour(next_behaviour_id)
+        assert behaviour.behaviour_id == next_degen_behaviour.auto_behaviour_id()
+
+
 class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test `SynchronizeLateMessagesBehaviour`"""
 
