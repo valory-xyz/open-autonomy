@@ -149,7 +149,6 @@ class TestHelloWorldABCIFourAgentsTwoAgentRestarting(BaseHelloWorldABCITestCatch
     n_terminal = 2
 
 
-@pytest.mark.skip(reason="not working atm")
 @pytest.mark.parametrize("nb_nodes", (1,))
 class TestHelloWorldABCISingleAgentGrpc(
     BaseHelloWorldABCITest,
@@ -160,7 +159,6 @@ class TestHelloWorldABCISingleAgentGrpc(
     strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
 
 
-@pytest.mark.skip(reason="not working atm")
 @pytest.mark.parametrize("nb_nodes", (2,))
 class TestHelloWorldABCITwoAgentsGrpc(
     BaseHelloWorldABCITest,
@@ -171,7 +169,6 @@ class TestHelloWorldABCITwoAgentsGrpc(
     strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
 
 
-@pytest.mark.skip(reason="not working atm")
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestHelloWorldABCIFourAgentsGrpc(
     BaseHelloWorldABCITest,

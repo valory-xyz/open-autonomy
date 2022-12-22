@@ -188,6 +188,7 @@ def create_app(
         proxy_app=os.environ["PROXY_APP"],
         consensus_create_empty_blocks=os.environ["CREATE_EMPTY_BLOCKS"] == "true",
         home=os.environ["TMHOME"],
+        use_grpc=os.environ["USE_GRPC"] == "true",
     )
 
     app = Flask(__name__)

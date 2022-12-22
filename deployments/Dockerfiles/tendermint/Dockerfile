@@ -2,6 +2,7 @@ FROM alpine:3.7
 MAINTAINER Valory AG
 
 ENV TENDERMINT_VERSION=0.34.19
+ENV USE_GRPC=false
 
 RUN apk update && \
     apk upgrade && \

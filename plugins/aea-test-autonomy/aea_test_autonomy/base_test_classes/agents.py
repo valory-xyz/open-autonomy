@@ -31,7 +31,10 @@ from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany, Result
 from aea_test_autonomy.configurations import ANY_ADDRESS
 from aea_test_autonomy.docker.registries import SERVICE_REGISTRY
-from aea_test_autonomy.fixture_helpers import UseFlaskTendermintNode
+from aea_test_autonomy.fixture_helpers import (
+    FlaskTendermintDockerImage,
+    UseFlaskTendermintNode,
+)
 from web3 import Web3
 
 
@@ -101,6 +104,13 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
     # usually test envs provide the full set of dependencies; only select
     # when you want to run the installation of the packages as part of the test case.
     RUN_AEA_INSTALL = False
+
+    @classmethod
+    def setup_class(cls) -> None:
+        """Setup class"""
+
+        FlaskTendermintDockerImage.use_grpc = cls.USE_GRPC  # wicked
+        super().setup_class()
 
     @classmethod
     def set_config(

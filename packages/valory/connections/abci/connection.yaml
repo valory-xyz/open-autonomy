@@ -36,7 +36,7 @@ fingerprint:
   tendermint_encoder.py: bafybeie3pmkuixp367tltoa7urishsizma6n27ftb6uqaeg4gn6os5waym
   tests/__init__.py: bafybeid67ezzjsfsukyqdjtlnd3ra5yy73jnobm4setddgagd3u4vqboyu
   tests/helper.py: bafybeifpug7tmfqjenvhpoqwnfhoeb4qxa2o5v225ayk7gwc2barvlnpmy
-  tests/test_abci.py: bafybeighsu4wnpa7mxmlsjdek2psv43hysfo52vs5aaaykeklvp5aybfva
+  tests/test_abci.py: bafybeicn32mmkmth6nqi2ibfw7tphuloecu3eicxhq6zsg3zufsdrr72ye
   tests/test_abci_fuzz.py: bafybeien7nts67jzopoojy52tvs4dfsfdqflfgzh7ovpuziilxnq2oygb4
   tests/test_abci_spec.py: bafybeifacnizp2mryyb2j64iugnxn5rhtx7xr4emwbw5xcke6le6utpwhu
   tests/test_fuzz/__init__.py: bafybeiggaobawdxpx2j637ldmacq7r7tnyeygukmjuayodj3vytdyqsjze
