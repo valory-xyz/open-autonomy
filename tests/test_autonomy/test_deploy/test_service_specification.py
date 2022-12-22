@@ -202,8 +202,8 @@ class TestServiceBuilder:
                 in caplog.text
             )
 
-    def test_try_update_multisig_address_failure(self, caplog: Any) -> None:
-        """Test `try_update_multisig_address` method."""
+    def test_try_update_runtime_params_failure(self, caplog: Any) -> None:
+        """Test `try_update_runtime_params` method."""
         multisig_address = "0xMULTISIGADDRESS"
         self._write_service(get_dummy_service_config(file_number=4))
         spec = ServiceBuilder.from_dir(
@@ -211,22 +211,17 @@ class TestServiceBuilder:
         )
 
         with caplog.at_level(logging.WARNING):
-            spec.try_update_multisig_address(address=multisig_address)
+            spec.try_update_runtime_params(multisig_address=multisig_address)
 
-            assert (
-                "Could not update the `safe_contract_address` parameter for"
-                in caplog.text
-            )
-            assert (
-                "Configuration does not contain the json path to `safe_contract_address` parameter"
-                in caplog.text
-            )
+            assert "Could not update the setup parameter for" in caplog.text
 
-    def test_try_update_multisig_address_singular(
+    def test_try_update_runtime_params_singular(
         self,
     ) -> None:
-        """Test `try_update_multisig_address` method."""
+        """Test `try_update_runtime_params` method."""
         multisig_address = "0xMULTISIGADDRESS"
+        agent_instances = [f"0xagent{i}" for i in range(4)]
+
         self._write_service(get_dummy_service_config(file_number=1))
         spec = ServiceBuilder.from_dir(
             self.service_path,
@@ -238,29 +233,42 @@ class TestServiceBuilder:
             "safe_contract_address"
         ] == [DUMMY_CONTRACT_ADDRESS]
 
-        spec.try_update_multisig_address(address=multisig_address)
+        spec.try_update_runtime_params(
+            multisig_address=multisig_address,
+            agent_instances=agent_instances,
+        )
         skill_config, *_ = spec.service.overrides
         assert skill_config["models"]["params"]["args"]["setup"][
             "safe_contract_address"
         ] == [multisig_address]
+        assert skill_config["models"]["params"]["args"]["setup"][
+            "all_participants"
+        ] == [agent_instances]
 
-    def test_try_update_multisig_address_multiple(
+    def test_try_update_runtime_params_multiple(
         self,
     ) -> None:
-        """Test `try_update_multisig_address` method."""
+        """Test `try_update_runtime_params` method."""
         multisig_address = "0xMULTISIGADDRESS"
+        agent_instances = [f"0xagent{i}" for i in range(4)]
+
         self._write_service(get_dummy_service_config(file_number=2))
         spec = ServiceBuilder.from_dir(
             self.service_path,
         )
 
-        spec.try_update_multisig_address(address=multisig_address)
+        spec.try_update_runtime_params(
+            multisig_address=multisig_address, agent_instances=agent_instances
+        )
         skill_config, *_ = spec.service.overrides
 
         for agent_idx in range(spec.service.number_of_agents):
             assert skill_config[agent_idx]["models"]["params"]["args"]["setup"][
                 "safe_contract_address"
             ] == [multisig_address]
+            assert skill_config[agent_idx]["models"]["params"]["args"]["setup"][
+                "all_participants"
+            ] == [agent_instances]
 
     def test_verify_agent_instances(
         self,
