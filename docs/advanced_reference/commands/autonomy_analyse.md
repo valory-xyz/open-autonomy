@@ -148,7 +148,7 @@ autonomy analyse fsm-specs
 
 Verify existence of handler definitions.
 
-This command verifies that all the {{fsm_app}} skills in a local registry (except the explicitly excluded) have the specified handlers are defined.
+This command verifies that all the {{fsm_app}} skills in a local registry (except the explicitly excluded ones) have defined the specified handlers.
 
 ### Usage
 ``` bash
