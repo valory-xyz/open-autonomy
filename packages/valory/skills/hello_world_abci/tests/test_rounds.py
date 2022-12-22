@@ -295,9 +295,6 @@ class TestPrintMessageRound(BaseRoundTestClass):
         assert res is not None
         synchronized_data, event = res
 
-        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        print(cast(SynchronizedData, synchronized_data).participants)
-        print(cast(SynchronizedData, actual_next_behaviour).participants)
 
         assert (
             cast(SynchronizedData, synchronized_data).participants
