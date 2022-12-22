@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abci' skill."""
+
 import binascii
 import pprint
 import re
@@ -627,7 +628,7 @@ class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
     check_expected_to_be_verified = "One of the next tx checks"
 
     @property
-    def history(self) -> List[str]:  # pragma: no cover
+    def history(self) -> List[str]:
         """Get the history of hashes."""
         return self.synchronized_data.late_arriving_tx_hashes
 
@@ -784,10 +785,9 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
                 )
 
             tx_hashes_history = self.synchronized_data.tx_hashes_history
+
             if tx_data["tx_digest"] != "":
-                tx_hashes_history.append(
-                    cast(str, tx_data["tx_digest"])
-                )  # pragma: no cover
+                tx_hashes_history.append(cast(str, tx_data["tx_digest"]))
 
             tx_data_serialized = {
                 "status_value": cast(VerificationStatus, tx_data["status"]).value,
