@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the support resources for the gnosis_safe (GnosisSafeL2) contract."""
+"""This module contains the support resources for the gnosis_safe (GnosisSafeL2) contract."""  # pragma: nocover

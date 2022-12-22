@@ -10,18 +10,18 @@ fingerprint:
   __init__.py: bafybeigqj2uodavhrygpqn6iah3ljp53z54c5fxyh5ykgkxuhh5lof6pda
   behaviours.py: bafybeicnnmqbd2epyq3nde7olfcfyhw6oiecq26knzo3422nmmvrpttx4q
   dialogues.py: bafybeicgx2bato2ctlceydqbhwowxpoznmlo3lfmqt5x5h3fribfe63g6y
-  fsm_specification.yaml: bafybeidaasu2bmkscwotx5nvvje5utc6dwgnmjba7vvhmjfma3mpj44644
+  fsm_specification.yaml: bafybeicx5eutgr4lin7mhwr73xhanuzwdmps7pfoy5f2k7gfxmuec4qbyu
   handlers.py: bafybeigbp24xqejoukl52srcsasbljz4rap7xaa2qbfh4lyewbnkman7jm
   models.py: bafybeiaka4eit5vsjh7j2pr7oq7vvmxbk526z35pqzfojfb6kvpnm3yrpy
   payloads.py: bafybeig6hh4vg2zjivr26xxbab54nn2xcragqlh7ff4s2sql24tchz3yia
-  rounds.py: bafybeiemv2sllhmqztyjxohtygple5meke5szpelecqu6e5xxudzeqnmay
+  rounds.py: bafybeickj5p3e64vlww6zkgg2ajgzhn4cbmyermujjjp5ffuv6pynpk3c4
   tests/__init__.py: bafybeiab2s4vkmbz5bc4wggcclapdbp65bosv4en5zaazk5dwmldojpqja
-  tests/test_behaviours.py: bafybeif5mbwq2c2j2h6uycql7xfvupitt6cvxvah4a2j4cwkqjff7jhw2e
+  tests/test_behaviours.py: bafybeigty5a2w5pdj37omp4fsphqz573jl2fw5vaubk2beklkdoa5vxyrq
   tests/test_dialogues.py: bafybeibeqnpzuzgcfb6yz76htslwsbbpenihswbp7j3qdyq42yswjq25l4
   tests/test_handlers.py: bafybeifpnwaktxckbvclklo6flkm5zqs7apmb33ffs4jrmunoykjbl5lni
   tests/test_models.py: bafybeiewxl7nio5av2aukql2u7hlhodzdvjjneleba32abr42xeirrycb4
   tests/test_payloads.py: bafybeihios3qujw53tqwuzybyrnpjvb7lxw2ivc2rsikuyf2ib7vw22uoe
-  tests/test_rounds.py: bafybeiayn23x5rq42b7hlhyb46qbb6p5c4vox4clgtek3ahsmdvnnuoq4u
+  tests/test_rounds.py: bafybeigewyjxar5o2xleu6laaotjomeh4ni75gzm54iyhz2dmz2lz2yh5a
 fingerprint_ignore_patterns: []
 connections:
 - valory/p2p_libp2p_client:0.1.0:bafybeidkk33xbga54szmitk6uwsi3ef56hbbdbuasltqtiyki34hgfpnxa
@@ -30,9 +30,9 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
-- valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
+- valory/tendermint:0.1.0:bafybeif7b3ndrnwunl6s42e2cd6cu5hxruiimz3lwixb3r6um2lsldgldi
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeih7sibc3evofk3fnmfijavyp6hhkku7fg4l336qysqwlnhvjhsvlm
+- valory/abstract_round_abci:0.1.0:bafybeicchybe73ega5ez5qfhb7cgkxbadselqpxwtannbscd3xttobgwwa
 behaviours:
   main:
     args: {}
@@ -107,6 +107,11 @@ models:
       round_timeout_seconds: 30.0
       service_id: registration
       service_registry_address: null
+      setup:
+        all_participants:
+        - - '0x0000000000000000000000000000000000000000'
+        safe_contract_address:
+        - '0x0000000000000000000000000000000000000000'
       share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 3

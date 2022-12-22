@@ -7,9 +7,9 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeieyro2eupexnqdu2mjqbyhp7jphn5rij4hvdgty5plij52tsffhs4
-  __init__.py: bafybeiex6mhypt3mkeflnoppnxxckxwe3f4fpytgqzseelvxg54rzhcwme
+  __init__.py: bafybeicc7zwcm4vljmtobhmgkqinpjgoztznwhfzkndvnnsrolr6eivmsm
   behaviours.py: bafybeicmgb3hz2f6rhnpctcojeesayvmwicvl4mybbseyscdvzr6luepni
-  composition.py: bafybeiag5qbcubq3fhwraqosgcubkcyzvfogt274xxlmrjd23odbt2padi
+  composition.py: bafybeiadbacacvh4bshv3butbcomyjyxm45vcguivos5ghtflsrwxzv66y
   dialogues.py: bafybeih3x4egnkh7xwnlawqbu6fpqyqbaum7ivdhqm6r6557dyy2rhzneq
   handlers.py: bafybeibotw5mzjfbzdme5w4oytvqspcql3vbyr3v5k5zt6v3o6y6dypd7e
   models.py: bafybeiffunjgfpgbnipafnhllqmpkmy7dn4voxj63vvsvvt3ghwmglkut4
@@ -23,10 +23,10 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeih7sibc3evofk3fnmfijavyp6hhkku7fg4l336qysqwlnhvjhsvlm
-- valory/registration_abci:0.1.0:bafybeibvuyylbaxqits6eskh5i3wrtyglr4l7gmahvcaqevphv7haj5mbi
-- valory/reset_pause_abci:0.1.0:bafybeibq5tl6xf4g22ojzzeglylbanu5nxfsf6s6g7uf3yubogpv3acc4q
-- valory/termination_abci:0.1.0:bafybeictwhzizllmr4cd3jwxsmkhkspgwinipynoxdtfe4vwdeyov2zary
+- valory/abstract_round_abci:0.1.0:bafybeicchybe73ega5ez5qfhb7cgkxbadselqpxwtannbscd3xttobgwwa
+- valory/registration_abci:0.1.0:bafybeigz27jh2gpvyh4pigw5vhhwqg6jcbzmv2bwezhb7crhbbz5p7uod4
+- valory/reset_pause_abci:0.1.0:bafybeianclb2aqs2d4yadxwuz6reejbu4ctvdqkyhvjpnhxqmzduf63tai
+- valory/termination_abci:0.1.0:bafybeigliimpf6l2wy6ikw272uky476z2hkzmzzrsffsu3k7rvdngm23i4
 behaviours:
   main:
     args: {}
@@ -103,6 +103,8 @@ models:
       service_id: register_termination_abci
       service_registry_address: null
       setup:
+        all_participants:
+        - - '0x0000000000000000000000000000000000000000'
         safe_contract_address:
         - '0xD8dE647170163a981bb3Fdb2063583eAcF7D55AC'
       share_tm_config_on_startup: false
