@@ -282,16 +282,31 @@ class TestPrintMessageRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
+        printed_messages = [
+            cast(PrintMessagePayload, payload).message
+            for payload in test_round.collection.values()
+        ]
+
         actual_next_behaviour = SynchronizedData(
-            AbciAppDB(setup_data=dict(participants=[test_round.collection]))
+            AbciAppDB(
+                setup_data=dict(
+                    participants=[test_round.collection],
+                    printed_messages=[printed_messages],
+                )
+            )
         )
 
         res = test_round.end_block()
         assert res is not None
         synchronized_data, event = res
+
         assert (
             cast(SynchronizedData, synchronized_data).participants
             == cast(SynchronizedData, actual_next_behaviour).participants
+        )
+        assert (
+            cast(SynchronizedData, synchronized_data).printed_messages
+            == cast(SynchronizedData, actual_next_behaviour).printed_messages
         )
         assert event == Event.DONE
 
