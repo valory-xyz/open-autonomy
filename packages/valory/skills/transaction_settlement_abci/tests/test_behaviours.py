@@ -37,6 +37,7 @@ from typing import (
     Type,
     Union,
     cast,
+    Callable,
 )
 from unittest import mock
 from unittest.mock import MagicMock
@@ -105,6 +106,19 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
+
+
+def mock_yield_and_return(
+    return_value: Any,
+) -> Callable[[], Generator[None, None, Any]]:
+    """Wrapper for a Dummy generator that returns a `bool`."""
+
+    def yield_and_return(*_: Any, **__: Any) -> Generator[None, None, Any]:
+        """Dummy generator that returns a `bool`."""
+        yield
+        return return_value
+
+    return yield_and_return
 
 
 def test_skill_public_id() -> None:
@@ -832,6 +846,83 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             ).params.tx_hash
             == ""
         )
+
+    def test_sender_act_tx_data_contains_tx_digest(self) -> None:
+        """Test finalize behaviour."""
+
+        max_priority_fee_per_gas: Optional[int] = None
+
+        retries = 1
+        participants = frozenset(
+            {self.skill.skill_context.agent_address, "a_1" + "-" * 39, "a_2" + "-" * 39}
+        )
+        kwargs = dict(
+            safe_contract_address="safe_contract_address",
+            participants=participants,
+            participant_to_signature={},
+            most_voted_tx_hash=hash_payload_to_hex(
+                "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                1,
+                1,
+                "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
+                b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+            ),
+            nonce=None,
+            max_priority_fee_per_gas=max_priority_fee_per_gas,
+            keepers=retries.to_bytes(32, "big").hex()
+            + self.skill.skill_context.agent_address,
+        )
+
+        db = AbciAppDB(setup_data=AbciAppDB.data_to_lists(kwargs))
+
+        self.fast_forward_to_behaviour(
+            behaviour=self.behaviour,
+            behaviour_id=self.behaviour_class.auto_behaviour_id(),
+            synchronized_data=TransactionSettlementSynchronizedSata(db)
+        )
+
+        response_kwargs = dict(
+            performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+            callable="get_deploy_transaction",
+            raw_transaction=RawTransaction(
+                ledger_id="ethereum",
+                body={
+                    "tx_hash": "0x3b",
+                    "nonce": 0,
+                    "maxFeePerGas": int(10e10),
+                    "maxPriorityFeePerGas": int(10e10),
+                },
+            ),
+        )
+
+        # mock the returned tx_data
+        return_value = dict(
+            status=VerificationStatus.PENDING,
+            keepers=deque(),
+            keeper_retries=1,
+            blacklisted_keepers=set(),
+            tx_digest="dummy_tx_digest",
+        )
+
+        cast(
+            TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
+        )._get_tx_data = mock_yield_and_return(return_value)  # type: ignore
+
+        self.behaviour.act_wrapper()
+        self.mock_contract_api_request(
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            ),
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            response_kwargs=response_kwargs,
+        )
+        self.behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(TransactionSettlementEvent.DONE)
+        current_behaviour_id = self.behaviour.current_behaviour.behaviour_id
+        expected_behaviour_id = ValidateTransactionBehaviour.auto_behaviour_id()
+        assert current_behaviour_id == expected_behaviour_id
 
     def test_handle_late_messages(self) -> None:
         """Test `handle_late_messages.`"""
