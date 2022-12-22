@@ -2,14 +2,7 @@ Tools for anaysing and verifying agent services.
 
 This command group consists of a number of functionalities to analyse and verify agent services, including {{fsm_app}} skill consistency checks. See the appropriate subcommands for more information.
 
-```
-Commands:
-  benchmarks  Benchmark aggregator.
-  docstrings  Analyse ABCI docstring definitions.
-  fsm-specs   Generate ABCI app specs.
-  handlers    Check handler definitions.
-  logs        Parse logs of an agent service.
-```
+
 
 ## `autonomy analyse docstrings `
 
@@ -83,26 +76,40 @@ autonomy analyse docstrings --update
 
 ## `autonomy analyse fsm-specs`
 
-Generate ABCI app specs.
+Verify the {{fsm_app}} against its specification or generate the {{fsm_app}} specification file.
+
+### Usage
 
 ```bash
 Usage: autonomy analyse fsm-specs [OPTIONS]
 ```
 
+### Options
+
 ```
 --package PATH
 ```
-:   
+:   Path to the package containing the {{fsm_app}} skill.
 
 ```
---app-class TEXT
+--app-class ABCI_APP_CLASS
 ```
-:   
+:   Name of the `AbciApp` class of the {{fsm_app}}.
 
 ```
 --update
 ```
-:    Update FSM definition if check fails.
+:    Update/create the {{fsm_app}} definition file if check fails.
+
+```
+--yaml
+```
+:    YAML file (default).
+
+```
+--json
+```
+:    JSON file.
 
 ```
 --mermaid
@@ -110,57 +117,58 @@ Usage: autonomy analyse fsm-specs [OPTIONS]
 :    Mermaid file.
 
 ```
---yaml
-```
-:    Yaml file.
-
-```
---json
-```
-:    Json file.
-
-```
 --help
 ```
-:    Show this message and exit.
+:    Show the help message and exit.
+
+
+### Examples
+Analyse the {{fsm_app}} specification for the `hello_world_abci`:
+```bash
+autonomy analyse fsm-specs --package ./packages/valory/skills/hello_world_abci
 ```
 
-Analyse specification for one skill package using
-
-```
-$ autonomy analyse fsm-specs --package PATH_TO_SKILL_PACKAGE
-```
-
-To create or update an FSM specification from existing abci app definition run
-
-```
-$ autonomy analyse fsm-specs --update --package PATH_TO_SKILL_PACKAGE --app-class NAME_OF_THE_ABCI_CLASS
+Update/create the {{fsm_app}} specification for the `hello_world_abci` in YAML format:
+```bash
+autonomy analyse fsm-specs --package ./packages/valory/skills/hello_world_abci --app-class HelloWorldAbciApp --update
 ```
 
-To analyse all available FSM specifications in a local repository, navigate to directory containing `packages/` folder and run
-
-```
-$ autonomy analyse fsm-specs
-```
-
-**Analyse handler definitions**
-
-```
-Usage: autonomy analyse handlers [OPTIONS]
-
-  Check handler definitions.
-
-Options:
-  -h, --common-handlers TEXT  Specify which handlers to check. Eg. -h
-                              handler_a -h handler_b -h handler_c
-  -i, --ignore TEXT           Specify which skills to skip. Eg. -i skill_0 -i
-                              skill_1 -i skill_2
-  --help                      Show this message and exit.
+Export the {{fsm_app}} specification for the `hello_world_abci` in Mermaid format:
+```bash
+autonomy analyse fsm-specs --package ./packages/valory/skills/hello_world_abci --app-class HelloWorldAbciApp --update --mermaid
 ```
 
-To analyse handlers in a local repository, navigate to directory containing `packages/` folder and run
-
+Analyse all the {{fsm_app}} specifications in a local registry. This command must be executed
+in a directory containing the local registry:
+```bash
+autonomy analyse fsm-specs
 ```
+
+## autonomy analyse handlers
+
+Verify handler definitions.
+
+### Usage
+``` bash
+autonomy analyse handlers [OPTIONS]
+```
+
+### Options
+`-h, --common-handlers HANDLER_NAME`
+:   Specify which handlers to check. E.g., `-h handler_a` `-h handler_b` `-h handler_c`.
+
+`-i, --ignore SKILL_NAME`
+:   Specify which skills to skip. E.g., `-i skill_0`, `-i skill_1`, `-i skill_2`.
+
+`--help`
+:   Show the help message and exit.
+
+
+### Examples
+
+Analyse handlers in a local registry, navigate to the directory containing the local registry and execute
+
+```bash
 $ autonomy analyse handlers -h COMMON_HANDLER_DEFINITION_TO_CHECK -i SKILL_TO_IGNORE
 ```
 
@@ -209,3 +217,15 @@ autonomy analyse benchmarks abci_build/persistent_data/benchmarks
 ```
 
 By default tool will generate output for all periods but you can specify which period to generate output for, same goes for block types as well.
+
+
+
+
+```
+Commands:
+  benchmarks  Benchmark aggregator.
+  docstrings  Analyse ABCI docstring definitions.
+  fsm-specs   Generate ABCI app specs.
+  handlers    Check handler definitions.
+  logs        Parse logs of an agent service.
+```

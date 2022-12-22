@@ -65,4 +65,4 @@ autonomy scaffold fsm [OPTIONS] SKILL_NAME
 scaffold -tlr fsm --spec fsm_specification.yaml my_fsm_app_skill
 ```
 
-Produces an {{fsm_app}} skill named "my_fsm_app_skill" according to the specification described in the file `fsm_specification.yaml`, and stores it to the local registry.
+Generates an {{fsm_app}} skill named "my_fsm_app_skill" according to the specification described in the file `fsm_specification.yaml`, and stores it to the local registry.
