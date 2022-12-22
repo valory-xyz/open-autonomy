@@ -1,4 +1,4 @@
-Tools for anaysing and verifying agent services.
+Tools for analysing and verifying agent services.
 
 This command group consists of a number of functionalities to analyse and verify agent services, including {{fsm_app}} skill consistency checks. See the appropriate subcommands for more information.
 
@@ -144,9 +144,11 @@ in a directory containing the local registry:
 autonomy analyse fsm-specs
 ```
 
-## autonomy analyse handlers
+## `autonomy analyse handlers`
 
-Verify handler definitions.
+Verify existence of handler definitions.
+
+This command verifies that all the {{fsm_app}} skills in a local registry (except the explicitly excluded) have the specified handlers are defined.
 
 ### Usage
 ``` bash
@@ -166,66 +168,59 @@ autonomy analyse handlers [OPTIONS]
 
 ### Examples
 
-Analyse handlers in a local registry, navigate to the directory containing the local registry and execute
+Ensure that handlers `http` and `signing` are defined in all the {{fsm_app}} skills in a local registry, except the skills `excluded_skill_1` and `excluded_skill_2`:
 
 ```bash
-$ autonomy analyse handlers -h COMMON_HANDLER_DEFINITION_TO_CHECK -i SKILL_TO_IGNORE
+autonomy analyse handlers -h http -h signing -i excluded_skill_1 -i excluded_skill_2
 ```
 
-**Parse logs from a deployment**
+## `autonomy analyse logs`
+Parse logs of an agent service.
 
+### Usage
+```bash
+autonomy analyse logs [OPTIONS] FILE
 ```
-Usage: autonomy analyse logs [OPTIONS] FILE
-  Parse logs.
-Options:
-  --help  Show this message and exit.
-```
+### Options
+`--help`
+:   Show the help message and exit.
 
-### benchmarks
+### Examples
+!!! info
+    This section will be added soon.
 
-```
-Usage: autonomy analyse benchmarks [OPTIONS] PATH
-  Benchmark Aggregator.
-Options:
-  -b, --block-type [local|consensus|total|all]
-  -d, --period INTEGER
-  -o, --output FILE
-  --help                          Show this message and exit.
-```
 
-Aggregating results from deployments.
+## `autonomy analyse benchmarks`
 
-To use this tool you'll need benchmark data generated from agent runtime. To generate benchmark data run
+Aggregate benchmark results from agent service deployments.
 
-```
-$ autonomy deploy build PATH_RO_KEYS --dev
-```
+This tool requires the benchmark data generated from service agent's runtime.
+By default the tool will aggregate the output for all the periods and block types but you can restrict the aggregation to a specific period and/or a specific block type.
 
-By default this will create a 4 agent runtime where you can wait until all 4 agents are at the end of the first period (you can wait for more periods if you want) and then you can stop the runtime. The data will be stored in `abci_build/persistent_data/benchmarks` folder.
-
-Run deployment using
-
-```
-cd abci_build/
-docker-compose up
+### Usage
+```bash
+autonomy analyse benchmarks [OPTIONS] PATH
 ```
 
-You can use this tool to aggregate this data.
+### Options
+`-b, --block-type [local|consensus|total|all]`
+:   Block type.
 
-```
-autonomy analyse benchmarks abci_build/persistent_data/benchmarks
-```
+`-d, --period PERIOD_NUM`
+:   Period.
 
-By default tool will generate output for all periods but you can specify which period to generate output for, same goes for block types as well.
+`-o, --output FILE`
+:   Output file name.
+
+`--help`
+:  Show the help message and exit.
 
 
+### Examples
 
+This example assumes you have completed the [quick start guide](../../guides/quick_start.md) and that you have run the [Hello World agent service](../../demos/hello_world_demo.md) for a few periods before cancelling its execution. The benchmark data will be stored in the folder `abci_build/persistent_data/benchmarks`.
 
-```
-Commands:
-  benchmarks  Benchmark aggregator.
-  docstrings  Analyse ABCI docstring definitions.
-  fsm-specs   Generate ABCI app specs.
-  handlers    Check handler definitions.
-  logs        Parse logs of an agent service.
+To aggregate the data of all periods, execute:
+```bash
+autonomy analyse benchmarks ./abci_build/persistent_data/benchmarks
 ```

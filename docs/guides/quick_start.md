@@ -86,6 +86,8 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
     (...)
     ```
 
+    You can cancel the servie run at any time by pressing Ctrl-C.
+
 6. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
     ```bash
     docker logs <container_id> --follow
