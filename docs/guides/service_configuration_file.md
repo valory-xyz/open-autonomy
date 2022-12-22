@@ -74,7 +74,7 @@ The attributes that define the service are summarized in the table below:
 | `description`                 | Description of the agent service.                                                                                                                                                                     |
 | `aea_version`                 | {{open_aea}} version supported by the service.                                                                                                                                                        |
 | `license`                     | License identifier.                                                                                                                                                                                   |
-| `fingerprint`                 | List with entries `<file>: <hash>` for all the files that compose the agent service. Read [how to use the command `autonomy hash`](../autonomy.md) to automatically generate this list. |
+| `fingerprint`                 | List with entries `<file>: <hash>` for all the files that compose the agent service. |
 | `fingerprint_ignore_patterns` | Filename patterns to be ignored.                                                                                                                                                                      |
 | `agent`                       | Canonical agent, in the form `<agent_public_id>:<version>:<hash>`.                                                                                                                                    |
 | `number_of_agents`            | Number of agent instances that the service is composed of.                                                                                                                                            |                                                                                                                                         |
@@ -254,7 +254,7 @@ models:
         - "world"
 ```
 
-These parameters will be exported as 
+These parameters will be exported as
 
 ```
 SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_SIMPLE_LIST='[1, 2, 3]'
