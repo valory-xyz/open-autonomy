@@ -27,6 +27,7 @@ from collections import deque
 from pathlib import Path
 from typing import (
     Any,
+    Callable,
     Deque,
     Dict,
     Generator,
@@ -37,7 +38,6 @@ from typing import (
     Type,
     Union,
     cast,
-    Callable,
 )
 from unittest import mock
 from unittest.mock import MagicMock
@@ -53,6 +53,7 @@ from aea.helpers.transaction.base import (
 from aea.helpers.transaction.base import State as TrState
 from aea.helpers.transaction.base import TransactionDigest, TransactionReceipt
 from aea.skills.base import SkillContext
+from web3.types import Nonce
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import (
@@ -334,7 +335,7 @@ class TestTransactionSettlementBaseBehaviour(FSMBehaviourBaseCase):
         assert behaviour.behaviour_id == SignatureBehaviour.auto_behaviour_id()
         # Set `nonce` to the same value as the returned, so that we test the tx replacement logging.
         if replacement:
-            behaviour.params.nonce = 0
+            behaviour.params.nonce = Nonce(0)
 
         # patch the `send_raw_transaction` method
         def dummy_send_raw_transaction(
@@ -878,7 +879,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=self.behaviour_class.auto_behaviour_id(),
-            synchronized_data=TransactionSettlementSynchronizedSata(db)
+            synchronized_data=TransactionSettlementSynchronizedSata(db),
         )
 
         response_kwargs = dict(
@@ -904,9 +905,10 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             tx_digest="dummy_tx_digest",
         )
 
-        cast(
+        current_behaviour = cast(
             TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
-        )._get_tx_data = mock_yield_and_return(return_value)  # type: ignore
+        )
+        current_behaviour._get_tx_data = mock_yield_and_return(return_value)  # type: ignore
 
         self.behaviour.act_wrapper()
         self.mock_contract_api_request(
@@ -920,7 +922,8 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
-        current_behaviour_id = self.behaviour.current_behaviour.behaviour_id
+
+        current_behaviour_id = current_behaviour.behaviour_id
         expected_behaviour_id = ValidateTransactionBehaviour.auto_behaviour_id()
         assert current_behaviour_id == expected_behaviour_id
 
