@@ -211,7 +211,7 @@ Get the most voted checked result.
 def participant_to_check() -> Mapping[str, CheckTransactionHistoryPayload]
 ```
 
-Get the mapping from pariticipants to checks.
+Get the mapping from participants to checks.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FailedRound"></a>
 

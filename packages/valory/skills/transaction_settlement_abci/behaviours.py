@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abci' skill."""
+
 import binascii
 import pprint
 import re
@@ -775,7 +776,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
                 self.context.logger.error(
                     "Trying to finalize a transaction which has been verified already!"
                 )
-            else:
+            else:  # pragma: no cover
                 self.context.logger.info(
                     f"Finalization tx digest: {cast(str, tx_data['tx_digest'])}"
                 )
@@ -784,6 +785,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
                 )
 
             tx_hashes_history = self.synchronized_data.tx_hashes_history
+
             if tx_data["tx_digest"] != "":
                 tx_hashes_history.append(cast(str, tx_data["tx_digest"]))
 
