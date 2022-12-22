@@ -923,6 +923,9 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
 
+        current_behaviour = cast(
+            ValidateTransactionBehaviour, self.behaviour.current_behaviour
+        )
         current_behaviour_id = current_behaviour.behaviour_id
         expected_behaviour_id = ValidateTransactionBehaviour.auto_behaviour_id()
         assert current_behaviour_id == expected_behaviour_id
