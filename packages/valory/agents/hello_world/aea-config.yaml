@@ -63,7 +63,7 @@ type: skill
 models:
   params:
     args:
-      hello_world_message: ${SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_HELLO_WORLD_MESSAGE:str:HELLO_WORLD!}
+      hello_world_message: ${MY_HELLO_WORLD_MESSAGE:str:HELLO_WORLD!}
       tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
       tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
 ---
