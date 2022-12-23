@@ -29,7 +29,7 @@ import subprocess  # nosec
 import tempfile
 import time
 from pathlib import Path
-from typing import Callable, Dict, Set, cast
+from typing import Callable, Dict, List, Set, cast
 from unittest import mock
 
 import flask
@@ -95,8 +95,8 @@ def test_period_dumper(monkeypatch: MonkeyPatch) -> None:
     shutil.rmtree(period_dumper.dump_dir)
 
 
-def get_network() -> str:
-    """Return the local node's network."""
+def get_chain_id() -> str:
+    """Return the local node's chain id."""
     res = requests.get("http://localhost:26657/status")
     assert (
         res.status_code == 200
@@ -104,59 +104,60 @@ def get_network() -> str:
     return res.json()["result"]["node_info"]["network"]
 
 
-def create_app_and_get_network() -> str:
-    """Create an app and a node, and return the node's network"""
-    temp_dir = os.environ["TMHOME"] = tempfile.mkdtemp()
-    app_, tendermint_node = create_app(Path(temp_dir))
+def create_app_and_get_chain_id(tm_home: Path, node_idx: int) -> str:
+    """Create an app and a node, and return the node's chain id"""
+    os.environ["TMHOME"] = str(tm_home / f"node{node_idx}")
+    dump_dir = tempfile.mkdtemp()
+    app_, tendermint_node = create_app(Path(dump_dir), debug=True)
 
-    app_.config["TESTING"] = True
     app_context = app_.app_context()
     app_context.push()
 
     time.sleep(1)
-    network = get_network()
+    chain_id = get_chain_id()
 
     app_context.pop()
     tendermint_node.stop()
-    shutil.rmtree(temp_dir)
+    shutil.rmtree(dump_dir)
 
-    return network
-
-
-def test_ensure_same_network() -> None:
-    """Ensure that all the nodes share the same network."""
-    n_nodes = 2
-    os.environ["PROXY_APP"] = "kvstore"
-    os.environ["CREATE_EMPTY_BLOCKS"] = "true"
-    os.environ["USE_GRPC"] = "false"
-
-    networks = {create_app_and_get_network() for _ in range(n_nodes)}
-    existing_networks = len(networks)
-    assert (
-        existing_networks == 1
-    ), f"Expected all {n_nodes} nodes to share the same network! Found {existing_networks} networks instead: {networks}"
+    return chain_id
 
 
 # base classes
-class BaseTendermintTest:
-    """BaseTendermintTest"""
+class BaseTendermintSingleNodeTest:
+    """Base class for Tendermint tests with a single node."""
 
     tendermint: str
     tm_home: str
     path: Path
     _os_env: Dict
+    _env_overrides: Dict[str, str]
+    _command: List[str]
+
+    @classmethod
+    def _set_overrides(cls) -> None:
+        """Generates the `_env_overrides`."""
+        cls._env_overrides = {"TMHOME": cls.tm_home}
+
+    @classmethod
+    def _set_command(cls) -> None:
+        """Generates the `_command`."""
+        cls._command = [cls.tendermint, "init", "validator", "--home", cls.tm_home]
 
     @classmethod
     def setup_class(cls) -> None:
         """Setup the test."""
         cls._os_env = os.environ.copy()
         cls.tendermint = shutil.which("tendermint")  # type: ignore
-        cls.tm_home = os.environ["TMHOME"] = tempfile.mkdtemp()
+        cls.tm_home = tempfile.mkdtemp()
+        cls._set_overrides()
+        cls._set_command()
+        for name, override in cls._env_overrides.items():
+            os.environ[name] = override
         cls.path = Path(cls.tm_home)
         assert not os.listdir(cls.tm_home)
 
-        command = [cls.tendermint, "init", "validator", "--home", cls.tm_home]
-        process = subprocess.Popen(command, stderr=subprocess.PIPE)  # nosec
+        process = subprocess.Popen(cls._command, stderr=subprocess.PIPE)  # nosec
         _, stderr = process.communicate()
         assert not stderr, stderr
 
@@ -168,7 +169,54 @@ class BaseTendermintTest:
         shutil.rmtree(cls.tm_home, ignore_errors=True, onerror=readonly_handler)
 
 
-class BaseTendermintServerTest(BaseTendermintTest):
+class BaseTendermintTestnetTest(BaseTendermintSingleNodeTest):
+    """Base class for Tendermint tests with a testnet."""
+
+    n_nodes = 4
+
+    @classmethod
+    def _set_command(cls) -> None:
+        """Generates the `_command`."""
+        cls._command = [
+            cls.tendermint,
+            "testnet",
+            "--v",
+            str(cls.n_nodes),
+            "--home",
+            cls.tm_home,
+            "--o",
+            str(Path(cls.tm_home) / "testnet"),
+        ]
+
+
+class TestNetwork(BaseTendermintTestnetTest):
+    """Tests for the Tendermint network creation."""
+
+    n_nodes = 2
+
+    @classmethod
+    def _set_overrides(cls) -> None:
+        """Generates the `_env_overrides`."""
+        cls._env_overrides = {
+            "PROXY_APP": "kvstore",
+            "CREATE_EMPTY_BLOCKS": "true",
+            "USE_GRPC": "false",
+        }
+
+    def test_ensure_same_network(self) -> None:
+        """Ensure that all the nodes share the same network."""
+        chain_ids = {
+            create_app_and_get_chain_id(Path(self.tm_home) / "testnet", i)
+            for i in range(self.n_nodes)
+        }
+        existing_networks = len(chain_ids)
+        assert existing_networks == 1, (
+            f"Expected all {self.n_nodes} nodes to share the same network! "
+            f"Found {existing_networks} networks instead: {chain_ids}"
+        )
+
+
+class BaseTendermintServerTest(BaseTendermintSingleNodeTest):
     """Test Tendermint server app"""
 
     app: flask.app.Flask
@@ -214,7 +262,7 @@ def test_tendermint_executable_found() -> None:
     assert output.decode(ENCODING).strip() == VERSION
 
 
-class TestTendermintServerUtilityFunctions(BaseTendermintTest):
+class TestTendermintServerUtilityFunctions(BaseTendermintSingleNodeTest):
     """Test Tendermint server utility functions"""
 
     def test_load_genesis(self) -> None:
