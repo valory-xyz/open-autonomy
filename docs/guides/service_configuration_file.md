@@ -249,7 +249,7 @@ If you have repetitive overridden parameters, you can define them using [YAML an
 
 ## Export to environment variables
 
-The framework exports each overridden attribute in the service configuration file to a system environment variable. By default, the exported environment variables are labelled with their upper case JSON path:
+The framework exports each overridden attribute in the service configuration file to a system environment variable. The exported environment variables are labelled with their upper case JSON path:
 ```
 <COMPONENT_TYPE>_<UPPERCASE_ATTRIBUTE_PATH>=<value>
 ```
