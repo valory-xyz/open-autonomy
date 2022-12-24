@@ -133,20 +133,21 @@ class TestYamlSnippets(BaseTestDocCode):
         "docs/demos/hello_world_demo.md": {
             "code_files": ["packages/valory/agents/hello_world/aea-config.yaml"],
         },
-        "docs/demos/price_oracle_fsms.md": {
-            "code_files": [
-                "packages/valory/skills/registration_abci/fsm_specification.yaml",
-                "packages/valory/skills/safe_deployment_abci/fsm_specification.yaml",
-                "packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml",
-                "packages/valory/skills/reset_pause_abci/fsm_specification.yaml",
-            ],
-            "skip_blocks": [2, 3, 6],
-        },
+        # TODO uncomment and update this doc, when the safe-related rounds get removed from the `price-oracle`.
+        # "docs/demos/price_oracle_fsms.md": {  # flake8: noqa: E800
+        #     "code_files": [  # flake8: noqa: E800
+        #         "packages/valory/skills/registration_abci/fsm_specification.yaml",  # flake8: noqa: E800
+        #         "packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml",  # flake8: noqa: E800
+        #         "packages/valory/skills/reset_pause_abci/fsm_specification.yaml",  # flake8: noqa: E800
+        #     ],  # flake8: noqa: E800
+        #     "skip_blocks": [2, 3, 6],  # flake8: noqa: E800
+        # },  # flake8: noqa: E800
         "docs/guides/running_service_different_networks.md": {"skip_blocks": [0]},
     }
 
     skipped_files = [
         "docs/guides/service_configuration_file.md",
+        "docs/demos/price_oracle_fsms.md",
     ]
 
 
@@ -200,7 +201,7 @@ class TestDocBashSnippets:
     """Class for doc bash snippet testing"""
 
     def test_run_check(self) -> None:
-        """Check the documentaion code"""
+        """Check the documentation code"""
 
         code_type = CodeType.BASH
 
@@ -220,9 +221,7 @@ class TestDocBashSnippets:
         if skipped_files:
             files_with_blocks = [f for f in files_with_blocks if f not in skipped_files]
 
-        all_mk_files = [
-            str(p.relative_to(ROOT_DIR)) for p in Path(ROOT_DIR).rglob("*Makefile")
-        ]
+        all_mk_files = [str(p.absolute()) for p in Path(ROOT_DIR).rglob("*Makefile")]
 
         all_mk_files = list(
             filter(

@@ -75,7 +75,7 @@ The `push`, `add`, `publish` and `fetch` commands use, by default, the registry 
 
 Additionally, the framework configuration can be overridden per command by using the flags `--local` or `--remote` in any of the commands  `push`, `add`, `publish` or `fetch`.
 
-The framework assumes that the location of the local registry is the subfolder `./packages`, or alternatively, the parent folder `..\packages`. Alternatively, you can specify the local registry folder with the top-level flag `--registry-path`, for example:
+The framework assumes that the location of the local registry is the subfolder `./packages`, or alternatively, the parent folder `../packages`. Alternatively, you can specify the local registry folder with the top-level flag `--registry-path`, for example:
 ```bash
 autonomy --registry-path=../my_registry publish --local
 ```

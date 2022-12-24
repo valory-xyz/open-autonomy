@@ -20,7 +20,7 @@
 
 from abc import ABC
 from enum import Enum
-from typing import Dict, Mapping, Optional, Tuple, Type, cast
+from typing import Dict, List, Optional, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -57,17 +57,16 @@ class SynchronizedData(
     """
     Class to represent the synchronized data.
 
-    This state is replicated by the tendermint application.
+    This state is replicated by the Tendermint application.
     """
 
-    # TODO: pointless as already defined on base, although
-    # educative. But see my comment below...
     @property
-    def participant_to_selection(self) -> Mapping[str, SelectKeeperPayload]:
-        """Get the participant_to_selection."""
+    def printed_messages(self) -> List[str]:
+        """Get the printed messages list."""
+
         return cast(
-            Mapping[str, SelectKeeperPayload],
-            self.db.get_strict("participant_to_selection"),
+            List[str],
+            self.db.get_strict("printed_messages"),
         )
 
 
@@ -94,7 +93,6 @@ class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 participants=frozenset(self.collection),
-                all_participants=frozenset(self.collection),
                 synchronized_data_class=SynchronizedData,
             )
             return synchronized_data, Event.DONE
@@ -133,15 +131,15 @@ class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
     allowed_tx_type = PrintMessagePayload.transaction_type
     payload_attribute = get_name(PrintMessagePayload.message)
 
-    # TODO: what's the point of this? It might be better
-    # to store the messages on the synchronized state so
-    # the dev actually learns something (see todo above)
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 participants=self.collection,
-                all_participants=self.collection,
+                printed_messages=[
+                    cast(PrintMessagePayload, payload).message
+                    for payload in self.collection.values()
+                ],
                 synchronized_data_class=SynchronizedData,
             )
             return synchronized_data, Event.DONE
@@ -157,6 +155,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractR
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            # TODO `cross_period_persisted_keys` should be used here instead
             synchronized_data = self.synchronized_data.create(
                 participants=[self.synchronized_data.participants],
                 all_participants=[self.synchronized_data.all_participants],

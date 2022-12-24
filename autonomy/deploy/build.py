@@ -62,11 +62,13 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         apply_environment_variables=apply_environment_variables,
     )
     service_builder.log_level = log_level
+    multisig_address = "0xADDRESS"
+    agent_instances = [f"0xagent{i}" for i in range(4)]
 
-    if multisig_address is not None:
-        service_builder.try_update_multisig_address(
-            address=multisig_address,
-        )
+    service_builder.try_update_runtime_params(
+        multisig_address=multisig_address,
+        agent_instances=agent_instances,
+    )
 
     DeploymentGenerator = DEPLOYMENT_OPTIONS[type_of_deployment]
     deployment = DeploymentGenerator(

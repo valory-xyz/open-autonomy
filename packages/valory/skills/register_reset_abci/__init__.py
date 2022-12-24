@@ -21,9 +21,9 @@
 This module contains a dummy ABCI skill in which the agents register and then reset.
 
 It is created only for debugging purposes, regarding the Tendermint reset issue.
-"""
+"""  # pragma: nocover
 
-from aea.configurations.base import PublicId
+from aea.configurations.base import PublicId  # pragma: nocover
 
 
 PUBLIC_ID = PublicId.from_str("valory/register_reset_abci:0.1.0")

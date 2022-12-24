@@ -992,6 +992,7 @@ class TestBaseSynchronizedData:
         participant_to_selection = "participant_to_selection"
         participant_to_randomness = "participant_to_randomness"
         participant_to_votes = "participant_to_votes"
+        safe_contract_address = "0x0"
 
         base_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(
@@ -1005,6 +1006,7 @@ class TestBaseSynchronizedData:
                         participant_to_selection=participant_to_selection,
                         participant_to_randomness=participant_to_randomness,
                         participant_to_votes=participant_to_votes,
+                        safe_contract_address=safe_contract_address,
                     )
                 )
             )
@@ -1028,6 +1030,7 @@ class TestBaseSynchronizedData:
             == participant_to_randomness
         )
         assert base_synchronized_data.participant_to_votes == participant_to_votes
+        assert base_synchronized_data.safe_contract_address == safe_contract_address
 
 
 class TestAbstractRound:

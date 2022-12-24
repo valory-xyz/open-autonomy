@@ -31,7 +31,7 @@ class AbciApp(
     transition_function: AbciAppTransitionFunction
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
-    cross_period_persisted_keys: List[str] = []
+    cross_period_persisted_keys: List[str] = ["safe_contract_address"]
 
     def __init__(
         self,

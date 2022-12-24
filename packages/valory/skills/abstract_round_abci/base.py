@@ -750,7 +750,12 @@ class BaseSynchronizedData:
     # * `period_count` comes from the `reset_index` which is the last key of the `self._data`.
     #    The `self._data` keys are only updated on create, and cleanup operations,
     #    which are also meant to be synchronized since they are used at the rounds.
-    default_db_keys: List[str] = ["round_count", "period_count", "nb_participants"]
+    default_db_keys: List[str] = [
+        "round_count",
+        "period_count",
+        "nb_participants",
+        "safe_contract_address",
+    ]
 
     def __init__(
         self,
@@ -889,6 +894,11 @@ class BaseSynchronizedData:
     def participant_to_votes(self) -> Mapping:
         """Check whether keeper is set."""
         return cast(Dict, self.db.get_strict("participant_to_votes"))
+
+    @property
+    def safe_contract_address(self) -> str:
+        """Get the safe contract address."""
+        return cast(str, self.db.get_strict("safe_contract_address"))
 
 
 class AbstractRound(Generic[EventType, TransactionType], ABC):
@@ -1969,7 +1979,7 @@ class AbciApp(
     transition_function: AbciAppTransitionFunction
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
-    cross_period_persisted_keys: List[str] = []
+    cross_period_persisted_keys: List[str] = ["safe_contract_address"]
     background_round_cls: Optional[AppState] = None
     termination_transition_function: Optional[AbciAppTransitionFunction] = None
     termination_event: Optional[EventType] = None

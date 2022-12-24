@@ -110,15 +110,15 @@ def read_keys(keys_file: Path) -> None
 
 Read in keys from a file on disk.
 
-<a id="autonomy.deploy.base.ServiceBuilder.try_update_multisig_address"></a>
+<a id="autonomy.deploy.base.ServiceBuilder.try_update_runtime_params"></a>
 
-#### try`_`update`_`multisig`_`address
+#### try`_`update`_`runtime`_`params
 
 ```python
-def try_update_multisig_address(address: str) -> None
+def try_update_runtime_params(multisig_address: Optional[str] = None, agent_instances: Optional[List[str]] = None) -> None
 ```
 
-Try and update multisig address if `safe_contract_address` parameter is defined.
+Try and update setup parameters.
 
 <a id="autonomy.deploy.base.ServiceBuilder.process_component_overrides"></a>
 

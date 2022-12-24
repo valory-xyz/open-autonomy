@@ -1,70 +1,90 @@
-The service configuration file `service.yaml` is a YAML file where the main attributes of the agent service are set up, including the particular agent that composes the service. Service configuration files can also override attributes defined in agent or component configurations. Below there is an example of the service configuration file for the [Hello World service](../demos/hello_world_demo.md):
+The service configuration file `service.yaml` is a YAML file where the main attributes of the agent service are set up, including the particular agent that composes the service. An important feature of service configuration files is that they can override attributes defined in agent or component configurations.
 
-```yaml
-name: hello_world
-author: valory
-version: 0.1.0
-description: A simple demonstration of a simple ABCI application
-aea_version: '>=1.0.0, <2.0.0'
-license: Apache-2.0
-fingerprint:
-  README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
-fingerprint_ignore_patterns: []
-agent: valory/hello_world:0.1.0:bafybeihqzkncz7r563lfkots4fphb7abdymdna4ir7in7fsbzjtx6yyndq
-number_of_agents: 4
----
-extra:
-  benchmark_persistence_params:
-    args: &id001
-      log_dir: /benchmarks
-public_id: valory/hello_world_abci:0.1.0
-type: skill
-0:
-  models:
-    params:
-      args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD_AGENT_0}
-    benchmark_tool:
-      args: *id001
-1:
-  models:
-    params:
-      args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD_AGENT_1}
-    benchmark_tool:
-      args: *id001
-2:
-  models:
-    params:
-      args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD_AGENT_2}
-    benchmark_tool:
-      args: *id001
-3:
-  models:
-    params:
-      args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD_AGENT_3}
-    benchmark_tool:
-      args: *id001
----
-public_id: valory/ledger:0.19.0
-type: connection
-config:
-  ledger_apis:
-    ethereum:
-      address: http://host.docker.internal:8545
-      chain_id: 31337
-      poa_chain: false
-      default_gas_price_strategy: eip1559
 
-```
+<figure markdown>
+![](../images/development_process_define_service.svg)
+<figcaption>Part of the development process covered in this guide</figcaption>
+</figure>
+
+## What you will learn
+In this guide, you will learn:
+
+* What is the structure of the service configuration file.
+* How the configuration override mechanism works.
+* How configuration attributes are imported and exported as environment variables.
 
 ## The structure of the service configuration file
 
-The service configuration file is typically composed of service-specific attributes followed by additional YAML documents. These additional documents begin with `---`, and override attributes from agent or component configuration files of agents and components, respectively, used by the service. In the example above, the service configuration file for the [Hello World service](../demos/hello_world_demo.md) is overriding some attributes for the skill `valory/hello_world_abci` and the connection `valory/ledger`.
+The service configuration file `service.yaml` is typically composed of service-specific attributes followed by additional YAML documents. Each additional document overrides the parameter of a specific agent or component configuration used by the service, and they must begin with `---`.
 
-The attributes that define the service are summarized in the table below:
+???+ example
+
+    Here is an example of the service configuration file of the [Hello World service](../demos/hello_world_demo.md):
+
+    ```yaml
+    name: hello_world
+    author: valory
+    version: 0.1.0
+    description: A simple demonstration of a simple ABCI application
+    aea_version: '>=1.0.0, <2.0.0'
+    license: Apache-2.0
+    fingerprint:
+      README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
+    fingerprint_ignore_patterns: []
+    agent: valory/hello_world:0.1.0:bafybeihqzkncz7r563lfkots4fphb7abdymdna4ir7in7fsbzjtx6yyndq
+    number_of_agents: 4
+    ---
+    extra:
+      benchmark_persistence_params:
+        args: &id001
+          log_dir: /benchmarks
+    public_id: valory/hello_world_abci:0.1.0
+    type: skill
+    0:
+      models:
+        params:
+          args:
+            hello_world_message: ${MY_HELLO_WORLD_MESSAGE:str:HELLO_WORLD_AGENT_0}
+        benchmark_tool:
+          args: *id001
+    1:
+      models:
+        params:
+          args:
+            hello_world_message: ${MY_HELLO_WORLD_MESSAGE:str:HELLO_WORLD_AGENT_1}
+        benchmark_tool:
+          args: *id001
+    2:
+      models:
+        params:
+          args:
+            hello_world_message: ${MY_HELLO_WORLD_MESSAGE:str:HELLO_WORLD_AGENT_2}
+        benchmark_tool:
+          args: *id001
+    3:
+      models:
+        params:
+          args:
+            hello_world_message: ${MY_HELLO_WORLD_MESSAGE:str:HELLO_WORLD_AGENT_3}
+        benchmark_tool:
+          args: *id001
+    ---
+    public_id: valory/ledger:0.19.0
+    type: connection
+    config:
+      ledger_apis:
+        ethereum:
+          address: http://host.docker.internal:8545
+          chain_id: 31337
+          poa_chain: false
+          default_gas_price_strategy: eip1559
+
+    ```
+
+     As you can see, the service configuration file is overriding some attributes for the skill `valory/hello_world_abci` and the connection `valory/ledger`.
+     Also, note how the attributes `hello_world_message` read their value from the  environment variable `MY_HELLO_WORLD_STRING` of type string, and take a default value if they are not defined.
+
+There are a number of mandatory attributes that define the service, which are summarized in the table below:
 
 | Attribute                     | Description                                                                                                                                                                                           |
 |-------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -74,20 +94,19 @@ The attributes that define the service are summarized in the table below:
 | `description`                 | Description of the agent service.                                                                                                                                                                     |
 | `aea_version`                 | {{open_aea}} version supported by the service.                                                                                                                                                        |
 | `license`                     | License identifier.                                                                                                                                                                                   |
-| `fingerprint`                 | List with entries `<file>: <hash>` for all the files that compose the agent service. Read [how to use the command `autonomy hash`](../autonomy.md) to automatically generate this list. |
+| `fingerprint`                 | List with entries `<file>: <hash>` for all the files that compose the agent service. |
 | `fingerprint_ignore_patterns` | Filename patterns to be ignored.                                                                                                                                                                      |
 | `agent`                       | Canonical agent, in the form `<agent_public_id>:<version>:<hash>`.                                                                                                                                    |
 | `number_of_agents`            | Number of agent instances that the service is composed of.                                                                                                                                            |                                                                                                                                         |
-
-Following the service-specific attributes it follows the service-level overrides.
-You can, for example, override the default `HELLO_WORLD!` string that each agent prints on their console in the [Hello World service](../demos/hello_world_demo.md).
-
 
 ## Service-level overrides
 
 The {{open_aea}} framework already has the notion of [component overrides](https://open-aea.docs.autonolas.tech/overrides/): if a component uses another component, the former can override configuration values of the latter.
 
-Similarly, the {{open_autonomy}} framework has the notion of service-level overrides. You can define them in the service configuration file `service.yaml`, which will be used to generate the deployment environment for the agents:
+Similarly, the {{open_autonomy}} framework has the notion of service-level overrides. You can define them in the service configuration file `service.yaml`, which will be used to generate the deployment environment for the agents.
+
+Service-level overrides follow the mandatory service-specific attributes, separated by `---`.
+You can, for example, override the default `HELLO_WORLD!` string that each agent prints on their console in the [Hello World service](../demos/hello_world_demo.md), which is originally defined in the `hello_world_abci` skill.
 
 ```yaml
 name: hello_world
@@ -107,41 +126,38 @@ type: skill
 models:
   params:
     args:
-      hello_world_message: HELLO_WORLD!
+      hello_world_message: Hello world!
 ```
 
 Note that service-level overrides take precedence over agent-level overrides, and agent-level overrides take precedence over component-level overrides.
 
 <figure markdown>
 ![](../images/service-level_overrides.svg)
-<figcaption>Service-level overrides</figcaption>
+<figcaption>Overrides precedence</figcaption>
 </figure>
 
 
+You can define values for overridden attributes in two ways:
 
-The framework associates each overridden attribute to a system environment variable. Therefore, you can either:
-
-1. Directly assign a specific value to an overridden attribute, for example,
+1. Directly assign a hardcoded value, for example:
    ```yaml
    hello_world_message: HELLO_WORLD!
    ```
 
-2. Or assign the associated environment variable to the overridden attribute, in this case,
+2. Use an environment variable with a default value using the syntax
    ```yaml
-   hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HI_WORLD!}   
+   <overridden_attribute>: ${<ENVIRONMENT_VARIABLE>:<type>:<default_value>}  
    ```
-   The corresponding environment variable `SERVICE_HELLO_WORLD_HELLO_WORLD_STRING`will be read by the agent in runtime. If not found, the default value `HI_WORLD!` will be taken by the agent.
+   for example:
+   ```yaml
+   hello_world_message: ${MY_HELLO_WORLD_MESSAGE:str:HELLO_WORLD!}   
+   ```
+   In this case, the environment variable `MY_HELLO_WORLD_MESSAGE` will be read by the agent in runtime. If not found, the default value `HELLO_WORLD!` will be used.
 
-!!! note
-    Observe that the environment variable associated to an overridden attribute has the form  `<COMPONENT_TYPE>_<UPPERCASE_ATTRIBUTE_PATH>`, since they are generated from the `json` path to the attribute. Moreover, we recommend using the overridden format
-    ```yaml
-    <overridden_attribute>: ${<ENVIRONMENT_VARIABLE>:<type>:<default_value>}
-    ```
-    as in the example above to fallback into a safe default value in case the environment variable is not defined.
 
 ### Multiple overrides
 
-In the service configuration file, you can override different values for different agents using the multiple override feature, using the pattern below:
+You can override different values for different agents in the service configuration file with the multiple override feature, using the pattern below:
 
 ```yaml
 (...)
@@ -152,153 +168,207 @@ type: skill
   <overridden_attributes>
 ```
 
-For example, if we wish that each agent in the [Hello World service](../demos/hello_world_demo.md) outputs a different message, we can achieve this as follows:
-
-```yaml
-(...)
----
-public_id: valory/hello_world_abci:0.1.0
-type: skill
-0:
-  models:
-    params:
-      args:
-        hello_world_message: Hello, from agent 0
-1:
-  models:
-    params:
-      args:
-        hello_world_message: Hello, from agent 1
-2:
-  models:
-    params:
-      args:
-        hello_world_message: Hello, from agent 2
-3:
-  models:
-    params:
-      args:
-        hello_world_message: Hello, from agent 3
-```
-
 !!! warning "Important"
     If you choose to use the multiple override feature, you have to define overrides for **every** single agent that composes the service.
 
+???+ example
+
+    If you wish that each agent outputs a different message in the [Hello World service](../demos/hello_world_demo.md) with four agents, you can define the following multiple override in the `service.yaml` file:
+
+    ```yaml
+    (...)
+    ---
+    public_id: valory/hello_world_abci:0.1.0
+    type: skill
+    0:
+      models:
+        params:
+          args:
+            hello_world_message: Hello, from agent 0
+    1:
+      models:
+        params:
+          args:
+            hello_world_message: Hello, from agent 1
+    2:
+      models:
+        params:
+          args:
+            hello_world_message: Hello, from agent 2
+    3:
+      models:
+        params:
+          args:
+            hello_world_message: Hello, from agent 3
+    ```
+
 If you have repetitive overridden parameters, you can define them using [YAML anchors](https://yaml.org/spec/1.2.2/) under the section `extra`, and reference them when defining overrides for different agents.
 
+???+ example
+
+    In this example, we define a YAML anchor with label `&id001` to avoid repeating the same configuration of the `args` parameter in all the agents.
+
+    ```yaml
+    (...)
+    ---
+    extra:
+      benchmark_tool:
+        args: &id001
+          log_dir: /benchmarks
+    public_id: valory/hello_world_abci:0.1.0
+    type: skill
+    0:
+      models:
+        params:
+          args:
+            hello_world_message: Hello, from agent 0
+        benchmark_tool:
+          args: *id001
+    1:
+      models:
+        params:
+          args:
+            hello_world_message: Hello, from agent 1
+        benchmark_tool:
+          args: *id001
+    2:
+      models:
+        params:
+          args:
+            hello_world_message: Hello, from agent 2
+        benchmark_tool:
+          args: *id001
+    3:
+      models:
+        params:
+          args:
+            hello_world_message: Hello, from agent 3
+        benchmark_tool:
+          args: *id001
+    ```
+
+## Export to environment variables
+
+The framework exports each overridden attribute in the service configuration file to a system environment variable. The exported environment variables are labelled with their upper case JSON path:
+```
+<COMPONENT_TYPE>_<UPPERCASE_ATTRIBUTE_PATH>=<value>
+```
+
+Note that when deploying an agent service, environment variables are defined within each agent container. Therefore, even if you use the multiple override feature to define a different value per agent, their respective environment variable within the container will have the same name.
+
+???+ example
+
+    If you have an override like
+    ```yaml
+    (...)
+    ---
+    public_id: valory/hello_world_abci:0.1.0
+    type: skill
+    models:
+      params:
+        args:
+          hello_world_message: Hello world!
+    ```
+    it will export the environment variable `SKILL_MODELS_PARAM_ARGS_HELLO_WORLD_MESSAGE`.
+
+    On the other hand, if you use the multiple override feature and you have something like
+    ```yaml
+    (...)
+    ---
+    public_id: valory/hello_world_abci:0.1.0
+    type: skill
+    0:
+      models:
+        params:
+          args:
+            hello_world_message: Hello, from agent 0
+    1:
+      models:
+        params:
+          args:
+            hello_world_message: Hello, from agent 1
+    2:
+      models:
+        params:
+          args:
+            hello_world_message: Hello, from agent 2
+    3:
+      models:
+        params:
+          args:
+            hello_world_message: Hello, from agent 3
+    ```
+    it will also export the environment `SKILL_MODELS_PARAM_ARGS_HELLO_WORLD_MESSAGE` within each agent container. However each such variable will have a different value inside each container, that is, `Hello, from agent 0`, `Hello, from agent 1`, etc.
+
+Exported environment variables require such specific format because they are used by the constituent agents and skills. Read about [component overrides](https://open-aea.docs.autonolas.tech/overrides/) in the {{open_aea}} framework for more information.
+
+### Export complicated data structures
+
+If you have nested lists the environment export rules will differ as per the inner data structures. If the list is a strict list, meaning the inner values are either primitive data types like `int`, `str`, `float` or `boolean`, the list will be exported as a JSON string.
+
+???+ example
+
+    If you have an override like
+    ```yaml
+    (...)
+    ---
+    public_id: vendor/hello_world_abci:0.1.0
+    type: skill
+    models:
+      params:
+        args:
+          simple_list:
+            - 1
+            - 2
+            - 3
+          nested_list:
+          - - foo
+            - bar
+          - - "hello"
+            - "world"
+    ```
+    it will export the environment variables
+
+    - `SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_SIMPLE_LIST='[1, 2, 3]'`,
+    - `SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_NESTED_LIST='[["foo", "bar"], ["hello", "world"]]'`.
+
+
+If an overridden list contains mapping values, it will be exported as
+```
+<COMPONENT_TYPE>_<UPPERCASE_ATTRIBUTE_PATH>_<MAPPING_INDEX>_KEY=<value>
+```
+
+???+ example
+
+    If you have an override like
+    ```yaml
+    (...)
+    ---
+    public_id: valory/hello_world_abci:0.1.0
+    type: skill
+    models:
+      params:
+        args:
+          list_with_mappings:
+            - key: value_0
+            - key: value_1
+    ```
+    it will export the environment variables
+
+    - `SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_LIST_WITH_MAPPINGS_0_KEY='value_0'`,
+    - `SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_LIST_WITH_MAPPINGS_1_KEY='value_1'`.
+
+So when defining the agent/component level overrides you will have to explicitly define all the elements of the list like this:
+
 ```yaml
 (...)
 ---
-extra:
-  benchmark_tool:
-    args: &id001
-      log_dir: /benchmarks
-public_id: valory/hello_world_abci:0.1.0
-type: skill
-0:
-  models:
-    params:
-      args:
-        hello_world_message: Hello, from agent 0
-    benchmark_tool:
-      args: *id001
-1:
-  models:
-    params:
-      args:
-        hello_world_message: Hello, from agent 1
-    benchmark_tool:
-      args: *id001
-2:
-  models:
-    params:
-      args:
-        hello_world_message: Hello, from agent 2
-    benchmark_tool:
-      args: *id001
-3:
-  models:
-    params:
-      args:
-        hello_world_message: Hello, from agent 3
-    benchmark_tool:
-      args: *id001
-```
-
-
-### Overrides with complicated data structures
-
-If you have nested list the environment export rules will differ as per the inner data structures. If the list is a strict list, meaning the inner values are either primitive data types like `int`, `str`, `float` or `boolean`, the list will be exported as a `json` string.
-
-
-```yaml
-(...)
----
-extra:
-  benchmark_tool:
-    args: &id001
-      log_dir: /benchmarks
-public_id: valory/hello_world_abci:0.1.0
-type: skill
-models:
-  params:
-    args:
-      simple_list:
-        - 1
-        - 2
-        - 3
-      nested_list:
-      - - foo
-        - bar
-      - - "hello"
-        - "world"
-```
-
-These parameters will be exported as 
-
-```
-SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_SIMPLE_LIST='[1, 2, 3]'
-SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_NESTED_LIST='[["foo", "bar"], ["hello", "world"]]'
-```
-
-If the list contains mapping values, it'll be exported in `COMPONENT_TYPE_COMPONENT_NAME_PARAM_<MAPPING_INDEX>_KEY=value`
-
-
-```yaml
-(...)
----
-extra:
-  benchmark_tool:
-    args: &id001
-      log_dir: /benchmarks
 public_id: valory/hello_world_abci:0.1.0
 type: skill
 models:
   params:
     args:
       list_with_mappings:
-        - key: value_0
-        - key: value_1
-```
-
-This will be exported as
-
-```
-SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_LIST_WITH_MAPPINGS_0_KEY='value_0'
-SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_LIST_WITH_MAPPINGS_1_KEY='value_1'
-```
-
-So when defining the agent/component level overrides the user will have to explicitly define all the elements of the list like this
-
-```yaml
-(...)
----
-public_id: valory/hello_world_abci:0.1.0
-type: skill
-models:
-  params:
-    args:
-      list_with_mappings:
-        - key: ${str:default_value}
-        - key: ${str:default_value}
+        - key: ${<ENVIRONMENT_VARIABLE>:<type>:<default_value>}
+        - key: ${<ENVIRONMENT_VARIABLE>:<type>:<default_value>}
 ```

@@ -24,7 +24,7 @@ import logging
 import os
 from copy import copy
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from warnings import warn
 
 from aea.configurations.base import (
@@ -54,6 +54,10 @@ ENV_VAR_TENDERMINT_URL = "TENDERMINT_URL"
 ENV_VAR_TENDERMINT_COM_URL = "TENDERMINT_COM_URL"
 ENV_VAR_LOG_LEVEL = "LOG_LEVEL"
 ENV_VAR_AEA_PASSWORD = "AEA_PASSWORD"  # nosec
+
+SETUP_PARAM_PATH = ("models", "params", "args", "setup")
+SAFE_CONTRACT_ADDRESS = "safe_contract_address"
+ALL_PARTICIPANTS = "all_participants"
 
 ABCI_HOST = "abci{}"
 TENDERMINT_NODE = "http://node{}:26657"
@@ -226,35 +230,66 @@ class ServiceBuilder:
         self._keys = keys
 
     @staticmethod
-    def _try_update_safe_contract_address(
-        address: str,
+    def _try_update_setup_data(
+        data: List[Tuple[str, Any]],
         override: Dict,
         skill_id: PublicId,
         has_multiple_overrides: bool = False,
     ) -> None:
         """Try update the `safe_contract_address` parameter"""
 
-        try:
-            if not has_multiple_overrides:
-                override["models"]["params"]["args"]["setup"][
-                    "safe_contract_address"
-                ] = [
-                    address,
-                ]
+        def _get_params_dict(override_dict: Dict) -> Optional[Dict]:
+            """Returns `setup` param dict"""
+            try:
+                _key_0, *_keys = SETUP_PARAM_PATH
+                setup_param = override_dict[_key_0]
+                for key in _keys:
+                    setup_param = setup_param[key]
+                return setup_param
+            except KeyError:
+                logging.warning(
+                    f"Could not update the setup parameter for {skill_id}; "
+                    f"Configuration does not contain the json path to the setup parameter"
+                )
+                return None
+
+        def _try_update_setup_params(
+            setup_param: Optional[Dict],
+            setup_data: List[Tuple[str, Any]],
+        ) -> None:
+            """Update"""
+            if setup_param is None:
                 return
 
-            for agent_idx in override:
-                override[agent_idx]["models"]["params"]["args"]["setup"][
-                    "safe_contract_address"
-                ] = [address]
-        except KeyError:
-            logging.warning(
-                f"Could not update the `safe_contract_address` parameter for {skill_id}; "
-                "Configuration does not contain the json path to `safe_contract_address` parameter"
+            for param, value in setup_data:
+                setup_param[param] = value
+
+        if not has_multiple_overrides:
+            setup_param = _get_params_dict(override_dict=override)
+            _try_update_setup_params(setup_param=setup_param, setup_data=data)
+            return
+
+        for agent_idx in override:
+            setup_param = _get_params_dict(override_dict=override[agent_idx])
+            _try_update_setup_params(setup_param=setup_param, setup_data=data)
+
+    def try_update_runtime_params(
+        self,
+        multisig_address: Optional[str] = None,
+        agent_instances: Optional[List[str]] = None,
+    ) -> None:
+        """Try and update setup parameters."""
+
+        param_overrides: List[Tuple[str, Any]] = []
+        if multisig_address is not None:
+            param_overrides.append(
+                (SAFE_CONTRACT_ADDRESS, [multisig_address]),
             )
 
-    def try_update_multisig_address(self, address: str) -> None:
-        """Try and update multisig address if `safe_contract_address` parameter is defined."""
+        if agent_instances is not None:
+            param_overrides.append(
+                (ALL_PARTICIPANTS, [agent_instances]),
+            )
 
         overrides = copy(self.service.overrides)
         for override in overrides:
@@ -267,8 +302,8 @@ class ServiceBuilder:
             )
 
             if component_id.component_type.value == SKILL:
-                self._try_update_safe_contract_address(
-                    address=address,
+                self._try_update_setup_data(
+                    data=param_overrides,
                     override=override,
                     skill_id=component_id.public_id,
                     has_multiple_overrides=has_multiple_overrides,
