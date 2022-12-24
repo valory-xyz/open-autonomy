@@ -152,7 +152,7 @@ class HelloWorldAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         assert next_behaviour is not None, f"Behaviour {behaviour_id} not found"
         next_behaviour = cast(Type[BaseBehaviour], next_behaviour)
         behaviour.current_behaviour = next_behaviour(
-            name=next_behaviour.behaviour_id, skill_context=behaviour.context
+            name=next_behaviour.auto_behaviour_id(), skill_context=behaviour.context
         )
         self.skill.skill_context.state.round_sequence.abci_app._round_results.append(
             synchronized_data
