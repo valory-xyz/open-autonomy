@@ -293,7 +293,7 @@ class AbstractRoundBehaviour(
             self.context.logger.debug(
                 "overriding transition: current behaviour: '%s', next behaviour: '%s'",
                 self.current_behaviour.behaviour_id if self.current_behaviour else None,
-                next_behaviour_cls.behaviour_id,
+                next_behaviour_cls.auto_behaviour_id(),
             )
 
         self.current_behaviour = self.instantiate_behaviour_cls(next_behaviour_cls)

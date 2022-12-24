@@ -160,11 +160,11 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
 
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=FinalizeBehaviour.behaviour_id,
+            behaviour_id=FinalizeBehaviour.auto_behaviour_id(),
             synchronized_data=self.tx_settlement_synchronized_data,
         )
         behaviour = cast(FinalizeBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.behaviour_id == FinalizeBehaviour.behaviour_id  # nosec
+        assert behaviour.behaviour_id == FinalizeBehaviour.auto_behaviour_id()
         stored_nonce = behaviour.params.nonce
         stored_gas_price = behaviour.params.gas_price
 
@@ -295,7 +295,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             _, verif_msg = self.process_n_messages(
                 2,
                 self.tx_settlement_synchronized_data,
-                ValidateTransactionBehaviour.behaviour_id,
+                ValidateTransactionBehaviour.auto_behaviour_id(),
                 handlers,
                 expected_content,
                 expected_types,
