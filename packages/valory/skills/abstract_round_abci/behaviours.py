@@ -211,9 +211,7 @@ class AbstractRoundBehaviour(
         # iterate over rounds and map final (i.e. degenerate) rounds
         #  to the degenerate behaviour class
         for final_round_cls in cls.abci_app_cls.final_states:
-            new_degenerate_behaviour = make_degenerate_behaviour(
-                final_round_cls.auto_round_id()
-            )
+            new_degenerate_behaviour = make_degenerate_behaviour(final_round_cls)
             new_degenerate_behaviour.matching_round = final_round_cls  # type: ignore
             result[final_round_cls] = new_degenerate_behaviour  # type: ignore
 

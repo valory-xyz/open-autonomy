@@ -19,6 +19,7 @@
 
 """This package contains round behaviours of DummyAbciApp."""
 
+from abc import ABC
 from collections import deque
 from typing import Deque, Generator, Set, Type, cast
 
@@ -50,7 +51,7 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds imp
 )
 
 
-class DummyBaseBehaviour(BaseBehaviour):
+class DummyBaseBehaviour(BaseBehaviour, ABC):
     """Base behaviour for the common apps' skill."""
 
     @property

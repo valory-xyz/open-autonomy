@@ -20,6 +20,7 @@
 """ABCI App test tools."""
 
 
+from abc import ABC
 from enum import Enum
 from typing import Dict, Tuple, Type, Union
 from unittest.mock import MagicMock
@@ -27,12 +28,16 @@ from unittest.mock import MagicMock
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbstractRound,
+    BaseSynchronizedData,
     BaseTxPayload,
 )
 
 
-class _ConcreteRound(AbstractRound):
+class _ConcreteRound(AbstractRound, ABC):
     """ConcreteRound"""
+
+    synchronized_data_class = BaseSynchronizedData
+    payload_attribute = ""
 
     def end_block(self) -> Union[None, Tuple[MagicMock, MagicMock]]:
         """End block."""

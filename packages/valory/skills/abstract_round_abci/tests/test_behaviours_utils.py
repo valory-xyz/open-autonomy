@@ -69,6 +69,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
     BaseTxPayload,
+    DegenerateRound,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -419,6 +420,9 @@ class RoundA(AbstractRound):
     """Concrete ABCI round."""
 
     round_id = "round_a"
+    synchronized_data_class = BaseSynchronizedData
+    allowed_tx_type = MagicMock()
+    payload_attribute = MagicMock()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Handle end block."""
@@ -1948,13 +1952,31 @@ def test_degenerate_behaviour_async_act() -> None:
 
 def test_make_degenerate_behaviour() -> None:
     """Test 'make_degenerate_behaviour'."""
-    round_id = "round_id"
-    new_cls = make_degenerate_behaviour(round_id)
+
+    class FinalRound(DegenerateRound):
+        """A final round for testing."""
+
+        synchronized_data_class = BaseSynchronizedData
+
+        def check_payload(self, payload: BaseTxPayload) -> None:
+            pass
+
+        def process_payload(self, payload: BaseTxPayload) -> None:
+            pass
+
+        def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
+            pass
+
+    new_cls = make_degenerate_behaviour(FinalRound)
 
     assert isinstance(new_cls, type)
     assert issubclass(new_cls, DegenerateBehaviour)
+    assert new_cls.matching_round == FinalRound
 
-    assert new_cls.auto_behaviour_id() == f"degenerate_behaviour_{round_id}"
+    assert (
+        new_cls.auto_behaviour_id()
+        == f"degenerate_behaviour_{FinalRound.auto_round_id()}"
+    )
 
 
 class TestTmManager:

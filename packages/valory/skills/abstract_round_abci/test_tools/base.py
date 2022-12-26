@@ -75,10 +75,13 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
     tendermint_handler: TendermintHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
     benchmark_dir: TemporaryDirectory
+    default_ledger: str = "ethereum"
 
     @classmethod
     def setup_class(cls, **kwargs: Any) -> None:
         """Setup the test class."""
+        if not hasattr(cls, "path_to_skill"):
+            raise ValueError(f"No `path_to_skill` set on {cls}")
         # we need to store the current value of the meta-class attribute
         # _MetaPayload.transaction_type_to_payload_cls, and restore it
         # in the teardown function. We do a shallow copy so we avoid
@@ -88,28 +91,45 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         )
         _MetaPayload.transaction_type_to_payload_cls = {}
         super().setup_class()  # pylint: disable=no-value-for-parameter
-        assert cls._skill.skill_context._agent_context is not None  # nosec
+        assert (
+            cls._skill.skill_context._agent_context is not None
+        ), "Agent context not set"  # nosec
         cls._skill.skill_context._agent_context.identity._default_address_key = (
-            "ethereum"
+            cls.default_ledger
         )
-        cls._skill.skill_context._agent_context._default_ledger_id = "ethereum"
-        cls.behaviour = cast(
-            AbstractRoundBehaviour,
-            cls._skill.skill_context.behaviours.main,
-        )
-        cls.http_handler = cast(HttpHandler, cls._skill.skill_context.handlers.http)
-        cls.signing_handler = cast(
-            SigningHandler, cls._skill.skill_context.handlers.signing
-        )
-        cls.contract_handler = cast(
-            ContractApiHandler, cls._skill.skill_context.handlers.contract_api
-        )
-        cls.ledger_handler = cast(
-            LedgerApiHandler, cls._skill.skill_context.handlers.ledger_api
-        )
-        cls.tendermint_handler = cast(
-            TendermintHandler, cls._skill.skill_context.handlers.tendermint
-        )
+        cls._skill.skill_context._agent_context._default_ledger_id = cls.default_ledger
+        behaviour = cls._skill.skill_context.behaviours.main
+        assert isinstance(
+            behaviour, AbstractRoundBehaviour
+        ), f"{behaviour} is not of type {AbstractRoundBehaviour}"
+        cls.behaviour = behaviour
+        for attr, handler, handler_type in [
+            ("http_handler", cls._skill.skill_context.handlers.http, HttpHandler),
+            (
+                "signing_handler",
+                cls._skill.skill_context.handlers.signing,
+                SigningHandler,
+            ),
+            (
+                "contract_handler",
+                cls._skill.skill_context.handlers.contract_api,
+                ContractApiHandler,
+            ),
+            (
+                "ledger_handler",
+                cls._skill.skill_context.handlers.ledger_api,
+                LedgerApiHandler,
+            ),
+            (
+                "tendermint_handler",
+                cls._skill.skill_context.handlers.tendermint,
+                TendermintHandler,
+            ),
+        ]:
+            assert isinstance(
+                handler, handler_type
+            ), f"{handler} is not of type {handler_type}"
+            setattr(cls, attr, handler)
 
         if kwargs.get("param_overrides") is not None:
             for param_name, param_value in kwargs["param_overrides"].items():

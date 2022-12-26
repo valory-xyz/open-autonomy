@@ -77,9 +77,7 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
     """Test ResetBehaviour."""
 
     behaviour_class = ResetAndPauseBehaviour
-    next_behaviour_class = make_degenerate_behaviour(
-        FinishedResetAndPauseRound.auto_round_id()
-    )
+    next_behaviour_class = make_degenerate_behaviour(FinishedResetAndPauseRound)
 
     @pytest.mark.parametrize("tendermint_reset_status", (None, True, False))
     def test_reset_behaviour(

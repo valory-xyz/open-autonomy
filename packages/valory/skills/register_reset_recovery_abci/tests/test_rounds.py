@@ -22,10 +22,9 @@
 from copy import deepcopy
 from typing import FrozenSet
 
-from packages.valory.skills.abstract_round_abci.base import (
-    AbciAppDB,
-    BaseSynchronizedData,
-    ConsensusParams,
+from packages.valory.skills.abstract_round_abci.base import BaseSynchronizedData
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
+    BaseRoundTestClass as ExternalBaseRoundTestClass,
 )
 from packages.valory.skills.register_reset_recovery_abci.payloads import (
     RoundCountPayload,
@@ -44,28 +43,13 @@ def get_participants() -> FrozenSet[str]:
     return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
 
 
-class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
+class BaseRoundTestClass(
+    ExternalBaseRoundTestClass
+):  # pylint: disable=too-few-public-methods
     """Base test class for Rounds."""
 
-    synchronized_data: BaseSynchronizedData
-    consensus_params: ConsensusParams
-    participants: FrozenSet[str]
-
-    def setup(
-        self,
-    ) -> None:
-        """Setup the test class."""
-
-        self.participants = get_participants()
-        self.synchronized_data = BaseSynchronizedData(
-            AbciAppDB(
-                setup_data=dict(
-                    participants=[self.participants],
-                    all_participants=[self.participants],
-                ),
-            )
-        )
-        self.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
+    _synchronized_data_class = BaseSynchronizedData
+    _event_class = Event
 
 
 class TestTerminationRound(BaseRoundTestClass):

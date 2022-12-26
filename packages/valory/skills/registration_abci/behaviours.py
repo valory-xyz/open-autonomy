@@ -20,6 +20,7 @@
 """This module contains the behaviours for the 'abci' skill."""
 import datetime
 import json
+from abc import ABC
 from enum import Enum
 from typing import Any, Dict, Generator, Optional, Set, Type, cast
 
@@ -53,7 +54,7 @@ NODE = "node_{address}"
 WAIT_FOR_BLOCK_TIMEOUT = 60.0  # 1 minute
 
 
-class RegistrationBaseBehaviour(BaseBehaviour):
+class RegistrationBaseBehaviour(BaseBehaviour, ABC):
     """Agent registration to the FSM App."""
 
     def async_act(self) -> Generator:

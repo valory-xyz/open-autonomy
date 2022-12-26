@@ -45,7 +45,15 @@ from packages.valory.skills.abstract_round_abci.base import (
 
 def make_round_class(name: str, bases: Tuple = (AbstractRound,)) -> Type[AbstractRound]:
     """Make a round class."""
-    new_round_cls = type(name, bases, {})
+    new_round_cls = type(
+        name,
+        bases,
+        {
+            "synchronized_data_class": MagicMock(),
+            "allowed_tx_type": MagicMock(),
+            "payload_attribute": MagicMock(),
+        },
+    )
     setattr(new_round_cls, "round_id", name)  # noqa: B010
     assert issubclass(new_round_cls, AbstractRound)  # nosec
     return new_round_cls
@@ -391,13 +399,8 @@ class TestAbciAppChaining:
             (self.app1_class, sync_data_cls_app1),
             (self.app2_class, sync_data_cls_app2),
         ):
-            with caplog.at_level(logging.WARNING):
-                synchronized_data = sync_data_cls(db=AbciAppDB(setup_data={}))
-                abci_app = abci_app_cls(synchronized_data, MagicMock(), logging)  # type: ignore
-                expected = (
-                    f"No `synchronized_data_class` set on {abci_app.initial_round_cls}"
-                )
-                assert expected in caplog.text
+            synchronized_data = sync_data_cls(db=AbciAppDB(setup_data={}))
+            abci_app = abci_app_cls(synchronized_data, MagicMock(), logging)  # type: ignore
             for r in abci_app_cls.get_all_rounds():
                 r.synchronized_data_class = sync_data_cls  # type: ignore
 

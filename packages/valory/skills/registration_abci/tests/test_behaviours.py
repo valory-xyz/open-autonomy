@@ -166,9 +166,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     """Test case to test RegistrationStartupBehaviour."""
 
     behaviour_class = RegistrationStartupBehaviour
-    next_behaviour_class = make_degenerate_behaviour(
-        FinishedRegistrationRound.auto_round_id()
-    )
+    next_behaviour_class = make_degenerate_behaviour(FinishedRegistrationRound)
 
     other_agents: List[str] = ["0xAlice", "0xBob", "0xCharlie"]
     _time_in_future = datetime.datetime.now() + datetime.timedelta(hours=10)
@@ -587,15 +585,11 @@ class TestRegistrationStartupBehaviourNoConfigShare(BaseRegistrationTestBehaviou
     """Test case to test RegistrationBehaviour."""
 
     behaviour_class = RegistrationStartupBehaviour
-    next_behaviour_class = make_degenerate_behaviour(
-        FinishedRegistrationRound.auto_round_id()
-    )
+    next_behaviour_class = make_degenerate_behaviour(FinishedRegistrationRound)
 
 
 class TestRegistrationBehaviour(BaseRegistrationTestBehaviour):
     """Test case to test RegistrationBehaviour."""
 
     behaviour_class = RegistrationBehaviour
-    next_behaviour_class = make_degenerate_behaviour(
-        FinishedRegistrationRound.auto_round_id()
-    )
+    next_behaviour_class = make_degenerate_behaviour(FinishedRegistrationRound)

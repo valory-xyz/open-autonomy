@@ -104,6 +104,7 @@ class DummyRandomnessBehaviour(RandomnessBehaviour):
 
     behaviour_id = "dummy_randomness"
     payload_class = MagicMock()
+    matching_round = MagicMock()
 
 
 class DummySelectKeeperBehaviour(SelectKeeperBehaviour):
@@ -111,6 +112,7 @@ class DummySelectKeeperBehaviour(SelectKeeperBehaviour):
 
     behaviour_id = "dummy_select_keeper"
     payload_class = MagicMock()
+    matching_round = MagicMock()
 
 
 DummyBehaviourType = Union[DummyRandomnessBehaviour, DummySelectKeeperBehaviour]
