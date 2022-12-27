@@ -9,28 +9,25 @@ fingerprint:
   README.md: bafybeidrjtykhovnccj3sovugdn4r3tszuzv7h37vta6o35epi5qfzdpke
   __init__.py: bafybeibiblks3d3s3ditug4hfzl3ob3cibokcz4ofs7cbbsbqw5zzbtd3m
   behaviours.py: bafybeie3ynwg5vrbwpfxy4fs3ejonx6w3nrsaxl733s5i6gvgsoq4jrlhi
-  dialogues.py: bafybeiggs6cpzhz235k4ws5naeuyhz37mkqrthctq67p4v56wh4nyzgepa
+  dialogues.py: bafybeib4jbdycm2vofni3vp6draqet3nejoviqjurcilrzindr4k5dg5fa
   fsm_specification.yaml: bafybeibaft2azersmixjtoa7zdekxzsvvnzfyq2zkyutx4elukc73owf5q
-  handlers.py: bafybeib77umr3prpvc6i6ukdr7xmsoge6gpsfjwpwhiddzjh5bwwpg44mi
+  handlers.py: bafybeidmcaitd6bjpmo3ac6aozhppmmu6a4nfg7qlzrzgceni2jxyjeuv4
   models.py: bafybeiaistd5v6oyiovq7lha6rlpxgcxbmhf6q4nn5lmpluayn3xyqoqfi
   payloads.py: bafybeihpff5dpq3muh46h6icxl5c2f37jnnaox6hop3orpkh5jyzy34cqi
   rounds.py: bafybeidydqguxa54qnslzexq27nhyg7t5bmpdzem6cl7t2meg2hqlnpsom
   tests/__init__.py: bafybeibpuwe63mjjwnaanx7wdw63reh6qa5xdtjxdf75o3nksvjercte4y
-  tests/test_behaviours.py: bafybeidsafxnorbrpz3vw3cj5xg4ws3qt7dhdtrduaeubpc25ywlhqh2nu
+  tests/test_behaviours.py: bafybeidct6dx2rppogddyfl4y3dbwzo5jywbsy3lp5odfiznbuxwrqnmni
   tests/test_dialogues.py: bafybeiarl4wsnljaxkgxdwr47xd4xjjjtkfgqbtazt2v2oem47alhaykj4
   tests/test_handlers.py: bafybeigb2hfysb2v3yjiqemyy52h3onqalrufuqdnw2pnkowtuzvmvcrd4
   tests/test_models.py: bafybeibqrbnemkeurjag2fpqftlpo3df2vnbooid7hcw5nmlm4rhssle7q
   tests/test_payloads.py: bafybeif7s5vbe56xbnxdvoxgy6qtsg24qgq42efzhyheb7j3662nav2rjq
-  tests/test_rounds.py: bafybeibpjavnz4outdmjtjl7w43v5rlvz2g2d6djzwt7uul3vrkohjzeg4
+  tests/test_rounds.py: bafybeiemoikkf26mdhxaynp3mp7r22hrarkor74stpcckrnbmf3dohdyxe
 fingerprint_ignore_patterns: []
-connections:
-- valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
+connections: []
 contracts: []
-protocols:
-- open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
-- valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
+protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigirdcm7qopje4dfqxij63dnkk72zy3lmemtmwnz6qibo5z5hbrru
+- valory/abstract_round_abci:0.1.0:bafybeicqv4clphclqfx6ocrw6hvftqj7afn7u7btkxjeh3b22tootaxyea
 behaviours:
   main:
     args: {}
@@ -38,13 +35,22 @@ behaviours:
 handlers:
   abci:
     args: {}
-    class_name: HelloWorldABCIHandler
+    class_name: ABCIRoundHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
   http:
     args: {}
     class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
   signing:
     args: {}
     class_name: SigningHandler
+  tendermint:
+    args: {}
+    class_name: TendermintHandler
 models:
   abci_dialogues:
     args: {}

@@ -58,5 +58,5 @@ def hypothesis_cleanup() -> Generator:
     yield
     hypothesis_dir = PACKAGE_DIR / ".hypothesis"
     if hypothesis_dir.exists():
-        with suppress(OSError, PermissionError):
+        with suppress(OSError, PermissionError):  # pragma: nocover
             shutil.rmtree(hypothesis_dir)

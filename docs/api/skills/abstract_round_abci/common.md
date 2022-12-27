@@ -26,7 +26,7 @@ a randomly chosen element
 ## RandomnessBehaviour Objects
 
 ```python
-class RandomnessBehaviour(BaseBehaviour)
+class RandomnessBehaviour(BaseBehaviour,  ABC)
 ```
 
 Check whether Tendermint nodes are running.
@@ -87,7 +87,7 @@ It can be optionally implemented by the concrete classes.
 ## SelectKeeperBehaviour Objects
 
 ```python
-class SelectKeeperBehaviour(BaseBehaviour)
+class SelectKeeperBehaviour(BaseBehaviour,  ABC)
 ```
 
 Select the keeper agent.

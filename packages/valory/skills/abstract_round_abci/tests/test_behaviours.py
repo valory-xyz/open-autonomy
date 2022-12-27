@@ -72,6 +72,8 @@ class RoundA(AbstractRound):
 
     round_id = ROUND_A_ID
     allowed_tx_type = "payload_a"
+    payload_attribute = ""
+    synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
         """End block."""
@@ -88,6 +90,8 @@ class RoundB(AbstractRound):
 
     round_id = ROUND_B_ID
     allowed_tx_type = "payload_b"
+    payload_attribute = ""
+    synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
         """End block."""
@@ -104,6 +108,8 @@ class ConcreteBackgroundRound(AbstractRound):
 
     round_id = ROUND_B_ID
     allowed_tx_type = "background_payload"
+    payload_attribute = ""
+    synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
         """End block."""
@@ -148,6 +154,8 @@ class BehaviourB(BaseBehaviour):
 
 class BehaviourC(BaseBehaviour):
     """Dummy behaviour."""
+
+    matching_round = RoundB
 
     def async_act(self) -> Generator:
         """Dummy act method."""
@@ -309,6 +317,8 @@ class TestAbstractRoundBehaviour:
         class FinalRound(DegenerateRound):
             """A final round for testing."""
 
+            synchronized_data_class = BaseSynchronizedData
+
             def check_payload(self, payload: BaseTxPayload) -> None:
                 pass
 
@@ -333,6 +343,7 @@ class TestAbstractRoundBehaviour:
             abci_app_cls = AbciAppTest
             behaviours = [behaviour_1]  # type: ignore
             initial_behaviour_cls = behaviour_1
+            matching_round = FinalRound
 
         behaviour = MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
         final_behaviour = behaviour._round_to_behaviour[FinalRound]
@@ -566,10 +577,10 @@ class TestAbstractRoundBehaviour:
                 mock_try_fix.assert_not_called()
 
 
-def test_meta_round_behaviour_when_instance_not_subclass_of_abstract_round() -> None:
-    """Test instantiation of meta class when instance not a subclass of abstract round."""
+def test_meta_round_behaviour_when_instance_not_subclass_of_abstract_round_behaviour() -> None:
+    """Test instantiation of meta class when instance not a subclass of abstract round behaviour."""
 
-    class MyRoundBeahviour(metaclass=_MetaRoundBehaviour):
+    class MyRoundBehaviour(metaclass=_MetaRoundBehaviour):
         pass
 
 

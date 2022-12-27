@@ -143,7 +143,7 @@ Teardown the test class.
 #### teardown
 
 ```python
-def teardown() -> None
+def teardown(**kwargs: Any) -> None
 ```
 
 Teardown.

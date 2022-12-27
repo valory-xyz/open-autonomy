@@ -59,6 +59,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppDB,
     AbciAppTransitionFunction,
     AbstractRound,
+    AbstractRoundInternalError,
     AddBlockError,
     AppState,
     BaseSynchronizedData,
@@ -75,6 +76,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     Transaction,
     TransactionTypeNotRecognizedError,
     _MetaAbciApp,
+    _MetaAbstractRound,
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.base import _logger as default_logger
@@ -224,6 +226,32 @@ def test_base_tx_payload() -> None:
     payload.round_count = 1
     assert payload.round_count == 1
     assert type(hash(payload)) == int
+
+
+def test_meta_round_abstract_round_when_instance_not_subclass_of_abstract_round() -> None:
+    """Test instantiation of meta class when instance not a subclass of abstract round."""
+
+    class MyAbstractRound(metaclass=_MetaAbstractRound):
+        pass
+
+
+def test_abstract_round_instantiation_without_attributes_raises_error() -> None:
+    """Test that definition of concrete subclass of AbstractRound without attributes raises error."""
+    with pytest.raises(AbstractRoundInternalError):
+
+        class MyRoundBehaviour(AbstractRound):
+            pass
+
+    with pytest.raises(AbstractRoundInternalError):
+
+        class MyRoundBehaviourB(AbstractRound):
+            synchronized_data_class = MagicMock()
+
+    with pytest.raises(AbstractRoundInternalError):
+
+        class MyRoundBehaviourC(AbstractRound):
+            synchronized_data_class = MagicMock()
+            allowed_tx_type = MagicMock()
 
 
 class TestTransactions:
@@ -1054,6 +1082,8 @@ class TestAbstractRound:
         class MyConcreteRound(AbstractRound):
 
             allowed_tx_type = MagicMock()
+            synchronized_data_class = MagicMock()
+            payload_attribute = MagicMock()
 
             def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
                 pass
@@ -1073,6 +1103,8 @@ class TestAbstractRound:
             # here round_id is missing
             # ...
             allowed_tx_type = MagicMock()
+            synchronized_data_class = MagicMock()
+            payload_attribute = MagicMock()
 
             def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
                 pass
@@ -1090,31 +1122,34 @@ class TestAbstractRound:
     def test_must_set_allowed_tx_type(self) -> None:
         """Test that the 'allowed_tx_type' must be set in concrete classes."""
 
-        class MyConcreteRound(AbstractRound):
-            round_id = ""
-            # here allowed_tx_type is missing
-            # ...
-
-            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
-                pass
-
-            def check_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
-            def process_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
         with pytest.raises(
-            ABCIAppInternalError, match="'allowed_tx_type' field not set"
+            AbstractRoundInternalError, match="'allowed_tx_type' not set on .*"
         ):
-            MyConcreteRound(MagicMock(), MagicMock())
+
+            class MyConcreteRound(AbstractRound):
+
+                synchronized_data_class = MagicMock()
+                payload_attribute = MagicMock()
+                # here allowed_tx_type is missing
+                # ...
+
+                def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
+                    pass
+
+                def check_payload(self, payload: BaseTxPayload) -> None:
+                    pass
+
+                def process_payload(self, payload: BaseTxPayload) -> None:
+                    pass
 
     def test_check_allowed_tx_type_with_previous_round_transaction(self) -> None:
         """Test check 'allowed_tx_type'."""
 
         class MyConcreteRound(AbstractRound):
-            round_id = ""
+
             allowed_tx_type = "allowed_tx_type"
+            synchronized_data_class = MagicMock()
+            payload_attribute = MagicMock()
 
             def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
                 pass
@@ -1139,8 +1174,10 @@ class TestAbstractRound:
         """Test check 'allowed_tx_type'."""
 
         class MyConcreteRound(AbstractRound):
-            round_id = ""
+
             allowed_tx_type = None
+            synchronized_data_class = MagicMock()
+            payload_attribute = MagicMock()
 
             def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
                 pass
@@ -2278,6 +2315,10 @@ def test_meta_abci_app_when_final_round_not_subclass_of_degenerate_round() -> No
     class FinalRound(AbstractRound):
         """A round class for testing."""
 
+        allowed_tx_type = MagicMock()
+        synchronized_data_class = MagicMock()
+        payload_attribute = MagicMock()
+
         def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
             pass
 
@@ -2325,14 +2366,6 @@ def test_synchronized_data_type_on_abci_app_init(caplog: LogCaptureFixture) -> N
 
     # this is how it's setup in SharedState.setup, using BaseSynchronizedData
     synchronized_data = BaseSynchronizedData(db=AbciAppDB(setup_data={}))
-
-    with caplog.at_level(logging.WARNING):
-        abci_app = AbciAppTest(synchronized_data, MagicMock(), logging)  # type: ignore
-        abci_app.setup()
-        assert abci_app.synchronized_data
-        expected = f"No `synchronized_data_class` set on {abci_app._current_round_cls}"
-        assert expected in caplog.text
-        assert not isinstance(abci_app.synchronized_data, SynchronizedData)
 
     with mock.patch.object(AbciAppTest, "initial_round_cls") as m:
         m.synchronized_data_class = SynchronizedData

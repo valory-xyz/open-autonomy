@@ -142,6 +142,7 @@ class DummyRound(AbstractRound):
 
     allowed_tx_type = DummyTxPayload.transaction_type
     payload_attribute = get_name(DummyTxPayload.value)
+    synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """end_block method."""

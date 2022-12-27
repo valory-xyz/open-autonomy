@@ -9,7 +9,7 @@ This module contains the behaviours for the 'abci' skill.
 ## RegistrationBaseBehaviour Objects
 
 ```python
-class RegistrationBaseBehaviour(BaseBehaviour)
+class RegistrationBaseBehaviour(BaseBehaviour,  ABC)
 ```
 
 Agent registration to the FSM App.

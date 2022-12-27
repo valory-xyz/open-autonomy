@@ -135,10 +135,8 @@ class TransactionSettlementFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     path_to_skill = PACKAGE_DIR
 
 
-class TestTransactionSettlementBaseBehaviour(FSMBehaviourBaseCase):
+class TestTransactionSettlementBaseBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test `TransactionSettlementBaseBehaviour`."""
-
-    path_to_skill = PACKAGE_DIR
 
     @pytest.mark.parametrize(
         "message, tx_digest, rpc_status, expected_data, replacement",
@@ -1056,7 +1054,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
         assert (
             behaviour.behaviour_id
             == make_degenerate_behaviour(
-                FinishedTransactionSubmissionRound.auto_round_id()
+                FinishedTransactionSubmissionRound
             ).auto_behaviour_id()
         )
 
@@ -1177,7 +1175,7 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
         assert (
             behaviour.behaviour_id
             == make_degenerate_behaviour(
-                FinishedTransactionSubmissionRound.auto_round_id()
+                FinishedTransactionSubmissionRound
             ).auto_behaviour_id()
         )
 
@@ -1218,8 +1216,9 @@ class TestCheckLateTxHashesBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
         behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        next_behaviour_id = FinishedTransactionSubmissionRound.auto_round_id()
-        next_degen_behaviour = make_degenerate_behaviour(next_behaviour_id)
+        next_degen_behaviour = make_degenerate_behaviour(
+            FinishedTransactionSubmissionRound
+        )
         assert behaviour.behaviour_id == next_degen_behaviour.auto_behaviour_id()
 
 

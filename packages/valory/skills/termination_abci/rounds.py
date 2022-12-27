@@ -146,6 +146,7 @@ class TerminationRound(AbstractRound):
 
     allowed_tx_type = None
     synchronized_data_class = SynchronizedData
+    payload_attribute = None  # type: ignore
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """No logic required here."""

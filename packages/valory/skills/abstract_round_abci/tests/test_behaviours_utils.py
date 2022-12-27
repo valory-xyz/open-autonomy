@@ -69,11 +69,13 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
     BaseTxPayload,
+    DegenerateRound,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseBehaviour,
+    BaseBehaviourInternalError,
     DegenerateBehaviour,
     GENESIS_TIME_FMT,
     HEIGHT_OFFSET_MULTIPLIER,
@@ -85,6 +87,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     SendException,
     TimeoutException,
     TmManager,
+    _MetaBaseBehaviour,
     make_degenerate_behaviour,
 )
 from packages.valory.skills.abstract_round_abci.io_.ipfs import (
@@ -419,6 +422,9 @@ class RoundA(AbstractRound):
     """Concrete ABCI round."""
 
     round_id = "round_a"
+    synchronized_data_class = BaseSynchronizedData
+    allowed_tx_type = MagicMock()
+    payload_attribute = MagicMock()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Handle end block."""
@@ -434,7 +440,6 @@ class RoundA(AbstractRound):
 class BehaviourATest(BaseBehaviour):
     """Concrete BaseBehaviour class."""
 
-    behaviour_id = "behaviour_a"
     matching_round: Type[RoundA] = RoundA
 
     def async_act(self) -> Generator:
@@ -532,6 +537,10 @@ class TestBaseBehaviour:
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.behaviour = BehaviourATest(name="", skill_context=self.context_mock)
         self.behaviour.context.logger = logging  # type: ignore
+
+    def test_behaviour_id(self) -> None:
+        """Test behaviour_id on instance."""
+        assert self.behaviour.behaviour_id == BehaviourATest.auto_behaviour_id()
 
     def test_send_to_ipfs(self, caplog: LogCaptureFixture) -> None:
         """Test send_to_ipfs"""
@@ -1626,7 +1635,7 @@ class TestBaseBehaviour:
             info_mock.assert_called_with(
                 "No callback defined for request with nonce: "
                 f"{message.dialogue_reference.__getitem__()}, "
-                f"arriving for behaviour: behaviour_a"
+                f"arriving for behaviour: {self.behaviour.behaviour_id}"
             )
 
     def test_default_callback_request_waiting_message(self, *_: Any) -> None:
@@ -1948,13 +1957,31 @@ def test_degenerate_behaviour_async_act() -> None:
 
 def test_make_degenerate_behaviour() -> None:
     """Test 'make_degenerate_behaviour'."""
-    round_id = "round_id"
-    new_cls = make_degenerate_behaviour(round_id)
+
+    class FinalRound(DegenerateRound):
+        """A final round for testing."""
+
+        synchronized_data_class = BaseSynchronizedData
+
+        def check_payload(self, payload: BaseTxPayload) -> None:
+            pass
+
+        def process_payload(self, payload: BaseTxPayload) -> None:
+            pass
+
+        def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
+            pass
+
+    new_cls = make_degenerate_behaviour(FinalRound)
 
     assert isinstance(new_cls, type)
     assert issubclass(new_cls, DegenerateBehaviour)
+    assert new_cls.matching_round == FinalRound
 
-    assert new_cls.auto_behaviour_id() == f"degenerate_behaviour_{round_id}"
+    assert (
+        new_cls.auto_behaviour_id()
+        == f"degenerate_behaviour_{FinalRound.auto_round_id()}"
+    )
 
 
 class TestTmManager:
@@ -2143,3 +2170,18 @@ class TestTmManager:
 
         self.tm_manager._active_generator = None
         assert not self.tm_manager.is_acting
+
+
+def test_meta_base_behaviour_when_instance_not_subclass_of_base_behaviour() -> None:
+    """Test instantiation of meta class when instance not a subclass of BaseBehaviour."""
+
+    class MyBaseBehaviour(metaclass=_MetaBaseBehaviour):
+        pass
+
+
+def test_base_behaviour_instantiation_without_attributes_raises_error() -> None:
+    """Test that definition of concrete subclass of BaseBehaviour without attributes raises error."""
+    with pytest.raises(BaseBehaviourInternalError):
+
+        class MyBaseBehaviour(BaseBehaviour):
+            pass

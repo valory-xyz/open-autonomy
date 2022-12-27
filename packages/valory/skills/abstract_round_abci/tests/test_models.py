@@ -296,6 +296,10 @@ class TestApiSpecsModel:
 class ConcreteRound(AbstractRound):
     """A ConcreteRoundA for testing purposes."""
 
+    synchronized_data_class = MagicMock()
+    payload_attribute = MagicMock()
+    allowed_tx_type = MagicMock()
+
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Handle the end of the block."""
 

@@ -22,14 +22,11 @@
 # pylint: skip-file
 
 import logging  # noqa: F401
-from typing import Dict, FrozenSet, cast
-from unittest import mock
+from typing import cast
 
-from packages.valory.skills.abstract_round_abci.base import (
-    AbciAppDB,
-    AbstractRound,
-    ConsensusParams,
-    MAX_INT_256,
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB, MAX_INT_256
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
+    BaseRoundTestClass as ExternalBaseRoundTestClass,
 )
 from packages.valory.skills.hello_world_abci.payloads import (
     CollectRandomnessPayload,
@@ -53,75 +50,11 @@ MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
 
 
-def get_participants() -> FrozenSet[str]:
-    """Participants"""
-    return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
-
-
-def get_participant_to_randomness(
-    participants: FrozenSet[str], round_id: int
-) -> Dict[str, CollectRandomnessPayload]:
-    """participant_to_randomness"""
-    return {
-        participant: CollectRandomnessPayload(
-            sender=participant,
-            round_id=round_id,
-            randomness=RANDOMNESS,
-        )
-        for participant in participants
-    }
-
-
-def get_participant_to_selection(
-    participants: FrozenSet[str],
-) -> Dict[str, SelectKeeperPayload]:
-    """participant_to_selection"""
-    return {
-        participant: SelectKeeperPayload(sender=participant, keeper="keeper")
-        for participant in participants
-    }
-
-
-def get_participant_to_period_count(
-    participants: FrozenSet[str], period_count: int
-) -> Dict[str, ResetPayload]:
-    """participant_to_selection"""
-    return {
-        participant: ResetPayload(sender=participant, period_count=period_count)
-        for participant in participants
-    }
-
-
-class BaseRoundTestClass:
+class BaseRoundTestClass(ExternalBaseRoundTestClass):
     """Base test class for Rounds."""
 
-    synchronized_data: SynchronizedData
-    consensus_params: ConsensusParams
-    participants: FrozenSet[str]
-
-    @classmethod
-    def setup(
-        cls,
-    ) -> None:
-        """Setup the test class."""
-
-        cls.participants = get_participants()
-        cls.synchronized_data = SynchronizedData(
-            AbciAppDB(
-                setup_data=dict(
-                    participants=[cls.participants], all_participants=[cls.participants]
-                ),
-            )
-        )
-        cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
-
-    def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
-        """Test the NO_MAJORITY event."""
-        with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
-            result = round_obj.end_block()
-            assert result is not None
-            synchronized_data, event = result
-            assert event == Event.NO_MAJORITY
+    _synchronized_data_class = SynchronizedData
+    _event_class = Event
 
 
 class TestRegistrationRound(BaseRoundTestClass):
@@ -357,7 +290,7 @@ class TestResetAndPauseRound(BaseRoundTestClass):
 def test_synchronized_data() -> None:  # pylint:too-many-locals
     """Test SynchronizedData."""
 
-    participants = get_participants()
+    participants = frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
     setup_params = {}  # type: ignore
     participant_to_randomness = {
         participant: CollectRandomnessPayload(

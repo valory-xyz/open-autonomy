@@ -70,9 +70,10 @@ class ROUNDS:
         \"\"\"{RoundCls}\"\"\"
 
         {todo_abstract_round_cls}
-        allowed_tx_type: Optional[TransactionType] = {PayloadCls}.transaction_type
+        allowed_tx_type = {PayloadCls}.transaction_type
         # TODO: set the correct payload attribute
-        payload_attribute: str
+        payload_attribute = "REPLACE_THIS"
+        synchronized_data_class = SynchronizedData
 
         def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
             \"\"\"Process the end of the block.\"\"\"
@@ -122,6 +123,7 @@ class BEHAVIOURS:
     HEADER = """\
     \"\"\"This package contains round behaviours of {AbciApp}.\"\"\"
 
+    from abc import ABC
     from typing import Generator, Set, Type, cast
 
     from packages.valory.skills.abstract_round_abci.base import AbstractRound
@@ -143,7 +145,7 @@ class BEHAVIOURS:
     """
 
     BASE_BEHAVIOUR_CLS = """\
-    class {BaseBehaviourCls}(BaseBehaviour):
+    class {BaseBehaviourCls}(BaseBehaviour, ABC):
         \"\"\"Base behaviour for the common apps' skill.\"\"\"
 
         @property

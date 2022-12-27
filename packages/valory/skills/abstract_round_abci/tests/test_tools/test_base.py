@@ -93,6 +93,15 @@ class TestFSMBehaviourBaseCaseSetup:
         """Set path_to_skill"""
         self.test_cls.path_to_skill = path_to_skill
 
+    @pytest.mark.skip(
+        "enable once base class is fixed: https://github.com/valory-xyz/open-aea/issues/492"
+    )
+    @pytest.mark.parametrize("kwargs", [{}])
+    def test_setup_fails_without_path(self, kwargs: Dict[str, Dict[str, Any]]) -> None:
+        """Test setup"""
+        with pytest.raises(ValueError):
+            self.test_cls.setup_class(**kwargs)
+
     @pytest.mark.parametrize("kwargs", [{}, {"param_overrides": {"new_p": None}}])
     def test_setup(self, kwargs: Dict[str, Dict[str, Any]]) -> None:
         """Test setup"""
