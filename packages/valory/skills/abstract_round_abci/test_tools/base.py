@@ -81,7 +81,8 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
     def setup_class(cls, **kwargs: Any) -> None:
         """Setup the test class."""
         if not hasattr(cls, "path_to_skill"):
-            raise ValueError(f"No `path_to_skill` set on {cls}")
+            raise ValueError(f"No `path_to_skill` set on {cls}")  # pragma: nocover
+            # works once https://github.com/valory-xyz/open-aea/issues/492 is fixed
         # we need to store the current value of the meta-class attribute
         # _MetaPayload.transaction_type_to_payload_cls, and restore it
         # in the teardown function. We do a shallow copy so we avoid
@@ -90,7 +91,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
             _MetaPayload.transaction_type_to_payload_cls
         )
         _MetaPayload.transaction_type_to_payload_cls = {}
-        super().setup_class()  # pylint: disable=no-value-for-parameter
+        super().setup_class(**kwargs)  # pylint: disable=no-value-for-parameter
         assert (
             cls._skill.skill_context._agent_context is not None
         ), "Agent context not set"  # nosec
@@ -143,7 +144,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
 
         :param kwargs: the keyword arguments passed to _prepare_skill
         """
-        super().setup()
+        super().setup(**kwargs)
         self.behaviour.setup()
         self._skill.skill_context.state.setup()
         self._skill.skill_context.state.round_sequence.end_sync()
@@ -415,9 +416,9 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         """Teardown the test class."""
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
 
-    def teardown(self) -> None:
+    def teardown(self, **kwargs: Any) -> None:
         """Teardown."""
-        super().teardown()
+        super().teardown(**kwargs)
         self.benchmark_dir.cleanup()
 
 

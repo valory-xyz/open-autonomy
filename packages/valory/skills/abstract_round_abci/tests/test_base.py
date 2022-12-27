@@ -76,6 +76,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     Transaction,
     TransactionTypeNotRecognizedError,
     _MetaAbciApp,
+    _MetaAbstractRound,
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.base import _logger as default_logger
@@ -225,6 +226,32 @@ def test_base_tx_payload() -> None:
     payload.round_count = 1
     assert payload.round_count == 1
     assert type(hash(payload)) == int
+
+
+def test_meta_round_abstract_round_when_instance_not_subclass_of_abstract_round() -> None:
+    """Test instantiation of meta class when instance not a subclass of abstract round."""
+
+    class MyAbstractRound(metaclass=_MetaAbstractRound):
+        pass
+
+
+def test_abstract_round_instantiation_without_attributes_raises_error() -> None:
+    """Test that definition of concrete subclass of AbstractRound without attributes raises error."""
+    with pytest.raises(AbstractRoundInternalError):
+
+        class MyRoundBehaviour(AbstractRound):
+            pass
+
+    with pytest.raises(AbstractRoundInternalError):
+
+        class MyRoundBehaviourB(AbstractRound):
+            synchronized_data_class = MagicMock()
+
+    with pytest.raises(AbstractRoundInternalError):
+
+        class MyRoundBehaviourC(AbstractRound):
+            synchronized_data_class = MagicMock()
+            allowed_tx_type = MagicMock()
 
 
 class TestTransactions:
