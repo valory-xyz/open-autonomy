@@ -19,6 +19,7 @@
 
 """Tests for valory/abstract_round_abci skill's behaviours."""
 import json
+from abc import ABC
 from copy import copy
 from enum import Enum
 from pathlib import Path
@@ -63,7 +64,7 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 # pylint: disable=protected-access,too-few-public-methods,consider-using-with
 
 
-class FSMBehaviourBaseCase(BaseSkillTestCase):
+class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
     """Base case for testing FSMBehaviour classes."""
 
     path_to_skill: Path

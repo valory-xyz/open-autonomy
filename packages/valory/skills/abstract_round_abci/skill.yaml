@@ -24,9 +24,9 @@ fingerprint:
   serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
   test_tools/__init__.py: bafybeibayeahoo73eztt2chpwi45taj2uv3dxbpyn47ksqfjoepjyaoca4
   test_tools/abci_app.py: bafybeie2jclzdq3g42xhuzoguo3ood5nn36f4wk7halko7dfijvgr42fke
-  test_tools/base.py: bafybeifqjtodumghgzqzph3jaqbsg4xegmxctxtsa3nldcdp3gkaluabty
+  test_tools/base.py: bafybeiclhjqlwfde3hibc4ffeq3amfgvjrghn5okunapdjaoxhy4pufev4
   test_tools/common.py: bafybeidjlnq7yksyhz3hjmpyrudvgzhgpttjhlsdk5mecjvrkei6ix7gk4
-  test_tools/integration.py: bafybeihtxpu7xlzigixsp2skamr73yjvc6xoqrli33ldsl2bdyhbcayllu
+  test_tools/integration.py: bafybeib4ldrxonlmc2yzdedzlsrjbhclzdb6hlokhn5jmqnj6imxojwlem
   test_tools/rounds.py: bafybeicpwymuuo5cy6judgtsvbobskddlqauhsyfoabolfkzejjd534qse
   tests/__init__.py: bafybeiebss5rdfh7tdbw2qi3tjpf6cjgwuonowsw6bimyosfie2ngxhhzy
   tests/conftest.py: bafybeicxlzenhn45ie2vud4aikhucqh6gqzlutjoe32ffxgovmnwo3igwq
@@ -65,7 +65,7 @@ connections:
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
 - valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
 contracts:
-- valory/service_registry:0.1.0:bafybeigs4cvpzyubnyw4cblgzqgkvrkrbpzsexxppcufxvssltxyx3ahua
+- valory/service_registry:0.1.0:bafybeihq4rwu4tubn22osxyk53bh5rg5halncmufdb2d5ajg3vg3oxokii
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay
@@ -134,7 +134,7 @@ dependencies:
   ipfshttpclient:
     version: ==0.8.0a2
   open-aea-cli-ipfs:
-    version: ==1.26.0
+    version: ==1.27.0
   open-aea-test-autonomy:
     version: ==0.6.0
   protobuf:

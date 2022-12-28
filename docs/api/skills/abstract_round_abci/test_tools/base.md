@@ -9,7 +9,7 @@ Tests for valory/abstract_round_abci skill's behaviours.
 ## FSMBehaviourBaseCase Objects
 
 ```python
-class FSMBehaviourBaseCase(BaseSkillTestCase)
+class FSMBehaviourBaseCase(BaseSkillTestCase,  ABC)
 ```
 
 Base case for testing FSMBehaviour classes.

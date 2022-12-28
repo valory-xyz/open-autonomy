@@ -23,6 +23,7 @@
 import binascii
 import os
 import tempfile
+from abc import ABC
 from math import ceil
 from typing import Any, Dict, cast
 
@@ -72,7 +73,7 @@ DUMMY_MAX_PRIORITY_FEE_PER_GAS = 3000000000
 DUMMY_REPRICING_MULTIPLIER = 1.1
 
 
-class _SafeConfiguredHelperIntegration(IntegrationBaseCase):  # pragma: no cover
+class _SafeConfiguredHelperIntegration(IntegrationBaseCase, ABC):  # pragma: no cover
     """Base test class for integration tests with Gnosis, but no contract, deployed."""
 
     safe_owners: Dict[str, Crypto]
@@ -97,7 +98,9 @@ class _SafeConfiguredHelperIntegration(IntegrationBaseCase):  # pragma: no cover
         assert cls.keeper_address in cls.safe_owners  # nosec
 
 
-class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):  # pragma: no cover
+class _GnosisHelperIntegration(
+    _SafeConfiguredHelperIntegration, ABC
+):  # pragma: no cover
     """Class that assists Gnosis instantiation."""
 
     safe_contract_address: str = "0x68FCdF52066CcE5612827E872c45767E5a1f6551"
@@ -118,7 +121,7 @@ class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):  # pragma: no 
         )
 
 
-class _TxHelperIntegration(_GnosisHelperIntegration):  # pragma: no cover
+class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
     """Class that assists tx settlement related operations."""
 
     tx_settlement_synchronized_data: TxSettlementSynchronizedSata
