@@ -36,7 +36,7 @@ nav:
     - Publish and fetch packages: 'guides/publish_fetch_packages.md'
     - Register packages on-chain: 'guides/register_packages_on_chain.md'
     - Deploy a service: 'guides/deploy_service.md'
-    - Configure the service blockchain: 'guides/configure_service_blockchain.md'
+    - Configure access to external chains: 'guides/configure_access_external_chains.md'
   - Demo agent services:
     - 'demos/index.md'  
     - Hello World demo: 'demos/hello_world_demo.md'

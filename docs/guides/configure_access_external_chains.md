@@ -1,4 +1,4 @@
-The {{open_autonomy}} framework supports running agent services in different chains
+The {{open_autonomy}} framework supports that agent services access different external chains
 by defining certain configuration parameters appropriately.
 
 For example, if you are developing a service to be run in Ethereum, you might first want to use
@@ -36,6 +36,8 @@ At agent level, the agent configuration file `aea-config.yaml` should contain an
           <other_params>
     ```
 
+    Note that if you use this approach, then service-level overrides will not work.
+
 === "Using environment variables"
 
     ```yaml
@@ -46,15 +48,19 @@ At agent level, the agent configuration file `aea-config.yaml` should contain an
     config:
       ledger_apis:
         ethereum:
-          address: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS:str:http://localhost:8545}
-          chain_id: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_CHAIN_ID:int:31337}
+          address: ${str:http://localhost:8545}
+          chain_id: ${int:31337}
           <other_params>
     ```
 
-Note that for agent-level overrides the environment variables must follow the [export variable format](./service_configuration_file.md#export-to-environment-variables):
-```
-<COMPONENT_TYPE>_<UPPERCASE_ATTRIBUTE_PATH>=<value>
-```
+    Note that for agent-level overrides the environment variables must follow the [export variable format](./service_configuration_file.md#export-to-environment-variables):
+    ```
+    <COMPONENT_TYPE>_<UPPERCASE_ATTRIBUTE_PATH>=<value>
+    ```
+    For example, to set the `address` atribute, you must set the following environment variable:
+    ```
+    CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS
+    ``
 
 
 ### Service-level override
@@ -105,18 +111,18 @@ aea_test_autonomy.base_test_classes.contracts.BaseContractTest
 The configuration of the ledger connection for tests is done through the
 the `_setup_class(...)` method from `BaseContractTest`, which overrides the `valory/ledger` connection
 configuration for tests. As above, you must set the parameters `address` and `chain_id` accordingly:
-```python
-new_config = {
-    "address": url,
-    "chain_id": DEFAULT_CHAIN_ID,
-    "denom": DEFAULT_CURRENCY_DENOM,
-    "default_gas_price_strategy": "eip1559",
-    "gas_price_strategies": {
-        "gas_station": DEFAULT_GAS_STATION_STRATEGY,
-        "eip1559": DEFAULT_EIP1559_STRATEGY,
-    },
-}
-```
+    ```python
+    new_config = {
+        "address": url,
+        "chain_id": DEFAULT_CHAIN_ID,
+        "denom": DEFAULT_CURRENCY_DENOM,
+        "default_gas_price_strategy": "eip1559",
+        "gas_price_strategies": {
+            "gas_station": DEFAULT_GAS_STATION_STRATEGY,
+            "eip1559": DEFAULT_EIP1559_STRATEGY,
+        },
+    }
+    ```
 
 Also, instead of inheriting directly from `BaseContractTest`, the test tools in `open-aea-test-autonomy` include several preconfigured helper base classes for common chains:
 
@@ -186,16 +192,16 @@ The underlying retrial mechanism has a backoff that scales linearly, starting at
               validate_timeout: 1205
     ```
 
-    Therefore, unsuccessful transactions will be retried at the following pace:
+    Therefore, unsuccessful transactions will be retried at the following times:
 
-    * 1st retry: $13.3\cdot(1)$
-    * 2nd retry: $13.3\cdot(1+2)$
+    * 1st retry: $13.3\cdot(1)=13.3$
+    * 2nd retry: $13.3\cdot(1+2)=26.6$
     * ...
     * $i$th retry: $13.3\cdot\frac{i(i+1)}2$
     * ...
-    * 12th retry: $13.3\cdot(1+2+\cdots+12)$
-    * 13th retry: $13.3\cdot(1+2+\cdots+12+13)$
+    * 12th retry: $13.3\cdot(1+2+\cdots+12)=1037.4$
+    * 13th retry: $13.3\cdot(1+2+\cdots+12+13)=1210.3$
     
     Note, however, that it will stop at the 12th retry, because
-    $13.3\cdot(1+2+\cdots+12+13) > 1205.$
+    $1210.3 >$ `validate_timeout` $=1205$.
 

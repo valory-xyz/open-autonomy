@@ -389,4 +389,21 @@ information_source
 create_fsm_app.md
  - docs/advanced_reference/commands/autonomy_scaffold.md
 my_fsm_app_skill
-
+ - docs/guides/configure_access_external_chains.md
+aea_test_autonomy.base_test_classes.contracts.BaseContractTest
+new_config
+url
+chain_id
+DEFAULT_CHAIN_ID
+denom
+DEFAULT_CURRENCY_DENOM
+default_gas_price_strategy
+eip1559
+DEFAULT_GAS_STATION_STRATEGY
+DEFAULT_EIP1559_STRATEGY
+aea_test_autonomy.base_test_classes.agents.BaseTestEnd2End
+aea_test_autonomy.base_test_classes.agents.BaseTestEnd2EndExecution
+aea_test_autonomy.base_test_classes.agents
+BaseTestEnd2EndExecution
+gas_price_strategies
+gas_station
