@@ -2,9 +2,11 @@ The {{open_autonomy}} framework supports that agent services access different ex
 by defining certain configuration parameters appropriately.
 
 For example, if you are developing a service to be run in Ethereum, you might first want to use
-a development environment like [Hardhat](https://hardhat.org/) or [Ganache](https://trufflesuite.com/ganache/) as your testbed, then migrate to a public testnet like [Ropsten](https://ropsten.etherscan.io/) or [Görli](https://goerli.net/), and ultimately run your service in the Ethereum main chain.
+a development environment like [Hardhat](https://hardhat.org/) or [Ganache](https://trufflesuite.com/ganache/) as your testbed, then migrate to a public testnet like [Görli](https://goerli.net/), and ultimately run your service in the Ethereum main chain.
 
 To use a service in a particular chain, you must ensure that the the relevant agent addresses are funded in that chain.
+
+
 
 ## What will you learn
 
@@ -14,11 +16,15 @@ In this guide, you will learn how to:
   * Configure the test classes appropriately.
 
 
+
 ## Configuring the agent service
+
 To configure an agent service to work with a particular chain, you must configure the parameters `address` and `chain_id` accordingly in the connection `valory/ledger`. This configuration can be set up by overriding the `valory/ledger` configuration at agent level or at [service level](./service_configuration_file.md#service-level-overrides).
 
 
+
 ### Agent-level override
+
 At agent level, the agent configuration file `aea-config.yaml` should contain an override for the parameters of the connection `valory/ledger`, either using hardcoded values or environment variables as follows:
 
 === "Using hardcoded values"
@@ -60,10 +66,11 @@ At agent level, the agent configuration file `aea-config.yaml` should contain an
     For example, to set the `address` atribute, you must set the following environment variable:
     ```
     CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS
-    ``
+    ```
 
 
 ### Service-level override
+
 Similarly, service-level overrides for the `valory/ledger` connection are defined in the service configuration file `service.yaml` using either approach:
 
 === "Using hardcoded values"
@@ -98,7 +105,9 @@ Similarly, service-level overrides for the `valory/ledger` connection are define
 Observe that within the service configuration file there is no restriction for naming the environment variables.
 
 
+
 ## Configuring integration tests
+
 The `open-aea-test-autonomy` test tools contain a collection of classes for `open-autonomy` packages
 that allows you to configure the ledger connection for contract integration tests.
 To use the test tools, you must include `open-aea-test-autonomy` as a dependency for your packages.
@@ -133,7 +142,10 @@ Also, instead of inheriting directly from `BaseContractTest`, the test tools in 
 * `BaseHardhatGnosisContractWithDependencyTest`: Base test case for testing contracts with dependencies on Hardhat with Gnosis.
 * `BaseHardhatAMMContractWithDependencyTest`: Base test case for testing AMM contracts with dependencies on Hardhat.
 
+
+
 ## Configuring end-to-end tests
+
 The `open-aea-test-autonomy` test tools also contain base classes for end-to-end tests. These tests inherit from the base classes
 ```
 aea_test_autonomy.base_test_classes.agents.BaseTestEnd2End
@@ -166,7 +178,9 @@ Tests that have this attribute set will override the corresponding agent configu
     ```
 
 
+
 ## Configuring the validation timeout
+
 Last but not least, it is important to keep in mind what the average block times are in the deploying network.
 This is going to play a significant role when performing transactions, since the validation logic is based on that.
 
