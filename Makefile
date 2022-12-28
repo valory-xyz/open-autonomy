@@ -79,8 +79,7 @@ security:
 generators:
 	tox -e abci-docstrings
 	tox -e fix-copyright
-	python -m autonomy.cli hash all
-	python -m autonomy.cli packages lock
+	tox -e lock-packages
 	tox -e generate-api-documentation
 	tox -e fix-doc-hashes
 

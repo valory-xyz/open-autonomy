@@ -22,51 +22,24 @@
 # pylint: skip-file
 
 import logging  # noqa: F401
-from typing import FrozenSet, cast
+from typing import cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciAppDB,
     BaseSynchronizedData,
-    ConsensusParams,
+)
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
+    BaseRoundTestClass,
 )
 from packages.valory.skills.test_abci.payloads import DummyPayload
 from packages.valory.skills.test_abci.rounds import DummyRound, Event
 
 
-MAX_PARTICIPANTS: int = 4
-
-
-def get_participants() -> FrozenSet[str]:
-    """Participants"""
-    return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
-
-
-class BaseRoundTestClass:
-    """Base test class for Rounds."""
-
-    synchronized_data: BaseSynchronizedData
-    consensus_params: ConsensusParams
-    participants: FrozenSet[str]
-
-    @classmethod
-    def setup(
-        cls,
-    ) -> None:
-        """Setup the test class."""
-
-        cls.participants = get_participants()
-        cls.synchronized_data = BaseSynchronizedData(
-            AbciAppDB(
-                setup_data=dict(
-                    participants=[cls.participants], all_participants=[cls.participants]
-                ),
-            )
-        )
-        cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
-
-
 class TestDummyRound(BaseRoundTestClass):
     """Tests for DummyRound."""
+
+    _synchronized_data_class = BaseSynchronizedData
+    _event_class = Event
 
     def test_run(
         self,
