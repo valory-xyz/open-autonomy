@@ -37,8 +37,8 @@ from autonomy.chain.base import UnitType
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import (
     COMPONENT_REGISTRY_CONTRACT,
-    CONTRACTS_DIR,
     REGISTRIES_MANAGER_CONTRACT,
+    RELATIVE_CONTRACTS_DIR,
 )
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
 
@@ -47,7 +47,7 @@ BASE16_HASH_PREFIX = "f01701220"
 CONFIG_HASH_STRING_PREFIX = "0x"
 UNIT_HASH_PREFIX = CONFIG_HASH_STRING_PREFIX + "{metadata_hash}"
 DEFAULT_NFT_IMAGE_HASH = "bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm"
-
+ROOT_DIR = Path(__file__).parent.parent.parent
 ContractInterfaceType = Any
 
 
@@ -118,9 +118,10 @@ def verify_and_fetch_token_id_from_event(
 
 def get_contract(public_id: PublicId) -> Contract:
     """Load contract for given public id."""
-
-    package_dir = CONTRACTS_DIR / public_id.name
-    return Contract.from_dir(directory=package_dir)
+    contract_dir = RELATIVE_CONTRACTS_DIR / public_id.name
+    if contract_dir.exists():
+        return contract_dir
+    return ROOT_DIR / contract_dir
 
 
 def mint_component(

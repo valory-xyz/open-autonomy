@@ -20,6 +20,7 @@
 """Chain constants"""
 
 import os
+from pathlib import Path
 
 from aea.configurations.constants import CONTRACTS, PACKAGES
 from aea.configurations.data_types import PublicId
@@ -29,8 +30,7 @@ from autonomy.data import DATA_DIR
 
 ABI_DIR = DATA_DIR / "abis"
 PACKAGES_DIR = DATA_DIR / PACKAGES
-CONTRACTS_DIR = PACKAGES_DIR / "valory" / CONTRACTS
-
+RELATIVE_CONTRACTS_DIR = Path(PACKAGES) / "valory" / CONTRACTS
 
 COMPONENT_REGISTRY_ABI_FILENAME = "ComponentRegistry.json"
 AGENT_REGISTRY_ABI_FILENAME = "AgentRegistry.json"
