@@ -69,11 +69,11 @@ class ROUNDS:
     class {RoundCls}({ABCRoundCls}):
         \"\"\"{RoundCls}\"\"\"
 
-        {todo_abstract_round_cls}
         allowed_tx_type = {PayloadCls}.transaction_type
-        # TODO: set the correct payload attribute
-        payload_attribute = "REPLACE_THIS"
+        payload_attribute = {PayloadCls}.transaction_type.value
         synchronized_data_class = SynchronizedData
+
+        {todo_abstract_round_cls}
 
         def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
             \"\"\"Process the end of the block.\"\"\"
@@ -146,7 +146,7 @@ class BEHAVIOURS:
 
     BASE_BEHAVIOUR_CLS = """\
     class {BaseBehaviourCls}(BaseBehaviour, ABC):
-        \"\"\"Base behaviour for the common apps' skill.\"\"\"
+        \"\"\"Base behaviour for the {skill_name} skill.\"\"\"
 
         @property
         def synchronized_data(self) -> SynchronizedData:
@@ -166,7 +166,7 @@ class BEHAVIOURS:
 
         matching_round: Type[AbstractRound] = {matching_round}
 
-        # TODO: implement logic required to set payload content (e.g. synchronized_data)
+        # TODO: implement logic required to set payload content for synchronization
         def async_act(self) -> Generator:
             \"\"\"Do the act, supporting asynchronous execution.\"\"\"
 
@@ -213,7 +213,6 @@ class PAYLOADS:
     class TransactionType(Enum):
         \"\"\"Enumeration of transaction types.\"\"\"
 
-        # TODO: define transaction types: e.g. TX_HASH: "tx_hash"
         {tx_types}
 
         def __str__(self) -> str:
@@ -231,7 +230,7 @@ class PAYLOADS:
 
             super().__init__(sender, **kwargs)
             setattr(self, f"_{{self.transaction_type}}", content)
-            p = property(lambda s: getattr(self, f"_{{self.transaction_type}}"))
+            p = property(lambda self: getattr(self, f"_{{self.transaction_type}}"))
             setattr(self.__class__, f"{{self.transaction_type}}", p)
 
         @property
@@ -315,7 +314,7 @@ class HANDLERS:
     )
 
 
-    ABCIRoundHandler = BaseABCIRoundHandler
+    ABCIHandler = BaseABCIRoundHandler
     HttpHandler = BaseHttpHandler
     SigningHandler = BaseSigningHandler
     LedgerApiHandler = BaseLedgerApiHandler
