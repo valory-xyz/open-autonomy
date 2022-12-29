@@ -27,24 +27,7 @@ To configure an agent service to work with a particular chain, you must configur
 
 At agent level, the agent configuration file `aea-config.yaml` should contain an override for the parameters of the connection `valory/ledger`, either using hardcoded values or environment variables as follows:
 
-=== "Using hardcoded values"
-
-    ```yaml
-    (...)
-    ---
-    public_id: valory/ledger:0.19.0
-    type: connection
-    config:
-      ledger_apis:
-        ethereum:
-          address: http://host.docker.internal:8545
-          chain_id: 31337
-          <other_params>
-    ```
-
-    Note that if you use this approach, then service-level overrides will not work.
-
-=== "Using environment variables"
+=== "Using environment variables (recommended)"
 
     ```yaml
     (...)
@@ -58,21 +41,6 @@ At agent level, the agent configuration file `aea-config.yaml` should contain an
           chain_id: ${int:31337}
           <other_params>
     ```
-
-    Note that for agent-level overrides the environment variables must follow the [export variable format](./service_configuration_file.md#export-to-environment-variables):
-    ```
-    <COMPONENT_TYPE>_<UPPERCASE_ATTRIBUTE_PATH>=<value>
-    ```
-    For example, to set the `address` atribute, you must set the following environment variable:
-    ```
-    CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS
-    ```
-
-
-### Service-level override
-
-Similarly, service-level overrides for the `valory/ledger` connection are defined in the service configuration file `service.yaml` using either approach:
-
 === "Using hardcoded values"
 
     ```yaml
@@ -88,6 +56,15 @@ Similarly, service-level overrides for the `valory/ledger` connection are define
           <other_params>
     ```
 
+
+Note that if you use agent-level hardcoded overrides, then service-level overrides will not work.
+On the other hand agent-level environment variable overrides must follow the [export variable format](./service_configuration_file.md#export-to-environment-variables).
+
+
+### Service-level override
+
+Similarly, service-level overrides for the `valory/ledger` connection are defined in the service configuration file `service.yaml` using either approach:
+
 === "Using environment variables"
     ```yaml
     (...)
@@ -99,6 +76,21 @@ Similarly, service-level overrides for the `valory/ledger` connection are define
         ethereum:
           address: ${MY_CHAIN_ADDRESS:str:http://localhost:8545}
           chain_id: ${MY_CHAIN_ID:int:31337}
+          <other_params>
+    ```
+
+=== "Using hardcoded values"
+
+    ```yaml
+    (...)
+    ---
+    public_id: valory/ledger:0.19.0
+    type: connection
+    config:
+      ledger_apis:
+        ethereum:
+          address: http://host.docker.internal:8545
+          chain_id: 31337
           <other_params>
     ```
 
@@ -197,13 +189,13 @@ The underlying retrial mechanism has a backoff that scales linearly, starting at
     An example configuration in the `skill.yaml` file for the Ethereum mainnet is as follows:
     
     ```yaml
-        (...)
-        models:
-          params:
-            args:
-              retry_attempts: 13
-              retry_timeout: 13.3
-              validate_timeout: 1205
+    (...)
+    models:
+      params:
+        args:
+          retry_attempts: 13
+          retry_timeout: 13.3
+          validate_timeout: 1205
     ```
 
     Therefore, unsuccessful transactions will be retried at the following times:
