@@ -51,7 +51,7 @@ PACKAGE_TABLE_REGEX = rf"\|\s*{PACKAGE_TYPE_REGEX}\/{VENDOR_REGEX}\/{PACKAGE_REG
 ROOT_DIR = Path(__file__).parent.parent
 # We need to skip the hash for `valory/oracle_hardhat:0.1.0:bafybeie553shfmnds6v7defynjv5kmjkqf2aygj345jbbcssevtnkbodbe`
 # because the demo is not in this repo, but the docs are
-HASH_SKIPS = ("bafybeie553shfmnds6v7defynjv5kmjkqf2aygj345jbbcssevtnkbodbe",)
+HASH_SKIPS = ("bafybeie553shfmnds6v7defynjv5kmjkqf2aygj345jbbcssevtnkbodbe","bafybeie6zryhy7v3fb4mwlu3br4brfxva4m5j2fyldbclq2v3d6modmewm",)
 
 
 def read_file(filepath: str) -> str:

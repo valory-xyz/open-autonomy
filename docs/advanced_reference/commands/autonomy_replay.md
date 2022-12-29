@@ -44,5 +44,4 @@ Tendermint runner.
 
 ## Examples
 
-!!! info
-    This section will be added soon.
+Find a complete example on how the [execution replay section](../developer_tooling/execution_replay.md).
