@@ -19,7 +19,9 @@
 
 """This module contains the handler for the 'test_abci' skill."""
 
-from packages.valory.skills.abstract_abci.handlers import ABCIHandler
+from packages.valory.skills.abstract_round_abci.handlers import (
+    ABCIRoundHandler as BaseABCIRoundHandler,
+)
 from packages.valory.skills.abstract_round_abci.handlers import (
     ContractApiHandler as BaseContractApiHandler,
 )
@@ -37,7 +39,7 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 )
 
 
-TestABCIHandler = ABCIHandler
+ABCIHandler = BaseABCIRoundHandler
 HttpHandler = BaseHttpHandler
 SigningHandler = BaseSigningHandler
 LedgerApiHandler = BaseLedgerApiHandler

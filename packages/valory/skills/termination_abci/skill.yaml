@@ -8,8 +8,8 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidztixckwwbn4ujl6kkvghgsk23xecbgnbiw3e4t3owxldhyjo3au
   behaviours.py: bafybeiasqtp7kcowd5o62gesb6kpab2cj3uuudzx3qnfgq66334k4aktia
-  dialogues.py: bafybeidy3xcgjvt2f2zluudxjvqyusj7g2fbb6kyugifpgaobmmrmnc7py
-  handlers.py: bafybeifzwgpoll2psprk7akts5tepbousue2vvyu6glnamu2wm46b7roca
+  dialogues.py: bafybeidlaxto7h652uthpw6ycewqmd44jckh2dztgr464bywieinuha7cm
+  handlers.py: bafybeiez3dy6w7vokby5x6kxcxxconp4xhhhmmwx7b2ksqjkka6wobhqmy
   models.py: bafybeibdy5unp2zw2rf7uhi4qvgzrqxyfybakgbmas42t2lgkipkl3glhq
   payloads.py: bafybeiham2atgdsol5k2laucgvlk6edozfujmrzgvc5s2vd2kbmr6qdnw4
   rounds.py: bafybeid5w4aolnzq2qbdonccufoikli5ezsxxcif4bvwjywvax6zt5wlpq
@@ -29,8 +29,8 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicqv4clphclqfx6ocrw6hvftqj7afn7u7btkxjeh3b22tootaxyea
-- valory/transaction_settlement_abci:0.1.0:bafybeihzypoiu4ctoyzjn7t52fh2dokryayz3gow5jf2jh7edjbxktiibu
+- valory/abstract_round_abci:0.1.0:bafybeihei7ret5n4x47ip65wrjesipvhleckl3zx4ilox23bxahnpqpyn4
+- valory/transaction_settlement_abci:0.1.0:bafybeieg65mzs4nsxm5eefx3plsfv7b2wabrkwhum7yqq3llap6gxtb4vm
 behaviours:
   main:
     args: {}
@@ -38,7 +38,7 @@ behaviours:
 handlers:
   abci:
     args: {}
-    class_name: TerminationABCIHandler
+    class_name: ABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -129,6 +129,9 @@ models:
   state:
     args: {}
     class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
 dependencies:
   hexbytes: {}
 is_abstract: true

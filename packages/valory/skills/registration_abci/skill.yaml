@@ -11,7 +11,7 @@ fingerprint:
   behaviours.py: bafybeictmxyux7cxhqvihk3fngd5dvhaao2oocd7zdb45w5i7qggeq6chy
   dialogues.py: bafybeicgx2bato2ctlceydqbhwowxpoznmlo3lfmqt5x5h3fribfe63g6y
   fsm_specification.yaml: bafybeicx5eutgr4lin7mhwr73xhanuzwdmps7pfoy5f2k7gfxmuec4qbyu
-  handlers.py: bafybeigbp24xqejoukl52srcsasbljz4rap7xaa2qbfh4lyewbnkman7jm
+  handlers.py: bafybeigfg3ienjl26t3ak4bjjt6umkoaif7rld4zh7qekxcnbep2elbko4
   models.py: bafybeiaka4eit5vsjh7j2pr7oq7vvmxbk526z35pqzfojfb6kvpnm3yrpy
   payloads.py: bafybeig6hh4vg2zjivr26xxbab54nn2xcragqlh7ff4s2sql24tchz3yia
   rounds.py: bafybeickj5p3e64vlww6zkgg2ajgzhn4cbmyermujjjp5ffuv6pynpk3c4
@@ -32,7 +32,7 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 - valory/tendermint:0.1.0:bafybeif7b3ndrnwunl6s42e2cd6cu5hxruiimz3lwixb3r6um2lsldgldi
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicqv4clphclqfx6ocrw6hvftqj7afn7u7btkxjeh3b22tootaxyea
+- valory/abstract_round_abci:0.1.0:bafybeihei7ret5n4x47ip65wrjesipvhleckl3zx4ilox23bxahnpqpyn4
 behaviours:
   main:
     args: {}
@@ -40,7 +40,7 @@ behaviours:
 handlers:
   abci:
     args: {}
-    class_name: ABCIRoundHandler
+    class_name: ABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
