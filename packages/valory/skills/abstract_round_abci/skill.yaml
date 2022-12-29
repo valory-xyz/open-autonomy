@@ -134,7 +134,7 @@ dependencies:
   ipfshttpclient:
     version: ==0.8.0a2
   open-aea-cli-ipfs:
-    version: ==1.27.0
+    version: ==1.27.0.post1
   open-aea-test-autonomy:
     version: ==0.6.0
   protobuf:
