@@ -85,20 +85,24 @@ class TestServiceBuilder:
     service_path: Path
 
     @classmethod
-    def setup(
+    def setup_class(
         cls,
     ) -> None:
-        """Setup test."""
+        """Setup test class."""
         cls.cwd = Path.cwd()
 
-        cls.t = Path(tempfile.TemporaryDirectory().name)
-        cls.t.mkdir()
+    def setup(
+        self,
+    ) -> None:
+        """Setup test."""
+        self.t = Path(tempfile.TemporaryDirectory().name)
+        self.t.mkdir()
 
-        cls.service_path = cls.t / "dummy_service"
-        cls.service_path.mkdir()
+        self.service_path = self.t / "dummy_service"
+        self.service_path.mkdir()
 
-        cls.keys_path = cls.t / "keys.json"
-        cls.keys_path.write_text(json.dumps(get_keys()[0:1]))
+        self.keys_path = self.t / "keys.json"
+        self.keys_path.write_text(json.dumps(get_keys()[0:1]))
 
     def _write_service(self, data: List[Dict]) -> None:
         """Write service config to a file."""
@@ -367,11 +371,9 @@ class TestServiceBuilder:
                 self.service_path, self.keys_path, agent_instances=[]
             )
 
-    @classmethod
     def teardown(
-        cls,
+        self,
     ) -> None:
         """Teardown test."""
-
-        os.chdir(cls.cwd)
-        shutil.rmtree(cls.t)
+        os.chdir(self.cwd)
+        shutil.rmtree(self.t)
