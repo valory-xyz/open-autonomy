@@ -10,8 +10,8 @@ fingerprint:
   __init__.py: bafybeicc7zwcm4vljmtobhmgkqinpjgoztznwhfzkndvnnsrolr6eivmsm
   behaviours.py: bafybeicmgb3hz2f6rhnpctcojeesayvmwicvl4mybbseyscdvzr6luepni
   composition.py: bafybeiadbacacvh4bshv3butbcomyjyxm45vcguivos5ghtflsrwxzv66y
-  dialogues.py: bafybeih3x4egnkh7xwnlawqbu6fpqyqbaum7ivdhqm6r6557dyy2rhzneq
-  handlers.py: bafybeibotw5mzjfbzdme5w4oytvqspcql3vbyr3v5k5zt6v3o6y6dypd7e
+  dialogues.py: bafybeidlaxto7h652uthpw6ycewqmd44jckh2dztgr464bywieinuha7cm
+  handlers.py: bafybeicjoxcuw7d4zaumh5gjc5tbhljxdhp73evohr4npurxjmkux4g4qy
   models.py: bafybeiffunjgfpgbnipafnhllqmpkmy7dn4voxj63vvsvvt3ghwmglkut4
   tests/__init__.py: bafybeid2pb3mfobqtzsadxzris67d4hkmcflqfnzay3y3errmtd7tdtvoe
   tests/test_behaviours.py: bafybeiawbfepzyltckutgb3hettltrn5pladutcbzlqnpd3jdu4bixlb3i
@@ -23,10 +23,10 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicqv4clphclqfx6ocrw6hvftqj7afn7u7btkxjeh3b22tootaxyea
-- valory/registration_abci:0.1.0:bafybeibcwuanfshiljher7ueb76e2i6jj2shtdunagkkeefdxypbghy2t4
-- valory/reset_pause_abci:0.1.0:bafybeihiptdpzz2iyne2og5ilzja6frqg35oczhcywmiaxael4uh745xzy
-- valory/termination_abci:0.1.0:bafybeidbxlw35rmpeludylcba6bkwhhlxzbwoz2tyrufxxicc3ygqsankm
+- valory/abstract_round_abci:0.1.0:bafybeifnbzeflm6a22xlwpx3owich2l5p6zcgkk26wisl32o4gtewltz2a
+- valory/registration_abci:0.1.0:bafybeigdyl33unarlklz35we3bneab77hh6z6d7it6lwgukx6exkeqtkgq
+- valory/reset_pause_abci:0.1.0:bafybeif2foa5shoj4gj4dca44ebwy2zajigb4s56cdswql5tbegznck22e
+- valory/termination_abci:0.1.0:bafybeiagwjssybd7vbjcntj2wmcp7ma4yd6o6i7qbt3ilaur3kx2q6ekqm
 behaviours:
   main:
     args: {}
@@ -34,7 +34,7 @@ behaviours:
 handlers:
   abci:
     args: {}
-    class_name: ABCIRegisterResetHandler
+    class_name: ABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -47,6 +47,9 @@ handlers:
   signing:
     args: {}
     class_name: SigningHandler
+  tendermint:
+    args: {}
+    class_name: TendermintHandler
 models:
   abci_dialogues:
     args: {}
@@ -136,5 +139,8 @@ models:
   state:
     args: {}
     class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
 dependencies: {}
 is_abstract: false
