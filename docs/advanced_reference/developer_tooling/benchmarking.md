@@ -12,7 +12,7 @@ The benchmarking tools allow measuring the performance of an agent service reali
 
 ## Example usage
 
-Run the `oracle/price_estimation` service as explained [here](./demos/price_oracle_intro.md).
+Run the `oracle/price_estimation` service as explained [here](../../demos/price_oracle_intro.md).
 
 By default this will create a `4` agent runtime where you can wait until all `4` agents are at the end of the first period (you can wait for more periods if you want) and then you can stop the runtime. The data will be stored in the `abci_build/persistent_data/benchmarks` folder. You can use the following script to aggregate this data:
 
