@@ -19,7 +19,9 @@
 
 """This module contains the handler for the register-reset skill."""
 
-from packages.valory.skills.abstract_round_abci.handlers import ABCIRoundHandler
+from packages.valory.skills.abstract_round_abci.handlers import (
+    ABCIRoundHandler as BaseABCIRoundHandler,
+)
 from packages.valory.skills.abstract_round_abci.handlers import (
     ContractApiHandler as BaseContractApiHandler,
 )
@@ -37,9 +39,9 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 )
 
 
-ABCIRegisterResetHandler = ABCIRoundHandler
+ABCIHandler = BaseABCIRoundHandler
 HttpHandler = BaseHttpHandler
 SigningHandler = BaseSigningHandler
-ContractApiHandler = BaseContractApiHandler
 LedgerApiHandler = BaseLedgerApiHandler
+ContractApiHandler = BaseContractApiHandler
 TendermintHandler = BaseTendermintHandler

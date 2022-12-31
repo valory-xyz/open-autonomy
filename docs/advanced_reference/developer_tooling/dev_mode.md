@@ -1,6 +1,8 @@
-# Agent Runtime With Hot Reload Mode
+The {{open_autonomy}} framework comes with *dev mode* tooling to enable faster service developing and debugging. The dev mode supports:
 
-The hot reload mode enables hot code swapping and reflects changes on the agent code as well as the local `open-aea` repository without rebuilding or restarting containers manually.
+* **Hot reload,** which enables hot code swapping and reflects changes on the agent code as well as on the local `open-aea` repository without rebuilding or restarting the containers manually.
+* **Benchmarking** the performance of an agent service.
+* **Replay** an agent service execution.
 
 ## General Guide
 

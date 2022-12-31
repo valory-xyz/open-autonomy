@@ -119,7 +119,7 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
     ) -> None:
         """Update the handlers section of the skill configuration."""
         config.handlers = CRUDCollection[SkillComponentConfiguration]()
-        config.handlers.create("abci", SkillComponentConfiguration("ABCIRoundHandler"))
+        config.handlers.create("abci", SkillComponentConfiguration("ABCIHandler"))
         config.handlers.create(
             "contract_api", SkillComponentConfiguration("ContractApiHandler")
         )

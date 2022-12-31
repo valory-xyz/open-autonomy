@@ -82,7 +82,7 @@ behaviours:
 handlers:
   abci:
     args: {}
-    class_name: ABCIRoundHandler
+    class_name: ABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -127,6 +127,9 @@ models:
   state:
     args: {}
     class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
 dependencies:
   eth_typing: {}
   hypothesis:

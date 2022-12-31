@@ -82,7 +82,7 @@ class RoundFileGenerator(AbstractFileGenerator, ROUNDS):
 
         rounds: List[str] = []
 
-        todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
+        todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound,\n        # CollectSameUntilAllRound, CollectSameUntilThresholdRound,\n        # CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound,\n        # from packages/valory/skills/abstract_round_abci/base.py\n        # or implement the methods"
         for round_name, payload_name in zip(self.rounds, self.payloads):
             base_name = round_name.replace(ROUND, "")
             round_id = _camel_case_to_snake_case(base_name)

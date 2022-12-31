@@ -9,8 +9,8 @@ fingerprint:
   README.md: bafybeihrn52tx65lerztcuqmuyncrctfvpu2do7wwjycxxj56orejx2cu4
   __init__.py: bafybeie63javimotebwcrwaydwe2gc7a7h7cjhol6l6e5ushlgreorm7hi
   behaviours.py: bafybeifzc3slkefi6kvs77muchzp5jwvb5kerqyjwdudncxntdgbr57oz4
-  dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
-  handlers.py: bafybeieeau32pkuhlfxmgk5je7lcmqccn5pohi7pgahbqcmfdiyb4q2boq
+  dialogues.py: bafybeib4jbdycm2vofni3vp6draqet3nejoviqjurcilrzindr4k5dg5fa
+  handlers.py: bafybeibujz375cm52h67pjh7rrg2xnulol6vyjkoedljq37p6ucbwgragy
   models.py: bafybeidlcic7cpxbqlxoeg56d3chnuoepk3inbn3yryyxtskp3msge75ci
   payloads.py: bafybeibp4ty4dnrpkezdmxqdv6icp5d23chkfs5ufygrxb2eouvxsdvv2e
   rounds.py: bafybeib5hc6y7nzibmxnsexvsdsc4nessooip7ausytb7np73cgwzt444a
@@ -27,7 +27,7 @@ contracts: []
 protocols: []
 skills:
 - valory/abstract_abci:0.1.0:bafybeihah4ouxqvdratxyqvluslxcv6k7rbmwygbh2e4gncrm4r4gqp23q
-- valory/abstract_round_abci:0.1.0:bafybeigqrej5pvglpd6thmkj4zijvtjf7b7orheaz6ijnoqrn4keg7asme
+- valory/abstract_round_abci:0.1.0:bafybeifnbzeflm6a22xlwpx3owich2l5p6zcgkk26wisl32o4gtewltz2a
 behaviours:
   main:
     args: {}
@@ -35,7 +35,7 @@ behaviours:
 handlers:
   abci:
     args: {}
-    class_name: TestABCIHandler
+    class_name: ABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -131,5 +131,8 @@ models:
   state:
     args: {}
     class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
 dependencies: {}
 is_abstract: false
