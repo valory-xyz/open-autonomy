@@ -588,6 +588,7 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
             else 0
         )
 
+        # TODO: fix below - type error indicates problem with this
         test_round.is_majority_possible = lambda *_: is_majority_possible  # type: ignore
         test_round.no_majority_event = DummyEvent.NO_MAJORITY
 

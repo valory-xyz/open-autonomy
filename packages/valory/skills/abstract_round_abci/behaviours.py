@@ -212,8 +212,8 @@ class AbstractRoundBehaviour(
         #  to the degenerate behaviour class
         for final_round_cls in cls.abci_app_cls.final_states:
             new_degenerate_behaviour = make_degenerate_behaviour(final_round_cls)
-            new_degenerate_behaviour.matching_round = final_round_cls  # type: ignore
-            result[final_round_cls] = new_degenerate_behaviour  # type: ignore
+            new_degenerate_behaviour.matching_round = final_round_cls
+            result[final_round_cls] = new_degenerate_behaviour
 
         return result
 
@@ -233,7 +233,7 @@ class AbstractRoundBehaviour(
         self.current_behaviour = self.instantiate_behaviour_cls(
             self.initial_behaviour_cls
         )
-        self.tm_manager = self.instantiate_behaviour_cls(TmManager)  # type: ignore
+        self.tm_manager = self.instantiate_behaviour_cls(TmManager)
         if self.is_background_behaviour_set:
             self.background_behaviour_cls = cast(
                 Type[BaseBehaviour], self.background_behaviour_cls

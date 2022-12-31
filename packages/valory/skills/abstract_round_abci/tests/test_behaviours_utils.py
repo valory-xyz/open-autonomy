@@ -45,7 +45,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-import pytz  # type: ignore  # pylint: disable=import-error
+import pytz  # pylint: disable=import-error
 from _pytest.logging import LogCaptureFixture
 
 # pylint: skip-file
@@ -536,7 +536,7 @@ class TestBaseBehaviour:
         self.context_mock.http_dialogues = HttpDialogues()
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.behaviour = BehaviourATest(name="", skill_context=self.context_mock)
-        self.behaviour.context.logger = logging  # type: ignore
+        self.behaviour.context.logger = logging.getLogger()
 
     def test_behaviour_id(self) -> None:
         """Test behaviour_id on instance."""
@@ -1218,7 +1218,7 @@ class TestBaseBehaviour:
             "create",
             return_value=(MagicMock(), MagicMock()),
         ):
-            self.behaviour.context.default_ledger_id = "default_ledger_id"  # type: ignore
+            self.behaviour.context.default_ledger_id = "default_ledger_id"
             self.behaviour._send_transaction_receipt_request("digest")
 
     def test_build_http_request_message(self, *_: Any) -> None:

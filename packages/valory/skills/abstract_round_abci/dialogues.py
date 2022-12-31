@@ -44,10 +44,10 @@ from packages.valory.protocols.contract_api.dialogues import (
     ContractApiDialogues as BaseContractApiDialogues,
 )
 from packages.valory.protocols.http.dialogues import (
-    HttpDialogue as BaseHttpDialogue,  # type: ignore # pylint: disable=no-name-in-module,import-error; type: ignore
+    HttpDialogue as BaseHttpDialogue,
 )
 from packages.valory.protocols.http.dialogues import (
-    HttpDialogues as BaseHttpDialogues,  # type: ignore # pylint: disable=no-name-in-module,import-error; type: ignore
+    HttpDialogues as BaseHttpDialogues,
 )
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.ledger_api.dialogues import (

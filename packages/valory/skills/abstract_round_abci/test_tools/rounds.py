@@ -209,7 +209,7 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
                     all_participants=[self.participants],
                 ),
             )
-        )  # type: ignore
+        )
         self.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
     def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
@@ -273,10 +273,7 @@ class BaseCollectDifferentUntilAllRoundTest(  # pylint: disable=too-few-public-m
         yield test_round
         assert test_round.collection_threshold_reached
 
-        actual_next_synchronized_data = cast(
-            self._synchronized_data_class,  # type: ignore
-            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
-        )
+        actual_next_synchronized_data = synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round)
 
         res = test_round.end_block()
         yield res
@@ -285,7 +282,6 @@ class BaseCollectDifferentUntilAllRoundTest(  # pylint: disable=too-few-public-m
         else:
             assert res is not None
             synchronized_data, event = res
-            synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
             for behaviour_attr_getter in synchronized_data_attr_checks:
                 assert behaviour_attr_getter(
                     synchronized_data
@@ -333,16 +329,12 @@ class BaseCollectSameUntilAllRoundTest(
             assert test_round.collection_threshold_reached
         assert test_round.common_payload == most_voted_payload
 
-        actual_next_synchronized_data = cast(
-            self._synchronized_data_class,  # type: ignore
-            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
-        )
+        actual_next_synchronized_data = synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round)
         res = test_round.end_block()
         yield res
         assert res is not None
 
         synchronized_data, event = res
-        synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
 
         for behaviour_attr_getter in synchronized_data_attr_checks:
             assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
@@ -386,16 +378,12 @@ class BaseCollectSameUntilThresholdRoundTest(  # pylint: disable=too-few-public-
         assert test_round.threshold_reached
         assert test_round.most_voted_payload == most_voted_payload
 
-        actual_next_synchronized_data = cast(
-            self._synchronized_data_class,  # type: ignore
-            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
-        )
+        actual_next_synchronized_data = synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round)
         res = test_round.end_block()
         yield res
         assert res is not None
 
         synchronized_data, event = res
-        synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
 
         for behaviour_attr_getter in synchronized_data_attr_checks:
             assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
@@ -428,16 +416,13 @@ class BaseOnlyKeeperSendsRoundTest(  # pylint: disable=too-few-public-methods
         assert test_round.has_keeper_sent_payload
 
         yield test_round
-        actual_next_synchronized_data = cast(
-            self._synchronized_data_class,  # type: ignore
-            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
-        )
+        actual_next_synchronized_data = synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round)
         res = test_round.end_block()
         yield res
         assert res is not None
 
         synchronized_data, event = res
-        synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
+
         for behaviour_attr_getter in synchronized_data_attr_checks:
             assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
                 actual_next_synchronized_data
@@ -473,16 +458,13 @@ class BaseVotingRoundTest(BaseRoundTestClass):  # pylint: disable=too-few-public
         yield test_round
         assert threshold_check(test_round)
 
-        actual_next_synchronized_data = cast(
-            self._synchronized_data_class,  # type: ignore
-            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
-        )
+        actual_next_synchronized_data = synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round)
         res = test_round.end_block()
         yield res
         assert res is not None
 
         synchronized_data, event = res
-        synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
+
         for behaviour_attr_getter in synchronized_data_attr_checks:
             assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
                 actual_next_synchronized_data
@@ -575,16 +557,13 @@ class BaseCollectDifferentUntilThresholdRoundTest(  # pylint: disable=too-few-pu
         yield test_round
         assert test_round.collection_threshold_reached
 
-        actual_next_synchronized_data = cast(
-            self._synchronized_data_class,  # type: ignore
-            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
-        )
+        actual_next_synchronized_data = synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round)
+
         res = test_round.end_block()
         yield res
         assert res is not None
 
         synchronized_data, event = res
-        synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
 
         for behaviour_attr_getter in synchronized_data_attr_checks:
             assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
