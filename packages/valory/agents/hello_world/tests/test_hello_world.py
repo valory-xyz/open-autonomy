@@ -70,6 +70,7 @@ STRICT_CHECK_STRINGS = (
 
 
 # normal execution
+@pytest.mark.e2e
 class BaseHelloWorldABCITest(
     BaseTestEnd2EndExecution,
 ):
