@@ -2075,6 +2075,7 @@ class DegenerateBehaviour(BaseBehaviour, ABC):
 
     matching_round: Type[AbstractRound]
     is_degenerate: bool = True
+    sleep_time_before_exit = 5
 
     def async_act(self) -> Generator:  # type: ignore
         """Exit the agent with error when a degenerate round is reached."""
@@ -2084,6 +2085,10 @@ class DegenerateBehaviour(BaseBehaviour, ABC):
             "the execution of the ABCI application. Please check the "
             "functioning of the ABCI app."
         )
+        self.context.logger.error(
+            f"Sleeping {self.sleep_time_before_exit} seconds before exiting."
+        )
+        yield from self.sleep(self.sleep_time_before_exit)
         error_code = 1
         sys.exit(error_code)
 

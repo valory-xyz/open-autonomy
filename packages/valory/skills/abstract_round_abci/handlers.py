@@ -664,13 +664,13 @@ class TendermintHandler(Handler):
 
         try:  # validate message contains a valid address
             validator_config = json.loads(message.info)
-            self.context.logger.error(validator_config)
+            self.context.logger.info(f"Validator config received: {validator_config}")
             hostname = cast(str, validator_config["hostname"])
             if hostname != "localhost" and not hostname.startswith("node"):
                 ipaddress.ip_network(hostname)
         except ValueError as e:
             log_message = self.LogMessages.failed_to_parse_address.value
-            self.context.logger.info(f"{log_message}: {e} {message}")
+            self.context.logger.error(f"{log_message}: {e} {message}")
             self._reply_with_tendermint_error(message, dialogue, log_message)
             return
 
