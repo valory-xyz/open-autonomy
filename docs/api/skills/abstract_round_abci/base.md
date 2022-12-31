@@ -176,7 +176,7 @@ This class represents a base class for transaction payload classes.
 #### `__`init`__`
 
 ```python
-def __init__(sender: str, id_: Optional[str] = None, round_count: int = ROUND_COUNT_DEFAULT) -> None
+def __init__(sender: str, id_: Optional[str] = None, round_count: int = ROUND_COUNT_DEFAULT, **kwargs: Any, ,) -> None
 ```
 
 Initialize a transaction payload.
@@ -186,6 +186,7 @@ Initialize a transaction payload.
 - `sender`: the sender (Ethereum) address
 - `id_`: the id of the transaction
 - `round_count`: the count of the round in which the payload was sent
+- `kwargs`: the keyword arguments
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.sender"></a>
 
