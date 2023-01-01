@@ -33,7 +33,11 @@ from packages.valory.connections.ledger.connection import (
 from packages.valory.connections.ledger.tests.conftest import make_ledger_api_connection
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.ledger_api.dialogues import LedgerApiDialogue
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB, _MetaPayload, BaseTxPayload
+from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
+    BaseTxPayload,
+    _MetaPayload,
+)
 from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.models import Requests
 from packages.valory.skills.abstract_round_abci.test_tools.integration import (

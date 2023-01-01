@@ -33,7 +33,6 @@ from typing import (
     Optional,
     Tuple,
     Type,
-    cast,
 )
 from unittest import mock
 
@@ -273,7 +272,9 @@ class BaseCollectDifferentUntilAllRoundTest(  # pylint: disable=too-few-public-m
         yield test_round
         assert test_round.collection_threshold_reached
 
-        actual_next_synchronized_data = synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round)
+        actual_next_synchronized_data = synchronized_data_update_fn(
+            deepcopy(self.synchronized_data), test_round
+        )
 
         res = test_round.end_block()
         yield res
@@ -329,7 +330,9 @@ class BaseCollectSameUntilAllRoundTest(
             assert test_round.collection_threshold_reached
         assert test_round.common_payload == most_voted_payload
 
-        actual_next_synchronized_data = synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round)
+        actual_next_synchronized_data = synchronized_data_update_fn(
+            deepcopy(self.synchronized_data), test_round
+        )
         res = test_round.end_block()
         yield res
         assert res is not None
@@ -378,7 +381,9 @@ class BaseCollectSameUntilThresholdRoundTest(  # pylint: disable=too-few-public-
         assert test_round.threshold_reached
         assert test_round.most_voted_payload == most_voted_payload
 
-        actual_next_synchronized_data = synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round)
+        actual_next_synchronized_data = synchronized_data_update_fn(
+            deepcopy(self.synchronized_data), test_round
+        )
         res = test_round.end_block()
         yield res
         assert res is not None
@@ -416,7 +421,9 @@ class BaseOnlyKeeperSendsRoundTest(  # pylint: disable=too-few-public-methods
         assert test_round.has_keeper_sent_payload
 
         yield test_round
-        actual_next_synchronized_data = synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round)
+        actual_next_synchronized_data = synchronized_data_update_fn(
+            deepcopy(self.synchronized_data), test_round
+        )
         res = test_round.end_block()
         yield res
         assert res is not None
@@ -458,7 +465,9 @@ class BaseVotingRoundTest(BaseRoundTestClass):  # pylint: disable=too-few-public
         yield test_round
         assert threshold_check(test_round)
 
-        actual_next_synchronized_data = synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round)
+        actual_next_synchronized_data = synchronized_data_update_fn(
+            deepcopy(self.synchronized_data), test_round
+        )
         res = test_round.end_block()
         yield res
         assert res is not None
@@ -557,7 +566,9 @@ class BaseCollectDifferentUntilThresholdRoundTest(  # pylint: disable=too-few-pu
         yield test_round
         assert test_round.collection_threshold_reached
 
-        actual_next_synchronized_data = synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round)
+        actual_next_synchronized_data = synchronized_data_update_fn(
+            deepcopy(self.synchronized_data), test_round
+        )
 
         res = test_round.end_block()
         yield res

@@ -852,7 +852,7 @@ whether the reset was successful.
 ## TmManager Objects
 
 ```python
-class TmManager(BaseBehaviour,  ABC)
+class TmManager(BaseBehaviour)
 ```
 
 Util class to be used for managing the tendermint node.
