@@ -44,7 +44,7 @@ class TestAbciConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the simple abci app."""
 
     initial_behaviour_cls = DummyBehaviour
-    abci_app_cls = TestAbciApp  # type: ignore
-    behaviours: Set[Type[DummyBehaviour]] = {  # type: ignore
+    abci_app_cls = TestAbciApp
+    behaviours: Set[Type[BaseBehaviour]] = {
         DummyBehaviour,  # type: ignore
     }

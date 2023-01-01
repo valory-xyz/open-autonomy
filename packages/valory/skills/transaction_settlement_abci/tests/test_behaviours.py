@@ -1272,7 +1272,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
                     "tx_digest": "test",
                 }
 
-            cast(  # type: ignore
+            cast(
                 TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
             )._get_tx_data = _dummy_get_tx_data  # type: ignore
             for _ in range(len(late_messages)):

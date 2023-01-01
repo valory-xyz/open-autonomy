@@ -885,7 +885,7 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the basic transaction settlement."""
 
     initial_behaviour_cls = RandomnessTransactionSubmissionBehaviour
-    abci_app_cls = TransactionSubmissionAbciApp  # type: ignore
+    abci_app_cls = TransactionSubmissionAbciApp
     behaviours: Set[Type[BaseBehaviour]] = {
         RandomnessTransactionSubmissionBehaviour,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore

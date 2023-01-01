@@ -400,7 +400,7 @@ class ValidateTransactionRound(VotingRound):
                     ): VerificationStatus.VERIFIED,
                     get_name(SynchronizedData.final_tx_hash): final_tx_hash,
                 },
-            )  # type: ignore
+            )
             return synchronized_data, self.done_event
         if self.negative_vote_threshold_reached:
             return self.synchronized_data, self.negative_event

@@ -458,8 +458,8 @@ class AgentRegistrationRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the registration."""
 
     initial_behaviour_cls = RegistrationStartupBehaviour
-    abci_app_cls = AgentRegistrationAbciApp  # type: ignore
-    behaviours: Set[Type[BaseBehaviour]] = {  # type: ignore
+    abci_app_cls = AgentRegistrationAbciApp
+    behaviours: Set[Type[BaseBehaviour]] = {
         RegistrationBehaviour,  # type: ignore
         RegistrationStartupBehaviour,  # type: ignore
     }

@@ -477,7 +477,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
             ),
         ),
     )
-    def test_run(  # type: ignore
+    def test_run(
         self,
         threshold_exceeded_mock: mock.PropertyMock,
         attrs: Dict[str, Union[str, int]],

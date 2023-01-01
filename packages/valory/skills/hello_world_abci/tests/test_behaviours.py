@@ -398,7 +398,8 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
             behaviour_id=self.behaviour_class.auto_behaviour_id(),
             synchronized_data=self.synchronized_data,
         )
-        self.behaviour.current_behaviour.pause = False  # type: ignore
+        assert self.behaviour.current_behaviour is not None
+        self.behaviour.current_behaviour.pause = False
         assert (
             cast(
                 BaseBehaviour,

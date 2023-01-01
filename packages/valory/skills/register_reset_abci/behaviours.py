@@ -39,7 +39,7 @@ class RegisterResetAbciAppConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the register-reset."""
 
     initial_behaviour_cls = RegistrationStartupBehaviour
-    abci_app_cls = RegisterResetAbciApp  # type: ignore
+    abci_app_cls = RegisterResetAbciApp
     behaviours: Set[Type[BaseBehaviour]] = {
         *AgentRegistrationRoundBehaviour.behaviours,
         *ResetPauseABCIConsensusBehaviour.behaviours,

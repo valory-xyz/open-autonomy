@@ -25,7 +25,7 @@ from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
 from aea.skills.base import Handler
 
-from packages.valory.protocols.http import (  # type: ignore # pylint: disable=no-name-in-module,import-error
+from packages.valory.protocols.http import (  # pylint: disable=no-name-in-module,import-error
     HttpMessage,
 )
 from packages.valory.skills.counter_client.dialogues import HttpDialogue, HttpDialogues

@@ -25,11 +25,11 @@ from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.skills.base import Model
 
-from packages.valory.protocols.http.dialogues import (  # type: ignore # pylint: disable=no-name-in-module,import-error
-    HttpDialogue as BaseHttpDialogue,  # type: ignore
+from packages.valory.protocols.http.dialogues import (  # pylint: disable=no-name-in-module,import-error
+    HttpDialogue as BaseHttpDialogue,
 )
-from packages.valory.protocols.http.dialogues import (  # type: ignore # pylint: disable=no-name-in-module,import-error
-    HttpDialogues as BaseHttpDialogues,  # type: ignore
+from packages.valory.protocols.http.dialogues import (  # pylint: disable=no-name-in-module,import-error
+    HttpDialogues as BaseHttpDialogues,
 )
 
 

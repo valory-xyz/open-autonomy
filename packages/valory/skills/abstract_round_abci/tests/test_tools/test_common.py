@@ -21,12 +21,12 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Type, cast
+from typing import Any, Dict, Type, cast
 
 import pytest
 from aea.helpers.base import cd
 
-from packages.valory.skills.abstract_round_abci.base import _MetaPayload
+from packages.valory.skills.abstract_round_abci.base import BaseTxPayload, _MetaPayload
 from packages.valory.skills.abstract_round_abci.test_tools.common import (
     BaseRandomnessBehaviourTest,
     BaseSelectKeeperBehaviourTest,
@@ -50,6 +50,7 @@ class BaseCommonBaseCaseTestSetup(ABC):
 
     test_cls: Type[CommonBaseCase]
     _test_cls: Type[CommonBaseCase]
+    old_value: Dict[str, Type[BaseTxPayload]]
 
     @abstractmethod
     def run_test(self, test_instance: Any) -> None:
@@ -58,13 +59,13 @@ class BaseCommonBaseCaseTestSetup(ABC):
     @classmethod
     def setup_class(cls) -> None:
         """Setup class"""
-        cls.old_value = _MetaPayload.transaction_type_to_payload_cls.copy()  # type: ignore
+        cls.old_value = _MetaPayload.transaction_type_to_payload_cls.copy()
         _MetaPayload.transaction_type_to_payload_cls.clear()
 
     @classmethod
     def teardown_class(cls) -> None:
         """Teardown class"""
-        _MetaPayload.transaction_type_to_payload_cls = cls.old_value  # type: ignore
+        _MetaPayload.transaction_type_to_payload_cls = cls.old_value
 
     def setup(self) -> None:
         """Setup test"""
@@ -83,7 +84,7 @@ class BaseCommonBaseCaseTestSetup(ABC):
         with cd(self.test_cls.path_to_skill):
             self.test_cls.setup_class()
 
-        test_instance = self.test_cls()  # type: ignore
+        test_instance = self.test_cls()
         test_instance.setup()
         return test_instance
 
@@ -93,19 +94,19 @@ class BaseCommonBaseCaseTestSetup(ABC):
 
     def set_randomness_behaviour_class(self) -> None:
         """Set randomness_behaviour_class"""
-        self.test_cls.randomness_behaviour_class = DummyRandomnessBehaviour  # type: ignore
+        self.test_cls.randomness_behaviour_class = DummyRandomnessBehaviour
 
     def set_select_keeper_behaviour_class(self) -> None:
         """Set randomness_behaviour_class"""
-        self.test_cls.select_keeper_behaviour_class = DummyKeeperSelectionBehaviour  # type: ignore
+        self.test_cls.select_keeper_behaviour_class = DummyKeeperSelectionBehaviour
 
     def set_done_event(self) -> None:
         """Set done_event"""
-        self.test_cls.done_event = Event.DONE  # type: ignore
+        self.test_cls.done_event = Event.DONE
 
     def set_next_behaviour_class(self, next_behaviour_class: Type) -> None:
         """Set next_behaviour_class"""
-        self.test_cls.next_behaviour_class = next_behaviour_class  # type: ignore
+        self.test_cls.next_behaviour_class = next_behaviour_class
 
 
 class TestBaseRandomnessBehaviourTestSetup(BaseCommonBaseCaseTestSetup):
@@ -166,8 +167,8 @@ class TestBaseRandomnessBehaviourTestRunning(BaseRandomnessBehaviourTest):
     """Test TestBaseRandomnessBehaviourTestRunning running."""
 
     path_to_skill = PATH_TO_SKILL
-    randomness_behaviour_class = DummyRandomnessBehaviour  # type: ignore
-    next_behaviour_class = DummyKeeperSelectionBehaviour  # type: ignore
+    randomness_behaviour_class = DummyRandomnessBehaviour
+    next_behaviour_class = DummyKeeperSelectionBehaviour
     done_event = Event.DONE
 
 
@@ -229,6 +230,6 @@ class TestBaseSelectKeeperBehaviourTestRunning(BaseSelectKeeperBehaviourTest):
     """Test BaseSelectKeeperBehaviourTest running."""
 
     path_to_skill = PATH_TO_SKILL
-    select_keeper_behaviour_class = DummyKeeperSelectionBehaviour  # type: ignore
-    next_behaviour_class = DummyFinalBehaviour  # type: ignore
+    select_keeper_behaviour_class = DummyKeeperSelectionBehaviour
+    next_behaviour_class = DummyFinalBehaviour
     done_event = Event.DONE

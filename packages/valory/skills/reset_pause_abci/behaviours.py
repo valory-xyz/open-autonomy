@@ -93,7 +93,7 @@ class ResetPauseABCIConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the reset_pause_abci app."""
 
     initial_behaviour_cls = ResetAndPauseBehaviour
-    abci_app_cls = ResetPauseAbciApp  # type: ignore
-    behaviours: Set[Type[ResetAndPauseBehaviour]] = {  # type: ignore
+    abci_app_cls = ResetPauseAbciApp
+    behaviours: Set[Type[BaseBehaviour]] = {
         ResetAndPauseBehaviour,  # type: ignore
     }

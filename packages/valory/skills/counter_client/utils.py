@@ -24,7 +24,7 @@ import datetime
 import json
 import struct
 
-from packages.valory.protocols.http import (  # type: ignore # pylint: disable=no-name-in-module,import-error
+from packages.valory.protocols.http import (  # pylint: disable=no-name-in-module,import-error
     HttpMessage,
 )
 

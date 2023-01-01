@@ -245,8 +245,8 @@ class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the Hello World abci app."""
 
     initial_behaviour_cls = RegistrationBehaviour
-    abci_app_cls = HelloWorldAbciApp  # type: ignore
-    behaviours: Set[Type[HelloWorldABCIBaseBehaviour]] = {  # type: ignore
+    abci_app_cls = HelloWorldAbciApp
+    behaviours: Set[Type[BaseBehaviour]] = {
         RegistrationBehaviour,  # type: ignore
         CollectRandomnessBehaviour,  # type: ignore
         SelectKeeperBehaviour,  # type: ignore
