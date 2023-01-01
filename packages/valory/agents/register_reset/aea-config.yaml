@@ -23,20 +23,20 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeibfto5sr7raxfetqcjvdpoqx6aodzs3c56cefuciikf4nws2qbbia
-- valory/http_client:0.23.0:bafybeibl7t2ow2oyhkh4jthx72okg3rpqa73fabgwsbukdtjykk4pijp6e
-- valory/ledger:0.19.0:bafybeibvibanb7jsisuoydx6k2mp5ljbgl5td7bmymzvg5lbl4766unlsi
-- valory/p2p_libp2p_client:0.1.0:bafybeidszcyznwkwspp2wzvgz5lywo3pzexvs67fehzivgkheugarvaga4
+- valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
+- valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
+- valory/p2p_libp2p_client:0.1.0:bafybeidkk33xbga54szmitk6uwsi3ef56hbbdbuasltqtiyki34hgfpnxa
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeib7apmoj335cj4gla7rni3xiu5djz7qyfjd3zrj5br3vbiw5tqrjq
+- open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm
-- valory/http:1.0.0:bafybeig47mwlx4rrw5b7xf6v32a42que6mfxas4h3ha5lzsjn7lfo63tga
+- valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 skills:
 - valory/abstract_abci:0.1.0:bafybeierg6cxjdg35ma4pmvjt4tauo4l56mjqrcnbtz6kftjafxicqvq6q
-- valory/abstract_round_abci:0.1.0:bafybeidawn2peg7tlvjwfo52kfwovgmi4iqonrukcysn3r2qnmtfoe4cre
-- valory/register_reset_abci:0.1.0:bafybeifszdxnxm5wczctatrywkqhwgwdzu3a5lofibbz7off7fwcipvhz4
-- valory/registration_abci:0.1.0:bafybeibvrlty7bquwxstvl4pr4i3txoxxxoenk5ano43kluewlyj3mh7na
-- valory/reset_pause_abci:0.1.0:bafybeibezcjjpyxgzxwf3qwvw5bgjfxpnfdys6gg5r66zuqbvgvxti2z2a
+- valory/abstract_round_abci:0.1.0:bafybeibkunyvmp6qsu7rqtwqyitz7wozyxrycnyupyvnq42xpykzttx4ky
+- valory/register_reset_abci:0.1.0:bafybeifh5k3eff6khdy5s3lbescaribelagu32odgdt6h475uwhrqdzeam
+- valory/registration_abci:0.1.0:bafybeibab435dddss4u4uvoczsstng5kflow4dnb5gmkmk6pofqufufv6a
+- valory/reset_pause_abci:0.1.0:bafybeid44hzklqq4gzkkipitzr2b7ozn5b2x24kfoyg3j3mq6xkmtwrrqq
 default_ledger: ethereum
 required_ledgers:
 - ethereum
