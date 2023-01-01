@@ -45,7 +45,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-import pytz  # type: ignore  # pylint: disable=import-error
+import pytz  # pylint: disable=import-error
 from _pytest.logging import LogCaptureFixture
 
 # pylint: skip-file
@@ -1218,7 +1218,7 @@ class TestBaseBehaviour:
             "create",
             return_value=(MagicMock(), MagicMock()),
         ):
-            self.behaviour.context.default_ledger_id = "default_ledger_id"  # type: ignore
+            self.behaviour.context.default_ledger_id = "default_ledger_id"
             self.behaviour._send_transaction_receipt_request("digest")
 
     def test_build_http_request_message(self, *_: Any) -> None:
@@ -1627,7 +1627,7 @@ class TestBaseBehaviour:
 
     def test_default_callback_late_arriving_message(self, *_: Any) -> None:
         """Test 'default_callback_request' when a message arrives late."""
-        self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
+        self.behaviour._AsyncBehaviour__stopped = False
         message = MagicMock()
         current_behaviour = MagicMock()
         with mock.patch.object(self.behaviour.context.logger, "warning") as info_mock:

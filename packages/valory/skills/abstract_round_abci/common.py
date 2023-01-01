@@ -130,7 +130,7 @@ class RandomnessBehaviour(BaseBehaviour, ABC):
                 self.context.logger.info(f"Retrieved DRAND values: {observation}.")
 
         if observation:
-            payload = self.payload_class(  # type: ignore
+            payload = self.payload_class(
                 self.context.agent_address,
                 round_id=observation["round"],
                 randomness=observation["randomness"],

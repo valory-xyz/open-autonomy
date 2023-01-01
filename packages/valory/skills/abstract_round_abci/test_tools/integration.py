@@ -117,16 +117,16 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
             public_keys=wallet.public_keys,
             default_address_key="ethereum",
         )
-        cls._skill._skill_context._agent_context._identity = identity  # type: ignore
+        cls._skill._skill_context._agent_context._identity = identity
         cls.current_agent = identity.address
 
         cls.decision_maker = DecisionMaker(
             decision_maker_handler=DecisionMakerHandler(identity, wallet, {})
         )
-        cls._skill._skill_context._agent_context._decision_maker_message_queue = (  # type: ignore
+        cls._skill._skill_context._agent_context._decision_maker_message_queue = (
             cls.decision_maker.message_in_queue
         )
-        cls._skill.skill_context._agent_context._decision_maker_address = (  # type: ignore
+        cls._skill.skill_context._agent_context._decision_maker_address = (
             "decision_maker"
         )
 
@@ -142,7 +142,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         """Get message from decision maker inbox."""
         if self._skill.skill_context.decision_maker_message_queue.empty():
             return None
-        return self._skill.skill_context.decision_maker_message_queue.protected_get(  # type: ignore
+        return self._skill.skill_context.decision_maker_message_queue.protected_get(
             self.decision_maker._queue_access_code, block=True
         )
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -400,7 +400,7 @@ class ValidateTransactionRound(VotingRound):
                     ): VerificationStatus.VERIFIED,
                     get_name(SynchronizedData.final_tx_hash): final_tx_hash,
                 },
-            )  # type: ignore
+            )
             return synchronized_data, self.done_event
         if self.negative_vote_threshold_reached:
             return self.synchronized_data, self.negative_event

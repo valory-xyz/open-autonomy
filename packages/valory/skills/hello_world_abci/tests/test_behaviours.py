@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -398,7 +398,8 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
             behaviour_id=self.behaviour_class.auto_behaviour_id(),
             synchronized_data=self.synchronized_data,
         )
-        self.behaviour.current_behaviour.pause = False  # type: ignore
+        assert self.behaviour.current_behaviour is not None
+        self.behaviour.current_behaviour.pause = False
         assert (
             cast(
                 BaseBehaviour,

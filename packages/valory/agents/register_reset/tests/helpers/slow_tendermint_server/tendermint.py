@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -183,7 +183,11 @@ class TendermintNode:
             return
         cmd = self.params.build_node_command(debug)
         kwargs = self.params.get_node_command_kwargs(monitoring)
-        self._process = subprocess.Popen(cmd, **kwargs)  # type: ignore # nosec # pylint: disable=consider-using-with,W1509
+        self._process = (
+            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                cmd, **kwargs
+            )
+        )
 
         self.write_line("Tendermint process started\n")
 
@@ -240,10 +244,12 @@ class TendermintNode:
         self,
     ) -> None:
         """Check server status."""
+        if self._monitoring is None:
+            raise ValueError("Monitoring is not running")
         self.write_line("Monitoring thread started\n")
         while True:
             try:
-                if self._monitoring.stopped():  # type: ignore
+                if self._monitoring.stopped():
                     break  # break from the loop immediately.
                 if self._process is not None and self._process.stdout is not None:
                     line = self._process.stdout.readline()

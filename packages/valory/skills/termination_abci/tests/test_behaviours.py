@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -93,12 +93,13 @@ class BaseTerminationTest(FSMBehaviourBaseCase):
 
         data = data if data is not None else {}
         self.fast_forward_to_behaviour(
-            self.behaviour,  # type: ignore
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(AbciAppDB(setup_data=AbciAppDB.data_to_lists(data))),
         )
         assert (
-            self.behaviour.current_behaviour.behaviour_id  # type: ignore
+            self.behaviour.current_behaviour is not None
+            and self.behaviour.current_behaviour.behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
@@ -108,7 +109,8 @@ class BaseTerminationTest(FSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self.end_round(done_event=self.done_event)
         assert (
-            self.behaviour.current_behaviour.behaviour_id  # type: ignore
+            self.behaviour.current_behaviour is not None
+            and self.behaviour.current_behaviour.behaviour_id
             == self.next_behaviour_class.auto_behaviour_id()
         )
 
@@ -387,14 +389,16 @@ class TestBackgroundBehaviour(BaseTerminationTest):
         error: bool = False,
     ) -> None:
         """Mock a MultiSendContract.get_tx_data() request."""
-        self.behaviour.current_behaviour._AsyncBehaviour__stopped = True  # type: ignore
+        assert self.behaviour.current_behaviour is not None
+        self.behaviour.current_behaviour._AsyncBehaviour__stopped = True
 
     def _mock_state_is_not_waiting_message(  # pylint: disable=unused-argument, disable=protected-access
         self,
         error: bool = False,
     ) -> None:
         """Mock a MultiSendContract.get_tx_data() request."""
-        self.behaviour.current_behaviour._AsyncBehaviour__state = (  # type: ignore
+        assert self.behaviour.current_behaviour is not None
+        self.behaviour.current_behaviour._AsyncBehaviour__state = (
             AsyncBehaviour.AsyncState.RUNNING
         )
 

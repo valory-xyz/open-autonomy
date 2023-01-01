@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -212,8 +212,8 @@ class AbstractRoundBehaviour(
         #  to the degenerate behaviour class
         for final_round_cls in cls.abci_app_cls.final_states:
             new_degenerate_behaviour = make_degenerate_behaviour(final_round_cls)
-            new_degenerate_behaviour.matching_round = final_round_cls  # type: ignore
-            result[final_round_cls] = new_degenerate_behaviour  # type: ignore
+            new_degenerate_behaviour.matching_round = final_round_cls
+            result[final_round_cls] = new_degenerate_behaviour
 
         return result
 

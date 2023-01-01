@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -341,7 +341,7 @@ class TestAbstractRoundBehaviour:
 
         class MyRoundBehaviour(AbstractRoundBehaviour):
             abci_app_cls = AbciAppTest
-            behaviours = [behaviour_1]  # type: ignore
+            behaviours = {behaviour_1}
             initial_behaviour_cls = behaviour_1
             matching_round = FinalRound
 
@@ -420,7 +420,7 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = ConcreteAbciApp
-                behaviours = [behaviour_1]  # type: ignore
+                behaviours = {behaviour_1}
                 initial_behaviour_cls = behaviour_2
 
     def test_act_no_round_change(self) -> None:
@@ -598,7 +598,7 @@ def test_abstract_round_behaviour_matching_rounds_not_covered() -> None:
 
         class MyRoundBehaviour(AbstractRoundBehaviour):
             abci_app_cls = ConcreteAbciApp
-            behaviours = {BehaviourA}  # type: ignore
+            behaviours = {BehaviourA}
             initial_behaviour_cls = BehaviourA
 
 
@@ -618,7 +618,7 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour(_: mock._patch) -> None:
 
     class RoundBehaviour(AbstractRoundBehaviour):
         abci_app_cls = AbciAppTest
-        behaviours = {BehaviourA}  # type: ignore
+        behaviours = {BehaviourA}
         initial_behaviour_cls = BehaviourA
 
     round_sequence = RoundSequence(AbciAppTest)

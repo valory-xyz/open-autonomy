@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -144,7 +144,8 @@ def create_tender_type_tree(aea_type_tree: Node, tender_type_tree: Node) -> Node
     aea_with_tender_type_tree = {}
     for k, aea_type_node in aea_type_tree.items():
         tender_type_node = tender_type_tree[k][-1]
-        replace_keys(tender_type_node, KEY_MAPPING.get(k, {}))  # type: ignore
+        default_value: Dict[str, str] = {}
+        replace_keys(tender_type_node, KEY_MAPPING.get(k, default_value))
         aea_with_tender_type_tree[k] = _translate(aea_type_node, tender_type_node)
 
     return aea_with_tender_type_tree

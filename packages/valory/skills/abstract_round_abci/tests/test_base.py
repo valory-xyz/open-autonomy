@@ -1668,7 +1668,7 @@ class TestAbciApp:
 
         assert EmptyAbciApp.background_round_cls is not None
         assert EmptyAbciApp.termination_transition_function is not None
-        assert EmptyAbciApp.termination_event is not None  # type: ignore
+        assert EmptyAbciApp.termination_event is not None
         assert sorted(EmptyAbciApp.cross_period_persisted_keys) == ["1", "2", "3"]
 
     def test_background_round(self) -> None:
@@ -1926,7 +1926,7 @@ class TestRoundSequence:
         self.round_sequence._last_round_transition_root_hash = (
             last_round_transition_root_hash
         )
-        self.round_sequence.abci_app.synchronized_data.db.round_count = round_count  # type: ignore
+        self.round_sequence.abci_app.synchronized_data.db.round_count = round_count
         self.round_sequence.abci_app._reset_index = reset_index
 
         if last_round_transition_root_hash == b"":
@@ -2369,10 +2369,10 @@ def test_synchronized_data_type_on_abci_app_init(caplog: LogCaptureFixture) -> N
 
     with mock.patch.object(AbciAppTest, "initial_round_cls") as m:
         m.synchronized_data_class = SynchronizedData
-        abci_app = AbciAppTest(synchronized_data, MagicMock(), logging)  # type: ignore
+        abci_app = AbciAppTest(synchronized_data, MagicMock(), logging.getLogger())
         abci_app.setup()
         assert isinstance(abci_app.synchronized_data, SynchronizedData)
-        assert abci_app.synchronized_data.dummy_attr == sentinel  # type: ignore
+        assert abci_app.synchronized_data.dummy_attr == sentinel
 
 
 def test_get_name() -> None:
