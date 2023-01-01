@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -1940,6 +1940,7 @@ def test_degenerate_behaviour_async_act() -> None:
 
         behaviour_id = "concrete_degenerate_behaviour"
         matching_round = MagicMock()
+        sleep_time_before_exit = 0.01
 
     context = MagicMock()
     context.params.ipfs_domain_name = None
@@ -1952,6 +1953,8 @@ def test_degenerate_behaviour_async_act() -> None:
     with pytest.raises(
         SystemExit,
     ):
+        behaviour.act()
+        time.sleep(0.02)
         behaviour.act()
 
 

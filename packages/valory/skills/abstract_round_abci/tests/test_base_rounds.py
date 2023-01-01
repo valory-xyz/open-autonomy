@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,13 +23,14 @@
 
 import re
 from enum import Enum
-from typing import Optional, Tuple, cast
+from typing import FrozenSet, List, Optional, Tuple, cast
 
 import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     BaseSynchronizedData,
+    BaseTxPayload,
     TransactionNotValidError,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
@@ -477,6 +478,27 @@ class TestVotingRound(_BaseRoundTestClass):
             test_round.process_payload(payload)
         return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
         assert return_value[-1] == test_round.no_majority_event
+
+    def test_invalid_vote_payload_count(self) -> None:
+        """Testing agent vote count with invalid payload."""
+        test_round = self.setup_test_voting_round()
+        a, b, c, d = self.participants
+
+        class InvalidPayload(BaseTxPayload):
+            transaction_type = "InvalidPayload"
+
+        def get_dummy_tx_payloads_(
+            participants: FrozenSet[str],
+        ) -> List[BaseTxPayload]:
+            """Returns a list of DummyTxPayload objects."""
+            return [InvalidPayload(sender=agent) for agent in sorted(participants)]
+
+        for agents in [(a, d), (c,), (b,)]:
+            for payload in get_dummy_tx_payloads_(frozenset(agents)):
+                test_round.process_payload(payload)
+
+        with pytest.raises(ValueError):
+            test_round.vote_count
 
 
 class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):

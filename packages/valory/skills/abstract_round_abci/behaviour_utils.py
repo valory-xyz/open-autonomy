@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -2079,7 +2079,7 @@ class DegenerateBehaviour(BaseBehaviour, ABC):
 
     matching_round: Type[AbstractRound]
     is_degenerate: bool = True
-    sleep_time_before_exit = 5
+    sleep_time_before_exit = 5.0
 
     def async_act(self) -> Generator:
         """Exit the agent with error when a degenerate round is reached."""
