@@ -278,7 +278,7 @@ class TestAbstractRoundBehaviour:
 
                 class MyRoundBehaviour(AbstractRoundBehaviour):
                     abci_app_cls = MagicMock
-                    behaviours = {behaviour_1, behaviour_2}
+                    behaviours = [behaviour_1, behaviour_2]  # type: ignore
                     initial_behaviour_cls = MagicMock()
 
                 MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
@@ -399,7 +399,7 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = ConcreteAbciApp
-                behaviours = {behaviour_1, behaviour_2}
+                behaviours = [behaviour_1, behaviour_2]  # type: ignore
                 initial_behaviour_cls = behaviour_1
 
     def test_check_initial_behaviour_in_set_of_behaviours_negative_case(self) -> None:

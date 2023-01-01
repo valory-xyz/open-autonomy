@@ -536,7 +536,7 @@ class TestBaseBehaviour:
         self.context_mock.http_dialogues = HttpDialogues()
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.behaviour = BehaviourATest(name="", skill_context=self.context_mock)
-        self.behaviour.context.logger = logging.getLogger()
+        self.behaviour.context.logger = logging  # type: ignore
 
     def test_behaviour_id(self) -> None:
         """Test behaviour_id on instance."""
