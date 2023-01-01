@@ -2075,7 +2075,7 @@ class DegenerateBehaviour(BaseBehaviour, ABC):
 
     matching_round: Type[AbstractRound]
     is_degenerate: bool = True
-    sleep_time_before_exit = 5
+    sleep_time_before_exit = 5.0
 
     def async_act(self) -> Generator:  # type: ignore
         """Exit the agent with error when a degenerate round is reached."""
