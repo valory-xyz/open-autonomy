@@ -1940,7 +1940,7 @@ def test_degenerate_behaviour_async_act() -> None:
 
         behaviour_id = "concrete_degenerate_behaviour"
         matching_round = MagicMock()
-        sleep_time_before_exit = 0
+        sleep_time_before_exit = 0.01
 
     context = MagicMock()
     context.params.ipfs_domain_name = None
@@ -1953,6 +1953,8 @@ def test_degenerate_behaviour_async_act() -> None:
     with pytest.raises(
         SystemExit,
     ):
+        behaviour.act()
+        time.sleep(0.02)
         behaviour.act()
 
 
