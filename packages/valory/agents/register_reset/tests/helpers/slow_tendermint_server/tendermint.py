@@ -183,7 +183,11 @@ class TendermintNode:
             return
         cmd = self.params.build_node_command(debug)
         kwargs = self.params.get_node_command_kwargs(monitoring)
-        self._process = subprocess.Popen(cmd, **kwargs)  # type: ignore # nosec # pylint: disable=consider-using-with,W1509
+        self._process = (
+            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                cmd, **kwargs
+            )
+        )
 
         self.write_line("Tendermint process started\n")
 
