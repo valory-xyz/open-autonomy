@@ -236,10 +236,10 @@ class TestAbstractRoundBehaviour:
         rounds = [
             MagicMock(**{"auto_round_id.return_value": f"round_{i}"}) for i in range(3)
         ]
-        mock_behaviours = {
+        mock_behaviours = [
             MagicMock(matching_round=round, behaviour_id=f"behaviour_{i}")
             for i, round in enumerate(rounds)
-        }
+        ]
 
         with mock.patch.object(
             _MetaRoundBehaviour, "_check_all_required_classattributes_are_set"
@@ -259,7 +259,7 @@ class TestAbstractRoundBehaviour:
                         rounds[0],
                     },
                 )
-                behaviours = mock_behaviours
+                behaviours = mock_behaviours  # type: ignore
                 initial_behaviour_cls = MagicMock()
 
             MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
@@ -306,7 +306,7 @@ class TestAbstractRoundBehaviour:
 
                 class MyRoundBehaviour(AbstractRoundBehaviour):
                     abci_app_cls = ConcreteAbciApp
-                    behaviours = {behaviour_1, behaviour_2}
+                    behaviours = [behaviour_1, behaviour_2]  # type: ignore
                     initial_behaviour_cls = behaviour_1
 
                 MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
@@ -374,7 +374,7 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = MagicMock
-                behaviours = {behaviour_1, behaviour_2}
+                behaviours = [behaviour_1, behaviour_2]  # type: ignore
                 initial_behaviour_cls = MagicMock()
 
     def test_check_consistency_two_behaviours_same_round(self) -> None:
