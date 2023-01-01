@@ -30,9 +30,9 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
-- valory/tendermint:0.1.0:bafybeif7b3ndrnwunl6s42e2cd6cu5hxruiimz3lwixb3r6um2lsldgldi
+- valory/tendermint:0.1.0:bafybeid6b2wlb24g6d3godmqms44qvnpkhlvb27icotuobvnscmdmlhaha
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifnbzeflm6a22xlwpx3owich2l5p6zcgkk26wisl32o4gtewltz2a
+- valory/abstract_round_abci:0.1.0:bafybeibkunyvmp6qsu7rqtwqyitz7wozyxrycnyupyvnq42xpykzttx4ky
 behaviours:
   main:
     args: {}

@@ -31,6 +31,7 @@ from collections import Counter
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
+from inspect import isclass
 from math import ceil
 from typing import (
     Any,
@@ -207,6 +208,7 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
         sender: str,
         id_: Optional[str] = None,
         round_count: int = ROUND_COUNT_DEFAULT,
+        **kwargs: Any,
     ) -> None:
         """
         Initialize a transaction payload.
@@ -214,10 +216,13 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
         :param sender: the sender (Ethereum) address
         :param id_: the id of the transaction
         :param round_count: the count of the round in which the payload was sent
+        :param kwargs: the keyword arguments
         """
         self.id_ = uuid.uuid4().hex if id_ is None else id_
         self._round_count = round_count
         self._sender = sender
+        # kwargs exists for typing only
+        enforce(len(kwargs) == 0, f"kwargs passed to {type(self)} must be empty")
 
     @property
     def sender(self) -> str:
@@ -282,7 +287,9 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
 
     def with_new_id(self) -> "BaseTxPayload":
         """Create a new payload with the same content but new id."""
-        return type(self)(self.sender, id_=uuid.uuid4().hex, round_count=self.round_count, **self.data)  # type: ignore
+        return type(self)(
+            self.sender, id_=uuid.uuid4().hex, round_count=self.round_count, **self.data
+        )
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
@@ -1218,7 +1225,7 @@ class DegenerateRound(AbstractRound, ABC):
 
     allowed_tx_type = None
     payload_attribute = ""
-    synchronized_data_class = None  # type: ignore
+    synchronized_data_class = BaseSynchronizedData
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check payload."""
@@ -1511,7 +1518,7 @@ class OnlyKeeperSendsRound(AbstractRound, ABC):
         self.keeper_sent_payload = False
         self.keeper_payload: Optional[Any] = None
 
-    def process_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
+    def process_payload(self, payload: BaseTxPayload) -> None:
         """Handle a deploy safe payload."""
         if payload.round_count != self.synchronized_data.round_count:
             raise ABCIAppInternalError(
@@ -1525,7 +1532,7 @@ class OnlyKeeperSendsRound(AbstractRound, ABC):
                 f"{sender} not in list of participants: {sorted(self.synchronized_data.participants)}"
             )
 
-        if sender != self.synchronized_data.most_voted_keeper_address:  # type: ignore
+        if sender != self.synchronized_data.most_voted_keeper_address:
             raise ABCIAppInternalError(f"{sender} not elected as keeper.")
 
         if self.keeper_sent_payload:
@@ -1534,7 +1541,7 @@ class OnlyKeeperSendsRound(AbstractRound, ABC):
         self.keeper_payload = getattr(payload, self.payload_attribute)
         self.keeper_sent_payload = True
 
-    def check_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
+    def check_payload(self, payload: BaseTxPayload) -> None:
         """Check a deploy safe payload can be applied to the current state."""
         if payload.round_count != self.synchronized_data.round_count:
             raise TransactionNotValidError(
@@ -1548,7 +1555,9 @@ class OnlyKeeperSendsRound(AbstractRound, ABC):
                 f"{sender} not in list of participants: {sorted(self.synchronized_data.participants)}"
             )
 
-        sender_is_elected_sender = sender == self.synchronized_data.most_voted_keeper_address  # type: ignore
+        sender_is_elected_sender = (
+            sender == self.synchronized_data.most_voted_keeper_address
+        )
         if not sender_is_elected_sender:
             raise TransactionNotValidError(f"{sender} not elected as keeper.")
 
@@ -1594,7 +1603,13 @@ class VotingRound(CollectionRound, ABC):
     @property
     def vote_count(self) -> Counter:
         """Get agent payload vote count"""
-        return Counter(payload.vote for payload in self.collection.values())  # type: ignore
+
+        def parse_payload(payload: Any) -> Optional[bool]:
+            if not hasattr(payload, "vote"):
+                raise ValueError(f"payload {payload} has no attribute `vote`")
+            return payload.vote
+
+        return Counter(parse_payload(payload) for payload in self.collection.values())
 
     @property
     def positive_vote_threshold_reached(self) -> bool:
@@ -2037,7 +2052,7 @@ class AbciApp(
     ):
         """Initialize the AbciApp."""
 
-        synchronized_data_class = self.initial_round_cls.synchronized_data_class  # type: ignore
+        synchronized_data_class = self.initial_round_cls.synchronized_data_class
         synchronized_data = synchronized_data_class(db=synchronized_data.db)
 
         self._initial_synchronized_data = synchronized_data
@@ -2089,10 +2104,16 @@ class AbciApp(
     def synchronized_data(self) -> BaseSynchronizedData:
         """Return the current synchronized data."""
         latest_result = self.latest_result or self._initial_synchronized_data
-        if hasattr(self._current_round_cls, "synchronized_data_class"):
-            synchronized_data_class = self._current_round_cls.synchronized_data_class  # type: ignore
-            return synchronized_data_class(db=latest_result.db)
-        return latest_result
+        if self._current_round_cls is None:
+            return latest_result
+        synchronized_data_class = self._current_round_cls.synchronized_data_class
+        result = (
+            synchronized_data_class(db=latest_result.db)
+            if isclass(synchronized_data_class)
+            and issubclass(synchronized_data_class, BaseSynchronizedData)
+            else latest_result
+        )
+        return result
 
     @property
     def reset_index(self) -> int:
