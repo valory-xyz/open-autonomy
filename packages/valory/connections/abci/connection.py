@@ -31,7 +31,7 @@ from pathlib import Path
 from threading import Event, Thread
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
-import grpc  # type: ignore
+import grpc
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
 from aea.exceptions import enforce
@@ -1198,7 +1198,11 @@ class TendermintNode:  # pragma: no cover (covered via deployments/Dockerfiles/t
         kwargs = self.params.get_node_command_kwargs(monitoring)
 
         logging.info(f"Starting Tendermint: {cmd}")
-        self._process = subprocess.Popen(cmd, **kwargs)  # type: ignore # nosec # pylint: disable=consider-using-with,W1509
+        self._process = (
+            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                cmd, **kwargs
+            )
+        )
 
         self.write_line("Tendermint process started\n")
 
@@ -1255,10 +1259,12 @@ class TendermintNode:  # pragma: no cover (covered via deployments/Dockerfiles/t
         self,
     ) -> None:
         """Check server status."""
+        if self._monitoring is None:
+            raise ValueError("Monitoring is not running")
         self.write_line("Monitoring thread started\n")
         while True:
             try:
-                if self._monitoring.stopped():  # type: ignore
+                if self._monitoring.stopped():
                     break  # break from the loop immediately.
                 if self._process is not None and self._process.stdout is not None:
                     line = self._process.stdout.readline()

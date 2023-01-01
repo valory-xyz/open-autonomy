@@ -51,7 +51,7 @@ from packages.valory.connections.abci.tendermint.crypto.proof_pb2 import (  # ty
 )
 from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import (
-    ConsensusParams as CustomConsensusParams,  # type: ignore
+    ConsensusParams as CustomConsensusParams,
 )
 from packages.valory.protocols.abci.custom_types import Event as CustomEvent
 from packages.valory.protocols.abci.custom_types import (

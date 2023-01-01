@@ -22,7 +22,7 @@
 
 import logging
 from pathlib import Path
-from typing import Dict, List, Tuple, Type
+from typing import Any, Dict, List, Tuple, Type
 
 import numpy as np
 from aea.exceptions import enforce
@@ -54,7 +54,7 @@ class BaseFuzzyTests(AEATestCaseMany):
     INT_32_MIN_VALUE = np.iinfo(np.int32).min
 
     CHANNEL_TYPE: Type[BaseChannel] = BaseChannel
-    CHANNEL_ARGS: Dict[str, any] = dict()  # type: ignore
+    CHANNEL_ARGS: Dict[str, Any] = dict()
     IS_LOCAL = True
     USE_GRPC = False
 

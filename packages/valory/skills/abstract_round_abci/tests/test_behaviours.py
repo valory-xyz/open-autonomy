@@ -236,10 +236,10 @@ class TestAbstractRoundBehaviour:
         rounds = [
             MagicMock(**{"auto_round_id.return_value": f"round_{i}"}) for i in range(3)
         ]
-        mock_behaviours = [
+        mock_behaviours = {
             MagicMock(matching_round=round, behaviour_id=f"behaviour_{i}")
             for i, round in enumerate(rounds)
-        ]
+        }
 
         with mock.patch.object(
             _MetaRoundBehaviour, "_check_all_required_classattributes_are_set"
@@ -259,7 +259,7 @@ class TestAbstractRoundBehaviour:
                         rounds[0],
                     },
                 )
-                behaviours = mock_behaviours  # type: ignore
+                behaviours = mock_behaviours
                 initial_behaviour_cls = MagicMock()
 
             MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
@@ -278,7 +278,7 @@ class TestAbstractRoundBehaviour:
 
                 class MyRoundBehaviour(AbstractRoundBehaviour):
                     abci_app_cls = MagicMock
-                    behaviours = [behaviour_1, behaviour_2]  # type: ignore
+                    behaviours = {behaviour_1, behaviour_2}
                     initial_behaviour_cls = MagicMock()
 
                 MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
@@ -306,7 +306,7 @@ class TestAbstractRoundBehaviour:
 
                 class MyRoundBehaviour(AbstractRoundBehaviour):
                     abci_app_cls = ConcreteAbciApp
-                    behaviours = [behaviour_1, behaviour_2]  # type: ignore
+                    behaviours = {behaviour_1, behaviour_2}
                     initial_behaviour_cls = behaviour_1
 
                 MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
@@ -341,7 +341,7 @@ class TestAbstractRoundBehaviour:
 
         class MyRoundBehaviour(AbstractRoundBehaviour):
             abci_app_cls = AbciAppTest
-            behaviours = [behaviour_1]  # type: ignore
+            behaviours = {behaviour_1}
             initial_behaviour_cls = behaviour_1
             matching_round = FinalRound
 
@@ -374,7 +374,7 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = MagicMock
-                behaviours = [behaviour_1, behaviour_2]  # type: ignore
+                behaviours = {behaviour_1, behaviour_2}
                 initial_behaviour_cls = MagicMock()
 
     def test_check_consistency_two_behaviours_same_round(self) -> None:
@@ -399,7 +399,7 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = ConcreteAbciApp
-                behaviours = [behaviour_1, behaviour_2]  # type: ignore
+                behaviours = {behaviour_1, behaviour_2}
                 initial_behaviour_cls = behaviour_1
 
     def test_check_initial_behaviour_in_set_of_behaviours_negative_case(self) -> None:
@@ -420,7 +420,7 @@ class TestAbstractRoundBehaviour:
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = ConcreteAbciApp
-                behaviours = [behaviour_1]  # type: ignore
+                behaviours = {behaviour_1}
                 initial_behaviour_cls = behaviour_2
 
     def test_act_no_round_change(self) -> None:
@@ -598,7 +598,7 @@ def test_abstract_round_behaviour_matching_rounds_not_covered() -> None:
 
         class MyRoundBehaviour(AbstractRoundBehaviour):
             abci_app_cls = ConcreteAbciApp
-            behaviours = {BehaviourA}  # type: ignore
+            behaviours = {BehaviourA}
             initial_behaviour_cls = BehaviourA
 
 
@@ -618,7 +618,7 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour(_: mock._patch) -> None:
 
     class RoundBehaviour(AbstractRoundBehaviour):
         abci_app_cls = AbciAppTest
-        behaviours = {BehaviourA}  # type: ignore
+        behaviours = {BehaviourA}
         initial_behaviour_cls = BehaviourA
 
     round_sequence = RoundSequence(AbciAppTest)

@@ -22,7 +22,7 @@
 # pylint: skip-file
 
 import logging
-from typing import Tuple, Type
+from typing import Dict, List, Tuple, Type
 from unittest.mock import MagicMock
 
 import pytest
@@ -37,6 +37,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
     AbstractRound,
+    AppState,
     BaseSynchronizedData,
     BaseTxPayload,
     DegenerateRound,
@@ -119,8 +120,10 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_1c}
             event_to_timeout = {self.event_timeout1: self.timeout1}
-            db_pre_conditions = {self.round_1a: []}  # type: ignore
-            db_post_conditions = {self.round_1c: [self.key_1]}  # type: ignore
+            db_pre_conditions: Dict[AppState, List[str]] = {self.round_1a: []}
+            db_post_conditions: Dict[AppState, List[str]] = {
+                self.round_1c: [self.key_1]
+            }
             cross_period_persisted_keys = self.cross_period_persisted_keys_1
 
         self.app1_class = AbciApp1
@@ -140,8 +143,10 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_2c}
             event_to_timeout = {self.event_timeout2: self.timeout2}
-            db_pre_conditions = {self.round_2a: [self.key_1]}  # type: ignore
-            db_post_conditions = {self.round_2c: [self.key_2]}  # type: ignore
+            db_pre_conditions: Dict[AppState, List[str]] = {self.round_2a: [self.key_1]}
+            db_post_conditions: Dict[AppState, List[str]] = {
+                self.round_2c: [self.key_2]
+            }
             cross_period_persisted_keys = self.cross_period_persisted_keys_2
 
         self.app2_class = AbciApp2
@@ -162,8 +167,12 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_3c}
             event_to_timeout = {self.event_timeout3: self.timeout3}
-            db_pre_conditions = {self.round_3a: [self.key_1, self.key_2]}  # type: ignore
-            db_post_conditions = {self.round_3c: [self.key_3]}
+            db_pre_conditions: Dict[AppState, List[str]] = {
+                self.round_3a: [self.key_1, self.key_2]
+            }
+            db_post_conditions: Dict[AppState, List[str]] = {
+                self.round_3c: [self.key_3]
+            }
 
         self.app3_class = AbciApp3
 
@@ -183,7 +192,7 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_3c}
             event_to_timeout = {self.event_timeout3: self.timeout3}
-            db_post_conditions = {self.round_3c: []}  # type: ignore
+            db_post_conditions: Dict[AppState, List[str]] = {self.round_3c: []}
 
         self.app3_class_dupe = AbciApp3Dupe
 
@@ -202,8 +211,10 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_2c}
             event_to_timeout = {self.event_timeout1: self.timeout2}
-            db_pre_conditions = {self.round_2a: [self.key_1]}  # type: ignore
-            db_post_conditions = {self.round_2c: [self.key_2]}  # type: ignore
+            db_pre_conditions: Dict[AppState, List[str]] = {self.round_2a: [self.key_1]}
+            db_post_conditions: Dict[AppState, List[str]] = {
+                self.round_2c: [self.key_2]
+            }
 
         self.app2_class_faulty1 = AbciApp2Faulty1
 
@@ -215,7 +226,9 @@ class TestAbciAppChaining:
             self.round_2c: self.round_1a,
         }
 
-        ComposedAbciApp = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)  # type: ignore
+        ComposedAbciApp = chain(
+            (self.app1_class, self.app2_class), abci_app_transition_mapping
+        )
 
         assert ComposedAbciApp.initial_round_cls == self.round_1a
         assert ComposedAbciApp.transition_function == {
@@ -257,7 +270,10 @@ class TestAbciAppChaining:
             self.round_2c: self.round_3a,
         }
 
-        ComposedAbciApp = chain((self.app1_class, self.app2_class, self.app3_class), abci_app_transition_mapping)  # type: ignore
+        ComposedAbciApp = chain(
+            (self.app1_class, self.app2_class, self.app3_class),
+            abci_app_transition_mapping,
+        )
 
         assert ComposedAbciApp.initial_round_cls == self.round_1a
         assert ComposedAbciApp.transition_function == {
@@ -306,7 +322,9 @@ class TestAbciAppChaining:
         with pytest.raises(
             ValueError, match="but it is already defined in a prior app with timeout"
         ):
-            _ = chain((self.app1_class, self.app2_class_faulty1), abci_app_transition_mapping)  # type: ignore
+            _ = chain(
+                (self.app1_class, self.app2_class_faulty1), abci_app_transition_mapping
+            )
 
     def test_chain_two_negative_mapping_initial_states(self) -> None:
         """Test the AbciApp chain function."""
@@ -317,7 +335,7 @@ class TestAbciAppChaining:
         }
 
         with pytest.raises(ValueError, match="Found non-initial state"):
-            _ = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)  # type: ignore
+            _ = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)
 
     def test_chain_two_negative_mapping_final_states(self) -> None:
         """Test the AbciApp chain function."""
@@ -328,7 +346,7 @@ class TestAbciAppChaining:
         }
 
         with pytest.raises(ValueError, match="Found non-final state"):
-            _ = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)  # type: ignore
+            _ = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)
 
     def test_chain_two_dupe(self) -> None:
         """Test the AbciApp chain function."""
@@ -341,7 +359,7 @@ class TestAbciAppChaining:
             AEAEnforceError,
             match=r"round ids in common between abci apps are not allowed.*",
         ):
-            chain((self.app1_class, self.app3_class_dupe), abci_app_transition_mapping)  # type: ignore
+            chain((self.app1_class, self.app3_class_dupe), abci_app_transition_mapping)
 
     def test_chain_with_abstract_abci_app_fails(self) -> None:
         """Test chaining with an abstract AbciApp fails."""
@@ -355,7 +373,10 @@ class TestAbciAppChaining:
                 self.round_1c: self.round_2a,
                 self.round_2c: self.round_3a,
             }
-            chain((self.app1_class, self.app2_class, self.app3_class), abci_app_transition_mapping)  # type: ignore
+            chain(
+                (self.app1_class, self.app2_class, self.app3_class),
+                abci_app_transition_mapping,
+            )
 
     def test_synchronized_data_type(self, caplog: LogCaptureFixture) -> None:
         """Test synchronized data type"""
@@ -400,19 +421,19 @@ class TestAbciAppChaining:
             (self.app2_class, sync_data_cls_app2),
         ):
             synchronized_data = sync_data_cls(db=AbciAppDB(setup_data={}))
-            abci_app = abci_app_cls(synchronized_data, MagicMock(), logging)  # type: ignore
+            abci_app = abci_app_cls(synchronized_data, MagicMock(), logging.getLogger())
             for r in abci_app_cls.get_all_rounds():
-                r.synchronized_data_class = sync_data_cls  # type: ignore
+                r.synchronized_data_class = sync_data_cls
 
         abci_app_cls = chain(
             (self.app1_class, self.app2_class), abci_app_transition_mapping
         )
         synchronized_data = sync_data_cls_app2(db=AbciAppDB(setup_data={}))
-        abci_app = abci_app_cls(synchronized_data, MagicMock(), logging)  # type: ignore
+        abci_app = abci_app_cls(synchronized_data, MagicMock(), logging.getLogger())
 
         assert abci_app.initial_round_cls == self.round_1a
         assert isinstance(abci_app.synchronized_data, sync_data_cls_app1)
-        assert abci_app.synchronized_data.dummy_attr == sentinel_app1  # type: ignore
+        assert abci_app.synchronized_data.dummy_attr == sentinel_app1
 
         app2_classes = self.app2_class.get_all_rounds()
         for round_ in sorted(abci_app.get_all_rounds(), key=str):
@@ -423,4 +444,4 @@ class TestAbciAppChaining:
             ]
             assert isinstance(abci_app.synchronized_data, expected_cls)
             expected_sentinel = (sentinel_app1, sentinel_app2)[round_ in app2_classes]
-            assert abci_app.synchronized_data.dummy_attr == expected_sentinel  # type: ignore
+            assert abci_app.synchronized_data.dummy_attr == expected_sentinel

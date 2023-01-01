@@ -22,7 +22,7 @@
 import logging
 from typing import Dict
 
-import grpc  # type: ignore
+import grpc
 
 import packages.valory.connections.abci.tendermint.abci.types_pb2 as abci_types  # type: ignore
 import packages.valory.connections.abci.tendermint.abci.types_pb2_grpc as tendermint_grpc  # type: ignore

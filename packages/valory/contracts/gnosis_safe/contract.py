@@ -212,11 +212,7 @@ class GnosisSafeContract(Contract):
                 payment_token,
                 payment,
                 payment_receiver,
-            ).buildTransaction(  # type: ignore
-                {"gas": MIN_GAS, "gasPrice": MIN_GASPRICE}  # type: ignore
-            )[
-                "data"
-            ]
+            ).buildTransaction({"gas": MIN_GAS, "gasPrice": MIN_GASPRICE})["data"]
         )
 
         nonce = (

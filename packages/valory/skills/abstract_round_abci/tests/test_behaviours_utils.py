@@ -1627,7 +1627,7 @@ class TestBaseBehaviour:
 
     def test_default_callback_late_arriving_message(self, *_: Any) -> None:
         """Test 'default_callback_request' when a message arrives late."""
-        self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
+        self.behaviour._AsyncBehaviour__stopped = False
         message = MagicMock()
         current_behaviour = MagicMock()
         with mock.patch.object(self.behaviour.context.logger, "warning") as info_mock:

@@ -30,7 +30,7 @@ from typing import Any, Callable, Dict, Optional, Tuple
 from flask import Flask, Response, jsonify, request
 from werkzeug.exceptions import InternalServerError, NotFound
 
-from packages.valory.agents.register_reset.tests.helpers.slow_tendermint_server.tendermint import (  # type: ignore
+from packages.valory.agents.register_reset.tests.helpers.slow_tendermint_server.tendermint import (
     TendermintNode,
     TendermintParams,
 )
@@ -181,13 +181,13 @@ def create_app(
         except Exception as e:  # pylint: disable=W0703
             return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
 
-    @app.errorhandler(404)  # type: ignore
+    @app.errorhandler(404)
     def handle_notfound(e: NotFound) -> Response:
         """Handle server error."""
         app.logger.info(e)  # pylint: disable=E
         return Response("Not Found", status=404, mimetype="application/json")
 
-    @app.errorhandler(500)  # type: ignore
+    @app.errorhandler(500)
     def handle_server_error(e: InternalServerError) -> Response:
         """Handle server error."""
         app.logger.info(e)  # pylint: disable=E

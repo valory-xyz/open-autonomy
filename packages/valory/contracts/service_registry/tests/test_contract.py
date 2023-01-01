@@ -25,6 +25,8 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+from aea.contracts.base import Contract
+from aea.crypto.base import Crypto, LedgerApi
 from aea.test_tools.test_contract import BaseContractTestCase
 from aea_ledger_ethereum import EthereumCrypto
 from aea_test_autonomy.docker.base import skip_docker_tests
@@ -58,7 +60,13 @@ class BaseServiceRegistryContractTest(BaseContractTestCase):
         return cls.contract_address
 
     @classmethod
-    def _deploy_contract(cls, contract, ledger_api, deployer_crypto, gas) -> Dict:  # type: ignore
+    def _deploy_contract(
+        cls,
+        contract: Contract,
+        ledger_api: LedgerApi,
+        deployer_crypto: Crypto,
+        gas: int,
+    ) -> Dict:
         """Deploy contract."""
         return {}
 

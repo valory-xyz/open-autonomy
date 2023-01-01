@@ -126,6 +126,7 @@ class Storer(AbstractStorer):
     ) -> None:
         """Store a single file."""
         storer = self._get_single_storer_from_filetype()
+        # TODO: fix abstractions to avoid typing issue
         storer(filename, obj, **kwargs)  # type: ignore
 
     def _get_single_storer_from_filetype(self) -> SupportedStorerType:

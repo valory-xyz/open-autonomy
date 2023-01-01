@@ -76,7 +76,7 @@ from packages.valory.connections.abci.connection import (
     _TendermintABCISerializer,
 )
 from packages.valory.protocols.abci import AbciMessage
-from packages.valory.protocols.abci.custom_types import (  # type: ignore
+from packages.valory.protocols.abci.custom_types import (
     BlockParams,
     ConsensusParams,
     Duration,
@@ -334,11 +334,13 @@ class ABCIAppTest:
 
 
 class BaseABCITest:
-    """Base class for ABCI test."""
+    """Base class for ABCI test (mixin)."""
+
+    TARGET_SKILL_ID: str
 
     def make_app(self) -> ABCIAppTest:
         """Make an ABCI app."""
-        return ABCIAppTest(self.TARGET_SKILL_ID)  # type: ignore
+        return ABCIAppTest(self.TARGET_SKILL_ID)
 
 
 def start_tendermint_docker_image(use_grpc: bool) -> Container:

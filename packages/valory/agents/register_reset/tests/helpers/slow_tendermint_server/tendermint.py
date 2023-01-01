@@ -240,10 +240,12 @@ class TendermintNode:
         self,
     ) -> None:
         """Check server status."""
+        if self._monitoring is None:
+            raise ValueError("Monitoring is not running")
         self.write_line("Monitoring thread started\n")
         while True:
             try:
-                if self._monitoring.stopped():  # type: ignore
+                if self._monitoring.stopped():
                     break  # break from the loop immediately.
                 if self._process is not None and self._process.stdout is not None:
                     line = self._process.stdout.readline()

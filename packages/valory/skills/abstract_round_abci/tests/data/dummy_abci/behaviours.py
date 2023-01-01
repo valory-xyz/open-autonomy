@@ -149,7 +149,7 @@ class DummyRoundBehaviour(AbstractRoundBehaviour):
     """DummyRoundBehaviour"""
 
     initial_behaviour_cls = DummyStartingBehaviour
-    abci_app_cls = DummyAbciApp  # type: ignore
+    abci_app_cls = DummyAbciApp
     behaviours: Set[Type[BaseBehaviour]] = {
         DummyFinalBehaviour,  # type: ignore
         DummyKeeperSelectionBehaviour,  # type: ignore
