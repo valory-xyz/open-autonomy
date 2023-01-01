@@ -53,8 +53,8 @@ fingerprint:
   tests/test_models.py: bafybeia6yf46ver2qoxn2km4pqlbrv2ng76c2stgcyrdzx66e2c6r32sne
   tests/test_serializer.py: bafybeiddbdxrr2nhzemk6jrcxmhjwwfxur6dfj3kpeyrgme7xdggf54p6m
   tests/test_tools/__init__.py: bafybeiew6gu4pgp2sjevq4dbnmv2ail5dph7vj4yi7h3eae4gzx7vj7cbq
-  tests/test_tools/test_base.py: bafybeidpztvjcbwlih3t67elcnq6b3pxk7hrzh6jk4d2rho4jaaigrld2m
-  tests/test_tools/test_common.py: bafybeifgzpclvpu75d4wnr2647tpl2q7xairqx32jgzec3f5wif2jf4j3i
+  tests/test_tools/test_base.py: bafybeidmobi24l3iou2fapzqy3qrb6ejytz3qfcxfzmjdl26t5uuu7aynu
+  tests/test_tools/test_common.py: bafybeiceifrmax5fvbf7jepmjkjol6jyhtkzs5byy3xb2xv6uuqqtzzjue
   tests/test_tools/test_integration.py: bafybeidjlauinugxrr76ym2zou37byumjtraom7n22oqb54ee4w5ki7doa
   tests/test_tools/test_rounds.py: bafybeicyz47ec4njsue67nltjv4fpr53d34qcjdr2rxipl5jbgbn3joybu
   tests/test_utils.py: bafybeigkob3r2tfsgazviaiwylmtyzhufodgrswf4byptqqm7k6uxdg5bq

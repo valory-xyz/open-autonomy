@@ -8,14 +8,14 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeib6zaiamsyuuppq5kflgsxk774mq44ttumidbixtaflt2fmfjcqtu
   __init__.py: bafybeifeclzvhjxlghtaxvhlgfetavrz4rclfxsjmcte4xa2esbjfwukma
-  behaviours.py: bafybeicvkfc6dpjht3aj7jjavaa4i2fjr6bydndwnwfwo5ddasa5uzt2hq
-  dialogues.py: bafybeifu7fkixbzqweqc3nag4ehftuillq3pkp3cvr3jc23biygt2klx4e
-  handlers.py: bafybeih3v6p5acu3hcpfpkzuhnrgvnx5mqvhxcbj6mtfam2isqqneeyrpu
+  behaviours.py: bafybeihxrhgrlojhreq7oepr4frscgvp7uxdhp5iujhnmijibncpdywfe4
+  dialogues.py: bafybeiahxvjlluahjjso62e2ff2ruqm6bef2hbo4bg4nxedxwvbagoehyu
+  handlers.py: bafybeiejpkauifnfgffry6qepsjsugsxwilz4ggjetqcob5uanm3ikyiea
   models.py: bafybeigbcriciq77fdsp4k3qd7utq5vo7blxgm47ghiqusccrl2i75o7pa
   tests/__init__.py: bafybeico62tplfccctl7o2ixzpzpysjk5klj36nlk4uqqwzqxc5xrx2ldu
   tests/test_behaviours.py: bafybeidutht7h64cn3nw3edwbqfvoksgwptp7dinscmkvxehzipyff5pfu
   tests/test_models.py: bafybeiawp6qj3nmecv3xj4lq7abcs2robysnwr6ekxtscefyqfo7zgfmwa
-  utils.py: bafybeigmfjs7efkbqajbmjfq2dv5oaz2cftposgfovkolb4g7z2hujomae
+  utils.py: bafybeihrzltjkh2pfkctsuanhtx234bwcqh6vdabkxzmp7qoyva3om5x7m
 fingerprint_ignore_patterns: []
 connections:
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
