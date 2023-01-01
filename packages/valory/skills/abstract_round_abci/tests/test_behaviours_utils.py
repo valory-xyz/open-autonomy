@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-import pytz  # type: ignore  # pylint: disable=import-error
+import pytz  # pylint: disable=import-error
 from _pytest.logging import LogCaptureFixture
 
 # pylint: skip-file
@@ -1218,7 +1218,7 @@ class TestBaseBehaviour:
             "create",
             return_value=(MagicMock(), MagicMock()),
         ):
-            self.behaviour.context.default_ledger_id = "default_ledger_id"  # type: ignore
+            self.behaviour.context.default_ledger_id = "default_ledger_id"
             self.behaviour._send_transaction_receipt_request("digest")
 
     def test_build_http_request_message(self, *_: Any) -> None:
@@ -1627,7 +1627,7 @@ class TestBaseBehaviour:
 
     def test_default_callback_late_arriving_message(self, *_: Any) -> None:
         """Test 'default_callback_request' when a message arrives late."""
-        self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
+        self.behaviour._AsyncBehaviour__stopped = False
         message = MagicMock()
         current_behaviour = MagicMock()
         with mock.patch.object(self.behaviour.context.logger, "warning") as info_mock:
@@ -1940,6 +1940,7 @@ def test_degenerate_behaviour_async_act() -> None:
 
         behaviour_id = "concrete_degenerate_behaviour"
         matching_round = MagicMock()
+        sleep_time_before_exit = 0.01
 
     context = MagicMock()
     context.params.ipfs_domain_name = None
@@ -1952,6 +1953,8 @@ def test_degenerate_behaviour_async_act() -> None:
     with pytest.raises(
         SystemExit,
     ):
+        behaviour.act()
+        time.sleep(0.02)
         behaviour.act()
 
 

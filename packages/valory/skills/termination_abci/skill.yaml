@@ -12,9 +12,9 @@ fingerprint:
   handlers.py: bafybeiez3dy6w7vokby5x6kxcxxconp4xhhhmmwx7b2ksqjkka6wobhqmy
   models.py: bafybeibdy5unp2zw2rf7uhi4qvgzrqxyfybakgbmas42t2lgkipkl3glhq
   payloads.py: bafybeiham2atgdsol5k2laucgvlk6edozfujmrzgvc5s2vd2kbmr6qdnw4
-  rounds.py: bafybeid5w4aolnzq2qbdonccufoikli5ezsxxcif4bvwjywvax6zt5wlpq
+  rounds.py: bafybeifbweoav4zk2mzy7zjedvtlj35gjl4mlswib444nthyqfsdtz2d7m
   tests/__init__.py: bafybeigsjjibb2gcybzp5yrsy25vyiu54rw6oaeyw5onaqemsvul7bmroi
-  tests/test_behaviours.py: bafybeicmsbimj3ew25jnjux3klcv3plfovslgk6pr7eyzvlyppt5kzxvv4
+  tests/test_behaviours.py: bafybeif42y6bbi4wuztycjb5fs5oxrtctwwtkd3a4rbaoif3ljfhtctft4
   tests/test_dialogues.py: bafybeicb6gfanfyt3wiq3svdlvtxiuzpk72oxp7cfdeq4ezed7ixee5yae
   tests/test_handlers.py: bafybeiefz2ebr5rlyxziwr4bts2r75abpqgji3k47a6hnrj7e7t2yvgmpu
   tests/test_models.py: bafybeih5wtdjuv4hc25fxneeg7mgjiks55xj353zxfamvtrthkw2ydmbbe
@@ -23,14 +23,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeifyqf77ntlxgjwi6kxzwe3ofztjeo7gzyw3qf2eovu32vlsvftp34
-- valory/multisend:0.1.0:bafybeiaveffaomsnmsc5hx62o77u7ilma6eipox7m5lrwa56737ektva3i
-- valory/service_registry:0.1.0:bafybeihq4rwu4tubn22osxyk53bh5rg5halncmufdb2d5ajg3vg3oxokii
+- valory/gnosis_safe:0.1.0:bafybeiem74jz5qgzkxwt34wbdlo64cloaerjui2jme4svdtjx4nh6v2d2y
+- valory/multisend:0.1.0:bafybeigjywkl7hydjsrkogob3xebj2ifhqwmfhhxoeyrndzhhxi5u6amey
+- valory/service_registry:0.1.0:bafybeic7gf33qwpfrvrugpb6jumvcy7737mkdt3cojeocn4az7s3rznube
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidl3auoovdxy4dp7zstexygtdub56zcreejxtdu2nrqqoa2upsddq
-- valory/transaction_settlement_abci:0.1.0:bafybeidrv3fvtme5644mspzq5qamq6ticfdthu5obdyn27kfszvpphumqa
+- valory/abstract_round_abci:0.1.0:bafybeiby4zun6cve7rjinz5yjjytzaexplbelxj3izh5bzu7stre5if3zu
+- valory/transaction_settlement_abci:0.1.0:bafybeihtltbuxyaia6g2yetco72fmhzk55sapfd6dmbjeijzr5eiy7nyhu
 behaviours:
   main:
     args: {}

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -172,9 +172,9 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     _time_in_future = datetime.datetime.now() + datetime.timedelta(hours=10)
     _time_in_past = datetime.datetime.now() - datetime.timedelta(hours=10)
 
-    def setup(self, **kwargs: Any) -> None:  # type: ignore
+    def setup(self, **kwargs: Any) -> None:
         """Setup"""
-        super().setup()
+        super().setup(**kwargs)
         self.state.params.sleep_time = 0.01
         self.state.params.share_tm_config_on_startup = True
 

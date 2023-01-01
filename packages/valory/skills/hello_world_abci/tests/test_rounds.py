@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -291,7 +291,6 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
     """Test SynchronizedData."""
 
     participants = frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
-    setup_params = {}  # type: ignore
     participant_to_randomness = {
         participant: CollectRandomnessPayload(
             sender=participant, randomness=RANDOMNESS, round_id=0
@@ -310,7 +309,7 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
             setup_data=AbciAppDB.data_to_lists(
                 dict(
                     participants=participants,
-                    setup_params=setup_params,
+                    setup_params={},
                     participant_to_randomness=participant_to_randomness,
                     most_voted_randomness=most_voted_randomness,
                     participant_to_selection=participant_to_selection,

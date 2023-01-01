@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -43,12 +43,8 @@ from packages.valory.protocols.contract_api.dialogues import (
 from packages.valory.protocols.contract_api.dialogues import (
     ContractApiDialogues as BaseContractApiDialogues,
 )
-from packages.valory.protocols.http.dialogues import (
-    HttpDialogue as BaseHttpDialogue,  # type: ignore # pylint: disable=no-name-in-module,import-error; type: ignore
-)
-from packages.valory.protocols.http.dialogues import (
-    HttpDialogues as BaseHttpDialogues,  # type: ignore # pylint: disable=no-name-in-module,import-error; type: ignore
-)
+from packages.valory.protocols.http.dialogues import HttpDialogue as BaseHttpDialogue
+from packages.valory.protocols.http.dialogues import HttpDialogues as BaseHttpDialogues
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.ledger_api.dialogues import (
     LedgerApiDialogue as BaseLedgerApiDialogue,

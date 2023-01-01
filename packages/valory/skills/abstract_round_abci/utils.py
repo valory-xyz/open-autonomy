@@ -24,7 +24,7 @@ from hashlib import sha256
 from typing import Any, Dict, Optional, Tuple, Union, cast
 
 from eth_typing.bls import BLSPubkey, BLSSignature
-from py_ecc.bls import G2Basic as bls  # type: ignore
+from py_ecc.bls import G2Basic as bls
 
 
 MAX_UINT64 = 2 ** 64 - 1

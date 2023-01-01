@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ from typing import (
     cast,
 )
 
-import pytz  # type: ignore  # pylint: disable=import-error
+import pytz  # pylint: disable=import-error
 from aea.exceptions import enforce
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
@@ -398,7 +398,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         # If params are not found `AttributeError` will be raised. This is fine, because something will have gone wrong.
         # If `ipfs_domain_name` is not specified for the skill, then we get a `None` default.
         # Therefore, `IPFSBehaviour` will be disabled.
-        domain = getattr(self.params, "ipfs_domain_name", None)  # type: ignore  # pylint: disable=E1101
+        domain = getattr(self.params, "ipfs_domain_name", None)  # pylint: disable=E1101
         loader_cls = kwargs.pop("loader_cls", Loader)
         storer_cls = kwargs.pop("storer_cls", Storer)
         if domain is not None:  # pragma: nocover
@@ -1902,14 +1902,18 @@ class BaseBehaviour(
         return True
 
 
-class TmManager(BaseBehaviour, ABC):
+class TmManager(BaseBehaviour):
     """Util class to be used for managing the tendermint node."""
 
     _active_generator: Optional[Generator] = None
     _hard_reset_sleep = 20.0  # 20s
     _max_reset_retry = 5
 
-    def async_act(self) -> Generator:  # type: ignore
+    # TODO: TmManager is not a BaseBehaviour. It should be
+    # redesigned!
+    matching_round = Type[AbstractRound]
+
+    def async_act(self) -> Generator:
         """The behaviour act."""
         self.context.logger.error(
             f"{type(self).__name__}'s async_act was called. "
@@ -2075,8 +2079,9 @@ class DegenerateBehaviour(BaseBehaviour, ABC):
 
     matching_round: Type[AbstractRound]
     is_degenerate: bool = True
+    sleep_time_before_exit = 5.0
 
-    def async_act(self) -> Generator:  # type: ignore
+    def async_act(self) -> Generator:
         """Exit the agent with error when a degenerate round is reached."""
         self.context.logger.error(
             "The execution reached a degenerate behaviour. "
@@ -2084,6 +2089,10 @@ class DegenerateBehaviour(BaseBehaviour, ABC):
             "the execution of the ABCI application. Please check the "
             "functioning of the ABCI app."
         )
+        self.context.logger.error(
+            f"Sleeping {self.sleep_time_before_exit} seconds before exiting."
+        )
+        yield from self.sleep(self.sleep_time_before_exit)
         error_code = 1
         sys.exit(error_code)
 
@@ -2099,5 +2108,5 @@ def make_degenerate_behaviour(
         matching_round = round_cls
 
     new_behaviour_cls = NewDegenerateBehaviour
-    new_behaviour_cls.__name__ = f"DegenerateBehaviour_{round_cls.auto_round_id()}"  # type: ignore # pylint: disable=attribute-defined-outside-init
-    return new_behaviour_cls  # type: ignore
+    new_behaviour_cls.__name__ = f"DegenerateBehaviour_{round_cls.auto_round_id()}"  # pylint: disable=attribute-defined-outside-init
+    return new_behaviour_cls
