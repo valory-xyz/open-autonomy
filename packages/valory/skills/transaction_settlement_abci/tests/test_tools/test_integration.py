@@ -141,14 +141,14 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
         behaviour.params.nonce = nonce
 
         contract_api_message = ContractApiMessage(
-            performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+            performative=ContractApiMessage.Performative.RAW_TRANSACTION,  # type: ignore
             raw_transaction=ContractApiMessage.RawTransaction(
                 ledger_id="", body={"nonce": str(nonce), **gas_price}
             ),
         )
 
         ledger_api_message = LedgerApiMessage(
-            performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
+            performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,  # type: ignore
             transaction_digest=LedgerApiMessage.TransactionDigest(
                 ledger_id="", body=""
             ),
@@ -172,7 +172,7 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
         )
 
         contract_api_message = ContractApiMessage(
-            performative=ContractApiMessage.Performative.STATE,
+            performative=ContractApiMessage.Performative.STATE,  # type: ignore
             state=ContractApiMessage.State(
                 ledger_id="",
                 body={"verified": True},
