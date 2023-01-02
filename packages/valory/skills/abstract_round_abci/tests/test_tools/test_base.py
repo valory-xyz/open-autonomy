@@ -47,7 +47,7 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds imp
     Event,
     SynchronizedData,
 )
-from packages.valory.skills.abstract_round_abci.tests.test_tools.helpers import (
+from packages.valory.skills.abstract_round_abci.tests.test_tools.base import (
     FSMBehaviourTestToolSetup,
 )
 

@@ -38,7 +38,7 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds import (
     Event,
 )
-from packages.valory.skills.abstract_round_abci.tests.test_tools.helpers import (
+from packages.valory.skills.abstract_round_abci.tests.test_tools.base import (
     FSMBehaviourTestToolSetup,
 )
 
