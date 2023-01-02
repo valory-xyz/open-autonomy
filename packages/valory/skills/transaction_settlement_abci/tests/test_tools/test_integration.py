@@ -19,6 +19,8 @@
 
 from typing import cast
 
+import pytest
+
 from packages.valory.skills.transaction_settlement_abci.test_tools.integration import (
     _SafeConfiguredHelperIntegration,
     _GnosisHelperIntegration,
@@ -97,3 +99,14 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
         new_callable = lambda: lambda: test_instance.safe_owners
         with mock.patch.object(target, "call", new_callable=new_callable):
             test_instance.sign_tx()
+
+    def test_sign_tx_failure(self):
+        """Test sign_tx failure"""
+
+        test_instance = self.instantiate_test()
+        most_voted_tx_hash = "a" * 234
+        test_instance.tx_settlement_synchronized_data.db.update(most_voted_tx_hash=most_voted_tx_hash)
+        target = test_instance.gnosis_instance.functions.getOwners
+        with mock.patch.object(target, "call", new_callable=lambda: lambda: {}):
+            with pytest.raises(AssertionError):
+                test_instance.sign_tx()
