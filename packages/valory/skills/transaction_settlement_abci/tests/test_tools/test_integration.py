@@ -21,6 +21,7 @@ from typing import cast
 
 from packages.valory.skills.transaction_settlement_abci.test_tools.integration import (
     _SafeConfiguredHelperIntegration,
+    _GnosisHelperIntegration,
 )
 from packages.valory.connections.ledger.tests.conftest import make_ledger_api_connection
 
@@ -40,3 +41,20 @@ class Test_SafeConfiguredHelperIntegration(FSMBehaviourTestToolSetup):
         test_instance = cast(_SafeConfiguredHelperIntegration, self.setup_test_cls())
 
         assert test_instance.keeper_address in test_instance.safe_owners
+
+
+class Test_GnosisHelperIntegration(FSMBehaviourTestToolSetup):
+    """Test_SafeConfiguredHelperIntegration"""
+
+    test_cls = _GnosisHelperIntegration
+
+    def test_instantiation(self):
+        """"""
+
+        self.set_path_to_skill()
+        self.test_cls.make_ledger_api_connection_callable = make_ledger_api_connection
+        test_instance = cast(_GnosisHelperIntegration, self.setup_test_cls())
+
+        assert test_instance.safe_contract_address
+        assert test_instance.gnosis_instance
+        assert test_instance.ethereum_api
