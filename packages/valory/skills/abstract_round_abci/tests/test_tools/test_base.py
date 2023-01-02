@@ -20,30 +20,23 @@
 """Tests for abstract_round_abci/test_tools/base.py"""
 
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, Type, cast
+from typing import Any, Dict, cast
 
 import pytest
-from aea.helpers.base import cd
 from aea.mail.base import Envelope
-from aea.test_tools.utils import copy_class
 
 from packages.valory.connections.ledger.connection import (
     PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB, _MetaPayload
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
-    BaseTxPayload,
     DummyContext,
     FSMBehaviourBaseCase,
 )
-from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
-    PATH_TO_SKILL,
-    PUBLIC_ID,
-)
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import PUBLIC_ID
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours import (
     DummyRoundBehaviour,
 )
@@ -54,46 +47,15 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds imp
     Event,
     SynchronizedData,
 )
+from packages.valory.skills.abstract_round_abci.tests.test_tools.base import (
+    FSMBehaviourTestToolSetup,
+)
 
 
-class TestFSMBehaviourBaseCaseSetup:
+class TestFSMBehaviourBaseCaseSetup(FSMBehaviourTestToolSetup):
     """test TestFSMBehaviourBaseCaseSetup setup"""
 
-    test_cls: FSMBehaviourBaseCase
-    old_value: Dict[str, Type[BaseTxPayload]]
-
-    @classmethod
-    def setup_class(cls) -> None:
-        """Setup class"""
-        cls.old_value = _MetaPayload.transaction_type_to_payload_cls.copy()
-        _MetaPayload.transaction_type_to_payload_cls.clear()
-
-    @classmethod
-    def teardown_class(cls) -> None:
-        """Teardown class"""
-        _MetaPayload.transaction_type_to_payload_cls = cls.old_value
-
-    def setup(self) -> None:
-        """Setup test"""
-
-        # must `copy` the class to avoid test interference
-        self.test_cls = cast(FSMBehaviourBaseCase, copy_class(FSMBehaviourBaseCase))
-
-    def setup_test_cls(
-        self, **kwargs: Dict[str, Dict[str, Any]]
-    ) -> FSMBehaviourBaseCase:
-        """Helper method to setup test to be tested"""
-
-        with cd(self.test_cls.path_to_skill):
-            self.test_cls.setup_class(**kwargs)
-
-        test_instance = self.test_cls()
-        test_instance.setup()
-        return test_instance
-
-    def set_path_to_skill(self, path_to_skill: Path = PATH_TO_SKILL) -> None:
-        """Set path_to_skill"""
-        self.test_cls.path_to_skill = path_to_skill
+    test_cls = FSMBehaviourBaseCase
 
     @pytest.mark.skip(
         "enable once base class is fixed: https://github.com/valory-xyz/open-aea/issues/492"
