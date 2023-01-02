@@ -54,46 +54,13 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds imp
     Event,
     SynchronizedData,
 )
+from packages.valory.skills.abstract_round_abci.tests.test_tools.helpers import FSMBehaviourTestToolSetup
 
 
-class TestFSMBehaviourBaseCaseSetup:
+class TestFSMBehaviourBaseCaseSetup(FSMBehaviourTestToolSetup):
     """test TestFSMBehaviourBaseCaseSetup setup"""
 
-    test_cls: FSMBehaviourBaseCase
-    old_value: Dict[str, Type[BaseTxPayload]]
-
-    @classmethod
-    def setup_class(cls) -> None:
-        """Setup class"""
-        cls.old_value = _MetaPayload.transaction_type_to_payload_cls.copy()
-        _MetaPayload.transaction_type_to_payload_cls.clear()
-
-    @classmethod
-    def teardown_class(cls) -> None:
-        """Teardown class"""
-        _MetaPayload.transaction_type_to_payload_cls = cls.old_value
-
-    def setup(self) -> None:
-        """Setup test"""
-
-        # must `copy` the class to avoid test interference
-        self.test_cls = cast(FSMBehaviourBaseCase, copy_class(FSMBehaviourBaseCase))
-
-    def setup_test_cls(
-        self, **kwargs: Dict[str, Dict[str, Any]]
-    ) -> FSMBehaviourBaseCase:
-        """Helper method to setup test to be tested"""
-
-        with cd(self.test_cls.path_to_skill):
-            self.test_cls.setup_class(**kwargs)
-
-        test_instance = self.test_cls()
-        test_instance.setup()
-        return test_instance
-
-    def set_path_to_skill(self, path_to_skill: Path = PATH_TO_SKILL) -> None:
-        """Set path_to_skill"""
-        self.test_cls.path_to_skill = path_to_skill
+    test_cls = FSMBehaviourBaseCase
 
     @pytest.mark.skip(
         "enable once base class is fixed: https://github.com/valory-xyz/open-aea/issues/492"
