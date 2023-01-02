@@ -60,7 +60,7 @@ class BaseCommonBaseCaseTestSetup(FSMBehaviourTestToolSetup):
 class TestBaseRandomnessBehaviourTestSetup(BaseCommonBaseCaseTestSetup):
     """Test BaseRandomnessBehaviourTest setup."""
 
-    test_cls = BaseRandomnessBehaviourTest
+    test_cls: Type[BaseRandomnessBehaviourTest] = BaseRandomnessBehaviourTest
 
     def set_randomness_behaviour_class(self) -> None:
         """Set randomness_behaviour_class"""
@@ -123,7 +123,7 @@ class TestBaseRandomnessBehaviourTestRunning(BaseRandomnessBehaviourTest):
 class TestBaseSelectKeeperBehaviourTestSetup(BaseCommonBaseCaseTestSetup):
     """Test BaseRandomnessBehaviourTest setup."""
 
-    test_cls = BaseSelectKeeperBehaviourTest
+    test_cls: Type[BaseSelectKeeperBehaviourTest] = BaseSelectKeeperBehaviourTest
 
     def set_select_keeper_behaviour_class(self) -> None:
         """Set randomness_behaviour_class"""
