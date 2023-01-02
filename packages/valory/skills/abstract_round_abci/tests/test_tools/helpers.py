@@ -26,13 +26,11 @@ from aea.helpers.base import cd
 from aea.test_tools.utils import copy_class
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload, _MetaPayload
-
-from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
-    PATH_TO_SKILL,
-)
-
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     FSMBehaviourBaseCase,
+)
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
+    PATH_TO_SKILL,
 )
 
 
@@ -48,7 +46,7 @@ class FSMBehaviourTestToolSetup:
         """Setup class"""
 
         if not hasattr(cls, "test_cls"):
-            raise AttributeError(f"{cls} must set `test_cls: Type[FSMBehaviourBaseCase]`")
+            raise AttributeError(f"{cls} must set `test_cls`")
 
         cls.__test_cls = cls.test_cls
         cls.__old_value = _MetaPayload.transaction_type_to_payload_cls.copy()

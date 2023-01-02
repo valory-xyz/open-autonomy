@@ -19,19 +19,13 @@
 
 """Tests for abstract_round_abci/test_tools/common.py"""
 
-from abc import ABC, abstractmethod
-from pathlib import Path
-from typing import Any, Dict, Type, cast
+from typing import Type, Union, cast
 
 import pytest
-from aea.helpers.base import cd
-from aea.test_tools.utils import copy_class
 
-from packages.valory.skills.abstract_round_abci.base import BaseTxPayload, _MetaPayload
 from packages.valory.skills.abstract_round_abci.test_tools.common import (
     BaseRandomnessBehaviourTest,
     BaseSelectKeeperBehaviourTest,
-    CommonBaseCase,
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
     PATH_TO_SKILL,
@@ -44,23 +38,15 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds import (
     Event,
 )
-from packages.valory.skills.abstract_round_abci.test_tools.base import (
-    FSMBehaviourBaseCase,
+from packages.valory.skills.abstract_round_abci.tests.test_tools.helpers import (
+    FSMBehaviourTestToolSetup,
 )
-
-from packages.valory.skills.abstract_round_abci.tests.test_tools.helpers import FSMBehaviourTestToolSetup
 
 
 class BaseCommonBaseCaseTestSetup(FSMBehaviourTestToolSetup):
     """BaseRandomnessBehaviourTestSetup"""
 
-    def set_randomness_behaviour_class(self) -> None:
-        """Set randomness_behaviour_class"""
-        self.test_cls.randomness_behaviour_class = DummyRandomnessBehaviour
-
-    def set_select_keeper_behaviour_class(self) -> None:
-        """Set randomness_behaviour_class"""
-        self.test_cls.select_keeper_behaviour_class = DummyKeeperSelectionBehaviour
+    test_cls: Type[Union[BaseRandomnessBehaviourTest, BaseSelectKeeperBehaviourTest]]
 
     def set_done_event(self) -> None:
         """Set done_event"""
@@ -76,9 +62,9 @@ class TestBaseRandomnessBehaviourTestSetup(BaseCommonBaseCaseTestSetup):
 
     test_cls = BaseRandomnessBehaviourTest
 
-    def run_test(self, test_instance: BaseRandomnessBehaviourTest) -> None:
-        """Run test"""
-        test_instance.test_randomness_behaviour()
+    def set_randomness_behaviour_class(self) -> None:
+        """Set randomness_behaviour_class"""
+        self.test_cls.randomness_behaviour_class = DummyRandomnessBehaviour
 
     def test_setup_randomness_behaviour_class_not_set(self) -> None:
         """Test setup randomness_behaviour_class not set."""
@@ -87,7 +73,7 @@ class TestBaseRandomnessBehaviourTestSetup(BaseCommonBaseCaseTestSetup):
         test_instance = cast(BaseRandomnessBehaviourTest, self.setup_test_cls())
         expected = f"'{self.test_cls.__name__}' object has no attribute 'randomness_behaviour_class'"
         with pytest.raises(AttributeError, match=expected):
-            self.run_test(test_instance)
+            test_instance.test_randomness_behaviour()
 
     def test_setup_done_event_not_set(self) -> None:
         """Test setup done_event = Event.DONE not set."""
@@ -98,7 +84,7 @@ class TestBaseRandomnessBehaviourTestSetup(BaseCommonBaseCaseTestSetup):
         test_instance = cast(BaseRandomnessBehaviourTest, self.setup_test_cls())
         expected = f"'{self.test_cls.__name__}' object has no attribute 'done_event'"
         with pytest.raises(AttributeError, match=expected):
-            self.run_test(test_instance)
+            test_instance.test_randomness_behaviour()
 
     def test_setup_next_behaviour_class_not_set(self) -> None:
         """Test setup next_behaviour_class not set."""
@@ -112,7 +98,7 @@ class TestBaseRandomnessBehaviourTestSetup(BaseCommonBaseCaseTestSetup):
             f"'{self.test_cls.__name__}' object has no attribute 'next_behaviour_class'"
         )
         with pytest.raises(AttributeError, match=expected):
-            self.run_test(test_instance)
+            test_instance.test_randomness_behaviour()
 
     def test_successful_setup_randomness_behaviour_test(self) -> None:
         """Test successful setup of the test class inheriting from BaseRandomnessBehaviourTest."""
@@ -122,7 +108,7 @@ class TestBaseRandomnessBehaviourTestSetup(BaseCommonBaseCaseTestSetup):
         self.set_done_event()
         self.set_next_behaviour_class(DummyKeeperSelectionBehaviour)
         test_instance = cast(BaseRandomnessBehaviourTest, self.setup_test_cls())
-        self.run_test(test_instance)
+        test_instance.test_randomness_behaviour()
 
 
 class TestBaseRandomnessBehaviourTestRunning(BaseRandomnessBehaviourTest):
@@ -139,9 +125,9 @@ class TestBaseSelectKeeperBehaviourTestSetup(BaseCommonBaseCaseTestSetup):
 
     test_cls = BaseSelectKeeperBehaviourTest
 
-    def run_test(self, test_instance: BaseSelectKeeperBehaviourTest) -> None:
-        """Run test"""
-        test_instance.test_select_keeper_preexisting_keeper()
+    def set_select_keeper_behaviour_class(self) -> None:
+        """Set randomness_behaviour_class"""
+        self.test_cls.select_keeper_behaviour_class = DummyKeeperSelectionBehaviour
 
     def test_setup_select_keeper_behaviour_class_not_set(self) -> None:
         """Test setup randomness_behaviour_class not set."""
