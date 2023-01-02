@@ -140,3 +140,21 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
         )
         with mock.patch.object(test_instance, "process_n_messages", new_callable=new_callable):
             test_instance.send_tx()
+
+    def test_validate_tx(self):
+        """Test validate_tx"""
+
+        test_instance = self.instantiate_test()
+        test_instance.tx_settlement_synchronized_data.db.update(tx_hashes_history="a"*64)
+
+        new_callable = lambda: lambda *x, **__: (
+            None,
+            ContractApiMessage(
+                performative=ContractApiMessage.Performative.STATE,
+                state=ContractApiMessage.State(
+                    ledger_id="", body={"verified": True},
+                ),
+            ),
+        )
+        with mock.patch.object(test_instance, "process_n_messages", new_callable=new_callable):
+            test_instance.validate_tx()
