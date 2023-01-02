@@ -158,3 +158,12 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
         )
         with mock.patch.object(test_instance, "process_n_messages", new_callable=new_callable):
             test_instance.validate_tx()
+
+    def test_validate_tx_timeout(self):
+        """Test validate_tx timeout"""
+
+        test_instance = self.instantiate_test()
+        synchronized_data = test_instance.tx_settlement_synchronized_data
+        assert synchronized_data.missed_messages == 0
+        test_instance.validate_tx(simulate_timeout=True)
+        assert synchronized_data.missed_messages == 1
