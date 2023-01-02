@@ -27,7 +27,6 @@ import pytest
 from aea.exceptions import AEAActException
 from web3.types import Nonce, Wei
 
-from packages.valory.connections.ledger.tests.conftest import make_ledger_api_connection
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.skills import transaction_settlement_abci
@@ -60,7 +59,7 @@ class Test_SafeConfiguredHelperIntegration(FSMBehaviourTestToolSetup):
         """Test instantiation"""
 
         self.set_path_to_skill()
-        self.test_cls.make_ledger_api_connection_callable = make_ledger_api_connection
+        self.test_cls.make_ledger_api_connection_callable = lambda *_, **__: mock.MagicMock()
         test_instance = cast(_SafeConfiguredHelperIntegration, self.setup_test_cls())
 
         assert test_instance.keeper_address in test_instance.safe_owners
@@ -75,7 +74,7 @@ class Test_GnosisHelperIntegration(FSMBehaviourTestToolSetup):
         """Test instantiation"""
 
         self.set_path_to_skill()
-        self.test_cls.make_ledger_api_connection_callable = make_ledger_api_connection
+        self.test_cls.make_ledger_api_connection_callable = lambda *_, **__: mock.MagicMock()
         test_instance = cast(_GnosisHelperIntegration, self.setup_test_cls())
 
         assert test_instance.safe_contract_address
@@ -93,7 +92,7 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
 
         path_to_skill = Path(transaction_settlement_abci.__file__).parent
         self.set_path_to_skill(path_to_skill=path_to_skill)
-        self.test_cls.make_ledger_api_connection_callable = make_ledger_api_connection
+        self.test_cls.make_ledger_api_connection_callable =  lambda *_, **__: mock.MagicMock()
 
         db = AbciAppDB(setup_data={})
         self.test_cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(db)
