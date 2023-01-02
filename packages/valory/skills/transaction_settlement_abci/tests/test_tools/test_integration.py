@@ -22,10 +22,17 @@ from typing import cast
 from packages.valory.skills.transaction_settlement_abci.test_tools.integration import (
     _SafeConfiguredHelperIntegration,
     _GnosisHelperIntegration,
+    _TxHelperIntegration,
 )
 from packages.valory.connections.ledger.tests.conftest import make_ledger_api_connection
 
 from packages.valory.skills.abstract_round_abci.tests.test_tools.base import FSMBehaviourTestToolSetup
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+from packages.valory.skills.transaction_settlement_abci.rounds import (
+    SynchronizedData as TxSettlementSynchronizedSata,
+)
+from pathlib import Path
+from packages.valory.skills import transaction_settlement_abci
 
 
 class Test_SafeConfiguredHelperIntegration(FSMBehaviourTestToolSetup):
@@ -58,3 +65,22 @@ class Test_GnosisHelperIntegration(FSMBehaviourTestToolSetup):
         assert test_instance.safe_contract_address
         assert test_instance.gnosis_instance
         assert test_instance.ethereum_api
+
+
+class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
+    """Test_SafeConfiguredHelperIntegration"""
+
+    test_cls = _TxHelperIntegration
+
+    def instantiate_test(self):
+        """"""
+
+        path_to_skill = Path(transaction_settlement_abci.__file__).parent
+        self.set_path_to_skill(path_to_skill=path_to_skill)
+        self.test_cls.make_ledger_api_connection_callable = make_ledger_api_connection
+
+        db = AbciAppDB(setup_data={})
+        self.test_cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(db)
+
+        test_instance = cast(_TxHelperIntegration, self.setup_test_cls())
+        return test_instance
