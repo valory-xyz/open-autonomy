@@ -167,3 +167,11 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
         assert synchronized_data.missed_messages == 0
         test_instance.validate_tx(simulate_timeout=True)
         assert synchronized_data.missed_messages == 1
+
+    def test_validate_tx_failure(self):
+        """Test validate tx failure"""
+
+        test_instance = self.instantiate_test()
+
+        with pytest.raises(AEAActException, match="FSM design error: tx hash should exist"):
+            test_instance.validate_tx()
