@@ -64,7 +64,7 @@ class TestBaseRandomnessBehaviourTestSetup(BaseCommonBaseCaseTestSetup):
 
     def set_randomness_behaviour_class(self) -> None:
         """Set randomness_behaviour_class"""
-        self.test_cls.randomness_behaviour_class = DummyRandomnessBehaviour
+        self.test_cls.randomness_behaviour_class = DummyRandomnessBehaviour  # type: ignore
 
     def test_setup_randomness_behaviour_class_not_set(self) -> None:
         """Test setup randomness_behaviour_class not set."""
@@ -126,11 +126,11 @@ class TestBaseSelectKeeperBehaviourTestSetup(BaseCommonBaseCaseTestSetup):
     test_cls: Type[BaseSelectKeeperBehaviourTest] = BaseSelectKeeperBehaviourTest
 
     def set_select_keeper_behaviour_class(self) -> None:
-        """Set randomness_behaviour_class"""
-        self.test_cls.select_keeper_behaviour_class = DummyKeeperSelectionBehaviour
+        """Set select_keeper_behaviour_class"""
+        self.test_cls.select_keeper_behaviour_class = DummyKeeperSelectionBehaviour  # type: ignore
 
     def test_setup_select_keeper_behaviour_class_not_set(self) -> None:
-        """Test setup randomness_behaviour_class not set."""
+        """Test setup select_keeper_behaviour_class not set."""
 
         self.set_path_to_skill()
         test_instance = cast(BaseSelectKeeperBehaviourTest, self.setup_test_cls())
