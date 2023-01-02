@@ -59,7 +59,9 @@ class Test_SafeConfiguredHelperIntegration(FSMBehaviourTestToolSetup):
         """Test instantiation"""
 
         self.set_path_to_skill()
-        self.test_cls.make_ledger_api_connection_callable = lambda *_, **__: mock.MagicMock()
+        self.test_cls.make_ledger_api_connection_callable = (
+            lambda *_, **__: mock.MagicMock()
+        )
         test_instance = cast(_SafeConfiguredHelperIntegration, self.setup_test_cls())
 
         assert test_instance.keeper_address in test_instance.safe_owners
@@ -74,7 +76,9 @@ class Test_GnosisHelperIntegration(FSMBehaviourTestToolSetup):
         """Test instantiation"""
 
         self.set_path_to_skill()
-        self.test_cls.make_ledger_api_connection_callable = lambda *_, **__: mock.MagicMock()
+        self.test_cls.make_ledger_api_connection_callable = (
+            lambda *_, **__: mock.MagicMock()
+        )
         test_instance = cast(_GnosisHelperIntegration, self.setup_test_cls())
 
         assert test_instance.safe_contract_address
@@ -92,7 +96,9 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
 
         path_to_skill = Path(transaction_settlement_abci.__file__).parent
         self.set_path_to_skill(path_to_skill=path_to_skill)
-        self.test_cls.make_ledger_api_connection_callable =  lambda *_, **__: mock.MagicMock()
+        self.test_cls.make_ledger_api_connection_callable = (
+            lambda *_, **__: mock.MagicMock()
+        )
 
         db = AbciAppDB(setup_data={})
         self.test_cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(db)
