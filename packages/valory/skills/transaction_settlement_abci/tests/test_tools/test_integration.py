@@ -33,6 +33,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 )
 from pathlib import Path
 from packages.valory.skills import transaction_settlement_abci
+from unittest import mock
 
 
 class Test_SafeConfiguredHelperIntegration(FSMBehaviourTestToolSetup):
@@ -84,3 +85,15 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
 
         test_instance = cast(_TxHelperIntegration, self.setup_test_cls())
         return test_instance
+
+    def test_sign_tx(self):
+        """Test sign_tx"""
+
+        test_instance = self.instantiate_test()
+        most_voted_tx_hash = "a" * 234
+        test_instance.tx_settlement_synchronized_data.db.update(most_voted_tx_hash=most_voted_tx_hash)
+
+        target = test_instance.gnosis_instance.functions.getOwners
+        new_callable = lambda: lambda: test_instance.safe_owners
+        with mock.patch.object(target, "call", new_callable=new_callable):
+            test_instance.sign_tx()
