@@ -20,6 +20,7 @@
 from typing import cast
 
 import pytest
+from aea.exceptions import AEAActException
 
 from packages.valory.skills.transaction_settlement_abci.test_tools.integration import (
     _SafeConfiguredHelperIntegration,
@@ -36,6 +37,9 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from pathlib import Path
 from packages.valory.skills import transaction_settlement_abci
 from unittest import mock
+from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.protocols.ledger_api import LedgerApiMessage
+from packages.valory.skills.transaction_settlement_abci.behaviours import FinalizeBehaviour
 
 
 class Test_SafeConfiguredHelperIntegration(FSMBehaviourTestToolSetup):
@@ -110,3 +114,29 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
         with mock.patch.object(target, "call", new_callable=lambda: lambda: {}):
             with pytest.raises(AssertionError):
                 test_instance.sign_tx()
+
+    def test_send_tx(self):
+        """Test send tx"""
+
+        test_instance = self.instantiate_test()
+
+        nonce, gas_price = 0, {"maxPriorityFeePerGas": 0, "maxFeePerGas": 0}
+        behaviour = cast(FinalizeBehaviour, test_instance.behaviour.current_behaviour)
+        behaviour.params.gas_price = gas_price
+        behaviour.params.nonce = nonce
+
+        new_callable = lambda: lambda *x, **__: (
+            ContractApiMessage(
+            performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+            raw_transaction=ContractApiMessage.RawTransaction(
+                ledger_id="", body={"nonce": str(nonce), **gas_price}
+            ),
+            ),
+            None,
+            LedgerApiMessage(
+                performative=LedgerApiMessage.Performative.TRANSACTION_DIGEST,
+                transaction_digest=LedgerApiMessage.TransactionDigest(ledger_id="", body=""),
+            )
+        )
+        with mock.patch.object(test_instance, "process_n_messages", new_callable=new_callable):
+            test_instance.send_tx()
