@@ -17,7 +17,7 @@ fingerprint:
   payloads.py: bafybeidkeyjp2e7afz45ofymdnysvqe3egwivs7tladkkzfjpb4qigg2e4
   rounds.py: bafybeihi7ho3ehu4ijthu7hry5glpm7wfr4h7aktxsdiqznf7kmc5447si
   test_tools/__init__.py: bafybeibj2blgxzvcgdi5gzcnlzs2nt7bpdifzvjjlxlrkeutjy2qrqbwau
-  test_tools/integration.py: bafybeid4bn3jbaaftheekeytdqh2rkylsthzkjcyzanpmyoauksnntmorq
+  test_tools/integration.py: bafybeia5bd3getuq3zx5sx6ekhqof7mygdswmvcbtjvm5awfrq3wgj4zky
   tests/__init__.py: bafybeifukcwmf2ewkjqdu7j6xzmaovgrul7jnea5lrl4o3ianoofje6vfa
   tests/test_behaviours.py: bafybeiar5f7vy74vbx3fa7m75l7vfhko7ylujmoo77km62jslw3r6i4mha
   tests/test_dialogues.py: bafybeictrjf6jzsj4y6u2ftdrb2nyriiipia5b7wc4fsli3lwbjpd3mbam
@@ -29,14 +29,14 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- valory/gnosis_safe:0.1.0:bafybeiem74jz5qgzkxwt34wbdlo64cloaerjui2jme4svdtjx4nh6v2d2y
+- valory/gnosis_safe:0.1.0:bafybeidhz5afbi4gxkwc5rzu3pxgwokjeilzohctah44xazox5fmvvwwba
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiby4zun6cve7rjinz5yjjytzaexplbelxj3izh5bzu7stre5if3zu
+- valory/abstract_round_abci:0.1.0:bafybeigotmrfprqb3mulmhxfb5lraafkxqki4pxalovjzwpzllt5r3mnpu
 behaviours:
   main:
     args: {}
