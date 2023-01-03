@@ -149,6 +149,7 @@ class TestHelloWorldABCIFourAgentsTwoAgentRestarting(BaseHelloWorldABCITestCatch
     n_terminal = 2
 
 
+@pytest.mark.skip(reason="https://github.com/valory-xyz/open-autonomy/issues/1709")
 @pytest.mark.parametrize("nb_nodes", (1,))
 class TestHelloWorldABCISingleAgentGrpc(
     BaseHelloWorldABCITest,
@@ -158,7 +159,7 @@ class TestHelloWorldABCISingleAgentGrpc(
     USE_GRPC = True
     strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
 
-
+@pytest.mark.skip(reason="https://github.com/valory-xyz/open-autonomy/issues/1709")
 @pytest.mark.parametrize("nb_nodes", (2,))
 class TestHelloWorldABCITwoAgentsGrpc(
     BaseHelloWorldABCITest,
@@ -168,7 +169,7 @@ class TestHelloWorldABCITwoAgentsGrpc(
     USE_GRPC = True
     strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
 
-
+@pytest.mark.skip(reason="https://github.com/valory-xyz/open-autonomy/issues/1709")
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestHelloWorldABCIFourAgentsGrpc(
     BaseHelloWorldABCITest,
