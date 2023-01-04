@@ -27,10 +27,10 @@ contracts:
 - valory/multisend:0.1.0:bafybeigjywkl7hydjsrkogob3xebj2ifhqwmfhhxoeyrndzhhxi5u6amey
 - valory/service_registry:0.1.0:bafybeihuj7ehhsvmb3owcocdmydmjsjcy32bqk6l6tjmgev4t65vi4pyny
 protocols:
-- valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
+- valory/contract_api:1.0.0:bafybeif32nchkgn6yet7e5gt4auhf7lsahxnj4t36kxbw55p3gi7qpeuxq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigefqap3gliqwzaej3222mei2qvq6h44h7kgqxbtlev545bknhipu
-- valory/transaction_settlement_abci:0.1.0:bafybeiaxq32ruopsdc6vhikwk4ybvzcjysfhoqch6xcuqokck5c3ddluem
+- valory/abstract_round_abci:0.1.0:bafybeickcsvrebvaqnizuhypcaidlw2uoddbizhuurx7rpez3w7as6ir5q
+- valory/transaction_settlement_abci:0.1.0:bafybeicwaefn44l7wnhtdnprhw7qfdk3bqft7v6aaszpxcjwrhwgwtkwze
 behaviours:
   main:
     args: {}
