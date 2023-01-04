@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 """Tests for valory/abstract_round_abci skill's behaviours."""
 import json
+from abc import ABC
 from copy import copy
 from enum import Enum
 from pathlib import Path
@@ -63,7 +64,7 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 # pylint: disable=protected-access,too-few-public-methods,consider-using-with
 
 
-class FSMBehaviourBaseCase(BaseSkillTestCase):
+class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
     """Base case for testing FSMBehaviour classes."""
 
     path_to_skill: Path
