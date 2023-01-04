@@ -97,12 +97,17 @@ if __name__ == "__main__":
                 "data/Dockerfiles/hardhat/*",
                 "data/Dockerfiles/tendermint/*",
                 "test_tools/data/*",
-                "../packages/valory/contracts/component_registry/*"
-                "../packages/valory/contracts/registries_manager/*"
             ],
-
+            "packages": [
+                "valory/contracts/component_registry/*",
+                "valory/contracts/registries_manager/*",
+            ],
         },
-        packages=find_packages(include=["autonomy*"]),
+        packages=find_packages(include=["autonomy*"])
+        + [
+            "packages.valory.contracts.component_registry",
+            "packages.valory.contracts.registries_manager",
+        ],
         classifiers=[
             "Environment :: Console",
             "Environment :: Web Environment",

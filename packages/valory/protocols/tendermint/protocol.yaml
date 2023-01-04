@@ -9,11 +9,11 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeicvwydyoznpqvjemz635dw4mmgbd6hfidmr3oa2rf6eyjqdvpx2dq
-  __init__.py: bafybeid2ic5qabblrgfeemv4dbbj22xqioomnc3542h6amkb667nrbipdq
+  __init__.py: bafybeibwqsohi3r243hocfaxlz7wjwk6pk6g5txfbty6jvol6itvnmzrxa
   custom_types.py: bafybeieqhlngz4idlptcohf7l7heg6lislhtbewrasrmp2xnf4neqg4kba
-  dialogues.py: bafybeidoynlakw7ctxyyib27cxenngsz6aeyriynzz5m5wewnlbijvo6xi
-  message.py: bafybeihm7qzrehbxesl33kpdwapekpqyhmh2l2zsjxd3uiasfbtgqm4s2y
-  serialization.py: bafybeiap76eao4kujtfwifyetk6kdfew2crh5mbiv6azhvzyvbchy7tyjm
+  dialogues.py: bafybeiehen55x2qgbfkou6y3ggam64hdpxc3w2e3gujgexuw2ycloosyim
+  message.py: bafybeidolqo2qowwo7zdfrraudcvzmskr35cqklqxc45w2dugssssxuuj4
+  serialization.py: bafybeicj6nvqtuigvtqnmi7zfgulsbooblli3drcsikeilqgq3yadby7p4
   tendermint.proto: bafybeifl55fxdrmlawk5xss2eljvg7kt4vhcpg2mksssoxwdcva2mypwbm
   tendermint_pb2.py: bafybeiheuz4m3oq6w25fjynq7kheomubg4tary2jq6m4nerwtmyhwfg6uy
 fingerprint_ignore_patterns: []
