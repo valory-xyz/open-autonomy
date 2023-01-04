@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   RegistriesManager.json: bafybeigu6whhxx6zd7kqhmpjpak4ufj4az2jk4k4rwi4tshr25qzcb3e6q
   __init__.py: bafybeihqlwkxffyqkqzzoqbm3t5caqxl75po6yk5cfjg5jp56dy47qqmv4
-  contract.py: bafybeierxmxainte2y4ubdjbagp7zefkznrbcqupdbabbbh4nq2tzpibqe
+  contract.py: bafybeif2migfn7u5vqi3x6rtbjaukalo7rphpp6auexd2qsznqs2nn5y3u
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: RegistriesManagerContract
