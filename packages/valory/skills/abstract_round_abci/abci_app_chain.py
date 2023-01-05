@@ -190,11 +190,11 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
                     accumulated_post_conditions,
                 )
                 if len(diff) != 0:
-                    raise ValueError(  # pragma: no cover
+                    raise ValueError(
                         f"Pre conditions '{diff}' of app '{next_app}' not a post condition of app '{current_app}' or any preceding app in path {path}."
                     )
             else:
-                raise ValueError(  # pragma: no cover
+                raise ValueError(
                     f"No pre-conditions have been set for {next_initial_state}! "
                     f"You need to explicitly specify them as empty if there are no pre-conditions for this FSM."
                 )
