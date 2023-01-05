@@ -62,11 +62,11 @@ fingerprint:
   utils.py: bafybeiguanitvfc2ijitnwet33hvqxkztlhpe6nxfxamkj2z2bny5d3sjq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeiazuc4m6pgz5t2giw64boylpenyuwq2ceqikod6p773drf7m4q7ea
+- valory/abci:0.1.0:bafybeifln72jkbha5xtkafjj4swrwrktck4ziwk6j7plmzecskhlyamgu4
 - valory/http_client:0.23.0:bafybeigggahci7hq6tr3tyueatgkvgn73y4b3av2vk7vtr7jkeuwsqcteq
 - valory/ledger:0.19.0:bafybeicpxyoxez7lperltamvikxu6vzk2lhqakbivce4nzywyzoqbxoogm
 contracts:
-- valory/service_registry:0.1.0:bafybeihuj7ehhsvmb3owcocdmydmjsjcy32bqk6l6tjmgev4t65vi4pyny
+- valory/service_registry:0.1.0:bafybeif4mgymtachjdhyzemxp7oj2i7itusjvrsxw7cheuvhtypizutu5e
 protocols:
 - open_aea/signing:1.0.0:bafybeihgwrowgtegpe4ixe3iy5jx65u7pxebl5btrkywzmx7g52gjtbnpi
 - valory/abci:0.1.0:bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm
@@ -75,7 +75,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeigqr4y3ykz3iulrcoqmji7hy3dxaoy7zmyyzff4ivpbubcpwdknai
 - valory/tendermint:0.1.0:bafybeid6b2wlb24g6d3godmqms44qvnpkhlvb27icotuobvnscmdmlhaha
 skills:
-- valory/abstract_abci:0.1.0:bafybeicdiwkvotgr4h2zulx5rsgxqid22d5greqqhgqadd2uqlmpioipem
+- valory/abstract_abci:0.1.0:bafybeieeqbasxxghxaj7xffnto7ybegom2kl4y544cskysowmjcjd3szhe
 behaviours:
   main:
     args: {}
@@ -140,7 +140,7 @@ dependencies:
   open-aea-cli-ipfs:
     version: ==1.27.0.post4
   open-aea-test-autonomy:
-    version: ==0.6.0
+    version: ==0.7.0
   protobuf:
     version: ==3.19.4
   py-ecc:
