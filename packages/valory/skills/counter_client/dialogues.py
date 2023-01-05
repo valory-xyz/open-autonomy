@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -25,11 +25,11 @@ from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea.skills.base import Model
 
-from packages.valory.protocols.http.dialogues import (  # type: ignore # pylint: disable=no-name-in-module,import-error
-    HttpDialogue as BaseHttpDialogue,  # type: ignore
+from packages.valory.protocols.http.dialogues import (  # pylint: disable=no-name-in-module,import-error
+    HttpDialogue as BaseHttpDialogue,
 )
-from packages.valory.protocols.http.dialogues import (  # type: ignore # pylint: disable=no-name-in-module,import-error
-    HttpDialogues as BaseHttpDialogues,  # type: ignore
+from packages.valory.protocols.http.dialogues import (  # pylint: disable=no-name-in-module,import-error
+    HttpDialogues as BaseHttpDialogues,
 )
 
 

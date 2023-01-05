@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This package contains all the input-output operations logic of the behaviours."""
+"""This package contains all the input-output operations logic of the behaviours."""  # pragma: nocover

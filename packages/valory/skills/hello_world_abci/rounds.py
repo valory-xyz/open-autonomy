@@ -20,15 +20,17 @@
 
 from abc import ABC
 from enum import Enum
-from typing import Dict, Mapping, Optional, Tuple, Type, cast
+from typing import Dict, List, Optional, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
+    AppState,
     BaseSynchronizedData,
     CollectDifferentUntilAllRound,
     CollectSameUntilThresholdRound,
+    get_name,
 )
 from packages.valory.skills.hello_world_abci.payloads import (
     CollectRandomnessPayload,
@@ -55,15 +57,16 @@ class SynchronizedData(
     """
     Class to represent the synchronized data.
 
-    This state is replicated by the tendermint application.
+    This state is replicated by the Tendermint application.
     """
 
     @property
-    def participant_to_selection(self) -> Mapping[str, SelectKeeperPayload]:
-        """Get the participant_to_selection."""
+    def printed_messages(self) -> List[str]:
+        """Get the printed messages list."""
+
         return cast(
-            Mapping[str, SelectKeeperPayload],
-            self.db.get_strict("participant_to_selection"),
+            List[str],
+            self.db.get_strict("printed_messages"),
         )
 
 
@@ -81,17 +84,15 @@ class HelloWorldABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
 class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
     """A round in which the agents get registered"""
 
-    round_id = "registration"
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "sender"
+    payload_attribute = get_name(RegistrationPayload.sender)
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
 
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
-                participants=self.collection,
-                all_participants=self.collection,
+                participants=frozenset(self.collection),
                 synchronized_data_class=SynchronizedData,
             )
             return synchronized_data, Event.DONE
@@ -103,42 +104,42 @@ class CollectRandomnessRound(
 ):
     """A round for collecting randomness"""
 
-    round_id = "collect_randomness"
     allowed_tx_type = CollectRandomnessPayload.transaction_type
-    payload_attribute = "randomness"
+    payload_attribute = get_name(CollectRandomnessPayload.randomness)
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_randomness"
-    selection_key = "most_voted_randomness"
+    collection_key = get_name(SynchronizedData.participant_to_randomness)
+    selection_key = get_name(SynchronizedData.most_voted_randomness)
 
 
 class SelectKeeperRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRound):
     """A round in a which keeper is selected"""
 
-    round_id = "select_keeper"
     allowed_tx_type = SelectKeeperPayload.transaction_type
-    payload_attribute = "keeper"
+    payload_attribute = get_name(SelectKeeperPayload.keeper)
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
-    collection_key = "participant_to_selection"
-    selection_key = "most_voted_keeper_address"
+    collection_key = get_name(SynchronizedData.participant_to_selection)
+    selection_key = get_name(SynchronizedData.most_voted_keeper_address)
 
 
 class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
     """A round in which the keeper prints the message"""
 
-    round_id = "print_message"
     allowed_tx_type = PrintMessagePayload.transaction_type
-    payload_attribute = "message"
+    payload_attribute = get_name(PrintMessagePayload.message)
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 participants=self.collection,
-                all_participants=self.collection,
+                printed_messages=[
+                    cast(PrintMessagePayload, payload).message
+                    for payload in self.collection.values()
+                ],
                 synchronized_data_class=SynchronizedData,
             )
             return synchronized_data, Event.DONE
@@ -148,13 +149,13 @@ class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
 class ResetAndPauseRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRound):
     """This class represents the base reset round."""
 
-    round_id = "reset_and_pause"
     allowed_tx_type = ResetPayload.transaction_type
-    payload_attribute = "period_count"
+    payload_attribute = get_name(ResetPayload.period_count)
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            # TODO `cross_period_persisted_keys` should be used here instead
             synchronized_data = self.synchronized_data.create(
                 participants=[self.synchronized_data.participants],
                 all_participants=[self.synchronized_data.all_participants],
@@ -200,7 +201,7 @@ class HelloWorldAbciApp(AbciApp[Event]):
         reset timeout: 30.0
     """
 
-    initial_round_cls: Type[AbstractRound] = RegistrationRound
+    initial_round_cls: AppState = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {
             Event.DONE: CollectRandomnessRound,

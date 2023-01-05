@@ -20,20 +20,26 @@
 """Test the utils.py module of the skill."""
 
 from collections import defaultdict
-from typing import Any, List, Type
+from typing import Any, List, Tuple, Type
 from unittest import mock
 
 import pytest
-from hypothesis import assume, given
+from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 from packages.valory.skills.abstract_round_abci.utils import (
+    DEFAULT_TENDERMINT_P2P_PORT,
     MAX_UINT64,
     VerifyDrand,
     get_data_from_nested_dict,
     get_value_with_type,
+    parse_tendermint_p2p_url,
     to_int,
 )
+
+
+settings.load_profile(profile_name)
 
 
 # pylint: skip-file
@@ -201,3 +207,19 @@ def test_get_value_with_type(type_name: str, type_: Type, value: Any) -> None:
     actual = get_value_with_type(value, type_name)
     assert type(actual) == type_
     assert actual == value
+
+
+@pytest.mark.parametrize(
+    ("url", "expected_output"),
+    (
+        ("localhost", ("localhost", DEFAULT_TENDERMINT_P2P_PORT)),
+        ("localhost:80", ("localhost", 80)),
+        ("some.random.host:80", ("some.random.host", 80)),
+        ("1.1.1.1", ("1.1.1.1", DEFAULT_TENDERMINT_P2P_PORT)),
+        ("1.1.1.1:80", ("1.1.1.1", 80)),
+    ),
+)
+def test_parse_tendermint_p2p_url(url: str, expected_output: Tuple[str, int]) -> None:
+    """Test `parse_tendermint_p2p_url` method."""
+
+    assert parse_tendermint_p2p_url(url=url) == expected_output

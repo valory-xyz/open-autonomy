@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
 from aea.skills.base import Handler
 
-from packages.valory.protocols.http import (  # type: ignore # pylint: disable=no-name-in-module,import-error
+from packages.valory.protocols.http import (  # pylint: disable=no-name-in-module,import-error
     HttpMessage,
 )
 from packages.valory.skills.counter_client.dialogues import HttpDialogue, HttpDialogues

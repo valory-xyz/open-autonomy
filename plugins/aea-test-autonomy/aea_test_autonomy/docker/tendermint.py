@@ -18,8 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """Tendermint Docker image."""
+import logging
 import os
-import re
 import subprocess  # nosec
 import time
 from pathlib import Path
@@ -54,6 +54,8 @@ _SLEEP_TIME = 1
 class TendermintDockerImage(DockerImage):
     """Tendermint Docker image."""
 
+    use_grpc: bool = False
+
     def __init__(  # pylint: disable=too-many-arguments
         self,
         client: docker.DockerClient,
@@ -79,15 +81,16 @@ class TendermintDockerImage(DockerImage):
 
     def _build_command(self) -> List[str]:
         """Build command."""
-        cmd = ["node", f"--proxy_app={self.proxy_app}"]
+
+        abci = "grpc" if self.use_grpc else "socket"
+        cmd = ["node", f"--abci={abci}", f"--proxy_app={self.proxy_app}"]
+        logging.info(f"TendermintDockerImage: {cmd}")
+
         return cmd
 
     def create(self) -> Container:
         """Create the container."""
         cmd = self._build_command()
-        ports = {
-            f"{DEFAULT_TENDERMINT_PORT}/tcp": (_LOCAL_ADDRESS, self.port),  # nosec
-        }
         if self.abci_host == DEFAULT_ABCI_HOST:
             extra_hosts_config = {self.abci_host: "host-gateway"}
         else:
@@ -96,7 +99,7 @@ class TendermintDockerImage(DockerImage):
             self.image,
             command=cmd,
             detach=True,
-            ports=ports,
+            network="host",
             extra_hosts=extra_hosts_config,
         )
         return container
@@ -212,6 +215,7 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
 
     def _create_one(self, i: int) -> Container:
         """Create a node container."""
+
         name = self.get_node_name(i)
         extra_hosts = (
             {self.abci_host: "host-gateway"}
@@ -219,6 +223,8 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             else {}
         )
         extra_hosts.update(self._extra_hosts)
+
+        proxy_app = f"{_TCP}{self.abci_host}:{self.get_abci_port(i)}"
 
         run_kwargs = dict(
             image=self.image,
@@ -230,11 +236,12 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
             mem_reservation="256M",
             environment={
                 "ID": i,
-                "PROXY_APP": f"{_TCP}{self.abci_host}:{self.get_abci_port(i)}",
+                "PROXY_APP": proxy_app,
                 "TMHOME": f"/tendermint/{name}",
                 "CREATE_EMPTY_BLOCKS": "true",
                 "DEV_MODE": "1",
                 "LOG_FILE": f"/logs/{name}.txt",
+                "USE_GRPC": ("false", "true")[self.use_grpc],
             },
             working_dir="/tendermint",
             volumes=[
@@ -269,33 +276,25 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
         added node. Therefore, we need to override the default persistent peers in the config files,
         in order for them to use the correct ports.
         """
-        nodes_config_files = list(Path().cwd().glob("**/config.toml"))
-        assert (  # nosec
-            nodes_config_files != []
-        ), "Could not detect any config files for the nodes!"
-
-        for config_file in nodes_config_files:
-            config_text = config_file.read_text(encoding="utf-8")
-            peers = re.findall(r"[a-z\d]+@node\d:\d+", config_text)
-
-            updated_peers = []
-            for peer in peers:
-                peer_id, address = peer.split("@")
-                peer_name, _ = address.split(":")
-                *_, peer_number_string = peer_name
-
-                peer_number = int(peer_number_string)
-                new_port = self.get_p2p_port(peer_number)
-                updated_peers.append(f"{peer_id}@{peer_name}:{new_port}")
-
-            persistent_peers_string = (
-                'persistent_peers = "' + ",".join(updated_peers) + '"\n'
-            )
-            updated_config = re.sub(
-                'persistent_peers = ".*\n', persistent_peers_string, config_text
-            )
-
-            config_file.write_text(updated_config, encoding="utf-8")
+        replace_cmd = ""
+        for node_num in range(self.nb_nodes):
+            preconfigured_endpoint = f"node{node_num}:{DEFAULT_P2P_PORT}"
+            correct_endpoint = f"node{node_num}:{self.get_p2p_port(node_num)}"
+            if replace_cmd != "":
+                replace_cmd += " && "
+            replace_cmd += f"sed -i 's/{preconfigured_endpoint}/{correct_endpoint}/g' /tendermint/node*/config/config.toml"
+        cmd = [
+            "docker",
+            "run",
+            "--rm",
+            "-v",
+            f"{os.getcwd()}/nodes:/tendermint:Z",
+            "--entrypoint=/bin/bash",
+            self.image,
+            "-c",
+            replace_cmd,
+        ]
+        subprocess.run(cmd)  # nosec  # pylint: disable=subprocess-run-check
 
     def _grant_permissions(self) -> None:
         """

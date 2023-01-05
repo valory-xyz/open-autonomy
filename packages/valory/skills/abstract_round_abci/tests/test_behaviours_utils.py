@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -45,11 +45,12 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-import pytz  # type: ignore  # pylint: disable=import-error
+import pytz  # pylint: disable=import-error
 from _pytest.logging import LogCaptureFixture
 
 # pylint: skip-file
 from aea.common import JSONLike
+from aea.protocols.base import Message
 from aea.test_tools.utils import as_context
 from aea_test_autonomy.helpers.base import try_send
 from hypothesis import given, settings
@@ -68,11 +69,13 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
     BaseTxPayload,
+    DegenerateRound,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     AsyncBehaviour,
     BaseBehaviour,
+    BaseBehaviourInternalError,
     DegenerateBehaviour,
     GENESIS_TIME_FMT,
     HEIGHT_OFFSET_MULTIPLIER,
@@ -84,6 +87,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     SendException,
     TimeoutException,
     TmManager,
+    _MetaBaseBehaviour,
     make_degenerate_behaviour,
 )
 from packages.valory.skills.abstract_round_abci.io_.ipfs import (
@@ -92,11 +96,16 @@ from packages.valory.skills.abstract_round_abci.io_.ipfs import (
 )
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState,
+    TendermintRecoveryParams,
     _DEFAULT_REQUEST_RETRY_DELAY,
     _DEFAULT_REQUEST_TIMEOUT,
     _DEFAULT_TX_MAX_ATTEMPTS,
     _DEFAULT_TX_TIMEOUT,
 )
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
+
+
+settings.load_profile(profile_name)
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
@@ -413,6 +422,9 @@ class RoundA(AbstractRound):
     """Concrete ABCI round."""
 
     round_id = "round_a"
+    synchronized_data_class = BaseSynchronizedData
+    allowed_tx_type = MagicMock()
+    payload_attribute = MagicMock()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Handle end block."""
@@ -428,7 +440,6 @@ class RoundA(AbstractRound):
 class BehaviourATest(BaseBehaviour):
     """Concrete BaseBehaviour class."""
 
-    behaviour_id = "behaviour_a"
     matching_round: Type[RoundA] = RoundA
 
     def async_act(self) -> Generator:
@@ -514,6 +525,11 @@ class TestBaseBehaviour:
         self.context_mock.state.synchronized_data = (
             self.context_state_synchronized_data_mock
         )
+        self.current_round_count = 10
+        self.current_reset_index = 10
+        self.context_mock.state.synchronized_data.db = MagicMock(
+            round_count=self.current_round_count, reset_index=self.current_reset_index
+        )
         self.context_mock.state.round_sequence.current_round_id = "round_a"
         self.context_mock.state.round_sequence.syncing_up = False
         self.context_mock.state.round_sequence.block_stall_deadline_expired = False
@@ -521,6 +537,10 @@ class TestBaseBehaviour:
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.behaviour = BehaviourATest(name="", skill_context=self.context_mock)
         self.behaviour.context.logger = logging  # type: ignore
+
+    def test_behaviour_id(self) -> None:
+        """Test behaviour_id on instance."""
+        assert self.behaviour.behaviour_id == BehaviourATest.auto_behaviour_id()
 
     def test_send_to_ipfs(self, caplog: LogCaptureFixture) -> None:
         """Test send_to_ipfs"""
@@ -783,13 +803,13 @@ class TestBaseBehaviour:
         # assert that everything is pre-set correctly
         assert (
             self.behaviour.context.state.round_sequence.current_round_id
-            == self.behaviour.matching_round.round_id
+            == self.behaviour.matching_round.auto_round_id()
             == "round_a"
         )
 
         # create the exact same stop condition that we create in the `send_a2a_transaction` method
         stop_condition = self.behaviour.is_round_ended(
-            self.behaviour.matching_round.round_id
+            self.behaviour.matching_round.auto_round_id()
         )
         gen = self.behaviour._send_transaction(
             MagicMock(),
@@ -807,7 +827,7 @@ class TestBaseBehaviour:
         # assert that everything was set as expected
         assert (
             self.behaviour.context.state.round_sequence.current_round_id
-            != self.behaviour.matching_round.round_id
+            != self.behaviour.matching_round.auto_round_id()
             and self.behaviour.context.state.round_sequence.current_round_id == "test"
         )
         # assert that the stop condition now applies
@@ -1154,7 +1174,6 @@ class TestBaseBehaviour:
             self.behaviour._send_signing_request(b"")
 
     @given(st.binary())
-    @settings(deadline=None)  # somehow autouse fixture in conftest doesn't work here
     def test_fuzz_send_signing_request(self, input_bytes: bytes) -> None:
         """Fuzz '_send_signing_request'.
 
@@ -1199,7 +1218,7 @@ class TestBaseBehaviour:
             "create",
             return_value=(MagicMock(), MagicMock()),
         ):
-            self.behaviour.context.default_ledger_id = "default_ledger_id"  # type: ignore
+            self.behaviour.context.default_ledger_id = "default_ledger_id"
             self.behaviour._send_transaction_receipt_request("digest")
 
     def test_build_http_request_message(self, *_: Any) -> None:
@@ -1608,7 +1627,7 @@ class TestBaseBehaviour:
 
     def test_default_callback_late_arriving_message(self, *_: Any) -> None:
         """Test 'default_callback_request' when a message arrives late."""
-        self.behaviour._AsyncBehaviour__stopped = False  # type: ignore
+        self.behaviour._AsyncBehaviour__stopped = False
         message = MagicMock()
         current_behaviour = MagicMock()
         with mock.patch.object(self.behaviour.context.logger, "warning") as info_mock:
@@ -1616,7 +1635,7 @@ class TestBaseBehaviour:
             info_mock.assert_called_with(
                 "No callback defined for request with nonce: "
                 f"{message.dialogue_reference.__getitem__()}, "
-                f"arriving for behaviour: behaviour_a"
+                f"arriving for behaviour: {self.behaviour.behaviour_id}"
             )
 
     def test_default_callback_request_waiting_message(self, *_: Any) -> None:
@@ -1743,12 +1762,33 @@ class TestBaseBehaviour:
         BaseBehaviour, "_build_http_request_message", return_value=(None, None)
     )
     @pytest.mark.parametrize(
-        "reset_response, status_response, local_height, n_iter, expecting_success",
+        "reset_response, status_response, local_height, on_startup, n_iter, expecting_success",
         (
             (
                 {"message": "Tendermint reset was successful.", "status": True},
                 {"result": {"sync_info": {"latest_block_height": 1}}},
                 1,
+                False,
+                3,
+                True,
+            ),
+            (
+                {"message": "Tendermint reset was successful.", "status": True},
+                {"result": {"sync_info": {"latest_block_height": 1}}},
+                1,
+                True,
+                2,
+                True,
+            ),
+            (
+                {
+                    "message": "Tendermint reset was successful.",
+                    "status": True,
+                    "is_replay": True,
+                },
+                {"result": {"sync_info": {"latest_block_height": 1}}},
+                1,
+                False,
                 3,
                 True,
             ),
@@ -1756,6 +1796,7 @@ class TestBaseBehaviour:
                 {"message": "Tendermint reset was successful.", "status": True},
                 {"result": {"sync_info": {"latest_block_height": 1}}},
                 3,
+                False,
                 3,
                 False,
             ),
@@ -1763,14 +1804,16 @@ class TestBaseBehaviour:
                 {"message": "Error resetting tendermint.", "status": False},
                 {},
                 0,
+                False,
                 2,
                 False,
             ),
-            ("wrong_response", {}, 0, 2, False),
+            ("wrong_response", {}, 0, False, 2, False),
             (
                 {"message": "Reset Successful.", "status": True},
                 "not_accepting_txs_yet",
                 0,
+                False,
                 3,
                 False,
             ),
@@ -1783,6 +1826,7 @@ class TestBaseBehaviour:
         reset_response: Union[Dict[str, Union[bool, str]], str],
         status_response: Union[Dict[str, Union[int, str]], str],
         local_height: int,
+        on_startup: bool,
         n_iter: int,
         expecting_success: bool,
     ) -> None:
@@ -1817,7 +1861,7 @@ class TestBaseBehaviour:
             BaseBehaviour, "sleep", new_callable=lambda *_: self.dummy_sleep
         ):
             self.behaviour.context.state.round_sequence.height = local_height
-            reset = self.behaviour.reset_tendermint_with_wait()
+            reset = self.behaviour.reset_tendermint_with_wait(on_startup=on_startup)
             for _ in range(n_iter):
                 next(reset)
             offset = math.ceil(
@@ -1835,10 +1879,15 @@ class TestBaseBehaviour:
                 "%Y-%m-%dT%H:%M:%S.%fZ"
             )
 
-            expected_parameters = [
-                ("genesis_time", genesis_time),
-                ("initial_height", initial_height),
-            ]
+            expected_parameters = (
+                [
+                    ("genesis_time", genesis_time),
+                    ("initial_height", initial_height),
+                ]
+                if not on_startup
+                else None
+            )
+
             build_http_request_message_mock.assert_called_with(
                 "GET",
                 self.behaviour.context.params.tendermint_com_url + "/hard_reset",
@@ -1854,11 +1903,20 @@ class TestBaseBehaviour:
                     # reset to be stored in the shared state, as they could be used
                     # later for performing hard reset in cases when the agent <-> tendermint
                     # communication is broken
+                    shared_state = cast(SharedState, self.behaviour.context.state)
+                    tm_recovery_params = shared_state.tm_recovery_params
+                    assert tm_recovery_params.reset_params == expected_parameters
                     assert (
-                        cast(
-                            SharedState, self.behaviour.context.state
-                        ).last_reset_params
-                        == expected_parameters
+                        tm_recovery_params.round_count
+                        == shared_state.synchronized_data.db.round_count - 1
+                    )
+                    assert (
+                        tm_recovery_params.reset_index
+                        == shared_state.round_sequence.abci_app.reset_index - 1
+                    )
+                    assert (
+                        tm_recovery_params.reset_from_round
+                        == self.behaviour.matching_round
                     )
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
@@ -1882,6 +1940,7 @@ def test_degenerate_behaviour_async_act() -> None:
 
         behaviour_id = "concrete_degenerate_behaviour"
         matching_round = MagicMock()
+        sleep_time_before_exit = 0.01
 
     context = MagicMock()
     context.params.ipfs_domain_name = None
@@ -1889,23 +1948,43 @@ def test_degenerate_behaviour_async_act() -> None:
     context.state.round_sequence.syncing_up = False
     context.state.round_sequence.block_stall_deadline_expired = False
     behaviour = ConcreteDegenerateBehaviour(
-        name=ConcreteDegenerateBehaviour.behaviour_id, skill_context=context
+        name=ConcreteDegenerateBehaviour.auto_behaviour_id(), skill_context=context
     )
     with pytest.raises(
         SystemExit,
     ):
         behaviour.act()
+        time.sleep(0.02)
+        behaviour.act()
 
 
 def test_make_degenerate_behaviour() -> None:
     """Test 'make_degenerate_behaviour'."""
-    round_id = "round_id"
-    new_cls = make_degenerate_behaviour(round_id)
+
+    class FinalRound(DegenerateRound):
+        """A final round for testing."""
+
+        synchronized_data_class = BaseSynchronizedData
+
+        def check_payload(self, payload: BaseTxPayload) -> None:
+            pass
+
+        def process_payload(self, payload: BaseTxPayload) -> None:
+            pass
+
+        def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
+            pass
+
+    new_cls = make_degenerate_behaviour(FinalRound)
 
     assert isinstance(new_cls, type)
     assert issubclass(new_cls, DegenerateBehaviour)
+    assert new_cls.matching_round == FinalRound
 
-    assert new_cls.behaviour_id == f"degenerate_{round_id}"
+    assert (
+        new_cls.auto_behaviour_id()
+        == f"degenerate_behaviour_{FinalRound.auto_round_id()}"
+    )
 
 
 class TestTmManager:
@@ -1931,13 +2010,15 @@ class TestTmManager:
         self.context_mock.state.synchronized_data = (
             self.context_state_synchronized_data_mock
         )
-        self.context_mock.state.last_reset_params = None
+        self.recovery_params = TendermintRecoveryParams(MagicMock())
+        self.context_mock.state.tm_recovery_params = self.recovery_params
         self.context_mock.state.round_sequence.current_round_id = "round_a"
         self.context_mock.state.round_sequence.syncing_up = False
         self.context_mock.state.round_sequence.block_stall_deadline_expired = False
         self.context_mock.http_dialogues = HttpDialogues()
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.tm_manager = TmManager(name="", skill_context=self.context_mock)
+        self.tm_manager._max_reset_retry = 1
 
     def test_async_act(self) -> None:
         """Test the async_act method of the TmManager."""
@@ -1961,6 +2042,12 @@ class TestTmManager:
         num_active_peers: Optional[int],
     ) -> None:
         """Test _handle_unhealthy_tm."""
+
+        def mock_sleep(_seconds: int) -> Generator:
+            """A method that mocks sleep."""
+            return
+            yield
+
         gen = self.tm_manager._handle_unhealthy_tm()
         with mock.patch.object(
             self.tm_manager,
@@ -1970,6 +2057,8 @@ class TestTmManager:
             self.tm_manager,
             "num_active_peers",
             side_effect=yield_and_return_int_wrapper(num_active_peers),
+        ), mock.patch.object(
+            self.tm_manager, "sleep", side_effect=mock_sleep
         ), mock.patch(
             "sys.exit"
         ) as mock_sys_exit:
@@ -1997,7 +2086,7 @@ class TestTmManager:
     ) -> None:
         """Test that reset params returns the correct params."""
         if expected_reset_params is not None:
-            self.context_mock.state.last_reset_params = expected_reset_params
+            self.recovery_params.reset_params = expected_reset_params
         actual_reset_params = self.tm_manager._get_reset_params(False)
         assert expected_reset_params == actual_reset_params
 
@@ -2011,12 +2100,32 @@ class TestTmManager:
         actual = self.tm_manager.hard_reset_sleep
         assert actual == expected
 
-    def test_try_fix(self) -> None:
+    @pytest.mark.parametrize(
+        ("state", "notified", "message", "num_iter"),
+        [
+            (AsyncBehaviour.AsyncState.READY, False, None, 1),
+            (AsyncBehaviour.AsyncState.WAITING_MESSAGE, True, Message(), 2),
+            (AsyncBehaviour.AsyncState.WAITING_MESSAGE, True, Message(), 1),
+        ],
+    )
+    def test_try_fix(
+        self,
+        state: AsyncBehaviour.AsyncState,
+        notified: bool,
+        message: Optional[Message],
+        num_iter: int,
+    ) -> None:
         """Tests try_fix."""
 
         def mock_handle_unhealthy_tm() -> Generator:
             """A mock implementation of _handle_unhealthy_tm."""
-            yield
+            for _ in range(num_iter):
+                msg = yield
+                if msg is not None:
+                    # if a message is recieved, the state of the behviour should be "RUNNING"
+                    self.tm_manager._AsyncBehaviour__state = (
+                        AsyncBehaviour.AsyncState.RUNNING
+                    )
             return
 
         with mock.patch.object(
@@ -2024,17 +2133,38 @@ class TestTmManager:
             "_handle_unhealthy_tm",
             side_effect=mock_handle_unhealthy_tm,
         ):
-            # there is no active generator in the begging
+            # there is no active generator in the beginning
             assert not self.tm_manager.is_acting
 
             # a generator should be created, and be active
             self.tm_manager.try_fix()
             assert self.tm_manager.is_acting
 
+            # a message may (or may not) arrive
+            self.tm_manager._AsyncBehaviour__notified = notified
+            self.tm_manager._AsyncBehaviour__state = state
+            self.tm_manager._AsyncBehaviour__message = message
+
             # the generator has a single yield statement,
             # a second try_fix() call should finish it
-            self.tm_manager.try_fix()
-            assert not self.tm_manager.is_acting
+            for _ in range(num_iter):
+                self.tm_manager.try_fix()
+            assert not self.tm_manager.is_acting, num_iter
+
+    @pytest.mark.parametrize(
+        "state",
+        [
+            AsyncBehaviour.AsyncState.WAITING_MESSAGE,
+            AsyncBehaviour.AsyncState.READY,
+        ],
+    )
+    def test_get_callback_request(self, state: AsyncBehaviour.AsyncState) -> None:
+        """Tests get_callback_request."""
+        self.tm_manager._AsyncBehaviour__state = state
+        dummy_msg, dummy_behaviour = MagicMock(), MagicMock()
+        callback_req = self.tm_manager.get_callback_request()
+        with mock.patch.object(self.tm_manager, "try_send"):
+            callback_req(dummy_msg, dummy_behaviour)
 
     def test_is_acting(self) -> None:
         """Test is_acting."""
@@ -2043,3 +2173,18 @@ class TestTmManager:
 
         self.tm_manager._active_generator = None
         assert not self.tm_manager.is_acting
+
+
+def test_meta_base_behaviour_when_instance_not_subclass_of_base_behaviour() -> None:
+    """Test instantiation of meta class when instance not a subclass of BaseBehaviour."""
+
+    class MyBaseBehaviour(metaclass=_MetaBaseBehaviour):
+        pass
+
+
+def test_base_behaviour_instantiation_without_attributes_raises_error() -> None:
+    """Test that definition of concrete subclass of BaseBehaviour without attributes raises error."""
+    with pytest.raises(BaseBehaviourInternalError):
+
+        class MyBaseBehaviour(BaseBehaviour):
+            pass

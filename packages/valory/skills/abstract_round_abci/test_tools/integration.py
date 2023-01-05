@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import asyncio
 import os
 import tempfile
 import time
+from abc import ABC
 from pathlib import Path
 from threading import Thread
 from typing import Any, Callable, Dict, List, Optional, Tuple, cast
@@ -68,7 +69,7 @@ ExpectedTypesType = List[
 ]
 
 
-class IntegrationBaseCase(FSMBehaviourBaseCase):
+class IntegrationBaseCase(FSMBehaviourBaseCase, ABC):
     """Base test class for integration tests."""
 
     running_loop: asyncio.AbstractEventLoop
@@ -117,16 +118,16 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
             public_keys=wallet.public_keys,
             default_address_key="ethereum",
         )
-        cls._skill._skill_context._agent_context._identity = identity  # type: ignore
+        cls._skill._skill_context._agent_context._identity = identity
         cls.current_agent = identity.address
 
         cls.decision_maker = DecisionMaker(
             decision_maker_handler=DecisionMakerHandler(identity, wallet, {})
         )
-        cls._skill._skill_context._agent_context._decision_maker_message_queue = (  # type: ignore
+        cls._skill._skill_context._agent_context._decision_maker_message_queue = (
             cls.decision_maker.message_in_queue
         )
-        cls._skill.skill_context._agent_context._decision_maker_address = (  # type: ignore
+        cls._skill.skill_context._agent_context._decision_maker_address = (
             "decision_maker"
         )
 
@@ -142,7 +143,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         """Get message from decision maker inbox."""
         if self._skill.skill_context.decision_maker_message_queue.empty():
             return None
-        return self._skill.skill_context.decision_maker_message_queue.protected_get(  # type: ignore
+        return self._skill.skill_context.decision_maker_message_queue.protected_get(
             self.decision_maker._queue_access_code, block=True
         )
 
@@ -170,7 +171,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         :return: the incoming message
         """
         if expected_types and tuple(expected_types)[0] == "transaction_receipt":
-            time.sleep(mining_interval_secs)
+            time.sleep(mining_interval_secs)  # pragma: no cover
         self.behaviour.act_wrapper()
         incoming_message = None
 
@@ -284,7 +285,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         return tuple(incoming_messages)
 
 
-class HardHatHelperIntegration(IntegrationBaseCase):
+class HardHatHelperIntegration(IntegrationBaseCase, ABC):  # pragma: no cover
     """Base test class for integration tests with HardHat provider."""
 
     hardhat_provider: BaseProvider

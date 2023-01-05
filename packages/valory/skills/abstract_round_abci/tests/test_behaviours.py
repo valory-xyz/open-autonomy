@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -72,6 +72,8 @@ class RoundA(AbstractRound):
 
     round_id = ROUND_A_ID
     allowed_tx_type = "payload_a"
+    payload_attribute = ""
+    synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
         """End block."""
@@ -88,6 +90,8 @@ class RoundB(AbstractRound):
 
     round_id = ROUND_B_ID
     allowed_tx_type = "payload_b"
+    payload_attribute = ""
+    synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
         """End block."""
@@ -104,6 +108,8 @@ class ConcreteBackgroundRound(AbstractRound):
 
     round_id = ROUND_B_ID
     allowed_tx_type = "background_payload"
+    payload_attribute = ""
+    synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
         """End block."""
@@ -144,6 +150,25 @@ class BehaviourB(BaseBehaviour):
     def async_act(self) -> Generator:
         """Dummy act method."""
         yield
+
+
+class BehaviourC(BaseBehaviour):
+    """Dummy behaviour."""
+
+    matching_round = RoundB
+
+    def async_act(self) -> Generator:
+        """Dummy act method."""
+        yield
+
+
+def test_auto_behaviour_id() -> None:
+    """Test that the 'auto_behaviour_id()' method works as expected."""
+
+    assert BehaviourB.auto_behaviour_id() == BEHAVIOUR_B_ID
+    assert BehaviourB.behaviour_id == BEHAVIOUR_B_ID
+    assert BehaviourC.auto_behaviour_id() == "behaviour_c"
+    assert isinstance(BehaviourC.behaviour_id, property)
 
 
 class ConcreteBackgroundBehaviour(BaseBehaviour):
@@ -208,7 +233,9 @@ class TestAbstractRoundBehaviour:
 
     def test_check_matching_round_consistency(self) -> None:
         """Test classmethod '_get_behaviour_id_to_behaviour_mapping', negative case."""
-        rounds = [MagicMock(round_id=f"round_{i}") for i in range(3)]
+        rounds = [
+            MagicMock(**{"auto_round_id.return_value": f"round_{i}"}) for i in range(3)
+        ]
         mock_behaviours = [
             MagicMock(matching_round=round, behaviour_id=f"behaviour_{i}")
             for i, round in enumerate(rounds)
@@ -240,8 +267,8 @@ class TestAbstractRoundBehaviour:
     def test_get_behaviour_id_to_behaviour_mapping_negative(self) -> None:
         """Test classmethod '_get_behaviour_id_to_behaviour_mapping', negative case."""
         behaviour_id = "behaviour_id"
-        behaviour_1 = MagicMock(behaviour_id=behaviour_id)
-        behaviour_2 = MagicMock(behaviour_id=behaviour_id)
+        behaviour_1 = MagicMock(**{"auto_behaviour_id.return_value": behaviour_id})
+        behaviour_2 = MagicMock(**{"auto_behaviour_id.return_value": behaviour_id})
 
         with pytest.raises(
             ValueError,
@@ -261,13 +288,19 @@ class TestAbstractRoundBehaviour:
         behaviour_id_1 = "behaviour_id_1"
         behaviour_id_2 = "behaviour_id_2"
         round_cls = RoundA
-        round_id = round_cls.round_id
-        behaviour_1 = MagicMock(behaviour_id=behaviour_id_1, matching_round=round_cls)
-        behaviour_2 = MagicMock(behaviour_id=behaviour_id_2, matching_round=round_cls)
+        round_id = round_cls.auto_round_id()
+        behaviour_1 = MagicMock(
+            matching_round=round_cls,
+            **{"auto_behaviour_id.return_value": behaviour_id_1},
+        )
+        behaviour_2 = MagicMock(
+            matching_round=round_cls,
+            **{"auto_behaviour_id.return_value": behaviour_id_2},
+        )
 
         with pytest.raises(
             ValueError,
-            match=f"the behaviours '{behaviour_id_2}' and '{behaviour_id_1}' point to the same matching round '{round_id}'",
+            match=f"the behaviours '{behaviour_2.auto_behaviour_id()}' and '{behaviour_1.auto_behaviour_id()}' point to the same matching round '{round_id}'",
         ):
             with mock.patch.object(_MetaRoundBehaviour, "_check_consistency"):
 
@@ -283,6 +316,8 @@ class TestAbstractRoundBehaviour:
 
         class FinalRound(DegenerateRound):
             """A final round for testing."""
+
+            synchronized_data_class = BaseSynchronizedData
 
             def check_payload(self, payload: BaseTxPayload) -> None:
                 pass
@@ -306,13 +341,17 @@ class TestAbstractRoundBehaviour:
 
         class MyRoundBehaviour(AbstractRoundBehaviour):
             abci_app_cls = AbciAppTest
-            behaviours = [behaviour_1]  # type: ignore
+            behaviours = {behaviour_1}
             initial_behaviour_cls = behaviour_1
+            matching_round = FinalRound
 
         behaviour = MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
         final_behaviour = behaviour._round_to_behaviour[FinalRound]
         assert issubclass(final_behaviour, DegenerateBehaviour)
-        assert final_behaviour.behaviour_id == f"degenerate_{FinalRound.round_id}"
+        assert (
+            final_behaviour.auto_behaviour_id()
+            == f"degenerate_behaviour_{FinalRound.auto_round_id()}"
+        )
 
     def test_check_behaviour_id_uniqueness_negative(self) -> None:
         """Test metaclass method '_check_consistency', negative case."""
@@ -320,10 +359,12 @@ class TestAbstractRoundBehaviour:
         behaviour_1_cls_name = "Behaviour1"
         behaviour_2_cls_name = "Behaviour2"
         behaviour_1 = MagicMock(
-            behaviour_id=behaviour_id, __name__=behaviour_1_cls_name
+            __name__=behaviour_1_cls_name,
+            **{"auto_behaviour_id.return_value": behaviour_id},
         )
         behaviour_2 = MagicMock(
-            behaviour_id=behaviour_id, __name__=behaviour_2_cls_name
+            __name__=behaviour_2_cls_name,
+            **{"auto_behaviour_id.return_value": behaviour_id},
         )
 
         with pytest.raises(
@@ -341,9 +382,15 @@ class TestAbstractRoundBehaviour:
         behaviour_id_1 = "behaviour_id_1"
         behaviour_id_2 = "behaviour_id_2"
         round_cls = RoundA
-        round_id = round_cls.round_id
-        behaviour_1 = MagicMock(behaviour_id=behaviour_id_1, matching_round=round_cls)
-        behaviour_2 = MagicMock(behaviour_id=behaviour_id_2, matching_round=round_cls)
+        round_id = round_cls.auto_round_id()
+        behaviour_1 = MagicMock(
+            matching_round=round_cls,
+            **{"auto_behaviour_id.return_value": "behaviour_id_1"},
+        )
+        behaviour_2 = MagicMock(
+            matching_round=round_cls,
+            **{"auto_behaviour_id.return_value": "behaviour_id_2"},
+        )
 
         with pytest.raises(
             ABCIAppInternalError,
@@ -358,20 +405,22 @@ class TestAbstractRoundBehaviour:
     def test_check_initial_behaviour_in_set_of_behaviours_negative_case(self) -> None:
         """Test classmethod '_check_initial_behaviour_in_set_of_behaviours' when initial behaviour is NOT in the set."""
         behaviour_1 = MagicMock(
-            behaviour_id="behaviour_id_1", matching_round=MagicMock()
+            matching_round=MagicMock(),
+            **{"auto_behaviour_id.return_value": "behaviour_id_1"},
         )
         behaviour_2 = MagicMock(
-            behaviour_id="behaviour_id_2", matching_round=MagicMock()
+            matching_round=MagicMock(),
+            **{"auto_behaviour_id.return_value": "behaviour_id_2"},
         )
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="initial behaviour behaviour_id_2 is not in the set of behaviours",
+            match=f"initial behaviour {behaviour_2.auto_behaviour_id()} is not in the set of behaviours",
         ):
 
             class MyRoundBehaviour(AbstractRoundBehaviour):
                 abci_app_cls = ConcreteAbciApp
-                behaviours = [behaviour_1]  # type: ignore
+                behaviours = {behaviour_1}
                 initial_behaviour_cls = behaviour_2
 
     def test_act_no_round_change(self) -> None:
@@ -528,10 +577,10 @@ class TestAbstractRoundBehaviour:
                 mock_try_fix.assert_not_called()
 
 
-def test_meta_round_behaviour_when_instance_not_subclass_of_abstract_round() -> None:
-    """Test instantiation of meta class when instance not a subclass of abstract round."""
+def test_meta_round_behaviour_when_instance_not_subclass_of_abstract_round_behaviour() -> None:
+    """Test instantiation of meta class when instance not a subclass of abstract round behaviour."""
 
-    class MyRoundBeahviour(metaclass=_MetaRoundBehaviour):
+    class MyRoundBehaviour(metaclass=_MetaRoundBehaviour):
         pass
 
 
@@ -549,7 +598,7 @@ def test_abstract_round_behaviour_matching_rounds_not_covered() -> None:
 
         class MyRoundBehaviour(AbstractRoundBehaviour):
             abci_app_cls = ConcreteAbciApp
-            behaviours = {BehaviourA}  # type: ignore
+            behaviours = {BehaviourA}
             initial_behaviour_cls = BehaviourA
 
 
@@ -569,7 +618,7 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour(_: mock._patch) -> None:
 
     class RoundBehaviour(AbstractRoundBehaviour):
         abci_app_cls = AbciAppTest
-        behaviours = {BehaviourA}  # type: ignore
+        behaviours = {BehaviourA}
         initial_behaviour_cls = BehaviourA
 
     round_sequence = RoundSequence(AbciAppTest)
@@ -648,7 +697,9 @@ def test_reset_should_be_performed_when_tm_unhealthy() -> None:
         return None
         yield
 
-    def dummy_reset_tendermint_with_wait() -> Generator[None, None, bool]:
+    def dummy_reset_tendermint_with_wait(
+        is_recovery: bool = False,
+    ) -> Generator[None, None, bool]:
         """A dummy method for reset_tendermint_with_wait."""
         # we assume the reset goes through successfully
         return True

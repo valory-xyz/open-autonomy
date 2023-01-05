@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -86,18 +86,18 @@ class _MetaRoundBehaviour(ABCMeta):
         """Check that behaviour ids are unique across behaviours."""
         behaviour_id_to_behaviour = defaultdict(lambda: [])
         for behaviour_class in behaviour_cls.behaviours:
-            behaviour_id_to_behaviour[behaviour_class.behaviour_id].append(
+            behaviour_id_to_behaviour[behaviour_class.auto_behaviour_id()].append(
                 behaviour_class
             )
-            if len(behaviour_id_to_behaviour[behaviour_class.behaviour_id]) > 1:
+            if len(behaviour_id_to_behaviour[behaviour_class.auto_behaviour_id()]) > 1:
                 behaviour_classes_names = [
                     _behaviour_cls.__name__
                     for _behaviour_cls in behaviour_id_to_behaviour[
-                        behaviour_class.behaviour_id
+                        behaviour_class.auto_behaviour_id()
                     ]
                 ]
                 raise ABCIAppInternalError(
-                    f"behaviours {behaviour_classes_names} have the same behaviour id '{behaviour_class.behaviour_id}'"
+                    f"behaviours {behaviour_classes_names} have the same behaviour id '{behaviour_class.auto_behaviour_id()}'"
                 )
 
     @classmethod
@@ -117,11 +117,11 @@ class _MetaRoundBehaviour(ABCMeta):
             round_to_behaviour[b.matching_round].append(b)
             if len(round_to_behaviour[b.matching_round]) > 1:
                 behaviour_class_ids = [
-                    _behaviour_cls.behaviour_id
+                    _behaviour_cls.auto_behaviour_id()
                     for _behaviour_cls in round_to_behaviour[b.matching_round]
                 ]
                 raise ABCIAppInternalError(
-                    f"behaviours {behaviour_class_ids} have the same matching round '{b.matching_round.round_id}'"
+                    f"behaviours {behaviour_class_ids} have the same matching round '{b.matching_round.auto_round_id()}'"
                 )
 
         # check covering
@@ -129,12 +129,12 @@ class _MetaRoundBehaviour(ABCMeta):
             if round_cls in behaviour_cls.abci_app_cls.final_states:
                 if len(behaviours) != 0:
                     raise ABCIAppInternalError(
-                        f"round {round_cls.round_id} is a final round it shouldn't have any matching behaviours."
+                        f"round {round_cls.auto_round_id()} is a final round it shouldn't have any matching behaviours."
                     )
                 continue  # pragma: nocover
             if len(behaviours) == 0:
                 raise ABCIAppInternalError(
-                    f"round {round_cls.round_id} is not a matching round of any behaviour"
+                    f"round {round_cls.auto_round_id()} is not a matching round of any behaviour"
                 )
 
     @classmethod
@@ -144,7 +144,7 @@ class _MetaRoundBehaviour(ABCMeta):
         """Check the initial behaviour is in the set of behaviours."""
         if behaviour_cls.initial_behaviour_cls not in behaviour_cls.behaviours:
             raise ABCIAppInternalError(
-                f"initial behaviour {behaviour_cls.initial_behaviour_cls.behaviour_id} is not in the set of behaviours"
+                f"initial behaviour {behaviour_cls.initial_behaviour_cls.auto_behaviour_id()} is not in the set of behaviours"
             )
 
 
@@ -186,7 +186,7 @@ class AbstractRoundBehaviour(
         """Get behaviour id to behaviour mapping."""
         result: Dict[str, BehaviourType] = {}
         for behaviour_cls in behaviours:
-            behaviour_id = behaviour_cls.behaviour_id
+            behaviour_id = behaviour_cls.auto_behaviour_id()
             if behaviour_id in result:
                 raise ValueError(
                     f"cannot have two behaviours with the same id; got {behaviour_cls} and {result[behaviour_id]} both with id '{behaviour_id}'"
@@ -204,25 +204,23 @@ class AbstractRoundBehaviour(
             round_cls = behaviour_cls.matching_round
             if round_cls in result:
                 raise ValueError(
-                    f"the behaviours '{behaviour_cls.behaviour_id}' and '{result[round_cls].behaviour_id}' point to the same matching round '{round_cls.round_id}'"
+                    f"the behaviours '{behaviour_cls.auto_behaviour_id()}' and '{result[round_cls].auto_behaviour_id()}' point to the same matching round '{round_cls.auto_round_id()}'"
                 )
             result[round_cls] = behaviour_cls
 
         # iterate over rounds and map final (i.e. degenerate) rounds
         #  to the degenerate behaviour class
         for final_round_cls in cls.abci_app_cls.final_states:
-            new_degenerate_behaviour = make_degenerate_behaviour(
-                final_round_cls.round_id
-            )
-            new_degenerate_behaviour.matching_round = final_round_cls  # type: ignore
-            result[final_round_cls] = new_degenerate_behaviour  # type: ignore
+            new_degenerate_behaviour = make_degenerate_behaviour(final_round_cls)
+            new_degenerate_behaviour.matching_round = final_round_cls
+            result[final_round_cls] = new_degenerate_behaviour
 
         return result
 
     def instantiate_behaviour_cls(self, behaviour_cls: BehaviourType) -> BaseBehaviour:
         """Instantiate the behaviours class."""
         return behaviour_cls(
-            name=behaviour_cls.behaviour_id, skill_context=self.context
+            name=behaviour_cls.auto_behaviour_id(), skill_context=self.context
         )
 
     @property
@@ -293,7 +291,7 @@ class AbstractRoundBehaviour(
             self.context.logger.debug(
                 "overriding transition: current behaviour: '%s', next behaviour: '%s'",
                 self.current_behaviour.behaviour_id if self.current_behaviour else None,
-                next_behaviour_cls.behaviour_id,
+                next_behaviour_cls.auto_behaviour_id(),
             )
 
         self.current_behaviour = self.instantiate_behaviour_cls(next_behaviour_cls)

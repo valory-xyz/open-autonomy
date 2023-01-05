@@ -78,7 +78,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
 
         self.fast_forward_to_behaviour(
             self.behaviour,
-            self.randomness_behaviour_class.behaviour_id,
+            self.randomness_behaviour_class.auto_behaviour_id(),
             BaseSynchronizedData(AbciAppDB(setup_data={})),
         )
         assert (
@@ -86,7 +86,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
-            == self.randomness_behaviour_class.behaviour_id
+            == self.randomness_behaviour_class.auto_behaviour_id()
         )
         self.behaviour.act_wrapper()
         self.mock_http_request(
@@ -112,7 +112,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         self.end_round(self.done_event)
 
         behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert behaviour.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_invalid_drand_value(
         self,
@@ -120,7 +120,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         """Test invalid drand values."""
         self.fast_forward_to_behaviour(
             self.behaviour,
-            self.randomness_behaviour_class.behaviour_id,
+            self.randomness_behaviour_class.auto_behaviour_id(),
             BaseSynchronizedData(AbciAppDB(setup_data={})),
         )
         assert (
@@ -128,7 +128,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
-            == self.randomness_behaviour_class.behaviour_id
+            == self.randomness_behaviour_class.auto_behaviour_id()
         )
         self.behaviour.act_wrapper()
 
@@ -157,7 +157,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         """Test invalid json response."""
         self.fast_forward_to_behaviour(
             self.behaviour,
-            self.randomness_behaviour_class.behaviour_id,
+            self.randomness_behaviour_class.auto_behaviour_id(),
             BaseSynchronizedData(AbciAppDB(setup_data={})),
         )
         assert (
@@ -165,7 +165,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
-            == self.randomness_behaviour_class.behaviour_id
+            == self.randomness_behaviour_class.auto_behaviour_id()
         )
         self.behaviour.act_wrapper()
 
@@ -191,7 +191,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         """Test with max retries reached."""
         self.fast_forward_to_behaviour(
             self.behaviour,
-            self.randomness_behaviour_class.behaviour_id,
+            self.randomness_behaviour_class.auto_behaviour_id(),
             BaseSynchronizedData(AbciAppDB(setup_data={})),
         )
         assert (
@@ -199,7 +199,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
-            == self.randomness_behaviour_class.behaviour_id
+            == self.randomness_behaviour_class.auto_behaviour_id()
         )
         with mock.patch.object(
             self.behaviour.context.randomness_api,
@@ -223,7 +223,9 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
             self.end_round(self.done_event)
 
             behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
-            assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+            assert (
+                behaviour.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
+            )
 
     def test_max_retries_reached_fallback_fail(
         self,
@@ -231,7 +233,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         """Test with max retries reached."""
         self.fast_forward_to_behaviour(
             self.behaviour,
-            self.randomness_behaviour_class.behaviour_id,
+            self.randomness_behaviour_class.auto_behaviour_id(),
             BaseSynchronizedData(AbciAppDB(setup_data={})),
         )
         assert (
@@ -239,7 +241,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
-            == self.randomness_behaviour_class.behaviour_id
+            == self.randomness_behaviour_class.auto_behaviour_id()
         )
         with mock.patch.object(
             self.behaviour.context.randomness_api,
@@ -265,7 +267,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         """Test with max retries reached."""
         self.fast_forward_to_behaviour(
             self.behaviour,
-            self.randomness_behaviour_class.behaviour_id,
+            self.randomness_behaviour_class.auto_behaviour_id(),
             BaseSynchronizedData(AbciAppDB(setup_data={})),
         )
         assert (
@@ -273,7 +275,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
-            == self.randomness_behaviour_class.behaviour_id
+            == self.randomness_behaviour_class.auto_behaviour_id()
         )
         with mock.patch.object(
             self.behaviour.context.randomness_api,
@@ -299,7 +301,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
         """Test when `observed` value is none."""
         self.fast_forward_to_behaviour(
             self.behaviour,
-            self.randomness_behaviour_class.behaviour_id,
+            self.randomness_behaviour_class.auto_behaviour_id(),
             BaseSynchronizedData(AbciAppDB(setup_data={})),
         )
         assert (
@@ -307,7 +309,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
-            == self.randomness_behaviour_class.behaviour_id
+            == self.randomness_behaviour_class.auto_behaviour_id()
         )
         self.behaviour.context.randomness_api.retries_info.retries_attempted = (  # pylint: disable=protected-access
             1
@@ -348,7 +350,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         )
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=self.select_keeper_behaviour_class.behaviour_id,
+            behaviour_id=self.select_keeper_behaviour_class.auto_behaviour_id(),
             synchronized_data=self._synchronized_data(
                 AbciAppDB(
                     setup_data=AbciAppDB.data_to_lists(
@@ -364,7 +366,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         assert self.behaviour.current_behaviour is not None
         assert (
             self.behaviour.current_behaviour.behaviour_id
-            == self.select_keeper_behaviour_class.behaviour_id
+            == self.select_keeper_behaviour_class.auto_behaviour_id()
         )
 
         if (
@@ -377,7 +379,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
             self.end_round(self.done_event)
             assert (
                 self.behaviour.current_behaviour.behaviour_id
-                == self.next_behaviour_class.behaviour_id
+                == self.next_behaviour_class.auto_behaviour_id()
             )
         else:
             with pytest.raises(
@@ -394,7 +396,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         preexisting_keeper = next(iter(participants))
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=self.select_keeper_behaviour_class.behaviour_id,
+            behaviour_id=self.select_keeper_behaviour_class.auto_behaviour_id(),
             synchronized_data=self._synchronized_data(
                 AbciAppDB(
                     setup_data=dict(
@@ -412,11 +414,11 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
-            == self.select_keeper_behaviour_class.behaviour_id
+            == self.select_keeper_behaviour_class.auto_behaviour_id()
         )
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(self.done_event)
         behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert behaviour.behaviour_id == self.next_behaviour_class.auto_behaviour_id()

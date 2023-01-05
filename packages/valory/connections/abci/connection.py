@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ from pathlib import Path
 from threading import Event, Thread
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
-import grpc  # type: ignore
+import grpc
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
 from aea.exceptions import enforce
@@ -88,14 +88,16 @@ from packages.valory.protocols.abci import AbciMessage
 
 PUBLIC_ID = PublicId.from_str("valory/abci:0.1.0")
 
+
+_TCP = "tcp://"
 ENCODING = "utf-8"
 LOCALHOST = "127.0.0.1"
 DEFAULT_ABCI_PORT = 26658
 DEFAULT_P2P_PORT = 26656
 DEFAULT_RPC_PORT = 26657
 DEFAULT_LISTEN_ADDRESS = "0.0.0.0"  # nosec
-DEFAULT_P2P_LISTEN_ADDRESS = f"tcp://{DEFAULT_LISTEN_ADDRESS}:{DEFAULT_P2P_PORT}"
-DEFAULT_RPC_LISTEN_ADDRESS = f"tcp://{LOCALHOST}:{DEFAULT_RPC_PORT}"
+DEFAULT_P2P_LISTEN_ADDRESS = f"{_TCP}{DEFAULT_LISTEN_ADDRESS}:{DEFAULT_P2P_PORT}"
+DEFAULT_RPC_LISTEN_ADDRESS = f"{_TCP}{LOCALHOST}:{DEFAULT_RPC_PORT}"
 MAX_READ_IN_BYTES = 2 ** 20  # Max we'll consume on a read stream (1 MiB)
 MAX_VARINT_BYTES = 10  # Max size of varint we support
 DEFAULT_TENDERMINT_LOG_FILE = "tendermint.log"
@@ -298,7 +300,8 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         """
         message = cast(AbciMessage, envelope.message)
         dialogue = self._dialogues.update(message)
-        if dialogue is None:
+        if dialogue is None:  # pragma: nocover
+            logging.warning(f"Could not create dialogue for message={message}")
             return
 
         await self._response_queues[message.performative].put(envelope)
@@ -336,7 +339,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
     async def Flush(
         self, request: RequestFlush, context: grpc.ServicerContext
-    ) -> ResponseFlush:
+    ) -> ResponseFlush:  # pragma: no cover
         """
         Handles "Flush" gRPC requests
 
@@ -398,7 +401,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
     async def SetOption(
         self, request: RequestSetOption, context: grpc.ServicerContext
-    ) -> ResponseSetOption:
+    ) -> ResponseSetOption:  # pragma: no cover
         """
         Handles "SetOption" gRPC requests
 
@@ -646,7 +649,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
     async def ListSnapshots(
         self, request: RequestListSnapshots, context: grpc.ServicerContext
-    ) -> ResponseListSnapshots:
+    ) -> ResponseListSnapshots:  # pragma: no cover
         """
         Handles "ListSnapshots" gRPC requests
 
@@ -677,7 +680,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
     async def OfferSnapshot(
         self, request: RequestOfferSnapshot, context: grpc.ServicerContext
-    ) -> ResponseOfferSnapshot:
+    ) -> ResponseOfferSnapshot:  # pragma: no cover
         """
         Handles "OfferSnapshot" gRPC requests
 
@@ -708,7 +711,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
     async def LoadSnapshotChunk(
         self, request: RequestLoadSnapshotChunk, context: grpc.ServicerContext
-    ) -> ResponseLoadSnapshotChunk:
+    ) -> ResponseLoadSnapshotChunk:  # pragma: no cover
         """
         Handles "LoadSnapshotChunk" gRPC requests
 
@@ -739,7 +742,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
     async def ApplySnapshotChunk(
         self, request: RequestApplySnapshotChunk, context: grpc.ServicerContext
-    ) -> ResponseApplySnapshotChunk:
+    ) -> ResponseApplySnapshotChunk:  # pragma: no cover
         """
         Handles "ApplySnapshotChunk" gRPC requests
 
@@ -990,19 +993,35 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
 
     async def _handle_message(self, message: Request, peer_name: str) -> None:
         """Handle a single message from a peer."""
-        req_type = message.WhichOneof("value")
-        self.logger.debug(f"Received message of type: {req_type}")
-        result = _TendermintProtocolDecoder.process(
-            message, self._dialogues, str(self.target_skill_id)
-        )
-        if result is not None:
-            request, dialogue = result
-            # associate request to peer, so we remember who to reply to
-            self._request_id_to_socket[dialogue.incomplete_dialogue_label] = peer_name
-            envelope = Envelope(to=request.to, sender=request.sender, message=request)
-            await cast(asyncio.Queue, self.queue).put(envelope)
-        else:  # pragma: nocover
-            self.logger.warning(f"Decoded request {req_type} was not a match.")
+        # TODO: remove the following try/except and logs, https://github.com/valory-xyz/open-autonomy/issues/1655
+        try:
+            req_type = message.WhichOneof("value")
+            self.logger.info(
+                f"Received message of type: {req_type} on abci connection."
+            )
+            result = _TendermintProtocolDecoder.process(
+                message, self._dialogues, str(self.target_skill_id)
+            )
+            self.logger.info(f"Received result={result} from processing message.")
+            if result is not None:
+                request, dialogue = result
+                # associate request to peer, so we remember who to reply to
+                self._request_id_to_socket[
+                    dialogue.incomplete_dialogue_label
+                ] = peer_name
+                self.logger.info(
+                    f"Associated request with id={dialogue.incomplete_dialogue_label} to peer={peer_name}."
+                )
+                envelope = Envelope(
+                    to=request.to, sender=request.sender, message=request
+                )
+                self.logger.info(f"Created envelope={envelope}.")
+                await cast(asyncio.Queue, self.queue).put(envelope)
+                self.logger.info(f"Successfully put envelope in queue={envelope}.")
+            else:  # pragma: nocover
+                self.logger.warning(f"Decoded request {req_type} was not a match.")
+        except Exception as e:  # pylint: disable=broad-except  # pragma: no cover
+            self.logger.error(f"Unhandled exception {type(e).__name__}: {e}")
 
     async def get_message(self) -> Envelope:
         """Get a message from the queue."""
@@ -1026,7 +1045,9 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         writer.write(data)
 
 
-class StoppableThread(Thread):
+class StoppableThread(
+    Thread,
+):  # pragma: no cover (covered via deployments/Dockerfiles/tendermint/tendermint.py)
     """Thread class with a stop() method."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -1043,7 +1064,7 @@ class StoppableThread(Thread):
         return self._stop_event.is_set()
 
 
-class TendermintParams:  # pylint: disable=too-few-public-methods
+class TendermintParams:  # pylint: disable=too-few-public-methods  # pragma: no cover (covered via deployments/Dockerfiles/tendermint/tendermint.py)
     """Tendermint node parameters."""
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -1065,8 +1086,9 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         :param p2p_seeds: P2P seeds.
         :param consensus_create_empty_blocks: if true, Tendermint node creates empty blocks.
         :param home: Tendermint's home directory.
-        :param use_grpc: Wheter to use a gRPC server, or TSP
+        :param use_grpc: Whether to use a gRPC server, or TCP
         """
+
         self.proxy_app = proxy_app
         self.rpc_laddr = rpc_laddr
         self.p2p_laddr = p2p_laddr
@@ -1099,6 +1121,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
             f"--p2p.laddr={self.p2p_laddr}",
             f"--p2p.seeds={p2p_seeds}",
             f"--consensus.create_empty_blocks={str(self.consensus_create_empty_blocks).lower()}",
+            f"--abci={'grpc' if self.use_grpc else 'socket'}",
         ]
         if debug:
             cmd.append("--log_level=debug")
@@ -1128,7 +1151,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         return kwargs
 
 
-class TendermintNode:
+class TendermintNode:  # pragma: no cover (covered via deployments/Dockerfiles/tendermint/tendermint.py)
     """A class to manage a Tendermint node."""
 
     def __init__(self, params: TendermintParams, logger: Optional[Logger] = None):
@@ -1150,8 +1173,6 @@ class TendermintNode:
             "tendermint",
             "init",
         ]
-        if self.params.use_grpc:
-            cmd += ["--abci=grpc"]
         if self.params.home is not None:  # pragma: nocover
             cmd += ["--home", self.params.home]
         return cmd
@@ -1169,11 +1190,19 @@ class TendermintNode:
 
     def _start_tm_process(self, monitoring: bool = False, debug: bool = False) -> None:
         """Start a Tendermint node process."""
+
         if self._process is not None:  # pragma: nocover
             return
+
         cmd = self.params.build_node_command(debug)
         kwargs = self.params.get_node_command_kwargs(monitoring)
-        self._process = subprocess.Popen(cmd, **kwargs)  # type: ignore # nosec # pylint: disable=consider-using-with,W1509
+
+        logging.info(f"Starting Tendermint: {cmd}")
+        self._process = (
+            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                cmd, **kwargs
+            )
+        )
 
         self.write_line("Tendermint process started\n")
 
@@ -1230,10 +1259,12 @@ class TendermintNode:
         self,
     ) -> None:
         """Check server status."""
+        if self._monitoring is None:
+            raise ValueError("Monitoring is not running")
         self.write_line("Monitoring thread started\n")
         while True:
             try:
-                if self._monitoring.stopped():  # type: ignore
+                if self._monitoring.stopped():
                     break  # break from the loop immediately.
                 if self._process is not None and self._process.stdout is not None:
                     line = self._process.stdout.readline()
@@ -1335,12 +1366,14 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         self.use_tendermint = cast(
             bool, self.configuration.config.get("use_tendermint")
         )
-        self.use_grpc = cast(bool, self.configuration.config.get("use_grpc"))
+        self.use_grpc = cast(bool, self.configuration.config.get("use_grpc", False))
 
         if not self.use_tendermint:
             return
         tendermint_config = self.configuration.config.get("tendermint_config", {})
-        rpc_laddr = cast(str, tendermint_config.get("rpc_laddr", DEFAULT_RPC_PORT))
+        rpc_laddr = cast(
+            str, tendermint_config.get("rpc_laddr", DEFAULT_RPC_LISTEN_ADDRESS)
+        )
         p2p_laddr = cast(
             str, tendermint_config.get("p2p_laddr", DEFAULT_P2P_LISTEN_ADDRESS)
         )
@@ -1349,7 +1382,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         consensus_create_empty_blocks = cast(
             bool, tendermint_config.get("consensus_create_empty_blocks", True)
         )
-        proxy_app = f"tcp://{self.host}:{self.port}"
+        proxy_app = f"{_TCP}{self.host}:{self.port}"
         self.params = TendermintParams(
             proxy_app,
             rpc_laddr,
@@ -1430,6 +1463,11 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         self._ensure_connected()
         self.channel = cast(Union[TcpServerChannel, GrpcServerChannel], self.channel)
         try:
-            return await self.channel.get_message()
+            message = await self.channel.get_message()
+            # TODO: remove the following, https://github.com/valory-xyz/open-autonomy/issues/1655
+            self.logger.info(
+                f"Received message={message} on `ABCIServerConnection.receive()`."
+            )
+            return message
         except CancelledError:  # pragma: no cover
             return None

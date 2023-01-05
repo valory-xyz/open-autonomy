@@ -26,7 +26,7 @@ from typing import Any, FrozenSet, Generator, List, Optional, Tuple, Type, cast
 from unittest.mock import MagicMock
 
 import pytest
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from packages.valory.skills.abstract_round_abci.base import (
@@ -54,8 +54,11 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
     get_dummy_tx_payloads,
     get_participants,
 )
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 from packages.valory.skills.abstract_round_abci.tests.test_common import last_iteration
 
+
+settings.load_profile(profile_name)
 
 # this is how many times we need to iterate before reaching the last iteration for a base test.
 BASE_TEST_GEN_ITERATIONS = 4

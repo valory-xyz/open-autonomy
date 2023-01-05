@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -25,12 +25,14 @@ from typing import Dict, Optional, cast
 from aea.skills.base import Behaviour
 from aea.skills.behaviours import TickerBehaviour
 
-from packages.valory.connections.http_client.connection import (  # type: ignore # pylint: disable=no-name-in-module,import-error
-    PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,  # type: ignore
+from packages.valory.connections.http_client.connection import (  # pylint: disable=no-name-in-module,import-error
+    PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
-from packages.valory.protocols.http import HttpMessage  # type: ignore # pylint: disable=no-name-in-module,import-error
+from packages.valory.protocols.http import (
+    HttpMessage,
+)  # pylint: disable=no-name-in-module,import-error
 
-# type: ignore # pylint: disable=no-name-in-module,import-error
+# pylint: disable=no-name-in-module,import-error
 from packages.valory.skills.counter_client.dialogues import HttpDialogues
 from packages.valory.skills.counter_client.handlers import curdatetime
 

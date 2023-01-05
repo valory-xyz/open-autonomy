@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ from packages.valory.skills.test_abci.rounds import DummyRound, TestAbciApp
 class DummyBehaviour(BaseBehaviour, ABC):
     """Check whether Tendermint nodes are running."""
 
-    behaviour_id = "dummy"
     matching_round = DummyRound
 
     def async_act(self) -> Generator:
@@ -45,7 +44,7 @@ class TestAbciConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the simple abci app."""
 
     initial_behaviour_cls = DummyBehaviour
-    abci_app_cls = TestAbciApp  # type: ignore
-    behaviours: Set[Type[DummyBehaviour]] = {  # type: ignore
+    abci_app_cls = TestAbciApp
+    behaviours: Set[Type[BaseBehaviour]] = {
         DummyBehaviour,  # type: ignore
     }

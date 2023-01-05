@@ -48,17 +48,21 @@ class TestServiceConfig:
     service_file: Path
 
     @classmethod
-    def setup(
+    def setup_class(
         cls,
     ) -> None:
-        """Setup test."""
-
+        """Setup test class."""
         cls.cwd = Path.cwd()
-        cls.t = Path(tempfile.TemporaryDirectory().name)
-        cls.t.mkdir()
-        cls.service_file = cls.t / "service.yaml"
 
-        os.chdir(cls.t)
+    def setup(
+        self,
+    ) -> None:
+        """Setup test."""
+        self.t = Path(tempfile.TemporaryDirectory().name)
+        self.t.mkdir()
+        self.service_file = self.t / "service.yaml"
+
+        os.chdir(self.t)
 
     def _write_service(self, data: List[Dict]) -> None:
         """Write service config to a file."""
@@ -159,14 +163,12 @@ class TestServiceConfig:
         service = load_service_config(self.t, substitute_env_vars=True)
         assert service.number_of_agents == 1
 
-    @classmethod
     def teardown(
-        cls,
+        self,
     ) -> None:
-        """Teardown class."""
-
-        os.chdir(cls.cwd)
-        shutil.rmtree(cls.t)
+        """Teardown test."""
+        os.chdir(self.cwd)
+        shutil.rmtree(self.t)
 
 
 @pytest.mark.parametrize(

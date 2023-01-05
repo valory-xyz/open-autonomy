@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 """This package contains round behaviours of DummyAbciApp."""
 
+from abc import ABC
 from collections import deque
 from typing import Deque, Generator, Set, Type, cast
 
@@ -50,7 +51,7 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds imp
 )
 
 
-class DummyBaseBehaviour(BaseBehaviour):
+class DummyBaseBehaviour(BaseBehaviour, ABC):
     """Base behaviour for the common apps' skill."""
 
     @property
@@ -148,7 +149,7 @@ class DummyRoundBehaviour(AbstractRoundBehaviour):
     """DummyRoundBehaviour"""
 
     initial_behaviour_cls = DummyStartingBehaviour
-    abci_app_cls = DummyAbciApp  # type: ignore
+    abci_app_cls = DummyAbciApp
     behaviours: Set[Type[BaseBehaviour]] = {
         DummyFinalBehaviour,  # type: ignore
         DummyKeeperSelectionBehaviour,  # type: ignore

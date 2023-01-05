@@ -9,7 +9,7 @@ This package contains round behaviours of DummyAbciApp.
 ## DummyBaseBehaviour Objects
 
 ```python
-class DummyBaseBehaviour(BaseBehaviour)
+class DummyBaseBehaviour(BaseBehaviour,  ABC)
 ```
 
 Base behaviour for the common apps' skill.

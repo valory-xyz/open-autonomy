@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the Protobuf Python modules for the Tendermint-ABCI messages."""
+"""This module contains the Protobuf Python modules for the Tendermint-ABCI messages."""  # pragma: nocover

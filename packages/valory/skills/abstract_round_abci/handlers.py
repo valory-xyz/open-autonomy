@@ -23,7 +23,6 @@ import json
 from abc import ABC
 from enum import Enum
 from typing import Any, Callable, Dict, FrozenSet, List, Optional, cast
-from urllib.parse import urlparse
 
 from aea.configurations.data_types import PublicId
 from aea.protocols.base import Message
@@ -665,16 +664,13 @@ class TendermintHandler(Handler):
 
         try:  # validate message contains a valid address
             validator_config = json.loads(message.info)
-            self.context.logger.error(validator_config)
-            parse_result = urlparse(validator_config["tendermint_url"])
-            if (
-                parse_result.hostname != "localhost"
-                and not parse_result.hostname.startswith("node")
-            ):
-                ipaddress.ip_network(parse_result.hostname)
+            self.context.logger.info(f"Validator config received: {validator_config}")
+            hostname = cast(str, validator_config["hostname"])
+            if hostname != "localhost" and not hostname.startswith("node"):
+                ipaddress.ip_network(hostname)
         except ValueError as e:
             log_message = self.LogMessages.failed_to_parse_address.value
-            self.context.logger.info(f"{log_message}: {e} {message}")
+            self.context.logger.error(f"{log_message}: {e} {message}")
             self._reply_with_tendermint_error(message, dialogue, log_message)
             return
 

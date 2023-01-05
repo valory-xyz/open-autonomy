@@ -85,7 +85,7 @@ class BaseGanacheContractWithDependencyTest(
     BaseContractWithDependencyTest,  GanacheBaseTest)
 ```
 
-Base test case for testing contracts on Ganache.
+Base test case for testing contracts with dependencies on Ganache.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.contracts.BaseHardhatGnosisContractWithDependencyTest"></a>
 
@@ -96,7 +96,7 @@ class BaseHardhatGnosisContractWithDependencyTest(
     BaseContractWithDependencyTest,  HardHatGnosisBaseTest)
 ```
 
-Base test case for testing contracts on Hardhat with Gnosis.
+Base test case for testing contracts with dependencies on Hardhat with Gnosis.
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.contracts.BaseHardhatAMMContractWithDependencyTest"></a>
 
@@ -107,5 +107,5 @@ class BaseHardhatAMMContractWithDependencyTest(
     BaseContractWithDependencyTest,  HardHatAMMBaseTest)
 ```
 
-Base test case for testing AMM contracts on Hardhat.
+Base test case for testing AMM contracts with dependencies on Hardhat.
 

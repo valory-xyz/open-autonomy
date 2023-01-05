@@ -9,7 +9,7 @@ Integration tests for various transaction settlement skill's failure modes.
 ## IntegrationBaseCase Objects
 
 ```python
-class IntegrationBaseCase(FSMBehaviourBaseCase)
+class IntegrationBaseCase(FSMBehaviourBaseCase,  ABC)
 ```
 
 Base test class for integration tests.
@@ -105,7 +105,7 @@ tuple of incoming messages
 ## HardHatHelperIntegration Objects
 
 ```python
-class HardHatHelperIntegration(IntegrationBaseCase)
+class HardHatHelperIntegration(IntegrationBaseCase,  ABC)
 ```
 
 Base test class for integration tests with HardHat provider.

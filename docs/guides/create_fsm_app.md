@@ -19,14 +19,10 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 ## Step-by-step instructions
 
-1. **Create an empty agent.** Use the {{open_autonomy}} CLI to create an empty agent as follows:
-    ```bash
-    autonomy create <agent_name>
-    cd <agent_name>
-    ```
-    This will create the agent directory, that will contain folders for connections, contracts, protocols and skills.
+Before you continue, ensure that you have an initialized local registry and that your terminal is located in the folder **containing** the local registry.
 
-2. **Create the FSM specification file.** Within the agent folder, define the `fsm_specification.yaml` file, which encodes the [states, transitions and transition function](../key_concepts/fsm.md) of the FSM that defines the business logic of the service.
+
+1. **Create the FSM specification file.** Create a file named `fsm_specification.yaml`, which encodes the [states, transitions and transition function](../key_concepts/fsm.md) of the FSM that defines the business logic of the service.
 
     ??? example "Example of an `fsm_specification.yaml` file"
         Given a sketch of the FSM, the structure of the `fsm_specification.yaml` file is quite straightforward. Below we show the FSM specification file of the [Hello World](../demos/hello_world_demo.md) demo service.
@@ -60,20 +56,13 @@ Before starting this guide, ensure that your machine satisfies the framework req
         ```
 
 
-3. **Generate the template classes.** Using the scaffold tool to generate the skeleton for the classes for the skill:
+2. **Generate the template classes.** Using the scaffold tool to generate the skeleton for the classes for the skill:
     ```bash
-    autonomy scaffold fsm <fsm_app_skill_name> --spec fsm_specification.yaml
+    autonomy scaffold -tlr fsm <fsm_app_skill_name> --spec fsm_specification.yaml
     ```
-    This command will populate the agent with the required components and generate the {{fsm_app}} skill with its corresponding classes: rounds, payloads, behaviours, and the [`AbciApp` class](../key_concepts/abci_app_class.md). The {{fsm_app}} skill will be generated in the `/skills/<fsm_app_skill_name>` folder.
+    This command will generate the {{fsm_app}} skill with its corresponding classes: rounds, payloads, behaviours, and the [`AbciApp` class](../key_concepts/abci_app_class.md). The {{fsm_app}} skill will be generated in the folder `./packages/<vendor_name>/skills/<fsm_app_skill_name>`.
 
 
-4. **Fill in the business logic code of the {{fsm_app}}.** By default, the generated classes are initialized to empty values. It is your turn to define what actions are occurring at each state of the service, by filling up the code of the template {{fsm_app}} skill generated above. You should also define a number of test classes. You can review how the [demo services](../demos/index.md) are implemented, or read about the [internals of {{fsm_app}}s](../key_concepts/fsm_app_introduction.md) to learn more.
+3. **Fill in the business logic code of the {{fsm_app}}.** By default, the generated classes are initialized to empty values. It is your turn to define what actions are occurring at each state of the service, by filling up the code of the template {{fsm_app}} skill generated above. You should also define a number of test classes. You can review how the [demo services](../demos/index.md) are implemented, or read about the [internals of {{fsm_app}}s](../key_concepts/fsm_app_introduction.md) to learn more.
 
-
-5. **Push the generated skill to the local registry.** Once you have finished coding and testing the {{fsm_app}} skill, you can [push it to a local or remote registry](./publish_fetch_packages.md#publish-and-fetch-services) for future reuse of the component.
-
-6. **Clean up.** If you are only interested in the {{fsm_app}} skill created, you don't need the agent any more, so it can be safely deleted:
-    ```bash
-    cd ..
-    autonomy delete <agent_name>
-    ```
+4. **Push the generated skill to the remote registry.** Once you have finished coding and testing the {{fsm_app}} skill, you can [push it to a remote registry](./publish_fetch_packages.md#publish-and-fetch-services). This will allow to add and reuse the {{fsm_app}} skill in newly developed agents.

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,11 +19,9 @@
 
 """Tests for abstract_round_abci/test_tools/integration.py"""
 
-from pathlib import Path
-from typing import Type, cast
+from typing import cast
 
 import pytest
-from aea.test_tools.utils import copy_class
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.open_aea.protocols.signing.custom_types import SignedMessage
@@ -33,20 +31,20 @@ from packages.valory.connections.ledger.connection import (
 from packages.valory.connections.ledger.tests.conftest import make_ledger_api_connection
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.ledger_api.dialogues import LedgerApiDialogue
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB, _MetaPayload
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.models import Requests
 from packages.valory.skills.abstract_round_abci.test_tools.integration import (
     IntegrationBaseCase,
-)
-from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
-    PATH_TO_SKILL,
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours import (
     DummyStartingBehaviour,
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds import (
     SynchronizedData,
+)
+from packages.valory.skills.abstract_round_abci.tests.test_tools.base import (
+    FSMBehaviourTestToolSetup,
 )
 
 
@@ -71,45 +69,10 @@ def simulate_ledger_get_balance_request(test_instance: IntegrationBaseCase) -> N
     current_behaviour.context.outbox.put_message(message=ledger_api_msg)
 
 
-class TestIntegrationBaseCase:
+class TestIntegrationBaseCase(FSMBehaviourTestToolSetup):
     """TestIntegrationBaseCase"""
 
-    test_cls: Type[IntegrationBaseCase]
-
-    @classmethod
-    def setup_class(cls) -> None:
-        """Setup class"""
-        cls.old_value = _MetaPayload.transaction_type_to_payload_cls.copy()  # type: ignore
-        _MetaPayload.transaction_type_to_payload_cls.clear()
-
-    @classmethod
-    def teardown_class(cls) -> None:
-        """Teardown class"""
-        _MetaPayload.transaction_type_to_payload_cls = cls.old_value  # type: ignore
-
-    def setup(self) -> None:
-        """Setup test"""
-
-        # must `copy` the class to avoid test interference
-        test_cls = copy_class(IntegrationBaseCase)
-        self.test_cls = cast(Type[IntegrationBaseCase], test_cls)
-
-    def teardown(self) -> None:
-        """Teardown test"""
-        self.test_cls.teardown_class()  # otherwise keeps hanging
-
-    def setup_test_cls(self) -> IntegrationBaseCase:
-        """Helper method to setup test to be tested"""
-
-        self.test_cls.setup_class()
-
-        test_instance = self.test_cls()  # type: ignore
-        test_instance.setup()
-        return test_instance
-
-    def set_path_to_skill(self, path_to_skill: Path = PATH_TO_SKILL) -> None:
-        """Set path_to_skill"""
-        self.test_cls.path_to_skill = path_to_skill
+    test_cls = IntegrationBaseCase
 
     def test_instantiation(self) -> None:
         """Test instantiation"""
@@ -157,7 +120,7 @@ class TestIntegrationBaseCase:
         self.test_cls.make_ledger_api_connection_callable = make_ledger_api_connection
         test_instance = cast(IntegrationBaseCase, self.setup_test_cls())
 
-        behaviour_id = DummyStartingBehaviour.behaviour_id
+        behaviour_id = DummyStartingBehaviour.auto_behaviour_id()
         synchronized_data = SynchronizedData(
             AbciAppDB(setup_data=dict(participants=[frozenset("abcd")]))
         )

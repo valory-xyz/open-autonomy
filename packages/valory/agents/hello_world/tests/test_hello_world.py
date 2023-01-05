@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2EndExecution,
     RoundChecks,
 )
+from aea_test_autonomy.configurations import KEY_PAIRS
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     abci_host,
     abci_port,
@@ -36,13 +37,26 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     tendermint_port,
 )
 
+from packages.valory.skills.hello_world_abci.behaviours import (
+    CollectRandomnessBehaviour,
+    RegistrationBehaviour,
+    SelectKeeperBehaviour,
+)
+from packages.valory.skills.hello_world_abci.rounds import (
+    CollectRandomnessRound,
+    PrintMessageRound,
+    RegistrationRound,
+    ResetAndPauseRound,
+    SelectKeeperRound,
+)
+
 
 HAPPY_PATH = (
-    RoundChecks("registration"),
-    RoundChecks("print_message", n_periods=3),
-    RoundChecks("collect_randomness", n_periods=3),
-    RoundChecks("select_keeper", n_periods=2),
-    RoundChecks("reset_and_pause", n_periods=2),
+    RoundChecks(RegistrationRound.auto_round_id()),
+    RoundChecks(PrintMessageRound.auto_round_id(), n_periods=3),
+    RoundChecks(CollectRandomnessRound.auto_round_id(), n_periods=3),
+    RoundChecks(SelectKeeperRound.auto_round_id(), n_periods=2),
+    RoundChecks(ResetAndPauseRound.auto_round_id(), n_periods=2),
 )
 
 # strict check log messages of the happy path
@@ -56,6 +70,7 @@ STRICT_CHECK_STRINGS = (
 
 
 # normal execution
+@pytest.mark.e2e
 class BaseHelloWorldABCITest(
     BaseTestEnd2EndExecution,
 ):
@@ -65,6 +80,7 @@ class BaseHelloWorldABCITest(
     skill_package = "valory/hello_world_abci:0.1.0"
     wait_to_finish = 160
     happy_path = HAPPY_PATH
+    key_pairs = KEY_PAIRS
     strict_check_strings: Tuple[str, ...] = STRICT_CHECK_STRINGS
     package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
 
@@ -97,7 +113,7 @@ class TestHelloWorldABCIFourAgents(BaseHelloWorldABCITest):
 class BaseHelloWorldABCITestCatchup(BaseHelloWorldABCITest):
     """Test the hello_world_abci skill with catch up behaviour."""
 
-    stop_string = "register"
+    stop_string = RegistrationBehaviour.auto_behaviour_id()
     restart_after = 10
     n_terminal = 1
 
@@ -107,7 +123,7 @@ class BaseHelloWorldABCITestCatchup(BaseHelloWorldABCITest):
 class TestHelloWorldABCIFourAgentsCatchupOnRegister(BaseHelloWorldABCITestCatchup):
     """Test hello_world_abci skill with four agents; one restarting on `register`."""
 
-    stop_string = "register"
+    stop_string = RegistrationBehaviour.auto_behaviour_id()
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
@@ -116,14 +132,14 @@ class TestHelloWorldABCIFourAgentsCatchupRetrieveRandomness(
 ):
     """Test hello_world_abci skill with four agents; one restarting on `collect_randomness`."""
 
-    stop_string = "collect_randomness"
+    stop_string = CollectRandomnessBehaviour.auto_behaviour_id()
 
 
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestHelloWorldABCIFourAgentsCatchupSelectKeeper(BaseHelloWorldABCITestCatchup):
     """Test hello_world_abci skill with four agents; one restarting on `select_keeper`."""
 
-    stop_string = "select_keeper"
+    stop_string = SelectKeeperBehaviour.auto_behaviour_id()
 
 
 # multiple agents terminating and restarting
@@ -134,7 +150,7 @@ class TestHelloWorldABCIFourAgentsTwoAgentRestarting(BaseHelloWorldABCITestCatch
     n_terminal = 2
 
 
-@pytest.mark.skip(reason="not working atm")
+@pytest.mark.skip(reason="https://github.com/valory-xyz/open-autonomy/issues/1709")
 @pytest.mark.parametrize("nb_nodes", (1,))
 class TestHelloWorldABCISingleAgentGrpc(
     BaseHelloWorldABCITest,
@@ -145,7 +161,7 @@ class TestHelloWorldABCISingleAgentGrpc(
     strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
 
 
-@pytest.mark.skip(reason="not working atm")
+@pytest.mark.skip(reason="https://github.com/valory-xyz/open-autonomy/issues/1709")
 @pytest.mark.parametrize("nb_nodes", (2,))
 class TestHelloWorldABCITwoAgentsGrpc(
     BaseHelloWorldABCITest,
@@ -156,7 +172,7 @@ class TestHelloWorldABCITwoAgentsGrpc(
     strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
 
 
-@pytest.mark.skip(reason="not working atm")
+@pytest.mark.skip(reason="https://github.com/valory-xyz/open-autonomy/issues/1709")
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestHelloWorldABCIFourAgentsGrpc(
     BaseHelloWorldABCITest,

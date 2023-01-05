@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -35,8 +35,10 @@ from typing import Any, Callable, Generator, List, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
+import docker
 import pytest
 import requests
+from _pytest.fixtures import SubRequest  # type: ignore
 from aea.configurations.base import ConnectionConfig
 from aea.connections.base import ConnectionStates
 from aea.identity.base import Identity
@@ -45,11 +47,11 @@ from aea.protocols.base import Address, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 from aea_test_autonomy.configurations import ANY_ADDRESS, HTTP_LOCALHOST
 from aea_test_autonomy.docker.base import skip_docker_tests
+from aea_test_autonomy.docker.tendermint import TendermintDockerImage
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     DEFAULT_TENDERMINT_PORT,
     abci_host,
     abci_port,
-    tendermint,
     tendermint_port,
 )
 from aea_test_autonomy.helpers.async_utils import (
@@ -57,6 +59,7 @@ from aea_test_autonomy.helpers.async_utils import (
     BaseThreadedAsyncLoop,
     wait_for_condition,
 )
+from docker.models.containers import Container
 from hypothesis import database, given, settings
 from hypothesis.strategies import integers
 
@@ -73,7 +76,7 @@ from packages.valory.connections.abci.connection import (
     _TendermintABCISerializer,
 )
 from packages.valory.protocols.abci import AbciMessage
-from packages.valory.protocols.abci.custom_types import (  # type: ignore
+from packages.valory.protocols.abci.custom_types import (
     BlockParams,
     ConsensusParams,
     Duration,
@@ -168,6 +171,17 @@ class ABCIAppTest:
         abci_dialogue = self._dialogues.update(request)
         assert abci_dialogue is not None, "cannot update dialogue"
         return cast(AbciDialogue, abci_dialogue)
+
+    def echo(self, request: AbciMessage) -> AbciMessage:
+        """Process echo request"""
+
+        abci_dialogue = self._update_dialogues(request)
+        reply = abci_dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_ECHO,
+            target_message=request,
+            message=request.message,
+        )
+        return cast(AbciMessage, reply)
 
     def info(self, request: AbciMessage) -> AbciMessage:
         """Process an info request."""
@@ -320,15 +334,30 @@ class ABCIAppTest:
 
 
 class BaseABCITest:
-    """Base class for ABCI test."""
+    """Base class for ABCI test (mixin)."""
+
+    TARGET_SKILL_ID: str
 
     def make_app(self) -> ABCIAppTest:
         """Make an ABCI app."""
-        return ABCIAppTest(self.TARGET_SKILL_ID)  # type: ignore
+        return ABCIAppTest(self.TARGET_SKILL_ID)
+
+
+def start_tendermint_docker_image(use_grpc: bool) -> Container:
+    """Start TendermintDockerImage"""
+
+    TendermintDockerImage.use_grpc = use_grpc
+    client = docker.from_env()
+    image = TendermintDockerImage(client)
+    container = image.create()
+    container.start()
+    logging.info(f"Setting up image {image.image}...")
+    success = image.wait()
+    logging.info(f"TendermintDockerImage running: {success}...")
+    return container
 
 
 @pytest.mark.integration
-@pytest.mark.usefixtures("tendermint")
 class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
     """
     Integration test between ABCI connection and Tendermint node.
@@ -344,19 +373,26 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
     PUBLIC_KEY = "agent_public_key"
     tendermint_port = DEFAULT_TENDERMINT_PORT  # noqa: F811
 
-    def setup(self) -> None:
+    @pytest.fixture(autouse=True, params=[False, True])
+    def setup_and_teardown(self, request: SubRequest) -> Generator:
         """Set up the test."""
-        super().setup()
+
+        use_grpc = request.param
+        logging.info(f"Tendermint abci connection using: {('TCP', 'gRPC')[use_grpc]}")
+
         self.agent_identity = Identity(
             "name", address=self.ADDRESS, public_key=self.PUBLIC_KEY
         )
+
         self.configuration = ConnectionConfig(
             connection_id=ABCIServerConnection.connection_id,
             host=DEFAULT_LISTEN_ADDRESS,
             port=DEFAULT_ABCI_PORT,
             target_skill_id=self.TARGET_SKILL_ID,
-            use_tendermint=False,
+            use_tendermint=False,  # using docker image instead
+            use_grpc=use_grpc,
         )
+
         self.connection = ABCIServerConnection(
             identity=self.agent_identity, configuration=self.configuration, data_dir=""
         )
@@ -369,8 +405,22 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
             self.process_incoming_messages()
         )
 
+        # connection must be established,
+        # unlike TCP, only a single ECHO request is send with gRPC
+        time.sleep(5)
+        container = start_tendermint_docker_image(use_grpc=use_grpc)
+
         # wait until tendermint node synchronized with abci
         wait_for_condition(self.health_check, period=5, timeout=1000000)
+
+        yield  # execute test
+
+        # teardown
+        self.stopped = True
+        self.receiving_task.cancel()
+        self.execute(self.connection.disconnect())
+        container.stop()
+        container.remove()
 
     @abstractmethod
     def make_app(self) -> Any:
@@ -390,13 +440,6 @@ class BaseTestABCITendermintIntegration(BaseThreadedAsyncLoop, ABC):
     def tendermint_url(self) -> str:
         """Get the current Tendermint URL."""
         return f"{HTTP_LOCALHOST}:{self.tendermint_port}"
-
-    def teardown(self) -> None:
-        """Tear down the test."""
-        self.stopped = True
-        self.receiving_task.cancel()
-        self.execute(self.connection.disconnect())
-        super().teardown()
 
     async def process_incoming_messages(self) -> None:
         """Receive requests and send responses from/to the Tendermint node"""
@@ -510,6 +553,8 @@ def test_ensure_connected_raises_connection_error() -> None:
         target_skill_id="dummy_author/dummy:0.1.0",
         host=DEFAULT_LISTEN_ADDRESS,
         port=DEFAULT_ABCI_PORT,
+        use_tendermint=False,
+        use_grpc=False,
     )
     connection = ABCIServerConnection(
         identity=MagicMock(), configuration=configuration_mock, data_dir=""
