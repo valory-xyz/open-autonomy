@@ -446,8 +446,8 @@ class TestAbciAppChaining:
             expected_sentinel = (sentinel_app1, sentinel_app2)[round_ in app2_classes]
             assert abci_app.synchronized_data.dummy_attr == expected_sentinel
 
-    def test_precondition_not_specified(self, caplog: LogCaptureFixture) -> None:
-        """Test synchronized data type"""
+    def test_precondition_for_next_app_missing_raises(self, caplog: LogCaptureFixture) -> None:
+        """Test that when precondition for next AbciApp is missing an error is raised"""
 
         class AbciApp1(AbciApp):
             initial_round_cls = self.round_1a
@@ -479,8 +479,8 @@ class TestAbciAppChaining:
         with pytest.raises(ValueError, match=expected):
             chain((AbciApp1, self.app2_class,), abci_app_transition_mapping)
 
-    def test_precondition_for_next_app_missing(self, caplog: LogCaptureFixture) -> None:
-        """Test synchronized data type"""
+    def test_precondition_app_missing_raises(self, caplog: LogCaptureFixture) -> None:
+        """Test that missing precondition specification for next AbciApp is missing an error is raised"""
 
         class AbciApp2(AbciApp):
             initial_round_cls = self.round_2a
@@ -497,7 +497,7 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_2c}
             event_to_timeout = {self.event_timeout2: self.timeout2}
-            db_pre_conditions: Dict[AppState, List[str]] = {} #self.round_2a: [self.key_1]}
+            db_pre_conditions: Dict[AppState, List[str]] = {}
             db_post_conditions: Dict[AppState, List[str]] = {
                 self.round_2c: [self.key_2]
             }
