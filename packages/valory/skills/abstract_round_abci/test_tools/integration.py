@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import asyncio
 import os
 import tempfile
 import time
+from abc import ABC
 from pathlib import Path
 from threading import Thread
 from typing import Any, Callable, Dict, List, Optional, Tuple, cast
@@ -68,7 +69,7 @@ ExpectedTypesType = List[
 ]
 
 
-class IntegrationBaseCase(FSMBehaviourBaseCase):
+class IntegrationBaseCase(FSMBehaviourBaseCase, ABC):
     """Base test class for integration tests."""
 
     running_loop: asyncio.AbstractEventLoop
@@ -284,7 +285,7 @@ class IntegrationBaseCase(FSMBehaviourBaseCase):
         return tuple(incoming_messages)
 
 
-class HardHatHelperIntegration(IntegrationBaseCase):  # pragma: no cover
+class HardHatHelperIntegration(IntegrationBaseCase, ABC):  # pragma: no cover
     """Base test class for integration tests with HardHat provider."""
 
     hardhat_provider: BaseProvider

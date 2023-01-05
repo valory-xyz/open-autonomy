@@ -9,7 +9,7 @@ Integration tests for various transaction settlement skill's failure modes.
 ## `_`SafeConfiguredHelperIntegration Objects
 
 ```python
-class _SafeConfiguredHelperIntegration(IntegrationBaseCase)
+class _SafeConfiguredHelperIntegration(IntegrationBaseCase,  ABC)
 ```
 
 Base test class for integration tests with Gnosis, but no contract, deployed.
@@ -30,7 +30,8 @@ Setup.
 ## `_`GnosisHelperIntegration Objects
 
 ```python
-class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration)
+class _GnosisHelperIntegration(
+    _SafeConfiguredHelperIntegration,  ABC)
 ```
 
 Class that assists Gnosis instantiation.
@@ -51,7 +52,7 @@ Setup.
 ## `_`TxHelperIntegration Objects
 
 ```python
-class _TxHelperIntegration(_GnosisHelperIntegration)
+class _TxHelperIntegration(_GnosisHelperIntegration,  ABC)
 ```
 
 Class that assists tx settlement related operations.

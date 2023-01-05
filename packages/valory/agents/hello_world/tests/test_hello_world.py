@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -70,6 +70,7 @@ STRICT_CHECK_STRINGS = (
 
 
 # normal execution
+@pytest.mark.e2e
 class BaseHelloWorldABCITest(
     BaseTestEnd2EndExecution,
 ):
@@ -149,6 +150,7 @@ class TestHelloWorldABCIFourAgentsTwoAgentRestarting(BaseHelloWorldABCITestCatch
     n_terminal = 2
 
 
+@pytest.mark.skip(reason="https://github.com/valory-xyz/open-autonomy/issues/1709")
 @pytest.mark.parametrize("nb_nodes", (1,))
 class TestHelloWorldABCISingleAgentGrpc(
     BaseHelloWorldABCITest,
@@ -159,6 +161,7 @@ class TestHelloWorldABCISingleAgentGrpc(
     strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
 
 
+@pytest.mark.skip(reason="https://github.com/valory-xyz/open-autonomy/issues/1709")
 @pytest.mark.parametrize("nb_nodes", (2,))
 class TestHelloWorldABCITwoAgentsGrpc(
     BaseHelloWorldABCITest,
@@ -169,6 +172,7 @@ class TestHelloWorldABCITwoAgentsGrpc(
     strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
 
 
+@pytest.mark.skip(reason="https://github.com/valory-xyz/open-autonomy/issues/1709")
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestHelloWorldABCIFourAgentsGrpc(
     BaseHelloWorldABCITest,
