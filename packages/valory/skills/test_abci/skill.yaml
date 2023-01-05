@@ -8,26 +8,26 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeihrn52tx65lerztcuqmuyncrctfvpu2do7wwjycxxj56orejx2cu4
   __init__.py: bafybeie63javimotebwcrwaydwe2gc7a7h7cjhol6l6e5ushlgreorm7hi
-  behaviours.py: bafybeig2zojw3qdludeyf4p7l6v7jcr5xg42yai2c6lp6iy24bxbxes2qu
-  dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
-  handlers.py: bafybeieeau32pkuhlfxmgk5je7lcmqccn5pohi7pgahbqcmfdiyb4q2boq
+  behaviours.py: bafybeidbua357aqaesxe47dt25g6gaobdns7girofrtlzphhl5vke26ggy
+  dialogues.py: bafybeib4jbdycm2vofni3vp6draqet3nejoviqjurcilrzindr4k5dg5fa
+  handlers.py: bafybeibujz375cm52h67pjh7rrg2xnulol6vyjkoedljq37p6ucbwgragy
   models.py: bafybeidlcic7cpxbqlxoeg56d3chnuoepk3inbn3yryyxtskp3msge75ci
   payloads.py: bafybeibp4ty4dnrpkezdmxqdv6icp5d23chkfs5ufygrxb2eouvxsdvv2e
-  rounds.py: bafybeicnhsrtfmmm4zenvfz7mvw5sady5ysz4wbn2uuacmny6qxghsq64a
+  rounds.py: bafybeib5hc6y7nzibmxnsexvsdsc4nessooip7ausytb7np73cgwzt444a
   tests/__init__.py: bafybeicmlbk5j45t5qgvrlv7n3e3kpih2s3ibmjremouifdgcig6cajryq
-  tests/test_behaviours.py: bafybeiggzdpcgeosgvezaqzgaqdfokgv66hozk6hwitysjmnx3rwbcehsm
+  tests/test_behaviours.py: bafybeig5eoozzy37eyw247vuegufula4pbptlgqopkqlre4dyt2qabzjrq
   tests/test_dialogues.py: bafybeicd4f6di6m527d724vo6xcmbmpxgqr22rtzkkcvcqpjzievb5imra
   tests/test_handlers.py: bafybeigwsx5yhtxruoqai3cckiupm3wbu3vucxyxnc6us27oa3nnqgs2xe
   tests/test_models.py: bafybeihtud7c4q4eaop4knivs5yzo6ktaqefrbyjtthuwy34mytcbtpeqq
   tests/test_payloads.py: bafybeigdkysovfmacsvdcw4gsjfijjcwza64zsospifl2v7hwgmz27af5y
-  tests/test_rounds.py: bafybeiac7wlch6uso33fng6qiwgmqhdyetvb64hnlls2oxqe4g3mhggmwa
+  tests/test_rounds.py: bafybeiggmnvzts36xlwvzyjinq2376xcokwkfe2dgw52zkklkbiyogjeg4
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_abci:0.1.0:bafybeihmrrqxu23vyufc6n4uf7pdwskeqx62kvrcddrkj3pvemik5mwuxm
-- valory/abstract_round_abci:0.1.0:bafybeiak3eab5exymhxucs6rffpfa2gdnq7ai7z5gctwzwq4nomkfnma6u
+- valory/abstract_abci:0.1.0:bafybeicdiwkvotgr4h2zulx5rsgxqid22d5greqqhgqadd2uqlmpioipem
+- valory/abstract_round_abci:0.1.0:bafybeibyd7j7ymf7g5twm6dc7qhctn6ldxurwghdw3awh3ywcmyucdscoa
 behaviours:
   main:
     args: {}
@@ -35,7 +35,7 @@ behaviours:
 handlers:
   abci:
     args: {}
-    class_name: TestABCIHandler
+    class_name: ABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -100,7 +100,11 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 30
       service_id: test_abci
-      setup: {}
+      setup:
+        all_participants:
+        - - '0x0000000000000000000000000000000000000000'
+        safe_contract_address:
+        - '0x0000000000000000000000000000000000000000'
       sleep_time: 1
       tendermint_check_sleep_delay: 10
       tendermint_com_url: http://localhost:8080
@@ -127,5 +131,8 @@ models:
   state:
     args: {}
     class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
 dependencies: {}
 is_abstract: false

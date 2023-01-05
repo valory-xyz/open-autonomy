@@ -9,7 +9,7 @@ ABCI App test tools.
 ## `_`ConcreteRound Objects
 
 ```python
-class _ConcreteRound(AbstractRound)
+class _ConcreteRound(AbstractRound,  ABC)
 ```
 
 ConcreteRound
@@ -104,16 +104,6 @@ class ConcreteTerminationRoundA(_ConcreteRound)
 
 Dummy instantiation of the AbstractRound class.
 
-<a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.ConcreteTerminationRoundA.end_block"></a>
-
-#### end`_`block
-
-```python
-def end_block() -> Tuple[MagicMock, MagicMock]
-```
-
-End block.
-
 <a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.ConcreteTerminationRoundB"></a>
 
 ## ConcreteTerminationRoundB Objects
@@ -139,17 +129,27 @@ Dummy instantiation of the AbstractRound class.
 ## ConcreteEvents Objects
 
 ```python
-class ConcreteEvents(Events)
+class ConcreteEvents(Enum)
 ```
 
 Defines dummy events to be used for testing purposes.
+
+<a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.ConcreteEvents.__str__"></a>
+
+#### `__`str`__`
+
+```python
+def __str__() -> str
+```
+
+Get the string representation of the event.
 
 <a id="packages.valory.skills.abstract_round_abci.test_tools.abci_app.AbciAppTest"></a>
 
 ## AbciAppTest Objects
 
 ```python
-class AbciAppTest(AbciApp[str])
+class AbciAppTest(AbciApp[ConcreteEvents])
 ```
 
 A dummy AbciApp for testing purposes.

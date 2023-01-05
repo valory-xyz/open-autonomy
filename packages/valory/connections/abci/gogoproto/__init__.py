@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the Protobuf Python modules for Gogoproto."""
+"""This module contains the Protobuf Python modules for Gogoproto."""  # pragma: nocover

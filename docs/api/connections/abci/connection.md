@@ -640,7 +640,8 @@ Send a message.
 ## StoppableThread Objects
 
 ```python
-class StoppableThread(Thread)
+class StoppableThread(
+    Thread)
 ```
 
 Thread class with a stop() method.
@@ -703,7 +704,7 @@ Initialize the parameters to the Tendermint node.
 - `p2p_seeds`: P2P seeds.
 - `consensus_create_empty_blocks`: if true, Tendermint node creates empty blocks.
 - `home`: Tendermint's home directory.
-- `use_grpc`: Wheter to use a gRPC server, or TSP
+- `use_grpc`: Whether to use a gRPC server, or TCP
 
 <a id="packages.valory.connections.abci.connection.TendermintParams.__str__"></a>
 

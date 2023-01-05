@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the termination round classes."""
+
 from enum import Enum
-from typing import List, Optional, Tuple, cast
+from typing import Dict, List, Optional, Tuple, cast
 
 from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
@@ -29,10 +30,12 @@ from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciApp,
     AbstractRound,
+    AppState,
     BaseSynchronizedData,
     BaseTxPayload,
     CollectSameUntilThresholdRound,
     TransactionNotValidError,
+    get_name,
 )
 from packages.valory.skills.termination_abci.payloads import BackgroundPayload
 from packages.valory.skills.transaction_settlement_abci.rounds import (
@@ -56,28 +59,21 @@ class SynchronizedData(BaseSynchronizedData):
     """
 
     @property
-    def safe_contract_address(self) -> Optional[str]:
-        """Get the safe contract address."""
-        return cast(Optional[str], self.db.get("safe_contract_address", None))
-
-    @property
     def termination_majority_reached(self) -> bool:
         """Get termination_majority_reached."""
         return cast(bool, self.db.get("termination_majority_reached", False))
 
     @property
-    def nb_participants(self) -> int:
-        """Get the number of participants."""
-        participants = cast(List, self.db.get("participants", []))
-        return len(participants)
+    def most_voted_tx_hash(self) -> str:
+        """Get the most_voted_tx_hash."""
+        return cast(str, self.db.get_strict("most_voted_tx_hash"))  # pragma: no cover
 
 
 class BackgroundRound(CollectSameUntilThresholdRound):
     """Defines the background round, which runs concurrently with other rounds."""
 
-    round_id: str = "background_round"
     allowed_tx_type = BackgroundPayload.transaction_type
-    payload_attribute: str = "background_data"
+    payload_attribute: str = get_name(BackgroundPayload.background_data)
     synchronized_data_class = SynchronizedData
 
     def process_payload(self, payload: BaseTxPayload) -> None:
@@ -133,8 +129,12 @@ class BackgroundRound(CollectSameUntilThresholdRound):
         if self.threshold_reached:
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                termination_majority_reached=True,
-                most_voted_tx_hash=self.most_voted_payload,
+                **{
+                    get_name(SynchronizedData.termination_majority_reached): True,
+                    get_name(
+                        SynchronizedData.most_voted_tx_hash
+                    ): self.most_voted_payload,
+                },
             )
             return state, Event.TERMINATE
 
@@ -145,8 +145,8 @@ class TerminationRound(AbstractRound):
     """Round to act as the counterpart of the behaviour responsible for terminating the agent."""
 
     allowed_tx_type = None
-    round_id = "termination_round"
     synchronized_data_class = SynchronizedData
+    payload_attribute = ""
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """No logic required here."""
@@ -180,7 +180,7 @@ class PostTerminationTxAbciApp(AbciApp[Event]):
     # the following is not needed, it is added to satisfy the round check
     # the TerminationRound when run it terminates the agent, so nothing can come after it
     transition_function = {TerminationRound: {Event.TERMINATE: TerminationRound}}
-    cross_period_persisted_keys = ["safe_contract_address"]
+    db_pre_conditions: Dict[AppState, List[str]] = {TerminationRound: []}
 
 
 termination_transition_function: AbciAppTransitionMapping = {

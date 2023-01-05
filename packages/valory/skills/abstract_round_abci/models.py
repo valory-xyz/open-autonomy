@@ -24,7 +24,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 from time import time
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, cast
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Type, cast
 
 from aea.exceptions import enforce
 from aea.skills.base import Model, SkillContext
@@ -33,11 +33,16 @@ from packages.valory.protocols.http.message import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
+    AbstractRound,
     BaseSynchronizedData,
     ConsensusParams,
+    RESET_INDEX_DEFAULT,
+    ROUND_COUNT_DEFAULT,
     RoundSequence,
+    get_name,
 )
 from packages.valory.skills.abstract_round_abci.utils import (
+    DEFAULT_TENDERMINT_P2P_URL,
     get_data_from_nested_dict,
     get_value_with_type,
 )
@@ -118,6 +123,9 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         self.share_tm_config_on_startup = kwargs.pop(
             "share_tm_config_on_startup", False
         )
+        self.tendermint_p2p_url = kwargs.pop(
+            "tendermint_p2p_url", DEFAULT_TENDERMINT_P2P_URL
+        )
         setup_params = kwargs.pop("setup", {})
         # we sanitize for null values as these are just kept for schema definitions
         setup_params = {
@@ -126,12 +134,30 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         self.setup_params = setup_params
         super().__init__(*args, **kwargs)
 
+        if not self.context.is_abstract_component:
+            # setup data are mandatory for non-abstract skills,
+            # and they should always contain at least `all_participants` and `safe_contract_address`
+            self._ensure_setup(
+                {
+                    get_name(BaseSynchronizedData.safe_contract_address),
+                    get_name(BaseSynchronizedData.all_participants),
+                }
+            )
+
     @classmethod
     def _ensure(cls, key: str, kwargs: Dict) -> Any:
         """Get and ensure the configuration field is not None."""
         value = kwargs.pop(key, None)
         enforce(value is not None, f"'{key}' required, but it is not set")
         return value
+
+    def _ensure_setup(self, necessary_keys: Iterable[str]) -> Any:
+        """Ensure that the `setup` params contain all the `necessary_keys`."""
+        enforce(bool(self.setup_params), "`setup` params contain no values!")
+        not_found_keys = set(necessary_keys) - set(self.setup_params)
+        found = not not_found_keys
+        fail_msg = f"Values for `{not_found_keys}` missing from the `setup` params."
+        enforce(found, fail_msg)
 
 
 class SharedState(Model):
@@ -148,7 +174,9 @@ class SharedState(Model):
         self.abci_app_cls = self._process_abci_app_cls(abci_app_cls)
         self.abci_app_cls._is_abstract = skill_context.is_abstract_component
         self._round_sequence: Optional[RoundSequence] = None
-        self.last_reset_params: Optional[List[Tuple[str, str]]] = None
+        self.tm_recovery_params: TendermintRecoveryParams = TendermintRecoveryParams(
+            self.abci_app_cls.initial_round_cls
+        )
         kwargs["skill_context"] = skill_context
         super().__init__(*args, **kwargs)
 
@@ -240,6 +268,16 @@ class RetriesInfo:
     def suggested_sleep_time(self) -> float:
         """The suggested amount of time to sleep."""
         return self.backoff_factor ** self.retries_attempted
+
+
+@dataclass
+class TendermintRecoveryParams:
+    """A dataclass to hold all parameters related to agent <-> tendermint recovery procedures."""
+
+    reset_from_round: Type[AbstractRound]
+    round_count: int = ROUND_COUNT_DEFAULT
+    reset_index: int = RESET_INDEX_DEFAULT
+    reset_params: Optional[List[Tuple[str, str]]] = None
 
 
 class ApiSpecs(Model):

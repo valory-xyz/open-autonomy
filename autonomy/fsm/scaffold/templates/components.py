@@ -32,7 +32,7 @@ class ROUNDS:
     \"\"\"This package contains the rounds of {AbciApp}.\"\"\"
 
     from enum import Enum
-    from typing import List, Optional, Set, Tuple
+    from typing import Dict, List, Optional, Set, Tuple
 
     from packages.valory.skills.abstract_round_abci.base import (
         AbciApp,
@@ -69,10 +69,11 @@ class ROUNDS:
     class {RoundCls}({ABCRoundCls}):
         \"\"\"{RoundCls}\"\"\"
 
+        allowed_tx_type = {PayloadCls}.transaction_type
+        payload_attribute = {PayloadCls}.transaction_type.value
+        synchronized_data_class = SynchronizedData
+
         {todo_abstract_round_cls}
-        round_id: str = "{round_id}"
-        allowed_tx_type: Optional[TransactionType] = {PayloadCls}.transaction_type
-        payload_attribute: str = "{round_id}"
 
         def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
             \"\"\"Process the end of the block.\"\"\"
@@ -92,8 +93,6 @@ class ROUNDS:
     class {RoundCls}({ABCRoundCls}):
         \"\"\"{RoundCls}\"\"\"
 
-        round_id: str = "{round_id}"
-
     """
 
     ABCI_APP_CLS = """\
@@ -106,6 +105,12 @@ class ROUNDS:
         final_states: Set[AppState] = {final_states}
         event_to_timeout: EventToTimeout = {{}}
         cross_period_persisted_keys: List[str] = []
+        db_pre_conditions: Dict[AppState, List[str]] = {{
+            {db_pre_conditions}
+        }}
+        db_post_conditions: Dict[AppState, List[str]] = {{
+            {db_post_conditions}
+        }}
     """
 
 
@@ -118,6 +123,7 @@ class BEHAVIOURS:
     HEADER = """\
     \"\"\"This package contains round behaviours of {AbciApp}.\"\"\"
 
+    from abc import ABC
     from typing import Generator, Set, Type, cast
 
     from packages.valory.skills.abstract_round_abci.base import AbstractRound
@@ -139,8 +145,8 @@ class BEHAVIOURS:
     """
 
     BASE_BEHAVIOUR_CLS = """\
-    class {BaseBehaviourCls}(BaseBehaviour):
-        \"\"\"Base behaviour for the common apps' skill.\"\"\"
+    class {BaseBehaviourCls}(BaseBehaviour, ABC):
+        \"\"\"Base behaviour for the {skill_name} skill.\"\"\"
 
         @property
         def synchronized_data(self) -> SynchronizedData:
@@ -158,12 +164,9 @@ class BEHAVIOURS:
     class {BehaviourCls}({BaseBehaviourCls}):
         \"\"\"{BehaviourCls}\"\"\"
 
-        # TODO: set the following class attributes
-        state_id: str
-        behaviour_id: str = "{behaviour_id}"
         matching_round: Type[AbstractRound] = {matching_round}
 
-        # TODO: implement logic required to set payload content (e.g. synchronized_data)
+        # TODO: implement logic required to set payload content for synchronization
         def async_act(self) -> Generator:
             \"\"\"Do the act, supporting asynchronous execution.\"\"\"
 
@@ -210,7 +213,6 @@ class PAYLOADS:
     class TransactionType(Enum):
         \"\"\"Enumeration of transaction types.\"\"\"
 
-        # TODO: define transaction types: e.g. TX_HASH: "tx_hash"
         {tx_types}
 
         def __str__(self) -> str:
@@ -228,7 +230,7 @@ class PAYLOADS:
 
             super().__init__(sender, **kwargs)
             setattr(self, f"_{{self.transaction_type}}", content)
-            p = property(lambda s: getattr(self, f"_{{self.transaction_type}}"))
+            p = property(lambda self: getattr(self, f"_{{self.transaction_type}}"))
             setattr(self.__class__, f"{{self.transaction_type}}", p)
 
         @property
@@ -312,7 +314,7 @@ class HANDLERS:
     )
 
 
-    ABCIRoundHandler = BaseABCIRoundHandler
+    ABCIHandler = BaseABCIRoundHandler
     HttpHandler = BaseHttpHandler
     SigningHandler = BaseSigningHandler
     LedgerApiHandler = BaseLedgerApiHandler

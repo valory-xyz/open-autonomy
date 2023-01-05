@@ -16,8 +16,10 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+
 """Fuzzy tests for valory/abci connection"""
-from unittest import TestCase
+
+import platform
 
 import pytest
 
@@ -30,19 +32,25 @@ from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.tcp_cha
 )
 
 
-@pytest.mark.skip(reason="broken & takes too long time to complete on CI")
-class GrpcFuzzyTests(BaseFuzzyTests, TestCase):
+@pytest.mark.skipif(
+    platform.system() == "Windows",
+    reason="<IocpProactor overlapped#=1175 result#=0> is running after closing for ... seconds (windows_events.py:871)",
+)
+class TestFuzzyGrpc(BaseFuzzyTests):
     """Test the connection when gRPC is used"""
 
     CHANNEL_TYPE = GrpcChannel
     USE_GRPC = True
-    AGENT_TIMEOUT = 30  # 3 seconds
+    AGENT_TIMEOUT_SECONDS = 30
 
 
-@pytest.mark.skip(reason="broken & takes too long time to complete on CI")
-class TcpFuzzyTests(BaseFuzzyTests, TestCase):
+@pytest.mark.skipif(
+    platform.system() == "Windows",
+    reason="<IocpProactor overlapped#=1175 result#=0> is running after closing for ... seconds (windows_events.py:871)",
+)
+class TestFuzzyTcp(BaseFuzzyTests):
     """Test the connection when TCP is used"""
 
     CHANNEL_TYPE = TcpChannel
     USE_GRPC = False
-    AGENT_TIMEOUT = 30  # 3 seconds
+    AGENT_TIMEOUT_SECONDS = 30

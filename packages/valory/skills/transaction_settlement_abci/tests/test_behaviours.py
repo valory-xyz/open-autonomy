@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,11 +21,13 @@
 
 # pylint: skip-file
 
+import logging
 import time
 from collections import deque
 from pathlib import Path
 from typing import (
     Any,
+    Callable,
     Deque,
     Dict,
     Generator,
@@ -41,6 +43,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+from _pytest.logging import LogCaptureFixture
 from _pytest.monkeypatch import MonkeyPatch
 from aea.helpers.transaction.base import (
     RawTransaction,
@@ -50,6 +53,7 @@ from aea.helpers.transaction.base import (
 from aea.helpers.transaction.base import State as TrState
 from aea.helpers.transaction.base import TransactionDigest, TransactionReceipt
 from aea.skills.base import SkillContext
+from web3.types import Nonce
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.contracts.gnosis_safe.contract import (
@@ -105,6 +109,19 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 PACKAGE_DIR = Path(__file__).parent.parent
 
 
+def mock_yield_and_return(
+    return_value: Any,
+) -> Callable[[], Generator[None, None, Any]]:
+    """Wrapper for a Dummy generator that returns a `bool`."""
+
+    def yield_and_return(*_: Any, **__: Any) -> Generator[None, None, Any]:
+        """Dummy generator that returns a `bool`."""
+        yield
+        return return_value
+
+    return yield_and_return
+
+
 def test_skill_public_id() -> None:
     """Test skill module public ID"""
 
@@ -118,10 +135,8 @@ class TransactionSettlementFSMBehaviourBaseCase(FSMBehaviourBaseCase):
     path_to_skill = PACKAGE_DIR
 
 
-class TestTransactionSettlementBaseBehaviour(FSMBehaviourBaseCase):
+class TestTransactionSettlementBaseBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test `TransactionSettlementBaseBehaviour`."""
-
-    path_to_skill = PACKAGE_DIR
 
     @pytest.mark.parametrize(
         "message, tx_digest, rpc_status, expected_data, replacement",
@@ -295,7 +310,7 @@ class TestTransactionSettlementBaseBehaviour(FSMBehaviourBaseCase):
         # fast-forward to any behaviour of the tx settlement skill
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=SignatureBehaviour.behaviour_id,
+            behaviour_id=SignatureBehaviour.auto_behaviour_id(),
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
                     setup_data=AbciAppDB.data_to_lists(
@@ -315,10 +330,10 @@ class TestTransactionSettlementBaseBehaviour(FSMBehaviourBaseCase):
             ),
         )
         behaviour = cast(SignatureBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.behaviour_id == SignatureBehaviour.behaviour_id
+        assert behaviour.behaviour_id == SignatureBehaviour.auto_behaviour_id()
         # Set `nonce` to the same value as the returned, so that we test the tx replacement logging.
         if replacement:
-            behaviour.params.nonce = 0
+            behaviour.params.nonce = Nonce(0)
 
         # patch the `send_raw_transaction` method
         def dummy_send_raw_transaction(
@@ -391,7 +406,7 @@ class TestTransactionSettlementBaseBehaviour(FSMBehaviourBaseCase):
         # fast-forward to any behaviour of the tx settlement skill
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=SignatureBehaviour.behaviour_id,
+            behaviour_id=SignatureBehaviour.auto_behaviour_id(),
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
                     setup_data=AbciAppDB.data_to_lists(dict()),
@@ -411,7 +426,7 @@ class TestTransactionSettlementBaseBehaviour(FSMBehaviourBaseCase):
         # fast-forward to any behaviour of the tx settlement skill
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=SignatureBehaviour.behaviour_id,
+            behaviour_id=SignatureBehaviour.auto_behaviour_id(),
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
                     setup_data=AbciAppDB.data_to_lists(dict()),
@@ -466,7 +481,7 @@ class TestTransactionSettlementBaseBehaviour(FSMBehaviourBaseCase):
         # fast-forward to any behaviour of the tx settlement skill
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=SignatureBehaviour.behaviour_id,
+            behaviour_id=SignatureBehaviour.auto_behaviour_id(),
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
                     setup_data=AbciAppDB.data_to_lists(dict()),
@@ -548,6 +563,22 @@ class TestSelectKeeperTransactionSubmissionBehaviourB(
         keeper_retries_mock.return_value = keeper_retries
         super().test_select_keeper(blacklisted_keepers=blacklisted_keepers)
 
+    @mock.patch.object(
+        TransactionSettlementSynchronizedSata,
+        "final_verification_status",
+        new_callable=mock.PropertyMock,
+        return_value=VerificationStatus.PENDING,
+    )
+    @pytest.mark.skip  # Needs to be investigated, fails in CI only. look at #1710
+    def test_select_keeper_tx_pending(
+        self, _: mock.PropertyMock, caplog: LogCaptureFixture
+    ) -> None:
+        """Test select keeper while tx is pending"""
+
+        with caplog.at_level(logging.INFO):
+            super().test_select_keeper(blacklisted_keepers=set())
+            assert "Kept keepers and incremented retries" in caplog.text
+
 
 class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test SignatureBehaviour."""
@@ -559,7 +590,7 @@ class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
 
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=SignatureBehaviour.behaviour_id,
+            behaviour_id=SignatureBehaviour.auto_behaviour_id(),
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
                     setup_data=dict(
@@ -575,7 +606,7 @@ class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
-            == SignatureBehaviour.behaviour_id
+            == SignatureBehaviour.auto_behaviour_id()
         )
         self.behaviour.act_wrapper()
         self.mock_signing_request(
@@ -593,7 +624,7 @@ class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
         behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.behaviour_id == FinalizeBehaviour.behaviour_id
+        assert behaviour.behaviour_id == FinalizeBehaviour.auto_behaviour_id()
 
 
 class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
@@ -609,7 +640,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         retries = 1
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=self.behaviour_class.behaviour_id,
+            behaviour_id=self.behaviour_class.auto_behaviour_id(),
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
                     setup_data=AbciAppDB.data_to_lists(
@@ -628,7 +659,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         assert self.behaviour.current_behaviour is not None
         assert (
             self.behaviour.current_behaviour.behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
         cast(
             FinalizeBehaviour, self.behaviour.current_behaviour
@@ -637,7 +668,9 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
         behaviour = cast(ValidateTransactionBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.behaviour_id == ValidateTransactionBehaviour.behaviour_id
+        assert (
+            behaviour.behaviour_id == ValidateTransactionBehaviour.auto_behaviour_id()
+        )
         assert behaviour.params.tx_hash == "test"
 
     @pytest.mark.parametrize(
@@ -732,7 +765,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         )
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=self.behaviour_class.behaviour_id,
+            behaviour_id=self.behaviour_class.auto_behaviour_id(),
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
                     setup_data=AbciAppDB.data_to_lists(
@@ -760,7 +793,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         assert self.behaviour.current_behaviour is not None
         assert (
             self.behaviour.current_behaviour.behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
         cast(
             FinalizeBehaviour, self.behaviour.current_behaviour
@@ -805,7 +838,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self.end_round(TransactionSettlementEvent.DONE)
         assert (
             self.behaviour.current_behaviour.behaviour_id
-            == ValidateTransactionBehaviour.behaviour_id
+            == ValidateTransactionBehaviour.auto_behaviour_id()
         )
         assert (
             cast(
@@ -814,12 +847,94 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             == ""
         )
 
+    def test_sender_act_tx_data_contains_tx_digest(self) -> None:
+        """Test finalize behaviour."""
+
+        max_priority_fee_per_gas: Optional[int] = None
+
+        retries = 1
+        participants = frozenset(
+            {self.skill.skill_context.agent_address, "a_1" + "-" * 39, "a_2" + "-" * 39}
+        )
+        kwargs = dict(
+            safe_contract_address="safe_contract_address",
+            participants=participants,
+            participant_to_signature={},
+            most_voted_tx_hash=hash_payload_to_hex(
+                "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                1,
+                1,
+                "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
+                b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+            ),
+            nonce=None,
+            max_priority_fee_per_gas=max_priority_fee_per_gas,
+            keepers=retries.to_bytes(32, "big").hex()
+            + self.skill.skill_context.agent_address,
+        )
+
+        db = AbciAppDB(setup_data=AbciAppDB.data_to_lists(kwargs))
+
+        self.fast_forward_to_behaviour(
+            behaviour=self.behaviour,
+            behaviour_id=self.behaviour_class.auto_behaviour_id(),
+            synchronized_data=TransactionSettlementSynchronizedSata(db),
+        )
+
+        response_kwargs = dict(
+            performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+            callable="get_deploy_transaction",
+            raw_transaction=RawTransaction(
+                ledger_id="ethereum",
+                body={
+                    "tx_hash": "0x3b",
+                    "nonce": 0,
+                    "maxFeePerGas": int(10e10),
+                    "maxPriorityFeePerGas": int(10e10),
+                },
+            ),
+        )
+
+        # mock the returned tx_data
+        return_value = dict(
+            status=VerificationStatus.PENDING,
+            keepers=deque(),
+            keeper_retries=1,
+            blacklisted_keepers=set(),
+            tx_digest="dummy_tx_digest",
+        )
+
+        current_behaviour = cast(
+            TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
+        )
+        current_behaviour._get_tx_data = mock_yield_and_return(return_value)  # type: ignore
+
+        self.behaviour.act_wrapper()
+        self.mock_contract_api_request(
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+            ),
+            contract_id=str(GNOSIS_SAFE_CONTRACT_ID),
+            response_kwargs=response_kwargs,
+        )
+        self.behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(TransactionSettlementEvent.DONE)
+
+        current_behaviour = cast(
+            ValidateTransactionBehaviour, self.behaviour.current_behaviour
+        )
+        current_behaviour_id = current_behaviour.behaviour_id
+        expected_behaviour_id = ValidateTransactionBehaviour.auto_behaviour_id()
+        assert current_behaviour_id == expected_behaviour_id
+
     def test_handle_late_messages(self) -> None:
         """Test `handle_late_messages.`"""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=self.behaviour_class.behaviour_id,
+            behaviour_id=self.behaviour_class.auto_behaviour_id(),
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
                     setup_data=AbciAppDB.data_to_lists(
@@ -837,7 +952,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         )
         assert (
             self.behaviour.current_behaviour.behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         message = ContractApiMessage(ContractApiMessage.Performative.RAW_MESSAGE)  # type: ignore
@@ -862,7 +977,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             )
             mock_info.assert_called_with(
                 f"No callback defined for request with nonce: {message.dialogue_reference[0]}, "
-                "arriving for behaviour: finalize"
+                f"arriving for behaviour: {FinalizeBehaviour.auto_behaviour_id()}"
             )
 
 
@@ -875,7 +990,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
         most_voted_keeper_address = self.skill.skill_context.agent_address
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=ValidateTransactionBehaviour.behaviour_id,
+            behaviour_id=ValidateTransactionBehaviour.auto_behaviour_id(),
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
                     setup_data=AbciAppDB.data_to_lists(
@@ -904,7 +1019,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
                 BaseBehaviour,
                 cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
-            == ValidateTransactionBehaviour.behaviour_id
+            == ValidateTransactionBehaviour.auto_behaviour_id()
         )
 
     def test_validate_transaction_safe_behaviour(
@@ -940,8 +1055,8 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
         assert (
             behaviour.behaviour_id
             == make_degenerate_behaviour(
-                FinishedTransactionSubmissionRound.round_id
-            ).behaviour_id
+                FinishedTransactionSubmissionRound
+            ).auto_behaviour_id()
         )
 
     def test_validate_transaction_safe_behaviour_no_tx_sent(
@@ -976,7 +1091,7 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
         """Fast-forward to relevant behaviour."""
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=CheckTransactionHistoryBehaviour.behaviour_id,
+            behaviour_id=CheckTransactionHistoryBehaviour.auto_behaviour_id(),
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
                     setup_data=AbciAppDB.data_to_lists(
@@ -995,7 +1110,7 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
         )
         assert (
             cast(BaseBehaviour, self.behaviour.current_behaviour).behaviour_id
-            == CheckTransactionHistoryBehaviour.behaviour_id
+            == CheckTransactionHistoryBehaviour.auto_behaviour_id()
         )
 
     @pytest.mark.parametrize(
@@ -1061,9 +1176,51 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
         assert (
             behaviour.behaviour_id
             == make_degenerate_behaviour(
-                FinishedTransactionSubmissionRound.round_id
-            ).behaviour_id
+                FinishedTransactionSubmissionRound
+            ).auto_behaviour_id()
         )
+
+
+class TestCheckLateTxHashesBehaviour(TransactionSettlementFSMBehaviourBaseCase):
+    """Test CheckLateTxHashesBehaviour."""
+
+    def _fast_forward(self, late_arriving_tx_hashes: str) -> None:
+        """Fast-forward to relevant behaviour."""
+
+        agent_address = self.skill.skill_context.agent_address
+        kwargs = dict(
+            safe_contract_address="safe_contract_address",
+            participants=frozenset({agent_address, "a_1", "a_2"}),
+            participant_to_signature={},
+            most_voted_tx_hash="",
+            late_arriving_tx_hashes=late_arriving_tx_hashes,
+        )
+        abci_app_db = AbciAppDB(setup_data=AbciAppDB.data_to_lists(kwargs))
+
+        self.fast_forward_to_behaviour(
+            behaviour=self.behaviour,
+            behaviour_id=CheckLateTxHashesBehaviour.auto_behaviour_id(),
+            synchronized_data=TransactionSettlementSynchronizedSata(abci_app_db),
+        )
+
+        current_behaviour = self.behaviour.current_behaviour
+        current_behaviour_id = cast(BaseBehaviour, current_behaviour).behaviour_id
+        assert current_behaviour_id == CheckLateTxHashesBehaviour.auto_behaviour_id()
+
+    def test_check_tx_history_behaviour(self) -> None:
+        """Test CheckTransactionHistoryBehaviour."""
+
+        self._fast_forward(late_arriving_tx_hashes="")
+        self.behaviour.act_wrapper()
+        self.behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(TransactionSettlementEvent.DONE)
+        behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
+        next_degen_behaviour = make_degenerate_behaviour(
+            FinishedTransactionSubmissionRound
+        )
+        assert behaviour.behaviour_id == next_degen_behaviour.auto_behaviour_id()
 
 
 class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBaseCase):
@@ -1073,7 +1230,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
         self, expected: Type[TransactionSettlementBaseBehaviour]
     ) -> None:
         behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.behaviour_id == expected.behaviour_id
+        assert behaviour.behaviour_id == expected.auto_behaviour_id()
 
     @pytest.mark.parametrize("late_messages", ([], [MagicMock, MagicMock]))
     def test_async_act(self, late_messages: List[MagicMock]) -> None:
@@ -1085,7 +1242,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=SynchronizeLateMessagesBehaviour.behaviour_id,
+            behaviour_id=SynchronizeLateMessagesBehaviour.auto_behaviour_id(),
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(
                     setup_data=dict(
@@ -1116,7 +1273,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
                     "tx_digest": "test",
                 }
 
-            cast(  # type: ignore
+            cast(
                 TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
             )._get_tx_data = _dummy_get_tx_data  # type: ignore
             for _ in range(len(late_messages)):
@@ -1135,7 +1292,7 @@ class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         """Test reset behaviour."""
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=self.behaviour_class.behaviour_id,
+            behaviour_id=self.behaviour_class.auto_behaviour_id(),
             synchronized_data=TransactionSettlementSynchronizedSata(
                 AbciAppDB(setup_data=dict(estimate=[1.0])),
             ),
@@ -1145,7 +1302,7 @@ class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
         self.behaviour.context.params.observation_interval = 0.1
         self.behaviour.act_wrapper()
@@ -1155,4 +1312,4 @@ class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
         behaviour = cast(BaseBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert behaviour.behaviour_id == self.next_behaviour_class.auto_behaviour_id()

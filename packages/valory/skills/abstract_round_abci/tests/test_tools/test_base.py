@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,29 +20,23 @@
 """Tests for abstract_round_abci/test_tools/base.py"""
 
 from enum import Enum
-from pathlib import Path
 from typing import Any, Dict, cast
 
 import pytest
-from aea.helpers.base import cd
 from aea.mail.base import Envelope
-from aea.test_tools.utils import copy_class
 
 from packages.valory.connections.ledger.connection import (
     PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB, _MetaPayload
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
     DummyContext,
     FSMBehaviourBaseCase,
 )
-from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import (
-    PATH_TO_SKILL,
-    PUBLIC_ID,
-)
+from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci import PUBLIC_ID
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.behaviours import (
     DummyRoundBehaviour,
 )
@@ -53,45 +47,24 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds imp
     Event,
     SynchronizedData,
 )
+from packages.valory.skills.abstract_round_abci.tests.test_tools.base import (
+    FSMBehaviourTestToolSetup,
+)
 
 
-class TestFSMBehaviourBaseCaseSetup:
+class TestFSMBehaviourBaseCaseSetup(FSMBehaviourTestToolSetup):
     """test TestFSMBehaviourBaseCaseSetup setup"""
 
-    test_cls: FSMBehaviourBaseCase
+    test_cls = FSMBehaviourBaseCase
 
-    @classmethod
-    def setup_class(cls) -> None:
-        """Setup class"""
-        cls.old_value = _MetaPayload.transaction_type_to_payload_cls.copy()  # type: ignore
-        _MetaPayload.transaction_type_to_payload_cls.clear()
-
-    @classmethod
-    def teardown_class(cls) -> None:
-        """Teardown class"""
-        _MetaPayload.transaction_type_to_payload_cls = cls.old_value  # type: ignore
-
-    def setup(self) -> None:
-        """Setup test"""
-
-        # must `copy` the class to avoid test interference
-        self.test_cls = cast(FSMBehaviourBaseCase, copy_class(FSMBehaviourBaseCase))
-
-    def setup_test_cls(
-        self, **kwargs: Dict[str, Dict[str, Any]]
-    ) -> FSMBehaviourBaseCase:
-        """Helper method to setup test to be tested"""
-
-        with cd(self.test_cls.path_to_skill):
+    @pytest.mark.skip(
+        "enable once base class is fixed: https://github.com/valory-xyz/open-aea/issues/492"
+    )
+    @pytest.mark.parametrize("kwargs", [{}])
+    def test_setup_fails_without_path(self, kwargs: Dict[str, Dict[str, Any]]) -> None:
+        """Test setup"""
+        with pytest.raises(ValueError):
             self.test_cls.setup_class(**kwargs)
-
-        test_instance = self.test_cls()  # type: ignore
-        test_instance.setup()
-        return test_instance
-
-    def set_path_to_skill(self, path_to_skill: Path = PATH_TO_SKILL) -> None:
-        """Set path_to_skill"""
-        self.test_cls.path_to_skill = path_to_skill
 
     @pytest.mark.parametrize("kwargs", [{}, {"param_overrides": {"new_p": None}}])
     def test_setup(self, kwargs: Dict[str, Dict[str, Any]]) -> None:
@@ -119,6 +92,19 @@ class TestFSMBehaviourBaseCaseSetup:
             behaviour=round_behaviour,
             behaviour_id=behaviour_id,
             synchronized_data=synchronized_data,
+        )
+
+        current_behaviour = test_instance.behaviour.current_behaviour
+        assert current_behaviour is not None
+        assert isinstance(
+            current_behaviour.synchronized_data,
+            SynchronizedData,
+        )
+        assert current_behaviour.behaviour_id == behaviour.behaviour_id
+        assert (  # pylint: disable=protected-access
+            test_instance.skill.skill_context.state.round_sequence.abci_app._current_round_cls
+            == current_behaviour.matching_round
+            == behaviour.matching_round
         )
 
     @pytest.mark.parametrize("event", Event)

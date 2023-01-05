@@ -9,7 +9,7 @@ This module contains the behaviours for the 'abci' skill.
 ## RegistrationBaseBehaviour Objects
 
 ```python
-class RegistrationBaseBehaviour(BaseBehaviour)
+class RegistrationBaseBehaviour(BaseBehaviour,  ABC)
 ```
 
 Agent registration to the FSM App.
@@ -151,6 +151,16 @@ def request_update() -> Generator[None, None, bool]
 ```
 
 Make HTTP POST request to update agent's local Tendermint node
+
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.wait_for_block"></a>
+
+#### wait`_`for`_`block
+
+```python
+def wait_for_block(timeout: float) -> Generator[None, None, bool]
+```
+
+Wait for a block to be received in the specified timeout.
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.async_act"></a>
 

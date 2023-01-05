@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -477,7 +477,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
             ),
         ),
     )
-    def test_run(  # type: ignore
+    def test_run(
         self,
         threshold_exceeded_mock: mock.PropertyMock,
         attrs: Dict[str, Union[str, int]],

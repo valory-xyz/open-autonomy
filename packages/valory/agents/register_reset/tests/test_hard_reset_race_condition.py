@@ -29,6 +29,7 @@ from aea_test_autonomy.base_test_classes.agents import (
     BaseTestEnd2EndExecution,
     RoundChecks,
 )
+from aea_test_autonomy.configurations import KEY_PAIRS
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     abci_host,
     abci_port,
@@ -39,12 +40,17 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
 from packages.valory.agents.register_reset.tests.helpers.conftest import (  # noqa: F401
     flask_tendermint,
 )
+from packages.valory.skills.registration_abci.rounds import (
+    RegistrationRound,
+    RegistrationStartupRound,
+)
+from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
 
 
 HAPPY_PATH = (
-    RoundChecks("registration_startup"),
-    RoundChecks("registration", n_periods=2),
-    RoundChecks("reset_and_pause", n_periods=3),
+    RoundChecks(RegistrationStartupRound.auto_round_id()),
+    RoundChecks(RegistrationRound.auto_round_id(), n_periods=2),
+    RoundChecks(ResetAndPauseRound.auto_round_id(), n_periods=3),
 )
 
 
@@ -58,6 +64,7 @@ class TestRaceConditionTendermintReset(BaseTestEnd2EndExecution):
     agent_package = "valory/register_reset:0.1.0"
     skill_package = "valory/register_reset_abci:0.1.0"
     happy_path = HAPPY_PATH
+    key_pairs = KEY_PAIRS
     wait_to_finish = 200
     __reset_tendermint_every = 1
     package_registry_src_rel = Path(__file__).parents[4]

@@ -203,16 +203,16 @@ class BaseContractWithDependencyTest(BaseContractTest):
 class BaseGanacheContractWithDependencyTest(
     BaseContractWithDependencyTest, GanacheBaseTest
 ):
-    """Base test case for testing contracts on Ganache."""
+    """Base test case for testing contracts with dependencies on Ganache."""
 
 
 class BaseHardhatGnosisContractWithDependencyTest(
     BaseContractWithDependencyTest, HardHatGnosisBaseTest
 ):
-    """Base test case for testing contracts on Hardhat with Gnosis."""
+    """Base test case for testing contracts with dependencies on Hardhat with Gnosis."""
 
 
 class BaseHardhatAMMContractWithDependencyTest(
     BaseContractWithDependencyTest, HardHatAMMBaseTest
 ):
-    """Base test case for testing AMM contracts on Hardhat."""
+    """Base test case for testing AMM contracts with dependencies on Hardhat."""

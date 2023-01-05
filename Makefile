@@ -79,8 +79,7 @@ security:
 generators:
 	tox -e abci-docstrings
 	tox -e fix-copyright
-	python -m autonomy.cli hash all
-	python -m autonomy.cli packages lock
+	tox -e lock-packages
 	tox -e generate-api-documentation
 	tox -e fix-doc-hashes
 
@@ -219,11 +218,11 @@ teardown-kubernetes:
 
 .PHONY: fix-abci-app-specs
 fix-abci-app-specs:
-	python -m autonomy.cli analyse fsm-specs --app-class AgentRegistrationAbciApp --package packages/valory/skills/registration_abci || (echo "Failed to check registration_abci consistency" && exit 1)
-	python -m autonomy.cli analyse fsm-specs --app-class ResetPauseAbciApp --package packages/valory/skills/reset_pause_abci || (echo "Failed to check reset_pause_abci consistency" && exit 1)
-	python -m autonomy.cli analyse fsm-specs --app-class SafeDeploymentAbciApp --package packages/valory/skills/safe_deployment_abci || (echo "Failed to check safe_deployment_abci consistency" && exit 1)
-	python -m autonomy.cli analyse fsm-specs --app-class HelloWorldAbciApp --package packages/valory/skills/hello_world_abci || (echo "Failed to check hello_world_abci consistency" && exit 1)
-	python -m autonomy.cli analyse fsm-specs --app-class TransactionSubmissionAbciApp --package packages/valory/skills/transaction_settlement_abci || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
+	autonomy analyse fsm-specs --update --app-class AgentRegistrationAbciApp --package packages/valory/skills/registration_abci || (echo "Failed to check registration_abci consistency" && exit 1)
+	autonomy analyse fsm-specs --update --app-class ResetPauseAbciApp --package packages/valory/skills/reset_pause_abci || (echo "Failed to check reset_pause_abci consistency" && exit 1)
+	autonomy analyse fsm-specs --update --app-class RegisterResetAbciApp --package packages/valory/skills/register_reset_abci || (echo "Failed to check register_reset_abci consistency" && exit 1)
+	autonomy analyse fsm-specs --update --app-class HelloWorldAbciApp --package packages/valory/skills/hello_world_abci || (echo "Failed to check hello_world_abci consistency" && exit 1)
+	autonomy analyse fsm-specs --update --app-class TransactionSubmissionAbciApp --package packages/valory/skills/transaction_settlement_abci || (echo "Failed to check transaction_settlement_abci consistency" && exit 1)
 	echo "Successfully validated abcis!"
 
 release-images:

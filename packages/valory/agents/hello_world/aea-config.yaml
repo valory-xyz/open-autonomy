@@ -8,21 +8,21 @@ fingerprint:
   README.md: bafybeifzdekpjcas6egpwxj24tir5ozzffmkq5ecyi6rw3i6fqfd763etu
   __init__.py: bafybeiehvk4wlv2bcbplwc66owg4qdnisiihijq7iegcmjjxtz3dulnrgm
   tests/__init__.py: bafybeiasj5kqyvalbnedototb6ooxfnro3vjmgscja2iccccotfjnd6cha
-  tests/test_hello_world.py: bafybeifk2bxzvsd42pgpam4j726a2dgokrivwu3gmwq6v3zb4mexkcv4nu
+  tests/test_hello_world.py: bafybeihji2jhn7pa45oydxz3w667k4qhwhs25v6ykd2s2rprif76ydij3q
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeidkvuouh4e6hknd5g77qnpfoepmcb32idjuwq375mpsqpbjtaeo6e
-- valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
-- valory/p2p_libp2p_client:0.1.0:bafybeidkk33xbga54szmitk6uwsi3ef56hbbdbuasltqtiyki34hgfpnxa
+- valory/abci:0.1.0:bafybeiazuc4m6pgz5t2giw64boylpenyuwq2ceqikod6p773drf7m4q7ea
+- valory/http_client:0.23.0:bafybeigggahci7hq6tr3tyueatgkvgn73y4b3av2vk7vtr7jkeuwsqcteq
+- valory/p2p_libp2p_client:0.1.0:bafybeiayoofxmj6z3pasn2akqj3udgq2ta2ar6mv6zoehstul2btvv3gqa
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
+- open_aea/signing:1.0.0:bafybeihgwrowgtegpe4ixe3iy5jx65u7pxebl5btrkywzmx7g52gjtbnpi
 - valory/abci:0.1.0:bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm
-- valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
+- valory/http:1.0.0:bafybeifru3qs6udfzprax7jxktbsuzn7immfvi3scgfspifq3zdxwkgvnm
 skills:
-- valory/abstract_abci:0.1.0:bafybeihmrrqxu23vyufc6n4uf7pdwskeqx62kvrcddrkj3pvemik5mwuxm
-- valory/abstract_round_abci:0.1.0:bafybeiak3eab5exymhxucs6rffpfa2gdnq7ai7z5gctwzwq4nomkfnma6u
-- valory/hello_world_abci:0.1.0:bafybeihelmoevhqyt4pqh53kbyxogimizfn3amnebzk3hsm4z4brzaluue
+- valory/abstract_abci:0.1.0:bafybeicdiwkvotgr4h2zulx5rsgxqid22d5greqqhgqadd2uqlmpioipem
+- valory/abstract_round_abci:0.1.0:bafybeibyd7j7ymf7g5twm6dc7qhctn6ldxurwghdw3awh3ywcmyucdscoa
+- valory/hello_world_abci:0.1.0:bafybeidfosry57rcfxuonmuhpg3ai2lcqasgjvuxbwdkrlfxb4m5svuwxy
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -53,9 +53,9 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.25.0
+    version: ==1.27.0
   open-aea-test-autonomy:
-    version: ==0.5.0.post2
+    version: ==0.6.0
 default_connection: null
 ---
 public_id: valory/hello_world_abci:0.1.0
@@ -63,7 +63,7 @@ type: skill
 models:
   params:
     args:
-      hello_world_message: ${SKILL_HELLO_WORLD_ABCI_MODELS_PARAMS_ARGS_HELLO_WORLD_MESSAGE:str:HELLO_WORLD!}
+      hello_world_message: ${MY_HELLO_WORLD_MESSAGE:str:HELLO_WORLD!}
       tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
       tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
 ---

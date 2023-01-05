@@ -21,6 +21,7 @@
 
 import hashlib
 import random
+from abc import ABC
 from math import floor
 from typing import Any, Dict, Generator, List, Optional, Type, Union, cast
 
@@ -52,7 +53,7 @@ def random_selection(elements: List[Any], randomness: float) -> str:
     return elements[random_position]
 
 
-class RandomnessBehaviour(BaseBehaviour):
+class RandomnessBehaviour(BaseBehaviour, ABC):
     """Check whether Tendermint nodes are running."""
 
     payload_class: Type[BaseTxPayload]
@@ -129,7 +130,7 @@ class RandomnessBehaviour(BaseBehaviour):
                 self.context.logger.info(f"Retrieved DRAND values: {observation}.")
 
         if observation:
-            payload = self.payload_class(  # type: ignore
+            payload = self.payload_class(
                 self.context.agent_address,
                 round_id=observation["round"],
                 randomness=observation["randomness"],
@@ -157,7 +158,7 @@ class RandomnessBehaviour(BaseBehaviour):
         self.context.randomness_api.reset_retries()
 
 
-class SelectKeeperBehaviour(BaseBehaviour):
+class SelectKeeperBehaviour(BaseBehaviour, ABC):
     """Select the keeper agent."""
 
     payload_class: Type[BaseTxPayload]

@@ -31,7 +31,7 @@ This data is replicated by the tendermint application.
 ## DummyMixinRound Objects
 
 ```python
-class DummyMixinRound(AbstractRound)
+class DummyMixinRound(AbstractRound,  ABC)
 ```
 
 DummyMixinRound

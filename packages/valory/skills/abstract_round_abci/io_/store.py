@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -126,6 +126,7 @@ class Storer(AbstractStorer):
     ) -> None:
         """Store a single file."""
         storer = self._get_single_storer_from_filetype()
+        # TODO: fix abstractions to avoid typing issue
         storer(filename, obj, **kwargs)  # type: ignore
 
     def _get_single_storer_from_filetype(self) -> SupportedStorerType:

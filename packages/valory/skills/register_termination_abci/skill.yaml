@@ -7,11 +7,11 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeieyro2eupexnqdu2mjqbyhp7jphn5rij4hvdgty5plij52tsffhs4
-  __init__.py: bafybeiex6mhypt3mkeflnoppnxxckxwe3f4fpytgqzseelvxg54rzhcwme
+  __init__.py: bafybeicc7zwcm4vljmtobhmgkqinpjgoztznwhfzkndvnnsrolr6eivmsm
   behaviours.py: bafybeicmgb3hz2f6rhnpctcojeesayvmwicvl4mybbseyscdvzr6luepni
-  composition.py: bafybeiag5qbcubq3fhwraqosgcubkcyzvfogt274xxlmrjd23odbt2padi
-  dialogues.py: bafybeih3x4egnkh7xwnlawqbu6fpqyqbaum7ivdhqm6r6557dyy2rhzneq
-  handlers.py: bafybeibotw5mzjfbzdme5w4oytvqspcql3vbyr3v5k5zt6v3o6y6dypd7e
+  composition.py: bafybeiadbacacvh4bshv3butbcomyjyxm45vcguivos5ghtflsrwxzv66y
+  dialogues.py: bafybeidlaxto7h652uthpw6ycewqmd44jckh2dztgr464bywieinuha7cm
+  handlers.py: bafybeicjoxcuw7d4zaumh5gjc5tbhljxdhp73evohr4npurxjmkux4g4qy
   models.py: bafybeiffunjgfpgbnipafnhllqmpkmy7dn4voxj63vvsvvt3ghwmglkut4
   tests/__init__.py: bafybeid2pb3mfobqtzsadxzris67d4hkmcflqfnzay3y3errmtd7tdtvoe
   tests/test_behaviours.py: bafybeiawbfepzyltckutgb3hettltrn5pladutcbzlqnpd3jdu4bixlb3i
@@ -23,10 +23,10 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiak3eab5exymhxucs6rffpfa2gdnq7ai7z5gctwzwq4nomkfnma6u
-- valory/registration_abci:0.1.0:bafybeib3qy7s25mzbkwg6icosax4exod2osugt6kf2pev6j56bjsc2csya
-- valory/reset_pause_abci:0.1.0:bafybeicc6fcg4qyzw5bfy2oqyt3v5ymvgidjukxafpoov6gm6fju4nj7tm
-- valory/termination_abci:0.1.0:bafybeiedqagmmf5hl7q3564p74vfp7cyxfunlgrhe2672xueecs4tjeucm
+- valory/abstract_round_abci:0.1.0:bafybeibyd7j7ymf7g5twm6dc7qhctn6ldxurwghdw3awh3ywcmyucdscoa
+- valory/registration_abci:0.1.0:bafybeigicks4raxnie62qjkxflrxpubj5toncuxxct4ygzkxkndxwuurae
+- valory/reset_pause_abci:0.1.0:bafybeifry3xdgporcmbp5waucdnrrlfacgutjj7gsfefuyiwtjobg3ru4e
+- valory/termination_abci:0.1.0:bafybeib3mi7uh64ouqeuqcdxxkknmmqzkk5vrzdvn7zp5ix3hwzaqhxwaa
 behaviours:
   main:
     args: {}
@@ -34,7 +34,7 @@ behaviours:
 handlers:
   abci:
     args: {}
-    class_name: ABCIRegisterResetHandler
+    class_name: ABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -47,6 +47,9 @@ handlers:
   signing:
     args: {}
     class_name: SigningHandler
+  tendermint:
+    args: {}
+    class_name: TendermintHandler
 models:
   abci_dialogues:
     args: {}
@@ -103,6 +106,8 @@ models:
       service_id: register_termination_abci
       service_registry_address: null
       setup:
+        all_participants:
+        - - '0x0000000000000000000000000000000000000000'
         safe_contract_address:
         - '0xD8dE647170163a981bb3Fdb2063583eAcF7D55AC'
       share_tm_config_on_startup: false
@@ -134,5 +139,8 @@ models:
   state:
     args: {}
     class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
 dependencies: {}
 is_abstract: false

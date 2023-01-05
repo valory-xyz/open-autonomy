@@ -387,5 +387,6 @@ atheris
 information_source
  - docs/guides/create_service_from_scratch.md
 create_fsm_app.md
-
+ - docs/advanced_reference/commands/autonomy_scaffold.md
+my_fsm_app_skill
 

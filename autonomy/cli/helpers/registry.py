@@ -74,7 +74,7 @@ def fetch_service_ipfs(public_id: PublicId) -> Path:
     """Fetch service from IPFS node."""
 
     if not IS_IPFS_PLUGIN_INSTALLED:
-        raise RuntimeError("IPFS plugin not installed.")
+        raise RuntimeError("IPFS plugin not installed.")  # pragma: no cover
 
     with tempfile.TemporaryDirectory() as temp_dir:
         ipfs_tool = IPFSTool(get_ipfs_node_multiaddr())
@@ -133,7 +133,7 @@ def publish_service_package(click_context: click.Context, registry: str) -> None
         if get_default_remote_registry() == REMOTE_IPFS:
             publish_service_ipfs(service_config.public_id, Path(click_context.obj.cwd))
         else:
-            raise Exception("HTTP registry not supported.")
+            raise Exception("HTTP registry not supported.")  # pragma: no cover
 
     else:
         publish_service_local(

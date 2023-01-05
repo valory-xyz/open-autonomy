@@ -24,10 +24,12 @@ from hashlib import sha256
 from typing import Any, Dict, Optional, Tuple, Union, cast
 
 from eth_typing.bls import BLSPubkey, BLSSignature
-from py_ecc.bls import G2Basic as bls  # type: ignore
+from py_ecc.bls import G2Basic as bls
 
 
 MAX_UINT64 = 2 ** 64 - 1
+DEFAULT_TENDERMINT_P2P_PORT = 26656
+DEFAULT_TENDERMINT_P2P_URL = f"localhost:{DEFAULT_TENDERMINT_P2P_PORT}"
 
 
 class VerifyDrand:  # pylint: disable=too-few-public-methods
@@ -134,3 +136,15 @@ def get_data_from_nested_dict(
 def get_value_with_type(value: Any, type_name: str) -> Any:
     """Get the given value as the specified type."""
     return getattr(builtins, type_name)(value)
+
+
+def parse_tendermint_p2p_url(url: str) -> Tuple[str, int]:
+    """Parse tendermint P2P url."""
+    hostname, *_port = url.split(":")
+    if len(_port) > 0:
+        port_str, *_ = _port
+        port = int(port_str)
+    else:
+        port = DEFAULT_TENDERMINT_P2P_PORT
+
+    return hostname, port

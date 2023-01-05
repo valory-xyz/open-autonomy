@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 import binascii
 import os
 import tempfile
+from abc import ABC
 from math import ceil
 from typing import Any, Dict, cast
 
@@ -72,7 +73,7 @@ DUMMY_MAX_PRIORITY_FEE_PER_GAS = 3000000000
 DUMMY_REPRICING_MULTIPLIER = 1.1
 
 
-class _SafeConfiguredHelperIntegration(IntegrationBaseCase):
+class _SafeConfiguredHelperIntegration(IntegrationBaseCase, ABC):  # pragma: no cover
     """Base test class for integration tests with Gnosis, but no contract, deployed."""
 
     safe_owners: Dict[str, Crypto]
@@ -97,7 +98,9 @@ class _SafeConfiguredHelperIntegration(IntegrationBaseCase):
         assert cls.keeper_address in cls.safe_owners  # nosec
 
 
-class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
+class _GnosisHelperIntegration(
+    _SafeConfiguredHelperIntegration, ABC
+):  # pragma: no cover
     """Class that assists Gnosis instantiation."""
 
     safe_contract_address: str = "0x68FCdF52066CcE5612827E872c45767E5a1f6551"
@@ -118,7 +121,7 @@ class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
         )
 
 
-class _TxHelperIntegration(_GnosisHelperIntegration):
+class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
     """Class that assists tx settlement related operations."""
 
     tx_settlement_synchronized_data: TxSettlementSynchronizedSata
@@ -160,11 +163,11 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
 
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=FinalizeBehaviour.behaviour_id,
+            behaviour_id=FinalizeBehaviour.auto_behaviour_id(),
             synchronized_data=self.tx_settlement_synchronized_data,
         )
         behaviour = cast(FinalizeBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.behaviour_id == FinalizeBehaviour.behaviour_id  # nosec
+        assert behaviour.behaviour_id == FinalizeBehaviour.auto_behaviour_id()
         stored_nonce = behaviour.params.nonce
         stored_gas_price = behaviour.params.gas_price
 
@@ -263,7 +266,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             )
 
         self.tx_settlement_synchronized_data.update(
-            synchronized_data_class=None, **update_params  # type: ignore
+            synchronized_data_class=None, **update_params
         )
 
     def validate_tx(
@@ -295,7 +298,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             _, verif_msg = self.process_n_messages(
                 2,
                 self.tx_settlement_synchronized_data,
-                ValidateTransactionBehaviour.behaviour_id,
+                ValidateTransactionBehaviour.auto_behaviour_id(),
                 handlers,
                 expected_content,
                 expected_types,

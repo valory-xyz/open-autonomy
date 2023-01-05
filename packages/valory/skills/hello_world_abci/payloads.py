@@ -63,6 +63,9 @@ class CollectRandomnessPayload(BaseHelloWorldAbciPayload):
     ) -> None:
         """Initialize an 'select_keeper' transaction payload.
 
+        We send the DRAND "round_id" to be able to discriminate between payloads
+        from different DRAND rounds more easily.
+
         :param sender: the sender (Ethereum) address
         :param round_id: the round id
         :param randomness: the randomness
@@ -85,7 +88,7 @@ class CollectRandomnessPayload(BaseHelloWorldAbciPayload):
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(round_id=self._round_id, randomness=self._randomness)
+        return dict(round_id=self.round_id, randomness=self.randomness)
 
 
 class PrintMessagePayload(BaseHelloWorldAbciPayload):
@@ -111,7 +114,7 @@ class PrintMessagePayload(BaseHelloWorldAbciPayload):
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(message=self._message)
+        return dict(message=self.message)
 
 
 class SelectKeeperPayload(BaseHelloWorldAbciPayload):

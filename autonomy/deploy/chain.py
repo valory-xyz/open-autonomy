@@ -71,11 +71,13 @@ class ServiceRegistry:
         """Initialize object."""
 
         if chain_type not in CHAIN_CONFIG:
-            raise ValueError(f"{chain_type} Currently not supported.")
+            raise ValueError(
+                f"{chain_type} Currently not supported."
+            )  # pragma: no cover
 
         rpc_url = rpc_url or CHAIN_CONFIG.get(chain_type, {}).get("rpc")
         if rpc_url is None:
-            raise ValueError(
+            raise ValueError(  # pragma: no cover
                 f"RPC url for {chain_type} is not set, please set value for {chain_type.upper()}_CHAIN_RPC"
             )
 
@@ -90,7 +92,7 @@ class ServiceRegistry:
             chain_type, {}
         ).get(SERVICE_CONTRACT_ADDRESS)
         if self.service_contract_address is None:
-            raise ValueError(
+            raise ValueError(  # pragma: no cover
                 f"RPC url for {chain_type} is not set, please set value for SERVICE_ADDRESS_{chain_type.upper()}"
             )
 
@@ -109,7 +111,7 @@ class ServiceRegistry:
     @staticmethod
     def _resolve_from_ipfs(url: str) -> Dict:
         """Resolves from ipfs given an URL."""
-        return requests.get(url).json()
+        return requests.get(url).json()  # pragma: no cover
 
     def get_agent_instances(self, token_id: int) -> Tuple[int, List[str]]:
         """

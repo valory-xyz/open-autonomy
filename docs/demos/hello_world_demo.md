@@ -346,18 +346,20 @@ Let's look how each of these objects are implemented. If you have fetched the He
 
   ```python
   class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
-      """A round in which the agents get registered"""
+      """A round in which the keeper prints the message"""
 
-      round_id = "print_message"
       allowed_tx_type = PrintMessagePayload.transaction_type
-      payload_attribute = "message"
+      payload_attribute = get_name(PrintMessagePayload.message)
 
       def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
           """Process the end of the block."""
           if self.collection_threshold_reached:
               synchronized_data = self.synchronized_data.update(
                   participants=self.collection,
-                  all_participants=self.collection,
+                  printed_messages=[
+                      cast(PrintMessagePayload, payload).message
+                      for payload in self.collection.values()
+                  ],
                   synchronized_data_class=SynchronizedData,
               )
               return synchronized_data, Event.DONE
@@ -423,7 +425,6 @@ Again, the `HelloWorldABCIBaseBehaviour` is a convenience class, and the upper c
 class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
     """Prints the celebrated 'HELLO WORLD!' message."""
 
-    behaviour_id = "print_message"
     matching_round = PrintMessageRound
 
     def async_act(self) -> Generator:
@@ -453,9 +454,8 @@ class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
 
         payload = PrintMessagePayload(self.context.agent_address, printed_message)
 
-        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
 
         self.set_done()
 ```
@@ -477,8 +477,8 @@ class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the Hello World abci app."""
 
     initial_behaviour_cls = RegistrationBehaviour
-    abci_app_cls = HelloWorldAbciApp  # type: ignore
-    behaviours: Set[Type[HelloWorldABCIBaseBehaviour]] = {  # type: ignore
+    abci_app_cls = HelloWorldAbciApp
+    behaviours: Set[Type[BaseBehaviour]] = {
         RegistrationBehaviour,  # type: ignore
         CollectRandomnessBehaviour,  # type: ignore
         SelectKeeperBehaviour,  # type: ignore
@@ -513,7 +513,7 @@ class PrintMessagePayload(BaseHelloWorldAbciPayload):
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(message=self._message)
+        return dict(message=self.message)
 ```
 
 
