@@ -478,3 +478,36 @@ class TestAbciAppChaining:
         expected = f"Pre conditions '.*' of app '.*' not a post condition of app '.*' or any preceding app in path .*."
         with pytest.raises(ValueError, match=expected):
             chain((AbciApp1, self.app2_class,), abci_app_transition_mapping)
+
+    def test_precondition_for_next_app_missing(self, caplog: LogCaptureFixture) -> None:
+        """Test synchronized data type"""
+
+        class AbciApp2(AbciApp):
+            initial_round_cls = self.round_2a
+            transition_function = {
+                self.round_2a: {
+                    self.event_timeout2: self.round_2a,
+                    self.event_2b: self.round_2b,
+                },
+                self.round_2b: {
+                    self.event_2a: self.round_2a,
+                    self.event_2c: self.round_2c,
+                },
+                self.round_2c: {},
+            }
+            final_states = {self.round_2c}
+            event_to_timeout = {self.event_timeout2: self.timeout2}
+            db_pre_conditions: Dict[AppState, List[str]] = {} #self.round_2a: [self.key_1]}
+            db_post_conditions: Dict[AppState, List[str]] = {
+                self.round_2c: [self.key_2]
+            }
+            cross_period_persisted_keys = self.cross_period_persisted_keys_2
+
+        abci_app_transition_mapping: AbciAppTransitionMapping = {
+            self.round_1c: self.round_2a,
+            self.round_2c: self.round_1a,
+        }
+
+        expected = f"No pre-conditions have been set for .*! You need to explicitly specify them as empty if there are no pre-conditions for this FSM."
+        with pytest.raises(ValueError, match=expected):
+            chain((self.app1_class, AbciApp2), abci_app_transition_mapping)
