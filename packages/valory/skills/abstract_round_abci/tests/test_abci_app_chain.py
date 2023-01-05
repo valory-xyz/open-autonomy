@@ -446,7 +446,9 @@ class TestAbciAppChaining:
             expected_sentinel = (sentinel_app1, sentinel_app2)[round_ in app2_classes]
             assert abci_app.synchronized_data.dummy_attr == expected_sentinel
 
-    def test_precondition_for_next_app_missing_raises(self, caplog: LogCaptureFixture) -> None:
+    def test_precondition_for_next_app_missing_raises(
+        self, caplog: LogCaptureFixture
+    ) -> None:
         """Test that when precondition for next AbciApp is missing an error is raised"""
 
         class AbciApp1(AbciApp):
@@ -465,9 +467,7 @@ class TestAbciAppChaining:
             final_states = {self.round_1c}
             event_to_timeout = {self.event_timeout1: self.timeout1}
             db_pre_conditions: Dict[AppState, List[str]] = {self.round_1a: []}
-            db_post_conditions: Dict[AppState, List[str]] = {
-                self.round_1c: []
-            }
+            db_post_conditions: Dict[AppState, List[str]] = {self.round_1c: []}
             cross_period_persisted_keys = self.cross_period_persisted_keys_1
 
         abci_app_transition_mapping: AbciAppTransitionMapping = {
@@ -475,9 +475,15 @@ class TestAbciAppChaining:
             self.round_2c: self.round_1a,
         }
 
-        expected = f"Pre conditions '.*' of app '.*' not a post condition of app '.*' or any preceding app in path .*."
+        expected = "Pre conditions '.*' of app '.*' not a post condition of app '.*' or any preceding app in path .*."
         with pytest.raises(ValueError, match=expected):
-            chain((AbciApp1, self.app2_class,), abci_app_transition_mapping)
+            chain(
+                (
+                    AbciApp1,
+                    self.app2_class,
+                ),
+                abci_app_transition_mapping,
+            )
 
     def test_precondition_app_missing_raises(self, caplog: LogCaptureFixture) -> None:
         """Test that missing precondition specification for next AbciApp is missing an error is raised"""
@@ -508,6 +514,6 @@ class TestAbciAppChaining:
             self.round_2c: self.round_1a,
         }
 
-        expected = f"No pre-conditions have been set for .*! You need to explicitly specify them as empty if there are no pre-conditions for this FSM."
+        expected = "No pre-conditions have been set for .*! You need to explicitly specify them as empty if there are no pre-conditions for this FSM."
         with pytest.raises(ValueError, match=expected):
             chain((self.app1_class, AbciApp2), abci_app_transition_mapping)
