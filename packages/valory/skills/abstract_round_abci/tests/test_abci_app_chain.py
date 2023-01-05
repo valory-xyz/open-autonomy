@@ -445,3 +445,36 @@ class TestAbciAppChaining:
             assert isinstance(abci_app.synchronized_data, expected_cls)
             expected_sentinel = (sentinel_app1, sentinel_app2)[round_ in app2_classes]
             assert abci_app.synchronized_data.dummy_attr == expected_sentinel
+
+    def test_precondition_not_specified(self, caplog: LogCaptureFixture) -> None:
+        """Test synchronized data type"""
+
+        class AbciApp1(AbciApp):
+            initial_round_cls = self.round_1a
+            transition_function = {
+                self.round_1a: {
+                    self.event_timeout1: self.round_1a,
+                    self.event_1b: self.round_1b,
+                },
+                self.round_1b: {
+                    self.event_1a: self.round_1a,
+                    self.event_1c: self.round_1c,
+                },
+                self.round_1c: {},
+            }
+            final_states = {self.round_1c}
+            event_to_timeout = {self.event_timeout1: self.timeout1}
+            db_pre_conditions: Dict[AppState, List[str]] = {self.round_1a: []}
+            db_post_conditions: Dict[AppState, List[str]] = {
+                self.round_1c: []
+            }
+            cross_period_persisted_keys = self.cross_period_persisted_keys_1
+
+        abci_app_transition_mapping: AbciAppTransitionMapping = {
+            self.round_1c: self.round_2a,
+            self.round_2c: self.round_1a,
+        }
+
+        expected = f"Pre conditions '.*' of app '.*' not a post condition of app '.*' or any preceding app in path .*."
+        with pytest.raises(ValueError, match=expected):
+            chain((AbciApp1, self.app2_class,), abci_app_transition_mapping)
