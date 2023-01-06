@@ -142,8 +142,16 @@ test-all:
 install: clean
 	python3 setup.py install
 
+.PHONY: eject-contracts
+eject-contracts:
+	@for contract in component_registry registries_manager service_registry ; do \
+		echo Updating $$contract contract; \
+    	rm -rf autonomy/data/contracts/$$contract ; \
+		cp -r packages/valory/contracts/$$contract autonomy/data/contracts/$$contract ; \
+	done
+
 .PHONY: dist
-dist: clean
+dist: clean eject-contracts
 	python setup.py sdist
 	python setup.py bdist_wheel
 
