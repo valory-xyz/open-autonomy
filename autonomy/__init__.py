@@ -19,4 +19,9 @@
 
 """A framework for the creation of autonomous agent services."""
 
+from pathlib import Path
+
 from .__version__ import __version__
+
+
+AUTONOMY_DIR = Path(__file__).resolve().parent
