@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeicjyrltgdmwzvctebhfteyyd5mbrjashiji4glwf5vwcijuyzzm24
-  abci_app_chain.py: bafybeifb4se7eepb4wzkgatmdmbwlnhj2fmu6yhlravzl54odz5ntg4utm
+  abci_app_chain.py: bafybeick5fz6hpbbvpmjkm2o3rl5csgvqf4ivwmqdluj2p4jmcpea4xmsq
   base.py: bafybeihdx7ddaanxaro3dj2zuclmxg2hkz75dzhdhrqhqsiylga66ntbgq
   behaviour_utils.py: bafybeig2a7enzodtf6x5cceiin4e6aqrc33jrrwi33rho233f64e2f52ge
   behaviours.py: bafybeicapzsvzowpjawkxgkhf2m4qb7c3alh5rsysrxp55o7pmjt6bu2g4
@@ -38,7 +38,7 @@ fingerprint:
   tests/data/dummy_abci/models.py: bafybeicbo55kojhegbzwhjf7mn3v2o3g3dpafs63ufjmvw6d5abnnq2zym
   tests/data/dummy_abci/payloads.py: bafybeidjxq2caqfnwrncjn442ywmpzrlub53pfxqnij4xqejthdhjpvpf4
   tests/data/dummy_abci/rounds.py: bafybeiack37yc4lxnczxh3aswqulsk34cddyc2pesreichids2sq3i4z4u
-  tests/test_abci_app_chain.py: bafybeicsl2o4sfc3cwzrjkvwdkhbb2q5hnbhlivqhql62wlrr4qutq2aju
+  tests/test_abci_app_chain.py: bafybeidbpoplff6lsisbq4zp2jkkoeockrqjexzu3kt4sz7zedwhct7ham
   tests/test_base.py: bafybeidoatyw4zat2pbekmcssterepxa6kiqmwobzhkh6inx32q3gj4h6m
   tests/test_base_rounds.py: bafybeiauo5c3ghiptxonlr2edtsdtnp6okm3qj6pm2wbsipiuwzwmxsjiy
   tests/test_behaviours.py: bafybeig5ne2c3t7id5xweplksolx7753l2drcwsaz7z4auerjo4nmdloxm
@@ -63,16 +63,16 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeifln72jkbha5xtkafjj4swrwrktck4ziwk6j7plmzecskhlyamgu4
-- valory/http_client:0.23.0:bafybeigggahci7hq6tr3tyueatgkvgn73y4b3av2vk7vtr7jkeuwsqcteq
-- valory/ledger:0.19.0:bafybeicpxyoxez7lperltamvikxu6vzk2lhqakbivce4nzywyzoqbxoogm
+- valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
+- valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
 contracts:
 - valory/service_registry:0.1.0:bafybeif4mgymtachjdhyzemxp7oj2i7itusjvrsxw7cheuvhtypizutu5e
 protocols:
-- open_aea/signing:1.0.0:bafybeihgwrowgtegpe4ixe3iy5jx65u7pxebl5btrkywzmx7g52gjtbnpi
+- open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm
-- valory/contract_api:1.0.0:bafybeif32nchkgn6yet7e5gt4auhf7lsahxnj4t36kxbw55p3gi7qpeuxq
-- valory/http:1.0.0:bafybeifru3qs6udfzprax7jxktbsuzn7immfvi3scgfspifq3zdxwkgvnm
-- valory/ledger_api:1.0.0:bafybeigqr4y3ykz3iulrcoqmji7hy3dxaoy7zmyyzff4ivpbubcpwdknai
+- valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
+- valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
+- valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 - valory/tendermint:0.1.0:bafybeid6b2wlb24g6d3godmqms44qvnpkhlvb27icotuobvnscmdmlhaha
 skills:
 - valory/abstract_abci:0.1.0:bafybeieeqbasxxghxaj7xffnto7ybegom2kl4y544cskysowmjcjd3szhe
