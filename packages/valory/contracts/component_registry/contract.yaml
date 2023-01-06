@@ -6,12 +6,12 @@ description: Component registry contract
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  ComponentRegistry.json: bafybeicssz7csipr7lhxvro6chtd45f6iqykserv35ppjtxetpx75ouno4
   __init__.py: bafybeihqlwkxffyqkqzzoqbm3t5caqxl75po6yk5cfjg5jp56dy47qqmv4
+  build/ComponentRegistry.json: bafybeicssz7csipr7lhxvro6chtd45f6iqykserv35ppjtxetpx75ouno4
   contract.py: bafybeig3e43kawuxu7sm6qhqqhrfbddtsfrh7fk4wqlbwewvlqs66o4i5i
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ComponentRegistryContract
 contract_interface_paths:
-  ethereum: ComponentRegistry.json
+  ethereum: build/ComponentRegistry.json
 dependencies: {}
