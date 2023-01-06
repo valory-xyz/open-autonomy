@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 import json
 from collections import OrderedDict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, cast
+from typing import Dict, List, Optional, cast
 
 from aea.configurations.constants import DEFAULT_README_FILE
 from aea.configurations.data_types import PublicId
@@ -37,8 +37,9 @@ from autonomy.chain.base import UnitType
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import (
     COMPONENT_REGISTRY_CONTRACT,
+    CONTRACTS_DIR_FRAMEWORK,
+    CONTRACTS_DIR_LOCAL,
     REGISTRIES_MANAGER_CONTRACT,
-    RELATIVE_CONTRACTS_DIR,
 )
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
 
@@ -47,8 +48,6 @@ BASE16_HASH_PREFIX = "f01701220"
 CONFIG_HASH_STRING_PREFIX = "0x"
 UNIT_HASH_PREFIX = CONFIG_HASH_STRING_PREFIX + "{metadata_hash}"
 DEFAULT_NFT_IMAGE_HASH = "bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm"
-ROOT_DIR = Path(__file__).parent.parent.parent
-ContractInterfaceType = Any
 
 
 def serialize_metadata(
@@ -118,10 +117,19 @@ def verify_and_fetch_token_id_from_event(
 
 def get_contract(public_id: PublicId) -> Contract:
     """Load contract for given public id."""
-    contract_dir = RELATIVE_CONTRACTS_DIR / public_id.name
+
+    # check if a local package is available
+    contract_dir = CONTRACTS_DIR_LOCAL / public_id.name
     if contract_dir.exists():
-        return contract_dir
-    return ROOT_DIR / contract_dir
+        return Contract.from_dir(directory=contract_dir)
+
+    # if local package is not available use one from the data directory
+    contract_dir = CONTRACTS_DIR_FRAMEWORK / public_id.name
+    if not contract_dir.exists():
+        raise FileNotFoundError(
+            "Contract package not found in the distribution, please reinstall the package"
+        )
+    return Contract.from_dir(directory=contract_dir)
 
 
 def mint_component(
