@@ -22,7 +22,7 @@
 import json
 from collections import OrderedDict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, cast
+from typing import Dict, List, Optional, cast
 
 from aea.configurations.constants import DEFAULT_README_FILE
 from aea.configurations.data_types import PublicId

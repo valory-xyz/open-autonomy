@@ -27,11 +27,7 @@ import pytest
 from aea.configurations.constants import DEFAULT_README_FILE
 from aea.configurations.data_types import PublicId
 
-from autonomy.chain.constants import (
-    COMPONENT_REGISTRY_CONTRACT,
-    CONTRACTS_DIR_FRAMEWORK,
-    CONTRACTS_DIR_LOCAL,
-)
+from autonomy.chain.constants import COMPONENT_REGISTRY_CONTRACT, CONTRACTS_DIR_LOCAL
 from autonomy.chain.mint import (
     DEFAULT_NFT_IMAGE_HASH,
     get_contract,
