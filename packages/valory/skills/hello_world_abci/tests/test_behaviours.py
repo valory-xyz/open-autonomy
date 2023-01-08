@@ -188,6 +188,7 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
             ).behaviour_id
             == self.collect_randomness_behaviour_class.auto_behaviour_id()
         )
+        self.behaviour.context.randomness_api.__dict__["_frozen"] = False
         with mock.patch.object(
             self.behaviour.context.randomness_api,
             "is_retries_exceeded",
@@ -200,6 +201,7 @@ class BaseCollectRandomnessBehaviourTest(HelloWorldAbciFSMBehaviourBaseCase):
                 == self.collect_randomness_behaviour_class.auto_behaviour_id()
             )
             self._test_done_flag_set()
+        self.behaviour.context.randomness_api.__dict__["_frozen"] = True
 
     def test_clean_up(
         self,

@@ -89,30 +89,52 @@ class FrozenMixin:  # pylint: disable=too-few-public-methods
 
 
 class TypeCheckMixin:  # pylint: disable=too-few-public-methods
-    """Mixin for data classes to enforce attribute types on construction."""
+    """Mixin for data classes & models to enforce attribute types on construction."""
 
     def __post_init__(self) -> None:
         """Check that the type of the provided attributes is correct."""
         for attr, type_ in get_type_hints(self).items():
             value = getattr(self, attr)
-            if type_ is Any:
-                # trivial - any type requires no check
-                continue
-            if isinstance(value, MagicMock):
-                # testing - any magic value is ignored
-                continue
-            generics = (
-                () if getattr(type_, "__args__", None) is None else type_.__args__
+            self.__check_type(attr, value, type_)
+
+    @classmethod
+    def __check_type(cls, name: str, value: Any, type_: Type) -> None:
+        """Check type."""
+        if type_ is Any:
+            # trivial - any type requires no check
+            return
+        if isinstance(value, MagicMock):
+            # testing - any magic value is ignored
+            return
+        generics = () if getattr(type_, "__args__", None) is None else type_.__args__
+        if len(generics) > 0 and inspect.isclass(value):
+            if not any([issubclass(value, generic) for generic in generics]):
+                raise TypeError(f"{name} must be a subclass of {generics}")
+        elif len(generics) > 0:
+            # non-trivial - many different cases possible
+            return
+        else:
+            if not isinstance(value, type_):
+                raise TypeError(f"{name} must be a {type_}, found {type(value)}")
+
+    @classmethod
+    def _ensure(cls, key: str, kwargs: Dict, type_: Any) -> Any:
+        """Get and ensure the configuration field is not None (if no default is provided) and of correct type."""
+        enforce("skill_context" in kwargs, "Only use on models!")
+        skill_id = kwargs["skill_context"].skill_id
+        enforce(
+            key in kwargs,
+            f"'{key}' of type '{type_}' required, but it is not set in `models.params.args` of `skill.yaml` of `{skill_id}`",
+        )
+        value = kwargs.pop(key)
+        try:
+            cls.__check_type(key, value, type_)
+        except TypeError:  # pragma: nocover
+            enforce(
+                False,
+                f"'{key}' must be a {type_}, but type {type(value)} was found in `models.params.args` of `skill.yaml` of `{skill_id}`",
             )
-            if len(generics) > 0 and inspect.isclass(value):
-                if not any([issubclass(value, generic) for generic in generics]):
-                    raise TypeError(f"{attr} must be a subclass of {generics}")
-            elif len(generics) > 0:
-                # non-trivial - many different cases possible
-                continue
-            else:
-                if not isinstance(value, type_):
-                    raise TypeError(f"{attr} must be a {type_}, found {type(value)}")
+        return value
 
 
 @dataclass(frozen=True)
@@ -227,7 +249,9 @@ class GenesisConfig(TypeCheckMixin):
         }
 
 
-class BaseParams(Model, FrozenMixin):  # pylint: disable=too-many-instance-attributes
+class BaseParams(
+    Model, FrozenMixin, TypeCheckMixin
+):  # pylint: disable=too-many-instance-attributes
     """Parameters."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -339,21 +363,6 @@ class BaseParams(Model, FrozenMixin):  # pylint: disable=too-many-instance-attri
                 }
             )
         self._frozen = True
-
-    @classmethod
-    def _ensure(cls, key: str, kwargs: Dict, type_: Any) -> Any:
-        """Get and ensure the configuration field is not None (if no default is provided) and of correct type."""
-        skill_id = kwargs["skill_context"].skill_id
-        enforce(
-            key in kwargs,
-            f"'{key}' of type '{type_}' required, but it is not set in `models.params.args` of `skill.yaml` of `{skill_id}`",
-        )
-        value = kwargs.pop(key)
-        enforce(
-            isinstance(value, type_),
-            f"'{key}' must be a {type_}, but type {type(value)} was found in `models.params.args` of `skill.yaml` of `{skill_id}`",
-        )
-        return value
 
     def _ensure_setup(self, necessary_keys: Iterable[str]) -> Any:
         """Ensure that the `setup` params contain all the `necessary_keys`."""
@@ -531,7 +540,7 @@ class TendermintRecoveryParams(TypeCheckMixin):
     reset_params: Optional[List[Tuple[str, str]]] = None
 
 
-class ApiSpecs(Model, FrozenMixin):
+class ApiSpecs(Model, FrozenMixin, TypeCheckMixin):
     """A model that wraps APIs to get cryptocurrency prices."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -545,18 +554,6 @@ class ApiSpecs(Model, FrozenMixin):
         self.retries_info = RetriesInfo.from_json_dict(kwargs)
         super().__init__(*args, **kwargs)
         self._frozen = True
-
-    @classmethod
-    def _ensure(cls, key: str, kwargs: Dict, type_: Any) -> Any:
-        """Get and ensure the configuration field is not None (if no default is provided) and of correct type."""
-        skill_id = kwargs["skill_context"].skill_id
-        enforce(
-            key in kwargs,
-            f"'{key}' of type '{type_}' required, but it is not set in `models.params.args` of `skill.yaml` of `{skill_id}`",
-        )
-        value = kwargs.pop(key)
-        enforce(isinstance(value, type_), f"'{key}' must be a {type_.__name__}")
-        return value
 
     def get_spec(
         self,

@@ -42,7 +42,7 @@ Override __setattr__ to make object immutable.
 class TypeCheckMixin()
 ```
 
-Mixin for data classes to enforce attribute types on construction.
+Mixin for data classes & models to enforce attribute types on construction.
 
 <a id="packages.valory.skills.abstract_round_abci.models.TypeCheckMixin.__post_init__"></a>
 
@@ -196,7 +196,8 @@ Get a GenesisConfig instance as a json dictionary.
 ## BaseParams Objects
 
 ```python
-class BaseParams(Model,  FrozenMixin)
+class BaseParams(
+    Model,  FrozenMixin,  TypeCheckMixin)
 ```
 
 Parameters.
@@ -406,7 +407,7 @@ A dataclass to hold all parameters related to agent <-> tendermint recovery proc
 ## ApiSpecs Objects
 
 ```python
-class ApiSpecs(Model,  FrozenMixin)
+class ApiSpecs(Model,  FrozenMixin,  TypeCheckMixin)
 ```
 
 A model that wraps APIs to get cryptocurrency prices.
