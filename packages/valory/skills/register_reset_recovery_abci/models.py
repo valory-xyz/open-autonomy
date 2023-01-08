@@ -19,8 +19,6 @@
 
 """This module contains the shared state for the register-reset ABCI application."""
 
-from typing import Any
-
 from packages.valory.skills.abstract_round_abci.models import BaseParams
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
@@ -42,6 +40,4 @@ Params = BaseParams
 class SharedState(BaseSharedState):
     """Keep the current shared state of the skill."""
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the state."""
-        super().__init__(*args, abci_app_cls=RegisterResetRecoveryAbciApp, **kwargs)
+    abci_app_cls = RegisterResetRecoveryAbciApp

@@ -379,7 +379,7 @@ class TestResetAndPauseBehaviour(HelloWorldAbciFSMBehaviourBaseCase):
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
-        self.behaviour.context.params.observation_interval = 0.1
+        self.behaviour.context.params.__dict__["observation_interval"] = 0.1
         self.behaviour.act_wrapper()
         time.sleep(0.3)
         self.behaviour.act_wrapper()

@@ -42,9 +42,7 @@ BenchmarkTool = BaseBenchmarkTool
 class SharedState(BaseSharedState):
     """Keep the current shared state of the skill."""
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the state."""
-        super().__init__(*args, abci_app_cls=HelloWorldAbciApp, **kwargs)
+    abci_app_cls = HelloWorldAbciApp
 
     def setup(self) -> None:
         """Set up."""
@@ -62,9 +60,8 @@ class HelloWorldParams(BaseParams):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters."""
+        self.hello_world_string: str = self._ensure("hello_world_message", kwargs, str)
         super().__init__(*args, **kwargs)
-        self.hello_world_string = self._ensure("hello_world_message", kwargs)
 
 
-class RandomnessApi(ApiSpecs):
-    """A model that wraps ApiSpecs for randomness api specifications."""
+RandomnessApi = ApiSpecs

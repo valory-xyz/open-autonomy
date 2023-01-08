@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Custom objects for the transaction settlement ABCI application."""
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 from aea.exceptions import enforce
@@ -44,9 +45,18 @@ BenchmarkTool = BaseBenchmarkTool
 class SharedState(BaseSharedState):
     """Keep the current shared state of the skill."""
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the state."""
-        super().__init__(*args, abci_app_cls=TransactionSubmissionAbciApp, **kwargs)
+    abci_app_cls = TransactionSubmissionAbciApp
+
+
+@dataclass
+class MutableParams:
+    """Collection for the mutable parameters."""
+
+    fallback_gas: int
+    tx_hash: str = ""
+    nonce: Optional[Nonce] = None
+    gas_price: Optional[Dict[str, Wei]] = None
+    late_messages: List[ContractApiMessage] = field(default_factory=list)
 
 
 class TransactionParams(BaseParams):  # pylint: disable=too-many-instance-attributes
@@ -67,22 +77,22 @@ class TransactionParams(BaseParams):  # pylint: disable=too-many-instance-attrib
         :param args: positional arguments
         :param kwargs: keyword arguments
         """
-        self.tx_hash: str = ""
-        self.nonce: Optional[Nonce] = None
-        self.gas_price: Optional[Dict[str, Wei]] = None
-        self.fallback_gas: int = kwargs.pop("init_fallback_gas", 0)
-        self.late_messages: List[ContractApiMessage] = []
-        self.keeper_allowed_retries: int = self._ensure(
-            "keeper_allowed_retries", kwargs
+        self.mutable_params = MutableParams(
+            fallback_gas=self._ensure("init_fallback_gas", kwargs, int)
         )
-        self.validate_timeout = self._ensure_validate_timeout(kwargs)
-        self.finalize_timeout = self._ensure("finalize_timeout", kwargs)
-        self.history_check_timeout = self._ensure("history_check_timeout", kwargs)
+        self.keeper_allowed_retries: int = self._ensure(
+            "keeper_allowed_retries", kwargs, int
+        )
+        self.validate_timeout: int = self._ensure_validate_timeout(kwargs)
+        self.finalize_timeout: float = self._ensure("finalize_timeout", kwargs, float)
+        self.history_check_timeout: int = self._ensure(
+            "history_check_timeout", kwargs, int
+        )
         super().__init__(*args, **kwargs)
 
     def _ensure_validate_timeout(self, kwargs: Dict) -> int:
         """Ensure that `validate_timeout` exists, and that it is at least _MINIMUM_VALIDATE_TIMEOUT."""
-        validate_timeout = self._ensure("validate_timeout", kwargs)
+        validate_timeout = self._ensure("validate_timeout", kwargs, int)
         enforce(
             validate_timeout >= _MINIMUM_VALIDATE_TIMEOUT,
             f"`validate_timeout` must be greater than or equal to {_MINIMUM_VALIDATE_TIMEOUT}",
@@ -90,8 +100,5 @@ class TransactionParams(BaseParams):  # pylint: disable=too-many-instance-attrib
         return validate_timeout
 
 
-class RandomnessApi(ApiSpecs):
-    """A model that wraps ApiSpecs for randomness api specifications."""
-
-
+RandomnessApi = ApiSpecs
 Requests = BaseRequests

@@ -29,7 +29,6 @@ from py_ecc.bls import G2Basic as bls
 
 MAX_UINT64 = 2 ** 64 - 1
 DEFAULT_TENDERMINT_P2P_PORT = 26656
-DEFAULT_TENDERMINT_P2P_URL = f"localhost:{DEFAULT_TENDERMINT_P2P_PORT}"
 
 
 class VerifyDrand:  # pylint: disable=too-few-public-methods

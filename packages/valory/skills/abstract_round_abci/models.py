@@ -21,10 +21,24 @@
 
 import inspect
 import json
+from abc import ABC, ABCMeta
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from time import time
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Type, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    cast,
+    get_type_hints,
+)
+from unittest.mock import MagicMock
 
 from aea.exceptions import enforce
 from aea.skills.base import Model, SkillContext
@@ -42,27 +56,178 @@ from packages.valory.skills.abstract_round_abci.base import (
     get_name,
 )
 from packages.valory.skills.abstract_round_abci.utils import (
-    DEFAULT_TENDERMINT_P2P_URL,
     get_data_from_nested_dict,
     get_value_with_type,
 )
 
 
 NUMBER_OF_RETRIES: int = 5
-DEFAULT_BACKOFF_FACTOR: int = 2
+DEFAULT_BACKOFF_FACTOR: float = 2.0
 DEFAULT_TYPE_NAME: str = "str"
-_DEFAULT_REQUEST_TIMEOUT = 10.0
-_DEFAULT_REQUEST_RETRY_DELAY = 1.0
-_DEFAULT_TX_TIMEOUT = 10.0
-_DEFAULT_TX_MAX_ATTEMPTS = 10
-_DEFAULT_CLEANUP_HISTORY_DEPTH_CURRENT = None
 
 
 HeadersType = List[Tuple[str, str]]
 ParametersType = HeadersType
 
 
-class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
+class FrozenMixin:  # pylint: disable=too-few-public-methods
+    """Mixin for classes to enforce read-only attributes."""
+
+    _frozen: bool = False
+
+    def __delattr__(self, *args: Any) -> None:
+        """Override __delattr__ to make object immutable."""
+        if self._frozen:
+            raise AttributeError("This object is frozen!")
+        super().__delattr__(*args)
+
+    def __setattr__(self, *args: Any) -> None:
+        """Override __setattr__ to make object immutable."""
+        if self._frozen:
+            raise AttributeError("This object is frozen!")
+        super().__setattr__(*args)
+
+
+class TypeCheckMixin:  # pylint: disable=too-few-public-methods
+    """Mixin for data classes to enforce attribute types on construction."""
+
+    def __post_init__(self) -> None:
+        """Check that the type of the provided attributes is correct."""
+        for attr, type_ in get_type_hints(self).items():
+            value = getattr(self, attr)
+            if type_ is Any:
+                # trivial - any type requires no check
+                continue
+            if isinstance(value, MagicMock):
+                # testing - any magic value is ignored
+                continue
+            generics = (
+                () if getattr(type_, "__args__", None) is None else type_.__args__
+            )
+            if len(generics) > 0 and inspect.isclass(value):
+                if not any([issubclass(value, generic) for generic in generics]):
+                    raise TypeError(f"{attr} must be a subclass of {generics}")
+            elif len(generics) > 0:
+                # non-trivial - many different cases possible
+                continue
+            else:
+                if not isinstance(value, type_):
+                    raise TypeError(f"{attr} must be a {type_}, found {type(value)}")
+
+
+@dataclass(frozen=True)
+class GenesisBlock(TypeCheckMixin):
+    """A dataclass to store the genesis block."""
+
+    max_bytes: str
+    max_gas: str
+    time_iota_ms: str
+
+    def to_json(self) -> Dict[str, str]:
+        """Get a GenesisBlock instance as a json dictionary."""
+        return {
+            "max_bytes": self.max_bytes,
+            "max_gas": self.max_gas,
+            "time_iota_ms": self.time_iota_ms,
+        }
+
+
+@dataclass(frozen=True)
+class GenesisEvidence(TypeCheckMixin):
+    """A dataclass to store the genesis evidence."""
+
+    max_age_num_blocks: str
+    max_age_duration: str
+    max_bytes: str
+
+    def to_json(self) -> Dict[str, str]:
+        """Get a GenesisEvidence instance as a json dictionary."""
+        return {
+            "max_age_num_blocks": self.max_age_num_blocks,
+            "max_age_duration": self.max_age_duration,
+            "max_bytes": self.max_bytes,
+        }
+
+
+@dataclass(frozen=True)
+class GenesisValidator:
+    """A dataclass to store the genesis validator."""
+
+    pub_key_types: Tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        """Check type consistency."""
+        if not (
+            isinstance(self.pub_key_types, tuple)
+            and all([isinstance(x, str) for x in self.pub_key_types])
+        ):
+            raise TypeError("pub_key_types must be a Tuple[str, ...]")
+
+    def to_json(self) -> Dict[str, List[str]]:
+        """Get a GenesisValidator instance as a json dictionary."""
+        return {"pub_key_types": list(self.pub_key_types)}
+
+
+@dataclass(frozen=True)
+class GenesisConsensusParams(TypeCheckMixin):
+    """A dataclass to store the genesis consensus parameters."""
+
+    block: GenesisBlock
+    evidence: GenesisEvidence
+    validator: GenesisValidator
+    version: dict
+
+    @classmethod
+    def from_json_dict(cls, json_dict: dict) -> "GenesisConsensusParams":
+        """Get a GenesisConsensusParams instance from a json dictionary."""
+        block = GenesisBlock(**json_dict["block"])
+        evidence = GenesisEvidence(**json_dict["evidence"])
+        validator = GenesisValidator(tuple(json_dict["validator"]["pub_key_types"]))
+        return cls(block, evidence, validator, json_dict["version"])
+
+    def to_json(self) -> Dict[str, Any]:
+        """Get a GenesisConsensusParams instance as a json dictionary."""
+        return {
+            "block": self.block.to_json(),
+            "evidence": self.evidence.to_json(),
+            "validator": self.validator.to_json(),
+            "version": self.version,
+        }
+
+
+@dataclass(frozen=True)
+class GenesisConfig(TypeCheckMixin):
+    """A dataclass to store the genesis configuration."""
+
+    genesis_time: str
+    chain_id: str
+    consensus_params: GenesisConsensusParams
+    voting_power: str
+
+    @classmethod
+    def from_json_dict(cls, json_dict: dict) -> "GenesisConfig":
+        """Get a GenesisConfig instance from a json dictionary."""
+        consensus_params = GenesisConsensusParams.from_json_dict(
+            json_dict["consensus_params"]
+        )
+        return cls(
+            json_dict["genesis_time"],
+            json_dict["chain_id"],
+            consensus_params,
+            json_dict["voting_power"],
+        )
+
+    def to_json(self) -> Dict[str, Any]:
+        """Get a GenesisConfig instance as a json dictionary."""
+        return {
+            "genesis_time": self.genesis_time,
+            "chain_id": self.chain_id,
+            "consensus_params": self.consensus_params.to_json(),
+            "voting_power": self.voting_power,
+        }
+
+
+class BaseParams(Model, FrozenMixin):  # pylint: disable=too-many-instance-attributes
     """Parameters."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -89,47 +254,77 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         :param args: positional arguments
         :param kwargs: keyword arguments
         """
-        self.genesis_config = self._ensure("genesis_config", kwargs)
-        self.voting_power = self._ensure("voting_power", self.genesis_config)
-        self.service_id = self._ensure("service_id", kwargs)
-        self.tendermint_url = self._ensure("tendermint_url", kwargs)
-        self.max_healthcheck = self._ensure("max_healthcheck", kwargs)
-        self.round_timeout_seconds = self._ensure("round_timeout_seconds", kwargs)
-        self.sleep_time = self._ensure("sleep_time", kwargs)
-        self.retry_timeout = self._ensure("retry_timeout", kwargs)
-        self.retry_attempts = self._ensure("retry_attempts", kwargs)
-        self.keeper_timeout = self._ensure("keeper_timeout", kwargs)
-        self.observation_interval = self._ensure("observation_interval", kwargs)
-        self.drand_public_key = self._ensure("drand_public_key", kwargs)
-        self.tendermint_com_url = self._ensure("tendermint_com_url", kwargs)
-        self.tendermint_max_retries = self._ensure("tendermint_max_retries", kwargs)
-        self.tendermint_check_sleep_delay = self._ensure(
-            "tendermint_check_sleep_delay", kwargs
+        self.genesis_config: GenesisConfig = GenesisConfig.from_json_dict(
+            self._ensure("genesis_config", kwargs, dict)
         )
-        self.reset_tendermint_after = self._ensure("reset_tendermint_after", kwargs)
-        self.consensus_params = ConsensusParams.from_json(kwargs.pop("consensus", {}))
-        self.cleanup_history_depth = self._ensure("cleanup_history_depth", kwargs)
-        self.cleanup_history_depth_current = kwargs.pop(
-            "cleanup_history_depth_current", _DEFAULT_CLEANUP_HISTORY_DEPTH_CURRENT
+        self.service_id: str = self._ensure("service_id", kwargs, str)
+        self.tendermint_url: str = self._ensure("tendermint_url", kwargs, str)
+        self.max_healthcheck: int = self._ensure("max_healthcheck", kwargs, int)
+        self.round_timeout_seconds: float = self._ensure(
+            "round_timeout_seconds", kwargs, float
         )
-        self.request_timeout = kwargs.pop("request_timeout", _DEFAULT_REQUEST_TIMEOUT)
-        self.request_retry_delay = kwargs.pop(
-            "request_retry_delay", _DEFAULT_REQUEST_RETRY_DELAY
+        self.sleep_time: int = self._ensure("sleep_time", kwargs, int)
+        self.retry_timeout: int = self._ensure("retry_timeout", kwargs, int)
+        self.retry_attempts: int = self._ensure("retry_attempts", kwargs, int)
+        self.keeper_timeout: float = self._ensure("keeper_timeout", kwargs, float)
+        self.observation_interval: int = self._ensure(
+            "observation_interval", kwargs, int
         )
-        self.tx_timeout = kwargs.pop("tx_timeout", _DEFAULT_TX_TIMEOUT)
-        self.max_attempts = kwargs.pop("max_attempts", _DEFAULT_TX_MAX_ATTEMPTS)
-        self.service_registry_address = kwargs.pop("service_registry_address", None)
-        self.on_chain_service_id = kwargs.pop("on_chain_service_id", None)
-        self.share_tm_config_on_startup = kwargs.pop(
-            "share_tm_config_on_startup", False
+        self.drand_public_key: str = self._ensure("drand_public_key", kwargs, str)
+        self.tendermint_com_url: str = self._ensure("tendermint_com_url", kwargs, str)
+        self.tendermint_max_retries: int = self._ensure(
+            "tendermint_max_retries", kwargs, int
         )
-        self.tendermint_p2p_url = kwargs.pop(
-            "tendermint_p2p_url", DEFAULT_TENDERMINT_P2P_URL
+        self.tendermint_check_sleep_delay: int = self._ensure(
+            "tendermint_check_sleep_delay", kwargs, int
         )
-        setup_params = kwargs.pop("setup", {})
+        self.reset_tendermint_after: int = self._ensure(
+            "reset_tendermint_after", kwargs, int
+        )
+        self.consensus_params: ConsensusParams = ConsensusParams.from_json(
+            self._ensure("consensus", kwargs, dict)
+        )
+        self.cleanup_history_depth: int = self._ensure(
+            "cleanup_history_depth", kwargs, int
+        )
+        self.cleanup_history_depth_current: Optional[int] = self._ensure(
+            "cleanup_history_depth_current", kwargs, Optional[int]
+        )
+        self.request_timeout: float = self._ensure("request_timeout", kwargs, float)
+        self.request_retry_delay: float = self._ensure(
+            "request_retry_delay", kwargs, float
+        )
+        self.tx_timeout: float = self._ensure("tx_timeout", kwargs, float)
+        self.max_attempts: int = self._ensure("max_attempts", kwargs, int)
+        self.service_registry_address: Optional[str] = self._ensure(
+            "service_registry_address", kwargs, Optional[str]
+        )
+        self.on_chain_service_id: Optional[int] = self._ensure(
+            "on_chain_service_id", kwargs, Optional[int]
+        )
+        self.share_tm_config_on_startup: bool = self._ensure(
+            "share_tm_config_on_startup", kwargs, bool
+        )
+        self.tendermint_p2p_url: str = self._ensure("tendermint_p2p_url", kwargs, str)
+        self.ipfs_domain_name: Optional[str] = self._ensure(
+            "ipfs_domain_name", kwargs, Optional[str]
+        )
+        setup_params_: Dict[str, Any] = self._ensure("setup", kwargs, dict)
+
+        def check_val(val: Any, skill_id: str) -> List[Any]:
+            """Check that a value a list"""
+            if not isinstance(val, list):
+                raise TypeError(
+                    f"Value `{val}` in `setup` set in `models.params.args` of `skill.yaml` of `{skill_id}` is not a list"
+                )
+            return val
+
         # we sanitize for null values as these are just kept for schema definitions
-        setup_params = {
-            key: val for key, val in setup_params.items() if val is not None
+        skill_id = kwargs["skill_context"].skill_id
+        setup_params: Dict[str, List[Any]] = {
+            key: check_val(val, skill_id)
+            for key, val in setup_params_.items()
+            if val is not None
         }
         self.setup_params = setup_params
         super().__init__(*args, **kwargs)
@@ -143,12 +338,21 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
                     get_name(BaseSynchronizedData.all_participants),
                 }
             )
+        self._frozen = True
 
     @classmethod
-    def _ensure(cls, key: str, kwargs: Dict) -> Any:
-        """Get and ensure the configuration field is not None."""
-        value = kwargs.pop(key, None)
-        enforce(value is not None, f"'{key}' required, but it is not set")
+    def _ensure(cls, key: str, kwargs: Dict, type_: Any) -> Any:
+        """Get and ensure the configuration field is not None (if no default is provided) and of correct type."""
+        skill_id = kwargs["skill_context"].skill_id
+        enforce(
+            key in kwargs,
+            f"'{key}' of type '{type_}' required, but it is not set in `models.params.args` of `skill.yaml` of `{skill_id}`",
+        )
+        value = kwargs.pop(key)
+        enforce(
+            isinstance(value, type_),
+            f"'{key}' must be a {type_}, but type {type(value)} was found in `models.params.args` of `skill.yaml` of `{skill_id}`",
+        )
         return value
 
     def _ensure_setup(self, necessary_keys: Iterable[str]) -> Any:
@@ -160,18 +364,58 @@ class BaseParams(Model):  # pylint: disable=too-many-instance-attributes
         enforce(found, fail_msg)
 
 
-class SharedState(Model):
+class _MetaSharedState(ABCMeta):
+    """A metaclass that validates SharedState's attributes."""
+
+    def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type:  # type: ignore
+        """Initialize the class."""
+        new_cls = super().__new__(mcs, name, bases, namespace, **kwargs)
+
+        if ABC in bases:
+            # abstract class, return
+            return new_cls
+        if not issubclass(new_cls, SharedState):
+            # the check only applies to SharedState subclasses
+            return new_cls
+
+        mcs._check_consistency(cast(Type[SharedState], new_cls))
+        return new_cls
+
+    @classmethod
+    def _check_consistency(mcs, shared_state_cls: Type["SharedState"]) -> None:
+        """Check consistency of class attributes."""
+        mcs._check_required_class_attributes(shared_state_cls)
+
+    @classmethod
+    def _check_required_class_attributes(
+        mcs, shared_state_cls: Type["SharedState"]
+    ) -> None:
+        """Check that required class attributes are set."""
+        if not hasattr(shared_state_cls, "abci_app_cls"):
+            raise AttributeError(f"'abci_app_cls' not set on {shared_state_cls}")
+        abci_app_cls = shared_state_cls.abci_app_cls
+        if not inspect.isclass(abci_app_cls):
+            raise AttributeError(f"The object `{abci_app_cls}` is not a class")
+        if not issubclass(abci_app_cls, AbciApp):
+            cls_name = AbciApp.__name__
+            cls_module = AbciApp.__module__
+            raise AttributeError(
+                f"The class {abci_app_cls} is not an instance of {cls_module}.{cls_name}"
+            )
+
+
+class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
     """Keep the current shared state of the skill."""
+
+    abci_app_cls: Type[AbciApp]
 
     def __init__(
         self,
         *args: Any,
-        abci_app_cls: Type[AbciApp],
         skill_context: SkillContext,
         **kwargs: Any,
     ) -> None:
         """Initialize the state."""
-        self.abci_app_cls = self._process_abci_app_cls(abci_app_cls)
         self.abci_app_cls._is_abstract = skill_context.is_abstract_component
         self._round_sequence: Optional[RoundSequence] = None
         self.tm_recovery_params: TendermintRecoveryParams = TendermintRecoveryParams(
@@ -208,29 +452,16 @@ class SharedState(Model):
         """Get the latest synchronized_data if available."""
         return self.round_sequence.latest_synchronized_data
 
-    @classmethod
-    def _process_abci_app_cls(cls, abci_app_cls: Type[AbciApp]) -> Type[AbciApp]:
-        """Process the 'initial_round_cls' parameter."""
-        if not inspect.isclass(abci_app_cls):
-            raise ValueError(f"The object {abci_app_cls} is not a class")
-        if not issubclass(abci_app_cls, AbciApp):
-            cls_name = AbciApp.__name__
-            cls_module = AbciApp.__module__
-            raise ValueError(
-                f"The class {abci_app_cls} is not an instance of {cls_module}.{cls_name}"
-            )
-        return abci_app_cls
 
-
-class Requests(Model):
+class Requests(Model, FrozenMixin):
     """Keep the current pending requests."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
-        super().__init__(*args, **kwargs)
-
         # mapping from dialogue reference nonce to a callback
         self.request_id_to_callback: Dict[str, Callable] = {}
+        super().__init__(*args, **kwargs)
+        self._frozen = True
 
 
 class UnexpectedResponseError(Exception):
@@ -238,31 +469,51 @@ class UnexpectedResponseError(Exception):
 
 
 @dataclass
-class ResponseInfo:
+class ResponseInfo(TypeCheckMixin):
     """A dataclass to hold all the information related to the response."""
 
-    def __init__(self, kwargs: Dict) -> None:
-        """Initialize a response info object"""
-        self.response_key: Optional[str] = kwargs.pop("response_key", None)
-        self.response_index: Optional[int] = kwargs.pop("response_index", None)
-        self.response_type: str = kwargs.pop("response_type", DEFAULT_TYPE_NAME)
-        self.error_key: Optional[str] = kwargs.pop("error_key", None)
-        self.error_index: Optional[int] = kwargs.pop("error_index", None)
-        self.error_type: str = kwargs.pop("error_type", DEFAULT_TYPE_NAME)
-        self.error_data: Any = None
+    response_key: Optional[str]
+    response_index: Optional[int]
+    response_type: str
+    error_key: Optional[str]
+    error_index: Optional[int]
+    error_type: str
+    error_data: Any = None
+
+    @classmethod
+    def from_json_dict(cls, kwargs: Dict) -> "ResponseInfo":
+        """Initialize a response info object from kwargs."""
+        response_key: Optional[str] = kwargs.pop("response_key", None)
+        response_index: Optional[int] = kwargs.pop("response_index", None)
+        response_type: str = kwargs.pop("response_type", DEFAULT_TYPE_NAME)
+        error_key: Optional[str] = kwargs.pop("error_key", None)
+        error_index: Optional[int] = kwargs.pop("error_index", None)
+        error_type: str = kwargs.pop("error_type", DEFAULT_TYPE_NAME)
+        return cls(
+            response_key,
+            response_index,
+            response_type,
+            error_key,
+            error_index,
+            error_type,
+        )
 
 
 @dataclass
-class RetriesInfo:
+class RetriesInfo(TypeCheckMixin):
     """A dataclass to hold all the information related to the retries."""
 
-    def __init__(self, kwargs: Dict) -> None:
-        """Initialize a retries info object"""
-        self.retries_attempted: int = 0
-        self.retries: int = kwargs.pop("retries", NUMBER_OF_RETRIES)
-        self.backoff_factor: float = kwargs.pop(
-            "backoff_factor", DEFAULT_BACKOFF_FACTOR
-        )
+    retries: int
+    backoff_factor: float
+    retries_attempted: int = 0
+
+    @classmethod
+    def from_json_dict(cls, kwargs: Dict) -> "RetriesInfo":
+        """Initialize a retries info object from kwargs."""
+        retries_attempted: int = 0
+        retries: int = kwargs.pop("retries", NUMBER_OF_RETRIES)
+        backoff_factor: float = kwargs.pop("backoff_factor", DEFAULT_BACKOFF_FACTOR)
+        return cls(retries, backoff_factor, retries_attempted)
 
     @property
     def suggested_sleep_time(self) -> float:
@@ -270,8 +521,8 @@ class RetriesInfo:
         return self.backoff_factor ** self.retries_attempted
 
 
-@dataclass
-class TendermintRecoveryParams:
+@dataclass(frozen=True)
+class TendermintRecoveryParams(TypeCheckMixin):
     """A dataclass to hold all parameters related to agent <-> tendermint recovery procedures."""
 
     reset_from_round: Type[AbstractRound]
@@ -280,28 +531,31 @@ class TendermintRecoveryParams:
     reset_params: Optional[List[Tuple[str, str]]] = None
 
 
-class ApiSpecs(Model):
+class ApiSpecs(Model, FrozenMixin):
     """A model that wraps APIs to get cryptocurrency prices."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize ApiSpecsModel."""
-        self.url: str = self.ensure("url", kwargs)
-        self.api_id: str = self.ensure("api_id", kwargs)
-        self.method: str = self.ensure("method", kwargs)
-        self.headers: HeadersType = kwargs.pop("headers", [])
-        self.parameters: ParametersType = kwargs.pop("parameters", [])
-        self.response_info = ResponseInfo(kwargs)
-        self.retries_info = RetriesInfo(kwargs)
-
+        self.url: str = self._ensure("url", kwargs, str)
+        self.api_id: str = self._ensure("api_id", kwargs, str)
+        self.method: str = self._ensure("method", kwargs, str)
+        self.headers: HeadersType = self._ensure("headers", kwargs, list)
+        self.parameters: ParametersType = self._ensure("parameters", kwargs, list)
+        self.response_info = ResponseInfo.from_json_dict(kwargs)
+        self.retries_info = RetriesInfo.from_json_dict(kwargs)
         super().__init__(*args, **kwargs)
+        self._frozen = True
 
-    def ensure(self, keyword: str, kwargs: Dict) -> Any:
-        """Ensure a keyword argument."""
-        value = kwargs.pop(keyword, None)
-        if value is None:
-            raise ValueError(
-                f"Value for {keyword} is required by {self.__class__.__name__}."
-            )
+    @classmethod
+    def _ensure(cls, key: str, kwargs: Dict, type_: Any) -> Any:
+        """Get and ensure the configuration field is not None (if no default is provided) and of correct type."""
+        skill_id = kwargs["skill_context"].skill_id
+        enforce(
+            key in kwargs,
+            f"'{key}' of type '{type_}' required, but it is not set in `models.params.args` of `skill.yaml` of `{skill_id}`",
+        )
+        value = kwargs.pop(key)
+        enforce(isinstance(value, type_), f"'{key}' must be a {type_.__name__}")
         return value
 
     def get_spec(
@@ -401,7 +655,7 @@ class ApiSpecs(Model):
         return self.retries_info.retries_attempted > self.retries_info.retries
 
 
-class BenchmarkBlockTypes:  # pylint: disable=too-few-public-methods
+class BenchmarkBlockTypes(Enum):
     """Benchmark block types."""
 
     LOCAL = "local"
@@ -470,16 +724,16 @@ class BenchmarkBehaviour:
         self,
     ) -> BenchmarkBlock:
         """Measure local block."""
-        return self._measure(BenchmarkBlockTypes.LOCAL)
+        return self._measure(BenchmarkBlockTypes.LOCAL.value)
 
     def consensus(
         self,
     ) -> BenchmarkBlock:
         """Measure consensus block."""
-        return self._measure(BenchmarkBlockTypes.CONSENSUS)
+        return self._measure(BenchmarkBlockTypes.CONSENSUS.value)
 
 
-class BenchmarkTool(Model):
+class BenchmarkTool(Model, FrozenMixin):
     """
     BenchmarkTool
 
@@ -491,9 +745,10 @@ class BenchmarkTool(Model):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Benchmark tool for rounds behaviours."""
-        super().__init__(*args, **kwargs)
         self.benchmark_data = {}
         self.log_dir = Path(kwargs.pop("log_dir", "/logs"))
+        super().__init__(*args, **kwargs)
+        self._frozen = True
 
     def measure(self, behaviour: str) -> BenchmarkBehaviour:
         """Measure time to complete round."""
@@ -510,7 +765,7 @@ class BenchmarkTool(Model):
         behavioural_data = []
         for behaviour, tool in self.benchmark_data.items():
             data = {k: v.total_time for k, v in tool.local_data.items()}
-            data[BenchmarkBlockTypes.TOTAL] = sum(data.values())
+            data[BenchmarkBlockTypes.TOTAL.value] = sum(data.values())
             behavioural_data.append({"behaviour": behaviour, "data": data})
 
         return behavioural_data
@@ -538,4 +793,4 @@ class BenchmarkTool(Model):
         self,
     ) -> None:
         """Reset benchmark data"""
-        self.benchmark_data = {}
+        self.benchmark_data.clear()

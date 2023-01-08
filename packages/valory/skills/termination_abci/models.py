@@ -38,9 +38,7 @@ from packages.valory.skills.transaction_settlement_abci.models import Transactio
 class SharedState(BaseSharedState):
     """Keep the current shared state of the skill."""
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the state."""
-        super().__init__(*args, abci_app_cls=TerminationAbciApp, **kwargs)
+    abci_app_cls = TerminationAbciApp
 
 
 class TerminationParams(TransactionParams):
@@ -48,8 +46,8 @@ class TerminationParams(TransactionParams):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Set up the termination parameters."""
-        self.termination_sleep = self._ensure("termination_sleep", kwargs)
-        self.multisend_address = self._ensure("multisend_address", kwargs)
+        self.termination_sleep: int = self._ensure("termination_sleep", kwargs, int)
+        self.multisend_address: str = self._ensure("multisend_address", kwargs, str)
         super().__init__(*args, **kwargs)
 
 

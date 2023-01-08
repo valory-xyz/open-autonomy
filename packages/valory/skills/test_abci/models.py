@@ -19,8 +19,6 @@
 
 """This module contains the shared state for the 'test_abci' application."""
 
-from typing import Any
-
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
@@ -42,9 +40,7 @@ BenchmarkTool = BaseBenchmarkTool
 class SharedState(BaseSharedState):
     """Keep the current shared state of the skill."""
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the state."""
-        super().__init__(*args, abci_app_cls=TestAbciApp, **kwargs)
+    abci_app_cls = TestAbciApp
 
     def setup(self) -> None:
         """Set up."""
@@ -58,7 +54,4 @@ class SharedState(BaseSharedState):
 
 
 Params = BaseParams
-
-
-class RandomnessApi(ApiSpecs):
-    """A model that wraps ApiSpecs for randomness api specifications."""
+RandomnessApi = ApiSpecs

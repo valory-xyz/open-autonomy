@@ -253,19 +253,19 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         }
 
         # Set hash, nonce and tip.
-        self.params.tx_hash = cast(str, tx_data["tx_digest"])
-        if nonce == self.params.nonce:
+        self.params.mutable_params.tx_hash = cast(str, tx_data["tx_digest"])
+        if nonce == self.params.mutable_params.nonce:
             self.context.logger.info(
                 "Attempting to replace transaction "
-                f"with old gas price parameters {self.params.gas_price}, using new gas price parameters {gas_price}"
+                f"with old gas price parameters {self.params.mutable_params.gas_price}, using new gas price parameters {gas_price}"
             )
         else:
             self.context.logger.info(
                 f"Sent transaction for mining with gas parameters {gas_price}"
             )
-            self.params.nonce = nonce
-        self.params.gas_price = gas_price
-        self.params.fallback_gas = fallback_gas
+            self.params.mutable_params.nonce = nonce
+        self.params.mutable_params.gas_price = gas_price
+        self.params.mutable_params.fallback_gas = fallback_gas
 
         return tx_data
 
@@ -643,9 +643,9 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
         super().__init__(**kwargs)
         # if we timed out during finalization, but we managed to receive a tx hash,
         # then we sync it here by initializing the `_tx_hashes` with the unsynced hash.
-        self._tx_hashes: str = self.params.tx_hash
+        self._tx_hashes: str = self.params.mutable_params.tx_hash
         self._messages_iterator: Iterator[ContractApiMessage] = iter(
-            self.params.late_messages
+            self.params.mutable_params.late_messages
         )
 
     def async_act(self) -> Generator:
@@ -669,8 +669,8 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             # reset the local parameters if we were able to send them.
-            self.params.tx_hash = ""
-            self.params.late_messages = []
+            self.params.mutable_params.tx_hash = ""
+            self.params.mutable_params.late_messages = []
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -810,7 +810,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             # reset the local tx hash parameter if we were able to send it
-            self.params.tx_hash = ""
+            self.params.mutable_params.tx_hash = ""
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -838,10 +838,10 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
                 key: payload.signature
                 for key, payload in self.synchronized_data.participant_to_signature.items()
             },
-            nonce=self.params.nonce,
-            old_price=self.params.gas_price,
+            nonce=self.params.mutable_params.nonce,
+            old_price=self.params.mutable_params.gas_price,
             operation=tx_params["operation"],
-            fallback_gas=self.params.fallback_gas,
+            fallback_gas=self.params.mutable_params.fallback_gas,
         )
 
         tx_data = yield from self._get_tx_data(contract_api_msg)
@@ -858,7 +858,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
             and behaviour_id == self.behaviour_id
         ):
             self.context.logger.info(f"Late message arrived: {message}")
-            self.params.late_messages.append(message)
+            self.params.mutable_params.late_messages.append(message)
         else:
             super().handle_late_messages(behaviour_id, message)
 

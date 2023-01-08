@@ -201,6 +201,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
             ).behaviour_id
             == self.randomness_behaviour_class.auto_behaviour_id()
         )
+        self.behaviour.context.randomness_api.__dict__["_frozen"] = False
         with mock.patch.object(
             self.behaviour.context.randomness_api,
             "is_retries_exceeded",
@@ -226,6 +227,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
             assert (
                 behaviour.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
             )
+        self.behaviour.context.randomness_api.__dict__["_frozen"] = True
 
     def test_max_retries_reached_fallback_fail(
         self,
@@ -243,6 +245,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
             ).behaviour_id
             == self.randomness_behaviour_class.auto_behaviour_id()
         )
+        self.behaviour.context.randomness_api.__dict__["_frozen"] = False
         with mock.patch.object(
             self.behaviour.context.randomness_api,
             "is_retries_exceeded",
@@ -260,6 +263,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
             )
 
             self.behaviour.act_wrapper()
+        self.behaviour.context.randomness_api.__dict__["_frozen"] = True
 
     def test_max_retries_reached_fallback_fail_case_2(
         self,
@@ -277,6 +281,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
             ).behaviour_id
             == self.randomness_behaviour_class.auto_behaviour_id()
         )
+        self.behaviour.context.randomness_api.__dict__["_frozen"] = False
         with mock.patch.object(
             self.behaviour.context.randomness_api,
             "is_retries_exceeded",
@@ -294,6 +299,7 @@ class BaseRandomnessBehaviourTest(CommonBaseCase):
             )
 
             self.behaviour.act_wrapper()
+        self.behaviour.context.randomness_api.__dict__["_frozen"] = True
 
     def test_clean_up(
         self,

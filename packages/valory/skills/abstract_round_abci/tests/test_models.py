@@ -24,18 +24,19 @@
 import builtins
 import json
 import logging
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
-from typing import Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Type, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+from aea.exceptions import AEAEnforceError
 
 from packages.valory.skills.abstract_round_abci.base import (
-    AbciApp,
     AbstractRound,
     BaseSynchronizedData,
     RESET_INDEX_DEFAULT,
@@ -46,11 +47,25 @@ from packages.valory.skills.abstract_round_abci.models import (
     BaseParams,
     BenchmarkTool,
     DEFAULT_BACKOFF_FACTOR,
+    GenesisBlock,
+    GenesisConfig,
+    GenesisConsensusParams,
+    GenesisEvidence,
+    GenesisValidator,
     NUMBER_OF_RETRIES,
     Requests,
-    SharedState,
+)
+from packages.valory.skills.abstract_round_abci.models import (
+    SharedState as BaseSharedState,
+)
+from packages.valory.skills.abstract_round_abci.models import (
+    TypeCheckMixin,
+    _MetaSharedState,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import AbciAppTest
+from packages.valory.skills.abstract_round_abci.tests.conftest import (
+    irrelevant_genesis_config,
+)
 
 
 BASE_DUMMY_SPECS_CONFIG = dict(
@@ -91,7 +106,10 @@ class TestApiSpecsModel:
         """Test initialization."""
 
         # test ensure method.
-        with pytest.raises(ValueError, match="Value for url is required by ApiSpecs"):
+        with pytest.raises(
+            AEAEnforceError,
+            match="'url' of type '<class 'str'>' required, but it is not set in `models.params.args` of `skill.yaml` of",
+        ):
             _ = ApiSpecs(
                 name="dummy",
                 skill_context=MagicMock(),
@@ -165,7 +183,6 @@ class TestApiSpecsModel:
                     response_type="float",
                     error_key=None,
                     error_index=None,
-                    error_type=None,
                     error_data=None,
                 ),
                 MagicMock(body=b'{"value": "10.232"}'),
@@ -194,7 +211,6 @@ class TestApiSpecsModel:
                     **BASE_DUMMY_SPECS_CONFIG,
                     response_key="test:response:key",
                     response_index=2,
-                    response_type=None,
                     error_key="error:key",
                     error_index=3,
                     error_type="str",
@@ -209,7 +225,6 @@ class TestApiSpecsModel:
                     **BASE_DUMMY_SPECS_CONFIG,
                     response_key="test:response:key",
                     response_index=2,
-                    response_type=None,
                     error_key="error:key",
                     error_index=3,
                     error_type="str",
@@ -219,7 +234,7 @@ class TestApiSpecsModel:
                     # the null will raise `TypeError` and we test that it is handled
                     body=b'{"test": {"response": {"key": ["does_not_matter", "does_not_matter", null]}}}'
                 ),
-                None,
+                "None",
                 None,
             ),
             (
@@ -227,7 +242,6 @@ class TestApiSpecsModel:
                     **BASE_DUMMY_SPECS_CONFIG,
                     response_key="test:response:key",
                     response_index=2,  # this will raise `IndexError` and we test that it is handled
-                    response_type=None,
                     error_key="error:key",
                     error_index=3,
                     error_type="str",
@@ -244,7 +258,6 @@ class TestApiSpecsModel:
                     **BASE_DUMMY_SPECS_CONFIG,
                     response_key="test:response:key",  # this will raise `KeyError` and we test that it is handled
                     response_index=2,
-                    response_type=None,
                     error_key="error:key",
                     error_index=3,
                     error_type="str",
@@ -261,7 +274,6 @@ class TestApiSpecsModel:
                     **BASE_DUMMY_SPECS_CONFIG,
                     response_key="test:response:key",
                     response_index=2,
-                    response_type=None,
                     error_key="error:key",
                     error_index=3,
                     error_type="str",
@@ -287,10 +299,22 @@ class TestApiSpecsModel:
         api_specs = ApiSpecs(**api_specs_config)
         actual = api_specs.process_response(message)
         assert actual == expected_res
-        response_type = api_specs_config["response_type"]
+        response_type = api_specs_config.get("response_type", None)
         if response_type is not None:
             assert type(actual) == getattr(builtins, response_type)
         assert api_specs.response_info.error_data == expected_error
+
+    def test_attribute_manipulation(self) -> None:
+        """Test manipulating the attributes."""
+        with pytest.raises(AttributeError, match="This object is frozen!"):
+            del self.api_specs.url
+
+        with pytest.raises(AttributeError, match="This object is frozen!"):
+            self.api_specs.url = ""
+
+        self.api_specs.__dict__["_frozen"] = False
+        self.api_specs.url = ""
+        del self.api_specs.url
 
 
 class ConcreteRound(AbstractRound):
@@ -304,40 +328,36 @@ class ConcreteRound(AbstractRound):
         """Handle the end of the block."""
 
 
+class SharedState(BaseSharedState):
+    """Shared State for testing purposes."""
+
+    abci_app_cls = AbciAppTest
+
+
 class TestSharedState:
     """Test SharedState(Model) class."""
 
-    @mock.patch.object(SharedState, "_process_abci_app_cls")
     def test_initialization(self, *_: Any) -> None:
         """Test the initialization of the shared state."""
-        SharedState(abci_app_cls=MagicMock(), name="", skill_context=MagicMock())
+        SharedState(name="", skill_context=MagicMock())
 
-    @mock.patch.object(SharedState, "_process_abci_app_cls")
     def test_setup(self, *_: Any) -> None:
         """Test setup method."""
-        shared_state = SharedState(
-            abci_app_cls=MagicMock, name="", skill_context=MagicMock()
-        )
+        shared_state = SharedState(name="", skill_context=MagicMock())
         shared_state.context.params.setup_params = {"test": []}
         shared_state.context.params.consensus_params = MagicMock()
         shared_state.setup()
 
-    @mock.patch.object(SharedState, "_process_abci_app_cls")
     def test_synchronized_data_negative_not_available(self, *_: Any) -> None:
         """Test 'synchronized_data' property getter, negative case (not available)."""
-        shared_state = SharedState(
-            abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
-        )
+        shared_state = SharedState(name="", skill_context=MagicMock())
         with mock.patch.object(shared_state.context, "params"):
             with pytest.raises(ValueError, match="round sequence not available"):
                 shared_state.synchronized_data
 
-    @mock.patch.object(SharedState, "_process_abci_app_cls")
     def test_synchronized_data_positive(self, *_: Any) -> None:
         """Test 'synchronized_data' property getter, negative case (not available)."""
-        shared_state = SharedState(
-            abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
-        )
+        shared_state = SharedState(name="", skill_context=MagicMock())
         shared_state.context.params.setup_params = {"test": []}
         shared_state.context.params.consensus_params = MagicMock()
         shared_state.setup()
@@ -346,9 +366,7 @@ class TestSharedState:
 
     def test_synchronized_data_db(self, *_: Any) -> None:
         """Test 'synchronized_data' AbciAppDB."""
-        shared_state = SharedState(
-            abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
-        )
+        shared_state = SharedState(name="", skill_context=MagicMock())
         with mock.patch.object(shared_state.context, "params") as mock_params:
             mock_params.setup_params = {
                 "safe_contract_address": ["0xsafe"],
@@ -364,32 +382,9 @@ class TestSharedState:
                 == "0xoracle"
             )
 
-    def test_process_abci_app_cls_negative_not_a_class(self) -> None:
-        """Test '_process_abci_app_cls', negative case (not a class)."""
-        mock_obj = MagicMock()
-        with pytest.raises(ValueError, match=f"The object {mock_obj} is not a class"):
-            SharedState._process_abci_app_cls(mock_obj)
-
-    def test_process_abci_app_cls_negative_not_subclass_of_abstract_round(
-        self,
-    ) -> None:
-        """Test '_process_abci_app_cls', negative case (not subclass of AbstractRound)."""
-        with pytest.raises(
-            ValueError,
-            match=f"The class {MagicMock} is not an instance of {AbciApp.__module__}.{AbciApp.__name__}",
-        ):
-            SharedState._process_abci_app_cls(MagicMock)
-
-    def test_process_abci_app_cls_positive(self) -> None:
-        """Test '_process_abci_app_cls', positive case."""
-
-        SharedState._process_abci_app_cls(AbciAppTest)
-
     def test_recovery_params_on_init(self) -> None:
         """Test that `tm_recovery_params` get initialized correctly."""
-        shared_state = SharedState(
-            abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
-        )
+        shared_state = SharedState(name="", skill_context=MagicMock())
         assert shared_state.tm_recovery_params is not None
         assert shared_state.tm_recovery_params.round_count == ROUND_COUNT_DEFAULT
         assert shared_state.tm_recovery_params.reset_index == RESET_INDEX_DEFAULT
@@ -401,9 +396,7 @@ class TestSharedState:
 
     def test_set_last_reset_params(self) -> None:
         """Test that `last_reset_params` get set correctly."""
-        shared_state = SharedState(
-            abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
-        )
+        shared_state = SharedState(name="", skill_context=MagicMock())
         test_params = [("genesis_time", "some-time"), ("initial_height", "0")]
         shared_state.last_reset_params = test_params
         assert shared_state.last_reset_params == test_params
@@ -461,14 +454,14 @@ def test_requests_model_initialization() -> None:
 
 def test_base_params_model_initialization() -> None:
     """Test initialization of the 'BaseParams(Model)' class."""
-    BaseParams(
+    kwargs = dict(
         name="",
         skill_context=MagicMock(),
         setup={},
         consensus=dict(max_participants=1),
         tendermint_url="",
         max_healthcheck=1,
-        round_timeout_seconds=1,
+        round_timeout_seconds=1.0,
         sleep_time=1,
         retry_timeout=1,
         retry_attempts=1,
@@ -482,5 +475,135 @@ def test_base_params_model_initialization() -> None:
         tendermint_check_sleep_delay=3,
         tendermint_max_retries=5,
         cleanup_history_depth=0,
-        genesis_config={"voting_power": "0"},
+        genesis_config=irrelevant_genesis_config,
+        cleanup_history_depth_current=None,
+        request_timeout=0.0,
+        request_retry_delay=0.0,
+        tx_timeout=0.0,
+        max_attempts=0,
+        on_chain_service_id=None,
+        share_tm_config_on_startup=False,
+        tendermint_p2p_url="",
+        ipfs_domain_name=None,
     )
+    bp = BaseParams(**kwargs)
+
+    with pytest.raises(AttributeError, match="This object is frozen!"):
+        bp.request_timeout = 0.1
+
+    with pytest.raises(AttributeError, match="This object is frozen!"):
+        del bp.request_timeout
+
+    bp.__dict__["_frozen"] = False
+    del bp.request_timeout
+
+    assert getattr(bp, "request_timeout", None) is None
+
+    with pytest.raises(
+        TypeError,
+        match="Value `b` in `setup` set in `models.params.args` of `skill.yaml` of .* is not a list",
+    ):
+        kwargs["setup"] = {"a": "b"}
+        BaseParams(**kwargs)
+
+
+def test_genesis_block() -> None:
+    """Test genesis block methods."""
+    json = {"max_bytes": "a", "max_gas": "b", "time_iota_ms": "c"}
+    gb = GenesisBlock(**json)
+    assert gb.to_json() == json
+
+    with pytest.raises(
+        TypeError, match="max_bytes must be a <class 'str'>, found <class 'int'>"
+    ):
+        json["max_bytes"] = 0  # type: ignore
+        GenesisBlock(**json)
+
+
+def test_genesis_evidence() -> None:
+    """Test genesis evidence methods."""
+    json = {"max_age_num_blocks": "a", "max_age_duration": "b", "max_bytes": "c"}
+    ge = GenesisEvidence(**json)
+    assert ge.to_json() == json
+
+
+def test_genesis_validator() -> None:
+    """Test genesis validator methods."""
+    json = {"pub_key_types": ["a", "b"]}
+    ge = GenesisValidator(pub_key_types=tuple(json["pub_key_types"]))
+    assert ge.to_json() == json
+
+    with pytest.raises(TypeError, match="pub_key_types must be a Tuple"):
+        GenesisValidator(**json)  # type: ignore
+
+
+def test_genesis_consensus_params() -> None:
+    """Test genesis consensus params methods."""
+    consensus_params = cast(Dict, irrelevant_genesis_config["consensus_params"])
+    gcp = GenesisConsensusParams.from_json_dict(consensus_params)
+    assert gcp.to_json() == consensus_params
+
+
+def test_genesis_config() -> None:
+    """Test genesis config methods."""
+    gcp = GenesisConfig.from_json_dict(irrelevant_genesis_config)
+    assert gcp.to_json() == irrelevant_genesis_config
+
+
+def test_meta_shared_state_when_instance_not_subclass_of_shared_state() -> None:
+    """Test instantiation of meta class when instance not a subclass of shared state."""
+
+    class MySharedState(metaclass=_MetaSharedState):
+        pass
+
+
+def test_shared_state_instantiation_without_attributes_raises_error() -> None:
+    """Test that definition of concrete subclass of SharedState without attributes raises error."""
+    with pytest.raises(AttributeError, match="'abci_app_cls' not set on .*"):
+
+        class MySharedState(BaseSharedState):
+            pass
+
+    with pytest.raises(AttributeError, match="The object `None` is not a class"):
+
+        class MySharedStateB(BaseSharedState):
+            abci_app_cls = None  # type: ignore
+
+    with pytest.raises(
+        AttributeError,
+        match="The class <class 'unittest.mock.MagicMock'> is not an instance of packages.valory.skills.abstract_round_abci.base.AbciApp",
+    ):
+
+        class MySharedStateC(BaseSharedState):
+            abci_app_cls = MagicMock
+
+
+def test_type_check_mixin() -> None:
+    """Test the type check mixin."""
+
+    @dataclass
+    class A:
+        """Class for testing."""
+
+        value: int
+
+    @dataclass
+    class TestClass(TypeCheckMixin):
+        """Class for testing."""
+
+        simple_type_arg: str
+        any_type_arg: Any
+        magic_mock_type_arg: MagicMock
+        non_concrete_arg: Type[A]
+        complex_type_arg: Optional[List[str]] = None
+
+    args = ("str", None, MagicMock(), A, None)
+    TestClass(*args)
+    with pytest.raises(TypeError, match="non_concrete_arg must be a subclass of .*"):
+        args_ = ("str", None, MagicMock(), MagicMock, None)
+        TestClass(*args_)  # type: ignore
+    with pytest.raises(
+        TypeError, match="simple_type_arg must be a <class 'str'>, found <class 'int'>"
+    ):
+        args__ = (1, None, MagicMock(), MagicMock, None)
+        TestClass(*args__)  # type: ignore
