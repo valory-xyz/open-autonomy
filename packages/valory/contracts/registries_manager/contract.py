@@ -69,7 +69,7 @@ class RegistriesManagerContract(Contract):
         raise NotImplementedError
 
     @classmethod
-    def create(  # pylint: disable=too-many-arguments
+    def get_create_transaction(  # pylint: disable=too-many-arguments
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
@@ -83,11 +83,18 @@ class RegistriesManagerContract(Contract):
         contract_interface = cls.get_instance(
             ledger_api=ledger_api, contract_address=contract_address
         )
-        tx_hash = contract_interface.functions.create(
+        tx_params = {
+            "from": owner,
+            "nonce": ledger_api.api.eth.get_transaction_count(
+                ledger_api.api.toChecksumAddress(owner)
+            ),
+        }
+        tx_params.update(ledger_api.try_get_gas_pricing())
+        tx = contract_interface.functions.create(
             unitType=component_type.value,
             unitOwner=owner,
             unitHash=metadata_hash,
             dependencies=(dependencies or []),
-        ).transact({"from": owner})
+        ).buildTransaction(tx_params)
 
-        ledger_api.api.eth.wait_for_transaction_receipt(tx_hash)
+        return tx
