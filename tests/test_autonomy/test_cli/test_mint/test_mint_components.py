@@ -23,6 +23,7 @@
 from typing import Any
 from unittest import mock
 
+import pytest
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.docker.base import skip_docker_tests
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
@@ -44,7 +45,7 @@ class DummyContract:
 
 
 @skip_docker_tests
-# @pytest.mark.usefixtures("registries_scope_class")
+@pytest.mark.usefixtures("registries_scope_class")
 class TestMintProtocol(BaseCliTest):
     """Test `autonomy develop mint protocol` command."""
 
