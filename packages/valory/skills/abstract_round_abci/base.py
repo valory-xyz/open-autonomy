@@ -387,6 +387,19 @@ class NewTransaction:
             raise ValueError(msg)
         return encoded_data
 
+    @classmethod
+    def from_bytes(cls, obj: bytes) -> "NewTransaction":
+        """Deserialize the transaction from bytes"""
+
+        data = json.loads(obj.decode())
+        payload, signature = data["payload"], data["signature"]
+        cls_name, kwargs = payload.popitem()
+        round_count = kwargs.pop("round_count")
+        payload_cls = _MetaPayload.transaction_type_to_payload_cls[cls_name]
+        payload = payload_cls(**kwargs)
+        object.__setattr__(payload, "round_count", round_count)
+        return cls(payload=cast(NewBaseTxPayload, payload), signature=signature)
+
 
 class Block:  # pylint: disable=too-few-public-methods
     """Class to represent (a subset of) data of a Tendermint block."""
