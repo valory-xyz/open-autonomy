@@ -136,14 +136,10 @@ def get_contract(public_id: PublicId) -> Contract:
 def transact(ledger_api: LedgerApi, crypto: Crypto, tx: Dict) -> Dict:
     """Make a transaction and return a receipt"""
 
-    signed_tx = ledger_api.api.eth.account.sign_transaction(
-        tx,
-        private_key=crypto.private_key,
-    )
-    ledger_api.api.eth.send_raw_transaction(signed_tx.rawTransaction)
-    tx_hash = ledger_api.api.toHex(ledger_api.api.keccak(signed_tx.rawTransaction))
+    tx_signed = crypto.sign_transaction(transaction=tx)
+    tx_digest = ledger_api.send_signed_transaction(tx_signed=tx_signed)
 
-    return ledger_api.api.eth.wait_for_transaction_receipt(tx_hash)
+    return ledger_api.get_transaction_receipt(tx_digest=tx_digest)
 
 
 def mint_component(

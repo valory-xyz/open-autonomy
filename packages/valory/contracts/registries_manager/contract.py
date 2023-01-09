@@ -80,21 +80,19 @@ class RegistriesManagerContract(Contract):
     ) -> None:
         """Create a component."""
 
-        contract_interface = cls.get_instance(
-            ledger_api=ledger_api, contract_address=contract_address
-        )
-        tx_params = {
-            "from": owner,
-            "nonce": ledger_api.api.eth.get_transaction_count(
-                ledger_api.api.toChecksumAddress(owner)
+        tx_params = ledger_api.build_transaction(
+            contract_instance=cls.get_instance(
+                ledger_api=ledger_api, contract_address=contract_address
             ),
-        }
-        tx_params.update(ledger_api.try_get_gas_pricing())
-        tx = contract_interface.functions.create(
-            unitType=component_type.value,
-            unitOwner=owner,
-            unitHash=metadata_hash,
-            dependencies=(dependencies or []),
-        ).buildTransaction(tx_params)
-
-        return tx
+            method_name="create",
+            method_args={
+                "unitType": component_type.value,
+                "unitOwner": owner,
+                "unitHash": metadata_hash,
+                "dependencies": (dependencies or []),
+            },
+            tx_args={
+                "sender_address": owner,
+            },
+        )
+        return tx_params
