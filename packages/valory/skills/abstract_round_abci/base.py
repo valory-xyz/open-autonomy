@@ -400,6 +400,15 @@ class NewTransaction:
         object.__setattr__(payload, "round_count", round_count)
         return cls(payload=cast(NewBaseTxPayload, payload), signature=signature)
 
+    def verify(self, ledger_id: str) -> None:
+        """Verify the signature is correct."""
+
+        addresses = LedgerApis.recover_message(
+            identifier=ledger_id, message=bytes(self), signature=self.signature
+        )
+        if self.payload.sender not in addresses:
+            raise SignatureNotValidError("signature not valid.")
+
 
 class Block:  # pylint: disable=too-few-public-methods
     """Class to represent (a subset of) data of a Tendermint block."""
