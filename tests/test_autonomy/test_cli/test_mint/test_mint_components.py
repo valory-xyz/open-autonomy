@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 """Test `mint` command group."""
 
 
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -31,7 +32,18 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
-@pytest.mark.skip
+class DummyContract:
+    """Dummy contract"""
+
+    def get_create_unit_event_filter(self, *args: Any, **kwargs: Any) -> None:
+        """Dummy method implementation"""
+
+        raise RequestsConnectionError()
+
+    def get_create_transaction(self, *args: Any, **kwargs: Any) -> None:
+        """Dummy method implementation"""
+
+
 @skip_docker_tests
 @pytest.mark.usefixtures("registries_scope_class")
 class TestMintProtocol(BaseCliTest):
@@ -64,8 +76,7 @@ class TestMintProtocol(BaseCliTest):
         """Test connection error."""
 
         with mock.patch(
-            "autonomy.chain.base.RegistriesManager.create",
-            side_effect=RequestsConnectionError,
+            "autonomy.chain.mint.transact", side_effect=RequestsConnectionError
         ):
             result = self.run_cli(
                 commands=("packages/valory/protocols/acn", str(ETHEREUM_KEY_DEPLOYER)),
@@ -83,9 +94,8 @@ class TestMintProtocol(BaseCliTest):
         """Test token id retrieval failure."""
 
         with mock.patch(
-            "autonomy.chain.base.ComponentRegistry.get_create_unit_event_filter",
-            side_effect=RequestsConnectionError,
-        ):
+            "autonomy.chain.mint.get_contract", return_value=DummyContract()
+        ), mock.patch("autonomy.chain.mint.transact"):
 
             result = self.run_cli(
                 commands=("packages/valory/protocols/acn", str(ETHEREUM_KEY_DEPLOYER)),

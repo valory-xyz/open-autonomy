@@ -44,6 +44,16 @@ def get_contract(public_id: PublicId) -> Contract
 
 Load contract for given public id.
 
+<a id="autonomy.chain.mint.transact"></a>
+
+#### transact
+
+```python
+def transact(ledger_api: LedgerApi, crypto: Crypto, tx: Dict) -> Dict
+```
+
+Make a transaction and return a receipt
+
 <a id="autonomy.chain.mint.mint_component"></a>
 
 #### mint`_`component

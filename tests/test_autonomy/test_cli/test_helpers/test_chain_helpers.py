@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ from autonomy.chain.config import ChainConfigs, ChainType
 from autonomy.cli.helpers.chain import mint_component
 
 from tests.conftest import ROOT_DIR
+from tests.test_autonomy.test_cli.test_mint.test_mint_components import DummyContract
 
 
 PACKAGE_DIR = ROOT_DIR / "packages" / "valory" / "protocols" / "abci"
@@ -43,7 +44,6 @@ publish_metadata_patch = mock.patch(
 )
 
 
-@pytest.mark.skip
 class TestMintComponentMethod:
     """Test `mint_component` method."""
 
@@ -74,8 +74,12 @@ class TestMintComponentMethod:
                 "Component mint was successful but token ID retrieving failed with following error; "
                 "Connection interrupted while waiting for the unitId emit event"
             ),
-        ), publish_metadata_patch:
-            with mock.patch("autonomy.chain.base.RegistriesManager.create"):
+        ), publish_metadata_patch, mock.patch(
+            "autonomy.chain.mint.get_contract", return_value=DummyContract()
+        ):
+            with mock.patch("autonomy.chain.mint.transact"), mock.patch(
+                "autonomy.cli.helpers.chain.EthereumApi.try_get_gas_pricing"
+            ):
                 mint_component(
                     package_path=PACKAGE_DIR,
                     package_type=PackageType.PROTOCOL,

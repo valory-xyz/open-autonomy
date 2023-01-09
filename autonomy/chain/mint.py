@@ -132,6 +132,15 @@ def get_contract(public_id: PublicId) -> Contract:
     return Contract.from_dir(directory=contract_dir)
 
 
+def transact(ledger_api: LedgerApi, crypto: Crypto, tx: Dict) -> Dict:
+    """Make a transaction and return a receipt"""
+
+    tx_signed = crypto.sign_transaction(transaction=tx)
+    tx_digest = ledger_api.send_signed_transaction(tx_signed=tx_signed)
+
+    return ledger_api.get_transaction_receipt(tx_digest=tx_digest)
+
+
 def mint_component(
     ledger_api: LedgerApi,
     crypto: Crypto,
@@ -151,7 +160,7 @@ def mint_component(
     )
 
     try:
-        registries_manager.create(
+        tx = registries_manager.get_create_transaction(
             ledger_api=ledger_api,
             contract_address=ContractConfigs.get(
                 REGISTRIES_MANAGER_CONTRACT.name
@@ -160,6 +169,11 @@ def mint_component(
             component_type=component_type,
             metadata_hash=metadata_hash,
             dependencies=dependencies,
+        )
+        transact(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            tx=tx,
         )
     except RequestsConnectionError as e:
         raise ComponentMintFailed("Cannot connect to the given RPC") from e
