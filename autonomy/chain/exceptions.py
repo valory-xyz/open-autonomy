@@ -29,4 +29,4 @@ class ComponentMintFailed(ChainInteractionError):
 
 
 class FailedToRetrieveTokenId(ChainInteractionError):
-    """Raise token ID retrieving fails for minted component."""
+    """Raise when token ID retrieving fails for minted component."""
