@@ -73,6 +73,7 @@ def publish_metadata(
     public_id: PublicId,
     package_path: Path,
     nft_image_hash: str,
+    description: str,
 ) -> str:
     """Publish service metadata."""
 
@@ -81,7 +82,7 @@ def publish_metadata(
     metadata_string = serialize_metadata(
         package_hash=package_hash,
         public_id=public_id,
-        description=Path(package_path, DEFAULT_README_FILE).read_text(encoding="utf-8"),
+        description=description,
         nft_image_hash=nft_image_hash,
     )
 

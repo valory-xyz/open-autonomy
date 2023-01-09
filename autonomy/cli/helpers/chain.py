@@ -82,6 +82,7 @@ def mint_component(  # pylint: disable=too-many-arguments
         public_id=package_configuration.public_id,
         package_path=package_path,
         nft_image_hash=cast(str, nft_image_hash),
+        description=package_configuration.description,
     )
 
     try:
