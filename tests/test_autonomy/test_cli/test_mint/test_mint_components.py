@@ -20,9 +20,9 @@
 """Test `mint` command group."""
 
 
+from typing import Any
 from unittest import mock
 
-import pytest
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.docker.base import skip_docker_tests
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
@@ -34,12 +34,12 @@ from tests.test_autonomy.test_cli.base import BaseCliTest
 class DummyContract:
     """Dummy contract"""
 
-    def get_create_unit_event_filter(self, *args, **kwargs) -> None:
+    def get_create_unit_event_filter(self, *args: Any, **kwargs: Any) -> None:
         """Dummy method implementation"""
 
         raise RequestsConnectionError()
 
-    def get_create_transaction(self, *args, **kwargs) -> None:
+    def get_create_transaction(self, *args: Any, **kwargs: Any) -> None:
         """Dummy method implementation"""
 
 
