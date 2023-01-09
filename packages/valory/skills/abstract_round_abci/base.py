@@ -164,6 +164,9 @@ class _MetaPayload(ABCMeta):
         if ABC in bases:
             # abstract class, return
             return new_cls
+        if issubclass(new_cls, NewBaseTxPayload):
+            mcs.transaction_type_to_payload_cls[new_cls.__name__] = new_cls
+            return new_cls
         if not issubclass(new_cls, BaseTxPayload):
             raise ValueError(  # pragma: no cover
                 f"class {name} must inherit from {BaseTxPayload.__name__}"
