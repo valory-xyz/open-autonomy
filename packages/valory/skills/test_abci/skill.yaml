@@ -11,7 +11,7 @@ fingerprint:
   behaviours.py: bafybeidbua357aqaesxe47dt25g6gaobdns7girofrtlzphhl5vke26ggy
   dialogues.py: bafybeib4jbdycm2vofni3vp6draqet3nejoviqjurcilrzindr4k5dg5fa
   handlers.py: bafybeibujz375cm52h67pjh7rrg2xnulol6vyjkoedljq37p6ucbwgragy
-  models.py: bafybeidlcic7cpxbqlxoeg56d3chnuoepk3inbn3yryyxtskp3msge75ci
+  models.py: bafybeihvs3uy4uawukzwo4hymb5npmxsnu2xohk7udwenmragytahn3jyi
   payloads.py: bafybeibp4ty4dnrpkezdmxqdv6icp5d23chkfs5ufygrxb2eouvxsdvv2e
   rounds.py: bafybeib5hc6y7nzibmxnsexvsdsc4nessooip7ausytb7np73cgwzt444a
   tests/__init__.py: bafybeicmlbk5j45t5qgvrlv7n3e3kpih2s3ibmjremouifdgcig6cajryq
@@ -27,7 +27,7 @@ contracts: []
 protocols: []
 skills:
 - valory/abstract_abci:0.1.0:bafybeieeqbasxxghxaj7xffnto7ybegom2kl4y544cskysowmjcjd3szhe
-- valory/abstract_round_abci:0.1.0:bafybeidjeqs5t4qyzqwbzn224p7nqzcir4bwhrv3xwlugrrssbewsw3xte
+- valory/abstract_round_abci:0.1.0:bafybeiat3nwch5d3qooczyubipc23jyuswwllanxplonpt3ehatyoczo7y
 behaviours:
   main:
     args: {}
@@ -92,24 +92,33 @@ models:
             - ed25519
           version: {}
         voting_power: '10'
+      ipfs_domain_name: null
       keeper_timeout: 30.0
+      max_attempts: 10
       max_healthcheck: 120
       observation_interval: 10
+      on_chain_service_id: null
+      request_retry_delay: 1.0
+      request_timeout: 10.0
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
-      round_timeout_seconds: 30
+      round_timeout_seconds: 30.0
       service_id: test_abci
+      service_registry_address: null
       setup:
         all_participants:
         - - '0x0000000000000000000000000000000000000000'
         safe_contract_address:
         - '0x0000000000000000000000000000000000000000'
+      share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 10
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
+      tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
+      tx_timeout: 10.0
     class_name: Params
   randomness_api:
     args:

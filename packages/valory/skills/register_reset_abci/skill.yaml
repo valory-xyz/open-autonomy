@@ -13,7 +13,7 @@ fingerprint:
   dialogues.py: bafybeib4jbdycm2vofni3vp6draqet3nejoviqjurcilrzindr4k5dg5fa
   fsm_specification.yaml: bafybeiabsy6pmiv6bd2jvn3gagbv6sm553vsm3krfpejcjiyrrlsgphkqi
   handlers.py: bafybeieoh4kobdrpkwwoclfvzd5lwnaex5tmnlg5uanc6twm7q7hdzr3by
-  models.py: bafybeiejymnwh3epj4h7o5eitre36uxhi5aejzmm3r7sundxafrb3xayou
+  models.py: bafybeiea6ceqicak4okblv5kwjd6ystuyxsyvmomeklcsns33bovfua6ki
   tests/__init__.py: bafybeifyyzb3rbknjnqrdsp34pya3koxyihbbvoiiuh3rxttehoolzch5e
   tests/test_behaviours.py: bafybeiev3itsy23bwnjqvsxgnsk4ivmrfwzusy626dj67tdprg6ig3vw3m
   tests/test_dialogues.py: bafybeiduhiqmywlfls2rlhtzrikurbapvivscr6wbvr4lvdsegnernet34
@@ -24,9 +24,9 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidjeqs5t4qyzqwbzn224p7nqzcir4bwhrv3xwlugrrssbewsw3xte
-- valory/registration_abci:0.1.0:bafybeibuv7eyvu5lkubgigx7ofkwwa5rjzjibhznocsoggznurhgy6juxu
-- valory/reset_pause_abci:0.1.0:bafybeifs6bxhl5aap4mo2mql5sprq6tgzlwokfy7u46vx2o4mssazfprhm
+- valory/abstract_round_abci:0.1.0:bafybeiat3nwch5d3qooczyubipc23jyuswwllanxplonpt3ehatyoczo7y
+- valory/registration_abci:0.1.0:bafybeift7oqd6drjg2leybtqqmpyyn4siikcs4t66shkeilvz4qj6qg57i
+- valory/reset_pause_abci:0.1.0:bafybeiecaqcn4dy2ztjey2m453miailzqbnqf65ckolgtld52u4tn55nwi
 behaviours:
   main:
     args: {}
@@ -91,10 +91,14 @@ models:
             - ed25519
           version: {}
         voting_power: '10'
+      ipfs_domain_name: null
       keeper_timeout: 30.0
+      max_attempts: 10
       max_healthcheck: 120
       observation_interval: 15
       on_chain_service_id: null
+      request_retry_delay: 1.0
+      request_timeout: 10.0
       reset_tendermint_after: 1
       retry_attempts: 400
       retry_timeout: 3
@@ -111,7 +115,9 @@ models:
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
+      tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
+      tx_timeout: 10.0
     class_name: Params
   requests:
     args: {}
