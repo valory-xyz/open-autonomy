@@ -21,6 +21,7 @@
 import ipaddress
 import json
 from abc import ABC
+from dataclasses import asdict
 from enum import Enum
 from typing import Any, Callable, Dict, FrozenSet, List, Optional, cast
 
@@ -55,7 +56,11 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogue
-from packages.valory.skills.abstract_round_abci.models import Requests, SharedState
+from packages.valory.skills.abstract_round_abci.models import (
+    Requests,
+    SharedState,
+    TendermintRecoveryParams,
+)
 
 
 def exception_to_info_msg(exception: Exception) -> str:
@@ -524,7 +529,11 @@ class TendermintHandler(Handler):
         not_in_registered_addresses = "Sender not registered for on-chain service"
         sending_request_response = "Sending Tendermint request response"
         failed_to_parse_address = "Failed to parse Tendermint network address"
+        failed_to_parse_params = (
+            "Failed to parse Tendermint recovery parameters from message"
+        )
         collected_config_info = "Collected Tendermint config info"
+        collected_params = "Collected Tendermint recovery parameters"
         received_error_without_target_message = (
             "Received error message but could not retrieve target message"
         )
@@ -661,6 +670,24 @@ class TendermintHandler(Handler):
         log_message = self.LogMessages.sending_request_response.value
         self.context.logger.info(f"{log_message}: {response}")
 
+    def _request_recovery_params(
+        self, message: TendermintMessage, dialogue: TendermintDialogue
+    ) -> None:
+        """Handle a request message for the recovery parameters."""
+        if not self._check_registered(message, dialogue):
+            return
+
+        shared_state = cast(SharedState, self.context.state)
+        recovery_params = shared_state.tm_recovery_params
+        response = dialogue.reply(
+            performative=TendermintMessage.Performative.RESPONSE_GENESIS_INFO,
+            target_message=message,
+            params=json.dumps(asdict(recovery_params)),
+        )
+        self.context.outbox.put_message(message=response)
+        log_message = self.LogMessages.sending_request_response.value
+        self.context.logger.info(f"{log_message}: {response}")
+
     def _response_genesis_info(
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> None:
@@ -685,6 +712,33 @@ class TendermintHandler(Handler):
         registered_addresses[message.sender] = validator_config
         self.synchronized_data.db.update(registered_addresses=registered_addresses)
         log_message = self.LogMessages.collected_config_info.value
+        self.context.logger.info(f"{log_message}: {message}")
+        dialogues = cast(TendermintDialogues, self.dialogues)
+        dialogues.dialogue_stats.add_dialogue_endstate(
+            TendermintDialogue.EndState.COMMUNICATED, dialogue.is_self_initiated
+        )
+
+    def _response_recovery_params(
+        self, message: TendermintMessage, dialogue: TendermintDialogue
+    ) -> None:
+        """Process params-sharing response messages."""
+
+        if not self._check_registered(message, dialogue):
+            return
+
+        try:
+            recovery_params = json.loads(message.params)
+            shared_state = cast(SharedState, self.context.state)
+            shared_state.tm_recovery_params = TendermintRecoveryParams(
+                **recovery_params
+            )
+        except (json.JSONDecodeError, TypeError) as exc:
+            log_message = self.LogMessages.failed_to_parse_params.value
+            self.context.logger.error(f"{log_message}: {exc} {message}")
+            self._reply_with_tendermint_error(message, dialogue, log_message)
+            return
+
+        log_message = self.LogMessages.collected_params.value
         self.context.logger.info(f"{log_message}: {message}")
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogues.dialogue_stats.add_dialogue_endstate(
