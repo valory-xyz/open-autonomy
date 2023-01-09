@@ -30,7 +30,7 @@ import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from collections import Counter
 from copy import copy, deepcopy
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from enum import Enum
 from inspect import isclass
 from math import ceil
@@ -367,6 +367,14 @@ class NewBaseTxPayload(ABC, metaclass=_MetaPayload):
 
     sender: str
     round_count: int = field(default=ROUND_COUNT_DEFAULT, init=False)
+
+
+@dataclass
+class NewTransaction:
+    """Class to represent a transaction for the ephemeral chain of a period."""
+
+    payload: NewBaseTxPayload
+    signature: Optional[str] = None
 
 
 class Block:  # pylint: disable=too-few-public-methods
