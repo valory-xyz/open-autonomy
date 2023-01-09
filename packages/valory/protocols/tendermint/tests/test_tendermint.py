@@ -45,12 +45,20 @@ from packages.valory.protocols.tendermint.message import (
     "msg",
     [
         TendermintMessage(
-            performative=TendermintMessage.Performative.REQUEST,  # type: ignore
+            performative=TendermintMessage.Performative.REQUEST_GENESIS_INFO,  # type: ignore
             query="",
         ),
         TendermintMessage(
-            performative=TendermintMessage.Performative.RESPONSE,  # type: ignore
+            performative=TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS,  # type: ignore
+            query="",
+        ),
+        TendermintMessage(
+            performative=TendermintMessage.Performative.RESPONSE_GENESIS_INFO,  # type: ignore
             info="",
+        ),
+        TendermintMessage(
+            performative=TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS,  # type: ignore
+            params="",
         ),
         TendermintMessage(
             performative=TendermintMessage.Performative.ERROR,  # type: ignore
@@ -106,7 +114,7 @@ def test_serialization_performative_not_valid() -> None:
     """Test serialization performative not valid"""
 
     msg = TendermintMessage(
-        performative=TendermintMessage.Performative.REQUEST,  # type: ignore
+        performative=TendermintMessage.Performative.REQUEST_GENESIS_INFO,  # type: ignore
         query="",
     )
     encoded_msg = msg.encode()
