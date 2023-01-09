@@ -21,6 +21,7 @@
 import datetime
 import heapq
 import itertools
+import json
 import logging
 import re
 import sys
@@ -317,6 +318,7 @@ class Transaction(ABC):
 
     def encode(self) -> bytes:
         """Encode the transaction."""
+
         data = dict(payload=self.payload.json, signature=self.signature)
         encoded_data = DictProtobufStructSerializer.encode(data)
         if sys.getsizeof(encoded_data) > MAX_READ_IN_BYTES:
@@ -328,6 +330,7 @@ class Transaction(ABC):
     @classmethod
     def decode(cls, obj: bytes) -> "Transaction":
         """Decode the transaction."""
+
         data = DictProtobufStructSerializer.decode(obj)
         signature = data["signature"]
         payload_dict = data["payload"]
@@ -353,6 +356,14 @@ class Transaction(ABC):
         if not isinstance(other, Transaction):
             return NotImplemented
         return self.payload == other.payload and self.signature == other.signature
+
+
+@dataclass(frozen=True)
+class NewBaseTxPayload(ABC, metaclass=_MetaPayload):
+    """This class represents a base class for transaction payload classes."""
+
+    sender: str
+    round_count: int = field(default=ROUND_COUNT_DEFAULT, init=False)
 
 
 class Block:  # pylint: disable=too-few-public-methods
