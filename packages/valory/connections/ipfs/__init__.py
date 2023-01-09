@@ -17,14 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""
-This module contains the support resources for the ipfs protocol.
-
-It was created with protocol buffer compiler version `libprotoc 3.6.1` and aea protocol generator version `1.0.0`.
-"""
-
-from packages.valory.protocols.ipfs.message import IpfsMessage
-from packages.valory.protocols.ipfs.serialization import IpfsSerializer
-
-
-IpfsMessage.serializer = IpfsSerializer
+"""Scaffold of a connection."""
