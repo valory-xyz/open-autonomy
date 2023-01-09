@@ -65,6 +65,7 @@ def test_publish_metadata() -> None:
                 public_id=PublicId(author="author", name="name"),
                 package_path=package_path,
                 nft_image_hash=DEFAULT_NFT_IMAGE_HASH,
+                description="",
             )
 
     assert metadata_hash == expected_hash

@@ -24,7 +24,6 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Dict, List, Optional, cast
 
-from aea.configurations.constants import DEFAULT_README_FILE
 from aea.configurations.data_types import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import Crypto, LedgerApi
