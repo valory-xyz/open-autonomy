@@ -61,6 +61,7 @@ def mint_component(  # pylint: disable=too-many-arguments
         **{
             "address": chain_config.rpc,
             "chain_id": chain_config.chain_id,
+            "is_gas_estimation_enabled": True,
         }
     )
 
