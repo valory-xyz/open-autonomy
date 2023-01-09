@@ -285,7 +285,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         for address in still_missing:
             dialogues = cast(TendermintDialogues, self.context.tendermint_dialogues)
-            performative = TendermintMessage.Performative.REQUEST
+            performative = TendermintMessage.Performative.REQUEST_GENESIS_INFO
             message, _ = dialogues.create(
                 counterparty=address, performative=performative
             )
