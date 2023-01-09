@@ -376,6 +376,17 @@ class NewTransaction:
     payload: NewBaseTxPayload
     signature: Optional[str] = None
 
+    def __bytes__(self) -> bytes:
+        """Serialize the transaction to bytes"""
+
+        payload = {self.payload.__class__.__name__: asdict(self.payload)}
+        tx_data = dict(payload=payload, signature=self.signature)
+        encoded_data = json.dumps(tx_data, sort_keys=True).encode()
+        if sys.getsizeof(encoded_data) > MAX_READ_IN_BYTES:
+            msg = f"Transaction must be smaller than {MAX_READ_IN_BYTES} bytes"
+            raise ValueError(msg)
+        return encoded_data
+
 
 class Block:  # pylint: disable=too-few-public-methods
     """Class to represent (a subset of) data of a Tendermint block."""
