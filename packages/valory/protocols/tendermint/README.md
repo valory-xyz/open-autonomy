@@ -16,10 +16,14 @@ description: A protocol for communication between two AEAs to share tendermint c
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 speech_acts:
-  request: 
-    query: pt:optional[pt:str]  # required field, optional provides default value, not used otherwise.
-  response:
+  request_genesis_info: 
+    query: pt:optional[pt:str]
+  request_recovery_params:
+    query: pt:optional[pt:str]
+  response_genesis_info:
     info: pt:str
+  response_recovery_params:
+    params: pt:str
   error:
     error_code: ct:ErrorCode
     error_msg: pt:str
@@ -33,14 +37,16 @@ ct:ErrorCode: |
   ErrorCodeEnum error_code = 1;
 ...
 ---
-initiation: [request]
+initiation: [request_genesis_info, request_recovery_params]
 reply:
-  request: [response, error]
-  response: []
+  request_genesis_info: [response_genesis_info, error]
+  request_recovery_params: [response_recovery_params, error]
+  response_genesis_info: []
+  response_recovery_params: []
   error: []
 roles: {agent}
-termination: [response, error]
-end_states: [config_shared, config_not_shared]
+termination: [response_genesis_info, response_recovery_params, error]
+end_states: [communicated, not_communicated]
 keep_terminal_state_dialogues: true
 ...
 ```

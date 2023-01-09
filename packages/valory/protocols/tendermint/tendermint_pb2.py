@@ -15,18 +15,24 @@ _sym_db = _symbol_database.Default()
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
-    b'\n\x10tendermint.proto\x12\x1c\x61\x65\x61.valory.tendermint.v0_1_0"\xb3\x06\n\x11TendermintMessage\x12S\n\x05\x65rror\x18\x05 \x01(\x0b\x32\x42.aea.valory.tendermint.v0_1_0.TendermintMessage.Error_PerformativeH\x00\x12W\n\x07request\x18\x06 \x01(\x0b\x32\x44.aea.valory.tendermint.v0_1_0.TendermintMessage.Request_PerformativeH\x00\x12Y\n\x08response\x18\x07 \x01(\x0b\x32\x45.aea.valory.tendermint.v0_1_0.TendermintMessage.Response_PerformativeH\x00\x1a\x8e\x01\n\tErrorCode\x12[\n\nerror_code\x18\x01 \x01(\x0e\x32G.aea.valory.tendermint.v0_1_0.TendermintMessage.ErrorCode.ErrorCodeEnum"$\n\rErrorCodeEnum\x12\x13\n\x0fINVALID_REQUEST\x10\x00\x1a;\n\x14Request_Performative\x12\r\n\x05query\x18\x01 \x01(\t\x12\x14\n\x0cquery_is_set\x18\x02 \x01(\x08\x1a%\n\x15Response_Performative\x12\x0c\n\x04info\x18\x01 \x01(\t\x1a\x8f\x02\n\x12\x45rror_Performative\x12M\n\nerror_code\x18\x01 \x01(\x0b\x32\x39.aea.valory.tendermint.v0_1_0.TendermintMessage.ErrorCode\x12\x11\n\terror_msg\x18\x02 \x01(\t\x12\x65\n\nerror_data\x18\x03 \x03(\x0b\x32Q.aea.valory.tendermint.v0_1_0.TendermintMessage.Error_Performative.ErrorDataEntry\x1a\x30\n\x0e\x45rrorDataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x0e\n\x0cperformativeb\x06proto3'
+    b'\n\x10tendermint.proto\x12\x1c\x61\x65\x61.valory.tendermint.v0_1_0"\xfb\t\n\x11TendermintMessage\x12S\n\x05\x65rror\x18\x05 \x01(\x0b\x32\x42.aea.valory.tendermint.v0_1_0.TendermintMessage.Error_PerformativeH\x00\x12q\n\x14request_genesis_info\x18\x06 \x01(\x0b\x32Q.aea.valory.tendermint.v0_1_0.TendermintMessage.Request_Genesis_Info_PerformativeH\x00\x12w\n\x17request_recovery_params\x18\x07 \x01(\x0b\x32T.aea.valory.tendermint.v0_1_0.TendermintMessage.Request_Recovery_Params_PerformativeH\x00\x12s\n\x15response_genesis_info\x18\x08 \x01(\x0b\x32R.aea.valory.tendermint.v0_1_0.TendermintMessage.Response_Genesis_Info_PerformativeH\x00\x12y\n\x18response_recovery_params\x18\t \x01(\x0b\x32U.aea.valory.tendermint.v0_1_0.TendermintMessage.Response_Recovery_Params_PerformativeH\x00\x1a\x8e\x01\n\tErrorCode\x12[\n\nerror_code\x18\x01 \x01(\x0e\x32G.aea.valory.tendermint.v0_1_0.TendermintMessage.ErrorCode.ErrorCodeEnum"$\n\rErrorCodeEnum\x12\x13\n\x0fINVALID_REQUEST\x10\x00\x1aH\n!Request_Genesis_Info_Performative\x12\r\n\x05query\x18\x01 \x01(\t\x12\x14\n\x0cquery_is_set\x18\x02 \x01(\x08\x1aK\n$Request_Recovery_Params_Performative\x12\r\n\x05query\x18\x01 \x01(\t\x12\x14\n\x0cquery_is_set\x18\x02 \x01(\x08\x1a\x32\n"Response_Genesis_Info_Performative\x12\x0c\n\x04info\x18\x01 \x01(\t\x1a\x37\n%Response_Recovery_Params_Performative\x12\x0e\n\x06params\x18\x01 \x01(\t\x1a\x8f\x02\n\x12\x45rror_Performative\x12M\n\nerror_code\x18\x01 \x01(\x0b\x32\x39.aea.valory.tendermint.v0_1_0.TendermintMessage.ErrorCode\x12\x11\n\terror_msg\x18\x02 \x01(\t\x12\x65\n\nerror_data\x18\x03 \x03(\x0b\x32Q.aea.valory.tendermint.v0_1_0.TendermintMessage.Error_Performative.ErrorDataEntry\x1a\x30\n\x0e\x45rrorDataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x0e\n\x0cperformativeb\x06proto3'
 )
 
 
 _TENDERMINTMESSAGE = DESCRIPTOR.message_types_by_name["TendermintMessage"]
 _TENDERMINTMESSAGE_ERRORCODE = _TENDERMINTMESSAGE.nested_types_by_name["ErrorCode"]
-_TENDERMINTMESSAGE_REQUEST_PERFORMATIVE = _TENDERMINTMESSAGE.nested_types_by_name[
-    "Request_Performative"
-]
-_TENDERMINTMESSAGE_RESPONSE_PERFORMATIVE = _TENDERMINTMESSAGE.nested_types_by_name[
-    "Response_Performative"
-]
+_TENDERMINTMESSAGE_REQUEST_GENESIS_INFO_PERFORMATIVE = (
+    _TENDERMINTMESSAGE.nested_types_by_name["Request_Genesis_Info_Performative"]
+)
+_TENDERMINTMESSAGE_REQUEST_RECOVERY_PARAMS_PERFORMATIVE = (
+    _TENDERMINTMESSAGE.nested_types_by_name["Request_Recovery_Params_Performative"]
+)
+_TENDERMINTMESSAGE_RESPONSE_GENESIS_INFO_PERFORMATIVE = (
+    _TENDERMINTMESSAGE.nested_types_by_name["Response_Genesis_Info_Performative"]
+)
+_TENDERMINTMESSAGE_RESPONSE_RECOVERY_PARAMS_PERFORMATIVE = (
+    _TENDERMINTMESSAGE.nested_types_by_name["Response_Recovery_Params_Performative"]
+)
 _TENDERMINTMESSAGE_ERROR_PERFORMATIVE = _TENDERMINTMESSAGE.nested_types_by_name[
     "Error_Performative"
 ]
@@ -49,22 +55,40 @@ TendermintMessage = _reflection.GeneratedProtocolMessageType(
                 # @@protoc_insertion_point(class_scope:aea.valory.tendermint.v0_1_0.TendermintMessage.ErrorCode)
             },
         ),
-        "Request_Performative": _reflection.GeneratedProtocolMessageType(
-            "Request_Performative",
+        "Request_Genesis_Info_Performative": _reflection.GeneratedProtocolMessageType(
+            "Request_Genesis_Info_Performative",
             (_message.Message,),
             {
-                "DESCRIPTOR": _TENDERMINTMESSAGE_REQUEST_PERFORMATIVE,
+                "DESCRIPTOR": _TENDERMINTMESSAGE_REQUEST_GENESIS_INFO_PERFORMATIVE,
                 "__module__": "tendermint_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.tendermint.v0_1_0.TendermintMessage.Request_Performative)
+                # @@protoc_insertion_point(class_scope:aea.valory.tendermint.v0_1_0.TendermintMessage.Request_Genesis_Info_Performative)
             },
         ),
-        "Response_Performative": _reflection.GeneratedProtocolMessageType(
-            "Response_Performative",
+        "Request_Recovery_Params_Performative": _reflection.GeneratedProtocolMessageType(
+            "Request_Recovery_Params_Performative",
             (_message.Message,),
             {
-                "DESCRIPTOR": _TENDERMINTMESSAGE_RESPONSE_PERFORMATIVE,
+                "DESCRIPTOR": _TENDERMINTMESSAGE_REQUEST_RECOVERY_PARAMS_PERFORMATIVE,
                 "__module__": "tendermint_pb2"
-                # @@protoc_insertion_point(class_scope:aea.valory.tendermint.v0_1_0.TendermintMessage.Response_Performative)
+                # @@protoc_insertion_point(class_scope:aea.valory.tendermint.v0_1_0.TendermintMessage.Request_Recovery_Params_Performative)
+            },
+        ),
+        "Response_Genesis_Info_Performative": _reflection.GeneratedProtocolMessageType(
+            "Response_Genesis_Info_Performative",
+            (_message.Message,),
+            {
+                "DESCRIPTOR": _TENDERMINTMESSAGE_RESPONSE_GENESIS_INFO_PERFORMATIVE,
+                "__module__": "tendermint_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.tendermint.v0_1_0.TendermintMessage.Response_Genesis_Info_Performative)
+            },
+        ),
+        "Response_Recovery_Params_Performative": _reflection.GeneratedProtocolMessageType(
+            "Response_Recovery_Params_Performative",
+            (_message.Message,),
+            {
+                "DESCRIPTOR": _TENDERMINTMESSAGE_RESPONSE_RECOVERY_PARAMS_PERFORMATIVE,
+                "__module__": "tendermint_pb2"
+                # @@protoc_insertion_point(class_scope:aea.valory.tendermint.v0_1_0.TendermintMessage.Response_Recovery_Params_Performative)
             },
         ),
         "Error_Performative": _reflection.GeneratedProtocolMessageType(
@@ -92,8 +116,10 @@ TendermintMessage = _reflection.GeneratedProtocolMessageType(
 )
 _sym_db.RegisterMessage(TendermintMessage)
 _sym_db.RegisterMessage(TendermintMessage.ErrorCode)
-_sym_db.RegisterMessage(TendermintMessage.Request_Performative)
-_sym_db.RegisterMessage(TendermintMessage.Response_Performative)
+_sym_db.RegisterMessage(TendermintMessage.Request_Genesis_Info_Performative)
+_sym_db.RegisterMessage(TendermintMessage.Request_Recovery_Params_Performative)
+_sym_db.RegisterMessage(TendermintMessage.Response_Genesis_Info_Performative)
+_sym_db.RegisterMessage(TendermintMessage.Response_Recovery_Params_Performative)
 _sym_db.RegisterMessage(TendermintMessage.Error_Performative)
 _sym_db.RegisterMessage(TendermintMessage.Error_Performative.ErrorDataEntry)
 
@@ -103,17 +129,21 @@ if _descriptor._USE_C_DESCRIPTORS == False:
     _TENDERMINTMESSAGE_ERROR_PERFORMATIVE_ERRORDATAENTRY._options = None
     _TENDERMINTMESSAGE_ERROR_PERFORMATIVE_ERRORDATAENTRY._serialized_options = b"8\001"
     _TENDERMINTMESSAGE._serialized_start = 51
-    _TENDERMINTMESSAGE._serialized_end = 870
-    _TENDERMINTMESSAGE_ERRORCODE._serialized_start = 338
-    _TENDERMINTMESSAGE_ERRORCODE._serialized_end = 480
-    _TENDERMINTMESSAGE_ERRORCODE_ERRORCODEENUM._serialized_start = 444
-    _TENDERMINTMESSAGE_ERRORCODE_ERRORCODEENUM._serialized_end = 480
-    _TENDERMINTMESSAGE_REQUEST_PERFORMATIVE._serialized_start = 482
-    _TENDERMINTMESSAGE_REQUEST_PERFORMATIVE._serialized_end = 541
-    _TENDERMINTMESSAGE_RESPONSE_PERFORMATIVE._serialized_start = 543
-    _TENDERMINTMESSAGE_RESPONSE_PERFORMATIVE._serialized_end = 580
-    _TENDERMINTMESSAGE_ERROR_PERFORMATIVE._serialized_start = 583
-    _TENDERMINTMESSAGE_ERROR_PERFORMATIVE._serialized_end = 854
-    _TENDERMINTMESSAGE_ERROR_PERFORMATIVE_ERRORDATAENTRY._serialized_start = 806
-    _TENDERMINTMESSAGE_ERROR_PERFORMATIVE_ERRORDATAENTRY._serialized_end = 854
+    _TENDERMINTMESSAGE._serialized_end = 1326
+    _TENDERMINTMESSAGE_ERRORCODE._serialized_start = 634
+    _TENDERMINTMESSAGE_ERRORCODE._serialized_end = 776
+    _TENDERMINTMESSAGE_ERRORCODE_ERRORCODEENUM._serialized_start = 740
+    _TENDERMINTMESSAGE_ERRORCODE_ERRORCODEENUM._serialized_end = 776
+    _TENDERMINTMESSAGE_REQUEST_GENESIS_INFO_PERFORMATIVE._serialized_start = 778
+    _TENDERMINTMESSAGE_REQUEST_GENESIS_INFO_PERFORMATIVE._serialized_end = 850
+    _TENDERMINTMESSAGE_REQUEST_RECOVERY_PARAMS_PERFORMATIVE._serialized_start = 852
+    _TENDERMINTMESSAGE_REQUEST_RECOVERY_PARAMS_PERFORMATIVE._serialized_end = 927
+    _TENDERMINTMESSAGE_RESPONSE_GENESIS_INFO_PERFORMATIVE._serialized_start = 929
+    _TENDERMINTMESSAGE_RESPONSE_GENESIS_INFO_PERFORMATIVE._serialized_end = 979
+    _TENDERMINTMESSAGE_RESPONSE_RECOVERY_PARAMS_PERFORMATIVE._serialized_start = 981
+    _TENDERMINTMESSAGE_RESPONSE_RECOVERY_PARAMS_PERFORMATIVE._serialized_end = 1036
+    _TENDERMINTMESSAGE_ERROR_PERFORMATIVE._serialized_start = 1039
+    _TENDERMINTMESSAGE_ERROR_PERFORMATIVE._serialized_end = 1310
+    _TENDERMINTMESSAGE_ERROR_PERFORMATIVE_ERRORDATAENTRY._serialized_start = 1262
+    _TENDERMINTMESSAGE_ERROR_PERFORMATIVE_ERRORDATAENTRY._serialized_end = 1310
 # @@protoc_insertion_point(module_scope)

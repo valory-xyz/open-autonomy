@@ -49,14 +49,22 @@ class TendermintMessage(Message):
         """Performatives for the tendermint protocol."""
 
         ERROR = "error"
-        REQUEST = "request"
-        RESPONSE = "response"
+        REQUEST_GENESIS_INFO = "request_genesis_info"
+        REQUEST_RECOVERY_PARAMS = "request_recovery_params"
+        RESPONSE_GENESIS_INFO = "response_genesis_info"
+        RESPONSE_RECOVERY_PARAMS = "response_recovery_params"
 
         def __str__(self) -> str:
             """Get the string representation."""
             return str(self.value)
 
-    _performatives = {"error", "request", "response"}
+    _performatives = {
+        "error",
+        "request_genesis_info",
+        "request_recovery_params",
+        "response_genesis_info",
+        "response_recovery_params",
+    }
     __slots__: Tuple[str, ...] = tuple()
 
     class _SlotsCls:
@@ -67,6 +75,7 @@ class TendermintMessage(Message):
             "error_msg",
             "info",
             "message_id",
+            "params",
             "performative",
             "query",
             "target",
@@ -151,6 +160,12 @@ class TendermintMessage(Message):
         return cast(str, self.get("info"))
 
     @property
+    def params(self) -> str:
+        """Get the 'params' content from the message."""
+        enforce(self.is_set("params"), "'params' content is not set.")
+        return cast(str, self.get("params"))
+
+    @property
     def query(self) -> Optional[str]:
         """Get the 'query' content from the message."""
         return cast(Optional[str], self.get("query"))
@@ -201,7 +216,7 @@ class TendermintMessage(Message):
             # Check correct contents
             actual_nb_of_contents = len(self._body) - DEFAULT_BODY_SIZE
             expected_nb_of_contents = 0
-            if self.performative == TendermintMessage.Performative.REQUEST:
+            if self.performative == TendermintMessage.Performative.REQUEST_GENESIS_INFO:
                 expected_nb_of_contents = 0
                 if self.is_set("query"):
                     expected_nb_of_contents += 1
@@ -212,12 +227,40 @@ class TendermintMessage(Message):
                             type(query)
                         ),
                     )
-            elif self.performative == TendermintMessage.Performative.RESPONSE:
+            elif (
+                self.performative
+                == TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS
+            ):
+                expected_nb_of_contents = 0
+                if self.is_set("query"):
+                    expected_nb_of_contents += 1
+                    query = cast(str, self.query)
+                    enforce(
+                        isinstance(query, str),
+                        "Invalid type for content 'query'. Expected 'str'. Found '{}'.".format(
+                            type(query)
+                        ),
+                    )
+            elif (
+                self.performative
+                == TendermintMessage.Performative.RESPONSE_GENESIS_INFO
+            ):
                 expected_nb_of_contents = 1
                 enforce(
                     isinstance(self.info, str),
                     "Invalid type for content 'info'. Expected 'str'. Found '{}'.".format(
                         type(self.info)
+                    ),
+                )
+            elif (
+                self.performative
+                == TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS
+            ):
+                expected_nb_of_contents = 1
+                enforce(
+                    isinstance(self.params, str),
+                    "Invalid type for content 'params'. Expected 'str'. Found '{}'.".format(
+                        type(self.params)
                     ),
                 )
             elif self.performative == TendermintMessage.Performative.ERROR:

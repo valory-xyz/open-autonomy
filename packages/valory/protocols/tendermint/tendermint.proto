@@ -14,13 +14,22 @@ message TendermintMessage{
 
 
   // Performatives and contents
-  message Request_Performative{
+  message Request_Genesis_Info_Performative{
     string query = 1;
     bool query_is_set = 2;
   }
 
-  message Response_Performative{
+  message Request_Recovery_Params_Performative{
+    string query = 1;
+    bool query_is_set = 2;
+  }
+
+  message Response_Genesis_Info_Performative{
     string info = 1;
+  }
+
+  message Response_Recovery_Params_Performative{
+    string params = 1;
   }
 
   message Error_Performative{
@@ -32,7 +41,9 @@ message TendermintMessage{
 
   oneof performative{
     Error_Performative error = 5;
-    Request_Performative request = 6;
-    Response_Performative response = 7;
+    Request_Genesis_Info_Performative request_genesis_info = 6;
+    Request_Recovery_Params_Performative request_recovery_params = 7;
+    Response_Genesis_Info_Performative response_genesis_info = 8;
+    Response_Recovery_Params_Performative response_recovery_params = 9;
   }
 }
