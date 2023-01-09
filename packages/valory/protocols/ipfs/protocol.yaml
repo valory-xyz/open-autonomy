@@ -1,0 +1,18 @@
+name: ipfs
+author: valory
+version: 0.1.0
+protocol_specification_id: valory/ipfs:0.1.0
+type: protocol
+description: A protocol specification for IPFS requests and responses.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: bafybeicpfqaphmurjbih7fc73l7nnwzixibyod7bhychy553dvsekqlkra
+  dialogues.py: bafybeihlnjaqvq5765hqttoqe3aeql572veyfbawsrcyko4wvds5wv7gwe
+  ipfs.proto: bafybeierx4g3qzwvyxtxo6qjul7xeuhocoffdews2kfb7hyx5tndnaibdy
+  ipfs_pb2.py: bafybeiec7k7tnxctqami5i3yhd6vttoo25goaqqp5l7vljtjritry26mom
+  message.py: bafybeihufe4v6jlwrzz5doeesr3tdsjgksi2shymrcdngfhmi3h6rsqoie
+  serialization.py: bafybeifi5snrp4knrxwftskyjb5zuipjfqeipqw6nxn4mbk42vdwkstxd4
+fingerprint_ignore_patterns: []
+dependencies:
+  protobuf: {}
