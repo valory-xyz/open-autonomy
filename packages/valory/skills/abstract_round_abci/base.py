@@ -1007,6 +1007,8 @@ class _MetaAbstractRound(ABCMeta):
                 f"'allowed_tx_type' not set on {abstract_round_cls}"
             )
         if not hasattr(abstract_round_cls, "payload_attribute"):
+            if hasattr(abstract_round_cls, "payload"):
+                return
             raise AbstractRoundInternalError(
                 f"'payload_attribute' not set on {abstract_round_cls}"
             )
