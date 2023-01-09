@@ -94,3 +94,87 @@ def protocol(
         password=password,
         nft_image_hash=nft,
     )
+
+
+@mint.command()
+@package_path_decorator
+@key_path_decorator
+@password_decorator
+@dependencies_decorator
+@nft_decorator
+@pass_ctx
+def contract(
+    ctx: Context,
+    package_path: Path,
+    keys: Path,
+    password: Optional[str],
+    dependencies: Tuple[str],
+    nft: Optional[str],
+) -> None:
+    """Mint a contract component."""
+
+    mint_component(
+        package_path=package_path,
+        package_type=PackageType.CONTRACT,
+        keys=keys,
+        chain_type=cast(ChainType, ctx.config.get("chain_type")),
+        dependencies=list(map(int, dependencies)),
+        password=password,
+        nft_image_hash=nft,
+    )
+
+
+@mint.command()
+@package_path_decorator
+@key_path_decorator
+@password_decorator
+@dependencies_decorator
+@nft_decorator
+@pass_ctx
+def connection(
+    ctx: Context,
+    package_path: Path,
+    keys: Path,
+    password: Optional[str],
+    dependencies: Tuple[str],
+    nft: Optional[str],
+) -> None:
+    """Mint a connection component."""
+
+    mint_component(
+        package_path=package_path,
+        package_type=PackageType.CONNECTION,
+        keys=keys,
+        chain_type=cast(ChainType, ctx.config.get("chain_type")),
+        dependencies=list(map(int, dependencies)),
+        password=password,
+        nft_image_hash=nft,
+    )
+
+
+@mint.command()
+@package_path_decorator
+@key_path_decorator
+@password_decorator
+@dependencies_decorator
+@nft_decorator
+@pass_ctx
+def skill(
+    ctx: Context,
+    package_path: Path,
+    keys: Path,
+    password: Optional[str],
+    dependencies: Tuple[str],
+    nft: Optional[str],
+) -> None:
+    """Mint a skill component."""
+
+    mint_component(
+        package_path=package_path,
+        package_type=PackageType.SKILL,
+        keys=keys,
+        chain_type=cast(ChainType, ctx.config.get("chain_type")),
+        dependencies=list(map(int, dependencies)),
+        password=password,
+        nft_image_hash=nft,
+    )
