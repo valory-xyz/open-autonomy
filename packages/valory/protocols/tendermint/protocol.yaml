@@ -8,16 +8,16 @@ description: A protocol for communication between two AEAs to share tendermint c
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: bafybeicvwydyoznpqvjemz635dw4mmgbd6hfidmr3oa2rf6eyjqdvpx2dq
+  README.md: bafybeigipdxkvbsmlwjr4apyjq7i6z2g5uplqpq235ptsjvdovzctacstu
   __init__.py: bafybeibwqsohi3r243hocfaxlz7wjwk6pk6g5txfbty6jvol6itvnmzrxa
-  custom_types.py: bafybeib6fnmbipnhgz72smyymvzhympm6zchfwokcev52tgy3lygm554v4
+  custom_types.py: bafybeidbqm4h4fv24o3w6ueu4o3lyn5yaleyukahq7suvk6m2b6ydw4w3a
   dialogues.py: bafybeietnlvtgv6e35ciyxmjojlltqrpyrqvqahymc3mlutqpuivtnmz3a
   message.py: bafybeicifi2zesekhgu7uewn6n6n2ljeq5ca6sxdufsh7yybhzkcfar7oi
   serialization.py: bafybeige5os6aynat4i3xsjcyimw477hdjkynhpgi54owaxc35e6b45vka
   tendermint.proto: bafybeicrmm3xsbismdqq7xn2nrrnxjugackcmrwafryb2wpxi5kqjgzcfi
-  tendermint_pb2.py: bafybeif27jvg4kfptxvkxeydk56w7cqrokac6mtklj3hpudsrjtp5hxlei
+  tendermint_pb2.py: bafybeias5orcgiidse7rtrsucjzczvbukzn57d75tajlpr34on5y6t4xxe
   tests/__init__.py: bafybeiguds53xs5tmygjd26a7xxilzdrgi2x262relfagdlvdzymacumie
-  tests/test_tendermint.py: bafybeibmisnjx7sfoyshx6vrexftt2nvlk3q54hu3o4mnsrsyhgwrsqzlq
+  tests/test_tendermint.py: bafybeih22hxx2e7fppdefn4cj7uknhdjdi4d4ul6t4kxfzj3hwhrfodqzu
 fingerprint_ignore_patterns: []
 dependencies:
   protobuf: {}
