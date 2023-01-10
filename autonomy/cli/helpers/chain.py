@@ -47,6 +47,8 @@ def mint_component(  # pylint: disable=too-many-arguments
 ) -> None:
     """Mint component."""
 
+    is_agent = package_type == PackageType.AGENT
+
     chain_config = ChainConfigs.get(chain_type=chain_type)
     if chain_config.rpc is None:
         raise click.ClickException(
@@ -64,7 +66,6 @@ def mint_component(  # pylint: disable=too-many-arguments
             "is_gas_estimation_enabled": True,
         }
     )
-
     package_configuration = load_configuration_object(
         package_type=package_type,
         directory=package_path,
@@ -91,7 +92,7 @@ def mint_component(  # pylint: disable=too-many-arguments
             ledger_api=ledger_api,
             crypto=crypto,
             metadata_hash=metadata_hash,
-            component_type=UnitType.COMPONENT,
+            component_type=UnitType.AGENT if is_agent else UnitType.COMPONENT,
             chain_type=chain_type,
             dependencies=dependencies,
         )

@@ -50,7 +50,7 @@ dependencies_decorator = click.option(
     "--dependencies",
     type=str,
     multiple=True,
-    help="Password for key pair",
+    help="Dependency for the package",
 )
 nft_decorator = click.option(
     "--nft",
@@ -172,6 +172,34 @@ def skill(
     mint_component(
         package_path=package_path,
         package_type=PackageType.SKILL,
+        keys=keys,
+        chain_type=cast(ChainType, ctx.config.get("chain_type")),
+        dependencies=list(map(int, dependencies)),
+        password=password,
+        nft_image_hash=nft,
+    )
+
+
+@mint.command()
+@package_path_decorator
+@key_path_decorator
+@password_decorator
+@dependencies_decorator
+@nft_decorator
+@pass_ctx
+def agent(
+    ctx: Context,
+    package_path: Path,
+    keys: Path,
+    password: Optional[str],
+    dependencies: Tuple[str],
+    nft: Optional[str],
+) -> None:
+    """Mint an agent component."""
+
+    mint_component(
+        package_path=package_path,
+        package_type=PackageType.AGENT,
         keys=keys,
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
         dependencies=list(map(int, dependencies)),
