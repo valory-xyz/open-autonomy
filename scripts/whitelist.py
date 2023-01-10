@@ -191,3 +191,4 @@ deployer_crypto  # unused variable (open-autonomy/autonomy/data/contracts/servic
 gas  # unused variable (open-autonomy/autonomy/data/contracts/service_registry/tests/test_contract.py:68)
 connection  # unused function (open-autonomy/autonomy/cli/mint.py:127)
 skill  # unused function (open-autonomy/autonomy/cli/mint.py:155)
+AgentRegistryContract  # unused class (open-autonomy/autonomy/data/contracts/agent_registry/contract.py:38)

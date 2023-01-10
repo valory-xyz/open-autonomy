@@ -28,15 +28,15 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 
 
-PUBLIC_ID = PublicId.from_str("valory/component_registry:0.1.0")
+PUBLIC_ID = PublicId.from_str("valory/agent_registry:0.1.0")
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
 
 
-class ComponentRegistryContract(Contract):
-    """The Service Registry contract."""
+class AgentRegistryContract(Contract):
+    """The Agent Registry contract."""
 
     contract_id = PUBLIC_ID
 
@@ -76,18 +76,3 @@ class ComponentRegistryContract(Contract):
         return contract_interface.events.CreateUnit.createFilter(
             fromBlock="latest"
         ).get_all_entries()
-
-    @classmethod
-    def get_token_uri(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        token_id: int,
-    ) -> Iterable[Dict]:
-        """Returns `CreateUnit` event filter."""
-
-        contract_interface = cls.get_instance(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-        )
-        return contract_interface.functions.tokenURI(token_id).call()

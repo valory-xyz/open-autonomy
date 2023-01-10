@@ -55,7 +55,7 @@ def test_serialize_metadata() -> None:
 def test_publish_metadata() -> None:
     """Test publish metadata tool with dummy config."""
 
-    expected_hash = "0xd32dbeede9cb89d6fe6fcd1e111b553d922f75cbce3a3e8b669f3d981a8bc30a"
+    expected_hash = "0x7357e2c1b88be3442f18d62b373033a5e8340305a0f8a7fb88f361429a24003e"
     with mock.patch("autonomy.chain.mint.IPFSHashOnly.get", return_value=DUMMY_HASH):
         with tempfile.TemporaryDirectory() as temp_dir:
             package_path = Path(temp_dir)
