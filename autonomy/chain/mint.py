@@ -19,82 +19,22 @@
 
 """Helpers for minting components"""
 
-import json
-from collections import OrderedDict
-from pathlib import Path
 from typing import Dict, List, Optional, cast
 
-from aea.configurations.data_types import PublicId
-from aea.contracts.base import Contract
 from aea.crypto.base import Crypto, LedgerApi
-from aea.helpers.cid import CID
-from aea.helpers.ipfs.base import IPFSHashOnly
-from aea_cli_ipfs.ipfs_utils import IPFSTool
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
-from autonomy.chain.base import UnitType
+from autonomy.chain.base import ContractsHelper, UnitType
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import (
     COMPONENT_REGISTRY_CONTRACT,
-    CONTRACTS_DIR_FRAMEWORK,
-    CONTRACTS_DIR_LOCAL,
     REGISTRIES_MANAGER_CONTRACT,
 )
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
+from autonomy.chain.metadata import UNIT_HASH_PREFIX
 
 
-BASE16_HASH_PREFIX = "f01701220"
-CONFIG_HASH_STRING_PREFIX = "0x"
-UNIT_HASH_PREFIX = CONFIG_HASH_STRING_PREFIX + "{metadata_hash}"
 DEFAULT_NFT_IMAGE_HASH = "bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm"
-
-
-def serialize_metadata(
-    package_hash: str,
-    public_id: PublicId,
-    description: str,
-    nft_image_hash: str,
-) -> str:
-    """Serialize metadata."""
-    metadata = OrderedDict(
-        {
-            "name": f"{public_id.author}/{public_id.name}",
-            "description": description,
-            "code_uri": f"ipfs://{package_hash}",
-            "image": f"ipfs://{nft_image_hash}",
-            "attributes": [{"trait_type": "version", "value": str(public_id.version)}],
-        }
-    )
-    return json.dumps(obj=metadata)
-
-
-def publish_metadata(
-    public_id: PublicId,
-    package_path: Path,
-    nft_image_hash: str,
-    description: str,
-) -> str:
-    """Publish service metadata."""
-
-    ipfs_tool = IPFSTool()
-    package_hash = IPFSHashOnly.get(file_path=str(package_path))
-    metadata_string = serialize_metadata(
-        package_hash=package_hash,
-        public_id=public_id,
-        description=description,
-        nft_image_hash=nft_image_hash,
-    )
-
-    metadata_hash = ipfs_tool.client.add_str(metadata_string)
-    metadata_hash = (
-        CID.from_string(metadata_hash)
-        .to_v1()
-        .encode("base16")
-        .decode()
-        .replace(BASE16_HASH_PREFIX, "")
-    )
-
-    return UNIT_HASH_PREFIX.format(metadata_hash=metadata_hash)
 
 
 def verify_and_fetch_token_id_from_event(
@@ -115,23 +55,6 @@ def verify_and_fetch_token_id_from_event(
     return None
 
 
-def get_contract(public_id: PublicId) -> Contract:
-    """Load contract for given public id."""
-
-    # check if a local package is available
-    contract_dir = CONTRACTS_DIR_LOCAL / public_id.name
-    if contract_dir.exists():
-        return Contract.from_dir(directory=contract_dir)
-
-    # if local package is not available use one from the data directory
-    contract_dir = CONTRACTS_DIR_FRAMEWORK / public_id.name
-    if not contract_dir.exists():
-        raise FileNotFoundError(
-            "Contract package not found in the distribution, please reinstall the package"
-        )
-    return Contract.from_dir(directory=contract_dir)
-
-
 def transact(ledger_api: LedgerApi, crypto: Crypto, tx: Dict) -> Dict:
     """Make a transaction and return a receipt"""
 
@@ -142,6 +65,7 @@ def transact(ledger_api: LedgerApi, crypto: Crypto, tx: Dict) -> Dict:
 
 
 def mint_component(
+    contracts_helper: ContractsHelper,
     ledger_api: LedgerApi,
     crypto: Crypto,
     metadata_hash: str,
@@ -151,16 +75,8 @@ def mint_component(
 ) -> Optional[int]:
     """Publish component on-chain."""
 
-    registries_manager = get_contract(
-        public_id=REGISTRIES_MANAGER_CONTRACT,
-    )
-
-    component_registry = get_contract(
-        public_id=COMPONENT_REGISTRY_CONTRACT,
-    )
-
     try:
-        tx = registries_manager.get_create_transaction(
+        tx = contracts_helper.registries_manager.get_create_transaction(
             ledger_api=ledger_api,
             contract_address=ContractConfigs.get(
                 REGISTRIES_MANAGER_CONTRACT.name
@@ -179,7 +95,9 @@ def mint_component(
         raise ComponentMintFailed("Cannot connect to the given RPC") from e
 
     try:
-        for event_dict in component_registry.get_create_unit_event_filter(
+        for (
+            event_dict
+        ) in contracts_helper.component_registry.get_create_unit_event_filter(
             ledger_api=ledger_api,
             contract_address=ContractConfigs.get(
                 COMPONENT_REGISTRY_CONTRACT.name
