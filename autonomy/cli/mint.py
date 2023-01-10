@@ -62,10 +62,16 @@ nft_decorator = click.option(
 @click.group("mint")
 @pass_ctx
 @chain_selection_flag_()
-def mint(ctx: Context, chain_type: str) -> None:
+@click.option(
+    "--skip-hash-check",
+    is_flag=True,
+    help="Skip hash check when verifying dependencies on chain",
+)
+def mint(ctx: Context, chain_type: str, skip_hash_check: bool) -> None:
     """Mint component on-chain."""
 
     ctx.config["chain_type"] = ChainType(chain_type)
+    ctx.config["skip_hash_check"] = skip_hash_check
 
 
 @mint.command()
@@ -93,6 +99,7 @@ def protocol(
         dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
+        skip_hash_check=ctx.config.get("skip_hash_check", False),
     )
 
 
@@ -121,6 +128,7 @@ def contract(
         dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
+        skip_hash_check=ctx.config.get("skip_hash_check", False),
     )
 
 
@@ -149,6 +157,7 @@ def connection(
         dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
+        skip_hash_check=ctx.config.get("skip_hash_check", False),
     )
 
 
@@ -177,6 +186,7 @@ def skill(
         dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
+        skip_hash_check=ctx.config.get("skip_hash_check", False),
     )
 
 
@@ -205,4 +215,5 @@ def agent(
         dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
+        skip_hash_check=ctx.config.get("skip_hash_check", False),
     )

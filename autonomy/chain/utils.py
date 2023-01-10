@@ -64,6 +64,7 @@ def verify_component_dependencies(
     contract_address: str,
     dependencies: List[int],
     package_configuration: PackageConfiguration,
+    skip_hash_check: bool = False,
 ) -> None:
     """Verify package dependencies using on-chain metadata."""
 
@@ -85,7 +86,16 @@ def verify_component_dependencies(
             )
 
         package_hash = public_id_to_hash.pop(component_public_id)
+        if skip_hash_check:
+            continue
+
         if package_hash != get_ipfs_hash_from_uri(uri=component_metadata["code_uri"]):
             raise DependencyError(
                 "Package hash does not match for the on chain package and the local package"
             )
+
+    if len(public_id_to_hash):
+        missing_deps = list(map(str, public_id_to_hash.keys()))
+        raise DependencyError(
+            f"Please provide on chain ID as dependency for following packages; {missing_deps}"
+        )

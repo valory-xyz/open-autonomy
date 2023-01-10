@@ -46,6 +46,7 @@ def mint_component(  # pylint: disable=too-many-arguments
     dependencies: List[int],
     nft_image_hash: Optional[str] = None,
     password: Optional[str] = None,
+    skip_hash_check: bool = False,
 ) -> None:
     """Mint component."""
 
@@ -93,6 +94,7 @@ def mint_component(  # pylint: disable=too-many-arguments
         ).contracts[chain_type],
         dependencies=dependencies,
         package_configuration=package_configuration,
+        skip_hash_check=skip_hash_check,
     )
 
     metadata_hash = publish_metadata(

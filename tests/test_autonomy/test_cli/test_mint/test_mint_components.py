@@ -46,7 +46,7 @@ class DummyContract:
 
 
 @skip_docker_tests
-@pytest.mark.usefixtures("registries_scope_class")
+# @pytest.mark.usefixtures("registries_scope_class")
 class TestMintComponents(BaseCliTest):
     """Test `autonomy develop mint` command."""
 
@@ -71,18 +71,19 @@ class TestMintComponents(BaseCliTest):
         """Test mint protocol."""
 
         if package_type == PackageType.AGENT:
-            result = self.run_cli(
-                commands=(
-                    package_type.value,
-                    package_path,
-                    str(ETHEREUM_KEY_DEPLOYER),
-                    "-d",
-                    "1",
-                ),
+            commands = (
+                package_type.value,
+                package_path,
+                str(ETHEREUM_KEY_DEPLOYER),
+                "-d",
+                "1",
             )
         else:
+            commands = (package_type.value, package_path, str(ETHEREUM_KEY_DEPLOYER))
+
+        with mock.patch("autonomy.cli.helpers.chain.verify_component_dependencies"):
             result = self.run_cli(
-                commands=(package_type.value, package_path, str(ETHEREUM_KEY_DEPLOYER)),
+                commands=commands,
             )
 
         assert result.exit_code == 0, result.output
@@ -118,7 +119,8 @@ class TestMintComponents(BaseCliTest):
         """Test token id retrieval failure."""
 
         with mock.patch(
-            "autonomy.chain.mint.get_contract", return_value=DummyContract()
+            "autonomy.chain.base.RegistryContracts.get_contract",
+            return_value=DummyContract(),
         ), mock.patch("autonomy.chain.mint.transact"):
 
             result = self.run_cli(
