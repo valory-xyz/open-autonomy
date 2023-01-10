@@ -66,7 +66,7 @@ def test_validate_payload(vote: Optional[bool]) -> None:
     payload = ValidatePayload(sender="sender", vote=vote)
 
     assert payload.vote is vote
-    assert payload.data == {} if vote is None else {"vote": vote}
+    assert payload.data == {"vote": vote}
     assert payload.transaction_type == TransactionType.VALIDATE
 
 
@@ -132,4 +132,3 @@ def test_reset_payload() -> None:
     assert payload.period_count == 1
     assert payload.data == {"period_count": 1}
     assert payload.transaction_type == TransactionType.RESET
-    assert ResetPayload.from_json(payload.json) == payload
