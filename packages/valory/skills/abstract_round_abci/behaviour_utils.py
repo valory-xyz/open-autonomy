@@ -67,6 +67,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
     BaseTxPayload,
+    NewBaseTxPayload,
+    NewTransaction,
     LEDGER_API_ADDRESS,
     OK_CODE,
     Transaction,
@@ -863,13 +865,18 @@ class BaseBehaviour(
         )
         while not stop_condition():
             self.context.logger.debug(
-                f"Trying to send payload: {pprint.pformat(payload.json)}"
+                f"Trying to send payload: {payload}"
             )
-            signature_bytes = yield from self.get_signature(payload.encode())
-            transaction = Transaction(payload, signature_bytes)
+            if isinstance(payload, NewBaseTxPayload):
+                transaction = NewTransaction(payload=payload)
+                signature_bytes = yield from self.get_signature(bytes(transaction))
+                transaction.signature = signature_bytes
+            else:
+                signature_bytes = yield from self.get_signature(payload.encode())
+                transaction = Transaction(payload, signature_bytes)
             try:
                 response = yield from self._submit_tx(
-                    transaction.encode(), timeout=request_timeout
+                    bytes(transaction), timeout=request_timeout
                 )
                 # There is no guarantee that beyond this line will be executed for a given behaviour execution.
                 # The tx could lead to a round transition which exits us from the behaviour execution.
