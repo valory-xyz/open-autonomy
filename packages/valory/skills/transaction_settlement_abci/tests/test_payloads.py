@@ -83,10 +83,11 @@ def test_tx_history_payload() -> None:
 def test_synchronize_payload() -> None:
     """Test `SynchronizeLateMessagesPayload`."""
 
-    payload = SynchronizeLateMessagesPayload(sender="sender", tx_hashes="test")
+    tx_hashes = tuple("test")
+    payload = SynchronizeLateMessagesPayload(sender="sender", tx_hashes=tx_hashes)
 
-    assert payload.tx_hashes == "test"
-    assert payload.data == {"tx_hashes": "test"}
+    assert payload.tx_hashes == tx_hashes
+    assert payload.data == {"tx_hashes": tx_hashes}
     assert payload.transaction_type == TransactionType.SYNCHRONIZE
 
 

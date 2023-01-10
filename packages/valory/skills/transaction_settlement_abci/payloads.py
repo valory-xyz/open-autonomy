@@ -79,7 +79,7 @@ class CheckTransactionHistoryPayload(BaseTxPayload):
 class SynchronizeLateMessagesPayload(BaseTxPayload):
     """Represent a transaction payload of type 'synchronize'."""
 
-    tx_hashes: str
+    tx_hashes: tuple[str]
     transaction_type = TransactionType.SYNCHRONIZE
 
 
