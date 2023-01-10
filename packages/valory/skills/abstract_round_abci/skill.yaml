@@ -62,7 +62,7 @@ fingerprint:
   utils.py: bafybeid67vwuy6oskvpssdqdg6zvqjqgm4lqwzmtnslr4piakv46ylcmfa
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeifln72jkbha5xtkafjj4swrwrktck4ziwk6j7plmzecskhlyamgu4
+- valory/abci:0.1.0:bafybeicmhpw2f5c3vds6lwlv2q4fa5nd6zonnvgdretrwfly7ylpiofdqq
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
 - valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
 contracts:
@@ -75,7 +75,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 - valory/tendermint:0.1.0:bafybeid6b2wlb24g6d3godmqms44qvnpkhlvb27icotuobvnscmdmlhaha
 skills:
-- valory/abstract_abci:0.1.0:bafybeieeqbasxxghxaj7xffnto7ybegom2kl4y544cskysowmjcjd3szhe
+- valory/abstract_abci:0.1.0:bafybeid3udqtjtl4txht2z3tm3z3mr2nqtoddtno3u3urxjqjbbpqeelli
 behaviours:
   main:
     args: {}
