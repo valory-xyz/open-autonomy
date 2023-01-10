@@ -834,13 +834,13 @@ def test_synchronized_datas() -> None:
     expected_keepers = deque(["agent_1" + "-" * 35, "agent_3" + "-" * 35])
 
     # test `keeper_retries` property when no `keepers` are set.
-    synchronized_data_____ = TransactionSettlementSynchronizedSata(
+    synchronized_data = TransactionSettlementSynchronizedSata(
         AbciAppDB(setup_data=dict())
     )
-    assert synchronized_data_____.keepers == deque()
-    assert synchronized_data_____.keeper_retries == 0
+    assert synchronized_data.keepers == deque()
+    assert synchronized_data.keeper_retries == 0
 
-    synchronized_data_____ = TransactionSettlementSynchronizedSata(
+    synchronized_data = TransactionSettlementSynchronizedSata(
         AbciAppDB(
             setup_data=AbciAppDB.data_to_lists(
                 dict(
@@ -860,22 +860,22 @@ def test_synchronized_datas() -> None:
         )
     )
     assert (
-        abs(synchronized_data_____.keeper_randomness - actual_keeper_randomness) < 1e-10
+        abs(synchronized_data.keeper_randomness - actual_keeper_randomness) < 1e-10
     )  # avoid equality comparisons between floats
-    assert synchronized_data_____.most_voted_randomness == most_voted_randomness
-    assert synchronized_data_____.safe_contract_address == safe_contract_address
-    assert synchronized_data_____.most_voted_tx_hash == most_voted_tx_hash
-    assert synchronized_data_____.participant_to_signature == participant_to_signature
-    assert synchronized_data_____.final_tx_hash == final_tx_hash
-    assert synchronized_data_____.late_arriving_tx_hashes == late_arriving_tx_hashes
-    assert synchronized_data_____.keepers == expected_keepers
-    assert synchronized_data_____.keeper_retries == 1
+    assert synchronized_data.most_voted_randomness == most_voted_randomness
+    assert synchronized_data.safe_contract_address == safe_contract_address
+    assert synchronized_data.most_voted_tx_hash == most_voted_tx_hash
+    assert synchronized_data.participant_to_signature == participant_to_signature
+    assert synchronized_data.final_tx_hash == final_tx_hash
+    assert synchronized_data.late_arriving_tx_hashes == late_arriving_tx_hashes
+    assert synchronized_data.keepers == expected_keepers
+    assert synchronized_data.keeper_retries == 1
     assert (
-        synchronized_data_____.most_voted_keeper_address == expected_keepers.popleft()
+        synchronized_data.most_voted_keeper_address == expected_keepers.popleft()
     )
-    assert synchronized_data_____.keepers_threshold_exceeded
-    assert synchronized_data_____.blacklisted_keepers == {"t" * 42}
-    updated_synchronized_data = synchronized_data_____.create()
+    assert synchronized_data.keepers_threshold_exceeded
+    assert synchronized_data.blacklisted_keepers == {"t" * 42}
+    updated_synchronized_data = synchronized_data.create()
     assert updated_synchronized_data.blacklisted_keepers == set()
 
 
