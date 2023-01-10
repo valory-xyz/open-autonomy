@@ -77,6 +77,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     CheckTransactionHistoryRound,
     CollectSignatureRound,
+    RandomnessTransactionSubmissionRound,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     Event as TransactionSettlementEvent,
@@ -101,6 +102,8 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
 DUMMY_RANDOMNESS = 0.1  # for coverage purposes
+DUMMY_SAFE_CONTRACT_ADDRESS = "0x6f6ab56aca12"
+DUMMY_TX_HASH = "tx_hash"
 
 
 def get_participants() -> FrozenSet[str]:
@@ -108,57 +111,12 @@ def get_participants() -> FrozenSet[str]:
     return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
 
 
-def get_uniform_payloads(round_cls: AbstractRound, **kwargs):
+def get_uniform_payloads(round_cls: Type[AbstractRound], **kwargs):
     """Get uniform payloads"""
 
     payloads = {p: round_cls.payload_class(p, **kwargs) for p in get_participants()}
     most_voted_content = next(iter(payloads.values())).data
     return payloads, most_voted_content
-
-
-def get_participant_to_randomness(
-    participants: FrozenSet[str], round_id: int
-) -> Dict[str, RandomnessPayload]:
-    """participant_to_randomness"""
-    return {
-        participant: RandomnessPayload(
-            sender=participant,
-            round_id=round_id,
-            randomness=RANDOMNESS,
-        )
-        for participant in participants
-    }
-
-
-def get_most_voted_randomness() -> str:
-    """most_voted_randomness"""
-    return RANDOMNESS
-
-
-def get_participant_to_selection(
-    participants: FrozenSet[str],
-    keepers: str,
-) -> Dict[str, SelectKeeperPayload]:
-    """participant_to_selection"""
-    return {
-        participant: SelectKeeperPayload(sender=participant, keepers=keepers)
-        for participant in participants
-    }
-
-
-def get_participant_to_period_count(
-    participants: FrozenSet[str], period_count: int
-) -> Dict[str, ResetPayload]:
-    """participant_to_selection"""
-    return {
-        participant: ResetPayload(sender=participant, period_count=period_count)
-        for participant in participants
-    }
-
-
-def get_safe_contract_address() -> str:
-    """safe_contract_address"""
-    return "0x6f6ab56aca12"
 
 
 def get_participant_to_votes(
@@ -167,53 +125,6 @@ def get_participant_to_votes(
     """participant_to_votes"""
     return {
         participant: ValidatePayload(sender=participant, vote=vote)
-        for participant in participants
-    }
-
-
-def get_most_voted_tx_hash() -> str:
-    """most_voted_tx_hash"""
-    return "tx_hash"
-
-
-def get_participant_to_signature(
-    participants: FrozenSet[str],
-) -> Dict[str, SignaturePayload]:
-    """participant_to_signature"""
-    return {
-        participant: SignaturePayload(sender=participant, signature="signature")
-        for participant in participants
-    }
-
-
-def get_final_tx_hash() -> str:
-    """final_tx_hash"""
-    return "tx_hash"
-
-
-def get_participant_to_check(
-    participants: FrozenSet[str],
-    status: str,
-    tx_hash: str,
-) -> Dict[str, CheckTransactionHistoryPayload]:
-    """Get participants to check"""
-    return {
-        participant: CheckTransactionHistoryPayload(
-            sender=participant,
-            verified_res=status + tx_hash,
-        )
-        for participant in participants
-    }
-
-
-def get_participant_to_late_arriving_tx_hashes(
-    participants: FrozenSet[str],
-) -> Dict[str, SynchronizeLateMessagesPayload]:
-    """participant_to_selection"""
-    return {
-        participant: SynchronizeLateMessagesPayload(
-            sender=participant, tx_hashes="1" * TX_HASH_LENGTH + "2" * TX_HASH_LENGTH
-        )
         for participant in participants
     }
 
@@ -643,10 +554,11 @@ class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
             consensus_params=self.consensus_params,
         )
 
+        round_payloads, _ = get_uniform_payloads(CollectSignatureRound, signature="signature")
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_signature(self.participants),
+                round_payloads=round_payloads,
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
                 synchronized_data_attr_checks=[],
                 exit_event=self._event_class.DONE,
@@ -821,14 +733,10 @@ def test_synchronized_datas() -> None:
     """Test SynchronizedData."""
 
     participants = get_participants()
-    participant_to_randomness = get_participant_to_randomness(participants, 1)
-    most_voted_randomness = get_most_voted_randomness()
-    participant_to_selection = get_participant_to_selection(participants, "test")
-    safe_contract_address = get_safe_contract_address()
-    most_voted_tx_hash = get_most_voted_tx_hash()
-    participant_to_signature = get_participant_to_signature(participants)
-    final_tx_hash = get_final_tx_hash()
-    actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
+    participant_to_randomness, _ = get_uniform_payloads(RandomnessTransactionSubmissionRound, round_id=1, randomness=RANDOMNESS)
+    participant_to_selection, _ = get_uniform_payloads(SelectKeeperTransactionSubmissionRoundA, keepers="keepers")
+    participant_to_signature, _ = get_uniform_payloads(CollectSignatureRound, signature="signature")
+    actual_keeper_randomness = int(RANDOMNESS, base=16) / MAX_INT_256
     late_arriving_tx_hashes = get_late_arriving_tx_hashes()
     keepers = get_keepers(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)))
     expected_keepers = deque(["agent_1" + "-" * 35, "agent_3" + "-" * 35])
@@ -846,12 +754,12 @@ def test_synchronized_datas() -> None:
                 dict(
                     participants=participants,
                     participant_to_randomness=participant_to_randomness,
-                    most_voted_randomness=most_voted_randomness,
+                    most_voted_randomness=RANDOMNESS,
                     participant_to_selection=participant_to_selection,
-                    safe_contract_address=safe_contract_address,
-                    most_voted_tx_hash=most_voted_tx_hash,
+                    safe_contract_address=DUMMY_SAFE_CONTRACT_ADDRESS,
+                    most_voted_tx_hash=DUMMY_TX_HASH,
                     participant_to_signature=participant_to_signature,
-                    final_tx_hash=final_tx_hash,
+                    final_tx_hash=DUMMY_TX_HASH,
                     late_arriving_tx_hashes=late_arriving_tx_hashes,
                     keepers=keepers,
                     blacklisted_keepers="t" * 42,
@@ -862,11 +770,11 @@ def test_synchronized_datas() -> None:
     assert (
         abs(synchronized_data.keeper_randomness - actual_keeper_randomness) < 1e-10
     )  # avoid equality comparisons between floats
-    assert synchronized_data.most_voted_randomness == most_voted_randomness
-    assert synchronized_data.safe_contract_address == safe_contract_address
-    assert synchronized_data.most_voted_tx_hash == most_voted_tx_hash
+    assert synchronized_data.most_voted_randomness == RANDOMNESS
+    assert synchronized_data.safe_contract_address == DUMMY_SAFE_CONTRACT_ADDRESS
+    assert synchronized_data.most_voted_tx_hash == DUMMY_TX_HASH
     assert synchronized_data.participant_to_signature == participant_to_signature
-    assert synchronized_data.final_tx_hash == final_tx_hash
+    assert synchronized_data.final_tx_hash == DUMMY_TX_HASH
     assert synchronized_data.late_arriving_tx_hashes == late_arriving_tx_hashes
     assert synchronized_data.keepers == expected_keepers
     assert synchronized_data.keeper_retries == 1

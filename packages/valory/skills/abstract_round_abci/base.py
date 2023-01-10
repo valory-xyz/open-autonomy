@@ -1005,7 +1005,6 @@ class _MetaAbstractRound(ABCMeta):
             raise AbstractRoundInternalError(
                 f"'synchronized_data_class' not set on {abstract_round_cls}"
             )
-        logging.error(abstract_round_cls)
         if not hasattr(abstract_round_cls, "allowed_tx_type"):
             if hasattr(abstract_round_cls, "payload_class"):
                 return
