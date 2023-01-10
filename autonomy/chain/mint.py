@@ -19,14 +19,7 @@
 
 """Helpers for minting components"""
 
-<<<<<<< HEAD
-from typing import Dict, List, Optional, cast
-=======
-import json
-from collections import OrderedDict
-from pathlib import Path
 from typing import Dict, List, Optional
->>>>>>> feat/mint-components
 
 from aea.crypto.base import Crypto, LedgerApi
 from requests.exceptions import ConnectionError as RequestsConnectionError
@@ -39,7 +32,6 @@ from autonomy.chain.constants import (
     REGISTRIES_MANAGER_CONTRACT,
 )
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
-from autonomy.chain.metadata import UNIT_HASH_PREFIX
 
 
 DEFAULT_NFT_IMAGE_HASH = "bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm"
