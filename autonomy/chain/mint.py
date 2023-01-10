@@ -22,7 +22,7 @@
 import json
 from collections import OrderedDict
 from pathlib import Path
-from typing import Dict, List, Optional, cast
+from typing import Dict, List, Optional
 
 from aea.configurations.data_types import PublicId
 from aea.contracts.base import Contract
@@ -187,24 +187,3 @@ def mint_component(
         raise FailedToRetrieveTokenId(
             "Connection interrupted while waiting for the unitId emit event"
         ) from e
-
-
-def verify_and_fetch_token_id_from_event(
-    ledger_api: LedgerApi,
-    events: List[Dict],
-    metadata_hash: str,
-    unit_type: UnitType,
-) -> Optional[int]:
-    """Verify and extract token id from a registry event"""
-    for event in events:
-        event_args = event["args"]
-        if event_args["uType"] == unit_type.value:
-            hash_bytes32 = cast(bytes, event_args["unitHash"]).hex()
-            unit_hash_bytes = UNIT_HASH_PREFIX.format(
-                metadata_hash=hash_bytes32
-            ).encode()
-            metadata_hash_bytes = ledger_api.api.toBytes(text=metadata_hash)
-            if unit_hash_bytes == metadata_hash_bytes:
-                return cast(int, event_args["unitId"])
-
-    return None
