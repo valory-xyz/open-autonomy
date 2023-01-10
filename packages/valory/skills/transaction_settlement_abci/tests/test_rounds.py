@@ -110,7 +110,7 @@ def get_participants() -> FrozenSet[str]:
 def get_uniform_payloads(round_cls, **kwargs):  # AbstractRound
     """Get uniform payloads"""
 
-    payloads = {p: round_cls.payload(p, **kwargs) for p in get_participants()}
+    payloads = {p: round_cls.payload_class(p, **kwargs) for p in get_participants()}
     most_voted_content = next(iter(payloads.values())).data
     return payloads, most_voted_content
 

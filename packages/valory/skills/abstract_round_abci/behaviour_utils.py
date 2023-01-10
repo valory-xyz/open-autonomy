@@ -563,9 +563,9 @@ class BaseBehaviour(
         self._non_200_return_code_count: int = 0
 
     @property
-    def payload_class(self):
+    def payload_class(self) -> Type[BaseTxPayload]:
         """Payload class"""
-        return self.matching_round.payload
+        return self.matching_round.payload_class
 
     @classmethod
     def auto_behaviour_id(cls) -> str:

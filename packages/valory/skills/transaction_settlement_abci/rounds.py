@@ -216,7 +216,7 @@ class FailedRound(DegenerateRound, ABC):
 class CollectSignatureRound(CollectDifferentUntilThresholdRound):
     """A round in which agents sign the transaction"""
 
-    payload = SignaturePayload
+    payload_class = SignaturePayload
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
@@ -226,7 +226,7 @@ class CollectSignatureRound(CollectDifferentUntilThresholdRound):
 class FinalizationRound(OnlyKeeperSendsRound):
     """A round that represents transaction signing has finished"""
 
-    payload = FinalizationTxPayload
+    payload_class = FinalizationTxPayload
     synchronized_data_class = SynchronizedData
 
     def end_block(
@@ -294,7 +294,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
 class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
     """A round for generating randomness"""
 
-    payload = RandomnessPayload
+    payload_class = RandomnessPayload
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
@@ -305,7 +305,7 @@ class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
 class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound):
     """A round in which a keeper is selected for transaction submission"""
 
-    payload = SelectKeeperPayload
+    payload_class = SelectKeeperPayload
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
@@ -363,7 +363,7 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
 class ValidateTransactionRound(VotingRound):
     """A round in which agents validate the transaction"""
 
-    payload = ValidatePayload
+    payload_class = ValidatePayload
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     negative_event = Event.NEGATIVE
@@ -412,7 +412,7 @@ class ValidateTransactionRound(VotingRound):
 class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
     """A round in which agents check the transaction history to see if any previous tx has been validated"""
 
-    payload = CheckTransactionHistoryPayload
+    payload_class = CheckTransactionHistoryPayload
     synchronized_data_class = SynchronizedData
     collection_key = get_name(SynchronizedData.participant_to_check)
     selection_key = get_name(SynchronizedData.most_voted_check_result)
@@ -471,7 +471,7 @@ class CheckLateTxHashesRound(CheckTransactionHistoryRound):
 class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
     """A round in which agents synchronize potentially late arriving messages"""
 
-    payload = SynchronizeLateMessagesPayload
+    payload_class = SynchronizeLateMessagesPayload
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
@@ -507,7 +507,7 @@ class FinishedTransactionSubmissionRound(DegenerateRound, ABC):
 class ResetRound(CollectSameUntilThresholdRound):
     """A round that represents the reset of a period"""
 
-    payload = ResetPayload
+    payload_class = ResetPayload
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
