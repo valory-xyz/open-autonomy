@@ -42,6 +42,7 @@ import pytest
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciAppDB,
+    AbstractRound,
 )
 from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as SynchronizedData,
@@ -107,7 +108,7 @@ def get_participants() -> FrozenSet[str]:
     return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
 
 
-def get_uniform_payloads(round_cls, **kwargs):  # AbstractRound
+def get_uniform_payloads(round_cls: AbstractRound, **kwargs):
     """Get uniform payloads"""
 
     payloads = {p: round_cls.payload_class(p, **kwargs) for p in get_participants()}
