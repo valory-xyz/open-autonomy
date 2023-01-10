@@ -102,20 +102,10 @@ Get a GenesisEvidence instance as a json dictionary.
 
 ```python
 @dataclass(frozen=True)
-class GenesisValidator()
+class GenesisValidator(TypeCheckMixin)
 ```
 
 A dataclass to store the genesis validator.
-
-<a id="packages.valory.skills.abstract_round_abci.models.GenesisValidator.__post_init__"></a>
-
-#### `__`post`_`init`__`
-
-```python
-def __post_init__() -> None
-```
-
-Check type consistency.
 
 <a id="packages.valory.skills.abstract_round_abci.models.GenesisValidator.to_json"></a>
 
@@ -572,7 +562,7 @@ Measure consensus block.
 ## BenchmarkTool Objects
 
 ```python
-class BenchmarkTool(Model,  FrozenMixin)
+class BenchmarkTool(Model,  TypeCheckMixin,  FrozenMixin)
 ```
 
 BenchmarkTool

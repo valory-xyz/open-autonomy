@@ -20,7 +20,7 @@ Keep the current shared state of the skill.
 
 ```python
 @dataclass
-class MutableParams()
+class MutableParams(TypeCheckMixin)
 ```
 
 Collection for the mutable parameters.
