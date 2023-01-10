@@ -20,7 +20,6 @@
 """This module contains the class to connect to the Service Registry contract."""
 
 import logging
-from enum import Enum
 from typing import Any, Dict, Iterable, Optional
 
 from aea.common import JSONLike
@@ -29,7 +28,7 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 
 
-PUBLIC_ID = PublicId.from_str("valory/componentRegistry:0.1.0")
+PUBLIC_ID = PublicId.from_str("valory/component_registry:0.1.0")
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
@@ -40,12 +39,6 @@ class ComponentRegistryContract(Contract):
     """The Service Registry contract."""
 
     contract_id = PUBLIC_ID
-
-    class UnitType(Enum):
-        """Unit type."""
-
-        COMPONENT = 0
-        AGENT = 1
 
     @classmethod
     def get_raw_transaction(
