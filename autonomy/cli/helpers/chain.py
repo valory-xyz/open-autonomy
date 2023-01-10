@@ -27,13 +27,15 @@ from aea.configurations.data_types import PackageType
 from aea.configurations.loader import load_configuration_object
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 
-from autonomy.chain.base import UnitType
-from autonomy.chain.config import ChainConfigs, ChainType
+from autonomy.chain.base import ContractsHelper, UnitType
+from autonomy.chain.config import ChainConfigs, ChainType, ContractConfigs
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
+from autonomy.chain.metadata import publish_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
 from autonomy.chain.mint import mint_component as _mint_component
-from autonomy.chain.mint import publish_metadata
+from autonomy.chain.utils import verify_component_dependencies
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
+from autonomy.chain.constants import COMPONENT_REGISTRY_CONTRACT
 
 
 def mint_component(  # pylint: disable=too-many-arguments
@@ -41,7 +43,7 @@ def mint_component(  # pylint: disable=too-many-arguments
     package_type: PackageType,
     keys: Path,
     chain_type: ChainType,
-    dependencies: Optional[List[int]] = None,
+    dependencies: List[int],
     nft_image_hash: Optional[str] = None,
     password: Optional[str] = None,
 ) -> None:
@@ -55,6 +57,7 @@ def mint_component(  # pylint: disable=too-many-arguments
             f"RPC cannot be `None` for chain config; chain_type={chain_type}"
         )
 
+    contracts_helper = ContractsHelper()
     crypto = EthereumCrypto(
         private_key_path=keys,
         password=password,
@@ -80,6 +83,16 @@ def mint_component(  # pylint: disable=too-many-arguments
             f"Please provide hash for NFT image to mint component on `{chain_type.value}` chain"
         )
 
+    verify_component_dependencies(
+        contracts_helper=contracts_helper,
+        ledger_api=ledger_api,
+        contract_address=ContractConfigs.get(
+            COMPONENT_REGISTRY_CONTRACT.name
+        ).contracts[chain_type],
+        dependencies=dependencies,
+        package_configuration=package_configuration,
+    )
+
     metadata_hash = publish_metadata(
         public_id=package_configuration.public_id,
         package_path=package_path,
@@ -89,6 +102,7 @@ def mint_component(  # pylint: disable=too-many-arguments
 
     try:
         token_id = _mint_component(
+            contracts_helper=contracts_helper,
             ledger_api=ledger_api,
             crypto=crypto,
             metadata_hash=metadata_hash,
