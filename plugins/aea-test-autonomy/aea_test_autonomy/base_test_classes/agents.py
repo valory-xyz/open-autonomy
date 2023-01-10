@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -492,3 +492,9 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
             agent_name = self._get_agent_name(i)
             self._launch_agent_i(i)
             logging.info(f"Restarted {agent_name}")
+
+    @classmethod
+    def teardown_class(cls) -> None:
+        """Teardown the test."""
+        super().teardown_class()
+        FlaskTendermintDockerImage.cleanup(cls.nb_nodes)
