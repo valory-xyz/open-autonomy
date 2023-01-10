@@ -371,7 +371,28 @@ class NewBaseTxPayload(ABC, metaclass=_MetaPayload):
 
     @property
     def data(self) -> Dict[str, Any]:
-        return {k: v for k, v in asdict(self).items() if k not in ["sender", "round_count"]}
+        return {k: v for k, v in asdict(self).items() if k not in ["sender", "round_count", "id_"]}
+
+    # TODO: refactor - these methods are not strictly needed
+    @property
+    def json(self):
+        """Json"""
+        return dict(transaction_type=self.__class__.__name__, **asdict(self))
+
+    def with_new_id(self) -> "NewBaseTxPayload":
+        """Create a new payload with the same content but new id."""
+        new = type(self)(sender=self.sender, **self.data)
+        object.__setattr__(new, "round_count", self.round_count)
+        return new
+
+    def encode(self) -> bytes:
+        """Encode"""
+        return bytes(NewTransaction(self))
+
+    @classmethod
+    def decode(cls, obj: bytes) -> "NewBaseTxPayload":
+        """Decode"""
+        return NewTransaction.from_bytes(obj).payload
 
 
 @dataclass
