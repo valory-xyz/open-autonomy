@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022-2023 Valory AG
+#   Copyright 2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,16 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Custom exceptions for chain module."""
-
-
-class ChainInteractionError(Exception):
-    """Base chain interaction failure."""
-
-
-class ComponentMintFailed(ChainInteractionError):
-    """Raise when component minting fails."""
-
-
-class FailedToRetrieveTokenId(ChainInteractionError):
-    """Raise when token ID retrieving fails for minted component."""
+"""This module contains the support resources for the registries manager contract."""

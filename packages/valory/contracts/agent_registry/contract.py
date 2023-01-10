@@ -28,9 +28,9 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 
 
-PUBLIC_ID = PublicId.from_str("valory/component_registry:0.1.0")
+PUBLIC_ID = PublicId.from_str("valory/agent_registry:0.1.0")
 
-COMPONENT_UNIT_TYPE = 0
+AGENT_UNIT_TYPE = 1
 UNIT_HASH_PREFIX = "0x{metadata_hash}"
 
 _logger = logging.getLogger(
@@ -38,8 +38,8 @@ _logger = logging.getLogger(
 )
 
 
-class ComponentRegistryContract(Contract):
-    """The Service Registry contract."""
+class AgentRegistryContract(Contract):
+    """The Agent Registry contract."""
 
     contract_id = PUBLIC_ID
 
@@ -84,7 +84,7 @@ class ComponentRegistryContract(Contract):
 
         for event in events:
             event_args = event["args"]
-            if event_args["uType"] == COMPONENT_UNIT_TYPE:
+            if event_args["uType"] == AGENT_UNIT_TYPE:
                 hash_bytes32 = cast(bytes, event_args["unitHash"]).hex()
                 unit_hash_bytes = UNIT_HASH_PREFIX.format(
                     metadata_hash=hash_bytes32

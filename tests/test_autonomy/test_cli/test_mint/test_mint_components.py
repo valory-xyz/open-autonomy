@@ -24,6 +24,7 @@ from typing import Any
 from unittest import mock
 
 import pytest
+from aea.configurations.data_types import PackageType
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.docker.base import skip_docker_tests
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
@@ -35,7 +36,7 @@ from tests.test_autonomy.test_cli.base import BaseCliTest
 class DummyContract:
     """Dummy contract"""
 
-    def get_create_unit_event_filter(self, *args: Any, **kwargs: Any) -> None:
+    def filter_token_id_from_emitted_events(self, *args: Any, **kwargs: Any) -> None:
         """Dummy method implementation"""
 
         raise RequestsConnectionError()
@@ -46,24 +47,43 @@ class DummyContract:
 
 @skip_docker_tests
 @pytest.mark.usefixtures("registries_scope_class")
-class TestMintProtocol(BaseCliTest):
-    """Test `autonomy develop mint protocol` command."""
+class TestMintComponents(BaseCliTest):
+    """Test `autonomy develop mint` command."""
 
-    cli_options = ("mint", "protocol")
+    cli_options = ("mint",)
 
     def setup(self) -> None:
         """Setup test."""
         super().setup()
         self.cli_runner.mix_stderr = False
 
-    def test_mint(
-        self,
-    ) -> None:
+    @pytest.mark.parametrize(
+        argnames=("package_type", "package_path"),
+        argvalues=(
+            (PackageType.PROTOCOL, "packages/valory/protocols/acn"),
+            (PackageType.CONTRACT, "packages/valory/contracts/service_registry"),
+            (PackageType.CONNECTION, "packages/valory/connections/abci"),
+            (PackageType.SKILL, "packages/valory/skills/abstract_round_abci"),
+            (PackageType.AGENT, "packages/valory/agents/hello_world"),
+        ),
+    )
+    def test_mint(self, package_type: PackageType, package_path: str) -> None:
         """Test mint protocol."""
 
-        result = self.run_cli(
-            commands=("packages/valory/protocols/acn", str(ETHEREUM_KEY_DEPLOYER)),
-        )
+        if package_type == PackageType.AGENT:
+            result = self.run_cli(
+                commands=(
+                    package_type.value,
+                    package_path,
+                    str(ETHEREUM_KEY_DEPLOYER),
+                    "-d",
+                    "1",
+                ),
+            )
+        else:
+            result = self.run_cli(
+                commands=(package_type.value, package_path, str(ETHEREUM_KEY_DEPLOYER)),
+            )
 
         assert result.exit_code == 0, result.output
         assert "Component minted with:" in result.output
@@ -79,7 +99,11 @@ class TestMintProtocol(BaseCliTest):
             "autonomy.chain.mint.transact", side_effect=RequestsConnectionError
         ):
             result = self.run_cli(
-                commands=("packages/valory/protocols/acn", str(ETHEREUM_KEY_DEPLOYER)),
+                commands=(
+                    "protocol",
+                    "packages/valory/protocols/acn",
+                    str(ETHEREUM_KEY_DEPLOYER),
+                ),
             )
             self.cli_runner.mix_stderr = True
             assert result.exit_code == 1, result.output
@@ -98,7 +122,11 @@ class TestMintProtocol(BaseCliTest):
         ), mock.patch("autonomy.chain.mint.transact"):
 
             result = self.run_cli(
-                commands=("packages/valory/protocols/acn", str(ETHEREUM_KEY_DEPLOYER)),
+                commands=(
+                    "protocol",
+                    "packages/valory/protocols/acn",
+                    str(ETHEREUM_KEY_DEPLOYER),
+                ),
             )
 
             assert result.exit_code == 1, result.output
