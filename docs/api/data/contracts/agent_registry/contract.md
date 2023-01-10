@@ -47,13 +47,13 @@ def get_state(cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any) 
 
 Get state.
 
-<a id="autonomy.data.contracts.agent_registry.contract.AgentRegistryContract.get_create_unit_event_filter"></a>
+<a id="autonomy.data.contracts.agent_registry.contract.AgentRegistryContract.filter_token_id_from_emitted_events"></a>
 
-#### get`_`create`_`unit`_`event`_`filter
+#### filter`_`token`_`id`_`from`_`emitted`_`events
 
 ```python
 @classmethod
-def get_create_unit_event_filter(cls, ledger_api: LedgerApi, contract_address: str) -> Iterable[Dict]
+def filter_token_id_from_emitted_events(cls, ledger_api: LedgerApi, contract_address: str, metadata_hash: str) -> Optional[int]
 ```
 
 Returns `CreateUnit` event filter.
