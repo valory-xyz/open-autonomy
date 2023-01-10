@@ -27,18 +27,18 @@ from aea.configurations.data_types import PackageType
 from aea.configurations.loader import load_configuration_object
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 
-from autonomy.chain.base import RegistryContracts, UnitType
+from autonomy.chain.base import UnitType
 from autonomy.chain.config import ChainConfigs, ChainType, ContractConfigs
+from autonomy.chain.constants import COMPONENT_REGISTRY_CONTRACT
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
 from autonomy.chain.metadata import publish_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
 from autonomy.chain.mint import mint_component as _mint_component
 from autonomy.chain.utils import verify_component_dependencies
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
-from autonomy.chain.constants import COMPONENT_REGISTRY_CONTRACT
 
 
-def mint_component(  # pylint: disable=too-many-arguments
+def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
     package_path: Path,
     package_type: PackageType,
     keys: Path,
@@ -60,7 +60,6 @@ def mint_component(  # pylint: disable=too-many-arguments
             f"RPC cannot be `None` for chain config; chain_type={chain_type}"
         )
 
-    registry_contracts = RegistryContracts()
     crypto = EthereumCrypto(
         private_key_path=keys,
         password=password,
@@ -87,7 +86,6 @@ def mint_component(  # pylint: disable=too-many-arguments
         )
 
     verify_component_dependencies(
-        registry_contracts=registry_contracts,
         ledger_api=ledger_api,
         contract_address=ContractConfigs.get(
             COMPONENT_REGISTRY_CONTRACT.name
@@ -106,7 +104,6 @@ def mint_component(  # pylint: disable=too-many-arguments
 
     try:
         token_id = _mint_component(
-            registry_contracts=registry_contracts,
             ledger_api=ledger_api,
             crypto=crypto,
             metadata_hash=metadata_hash,

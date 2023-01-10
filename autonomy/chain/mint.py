@@ -48,7 +48,6 @@ def transact(ledger_api: LedgerApi, crypto: Crypto, tx: Dict) -> Dict:
 
 
 def mint_component(
-    registry_contracts: RegistryContracts,
     ledger_api: LedgerApi,
     crypto: Crypto,
     metadata_hash: str,
@@ -59,7 +58,7 @@ def mint_component(
     """Publish component on-chain."""
 
     try:
-        tx = registry_contracts.registries_manager.get_create_transaction(
+        tx = RegistryContracts.registries_manager().get_create_transaction(
             ledger_api=ledger_api,
             contract_address=ContractConfigs.get(
                 REGISTRIES_MANAGER_CONTRACT.name
@@ -79,14 +78,16 @@ def mint_component(
 
     try:
         if component_type == UnitType.COMPONENT:
-            events = registry_contracts.component_registry.get_create_unit_event_filter(
-                ledger_api=ledger_api,
-                contract_address=ContractConfigs.get(
-                    COMPONENT_REGISTRY_CONTRACT.name
-                ).contracts[chain_type],
+            events = (
+                RegistryContracts.component_registry().get_create_unit_event_filter(
+                    ledger_api=ledger_api,
+                    contract_address=ContractConfigs.get(
+                        COMPONENT_REGISTRY_CONTRACT.name
+                    ).contracts[chain_type],
+                )
             )
         else:
-            events = registry_contracts.agent_registry.get_create_unit_event_filter(
+            events = RegistryContracts.agent_registry().get_create_unit_event_filter(
                 ledger_api=ledger_api,
                 contract_address=ContractConfigs.get(
                     AGENT_REGISTRY_CONTRACT.name

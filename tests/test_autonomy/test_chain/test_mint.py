@@ -27,13 +27,10 @@ import pytest
 from aea.configurations.constants import DEFAULT_README_FILE
 from aea.configurations.data_types import PublicId
 
+from autonomy.chain.base import RegistryContracts
 from autonomy.chain.constants import COMPONENT_REGISTRY_CONTRACT, CONTRACTS_DIR_LOCAL
-from autonomy.chain.mint import (
-    DEFAULT_NFT_IMAGE_HASH,
-    get_contract,
-    publish_metadata,
-    serialize_metadata,
-)
+from autonomy.chain.metadata import publish_metadata, serialize_metadata
+from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
 
 
 DUMMY_HASH = "bafybei0000000000000000000000000000000000000000000000000000"
@@ -74,7 +71,7 @@ def test_publish_metadata() -> None:
 def test_get_contract_method() -> None:
     """Test `get_contract` method"""
 
-    contract = get_contract(COMPONENT_REGISTRY_CONTRACT)
+    contract = RegistryContracts.get_contract(COMPONENT_REGISTRY_CONTRACT)
     assert (
         contract.configuration.directory
         == CONTRACTS_DIR_LOCAL / COMPONENT_REGISTRY_CONTRACT.name
@@ -85,4 +82,4 @@ def test_get_contract_method() -> None:
             FileNotFoundError,
             match="Contract package not found in the distribution, please reinstall the package",
         ):
-            contract = get_contract(COMPONENT_REGISTRY_CONTRACT)
+            contract = RegistryContracts.get_contract(COMPONENT_REGISTRY_CONTRACT)

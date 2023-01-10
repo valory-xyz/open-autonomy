@@ -20,10 +20,10 @@
 """Chain interaction base classes."""
 
 from enum import Enum
+from typing import Optional
 
 from aea.configurations.data_types import PublicId
 from aea.contracts.base import Contract
-from aea.crypto.base import Crypto, LedgerApi
 
 from autonomy.chain.constants import (
     AGENT_REGISTRY_CONTRACT,
@@ -44,12 +44,9 @@ class UnitType(Enum):
 class RegistryContracts:
     """On chain registry contracts helper"""
 
-    def __init__(self) -> None:
-        """Initialize object."""
-
-        self._registries_manager = None
-        self._component_registry = None
-        self._agent_registry = None
+    _registries_manager: Optional[Contract] = None
+    _component_registry: Optional[Contract] = None
+    _agent_registry: Optional[Contract] = None
 
     @staticmethod
     def get_contract(public_id: PublicId) -> Contract:
@@ -68,38 +65,38 @@ class RegistryContracts:
             )
         return Contract.from_dir(directory=contract_dir)
 
-    @property
+    @classmethod
     def registries_manager(
-        self,
+        cls,
     ) -> Contract:
         """Returns an instance of the registries manager contract."""
-        if self._registries_manager is None:
-            self._registries_manager = self.get_contract(
+        if cls._registries_manager is None:
+            cls._registries_manager = cls.get_contract(
                 public_id=REGISTRIES_MANAGER_CONTRACT
             )
 
-        return self._registries_manager
+        return cls._registries_manager
 
-    @property
+    @classmethod
     def component_registry(
-        self,
+        cls,
     ) -> Contract:
         """Returns an instance of the registries manager contract."""
-        if self._component_registry is None:
-            self._component_registry = self.get_contract(
+        if cls._component_registry is None:
+            cls._component_registry = cls.get_contract(
                 public_id=COMPONENT_REGISTRY_CONTRACT
             )
 
-        return self._component_registry
+        return cls._component_registry
 
-    @property
+    @classmethod
     def agent_registry(
-        self,
+        cls,
     ) -> Contract:
         """Returns an instance of the registries manager contract."""
-        if self._agent_registry is None:
-            self._agent_registry = self.get_contract(
+        if cls._agent_registry is None:
+            cls._agent_registry = cls.get_contract(
                 public_id=AGENT_REGISTRY_CONTRACT,
             )
 
-        return self._agent_registry
+        return cls._agent_registry
