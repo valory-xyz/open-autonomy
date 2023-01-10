@@ -1,20 +1,20 @@
-<a id="autonomy.data.contracts.component_registry.contract"></a>
+<a id="autonomy.data.contracts.agent_registry.contract"></a>
 
-# autonomy.data.contracts.component`_`registry.contract
+# autonomy.data.contracts.agent`_`registry.contract
 
 This module contains the class to connect to the Service Registry contract.
 
-<a id="autonomy.data.contracts.component_registry.contract.ComponentRegistryContract"></a>
+<a id="autonomy.data.contracts.agent_registry.contract.AgentRegistryContract"></a>
 
-## ComponentRegistryContract Objects
+## AgentRegistryContract Objects
 
 ```python
-class ComponentRegistryContract(Contract)
+class AgentRegistryContract(Contract)
 ```
 
-The Service Registry contract.
+The Agent Registry contract.
 
-<a id="autonomy.data.contracts.component_registry.contract.ComponentRegistryContract.get_raw_transaction"></a>
+<a id="autonomy.data.contracts.agent_registry.contract.AgentRegistryContract.get_raw_transaction"></a>
 
 #### get`_`raw`_`transaction
 
@@ -25,7 +25,7 @@ def get_raw_transaction(cls, ledger_api: LedgerApi, contract_address: str, **kwa
 
 Get the Safe transaction.
 
-<a id="autonomy.data.contracts.component_registry.contract.ComponentRegistryContract.get_raw_message"></a>
+<a id="autonomy.data.contracts.agent_registry.contract.AgentRegistryContract.get_raw_message"></a>
 
 #### get`_`raw`_`message
 
@@ -36,7 +36,7 @@ def get_raw_message(cls, ledger_api: LedgerApi, contract_address: str, **kwargs:
 
 Get raw message.
 
-<a id="autonomy.data.contracts.component_registry.contract.ComponentRegistryContract.get_state"></a>
+<a id="autonomy.data.contracts.agent_registry.contract.AgentRegistryContract.get_state"></a>
 
 #### get`_`state
 
@@ -47,7 +47,7 @@ def get_state(cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any) 
 
 Get state.
 
-<a id="autonomy.data.contracts.component_registry.contract.ComponentRegistryContract.get_create_unit_event_filter"></a>
+<a id="autonomy.data.contracts.agent_registry.contract.AgentRegistryContract.get_create_unit_event_filter"></a>
 
 #### get`_`create`_`unit`_`event`_`filter
 
