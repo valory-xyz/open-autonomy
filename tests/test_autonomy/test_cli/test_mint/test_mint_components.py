@@ -70,9 +70,20 @@ class TestMintComponents(BaseCliTest):
     def test_mint(self, package_type: PackageType, package_path: str) -> None:
         """Test mint protocol."""
 
-        result = self.run_cli(
-            commands=(package_type.value, package_path, str(ETHEREUM_KEY_DEPLOYER)),
-        )
+        if package_type == PackageType.AGENT:
+            result = self.run_cli(
+                commands=(
+                    package_type.value,
+                    package_path,
+                    str(ETHEREUM_KEY_DEPLOYER),
+                    "-d",
+                    "1",
+                ),
+            )
+        else:
+            result = self.run_cli(
+                commands=(package_type.value, package_path, str(ETHEREUM_KEY_DEPLOYER)),
+            )
 
         assert result.exit_code == 0, result.output
         assert "Component minted with:" in result.output
