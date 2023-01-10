@@ -1916,7 +1916,7 @@ class TestBaseBehaviour:
                     )
                     assert (
                         tm_recovery_params.reset_from_round
-                        == self.behaviour.matching_round
+                        == self.behaviour.matching_round.auto_round_id()
                     )
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")

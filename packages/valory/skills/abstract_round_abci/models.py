@@ -33,7 +33,6 @@ from packages.valory.protocols.http.message import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
-    AbstractRound,
     BaseSynchronizedData,
     ConsensusParams,
     RESET_INDEX_DEFAULT,
@@ -175,7 +174,7 @@ class SharedState(Model):
         self.abci_app_cls._is_abstract = skill_context.is_abstract_component
         self._round_sequence: Optional[RoundSequence] = None
         self.tm_recovery_params: TendermintRecoveryParams = TendermintRecoveryParams(
-            self.abci_app_cls.initial_round_cls
+            self.abci_app_cls.initial_round_cls.auto_round_id()
         )
         kwargs["skill_context"] = skill_context
         super().__init__(*args, **kwargs)
@@ -274,7 +273,7 @@ class RetriesInfo:
 class TendermintRecoveryParams:
     """A dataclass to hold all parameters related to agent <-> tendermint recovery procedures."""
 
-    reset_from_round: Type[AbstractRound]
+    reset_from_round: str
     round_count: int = ROUND_COUNT_DEFAULT
     reset_index: int = RESET_INDEX_DEFAULT
     reset_params: Optional[List[Tuple[str, str]]] = None

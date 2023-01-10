@@ -1854,7 +1854,7 @@ class BaseBehaviour(
                             reset_params=reset_params,
                             reset_index=reset_index,
                             round_count=round_count,
-                            reset_from_round=restart_from_round,
+                            reset_from_round=restart_from_round.auto_round_id(),
                         )
                     self._end_reset()
 

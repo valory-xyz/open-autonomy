@@ -395,7 +395,7 @@ class TestSharedState:
         assert shared_state.tm_recovery_params.reset_index == RESET_INDEX_DEFAULT
         assert (
             shared_state.tm_recovery_params.reset_from_round
-            == AbciAppTest.initial_round_cls
+            == AbciAppTest.initial_round_cls.auto_round_id()
         )
         assert shared_state.tm_recovery_params.reset_params is None
 
