@@ -400,8 +400,8 @@ class TestTendermintHandler:
         assert log_message in caplog.text
 
     # request
-    def test_handle_request(self, caplog: LogCaptureFixture) -> None:
-        """Test handle request"""
+    def test_handle_request_genesis_info(self, caplog: LogCaptureFixture) -> None:
+        """Test handle request for genesis info"""
         performative = TendermintMessage.Performative.REQUEST_GENESIS_INFO
         message = TendermintMessage(performative)  # type: ignore
         self.context.agent_address = message.sender = self.agent_name
@@ -412,7 +412,7 @@ class TestTendermintHandler:
 
     # response
     def test_handle_response_invalid_addresses(self, caplog: LogCaptureFixture) -> None:
-        """Test handle response invalid address"""
+        """Test handle response for genesis info with invalid address."""
         validator_config = self.dummy_validator_config
         validator_config[self.agent_name]["hostname"] = "random"
         performative = TendermintMessage.Performative.RESPONSE_GENESIS_INFO
@@ -424,8 +424,8 @@ class TestTendermintHandler:
         log_message = self.handler.LogMessages.failed_to_parse_address.value
         assert log_message in caplog.text
 
-    def test_handle_response_valid_addresses(self, caplog: LogCaptureFixture) -> None:
-        """Test handle response valid address"""
+    def test_handle_response_genesis_info(self, caplog: LogCaptureFixture) -> None:
+        """Test handle response for genesis info with valid address"""
         performative = TendermintMessage.Performative.RESPONSE_GENESIS_INFO
         info = json.dumps(self.dummy_validator_config[self.agent_name])
         message = TendermintMessage(performative, info=info)  # type: ignore
