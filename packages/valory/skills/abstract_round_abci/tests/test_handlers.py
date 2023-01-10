@@ -375,7 +375,7 @@ class TestTendermintHandler:
 
     def test_handle_no_addresses_retrieved_yet(self, caplog: LogCaptureFixture) -> None:
         """Test handle request no registered addresses"""
-        performative = TendermintMessage.Performative.REQUEST
+        performative = TendermintMessage.Performative.REQUEST_GENESIS_INFO
         message = TendermintMessage(performative)  # type: ignore
         message.sender = "Alice"
         with self.mocked_registered_addresses({}):
@@ -389,7 +389,7 @@ class TestTendermintHandler:
         self, caplog: LogCaptureFixture
     ) -> None:
         """Test handle response sender not in registered addresses"""
-        performative = TendermintMessage.Performative.RESPONSE
+        performative = TendermintMessage.Performative.RESPONSE_GENESIS_INFO
         message = TendermintMessage(performative, info="info")  # type: ignore
         message.sender = "Alice"
         self.handler.handle(message)
@@ -399,7 +399,7 @@ class TestTendermintHandler:
     # request
     def test_handle_request(self, caplog: LogCaptureFixture) -> None:
         """Test handle request"""
-        performative = TendermintMessage.Performative.REQUEST
+        performative = TendermintMessage.Performative.REQUEST_GENESIS_INFO
         message = TendermintMessage(performative)  # type: ignore
         self.context.agent_address = message.sender = self.agent_name
         with self.mocked_registered_addresses(self.dummy_validator_config):
@@ -412,7 +412,7 @@ class TestTendermintHandler:
         """Test handle response invalid address"""
         validator_config = self.dummy_validator_config
         validator_config[self.agent_name]["hostname"] = "random"
-        performative = TendermintMessage.Performative.RESPONSE
+        performative = TendermintMessage.Performative.RESPONSE_GENESIS_INFO
         info = json.dumps(validator_config[self.agent_name])
         message = TendermintMessage(performative, info=info)  # type: ignore
         self.context.agent_address = message.sender = self.agent_name
@@ -423,7 +423,7 @@ class TestTendermintHandler:
 
     def test_handle_response_valid_addresses(self, caplog: LogCaptureFixture) -> None:
         """Test handle response valid address"""
-        performative = TendermintMessage.Performative.RESPONSE
+        performative = TendermintMessage.Performative.RESPONSE_GENESIS_INFO
         info = json.dumps(self.dummy_validator_config[self.agent_name])
         message = TendermintMessage(performative, info=info)  # type: ignore
         self.context.agent_address = message.sender = self.agent_name
@@ -464,7 +464,7 @@ class TestTendermintHandler:
     ) -> None:
         """Test performative no recognized"""
         message = self.make_error_message()
-        message._slots.performative = "wacky"
+        message._slots.performative = MagicMock(value="wacky")
         with self.mocked_registered_addresses(self.dummy_validator_config):
             self.handler.handle(message)
         log_message = self.handler.LogMessages.performative_not_recognized.value
@@ -475,7 +475,7 @@ class TestTendermintHandler:
     ) -> None:
         """Test sender not in registered addresses."""
 
-        performative = TendermintMessage.Performative.REQUEST
+        performative = TendermintMessage.Performative.REQUEST_GENESIS_INFO
         message = TendermintMessage(performative)  # type: ignore
         self.context.agent_address = message.sender = "dummy"
         with self.mocked_registered_addresses(self.dummy_validator_config):
