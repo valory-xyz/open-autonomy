@@ -83,3 +83,18 @@ class ComponentRegistryContract(Contract):
         return contract_interface.events.CreateUnit.createFilter(
             fromBlock="latest"
         ).get_all_entries()
+
+    @classmethod
+    def get_token_uri(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        token_id: int,
+    ) -> Iterable[Dict]:
+        """Returns `CreateUnit` event filter."""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        return contract_interface.functions.tokenURI(token_id).call()
