@@ -165,3 +165,9 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
         },
         abi_file=chain_constants.REGISTRIES_MANAGER_ABI_FILENAME,
     )
+
+    @classmethod
+    def get(cls, name: str) -> ContractConfig:
+        """Return chain config for given chain type."""
+
+        return cast(ContractConfig, getattr(cls, name))

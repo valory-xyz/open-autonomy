@@ -32,5 +32,5 @@ Raise when component minting fails.
 class FailedToRetrieveTokenId(ChainInteractionError)
 ```
 
-Raise token ID retrieving fails for minted component.
+Raise when token ID retrieving fails for minted component.
 

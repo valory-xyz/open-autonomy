@@ -20,89 +20,10 @@
 """Chain interaction base classes."""
 
 from enum import Enum
-from typing import Any, Dict, Iterable, List, Optional
-
-from aea.crypto.base import Crypto, LedgerApi
-
-from autonomy.chain.config import ChainType, ContractConfig, ContractConfigs, get_abi
 
 
-ContractInterfaceType = Any
+class UnitType(Enum):
+    """Unit type."""
 
-
-class BaseContract:  # pylint: disable=too-few-public-methods
-    """Base contract interface."""
-
-    _contract_interface: ContractInterfaceType
-    contract_config: ContractConfig
-
-    def __init__(
-        self,
-        ledger_api: LedgerApi,
-        crypto: Crypto,
-        chain_type: ChainType,
-    ) -> None:
-        """Initialize contract interface."""
-
-        self.ledger_api = ledger_api
-        self.crypto = crypto
-
-        self._contract_interface = ledger_api.api.eth.contract(
-            address=self.contract_config.contracts.get(chain_type),
-            abi=get_abi(
-                filename=self.contract_config.abi_file,
-            ),
-        )
-
-    @property
-    def contract(
-        self,
-    ) -> ContractInterfaceType:
-        """Contract interface."""
-
-        return self._contract_interface
-
-
-class RegistriesManager(BaseContract):
-    """Registry manager contract interface."""
-
-    contract_config = ContractConfigs.registries_manager
-
-    class UnitType(Enum):
-        """Unit type."""
-
-        COMPONENT = 0
-        AGENT = 1
-
-    def create(
-        self,
-        component_type: UnitType,
-        metadata_hash: str,
-        owner: Optional[str] = None,
-        dependencies: Optional[List[int]] = None,
-    ) -> None:
-        """Create component."""
-
-        owner = owner or self.crypto.address
-        tx_hash = self._contract_interface.functions.create(
-            unitType=component_type.value,
-            unitOwner=owner,
-            unitHash=metadata_hash,
-            dependencies=(dependencies or []),
-        ).transact({"from": owner})
-
-        self.ledger_api.api.eth.wait_for_transaction_receipt(tx_hash)
-
-
-class ComponentRegistry(BaseContract):
-    """Component registry contract interface."""
-
-    contract_config = ContractConfigs.component_registry
-
-    def get_create_unit_event_filter(
-        self,
-    ) -> Iterable[Dict]:
-        """Returns `CreateUnit` event filter."""
-        return self._contract_interface.events.CreateUnit.createFilter(
-            fromBlock="latest"
-        ).get_all_entries()
+    COMPONENT = 0
+    AGENT = 1

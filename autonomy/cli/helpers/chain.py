@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ from aea.configurations.data_types import PackageType
 from aea.configurations.loader import load_configuration_object
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 
-from autonomy.chain.base import RegistriesManager
+from autonomy.chain.base import UnitType
 from autonomy.chain.config import ChainConfigs, ChainType
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
@@ -41,11 +41,15 @@ def mint_component(  # pylint: disable=too-many-arguments
     package_type: PackageType,
     keys: Path,
     chain_type: ChainType,
-    dependencies: Optional[List[int]] = None,
+    dependencies: List[int],
     nft_image_hash: Optional[str] = None,
     password: Optional[str] = None,
 ) -> None:
     """Mint component."""
+
+    is_agent = package_type == PackageType.AGENT
+    if is_agent and len(dependencies) == 0:
+        raise click.ClickException("Agent packages needs to have dependencies")
 
     chain_config = ChainConfigs.get(chain_type=chain_type)
     if chain_config.rpc is None:
@@ -61,9 +65,9 @@ def mint_component(  # pylint: disable=too-many-arguments
         **{
             "address": chain_config.rpc,
             "chain_id": chain_config.chain_id,
+            "is_gas_estimation_enabled": True,
         }
     )
-
     package_configuration = load_configuration_object(
         package_type=package_type,
         directory=package_path,
@@ -82,6 +86,7 @@ def mint_component(  # pylint: disable=too-many-arguments
         public_id=package_configuration.public_id,
         package_path=package_path,
         nft_image_hash=cast(str, nft_image_hash),
+        description=package_configuration.description,
     )
 
     try:
@@ -89,7 +94,7 @@ def mint_component(  # pylint: disable=too-many-arguments
             ledger_api=ledger_api,
             crypto=crypto,
             metadata_hash=metadata_hash,
-            component_type=RegistriesManager.UnitType.COMPONENT,
+            component_type=UnitType.AGENT if is_agent else UnitType.COMPONENT,
             chain_type=chain_type,
             dependencies=dependencies,
         )
@@ -108,5 +113,6 @@ def mint_component(  # pylint: disable=too-many-arguments
     if token_id is not None:
         click.echo(f"\tToken ID: {token_id}")
     else:
-        click.echo("Could not verify metadata hash to retrieve the token ID")
-        return
+        raise click.ClickException(
+            "Could not verify metadata hash to retrieve the token ID"
+        )

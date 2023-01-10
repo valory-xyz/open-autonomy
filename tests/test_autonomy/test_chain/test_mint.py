@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,11 +23,14 @@ import tempfile
 from pathlib import Path
 from unittest import mock
 
+import pytest
 from aea.configurations.constants import DEFAULT_README_FILE
 from aea.configurations.data_types import PublicId
 
+from autonomy.chain.constants import COMPONENT_REGISTRY_CONTRACT, CONTRACTS_DIR_LOCAL
 from autonomy.chain.mint import (
     DEFAULT_NFT_IMAGE_HASH,
+    get_contract,
     publish_metadata,
     serialize_metadata,
 )
@@ -52,7 +55,7 @@ def test_serialize_metadata() -> None:
 def test_publish_metadata() -> None:
     """Test publish metadata tool with dummy config."""
 
-    expected_hash = "0xd32dbeede9cb89d6fe6fcd1e111b553d922f75cbce3a3e8b669f3d981a8bc30a"
+    expected_hash = "0x7357e2c1b88be3442f18d62b373033a5e8340305a0f8a7fb88f361429a24003e"
     with mock.patch("autonomy.chain.mint.IPFSHashOnly.get", return_value=DUMMY_HASH):
         with tempfile.TemporaryDirectory() as temp_dir:
             package_path = Path(temp_dir)
@@ -62,6 +65,24 @@ def test_publish_metadata() -> None:
                 public_id=PublicId(author="author", name="name"),
                 package_path=package_path,
                 nft_image_hash=DEFAULT_NFT_IMAGE_HASH,
+                description="",
             )
 
     assert metadata_hash == expected_hash
+
+
+def test_get_contract_method() -> None:
+    """Test `get_contract` method"""
+
+    contract = get_contract(COMPONENT_REGISTRY_CONTRACT)
+    assert (
+        contract.configuration.directory
+        == CONTRACTS_DIR_LOCAL / COMPONENT_REGISTRY_CONTRACT.name
+    )
+
+    with mock.patch.object(Path, "exists", return_value=False):
+        with pytest.raises(
+            FileNotFoundError,
+            match="Contract package not found in the distribution, please reinstall the package",
+        ):
+            contract = get_contract(COMPONENT_REGISTRY_CONTRACT)

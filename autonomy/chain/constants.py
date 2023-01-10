@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,11 +21,19 @@
 
 import os
 
+from aea.configurations.constants import CONTRACTS, PACKAGES
+from aea.configurations.data_types import PublicId
+
+from autonomy import AUTONOMY_DIR
+from autonomy.constants import VALORY
 from autonomy.data import DATA_DIR
 
 
 ABI_DIR = DATA_DIR / "abis"
-
+CONTRACTS_DIR_FRAMEWORK = DATA_DIR / CONTRACTS
+CONTRACTS_DIR_LOCAL = (
+    AUTONOMY_DIR.parent / PACKAGES / VALORY / CONTRACTS
+)  # use from an editable/local installation
 
 COMPONENT_REGISTRY_ABI_FILENAME = "ComponentRegistry.json"
 AGENT_REGISTRY_ABI_FILENAME = "AgentRegistry.json"
@@ -61,3 +69,10 @@ AGENT_REGISTRY_ADDRESS_CUSTOM = os.environ.get("CUSTOM_AGENT_REGISTRY_ADDRESS")
 REGISTRIES_MANAGER_ADDRESS_CUSTOM = os.environ.get("CUSTOM_REGISTRIES_MANAGER_ADDRESS")
 SERVICE_MANAGER_ADDRESS_CUSTOM = os.environ.get("CUSTOM_SERVICE_MANAGER_ADDRESS")
 SERVICE_REGISTRY_ADDRESS_CUSTOM = os.environ.get("CUSTOM_SERVICE_REGISTRY_ADDRESS")
+
+# Contract PublicIds
+COMPONENT_REGISTRY_CONTRACT = PublicId.from_str("valory/component_registry")
+AGENT_REGISTRY_CONTRACT = PublicId.from_str("valory/agent_registry")
+REGISTRIES_MANAGER_CONTRACT = PublicId.from_str("valory/registries_manager")
+SERVICE_MANAGER_CONTRACT = PublicId.from_str("valory/service_manager")
+SERVICE_REGISTRY_CONTRACT = PublicId.from_str("valory/service_registry")

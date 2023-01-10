@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,18 +22,25 @@
 import json
 from collections import OrderedDict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, cast
+from typing import Dict, List, Optional
 
-from aea.configurations.constants import DEFAULT_README_FILE
 from aea.configurations.data_types import PublicId
+from aea.contracts.base import Contract
 from aea.crypto.base import Crypto, LedgerApi
 from aea.helpers.cid import CID
 from aea.helpers.ipfs.base import IPFSHashOnly
 from aea_cli_ipfs.ipfs_utils import IPFSTool
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
-from autonomy.chain.base import ComponentRegistry, RegistriesManager
-from autonomy.chain.config import ChainType
+from autonomy.chain.base import UnitType
+from autonomy.chain.config import ChainType, ContractConfigs
+from autonomy.chain.constants import (
+    AGENT_REGISTRY_CONTRACT,
+    COMPONENT_REGISTRY_CONTRACT,
+    CONTRACTS_DIR_FRAMEWORK,
+    CONTRACTS_DIR_LOCAL,
+    REGISTRIES_MANAGER_CONTRACT,
+)
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
 
 
@@ -41,8 +48,6 @@ BASE16_HASH_PREFIX = "f01701220"
 CONFIG_HASH_STRING_PREFIX = "0x"
 UNIT_HASH_PREFIX = CONFIG_HASH_STRING_PREFIX + "{metadata_hash}"
 DEFAULT_NFT_IMAGE_HASH = "bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm"
-
-ContractInterfaceType = Any
 
 
 def serialize_metadata(
@@ -68,6 +73,7 @@ def publish_metadata(
     public_id: PublicId,
     package_path: Path,
     nft_image_hash: str,
+    description: str,
 ) -> str:
     """Publish service metadata."""
 
@@ -76,7 +82,7 @@ def publish_metadata(
     metadata_string = serialize_metadata(
         package_hash=package_hash,
         public_id=public_id,
-        description=Path(package_path, DEFAULT_README_FILE).read_text(encoding="utf-8"),
+        description=description,
         nft_image_hash=nft_image_hash,
     )
 
@@ -92,68 +98,92 @@ def publish_metadata(
     return UNIT_HASH_PREFIX.format(metadata_hash=metadata_hash)
 
 
-def verify_and_fetch_token_id_from_event(
-    event: Dict,
-    unit_type: RegistriesManager.UnitType,
-    metadata_hash: str,
-    ledger_api: LedgerApi,
-) -> Optional[int]:
-    """Verify and extract token id from a registry event"""
-    event_args = event["args"]
-    if event_args["uType"] == unit_type.value:
-        hash_bytes32 = cast(bytes, event_args["unitHash"]).hex()
-        unit_hash_bytes = UNIT_HASH_PREFIX.format(metadata_hash=hash_bytes32).encode()
-        metadata_hash_bytes = ledger_api.api.toBytes(text=metadata_hash)
-        if unit_hash_bytes == metadata_hash_bytes:
-            return cast(int, event_args["unitId"])
+def get_contract(public_id: PublicId) -> Contract:
+    """Load contract for given public id."""
 
-    return None
+    # check if a local package is available
+    contract_dir = CONTRACTS_DIR_LOCAL / public_id.name
+    if contract_dir.exists():
+        return Contract.from_dir(directory=contract_dir)
+
+    # if local package is not available use one from the data directory
+    contract_dir = CONTRACTS_DIR_FRAMEWORK / public_id.name
+    if not contract_dir.exists():
+        raise FileNotFoundError(
+            "Contract package not found in the distribution, please reinstall the package"
+        )
+    return Contract.from_dir(directory=contract_dir)
+
+
+def transact(ledger_api: LedgerApi, crypto: Crypto, tx: Dict) -> Dict:
+    """Make a transaction and return a receipt"""
+
+    tx_signed = crypto.sign_transaction(transaction=tx)
+    tx_digest = ledger_api.send_signed_transaction(tx_signed=tx_signed)
+
+    return ledger_api.get_transaction_receipt(tx_digest=tx_digest)
 
 
 def mint_component(
     ledger_api: LedgerApi,
     crypto: Crypto,
     metadata_hash: str,
-    component_type: RegistriesManager.UnitType,
+    component_type: UnitType,
     chain_type: ChainType,
     dependencies: Optional[List[int]] = None,
 ) -> Optional[int]:
     """Publish component on-chain."""
 
-    registries_manager = RegistriesManager(
-        ledger_api=ledger_api,
-        crypto=crypto,
-        chain_type=chain_type,
+    registries_manager = get_contract(
+        public_id=REGISTRIES_MANAGER_CONTRACT,
     )
 
-    component_registry = ComponentRegistry(
-        ledger_api=ledger_api,
-        crypto=crypto,
-        chain_type=chain_type,
+    component_registry = get_contract(
+        public_id=COMPONENT_REGISTRY_CONTRACT,
+    )
+
+    agent_registry = get_contract(
+        public_id=AGENT_REGISTRY_CONTRACT,
     )
 
     try:
-        registries_manager.create(
+        tx = registries_manager.get_create_transaction(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                REGISTRIES_MANAGER_CONTRACT.name
+            ).contracts[chain_type],
+            owner=crypto.address,
             component_type=component_type,
             metadata_hash=metadata_hash,
             dependencies=dependencies,
+        )
+        transact(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            tx=tx,
         )
     except RequestsConnectionError as e:
         raise ComponentMintFailed("Cannot connect to the given RPC") from e
 
     try:
-        for event_dict in component_registry.get_create_unit_event_filter():
-            token_id = verify_and_fetch_token_id_from_event(
-                event=event_dict,
-                unit_type=component_type,
-                metadata_hash=metadata_hash,
+        if component_type == UnitType.COMPONENT:
+            return component_registry.filter_token_id_from_emitted_events(
                 ledger_api=ledger_api,
+                contract_address=ContractConfigs.get(
+                    COMPONENT_REGISTRY_CONTRACT.name
+                ).contracts[chain_type],
+                metadata_hash=metadata_hash,
             )
-            if token_id is not None:
-                return token_id
+
+        return agent_registry.filter_token_id_from_emitted_events(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                AGENT_REGISTRY_CONTRACT.name
+            ).contracts[chain_type],
+            metadata_hash=metadata_hash,
+        )
+
     except RequestsConnectionError as e:
         raise FailedToRetrieveTokenId(
             "Connection interrupted while waiting for the unitId emit event"
         ) from e
-
-    return None
