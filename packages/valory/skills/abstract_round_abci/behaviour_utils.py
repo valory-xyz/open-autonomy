@@ -562,6 +562,11 @@ class BaseBehaviour(
         self._is_healthy: bool = False
         self._non_200_return_code_count: int = 0
 
+    @property
+    def payload_class(self):
+        """Payload class"""
+        return self.matching_round.payload
+
     @classmethod
     def auto_behaviour_id(cls) -> str:
         """
