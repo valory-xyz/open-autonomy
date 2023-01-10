@@ -325,7 +325,6 @@ class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
     """Retrieve randomness."""
 
     matching_round = RandomnessTransactionSubmissionRound
-    payload_class = RandomnessPayload
 
 
 class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-ancestors
@@ -334,7 +333,6 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
     """Select the keeper agent."""
 
     matching_round = SelectKeeperTransactionSubmissionRoundA
-    payload_class = SelectKeeperPayload
 
     def async_act(self) -> Generator:
         """Do the action."""
@@ -443,7 +441,7 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
                 self.context.logger.info(
                     f"Finalized with transaction hash: {self.synchronized_data.to_be_validated_tx_hash}"
                 )
-            payload = ValidatePayload(self.context.agent_address, is_correct)
+            payload = self.payload_class(self.context.agent_address, is_correct)
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
@@ -517,7 +515,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
                 )
 
             verified_res = tx_hist_payload_to_hex(verification_status, tx_hash)
-            payload = CheckTransactionHistoryPayload(
+            payload = self.payload_class(
                 self.context.agent_address, verified_res
             )
 
@@ -662,7 +660,7 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
                 self._tx_hashes += cast(str, tx_data["tx_digest"])
                 return
 
-            payload = SynchronizeLateMessagesPayload(
+            payload = self.payload_class(
                 self.context.agent_address, self._tx_hashes
             )
 
@@ -697,7 +695,7 @@ class SignatureBehaviour(TransactionSettlementBaseBehaviour):
                 f"Consensus reached on tx hash: {self.synchronized_data.most_voted_tx_hash}"
             )
             signature_hex = yield from self._get_safe_tx_signature()
-            payload = SignaturePayload(self.context.agent_address, signature_hex)
+            payload = self.payload_class(self.context.agent_address, signature_hex)
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
@@ -802,7 +800,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
                 "received_hash": bool(tx_data["tx_digest"]),
             }
 
-            payload = FinalizationTxPayload(
+            payload = self.payload_class(
                 self.context.agent_address,
                 cast(Dict[str, Union[str, int, bool]], tx_data_serialized),
             )
@@ -873,7 +871,7 @@ class ResetBehaviour(TransactionSettlementBaseBehaviour):
         self.context.logger.info(
             f"Period {self.synchronized_data.period_count} was not finished. Resetting!"
         )
-        payload = ResetPayload(
+        payload = self.payload_class(
             self.context.agent_address, self.synchronized_data.period_count
         )
         yield from self.send_a2a_transaction(payload)
