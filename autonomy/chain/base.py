@@ -26,6 +26,7 @@ from aea.contracts.base import Contract
 from aea.crypto.base import Crypto, LedgerApi
 
 from autonomy.chain.constants import (
+    AGENT_REGISTRY_CONTRACT,
     COMPONENT_REGISTRY_CONTRACT,
     CONTRACTS_DIR_FRAMEWORK,
     CONTRACTS_DIR_LOCAL,
@@ -40,14 +41,15 @@ class UnitType(Enum):
     AGENT = 1
 
 
-class ContractsHelper:
-    """Autonolas registry contracts helper"""
+class RegistryContracts:
+    """On chain registry contracts helper"""
 
     def __init__(self) -> None:
         """Initialize object."""
 
         self._registries_manager = None
         self._component_registry = None
+        self._agent_registry = None
 
     @staticmethod
     def get_contract(public_id: PublicId) -> Contract:
@@ -89,3 +91,15 @@ class ContractsHelper:
             )
 
         return self._component_registry
+
+    @property
+    def agent_registry(
+        self,
+    ) -> Contract:
+        """Returns an instance of the registries manager contract."""
+        if self._agent_registry is None:
+            self._agent_registry = self.get_contract(
+                public_id=AGENT_REGISTRY_CONTRACT,
+            )
+
+        return self._agent_registry

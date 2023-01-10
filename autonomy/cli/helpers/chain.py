@@ -27,7 +27,7 @@ from aea.configurations.data_types import PackageType
 from aea.configurations.loader import load_configuration_object
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 
-from autonomy.chain.base import ContractsHelper, UnitType
+from autonomy.chain.base import RegistryContracts, UnitType
 from autonomy.chain.config import ChainConfigs, ChainType, ContractConfigs
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
 from autonomy.chain.metadata import publish_metadata
@@ -59,7 +59,7 @@ def mint_component(  # pylint: disable=too-many-arguments
             f"RPC cannot be `None` for chain config; chain_type={chain_type}"
         )
 
-    contracts_helper = ContractsHelper()
+    registry_contracts = RegistryContracts()
     crypto = EthereumCrypto(
         private_key_path=keys,
         password=password,
@@ -86,7 +86,7 @@ def mint_component(  # pylint: disable=too-many-arguments
         )
 
     verify_component_dependencies(
-        contracts_helper=contracts_helper,
+        registry_contracts=registry_contracts,
         ledger_api=ledger_api,
         contract_address=ContractConfigs.get(
             COMPONENT_REGISTRY_CONTRACT.name
@@ -104,7 +104,7 @@ def mint_component(  # pylint: disable=too-many-arguments
 
     try:
         token_id = _mint_component(
-            contracts_helper=contracts_helper,
+            registry_contracts=registry_contracts,
             ledger_api=ledger_api,
             crypto=crypto,
             metadata_hash=metadata_hash,

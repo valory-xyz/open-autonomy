@@ -27,7 +27,7 @@ from aea.crypto.base import LedgerApi
 from requests import get as r_get
 from requests.exceptions import ConnectionError
 
-from autonomy.chain.base import ContractsHelper
+from autonomy.chain.base import RegistryContracts
 from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata, DependencyError
 from autonomy.chain.metadata import IPFS_URI_PREFIX
 
@@ -39,14 +39,14 @@ def get_ipfs_hash_from_uri(uri: str) -> None:
 
 
 def resolve_component_id(
-    contracts_helper: ContractsHelper,
+    registry_contracts: RegistryContracts,
     ledger_api: LedgerApi,
     contract_address: str,
     token_id: int,
 ) -> Dict:
     """Resolve component ID"""
 
-    metadata_uri = contracts_helper.component_registry.get_token_uri(
+    metadata_uri = registry_contracts.component_registry.get_token_uri(
         ledger_api=ledger_api,
         contract_address=contract_address,
         token_id=token_id,
@@ -59,7 +59,7 @@ def resolve_component_id(
 
 
 def verify_component_dependencies(
-    contracts_helper: ContractsHelper,
+    registry_contracts: RegistryContracts,
     ledger_api: LedgerApi,
     contract_address: str,
     dependencies: List[int],
@@ -73,7 +73,7 @@ def verify_component_dependencies(
 
     for dependency_id in dependencies:
         component_metadata = resolve_component_id(
-            contracts_helper=contracts_helper,
+            registry_contracts=registry_contracts,
             contract_address=contract_address,
             ledger_api=ledger_api,
             token_id=dependency_id,

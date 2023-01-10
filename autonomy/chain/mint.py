@@ -24,7 +24,7 @@ from typing import Dict, List, Optional, cast
 from aea.crypto.base import Crypto, LedgerApi
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
-from autonomy.chain.base import ContractsHelper, UnitType
+from autonomy.chain.base import RegistryContracts, UnitType
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import (
     AGENT_REGISTRY_CONTRACT,
@@ -48,7 +48,7 @@ def transact(ledger_api: LedgerApi, crypto: Crypto, tx: Dict) -> Dict:
 
 
 def mint_component(
-    contracts_helper: ContractsHelper,
+    registry_contracts: RegistryContracts,
     ledger_api: LedgerApi,
     crypto: Crypto,
     metadata_hash: str,
@@ -59,7 +59,7 @@ def mint_component(
     """Publish component on-chain."""
 
     try:
-        tx = contracts_helper.registries_manager.get_create_transaction(
+        tx = registry_contracts.registries_manager.get_create_transaction(
             ledger_api=ledger_api,
             contract_address=ContractConfigs.get(
                 REGISTRIES_MANAGER_CONTRACT.name
@@ -79,14 +79,14 @@ def mint_component(
 
     try:
         if component_type == UnitType.COMPONENT:
-            events = contracts_helper.component_registry.get_create_unit_event_filter(
+            events = registry_contracts.component_registry.get_create_unit_event_filter(
                 ledger_api=ledger_api,
                 contract_address=ContractConfigs.get(
                     COMPONENT_REGISTRY_CONTRACT.name
                 ).contracts[chain_type],
             )
         else:
-            events = agent_registry.get_create_unit_event_filter(
+            events = registry_contracts.agent_registry.get_create_unit_event_filter(
                 ledger_api=ledger_api,
                 contract_address=ContractConfigs.get(
                     AGENT_REGISTRY_CONTRACT.name
