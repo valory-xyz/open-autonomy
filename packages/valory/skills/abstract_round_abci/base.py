@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from collections import Counter
 from copy import copy, deepcopy
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from inspect import isclass
 from math import ceil
@@ -165,7 +165,7 @@ class _MetaPayload(ABCMeta):
             # abstract class, return
             return new_cls
         if issubclass(new_cls, NewBaseTxPayload):
-            mcs.transaction_type_to_payload_cls[new_cls.__name__] = new_cls
+            mcs.transaction_type_to_payload_cls[new_cls.__name__] = new_cls  # type: ignore
             return new_cls
         if not issubclass(new_cls, BaseTxPayload):
             raise ValueError(  # pragma: no cover
@@ -371,17 +371,19 @@ class NewBaseTxPayload(ABC, metaclass=_MetaPayload):
 
     @property
     def data(self) -> Dict[str, Any]:
-        return {k: v for k, v in asdict(self).items() if k not in ["sender", "round_count", "id_"]}
+        """Data"""
+        excluded = ["sender", "round_count", "id_"]
+        return {k: v for k, v in asdict(self).items() if k not in excluded}
 
     # TODO: refactor - these methods are not strictly needed
     @property
-    def json(self):
+    def json(self) -> Dict[str, Any]:
         """Json"""
         return dict(transaction_type=self.__class__.__name__, **asdict(self))
 
     def with_new_id(self) -> "NewBaseTxPayload":
         """Create a new payload with the same content but new id."""
-        new = type(self)(sender=self.sender, **self.data)
+        new = type(self)(sender=self.sender, **self.data)  # type: ignore
         object.__setattr__(new, "round_count", self.round_count)
         return new
 
@@ -428,6 +430,8 @@ class NewTransaction:
     def verify(self, ledger_id: str) -> None:
         """Verify the signature is correct."""
 
+        if not self.signature:
+            raise SignatureNotValidError(f"Transaction not signed: {self}")
         addresses = LedgerApis.recover_message(
             identifier=ledger_id, message=bytes(self), signature=self.signature
         )

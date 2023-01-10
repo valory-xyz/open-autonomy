@@ -699,7 +699,9 @@ class BaseBehaviour(
         :yield: the responses
         """
         stop_condition = self.is_round_ended(self.matching_round.auto_round_id())
-        round_count = cast(SharedState, self.context.state).synchronized_data.round_count
+        round_count = cast(
+            SharedState, self.context.state
+        ).synchronized_data.round_count
         object.__setattr__(payload, "round_count", round_count)
         yield from self._send_transaction(
             payload,
