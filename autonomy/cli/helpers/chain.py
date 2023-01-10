@@ -41,13 +41,15 @@ def mint_component(  # pylint: disable=too-many-arguments
     package_type: PackageType,
     keys: Path,
     chain_type: ChainType,
-    dependencies: Optional[List[int]] = None,
+    dependencies: List[int],
     nft_image_hash: Optional[str] = None,
     password: Optional[str] = None,
 ) -> None:
     """Mint component."""
 
     is_agent = package_type == PackageType.AGENT
+    if is_agent and len(dependencies) == 0:
+        raise click.ClickException("Agent packages needs to have dependencies")
 
     chain_config = ChainConfigs.get(chain_type=chain_type)
     if chain_config.rpc is None:

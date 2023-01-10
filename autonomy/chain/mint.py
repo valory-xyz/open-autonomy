@@ -35,6 +35,7 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 from autonomy.chain.base import UnitType
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import (
+    AGENT_REGISTRY_CONTRACT,
     COMPONENT_REGISTRY_CONTRACT,
     CONTRACTS_DIR_FRAMEWORK,
     CONTRACTS_DIR_LOCAL,
@@ -97,24 +98,6 @@ def publish_metadata(
     return UNIT_HASH_PREFIX.format(metadata_hash=metadata_hash)
 
 
-def verify_and_fetch_token_id_from_event(
-    event: Dict,
-    unit_type: UnitType,
-    metadata_hash: str,
-    ledger_api: LedgerApi,
-) -> Optional[int]:
-    """Verify and extract token id from a registry event"""
-    event_args = event["args"]
-    if event_args["uType"] == unit_type.value:
-        hash_bytes32 = cast(bytes, event_args["unitHash"]).hex()
-        unit_hash_bytes = UNIT_HASH_PREFIX.format(metadata_hash=hash_bytes32).encode()
-        metadata_hash_bytes = ledger_api.api.toBytes(text=metadata_hash)
-        if unit_hash_bytes == metadata_hash_bytes:
-            return cast(int, event_args["unitId"])
-
-    return None
-
-
 def get_contract(public_id: PublicId) -> Contract:
     """Load contract for given public id."""
 
@@ -159,6 +142,10 @@ def mint_component(
         public_id=COMPONENT_REGISTRY_CONTRACT,
     )
 
+    agent_registry = get_contract(
+        public_id=AGENT_REGISTRY_CONTRACT,
+    )
+
     try:
         tx = registries_manager.get_create_transaction(
             ledger_api=ledger_api,
@@ -179,23 +166,49 @@ def mint_component(
         raise ComponentMintFailed("Cannot connect to the given RPC") from e
 
     try:
-        for event_dict in component_registry.get_create_unit_event_filter(
-            ledger_api=ledger_api,
-            contract_address=ContractConfigs.get(
-                COMPONENT_REGISTRY_CONTRACT.name
-            ).contracts[chain_type],
-        ):
-            token_id = verify_and_fetch_token_id_from_event(
-                event=event_dict,
-                unit_type=component_type,
-                metadata_hash=metadata_hash,
+        if component_type == UnitType.COMPONENT:
+            events = component_registry.get_create_unit_event_filter(
                 ledger_api=ledger_api,
+                contract_address=ContractConfigs.get(
+                    COMPONENT_REGISTRY_CONTRACT.name
+                ).contracts[chain_type],
             )
-            if token_id is not None:
-                return token_id
+        else:
+            events = agent_registry.get_create_unit_event_filter(
+                ledger_api=ledger_api,
+                contract_address=ContractConfigs.get(
+                    AGENT_REGISTRY_CONTRACT.name
+                ).contracts[chain_type],
+            )
+
+        return verify_and_fetch_token_id_from_event(
+            ledger_api=ledger_api,
+            events=events,
+            metadata_hash=metadata_hash,
+            unit_type=component_type,
+        )
     except RequestsConnectionError as e:
         raise FailedToRetrieveTokenId(
             "Connection interrupted while waiting for the unitId emit event"
         ) from e
+
+
+def verify_and_fetch_token_id_from_event(
+    ledger_api: LedgerApi,
+    events: List[Dict],
+    metadata_hash: str,
+    unit_type: UnitType,
+) -> Optional[int]:
+    """Verify and extract token id from a registry event"""
+    for event in events:
+        event_args = event["args"]
+        if event_args["uType"] == unit_type.value:
+            hash_bytes32 = cast(bytes, event_args["unitHash"]).hex()
+            unit_hash_bytes = UNIT_HASH_PREFIX.format(
+                metadata_hash=hash_bytes32
+            ).encode()
+            metadata_hash_bytes = ledger_api.api.toBytes(text=metadata_hash)
+            if unit_hash_bytes == metadata_hash_bytes:
+                return cast(int, event_args["unitId"])
 
     return None
