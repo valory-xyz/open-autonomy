@@ -64,6 +64,7 @@ class TestMintComponents(BaseCliTest):
             (PackageType.CONTRACT, "packages/valory/contracts/service_registry"),
             (PackageType.CONNECTION, "packages/valory/connections/abci"),
             (PackageType.SKILL, "packages/valory/skills/abstract_round_abci"),
+            (PackageType.AGENT, "packages/valory/agents/hello_world"),
         ),
     )
     def test_mint(self, package_type: PackageType, package_path: str) -> None:

@@ -111,5 +111,6 @@ def mint_component(  # pylint: disable=too-many-arguments
     if token_id is not None:
         click.echo(f"\tToken ID: {token_id}")
     else:
-        click.echo("Could not verify metadata hash to retrieve the token ID")
-        return
+        raise click.ClickException(
+            "Could not verify metadata hash to retrieve the token ID"
+        )
