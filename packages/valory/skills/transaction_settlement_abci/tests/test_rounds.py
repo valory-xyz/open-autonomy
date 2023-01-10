@@ -107,6 +107,14 @@ def get_participants() -> FrozenSet[str]:
     return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
 
 
+def get_uniform_payloads(round_cls, **kwargs):  # AbstractRound
+    """Get uniform payloads"""
+
+    payloads = {p: round_cls.payload(p, **kwargs) for p in get_participants()}
+    most_voted_content = next(iter(payloads.values())).data
+    return payloads, most_voted_content
+
+
 def get_participant_to_randomness(
     participants: FrozenSet[str], round_id: int
 ) -> Dict[str, RandomnessPayload]:
@@ -243,15 +251,13 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
-
+        round_payloads, most_voted_content = get_uniform_payloads(self.test_class, vote=True)
         self._complete_run(
             self._test_voting_round_positive(
                 test_round=test_round,
-                round_payloads=get_participant_to_votes(self.participants),
+                round_payloads=round_payloads,
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes=dict(
-                        get_participant_to_votes(self.participants)
-                    )
+                    participant_to_votes=round_payloads,
                 ),
                 synchronized_data_attr_checks=[
                     lambda _synchronized_data: _synchronized_data.participant_to_votes.keys()
@@ -270,10 +276,11 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
             consensus_params=self.consensus_params,
         )
 
+        round_payloads, most_voted_content = get_uniform_payloads(self.test_class, vote=False)
         self._complete_run(
             self._test_voting_round_negative(
                 test_round=test_round,
-                round_payloads=get_participant_to_votes(self.participants, vote=False),
+                round_payloads=round_payloads,
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
                     participant_to_votes=dict(
                         get_participant_to_votes(self.participants, vote=False)
@@ -317,16 +324,9 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
 
     _synchronized_data_class = SynchronizedData
 
-    @staticmethod
-    def _participant_to_selection(
-        participants: FrozenSet[str], keepers: str
-    ) -> Mapping[str, BaseTxPayload]:
-        """Get participant to selection"""
-        return get_participant_to_selection(participants, keepers)
-
     def test_run(
         self,
-        most_voted_payload: str = "keeper",
+        most_voted_keepers: str,
         keepers: str = "",
         exit_event: Optional[Any] = None,
     ) -> None:
@@ -338,25 +338,20 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
             consensus_params=self.consensus_params,
         )
 
+        round_payloads, most_voted_content = get_uniform_payloads(self.test_class, keepers=most_voted_keepers)
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=self._participant_to_selection(
-                    self.participants, most_voted_payload
-                ),
+                round_payloads=round_payloads,
                 synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
-                    participant_to_selection=dict(
-                        self._participant_to_selection(
-                            self.participants, most_voted_payload
-                        )
-                    )
+                    participant_to_selection=round_payloads,
                 ),
                 synchronized_data_attr_checks=[
                     lambda _synchronized_data: _synchronized_data.participant_to_selection.keys()
                     if exit_event is None
                     else None
                 ],
-                most_voted_payload=most_voted_payload,
+                most_voted_payload=most_voted_content,
                 exit_event=self._event_class.DONE if exit_event is None else exit_event,
             )
         )
@@ -370,15 +365,8 @@ class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
     _synchronized_data_class = TransactionSettlementSynchronizedSata
     _event_class = TransactionSettlementEvent
 
-    @staticmethod
-    def _participant_to_selection(
-        participants: FrozenSet[str], keepers: str
-    ) -> Mapping[str, BaseTxPayload]:
-        """Get participant to selection"""
-        return get_participant_to_selection(participants, keepers)
-
     @pytest.mark.parametrize(
-        "most_voted_payload, keepers, exit_event",
+        "most_voted_keepers, keepers, exit_event",
         (
             (
                 "incorrectly_serialized",
@@ -394,12 +382,12 @@ class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
     )
     def test_run(
         self,
-        most_voted_payload: str,
+        most_voted_keepers: str,
         keepers: str,
         exit_event: TransactionSettlementEvent,
     ) -> None:
         """Run tests."""
-        super().test_run(most_voted_payload, keepers, exit_event)
+        super().test_run(most_voted_keepers, keepers, exit_event)
 
 
 class TestSelectKeeperTransactionSubmissionRoundB(
@@ -410,7 +398,7 @@ class TestSelectKeeperTransactionSubmissionRoundB(
     test_class = SelectKeeperTransactionSubmissionRoundB
 
     @pytest.mark.parametrize(
-        "most_voted_payload, keepers, exit_event",
+        "most_voted_keepers, keepers, exit_event",
         (
             (
                 int(1).to_bytes(32, "big").hex() + "new_keeper" + "-" * 32,
@@ -429,12 +417,12 @@ class TestSelectKeeperTransactionSubmissionRoundB(
     )
     def test_run(
         self,
-        most_voted_payload: str,
+        most_voted_keepers: str,
         keepers: str,
         exit_event: TransactionSettlementEvent,
     ) -> None:
         """Run tests."""
-        super().test_run(most_voted_payload, keepers, exit_event)
+        super().test_run(most_voted_keepers, keepers, exit_event)
 
 
 class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
@@ -487,9 +475,9 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
         """Test `SelectKeeperTransactionSubmissionRoundBAfterTimeout`."""
         self.synchronized_data.update(participant_to_selection=dict.fromkeys(self.participants), **attrs)  # type: ignore
         threshold_exceeded_mock.return_value = threshold_exceeded
-        most_voted_payload = int(1).to_bytes(32, "big").hex() + "new_keeper" + "-" * 32
+        most_voted_keepers = int(1).to_bytes(32, "big").hex() + "new_keeper" + "-" * 32
         keeper = ""
-        super().test_run(most_voted_payload, keeper, exit_event)
+        super().test_run(most_voted_keepers, keeper, exit_event)
         assert (
             cast(
                 TransactionSettlementSynchronizedSata, self.synchronized_data
@@ -732,18 +720,14 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
             consensus_params=self.consensus_params,
         )
 
+        verified_res = expected_status + expected_tx_hash
+        round_payloads, most_voted_content = get_uniform_payloads(CheckTransactionHistoryRound, verified_res=verified_res)
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_check(
-                    self.participants, expected_status, expected_tx_hash
-                ),
+                round_payloads=round_payloads,
                 synchronized_data_update_fn=lambda synchronized_data, _: synchronized_data.update(
-                    participant_to_check=dict(
-                        get_participant_to_check(
-                            self.participants, expected_status, expected_tx_hash
-                        )
-                    ),
+                    participant_to_check=round_payloads,
                     final_verification_status=VerificationStatus(int(expected_status)),
                     tx_hashes_history=[expected_tx_hash],
                     keepers=keepers,
@@ -763,7 +747,7 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                     lambda _synchronized_data: _synchronized_data.final_verification_status,
                     lambda _synchronized_data: _synchronized_data.keepers,
                 ],
-                most_voted_payload=expected_status + expected_tx_hash,
+                most_voted_payload=most_voted_content,
                 exit_event=expected_event,
             )
         )
@@ -791,15 +775,16 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
+
+        tx_hashes = ("1" * TX_HASH_LENGTH, "2" * TX_HASH_LENGTH)
+        round_payloads, most_voted_content = get_uniform_payloads(SynchronizeLateMessagesRound, tx_hashes=tx_hashes)
+        late_arriving_tx_hashes = [p.data for p in round_payloads.values()]
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_late_arriving_tx_hashes(
-                    self.participants
-                ),
+                round_payloads=round_payloads,
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    late_arriving_tx_hashes=["1" * TX_HASH_LENGTH, "2" * TX_HASH_LENGTH]
-                    * len(self.participants)
+                    late_arriving_tx_hashes=late_arriving_tx_hashes,
                 ),
                 synchronized_data_attr_checks=[
                     lambda _synchronized_data: _synchronized_data.late_arriving_tx_hashes
@@ -912,19 +897,18 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
             synchronized_data=synchronized_data, consensus_params=self.consensus_params
         )
         next_period_count = 1
+        round_payloads, most_voted_content = get_uniform_payloads(ResetRound, period_count=next_period_count)
         self._complete_run(
             self._test_round(
                 test_round=test_round,
-                round_payloads=get_participant_to_period_count(
-                    self.participants, next_period_count
-                ),
+                round_payloads=round_payloads,
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.create(
                     participants=[self.participants],
                     all_participants=[self.participants],
                     keeper_randomness=[DUMMY_RANDOMNESS],
                 ),
                 synchronized_data_attr_checks=[],  # [lambda _synchronized_data: _synchronized_data.participants],
-                most_voted_payload=next_period_count,
+                most_voted_payload=most_voted_content,
                 exit_event=self._event_class.DONE,
             )
         )
