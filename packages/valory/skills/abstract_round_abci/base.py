@@ -1343,7 +1343,7 @@ class CollectionRound(AbstractRound, ABC):
     @property
     def payloads_count(self) -> Counter:
         """Get count of payload attributes"""
-        return Counter(tuple(sorted(p.data.items())) for p in self.payloads)
+        return Counter(map(lambda p: getattr(p, self.payload_attribute), self.payloads))
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
@@ -1363,8 +1363,8 @@ class CollectionRound(AbstractRound, ABC):
                 f"sender {sender} has already sent value for round: {self.round_id}"
             )
 
-        if getattr(self, "_hash_length", None):
-            content = "".join(payload.tx_hashes)
+        if self._hash_length:
+            content = payload.data.get(self.payload_attribute)
             if not content or len(content) % self._hash_length:
                 msg = f"Expecting serialized data of chunk size {self._hash_length}"
                 raise ABCIAppInternalError(f"{msg}, got: {content} in {self.round_id}")
@@ -1392,8 +1392,8 @@ class CollectionRound(AbstractRound, ABC):
                 f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
 
-        if getattr(self, "_hash_length", None):
-            content = "".join(payload.tx_hashes)
+        if self._hash_length:
+            content = payload.data.get(self.payload_attribute)
             if not content or len(content) % self._hash_length:
                 msg = f"Expecting serialized data of chunk size {self._hash_length}"
                 raise TransactionNotValidError(
@@ -1540,7 +1540,7 @@ class CollectSameUntilThresholdRound(CollectionRound, ABC):
         most_voted_payload, max_votes = self.payloads_count.most_common()[0]
         if max_votes < self.consensus_threshold:
             raise ABCIAppInternalError("not enough votes")
-        return dict(most_voted_payload)
+        return most_voted_payload
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
@@ -1601,7 +1601,7 @@ class OnlyKeeperSendsRound(AbstractRound, ABC):
         if self.keeper_sent_payload:
             raise ABCIAppInternalError("keeper already set the payload.")
 
-        self.keeper_payload = payload.data
+        self.keeper_payload = getattr(payload, self.payload_attribute)
         self.keeper_sent_payload = True
 
     def check_payload(self, payload: BaseTxPayload) -> None:
@@ -1772,9 +1772,9 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound, AB
         non_empty_values = []
 
         for payload in self.collection.values():
-            # attribute_value = getattr(payload, self.payload_attribute, None)
-            if payload.data:
-                non_empty_values.append(payload.data)
+            attribute_value = getattr(payload, self.payload_attribute, None)
+            if attribute_value is not None:
+                non_empty_values.append(attribute_value)
 
         return non_empty_values
 
