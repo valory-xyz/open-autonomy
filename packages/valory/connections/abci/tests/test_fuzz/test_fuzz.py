@@ -18,11 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """Fuzzy tests for valory/abci connection"""
-
+import os
 import platform
 
 import pytest
+from hypothesis import settings
 
+from packages.valory.connections.abci import CI
 from packages.valory.connections.abci.tests.test_fuzz.base import BaseFuzzyTests
 from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.grpc_channel import (
     GrpcChannel,
@@ -30,6 +32,11 @@ from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.grpc_ch
 from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.tcp_channel import (
     TcpChannel,
 )
+
+
+running_on_ci = os.getenv(CI)
+if running_on_ci:
+    settings.load_profile(CI)
 
 
 @pytest.mark.skipif(
