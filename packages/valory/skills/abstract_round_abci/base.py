@@ -1363,7 +1363,7 @@ class CollectionRound(AbstractRound, ABC):
             )
 
         if getattr(self, "_hash_length", None):
-            content = payload.tx_hashes
+            content = "".join(payload.tx_hashes)
             if not content or len(content) % self._hash_length:
                 msg = f"Expecting serialized data of chunk size {self._hash_length}"
                 raise ABCIAppInternalError(f"{msg}, got: {content} in {self.round_id}")
@@ -1392,7 +1392,7 @@ class CollectionRound(AbstractRound, ABC):
             )
 
         if getattr(self, "_hash_length", None):
-            content = payload.tx_hashes
+            content = "".join(payload.tx_hashes)
             if not content or len(content) % self._hash_length:
                 msg = f"Expecting serialized data of chunk size {self._hash_length}"
                 raise TransactionNotValidError(
