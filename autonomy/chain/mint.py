@@ -19,7 +19,14 @@
 
 """Helpers for minting components"""
 
+<<<<<<< HEAD
 from typing import Dict, List, Optional, cast
+=======
+import json
+from collections import OrderedDict
+from pathlib import Path
+from typing import Dict, List, Optional
+>>>>>>> feat/mint-components
 
 from aea.crypto.base import Crypto, LedgerApi
 from requests.exceptions import ConnectionError as RequestsConnectionError
@@ -78,50 +85,23 @@ def mint_component(
 
     try:
         if component_type == UnitType.COMPONENT:
-            events = (
-                RegistryContracts.component_registry().get_create_unit_event_filter(
-                    ledger_api=ledger_api,
-                    contract_address=ContractConfigs.get(
-                        COMPONENT_REGISTRY_CONTRACT.name
-                    ).contracts[chain_type],
-                )
-            )
-        else:
-            events = RegistryContracts.agent_registry().get_create_unit_event_filter(
+            return RegistryContracts.component_registry().filter_token_id_from_emitted_events(
                 ledger_api=ledger_api,
                 contract_address=ContractConfigs.get(
-                    AGENT_REGISTRY_CONTRACT.name
+                    COMPONENT_REGISTRY_CONTRACT.name
                 ).contracts[chain_type],
+                metadata_hash=metadata_hash,
             )
 
-        return verify_and_fetch_token_id_from_event(
+        return RegistryContracts.agent_registry().filter_token_id_from_emitted_events(
             ledger_api=ledger_api,
-            events=events,
+            contract_address=ContractConfigs.get(
+                AGENT_REGISTRY_CONTRACT.name
+            ).contracts[chain_type],
             metadata_hash=metadata_hash,
-            unit_type=component_type,
         )
+
     except RequestsConnectionError as e:
         raise FailedToRetrieveTokenId(
             "Connection interrupted while waiting for the unitId emit event"
         ) from e
-
-
-def verify_and_fetch_token_id_from_event(
-    ledger_api: LedgerApi,
-    events: List[Dict],
-    metadata_hash: str,
-    unit_type: UnitType,
-) -> Optional[int]:
-    """Verify and extract token id from a registry event"""
-    for event in events:
-        event_args = event["args"]
-        if event_args["uType"] == unit_type.value:
-            hash_bytes32 = cast(bytes, event_args["unitHash"]).hex()
-            unit_hash_bytes = UNIT_HASH_PREFIX.format(
-                metadata_hash=hash_bytes32
-            ).encode()
-            metadata_hash_bytes = ledger_api.api.toBytes(text=metadata_hash)
-            if unit_hash_bytes == metadata_hash_bytes:
-                return cast(int, event_args["unitId"])
-
-    return None

@@ -24,13 +24,3 @@ def mint_component(ledger_api: LedgerApi, crypto: Crypto, metadata_hash: str, co
 
 Publish component on-chain.
 
-<a id="autonomy.chain.mint.verify_and_fetch_token_id_from_event"></a>
-
-#### verify`_`and`_`fetch`_`token`_`id`_`from`_`event
-
-```python
-def verify_and_fetch_token_id_from_event(ledger_api: LedgerApi, events: List[Dict], metadata_hash: str, unit_type: UnitType) -> Optional[int]
-```
-
-Verify and extract token id from a registry event
-
