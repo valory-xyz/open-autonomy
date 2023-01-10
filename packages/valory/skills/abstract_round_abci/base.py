@@ -164,7 +164,7 @@ class _MetaPayload(ABCMeta):
         if ABC in bases:
             # abstract class, return
             return new_cls
-        if issubclass(new_cls, NewBaseTxPayload):
+        if issubclass(new_cls, BaseTxPayload):
             mcs.transaction_type_to_payload_cls[new_cls.__name__] = new_cls  # type: ignore
             return new_cls
         if not issubclass(new_cls, BaseTxPayload):
@@ -362,7 +362,7 @@ class Transaction(ABC):
 
 
 @dataclass(frozen=True)
-class NewBaseTxPayload(ABC, metaclass=_MetaPayload):
+class BaseTxPayload(ABC, metaclass=_MetaPayload):
     """This class represents a base class for transaction payload classes."""
 
     sender: str
@@ -381,7 +381,7 @@ class NewBaseTxPayload(ABC, metaclass=_MetaPayload):
         """Json"""
         return dict(transaction_type=self.__class__.__name__, **asdict(self))
 
-    def with_new_id(self) -> "NewBaseTxPayload":
+    def with_new_id(self) -> "BaseTxPayload":
         """Create a new payload with the same content but new id."""
         new = type(self)(sender=self.sender, **self.data)  # type: ignore
         object.__setattr__(new, "round_count", self.round_count)
@@ -392,7 +392,7 @@ class NewBaseTxPayload(ABC, metaclass=_MetaPayload):
         return bytes(NewTransaction(self))
 
     @classmethod
-    def decode(cls, obj: bytes) -> "NewBaseTxPayload":
+    def decode(cls, obj: bytes) -> "BaseTxPayload":
         """Decode"""
         return NewTransaction.from_bytes(obj).payload
 
@@ -401,7 +401,7 @@ class NewBaseTxPayload(ABC, metaclass=_MetaPayload):
 class NewTransaction:
     """Class to represent a transaction for the ephemeral chain of a period."""
 
-    payload: NewBaseTxPayload
+    payload: BaseTxPayload
     signature: Optional[str] = None
 
     def __bytes__(self) -> bytes:
@@ -425,7 +425,7 @@ class NewTransaction:
         payload_cls = _MetaPayload.transaction_type_to_payload_cls[cls_name]
         payload = payload_cls(**kwargs)
         object.__setattr__(payload, "round_count", round_count)
-        return cls(payload=cast(NewBaseTxPayload, payload), signature=signature)
+        return cls(payload=cast(BaseTxPayload, payload), signature=signature)
 
     def verify(self, ledger_id: str) -> None:
         """Verify the signature is correct."""

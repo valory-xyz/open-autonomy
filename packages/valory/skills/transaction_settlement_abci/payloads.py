@@ -23,7 +23,7 @@ from enum import Enum
 from typing import Dict, Optional, Union
 
 from packages.valory.skills.abstract_round_abci.base import (
-    NewBaseTxPayload as BaseTxPayload,
+    BaseTxPayload as BaseTxPayload,
 )
 
 
