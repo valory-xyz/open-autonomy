@@ -8,11 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeihqlwkxffyqkqzzoqbm3t5caqxl75po6yk5cfjg5jp56dy47qqmv4
   build/ComponentRegistry.json: bafybeicssz7csipr7lhxvro6chtd45f6iqykserv35ppjtxetpx75ouno4
-<<<<<<< HEAD
-  contract.py: bafybeigmio3uffphekaj463ib3oedbwu3gpmoca6wbuqdusfnmdlmdkjn4
-=======
-  contract.py: bafybeian3o6iyjjgvgmb2dgglbdicw4dex6pfvj3ozko4igpvoo5leylmy
->>>>>>> feat/mint-components
+  contract.py: bafybeidf26bmnxugpvbwwdx5ah5csbzoap26ao6p4wjazlecomwup2zghi
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ComponentRegistryContract
