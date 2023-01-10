@@ -367,7 +367,7 @@ class NewBaseTxPayload(ABC, metaclass=_MetaPayload):
 
     sender: str
     round_count: int = field(default=ROUND_COUNT_DEFAULT, init=False)
-    id_: str = field(default=uuid.uuid4().hex, init=False)
+    id_: str = field(default_factory=lambda: uuid.uuid4().hex, init=False)
 
     @property
     def data(self) -> Dict[str, Any]:
