@@ -50,11 +50,11 @@ class TestStorer:
         "filetype, custom_storer, expected_storer",
         (
             (None, None, None),
-            (SupportedFiletype.JSON, None, JSONStorer.store_single_file),
+            (SupportedFiletype.JSON, None, JSONStorer.serialize_object),
             (
                 SupportedFiletype.JSON,
                 __dummy_custom_storer,
-                JSONStorer.store_single_file,
+                JSONStorer.serialize_object,
             ),
             (None, __dummy_custom_storer, __dummy_custom_storer),
         ),

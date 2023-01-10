@@ -52,11 +52,11 @@ class TestLoader:
         "filetype, custom_loader, expected_loader",
         (
             (None, None, None),
-            (SupportedFiletype.JSON, None, JSONLoader.load_single_file),
+            (SupportedFiletype.JSON, None, JSONLoader.load_single_object),
             (
                 SupportedFiletype.JSON,
                 __dummy_custom_loader,
-                JSONLoader.load_single_file,
+                JSONLoader.load_single_object,
             ),
             (None, __dummy_custom_loader, __dummy_custom_loader),
         ),

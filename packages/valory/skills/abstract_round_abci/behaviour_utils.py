@@ -27,7 +27,7 @@ import re
 import sys
 from abc import ABC, ABCMeta, abstractmethod
 from enum import Enum
-from functools import partial, wraps
+from functools import partial
 from typing import (
     Any,
     Callable,
@@ -57,11 +57,16 @@ from packages.open_aea.protocols.signing.custom_types import (
 from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
+from packages.valory.connections.ipfs.connection import (
+    CONNECTION_ID as IPFS_CONNECTION_ID,
+)
 from packages.valory.contracts.service_registry.contract import (  # noqa: F401  # pylint: disable=unused-import
     ServiceRegistryContract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.ipfs import IpfsMessage
+from packages.valory.protocols.ipfs.dialogues import IpfsDialogue, IpfsDialogues
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
@@ -369,85 +374,77 @@ class AsyncBehaviour(ABC):
         self.__state = self.AsyncState.READY
 
 
-def _check_ipfs_enabled(fn: Callable) -> Callable:
-    """Decorator that raises error if IPFS is not enabled."""
-
-    @wraps(fn)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        """The wrap that checks and raises the error."""
-        ipfs_enabled = args[0].ipfs_enabled
-
-        if not ipfs_enabled:  # pragma: no cover
-            raise ValueError(
-                "Trying to perform an IPFS operation, but IPFS has not been enabled! "
-                "Please set `ipfs_domain_name` configuration."
-            )
-
-        return fn(*args, **kwargs)
-
-    return wrapper
-
-
 class IPFSBehaviour(SimpleBehaviour, ABC):
     """Behaviour for interactions with IPFS."""
 
     def __init__(self, **kwargs: Any):
         """Initialize an `IPFSBehaviour`."""
         super().__init__(**kwargs)
-        self.ipfs_enabled = False
-        # If params are not found `AttributeError` will be raised. This is fine, because something will have gone wrong.
-        # If `ipfs_domain_name` is not specified for the skill, then we get a `None` default.
-        # Therefore, `IPFSBehaviour` will be disabled.
-        domain = getattr(self.params, "ipfs_domain_name", None)  # pylint: disable=E1101
         loader_cls = kwargs.pop("loader_cls", Loader)
         storer_cls = kwargs.pop("storer_cls", Storer)
-        if domain is not None:  # pragma: nocover
-            self.ipfs_enabled = True
-            self._ipfs_interact = IPFSInteract(domain, loader_cls, storer_cls)
+        self._ipfs_interact = IPFSInteract(loader_cls, storer_cls)
 
-    @_check_ipfs_enabled
-    def send_to_ipfs(
+    def _build_ipfs_message(
+        self,
+        performative: IpfsMessage.Performative,
+        timeout: Optional[float] = None,
+        **kwargs: Any,
+    ) -> Tuple[IpfsMessage, IpfsDialogue]:
+        """Builds an IPFS message."""
+        ipfs_dialogues = cast(IpfsDialogues, self.context.ipfs_dialogues)
+        message, dialogue = ipfs_dialogues.create(
+            counterparty=str(IPFS_CONNECTION_ID),
+            performative=performative,
+            timeout=timeout,
+            **kwargs,
+        )
+        return message, dialogue
+
+    def _build_ipfs_store_file_req(  # pylint: disable=too-many-arguments
         self,
         filepath: str,
         obj: SupportedObjectType,
         multiple: bool = False,
         filetype: Optional[SupportedFiletype] = None,
         custom_storer: Optional[CustomStorerType] = None,
+        timeout: Optional[float] = None,
         **kwargs: Any,
-    ) -> Optional[str]:
+    ) -> Tuple[IpfsMessage, IpfsDialogue]:
         """Send a file to IPFS."""
-        try:
-            hash_ = self._ipfs_interact.store_and_send(
-                filepath, obj, multiple, filetype, custom_storer, **kwargs
-            )
-            self.context.logger.info(f"IPFS hash is: {hash_}")
-            return hash_
-        except IPFSInteractionError as e:  # pragma: no cover
-            self.context.logger.error(
-                f"An error occurred while trying to send a file to IPFS: {str(e)}"
-            )
-            return None
+        serialized_objects = self._ipfs_interact.store(
+            filepath, obj, multiple, filetype, custom_storer, **kwargs
+        )
+        message, dialogue = self._build_ipfs_message(
+            performative=IpfsMessage.Performative.STORE_FILES,
+            files=serialized_objects,
+            timeout=timeout,
+        )
+        return message, dialogue
 
-    @_check_ipfs_enabled
-    def get_from_ipfs(  # pylint: disable=too-many-arguments
+    def _build_ipfs_get_file_req(
         self,
-        hash_: str,
-        target_dir: str,
-        multiple: bool = False,
-        filename: Optional[str] = None,
+        ipfs_hash: str,
+        timeout: Optional[float] = None,
+    ) -> Tuple[IpfsMessage, IpfsDialogue]:
+        """Builds a GET_FILES IPFS request."""
+        message, dialogue = self._build_ipfs_message(
+            performative=IpfsMessage.Performative.GET_FILES,
+            ipfs_hash=ipfs_hash,
+            timeout=timeout,
+        )
+        return message, dialogue
+
+    def _deserialize_ipfs_objects(  # pylint: disable=too-many-arguments
+        self,
+        serialized_objects: Dict[str, str],
         filetype: Optional[SupportedFiletype] = None,
         custom_loader: CustomLoaderType = None,
     ) -> Optional[SupportedObjectType]:
-        """Get a file from IPFS."""
-        try:
-            return self._ipfs_interact.get_and_read(
-                hash_, target_dir, multiple, filename, filetype, custom_loader
-            )
-        except IPFSInteractionError as e:
-            self.context.logger.error(
-                f"An error occurred while trying to fetch a file from IPFS: {str(e)}"
-            )
-            return None
+        """Deserialize a objects received from IPFS."""
+        deserialized_object = self._ipfs_interact.load(
+            serialized_objects, filetype, custom_loader
+        )
+        return deserialized_object
 
 
 class CleanUpBehaviour(SimpleBehaviour, ABC):
@@ -1900,6 +1897,85 @@ class BaseBehaviour(
             # as the reset is being performed to update the tm config.
             yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
         return True
+
+    def send_to_ipfs(  # pylint: disable=too-many-arguments
+        self,
+        filepath: str,
+        obj: SupportedObjectType,
+        multiple: bool = False,
+        filetype: Optional[SupportedFiletype] = None,
+        custom_storer: Optional[CustomStorerType] = None,
+        timeout: Optional[float] = None,
+        **kwargs: Any,
+    ) -> Generator[None, None, Optional[str]]:
+        """Send a file to IPFS."""
+        # TODO: add better docstring
+        try:
+            message, dialogue = self._build_ipfs_store_file_req(
+                filepath,
+                obj,
+                multiple,
+                filetype,
+                custom_storer,
+                timeout=timeout,
+                **kwargs,
+            )
+            self.context.outbox.put_message(message=message)
+            request_nonce = self._get_request_nonce_from_dialogue(dialogue)
+            cast(Requests, self.context.requests).request_id_to_callback[
+                request_nonce
+            ] = self.get_callback_request()
+            # notify caller by propagating potential timeout exception.
+            response = yield from self.wait_for_message(timeout=timeout)
+            ipfs_message = cast(IpfsMessage, response)
+            if ipfs_message.performative != IpfsMessage.Performative.IPFS_HASH:
+                self.context.logger.error(
+                    f"Expected performative {IpfsMessage.Performative.IPFS_HASH} but got {ipfs_message.performative}."
+                )
+                return None
+            ipfs_hash = ipfs_message.ipfs_hash
+            self.context.logger.info(f"IPFS hash is: {ipfs_hash}")
+            return ipfs_hash
+        except IPFSInteractionError as e:  # pragma: no cover
+            self.context.logger.error(
+                f"An error occurred while trying to send a file to IPFS: {str(e)}"
+            )
+            return None
+
+    def get_from_ipfs(  # pylint: disable=too-many-arguments
+        self,
+        hash_: str,
+        filetype: Optional[SupportedFiletype] = None,
+        custom_loader: CustomLoaderType = None,
+        timeout: Optional[float] = None,
+    ) -> Generator[None, None, Optional[SupportedObjectType]]:
+        """Get a file from IPFS."""
+        # TODO: better docstring
+        try:
+            message, dialogue = self._build_ipfs_get_file_req(hash_, timeout)
+            self.context.outbox.put_message(message=message)
+            request_nonce = self._get_request_nonce_from_dialogue(dialogue)
+            cast(Requests, self.context.requests).request_id_to_callback[
+                request_nonce
+            ] = self.get_callback_request()
+            # notify caller by propagating potential timeout exception.
+            response = yield from self.wait_for_message(timeout=timeout)
+            ipfs_message = cast(IpfsMessage, response)
+            if ipfs_message.performative != IpfsMessage.Performative.FILES:
+                self.context.logger.error(
+                    f"Expected performative {IpfsMessage.Performative.FILES} but got {ipfs_message.performative}."
+                )
+                return None
+            serialized_objects = ipfs_message.files
+            deserialized_objects = self._deserialize_ipfs_objects(
+                serialized_objects, filetype, custom_loader
+            )
+            return deserialized_objects
+        except IPFSInteractionError as e:
+            self.context.logger.error(
+                f"An error occurred while trying to fetch a file from IPFS: {str(e)}"
+            )
+            return None
 
 
 class TmManager(BaseBehaviour):

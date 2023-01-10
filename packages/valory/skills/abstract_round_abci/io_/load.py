@@ -20,7 +20,6 @@
 """This module contains all the loading operations of the behaviours."""
 
 import json
-import os.path
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, Optional
 
@@ -41,74 +40,79 @@ class AbstractLoader(ABC):
     """An abstract `Loader` class."""
 
     @abstractmethod
-    def load_single_file(self, path: str) -> SupportedSingleObjectType:
-        """Load a single file."""
+    def load_single_object(
+        self, serialized_object: str
+    ) -> NativelySupportedSingleObjectType:
+        """Load a single object."""
 
-    def load(self, path: str, multiple: bool) -> SupportedObjectType:
-        """Load one or more files.
-
-        :param path: the path to the file to load. If multiple, then the path should be a folder with the files.
-        :param multiple: whether multiple files are expected to be loaded. The path should be a folder with the files.
-        :return: the loaded file.
+    def load(self, serialized_objects: Dict[str, str]) -> SupportedObjectType:
         """
-        if multiple:
-            if not os.path.isdir(path):  # pragma: no cover
-                raise ValueError(
-                    f"Cannot load multiple files from `{path}`! "
-                    f"Please make sure that the path is a folder containing the files."
-                )
+        Load one or more serialized objects.
 
-            objects = {}
-            for filename in os.listdir(path):
-                filename = os.fsdecode(filename)
-                filepath = os.path.join(path, filename)
-                objects[filename] = self.load_single_file(filepath)
+        :param serialized_objects: A mapping of filenames to serialized object they contained.
+        :return: the loaded file(s).
+        """
+        if len(serialized_objects) == 0:
+            # no objects are present, raise an error
+            raise ValueError('"serialized_files" does not contain any objects')
 
+        objects = {}
+        for filename, body in serialized_objects.items():
+            objects[filename] = self.load_single_object(body)
+
+        if len(objects) > 1:
+            # multiple object are present
+            # we return them as mapping of
+            # names and their value
             return objects
 
-        return self.load_single_file(path)
+        # one object is present, we simply return it as an object, i.e. without its name
+        _name, deserialized_body = objects.popitem()
+        return deserialized_body
 
 
 class JSONLoader(AbstractLoader):
     """A JSON file loader."""
 
-    def load_single_file(self, path: str) -> NativelySupportedSingleObjectType:
+    def load_single_object(
+        self, serialized_object: str
+    ) -> NativelySupportedSingleObjectType:
         """Read a json file.
 
-        :param path: the path to retrieve the json file from.
+        :param serialized_object: the file serialized into a JSON string.
         :return: the deserialized json file's content.
         """
         try:
-            with open(path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except OSError as e:  # pragma: no cover
-            raise IOError(f"Path '{path}' could not be found!") from e
-
+            deserialized_file = json.loads(serialized_object)
+            return deserialized_file
         except json.JSONDecodeError as e:  # pragma: no cover
-            raise IOError(f"File '{path}' has an invalid JSON encoding!") from e
-
+            raise IOError(
+                f"File '{serialized_object}' has an invalid JSON encoding!"
+            ) from e
         except ValueError as e:  # pragma: no cover
-            raise IOError(f"There is an encoding error in the '{path}' file!") from e
+            raise IOError(
+                f"There is an encoding error in the '{serialized_object}' file!"
+            ) from e
 
 
 class Loader(AbstractLoader):
-    """Class which loads files."""
+    """Class which loads objects."""
 
     def __init__(self, filetype: Optional[Any], custom_loader: CustomLoaderType):
         """Initialize a `Loader`."""
         self._filetype = filetype
         self._custom_loader = custom_loader
         self.__filetype_to_loader: Dict[SupportedFiletype, SupportedLoaderType] = {
-            SupportedFiletype.JSON: JSONLoader().load_single_file,
+            SupportedFiletype.JSON: JSONLoader().load_single_object,
         }
 
-    def load_single_file(self, path: str) -> SupportedSingleObjectType:
+    def load_single_object(self, serialized_object: str) -> SupportedSingleObjectType:
         """Load a single file."""
         loader = self._get_single_loader_from_filetype()
-        return loader(path)
+        return loader(serialized_object)
 
     def _get_single_loader_from_filetype(self) -> SupportedLoaderType:
-        """Get a file loader from a given filetype or keep a custom loader."""
+        """Get an object loader from a given filetype or keep a custom loader."""
         if self._filetype is not None:
             return self.__filetype_to_loader[self._filetype]
 

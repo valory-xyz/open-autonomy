@@ -63,13 +63,16 @@ class AbstractStorer(ABC):
         create_pathdirs(path)
 
     @abstractmethod
-    def store_single_file(
+    def serialize_object(
         self, filename: str, obj: SupportedSingleObjectType, **kwargs: Any
-    ) -> None:
+    ) -> Dict[str, str]:
         """Store a single file."""
 
-    def store(self, obj: SupportedObjectType, multiple: bool, **kwargs: Any) -> None:
-        """Store one or multiple files."""
+    def store(
+        self, obj: SupportedObjectType, multiple: bool, **kwargs: Any
+    ) -> Dict[str, str]:
+        """Store one or multiple objects."""
+        serialized_files: Dict[str, str] = {}
         if multiple:
             if not isinstance(obj, dict):  # pragma: no cover
                 raise ValueError(
@@ -78,32 +81,41 @@ class AbstractStorer(ABC):
                 )
             for filename, single_obj in obj.items():
                 filename = os.path.join(self._path, filename)
-                self.store_single_file(filename, single_obj, **kwargs)
+                serialized_file = self.serialize_object(filename, single_obj, **kwargs)
+                serialized_files.update(**serialized_file)
         else:
-            self.store_single_file(self._path, obj, **kwargs)
+            serialized_file = self.serialize_object(self._path, obj, **kwargs)
+            serialized_files.update(**serialized_file)
+        return serialized_files
 
 
 class JSONStorer(AbstractStorer):
     """A JSON file storer."""
 
-    def store_single_file(
+    def serialize_object(
         self, filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any
-    ) -> None:
-        """Store a JSON."""
+    ) -> Dict[str, str]:
+        """
+        Serialize an object to JSON.
+
+        :param filename: under which name the provided object should be serialized. Note that it will appear in IPFS with this name.
+        :param obj: the object to store.
+        :returns: a dict mapping the name to the serialized object.
+        """
         if not any(isinstance(obj, type_) for type_ in (dict, list)):
             raise ValueError(  # pragma: no cover
                 f"`JSONStorer` cannot be used with a {type(obj)}! Only with a {StoredJSONType}"
             )
-
         try:
-            with open(filename, "w", encoding="utf-8") as f:
-                json.dump(obj, f, ensure_ascii=False, indent=4)
+            serialized_object = json.dumps(obj, ensure_ascii=False, indent=4)
+            name_to_obj = {filename: serialized_object}
+            return name_to_obj
         except (TypeError, OSError) as e:  # pragma: no cover
             raise IOError(str(e)) from e
 
 
 class Storer(AbstractStorer):
-    """Class which stores files."""
+    """Class which serializes objects."""
 
     def __init__(
         self,
@@ -117,20 +129,19 @@ class Storer(AbstractStorer):
         self._custom_storer = custom_storer
         self._filetype_to_storer: Dict[Enum, SupportedStorerType] = {
             SupportedFiletype.JSON: cast(
-                NativelySupportedJSONStorerType, JSONStorer(path).store_single_file
+                NativelySupportedJSONStorerType, JSONStorer(path).serialize_object
             ),
         }
 
-    def store_single_file(
+    def serialize_object(
         self, filename: str, obj: NativelySupportedObjectType, **kwargs: Any
-    ) -> None:
-        """Store a single file."""
+    ) -> Dict[str, str]:
+        """Store a single object."""
         storer = self._get_single_storer_from_filetype()
-        # TODO: fix abstractions to avoid typing issue
-        storer(filename, obj, **kwargs)  # type: ignore
+        return storer(filename, obj, **kwargs)  # type: ignore
 
     def _get_single_storer_from_filetype(self) -> SupportedStorerType:
-        """Get a file storer from a given filetype or keep a custom storer."""
+        """Get an object storer from a given filetype or keep a custom storer."""
         if self._filetype is not None:
             return self._filetype_to_storer[self._filetype]
 
