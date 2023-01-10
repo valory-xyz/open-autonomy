@@ -191,9 +191,7 @@ class SynchronizedData(
     @property
     def late_arriving_tx_hashes(self) -> List[str]:
         """Get the late_arriving_tx_hashes."""
-        late_arrivals = cast(List[str], self.db.get_strict("late_arriving_tx_hashes"))
-        parsed_hashes = map(lambda h: textwrap.wrap(h, TX_HASH_LENGTH), late_arrivals)
-        return [h for hashes in parsed_hashes for h in hashes]
+        return cast(List[str], self.db.get_strict("late_arriving_tx_hashes"))
 
     @property
     def most_voted_check_result(self) -> str:  # pragma: no cover
