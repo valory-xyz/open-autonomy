@@ -1042,6 +1042,7 @@ class AbstractRound(
 
     allowed_tx_type: Optional[TransactionType]
     payload_attribute: str
+    payload: BaseTxPayload
     synchronized_data_class: Type[BaseSynchronizedData]
 
     round_id: str
