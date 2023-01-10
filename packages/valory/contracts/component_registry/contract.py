@@ -20,7 +20,7 @@
 """This module contains the class to connect to the Service Registry contract."""
 
 import logging
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Optional, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -29,6 +29,9 @@ from aea.crypto.base import LedgerApi
 
 
 PUBLIC_ID = PublicId.from_str("valory/component_registry:0.1.0")
+
+COMPONENT_UNIT_TYPE = 0
+UNIT_HASH_PREFIX = "0x{metadata_hash}"
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
@@ -62,17 +65,32 @@ class ComponentRegistryContract(Contract):
         raise NotImplementedError
 
     @classmethod
-    def get_create_unit_event_filter(
+    def filter_token_id_from_emitted_events(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-    ) -> Iterable[Dict]:
+        metadata_hash: str,
+    ) -> Optional[int]:
         """Returns `CreateUnit` event filter."""
 
         contract_interface = cls.get_instance(
             ledger_api=ledger_api,
             contract_address=contract_address,
         )
-        return contract_interface.events.CreateUnit.createFilter(
+
+        events = contract_interface.events.CreateUnit.createFilter(
             fromBlock="latest"
         ).get_all_entries()
+
+        for event in events:
+            event_args = event["args"]
+            if event_args["uType"] == COMPONENT_UNIT_TYPE:
+                hash_bytes32 = cast(bytes, event_args["unitHash"]).hex()
+                unit_hash_bytes = UNIT_HASH_PREFIX.format(
+                    metadata_hash=hash_bytes32
+                ).encode()
+                metadata_hash_bytes = ledger_api.api.toBytes(text=metadata_hash)
+                if unit_hash_bytes == metadata_hash_bytes:
+                    return cast(int, event_args["unitId"])
+
+        return None

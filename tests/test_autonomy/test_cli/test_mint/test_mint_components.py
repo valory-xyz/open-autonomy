@@ -36,7 +36,7 @@ from tests.test_autonomy.test_cli.base import BaseCliTest
 class DummyContract:
     """Dummy contract"""
 
-    def get_create_unit_event_filter(self, *args: Any, **kwargs: Any) -> None:
+    def filter_token_id_from_emitted_events(self, *args: Any, **kwargs: Any) -> None:
         """Dummy method implementation"""
 
         raise RequestsConnectionError()

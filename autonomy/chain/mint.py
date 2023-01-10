@@ -167,26 +167,22 @@ def mint_component(
 
     try:
         if component_type == UnitType.COMPONENT:
-            events = component_registry.get_create_unit_event_filter(
+            return component_registry.filter_token_id_from_emitted_events(
                 ledger_api=ledger_api,
                 contract_address=ContractConfigs.get(
                     COMPONENT_REGISTRY_CONTRACT.name
                 ).contracts[chain_type],
-            )
-        else:
-            events = agent_registry.get_create_unit_event_filter(
-                ledger_api=ledger_api,
-                contract_address=ContractConfigs.get(
-                    AGENT_REGISTRY_CONTRACT.name
-                ).contracts[chain_type],
+                metadata_hash=metadata_hash,
             )
 
-        return verify_and_fetch_token_id_from_event(
+        return agent_registry.filter_token_id_from_emitted_events(
             ledger_api=ledger_api,
-            events=events,
+            contract_address=ContractConfigs.get(
+                AGENT_REGISTRY_CONTRACT.name
+            ).contracts[chain_type],
             metadata_hash=metadata_hash,
-            unit_type=component_type,
         )
+
     except RequestsConnectionError as e:
         raise FailedToRetrieveTokenId(
             "Connection interrupted while waiting for the unitId emit event"
