@@ -39,6 +39,7 @@ DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID = {
     5: "d4a860f21f17762c99d93359244b39a878dd5bac9ea6056c0ff29c7558d6653aa0d5962aa819fc9f05f237d068845125cfc37a7fd7761b11c29a709ad5c48157",
     31337: "d8084598f884509694ab1f244cbb8e7697d8db00c241710b89b2ec3037d2edd3b82d01f1f0ca6bd9b265b1184d9c563a6000c30958c2a7ae5a9c35e5ff2ba7de",
 }
+UNIT_HASH_PREFIX = "0x{metadata_hash}"
 
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
 
@@ -155,3 +156,27 @@ class ServiceRegistryContract(Contract):
         return dict(
             service_owner=checksum_service_owner,
         )
+
+    @classmethod
+    def filter_token_id_from_emitted_events(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+    ) -> Optional[int]:
+        """Returns `CreateUnit` event filter."""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+
+        events = contract_interface.events.CreateService.createFilter(
+            fromBlock="latest"
+        ).get_all_entries()
+
+        for event in events:
+            event_args = event["args"]
+            if "serviceId" in event_args:
+                return cast(int, event_args["serviceId"])
+
+        return None
