@@ -105,7 +105,7 @@ Mint a skill component.
 def agent(ctx: Context, package_path: Path, keys: Path, password: Optional[str], dependencies: Tuple[str], nft: Optional[str]) -> None
 ```
 
-Mint an agent component.
+Mint an agent.
 
 <a id="autonomy.cli.mint.service"></a>
 
@@ -147,5 +147,5 @@ Mint an agent component.
 def service(ctx: Context, package_path: Path, keys: Path, agent_id: int, number_of_slots: int, cost_of_bond: int, threshold: int, password: Optional[str], nft: Optional[str]) -> None
 ```
 
-Mint a service component.
+Mint a service
 

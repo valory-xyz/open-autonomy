@@ -205,7 +205,7 @@ def agent(
     dependencies: Tuple[str],
     nft: Optional[str],
 ) -> None:
-    """Mint an agent component."""
+    """Mint an agent."""
 
     mint_component(
         package_path=package_path,
@@ -262,7 +262,7 @@ def service(  # pylint: disable=too-many-arguments
     password: Optional[str],
     nft: Optional[str],
 ) -> None:
-    """Mint a service component."""
+    """Mint a service"""
 
     mint_service(
         package_path=package_path,

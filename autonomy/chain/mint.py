@@ -33,7 +33,11 @@ from autonomy.chain.constants import (
     SERVICE_MANAGER_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
 )
-from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
+from autonomy.chain.exceptions import (
+    ComponentMintFailed,
+    FailedToRetrieveTokenId,
+    InvalidMintParameter,
+)
 
 
 DEFAULT_NFT_IMAGE_HASH = "bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm"
@@ -107,13 +111,29 @@ def mint_service(  # pylint: disable=too-many-arguments
     metadata_hash: str,
     chain_type: ChainType,
     agent_ids: List[int],
-    number_of_slots_per_agents: List[int],
+    number_of_slots_per_agent: List[int],
     cost_of_bond_per_agent: List[int],
     threshold: int,
 ) -> Optional[int]:
     """Publish component on-chain."""
+
+    if len(number_of_slots_per_agent) == 0:
+        raise InvalidMintParameter("Please for provide number of slots for agents")
+
+    if len(cost_of_bond_per_agent) == 0:
+        raise InvalidMintParameter("Please for provide cost of bond for agents")
+
+    if (
+        len(agent_ids) != len(number_of_slots_per_agent)
+        or len(agent_ids) != len(cost_of_bond_per_agent)
+        or len(number_of_slots_per_agent) != len(cost_of_bond_per_agent)
+    ):
+        raise InvalidMintParameter(
+            "Make sure the number of agent ids, number of slots for agents and cost of bond for agents match"
+        )
+
     agent_params = [
-        [n, c] for n, c in zip(number_of_slots_per_agents, cost_of_bond_per_agent)
+        [n, c] for n, c in zip(number_of_slots_per_agent, cost_of_bond_per_agent)
     ]
     try:
         tx = registry_contracts.service_manager.get_create_transaction(

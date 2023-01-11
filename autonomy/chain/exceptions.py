@@ -38,3 +38,7 @@ class FailedToRetrieveComponentMetadata(ChainInteractionError):
 
 class DependencyError(ChainInteractionError):
     """Raise when component metadata retrieving fails."""
+
+
+class InvalidMintParameter(ChainInteractionError):
+    """Raise when the parameter provided for minting a component is invalid"""

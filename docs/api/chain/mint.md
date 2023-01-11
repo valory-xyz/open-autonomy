@@ -29,7 +29,7 @@ Publish component on-chain.
 #### mint`_`service
 
 ```python
-def mint_service(ledger_api: LedgerApi, crypto: Crypto, metadata_hash: str, chain_type: ChainType, agent_ids: List[int], number_of_slots_per_agents: List[int], cost_of_bond_per_agent: List[int], threshold: int) -> Optional[int]
+def mint_service(ledger_api: LedgerApi, crypto: Crypto, metadata_hash: str, chain_type: ChainType, agent_ids: List[int], number_of_slots_per_agent: List[int], cost_of_bond_per_agent: List[int], threshold: int) -> Optional[int]
 ```
 
 Publish component on-chain.

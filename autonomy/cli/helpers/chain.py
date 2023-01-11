@@ -33,7 +33,11 @@ from autonomy.chain.constants import (
     AGENT_REGISTRY_CONTRACT,
     COMPONENT_REGISTRY_CONTRACT,
 )
-from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
+from autonomy.chain.exceptions import (
+    ComponentMintFailed,
+    FailedToRetrieveTokenId,
+    InvalidMintParameter,
+)
 from autonomy.chain.metadata import publish_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
 from autonomy.chain.mint import mint_component as _mint_component
@@ -118,6 +122,8 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
             chain_type=chain_type,
             dependencies=dependencies,
         )
+    except InvalidMintParameter as e:
+        raise click.ClickException(f"Invalid parameters provided; {e}") from e
     except ComponentMintFailed as e:
         raise click.ClickException(
             f"Component mint failed with following error; {e}"
@@ -201,7 +207,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
             agent_ids=[
                 agent_id,
             ],
-            number_of_slots_per_agents=[
+            number_of_slots_per_agent=[
                 number_of_slots,
             ],
             cost_of_bond_per_agent=[
