@@ -445,3 +445,75 @@ class TestAbciAppChaining:
             assert isinstance(abci_app.synchronized_data, expected_cls)
             expected_sentinel = (sentinel_app1, sentinel_app2)[round_ in app2_classes]
             assert abci_app.synchronized_data.dummy_attr == expected_sentinel
+
+    def test_precondition_for_next_app_missing_raises(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test that when precondition for next AbciApp is missing an error is raised"""
+
+        class AbciApp1(AbciApp):
+            initial_round_cls = self.round_1a
+            transition_function = {
+                self.round_1a: {
+                    self.event_timeout1: self.round_1a,
+                    self.event_1b: self.round_1b,
+                },
+                self.round_1b: {
+                    self.event_1a: self.round_1a,
+                    self.event_1c: self.round_1c,
+                },
+                self.round_1c: {},
+            }
+            final_states = {self.round_1c}
+            event_to_timeout = {self.event_timeout1: self.timeout1}
+            db_pre_conditions: Dict[AppState, List[str]] = {self.round_1a: []}
+            db_post_conditions: Dict[AppState, List[str]] = {self.round_1c: []}
+            cross_period_persisted_keys = self.cross_period_persisted_keys_1
+
+        abci_app_transition_mapping: AbciAppTransitionMapping = {
+            self.round_1c: self.round_2a,
+            self.round_2c: self.round_1a,
+        }
+
+        expected = "Pre conditions '.*' of app '.*' not a post condition of app '.*' or any preceding app in path .*."
+        with pytest.raises(ValueError, match=expected):
+            chain(
+                (
+                    AbciApp1,
+                    self.app2_class,
+                ),
+                abci_app_transition_mapping,
+            )
+
+    def test_precondition_app_missing_raises(self, caplog: LogCaptureFixture) -> None:
+        """Test that missing precondition specification for next AbciApp is missing an error is raised"""
+
+        class AbciApp2(AbciApp):
+            initial_round_cls = self.round_2a
+            transition_function = {
+                self.round_2a: {
+                    self.event_timeout2: self.round_2a,
+                    self.event_2b: self.round_2b,
+                },
+                self.round_2b: {
+                    self.event_2a: self.round_2a,
+                    self.event_2c: self.round_2c,
+                },
+                self.round_2c: {},
+            }
+            final_states = {self.round_2c}
+            event_to_timeout = {self.event_timeout2: self.timeout2}
+            db_pre_conditions: Dict[AppState, List[str]] = {}
+            db_post_conditions: Dict[AppState, List[str]] = {
+                self.round_2c: [self.key_2]
+            }
+            cross_period_persisted_keys = self.cross_period_persisted_keys_2
+
+        abci_app_transition_mapping: AbciAppTransitionMapping = {
+            self.round_1c: self.round_2a,
+            self.round_2c: self.round_1a,
+        }
+
+        expected = "No pre-conditions have been set for .*! You need to explicitly specify them as empty if there are no pre-conditions for this FSM."
+        with pytest.raises(ValueError, match=expected):
+            chain((self.app1_class, AbciApp2), abci_app_transition_mapping)
