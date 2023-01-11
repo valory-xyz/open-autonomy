@@ -304,48 +304,6 @@ class Transaction(ABC):
         return self.payload == other.payload and self.signature == other.signature
 
 
-@dataclass
-class NewTransaction:
-    """Class to represent a transaction for the ephemeral chain of a period."""
-
-    payload: BaseTxPayload
-    signature: Optional[str] = None
-
-    def __bytes__(self) -> bytes:
-        """Serialize the transaction to bytes"""
-
-        payload = {self.payload.__class__.__name__: asdict(self.payload)}
-        encoded_data = json.dumps(payload, sort_keys=True).encode()
-        if sys.getsizeof(encoded_data) > MAX_READ_IN_BYTES:
-            msg = f"Transaction must be smaller than {MAX_READ_IN_BYTES} bytes"
-            raise ValueError(msg)
-        return encoded_data
-
-    @classmethod
-    def from_bytes(cls, obj: bytes) -> "NewTransaction":
-        """Deserialize the transaction from bytes"""
-
-        data = json.loads(obj.decode())
-        payload, signature = data["payload"], data["signature"]
-        cls_name, kwargs = payload.popitem()
-        round_count = kwargs.pop("round_count")
-        payload_cls = _MetaPayload.transaction_type_to_payload_cls[cls_name]
-        payload = payload_cls(**kwargs)  # type: ignore
-        object.__setattr__(payload, "round_count", round_count)
-        return cls(payload=cast(BaseTxPayload, payload), signature=signature)
-
-    def verify(self, ledger_id: str) -> None:
-        """Verify the signature is correct."""
-
-        if not self.signature:
-            raise SignatureNotValidError(f"Transaction not signed: {self}")
-        addresses = LedgerApis.recover_message(
-            identifier=ledger_id, message=bytes(self), signature=self.signature
-        )
-        if self.payload.sender not in addresses:
-            raise SignatureNotValidError("signature not valid.")
-
-
 class Block:  # pylint: disable=too-few-public-methods
     """Class to represent (a subset of) data of a Tendermint block."""
 
