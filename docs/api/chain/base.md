@@ -40,8 +40,8 @@ Load contract for given public id.
 #### registries`_`manager
 
 ```python
-@classmethod
-def registries_manager(cls) -> Contract
+@property
+def registries_manager() -> Contract
 ```
 
 Returns an instance of the registries manager contract.
@@ -51,8 +51,8 @@ Returns an instance of the registries manager contract.
 #### component`_`registry
 
 ```python
-@classmethod
-def component_registry(cls) -> Contract
+@property
+def component_registry() -> Contract
 ```
 
 Returns an instance of the registries manager contract.
@@ -62,8 +62,8 @@ Returns an instance of the registries manager contract.
 #### agent`_`registry
 
 ```python
-@classmethod
-def agent_registry(cls) -> Contract
+@property
+def agent_registry() -> Contract
 ```
 
 Returns an instance of the registries manager contract.
