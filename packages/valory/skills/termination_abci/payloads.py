@@ -33,24 +33,5 @@ class TransactionType(Enum):
 class BackgroundPayload(BaseTxPayload):
     """Defines the background round payload."""
 
+    background_data: str
     transaction_type = TransactionType.BACKGROUND
-
-    def __init__(self, sender: str, background_data: str, **kwargs: Any) -> None:
-        """Initialize a 'Termination' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param background_data: serialized tx.
-        :param kwargs: the keyword arguments
-        """
-        super().__init__(sender, **kwargs)
-        self._background_data = background_data
-
-    @property
-    def background_data(self) -> str:
-        """Get the termination data."""
-        return self._background_data
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(background_data=self.background_data)
