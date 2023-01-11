@@ -18,6 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """This module contains helper classes for behaviours."""
+
+
 import datetime
 import inspect
 import json
@@ -44,6 +46,7 @@ from typing import (
 
 import pytz  # pylint: disable=import-error
 from aea.exceptions import enforce
+from aea.mail.base import EnvelopeContext
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
 from aea.skills.behaviours import SimpleBehaviour
@@ -57,12 +60,16 @@ from packages.open_aea.protocols.signing.custom_types import (
 from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
+from packages.valory.connections.p2p_libp2p_client.connection import (
+    PUBLIC_ID as P2P_LIBP2P_CLIENT_PUBLIC_ID,
+)
 from packages.valory.contracts.service_registry.contract import (  # noqa: F401  # pylint: disable=unused-import
     ServiceRegistryContract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
+from packages.valory.protocols.tendermint import TendermintMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
@@ -79,6 +86,7 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     LedgerApiDialogue,
     LedgerApiDialogues,
     SigningDialogues,
+    TendermintDialogues,
 )
 from packages.valory.skills.abstract_round_abci.io_.ipfs import (
     IPFSInteract,
@@ -1698,6 +1706,86 @@ class BaseBehaviour(
         if "already known" in error:
             return RPCResponseStatus.ALREADY_KNOWN
         return RPCResponseStatus.UNCLASSIFIED_ERROR
+
+    def _acn_request_from_pending(
+        self, performative: TendermintMessage.Performative
+    ) -> Generator:
+        """Perform an ACN request to each one of the agents which have not sent a response yet."""
+        not_responded_yet = {
+            address
+            for address, deliverable in cast(
+                SharedState, self.context.state
+            ).address_to_acn_deliverable.items()
+            if deliverable is None
+        }
+
+        if len(not_responded_yet) == 0:
+            return
+
+        self.context.logger.debug(f"Need ACN response from {not_responded_yet}.")
+        for address in not_responded_yet:
+            self.context.logger.debug(f"Sending ACN request to {address}.")
+            dialogues = cast(TendermintDialogues, self.context.tendermint_dialogues)
+            message, _ = dialogues.create(
+                counterparty=address, performative=performative
+            )
+            message = cast(TendermintMessage, message)
+            context = EnvelopeContext(connection_id=P2P_LIBP2P_CLIENT_PUBLIC_ID)
+            self.context.outbox.put_message(message=message, context=context)
+
+        # we wait for the `address_to_acn_deliverable` to be populated with the responses (done by the tm handler)
+        yield from self.sleep(self.params.sleep_time)
+
+    def _perform_acn_request(
+        self, performative: TendermintMessage.Performative
+    ) -> Generator[None, None, Any]:
+        """Perform an ACN request.
+
+        Waits `sleep_time` to receive a common response from the majority of the agents.
+        Retries `max_attempts` times only for the agents which have not responded yet.
+
+        :param performative: the ACN request performative.
+        :return: the result that the majority of the agents sent. If majority cannot be reached, returns `None`.
+        """
+        # reset the ACN deliverables at the beginning of a new request
+        addresses = self.synchronized_data.all_participants
+        cast(
+            SharedState, self.context.state
+        ).address_to_acn_deliverable = dict.fromkeys(addresses)
+
+        for i in range(self.params.max_attempts):
+            self.context.logger.debug(
+                f"ACN attempt {i + 1}/{self.params.max_attempts}."
+            )
+            yield from self._acn_request_from_pending(performative)
+
+            result = cast(SharedState, self.context.state).get_acn_result()
+            if result is not None:
+                return result
+
+        return None
+
+    def request_recovery_params(self) -> Generator[None, None, bool]:
+        """Request the Tendermint recovery parameters from the other agents via the ACN."""
+
+        self.context.logger.info(
+            "Requesting the Tendermint recovery parameters from the other agents via the ACN."
+        )
+
+        performative = TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS
+        acn_result = yield from self._perform_acn_request(performative)  # type: ignore
+
+        if acn_result is None:
+            self.context.logger.warning(
+                "No majority has been reached for the Tendermint recovery parameters request via the ACN."
+            )
+            return False
+
+        cast(SharedState, self.context.state).tm_recovery_params = acn_result
+        self.context.logger.info(
+            f"Updated the Tendermint recovery parameters from the other agents via the ACN: {acn_result}"
+        )
+        return True
 
     @property
     def hard_reset_sleep(self) -> float:
