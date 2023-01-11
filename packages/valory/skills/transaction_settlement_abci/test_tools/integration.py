@@ -168,8 +168,8 @@ class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
         )
         behaviour = cast(FinalizeBehaviour, self.behaviour.current_behaviour)
         assert behaviour.behaviour_id == FinalizeBehaviour.auto_behaviour_id()
-        stored_nonce = behaviour.params.nonce
-        stored_gas_price = behaviour.params.gas_price
+        stored_nonce = behaviour.params.mutable_params.nonce
+        stored_gas_price = behaviour.params.mutable_params.gas_price
 
         handlers: HandlersType = [
             self.contract_handler,
@@ -222,12 +222,12 @@ class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
         }
 
         behaviour = cast(FinalizeBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.params.gas_price == gas_price_used  # nosec
-        assert behaviour.params.nonce == nonce_used  # nosec
+        assert behaviour.params.mutable_params.gas_price == gas_price_used  # nosec
+        assert behaviour.params.mutable_params.nonce == nonce_used  # nosec
         if simulate_timeout:
-            assert behaviour.params.tx_hash == tx_digest  # nosec
+            assert behaviour.params.mutable_params.tx_hash == tx_digest  # nosec
         else:
-            assert behaviour.params.tx_hash == ""  # nosec
+            assert behaviour.params.mutable_params.tx_hash == ""  # nosec
 
         # if we are repricing
         if nonce_used == stored_nonce:
@@ -259,7 +259,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
                 self.behaviour.current_behaviour, FinalizeBehaviour
             )
             self.mock_a2a_transaction()
-            self.behaviour.current_behaviour.params.tx_hash = tx_digest
+            self.behaviour.current_behaviour.params.mutable_params.tx_hash = tx_digest
             update_params = dict(
                 missed_messages=self.tx_settlement_synchronized_data.missed_messages
                 + 1,

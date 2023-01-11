@@ -19,14 +19,14 @@ Get the name of a property.
 #### consensus`_`threshold
 
 ```python
-def consensus_threshold(n: int) -> int
+def consensus_threshold(nb: int) -> int
 ```
 
 Get consensus threshold.
 
 **Arguments**:
 
-- `n`: the number of participants
+- `nb`: the number of participants
 
 **Returns**:
 

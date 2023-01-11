@@ -135,7 +135,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
 
         if kwargs.get("param_overrides") is not None:
             for param_name, param_value in kwargs["param_overrides"].items():
-                setattr(cls.behaviour.context.params, param_name, param_value)
+                cls.behaviour.context.params.__dict__[param_name] = param_value
 
     def setup(self, **kwargs: Any) -> None:
         """
@@ -151,7 +151,9 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
         self._skill.skill_context.state.round_sequence.end_sync()
 
         self.benchmark_dir = TemporaryDirectory()
-        self._skill.skill_context.benchmark_tool.log_dir = Path(self.benchmark_dir.name)
+        self._skill.skill_context.benchmark_tool.__dict__["log_dir"] = Path(
+            self.benchmark_dir.name
+        )
         assert (  # nosec
             cast(BaseBehaviour, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour.initial_behaviour_cls.auto_behaviour_id()
@@ -432,6 +434,7 @@ class DummyContext:
         round_timeout_seconds: float = 1.0
 
     _skill: MagicMock = MagicMock()
+    skill_id = "dummy_skill_id"
 
     @property
     def is_abstract_component(self) -> bool:

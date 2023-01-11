@@ -91,14 +91,14 @@ def get_name(prop: Any) -> str:
     return prop.fget.__name__
 
 
-def consensus_threshold(n: int) -> int:  # pylint: disable=invalid-name
+def consensus_threshold(nb: int) -> int:
     """
     Get consensus threshold.
 
-    :param n: the number of participants
+    :param nb: the number of participants
     :return: the consensus threshold
     """
-    return ceil((2 * n + 1) / 3)
+    return ceil((2 * nb + 1) / 3)
 
 
 class ABCIAppException(Exception):
@@ -1916,20 +1916,16 @@ class _MetaAbciApp(ABCMeta):
             len(invalid_final_states) == 0,
             f"db post conditions contain invalid final states: {invalid_final_states}",
         )
-        all_pre_conditions = set(  # pylint: disable=consider-using-set-comprehension
-            [
-                value
-                for values in abci_app_cls.db_pre_conditions.values()
-                for value in values
-            ]
-        )
-        all_post_conditions = set(  # pylint: disable=consider-using-set-comprehension
-            [
-                value
-                for values in abci_app_cls.db_post_conditions.values()
-                for value in values
-            ]
-        )
+        all_pre_conditions = {
+            value
+            for values in abci_app_cls.db_pre_conditions.values()
+            for value in values
+        }
+        all_post_conditions = {
+            value
+            for values in abci_app_cls.db_post_conditions.values()
+            for value in values
+        }
         enforce(
             len(all_pre_conditions.intersection(all_post_conditions)) == 0,
             "db pre and post conditions intersect",
