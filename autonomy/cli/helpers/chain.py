@@ -29,13 +29,20 @@ from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 
 from autonomy.chain.base import UnitType
 from autonomy.chain.config import ChainConfigs, ChainType, ContractConfigs
-from autonomy.chain.constants import COMPONENT_REGISTRY_CONTRACT
+from autonomy.chain.constants import (
+    AGENT_REGISTRY_CONTRACT,
+    COMPONENT_REGISTRY_CONTRACT,
+)
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
 from autonomy.chain.metadata import publish_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
 from autonomy.chain.mint import mint_component as _mint_component
-from autonomy.chain.utils import verify_component_dependencies
-from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
+from autonomy.chain.mint import mint_service as _mint_service
+from autonomy.chain.utils import (
+    verify_component_dependencies,
+    verify_service_dependencies,
+)
+from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS, Service
 
 
 def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
@@ -121,6 +128,97 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
         ) from e
 
     click.echo("Component minted with:")
+    click.echo(f"\tPublic ID: {package_configuration.public_id}")
+    click.echo(f"\tMetadata Hash: {metadata_hash}")
+    if token_id is not None:
+        click.echo(f"\tToken ID: {token_id}")
+    else:
+        raise click.ClickException(
+            "Could not verify metadata hash to retrieve the token ID"
+        )
+
+
+def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
+    package_path: Path,
+    keys: Path,
+    chain_type: ChainType,
+    agent_id: int,
+    number_of_slots: int,
+    cost_of_bond: int,
+    threshold: int,
+    nft_image_hash: Optional[str] = None,
+    password: Optional[str] = None,
+    skip_hash_check: bool = False,
+) -> None:
+    """Mint service component"""
+
+    chain_config = ChainConfigs.get(chain_type=chain_type)
+    if chain_config.rpc is None:
+        raise click.ClickException(
+            f"RPC cannot be `None` for chain config; chain_type={chain_type}"
+        )
+
+    crypto = EthereumCrypto(
+        private_key_path=keys,
+        password=password,
+    )
+    ledger_api = EthereumApi(
+        **{
+            "address": chain_config.rpc,
+            "chain_id": chain_config.chain_id,
+            "is_gas_estimation_enabled": True,
+        }
+    )
+    package_configuration = load_configuration_object(
+        package_type=PackageType.SERVICE,
+        directory=package_path,
+        package_type_config_class=PACKAGE_TYPE_TO_CONFIG_CLASS,
+    )
+
+    verify_service_dependencies(
+        ledger_api=ledger_api,
+        contract_address=ContractConfigs.get(AGENT_REGISTRY_CONTRACT.name).contracts[
+            chain_type
+        ],
+        agent_id=agent_id,
+        service_configuration=cast(Service, package_configuration),
+        skip_hash_check=skip_hash_check,
+    )
+
+    metadata_hash = publish_metadata(
+        public_id=package_configuration.public_id,
+        package_path=package_path,
+        nft_image_hash=cast(str, nft_image_hash),
+        description=package_configuration.description,
+    )
+
+    try:
+        token_id = _mint_service(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            metadata_hash=metadata_hash,
+            chain_type=chain_type,
+            agent_ids=[
+                agent_id,
+            ],
+            number_of_slots_per_agents=[
+                number_of_slots,
+            ],
+            cost_of_bond_per_agent=[
+                cost_of_bond,
+            ],
+            threshold=threshold,
+        )
+    except ComponentMintFailed as e:
+        raise click.ClickException(
+            f"Service mint failed with following error; {e}"
+        ) from e
+    except FailedToRetrieveTokenId as e:
+        raise click.ClickException(
+            f"Service mint was successful but token ID retrieving failed with following error; {e}"
+        ) from e
+
+    click.echo("Service minted with:")
     click.echo(f"\tPublic ID: {package_configuration.public_id}")
     click.echo(f"\tMetadata Hash: {metadata_hash}")
     if token_id is not None:

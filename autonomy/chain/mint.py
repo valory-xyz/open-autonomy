@@ -30,6 +30,8 @@ from autonomy.chain.constants import (
     AGENT_REGISTRY_CONTRACT,
     COMPONENT_REGISTRY_CONTRACT,
     REGISTRIES_MANAGER_CONTRACT,
+    SERVICE_MANAGER_CONTRACT,
+    SERVICE_REGISTRY_CONTRACT,
 )
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
 
@@ -89,6 +91,55 @@ def mint_component(
             ledger_api=ledger_api,
             contract_address=ContractConfigs.get(
                 AGENT_REGISTRY_CONTRACT.name
+            ).contracts[chain_type],
+            metadata_hash=metadata_hash,
+        )
+
+    except RequestsConnectionError as e:
+        raise FailedToRetrieveTokenId(
+            "Connection interrupted while waiting for the unitId emit event"
+        ) from e
+
+
+def mint_service(  # pylint: disable=too-many-arguments
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    metadata_hash: str,
+    chain_type: ChainType,
+    agent_ids: List[int],
+    number_of_slots_per_agents: List[int],
+    cost_of_bond_per_agent: List[int],
+    threshold: int,
+) -> Optional[int]:
+    """Publish component on-chain."""
+    agent_params = [
+        [n, c] for n, c in zip(number_of_slots_per_agents, cost_of_bond_per_agent)
+    ]
+    try:
+        tx = registry_contracts.service_manager.get_create_transaction(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                SERVICE_MANAGER_CONTRACT.name
+            ).contracts[chain_type],
+            owner=crypto.address,
+            metadata_hash=metadata_hash,
+            agent_ids=agent_ids,
+            agent_params=agent_params,
+            threshold=threshold,
+        )
+        transact(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            tx=tx,
+        )
+    except RequestsConnectionError as e:
+        raise ComponentMintFailed("Cannot connect to the given RPC") from e
+
+    try:
+        return registry_contracts.service_registry.filter_token_id_from_emitted_events(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                SERVICE_REGISTRY_CONTRACT.name
             ).contracts[chain_type],
             metadata_hash=metadata_hash,
         )

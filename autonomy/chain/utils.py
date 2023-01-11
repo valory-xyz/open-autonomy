@@ -30,6 +30,7 @@ from requests.exceptions import ConnectionError as RequestConnectionError
 from autonomy.chain.base import registry_contracts
 from autonomy.chain.exceptions import DependencyError, FailedToRetrieveComponentMetadata
 from autonomy.chain.metadata import IPFS_URI_PREFIX
+from autonomy.configurations.base import Service
 
 
 def get_ipfs_hash_from_uri(uri: str) -> str:
@@ -42,14 +43,22 @@ def resolve_component_id(
     ledger_api: LedgerApi,
     contract_address: str,
     token_id: int,
+    is_agent: bool = False,
 ) -> Dict:
     """Resolve component ID"""
 
-    metadata_uri = registry_contracts.component_registry.get_token_uri(
-        ledger_api=ledger_api,
-        contract_address=contract_address,
-        token_id=token_id,
-    )
+    if is_agent:
+        metadata_uri = registry_contracts.agent_registry.get_token_uri(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+            token_id=token_id,
+        )
+    else:
+        metadata_uri = registry_contracts.component_registry.get_token_uri(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+            token_id=token_id,
+        )
 
     try:
         return r_get(url=metadata_uri).json()
@@ -95,4 +104,35 @@ def verify_component_dependencies(
         missing_deps = list(map(str, public_id_to_hash.keys()))
         raise DependencyError(
             f"Please provide on chain ID as dependency for following packages; {missing_deps}"
+        )
+
+
+def verify_service_dependencies(
+    ledger_api: LedgerApi,
+    contract_address: str,
+    agent_id: int,
+    service_configuration: Service,
+    skip_hash_check: bool = False,
+) -> None:
+    """Verify package dependencies using on-chain metadata."""
+
+    agent = service_configuration.agent
+    component_metadata = resolve_component_id(
+        contract_address=contract_address,
+        ledger_api=ledger_api,
+        token_id=agent_id,
+        is_agent=True,
+    )
+    component_public_id = PublicId.from_str(component_metadata["name"]).to_any()
+    if component_public_id != agent.to_any():
+        raise DependencyError(
+            "On chain ID of the agent does not match with the one in the service configuration"
+        )
+
+    if skip_hash_check:
+        return
+
+    if agent.hash != get_ipfs_hash_from_uri(uri=component_metadata["code_uri"]):
+        raise DependencyError(
+            "Package hash does not match for the on chain package and the local package"
         )
