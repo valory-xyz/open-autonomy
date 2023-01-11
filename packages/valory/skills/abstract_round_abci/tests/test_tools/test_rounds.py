@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -86,32 +86,32 @@ class DummyTxPayloadMatcher:
         return (
             "DummyTxPayload("
             f"id={repr(self.expected.id_)}, "
-            f"round_count={repr(self.expected._round_count)}, "
+            f"round_count={repr(self.expected.round_count)}, "
             f"sender={repr(self.expected.sender)}, "
-            f"value={repr(self.expected._value)}, "
-            f"vote={repr(self.expected._vote)}"
+            f"value={repr(self.expected.value)}, "
+            f"vote={repr(self.expected.vote)}"
             ")"
         )
 
     def __eq__(self, other: Any) -> bool:
         """The method that will be used for the assertion comparisons."""
         return (
-            self.expected._round_count == other._round_count
+            self.expected.round_count == other.round_count
             and self.expected.sender == other.sender
-            and self.expected._value == other._value
-            and self.expected._vote == other._vote
+            and self.expected.value == other.value
+            and self.expected.vote == other.vote
         )
 
 
 @given(
     st.frozensets(st.text(max_size=200), max_size=100),
-    st.binary(max_size=500),
+    st.text(max_size=500),
     st.one_of(st.none(), st.booleans()),
     st.booleans(),
 )
 def test_get_dummy_tx_payloads(
     participants: FrozenSet[str],
-    value: bytes,
+    value: str,
     vote: Optional[bool],
     is_value_none: bool,
 ) -> None:
@@ -137,15 +137,17 @@ class TestDummyTxPayload:  # pylint: disable=too-few-public-methods
     """Test class for `DummyTxPayload`"""
 
     @staticmethod
-    @given(st.text(max_size=200), st.binary(max_size=500), st.booleans(), st.integers())
+    @given(st.text(max_size=200), st.text(max_size=500), st.booleans())
     def test_properties(
-        sender: str, value: bytes, vote: bool, round_count: int
+        sender: str,
+        value: str,
+        vote: bool,
     ) -> None:
         """Test all the properties."""
-        dummy_tx_payload = DummyTxPayload(sender, value, vote, round_count)
+        dummy_tx_payload = DummyTxPayload(sender, value, vote)
         assert dummy_tx_payload.value == value
         assert dummy_tx_payload.vote == vote
-        assert dummy_tx_payload.data == {"value": value}
+        assert dummy_tx_payload.data == {"value": value, "vote": vote}
 
 
 class TestDummySynchronizedData:  # pylint: disable=too-few-public-methods
@@ -312,7 +314,7 @@ class TestBaseCollectDifferentUntilAllRoundTest(BaseTestBase):
             self.base_round_test.consensus_params,
         )
         round_payloads = [
-            DummyTxPayload(f"agent_{i}", i) for i in range(MAX_PARTICIPANTS)
+            DummyTxPayload(f"agent_{i}", str(i)) for i in range(MAX_PARTICIPANTS)
         ]
         synchronized_data_attr_checks = [
             lambda _synchronized_data: _synchronized_data.most_voted_keeper_address
@@ -364,11 +366,11 @@ class TestBaseCollectSameUntilAllRoundTest(BaseTestBase):
 
     @given(
         st.sampled_from(DummyEvent),
-        st.binary(),
+        st.text(max_size=500),
         st.booleans(),
     )
     def test_test_round(
-        self, exit_event: DummyEvent, common_value: bytes, finished: bool
+        self, exit_event: DummyEvent, common_value: str, finished: bool
     ) -> None:
         """Test `_test_round`."""
         self.base_round_test.consensus_params._max_participants = (  # pylint: disable=protected-access
@@ -439,11 +441,9 @@ class TestBaseCollectSameUntilThresholdRoundTest(BaseTestBase):
 
     @given(
         st.sampled_from(DummyEvent),
-        st.binary(),
+        st.text(max_size=500),
     )
-    def test_test_round(
-        self, exit_event: DummyEvent, most_voted_payload: bytes
-    ) -> None:
+    def test_test_round(self, exit_event: DummyEvent, most_voted_payload: str) -> None:
         """Test `_test_round`."""
         self.base_round_test.consensus_params._max_participants = (  # pylint: disable=protected-access
             MAX_PARTICIPANTS
@@ -655,7 +655,8 @@ class TestBaseCollectDifferentUntilThresholdRoundTest(BaseTestBase):
             self.base_round_test.consensus_params,
         )
         round_payloads = {
-            f"test{i}": DummyTxPayload(f"agent_{i}", i) for i in range(MAX_PARTICIPANTS)
+            f"test{i}": DummyTxPayload(f"agent_{i}", str(i))
+            for i in range(MAX_PARTICIPANTS)
         }
         synchronized_data_attr_checks = [
             lambda _synchronized_data: _synchronized_data.most_voted_keeper_address

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,9 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the base.py module of the skill."""
-
-# pylint: skip-file
-
+import dataclasses
 import datetime
 import logging
 import re
@@ -28,6 +26,7 @@ import shutil
 from abc import ABC
 from contextlib import suppress
 from copy import copy, deepcopy
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from time import sleep
@@ -98,6 +97,9 @@ from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
 
+# pylint: skip-file
+
+
 settings.load_profile(profile_name)
 
 
@@ -121,6 +123,7 @@ class PayloadEnum(Enum):
     B = "B"
     C = "C"
     DUMMY = "DUMMY"
+    TOO_BIG_TO_FIT_IN_HERE = "TOO_BIG_TO_FIT_IN_HERE"
 
     def __str__(self) -> str:
         """Get the string representation."""
@@ -141,65 +144,48 @@ class BasePayload(BaseTxPayload, ABC):
     """Base payload class for testing."""
 
 
+@dataclass(frozen=True)
 class PayloadA(BasePayload):
     """Payload class for payload type 'A'."""
 
     transaction_type = PayloadEnum.A
 
 
+@dataclass(frozen=True)
 class PayloadB(BasePayload):
     """Payload class for payload type 'B'."""
 
     transaction_type = PayloadEnum.B
 
 
+@dataclass(frozen=True)
 class PayloadC(BasePayload):
     """Payload class for payload type 'C'."""
 
     transaction_type = PayloadEnum.C
 
 
+@dataclass(frozen=True)
 class PayloadD(BasePayload):
     """Payload class for payload type 'D'."""
 
     transaction_type = PayloadEnumB.A
 
 
+@dataclass(frozen=True)
 class DummyPayload(BasePayload):
     """Dummy payload class."""
 
+    dummy_attribute: int
     transaction_type = PayloadEnum.DUMMY
 
-    def __init__(self, sender: str, dummy_attribute: int, **kwargs: Any) -> None:
-        """Initialize a dummy payload.
 
-        :param sender: the sender address
-        :param dummy_attribute: a dummy attribute
-        :param kwargs: the keyword arguments
-        """
-        super().__init__(sender, **kwargs)
-        self._dummy_attribute = dummy_attribute
-
-    @property
-    def dummy_attribute(self) -> int:
-        """Get the dummy_attribute."""
-        return self._dummy_attribute
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(dummy_attribute=self.dummy_attribute)
-
-
-class TooBigPayload(BaseTxPayload, ABC):
+@dataclass(frozen=True)
+class TooBigPayload(BaseTxPayload):
     """Base payload class for testing."""
 
-    transaction_type = PayloadEnum.A
-
-    @property
-    def data(self) -> Dict:
-        """Get the data"""
-        return dict(dummy_field="0" * 10 ** 7)
+    transaction_type = PayloadEnum.TOO_BIG_TO_FIT_IN_HERE
+    dummy_field: str = "0" * 10 ** 7
 
 
 class ObjectImitator:
@@ -218,12 +204,14 @@ class ObjectImitator:
 def test_base_tx_payload() -> None:
     """Test BaseTxPayload."""
 
-    payload = BasePayload(sender="sender")
+    payload = PayloadA(sender="sender")
     new_payload = payload.with_new_id()
 
     assert payload.sender == new_payload.sender
     assert payload.id_ != new_payload.id_
-    payload.round_count = 1
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        payload.round_count = 1  # type: ignore
+    object.__setattr__(payload, "round_count", 1)
     assert payload.round_count == 1
     assert type(hash(payload)) == int
 
@@ -352,48 +340,6 @@ def test_dict_serializer_is_deterministic(obj: Any) -> None:
     for _ in range(100):
         assert obj_bytes == DictProtobufStructSerializer.encode(obj)
         assert obj == DictProtobufStructSerializer.decode(obj_bytes)
-
-
-class TestMetaPayloadUtilityMethods:
-    """Test _MetaPayload private utility methods."""
-
-    def setup(self) -> None:
-        """Set up the test."""
-        self.old_value = copy(_MetaPayload.transaction_type_to_payload_cls)
-
-    def test_meta_payload_validate_tx_type(self) -> None:
-        """
-        Test _MetaPayload._validate_transaction_type utility method.
-
-        First, it registers a class object with a transaction type name into the
-        _MetaPayload map from transaction type name to classes.
-        Then, it tries to validate a new insertion with the same transaction type name
-        but different class object. This will raise an error.
-        """
-        tx_type_name = "transaction_type"
-        tx_cls_1 = MagicMock(__name__="name_1")
-        tx_cls_2 = MagicMock(__name__="name_2")
-        _MetaPayload.transaction_type_to_payload_cls[tx_type_name] = tx_cls_1
-
-        with pytest.raises(ValueError):
-            _MetaPayload._validate_transaction_type(tx_type_name, tx_cls_2)
-
-    def test_get_field_positive(self) -> None:
-        """Test the utility class method "_get_field", positive case"""
-        expected_value = 42
-        result = _MetaPayload._get_field(
-            MagicMock(field_name=expected_value), "field_name"
-        )
-        return result == expected_value
-
-    def test_get_field_negative(self) -> None:
-        """Test the utility class method "_get_field", negative case"""
-        with pytest.raises(ValueError):
-            _MetaPayload._get_field(MagicMock, "field_name")
-
-    def teardown(self) -> None:
-        """Tear down the test."""
-        _MetaPayload.transaction_type_to_payload_cls = self.old_value
 
 
 def test_initialize_block() -> None:

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -42,9 +42,7 @@ BenchmarkTool = BaseBenchmarkTool
 class SharedState(BaseSharedState):
     """Keep the current shared state of the skill."""
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the state."""
-        super().__init__(*args, abci_app_cls=HelloWorldAbciApp, **kwargs)
+    abci_app_cls = HelloWorldAbciApp
 
     def setup(self) -> None:
         """Set up."""
@@ -62,9 +60,8 @@ class HelloWorldParams(BaseParams):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the parameters."""
+        self.hello_world_string: str = self._ensure("hello_world_message", kwargs, str)
         super().__init__(*args, **kwargs)
-        self.hello_world_string = self._ensure("hello_world_message", kwargs)
 
 
-class RandomnessApi(ApiSpecs):
-    """A model that wraps ApiSpecs for randomness api specifications."""
+RandomnessApi = ApiSpecs

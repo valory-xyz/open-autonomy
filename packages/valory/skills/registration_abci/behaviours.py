@@ -72,7 +72,7 @@ class RegistrationBaseBehaviour(BaseBehaviour, ABC):
             initialisation = (
                 json.dumps(self.synchronized_data.db.setup_data, sort_keys=True)
                 if self.synchronized_data.db.setup_data != {}
-                else None
+                else ""
             )
             payload = RegistrationPayload(
                 self.context.agent_address, initialisation=initialisation
@@ -119,6 +119,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         failed_update = "Failed update Tendermint node configuration"
         # exceptions
         no_contract_address = "Service registry contract address not provided"
+        no_on_chain_service_id = "On-chain service id not provided"
         contract_incorrect = "Service registry contract not correctly deployed"
         no_agents_registered = "No agents registered on-chain"
         self_not_registered = "This agent is not registered on-chain"
@@ -161,7 +162,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         return response
 
-    def is_correct_contract(self) -> Generator[None, None, bool]:
+    def is_correct_contract(
+        self, service_registry_address: str
+    ) -> Generator[None, None, bool]:
         """Contract deployment verification."""
 
         log_message = self.LogMessages.request_verification
@@ -170,7 +173,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         performative = ContractApiMessage.Performative.GET_STATE
         contract_api_response = yield from self.get_contract_api_response(
             performative=performative,  # type: ignore
-            contract_address=self.params.service_registry_address,
+            contract_address=service_registry_address,
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="verify_contract",
         )
@@ -185,22 +188,23 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.context.logger.info(f"{log_message}: {contract_api_response}")
         return cast(bool, contract_api_response.state.body["verified"])
 
-    def get_agent_instances(self) -> Generator[None, None, Dict[str, Any]]:
+    def get_agent_instances(
+        self, service_registry_address: str, on_chain_service_id: int
+    ) -> Generator[None, None, Dict[str, Any]]:
         """Get service info available on-chain"""
 
         log_message = self.LogMessages.request_service_info
         self.context.logger.info(f"{log_message}")
 
         performative = ContractApiMessage.Performative.GET_STATE
-        service_id = int(self.params.on_chain_service_id)
         kwargs = dict(
-            performative=performative,  # type: ignore
-            contract_address=self.params.service_registry_address,
+            performative=performative,
+            contract_address=service_registry_address,
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="get_agent_instances",
-            service_id=service_id,
+            service_id=on_chain_service_id,
         )
-        contract_api_response = yield from self.get_contract_api_response(**kwargs)
+        contract_api_response = yield from self.get_contract_api_response(**kwargs)  # type: ignore
         if contract_api_response.performative != ContractApiMessage.Performative.STATE:
             log_message = self.LogMessages.failed_service_info
             self.context.logger.info(
@@ -213,19 +217,30 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.context.logger.info(f"{log_message}: {contract_api_response}")
         return cast(dict, contract_api_response.state.body)
 
-    def get_addresses(self) -> Generator:
+    def get_addresses(self) -> Generator:  # pylint: disable=too-many-return-statements
         """Get addresses of agents registered for the service"""
 
-        if self.context.params.service_registry_address is None:
+        service_registry_address = self.params.service_registry_address
+        if service_registry_address is None:
             log_message = self.LogMessages.no_contract_address.value
             self.context.logger.info(log_message)
             return False
 
-        correctly_deployed = yield from self.is_correct_contract()
+        correctly_deployed = yield from self.is_correct_contract(
+            service_registry_address
+        )
         if not correctly_deployed:
             return False
 
-        service_info = yield from self.get_agent_instances()
+        on_chain_service_id = self.params.on_chain_service_id
+        if on_chain_service_id is None:
+            log_message = self.LogMessages.no_on_chain_service_id.value
+            self.context.logger.info(log_message)
+            return False
+
+        service_info = yield from self.get_agent_instances(
+            service_registry_address, on_chain_service_id
+        )
         if not service_info:
             return False
 
@@ -243,9 +258,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         # put service info in the shared state for p2p message handler
         info: Dict[str, Dict[str, str]] = dict.fromkeys(registered_addresses)
-        tm_host, tm_port = parse_tendermint_p2p_url(
-            url=self.context.params.tendermint_p2p_url
-        )
+        tm_host, tm_port = parse_tendermint_p2p_url(url=self.params.tendermint_p2p_url)
         validator_config = dict(
             hostname=tm_host,
             p2p_port=tm_port,
@@ -315,14 +328,14 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
                 address=validator_config["address"],
                 pub_key=validator_config["pub_key"],
                 peer_id=validator_config["peer_id"],
-                power=self.params.voting_power,
+                power=self.params.genesis_config.voting_power,
                 name=NODE.format(address=address[2:]),  # skip 0x part
             )
             validators.append(validator)
 
         genesis_data = dict(
             validators=validators,
-            genesis_config=self.params.genesis_config,
+            genesis_config=self.params.genesis_config.to_json(),
         )
         return genesis_data
 

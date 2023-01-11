@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
     """A round in which the agents get registered"""
 
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = get_name(RegistrationPayload.sender)
+    payload_attribute = "sender"
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -105,7 +105,7 @@ class CollectRandomnessRound(
     """A round for collecting randomness"""
 
     allowed_tx_type = CollectRandomnessPayload.transaction_type
-    payload_attribute = get_name(CollectRandomnessPayload.randomness)
+    payload_attribute = "randomness"
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
@@ -117,7 +117,7 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRo
     """A round in a which keeper is selected"""
 
     allowed_tx_type = SelectKeeperPayload.transaction_type
-    payload_attribute = get_name(SelectKeeperPayload.keeper)
+    payload_attribute = "keeper"
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
@@ -129,7 +129,7 @@ class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
     """A round in which the keeper prints the message"""
 
     allowed_tx_type = PrintMessagePayload.transaction_type
-    payload_attribute = get_name(PrintMessagePayload.message)
+    payload_attribute = "message"
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -150,7 +150,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractR
     """This class represents the base reset round."""
 
     allowed_tx_type = ResetPayload.transaction_type
-    payload_attribute = get_name(ResetPayload.period_count)
+    payload_attribute = "period_count"
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from collections import Counter
 from copy import copy, deepcopy
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from inspect import isclass
 from math import ceil
@@ -91,14 +91,14 @@ def get_name(prop: Any) -> str:
     return prop.fget.__name__
 
 
-def consensus_threshold(n: int) -> int:  # pylint: disable=invalid-name
+def consensus_threshold(nb: int) -> int:
     """
     Get consensus threshold.
 
-    :param n: the number of participants
+    :param nb: the number of participants
     :return: the consensus threshold
     """
-    return ceil((2 * n + 1) / 3)
+    return ceil((2 * nb + 1) / 3)
 
 
 class ABCIAppException(Exception):
@@ -164,9 +164,6 @@ class _MetaPayload(ABCMeta):
         if ABC in bases:
             # abstract class, return
             return new_cls
-        if issubclass(new_cls, NewBaseTxPayload):
-            mcs.transaction_type_to_payload_cls[new_cls.__name__] = new_cls
-            return new_cls
         if not issubclass(new_cls, BaseTxPayload):
             raise ValueError(  # pragma: no cover
                 f"class {name} must inherit from {BaseTxPayload.__name__}"
@@ -202,113 +199,59 @@ class _MetaPayload(ABCMeta):
         return getattr(cls, field_name)
 
 
+@dataclass(frozen=True)
 class BaseTxPayload(ABC, metaclass=_MetaPayload):
     """This class represents a base class for transaction payload classes."""
 
-    transaction_type: Any
-
-    def __init__(
-        self,
-        sender: str,
-        id_: Optional[str] = None,
-        round_count: int = ROUND_COUNT_DEFAULT,
-        **kwargs: Any,
-    ) -> None:
-        """
-        Initialize a transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param id_: the id of the transaction
-        :param round_count: the count of the round in which the payload was sent
-        :param kwargs: the keyword arguments
-        """
-        self.id_ = uuid.uuid4().hex if id_ is None else id_
-        self._round_count = round_count
-        self._sender = sender
-        # kwargs exists for typing only
-        enforce(len(kwargs) == 0, f"kwargs passed to {type(self)} must be empty")
+    sender: str
+    transaction_type: Any = field(init=False)
+    round_count: int = field(default=ROUND_COUNT_DEFAULT, init=False)
+    id_: str = field(default_factory=lambda: uuid.uuid4().hex, init=False)
 
     @property
-    def sender(self) -> str:
-        """Get the sender."""
-        return self._sender
+    def data(self) -> Dict[str, Any]:
+        """Data"""
+        excluded = ["sender", "round_count", "id_", "transaction_type"]
+        return {k: v for k, v in asdict(self).items() if k not in excluded}
 
+    # TODO: refactor - these methods are not strictly needed
     @property
-    def round_count(self) -> int:
-        """Get the round count."""
-        return self._round_count
-
-    @round_count.setter
-    def round_count(self, round_count: int) -> None:
-        """Set the round count."""
-        self._round_count = round_count
-
-    def encode(self) -> bytes:
-        """Encode the payload."""
-        return DictProtobufStructSerializer.encode(self.json)
-
-    @classmethod
-    def decode(cls, obj: bytes) -> "BaseTxPayload":
-        """Decode the payload."""
-        return cls.from_json(DictProtobufStructSerializer.decode(obj))
+    def json(self) -> Dict[str, Any]:
+        """Json"""
+        data = asdict(self)
+        data["transaction_type"] = str(data["transaction_type"])
+        return data
 
     @classmethod
     def from_json(cls, obj: Dict) -> "BaseTxPayload":
         """Decode the payload."""
         data = copy(obj)
         transaction_type = str(data.pop("transaction_type"))
+        round_count, id_ = data.pop("round_count"), data.pop("id_")
         payload_cls = _MetaPayload.transaction_type_to_payload_cls[transaction_type]
-        return payload_cls(**data)
-
-    @property
-    def json(self) -> Dict:
-        """Get the JSON representation of the payload."""
-        return dict(
-            transaction_type=str(self.transaction_type),
-            id_=self.id_,
-            sender=self.sender,
-            round_count=self.round_count,
-            **self.data,
-        )
-
-    @property
-    def data(self) -> Dict:
-        """
-        Get the dictionary data.
-
-        The returned dictionary is required to be used
-        as keyword constructor initializer, i.e. these two
-        should have the same effect:
-
-            sender = "..."
-            some_kwargs = {...}
-            p1 = SomePayloadClass(sender, **some_kwargs)
-            p2 = SomePayloadClass(sender, **p1.data)
-
-        :return: a dictionary which contains the payload data
-        """
-        return {}
+        payload = payload_cls(**data)  # type: ignore
+        object.__setattr__(payload, "round_count", round_count)
+        object.__setattr__(payload, "id_", id_)
+        return payload
 
     def with_new_id(self) -> "BaseTxPayload":
         """Create a new payload with the same content but new id."""
-        return type(self)(
-            self.sender, id_=uuid.uuid4().hex, round_count=self.round_count, **self.data
-        )
+        new = type(self)(sender=self.sender, **self.data)  # type: ignore
+        object.__setattr__(new, "round_count", self.round_count)
+        return new
 
-    def __eq__(self, other: Any) -> bool:
-        """Check equality."""
-        if not isinstance(other, BaseTxPayload):
-            return NotImplemented
-        return (
-            self.id_ == other.id_
-            and self.round_count == other.round_count
-            and self.sender == other.sender
-            and self.data == other.data
-        )
+    def encode(self) -> bytes:
+        """Encode"""
+        encoded_data = json.dumps(self.json).encode()
+        if sys.getsizeof(encoded_data) > MAX_READ_IN_BYTES:
+            msg = f"Transaction must be smaller than {MAX_READ_IN_BYTES} bytes"
+            raise ValueError(msg)
+        return encoded_data
 
-    def __hash__(self) -> int:
-        """Hash the payload."""
-        return hash(tuple(sorted(self.data.items())))
+    @classmethod
+    def decode(cls, obj: bytes) -> "BaseTxPayload":
+        """Decode"""
+        return cls.from_json(json.loads(obj.decode()))
 
 
 class Transaction(ABC):
@@ -347,7 +290,7 @@ class Transaction(ABC):
         :param ledger_id: the ledger id of the address
         :raises: SignatureNotValidError: if the signature is not valid.
         """
-        payload_bytes = DictProtobufStructSerializer.encode(self.payload.json)
+        payload_bytes = self.payload.encode()
         addresses = LedgerApis.recover_message(
             identifier=ledger_id, message=payload_bytes, signature=self.signature
         )
@@ -361,23 +304,11 @@ class Transaction(ABC):
         return self.payload == other.payload and self.signature == other.signature
 
 
-@dataclass(frozen=True)
-class NewBaseTxPayload(ABC, metaclass=_MetaPayload):
-    """This class represents a base class for transaction payload classes."""
-
-    sender: str
-    round_count: int = field(default=ROUND_COUNT_DEFAULT, init=False)
-
-    @property
-    def data(self) -> Dict[str, Any]:
-        return {k: v for k, v in asdict(self).items() if k not in ["sender", "round_count"]}
-
-
 @dataclass
 class NewTransaction:
     """Class to represent a transaction for the ephemeral chain of a period."""
 
-    payload: NewBaseTxPayload
+    payload: BaseTxPayload
     signature: Optional[str] = None
 
     def __bytes__(self) -> bytes:
@@ -399,13 +330,15 @@ class NewTransaction:
         cls_name, kwargs = payload.popitem()
         round_count = kwargs.pop("round_count")
         payload_cls = _MetaPayload.transaction_type_to_payload_cls[cls_name]
-        payload = payload_cls(**kwargs)
+        payload = payload_cls(**kwargs)  # type: ignore
         object.__setattr__(payload, "round_count", round_count)
-        return cls(payload=cast(NewBaseTxPayload, payload), signature=signature)
+        return cls(payload=cast(BaseTxPayload, payload), signature=signature)
 
     def verify(self, ledger_id: str) -> None:
         """Verify the signature is correct."""
 
+        if not self.signature:
+            raise SignatureNotValidError(f"Transaction not signed: {self}")
         addresses = LedgerApis.recover_message(
             identifier=ledger_id, message=bytes(self), signature=self.signature
         )
@@ -1342,7 +1275,7 @@ class CollectionRound(AbstractRound, ABC):
     @property
     def payloads_count(self) -> Counter:
         """Get count of payload attributes"""
-        return Counter(tuple(sorted(p.data.items())) for p in self.payloads)
+        return Counter(map(lambda p: getattr(p, self.payload_attribute), self.payloads))
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
@@ -1362,8 +1295,8 @@ class CollectionRound(AbstractRound, ABC):
                 f"sender {sender} has already sent value for round: {self.round_id}"
             )
 
-        if getattr(self, "_hash_length", None):
-            content = payload.tx_hashes
+        if self._hash_length:
+            content = payload.data.get(self.payload_attribute)
             if not content or len(content) % self._hash_length:
                 msg = f"Expecting serialized data of chunk size {self._hash_length}"
                 raise ABCIAppInternalError(f"{msg}, got: {content} in {self.round_id}")
@@ -1391,8 +1324,8 @@ class CollectionRound(AbstractRound, ABC):
                 f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
 
-        if getattr(self, "_hash_length", None):
-            content = payload.tx_hashes
+        if self._hash_length:
+            content = payload.data.get(self.payload_attribute)
             if not content or len(content) % self._hash_length:
                 msg = f"Expecting serialized data of chunk size {self._hash_length}"
                 raise TransactionNotValidError(
@@ -1539,7 +1472,7 @@ class CollectSameUntilThresholdRound(CollectionRound, ABC):
         most_voted_payload, max_votes = self.payloads_count.most_common()[0]
         if max_votes < self.consensus_threshold:
             raise ABCIAppInternalError("not enough votes")
-        return dict(most_voted_payload)
+        return most_voted_payload
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
@@ -1600,7 +1533,7 @@ class OnlyKeeperSendsRound(AbstractRound, ABC):
         if self.keeper_sent_payload:
             raise ABCIAppInternalError("keeper already set the payload.")
 
-        self.keeper_payload = payload.data
+        self.keeper_payload = getattr(payload, self.payload_attribute)
         self.keeper_sent_payload = True
 
     def check_payload(self, payload: BaseTxPayload) -> None:
@@ -1771,9 +1704,9 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound, AB
         non_empty_values = []
 
         for payload in self.collection.values():
-            # attribute_value = getattr(payload, self.payload_attribute, None)
-            if payload.data:
-                non_empty_values.append(payload.data)
+            attribute_value = getattr(payload, self.payload_attribute, None)
+            if attribute_value is not None:
+                non_empty_values.append(attribute_value)
 
         return non_empty_values
 
@@ -2012,20 +1945,16 @@ class _MetaAbciApp(ABCMeta):
             len(invalid_final_states) == 0,
             f"db post conditions contain invalid final states: {invalid_final_states}",
         )
-        all_pre_conditions = set(  # pylint: disable=consider-using-set-comprehension
-            [
-                value
-                for values in abci_app_cls.db_pre_conditions.values()
-                for value in values
-            ]
-        )
-        all_post_conditions = set(  # pylint: disable=consider-using-set-comprehension
-            [
-                value
-                for values in abci_app_cls.db_post_conditions.values()
-                for value in values
-            ]
-        )
+        all_pre_conditions = {
+            value
+            for values in abci_app_cls.db_pre_conditions.values()
+            for value in values
+        }
+        all_post_conditions = {
+            value
+            for values in abci_app_cls.db_post_conditions.values()
+            for value in values
+        }
         enforce(
             len(all_pre_conditions.intersection(all_post_conditions)) == 0,
             "db pre and post conditions intersect",
