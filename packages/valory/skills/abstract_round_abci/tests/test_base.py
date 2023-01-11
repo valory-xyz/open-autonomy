@@ -143,8 +143,6 @@ class PayloadEnumB(Enum):
 class BasePayload(BaseTxPayload, ABC):
     """Base payload class for testing."""
 
-    transaction_type = "cannot instantiate without me!"
-
 
 @dataclass(frozen=True)
 class PayloadA(BasePayload):
@@ -206,7 +204,7 @@ class ObjectImitator:
 def test_base_tx_payload() -> None:
     """Test BaseTxPayload."""
 
-    payload = BasePayload(sender="sender")
+    payload = PayloadA(sender="sender")
     new_payload = payload.with_new_id()
 
     assert payload.sender == new_payload.sender

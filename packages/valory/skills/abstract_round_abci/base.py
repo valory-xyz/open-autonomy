@@ -142,8 +142,8 @@ class AbstractRoundInternalError(ABCIAppException):
 
 
 class _MetaPayload(ABCMeta):
-    """
-    Payload metaclass.
+    """Payload metaclass.
+
     The purpose of this metaclass is to remember the association
     between the type of payload and the payload class to build it.
     This is necessary to recover the right payload class to instantiate
@@ -217,7 +217,7 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
     def json(self) -> Dict[str, Any]:
         """Json"""
         data = asdict(self)
-        data['transaction_type'] = str(data['transaction_type'])
+        data["transaction_type"] = str(data["transaction_type"])
         return data
 
     @classmethod
