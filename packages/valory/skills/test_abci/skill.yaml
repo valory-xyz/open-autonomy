@@ -27,7 +27,7 @@ contracts: []
 protocols: []
 skills:
 - valory/abstract_abci:0.1.0:bafybeid3udqtjtl4txht2z3tm3z3mr2nqtoddtno3u3urxjqjbbpqeelli
-- valory/abstract_round_abci:0.1.0:bafybeifmlmmpsprppsxfc2q6z6njs4vzfmv26lfawkwn5vd2vt7j7rb5pu
+- valory/abstract_round_abci:0.1.0:bafybeieen54hd2e5cpfmm73fj6bqeb6un4vake625nf22f62b2mm47b5py
 behaviours:
   main:
     args: {}
@@ -92,24 +92,33 @@ models:
             - ed25519
           version: {}
         voting_power: '10'
+      ipfs_domain_name: null
       keeper_timeout: 30.0
+      max_attempts: 10
       max_healthcheck: 120
       observation_interval: 10
+      on_chain_service_id: null
+      request_retry_delay: 1.0
+      request_timeout: 10.0
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
-      round_timeout_seconds: 30
+      round_timeout_seconds: 30.0
       service_id: test_abci
+      service_registry_address: null
       setup:
         all_participants:
         - - '0x0000000000000000000000000000000000000000'
         safe_contract_address:
         - '0x0000000000000000000000000000000000000000'
+      share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 10
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
+      tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
+      tx_timeout: 10.0
     class_name: Params
   randomness_api:
     args:

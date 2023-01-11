@@ -29,8 +29,8 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifmlmmpsprppsxfc2q6z6njs4vzfmv26lfawkwn5vd2vt7j7rb5pu
-- valory/transaction_settlement_abci:0.1.0:bafybeid4g3ufe7rtpscd3ainmtqinoy7fl3t5o5twxn2pvoj6clsjnorey
+- valory/abstract_round_abci:0.1.0:bafybeieen54hd2e5cpfmm73fj6bqeb6un4vake625nf22f62b2mm47b5py
+- valory/transaction_settlement_abci:0.1.0:bafybeic2vwnjgy7kaq5qzfphk5ebd7vbcufgvcjhq7q2jvbnogpvrny2xa
 behaviours:
   main:
     args: {}
@@ -94,12 +94,17 @@ models:
           version: {}
         voting_power: '10'
       history_check_timeout: 1205
+      init_fallback_gas: 0
+      ipfs_domain_name: null
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
+      max_attempts: 10
       max_healthcheck: 120
       multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
       observation_interval: 10
       on_chain_service_id: null
+      request_retry_delay: 1.0
+      request_timeout: 10.0
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
@@ -116,8 +121,10 @@ models:
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
+      tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
       termination_sleep: 900
+      tx_timeout: 10.0
       validate_timeout: 1205
     class_name: TerminationParams
   requests:

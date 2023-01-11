@@ -32,7 +32,7 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 - valory/tendermint:0.1.0:bafybeid6b2wlb24g6d3godmqms44qvnpkhlvb27icotuobvnscmdmlhaha
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifmlmmpsprppsxfc2q6z6njs4vzfmv26lfawkwn5vd2vt7j7rb5pu
+- valory/abstract_round_abci:0.1.0:bafybeieen54hd2e5cpfmm73fj6bqeb6un4vake625nf22f62b2mm47b5py
 behaviours:
   main:
     args: {}
@@ -97,10 +97,14 @@ models:
             - ed25519
           version: {}
         voting_power: '10'
+      ipfs_domain_name: null
       keeper_timeout: 30.0
+      max_attempts: 10
       max_healthcheck: 120
       observation_interval: 10
       on_chain_service_id: null
+      request_retry_delay: 1.0
+      request_timeout: 10.0
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
