@@ -1839,17 +1839,12 @@ class TestBaseBehaviour:
                 TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS
             )
 
-    @staticmethod
-    def dummy_sleep(*_: Any) -> Generator[None, None, None]:
-        """Dummy `sleep` method."""
-        yield
-
     def test_start_reset(self) -> None:
         """Test the `_start_reset` method."""
         with mock.patch.object(
             BaseBehaviour,
             "wait_from_last_timestamp",
-            new_callable=lambda *_: self.dummy_sleep,
+            new_callable=lambda *_: dummy_generator_wrapper(),
         ):
             res = self.behaviour._start_reset()
             for _ in range(2):
@@ -2028,13 +2023,13 @@ class TestBaseBehaviour:
         ), mock.patch.object(
             BaseBehaviour,
             "wait_from_last_timestamp",
-            new_callable=lambda *_: self.dummy_sleep,
+            new_callable=lambda *_: dummy_generator_wrapper(),
         ), mock.patch.object(
             BaseBehaviour, "_do_request", new_callable=lambda *_: dummy_do_request
         ), mock.patch.object(
             BaseBehaviour, "_get_status", new_callable=lambda *_: dummy_get_status
         ), mock.patch.object(
-            BaseBehaviour, "sleep", new_callable=lambda *_: self.dummy_sleep
+            BaseBehaviour, "sleep", new_callable=lambda *_: dummy_generator_wrapper()
         ):
             self.behaviour.context.state.round_sequence.height = local_height
             reset = self.behaviour.reset_tendermint_with_wait(on_startup=on_startup)
