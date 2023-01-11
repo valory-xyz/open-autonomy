@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the base.py module of the skill."""
-
+import dataclasses
 # pylint: skip-file
 
 import datetime
@@ -191,15 +191,12 @@ class DummyPayload(BasePayload):
         return dict(dummy_attribute=self.dummy_attribute)
 
 
+@dataclasses.dataclass(frozen=True)
 class TooBigPayload(BaseTxPayload, ABC):
     """Base payload class for testing."""
 
     transaction_type = PayloadEnum.A
-
-    @property
-    def data(self) -> Dict:
-        """Get the data"""
-        return dict(dummy_field="0" * 10 ** 7)
+    dummy_field: str = "0" * 10 ** 7
 
 
 class ObjectImitator:
@@ -223,7 +220,9 @@ def test_base_tx_payload() -> None:
 
     assert payload.sender == new_payload.sender
     assert payload.id_ != new_payload.id_
-    payload.round_count = 1
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        payload.round_count = 1
+    object.__setattr__(payload, "round_count", 1)
     assert payload.round_count == 1
     assert type(hash(payload)) == int
 
@@ -309,7 +308,7 @@ class TestTransactions:
         payload = PayloadA(sender)
         payload_bytes = payload.encode()
         signature = crypto.sign_message(payload_bytes)
-        transaction = Transaction(payload, signature)
+        self = transaction = Transaction(payload, signature)
         transaction.verify(crypto.identifier)
 
     def test_payload_not_equal_lookalike(self) -> None:
