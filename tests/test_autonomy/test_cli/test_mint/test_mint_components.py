@@ -30,6 +30,8 @@ from aea_test_autonomy.docker.base import skip_docker_tests
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
+from autonomy.chain.mint import registry_contracts
+
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
@@ -68,22 +70,18 @@ class TestMintComponents(BaseCliTest):
         ),
     )
     def test_mint(self, package_type: PackageType, package_path: str) -> None:
-        """Test mint protocol."""
+        """Test mint components."""
 
+        commands = [
+            package_type.value,
+            package_path,
+            str(ETHEREUM_KEY_DEPLOYER),
+        ]
         if package_type == PackageType.AGENT:
-            result = self.run_cli(
-                commands=(
-                    package_type.value,
-                    package_path,
-                    str(ETHEREUM_KEY_DEPLOYER),
-                    "-d",
-                    "1",
-                ),
-            )
-        else:
-            result = self.run_cli(
-                commands=(package_type.value, package_path, str(ETHEREUM_KEY_DEPLOYER)),
-            )
+            commands += ["-d", "1"]
+
+        with mock.patch("autonomy.cli.helpers.chain.verify_component_dependencies"):
+            result = self.run_cli(commands=tuple(commands))
 
         assert result.exit_code == 0, result.output
         assert "Component minted with:" in result.output
@@ -117,8 +115,8 @@ class TestMintComponents(BaseCliTest):
     ) -> None:
         """Test token id retrieval failure."""
 
-        with mock.patch(
-            "autonomy.chain.mint.get_contract", return_value=DummyContract()
+        with mock.patch.object(
+            registry_contracts, "_component_registry", DummyContract()
         ), mock.patch("autonomy.chain.mint.transact"):
 
             result = self.run_cli(

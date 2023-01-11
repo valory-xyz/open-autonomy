@@ -28,15 +28,17 @@ from aea.configurations.loader import load_configuration_object
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 
 from autonomy.chain.base import UnitType
-from autonomy.chain.config import ChainConfigs, ChainType
+from autonomy.chain.config import ChainConfigs, ChainType, ContractConfigs
+from autonomy.chain.constants import COMPONENT_REGISTRY_CONTRACT
 from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
+from autonomy.chain.metadata import publish_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
 from autonomy.chain.mint import mint_component as _mint_component
-from autonomy.chain.mint import publish_metadata
+from autonomy.chain.utils import verify_component_dependencies
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
 
 
-def mint_component(  # pylint: disable=too-many-arguments
+def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
     package_path: Path,
     package_type: PackageType,
     keys: Path,
@@ -44,6 +46,7 @@ def mint_component(  # pylint: disable=too-many-arguments
     dependencies: List[int],
     nft_image_hash: Optional[str] = None,
     password: Optional[str] = None,
+    skip_hash_check: bool = False,
 ) -> None:
     """Mint component."""
 
@@ -81,6 +84,16 @@ def mint_component(  # pylint: disable=too-many-arguments
         raise click.ClickException(
             f"Please provide hash for NFT image to mint component on `{chain_type.value}` chain"
         )
+
+    verify_component_dependencies(
+        ledger_api=ledger_api,
+        contract_address=ContractConfigs.get(
+            COMPONENT_REGISTRY_CONTRACT.name
+        ).contracts[chain_type],
+        dependencies=dependencies,
+        package_configuration=package_configuration,
+        skip_hash_check=skip_hash_check,
+    )
 
     metadata_hash = publish_metadata(
         public_id=package_configuration.public_id,

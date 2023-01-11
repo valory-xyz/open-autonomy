@@ -81,7 +81,6 @@ class ComponentRegistryContract(Contract):
         events = contract_interface.events.CreateUnit.createFilter(
             fromBlock="latest"
         ).get_all_entries()
-
         for event in events:
             event_args = event["args"]
             if event_args["uType"] == COMPONENT_UNIT_TYPE:
@@ -94,3 +93,18 @@ class ComponentRegistryContract(Contract):
                     return cast(int, event_args["unitId"])
 
         return None
+
+    @classmethod
+    def get_token_uri(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        token_id: int,
+    ) -> str:
+        """Returns `CreateUnit` event filter."""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        return contract_interface.functions.tokenURI(token_id).call()

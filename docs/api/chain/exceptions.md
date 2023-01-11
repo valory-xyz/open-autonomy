@@ -34,3 +34,23 @@ class FailedToRetrieveTokenId(ChainInteractionError)
 
 Raise when token ID retrieving fails for minted component.
 
+<a id="autonomy.chain.exceptions.FailedToRetrieveComponentMetadata"></a>
+
+## FailedToRetrieveComponentMetadata Objects
+
+```python
+class FailedToRetrieveComponentMetadata(ChainInteractionError)
+```
+
+Raise when component metadata retrieving fails.
+
+<a id="autonomy.chain.exceptions.DependencyError"></a>
+
+## DependencyError Objects
+
+```python
+class DependencyError(ChainInteractionError)
+```
+
+Raise when component metadata retrieving fails.
+

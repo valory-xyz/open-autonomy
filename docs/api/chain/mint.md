@@ -4,36 +4,6 @@
 
 Helpers for minting components
 
-<a id="autonomy.chain.mint.serialize_metadata"></a>
-
-#### serialize`_`metadata
-
-```python
-def serialize_metadata(package_hash: str, public_id: PublicId, description: str, nft_image_hash: str) -> str
-```
-
-Serialize metadata.
-
-<a id="autonomy.chain.mint.publish_metadata"></a>
-
-#### publish`_`metadata
-
-```python
-def publish_metadata(public_id: PublicId, package_path: Path, nft_image_hash: str, description: str) -> str
-```
-
-Publish service metadata.
-
-<a id="autonomy.chain.mint.get_contract"></a>
-
-#### get`_`contract
-
-```python
-def get_contract(public_id: PublicId) -> Contract
-```
-
-Load contract for given public id.
-
 <a id="autonomy.chain.mint.transact"></a>
 
 #### transact

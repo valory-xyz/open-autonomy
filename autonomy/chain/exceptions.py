@@ -30,3 +30,11 @@ class ComponentMintFailed(ChainInteractionError):
 
 class FailedToRetrieveTokenId(ChainInteractionError):
     """Raise when token ID retrieving fails for minted component."""
+
+
+class FailedToRetrieveComponentMetadata(ChainInteractionError):
+    """Raise when component metadata retrieving fails."""
+
+
+class DependencyError(ChainInteractionError):
+    """Raise when component metadata retrieving fails."""
