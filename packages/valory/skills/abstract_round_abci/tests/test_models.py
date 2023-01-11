@@ -28,7 +28,7 @@ from enum import Enum
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
-from typing import Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -363,6 +363,34 @@ class TestSharedState:
                 shared_state.synchronized_data.db.get_strict("oracle_contract_address")
                 == "0xoracle"
             )
+
+    @pytest.mark.parametrize(
+        "address_to_acn_deliverable, n_participants, expected",
+        (
+            ({}, 4, None),
+            ({1: "test", 2: "test", 3: "test", 4: "test"}, 4, "test"),
+            ({1: "test", 2: "non-matching", 3: "test", 4: "test"}, 4, "test"),
+            ({1: "test", 3: "test", 4: "test"}, 4, "test"),
+            ({1: "no", 2: "result", 3: "matches", 4: ""}, 4, None),
+        ),
+    )
+    def test_get_acn_result(
+        self,
+        address_to_acn_deliverable: Dict[str, Any],
+        n_participants: int,
+        expected: Optional[str],
+    ) -> None:
+        """Test `get_acn_result`."""
+        shared_state = SharedState(
+            abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
+        )
+        shared_state.context.params.setup_params = {"test": []}
+        shared_state.setup()
+        shared_state.synchronized_data.update(participants=set(range(n_participants)))
+        shared_state.address_to_acn_deliverable = address_to_acn_deliverable
+        actual = shared_state.get_acn_result()
+
+        assert actual == expected
 
     def test_process_abci_app_cls_negative_not_a_class(self) -> None:
         """Test '_process_abci_app_cls', negative case (not a class)."""

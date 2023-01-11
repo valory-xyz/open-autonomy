@@ -21,6 +21,7 @@
 
 import inspect
 import json
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from time import time
@@ -38,6 +39,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     RESET_INDEX_DEFAULT,
     ROUND_COUNT_DEFAULT,
     RoundSequence,
+    consensus_threshold,
     get_name,
 )
 from packages.valory.skills.abstract_round_abci.utils import (
@@ -207,6 +209,23 @@ class SharedState(Model):
     def synchronized_data(self) -> BaseSynchronizedData:
         """Get the latest synchronized_data if available."""
         return self.round_sequence.latest_synchronized_data
+
+    def get_acn_result(self) -> Any:
+        """Get the majority of the ACN deliverables."""
+        if len(self.address_to_acn_deliverable) == 0:
+            return None
+
+        threshold = consensus_threshold(self.synchronized_data.nb_participants)
+        counter = Counter(self.address_to_acn_deliverable.values())
+        most_common_value, n_appearances = counter.most_common(1)[0]
+
+        if n_appearances < threshold:
+            return None
+
+        self.context.logger.debug(
+            f"ACN result is '{most_common_value}' from '{self.address_to_acn_deliverable}'."
+        )
+        return most_common_value
 
     @classmethod
     def _process_abci_app_cls(cls, abci_app_cls: Type[AbciApp]) -> Type[AbciApp]:
