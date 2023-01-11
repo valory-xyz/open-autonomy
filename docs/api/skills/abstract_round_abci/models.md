@@ -4,12 +4,190 @@
 
 This module contains the shared state for the price estimation ABCI application.
 
+<a id="packages.valory.skills.abstract_round_abci.models.FrozenMixin"></a>
+
+## FrozenMixin Objects
+
+```python
+class FrozenMixin()
+```
+
+Mixin for classes to enforce read-only attributes.
+
+<a id="packages.valory.skills.abstract_round_abci.models.FrozenMixin.__delattr__"></a>
+
+#### `__`delattr`__`
+
+```python
+def __delattr__(*args: Any) -> None
+```
+
+Override __delattr__ to make object immutable.
+
+<a id="packages.valory.skills.abstract_round_abci.models.FrozenMixin.__setattr__"></a>
+
+#### `__`setattr`__`
+
+```python
+def __setattr__(*args: Any) -> None
+```
+
+Override __setattr__ to make object immutable.
+
+<a id="packages.valory.skills.abstract_round_abci.models.TypeCheckMixin"></a>
+
+## TypeCheckMixin Objects
+
+```python
+class TypeCheckMixin()
+```
+
+Mixin for data classes & models to enforce attribute types on construction.
+
+<a id="packages.valory.skills.abstract_round_abci.models.TypeCheckMixin.__post_init__"></a>
+
+#### `__`post`_`init`__`
+
+```python
+def __post_init__() -> None
+```
+
+Check that the type of the provided attributes is correct.
+
+<a id="packages.valory.skills.abstract_round_abci.models.GenesisBlock"></a>
+
+## GenesisBlock Objects
+
+```python
+@dataclass(frozen=True)
+class GenesisBlock(TypeCheckMixin)
+```
+
+A dataclass to store the genesis block.
+
+<a id="packages.valory.skills.abstract_round_abci.models.GenesisBlock.to_json"></a>
+
+#### to`_`json
+
+```python
+def to_json() -> Dict[str, str]
+```
+
+Get a GenesisBlock instance as a json dictionary.
+
+<a id="packages.valory.skills.abstract_round_abci.models.GenesisEvidence"></a>
+
+## GenesisEvidence Objects
+
+```python
+@dataclass(frozen=True)
+class GenesisEvidence(TypeCheckMixin)
+```
+
+A dataclass to store the genesis evidence.
+
+<a id="packages.valory.skills.abstract_round_abci.models.GenesisEvidence.to_json"></a>
+
+#### to`_`json
+
+```python
+def to_json() -> Dict[str, str]
+```
+
+Get a GenesisEvidence instance as a json dictionary.
+
+<a id="packages.valory.skills.abstract_round_abci.models.GenesisValidator"></a>
+
+## GenesisValidator Objects
+
+```python
+@dataclass(frozen=True)
+class GenesisValidator(TypeCheckMixin)
+```
+
+A dataclass to store the genesis validator.
+
+<a id="packages.valory.skills.abstract_round_abci.models.GenesisValidator.to_json"></a>
+
+#### to`_`json
+
+```python
+def to_json() -> Dict[str, List[str]]
+```
+
+Get a GenesisValidator instance as a json dictionary.
+
+<a id="packages.valory.skills.abstract_round_abci.models.GenesisConsensusParams"></a>
+
+## GenesisConsensusParams Objects
+
+```python
+@dataclass(frozen=True)
+class GenesisConsensusParams(TypeCheckMixin)
+```
+
+A dataclass to store the genesis consensus parameters.
+
+<a id="packages.valory.skills.abstract_round_abci.models.GenesisConsensusParams.from_json_dict"></a>
+
+#### from`_`json`_`dict
+
+```python
+@classmethod
+def from_json_dict(cls, json_dict: dict) -> "GenesisConsensusParams"
+```
+
+Get a GenesisConsensusParams instance from a json dictionary.
+
+<a id="packages.valory.skills.abstract_round_abci.models.GenesisConsensusParams.to_json"></a>
+
+#### to`_`json
+
+```python
+def to_json() -> Dict[str, Any]
+```
+
+Get a GenesisConsensusParams instance as a json dictionary.
+
+<a id="packages.valory.skills.abstract_round_abci.models.GenesisConfig"></a>
+
+## GenesisConfig Objects
+
+```python
+@dataclass(frozen=True)
+class GenesisConfig(TypeCheckMixin)
+```
+
+A dataclass to store the genesis configuration.
+
+<a id="packages.valory.skills.abstract_round_abci.models.GenesisConfig.from_json_dict"></a>
+
+#### from`_`json`_`dict
+
+```python
+@classmethod
+def from_json_dict(cls, json_dict: dict) -> "GenesisConfig"
+```
+
+Get a GenesisConfig instance from a json dictionary.
+
+<a id="packages.valory.skills.abstract_round_abci.models.GenesisConfig.to_json"></a>
+
+#### to`_`json
+
+```python
+def to_json() -> Dict[str, Any]
+```
+
+Get a GenesisConfig instance as a json dictionary.
+
 <a id="packages.valory.skills.abstract_round_abci.models.BaseParams"></a>
 
 ## BaseParams Objects
 
 ```python
-class BaseParams(Model)
+class BaseParams(
+    Model,  FrozenMixin,  TypeCheckMixin)
 ```
 
 Parameters.
@@ -46,12 +224,32 @@ The genesis configuration should be a dictionary with the following format:
 - `args`: positional arguments
 - `kwargs`: keyword arguments
 
+<a id="packages.valory.skills.abstract_round_abci.models._MetaSharedState"></a>
+
+## `_`MetaSharedState Objects
+
+```python
+class _MetaSharedState(ABCMeta)
+```
+
+A metaclass that validates SharedState's attributes.
+
+<a id="packages.valory.skills.abstract_round_abci.models._MetaSharedState.__new__"></a>
+
+#### `__`new`__`
+
+```python
+def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type
+```
+
+Initialize the class.
+
 <a id="packages.valory.skills.abstract_round_abci.models.SharedState"></a>
 
 ## SharedState Objects
 
 ```python
-class SharedState(Model)
+class SharedState(Model,  ABC, metaclass=_MetaSharedState)
 ```
 
 Keep the current shared state of the skill.
@@ -61,7 +259,7 @@ Keep the current shared state of the skill.
 #### `__`init`__`
 
 ```python
-def __init__(*args: Any, *, abci_app_cls: Type[AbciApp], skill_context: SkillContext, **kwargs: Any, ,) -> None
+def __init__(*args: Any, *, skill_context: SkillContext, **kwargs: Any, ,) -> None
 ```
 
 Initialize the state.
@@ -103,7 +301,7 @@ Get the latest synchronized_data if available.
 ## Requests Objects
 
 ```python
-class Requests(Model)
+class Requests(Model,  FrozenMixin)
 ```
 
 Keep the current pending requests.
@@ -134,20 +332,21 @@ Exception class for unexpected responses from Apis.
 
 ```python
 @dataclass
-class ResponseInfo()
+class ResponseInfo(TypeCheckMixin)
 ```
 
 A dataclass to hold all the information related to the response.
 
-<a id="packages.valory.skills.abstract_round_abci.models.ResponseInfo.__init__"></a>
+<a id="packages.valory.skills.abstract_round_abci.models.ResponseInfo.from_json_dict"></a>
 
-#### `__`init`__`
+#### from`_`json`_`dict
 
 ```python
-def __init__(kwargs: Dict) -> None
+@classmethod
+def from_json_dict(cls, kwargs: Dict) -> "ResponseInfo"
 ```
 
-Initialize a response info object
+Initialize a response info object from kwargs.
 
 <a id="packages.valory.skills.abstract_round_abci.models.RetriesInfo"></a>
 
@@ -155,20 +354,21 @@ Initialize a response info object
 
 ```python
 @dataclass
-class RetriesInfo()
+class RetriesInfo(TypeCheckMixin)
 ```
 
 A dataclass to hold all the information related to the retries.
 
-<a id="packages.valory.skills.abstract_round_abci.models.RetriesInfo.__init__"></a>
+<a id="packages.valory.skills.abstract_round_abci.models.RetriesInfo.from_json_dict"></a>
 
-#### `__`init`__`
+#### from`_`json`_`dict
 
 ```python
-def __init__(kwargs: Dict) -> None
+@classmethod
+def from_json_dict(cls, kwargs: Dict) -> "RetriesInfo"
 ```
 
-Initialize a retries info object
+Initialize a retries info object from kwargs.
 
 <a id="packages.valory.skills.abstract_round_abci.models.RetriesInfo.suggested_sleep_time"></a>
 
@@ -186,8 +386,8 @@ The suggested amount of time to sleep.
 ## TendermintRecoveryParams Objects
 
 ```python
-@dataclass
-class TendermintRecoveryParams()
+@dataclass(frozen=True)
+class TendermintRecoveryParams(TypeCheckMixin)
 ```
 
 A dataclass to hold all parameters related to agent <-> tendermint recovery procedures.
@@ -197,7 +397,7 @@ A dataclass to hold all parameters related to agent <-> tendermint recovery proc
 ## ApiSpecs Objects
 
 ```python
-class ApiSpecs(Model)
+class ApiSpecs(Model,  FrozenMixin,  TypeCheckMixin)
 ```
 
 A model that wraps APIs to get cryptocurrency prices.
@@ -211,16 +411,6 @@ def __init__(*args: Any, **kwargs: Any) -> None
 ```
 
 Initialize ApiSpecsModel.
-
-<a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs.ensure"></a>
-
-#### ensure
-
-```python
-def ensure(keyword: str, kwargs: Dict) -> Any
-```
-
-Ensure a keyword argument.
 
 <a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs.get_spec"></a>
 
@@ -277,7 +467,7 @@ Check if the retries amount has been exceeded.
 ## BenchmarkBlockTypes Objects
 
 ```python
-class BenchmarkBlockTypes()
+class BenchmarkBlockTypes(Enum)
 ```
 
 Benchmark block types.
@@ -372,7 +562,7 @@ Measure consensus block.
 ## BenchmarkTool Objects
 
 ```python
-class BenchmarkTool(Model)
+class BenchmarkTool(Model,  TypeCheckMixin,  FrozenMixin)
 ```
 
 BenchmarkTool

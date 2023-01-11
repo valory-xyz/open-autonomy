@@ -10,7 +10,7 @@ fingerprint:
   behaviours.py: bafybeiasqtp7kcowd5o62gesb6kpab2cj3uuudzx3qnfgq66334k4aktia
   dialogues.py: bafybeidlaxto7h652uthpw6ycewqmd44jckh2dztgr464bywieinuha7cm
   handlers.py: bafybeiez3dy6w7vokby5x6kxcxxconp4xhhhmmwx7b2ksqjkka6wobhqmy
-  models.py: bafybeibdy5unp2zw2rf7uhi4qvgzrqxyfybakgbmas42t2lgkipkl3glhq
+  models.py: bafybeif5qygu6bdgsxv53sqoty76vgp3afib6e6fmykofrgnlcubmg4cd4
   payloads.py: bafybeidvw4ufvqktmuxe7ubnocmih6h32kyrb4u7wz36ee5fyz7kybygty
   rounds.py: bafybeidikhf3t7ghm4ljoxd6od4x4xzxlwkyeyabkbete245hcg7ztp5vq
   tests/__init__.py: bafybeigsjjibb2gcybzp5yrsy25vyiu54rw6oaeyw5onaqemsvul7bmroi
@@ -29,8 +29,8 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeic5aemqumj7avq7x56dh2s2muxu3an7xpa732y54c3ucylcfdrshi
-- valory/transaction_settlement_abci:0.1.0:bafybeifrtfk4mmusysfpx55cvnsgsdv7s3u2nqzsvtw5tbvllo5bfaqe7m
+- valory/abstract_round_abci:0.1.0:bafybeidxtodmdotcsjiuh4k2dwokenorxe4bcintca5ierqhtjngduboqu
+- valory/transaction_settlement_abci:0.1.0:bafybeif7thiadhrtoziujdw3zjveeu6t5szexe4vv2vfv6ectbrqj37jxu
 behaviours:
   main:
     args: {}
@@ -94,12 +94,17 @@ models:
           version: {}
         voting_power: '10'
       history_check_timeout: 1205
+      init_fallback_gas: 0
+      ipfs_domain_name: null
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
+      max_attempts: 10
       max_healthcheck: 120
       multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
       observation_interval: 10
       on_chain_service_id: null
+      request_retry_delay: 1.0
+      request_timeout: 10.0
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
@@ -116,8 +121,10 @@ models:
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
+      tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
       termination_sleep: 900
+      tx_timeout: 10.0
       validate_timeout: 1205
     class_name: TerminationParams
   requests:

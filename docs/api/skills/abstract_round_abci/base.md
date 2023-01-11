@@ -19,14 +19,14 @@ Get the name of a property.
 #### consensus`_`threshold
 
 ```python
-def consensus_threshold(n: int) -> int
+def consensus_threshold(nb: int) -> int
 ```
 
 Get consensus threshold.
 
 **Arguments**:
 
-- `n`: the number of participants
+- `nb`: the number of participants
 
 **Returns**:
 
@@ -146,7 +146,6 @@ The purpose of this metaclass is to remember the association
 between the type of payload and the payload class to build it.
 This is necessary to recover the right payload class to instantiate
 at decoding time.
-
 Each class that has this class as metaclass must have a class
 attribute 'transaction_type', which for simplicity is required
 to be convertible to string, for serialization purposes.

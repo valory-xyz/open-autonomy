@@ -123,6 +123,7 @@ class PayloadEnum(Enum):
     B = "B"
     C = "C"
     DUMMY = "DUMMY"
+    TOO_BIG_TO_FIT_IN_HERE = "TOO_BIG_TO_FIT_IN_HERE"
 
     def __str__(self) -> str:
         """Get the string representation."""
@@ -183,7 +184,7 @@ class DummyPayload(BasePayload):
 class TooBigPayload(BaseTxPayload):
     """Base payload class for testing."""
 
-    transaction_type = PayloadEnum.A
+    transaction_type = PayloadEnum.TOO_BIG_TO_FIT_IN_HERE
     dummy_field: str = "0" * 10 ** 7
 
 
@@ -203,13 +204,13 @@ class ObjectImitator:
 def test_base_tx_payload() -> None:
     """Test BaseTxPayload."""
 
-    payload = BasePayload(sender="sender")
+    payload = PayloadA(sender="sender")
     new_payload = payload.with_new_id()
 
     assert payload.sender == new_payload.sender
     assert payload.id_ != new_payload.id_
     with pytest.raises(dataclasses.FrozenInstanceError):
-        payload.round_count = 1
+        payload.round_count = 1  # type: ignore
     object.__setattr__(payload, "round_count", 1)
     assert payload.round_count == 1
     assert type(hash(payload)) == int
