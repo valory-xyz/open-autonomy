@@ -87,7 +87,7 @@ Tendermint URL for obtaining and updating parameters
 #### is`_`correct`_`contract
 
 ```python
-def is_correct_contract() -> Generator[None, None, bool]
+def is_correct_contract(service_registry_address: str) -> Generator[None, None, bool]
 ```
 
 Contract deployment verification.
@@ -97,7 +97,7 @@ Contract deployment verification.
 #### get`_`agent`_`instances
 
 ```python
-def get_agent_instances() -> Generator[None, None, Dict[str, Any]]
+def get_agent_instances(service_registry_address: str, on_chain_service_id: int) -> Generator[None, None, Dict[str, Any]]
 ```
 
 Get service info available on-chain

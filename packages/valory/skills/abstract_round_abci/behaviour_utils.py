@@ -42,7 +42,7 @@ from typing import (
     cast,
 )
 
-import pytz  # pylint: disable=import-error
+import pytz
 from aea.exceptions import enforce
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
@@ -395,10 +395,9 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         """Initialize an `IPFSBehaviour`."""
         super().__init__(**kwargs)
         self.ipfs_enabled = False
-        # If params are not found `AttributeError` will be raised. This is fine, because something will have gone wrong.
         # If `ipfs_domain_name` is not specified for the skill, then we get a `None` default.
         # Therefore, `IPFSBehaviour` will be disabled.
-        domain = getattr(self.params, "ipfs_domain_name", None)  # pylint: disable=E1101
+        domain = self.context.params.ipfs_domain_name
         loader_cls = kwargs.pop("loader_cls", Loader)
         storer_cls = kwargs.pop("storer_cls", Storer)
         if domain is not None:  # pragma: nocover

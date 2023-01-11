@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -224,28 +224,6 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             "consensus": {"max_participants": 1},
             "drand_public_key": "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31",
             "finalize_timeout": 60.0,
-            "history_check_timeout": 1205,
-            "keeper_allowed_retries": 3,
-            "keeper_timeout": 30.0,
-            "max_healthcheck": 120,
-            "observation_interval": 10,
-            "on_chain_service_id": None,
-            "reset_tendermint_after": 2,
-            "retry_attempts": 400,
-            "retry_timeout": 3,
-            "round_timeout_seconds": 30.0,
-            "service_id": service_id,
-            "service_registry_address": None,
-            "setup": {
-                "all_participants": [["0x0000000000000000000000000000000000000000"]],
-                "safe_contract_address": ["0x0000000000000000000000000000000000000000"],
-            },
-            "sleep_time": 1,
-            "tendermint_check_sleep_delay": 3,
-            "tendermint_com_url": "http://localhost:8080",
-            "tendermint_max_retries": 5,
-            "tendermint_url": "http://localhost:26657",
-            "validate_timeout": 1205,
             "genesis_config": {
                 "genesis_time": "2022-05-20T16:00:21.735122717Z",
                 "chain_id": "chain-c4daS1",
@@ -265,6 +243,35 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
                 },
                 "voting_power": "10",
             },
+            "history_check_timeout": 1205,
+            "ipfs_domain_name": None,
+            "keeper_allowed_retries": 3,
+            "keeper_timeout": 30.0,
+            "max_attempts": 10,
+            "max_healthcheck": 120,
+            "observation_interval": 10,
+            "on_chain_service_id": None,
+            "request_retry_delay": 1.0,
+            "request_timeout": 10.0,
+            "reset_tendermint_after": 2,
+            "retry_attempts": 400,
+            "retry_timeout": 3,
+            "round_timeout_seconds": 30.0,
+            "service_id": service_id,
+            "service_registry_address": None,
+            "setup": {
+                "all_participants": [["0x0000000000000000000000000000000000000000"]],
+                "safe_contract_address": ["0x0000000000000000000000000000000000000000"],
+            },
+            "share_tm_config_on_startup": False,
+            "sleep_time": 1,
+            "tendermint_check_sleep_delay": 3,
+            "tendermint_com_url": "http://localhost:8080",
+            "tendermint_max_retries": 5,
+            "tendermint_p2p_url": "localhost:26656",
+            "tendermint_url": "http://localhost:26657",
+            "tx_timeout": 10.0,
+            "validate_timeout": 1205,
         }
 
 

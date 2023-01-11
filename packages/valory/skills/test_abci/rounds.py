@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
     CollectDifferentUntilAllRound,
-    get_name,
 )
 from packages.valory.skills.test_abci.payloads import DummyPayload, TransactionType
 
@@ -54,7 +53,7 @@ class DummyRound(
     """
 
     allowed_tx_type = DummyPayload.transaction_type
-    payload_attribute = get_name(DummyPayload.sender)
+    payload_attribute = "sender"
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:

@@ -333,7 +333,7 @@ class TestTransactionSettlementBaseBehaviour(TransactionSettlementFSMBehaviourBa
         assert behaviour.behaviour_id == SignatureBehaviour.auto_behaviour_id()
         # Set `nonce` to the same value as the returned, so that we test the tx replacement logging.
         if replacement:
-            behaviour.params.nonce = Nonce(0)
+            behaviour.params.mutable_params.nonce = Nonce(0)
 
         # patch the `send_raw_transaction` method
         def dummy_send_raw_transaction(
@@ -663,7 +663,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         )
         cast(
             FinalizeBehaviour, self.behaviour.current_behaviour
-        ).params.tx_hash = "test"
+        ).params.mutable_params.tx_hash = "test"
         self.behaviour.act_wrapper()
         self._test_done_flag_set()
         self.end_round(TransactionSettlementEvent.DONE)
@@ -671,7 +671,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         assert (
             behaviour.behaviour_id == ValidateTransactionBehaviour.auto_behaviour_id()
         )
-        assert behaviour.params.tx_hash == "test"
+        assert behaviour.params.mutable_params.tx_hash == "test"
 
     @pytest.mark.parametrize(
         "resubmitting, response_kwargs",
@@ -797,7 +797,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         )
         cast(
             FinalizeBehaviour, self.behaviour.current_behaviour
-        ).params.tx_hash = "test"
+        ).params.mutable_params.tx_hash = "test"
         self.behaviour.act_wrapper()
 
         self.mock_contract_api_request(
@@ -843,7 +843,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         assert (
             cast(
                 ValidateTransactionBehaviour, self.behaviour.current_behaviour
-            ).params.tx_hash
+            ).params.mutable_params.tx_hash
             == ""
         )
 
@@ -961,7 +961,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         )
         assert cast(
             TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
-        ).params.late_messages == [message]
+        ).params.mutable_params.late_messages == [message]
 
         with mock.patch.object(self.behaviour.context.logger, "warning") as mock_info:
             self.behaviour.current_behaviour.handle_late_messages(
@@ -1237,7 +1237,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
         """Test `async_act`"""
         cast(
             TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
-        ).params.late_messages = late_messages
+        ).params.mutable_params.late_messages = late_messages
 
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_behaviour(
@@ -1304,7 +1304,7 @@ class TestResetBehaviour(TransactionSettlementFSMBehaviourBaseCase):
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
-        self.behaviour.context.params.observation_interval = 0.1
+        self.behaviour.context.params.__dict__["observation_interval"] = 0.1
         self.behaviour.act_wrapper()
         time.sleep(0.3)
         self.behaviour.act_wrapper()

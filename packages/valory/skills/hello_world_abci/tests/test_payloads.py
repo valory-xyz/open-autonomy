@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -43,13 +43,11 @@ def test_registration_payload() -> None:
 def test_collect_randomness_payload() -> None:
     """Test `CollectRandomnessPayload`"""
 
-    payload = CollectRandomnessPayload(
-        sender="sender", round_id=1, randomness="1", id_="id"
-    )
+    payload = CollectRandomnessPayload(sender="sender", round_id=1, randomness="1")
 
     assert payload.round_id == 1
     assert payload.randomness == "1"
-    assert payload.id_ == "id"
+    assert payload.id_
     assert payload.data == {"round_id": 1, "randomness": "1"}
 
 
@@ -76,12 +74,12 @@ def test_print_message_payload() -> None:
 def test_reset_payload() -> None:
     """Test `ResetPayload`"""
 
-    payload = ResetPayload(sender="sender", period_count=1, id_="id")
+    payload = ResetPayload(sender="sender", period_count=1)
 
     assert payload.period_count == 1
-    assert payload.id_ == "id"
+    assert payload.id_
     assert payload.data == {"period_count": 1}
-    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
+    assert hash(payload)
 
     assert str(payload.transaction_type) == str(TransactionType.RESET)
     assert payload.transaction_type == TransactionType.RESET

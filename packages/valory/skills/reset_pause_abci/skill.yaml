@@ -12,9 +12,9 @@ fingerprint:
   dialogues.py: bafybeib4jbdycm2vofni3vp6draqet3nejoviqjurcilrzindr4k5dg5fa
   fsm_specification.yaml: bafybeietrxvm2odv3si3ecep3by6rftsirzzazxpmeh73yvtsis2mfaali
   handlers.py: bafybeic2hmo47pbkhcbqrape3grae4v2rvjltllroxp3kfw5o74wo3acey
-  models.py: bafybeici2mxz7x64ygubumjarhfawdh7sxkrmk7kzl7ozuuyz2hr2x5bgq
-  payloads.py: bafybeib726fzcbjfkx3ikf2l55mqk7hc2aspxdcpglayevhzeeqiz6xu7m
-  rounds.py: bafybeigvifu5kj66wttymrzb2kjhamtasvycfkdjtsxues7v5cwydpmyi4
+  models.py: bafybeib5l73zuekjeyhf5mge3u2xbilasbosrcefezb3hsmqrog4o7rpju
+  payloads.py: bafybeiddm6verjxz6iaqgvw4jzt2gketdn6ulnn6cb3yebiewk3qef2oi4
+  rounds.py: bafybeifbwa7wrghlzqtzs36efmdnkp7e65coyt3letdkuygyb543atfhla
   tests/__init__.py: bafybeiclijinxvycj7agcagt2deuuyh7zxyp7k2s55la6lh3jghzqvfux4
   tests/test_behaviours.py: bafybeib3nh4cj57wpnvldvhdqelicvuvckmlf6mfgjhai2bn5np36czobi
   tests/test_dialogues.py: bafybeif7pe7v34cfznzv4htyuevx733ersmk4bqjcgajn2535jmuujdmzm
@@ -26,7 +26,7 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihn5cah7a6zffogtijneilm7j4b7znmvr6lsxhjucqgw3rfpzomua
+- valory/abstract_round_abci:0.1.0:bafybeidxtodmdotcsjiuh4k2dwokenorxe4bcintca5ierqhtjngduboqu
 behaviours:
   main:
     args: {}
@@ -88,10 +88,14 @@ models:
             - ed25519
           version: {}
         voting_power: '10'
+      ipfs_domain_name: null
       keeper_timeout: 30.0
+      max_attempts: 10
       max_healthcheck: 120
       observation_interval: 10
       on_chain_service_id: null
+      request_retry_delay: 1.0
+      request_timeout: 10.0
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
@@ -108,7 +112,9 @@ models:
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
+      tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
+      tx_timeout: 10.0
     class_name: Params
   requests:
     args: {}

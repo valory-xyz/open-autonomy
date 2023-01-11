@@ -26,7 +26,6 @@ from enum import Enum
 from typing import (
     Any,
     Callable,
-    Dict,
     FrozenSet,
     Generator,
     List,
@@ -53,10 +52,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectionRound,
     ConsensusParams,
     OnlyKeeperSendsRound,
-    ROUND_COUNT_DEFAULT,
     TransactionNotValidError,
     VotingRound,
-    get_name,
 )
 
 
