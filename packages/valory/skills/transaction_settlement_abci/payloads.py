@@ -23,9 +23,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Optional, Union
 
-from packages.valory.skills.abstract_round_abci.base import (
-    BaseTxPayload as BaseTxPayload,
-)
+from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
 
 class TransactionType(Enum):

@@ -29,53 +29,11 @@ Dummy Event
 ## DummyTxPayload Objects
 
 ```python
+@dataclass(frozen=True)
 class DummyTxPayload(BaseTxPayload)
 ```
 
 Dummy Transaction Payload.
-
-<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummyTxPayload.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(sender: str, value: Any, vote: Optional[bool] = False, round_count: int = ROUND_COUNT_DEFAULT) -> None
-```
-
-Initialize a dummy transaction payload.
-
-<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummyTxPayload.value"></a>
-
-#### value
-
-```python
-@property
-def value() -> Any
-```
-
-Get the tx value.
-
-<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummyTxPayload.vote"></a>
-
-#### vote
-
-```python
-@property
-def vote() -> Optional[bool]
-```
-
-Get the vote value.
-
-<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummyTxPayload.data"></a>
-
-#### data
-
-```python
-@property
-def data() -> Dict[str, Any]
-```
-
-Data
 
 <a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummySynchronizedData"></a>
 
