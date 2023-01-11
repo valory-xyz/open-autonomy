@@ -107,3 +107,45 @@ def agent(ctx: Context, package_path: Path, keys: Path, password: Optional[str],
 
 Mint an agent component.
 
+<a id="autonomy.cli.mint.service"></a>
+
+#### service
+
+```python
+@mint.command()
+@package_path_decorator
+@key_path_decorator
+@password_decorator
+@nft_decorator
+@pass_ctx
+@click.option(
+    "-a",
+    "--agent-id",
+    type=int,
+    help="Canonical agent ID",
+    required=True,
+)
+@click.option(
+    "-n",
+    "--number-of-slots",
+    type=int,
+    help="Number of agent instances for the agent",
+    required=True,
+)
+@click.option(
+    "-c",
+    "--cost-of-bond",
+    type=int,
+    help="Cost of bond for the agent (Wei)",
+    required=True,
+)
+@click.option(
+    "--threshold",
+    type=int,
+    required=True,
+)
+def service(ctx: Context, package_path: Path, keys: Path, agent_id: int, number_of_slots: int, cost_of_bond: int, threshold: int, password: Optional[str], nft: Optional[str]) -> None
+```
+
+Mint a service component.
+
