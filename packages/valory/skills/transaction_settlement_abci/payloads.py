@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Optional, Union
 
-from packages.valory.skills.abstract_round_abci.base import NewBaseTxPayload as BaseTxPayload
+from packages.valory.skills.abstract_round_abci.base import (
+    NewBaseTxPayload as BaseTxPayload,
+)
 
 
 class TransactionType(Enum):
@@ -79,7 +81,7 @@ class CheckTransactionHistoryPayload(BaseTxPayload):
 class SynchronizeLateMessagesPayload(BaseTxPayload):
     """Represent a transaction payload of type 'synchronize'."""
 
-    tx_hashes: tuple[str]
+    tx_hashes: str
     transaction_type = TransactionType.SYNCHRONIZE
 
 

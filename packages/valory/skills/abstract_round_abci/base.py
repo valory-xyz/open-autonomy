@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from collections import Counter
 from copy import copy, deepcopy
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from inspect import isclass
 from math import ceil
@@ -165,7 +165,7 @@ class _MetaPayload(ABCMeta):
             # abstract class, return
             return new_cls
         if issubclass(new_cls, NewBaseTxPayload):
-            mcs.transaction_type_to_payload_cls[new_cls.__name__] = new_cls
+            mcs.transaction_type_to_payload_cls[new_cls.__name__] = new_cls  # type: ignore
             return new_cls
         if not issubclass(new_cls, BaseTxPayload):
             raise ValueError(  # pragma: no cover
@@ -367,10 +367,34 @@ class NewBaseTxPayload(ABC, metaclass=_MetaPayload):
 
     sender: str
     round_count: int = field(default=ROUND_COUNT_DEFAULT, init=False)
+    id_: str = field(default_factory=lambda: uuid.uuid4().hex, init=False)
 
     @property
     def data(self) -> Dict[str, Any]:
-        return {k: v for k, v in asdict(self).items() if k not in ["sender", "round_count"]}
+        """Data"""
+        excluded = ["sender", "round_count", "id_"]
+        return {k: v for k, v in asdict(self).items() if k not in excluded}
+
+    # TODO: refactor - these methods are not strictly needed
+    @property
+    def json(self) -> Dict[str, Any]:
+        """Json"""
+        return dict(transaction_type=self.__class__.__name__, **asdict(self))
+
+    def with_new_id(self) -> "NewBaseTxPayload":
+        """Create a new payload with the same content but new id."""
+        new = type(self)(sender=self.sender, **self.data)  # type: ignore
+        object.__setattr__(new, "round_count", self.round_count)
+        return new
+
+    def encode(self) -> bytes:
+        """Encode"""
+        return bytes(NewTransaction(self))
+
+    @classmethod
+    def decode(cls, obj: bytes) -> "NewBaseTxPayload":
+        """Decode"""
+        return NewTransaction.from_bytes(obj).payload
 
 
 @dataclass
@@ -406,6 +430,8 @@ class NewTransaction:
     def verify(self, ledger_id: str) -> None:
         """Verify the signature is correct."""
 
+        if not self.signature:
+            raise SignatureNotValidError(f"Transaction not signed: {self}")
         addresses = LedgerApis.recover_message(
             identifier=ledger_id, message=bytes(self), signature=self.signature
         )
@@ -1342,7 +1368,7 @@ class CollectionRound(AbstractRound, ABC):
     @property
     def payloads_count(self) -> Counter:
         """Get count of payload attributes"""
-        return Counter(tuple(sorted(p.data.items())) for p in self.payloads)
+        return Counter(map(lambda p: getattr(p, self.payload_attribute), self.payloads))
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
@@ -1362,8 +1388,8 @@ class CollectionRound(AbstractRound, ABC):
                 f"sender {sender} has already sent value for round: {self.round_id}"
             )
 
-        if getattr(self, "_hash_length", None):
-            content = "".join(payload.tx_hashes)
+        if self._hash_length:
+            content = payload.data.get(self.payload_attribute)
             if not content or len(content) % self._hash_length:
                 msg = f"Expecting serialized data of chunk size {self._hash_length}"
                 raise ABCIAppInternalError(f"{msg}, got: {content} in {self.round_id}")
@@ -1391,8 +1417,8 @@ class CollectionRound(AbstractRound, ABC):
                 f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
 
-        if getattr(self, "_hash_length", None):
-            content = "".join(payload.tx_hashes)
+        if self._hash_length:
+            content = payload.data.get(self.payload_attribute)
             if not content or len(content) % self._hash_length:
                 msg = f"Expecting serialized data of chunk size {self._hash_length}"
                 raise TransactionNotValidError(
@@ -1539,7 +1565,7 @@ class CollectSameUntilThresholdRound(CollectionRound, ABC):
         most_voted_payload, max_votes = self.payloads_count.most_common()[0]
         if max_votes < self.consensus_threshold:
             raise ABCIAppInternalError("not enough votes")
-        return dict(most_voted_payload)
+        return most_voted_payload
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
@@ -1600,7 +1626,7 @@ class OnlyKeeperSendsRound(AbstractRound, ABC):
         if self.keeper_sent_payload:
             raise ABCIAppInternalError("keeper already set the payload.")
 
-        self.keeper_payload = payload.data
+        self.keeper_payload = getattr(payload, self.payload_attribute)
         self.keeper_sent_payload = True
 
     def check_payload(self, payload: BaseTxPayload) -> None:
@@ -1771,9 +1797,9 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound, AB
         non_empty_values = []
 
         for payload in self.collection.values():
-            # attribute_value = getattr(payload, self.payload_attribute, None)
-            if payload.data:
-                non_empty_values.append(payload.data)
+            attribute_value = getattr(payload, self.payload_attribute, None)
+            if attribute_value is not None:
+                non_empty_values.append(attribute_value)
 
         return non_empty_values
 
