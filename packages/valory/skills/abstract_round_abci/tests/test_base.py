@@ -168,31 +168,11 @@ class PayloadD(BasePayload):
 class DummyPayload(BasePayload):
     """Dummy payload class."""
 
+    dummy_attribute: int
     transaction_type = PayloadEnum.DUMMY
 
-    def __init__(self, sender: str, dummy_attribute: int, **kwargs: Any) -> None:
-        """Initialize a dummy payload.
 
-        :param sender: the sender address
-        :param dummy_attribute: a dummy attribute
-        :param kwargs: the keyword arguments
-        """
-        super().__init__(sender, **kwargs)
-        self._dummy_attribute = dummy_attribute
-
-    @property
-    def dummy_attribute(self) -> int:
-        """Get the dummy_attribute."""
-        return self._dummy_attribute
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(dummy_attribute=self.dummy_attribute)
-
-
-@dataclasses.dataclass(frozen=True)
-class TooBigPayload(BaseTxPayload, ABC):
+class TooBigPayload(BaseTxPayload):
     """Base payload class for testing."""
 
     transaction_type = PayloadEnum.A
@@ -351,48 +331,6 @@ def test_dict_serializer_is_deterministic(obj: Any) -> None:
     for _ in range(100):
         assert obj_bytes == DictProtobufStructSerializer.encode(obj)
         assert obj == DictProtobufStructSerializer.decode(obj_bytes)
-
-
-class TestMetaPayloadUtilityMethods:
-    """Test _MetaPayload private utility methods."""
-
-    def setup(self) -> None:
-        """Set up the test."""
-        self.old_value = copy(_MetaPayload.transaction_type_to_payload_cls)
-
-    def test_meta_payload_validate_tx_type(self) -> None:
-        """
-        Test _MetaPayload._validate_transaction_type utility method.
-
-        First, it registers a class object with a transaction type name into the
-        _MetaPayload map from transaction type name to classes.
-        Then, it tries to validate a new insertion with the same transaction type name
-        but different class object. This will raise an error.
-        """
-        tx_type_name = "transaction_type"
-        tx_cls_1 = MagicMock(__name__="name_1")
-        tx_cls_2 = MagicMock(__name__="name_2")
-        _MetaPayload.transaction_type_to_payload_cls[tx_type_name] = tx_cls_1
-
-        with pytest.raises(ValueError):
-            _MetaPayload._validate_transaction_type(tx_type_name, tx_cls_2)
-
-    def test_get_field_positive(self) -> None:
-        """Test the utility class method "_get_field", positive case"""
-        expected_value = 42
-        result = _MetaPayload._get_field(
-            MagicMock(field_name=expected_value), "field_name"
-        )
-        return result == expected_value
-
-    def test_get_field_negative(self) -> None:
-        """Test the utility class method "_get_field", negative case"""
-        with pytest.raises(ValueError):
-            _MetaPayload._get_field(MagicMock, "field_name")
-
-    def teardown(self) -> None:
-        """Tear down the test."""
-        _MetaPayload.transaction_type_to_payload_cls = self.old_value
 
 
 def test_initialize_block() -> None:
