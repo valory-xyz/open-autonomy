@@ -141,7 +141,6 @@ def mint_service(  # pylint: disable=too-many-arguments
             contract_address=ContractConfigs.get(
                 SERVICE_REGISTRY_CONTRACT.name
             ).contracts[chain_type],
-            metadata_hash=metadata_hash,
         )
 
     except RequestsConnectionError as e:
