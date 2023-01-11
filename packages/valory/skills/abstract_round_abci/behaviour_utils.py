@@ -2059,6 +2059,14 @@ class TmManager(BaseBehaviour):
 
         # since we have reached this point that means that the cause of blocks not being received
         # cannot be attributed to a lack of peers in the network
+        # therefore, we request the recovery parameters via the ACN, and if we succeed, we use them to recover
+        acn_communication_success = yield from self.request_recovery_params()
+        if not acn_communication_success:
+            self.context.logger.error(
+                "Failed to get the recovery parameters via the ACN. Cannot reset Tendermint."
+            )
+            return
+
         shared_state = cast(SharedState, self.context.state)
         recovery_params = shared_state.tm_recovery_params
         shared_state.round_sequence.reset_state(

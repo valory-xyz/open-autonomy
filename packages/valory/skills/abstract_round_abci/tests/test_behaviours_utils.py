@@ -2204,6 +2204,13 @@ class TestTmManager:
             self.tm_manager.act_wrapper()
 
     @pytest.mark.parametrize(
+        "acn_communication_success",
+        (
+            True,
+            False,
+        ),
+    )
+    @pytest.mark.parametrize(
         ("tm_reset_success", "num_active_peers"),
         [
             (True, 4),
@@ -2214,6 +2221,7 @@ class TestTmManager:
     )
     def test_handle_unhealthy_tm(
         self,
+        acn_communication_success: bool,
         tm_reset_success: bool,
         num_active_peers: Optional[int],
     ) -> None:
@@ -2237,10 +2245,23 @@ class TestTmManager:
             self.tm_manager, "sleep", side_effect=mock_sleep
         ), mock.patch(
             "sys.exit"
-        ) as mock_sys_exit:
-            try_send(gen)
-            try_send(gen)
-            try_send(gen)
+        ) as mock_sys_exit, mock.patch.object(
+            BaseBehaviour,
+            "request_recovery_params",
+            side_effect=dummy_generator_wrapper(acn_communication_success),
+        ):
+            next(gen)
+            next(gen)
+
+            if not acn_communication_success:
+                with pytest.raises(StopIteration):
+                    next(gen)
+                return
+
+            next(gen)
+            with pytest.raises(StopIteration):
+                next(gen)
+
             if (
                 num_active_peers is not None
                 and num_active_peers < self._DUMMY_CONSENSUS_THRESHOLD
