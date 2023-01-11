@@ -35,6 +35,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from aea.exceptions import AEAEnforceError
+from typing_extensions import Literal, TypedDict
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
@@ -592,6 +593,20 @@ class B:
     value: str
 
 
+class C(TypedDict):
+    """Class for testing."""
+
+    name: str
+    year: int
+
+
+class D(TypedDict, total=False):
+    """Class for testing."""
+
+    name: str
+    year: int
+
+
 testdata_positive = [
     ("test_arg", 1, int),
     ("test_arg", "1", str),
@@ -613,6 +628,9 @@ testdata_positive = [
     ("test_arg", A, Optional[Type[A]]),
     ("test_arg", None, Optional[Type[A]]),
     ("test_arg", MagicMock(), Optional[Type[A]]),  # any type allowed
+    ("test_arg", {"name": "str", "year": 1}, C),
+    ("test_arg", 42, Literal[42]),
+    ("test_arg", {"name": "str"}, D),
 ]
 
 
@@ -632,13 +650,20 @@ testdata_negative = [
     ("test_arg", 1, Optional[bool]),
     ("test_arg", ["1"], Optional[List[int]]),
     ("test_arg", {"str": "1"}, Optional[Dict[str, int]]),
+    ("test_arg", {1: 1}, Optional[Dict[str, int]]),
     ("test_arg", {"str": B("1")}, Dict[str, A]),
     ("test_arg", [()], List[Tuple[str, str]]),
     ("test_arg", [("1",)], List[Tuple[str, str]]),
+    ("test_arg", [("1", 1)], List[Tuple[str, str]]),
+    ("test_arg", [("1", 1, "1")], List[Tuple[str, ...]]),
     ("test_arg", ["1"], List[Optional[int]]),
     ("test_arg", [1, None, "1"], List[Optional[int]]),
     ("test_arg", B, Type[A]),
     ("test_arg", B, Optional[Type[A]]),
+    ("test_arg", {"name": "str", "year": "1"}, C),
+    ("test_arg", 41, Literal[42]),
+    ("test_arg", C({"name": "str", "year": 1}), A),
+    ("test_arg", {"name": "str"}, C),
 ]
 
 

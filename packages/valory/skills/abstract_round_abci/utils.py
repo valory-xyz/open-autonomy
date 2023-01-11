@@ -178,7 +178,7 @@ try:
     # Python >=3.8 should have these functions already
     from typing import get_args as _get_args  # pylint: disable=ungrouped-imports
     from typing import get_origin as _get_origin  # pylint: disable=ungrouped-imports
-except ImportError:
+except ImportError:  # pragma: nocover
     # Python 3.7
     def _get_origin(tp):  # type: ignore
         """Copied from the Python 3.8 typing module"""
@@ -254,21 +254,17 @@ class AutonomyTypeError(TypeError):
         ty: Type[Any],
         value: Any,
         path: Optional[List[str]] = None,
-        exception: Optional[Any] = None,
     ):
         """Initialize AutonomyTypeError."""
         self.ty = ty
         self.value = value
         self.path = path or []
-        self.exception = exception
         super().__init__()
 
     def __str__(self) -> str:
         """Get string representation of AutonomyTypeError."""
         path = _path_to_str(self.path)
         msg = f"Error in field '{path}'. Expected type {self.ty}, got {type(self.value)} (value: {self.value})"
-        if self.exception is not None:
-            msg += f"\n{type(self.exception)}: {self.exception}"
         return msg
 
 
@@ -320,7 +316,7 @@ def check(  # pylint: disable=too-many-return-statements
     if isinstance(ty, type):
         # concrete type
         if is_pep604_union(ty):
-            pass
+            pass  # pragma: no cover
         elif issubclass(ty, bool):
             if not isinstance(value, ty):
                 return AutonomyTypeError(ty=ty, value=value)
@@ -423,7 +419,7 @@ def check_dataclass(value: Any, ty: Type[Any]) -> Result:
 def check_typeddict(value: Any, ty: Type[Type[Any]]) -> Result:
     """Check typeddict type."""
     if not isinstance(value, dict):
-        return AutonomyTypeError(ty, value)
+        return AutonomyTypeError(ty, value)  # pragma: no cover
     is_total: bool = ty.__total__  # type: ignore
     for k, ty_ in typing.get_type_hints(ty).items():
         if k not in value:
@@ -441,7 +437,7 @@ def check_typeddict(value: Any, ty: Type[Type[Any]]) -> Result:
 # TODO: incorporate
 def is_typevar(ty: Type[Any]) -> TypeGuard[TypeVar]:
     """Check typevar."""
-    return isinstance(ty, TypeVar)
+    return isinstance(ty, TypeVar)  # pragma: no cover
 
 
 def is_error(ret: Result) -> TypeGuard[AutonomyTypeError]:
