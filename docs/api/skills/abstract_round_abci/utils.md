@@ -159,7 +159,7 @@ Type Error for the Autonomy type check system.
 #### `__`init`__`
 
 ```python
-def __init__(ty: Type[Any], value: Any, path: Optional[List[str]] = None, exception: Optional[Any] = None)
+def __init__(ty: Type[Any], value: Any, path: Optional[List[str]] = None)
 ```
 
 Initialize AutonomyTypeError.

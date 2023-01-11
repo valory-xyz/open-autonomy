@@ -50,7 +50,7 @@ fingerprint:
   tests/test_io/test_ipfs.py: bafybeigablspercc233scupiajflzqjqzxnjzinlkq6wday3fzg4adegvq
   tests/test_io/test_load.py: bafybeih5qt3etx3bi2zt2kebra322obxq7s77g3r6xzztsix3ihdpfdixy
   tests/test_io/test_store.py: bafybeibqfdgj7unktgkwligf4jnhlytijz7wyczykghylpy2smx76q3d5a
-  tests/test_models.py: bafybeiadj2dzwgzkoudvbg6yff2c2jorhszizg44tjfqoihlinli2amqle
+  tests/test_models.py: bafybeicaiqhsdodl63jcz4fpu67xb4ejjn2quwagjrwgpfi26pznlgzb7e
   tests/test_serializer.py: bafybeiddbdxrr2nhzemk6jrcxmhjwwfxur6dfj3kpeyrgme7xdggf54p6m
   tests/test_tools/__init__.py: bafybeiew6gu4pgp2sjevq4dbnmv2ail5dph7vj4yi7h3eae4gzx7vj7cbq
   tests/test_tools/base.py: bafybeia3sbvrvidzwgmqbqzqi5lbmhs7pnzcmcxbriduc7np5o552ckcle
@@ -59,7 +59,7 @@ fingerprint:
   tests/test_tools/test_integration.py: bafybeiesmfr2r5glo566qy5z3dtuqf6uckqskoamehhjpnjrsekbyjedjq
   tests/test_tools/test_rounds.py: bafybeibaovb72xuyisjc7amn2hlt5bv72vck43blpnrfayfmozxdywrdbe
   tests/test_utils.py: bafybeigkob3r2tfsgazviaiwylmtyzhufodgrswf4byptqqm7k6uxdg5bq
-  utils.py: bafybeiajulpnqrwccas3xnoa7mngwso4lag6i5doqh4fjku4objhrcq6we
+  utils.py: bafybeicurqoxngvsupa2z6uaa6hgvso2xabz3oc6k6ojj6uqj2tej3xrgq
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeicmhpw2f5c3vds6lwlv2q4fa5nd6zonnvgdretrwfly7ylpiofdqq
