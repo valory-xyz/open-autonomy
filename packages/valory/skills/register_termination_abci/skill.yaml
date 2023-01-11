@@ -23,10 +23,10 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicpf22blilvwmrmm4xve65iar6trtpqrncexjfr2hxuavfbuikbsq
-- valory/registration_abci:0.1.0:bafybeia6pi7pgty4yw2ozt26d7wtzzv5gv6jan4qxa4tnwa6su6ljszxfe
-- valory/reset_pause_abci:0.1.0:bafybeiathynv5py7akisgrqmm4wrwhzebc4rq6mdnvthqak4sz4uirj3ga
-- valory/termination_abci:0.1.0:bafybeid4uybzoqzzpqvyt7cptg5nqfv2cnsxzss77nrvgc5owzgkrbx34i
+- valory/abstract_round_abci:0.1.0:bafybeigihtkyhohd5egh3pks5atninr4e2pmg3r4lwgo46mmpxawu5f3qm
+- valory/registration_abci:0.1.0:bafybeihsu3kahh4qv6uv5n6dkgx4fx5y6suosmjbfo2ei5chftcagszskq
+- valory/reset_pause_abci:0.1.0:bafybeih73e652icmm5k7d6rgpa3nqesii4tflisj7hmrkg6mu4wd777ivu
+- valory/termination_abci:0.1.0:bafybeidv2dfdnseneciasup4uvhzgcllbj5wvbzx4las75vfrjogqwucme
 behaviours:
   main:
     args: {}
@@ -93,6 +93,7 @@ models:
           version: {}
         voting_power: '10'
       history_check_timeout: 1205
+      init_fallback_gas: 0
       ipfs_domain_name: null
       keeper_allowed_retries: 3
       keeper_timeout: 30.0

@@ -59,8 +59,8 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.abstract_round_abci.models import (
-    TypeCheckMixin,
     _MetaSharedState,
+    check_type,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import AbciAppTest
 from packages.valory.skills.abstract_round_abci.tests.conftest import (
@@ -74,8 +74,8 @@ BASE_DUMMY_SPECS_CONFIG = dict(
     url="http://dummy",
     api_id="api_id",
     method="GET",
-    headers=[["Dummy-Header", "dummy_value"]],
-    parameters=[["Dummy-Param", "dummy_param"]],
+    headers=[("Dummy-Header", "dummy_value")],
+    parameters=[("Dummy-Param", "dummy_param")],
 )
 
 
@@ -122,8 +122,8 @@ class TestApiSpecsModel:
         assert self.api_specs.url == "http://dummy"
         assert self.api_specs.api_id == "api_id"
         assert self.api_specs.method == "GET"
-        assert self.api_specs.headers == [["Dummy-Header", "dummy_value"]]
-        assert self.api_specs.parameters == [["Dummy-Param", "dummy_param"]]
+        assert self.api_specs.headers == [("Dummy-Header", "dummy_value")]
+        assert self.api_specs.parameters == [("Dummy-Param", "dummy_param")]
         assert self.api_specs.response_info.response_key == "value"
         assert self.api_specs.response_info.response_index == 0
         assert self.api_specs.response_info.response_type == "float"
@@ -164,8 +164,8 @@ class TestApiSpecsModel:
         actual_specs = {
             "url": "http://dummy",
             "method": "GET",
-            "headers": [["Dummy-Header", "dummy_value"]],
-            "parameters": [["Dummy-Param", "dummy_param"]],
+            "headers": [("Dummy-Header", "dummy_value")],
+            "parameters": [("Dummy-Param", "dummy_param")],
         }
 
         specs = self.api_specs.get_spec()
@@ -513,9 +513,7 @@ def test_genesis_block() -> None:
     gb = GenesisBlock(**json)
     assert gb.to_json() == json
 
-    with pytest.raises(
-        TypeError, match="max_bytes must be a <class 'str'>, found <class 'int'>"
-    ):
+    with pytest.raises(TypeError, match="Error in field 'max_bytes'. Expected type .*"):
         json["max_bytes"] = 0  # type: ignore
         GenesisBlock(**json)
 
@@ -533,7 +531,9 @@ def test_genesis_validator() -> None:
     ge = GenesisValidator(pub_key_types=tuple(json["pub_key_types"]))
     assert ge.to_json() == json
 
-    with pytest.raises(TypeError, match="pub_key_types must be a Tuple"):
+    with pytest.raises(
+        TypeError, match="Error in field 'pub_key_types'. Expected type .*"
+    ):
         GenesisValidator(**json)  # type: ignore
 
 
@@ -578,32 +578,73 @@ def test_shared_state_instantiation_without_attributes_raises_error() -> None:
             abci_app_cls = MagicMock
 
 
-def test_type_check_mixin() -> None:
+@dataclass
+class A:
+    """Class for testing."""
+
+    value: int
+
+
+@dataclass
+class B:
+    """Class for testing."""
+
+    value: str
+
+
+testdata_positive = [
+    ("test_arg", 1, int),
+    ("test_arg", "1", str),
+    ("test_arg", True, bool),
+    ("test_arg", 1, Optional[int]),
+    ("test_arg", None, Optional[int]),
+    ("test_arg", "1", Optional[str]),
+    ("test_arg", None, Optional[str]),
+    ("test_arg", None, Optional[bool]),
+    ("test_arg", None, Optional[List[int]]),
+    ("test_arg", [], Optional[List[int]]),
+    ("test_arg", [1], Optional[List[int]]),
+    ("test_arg", {"str": 1}, Optional[Dict[str, int]]),
+    ("test_arg", {"str": A(1)}, Dict[str, A]),
+    ("test_arg", [("1", "2")], List[Tuple[str, str]]),
+    ("test_arg", [1], List[Optional[int]]),
+    ("test_arg", [1, None], List[Optional[int]]),
+    ("test_arg", A, Type[A]),
+    ("test_arg", A, Optional[Type[A]]),
+    ("test_arg", None, Optional[Type[A]]),
+    ("test_arg", MagicMock(), Optional[Type[A]]),  # any type allowed
+]
+
+
+@pytest.mark.parametrize("name,value,type_hint", testdata_positive)
+def test_type_check_positive(name: str, value: Any, type_hint: Any) -> None:
     """Test the type check mixin."""
 
-    @dataclass
-    class A:
-        """Class for testing."""
+    check_type(name, value, type_hint)
 
-        value: int
 
-    @dataclass
-    class TestClass(TypeCheckMixin):
-        """Class for testing."""
+testdata_negative = [
+    ("test_arg", "1", int),
+    ("test_arg", 1, str),
+    ("test_arg", None, bool),
+    ("test_arg", "1", Optional[int]),
+    ("test_arg", 1, Optional[str]),
+    ("test_arg", 1, Optional[bool]),
+    ("test_arg", ["1"], Optional[List[int]]),
+    ("test_arg", {"str": "1"}, Optional[Dict[str, int]]),
+    ("test_arg", {"str": B("1")}, Dict[str, A]),
+    ("test_arg", [()], List[Tuple[str, str]]),
+    ("test_arg", [("1",)], List[Tuple[str, str]]),
+    ("test_arg", ["1"], List[Optional[int]]),
+    ("test_arg", [1, None, "1"], List[Optional[int]]),
+    ("test_arg", B, Type[A]),
+    ("test_arg", B, Optional[Type[A]]),
+]
 
-        simple_type_arg: str
-        any_type_arg: Any
-        magic_mock_type_arg: MagicMock
-        non_concrete_arg: Type[A]
-        complex_type_arg: Optional[List[str]] = None
 
-    args = ("str", None, MagicMock(), A, None)
-    TestClass(*args)
-    with pytest.raises(TypeError, match="non_concrete_arg must be a subclass of .*"):
-        args_ = ("str", None, MagicMock(), MagicMock, None)
-        TestClass(*args_)  # type: ignore
-    with pytest.raises(
-        TypeError, match="simple_type_arg must be a <class 'str'>, found <class 'int'>"
-    ):
-        args__ = (1, None, MagicMock(), MagicMock, None)
-        TestClass(*args__)  # type: ignore
+@pytest.mark.parametrize("name,value,type_hint", testdata_negative)
+def test_type_check_negative(name: str, value: Any, type_hint: Any) -> None:
+    """Test the type check mixin."""
+
+    with pytest.raises(TypeError):
+        check_type(name, value, type_hint)
