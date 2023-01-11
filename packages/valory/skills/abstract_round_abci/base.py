@@ -169,7 +169,7 @@ class _MetaPayload(ABCMeta):
                 f"class {name} must inherit from {BaseTxPayload.__name__}"
             )
 
-        mcs.transaction_type_to_payload_cls[new_cls.__name__] = new_cls
+        mcs.transaction_type_to_payload_cls[new_cls.__name__] = new_cls  # type: ignore
         return new_cls
 
 

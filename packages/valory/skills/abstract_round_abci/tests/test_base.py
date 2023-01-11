@@ -209,7 +209,7 @@ def test_base_tx_payload() -> None:
     assert payload.sender == new_payload.sender
     assert payload.id_ != new_payload.id_
     with pytest.raises(dataclasses.FrozenInstanceError):
-        payload.round_count = 1
+        payload.round_count = 1  # type: ignore
     object.__setattr__(payload, "round_count", 1)
     assert payload.round_count == 1
     assert type(hash(payload)) == int

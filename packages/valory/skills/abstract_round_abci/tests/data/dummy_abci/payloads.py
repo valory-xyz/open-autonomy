@@ -67,5 +67,5 @@ class DummyKeeperSelectionPayload(BaseTxPayload):
 class DummyFinalPayload(BaseTxPayload):
     """Represent a transaction payload for the DummyFinalRound."""
 
-    content: str
+    content: bool
     transaction_type = TransactionType.DUMMY_FINAL
