@@ -19,7 +19,7 @@
 
 """This module contains the transaction payloads for common apps."""
 from enum import Enum
-from typing import Optional
+from dataclasses import dataclass
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -34,6 +34,7 @@ class TransactionType(Enum):
         return self.value
 
 
+@dataclass(frozen=True)
 class RegistrationPayload(BaseTxPayload):
     """Represent a transaction payload of type 'registration'."""
 

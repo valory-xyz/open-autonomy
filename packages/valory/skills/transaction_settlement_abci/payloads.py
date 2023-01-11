@@ -21,7 +21,7 @@
 
 from enum import Enum
 from typing import Dict, Optional, Union
-
+from dataclasses import dataclass
 from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload as BaseTxPayload,
 )
@@ -43,7 +43,7 @@ class TransactionType(Enum):
         """Get the string value of the transaction type."""
         return self.value
 
-
+@dataclass(frozen=True)
 class RandomnessPayload(BaseTxPayload):
     """Represent a transaction payload of type 'randomness'."""
 
@@ -51,49 +51,49 @@ class RandomnessPayload(BaseTxPayload):
     randomness: str
     transaction_type = TransactionType.RANDOMNESS
 
-
+@dataclass(frozen=True)
 class SelectKeeperPayload(BaseTxPayload):
     """Represent a transaction payload of type 'select_keeper'."""
 
     keepers: str
     transaction_type = TransactionType.SELECT_KEEPER
 
-
+@dataclass(frozen=True)
 class ValidatePayload(BaseTxPayload):
     """Represent a transaction payload of type 'validate'."""
 
     vote: Optional[bool] = None
     transaction_type = TransactionType.VALIDATE
 
-
+@dataclass(frozen=True)
 class CheckTransactionHistoryPayload(BaseTxPayload):
     """Represent a transaction payload of type 'check'."""
 
     verified_res: str
     transaction_type = TransactionType.CHECK
 
-
+@dataclass(frozen=True)
 class SynchronizeLateMessagesPayload(BaseTxPayload):
     """Represent a transaction payload of type 'synchronize'."""
 
     tx_hashes: str
     transaction_type = TransactionType.SYNCHRONIZE
 
-
+@dataclass(frozen=True)
 class SignaturePayload(BaseTxPayload):
     """Represent a transaction payload of type 'signature'."""
 
     signature: str
     transaction_type = TransactionType.SIGNATURE
 
-
+@dataclass(frozen=True)
 class FinalizationTxPayload(BaseTxPayload):
     """Represent a transaction payload of type 'finalization'."""
 
     tx_data: Optional[Dict[str, Union[str, int, bool]]] = None
     transaction_type = TransactionType.FINALIZATION
 
-
+@dataclass(frozen=True)
 class ResetPayload(BaseTxPayload):
     """Represent a transaction payload of type 'reset'."""
 

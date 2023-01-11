@@ -34,6 +34,7 @@ from time import sleep
 from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
+from dataclasses import dataclass
 
 import pytest
 from _pytest.logging import LogCaptureFixture
@@ -141,37 +142,39 @@ class BasePayload(BaseTxPayload, ABC):
     """Base payload class for testing."""
 
 
+@dataclass(frozen=True)
 class PayloadA(BasePayload):
     """Payload class for payload type 'A'."""
 
     transaction_type = PayloadEnum.A
 
 
+@dataclass(frozen=True)
 class PayloadB(BasePayload):
     """Payload class for payload type 'B'."""
 
     transaction_type = PayloadEnum.B
 
-
+@dataclass(frozen=True)
 class PayloadC(BasePayload):
     """Payload class for payload type 'C'."""
 
     transaction_type = PayloadEnum.C
 
-
+@dataclass(frozen=True)
 class PayloadD(BasePayload):
     """Payload class for payload type 'D'."""
 
     transaction_type = PayloadEnumB.A
 
-
+@dataclass(frozen=True)
 class DummyPayload(BasePayload):
     """Dummy payload class."""
 
     dummy_attribute: int
     transaction_type = PayloadEnum.DUMMY
 
-
+@dataclass(frozen=True)
 class TooBigPayload(BaseTxPayload):
     """Base payload class for testing."""
 

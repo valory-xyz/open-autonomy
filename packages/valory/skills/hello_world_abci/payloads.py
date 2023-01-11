@@ -20,6 +20,7 @@
 """This module contains the transaction payloads for the Hello World skill."""
 from abc import ABC
 from enum import Enum
+from dataclasses import dataclass
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
 
@@ -37,16 +38,18 @@ class TransactionType(Enum):
         return self.value
 
 
+@dataclass(frozen=True)
 class BaseHelloWorldAbciPayload(BaseTxPayload, ABC):
     """Base class for the Hello World abci demo."""
 
-
+@dataclass(frozen=True)
 class RegistrationPayload(BaseHelloWorldAbciPayload):
     """Represent a transaction payload of type 'registration'."""
 
     transaction_type = TransactionType.REGISTRATION
 
 
+@dataclass(frozen=True)
 class CollectRandomnessPayload(BaseHelloWorldAbciPayload):
     """Represent a transaction payload of type 'randomness'."""
 
@@ -55,20 +58,21 @@ class CollectRandomnessPayload(BaseHelloWorldAbciPayload):
     transaction_type = TransactionType.RANDOMNESS
 
 
+@dataclass(frozen=True)
 class PrintMessagePayload(BaseHelloWorldAbciPayload):
     """Represent a transaction payload of type 'randomness'."""
 
     message: str
     transaction_type = TransactionType.PRINT_MESSAGE
 
-
+@dataclass(frozen=True)
 class SelectKeeperPayload(BaseHelloWorldAbciPayload):
     """Represent a transaction payload of type 'select_keeper'."""
 
     keeper: str
     transaction_type = TransactionType.SELECT_KEEPER
 
-
+@dataclass(frozen=True)
 class ResetPayload(BaseHelloWorldAbciPayload):
     """Represent a transaction payload of type 'reset'."""
 

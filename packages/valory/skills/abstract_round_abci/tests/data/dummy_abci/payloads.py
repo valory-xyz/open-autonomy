@@ -24,6 +24,7 @@ from enum import Enum
 from typing import Any, Dict, Hashable
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
+from dataclasses import dataclass
 
 
 class TransactionType(Enum):
@@ -38,14 +39,14 @@ class TransactionType(Enum):
         """Get the string value of the transaction type."""
         return self.value
 
-
+@dataclass(frozen=True)
 class DummyStartingPayload(BaseTxPayload):
     """Represent a transaction payload for the DummyStartingRound."""
 
     content: str
     transaction_type = TransactionType.DUMMY_STARTING
 
-
+@dataclass(frozen=True)
 class DummyRandomnessPayload(BaseTxPayload):
     """Represent a transaction payload for the DummyRandomnessRound."""
 
@@ -53,14 +54,14 @@ class DummyRandomnessPayload(BaseTxPayload):
     randomness: str
     transaction_type = TransactionType.DUMMY_RANDOMNESS
 
-
+@dataclass(frozen=True)
 class DummyKeeperSelectionPayload(BaseTxPayload):
     """Represent a transaction payload for the DummyKeeperSelectionRound."""
 
     keepers: str
     transaction_type = TransactionType.DUMMY_KEEPER_SELECTION
 
-
+@dataclass(frozen=True)
 class DummyFinalPayload(BaseTxPayload):
     """Represent a transaction payload for the DummyFinalRound."""
 

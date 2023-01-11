@@ -19,7 +19,7 @@
 
 """This module contains the transaction payloads for this skill."""
 from enum import Enum
-
+from dataclasses import dataclass
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
 
@@ -28,7 +28,7 @@ class TransactionType(Enum):
 
     ROUND_COUNT = "round_count"
 
-
+@dataclass(frozen=True)
 class RoundCountPayload(BaseTxPayload):
     """Defines the RoundCount payload."""
 

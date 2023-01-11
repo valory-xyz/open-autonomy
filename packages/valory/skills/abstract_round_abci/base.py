@@ -169,12 +169,11 @@ class _MetaPayload(ABCMeta):
                 f"class {name} must inherit from {BaseTxPayload.__name__}"
             )
 
-        freezing_payload_cls = dataclass(new_cls, frozen=True)
-        cls = mcs.transaction_type_to_payload_cls.get(new_cls.__name__)
-        # if cls and cls.__module__ is not freezing_payload_cls.__module__:  # pragma: no cover
+        # cls = mcs.transaction_type_to_payload_cls.get(new_cls.__name__)
+        # if cls and cls is not new_cls:  # pragma: no cover
         #     raise ValueError(f"Cannot create {new_cls}, because there already exists a class with this name: {cls}")
-        mcs.transaction_type_to_payload_cls[new_cls.__name__] = freezing_payload_cls
-        return freezing_payload_cls
+        mcs.transaction_type_to_payload_cls[new_cls.__name__] = new_cls
+        return new_cls
 
 
 @dataclass(frozen=True)

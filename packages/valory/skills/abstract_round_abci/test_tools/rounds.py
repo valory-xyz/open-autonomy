@@ -80,6 +80,7 @@ class DummyEvent(Enum):
     FAIL = "fail"
 
 
+@dataclass(frozen=True)
 class DummyTxPayload(BaseTxPayload):
     """Dummy Transaction Payload."""
 
