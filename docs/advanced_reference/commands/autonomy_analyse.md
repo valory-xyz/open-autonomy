@@ -197,6 +197,8 @@ Aggregate benchmark results from agent service deployments.
 This tool requires the benchmark data generated from service agent's runtime.
 By default the tool will aggregate the output for all the periods and block types but you can restrict the aggregation to a specific period and/or a specific block type.
 
+Read the [guide on how to use the benchmarking tool](../developer_tooling/benchmarking.md) for more information.
+
 ### Usage
 ```bash
 autonomy analyse benchmarks [OPTIONS] PATH
@@ -215,12 +217,16 @@ autonomy analyse benchmarks [OPTIONS] PATH
 `--help`
 :  Show the help message and exit.
 
-
 ### Examples
 
-This example assumes you have completed the [quick start guide](../../guides/quick_start.md) and that you have run the [Hello World agent service](../../demos/hello_world_demo.md) for a few periods before cancelling its execution. The benchmark data will be stored in the folder `abci_build/persistent_data/benchmarks`.
+The benchmark data will be stored in the folder `<service_folder>/abci_build/persistent_data/benchmarks`.
 
-To aggregate the data of all periods, execute:
+To aggregate stats for all periods, execute:
 ```bash
-autonomy analyse benchmarks ./abci_build/persistent_data/benchmarks
+autonomy analyse benchmarks abci_build/persistent_data/benchmarks
+```
+
+To aggregate stats for `consensus` block type in the second period, execute:
+```bash
+autonomy analyse benchmarks abci_build/persistent_data/benchmarks
 ```

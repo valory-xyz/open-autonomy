@@ -54,6 +54,7 @@ ROOT_DIR = Path(__file__).parent.parent
 HASH_SKIPS = (
     "bafybeie553shfmnds6v7defynjv5kmjkqf2aygj345jbbcssevtnkbodbe",
     "bafybeie6zryhy7v3fb4mwlu3br4brfxva4m5j2fyldbclq2v3d6modmewm",
+    "bafybeieo2gmyuut6chwnonutmcxo75wz7mpjxtim6c2naaarqpp5wa46ge",
 )
 
 
