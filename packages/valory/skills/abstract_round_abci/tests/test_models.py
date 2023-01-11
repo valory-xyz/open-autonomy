@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -395,7 +395,7 @@ class TestSharedState:
         assert shared_state.tm_recovery_params.reset_index == RESET_INDEX_DEFAULT
         assert (
             shared_state.tm_recovery_params.reset_from_round
-            == AbciAppTest.initial_round_cls
+            == AbciAppTest.initial_round_cls.auto_round_id()
         )
         assert shared_state.tm_recovery_params.reset_params is None
 

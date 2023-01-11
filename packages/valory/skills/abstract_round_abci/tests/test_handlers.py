@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 
 import json
 import logging
+from dataclasses import asdict
 from typing import Any, Dict, cast
 from unittest import mock
 from unittest.mock import MagicMock
@@ -66,6 +67,8 @@ from packages.valory.skills.abstract_round_abci.handlers import (
     Transaction,
     exception_to_info_msg,
 )
+from packages.valory.skills.abstract_round_abci.models import TendermintRecoveryParams
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import DummyRound
 
 
 def test_exception_to_info_msg() -> None:
@@ -397,8 +400,8 @@ class TestTendermintHandler:
         assert log_message in caplog.text
 
     # request
-    def test_handle_request(self, caplog: LogCaptureFixture) -> None:
-        """Test handle request"""
+    def test_handle_request_genesis_info(self, caplog: LogCaptureFixture) -> None:
+        """Test handle request for genesis info"""
         performative = TendermintMessage.Performative.REQUEST_GENESIS_INFO
         message = TendermintMessage(performative)  # type: ignore
         self.context.agent_address = message.sender = self.agent_name
@@ -409,7 +412,7 @@ class TestTendermintHandler:
 
     # response
     def test_handle_response_invalid_addresses(self, caplog: LogCaptureFixture) -> None:
-        """Test handle response invalid address"""
+        """Test handle response for genesis info with invalid address."""
         validator_config = self.dummy_validator_config
         validator_config[self.agent_name]["hostname"] = "random"
         performative = TendermintMessage.Performative.RESPONSE_GENESIS_INFO
@@ -421,8 +424,8 @@ class TestTendermintHandler:
         log_message = self.handler.LogMessages.failed_to_parse_address.value
         assert log_message in caplog.text
 
-    def test_handle_response_valid_addresses(self, caplog: LogCaptureFixture) -> None:
-        """Test handle response valid address"""
+    def test_handle_response_genesis_info(self, caplog: LogCaptureFixture) -> None:
+        """Test handle response for genesis info with valid address"""
         performative = TendermintMessage.Performative.RESPONSE_GENESIS_INFO
         info = json.dumps(self.dummy_validator_config[self.agent_name])
         message = TendermintMessage(performative, info=info)  # type: ignore
@@ -431,6 +434,86 @@ class TestTendermintHandler:
             self.handler.handle(message)
         log_message = self.handler.LogMessages.collected_config_info.value
         assert log_message in caplog.text
+
+    @pytest.mark.parametrize("registered", (True, False))
+    @pytest.mark.parametrize(
+        "performative",
+        (
+            TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS,
+            TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS,
+        ),
+    )
+    def test_recovery_params(
+        self,
+        registered: bool,
+        performative: TendermintMessage.Performative,
+        caplog: LogCaptureFixture,
+    ) -> None:
+        """Test handle response for recovery parameters."""
+        if performative == TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS:
+            self.context.state.tm_recovery_params = TendermintRecoveryParams(
+                "DummyRound"
+            )
+            message = TendermintMessage(performative)  # type: ignore
+            log_message = self.handler.LogMessages.sending_request_response.value
+        elif performative == TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS:
+            params = json.dumps(
+                asdict(TendermintRecoveryParams(DummyRound.auto_round_id()))
+            )
+            message = TendermintMessage(performative, params=params)  # type: ignore
+            log_message = self.handler.LogMessages.collected_params.value
+        else:
+            raise AssertionError(
+                f"Invalid performative {performative} for `test_recovery_params`."
+            )
+
+        self.context.agent_address = message.sender = self.agent_name
+        registered_addresses = (
+            {self.agent_name: {"dummy": "value"}} if registered else {}
+        )
+
+        with self.mocked_registered_addresses(registered_addresses):
+            self.handler.handle(message)
+
+        if not registered:
+            log_message = self.handler.LogMessages.not_in_registered_addresses.value
+
+        assert log_message in caplog.text
+
+    @pytest.mark.parametrize(
+        "side_effect, expected_exception",
+        (
+            (
+                json.decoder.JSONDecodeError("", "", 0),
+                ": line 1 column 1 (char 0)",
+            ),
+            (
+                {"not a dict"},
+                "argument after ** must be a mapping, not str",
+            ),
+        ),
+    )
+    def test_response_recovery_params_error(
+        self,
+        side_effect: Any,
+        expected_exception: str,
+        caplog: LogCaptureFixture,
+    ) -> None:
+        """Test handle response for recovery parameters."""
+        message = TendermintMessage(
+            TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS, params=MagicMock()  # type: ignore
+        )
+
+        self.context.agent_address = message.sender = self.agent_name
+        registered_addresses = {self.agent_name: {"dummy": "value"}}
+        with self.mocked_registered_addresses(registered_addresses), mock.patch.object(
+            json, "loads", side_effect=side_effect
+        ):
+            self.handler.handle(message)
+
+        log_message = self.handler.LogMessages.failed_to_parse_params.value
+        assert log_message in caplog.text
+        assert expected_exception in caplog.text
 
     # error
     def test_handle_error(self, caplog: LogCaptureFixture) -> None:
