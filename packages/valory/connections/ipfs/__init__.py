@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Scaffold of a connection."""
+"""A connection responsible for uploading and downloading files from IPFS."""

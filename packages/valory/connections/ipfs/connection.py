@@ -39,7 +39,6 @@ from ipfshttpclient.exceptions import ErrorResponse
 from packages.valory.protocols.ipfs import IpfsMessage
 from packages.valory.protocols.ipfs.dialogues import IpfsDialogue
 from packages.valory.protocols.ipfs.dialogues import IpfsDialogues as BaseIpfsDialogues
-from packages.valory.skills.abstract_round_abci.io_.ipfs import IPFSInteractionError
 
 
 CONNECTION_ID = PublicId.from_str("valory/ipfs:0.1.0")
@@ -90,7 +89,7 @@ class IpfsConnection(Connection):
         self.ipfs_tool: IPFSTool = IPFSTool(ipfs_domain)
         self.task_to_request: Dict[asyncio.Future, Envelope] = {}
         self.loop_executor: Optional[Executor] = None
-        self.dialogues = IpfsDialogues()
+        self.dialogues = IpfsDialogues(connection_id=CONNECTION_ID)
         self._response_envelopes: Optional[asyncio.Queue] = None
 
     @property
@@ -139,7 +138,7 @@ class IpfsConnection(Connection):
         ipfs_operation = self.loop.run_in_executor(
             self.loop_executor,
             func,
-            args,
+            *args,
         )
         timely_operation = asyncio.wait_for(ipfs_operation, timeout=timeout)
         task = self.loop.create_task(timely_operation)
@@ -183,7 +182,7 @@ class IpfsConnection(Connection):
         else:
             # multiple files are present, which means that it's a directory
             # we begin by checking that they belong to the same directory
-            dirs = {os.path.basename(path) for path in files.keys()}
+            dirs = {os.path.dirname(path) for path in files.keys()}
             if len(dirs) > 1:
                 err = (
                     f"Received files from different dirs {dirs}. "
@@ -257,7 +256,7 @@ class IpfsConnection(Connection):
             base_dir = Path(tmp_dir)
             if os.path.isdir(base_dir / downloaded_file):
                 base_dir = base_dir / downloaded_file
-                files_to_be_read = os.listdir(downloaded_file)
+                files_to_be_read = os.listdir(base_dir)
 
             for file_path in files_to_be_read:
                 with open(base_dir / file_path, encoding="utf-8", mode="r") as file:
@@ -313,12 +312,11 @@ class IpfsConnection(Connection):
         with open(path, "w", encoding="utf-8") as f:
             f.write(data)
 
-    @staticmethod
-    def __remove_filepath(filepath: str) -> None:
+    def __remove_filepath(self, filepath: str) -> None:
         """Remove a file or a folder. If filepath is not a file or a folder, an `IPFSInteractionError` is raised."""
         if os.path.isfile(filepath):
             os.remove(filepath)
         elif os.path.isdir(filepath):
             rmtree(filepath)
         else:  # pragma: no cover
-            raise IPFSInteractionError(f"`{filepath}` is not an existing filepath!")
+            self.logger.error(f"`{filepath}` is not an existing filepath!")

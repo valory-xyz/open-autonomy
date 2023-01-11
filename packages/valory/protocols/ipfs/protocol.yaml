@@ -7,12 +7,13 @@ description: A protocol specification for IPFS requests and responses.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: bafybeicpfqaphmurjbih7fc73l7nnwzixibyod7bhychy553dvsekqlkra
-  dialogues.py: bafybeihlnjaqvq5765hqttoqe3aeql572veyfbawsrcyko4wvds5wv7gwe
+  __init__.py: bafybeifol2f5w2eeqt5hteuplbjv3fitqcplpkqkaxidjpeg52uatfvmky
+  dialogues.py: bafybeifu53smbtzthso4jklwgsymexsy2v423632s2g2frmpbovu2wgclm
   ipfs.proto: bafybeierx4g3qzwvyxtxo6qjul7xeuhocoffdews2kfb7hyx5tndnaibdy
-  ipfs_pb2.py: bafybeiec7k7tnxctqami5i3yhd6vttoo25goaqqp5l7vljtjritry26mom
-  message.py: bafybeihufe4v6jlwrzz5doeesr3tdsjgksi2shymrcdngfhmi3h6rsqoie
-  serialization.py: bafybeifi5snrp4knrxwftskyjb5zuipjfqeipqw6nxn4mbk42vdwkstxd4
+  ipfs_pb2.py: bafybeia43wexqhemg37iakcicrbtzxu7ihscafqo4pwipgeqk465m5nrpi
+  message.py: bafybeiecutr3jejmonvdmwkgfhompyxfpw6fjkfdlnukfvis3gabclopsq
+  protocol-spec.yaml: bafybeibkmrkekyh2mb4mby65thgxvf5oqomsy5osjdp4cwq76yphjaerfa
+  serialization.py: bafybeidpuj4me6w76fl2i344fd3h5smyfjldf6uekuhjo4ifthwsa67jai
 fingerprint_ignore_patterns: []
 dependencies:
   protobuf: {}

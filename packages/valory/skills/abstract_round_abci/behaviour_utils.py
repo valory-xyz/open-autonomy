@@ -402,7 +402,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
 
     def _build_ipfs_store_file_req(  # pylint: disable=too-many-arguments
         self,
-        filepath: str,
+        filename: str,
         obj: SupportedObjectType,
         multiple: bool = False,
         filetype: Optional[SupportedFiletype] = None,
@@ -410,9 +410,18 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         timeout: Optional[float] = None,
         **kwargs: Any,
     ) -> Tuple[IpfsMessage, IpfsDialogue]:
-        """Send a file to IPFS."""
+        """
+        Builds a STORE_FILES ipfs message.
+
+        :param filename: the file name to store obj in. If "multiple" is True, filename will be the name of the dir.
+        :param obj: the object(s) to serialize and store in IPFS as "filename".
+        :param multiple: whether obj should be stored as multiple files, i.e. directory.
+        :param custom_storer: a custom serializer for "obj".
+        :param timeout: timeout for the request.
+        :returns: the ipfs message, and its corresponding dialogue.
+        """
         serialized_objects = self._ipfs_interact.store(
-            filepath, obj, multiple, filetype, custom_storer, **kwargs
+            filename, obj, multiple, filetype, custom_storer, **kwargs
         )
         message, dialogue = self._build_ipfs_message(
             performative=IpfsMessage.Performative.STORE_FILES,
@@ -426,7 +435,13 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         ipfs_hash: str,
         timeout: Optional[float] = None,
     ) -> Tuple[IpfsMessage, IpfsDialogue]:
-        """Builds a GET_FILES IPFS request."""
+        """
+        Builds a GET_FILES IPFS request.
+
+        :param ipfs_hash: the ipfs hash of the file/dir to download.
+        :param timeout: timeout for the request.
+        :returns: the ipfs message, and its corresponding dialogue.
+        """
         message, dialogue = self._build_ipfs_message(
             performative=IpfsMessage.Performative.GET_FILES,
             ipfs_hash=ipfs_hash,
@@ -440,7 +455,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         filetype: Optional[SupportedFiletype] = None,
         custom_loader: CustomLoaderType = None,
     ) -> Optional[SupportedObjectType]:
-        """Deserialize a objects received from IPFS."""
+        """Deserialize objects received from IPFS."""
         deserialized_object = self._ipfs_interact.load(
             serialized_objects, filetype, custom_loader
         )
@@ -1900,7 +1915,7 @@ class BaseBehaviour(
 
     def send_to_ipfs(  # pylint: disable=too-many-arguments
         self,
-        filepath: str,
+        filename: str,
         obj: SupportedObjectType,
         multiple: bool = False,
         filetype: Optional[SupportedFiletype] = None,
@@ -1908,26 +1923,28 @@ class BaseBehaviour(
         timeout: Optional[float] = None,
         **kwargs: Any,
     ) -> Generator[None, None, Optional[str]]:
-        """Send a file to IPFS."""
-        # TODO: add better docstring
+        """
+        Store an object on IPFS.
+
+        :param filename: the file name to store obj in. If "multiple" is True, filename will be the name of the dir.
+        :param obj: the object(s) to serialize and store in IPFS as "filename".
+        :param multiple: whether obj should be stored as multiple files, i.e. directory.
+        :param filetype: the file type of the object being downloaded.
+        :param custom_storer: a custom serializer for "obj".
+        :param timeout: timeout for the request.
+        :returns: the downloaded object, corresponding to ipfs_hash.
+        """
         try:
             message, dialogue = self._build_ipfs_store_file_req(
-                filepath,
+                filename,
                 obj,
                 multiple,
                 filetype,
                 custom_storer,
-                timeout=timeout,
+                timeout,
                 **kwargs,
             )
-            self.context.outbox.put_message(message=message)
-            request_nonce = self._get_request_nonce_from_dialogue(dialogue)
-            cast(Requests, self.context.requests).request_id_to_callback[
-                request_nonce
-            ] = self.get_callback_request()
-            # notify caller by propagating potential timeout exception.
-            response = yield from self.wait_for_message(timeout=timeout)
-            ipfs_message = cast(IpfsMessage, response)
+            ipfs_message = yield from self._do_ipfs_request(dialogue, message, timeout)
             if ipfs_message.performative != IpfsMessage.Performative.IPFS_HASH:
                 self.context.logger.error(
                     f"Expected performative {IpfsMessage.Performative.IPFS_HASH} but got {ipfs_message.performative}."
@@ -1944,23 +1961,23 @@ class BaseBehaviour(
 
     def get_from_ipfs(  # pylint: disable=too-many-arguments
         self,
-        hash_: str,
+        ipfs_hash: str,
         filetype: Optional[SupportedFiletype] = None,
         custom_loader: CustomLoaderType = None,
         timeout: Optional[float] = None,
     ) -> Generator[None, None, Optional[SupportedObjectType]]:
-        """Get a file from IPFS."""
-        # TODO: better docstring
+        """
+        Gets an object from IPFS.
+
+        :param ipfs_hash: the ipfs hash of the file/dir to download.
+        :param filetype: the file type of the object being downloaded.
+        :param custom_loader: a custom deserializer for the object received from IPFS.
+        :param timeout: timeout for the request.
+        :returns: the downloaded object, corresponding to ipfs_hash.
+        """
         try:
-            message, dialogue = self._build_ipfs_get_file_req(hash_, timeout)
-            self.context.outbox.put_message(message=message)
-            request_nonce = self._get_request_nonce_from_dialogue(dialogue)
-            cast(Requests, self.context.requests).request_id_to_callback[
-                request_nonce
-            ] = self.get_callback_request()
-            # notify caller by propagating potential timeout exception.
-            response = yield from self.wait_for_message(timeout=timeout)
-            ipfs_message = cast(IpfsMessage, response)
+            message, dialogue = self._build_ipfs_get_file_req(ipfs_hash, timeout)
+            ipfs_message = yield from self._do_ipfs_request(dialogue, message, timeout)
             if ipfs_message.performative != IpfsMessage.Performative.FILES:
                 self.context.logger.error(
                     f"Expected performative {IpfsMessage.Performative.FILES} but got {ipfs_message.performative}."
@@ -1976,6 +1993,23 @@ class BaseBehaviour(
                 f"An error occurred while trying to fetch a file from IPFS: {str(e)}"
             )
             return None
+
+    def _do_ipfs_request(
+        self,
+        dialogue: IpfsDialogue,
+        message: IpfsMessage,
+        timeout: Optional[float] = None,
+    ) -> Generator[None, None, IpfsMessage]:
+        """Performs an IPFS request, and asynchronosuly waits for response."""
+        self.context.outbox.put_message(message=message)
+        request_nonce = self._get_request_nonce_from_dialogue(dialogue)
+        cast(Requests, self.context.requests).request_id_to_callback[
+            request_nonce
+        ] = self.get_callback_request()
+        # notify caller by propagating potential timeout exception.
+        response = yield from self.wait_for_message(timeout=timeout)
+        ipfs_message = cast(IpfsMessage, response)
+        return ipfs_message
 
 
 class TmManager(BaseBehaviour):

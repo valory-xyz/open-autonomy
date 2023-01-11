@@ -6,12 +6,13 @@ description: A connection responsible for uploading and downloading files from I
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: bafybeihx4cg3fegtz7lxwc4yet2kmtjst5be4lxwm5nyjqsidrnq7db5ly
-  connection.py: bafybeifeqclmmhkevfdq6dvnpcr2j25yqh7c5gq3vfirmagpt4vkifmpge
-  readme.md: bafybeihg5yfzgqvg5ngy7r2o5tfeqnelx2ffxw4po5hmheqjfhumpmxpoq
+  __init__.py: bafybeia3p6wdr7uffr7mke6isfazkez6g52iiwxhqrgcas252m322sbbzm
+  connection.py: bafybeig3af7dedasnmgdjn6umoyo24zwa44dax3xxyihiv7x4hesgcnlk4
+  readme.md: bafybeihdrtloo2stz7frhfhtl5m7ewwigdeehnujf6julwj6c5pzr7iefu
 fingerprint_ignore_patterns: []
 connections: []
-protocols: []
+protocols:
+- valory/ipfs:0.1.0:bafybeid5wkz6vtfzxcce7wc6ne2mxvbnkxklsqcd37ddabjolt5on6axw4
 class_name: IpfsConnection
 config:
   ipfs_domain: null
