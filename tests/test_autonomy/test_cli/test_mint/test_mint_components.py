@@ -47,13 +47,6 @@ class DummyContract:
         """Dummy method implementation"""
 
 
-class DummyContracts:
-    """Dummy contracts"""
-
-    component_registry = DummyContract()
-    agent_registry = DummyContract()
-
-
 @skip_docker_tests
 @pytest.mark.usefixtures("registries_scope_class")
 class TestMintComponents(BaseCliTest):
