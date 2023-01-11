@@ -173,6 +173,7 @@ class SharedState(Model):
         self.abci_app_cls = self._process_abci_app_cls(abci_app_cls)
         self.abci_app_cls._is_abstract = skill_context.is_abstract_component
         self._round_sequence: Optional[RoundSequence] = None
+        self.address_to_acn_deliverable: Dict[str, Any] = {}
         self.tm_recovery_params: TendermintRecoveryParams = TendermintRecoveryParams(
             self.abci_app_cls.initial_round_cls.auto_round_id()
         )
