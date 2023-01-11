@@ -20,8 +20,6 @@
 """This module contains the transaction payloads for the Hello World skill."""
 from abc import ABC
 from enum import Enum
-from typing import Any, Dict
-
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
 
@@ -42,128 +40,38 @@ class TransactionType(Enum):
 class BaseHelloWorldAbciPayload(BaseTxPayload, ABC):
     """Base class for the Hello World abci demo."""
 
-    def __hash__(self) -> int:
-        """Hash the payload."""
-        return hash(tuple(sorted(self.data.items())))
-
 
 class RegistrationPayload(BaseHelloWorldAbciPayload):
     """Represent a transaction payload of type 'registration'."""
 
+    a: int
     transaction_type = TransactionType.REGISTRATION
 
 
 class CollectRandomnessPayload(BaseHelloWorldAbciPayload):
     """Represent a transaction payload of type 'randomness'."""
 
+    round_id: int
+    randomness: str
     transaction_type = TransactionType.RANDOMNESS
-
-    def __init__(
-        self, sender: str, round_id: int, randomness: str, **kwargs: Any
-    ) -> None:
-        """Initialize an 'select_keeper' transaction payload.
-
-        We send the DRAND "round_id" to be able to discriminate between payloads
-        from different DRAND rounds more easily.
-
-        :param sender: the sender (Ethereum) address
-        :param round_id: the round id
-        :param randomness: the randomness
-        :param kwargs: the keyword arguments
-        """
-        super().__init__(sender, **kwargs)
-        self._round_id = round_id
-        self._randomness = randomness
-
-    @property
-    def round_id(self) -> int:
-        """Get the round id."""
-        return self._round_id
-
-    @property
-    def randomness(self) -> str:
-        """Get the randomness."""
-        return self._randomness
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(round_id=self.round_id, randomness=self.randomness)
 
 
 class PrintMessagePayload(BaseHelloWorldAbciPayload):
     """Represent a transaction payload of type 'randomness'."""
 
+    message: str
     transaction_type = TransactionType.PRINT_MESSAGE
-
-    def __init__(self, sender: str, message: str, **kwargs: Any) -> None:
-        """Initialize a 'select_keeper' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param message: the message printed by the agent
-        :param kwargs: the keyword arguments
-        """
-        super().__init__(sender, **kwargs)
-        self._message = message
-
-    @property
-    def message(self) -> str:
-        """Get the message"""
-        return self._message
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(message=self.message)
 
 
 class SelectKeeperPayload(BaseHelloWorldAbciPayload):
     """Represent a transaction payload of type 'select_keeper'."""
 
+    keeper: str
     transaction_type = TransactionType.SELECT_KEEPER
-
-    def __init__(self, sender: str, keeper: str, **kwargs: Any) -> None:
-        """Initialize an 'select_keeper' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param keeper: the keeper selection
-        :param kwargs: the keyword arguments
-        """
-        super().__init__(sender, **kwargs)
-        self._keeper = keeper
-
-    @property
-    def keeper(self) -> str:
-        """Get the keeper."""
-        return self._keeper
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(keeper=self.keeper)
 
 
 class ResetPayload(BaseHelloWorldAbciPayload):
     """Represent a transaction payload of type 'reset'."""
 
+    period_count: int
     transaction_type = TransactionType.RESET
-
-    def __init__(self, sender: str, period_count: int, **kwargs: Any) -> None:
-        """Initialize an 'rest' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param period_count: the period count id
-        :param kwargs: the keyword arguments
-        """
-        super().__init__(sender, **kwargs)
-        self._period_count = period_count
-
-    @property
-    def period_count(self) -> int:
-        """Get the period_count."""
-        return self._period_count
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(period_count=self.period_count)
