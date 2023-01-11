@@ -22,9 +22,7 @@
 # pylint: skip-file
 
 import json
-import os.path
-from pathlib import PosixPath
-from typing import Dict, Optional, cast
+from typing import Optional, cast
 
 import pytest
 
@@ -34,15 +32,15 @@ from packages.valory.skills.abstract_round_abci.io_.load import (
     Loader,
     SupportedLoaderType,
 )
-from packages.valory.skills.abstract_round_abci.io_.store import (
-    StoredJSONType,
-    SupportedFiletype,
-    SupportedMultipleObjectsType,
-)
+from packages.valory.skills.abstract_round_abci.io_.store import SupportedFiletype
 
 
 class TestLoader:
     """Tests for the `Loader`."""
+
+    def setup(self) -> None:
+        """Setup the tests."""
+        self.json_loader = Loader(SupportedFiletype.JSON, None)
 
     def __dummy_custom_loader(self) -> None:
         """A dummy custom loading function to use for the tests."""
@@ -84,59 +82,33 @@ class TestLoader:
                 == expected_loader.__code__.co_code
             )
 
-    @staticmethod
-    @pytest.mark.parametrize("multiple", (True, False))
-    def test_load(
-        multiple: bool,
-        tmp_path: PosixPath,
-        dummy_obj: StoredJSONType,
-        dummy_multiple_obj: Dict[str, StoredJSONType],
-    ) -> None:
+    def test_load(self) -> None:
         """Test `load`."""
-        loader = Loader(SupportedFiletype.JSON, None)
+        expected_object = dummy_object = {"test": "test"}
+        filename = "test"
+        serialized_object = json.dumps(dummy_object)
+        actual_object = self.json_loader.load({filename: serialized_object})
+        assert expected_object == actual_object
 
-        if multiple:
-            # test with non-directory path
-            with pytest.raises(
-                ValueError,
-                match="Cannot load multiple files from `non_directory_path`! "
-                "Please make sure that the path is a folder containing the files.",
-            ):
-                loader.load("non_directory_path", multiple)
+    def test_no_object(self) -> None:
+        """Test `load` throws error when no object is provided."""
+        with pytest.raises(
+            ValueError,
+            match='"serialized_objects" does not contain any objects',
+        ):
+            self.json_loader.load({})
 
-            # create a dummy folder to store multiple dummy objects to test the loader with them.
-            dummy_folder_path = os.path.join(tmp_path, "dummy_folder")
-            os.mkdir(dummy_folder_path)
-            # store dummy objects.
-            for name, obj in dummy_multiple_obj.items():
-                path = os.path.join(dummy_folder_path, name)
-                with open(path, "w") as outfile:
-                    json.dump(obj, outfile)
-
-            # load with loader.
-            loaded_objects = cast(
-                SupportedMultipleObjectsType, loader.load(dummy_folder_path, multiple)
-            )
-            assert len(loaded_objects) == len(
-                dummy_multiple_obj
-            ), "loaded objects length and dummy objects length do not match."
-            assert set(loaded_objects.keys()) == set(
-                dummy_multiple_obj.keys()
-            ), "loaded objects and dummy objects filenames do not match."
-
-            # iterate through the loaded objects and their filenames and the dummy objects and their filenames.
-            for actual_json, expected_json in zip(
-                loaded_objects.values(), dummy_multiple_obj.values()
-            ):
-                # assert loaded json with expected.
-                assert actual_json == expected_json
-
-        else:
-            # store dummy object.
-            path = os.path.join(tmp_path, "dummy_obj.csv")
-            with open(path, "w") as outfile:
-                json.dump(dummy_obj, outfile)
-            # load with loader.
-            loaded_obj = loader.load(path, multiple)
-            # assert loaded json with expected.
-            assert loaded_obj == dummy_obj
+    def test_load_multiple_objects(self) -> None:
+        """Test `load` when multiple objects are to be deserialized."""
+        dummy_object = {"test": "test"}
+        serialized_object = json.dumps(dummy_object)
+        serialized_objects = {
+            "obj1": serialized_object,
+            "obj2": serialized_object,
+        }
+        expected_objects = {
+            "obj1": dummy_object,
+            "obj2": dummy_object,
+        }
+        actual_objects = self.json_loader.load(serialized_objects)
+        assert expected_objects == actual_objects

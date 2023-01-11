@@ -71,7 +71,7 @@ class AbstractStorer(ABC):
     def store(
         self, obj: SupportedObjectType, multiple: bool, **kwargs: Any
     ) -> Dict[str, str]:
-        """Store one or multiple objects."""
+        """Serialize one or multiple objects."""
         serialized_files: Dict[str, str] = {}
         if multiple:
             if not isinstance(obj, dict):  # pragma: no cover

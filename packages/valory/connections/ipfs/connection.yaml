@@ -6,8 +6,8 @@ description: A connection responsible for uploading and downloading files from I
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: bafybeia3p6wdr7uffr7mke6isfazkez6g52iiwxhqrgcas252m322sbbzm
-  connection.py: bafybeig3af7dedasnmgdjn6umoyo24zwa44dax3xxyihiv7x4hesgcnlk4
+  __init__.py: bafybeiercvjoct4tygo4oif5y4chnst2y7b6mhdgdj3zvoeakstbn4m7g4
+  connection.py: bafybeifi64ox7jwhnska4ryzakkkwygneh6i7zmijdfwdbyy6kzeq6bnpq
   readme.md: bafybeihdrtloo2stz7frhfhtl5m7ewwigdeehnujf6julwj6c5pzr7iefu
 fingerprint_ignore_patterns: []
 connections: []

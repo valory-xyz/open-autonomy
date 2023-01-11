@@ -29,6 +29,10 @@ import pytest
 from aea.protocols.dialogue.base import Dialogues
 from aea.skills.base import Model
 
+from packages.valory.connections.ipfs.connection import (
+    CONNECTION_ID as IPFS_CONNECTION_ID,
+)
+from packages.valory.protocols.ipfs import IpfsMessage
 from packages.valory.skills.abstract_round_abci.dialogues import (
     AbciDialogue,
     AbciDialogues,
@@ -36,6 +40,7 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     ContractApiDialogues,
     HttpDialogue,
     HttpDialogues,
+    IpfsDialogues,
     LedgerApiDialogue,
     LedgerApiDialogues,
     SigningDialogue,
@@ -86,3 +91,12 @@ def test_contract_api_dialogue() -> None:
     expected_terms = MagicMock()
     dialogue.terms = expected_terms
     assert expected_terms == dialogue.terms
+
+
+def test_ipfs_dialogue() -> None:
+    """Test 'IpfsDialogues' creation."""
+    dialogues = IpfsDialogues(name="", skill_context=MagicMock())
+    dialogues.create(
+        counterparty=str(IPFS_CONNECTION_ID),
+        performative=IpfsMessage.Performative.GET_FILES,
+    )

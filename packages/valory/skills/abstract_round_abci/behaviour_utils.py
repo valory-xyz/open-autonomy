@@ -424,7 +424,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
             filename, obj, multiple, filetype, custom_storer, **kwargs
         )
         message, dialogue = self._build_ipfs_message(
-            performative=IpfsMessage.Performative.STORE_FILES,
+            performative=IpfsMessage.Performative.STORE_FILES,  # type: ignore
             files=serialized_objects,
             timeout=timeout,
         )
@@ -443,7 +443,7 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         :returns: the ipfs message, and its corresponding dialogue.
         """
         message, dialogue = self._build_ipfs_message(
-            performative=IpfsMessage.Performative.GET_FILES,
+            performative=IpfsMessage.Performative.GET_FILES,  # type: ignore
             ipfs_hash=ipfs_hash,
             timeout=timeout,
         )
@@ -1951,7 +1951,7 @@ class BaseBehaviour(
                 )
                 return None
             ipfs_hash = ipfs_message.ipfs_hash
-            self.context.logger.info(f"IPFS hash is: {ipfs_hash}")
+            self.context.logger.info(f"Successfully stored with IPFS hash: {ipfs_hash}")
             return ipfs_hash
         except IPFSInteractionError as e:  # pragma: no cover
             self.context.logger.error(
@@ -1986,6 +1986,9 @@ class BaseBehaviour(
             serialized_objects = ipfs_message.files
             deserialized_objects = self._deserialize_ipfs_objects(
                 serialized_objects, filetype, custom_loader
+            )
+            self.context.logger.info(
+                f"Retrieved {len(ipfs_message.files)} objects from ipfs."
             )
             return deserialized_objects
         except IPFSInteractionError as e:

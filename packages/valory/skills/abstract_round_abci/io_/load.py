@@ -54,7 +54,7 @@ class AbstractLoader(ABC):
         """
         if len(serialized_objects) == 0:
             # no objects are present, raise an error
-            raise ValueError('"serialized_files" does not contain any objects')
+            raise ValueError('"serialized_objects" does not contain any objects')
 
         objects = {}
         for filename, body in serialized_objects.items():
