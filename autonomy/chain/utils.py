@@ -27,7 +27,7 @@ from aea.crypto.base import LedgerApi
 from requests import get as r_get
 from requests.exceptions import ConnectionError as RequestConnectionError
 
-from autonomy.chain.base import RegistryContracts
+from autonomy.chain.base import registry_contracts
 from autonomy.chain.exceptions import DependencyError, FailedToRetrieveComponentMetadata
 from autonomy.chain.metadata import IPFS_URI_PREFIX
 
@@ -45,7 +45,7 @@ def resolve_component_id(
 ) -> Dict:
     """Resolve component ID"""
 
-    metadata_uri = RegistryContracts.component_registry().get_token_uri(
+    metadata_uri = registry_contracts.component_registry.get_token_uri(
         ledger_api=ledger_api,
         contract_address=contract_address,
         token_id=token_id,

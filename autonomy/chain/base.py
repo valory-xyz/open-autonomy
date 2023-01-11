@@ -65,38 +65,41 @@ class RegistryContracts:
             )
         return Contract.from_dir(directory=contract_dir)
 
-    @classmethod
+    @property
     def registries_manager(
-        cls,
+        self,
     ) -> Contract:
         """Returns an instance of the registries manager contract."""
-        if cls._registries_manager is None:
-            cls._registries_manager = cls.get_contract(
+        if self._registries_manager is None:
+            self._registries_manager = self.get_contract(
                 public_id=REGISTRIES_MANAGER_CONTRACT
             )
 
-        return cls._registries_manager
+        return self._registries_manager
 
-    @classmethod
+    @property
     def component_registry(
-        cls,
+        self,
     ) -> Contract:
         """Returns an instance of the registries manager contract."""
-        if cls._component_registry is None:
-            cls._component_registry = cls.get_contract(
+        if self._component_registry is None:
+            self._component_registry = self.get_contract(
                 public_id=COMPONENT_REGISTRY_CONTRACT
             )
 
-        return cls._component_registry
+        return self._component_registry
 
-    @classmethod
+    @property
     def agent_registry(
-        cls,
+        self,
     ) -> Contract:
         """Returns an instance of the registries manager contract."""
-        if cls._agent_registry is None:
-            cls._agent_registry = cls.get_contract(
+        if self._agent_registry is None:
+            self._agent_registry = self.get_contract(
                 public_id=AGENT_REGISTRY_CONTRACT,
             )
 
-        return cls._agent_registry
+        return self._agent_registry
+
+
+registry_contracts = RegistryContracts()
