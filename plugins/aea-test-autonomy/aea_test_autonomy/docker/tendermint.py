@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -357,3 +357,17 @@ class FlaskTendermintDockerImage(TendermintDockerImage):
                 pytest.fail(
                     f"Tendermint node {http_rpc_laddr} did not pass health-check"
                 )
+
+    @staticmethod
+    def cleanup(nb_containers: int) -> None:
+        """Cleanup dangling containers."""
+        cmd = [
+            "docker",
+            "rm",
+        ]
+        for i in range(nb_containers):
+            cmd.append(FlaskTendermintDockerImage.get_node_name(i))
+
+        # this will get rid of the containers even if they are healthy
+        cmd.append("--force")
+        subprocess.run(cmd)  # nosec  # pylint: disable=subprocess-run-check

@@ -162,3 +162,14 @@ def test_run(nb_nodes: int) -> None
 
 Run the test.
 
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2EndExecution.teardown_class"></a>
+
+#### teardown`_`class
+
+```python
+@classmethod
+def teardown_class(cls) -> None
+```
+
+Teardown the test.
+

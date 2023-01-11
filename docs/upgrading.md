@@ -5,6 +5,14 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.6.0` to `v0.7.0`
+
+Breaking changes
+
+- The new `AbstractRound` and `BaseBehaviour` meta classes enforce checks on the class attributes. For concrete classes inheriting from `AbstractRound` the developer must set `synchronized_data_class`, `allowed_tx_type` and `payload_attribute`. For concrete classes inheriting from `BaseBehaviour` the developer must set `matching_round`. These assumptions were present before but not enforced at the class definition level by the framework.
+- The set of `all_participants` is now retrieved from the safe instance referenced by `safe_contract_address` and assumed to be present on the target chain.
+- The usage of `safe_deployment_abci` has been deprecated and support for the package has been dropped. From now on, use the development tools for running a local development image with pre-configured safe to test your applications.
+
 ## `v0.5.0.post2` to `v0.6.0`
 
 Breaking changes
