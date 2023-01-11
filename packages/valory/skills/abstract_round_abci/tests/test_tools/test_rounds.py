@@ -86,20 +86,20 @@ class DummyTxPayloadMatcher:
         return (
             "DummyTxPayload("
             f"id={repr(self.expected.id_)}, "
-            f"round_count={repr(self.expected._round_count)}, "
+            f"round_count={repr(self.expected.round_count)}, "
             f"sender={repr(self.expected.sender)}, "
-            f"value={repr(self.expected._value)}, "
-            f"vote={repr(self.expected._vote)}"
+            f"value={repr(self.expected.value)}, "
+            f"vote={repr(self.expected.vote)}"
             ")"
         )
 
     def __eq__(self, other: Any) -> bool:
         """The method that will be used for the assertion comparisons."""
         return (
-            self.expected._round_count == other._round_count
+            self.expected.round_count == other.round_count
             and self.expected.sender == other.sender
-            and self.expected._value == other._value
-            and self.expected._vote == other._vote
+            and self.expected.value == other.value
+            and self.expected.vote == other.vote
         )
 
 
@@ -137,15 +137,15 @@ class TestDummyTxPayload:  # pylint: disable=too-few-public-methods
     """Test class for `DummyTxPayload`"""
 
     @staticmethod
-    @given(st.text(max_size=200), st.binary(max_size=500), st.booleans(), st.integers())
+    @given(st.text(max_size=200), st.binary(max_size=500), st.booleans())
     def test_properties(
-        sender: str, value: bytes, vote: bool, round_count: int
+        sender: str, value: bytes, vote: bool,
     ) -> None:
         """Test all the properties."""
-        dummy_tx_payload = DummyTxPayload(sender, value, vote, round_count)
+        dummy_tx_payload = DummyTxPayload(sender, value, vote)
         assert dummy_tx_payload.value == value
         assert dummy_tx_payload.vote == vote
-        assert dummy_tx_payload.data == {"value": value}
+        assert dummy_tx_payload.data == {"value": value, "vote": vote}
 
 
 class TestDummySynchronizedData:  # pylint: disable=too-few-public-methods
