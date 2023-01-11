@@ -146,6 +146,7 @@ The purpose of this metaclass is to remember the association
 between the type of payload and the payload class to build it.
 This is necessary to recover the right payload class to instantiate
 at decoding time.
+
 Each class that has this class as metaclass must have a class
 attribute 'transaction_type', which for simplicity is required
 to be convertible to string, for serialization purposes.
@@ -300,48 +301,6 @@ def __eq__(other: Any) -> bool
 ```
 
 Check equality.
-
-<a id="packages.valory.skills.abstract_round_abci.base.NewTransaction"></a>
-
-## NewTransaction Objects
-
-```python
-@dataclass
-class NewTransaction()
-```
-
-Class to represent a transaction for the ephemeral chain of a period.
-
-<a id="packages.valory.skills.abstract_round_abci.base.NewTransaction.__bytes__"></a>
-
-#### `__`bytes`__`
-
-```python
-def __bytes__() -> bytes
-```
-
-Serialize the transaction to bytes
-
-<a id="packages.valory.skills.abstract_round_abci.base.NewTransaction.from_bytes"></a>
-
-#### from`_`bytes
-
-```python
-@classmethod
-def from_bytes(cls, obj: bytes) -> "NewTransaction"
-```
-
-Deserialize the transaction from bytes
-
-<a id="packages.valory.skills.abstract_round_abci.base.NewTransaction.verify"></a>
-
-#### verify
-
-```python
-def verify(ledger_id: str) -> None
-```
-
-Verify the signature is correct.
 
 <a id="packages.valory.skills.abstract_round_abci.base.Block"></a>
 

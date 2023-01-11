@@ -352,6 +352,7 @@ class TestMetaPayloadUtilityMethods:
     def test_meta_payload_validate_tx_type(self) -> None:
         """
         Test _MetaPayload._validate_transaction_type utility method.
+
         First, it registers a class object with a transaction type name into the
         _MetaPayload map from transaction type name to classes.
         Then, it tries to validate a new insertion with the same transaction type name
@@ -381,6 +382,7 @@ class TestMetaPayloadUtilityMethods:
     def teardown(self) -> None:
         """Tear down the test."""
         _MetaPayload.transaction_type_to_payload_cls = self.old_value
+
 
 def test_initialize_block() -> None:
     """Test instantiation of a Block instance."""
