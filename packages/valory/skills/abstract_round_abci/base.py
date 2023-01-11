@@ -164,42 +164,17 @@ class _MetaPayload(ABCMeta):
         if ABC in bases:
             # abstract class, return
             return new_cls
-        if issubclass(new_cls, BaseTxPayload):
-            mcs.transaction_type_to_payload_cls[new_cls.__name__] = new_cls  # type: ignore
-            return new_cls
         if not issubclass(new_cls, BaseTxPayload):
             raise ValueError(  # pragma: no cover
                 f"class {name} must inherit from {BaseTxPayload.__name__}"
             )
-        new_cls = cast(Type[BaseTxPayload], new_cls)
-
-        transaction_type = str(mcs._get_field(new_cls, "transaction_type"))
-        mcs._validate_transaction_type(transaction_type, new_cls)
-        # remember association from transaction type to payload class
-        mcs.transaction_type_to_payload_cls[transaction_type] = new_cls
-
+        if new_cls.__init__ is not BaseTxPayload.__init__:
+            raise ValueError("All payloads must be dataclass-style: do not implement __init__")
+        cls = mcs.transaction_type_to_payload_cls.get(new_cls.__name__)
+        if cls and cls is not new_cls:
+            ValueError(f"Cannot create {new_cls}, because there already exists a class with this name: {cls}")
+        mcs.transaction_type_to_payload_cls[new_cls.__name__] = new_cls
         return new_cls
-
-    @classmethod
-    def _validate_transaction_type(
-        mcs, transaction_type: str, new_payload_cls: Type["BaseTxPayload"]
-    ) -> None:
-        """Check that a transaction type is not already associated to a concrete payload class."""
-        if transaction_type in mcs.transaction_type_to_payload_cls:
-            previous_payload_cls = mcs.transaction_type_to_payload_cls[transaction_type]
-            if new_payload_cls.__name__ != previous_payload_cls.__name__:
-                raise ValueError(
-                    f"transaction type with name {transaction_type} already "
-                    f"used by class {previous_payload_cls}, and cannot be "
-                    f"used by class {new_payload_cls} "
-                )
-
-    @classmethod
-    def _get_field(mcs, cls: Type, field_name: str) -> Any:
-        """Get a field from a class if present, otherwise raise error."""
-        if not hasattr(cls, field_name) or getattr(cls, field_name) is None:
-            raise ValueError(f"class {cls} must set '{field_name}' class field")
-        return getattr(cls, field_name)
 
 
 @dataclass(frozen=True)
