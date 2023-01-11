@@ -18,9 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for the reset_pause_abci app."""
-from enum import Enum
-from typing import Any, Dict
+
 from dataclasses import dataclass
+from enum import Enum
+
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
 
@@ -32,6 +33,7 @@ class TransactionType(Enum):
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
         return self.value
+
 
 @dataclass(frozen=True)
 class ResetPausePayload(BaseTxPayload):

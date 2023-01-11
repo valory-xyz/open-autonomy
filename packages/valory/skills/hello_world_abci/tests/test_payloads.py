@@ -43,9 +43,7 @@ def test_registration_payload() -> None:
 def test_collect_randomness_payload() -> None:
     """Test `CollectRandomnessPayload`"""
 
-    payload = CollectRandomnessPayload(
-        sender="sender", round_id=1, randomness="1"
-    )
+    payload = CollectRandomnessPayload(sender="sender", round_id=1, randomness="1")
 
     assert payload.round_id == 1
     assert payload.randomness == "1"

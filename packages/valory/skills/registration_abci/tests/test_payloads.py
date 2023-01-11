@@ -35,7 +35,7 @@ def test_registration_abci_payload() -> None:
 
     payload = RegistrationPayload(sender="sender", initialisation="dummy")
 
-    assert payload.initialisation is "dummy"
+    assert payload.initialisation == "dummy"
     assert payload.data == {"initialisation": "dummy"}
     assert payload.transaction_type == TransactionType.REGISTRATION
     assert RegistrationPayload.from_json(payload.json) == payload

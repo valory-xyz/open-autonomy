@@ -139,7 +139,9 @@ class TestDummyTxPayload:  # pylint: disable=too-few-public-methods
     @staticmethod
     @given(st.text(max_size=200), st.binary(max_size=500), st.booleans())
     def test_properties(
-        sender: str, value: bytes, vote: bool,
+        sender: str,
+        value: bytes,
+        vote: bool,
     ) -> None:
         """Test all the properties."""
         dummy_tx_payload = DummyTxPayload(sender, value, vote)

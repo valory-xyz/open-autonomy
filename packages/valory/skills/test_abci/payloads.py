@@ -19,10 +19,11 @@
 
 """This module contains the transaction payloads for the test_abci app."""
 from abc import ABC
+from dataclasses import dataclass
 from enum import Enum
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
-from dataclasses import dataclass
+
 
 class TransactionType(Enum):
     """Enumeration of transaction types."""

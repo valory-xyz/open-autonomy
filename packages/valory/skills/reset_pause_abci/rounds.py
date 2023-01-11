@@ -30,7 +30,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     CollectSameUntilThresholdRound,
     DegenerateRound,
-    get_name,
 )
 from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 

@@ -142,7 +142,8 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
         """Run with given round."""
 
         round_payloads = round_payloads or {
-            p: RegistrationPayload(sender=p, initialisation="none") for p in self.participants
+            p: RegistrationPayload(sender=p, initialisation="none")
+            for p in self.participants
         }
 
         test_runner = self._test_round(
@@ -261,7 +262,8 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
         """Run with given round."""
 
         round_payloads = round_payloads or {
-            p: RegistrationPayload(sender=p, initialisation="none") for p in self.participants
+            p: RegistrationPayload(sender=p, initialisation="none")
+            for p in self.participants
         }
 
         test_runner = self._test_round(

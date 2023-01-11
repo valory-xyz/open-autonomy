@@ -28,7 +28,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
     CollectDifferentUntilAllRound,
-    get_name,
 )
 from packages.valory.skills.test_abci.payloads import DummyPayload, TransactionType
 

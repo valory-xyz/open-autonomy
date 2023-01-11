@@ -19,8 +19,6 @@
 
 """Test the base.py module of the skill."""
 import dataclasses
-# pylint: skip-file
-
 import datetime
 import logging
 import re
@@ -28,13 +26,13 @@ import shutil
 from abc import ABC
 from contextlib import suppress
 from copy import copy, deepcopy
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from time import sleep
 from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
-from dataclasses import dataclass
 
 import pytest
 from _pytest.logging import LogCaptureFixture
@@ -99,6 +97,9 @@ from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
 
+# pylint: skip-file
+
+
 settings.load_profile(profile_name)
 
 
@@ -155,11 +156,13 @@ class PayloadB(BasePayload):
 
     transaction_type = PayloadEnum.B
 
+
 @dataclass(frozen=True)
 class PayloadC(BasePayload):
     """Payload class for payload type 'C'."""
 
     transaction_type = PayloadEnum.C
+
 
 @dataclass(frozen=True)
 class PayloadD(BasePayload):
@@ -167,12 +170,14 @@ class PayloadD(BasePayload):
 
     transaction_type = PayloadEnumB.A
 
+
 @dataclass(frozen=True)
 class DummyPayload(BasePayload):
     """Dummy payload class."""
 
     dummy_attribute: int
     transaction_type = PayloadEnum.DUMMY
+
 
 @dataclass(frozen=True)
 class TooBigPayload(BaseTxPayload):
@@ -291,7 +296,7 @@ class TestTransactions:
         payload = PayloadA(sender)
         payload_bytes = payload.encode()
         signature = crypto.sign_message(payload_bytes)
-        self = transaction = Transaction(payload, signature)
+        transaction = Transaction(payload, signature)
         transaction.verify(crypto.identifier)
 
     def test_payload_not_equal_lookalike(self) -> None:

@@ -28,7 +28,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     AppState,
     BaseSynchronizedData,
     CollectSameUntilThresholdRound,
-    get_name,
 )
 from packages.valory.skills.register_reset_recovery_abci.payloads import (
     RoundCountPayload,
