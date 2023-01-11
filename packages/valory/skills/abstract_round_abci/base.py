@@ -144,12 +144,10 @@ class AbstractRoundInternalError(ABCIAppException):
 class _MetaPayload(ABCMeta):
     """
     Payload metaclass.
-
     The purpose of this metaclass is to remember the association
     between the type of payload and the payload class to build it.
     This is necessary to recover the right payload class to instantiate
     at decoding time.
-
     Each class that has this class as metaclass must have a class
     attribute 'transaction_type', which for simplicity is required
     to be convertible to string, for serialization purposes.
@@ -168,9 +166,35 @@ class _MetaPayload(ABCMeta):
             raise ValueError(  # pragma: no cover
                 f"class {name} must inherit from {BaseTxPayload.__name__}"
             )
+        new_cls = cast(Type[BaseTxPayload], new_cls)
 
-        mcs.transaction_type_to_payload_cls[new_cls.__name__] = new_cls  # type: ignore
+        transaction_type = str(mcs._get_field(new_cls, "transaction_type"))
+        mcs._validate_transaction_type(transaction_type, new_cls)
+        # remember association from transaction type to payload class
+        mcs.transaction_type_to_payload_cls[transaction_type] = new_cls
+
         return new_cls
+
+    @classmethod
+    def _validate_transaction_type(
+        mcs, transaction_type: str, new_payload_cls: Type["BaseTxPayload"]
+    ) -> None:
+        """Check that a transaction type is not already associated to a concrete payload class."""
+        if transaction_type in mcs.transaction_type_to_payload_cls:
+            previous_payload_cls = mcs.transaction_type_to_payload_cls[transaction_type]
+            if new_payload_cls.__name__ != previous_payload_cls.__name__:
+                raise ValueError(
+                    f"transaction type with name {transaction_type} already "
+                    f"used by class {previous_payload_cls}, and cannot be "
+                    f"used by class {new_payload_cls} "
+                )
+
+    @classmethod
+    def _get_field(mcs, cls: Type, field_name: str) -> Any:
+        """Get a field from a class if present, otherwise raise error."""
+        if not hasattr(cls, field_name) or getattr(cls, field_name) is None:
+            raise ValueError(f"class {cls} must set '{field_name}' class field")
+        return getattr(cls, field_name)
 
 
 @dataclass(frozen=True)
@@ -178,20 +202,23 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
     """This class represents a base class for transaction payload classes."""
 
     sender: str
+    transaction_type: Any = field(init=False)
     round_count: int = field(default=ROUND_COUNT_DEFAULT, init=False)
     id_: str = field(default_factory=lambda: uuid.uuid4().hex, init=False)
 
     @property
     def data(self) -> Dict[str, Any]:
         """Data"""
-        excluded = ["sender", "round_count", "id_"]
+        excluded = ["sender", "round_count", "id_", "transaction_type"]
         return {k: v for k, v in asdict(self).items() if k not in excluded}
 
     # TODO: refactor - these methods are not strictly needed
     @property
     def json(self) -> Dict[str, Any]:
         """Json"""
-        return dict(transaction_type=self.__class__.__name__, **asdict(self))
+        data = asdict(self)
+        data['transaction_type'] = str(data['transaction_type'])
+        return data
 
     @classmethod
     def from_json(cls, obj: Dict) -> "BaseTxPayload":
