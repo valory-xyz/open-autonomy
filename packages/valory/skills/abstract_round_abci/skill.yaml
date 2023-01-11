@@ -66,7 +66,7 @@ connections:
 - valory/http_client:0.23.0:bafybeigggahci7hq6tr3tyueatgkvgn73y4b3av2vk7vtr7jkeuwsqcteq
 - valory/ledger:0.19.0:bafybeicpxyoxez7lperltamvikxu6vzk2lhqakbivce4nzywyzoqbxoogm
 contracts:
-- valory/service_registry:0.1.0:bafybeibinj7uqbnt2thkiqno2nw4fkuz55522xncv7zgsdnugy7o2evysq
+- valory/service_registry:0.1.0:bafybeigc63qm7lsnub6f3bulkmvaymzqo4ymajdxnyyfmsdqpnfwblmtbq
 protocols:
 - open_aea/signing:1.0.0:bafybeihgwrowgtegpe4ixe3iy5jx65u7pxebl5btrkywzmx7g52gjtbnpi
 - valory/abci:0.1.0:bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm

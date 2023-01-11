@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidey4syohls5hxmso6qsp5p4uhtzle5txv2mlbym6ktjzknich6oa
   build/ServiceRegistry.json: bafybeia4qi2vstrutejzrxfpbb6eift7va5cjs7bparaal2fafiiczuiyy
-  contract.py: bafybeiajxr6bx42ptjezibfru337rqtrs5euxr7lo3dcwbozlnoo4o5iu4
+  contract.py: bafybeibtzhfxlaqalc2rqpggfq6eeuers42pcdebeybx36u5e7et5bixsm
   tests/__init__.py: bafybeicl2oklx774jomlt6wwwegfdzrxh6iazjxwcyc7h4gepjljkpl4ji
   tests/test_contract.py: bafybeiemeuycwdslsfdeb5ixndjlt4fwenwbbw5rabzinsizq6pkp6udni
 fingerprint_ignore_patterns: []
