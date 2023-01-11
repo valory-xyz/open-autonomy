@@ -123,6 +123,7 @@ class PayloadEnum(Enum):
     B = "B"
     C = "C"
     DUMMY = "DUMMY"
+    TOO_BIG_TO_FIT_IN_HERE = "TOO_BIG_TO_FIT_IN_HERE"
 
     def __str__(self) -> str:
         """Get the string representation."""
@@ -141,6 +142,8 @@ class PayloadEnumB(Enum):
 
 class BasePayload(BaseTxPayload, ABC):
     """Base payload class for testing."""
+
+    transaction_type = "cannot instantiate without me!"
 
 
 @dataclass(frozen=True)
@@ -183,7 +186,7 @@ class DummyPayload(BasePayload):
 class TooBigPayload(BaseTxPayload):
     """Base payload class for testing."""
 
-    transaction_type = PayloadEnum.A
+    transaction_type = PayloadEnum.TOO_BIG_TO_FIT_IN_HERE
     dummy_field: str = "0" * 10 ** 7
 
 
