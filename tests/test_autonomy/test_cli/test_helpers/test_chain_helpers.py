@@ -27,6 +27,7 @@ from aea.configurations.data_types import PackageType
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 
 from autonomy.chain.config import ChainConfigs, ChainType
+from autonomy.chain.mint import registry_contracts
 from autonomy.cli.helpers.chain import mint_component
 
 from tests.conftest import ROOT_DIR
@@ -55,30 +56,36 @@ class TestMintComponentMethod:
         with pytest.raises(
             click.ClickException,
             match="Component mint failed with following error; Cannot connect to the given RPC",
-        ), publish_metadata_patch:
-            mint_component(
-                package_path=PACKAGE_DIR,
-                package_type=PackageType.PROTOCOL,
-                keys=ETHEREUM_KEY_DEPLOYER,
-                chain_type=ChainType.LOCAL,
-                dependencies=[],
-            )
+        ):
+            with publish_metadata_patch, mock.patch(
+                "autonomy.chain.mint.Crypto.sign_transaction"
+            ):
+                mint_component(
+                    package_path=PACKAGE_DIR,
+                    package_type=PackageType.PROTOCOL,
+                    keys=ETHEREUM_KEY_DEPLOYER,
+                    chain_type=ChainType.LOCAL,
+                    dependencies=[],
+                )
 
     def test_mint_component_token_id_retrieve_fail(
         self,
     ) -> None:
         """Test token ID retrieval failure method."""
-
         with pytest.raises(
             click.ClickException,
             match=(
                 "Component mint was successful but token ID retrieving failed with following error; "
                 "Connection interrupted while waiting for the unitId emit event"
             ),
-        ), publish_metadata_patch, mock.patch(
-            "autonomy.chain.mint.get_contract", return_value=DummyContract()
         ):
-            with mock.patch("autonomy.chain.mint.transact"), mock.patch(
+            with publish_metadata_patch, mock.patch.object(
+                registry_contracts, "_component_registry", DummyContract()
+            ), mock.patch.object(
+                registry_contracts, "_registries_manager", DummyContract()
+            ), mock.patch(
+                "autonomy.chain.mint.transact"
+            ), mock.patch(
                 "autonomy.cli.helpers.chain.EthereumApi.try_get_gas_pricing"
             ):
                 mint_component(

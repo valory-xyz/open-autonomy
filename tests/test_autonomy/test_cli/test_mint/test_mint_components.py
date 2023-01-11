@@ -30,6 +30,8 @@ from aea_test_autonomy.docker.base import skip_docker_tests
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
+from autonomy.chain.mint import registry_contracts
+
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
@@ -43,6 +45,13 @@ class DummyContract:
 
     def get_create_transaction(self, *args: Any, **kwargs: Any) -> None:
         """Dummy method implementation"""
+
+
+class DummyContracts:
+    """Dummy contracts"""
+
+    component_registry = DummyContract()
+    agent_registry = DummyContract()
 
 
 @skip_docker_tests
@@ -68,7 +77,7 @@ class TestMintComponents(BaseCliTest):
         ),
     )
     def test_mint(self, package_type: PackageType, package_path: str) -> None:
-        """Test mint protocol."""
+        """Test mint components."""
 
         commands = [
             package_type.value,
@@ -113,9 +122,8 @@ class TestMintComponents(BaseCliTest):
     ) -> None:
         """Test token id retrieval failure."""
 
-        with mock.patch(
-            "autonomy.chain.base.RegistryContracts.get_contract",
-            return_value=DummyContract(),
+        with mock.patch.object(
+            registry_contracts, "_component_registry", DummyContract()
         ), mock.patch("autonomy.chain.mint.transact"):
 
             result = self.run_cli(
