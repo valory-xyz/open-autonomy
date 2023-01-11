@@ -14,8 +14,8 @@ fingerprint:
   handlers.py: bafybeiejnpsjfitpogfibdorppguxoajoe5ivhy6e5wqflyp353qq7foem
   models.py: bafybeigrghnrvnhwi7fn2hawokpw2i52xvleizbx7yauk4fep7ojguxcpu
   payload_tools.py: bafybeifhzehz7lfpeuy7g72wtpvx4xgeaijgbasua43mu7kawno5i6bfeq
-  payloads.py: bafybeidkeyjp2e7afz45ofymdnysvqe3egwivs7tladkkzfjpb4qigg2e4
-  rounds.py: bafybeihi7ho3ehu4ijthu7hry5glpm7wfr4h7aktxsdiqznf7kmc5447si
+  payloads.py: bafybeidqqgcakt2qnyvs2pcmekc3ofpvamcz2u7acmhsvramhltfk6hhda
+  rounds.py: bafybeieerpxsohg37fdj666sgzkultz4sql4gy774ipu3xj6pryshjlm5a
   test_tools/__init__.py: bafybeibj2blgxzvcgdi5gzcnlzs2nt7bpdifzvjjlxlrkeutjy2qrqbwau
   test_tools/integration.py: bafybeia5bd3getuq3zx5sx6ekhqof7mygdswmvcbtjvm5awfrq3wgj4zky
   tests/__init__.py: bafybeifukcwmf2ewkjqdu7j6xzmaovgrul7jnea5lrl4o3ianoofje6vfa
@@ -24,7 +24,7 @@ fingerprint:
   tests/test_handlers.py: bafybeievntkwacpfaom3qabvrlworjqyd4sgfjknjlhys7f5tuq7725xli
   tests/test_models.py: bafybeifysgk6xywarymqbfwnpkjlzrjxtxkgm26k3mfiyerqvovwyyhqsa
   tests/test_payload_tools.py: bafybeieadcp4btveovfkrqa6f4gkeaznvx2r6jtojdexbtkzerijlragge
-  tests/test_payloads.py: bafybeihqelg2m66cxeqtcd5vcy7bmw6xpibeh7nob46olmxyi6fi6i2oci
+  tests/test_payloads.py: bafybeia2azqpfe4ltnzypfezi4f3fpiz4cg6fjy5d4kmd2lki7mnd7cjdq
   tests/test_rounds.py: bafybeickro4abq25wtg7dwt5inrl43u7ragy5uvldwwy4zfubvgt3isvfy
   tests/test_tools/__init__.py: bafybeiaq2ftmklvu5vqq6vdfa7mrlmrnusluki35jm5n2yzf57ox5dif74
   tests/test_tools/test_integration.py: bafybeiavc47bwuyoze5bb57bavxrreh5vwc7pqxfqktyirdhfd47zbljd4
@@ -38,7 +38,7 @@ protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidjeqs5t4qyzqwbzn224p7nqzcir4bwhrv3xwlugrrssbewsw3xte
+- valory/abstract_round_abci:0.1.0:bafybeihn5cah7a6zffogtijneilm7j4b7znmvr6lsxhjucqgw3rfpzomua
 behaviours:
   main:
     args: {}

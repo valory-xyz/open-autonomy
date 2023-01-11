@@ -384,6 +384,112 @@ def __eq__(other: Any) -> bool
 
 Check equality.
 
+<a id="packages.valory.skills.abstract_round_abci.base.NewBaseTxPayload"></a>
+
+## NewBaseTxPayload Objects
+
+```python
+@dataclass(frozen=True)
+class NewBaseTxPayload(ABC, metaclass=_MetaPayload)
+```
+
+This class represents a base class for transaction payload classes.
+
+<a id="packages.valory.skills.abstract_round_abci.base.NewBaseTxPayload.data"></a>
+
+#### data
+
+```python
+@property
+def data() -> Dict[str, Any]
+```
+
+Data
+
+<a id="packages.valory.skills.abstract_round_abci.base.NewBaseTxPayload.json"></a>
+
+#### json
+
+```python
+@property
+def json() -> Dict[str, Any]
+```
+
+Json
+
+<a id="packages.valory.skills.abstract_round_abci.base.NewBaseTxPayload.with_new_id"></a>
+
+#### with`_`new`_`id
+
+```python
+def with_new_id() -> "NewBaseTxPayload"
+```
+
+Create a new payload with the same content but new id.
+
+<a id="packages.valory.skills.abstract_round_abci.base.NewBaseTxPayload.encode"></a>
+
+#### encode
+
+```python
+def encode() -> bytes
+```
+
+Encode
+
+<a id="packages.valory.skills.abstract_round_abci.base.NewBaseTxPayload.decode"></a>
+
+#### decode
+
+```python
+@classmethod
+def decode(cls, obj: bytes) -> "NewBaseTxPayload"
+```
+
+Decode
+
+<a id="packages.valory.skills.abstract_round_abci.base.NewTransaction"></a>
+
+## NewTransaction Objects
+
+```python
+@dataclass
+class NewTransaction()
+```
+
+Class to represent a transaction for the ephemeral chain of a period.
+
+<a id="packages.valory.skills.abstract_round_abci.base.NewTransaction.__bytes__"></a>
+
+#### `__`bytes`__`
+
+```python
+def __bytes__() -> bytes
+```
+
+Serialize the transaction to bytes
+
+<a id="packages.valory.skills.abstract_round_abci.base.NewTransaction.from_bytes"></a>
+
+#### from`_`bytes
+
+```python
+@classmethod
+def from_bytes(cls, obj: bytes) -> "NewTransaction"
+```
+
+Deserialize the transaction from bytes
+
+<a id="packages.valory.skills.abstract_round_abci.base.NewTransaction.verify"></a>
+
+#### verify
+
+```python
+def verify(ledger_id: str) -> None
+```
+
+Verify the signature is correct.
+
 <a id="packages.valory.skills.abstract_round_abci.base.Block"></a>
 
 ## Block Objects
