@@ -98,6 +98,16 @@ def synchronized_data() -> BaseSynchronizedData
 
 Get the latest synchronized_data if available.
 
+<a id="packages.valory.skills.abstract_round_abci.models.SharedState.get_acn_result"></a>
+
+#### get`_`acn`_`result
+
+```python
+def get_acn_result() -> Any
+```
+
+Get the majority of the ACN deliverables.
+
 <a id="packages.valory.skills.abstract_round_abci.models.Requests"></a>
 
 ## Requests Objects
