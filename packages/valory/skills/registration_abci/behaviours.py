@@ -72,7 +72,7 @@ class RegistrationBaseBehaviour(BaseBehaviour, ABC):
             initialisation = (
                 json.dumps(self.synchronized_data.db.setup_data, sort_keys=True)
                 if self.synchronized_data.db.setup_data != {}
-                else None
+                else ""
             )
             payload = RegistrationPayload(
                 self.context.agent_address, initialisation=initialisation

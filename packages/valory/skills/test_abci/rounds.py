@@ -54,7 +54,7 @@ class DummyRound(
     """
 
     allowed_tx_type = DummyPayload.transaction_type
-    payload_attribute = get_name(DummyPayload.sender)
+    payload_attribute = "sender"
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:

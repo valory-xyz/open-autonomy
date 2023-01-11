@@ -37,5 +37,5 @@ class TransactionType(Enum):
 class RegistrationPayload(BaseTxPayload):
     """Represent a transaction payload of type 'registration'."""
 
-    initialisation: Optional[str] = None
+    initialisation: str
     transaction_type = TransactionType.REGISTRATION

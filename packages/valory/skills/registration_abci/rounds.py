@@ -54,7 +54,7 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
     """
 
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = get_name(RegistrationPayload.initialisation)
+    payload_attribute = "initialisation"
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -79,7 +79,7 @@ class RegistrationRound(CollectSameUntilThresholdRound):
     """
 
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = get_name(RegistrationPayload.initialisation)
+    payload_attribute = "initialisation"
     required_block_confirmations = 10
     done_event = Event.DONE
     synchronized_data_class = BaseSynchronizedData

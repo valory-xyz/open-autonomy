@@ -65,10 +65,11 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
             consensus_params=self.consensus_params,
         )
 
+        most_voted_payload = "dummy"
         round_payloads = {
             participant: RegistrationPayload(
                 sender=participant,
-                initialisation=None,
+                initialisation=most_voted_payload,
             )
             for participant in self.participants
         }
@@ -76,7 +77,7 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
         self._run_with_round(
             test_round,
             round_payloads,
-            None,
+            most_voted_payload,
             RegistrationEvent.DONE,
         )
 
@@ -118,6 +119,7 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
             self._run_with_round(
                 test_round,
                 finished=False,
+                most_voted_payload="none",
             )
 
         assert self.synchronized_data.db._data[0] == {
@@ -140,7 +142,7 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
         """Run with given round."""
 
         round_payloads = round_payloads or {
-            p: RegistrationPayload(sender=p) for p in self.participants
+            p: RegistrationPayload(sender=p, initialisation="none") for p in self.participants
         }
 
         test_runner = self._test_round(
@@ -259,7 +261,7 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
         """Run with given round."""
 
         round_payloads = round_payloads or {
-            p: RegistrationPayload(sender=p) for p in self.participants
+            p: RegistrationPayload(sender=p, initialisation="none") for p in self.participants
         }
 
         test_runner = self._test_round(

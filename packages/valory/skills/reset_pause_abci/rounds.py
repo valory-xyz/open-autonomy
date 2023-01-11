@@ -48,7 +48,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
     """A round that represents that consensus is reached (the final round)"""
 
     allowed_tx_type = ResetPausePayload.transaction_type
-    payload_attribute = get_name(ResetPausePayload.period_count)
+    payload_attribute = "period_count"
     _allow_rejoin_payloads = True
     synchronized_data_class = BaseSynchronizedData
 

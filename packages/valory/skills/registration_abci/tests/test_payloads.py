@@ -33,10 +33,10 @@ from packages.valory.skills.registration_abci.payloads import (
 def test_registration_abci_payload() -> None:
     """Test `RegistrationPayload`."""
 
-    payload = RegistrationPayload(sender="sender")
+    payload = RegistrationPayload(sender="sender", initialisation="dummy")
 
-    assert payload.initialisation is None
-    assert payload.data == {}
+    assert payload.initialisation is "dummy"
+    assert payload.data == {"initialisation": "dummy"}
     assert payload.transaction_type == TransactionType.REGISTRATION
     assert RegistrationPayload.from_json(payload.json) == payload
 
@@ -46,5 +46,5 @@ def test_registration_abci_payload_raises() -> None:
     payload = RegistrationPayload(sender="sender", initialisation="0" * 10 ** 7)
     signature = "signature"
     tx = Transaction(payload, signature)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Transaction must be smaller"):
         tx.encode()

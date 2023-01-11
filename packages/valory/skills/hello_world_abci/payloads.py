@@ -44,7 +44,6 @@ class BaseHelloWorldAbciPayload(BaseTxPayload, ABC):
 class RegistrationPayload(BaseHelloWorldAbciPayload):
     """Represent a transaction payload of type 'registration'."""
 
-    a: int
     transaction_type = TransactionType.REGISTRATION
 
 
