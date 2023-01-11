@@ -7,7 +7,7 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   Makefile: bafybeibdgarch56r46dfy7x7fouj52nbjpjs4fgtrd3prgtwelowyjan5i
-  __init__.py: bafybeiefuo276qiefnklylato5qnz2pymut4n2izpggl3z4himztodgvzm
+  __init__.py: bafybeiafpun3qgjw6zpiuq6jovo2taxkavw2gd7mn5yv73sh3uy5pea3o4
   check_dependencies.py: bafybeihmhemryyl2iacwwrqebr7us7wx4otvwbdbtckwkl5kxqopidyzwm
   connection.py: bafybeiho2dtpgq6kipdq4tyhgtxjsweujfsqwjwqmjduw6epa3bumemnai
   dialogues.py: bafybeibpdsphu5vqjpieczrb3ulhqfcq4l73qnx6j3zhbz4dpunwegboxq
@@ -47,7 +47,7 @@ fingerprint:
   tests/test_fuzz/mock_node/channels/grpc_channel.py: bafybeid2na2emvcgvax46mghr6nb4cimtskp4phtvokuyt3pymsbiohjnq
   tests/test_fuzz/mock_node/channels/tcp_channel.py: bafybeifbmo7tm6gqtoge6mcq6lmukydr7etqjdoccg5yomx43rnruixudu
   tests/test_fuzz/mock_node/node.py: bafybeieyq4vbddnk5qnvwttmralv6soadz276rapembzjp5sbhcnmvaida
-  tests/test_fuzz/test_fuzz.py: bafybeifw4andpz4kgegfuxxxtd637do3wabndyfmmsalzpenh46sfnswai
+  tests/test_fuzz/test_fuzz.py: bafybeig5e6fnlg4sfzzbz4wx25mtf5pldbw6s7ipdw4eww5dxrayhsh6e4
   tests/test_tendermint_decoder.py: bafybeihogt3aopyln5newihm3rbiqimoc4aw6za2cngplnjnwatv6nakea
   tests/test_tendermint_encoder.py: bafybeigpun2ybwr5tu7b52his3b5apyrlmdytlgofcszbctsmmabo3sjg4
   version.txt: bafybeifjb44fd7qve2ku62ythui6z4mvd4k7qkjomlcdnl3ymb3bnq6xee
@@ -77,7 +77,7 @@ dependencies:
   hypothesis:
     version: ==6.21.6
   open-aea-test-autonomy:
-    version: ==0.6.0
+    version: ==0.7.0
   protobuf:
     version: ==3.19.4
 is_abstract: false

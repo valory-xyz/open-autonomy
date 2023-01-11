@@ -1,5 +1,37 @@
 # Release History - `open-autonomy`
 
+# 0.7.0 (2023-01-04)
+
+Autonomy:
+- Adds support for updating the participants list at the runtime using the on chain metadata of a service
+- Enables the usage of `gRPC` channel when communicating with the `abci` connection
+- Updates the tendermint image name constant to make sure it's up to date with the latest framework version
+
+Packages:
+- Adds validation for the setup data and raises early if necessary data are not provided instead of waiting for the first round to happen
+- Removes the fast forward round because it is not meaningful since the setup data cannot be empty
+- Moves `all_participants` to the setup data
+- Enables the usage of `gRPC` channel when communicating with the tendermint node
+- Adds meta classes for the `AbstractRound` and the `BaseBehaviour` classes to enforce additional checks
+- Fixes typing issues on the synchronized database class
+- Removes the inappropriate usage of the `# type: ignore` marker and addresses the typing issues properly
+
+Tests:
+- Test coverage for `BaseTestEnd2End` in the test plugin
+- Test coverage for the `abci` connection
+- Test coverage for tendermint protocol dialogues
+- Updates hello world `e2e` test to test the usage of `gRPC` channel on tendermint node
+- Fixes the inconsistencies regarding the usage of `setup` and `setup_class` methods in the test classes
+- Introduces base class for testing test tools
+- Adds tests for transaction settlement integration test tools
+
+Docs:
+- Updates the guide for running a service on different networks
+- Reorganizes the developer tooling section
+
+Chores:
+- Updates the coverage collection in the CI to aggregate the coverage for both framework and the packages
+
 
 # 0.6.0 (2022-12-16)
 

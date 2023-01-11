@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ from py_ecc.bls import G2Basic as bls
 
 MAX_UINT64 = 2 ** 64 - 1
 DEFAULT_TENDERMINT_P2P_PORT = 26656
-DEFAULT_TENDERMINT_P2P_URL = f"localhost:{DEFAULT_TENDERMINT_P2P_PORT}"
 
 
 class VerifyDrand:  # pylint: disable=too-few-public-methods
