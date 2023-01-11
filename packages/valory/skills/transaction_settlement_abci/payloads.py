@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for common apps."""
-from dataclasses import dataclass
+
 from enum import Enum
 from typing import Dict, Optional, Union
 
@@ -44,7 +44,6 @@ class TransactionType(Enum):
         return self.value
 
 
-@dataclass(frozen=True)
 class RandomnessPayload(BaseTxPayload):
     """Represent a transaction payload of type 'randomness'."""
 
@@ -53,7 +52,6 @@ class RandomnessPayload(BaseTxPayload):
     transaction_type = TransactionType.RANDOMNESS
 
 
-@dataclass(frozen=True)
 class SelectKeeperPayload(BaseTxPayload):
     """Represent a transaction payload of type 'select_keeper'."""
 
@@ -61,7 +59,6 @@ class SelectKeeperPayload(BaseTxPayload):
     transaction_type = TransactionType.SELECT_KEEPER
 
 
-@dataclass(frozen=True)
 class ValidatePayload(BaseTxPayload):
     """Represent a transaction payload of type 'validate'."""
 
@@ -69,7 +66,6 @@ class ValidatePayload(BaseTxPayload):
     transaction_type = TransactionType.VALIDATE
 
 
-@dataclass(frozen=True)
 class CheckTransactionHistoryPayload(BaseTxPayload):
     """Represent a transaction payload of type 'check'."""
 
@@ -77,7 +73,6 @@ class CheckTransactionHistoryPayload(BaseTxPayload):
     transaction_type = TransactionType.CHECK
 
 
-@dataclass(frozen=True)
 class SynchronizeLateMessagesPayload(BaseTxPayload):
     """Represent a transaction payload of type 'synchronize'."""
 
@@ -85,7 +80,6 @@ class SynchronizeLateMessagesPayload(BaseTxPayload):
     transaction_type = TransactionType.SYNCHRONIZE
 
 
-@dataclass(frozen=True)
 class SignaturePayload(BaseTxPayload):
     """Represent a transaction payload of type 'signature'."""
 
@@ -93,7 +87,6 @@ class SignaturePayload(BaseTxPayload):
     transaction_type = TransactionType.SIGNATURE
 
 
-@dataclass(frozen=True)
 class FinalizationTxPayload(BaseTxPayload):
     """Represent a transaction payload of type 'finalization'."""
 
@@ -101,7 +94,6 @@ class FinalizationTxPayload(BaseTxPayload):
     transaction_type = TransactionType.FINALIZATION
 
 
-@dataclass(frozen=True)
 class ResetPayload(BaseTxPayload):
     """Represent a transaction payload of type 'reset'."""
 
