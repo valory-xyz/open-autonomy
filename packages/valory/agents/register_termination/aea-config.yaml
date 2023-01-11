@@ -20,7 +20,7 @@ contracts:
 - valory/gnosis_safe:0.1.0:bafybeidhz5afbi4gxkwc5rzu3pxgwokjeilzohctah44xazox5fmvvwwba
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeidvde7m7jpajea3hndzbauaud6rtiwqmmrltdbrubzc5jzq7li4uu
 - valory/multisend:0.1.0:bafybeigjywkl7hydjsrkogob3xebj2ifhqwmfhhxoeyrndzhhxi5u6amey
-- valory/service_registry:0.1.0:bafybeihuj7ehhsvmb3owcocdmydmjsjcy32bqk6l6tjmgev4t65vi4pyny
+- valory/service_registry:0.1.0:bafybeibinj7uqbnt2thkiqno2nw4fkuz55522xncv7zgsdnugy7o2evysq
 protocols:
 - open_aea/signing:1.0.0:bafybeihgwrowgtegpe4ixe3iy5jx65u7pxebl5btrkywzmx7g52gjtbnpi
 - valory/abci:0.1.0:bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm
@@ -31,12 +31,12 @@ protocols:
 - valory/tendermint:0.1.0:bafybeid6b2wlb24g6d3godmqms44qvnpkhlvb27icotuobvnscmdmlhaha
 skills:
 - valory/abstract_abci:0.1.0:bafybeicdiwkvotgr4h2zulx5rsgxqid22d5greqqhgqadd2uqlmpioipem
-- valory/abstract_round_abci:0.1.0:bafybeibyd7j7ymf7g5twm6dc7qhctn6ldxurwghdw3awh3ywcmyucdscoa
-- valory/register_termination_abci:0.1.0:bafybeiahkua4dza7ww5wm7sttrxymgzvgdsx244we5dsxo7ok4gwakjuam
-- valory/registration_abci:0.1.0:bafybeigicks4raxnie62qjkxflrxpubj5toncuxxct4ygzkxkndxwuurae
-- valory/reset_pause_abci:0.1.0:bafybeifry3xdgporcmbp5waucdnrrlfacgutjj7gsfefuyiwtjobg3ru4e
-- valory/termination_abci:0.1.0:bafybeib3mi7uh64ouqeuqcdxxkknmmqzkk5vrzdvn7zp5ix3hwzaqhxwaa
-- valory/transaction_settlement_abci:0.1.0:bafybeifofyx6dbapl33boh435nkc5574fnf45nazcmlctmaho64ibtffsy
+- valory/abstract_round_abci:0.1.0:bafybeibtvpf3neersxaytyloo23worlh5p7e6rwpzrj2d5jww4orld5sdm
+- valory/register_termination_abci:0.1.0:bafybeieqxbnowev4n22yk6clbs5fzu55fj24472piihr3zar6hwrghqe54
+- valory/registration_abci:0.1.0:bafybeidllyh3ew6t7zgobz5hkly56dzgokxwgntgcda7u4lolrtu7zjhqy
+- valory/reset_pause_abci:0.1.0:bafybeiapea6y4gxsetpqatpgzmrwqllwd5hr3sipdt3l6zskhlwnpghs3m
+- valory/termination_abci:0.1.0:bafybeia23v4meonnrbk435zlxiok5djsgaruxnht3kchwsnvfnf5xvwxti
+- valory/transaction_settlement_abci:0.1.0:bafybeif7kjsoqjve62d4cwtt226cdllk56hwcf6pvkps5hsekfxbdjzdli
 default_ledger: ethereum
 required_ledgers:
 - ethereum
