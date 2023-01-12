@@ -19,6 +19,7 @@
 
 """Helpers for minting components"""
 
+from math import ceil
 from typing import Dict, List, Optional
 
 from aea.crypto.base import Crypto, LedgerApi
@@ -117,6 +118,9 @@ def mint_service(  # pylint: disable=too-many-arguments
 ) -> Optional[int]:
     """Publish component on-chain."""
 
+    if len(agent_ids) == 0:
+        raise InvalidMintParameter("Please provide at least one agent id")
+
     if len(number_of_slots_per_agent) == 0:
         raise InvalidMintParameter("Please for provide number of slots for agents")
 
@@ -130,6 +134,19 @@ def mint_service(  # pylint: disable=too-many-arguments
     ):
         raise InvalidMintParameter(
             "Make sure the number of agent ids, number of slots for agents and cost of bond for agents match"
+        )
+
+    if any(map(lambda x: x == 0, number_of_slots_per_agent)):
+        raise InvalidMintParameter("Number of slots cannot be zero")
+
+    if any(map(lambda x: x == 0, cost_of_bond_per_agent)):
+        raise InvalidMintParameter("Cost of bond cannot be zero")
+
+    number_of_agent_instances = sum(number_of_slots_per_agent)
+    if threshold < (ceil((number_of_agent_instances * 2 + 1) / 3)):
+        raise InvalidMintParameter(
+            "The threshold value should at least be greater than ceil((n * 2 + 1) / 3), "
+            "n is total number of agent instances in the service"
         )
 
     agent_params = [
