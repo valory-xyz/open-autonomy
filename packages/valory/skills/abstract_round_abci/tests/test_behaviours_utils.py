@@ -58,10 +58,8 @@ from hypothesis import strategies as st
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import HttpDialogues
-from packages.valory.connections.ipfs.connection import (
-    PUBLIC_ID as IPFS_CONNECTION_ID,
-)
 from packages.valory.connections.ipfs.connection import IpfsDialogues
+from packages.valory.connections.ipfs.connection import PUBLIC_ID as IPFS_CONNECTION_ID
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ipfs import IpfsMessage
 from packages.valory.protocols.ipfs.dialogues import IpfsDialogue

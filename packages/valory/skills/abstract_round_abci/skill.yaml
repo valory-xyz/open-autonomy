@@ -10,7 +10,7 @@ fingerprint:
   __init__.py: bafybeicjyrltgdmwzvctebhfteyyd5mbrjashiji4glwf5vwcijuyzzm24
   abci_app_chain.py: bafybeick5fz6hpbbvpmjkm2o3rl5csgvqf4ivwmqdluj2p4jmcpea4xmsq
   base.py: bafybeicqsdgj4vdjahavuht6qa4kwnldbemhcvjzel2w3k5ctmas2y5d4m
-  behaviour_utils.py: bafybeiduo6gfgpbemorqovoaeuiqnw6vj34oxxgnaw5v5z55jjw6toean4
+  behaviour_utils.py: bafybeignsaev3klnoeq37vtv5adubnq45sgva2yplogg27svscpxyzirom
   behaviours.py: bafybeicapzsvzowpjawkxgkhf2m4qb7c3alh5rsysrxp55o7pmjt6bu2g4
   common.py: bafybeif3curciq7wpc25uf3sufz4rfcl5jwlewy6u2sg34smdlcbzyeirq
   dialogues.py: bafybeid5sgrfa7ghnnjpssltgtey5gzt5kc2jlaitffaukvhhdbhrzcjti
@@ -42,9 +42,9 @@ fingerprint:
   tests/test_base.py: bafybeidoatyw4zat2pbekmcssterepxa6kiqmwobzhkh6inx32q3gj4h6m
   tests/test_base_rounds.py: bafybeiauo5c3ghiptxonlr2edtsdtnp6okm3qj6pm2wbsipiuwzwmxsjiy
   tests/test_behaviours.py: bafybeicc22x2vs4iaj2aj2fnkckai6h3p6zearmvl3y5qz2aqzjhmvdnvy
-  tests/test_behaviours_utils.py: bafybeifg7xcfd3xtoiiizqgf6oyzn2rsihhwrj3gqash4llcv7fbqabqi4
+  tests/test_behaviours_utils.py: bafybeidl6bnyez7k6qmtmi2ywepmkuhdjrdelxifkbbv6slaoanb3mpiyy
   tests/test_common.py: bafybeigruyqp6h4qim3nsijeg5mvoot2dei2yzm5zxpank22vjyyiaysue
-  tests/test_dialogues.py: bafybeifprwfbpykyhadaeguqv2nxxs772nvtexbvac735sbeqn7uhnange
+  tests/test_dialogues.py: bafybeigpfrslqaz2yullyehia5bsl7cmy2qqxtz627ig7rbrypw5xfzeum
   tests/test_handlers.py: bafybeiebpx5k2iqhnun4mesd5ee7ln6ctdltfnycndreo2y7zqqdjjue2i
   tests/test_io/__init__.py: bafybeid3sssvbbyju4snrdssxyafleuo57sqyuepl25btxcbuj3p5oonsm
   tests/test_io/test_ipfs.py: bafybeia3zymobr4xq4dyfyuoctw3yhqbuv3nioo572fall3ic4rgz4gwru
@@ -64,7 +64,7 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeicmhpw2f5c3vds6lwlv2q4fa5nd6zonnvgdretrwfly7ylpiofdqq
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
-- valory/ipfs:0.1.0:bafybeifbhqvfrqcgcbt4pzfzcavux7ovkh7orh36ex2epdfbgl6s7zwelq
+- valory/ipfs:0.1.0:bafybeicqfs2tskaujjozmgkmekffdewnvettasuroiu4c4u73pf7tdmroe
 - valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
 contracts:
 - valory/service_registry:0.1.0:bafybeif4mgymtachjdhyzemxp7oj2i7itusjvrsxw7cheuvhtypizutu5e

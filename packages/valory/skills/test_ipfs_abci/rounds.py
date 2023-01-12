@@ -47,8 +47,8 @@ class IpfsRound(CollectDifferentUntilAllRound):
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
-        """End block. This is a dummy round, we dont care about payloads."""
-        if self.collection_threshold_reached:
+        """End block. This is a dummy round, we don't care about payloads."""
+        if self.collection_threshold_reached:  # pragma: no cover
             # added to satisfy fsm-spec checks,
             # the following will never be executed
             return self.synchronized_data, Event.DONE

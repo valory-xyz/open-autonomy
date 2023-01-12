@@ -10,7 +10,7 @@ fingerprint:
   connection.py: bafybeififx6spl4k7jdude5u46rvpkrltqtalakxcnyv6wxuddgpi52hve
   readme.md: bafybeihdrtloo2stz7frhfhtl5m7ewwigdeehnujf6julwj6c5pzr7iefu
   tests/__init__.py: bafybeicqjmce5v5ympy2rcryfh644rxrtujvbcuzk7ylmfmzynoh6wujx4
-  tests/test_connection.py: bafybeicce7mwnfgymfm5n7k74stit4ceoq57itdn4vsa5igzthbq7x7y3q
+  tests/test_connection.py: bafybeierct5an56mlfc3b2r5fbtb4i4ky4dsbuky4fb7jjdf3wgsv2kiyy
 fingerprint_ignore_patterns: []
 connections: []
 protocols:

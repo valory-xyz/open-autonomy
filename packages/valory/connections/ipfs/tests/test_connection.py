@@ -36,9 +36,9 @@ from aea_cli_ipfs.exceptions import DownloadError
 from aea_cli_ipfs.ipfs_utils import IPFSDaemon, IPFSTool
 
 from packages.valory.connections.ipfs.connection import (
-    PUBLIC_ID,
     IpfsConnection,
     IpfsDialogues,
+    PUBLIC_ID,
 )
 from packages.valory.protocols.ipfs import IpfsMessage
 
