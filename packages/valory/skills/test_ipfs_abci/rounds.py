@@ -33,12 +33,10 @@ from packages.valory.skills.test_ipfs_abci.payloads import DummyPayload
 
 
 class Event(Enum):
-    """Event enumeration for the Hello World ABCI demo."""
+    """Event enumeration for the ipfs test skill."""
 
     DONE = "done"
     ROUND_TIMEOUT = "round_timeout"
-    NO_MAJORITY = "no_majority"
-    RESET_TIMEOUT = "reset_timeout"
 
 
 class IpfsRound(CollectDifferentUntilAllRound):
@@ -50,6 +48,10 @@ class IpfsRound(CollectDifferentUntilAllRound):
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """End block. This is a dummy round, we dont care about payloads."""
+        if self.collection_threshold_reached:
+            # added to satisfy fsm-spec checks,
+            # the following will never be executed
+            return self.synchronized_data, Event.DONE
         return None
 
 
@@ -63,21 +65,21 @@ class IpfsTestAbciApp(AbciApp[Event]):
     Transition states:
         0. IpfsRound
             - done: 0.
+            - round timeout: 0.
 
     Final states: {}
 
     Timeouts:
         round timeout: 30.0
-        reset timeout: 30.0
     """
 
     initial_round_cls: AppState = IpfsRound
     transition_function: AbciAppTransitionFunction = {
         IpfsRound: {
             Event.DONE: IpfsRound,
+            Event.ROUND_TIMEOUT: IpfsRound,
         },
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
-        Event.RESET_TIMEOUT: 30.0,
     }
