@@ -36,7 +36,7 @@ from aea_cli_ipfs.exceptions import DownloadError
 from aea_cli_ipfs.ipfs_utils import IPFSDaemon, IPFSTool
 
 from packages.valory.connections.ipfs.connection import (
-    CONNECTION_ID,
+    PUBLIC_ID,
     IpfsConnection,
     IpfsDialogues,
 )
@@ -75,7 +75,7 @@ class TestIpfsConnection:
         )
         self.dummy_msg = IpfsMessage(performative=IpfsMessage.Performative.GET_FILES)  # type: ignore
         self.dummy_envelope = Envelope(
-            to=str(CONNECTION_ID), sender=ANY_SKILL, message=self.dummy_msg
+            to=str(PUBLIC_ID), sender=ANY_SKILL, message=self.dummy_msg
         )
 
     @pytest.mark.asyncio
@@ -111,7 +111,7 @@ class TestIpfsConnection:
     ) -> None:
         """Tests for _handle_envelope."""
         dummy_msg = IpfsMessage(performative=performative)
-        envelope = Envelope(to=str(CONNECTION_ID), sender=ANY_SKILL, message=dummy_msg)
+        envelope = Envelope(to=str(PUBLIC_ID), sender=ANY_SKILL, message=dummy_msg)
         with mock.patch.object(IpfsConnection, "run_async", return_value=MagicMock()):
             self.connection._handle_envelope(envelope)
             if expected_error:
@@ -148,7 +148,7 @@ class TestIpfsConnection:
         await self.connection.connect()
         assert self.connection.response_envelopes.qsize() == 0
         dummy_task = MagicMock(result=lambda: self.dummy_msg)
-        dummy_request = MagicMock(to=ANY_SKILL, sender=str(CONNECTION_ID), context=None)
+        dummy_request = MagicMock(to=ANY_SKILL, sender=str(PUBLIC_ID), context=None)
         self.connection.task_to_request[dummy_task] = dummy_request
         self.connection._handle_done_task(dummy_task)
         assert self.connection.response_envelopes.qsize() == 1
@@ -255,7 +255,7 @@ class TestIpfsConnection:
 
     def test_ipfs_dialogue(self) -> None:  # pylint: disable=no-self-use
         """Test 'IpfsDialogues' creation."""
-        dialogues = IpfsDialogues(connection_id=str(CONNECTION_ID))
+        dialogues = IpfsDialogues(connection_id=str(PUBLIC_ID))
         dialogues.create(
             counterparty=ANY_SKILL,
             performative=IpfsMessage.Performative.GET_FILES,

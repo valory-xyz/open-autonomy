@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ from aea.protocols.dialogue.base import Dialogues
 from aea.skills.base import Model
 
 from packages.valory.connections.ipfs.connection import (
-    CONNECTION_ID as IPFS_CONNECTION_ID,
+    PUBLIC_ID as IPFS_CONNECTION_ID,
 )
 from packages.valory.protocols.ipfs import IpfsMessage
 from packages.valory.skills.abstract_round_abci.dialogues import (

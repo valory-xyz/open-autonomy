@@ -62,7 +62,8 @@ class IpfsTestAbciApp(AbciApp[Event]):
 
     Transition states:
         0. IpfsRound
-            - done: IpfsRound.
+            - done: 0.
+
     Final states: {}
 
     Timeouts:

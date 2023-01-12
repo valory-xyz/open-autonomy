@@ -41,7 +41,7 @@ from packages.valory.protocols.ipfs.dialogues import IpfsDialogue
 from packages.valory.protocols.ipfs.dialogues import IpfsDialogues as BaseIpfsDialogues
 
 
-CONNECTION_ID = PublicId.from_str("valory/ipfs:0.1.0")
+PUBLIC_ID = PublicId.from_str("valory/ipfs:0.1.0")
 
 
 class IpfsDialogues(BaseIpfsDialogues):
@@ -76,7 +76,7 @@ class IpfsDialogues(BaseIpfsDialogues):
 class IpfsConnection(Connection):
     """An async connection for sending and receiving files to IPFS."""
 
-    connection_id = CONNECTION_ID
+    connection_id = PUBLIC_ID
 
     def __init__(self, **kwargs: Any) -> None:
         """
@@ -89,7 +89,7 @@ class IpfsConnection(Connection):
         self.ipfs_tool: IPFSTool = IPFSTool(ipfs_domain)
         self.task_to_request: Dict[asyncio.Future, Envelope] = {}
         self.loop_executor: Optional[Executor] = None
-        self.dialogues = IpfsDialogues(connection_id=CONNECTION_ID)
+        self.dialogues = IpfsDialogues(connection_id=PUBLIC_ID)
         self._response_envelopes: Optional[asyncio.Queue] = None
 
     @property

@@ -398,8 +398,8 @@ class DIALOGUES:
 
     TendermintDialogue = BaseTendermintDialogue
     TendermintDialogues = BaseTendermintDialogues
-    
-    
+
+
     IpfsDialogue = BaseIpfsDialogue
     IpfsDialogues = BaseIpfsDialogues
     """

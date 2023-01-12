@@ -12,9 +12,9 @@ fingerprint:
   dialogues.py: bafybeigpwuzku3we7axmxeamg7vn656maww6emuztau5pg3ebsoquyfdqm
   fsm_specification.yaml: bafybeibaft2azersmixjtoa7zdekxzsvvnzfyq2zkyutx4elukc73owf5q
   handlers.py: bafybeihkbafgvs2sl62k6lamrddymegvhd2k35ka7k7guvbok6nc4pv5mm
-  models.py: bafybeici6i3d2a2fcpl43jfcwkc5u4pcusv4p5g55erwi5yaxp3vlxd5ru
+  models.py: bafybeibuypazzxl3fmxjqxv6cxghjhjznyvvjnpulmgz7h3w7bogemjlnq
   payloads.py: bafybeicar5iiyobalqs5webg7eqzinafwyg4cupielabf455fcy5tcbsla
-  rounds.py: bafybeie3atp4bqr6u2uzvhct6hqrh53hl3ixxpe2mi3qh5oweuqhjzwpia
+  rounds.py: bafybeiaybzwspklcvorbwqzmhnrr4mh3a43xj6cdqqt6rtdamjklziajai
   tests/__init__.py: bafybeicx3dc4ujymhcaae3zvdmmfik7dmhhcmwwwoiqwk5nyykyohg2rte
   tests/test_behaviours.py: bafybeibtgcgcigzisqsys6l7lqynuehy7yif73ld75zyohby6cf7su7xw4
   tests/test_dialogues.py: bafybeifwjwhxsbfpsjranr474ru7fyai5xxeckkv2nzj2duwkozl5ufaxe
@@ -27,7 +27,7 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihej5pdk2fdxuaorc6bem5pfya2o3v5qib2rbo2mum6wtjt6rdvru
+- valory/abstract_round_abci:0.1.0:bafybeibco5jp2wdvycagty52rc6jly5bbybs3smtlwnmuinr5uuinkhcbu
 behaviours:
   main:
     args: {}

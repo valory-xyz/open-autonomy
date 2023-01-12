@@ -277,28 +277,6 @@ def __init__(**kwargs: Any)
 
 Initialize an `IPFSBehaviour`.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.IPFSBehaviour.send_to_ipfs"></a>
-
-#### send`_`to`_`ipfs
-
-```python
-@_check_ipfs_enabled
-def send_to_ipfs(filepath: str, obj: SupportedObjectType, multiple: bool = False, filetype: Optional[SupportedFiletype] = None, custom_storer: Optional[CustomStorerType] = None, **kwargs: Any, ,) -> Optional[str]
-```
-
-Send a file to IPFS.
-
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.IPFSBehaviour.get_from_ipfs"></a>
-
-#### get`_`from`_`ipfs
-
-```python
-@_check_ipfs_enabled
-def get_from_ipfs(hash_: str, target_dir: str, multiple: bool = False, filename: Optional[str] = None, filetype: Optional[SupportedFiletype] = None, custom_loader: CustomLoaderType = None) -> Optional[SupportedObjectType]
-```
-
-Get a file from IPFS.
-
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.CleanUpBehaviour"></a>
 
 ## CleanUpBehaviour Objects
@@ -846,6 +824,50 @@ Performs a hard reset (unsafe-reset-all) on the tendermint node.
 **Returns**:
 
 whether the reset was successful.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.send_to_ipfs"></a>
+
+#### send`_`to`_`ipfs
+
+```python
+def send_to_ipfs(filename: str, obj: SupportedObjectType, multiple: bool = False, filetype: Optional[SupportedFiletype] = None, custom_storer: Optional[CustomStorerType] = None, timeout: Optional[float] = None, **kwargs: Any, ,) -> Generator[None, None, Optional[str]]
+```
+
+Store an object on IPFS.
+
+**Arguments**:
+
+- `filename`: the file name to store obj in. If "multiple" is True, filename will be the name of the dir.
+- `obj`: the object(s) to serialize and store in IPFS as "filename".
+- `multiple`: whether obj should be stored as multiple files, i.e. directory.
+- `filetype`: the file type of the object being downloaded.
+- `custom_storer`: a custom serializer for "obj".
+- `timeout`: timeout for the request.
+
+**Returns**:
+
+the downloaded object, corresponding to ipfs_hash.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.get_from_ipfs"></a>
+
+#### get`_`from`_`ipfs
+
+```python
+def get_from_ipfs(ipfs_hash: str, filetype: Optional[SupportedFiletype] = None, custom_loader: CustomLoaderType = None, timeout: Optional[float] = None) -> Generator[None, None, Optional[SupportedObjectType]]
+```
+
+Gets an object from IPFS.
+
+**Arguments**:
+
+- `ipfs_hash`: the ipfs hash of the file/dir to download.
+- `filetype`: the file type of the object being downloaded.
+- `custom_loader`: a custom deserializer for the object received from IPFS.
+- `timeout`: timeout for the request.
+
+**Returns**:
+
+the downloaded object, corresponding to ipfs_hash.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.TmManager"></a>
 
