@@ -201,6 +201,7 @@ class IpfsConnection(Connection):
             # note that path will be a dir if multiple files
             # are being uploaded.
             _, hash_, _ = self.ipfs_tool.add(path)
+            self.logger.debug(f"Successfully stored files with hash: {hash_}.")
         except (
             ValueError,
             requests.exceptions.ChunkedEncodingError,
@@ -240,7 +241,7 @@ class IpfsConnection(Connection):
                 DownloadError,
                 PermissionError,
                 ErrorResponse,
-            ) as e:  # pragma: no cover
+            ) as e:
                 err = str(e)
                 self.logger.error(err)
                 return self._handle_error(err, dialogue)
