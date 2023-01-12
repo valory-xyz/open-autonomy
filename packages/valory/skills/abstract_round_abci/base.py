@@ -211,7 +211,7 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
         """Encode"""
         encoded_data = json.dumps(self.json, sort_keys=True).encode()
         if sys.getsizeof(encoded_data) > MAX_READ_IN_BYTES:
-            msg = f"Transaction must be smaller than {MAX_READ_IN_BYTES} bytes"
+            msg = f"{type(self)} must be smaller than {MAX_READ_IN_BYTES} bytes"
             raise ValueError(msg)
         return encoded_data
 

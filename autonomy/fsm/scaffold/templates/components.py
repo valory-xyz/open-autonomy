@@ -69,8 +69,8 @@ class ROUNDS:
     class {RoundCls}({ABCRoundCls}):
         \"\"\"{RoundCls}\"\"\"
 
-        allowed_tx_type = {PayloadCls}.transaction_type
-        payload_attribute = {PayloadCls}.transaction_type.value
+        payload_class = {PayloadCls}
+        payload_attribute = ""  # TODO: update
         synchronized_data_class = SynchronizedData
 
         {todo_abstract_round_cls}
@@ -201,50 +201,18 @@ class PAYLOADS:
     HEADER = """\
     \"\"\"This module contains the transaction payloads of the {AbciApp}.\"\"\"
 
-    from abc import ABC
-    from enum import Enum
-    from typing import Any, Dict, Hashable, Optional
+    from dataclasses import dataclass
 
     from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
     """
 
-    TRANSACTION_TYPE_SECTION = """\
-    class TransactionType(Enum):
-        \"\"\"Enumeration of transaction types.\"\"\"
-
-        {tx_types}
-
-        def __str__(self) -> str:
-            \"\"\"Get the string value of the transaction type.\"\"\"
-            return self.value
-
-    """
-
-    BASE_PAYLOAD_CLS = """\
-    class Base{FSMName}Payload(BaseTxPayload, ABC):
-        \"\"\"Base payload for {AbciApp}.\"\"\"
-
-        def __init__(self, sender: str, content: Hashable, **kwargs: Any) -> None:
-            \"\"\"Initialize a transaction payload.\"\"\"
-
-            super().__init__(sender, **kwargs)
-            setattr(self, f"_{{self.transaction_type}}", content)
-            p = property(lambda self: getattr(self, f"_{{self.transaction_type}}"))
-            setattr(self.__class__, f"{{self.transaction_type}}", p)
-
-        @property
-        def data(self) -> Dict[str, Hashable]:
-            \"\"\"Get the data.\"\"\"
-            return dict(content=getattr(self, str(self.transaction_type)))
-
-    """
-
     PAYLOAD_CLS = """\
-    class {PayloadCls}(Base{FSMName}Payload):
+    @dataclass(frozen=True)
+    class {PayloadCls}(BaseTxPayload):
         \"\"\"Represent a transaction payload for the {RoundCls}.\"\"\"
 
-        transaction_type = TransactionType.{tx_type}
+        # TODO: define your attributes
 
     """
 

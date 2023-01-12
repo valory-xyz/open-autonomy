@@ -80,9 +80,6 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.base import _logger as default_logger
 from packages.valory.skills.abstract_round_abci.base import get_name
-from packages.valory.skills.abstract_round_abci.serializer import (
-    DictProtobufStructSerializer,
-)
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     AbciAppTest,
     ConcreteBackgroundRound,
@@ -276,6 +273,16 @@ class TestTransactions:
         actual = expected.decode(expected.encode())
         assert expected == actual
 
+    def test_encode_too_big_payload(self) -> None:
+        """Test encode of a too big payload."""
+        sender = "sender"
+        payload = TooBigPayload(sender)
+        with pytest.raises(
+            ValueError,
+            match=f"{type(payload)} must be smaller than {MAX_READ_IN_BYTES} bytes",
+        ):
+            payload.encode()
+
     def test_encode_too_big_transaction(self) -> None:
         """Test encode of a too big transaction."""
         sender = "sender"
@@ -326,18 +333,24 @@ def test_verify_transaction_negative_case(*_mocks: Any) -> None:
         transaction.verify("")
 
 
+@dataclass(frozen=True)
+class SomeClass(BaseTxPayload):
+    """Test class."""
+
+    content: Dict
+
+
 @given(
     dictionaries(
         keys=text(),
         values=one_of(floats(allow_nan=False, allow_infinity=False), booleans()),
     )
 )
-def test_dict_serializer_is_deterministic(obj: Any) -> None:
+def test_payload_serializer_is_deterministic(obj: Any) -> None:
     """Test that 'DictProtobufStructSerializer' is deterministic."""
-    obj_bytes = DictProtobufStructSerializer.encode(obj)
-    for _ in range(100):
-        assert obj_bytes == DictProtobufStructSerializer.encode(obj)
-        assert obj == DictProtobufStructSerializer.decode(obj_bytes)
+    obj_ = SomeClass(sender="", content=obj)
+    obj_bytes = obj_.encode()
+    assert obj_ == BaseTxPayload.decode(obj_bytes)
 
 
 def test_initialize_block() -> None:

@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeicjyrltgdmwzvctebhfteyyd5mbrjashiji4glwf5vwcijuyzzm24
   abci_app_chain.py: bafybeick5fz6hpbbvpmjkm2o3rl5csgvqf4ivwmqdluj2p4jmcpea4xmsq
-  base.py: bafybeifkrptzd7wmjbysnwmd5evefpxghqty5c6wskrdt6luqf4dfhywwm
+  base.py: bafybeiabfqyjkmzh7hbdfsvasxhhszn3aotrdsb5ps6nf5ss6j6uuzl24e
   behaviour_utils.py: bafybeic2uminxiiodznyvtft4qufnbhw234v3hihqidwbosandyat4dfaq
   behaviours.py: bafybeicapzsvzowpjawkxgkhf2m4qb7c3alh5rsysrxp55o7pmjt6bu2g4
   common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
@@ -21,7 +21,6 @@ fingerprint:
   io_/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
   io_/store.py: bafybeihlmiuacveuz4edd7lqyhzgxpd7vhsinfchudoyvhw6xrt7j5lgc4
   models.py: bafybeicomryuac73gceuabx7gy7owqdlsiv6rihhanurdyhg4xz5lodone
-  serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
   test_tools/__init__.py: bafybeibayeahoo73eztt2chpwi45taj2uv3dxbpyn47ksqfjoepjyaoca4
   test_tools/abci_app.py: bafybeicnd4xvumelx2fgp46kxt62usoq3pp3zrcgmpsr6ufu56k5ozh5mm
   test_tools/base.py: bafybeihjcngjn5e4bvlde3atyy46wqcpkec46p5rejqptxzlgnyegak6ly
@@ -39,7 +38,7 @@ fingerprint:
   tests/data/dummy_abci/payloads.py: bafybeiczldqiumb7prcusb7l5vb575vschwyseyigpupvteldfyz7h6fyi
   tests/data/dummy_abci/rounds.py: bafybeichpgk5bwhdslonnhhwvm4lem5rrrs5m3jlnycpomi7z32h7jkfia
   tests/test_abci_app_chain.py: bafybeidz573eh6m66x2spovp3yhhzyqheqyaspsrvas4loamdawdilwgki
-  tests/test_base.py: bafybeiblpy3pchax4mubupciaul42qshbmrtqkyfbk6ddru2k6y2byy6ou
+  tests/test_base.py: bafybeih3yyquqxxrzeneaioivr32vqlxzy4dffabbtrkf7wiumem6fuhke
   tests/test_base_rounds.py: bafybeib2slbrwb43zovdwyraskg77yxfpm4gkntr22sb23ipuspzebspg4
   tests/test_behaviours.py: bafybeifpb73qkvmo4ojz36bz7igszvme5bmhqen3oajqkhv2yfbz2jdcoi
   tests/test_behaviours_utils.py: bafybeihl4l2mycqnfrb4hyjeeuupwsrko4j2ie2t23ye7x5kelhohuwywy
@@ -51,7 +50,6 @@ fingerprint:
   tests/test_io/test_load.py: bafybeih5qt3etx3bi2zt2kebra322obxq7s77g3r6xzztsix3ihdpfdixy
   tests/test_io/test_store.py: bafybeibqfdgj7unktgkwligf4jnhlytijz7wyczykghylpy2smx76q3d5a
   tests/test_models.py: bafybeigfyusb25yfpcgmgjurur5ckn5jikq4yi55vhy6u7eccvwaxff65y
-  tests/test_serializer.py: bafybeiddbdxrr2nhzemk6jrcxmhjwwfxur6dfj3kpeyrgme7xdggf54p6m
   tests/test_tools/__init__.py: bafybeiew6gu4pgp2sjevq4dbnmv2ail5dph7vj4yi7h3eae4gzx7vj7cbq
   tests/test_tools/base.py: bafybeihi7ax53326dhin3riwwwk3bouqvsoeq26han4nspodzj6hrk3gia
   tests/test_tools/test_base.py: bafybeigazjhuluth3ge2i6llh6zjtfvpdpd5x34vu3ctz7sfvmekc7vyce

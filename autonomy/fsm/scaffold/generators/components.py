@@ -152,7 +152,7 @@ class PayloadsFileGenerator(AbstractFileGenerator, PAYLOADS):
     def _get_base_payload_section(self) -> str:
         """Get the base payload section."""
 
-        payloads: List[str] = [self.BASE_PAYLOAD_CLS.format(**self.template_kwargs)]
+        payloads: List[str] = []
 
         for payload_name, round_name in zip(self.payloads, self.rounds):
             tx_type = _camel_case_to_snake_case(round_name.replace(ROUND, ""))
@@ -172,7 +172,6 @@ class PayloadsFileGenerator(AbstractFileGenerator, PAYLOADS):
         file_content = [
             COPYRIGHT_HEADER,
             self.HEADER.format(**self.template_kwargs),
-            self.TRANSACTION_TYPE_SECTION.format(**self.template_kwargs),
             self._get_base_payload_section(),
         ]
 
