@@ -239,7 +239,7 @@ class TestIpfsConnection:
         ):
             listdir_value = [extra_files + [tmp_file.name]]
             if is_dir:
-                listdir_value = [["/tmp"]] + listdir_value
+                listdir_value = [["/tmp"]] + listdir_value  # nosec
             mock_listdir.side_effect = listdir_value
 
             tmp_file.write(b"dummy_data")
