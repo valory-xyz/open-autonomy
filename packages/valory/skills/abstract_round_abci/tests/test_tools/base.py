@@ -49,13 +49,13 @@ class FSMBehaviourTestToolSetup:
             raise AttributeError(f"{cls} must set `test_cls`")
 
         cls.__test_cls = cls.test_cls
-        cls.__old_value = _MetaPayload.transaction_type_to_payload_cls.copy()
-        _MetaPayload.transaction_type_to_payload_cls.clear()
+        cls.__old_value = _MetaPayload.registry.copy()
+        _MetaPayload.registry.clear()
 
     @classmethod
     def teardown_class(cls) -> None:
         """Teardown class"""
-        _MetaPayload.transaction_type_to_payload_cls = cls.__old_value
+        _MetaPayload.registry = cls.__old_value
 
     def setup(self) -> None:
         """Setup test"""

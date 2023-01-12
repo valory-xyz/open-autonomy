@@ -323,7 +323,7 @@ class ConcreteRound(AbstractRound):
 
     synchronized_data_class = MagicMock()
     payload_attribute = MagicMock()
-    allowed_tx_type = MagicMock()
+    payload_class = MagicMock()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Handle the end of the block."""

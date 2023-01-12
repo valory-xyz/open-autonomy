@@ -485,7 +485,7 @@ class TestVotingRound(_BaseRoundTestClass):
         a, b, c, d = self.participants
 
         class InvalidPayload(BaseTxPayload):
-            transaction_type = "InvalidPayload"
+            """InvalidPayload"""
 
         def get_dummy_tx_payloads_(
             participants: FrozenSet[str],

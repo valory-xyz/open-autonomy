@@ -25,25 +25,11 @@ from enum import Enum
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
 
-class TransactionType(Enum):
-    """Enumeration of transaction types."""
-
-    DUMMY_FINAL = "dummy_final"
-    DUMMY_KEEPER_SELECTION = "dummy_keeper_selection"
-    DUMMY_RANDOMNESS = "dummy_randomness"
-    DUMMY_STARTING = "dummy_starting"
-
-    def __str__(self) -> str:
-        """Get the string value of the transaction type."""
-        return self.value
-
-
 @dataclass(frozen=True)
 class DummyStartingPayload(BaseTxPayload):
     """Represent a transaction payload for the DummyStartingRound."""
 
     content: str
-    transaction_type = TransactionType.DUMMY_STARTING
 
 
 @dataclass(frozen=True)
@@ -52,7 +38,6 @@ class DummyRandomnessPayload(BaseTxPayload):
 
     round_id: int
     randomness: str
-    transaction_type = TransactionType.DUMMY_RANDOMNESS
 
 
 @dataclass(frozen=True)
@@ -60,7 +45,6 @@ class DummyKeeperSelectionPayload(BaseTxPayload):
     """Represent a transaction payload for the DummyKeeperSelectionRound."""
 
     keepers: str
-    transaction_type = TransactionType.DUMMY_KEEPER_SELECTION
 
 
 @dataclass(frozen=True)
@@ -68,4 +52,3 @@ class DummyFinalPayload(BaseTxPayload):
     """Represent a transaction payload for the DummyFinalRound."""
 
     content: bool
-    transaction_type = TransactionType.DUMMY_FINAL

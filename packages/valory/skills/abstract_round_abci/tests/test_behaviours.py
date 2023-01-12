@@ -71,7 +71,7 @@ class RoundA(AbstractRound):
     """Round A."""
 
     round_id = ROUND_A_ID
-    allowed_tx_type = "payload_a"
+    payload_class = BaseTxPayload
     payload_attribute = ""
     synchronized_data_class = BaseSynchronizedData
 
@@ -89,7 +89,7 @@ class RoundB(AbstractRound):
     """Round B."""
 
     round_id = ROUND_B_ID
-    allowed_tx_type = "payload_b"
+    payload_class = BaseTxPayload
     payload_attribute = ""
     synchronized_data_class = BaseSynchronizedData
 
@@ -107,7 +107,7 @@ class ConcreteBackgroundRound(AbstractRound):
     """Concrete Background Round."""
 
     round_id = ROUND_B_ID
-    allowed_tx_type = "background_payload"
+    payload_class = BaseTxPayload
     payload_attribute = ""
     synchronized_data_class = BaseSynchronizedData
 

@@ -424,7 +424,7 @@ class RoundA(AbstractRound):
 
     round_id = "round_a"
     synchronized_data_class = BaseSynchronizedData
-    allowed_tx_type = MagicMock()
+    payload_class = MagicMock()
     payload_attribute = MagicMock()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:

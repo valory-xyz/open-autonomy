@@ -51,7 +51,7 @@ def make_round_class(name: str, bases: Tuple = (AbstractRound,)) -> Type[Abstrac
         bases,
         {
             "synchronized_data_class": MagicMock(),
-            "allowed_tx_type": MagicMock(),
+            "payload_class": MagicMock(),
             "payload_attribute": MagicMock(),
         },
     )
@@ -408,7 +408,7 @@ class TestAbciAppChaining:
                 def end_block(self) -> None:
                     pass
 
-                allowed_tx_type = ""
+                payload_class = None
 
             return ConcreteRound
 
