@@ -24,9 +24,7 @@
 import pytest
 
 from packages.valory.skills.abstract_round_abci.base import Transaction
-from packages.valory.skills.registration_abci.payloads import (
-    RegistrationPayload,
-)
+from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 
 
 def test_registration_abci_payload() -> None:

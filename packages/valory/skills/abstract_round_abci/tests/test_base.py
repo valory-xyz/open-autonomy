@@ -106,7 +106,9 @@ settings.load_profile(profile_name)
 PACKAGE_DIR = Path(__file__).parent.parent
 
 
-DUMMY_CONCRETE_BACKGROUND_PAYLOAD = ConcreteBackgroundRound.payload_class(sender="sender")
+DUMMY_CONCRETE_BACKGROUND_PAYLOAD = ConcreteBackgroundRound.payload_class(
+    sender="sender"
+)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -1105,9 +1107,7 @@ class TestAbstractRound:
         with pytest.raises(LateArrivingTransaction), mock.patch.object(
             default_logger, "debug"
         ) as mock_logger:
-            MyConcreteRound(
-                MagicMock(), MagicMock(), BaseTxPayload
-            ).check_payload_type(
+            MyConcreteRound(MagicMock(), MagicMock(), BaseTxPayload).check_payload_type(
                 MagicMock(payload=BaseTxPayload("dummy"))
             )
             mock_logger.assert_called()
@@ -1148,7 +1148,7 @@ class TestAbstractRound:
         tx_mock.payload_class = tx_type
         with pytest.raises(
             TransactionTypeNotRecognizedError,
-            match=f"request '.*' not recognized",
+            match="request '.*' not recognized",
         ):
             self.round.check_transaction(tx_mock)
 
@@ -1164,7 +1164,7 @@ class TestAbstractRound:
         tx_mock.payload = object
         with pytest.raises(
             TransactionTypeNotRecognizedError,
-            match=f"request '.*' not recognized",
+            match="request '.*' not recognized",
         ):
             self.round.process_transaction(tx_mock)
 
@@ -1685,11 +1685,7 @@ class TestAbciApp:
     @mock.patch.object(ConcreteBackgroundRound, "check_transaction")
     @pytest.mark.parametrize(
         "transaction",
-        [
-            mock.MagicMock(
-                payload=DUMMY_CONCRETE_BACKGROUND_PAYLOAD
-            )
-        ],
+        [mock.MagicMock(payload=DUMMY_CONCRETE_BACKGROUND_PAYLOAD)],
     )
     def test_check_transaction_for_background_round(
         self,
@@ -1704,11 +1700,7 @@ class TestAbciApp:
     @mock.patch.object(ConcreteBackgroundRound, "process_transaction")
     @pytest.mark.parametrize(
         "transaction",
-        [
-            mock.MagicMock(
-                payload=DUMMY_CONCRETE_BACKGROUND_PAYLOAD
-            )
-        ],
+        [mock.MagicMock(payload=DUMMY_CONCRETE_BACKGROUND_PAYLOAD)],
     )
     def test_process_transaction_for_background_round(
         self,

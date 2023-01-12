@@ -27,4 +27,3 @@ from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 @dataclass(frozen=True)
 class DummyPayload(BaseTxPayload):
     """Represent a transaction payload of type 'dummy payload'."""
-

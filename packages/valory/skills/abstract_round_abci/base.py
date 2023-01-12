@@ -34,7 +34,6 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 from inspect import isclass
 from math import ceil
-from types import NoneType
 from typing import (
     Any,
     Dict,
@@ -48,7 +47,6 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
-    Union,
     cast,
 )
 
@@ -164,7 +162,7 @@ class _MetaPayload(ABCMeta):
             )
         new_cls = cast(Type[BaseTxPayload], new_cls)
         # remember association from transaction type to payload class
-        _metaclass_registry_key = f"{new_cls.__module__}.{new_cls.__name__}"
+        _metaclass_registry_key = f"{new_cls.__module__}.{new_cls.__name__}"  # type: ignore
         mcs.registry[_metaclass_registry_key] = new_cls
 
         return new_cls
@@ -2219,8 +2217,10 @@ class AbciApp(
         :param transaction: the transaction.
         """
 
-        if self.is_termination_set and isinstance(
-            transaction.payload, cast(AppState, self.background_round_cls).payload_class
+        payload_type = type(transaction.payload)
+        if (
+            self.is_termination_set
+            and payload_type is cast(AppState, self.background_round_cls).payload_class
         ):
             self.background_round.check_transaction(transaction)
             return
@@ -2237,8 +2237,10 @@ class AbciApp(
         :param transaction: the transaction.
         """
 
-        if self.is_termination_set and isinstance(
-            transaction.payload, cast(AppState, self.background_round_cls).payload_class
+        payload_type = type(transaction.payload)
+        if (
+            self.is_termination_set
+            and payload_type is cast(AppState, self.background_round_cls).payload_class
         ):
             self.background_round.process_transaction(transaction)
             return
