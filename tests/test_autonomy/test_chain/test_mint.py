@@ -87,7 +87,8 @@ def test_mint_service_invalid_paramters() -> None:
     with pytest.raises(
         InvalidMintParameter,
         match=re.escape(
-            "The threshold value should at least be greater than ceil((n * 2 + 1) / 3), n is total number of agent instances in the service"
+            "The threshold value should at least be greater than or equal to ceil((n * 2 + 1) / 3), "
+            "n is total number of agent instances in the service"
         ),
     ):
         mint_service(

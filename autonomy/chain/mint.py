@@ -145,7 +145,7 @@ def mint_service(  # pylint: disable=too-many-arguments
     number_of_agent_instances = sum(number_of_slots_per_agent)
     if threshold < (ceil((number_of_agent_instances * 2 + 1) / 3)):
         raise InvalidMintParameter(
-            "The threshold value should at least be greater than ceil((n * 2 + 1) / 3), "
+            "The threshold value should at least be greater than or equal to ceil((n * 2 + 1) / 3), "
             "n is total number of agent instances in the service"
         )
 
