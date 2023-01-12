@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for the Hello World skill."""
-from abc import ABC
+
 from dataclasses import dataclass
 from enum import Enum
 
@@ -40,19 +40,14 @@ class TransactionType(Enum):
 
 
 @dataclass(frozen=True)
-class BaseHelloWorldAbciPayload(BaseTxPayload, ABC):
-    """Base class for the Hello World abci demo."""
-
-
-@dataclass(frozen=True)
-class RegistrationPayload(BaseHelloWorldAbciPayload):
+class RegistrationPayload(BaseTxPayload):
     """Represent a transaction payload of type 'registration'."""
 
     transaction_type = TransactionType.REGISTRATION
 
 
 @dataclass(frozen=True)
-class CollectRandomnessPayload(BaseHelloWorldAbciPayload):
+class CollectRandomnessPayload(BaseTxPayload):
     """Represent a transaction payload of type 'randomness'."""
 
     round_id: int
@@ -61,7 +56,7 @@ class CollectRandomnessPayload(BaseHelloWorldAbciPayload):
 
 
 @dataclass(frozen=True)
-class PrintMessagePayload(BaseHelloWorldAbciPayload):
+class PrintMessagePayload(BaseTxPayload):
     """Represent a transaction payload of type 'randomness'."""
 
     message: str
@@ -69,7 +64,7 @@ class PrintMessagePayload(BaseHelloWorldAbciPayload):
 
 
 @dataclass(frozen=True)
-class SelectKeeperPayload(BaseHelloWorldAbciPayload):
+class SelectKeeperPayload(BaseTxPayload):
     """Represent a transaction payload of type 'select_keeper'."""
 
     keeper: str
@@ -77,7 +72,7 @@ class SelectKeeperPayload(BaseHelloWorldAbciPayload):
 
 
 @dataclass(frozen=True)
-class ResetPayload(BaseHelloWorldAbciPayload):
+class ResetPayload(BaseTxPayload):
     """Represent a transaction payload of type 'reset'."""
 
     period_count: int
