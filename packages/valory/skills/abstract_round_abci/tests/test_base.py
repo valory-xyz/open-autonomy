@@ -205,10 +205,13 @@ def test_base_tx_payload() -> None:
     """Test BaseTxPayload."""
 
     payload = PayloadA(sender="sender")
+    object.__setattr__(payload, "round_count", 9)
     new_payload = payload.with_new_id()
 
-    assert payload.sender == new_payload.sender
-    assert payload.id_ != new_payload.id_
+    assert not payload == new_payload
+    payload_data, new_payload_data = payload.json, new_payload.json
+    assert not payload_data.pop("id_") == new_payload_data.pop("id_")
+    assert payload_data == new_payload_data
     with pytest.raises(dataclasses.FrozenInstanceError):
         payload.round_count = 1  # type: ignore
     object.__setattr__(payload, "round_count", 1)
