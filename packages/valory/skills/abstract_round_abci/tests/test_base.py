@@ -1010,7 +1010,7 @@ class TestBaseSynchronizedData:
 
     def test_properties(self) -> None:
         """Test several properties"""
-        participants = {"b", "a"}
+        participants = ["b", "a"]
         randomness_str = (
             "3439d92d58e47d342131d446a3abe264396dd264717897af30525c98408c834f"
         )
@@ -1040,7 +1040,7 @@ class TestBaseSynchronizedData:
             )
         )
         assert self.base_synchronized_data.period_count == 0
-        assert base_synchronized_data.all_participants == participants
+        assert base_synchronized_data.all_participants == frozenset(participants)
         assert base_synchronized_data.sorted_participants == ["a", "b"]
         assert abs(base_synchronized_data.keeper_randomness - randomness_value) < 1e-10
         assert base_synchronized_data.most_voted_randomness == randomness_str

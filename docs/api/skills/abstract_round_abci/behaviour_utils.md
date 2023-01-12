@@ -810,6 +810,16 @@ Ledger connection (contract dispatcher) -> (ContractApiMessage | ContractApiMess
 
 the contract api response
 
+<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.request_recovery_params"></a>
+
+#### request`_`recovery`_`params
+
+```python
+def request_recovery_params() -> Generator[None, None, bool]
+```
+
+Request the Tendermint recovery parameters from the other agents via the ACN.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.hard_reset_sleep"></a>
 
 #### hard`_`reset`_`sleep

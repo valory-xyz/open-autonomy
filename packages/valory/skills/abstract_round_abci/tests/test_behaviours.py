@@ -23,7 +23,7 @@
 
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Generator, Optional, Tuple, cast
+from typing import Any, Dict, Generator, Optional, Tuple
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -49,10 +49,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     _MetaRoundBehaviour,
 )
-from packages.valory.skills.abstract_round_abci.models import (
-    SharedState,
-    TendermintRecoveryParams,
-)
+from packages.valory.skills.abstract_round_abci.models import TendermintRecoveryParams
 
 
 BEHAVIOUR_A_ID = "behaviour_a"
@@ -677,12 +674,12 @@ def test_reset_should_be_performed_when_tm_unhealthy() -> None:
     round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
     context_mock = MagicMock()
     context_mock.state.round_sequence = round_sequence
-    context_mock.params.ipfs_domain_name = None
-    behaviour = RoundBehaviour(name="", skill_context=context_mock)
-    shared_state = cast(SharedState, behaviour.context.state)
-    shared_state.tm_recovery_params = TendermintRecoveryParams(
+    tm_recovery_params = TendermintRecoveryParams(
         reset_from_round=RoundA.auto_round_id()
     )
+    context_mock.state.get_acn_result = MagicMock(return_value=tm_recovery_params)
+    context_mock.params.ipfs_domain_name = None
+    behaviour = RoundBehaviour(name="", skill_context=context_mock)
     behaviour.setup()
 
     current_behaviour = behaviour.current_behaviour

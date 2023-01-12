@@ -64,6 +64,7 @@ from packages.valory.protocols.ledger_api.custom_types import (
     TransactionDigest,
 )
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
+from packages.valory.protocols.tendermint import TendermintMessage
 from packages.valory.skills.abstract_round_abci import behaviour_utils
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
@@ -504,6 +505,17 @@ def _wait_until_transaction_delivered_patch(
     yield
 
 
+def dummy_generator_wrapper(return_value: Any = None) -> Callable[[Any], Generator]:
+    """A wrapper around a dummy generator that yields nothing and returns the given return value."""
+
+    def dummy_generator(*_: Any) -> Generator[None, None, Any]:
+        """A dummy generator that yields nothing and returns the given return value."""
+        yield
+        return return_value
+
+    return dummy_generator
+
+
 class TestBaseBehaviour:
     """Tests for the 'BaseBehaviour' class."""
 
@@ -537,6 +549,7 @@ class TestBaseBehaviour:
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.behaviour = BehaviourATest(name="", skill_context=self.context_mock)
         self.behaviour.context.logger = logging  # type: ignore
+        self.behaviour.params.sleep_time = 0.01
 
     def test_behaviour_id(self) -> None:
         """Test behaviour_id on instance."""
@@ -1663,17 +1676,175 @@ class TestBaseBehaviour:
         """Test the stop method."""
         self.behaviour.stop()
 
-    @staticmethod
-    def dummy_sleep(*_: Any) -> Generator[None, None, None]:
-        """Dummy `sleep` method."""
-        yield
+    @pytest.mark.parametrize(
+        "performative",
+        (
+            TendermintMessage.Performative.REQUEST_GENESIS_INFO,
+            TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS,
+        ),
+    )
+    @pytest.mark.parametrize(
+        "address_to_acn_deliverable, n_pending",
+        (
+            ({}, 0),
+            ({i: None for i in range(3)}, 3),
+            ({0: "test", 1: None, 2: None}, 2),
+            ({i: "test" for i in range(3)}, 0),
+        ),
+    )
+    def test_acn_request_from_pending(
+        self,
+        performative: TendermintMessage.Performative,
+        address_to_acn_deliverable: Dict[str, Any],
+        n_pending: int,
+    ) -> None:
+        """Test the `_acn_request_from_pending` method."""
+        self.behaviour.context.state.address_to_acn_deliverable = (
+            address_to_acn_deliverable
+        )
+        gen = self.behaviour._acn_request_from_pending(performative)
+
+        if n_pending == 0:
+            with pytest.raises(StopIteration):
+                next(gen)
+            return
+
+        with mock.patch.object(
+            self.behaviour.context.tendermint_dialogues,
+            "create",
+            return_value=(MagicMock(), MagicMock()),
+        ) as dialogues_mock:
+            dialogues_mock.assert_not_called()
+            self.behaviour.context.outbox.put_message = MagicMock()
+            self.behaviour.context.outbox.put_message.assert_not_called()
+
+            next(gen)
+
+            dialogues_expected_calls = tuple(
+                mock.call(counterparty=address, performative=performative)
+                for address, deliverable in address_to_acn_deliverable.items()
+                if deliverable is None
+            )
+            dialogues_mock.assert_has_calls(dialogues_expected_calls)
+            assert self.behaviour.context.outbox.put_message.call_count == len(
+                dialogues_expected_calls
+            )
+
+        time.sleep(self.behaviour.params.sleep_time)
+        with pytest.raises(StopIteration):
+            next(gen)
+
+    @pytest.mark.parametrize(
+        "performative",
+        (
+            TendermintMessage.Performative.REQUEST_GENESIS_INFO,
+            TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS,
+        ),
+    )
+    @pytest.mark.parametrize(
+        "address_to_acn_deliverable_per_attempt, expected_result",
+        (
+            (
+                tuple({"address": None} for _ in range(10)),
+                None,
+            ),  # an example in which no agent responds
+            (
+                (
+                    {f"address{i}": None for i in range(3)},
+                    {"address1": None, "address2": "test", "address3": None},
+                )
+                + tuple(
+                    {"address1": None, "address2": "test", "address3": "malicious"}
+                    for _ in range(8)
+                ),
+                None,
+            ),  # an example in which no majority is reached
+            (
+                tuple({f"address{i}": None for i in range(3)} for _ in range(3))
+                + ({"address1": "test", "address2": "test", "address3": None},),
+                "test",
+            ),  # an example in which majority is reached during the 4th ACN attempt
+        ),
+    )
+    def test_perform_acn_request(
+        self,
+        performative: TendermintMessage.Performative,
+        address_to_acn_deliverable_per_attempt: Tuple[Dict[str, Any], ...],
+        expected_result: Any,
+    ) -> None:
+        """Test the `_perform_acn_request` method."""
+        final_attempt_idx = len(address_to_acn_deliverable_per_attempt) - 1
+        gen = self.behaviour._perform_acn_request(performative)
+
+        with mock.patch.object(
+            self.behaviour,
+            "_acn_request_from_pending",
+            side_effect=dummy_generator_wrapper(),
+        ) as _acn_request_from_pending_mock:
+            for i in range(self.behaviour.params.max_attempts):
+                acn_result = expected_result if i == final_attempt_idx + 1 else None
+                with mock.patch.object(
+                    self.behaviour.context.state,
+                    "get_acn_result",
+                    return_value=acn_result,
+                ):
+                    if i != final_attempt_idx + 1:
+                        self.behaviour.context.state.address_to_acn_deliverable = (
+                            address_to_acn_deliverable_per_attempt[i]
+                        )
+                        next(gen)
+                        continue
+
+                    try:
+                        next(gen)
+                    except StopIteration as exc:
+                        assert exc.value == expected_result
+                    else:
+                        raise AssertionError(
+                            "The `_perform_acn_request` was expected to yield for the last time."
+                        )
+
+                    break
+
+            n_expected_calls = final_attempt_idx + 1
+            expected_calls = tuple(
+                mock.call(performative) for _ in range(n_expected_calls)
+            )
+            assert _acn_request_from_pending_mock.call_count == n_expected_calls
+            _acn_request_from_pending_mock.assert_has_calls(expected_calls)
+
+    @pytest.mark.parametrize("expected_result", (True, False))
+    def test_request_recovery_params(self, expected_result: bool) -> None:
+        """Test `request_recovery_params`."""
+        acn_result = "not None ACN result" if expected_result else None
+        request_recovery_params = self.behaviour.request_recovery_params()
+
+        with mock.patch.object(
+            self.behaviour,
+            "_perform_acn_request",
+            side_effect=dummy_generator_wrapper(acn_result),
+        ) as perform_acn_request_mock:
+            next(request_recovery_params)
+
+            try:
+                next(request_recovery_params)
+            except StopIteration as exc:
+                assert exc.value is expected_result
+            else:
+                raise AssertionError(
+                    "The `request_recovery_params` was expected to yield for the last time."
+                )
+
+            perform_acn_request_mock.assert_called_once_with(
+                TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS
+            )
 
     def test_start_reset(self) -> None:
         """Test the `_start_reset` method."""
         with mock.patch.object(
             BaseBehaviour,
             "wait_from_last_timestamp",
-            new_callable=lambda *_: self.dummy_sleep,
+            new_callable=lambda *_: dummy_generator_wrapper(),
         ):
             res = self.behaviour._start_reset()
             for _ in range(2):
@@ -1852,13 +2023,13 @@ class TestBaseBehaviour:
         ), mock.patch.object(
             BaseBehaviour,
             "wait_from_last_timestamp",
-            new_callable=lambda *_: self.dummy_sleep,
+            new_callable=lambda *_: dummy_generator_wrapper(),
         ), mock.patch.object(
             BaseBehaviour, "_do_request", new_callable=lambda *_: dummy_do_request
         ), mock.patch.object(
             BaseBehaviour, "_get_status", new_callable=lambda *_: dummy_get_status
         ), mock.patch.object(
-            BaseBehaviour, "sleep", new_callable=lambda *_: self.dummy_sleep
+            BaseBehaviour, "sleep", new_callable=lambda *_: dummy_generator_wrapper()
         ):
             self.behaviour.context.state.round_sequence.height = local_height
             reset = self.behaviour.reset_tendermint_with_wait(on_startup=on_startup)
@@ -2028,6 +2199,13 @@ class TestTmManager:
             self.tm_manager.act_wrapper()
 
     @pytest.mark.parametrize(
+        "acn_communication_success",
+        (
+            True,
+            False,
+        ),
+    )
+    @pytest.mark.parametrize(
         ("tm_reset_success", "num_active_peers"),
         [
             (True, 4),
@@ -2038,6 +2216,7 @@ class TestTmManager:
     )
     def test_handle_unhealthy_tm(
         self,
+        acn_communication_success: bool,
         tm_reset_success: bool,
         num_active_peers: Optional[int],
     ) -> None:
@@ -2061,10 +2240,23 @@ class TestTmManager:
             self.tm_manager, "sleep", side_effect=mock_sleep
         ), mock.patch(
             "sys.exit"
-        ) as mock_sys_exit:
-            try_send(gen)
-            try_send(gen)
-            try_send(gen)
+        ) as mock_sys_exit, mock.patch.object(
+            BaseBehaviour,
+            "request_recovery_params",
+            side_effect=dummy_generator_wrapper(acn_communication_success),
+        ):
+            next(gen)
+            next(gen)
+
+            if not acn_communication_success:
+                with pytest.raises(StopIteration):
+                    next(gen)
+                return
+
+            next(gen)
+            with pytest.raises(StopIteration):
+                next(gen)
+
             if (
                 num_active_peers is not None
                 and num_active_peers < self._DUMMY_CONSENSUS_THRESHOLD
@@ -2085,8 +2277,9 @@ class TestTmManager:
         self, expected_reset_params: Optional[List[Tuple[str, str]]]
     ) -> None:
         """Test that reset params returns the correct params."""
-        if expected_reset_params is not None:
-            self.recovery_params.reset_params = expected_reset_params
+        self.context_mock.state.tm_recovery_params = TendermintRecoveryParams(
+            reset_from_round="does not matter", reset_params=expected_reset_params
+        )
         actual_reset_params = self.tm_manager._get_reset_params(False)
         assert expected_reset_params == actual_reset_params
 

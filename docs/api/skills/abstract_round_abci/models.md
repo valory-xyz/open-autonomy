@@ -98,6 +98,16 @@ def synchronized_data() -> BaseSynchronizedData
 
 Get the latest synchronized_data if available.
 
+<a id="packages.valory.skills.abstract_round_abci.models.SharedState.get_acn_result"></a>
+
+#### get`_`acn`_`result
+
+```python
+def get_acn_result() -> Any
+```
+
+Get the majority of the ACN deliverables.
+
 <a id="packages.valory.skills.abstract_round_abci.models.Requests"></a>
 
 ## Requests Objects
@@ -186,11 +196,13 @@ The suggested amount of time to sleep.
 ## TendermintRecoveryParams Objects
 
 ```python
-@dataclass
+@dataclass(frozen=True)
 class TendermintRecoveryParams()
 ```
 
 A dataclass to hold all parameters related to agent <-> tendermint recovery procedures.
+
+This must be frozen so that we make sure it does not get edited.
 
 <a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs"></a>
 

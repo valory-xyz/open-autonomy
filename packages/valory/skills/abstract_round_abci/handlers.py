@@ -680,7 +680,7 @@ class TendermintHandler(Handler):
         shared_state = cast(SharedState, self.context.state)
         recovery_params = shared_state.tm_recovery_params
         response = dialogue.reply(
-            performative=TendermintMessage.Performative.RESPONSE_GENESIS_INFO,
+            performative=TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS,
             target_message=message,
             params=json.dumps(asdict(recovery_params)),
         )
@@ -729,9 +729,9 @@ class TendermintHandler(Handler):
         try:
             recovery_params = json.loads(message.params)
             shared_state = cast(SharedState, self.context.state)
-            shared_state.tm_recovery_params = TendermintRecoveryParams(
-                **recovery_params
-            )
+            shared_state.address_to_acn_deliverable[
+                message.sender
+            ] = TendermintRecoveryParams(**recovery_params)
         except (json.JSONDecodeError, TypeError) as exc:
             log_message = self.LogMessages.failed_to_parse_params.value
             self.context.logger.error(f"{log_message}: {exc} {message}")
