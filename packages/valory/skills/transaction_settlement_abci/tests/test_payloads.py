@@ -33,7 +33,6 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     SelectKeeperPayload,
     SignaturePayload,
     SynchronizeLateMessagesPayload,
-    TransactionType,
     ValidatePayload,
 )
 
@@ -46,7 +45,6 @@ def test_randomness_payload() -> None:
     assert payload.round_id == 1
     assert payload.randomness == "test"
     assert payload.data == {"round_id": 1, "randomness": "test"}
-    assert payload.transaction_type == TransactionType.RANDOMNESS
 
 
 def test_select_keeper_payload() -> None:
@@ -56,7 +54,6 @@ def test_select_keeper_payload() -> None:
 
     assert payload.keepers == "test"
     assert payload.data == {"keepers": "test"}
-    assert payload.transaction_type == TransactionType.SELECT_KEEPER
 
 
 @pytest.mark.parametrize("vote", (None, True, False))
@@ -67,7 +64,6 @@ def test_validate_payload(vote: Optional[bool]) -> None:
 
     assert payload.vote is vote
     assert payload.data == {"vote": vote}
-    assert payload.transaction_type == TransactionType.VALIDATE
 
 
 def test_tx_history_payload() -> None:
@@ -77,7 +73,6 @@ def test_tx_history_payload() -> None:
 
     assert payload.verified_res == "test"
     assert payload.data == {"verified_res": "test"}
-    assert payload.transaction_type == TransactionType.CHECK
 
 
 def test_synchronize_payload() -> None:
@@ -88,7 +83,6 @@ def test_synchronize_payload() -> None:
 
     assert payload.tx_hashes == tx_hashes
     assert payload.data == {"tx_hashes": tx_hashes}
-    assert payload.transaction_type == TransactionType.SYNCHRONIZE
 
 
 def test_signature_payload() -> None:
@@ -98,7 +92,6 @@ def test_signature_payload() -> None:
 
     assert payload.signature == "sign"
     assert payload.data == {"signature": "sign"}
-    assert payload.transaction_type == TransactionType.SIGNATURE
 
 
 def test_finalization_tx_payload() -> None:
@@ -122,7 +115,6 @@ def test_finalization_tx_payload() -> None:
             "max_priority_fee_per_gas": 0,
         }
     }
-    assert payload.transaction_type == TransactionType.FINALIZATION
 
 
 def test_reset_payload() -> None:
@@ -132,4 +124,3 @@ def test_reset_payload() -> None:
 
     assert payload.period_count == 1
     assert payload.data == {"period_count": 1}
-    assert payload.transaction_type == TransactionType.RESET

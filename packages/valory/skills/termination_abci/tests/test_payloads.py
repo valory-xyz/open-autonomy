@@ -22,7 +22,6 @@
 
 from packages.valory.skills.termination_abci.payloads import (
     BackgroundPayload,
-    TransactionType,
 )
 
 
@@ -33,4 +32,3 @@ def test_background_payload() -> None:
 
     assert payload.background_data == data
     assert payload.data == {"background_data": data}
-    assert payload.transaction_type == TransactionType.BACKGROUND

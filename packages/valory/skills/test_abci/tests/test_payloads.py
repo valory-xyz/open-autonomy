@@ -21,7 +21,7 @@
 
 # pylint: skip-file
 
-from packages.valory.skills.test_abci.payloads import DummyPayload, TransactionType
+from packages.valory.skills.test_abci.payloads import DummyPayload
 
 
 def test_dummy_payload() -> None:
@@ -30,5 +30,3 @@ def test_dummy_payload() -> None:
     payload = DummyPayload(sender="sender")
 
     assert payload.sender == "sender"
-    assert payload.transaction_type == TransactionType.DUMMY
-    assert str(TransactionType.DUMMY) == "dummy"

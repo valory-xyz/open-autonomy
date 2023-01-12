@@ -18,20 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for common apps."""
+
 from dataclasses import dataclass
-from enum import Enum
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
-
-
-class TransactionType(Enum):
-    """Enumeration of transaction types."""
-
-    REGISTRATION = "registration"
-
-    def __str__(self) -> str:
-        """Get the string value of the transaction type."""
-        return self.value
 
 
 @dataclass(frozen=True)
@@ -39,4 +29,3 @@ class RegistrationPayload(BaseTxPayload):
     """Represent a transaction payload of type 'registration'."""
 
     initialisation: str
-    transaction_type = TransactionType.REGISTRATION

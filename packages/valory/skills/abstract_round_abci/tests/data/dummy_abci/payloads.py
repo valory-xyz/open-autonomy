@@ -20,7 +20,6 @@
 """This module contains the transaction payloads of the DummyAbciApp."""
 
 from dataclasses import dataclass
-from enum import Enum
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 

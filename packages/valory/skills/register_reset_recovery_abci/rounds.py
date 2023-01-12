@@ -44,7 +44,7 @@ class Event(Enum):
 class RoundCountRound(CollectSameUntilThresholdRound):
     """A round in which the round count is stored as a list."""
 
-    allowed_tx_type = RoundCountPayload.transaction_type
+    payload_class = RoundCountPayload
     payload_attribute = "current_round_count"
     synchronized_data_class = BaseSynchronizedData
 

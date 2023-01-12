@@ -72,7 +72,7 @@ class SynchronizedData(BaseSynchronizedData):
 class BackgroundRound(CollectSameUntilThresholdRound):
     """Defines the background round, which runs concurrently with other rounds."""
 
-    allowed_tx_type = BackgroundPayload.transaction_type
+    payload_class = BackgroundPayload
     payload_attribute: str = "background_data"
     synchronized_data_class = SynchronizedData
 
@@ -144,7 +144,7 @@ class BackgroundRound(CollectSameUntilThresholdRound):
 class TerminationRound(AbstractRound):
     """Round to act as the counterpart of the behaviour responsible for terminating the agent."""
 
-    allowed_tx_type = None
+    payload_class = None
     synchronized_data_class = SynchronizedData
     payload_attribute = ""
 

@@ -70,9 +70,9 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
         # in the teardown function. We do a shallow copy so we avoid
         # to modify the old mapping during the execution of the tests.
         self.old_tx_type_to_payload_cls = copy(
-            _MetaPayload.transaction_type_to_payload_cls
+            _MetaPayload.registry
         )
-        _MetaPayload.transaction_type_to_payload_cls = {}
+        _MetaPayload.registry = {}
 
         self.run_cli_command(
             "create",
@@ -87,7 +87,7 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
         self,
     ) -> None:
         """Teardown test."""
-        _MetaPayload.transaction_type_to_payload_cls = self.old_tx_type_to_payload_cls  # type: ignore
+        _MetaPayload.registry = self.old_tx_type_to_payload_cls  # type: ignore
         with suppress(OSError, FileExistsError, PermissionError):
             shutil.rmtree(str(Path(self.t, self.agent_name)))
 

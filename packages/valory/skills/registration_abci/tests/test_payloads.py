@@ -26,7 +26,6 @@ import pytest
 from packages.valory.skills.abstract_round_abci.base import Transaction
 from packages.valory.skills.registration_abci.payloads import (
     RegistrationPayload,
-    TransactionType,
 )
 
 
@@ -37,7 +36,6 @@ def test_registration_abci_payload() -> None:
 
     assert payload.initialisation == "dummy"
     assert payload.data == {"initialisation": "dummy"}
-    assert payload.transaction_type == TransactionType.REGISTRATION
     assert RegistrationPayload.from_json(payload.json) == payload
 
 
