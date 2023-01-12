@@ -266,7 +266,7 @@ class Transaction(ABC):
         """Encode the transaction."""
 
         data = dict(payload=self.payload.json, signature=self.signature)
-        encoded_data = DictProtobufStructSerializer.encode(data)
+        encoded_data = json.dumps(data, sort_keys=True).encode()
         if sys.getsizeof(encoded_data) > MAX_READ_IN_BYTES:
             raise ValueError(
                 f"Transaction must be smaller than {MAX_READ_IN_BYTES} bytes"
@@ -277,10 +277,9 @@ class Transaction(ABC):
     def decode(cls, obj: bytes) -> "Transaction":
         """Decode the transaction."""
 
-        data = DictProtobufStructSerializer.decode(obj)
+        data = json.loads(obj.decode())
         signature = data["signature"]
-        payload_dict = data["payload"]
-        payload = BaseTxPayload.from_json(payload_dict)
+        payload = BaseTxPayload.from_json(data["payload"])
         return Transaction(payload, signature)
 
     def verify(self, ledger_id: str) -> None:
