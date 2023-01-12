@@ -42,7 +42,7 @@ from typing import (
     cast,
 )
 
-import pytz  # pylint: disable=import-error
+import pytz
 from aea.exceptions import enforce
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue

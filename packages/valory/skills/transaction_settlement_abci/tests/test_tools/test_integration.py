@@ -142,8 +142,8 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
         nonce = Nonce(0)
         gas_price = {"maxPriorityFeePerGas": Wei(0), "maxFeePerGas": Wei(0)}
         behaviour = cast(FinalizeBehaviour, test_instance.behaviour.current_behaviour)
-        behaviour.params.gas_price = gas_price
-        behaviour.params.nonce = nonce
+        behaviour.params.mutable_params.gas_price = gas_price
+        behaviour.params.mutable_params.nonce = nonce
 
         contract_api_message = ContractApiMessage(
             performative=ContractApiMessage.Performative.RAW_TRANSACTION,  # type: ignore

@@ -104,13 +104,14 @@ from packages.valory.skills.abstract_round_abci.io_.ipfs import (
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState,
     TendermintRecoveryParams,
-    _DEFAULT_REQUEST_RETRY_DELAY,
-    _DEFAULT_REQUEST_TIMEOUT,
-    _DEFAULT_TX_MAX_ATTEMPTS,
-    _DEFAULT_TX_TIMEOUT,
 )
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
+
+_DEFAULT_REQUEST_TIMEOUT = 10.0
+_DEFAULT_REQUEST_RETRY_DELAY = 1.0
+_DEFAULT_TX_MAX_ATTEMPTS = 10
+_DEFAULT_TX_TIMEOUT = 10.0
 
 settings.load_profile(profile_name)
 
@@ -2195,7 +2196,7 @@ class TestTmManager:
     ) -> None:
         """Test that reset params returns the correct params."""
         if expected_reset_params is not None:
-            self.recovery_params.reset_params = expected_reset_params
+            self.recovery_params.__dict__["reset_params"] = expected_reset_params
         actual_reset_params = self.tm_manager._get_reset_params(False)
         assert expected_reset_params == actual_reset_params
 

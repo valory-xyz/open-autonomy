@@ -10,8 +10,8 @@ fingerprint:
   __init__.py: bafybeicc7zwcm4vljmtobhmgkqinpjgoztznwhfzkndvnnsrolr6eivmsm
   behaviours.py: bafybeicmgb3hz2f6rhnpctcojeesayvmwicvl4mybbseyscdvzr6luepni
   composition.py: bafybeiadbacacvh4bshv3butbcomyjyxm45vcguivos5ghtflsrwxzv66y
-  dialogues.py: bafybeihrpasgwqs4kqifofiksclyje66bdhf6ih5yrm4756kczmfl66asy
-  handlers.py: bafybeiejczzjfrorsssm2bitsskbwyxhq5g2lm2kmrmuyrv6z5pb3aqrpy
+  dialogues.py: bafybeidlaxto7h652uthpw6ycewqmd44jckh2dztgr464bywieinuha7cm
+  handlers.py: bafybeicjoxcuw7d4zaumh5gjc5tbhljxdhp73evohr4npurxjmkux4g4qy
   models.py: bafybeiffunjgfpgbnipafnhllqmpkmy7dn4voxj63vvsvvt3ghwmglkut4
   tests/__init__.py: bafybeid2pb3mfobqtzsadxzris67d4hkmcflqfnzay3y3errmtd7tdtvoe
   tests/test_behaviours.py: bafybeiawbfepzyltckutgb3hettltrn5pladutcbzlqnpd3jdu4bixlb3i
@@ -23,10 +23,10 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeif3qokvcdv5jizq26jiwwlvokgiauqrl6sn4r35ix6tuyjlyfbhke
-- valory/registration_abci:0.1.0:bafybeidwhsftree7fitxih3e6rzsk6ooxz7slpkyfnzxk7zrsfmw452fkm
-- valory/reset_pause_abci:0.1.0:bafybeiadpgaqfwcyuwlq4l4vrlxdxmargvukc5jh572f5rzod6g6wurj74
-- valory/termination_abci:0.1.0:bafybeigqserxs32xx5idqg5uqm6hrxgffvtpp7j2a42krp5awi54zf5tju
+- valory/abstract_round_abci:0.1.0:bafybeidjeqs5t4qyzqwbzn224p7nqzcir4bwhrv3xwlugrrssbewsw3xte
+- valory/registration_abci:0.1.0:bafybeibuv7eyvu5lkubgigx7ofkwwa5rjzjibhznocsoggznurhgy6juxu
+- valory/reset_pause_abci:0.1.0:bafybeifs6bxhl5aap4mo2mql5sprq6tgzlwokfy7u46vx2o4mssazfprhm
+- valory/termination_abci:0.1.0:bafybeiglimjbaebzlajiqtbsotsjpzhitar552n4r4pdnse4nd7nsivttu
 behaviours:
   main:
     args: {}
@@ -99,12 +99,17 @@ models:
           version: {}
         voting_power: '10'
       history_check_timeout: 1205
+      init_fallback_gas: 0
+      ipfs_domain_name: null
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
+      max_attempts: 10
       max_healthcheck: 120
       multisend_address: null
       observation_interval: 10
       on_chain_service_id: null
+      request_retry_delay: 1.0
+      request_timeout: 10.0
       reset_tendermint_after: 200
       retry_attempts: 400
       retry_timeout: 3
@@ -121,8 +126,10 @@ models:
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
+      tendermint_p2p_url: localhost:26656
       tendermint_url: http://localhost:26657
       termination_sleep: 900
+      tx_timeout: 10.0
       validate_timeout: 1205
     class_name: Params
   randomness_api:
