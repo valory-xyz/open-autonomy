@@ -1747,8 +1747,9 @@ class BaseBehaviour(
         :param performative: the ACN request performative.
         :return: the result that the majority of the agents sent. If majority cannot be reached, returns `None`.
         """
+        ourself = {self.context.agent_address}
         # reset the ACN deliverables at the beginning of a new request
-        addresses = self.synchronized_data.all_participants
+        addresses = self.synchronized_data.all_participants - ourself
         cast(
             SharedState, self.context.state
         ).address_to_acn_deliverable = dict.fromkeys(addresses)

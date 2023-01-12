@@ -215,7 +215,8 @@ class SharedState(Model):
         if len(self.address_to_acn_deliverable) == 0:
             return None
 
-        threshold = consensus_threshold(self.synchronized_data.nb_participants)
+        # the current agent does not participate, so we need `nb_participants - 1`
+        threshold = consensus_threshold(self.synchronized_data.nb_participants - 1)
         counter = Counter(self.address_to_acn_deliverable.values())
         most_common_value, n_appearances = counter.most_common(1)[0]
 
