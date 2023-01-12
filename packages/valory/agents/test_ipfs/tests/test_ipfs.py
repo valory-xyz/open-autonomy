@@ -65,7 +65,6 @@ class TestIpfs(
         "Multiple object uploading & downloading works.",
     )
     __connection_prefix = "vendor.valory.connections.ipfs.config"
-    # reset every `__reset_tendermint_every` rounds
     extra_configs = [
         {
             "dotted_path": f"{__connection_prefix}.ipfs_domain",

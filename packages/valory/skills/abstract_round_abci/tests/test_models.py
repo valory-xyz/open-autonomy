@@ -485,7 +485,6 @@ def test_base_params_model_initialization() -> None:
         on_chain_service_id=None,
         share_tm_config_on_startup=False,
         tendermint_p2p_url="",
-        ipfs_domain_name=None,
     )
     bp = BaseParams(**kwargs)
 

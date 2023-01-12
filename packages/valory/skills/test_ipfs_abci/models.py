@@ -42,9 +42,7 @@ BenchmarkTool = BaseBenchmarkTool
 class SharedState(BaseSharedState):
     """Keep the current shared state of the skill."""
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the state."""
-        super().__init__(*args, abci_app_cls=IpfsTestAbciApp, **kwargs)
+    abci_app_cls = IpfsTestAbciApp
 
 
 Params = BaseParams

@@ -10,10 +10,10 @@ fingerprint:
   __init__.py: bafybeidkwdyziihk46z6bghnf25lqnbse2glybnty7bwia5sey5nundfq4
   behaviours.py: bafybeierwaykvll6vrzd5ck55ts7k4xlyyjp7uwvtzwk3qxiiickplkyjq
   composition.py: bafybeihbka7osaxcvevlsletvvy6qecnzeoro5gl74u75l3maxzqkcg4ui
-  dialogues.py: bafybeib4jbdycm2vofni3vp6draqet3nejoviqjurcilrzindr4k5dg5fa
+  dialogues.py: bafybeifvorhk35h6crtzy7hjbubdyrr44g5imy2w2ow5ixh2dv5bxkjnwy
   fsm_specification.yaml: bafybeiabsy6pmiv6bd2jvn3gagbv6sm553vsm3krfpejcjiyrrlsgphkqi
-  handlers.py: bafybeieoh4kobdrpkwwoclfvzd5lwnaex5tmnlg5uanc6twm7q7hdzr3by
-  models.py: bafybeiejymnwh3epj4h7o5eitre36uxhi5aejzmm3r7sundxafrb3xayou
+  handlers.py: bafybeia4wwlmi5sdflshulo37bk6zjszzhajhxyc3lh2v6thu3khai4274
+  models.py: bafybeiea6ceqicak4okblv5kwjd6ystuyxsyvmomeklcsns33bovfua6ki
   tests/__init__.py: bafybeifyyzb3rbknjnqrdsp34pya3koxyihbbvoiiuh3rxttehoolzch5e
   tests/test_behaviours.py: bafybeiev3itsy23bwnjqvsxgnsk4ivmrfwzusy626dj67tdprg6ig3vw3m
   tests/test_dialogues.py: bafybeiduhiqmywlfls2rlhtzrikurbapvivscr6wbvr4lvdsegnernet34
@@ -24,9 +24,9 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidjeqs5t4qyzqwbzn224p7nqzcir4bwhrv3xwlugrrssbewsw3xte
-- valory/registration_abci:0.1.0:bafybeibuv7eyvu5lkubgigx7ofkwwa5rjzjibhznocsoggznurhgy6juxu
-- valory/reset_pause_abci:0.1.0:bafybeifs6bxhl5aap4mo2mql5sprq6tgzlwokfy7u46vx2o4mssazfprhm
+- valory/abstract_round_abci:0.1.0:bafybeihej5pdk2fdxuaorc6bem5pfya2o3v5qib2rbo2mum6wtjt6rdvru
+- valory/registration_abci:0.1.0:bafybeifmly5pqh2pe52ddzbnlrihvm7cuphcgtnav3zl73uo4n2sjknv2q
+- valory/reset_pause_abci:0.1.0:bafybeiafabo2owv5m6cxrqth45nlozv7voc62dcaae22pb3g2dkyrniode
 behaviours:
   main:
     args: {}

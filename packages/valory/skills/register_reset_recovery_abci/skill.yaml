@@ -10,9 +10,9 @@ fingerprint:
   __init__.py: bafybeigstxhr6bts7xwyx62cokwkwf3wrunratprkrg5vzokuq7ioqtsp4
   behaviours.py: bafybeiaynfsluc7vfmel7vhcxcsqwjh6dyl7mcrwgnr7k7dfhsip4fvkjq
   composition.py: bafybeiab4mcvz6g24jtjtaqz6q72udk7shnhfz24bbkx5ggq4dqlutxeha
-  dialogues.py: bafybeiflpquascygrfxcgb4ufiigqykmvbxlgbrxxa6cxmiy6f4w3aknmq
-  handlers.py: bafybeigrvstfrd4yce5fdzs6wovkkvvf4a4abxfrs4xh273jl4t4h5ddga
-  models.py: bafybeia2xdaltqi4luc6vgbhprijsdgqnlw7qzvrcosa3izrzpek56ek7q
+  dialogues.py: bafybeib26v7vskawidmgisaoni3xxmvsmhxuujqqaitqwrr2mslgdufeky
+  handlers.py: bafybeihedevmdc7x2ctedrly6hxze3pc2fsbkuhqgnyifd5naulyfrzoeu
+  models.py: bafybeicrwzylgk6aui3b6t3ipzg6iaqmxctprlf55b3xyvnt6auqcvzkvi
   payloads.py: bafybeif3xvmrd6enjexvhpwp4ypsyk4j5tyecyphpf2lba665xonmd2cjy
   rounds.py: bafybeiawhp6k77dz4knpskpq7hxhml2kqactnugwh6q3ymbw7mcmzpqdha
   tests/__init__.py: bafybeigl6apxxiffa4ls45lukhbquaunzm2cspxdyf6thy5dz2rya44seq
@@ -26,8 +26,8 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidjeqs5t4qyzqwbzn224p7nqzcir4bwhrv3xwlugrrssbewsw3xte
-- valory/registration_abci:0.1.0:bafybeibuv7eyvu5lkubgigx7ofkwwa5rjzjibhznocsoggznurhgy6juxu
+- valory/abstract_round_abci:0.1.0:bafybeihej5pdk2fdxuaorc6bem5pfya2o3v5qib2rbo2mum6wtjt6rdvru
+- valory/registration_abci:0.1.0:bafybeifmly5pqh2pe52ddzbnlrihvm7cuphcgtnav3zl73uo4n2sjknv2q
 behaviours:
   main:
     args: {}
@@ -45,9 +45,6 @@ handlers:
   ipfs:
     args: {}
     class_name: IpfsHandler
-  ipfs_dialogues:
-    args: {}
-    class_name: IpfsDialogues
   ledger_api:
     args: {}
     class_name: LedgerApiHandler
@@ -71,6 +68,9 @@ models:
   http_dialogues:
     args: {}
     class_name: HttpDialogues
+  ipfs_dialogues:
+    args: {}
+    class_name: IpfsDialogues
   ledger_api_dialogues:
     args: {}
     class_name: LedgerApiDialogues
