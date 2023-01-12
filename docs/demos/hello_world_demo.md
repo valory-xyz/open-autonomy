@@ -491,7 +491,7 @@ class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
 
 ```python
 @dataclass(frozen=True)
-class PrintMessagePayload(BaseHelloWorldAbciPayload):
+class PrintMessagePayload(BaseTxPayload):
     """Represent a transaction payload of type 'randomness'."""
 
     message: str
