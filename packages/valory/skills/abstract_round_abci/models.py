@@ -290,9 +290,12 @@ class RetriesInfo:
         return self.backoff_factor ** self.retries_attempted
 
 
-@dataclass
+@dataclass(frozen=True)
 class TendermintRecoveryParams:
-    """A dataclass to hold all parameters related to agent <-> tendermint recovery procedures."""
+    """A dataclass to hold all parameters related to agent <-> tendermint recovery procedures.
+
+    This must be frozen so that we make sure it does not get edited.
+    """
 
     reset_from_round: str
     round_count: int = ROUND_COUNT_DEFAULT

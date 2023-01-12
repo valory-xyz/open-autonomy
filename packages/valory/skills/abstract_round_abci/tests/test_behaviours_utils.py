@@ -2277,8 +2277,9 @@ class TestTmManager:
         self, expected_reset_params: Optional[List[Tuple[str, str]]]
     ) -> None:
         """Test that reset params returns the correct params."""
-        if expected_reset_params is not None:
-            self.recovery_params.reset_params = expected_reset_params
+        self.context_mock.state.tm_recovery_params = TendermintRecoveryParams(
+            reset_from_round="does not matter", reset_params=expected_reset_params
+        )
         actual_reset_params = self.tm_manager._get_reset_params(False)
         assert expected_reset_params == actual_reset_params
 
