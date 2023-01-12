@@ -680,7 +680,7 @@ class TendermintHandler(Handler):
         shared_state = cast(SharedState, self.context.state)
         recovery_params = shared_state.tm_recovery_params
         response = dialogue.reply(
-            performative=TendermintMessage.Performative.RESPONSE_GENESIS_INFO,
+            performative=TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS,
             target_message=message,
             params=json.dumps(asdict(recovery_params)),
         )
