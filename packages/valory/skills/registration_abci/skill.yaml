@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeieztbubb6yn5umyt5ulknvb2xxppz5ecxaosxqsaejnrcrrwfu2ji
   __init__.py: bafybeigqj2uodavhrygpqn6iah3ljp53z54c5fxyh5ykgkxuhh5lof6pda
   behaviours.py: bafybeibhdsvg2ztvrrim3zmrvoj6q4oehmzda543l66g4uzytmoke77e3q
-  dialogues.py: bafybeicgx2bato2ctlceydqbhwowxpoznmlo3lfmqt5x5h3fribfe63g6y
+  dialogues.py: bafybeich5unvmovnno4yk2zhpqlodesbkaahbsbmfzro2afn36ha22qo7e
   fsm_specification.yaml: bafybeicx5eutgr4lin7mhwr73xhanuzwdmps7pfoy5f2k7gfxmuec4qbyu
   handlers.py: bafybeigfg3ienjl26t3ak4bjjt6umkoaif7rld4zh7qekxcnbep2elbko4
   models.py: bafybeiaka4eit5vsjh7j2pr7oq7vvmxbk526z35pqzfojfb6kvpnm3yrpy
@@ -32,7 +32,7 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 - valory/tendermint:0.1.0:bafybeid6b2wlb24g6d3godmqms44qvnpkhlvb27icotuobvnscmdmlhaha
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiavrl23j5qtd5cwjnijujxpq6jvrbgoauia6nesbrktwhkn353ggm
+- valory/abstract_round_abci:0.1.0:bafybeif3qokvcdv5jizq26jiwwlvokgiauqrl6sn4r35ix6tuyjlyfbhke
 behaviours:
   main:
     args: {}
@@ -47,6 +47,9 @@ handlers:
   http:
     args: {}
     class_name: HttpHandler
+  ipfs:
+    args: {}
+    class_name: IpfsHandler
   ledger_api:
     args: {}
     class_name: LedgerApiHandler
@@ -70,6 +73,9 @@ models:
   http_dialogues:
     args: {}
     class_name: HttpDialogues
+  ipfs_dialogues:
+    args: {}
+    class_name: IpfsDialogues
   ledger_api_dialogues:
     args: {}
     class_name: LedgerApiDialogues

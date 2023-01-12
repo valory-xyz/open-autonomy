@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeidrjtykhovnccj3sovugdn4r3tszuzv7h37vta6o35epi5qfzdpke
   __init__.py: bafybeibiblks3d3s3ditug4hfzl3ob3cibokcz4ofs7cbbsbqw5zzbtd3m
   behaviours.py: bafybeicrvbz74jumgo4ykqdi3u3pashbsefmzekgpvplyrcxorzx2ebw3q
-  dialogues.py: bafybeib4jbdycm2vofni3vp6draqet3nejoviqjurcilrzindr4k5dg5fa
+  dialogues.py: bafybeifvorhk35h6crtzy7hjbubdyrr44g5imy2w2ow5ixh2dv5bxkjnwy
   fsm_specification.yaml: bafybeibaft2azersmixjtoa7zdekxzsvvnzfyq2zkyutx4elukc73owf5q
   handlers.py: bafybeia2p5wwwn4aknltg5i3qb6ikxi3fzyiexfvby5n4xgwcvy5lt7oxu
   models.py: bafybeiaistd5v6oyiovq7lha6rlpxgcxbmhf6q4nn5lmpluayn3xyqoqfi
@@ -27,7 +27,7 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiavrl23j5qtd5cwjnijujxpq6jvrbgoauia6nesbrktwhkn353ggm
+- valory/abstract_round_abci:0.1.0:bafybeif3qokvcdv5jizq26jiwwlvokgiauqrl6sn4r35ix6tuyjlyfbhke
 behaviours:
   main:
     args: {}
@@ -42,6 +42,9 @@ handlers:
   http:
     args: {}
     class_name: HttpHandler
+  ipfs:
+    args: {}
+    class_name: IpfsHandler
   ledger_api:
     args: {}
     class_name: LedgerApiHandler
@@ -65,6 +68,9 @@ models:
   http_dialogues:
     args: {}
     class_name: HttpDialogues
+  ipfs_dialogues:
+    args: {}
+    class_name: IpfsDialogues
   ledger_api_dialogues:
     args: {}
     class_name: LedgerApiDialogues

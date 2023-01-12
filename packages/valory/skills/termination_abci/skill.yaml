@@ -8,8 +8,8 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidztixckwwbn4ujl6kkvghgsk23xecbgnbiw3e4t3owxldhyjo3au
   behaviours.py: bafybeiasqtp7kcowd5o62gesb6kpab2cj3uuudzx3qnfgq66334k4aktia
-  dialogues.py: bafybeidlaxto7h652uthpw6ycewqmd44jckh2dztgr464bywieinuha7cm
-  handlers.py: bafybeiez3dy6w7vokby5x6kxcxxconp4xhhhmmwx7b2ksqjkka6wobhqmy
+  dialogues.py: bafybeihrpasgwqs4kqifofiksclyje66bdhf6ih5yrm4756kczmfl66asy
+  handlers.py: bafybeihnhrmv2fujvnv6jfdrzkvphiakbb6xjdzadqnebz2t5vc3u5tw5i
   models.py: bafybeibdy5unp2zw2rf7uhi4qvgzrqxyfybakgbmas42t2lgkipkl3glhq
   payloads.py: bafybeiham2atgdsol5k2laucgvlk6edozfujmrzgvc5s2vd2kbmr6qdnw4
   rounds.py: bafybeifbweoav4zk2mzy7zjedvtlj35gjl4mlswib444nthyqfsdtz2d7m
@@ -29,8 +29,8 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiavrl23j5qtd5cwjnijujxpq6jvrbgoauia6nesbrktwhkn353ggm
-- valory/transaction_settlement_abci:0.1.0:bafybeiduysywtv2knxod4kcn5rnblv4dtcu2ijikvpck4bm2trumflq5g4
+- valory/abstract_round_abci:0.1.0:bafybeif3qokvcdv5jizq26jiwwlvokgiauqrl6sn4r35ix6tuyjlyfbhke
+- valory/transaction_settlement_abci:0.1.0:bafybeibwlxsow5vlmbeax5qh4peepcemddzvcm22iqqix6ejbp3hrcraem
 behaviours:
   main:
     args: {}
@@ -45,6 +45,9 @@ handlers:
   http:
     args: {}
     class_name: HttpHandler
+  ipfs:
+    args: {}
+    class_name: IpfsHandler
   ledger_api:
     args: {}
     class_name: LedgerApiHandler
@@ -68,6 +71,9 @@ models:
   http_dialogues:
     args: {}
     class_name: HttpDialogues
+  ipfs_dialogues:
+    args: {}
+    class_name: IpfsDialogues
   params:
     args:
       cleanup_history_depth: 1

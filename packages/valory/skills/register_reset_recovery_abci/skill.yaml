@@ -10,8 +10,8 @@ fingerprint:
   __init__.py: bafybeigstxhr6bts7xwyx62cokwkwf3wrunratprkrg5vzokuq7ioqtsp4
   behaviours.py: bafybeiaynfsluc7vfmel7vhcxcsqwjh6dyl7mcrwgnr7k7dfhsip4fvkjq
   composition.py: bafybeiab4mcvz6g24jtjtaqz6q72udk7shnhfz24bbkx5ggq4dqlutxeha
-  dialogues.py: bafybeiflpquascygrfxcgb4ufiigqykmvbxlgbrxxa6cxmiy6f4w3aknmq
-  handlers.py: bafybeigrvstfrd4yce5fdzs6wovkkvvf4a4abxfrs4xh273jl4t4h5ddga
+  dialogues.py: bafybeib26v7vskawidmgisaoni3xxmvsmhxuujqqaitqwrr2mslgdufeky
+  handlers.py: bafybeihedevmdc7x2ctedrly6hxze3pc2fsbkuhqgnyifd5naulyfrzoeu
   models.py: bafybeia2xdaltqi4luc6vgbhprijsdgqnlw7qzvrcosa3izrzpek56ek7q
   payloads.py: bafybeif3xvmrd6enjexvhpwp4ypsyk4j5tyecyphpf2lba665xonmd2cjy
   rounds.py: bafybeiawhp6k77dz4knpskpq7hxhml2kqactnugwh6q3ymbw7mcmzpqdha
@@ -26,8 +26,8 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiavrl23j5qtd5cwjnijujxpq6jvrbgoauia6nesbrktwhkn353ggm
-- valory/registration_abci:0.1.0:bafybeickbnj5nq45o6sxh2zkbpqpukaxuyouaova62oqofwm73i5blngzy
+- valory/abstract_round_abci:0.1.0:bafybeif3qokvcdv5jizq26jiwwlvokgiauqrl6sn4r35ix6tuyjlyfbhke
+- valory/registration_abci:0.1.0:bafybeidwhsftree7fitxih3e6rzsk6ooxz7slpkyfnzxk7zrsfmw452fkm
 behaviours:
   main:
     args: {}
@@ -42,6 +42,12 @@ handlers:
   http:
     args: {}
     class_name: HttpHandler
+  ipfs:
+    args: {}
+    class_name: IpfsHandler
+  ipfs_dialogues:
+    args: {}
+    class_name: IpfsDialogues
   ledger_api:
     args: {}
     class_name: LedgerApiHandler

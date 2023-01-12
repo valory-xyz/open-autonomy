@@ -520,7 +520,6 @@ class TestBaseBehaviour:
         """Set up the tests."""
         self.context_mock = MagicMock()
         self.context_params_mock = MagicMock(
-            ipfs_domain_name=None,
             request_timeout=_DEFAULT_REQUEST_TIMEOUT,
             request_retry_delay=_DEFAULT_REQUEST_RETRY_DELAY,
             tx_timeout=_DEFAULT_TX_TIMEOUT,
@@ -2055,7 +2054,6 @@ def test_degenerate_behaviour_async_act() -> None:
         sleep_time_before_exit = 0.01
 
     context = MagicMock()
-    context.params.ipfs_domain_name = None
     # this is needed to trigger execution of async_act
     context.state.round_sequence.syncing_up = False
     context.state.round_sequence.block_stall_deadline_expired = False
@@ -2108,7 +2106,6 @@ class TestTmManager:
         """Set up the tests."""
         self.context_mock = MagicMock()
         self.context_params_mock = MagicMock(
-            ipfs_domain_name=None,
             request_timeout=_DEFAULT_REQUEST_TIMEOUT,
             request_retry_delay=_DEFAULT_REQUEST_RETRY_DELAY,
             tx_timeout=_DEFAULT_TX_TIMEOUT,

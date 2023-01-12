@@ -86,5 +86,6 @@ ContractApiDialogues = BaseContractApiDialogues
 TendermintDialogue = BaseTendermintDialogue
 TendermintDialogues = BaseTendermintDialogues
 
+
 IpfsDialogue = BaseIpfsDialogue
 IpfsDialogues = BaseIpfsDialogues
