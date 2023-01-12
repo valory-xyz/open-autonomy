@@ -813,7 +813,7 @@ class BaseSynchronizedData:
     @property
     def all_participants(self) -> FrozenSet[str]:
         """Get all registered participants."""
-        all_participants = self.db.get_strict("all_participants")
+        all_participants = frozenset(self.db.get_strict("all_participants"))
         if len(all_participants) == 0:
             raise ValueError("List participants cannot be empty.")
         return cast(FrozenSet[str], all_participants)

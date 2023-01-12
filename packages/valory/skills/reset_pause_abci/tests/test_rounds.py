@@ -101,4 +101,4 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
         )
 
         assert test_round.accepting_payloads_from != participants
-        assert test_round.accepting_payloads_from == all_participants
+        assert test_round.accepting_payloads_from == frozenset(all_participants)
