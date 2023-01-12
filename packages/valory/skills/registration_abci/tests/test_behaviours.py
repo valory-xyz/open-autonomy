@@ -118,8 +118,8 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
     @pytest.mark.parametrize(
         "setup_data, expected_initialisation",
         (
-            ({}, None),
-            ({"test": []}, None),
+            ({}, "{}"),
+            ({"test": []}, "{}"),
             ({"test": [], "valid": [1, 2]}, '{"valid": [1, 2]}'),
         ),
     )

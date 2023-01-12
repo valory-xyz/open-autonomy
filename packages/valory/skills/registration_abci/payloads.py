@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for common apps."""
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Optional
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -34,33 +34,9 @@ class TransactionType(Enum):
         return self.value
 
 
+@dataclass(frozen=True)
 class RegistrationPayload(BaseTxPayload):
     """Represent a transaction payload of type 'registration'."""
 
+    initialisation: str
     transaction_type = TransactionType.REGISTRATION
-
-    def __init__(
-        self, sender: str, initialisation: Optional[str] = None, **kwargs: Any
-    ) -> None:
-        """Initialize an 'select_keeper' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param initialisation: the initialisation data
-        :param kwargs: the keyword arguments
-        """
-        super().__init__(sender, **kwargs)
-        self._initialisation = initialisation
-
-    @property
-    def initialisation(self) -> Optional[str]:
-        """Get the initialisation."""
-        return self._initialisation
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return (
-            dict(initialisation=self.initialisation)
-            if self.initialisation is not None
-            else {}
-        )

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,9 +19,8 @@
 
 """This module contains the transaction payloads of the DummyAbciApp."""
 
-from abc import ABC
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Hashable
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -39,65 +38,34 @@ class TransactionType(Enum):
         return self.value
 
 
-class BaseDummyPayload(BaseTxPayload, ABC):
-    """Base payload for DummyAbciApp."""
-
-    def __init__(self, sender: str, content: Hashable, **kwargs: Any) -> None:
-        """Initialize a transaction payload."""
-
-        super().__init__(sender, **kwargs)
-        setattr(self, f"_{self.transaction_type}", content)
-        p = property(lambda s: getattr(self, f"_{self.transaction_type}"))
-        setattr(self.__class__, f"{self.transaction_type}", p)
-
-    @property
-    def data(self) -> Dict[str, Hashable]:
-        """Get the data."""
-        return dict(content=getattr(self, str(self.transaction_type)))
-
-
-class DummyStartingPayload(BaseDummyPayload):
+@dataclass(frozen=True)
+class DummyStartingPayload(BaseTxPayload):
     """Represent a transaction payload for the DummyStartingRound."""
 
+    content: str
     transaction_type = TransactionType.DUMMY_STARTING
 
 
+@dataclass(frozen=True)
 class DummyRandomnessPayload(BaseTxPayload):
     """Represent a transaction payload for the DummyRandomnessRound."""
 
+    round_id: int
+    randomness: str
     transaction_type = TransactionType.DUMMY_RANDOMNESS
 
-    def __init__(
-        self, sender: str, round_id: int, randomness: str, **kwargs: Any
-    ) -> None:
-        """Initialize DummyRandomnessPayload"""
-        super().__init__(sender, **kwargs)
-        self._round_id = round_id
-        self._randomness = randomness
 
-    @property
-    def round_id(self) -> int:
-        """Get the round id."""
-        return self._round_id  # pragma: nocover
-
-    @property
-    def randomness(self) -> str:
-        """Get the randomness."""
-        return self._randomness  # pragma: nocover
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(round_id=self.round_id, randomness=self.randomness)
-
-
-class DummyKeeperSelectionPayload(BaseDummyPayload):
+@dataclass(frozen=True)
+class DummyKeeperSelectionPayload(BaseTxPayload):
     """Represent a transaction payload for the DummyKeeperSelectionRound."""
 
+    keepers: str
     transaction_type = TransactionType.DUMMY_KEEPER_SELECTION
 
 
-class DummyFinalPayload(BaseDummyPayload):
+@dataclass(frozen=True)
+class DummyFinalPayload(BaseTxPayload):
     """Represent a transaction payload for the DummyFinalRound."""
 
+    content: bool
     transaction_type = TransactionType.DUMMY_FINAL

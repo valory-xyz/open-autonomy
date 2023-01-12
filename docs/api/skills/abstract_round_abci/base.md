@@ -166,81 +166,33 @@ Create a new class object.
 ## BaseTxPayload Objects
 
 ```python
+@dataclass(frozen=True)
 class BaseTxPayload(ABC, metaclass=_MetaPayload)
 ```
 
 This class represents a base class for transaction payload classes.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.__init__"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.data"></a>
 
-#### `__`init`__`
-
-```python
-def __init__(sender: str, id_: Optional[str] = None, round_count: int = ROUND_COUNT_DEFAULT, **kwargs: Any, ,) -> None
-```
-
-Initialize a transaction payload.
-
-**Arguments**:
-
-- `sender`: the sender (Ethereum) address
-- `id_`: the id of the transaction
-- `round_count`: the count of the round in which the payload was sent
-- `kwargs`: the keyword arguments
-
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.sender"></a>
-
-#### sender
+#### data
 
 ```python
 @property
-def sender() -> str
+def data() -> Dict[str, Any]
 ```
 
-Get the sender.
+Data
 
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.round_count"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.json"></a>
 
-#### round`_`count
+#### json
 
 ```python
 @property
-def round_count() -> int
+def json() -> Dict[str, Any]
 ```
 
-Get the round count.
-
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.round_count"></a>
-
-#### round`_`count
-
-```python
-@round_count.setter
-def round_count(round_count: int) -> None
-```
-
-Set the round count.
-
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.encode"></a>
-
-#### encode
-
-```python
-def encode() -> bytes
-```
-
-Encode the payload.
-
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.decode"></a>
-
-#### decode
-
-```python
-@classmethod
-def decode(cls, obj: bytes) -> "BaseTxPayload"
-```
-
-Decode the payload.
+Json
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.from_json"></a>
 
@@ -253,41 +205,6 @@ def from_json(cls, obj: Dict) -> "BaseTxPayload"
 
 Decode the payload.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.json"></a>
-
-#### json
-
-```python
-@property
-def json() -> Dict
-```
-
-Get the JSON representation of the payload.
-
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.data"></a>
-
-#### data
-
-```python
-@property
-def data() -> Dict
-```
-
-Get the dictionary data.
-
-The returned dictionary is required to be used
-as keyword constructor initializer, i.e. these two
-should have the same effect:
-
-    sender = "..."
-    some_kwargs = {...}
-    p1 = SomePayloadClass(sender, **some_kwargs)
-    p2 = SomePayloadClass(sender, **p1.data)
-
-**Returns**:
-
-a dictionary which contains the payload data
-
 <a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.with_new_id"></a>
 
 #### with`_`new`_`id
@@ -298,25 +215,26 @@ def with_new_id() -> "BaseTxPayload"
 
 Create a new payload with the same content but new id.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.__eq__"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.encode"></a>
 
-#### `__`eq`__`
-
-```python
-def __eq__(other: Any) -> bool
-```
-
-Check equality.
-
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.__hash__"></a>
-
-#### `__`hash`__`
+#### encode
 
 ```python
-def __hash__() -> int
+def encode() -> bytes
 ```
 
-Hash the payload.
+Encode
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.decode"></a>
+
+#### decode
+
+```python
+@classmethod
+def decode(cls, obj: bytes) -> "BaseTxPayload"
+```
+
+Decode
 
 <a id="packages.valory.skills.abstract_round_abci.base.Transaction"></a>
 
