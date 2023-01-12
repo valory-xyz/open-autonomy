@@ -34,6 +34,7 @@ from dataclasses import asdict, dataclass, field
 from enum import Enum
 from inspect import isclass
 from math import ceil
+from types import NoneType
 from typing import (
     Any,
     Dict,
@@ -47,6 +48,7 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
+    Union,
     cast,
 )
 
@@ -872,9 +874,7 @@ class _MetaAbstractRound(ABCMeta):
             )
 
 
-class AbstractRound(
-    Generic[EventType], ABC, metaclass=_MetaAbstractRound
-):
+class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
     """
     This class represents an abstract round.
 
@@ -2208,13 +2208,6 @@ class AbciApp(
         """Get the latest result of the round."""
         return None if len(self._round_results) == 0 else self._round_results[-1]
 
-    @property
-    def background_round_payload_type(self) -> Optional[str]:
-        """Returns the allowed transaction type for background round."""
-        if self.is_termination_set:
-            return cast(AppState, self.background_round_cls).payload_class
-        return None  # pragma: no cover
-
     def check_transaction(self, transaction: Transaction) -> None:
         """
         Check a transaction.
@@ -2225,9 +2218,9 @@ class AbciApp(
 
         :param transaction: the transaction.
         """
-        if (
-            self.is_termination_set
-            and type(transaction.payload) is self.background_round_payload_type
+
+        if self.is_termination_set and isinstance(
+            transaction.payload, cast(AppState, self.background_round_cls).payload_class
         ):
             self.background_round.check_transaction(transaction)
             return
@@ -2243,9 +2236,9 @@ class AbciApp(
 
         :param transaction: the transaction.
         """
-        if (
-            self.is_termination_set
-            and type(transaction.payload) is self.background_round_payload_type
+
+        if self.is_termination_set and isinstance(
+            transaction.payload, cast(AppState, self.background_round_cls).payload_class
         ):
             self.background_round.process_transaction(transaction)
             return
