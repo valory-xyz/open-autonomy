@@ -49,6 +49,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     NUMBER_OF_RETRIES,
     Requests,
     SharedState,
+    TendermintRecoveryParams,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import AbciAppTest
 
@@ -368,9 +369,14 @@ class TestSharedState:
         "address_to_acn_deliverable, n_participants, expected",
         (
             ({}, 4, None),
-            ({1: "test", 2: "test", 3: "test", 4: "test"}, 4, "test"),
+            ({i: "test" for i in range(4)}, 4, "test"),
+            (
+                {i: TendermintRecoveryParams("test") for i in range(4)},
+                4,
+                TendermintRecoveryParams("test"),
+            ),
             ({1: "test", 2: "non-matching", 3: "test", 4: "test"}, 4, "test"),
-            ({1: "test", 3: "test", 4: "test"}, 4, "test"),
+            ({i: "test" for i in range(4)}, 4, "test"),
             ({1: "no", 2: "result", 3: "matches", 4: ""}, 4, None),
         ),
     )
