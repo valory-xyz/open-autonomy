@@ -32,7 +32,7 @@ protocols:
 - valory/http:1.0.0:bafybeifru3qs6udfzprax7jxktbsuzn7immfvi3scgfspifq3zdxwkgvnm
 - valory/tendermint:0.1.0:bafybeicsvfd3cioe66tbcjc3sbprfhfeotwprliosqvvon5iccov4kflni
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihcdxgasei4ohav2nrykrj5q35rhxpqlojjpmm3j4d3khy6xbugvy
+- valory/abstract_round_abci:0.1.0:bafybeic35xvgt5ox53kgfprtn4qn4yqp7liy6qlg4gh244z55kjhm5kudu
 behaviours:
   main:
     args: {}

@@ -23,7 +23,7 @@
 
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Generator, Optional, Tuple, cast
+from typing import Any, Dict, Generator, Optional, Tuple
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -49,10 +49,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     _MetaRoundBehaviour,
 )
-from packages.valory.skills.abstract_round_abci.models import (
-    SharedState,
-    TendermintRecoveryParams,
-)
+from packages.valory.skills.abstract_round_abci.models import TendermintRecoveryParams
 
 
 BEHAVIOUR_A_ID = "behaviour_a"

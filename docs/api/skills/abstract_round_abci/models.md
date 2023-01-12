@@ -196,11 +196,13 @@ The suggested amount of time to sleep.
 ## TendermintRecoveryParams Objects
 
 ```python
-@dataclass
+@dataclass(frozen=True)
 class TendermintRecoveryParams()
 ```
 
 A dataclass to hold all parameters related to agent <-> tendermint recovery procedures.
+
+This must be frozen so that we make sure it does not get edited.
 
 <a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs"></a>
 
