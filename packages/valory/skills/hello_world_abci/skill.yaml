@@ -13,7 +13,7 @@ fingerprint:
   fsm_specification.yaml: bafybeibaft2azersmixjtoa7zdekxzsvvnzfyq2zkyutx4elukc73owf5q
   handlers.py: bafybeia2p5wwwn4aknltg5i3qb6ikxi3fzyiexfvby5n4xgwcvy5lt7oxu
   models.py: bafybeidteblxpyz5rv2z75m5ykwwtat34wfh4y5rkvztez2gvtftccd6ki
-  payloads.py: bafybeiav6iruy5jaynqscj22sgsqo5gs4a7u3sfiolqndmekitrnee5xse
+  payloads.py: bafybeihhvnvvzca22qq7bml4dwcpjwgiuf3ndspzcvgbtlka6k4fi5oz7a
   rounds.py: bafybeihyurnl6gknlusq7s4xwozrigig5tftk26lzkqxvv7pytg6krvdte
   tests/__init__.py: bafybeibpuwe63mjjwnaanx7wdw63reh6qa5xdtjxdf75o3nksvjercte4y
   tests/test_behaviours.py: bafybeieranbg3uiuzqvxikgmwdcnvk4we57mv3kxh4kqiuujkctsvlpsnu
@@ -27,7 +27,7 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiewag26eckr3ibmwfkxitbdysratqui7fwfdr4shl3tdux3enhrhy
+- valory/abstract_round_abci:0.1.0:bafybeidsc4dstzyi36nwj6sfizync22mmc66abw3mwhul4xsut55ngvdmy
 behaviours:
   main:
     args: {}

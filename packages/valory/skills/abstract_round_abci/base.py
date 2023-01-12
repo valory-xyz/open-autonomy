@@ -58,9 +58,6 @@ from packages.valory.connections.ledger.connection import (
     PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.abci.custom_types import Header
-from packages.valory.skills.abstract_round_abci.serializer import (
-    DictProtobufStructSerializer,
-)
 
 
 _logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
