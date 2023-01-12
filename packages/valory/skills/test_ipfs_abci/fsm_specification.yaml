@@ -1,0 +1,29 @@
+alphabet_in:
+- DONE
+- NO_MAJORITY
+- RESET_TIMEOUT
+- ROUND_TIMEOUT
+default_start_state: RegistrationRound
+final_states: []
+label: HelloWorldAbciApp
+start_states:
+- RegistrationRound
+states:
+- CollectRandomnessRound
+- PrintMessageRound
+- RegistrationRound
+- ResetAndPauseRound
+- SelectKeeperRound
+transition_func:
+    (CollectRandomnessRound, DONE): SelectKeeperRound
+    (CollectRandomnessRound, NO_MAJORITY): CollectRandomnessRound
+    (CollectRandomnessRound, ROUND_TIMEOUT): CollectRandomnessRound
+    (PrintMessageRound, DONE): ResetAndPauseRound
+    (PrintMessageRound, ROUND_TIMEOUT): RegistrationRound
+    (RegistrationRound, DONE): CollectRandomnessRound
+    (ResetAndPauseRound, DONE): CollectRandomnessRound
+    (ResetAndPauseRound, NO_MAJORITY): RegistrationRound
+    (ResetAndPauseRound, RESET_TIMEOUT): RegistrationRound
+    (SelectKeeperRound, DONE): PrintMessageRound
+    (SelectKeeperRound, NO_MAJORITY): RegistrationRound
+    (SelectKeeperRound, ROUND_TIMEOUT): RegistrationRound

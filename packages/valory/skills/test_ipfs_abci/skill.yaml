@@ -1,40 +1,37 @@
-name: termination_abci
+name: test_ipfs_abci
 author: valory
 version: 0.1.0
 type: skill
-description: Termination skill.
+description: IPFS e2e testing application.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: bafybeidztixckwwbn4ujl6kkvghgsk23xecbgnbiw3e4t3owxldhyjo3au
-  behaviours.py: bafybeiasqtp7kcowd5o62gesb6kpab2cj3uuudzx3qnfgq66334k4aktia
-  dialogues.py: bafybeidlaxto7h652uthpw6ycewqmd44jckh2dztgr464bywieinuha7cm
-  handlers.py: bafybeiez3dy6w7vokby5x6kxcxxconp4xhhhmmwx7b2ksqjkka6wobhqmy
-  models.py: bafybeibdy5unp2zw2rf7uhi4qvgzrqxyfybakgbmas42t2lgkipkl3glhq
-  payloads.py: bafybeiham2atgdsol5k2laucgvlk6edozfujmrzgvc5s2vd2kbmr6qdnw4
-  rounds.py: bafybeifbweoav4zk2mzy7zjedvtlj35gjl4mlswib444nthyqfsdtz2d7m
-  tests/__init__.py: bafybeigsjjibb2gcybzp5yrsy25vyiu54rw6oaeyw5onaqemsvul7bmroi
-  tests/test_behaviours.py: bafybeidcyiathyayqu5fjido3toccycvwwatdjm43xtmbcbxlfhkm3q2ia
-  tests/test_dialogues.py: bafybeicb6gfanfyt3wiq3svdlvtxiuzpk72oxp7cfdeq4ezed7ixee5yae
-  tests/test_handlers.py: bafybeiefz2ebr5rlyxziwr4bts2r75abpqgji3k47a6hnrj7e7t2yvgmpu
-  tests/test_models.py: bafybeih5wtdjuv4hc25fxneeg7mgjiks55xj353zxfamvtrthkw2ydmbbe
-  tests/test_payloads.py: bafybeifiglq3bjhzdq6qetxrbvujxwqfi7dbgrryq5bm4dl5tdvrlhgbam
-  tests/test_rounds.py: bafybeibfnhovtgu775y2rxi5xqnta67fibucymraxfsevw3snpfts5sbae
+  README.md: bafybeidwzlddf2imw56detc62pyyoaz3sshsb36xaq44jusn2obs4ywnz4
+  __init__.py: bafybeigeaq5dcvmldbdcfvgvapzkb4atm3dgku7fmwkab5xyn7jh33t2mm
+  behaviours.py: bafybeiacmiicmbcfcdprpxyjw5rrldrgnqyjsfmkolvsg7jpn7uugxxjxa
+  dialogues.py: bafybeia7uc7w7rsge4oav42lznihuxufw6ax75k2aai3xcsoacdc64eoma
+  fsm_specification.yaml: bafybeibaft2azersmixjtoa7zdekxzsvvnzfyq2zkyutx4elukc73owf5q
+  handlers.py: bafybeibba5kt5oa3jnekyzylfwaqgdqymxmlaab4mssi5dw25zp5dyf2ma
+  models.py: bafybeiagwbuh3demofcomy5wno7vyrvnlpsid346nkryxqh3n655vqd4uy
+  payloads.py: bafybeicar5iiyobalqs5webg7eqzinafwyg4cupielabf455fcy5tcbsla
+  rounds.py: bafybeifdpfekddyoeaoltxlwahaq6pjlgo3hgjnle5gxaegaazs6frb5yu
+  tests/__init__.py: bafybeicx3dc4ujymhcaae3zvdmmfik7dmhhcmwwwoiqwk5nyykyohg2rte
+  tests/test_behaviours.py: bafybeigy4skbym4wrnmm3m2rcctgu223buj2dm6hyofshn3yt4yhgxxhfy
+  tests/test_dialogues.py: bafybeifwjwhxsbfpsjranr474ru7fyai5xxeckkv2nzj2duwkozl5ufaxe
+  tests/test_handlers.py: bafybeicoa6x4tf4pmr5dityxxzp5w2aegn2ubcubxzq7e4minclcwy3cw4
+  tests/test_models.py: bafybeifyidlrsnut4mrqtenfwo5lmsplp6wm46ej6xide7bvin2j5k7kre
+  tests/test_payloads.py: bafybeihdizr6r5xnd5hudj7ho7ye3dkcppjt753ulaofyazqpokxnf6cga
+  tests/test_rounds.py: bafybeiakd2cc3f5ajbffwcchi5z2z4auuvn6knojdoztjim7bopqfwcar4
 fingerprint_ignore_patterns: []
 connections: []
-contracts:
-- valory/gnosis_safe:0.1.0:bafybeiamw5sluyueflxsvzukmayctl3ijc76fx5twstwnc7ons6lw2goa4
-- valory/multisend:0.1.0:bafybeigjywkl7hydjsrkogob3xebj2ifhqwmfhhxoeyrndzhhxi5u6amey
-- valory/service_registry:0.1.0:bafybeif4mgymtachjdhyzemxp7oj2i7itusjvrsxw7cheuvhtypizutu5e
-protocols:
-- valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
+contracts: []
+protocols: []
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeiavrl23j5qtd5cwjnijujxpq6jvrbgoauia6nesbrktwhkn353ggm
-- valory/transaction_settlement_abci:0.1.0:bafybeiduysywtv2knxod4kcn5rnblv4dtcu2ijikvpck4bm2trumflq5g4
 behaviours:
   main:
     args: {}
-    class_name: TerminationAbciBehaviours
+    class_name: TestAbciConsensusBehaviour
 handlers:
   abci:
     args: {}
@@ -45,6 +42,9 @@ handlers:
   http:
     args: {}
     class_name: HttpHandler
+  ipfs:
+    args: {}
+    class_name: IpfsHandler
   ledger_api:
     args: {}
     class_name: LedgerApiHandler
@@ -68,6 +68,12 @@ models:
   http_dialogues:
     args: {}
     class_name: HttpDialogues
+  ipfs_dialogues:
+    args: {}
+    class_name: IpfsDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
   params:
     args:
       cleanup_history_depth: 1
@@ -75,7 +81,6 @@ models:
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
-      finalize_timeout: 60.0
       genesis_config:
         genesis_time: '2022-05-20T16:00:21.735122717Z'
         chain_id: chain-c4daS1
@@ -93,19 +98,17 @@ models:
             - ed25519
           version: {}
         voting_power: '10'
-      history_check_timeout: 1205
-      keeper_allowed_retries: 3
+      hello_world_message: HELLO_WORLD!
       keeper_timeout: 30.0
       max_healthcheck: 120
-      multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
       observation_interval: 10
       on_chain_service_id: null
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
-      service_id: termination_abci
-      service_registry_address: '0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA'
+      service_id: test_ipfs_abci
+      service_registry_address: null
       setup:
         all_participants:
         - - '0x0000000000000000000000000000000000000000'
@@ -117,9 +120,7 @@ models:
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
-      termination_sleep: 900
-      validate_timeout: 1205
-    class_name: TerminationParams
+    class_name: Params
   requests:
     args: {}
     class_name: Requests
@@ -132,6 +133,5 @@ models:
   tendermint_dialogues:
     args: {}
     class_name: TendermintDialogues
-dependencies:
-  hexbytes: {}
-is_abstract: true
+dependencies: {}
+is_abstract: false

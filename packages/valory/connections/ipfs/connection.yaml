@@ -20,6 +20,8 @@ config:
   ipfs_domain: null
 excluded_protocols: []
 restricted_to_protocols: []
-dependencies: {}
+dependencies:
+  ipfshttpclient:
+    version: ==0.8.0a2
 is_abstract: false
 cert_requests: []
