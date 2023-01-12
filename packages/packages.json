@@ -32,8 +32,8 @@
         "service/valory/counter/0.1.0": "bafybeigk5giln64ynqdhbj5yxaazu5xpgkdfzdsjlfklaab45ulfovsw4i",
         "service/valory/hello_world/0.1.0": "bafybeieaov74vjrrp7qkvicyais5yyebc4v7mg2k7seb3x65ht5j7e6tau",
         "service/valory/register_reset/0.1.0": "bafybeibtbhtrmchwj7cbdyudeqz7iktvd2yujiw2fitxqyaye7d6k73qwe",
-        "skill/valory/test_ipfs_abci/0.1.0": "bafybeihzhukisey3bifd43vk7f5nom6elpdicyotshnebtuzql4h7f6xma",
-        "agent/valory/test_ipfs/0.1.0": "bafybeia4vx4v6l5fgrzd5n3b6uqgkzeoqanasnh3chnjv2qkkuad2l2ooi",
+        "skill/valory/test_ipfs_abci/0.1.0": "bafybeihftprikkc767epi7jbiiac4yzyco6io7aq2clrieida47crrdmha",
+        "agent/valory/test_ipfs/0.1.0": "bafybeiha45mp46m5vcij5o57hdvtfhsbhavlbxmivpwbqxcgpkjyy7zjwm",
         "skill/valory/register_reset_recovery_abci/0.1.0": "bafybeiakhaqrzhy6at4kmk7ohoflwnqk7za2m27aotwzkcd54hcuqhpcim",
         "agent/valory/register_reset_recovery/0.1.0": "bafybeifh6rgmv2ll3kelgde6tjxk4e77xxk7npuuapxorxrql7yz2xaj2a"
     },
