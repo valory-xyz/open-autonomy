@@ -26,11 +26,11 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 - valory/ipfs:0.1.0:bafybeigknxxwh2xts7ijbacils4a4cgq7jhcdvwahshbw22zw5hnncsfla
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
-- valory/tendermint:0.1.0:bafybeid6b2wlb24g6d3godmqms44qvnpkhlvb27icotuobvnscmdmlhaha
+- valory/tendermint:0.1.0:bafybeiep2dilpmu3je4z2kq7yc7l6n7ax5knwfax2ufvmnflt3uj2wrbju
 skills:
 - valory/abstract_abci:0.1.0:bafybeid3udqtjtl4txht2z3tm3z3mr2nqtoddtno3u3urxjqjbbpqeelli
-- valory/abstract_round_abci:0.1.0:bafybeiaoeseobnrvavuzibel3tiwt47jzpymvubwrek6omhe6lqjex6fgy
-- valory/test_ipfs_abci:0.1.0:bafybeihb7vodjucgxhx7n5oojse7mkhg7qoedbovdrgtjwjgyb7xgq3tnu
+- valory/abstract_round_abci:0.1.0:bafybeieosc2yrgjkw7ojxry6mbiv5a2mjjrksuhkh7wda3ah5orfgf2v2a
+- valory/test_ipfs_abci:0.1.0:bafybeifclab5idlf7pqhyitf6lvbbx4hv6kaoqnkncf5ra2eosfbt3yedm
 default_ledger: ethereum
 required_ledgers:
 - ethereum

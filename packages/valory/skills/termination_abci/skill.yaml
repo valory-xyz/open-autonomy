@@ -8,17 +8,17 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidztixckwwbn4ujl6kkvghgsk23xecbgnbiw3e4t3owxldhyjo3au
   behaviours.py: bafybeiasqtp7kcowd5o62gesb6kpab2cj3uuudzx3qnfgq66334k4aktia
-  dialogues.py: bafybeidlaxto7h652uthpw6ycewqmd44jckh2dztgr464bywieinuha7cm
-  handlers.py: bafybeiez3dy6w7vokby5x6kxcxxconp4xhhhmmwx7b2ksqjkka6wobhqmy
+  dialogues.py: bafybeif7uhfjkcz3ryhti6gafqxhvciw4ec5bdshxvq3355tun5ydkzrna
+  handlers.py: bafybeibh5b3p4bdvbnwiqwormduqjvuievylb3s2wgj4ald4led7gx2kji
   models.py: bafybeif5qygu6bdgsxv53sqoty76vgp3afib6e6fmykofrgnlcubmg4cd4
-  payloads.py: bafybeidvw4ufvqktmuxe7ubnocmih6h32kyrb4u7wz36ee5fyz7kybygty
-  rounds.py: bafybeidikhf3t7ghm4ljoxd6od4x4xzxlwkyeyabkbete245hcg7ztp5vq
+  payloads.py: bafybeihbwfunongkws5lck67sdgpnytq6bdbiv22yuehmyfth4qeypjcpa
+  rounds.py: bafybeiaxe7dssnuz25pedwv7nxs6m5chmqmzwvgxrqinhh4evth52pzv4m
   tests/__init__.py: bafybeigsjjibb2gcybzp5yrsy25vyiu54rw6oaeyw5onaqemsvul7bmroi
   tests/test_behaviours.py: bafybeidcyiathyayqu5fjido3toccycvwwatdjm43xtmbcbxlfhkm3q2ia
   tests/test_dialogues.py: bafybeicb6gfanfyt3wiq3svdlvtxiuzpk72oxp7cfdeq4ezed7ixee5yae
   tests/test_handlers.py: bafybeiefz2ebr5rlyxziwr4bts2r75abpqgji3k47a6hnrj7e7t2yvgmpu
   tests/test_models.py: bafybeih5wtdjuv4hc25fxneeg7mgjiks55xj353zxfamvtrthkw2ydmbbe
-  tests/test_payloads.py: bafybeifiglq3bjhzdq6qetxrbvujxwqfi7dbgrryq5bm4dl5tdvrlhgbam
+  tests/test_payloads.py: bafybeibai4dzjjdeyeinyirjndcfzbj2qst6roj6prjvcqwut5m3won3fa
   tests/test_rounds.py: bafybeibfnhovtgu775y2rxi5xqnta67fibucymraxfsevw3snpfts5sbae
 fingerprint_ignore_patterns: []
 connections: []
@@ -29,8 +29,8 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidsc4dstzyi36nwj6sfizync22mmc66abw3mwhul4xsut55ngvdmy
-- valory/transaction_settlement_abci:0.1.0:bafybeic4wpcfopjjg6ijysbycots3pavtklzu4l37b3fwe7ey64dpug3me
+- valory/abstract_round_abci:0.1.0:bafybeieosc2yrgjkw7ojxry6mbiv5a2mjjrksuhkh7wda3ah5orfgf2v2a
+- valory/transaction_settlement_abci:0.1.0:bafybeib7n7xjcnkxycrvretofi5h4yjj5oz5kkntumzh24ohdse2uwocx4
 behaviours:
   main:
     args: {}

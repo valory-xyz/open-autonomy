@@ -8,19 +8,19 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeieztbubb6yn5umyt5ulknvb2xxppz5ecxaosxqsaejnrcrrwfu2ji
   __init__.py: bafybeigqj2uodavhrygpqn6iah3ljp53z54c5fxyh5ykgkxuhh5lof6pda
-  behaviours.py: bafybeibst6d6zxnuqfkbd4axz3m7xqdatrbt7jeqilhf2p2j3uivpqpcd4
-  dialogues.py: bafybeicgx2bato2ctlceydqbhwowxpoznmlo3lfmqt5x5h3fribfe63g6y
+  behaviours.py: bafybeib6opuar5fcrrnhgfpjyg62evmo7tifwmeq5mn7wkuxdou6nj62s4
+  dialogues.py: bafybeicm4bqedlyytfo4icqqbyolo36j2hk7pqh32d3zc5yqg75bt4demm
   fsm_specification.yaml: bafybeicx5eutgr4lin7mhwr73xhanuzwdmps7pfoy5f2k7gfxmuec4qbyu
-  handlers.py: bafybeigfg3ienjl26t3ak4bjjt6umkoaif7rld4zh7qekxcnbep2elbko4
+  handlers.py: bafybeifby6yecei2d7jvxbqrc3tpyemb7xdb4ood2kny5dqja26qnxrf24
   models.py: bafybeifkfjsfkjy2x32cbuoewxujfgpcl3wk3fji6kq27ofr2zcfe7l5oe
-  payloads.py: bafybeign53cwfwin6kqihcy4jaopu7hfmxt3orhd5xfppmmsqsd5tpakse
-  rounds.py: bafybeicw5uqbtp6ggvfei6xe6ad5crzqsps3iznsqhzrkeh4wiuoj4vndu
+  payloads.py: bafybeiacrixfazch2a5ydj7jfk2pnvlxwkygqlwzkfmdeldrj4fqgwyyzm
+  rounds.py: bafybeiaqaogoimaaus33zuu3jsj4svh7flw4jpc62fi5ubrdiu7inxkc2i
   tests/__init__.py: bafybeiab2s4vkmbz5bc4wggcclapdbp65bosv4en5zaazk5dwmldojpqja
-  tests/test_behaviours.py: bafybeidgfms36lv7k3yizkfvglkoo6zpryti5fezkujkm5h33dycp52vuq
+  tests/test_behaviours.py: bafybeiawbh723urzjoisuvsghb5awnelwnfxsdmcuxnddbonjo2wvlenau
   tests/test_dialogues.py: bafybeibeqnpzuzgcfb6yz76htslwsbbpenihswbp7j3qdyq42yswjq25l4
   tests/test_handlers.py: bafybeifpnwaktxckbvclklo6flkm5zqs7apmb33ffs4jrmunoykjbl5lni
   tests/test_models.py: bafybeiewxl7nio5av2aukql2u7hlhodzdvjjneleba32abr42xeirrycb4
-  tests/test_payloads.py: bafybeigezgujzj3wrgfreagxhez5mqjdzntxhgplukutnbcyiw3djitlg4
+  tests/test_payloads.py: bafybeicbg7gftbbc6gjw2n7d3x5a6a4fjkwn5uevbyqhvl75lqj77aad3e
   tests/test_rounds.py: bafybeiasrb3s27ahsg7it6ehksmv7hfth76zattfolr7i6tihrivfsu6qi
 fingerprint_ignore_patterns: []
 connections:
@@ -30,9 +30,9 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
-- valory/tendermint:0.1.0:bafybeid6b2wlb24g6d3godmqms44qvnpkhlvb27icotuobvnscmdmlhaha
+- valory/tendermint:0.1.0:bafybeiep2dilpmu3je4z2kq7yc7l6n7ax5knwfax2ufvmnflt3uj2wrbju
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeidsc4dstzyi36nwj6sfizync22mmc66abw3mwhul4xsut55ngvdmy
+- valory/abstract_round_abci:0.1.0:bafybeieosc2yrgjkw7ojxry6mbiv5a2mjjrksuhkh7wda3ah5orfgf2v2a
 behaviours:
   main:
     args: {}

@@ -41,7 +41,7 @@ class Event(Enum):
 class IpfsRound(CollectDifferentUntilAllRound):
     """Dummy ipfs round."""
 
-    allowed_tx_type = DummyPayload.transaction_type
+    payload_class = DummyPayload
     payload_attribute = "sender"
     synchronized_data_class = BaseSynchronizedData
 

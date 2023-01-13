@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -34,10 +34,10 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401  # pylint: disable
     acn_node,
     flask_tendermint,
     hardhat_port,
+    ipfs_daemon,
     key_pairs,
     nb_nodes,
     registries_scope_class,
-    ipfs_daemon,
     tendermint_port,
 )
 

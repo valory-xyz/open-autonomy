@@ -60,10 +60,10 @@ from packages.open_aea.protocols.signing.custom_types import (
 from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
+from packages.valory.connections.ipfs.connection import PUBLIC_ID as IPFS_CONNECTION_ID
 from packages.valory.connections.p2p_libp2p_client.connection import (
     PUBLIC_ID as P2P_LIBP2P_CLIENT_PUBLIC_ID,
 )
-from packages.valory.connections.ipfs.connection import PUBLIC_ID as IPFS_CONNECTION_ID
 from packages.valory.contracts.service_registry.contract import (  # noqa: F401  # pylint: disable=unused-import
     ServiceRegistryContract,
 )
