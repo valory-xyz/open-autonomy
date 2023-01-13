@@ -184,12 +184,12 @@ class IpfsConnection(Connection):
             # we begin by checking that they belong to the same directory
             dirs = {os.path.dirname(path) for path in files.keys()}
             if len(dirs) > 1:
-                err = (
-                    f"Received files from different dirs {dirs}. "
-                    f"If you want to send multiple files as a single dir, "
-                    f"make sure the their path matches to one directory only."
-                )
+                err = f"Received files from different dirs {dirs}. "
                 self.logger.error(err)
+                self.logger.info(
+                    "If you want to send multiple files as a single dir, "
+                    "make sure the their path matches to one directory only."
+                )
                 return self._handle_error(err, dialogue)
 
             # "path" is the directory, it's the same for all the files

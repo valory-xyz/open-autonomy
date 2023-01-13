@@ -24,6 +24,8 @@ n_periods: is the number of periods this event should appear for the check to be
 ## BaseTestEnd2End Objects
 
 ```python
+@use_ipfs_daemon
+
 @pytest.mark.e2e
 
 @pytest.mark.integration

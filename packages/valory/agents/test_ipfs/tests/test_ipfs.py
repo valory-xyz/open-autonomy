@@ -30,15 +30,10 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     flask_tendermint,
     hardhat_addr,
     hardhat_port,
+    ipfs_daemon,
     key_pairs,
     registries_scope_class,
     tendermint_port,
-)
-
-from packages.valory.connections.ipfs.tests.test_connection import (  # noqa
-    LOCAL_IPFS,
-    ipfs_daemon,
-    use_ipfs_daemon,
 )
 
 
@@ -47,7 +42,6 @@ TARGET_SKILL = "valory/test_ipfs_abci:0.1.0"
 TIME_TO_FINISH = 60  # 1 minute
 
 
-@use_ipfs_daemon
 @pytest.mark.e2e
 @pytest.mark.integration
 @pytest.mark.parametrize("nb_nodes", (1,))
@@ -64,10 +58,3 @@ class TestIpfs(
         "Single object uploading & downloading works.",
         "Multiple object uploading & downloading works.",
     )
-    __connection_prefix = "vendor.valory.connections.ipfs.config"
-    extra_configs = [
-        {
-            "dotted_path": f"{__connection_prefix}.ipfs_domain",
-            "value": LOCAL_IPFS,
-        },
-    ]

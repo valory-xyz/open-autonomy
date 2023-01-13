@@ -20,20 +20,23 @@
 
 """Tests for ipfs connection."""
 import asyncio
-import logging
 import os
 import tempfile
-from typing import Dict, Iterator, List, Optional
+from typing import Dict, List, Optional
 from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-from _pytest.logging import LogCaptureFixture
 from aea.configurations.base import ConnectionConfig
 from aea.connections.base import ConnectionStates
 from aea.mail.base import Envelope
 from aea_cli_ipfs.exceptions import DownloadError
-from aea_cli_ipfs.ipfs_utils import IPFSDaemon, IPFSTool
+from aea_cli_ipfs.ipfs_utils import IPFSTool
+from aea_test_autonomy.fixture_helpers import (  # noqa: F401; pylint: disable=unused-import
+    LOCAL_IPFS,
+    ipfs_daemon,
+    use_ipfs_daemon,
+)
 
 from packages.valory.connections.ipfs.connection import (
     IpfsConnection,
@@ -43,19 +46,6 @@ from packages.valory.connections.ipfs.connection import (
 from packages.valory.protocols.ipfs import IpfsMessage
 
 
-@pytest.fixture(scope="module")
-def ipfs_daemon() -> Iterator[bool]:
-    """Starts an IPFS daemon for the tests."""
-    print("Starting IPFS daemon...")
-    daemon = IPFSDaemon()
-    daemon.start()
-    yield daemon.is_started()
-    print("Tearing down IPFS daemon...")
-    daemon.stop()
-
-
-use_ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
-LOCAL_IPFS = "/dns/localhost/tcp/5001/http"
 ANY_SKILL = "skill/any:0.1.0"
 
 
@@ -107,17 +97,23 @@ class TestIpfsConnection:
         self,
         performative: IpfsMessage.Performative,
         expected_error: bool,
-        caplog: LogCaptureFixture,
     ) -> None:
         """Tests for _handle_envelope."""
         dummy_msg = IpfsMessage(performative=performative)
         envelope = Envelope(to=str(PUBLIC_ID), sender=ANY_SKILL, message=dummy_msg)
-        with mock.patch.object(IpfsConnection, "run_async", return_value=MagicMock()):
+        with mock.patch.object(
+            IpfsConnection,
+            "run_async",
+            return_value=MagicMock(),
+        ), mock.patch.object(
+            self.connection.logger,
+            "error",
+        ) as mock_logger:
             self.connection._handle_envelope(envelope)
             if expected_error:
-                with caplog.at_level(logging.ERROR):
-                    err = f"Performative `{performative.value}` is not supported."
-                    assert err in caplog.text
+                mock_logger.assert_called_with(
+                    f"Performative `{performative.value}` is not supported."
+                )
 
     @pytest.mark.asyncio
     async def test_send(self) -> None:
@@ -162,7 +158,7 @@ class TestIpfsConnection:
         assert message is not None
 
     @pytest.mark.asyncio
-    async def test_run_async(self, caplog: LogCaptureFixture) -> None:
+    async def test_run_async(self) -> None:
         """Test run async."""
         dummy_log = "dummy operation is being performed"
 
@@ -171,27 +167,33 @@ class TestIpfsConnection:
             self.connection.logger.info(dummy_log)
 
         await self.connection.connect()
-        task = self.connection.run_async(dummy_operation)
-        assert task is not None
+        with mock.patch.object(
+            self.connection.logger,
+            "info",
+        ) as mock_logger:
+            task = self.connection.run_async(dummy_operation)
+            assert task is not None
 
-        # give some time for the task to be scheduled and run
-        await asyncio.sleep(1)
-        assert dummy_log in caplog.text
+            # give some time for the task to be scheduled and run
+            await asyncio.sleep(1)
+            mock_logger.assert_called_with(dummy_log)
 
     @pytest.mark.parametrize(
-        ("files", "expected_log"),
+        ("files", "expected_log", "log_level"),
         [
-            ({}, "No files were present."),
+            ({}, "No files were present.", "error"),
             (
                 {"dummy_filename": "dummy_content"},
-                "Successfully stored files with hash: ",
+                "Successfully stored files with hash: QmYn1qHyFMDdVxYcwseLBdooLAyc3orNBH8vvj4iPTXd4R.",
+                "debug",
             ),
             (
                 {
                     "dummy_dir/dummy_filename1": "dummy_content",
                     "dummy_dir/dummy_filename2": "dummy_content",
                 },
-                "Successfully stored files with hash: ",
+                "Successfully stored files with hash: QmRP7wK1NZKwno9CFxQUeFaJip5eaaLBo1v8WFtyECgLCz.",
+                "debug",
             ),
             (
                 {
@@ -200,20 +202,25 @@ class TestIpfsConnection:
                 },
                 "If you want to send multiple files as a single dir, "
                 "make sure the their path matches to one directory only.",
+                "info",
             ),
         ],
     )
     def test_handle_store_files(
-        self, files: Dict[str, str], expected_log: str, caplog: LogCaptureFixture
+        self, files: Dict[str, str], expected_log: str, log_level: str
     ) -> None:
         """Test _handle_store_files."""
-        message = IpfsMessage(
-            performative=IpfsMessage.Performative.STORE_FILES, files=files  # type: ignore
-        )
-        dialogue = MagicMock()
-        message = self.connection._handle_store_files(message, dialogue)
-        assert message is not None
-        assert expected_log in caplog.text
+        with mock.patch.object(
+            self.connection.logger,
+            log_level,
+        ) as mock_logger:
+            message = IpfsMessage(
+                performative=IpfsMessage.Performative.STORE_FILES, files=files  # type: ignore
+            )
+            dialogue = MagicMock()
+            message = self.connection._handle_store_files(message, dialogue)
+            assert message is not None
+            mock_logger.assert_called_with(expected_log)
 
     @pytest.mark.parametrize(
         ("extra_files", "download_side_effect", "is_dir"),

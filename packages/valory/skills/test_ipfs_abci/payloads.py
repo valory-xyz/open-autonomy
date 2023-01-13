@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for the test_abci app."""
-from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
 
@@ -36,7 +35,7 @@ class TransactionType(Enum):
 
 
 @dataclass(frozen=True)
-class DummyPayload(BaseTxPayload, ABC):
+class DummyPayload(BaseTxPayload):
     """A dummy tx payload."""
 
     transaction_type = TransactionType.DUMMY
