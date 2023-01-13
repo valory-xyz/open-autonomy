@@ -452,7 +452,9 @@ class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
         print(printed_message)
         self.context.logger.info(f"printed_message={printed_message}")
 
-        payload = self.payload_class(self.context.agent_address, printed_message)
+        payload = self.matching_round.payload_class(
+            self.context.agent_address, printed_message
+        )
 
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
