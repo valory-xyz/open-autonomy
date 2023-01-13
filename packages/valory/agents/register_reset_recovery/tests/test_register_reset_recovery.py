@@ -35,6 +35,7 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401  # pylint: disable
     flask_tendermint,
     hardhat_port,
     ipfs_daemon,
+    ipfs_domain,
     key_pairs,
     nb_nodes,
     registries_scope_class,

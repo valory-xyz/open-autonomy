@@ -39,6 +39,7 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     abci_host,
     abci_port,
     ipfs_daemon,
+    ipfs_domain,
     tendermint,
     tendermint_port,
 )

@@ -31,6 +31,7 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     hardhat_addr,
     hardhat_port,
     ipfs_daemon,
+    ipfs_domain,
     key_pairs,
     registries_scope_class,
     tendermint_port,

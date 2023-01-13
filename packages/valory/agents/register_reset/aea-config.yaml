@@ -18,8 +18,8 @@ fingerprint:
   tests/helpers/slow_tendermint_server/config-template.toml: bafybeibzoxwjjn5cacrtx4p2gov75ktg467xoyglistwjn5xt5l6d6tpea
   tests/helpers/slow_tendermint_server/tendermint.py: bafybeidqggrm4koidktdqsgd5qaoorfwjrxwt3wkx4fjo7xdhvwlzy4eua
   tests/helpers/slow_tendermint_server/wrapper.sh: bafybeif2wssashoaw7ifz6q3ocmejkuz32ycwta4w5dcjunns4g2awkv2y
-  tests/test_hard_reset_race_condition.py: bafybeigrp2vv7iwpmbiqv5hegmt2p2xpvnxp36dlcjisjdgtifzktnpheu
-  tests/test_register_reset.py: bafybeibyme2zzeoqssobmfmds33bj5njvgt5hx52wujdwjs4trxrcosbfq
+  tests/test_hard_reset_race_condition.py: bafybeihnw7j7aahu2kqsak7vr2bjjf6rvkvyyk4gylbhjcmandwoe5of3u
+  tests/test_register_reset.py: bafybeicj4ydqrx7amwei4pb7rc73yel2fcsr336c53qropvhvl3e7wam4y
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeicmhpw2f5c3vds6lwlv2q4fa5nd6zonnvgdretrwfly7ylpiofdqq

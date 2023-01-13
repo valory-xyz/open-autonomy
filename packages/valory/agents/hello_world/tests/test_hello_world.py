@@ -35,6 +35,7 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     abci_port,
     flask_tendermint,
     ipfs_daemon,
+    ipfs_domain,
     tendermint_port,
 )
 
