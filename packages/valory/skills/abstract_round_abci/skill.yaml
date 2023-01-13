@@ -46,9 +46,9 @@ fingerprint:
   tests/test_dialogues.py: bafybeigpfrslqaz2yullyehia5bsl7cmy2qqxtz627ig7rbrypw5xfzeum
   tests/test_handlers.py: bafybeidwcuj4utg7ltmx6637echpthhzw5lxledfxyhz2p27emkwbtvocm
   tests/test_io/__init__.py: bafybeid3sssvbbyju4snrdssxyafleuo57sqyuepl25btxcbuj3p5oonsm
-  tests/test_io/test_ipfs.py: bafybeicw34v5qi63ndhh2pm77sx7dbywf6at6zer7rlh4efpaeanh6qnhu
+  tests/test_io/test_ipfs.py: bafybeihkazdsdooi3vuypf4nu5g6pqnp5xmxg2vjjv4hlwgfl4gsyzaape
   tests/test_io/test_load.py: bafybeidgnxt5rt67ackbcgi5vnlliedxakcnzgihogplolck7kp57pc6iy
-  tests/test_io/test_store.py: bafybeifoos45jpa7vhd2jq2kk5cczttfi26hjf2iqz4vp3mpdjubtko2oa
+  tests/test_io/test_store.py: bafybeid2zbdjtgbplenacudk6re7si7dloqs2u7faqt7vhapjipjuw35ku
   tests/test_models.py: bafybeigvo6gmg3v3vbt2cs3tuywcv3cu5bv52a6w3gqigww5qlidokyq3y
   tests/test_tools/__init__.py: bafybeiew6gu4pgp2sjevq4dbnmv2ail5dph7vj4yi7h3eae4gzx7vj7cbq
   tests/test_tools/base.py: bafybeihi7ax53326dhin3riwwwk3bouqvsoeq26han4nspodzj6hrk3gia

@@ -22,7 +22,7 @@
 # pylint: skip-file
 
 import json
-from pathlib import PosixPath
+from pathlib import Path, PosixPath
 from typing import Optional, cast
 
 import pytest
@@ -98,7 +98,7 @@ class TestStorer:
         """Test `store` when multiple files are present."""
         dummy_object = {"test": "test"}
         dummy_filename = "test"
-        expected_path = f"{self.path}/{dummy_filename}"
+        expected_path = Path(f"{self.path}/{dummy_filename}").__str__()
         expected_object = {expected_path: json.dumps(dummy_object, indent=4)}
         actual_object = self.json_storer.store({dummy_filename: dummy_object}, True)
         assert expected_object == actual_object

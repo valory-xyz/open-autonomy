@@ -79,7 +79,7 @@ class TestIPFSInteract:
             # here we manually remove the trailing the dir from the name.
             # This is done by the IPFS connection under normal circumstances.
             actual_objects = {
-                k.lstrip(filepath + "/").lstrip("\\"): v
+                k.lstrip(filepath).lstrip("/").lstrip("\\"): v
                 for k, v in actual_objects.items()
             }
 
