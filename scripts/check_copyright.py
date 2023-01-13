@@ -326,9 +326,10 @@ def main() -> None:
 
     def _file_filter(file: Path) -> bool:
         """Filter for files."""
-        file_str = str(file)
+        file_str = str(file.as_posix())
 
         # protocols are generated using generate_all_protocols.py
+        # packages in `tests/data/packages` are generated using `dummy_author` as author
         return (
             not file_str.endswith("_pb2.py")
             and not file_str.endswith("_pb2_grpc.py")
@@ -340,6 +341,7 @@ def main() -> None:
                     and "build" not in file.parts
                 )
             )
+            and "tests/data/packages" not in file_str
         )
 
     python_files_filtered = filter(_file_filter, python_files)
