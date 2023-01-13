@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 """This module contains the transaction payloads for the test_abci app."""
 from abc import ABC
+from dataclasses import dataclass
 from enum import Enum
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
@@ -34,6 +35,7 @@ class TransactionType(Enum):
         return self.value
 
 
+@dataclass(frozen=True)
 class DummyPayload(BaseTxPayload, ABC):
     """Represent a transaction payload of type 'registration'."""
 

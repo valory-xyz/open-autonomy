@@ -73,7 +73,7 @@ class BackgroundRound(CollectSameUntilThresholdRound):
     """Defines the background round, which runs concurrently with other rounds."""
 
     allowed_tx_type = BackgroundPayload.transaction_type
-    payload_attribute: str = get_name(BackgroundPayload.background_data)
+    payload_attribute: str = "background_data"
     synchronized_data_class = SynchronizedData
 
     def process_payload(self, payload: BaseTxPayload) -> None:

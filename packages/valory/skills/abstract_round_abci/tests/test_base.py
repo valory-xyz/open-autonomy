@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,9 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the base.py module of the skill."""
-
-# pylint: skip-file
-
+import dataclasses
 import datetime
 import logging
 import re
@@ -28,6 +26,7 @@ import shutil
 from abc import ABC
 from contextlib import suppress
 from copy import copy, deepcopy
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from time import sleep
@@ -98,6 +97,9 @@ from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
 
+# pylint: skip-file
+
+
 settings.load_profile(profile_name)
 
 
@@ -121,6 +123,7 @@ class PayloadEnum(Enum):
     B = "B"
     C = "C"
     DUMMY = "DUMMY"
+    TOO_BIG_TO_FIT_IN_HERE = "TOO_BIG_TO_FIT_IN_HERE"
 
     def __str__(self) -> str:
         """Get the string representation."""
@@ -141,65 +144,48 @@ class BasePayload(BaseTxPayload, ABC):
     """Base payload class for testing."""
 
 
+@dataclass(frozen=True)
 class PayloadA(BasePayload):
     """Payload class for payload type 'A'."""
 
     transaction_type = PayloadEnum.A
 
 
+@dataclass(frozen=True)
 class PayloadB(BasePayload):
     """Payload class for payload type 'B'."""
 
     transaction_type = PayloadEnum.B
 
 
+@dataclass(frozen=True)
 class PayloadC(BasePayload):
     """Payload class for payload type 'C'."""
 
     transaction_type = PayloadEnum.C
 
 
+@dataclass(frozen=True)
 class PayloadD(BasePayload):
     """Payload class for payload type 'D'."""
 
     transaction_type = PayloadEnumB.A
 
 
+@dataclass(frozen=True)
 class DummyPayload(BasePayload):
     """Dummy payload class."""
 
+    dummy_attribute: int
     transaction_type = PayloadEnum.DUMMY
 
-    def __init__(self, sender: str, dummy_attribute: int, **kwargs: Any) -> None:
-        """Initialize a dummy payload.
 
-        :param sender: the sender address
-        :param dummy_attribute: a dummy attribute
-        :param kwargs: the keyword arguments
-        """
-        super().__init__(sender, **kwargs)
-        self._dummy_attribute = dummy_attribute
-
-    @property
-    def dummy_attribute(self) -> int:
-        """Get the dummy_attribute."""
-        return self._dummy_attribute
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(dummy_attribute=self.dummy_attribute)
-
-
-class TooBigPayload(BaseTxPayload, ABC):
+@dataclass(frozen=True)
+class TooBigPayload(BaseTxPayload):
     """Base payload class for testing."""
 
-    transaction_type = PayloadEnum.A
-
-    @property
-    def data(self) -> Dict:
-        """Get the data"""
-        return dict(dummy_field="0" * 10 ** 7)
+    transaction_type = PayloadEnum.TOO_BIG_TO_FIT_IN_HERE
+    dummy_field: str = "0" * 10 ** 7
 
 
 class ObjectImitator:
@@ -218,12 +204,17 @@ class ObjectImitator:
 def test_base_tx_payload() -> None:
     """Test BaseTxPayload."""
 
-    payload = BasePayload(sender="sender")
+    payload = PayloadA(sender="sender")
+    object.__setattr__(payload, "round_count", 9)
     new_payload = payload.with_new_id()
 
-    assert payload.sender == new_payload.sender
-    assert payload.id_ != new_payload.id_
-    payload.round_count = 1
+    assert not payload == new_payload
+    payload_data, new_payload_data = payload.json, new_payload.json
+    assert not payload_data.pop("id_") == new_payload_data.pop("id_")
+    assert payload_data == new_payload_data
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        payload.round_count = 1  # type: ignore
+    object.__setattr__(payload, "round_count", 1)
     assert payload.round_count == 1
     assert type(hash(payload)) == int
 

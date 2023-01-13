@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
     """
 
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = get_name(RegistrationPayload.initialisation)
+    payload_attribute = "initialisation"
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -79,7 +79,7 @@ class RegistrationRound(CollectSameUntilThresholdRound):
     """
 
     allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = get_name(RegistrationPayload.initialisation)
+    payload_attribute = "initialisation"
     required_block_confirmations = 10
     done_event = Event.DONE
     synchronized_data_class = BaseSynchronizedData

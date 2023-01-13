@@ -75,7 +75,7 @@ class DummyStartingBehaviour(DummyBaseBehaviour):
         """Do the act, supporting asynchronous execution."""
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            content = True
+            content = "dummy"
             sender = self.context.agent_address
             payload = DummyStartingPayload(sender=sender, content=content)
 

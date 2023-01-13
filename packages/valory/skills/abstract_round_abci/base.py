@@ -21,6 +21,7 @@
 import datetime
 import heapq
 import itertools
+import json
 import logging
 import re
 import sys
@@ -29,7 +30,7 @@ import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from collections import Counter
 from copy import copy, deepcopy
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from inspect import isclass
 from math import ceil
@@ -57,9 +58,6 @@ from packages.valory.connections.ledger.connection import (
     PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.abci.custom_types import Header
-from packages.valory.skills.abstract_round_abci.serializer import (
-    DictProtobufStructSerializer,
-)
 
 
 _logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
@@ -198,113 +196,59 @@ class _MetaPayload(ABCMeta):
         return getattr(cls, field_name)
 
 
+@dataclass(frozen=True)
 class BaseTxPayload(ABC, metaclass=_MetaPayload):
     """This class represents a base class for transaction payload classes."""
 
-    transaction_type: Any
-
-    def __init__(
-        self,
-        sender: str,
-        id_: Optional[str] = None,
-        round_count: int = ROUND_COUNT_DEFAULT,
-        **kwargs: Any,
-    ) -> None:
-        """
-        Initialize a transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param id_: the id of the transaction
-        :param round_count: the count of the round in which the payload was sent
-        :param kwargs: the keyword arguments
-        """
-        self.id_ = uuid.uuid4().hex if id_ is None else id_
-        self._round_count = round_count
-        self._sender = sender
-        # kwargs exists for typing only
-        enforce(len(kwargs) == 0, f"kwargs passed to {type(self)} must be empty")
+    sender: str
+    transaction_type: Any = field(init=False)
+    round_count: int = field(default=ROUND_COUNT_DEFAULT, init=False)
+    id_: str = field(default_factory=lambda: uuid.uuid4().hex, init=False)
 
     @property
-    def sender(self) -> str:
-        """Get the sender."""
-        return self._sender
+    def data(self) -> Dict[str, Any]:
+        """Data"""
+        excluded = ["sender", "round_count", "id_", "transaction_type"]
+        return {k: v for k, v in asdict(self).items() if k not in excluded}
 
+    # TODO: refactor - these methods are not strictly needed
     @property
-    def round_count(self) -> int:
-        """Get the round count."""
-        return self._round_count
-
-    @round_count.setter
-    def round_count(self, round_count: int) -> None:
-        """Set the round count."""
-        self._round_count = round_count
-
-    def encode(self) -> bytes:
-        """Encode the payload."""
-        return DictProtobufStructSerializer.encode(self.json)
-
-    @classmethod
-    def decode(cls, obj: bytes) -> "BaseTxPayload":
-        """Decode the payload."""
-        return cls.from_json(DictProtobufStructSerializer.decode(obj))
+    def json(self) -> Dict[str, Any]:
+        """Json"""
+        data = asdict(self)
+        data["transaction_type"] = str(data["transaction_type"])
+        return data
 
     @classmethod
     def from_json(cls, obj: Dict) -> "BaseTxPayload":
         """Decode the payload."""
         data = copy(obj)
         transaction_type = str(data.pop("transaction_type"))
+        round_count, id_ = data.pop("round_count"), data.pop("id_")
         payload_cls = _MetaPayload.transaction_type_to_payload_cls[transaction_type]
-        return payload_cls(**data)
-
-    @property
-    def json(self) -> Dict:
-        """Get the JSON representation of the payload."""
-        return dict(
-            transaction_type=str(self.transaction_type),
-            id_=self.id_,
-            sender=self.sender,
-            round_count=self.round_count,
-            **self.data,
-        )
-
-    @property
-    def data(self) -> Dict:
-        """
-        Get the dictionary data.
-
-        The returned dictionary is required to be used
-        as keyword constructor initializer, i.e. these two
-        should have the same effect:
-
-            sender = "..."
-            some_kwargs = {...}
-            p1 = SomePayloadClass(sender, **some_kwargs)
-            p2 = SomePayloadClass(sender, **p1.data)
-
-        :return: a dictionary which contains the payload data
-        """
-        return {}
+        payload = payload_cls(**data)  # type: ignore
+        object.__setattr__(payload, "round_count", round_count)
+        object.__setattr__(payload, "id_", id_)
+        return payload
 
     def with_new_id(self) -> "BaseTxPayload":
         """Create a new payload with the same content but new id."""
-        return type(self)(
-            self.sender, id_=uuid.uuid4().hex, round_count=self.round_count, **self.data
-        )
+        new = type(self)(sender=self.sender, **self.data)  # type: ignore
+        object.__setattr__(new, "round_count", self.round_count)
+        return new
 
-    def __eq__(self, other: Any) -> bool:
-        """Check equality."""
-        if not isinstance(other, BaseTxPayload):
-            return NotImplemented
-        return (
-            self.id_ == other.id_
-            and self.round_count == other.round_count
-            and self.sender == other.sender
-            and self.data == other.data
-        )
+    def encode(self) -> bytes:
+        """Encode"""
+        encoded_data = json.dumps(self.json, sort_keys=True).encode()
+        if sys.getsizeof(encoded_data) > MAX_READ_IN_BYTES:
+            msg = f"Transaction must be smaller than {MAX_READ_IN_BYTES} bytes"
+            raise ValueError(msg)
+        return encoded_data
 
-    def __hash__(self) -> int:
-        """Hash the payload."""
-        return hash(tuple(sorted(self.data.items())))
+    @classmethod
+    def decode(cls, obj: bytes) -> "BaseTxPayload":
+        """Decode"""
+        return cls.from_json(json.loads(obj.decode()))
 
 
 class Transaction(ABC):
@@ -317,8 +261,9 @@ class Transaction(ABC):
 
     def encode(self) -> bytes:
         """Encode the transaction."""
+
         data = dict(payload=self.payload.json, signature=self.signature)
-        encoded_data = DictProtobufStructSerializer.encode(data)
+        encoded_data = json.dumps(data, sort_keys=True).encode()
         if sys.getsizeof(encoded_data) > MAX_READ_IN_BYTES:
             raise ValueError(
                 f"Transaction must be smaller than {MAX_READ_IN_BYTES} bytes"
@@ -328,10 +273,10 @@ class Transaction(ABC):
     @classmethod
     def decode(cls, obj: bytes) -> "Transaction":
         """Decode the transaction."""
-        data = DictProtobufStructSerializer.decode(obj)
+
+        data = json.loads(obj.decode())
         signature = data["signature"]
-        payload_dict = data["payload"]
-        payload = BaseTxPayload.from_json(payload_dict)
+        payload = BaseTxPayload.from_json(data["payload"])
         return Transaction(payload, signature)
 
     def verify(self, ledger_id: str) -> None:
@@ -341,7 +286,7 @@ class Transaction(ABC):
         :param ledger_id: the ledger id of the address
         :raises: SignatureNotValidError: if the signature is not valid.
         """
-        payload_bytes = DictProtobufStructSerializer.encode(self.payload.json)
+        payload_bytes = self.payload.encode()
         addresses = LedgerApis.recover_message(
             identifier=ledger_id, message=payload_bytes, signature=self.signature
         )

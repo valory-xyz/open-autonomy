@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ def test_validate_payload(vote: Optional[bool]) -> None:
     payload = ValidatePayload(sender="sender", vote=vote)
 
     assert payload.vote is vote
-    assert payload.data == {} if vote is None else {"vote": vote}
+    assert payload.data == {"vote": vote}
     assert payload.transaction_type == TransactionType.VALIDATE
 
 
@@ -83,10 +83,11 @@ def test_tx_history_payload() -> None:
 def test_synchronize_payload() -> None:
     """Test `SynchronizeLateMessagesPayload`."""
 
-    payload = SynchronizeLateMessagesPayload(sender="sender", tx_hashes="test")
+    tx_hashes = "test"
+    payload = SynchronizeLateMessagesPayload(sender="sender", tx_hashes=tx_hashes)
 
-    assert payload.tx_hashes == "test"
-    assert payload.data == {"tx_hashes": "test"}
+    assert payload.tx_hashes == tx_hashes
+    assert payload.data == {"tx_hashes": tx_hashes}
     assert payload.transaction_type == TransactionType.SYNCHRONIZE
 
 
@@ -132,4 +133,3 @@ def test_reset_payload() -> None:
     assert payload.period_count == 1
     assert payload.data == {"period_count": 1}
     assert payload.transaction_type == TransactionType.RESET
-    assert ResetPayload.from_json(payload.json) == payload
