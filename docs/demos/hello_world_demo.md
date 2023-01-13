@@ -350,7 +350,7 @@ Let's look how each of these objects are implemented. If you have fetched the He
   class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
       """A round in which the keeper prints the message"""
 
-      allowed_tx_type = PrintMessagePayload.transaction_type
+      payload_class = PrintMessagePayload
       payload_attribute = "message"
 
       def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -497,7 +497,6 @@ class PrintMessagePayload(BaseTxPayload):
     """Represent a transaction payload of type 'randomness'."""
 
     message: str
-    transaction_type = TransactionType.PRINT_MESSAGE
 ```
 
 

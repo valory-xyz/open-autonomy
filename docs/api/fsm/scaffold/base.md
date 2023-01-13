@@ -111,17 +111,6 @@ def rounds() -> List[str]
 
 Non-degenerate rounds
 
-<a id="autonomy.fsm.scaffold.base.AbstractFileGenerator.base_names"></a>
-
-#### base`_`names
-
-```python
-@property
-def base_names() -> List[str]
-```
-
-Base names
-
 <a id="autonomy.fsm.scaffold.base.AbstractFileGenerator.behaviours"></a>
 
 #### behaviours

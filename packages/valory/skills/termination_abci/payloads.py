@@ -18,16 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the termination payload classes."""
+
 from dataclasses import dataclass
-from enum import Enum
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
-
-
-class TransactionType(Enum):
-    """Defines the possible transaction types."""
-
-    BACKGROUND = "background"
 
 
 @dataclass(frozen=True)
@@ -35,4 +29,3 @@ class BackgroundPayload(BaseTxPayload):
     """Defines the background round payload."""
 
     background_data: str
-    transaction_type = TransactionType.BACKGROUND

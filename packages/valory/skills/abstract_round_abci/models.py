@@ -22,6 +22,7 @@
 import inspect
 import json
 from abc import ABC, ABCMeta
+from collections import Counter
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -46,12 +47,12 @@ from packages.valory.protocols.http.message import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
-    AbstractRound,
     BaseSynchronizedData,
     ConsensusParams,
     RESET_INDEX_DEFAULT,
     ROUND_COUNT_DEFAULT,
     RoundSequence,
+    consensus_threshold,
     get_name,
 )
 from packages.valory.skills.abstract_round_abci.utils import (
@@ -396,8 +397,9 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
         """Initialize the state."""
         self.abci_app_cls._is_abstract = skill_context.is_abstract_component
         self._round_sequence: Optional[RoundSequence] = None
+        self.address_to_acn_deliverable: Dict[str, Any] = {}
         self.tm_recovery_params: TendermintRecoveryParams = TendermintRecoveryParams(
-            self.abci_app_cls.initial_round_cls
+            self.abci_app_cls.initial_round_cls.auto_round_id()
         )
         kwargs["skill_context"] = skill_context
         super().__init__(*args, **kwargs)
@@ -429,6 +431,24 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
     def synchronized_data(self) -> BaseSynchronizedData:
         """Get the latest synchronized_data if available."""
         return self.round_sequence.latest_synchronized_data
+
+    def get_acn_result(self) -> Any:
+        """Get the majority of the ACN deliverables."""
+        if len(self.address_to_acn_deliverable) == 0:
+            return None
+
+        # the current agent does not participate, so we need `nb_participants - 1`
+        threshold = consensus_threshold(self.synchronized_data.nb_participants - 1)
+        counter = Counter(self.address_to_acn_deliverable.values())
+        most_common_value, n_appearances = counter.most_common(1)[0]
+
+        if n_appearances < threshold:
+            return None
+
+        self.context.logger.debug(
+            f"ACN result is '{most_common_value}' from '{self.address_to_acn_deliverable}'."
+        )
+        return most_common_value
 
 
 class Requests(Model, FrozenMixin):
@@ -500,9 +520,12 @@ class RetriesInfo(TypeCheckMixin):
 
 @dataclass(frozen=True)
 class TendermintRecoveryParams(TypeCheckMixin):
-    """A dataclass to hold all parameters related to agent <-> tendermint recovery procedures."""
+    """A dataclass to hold all parameters related to agent <-> tendermint recovery procedures.
 
-    reset_from_round: Type[AbstractRound]
+    This must be frozen so that we make sure it does not get edited.
+    """
+
+    reset_from_round: str
     round_count: int = ROUND_COUNT_DEFAULT
     reset_index: int = RESET_INDEX_DEFAULT
     reset_params: Optional[List[Tuple[str, str]]] = None

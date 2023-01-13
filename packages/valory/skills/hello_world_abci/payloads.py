@@ -20,30 +20,13 @@
 """This module contains the transaction payloads for the Hello World skill."""
 
 from dataclasses import dataclass
-from enum import Enum
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
-
-
-class TransactionType(Enum):
-    """Enumeration of transaction types."""
-
-    REGISTRATION = "registration"
-    RANDOMNESS = "collect_randomness"
-    SELECT_KEEPER = "select_keeper"
-    PRINT_MESSAGE = "print_message"
-    RESET = "reset"
-
-    def __str__(self) -> str:
-        """Get the string value of the transaction type."""
-        return self.value
 
 
 @dataclass(frozen=True)
 class RegistrationPayload(BaseTxPayload):
     """Represent a transaction payload of type 'registration'."""
-
-    transaction_type = TransactionType.REGISTRATION
 
 
 @dataclass(frozen=True)
@@ -52,7 +35,6 @@ class CollectRandomnessPayload(BaseTxPayload):
 
     round_id: int
     randomness: str
-    transaction_type = TransactionType.RANDOMNESS
 
 
 @dataclass(frozen=True)
@@ -60,7 +42,6 @@ class PrintMessagePayload(BaseTxPayload):
     """Represent a transaction payload of type 'randomness'."""
 
     message: str
-    transaction_type = TransactionType.PRINT_MESSAGE
 
 
 @dataclass(frozen=True)
@@ -68,7 +49,6 @@ class SelectKeeperPayload(BaseTxPayload):
     """Represent a transaction payload of type 'select_keeper'."""
 
     keeper: str
-    transaction_type = TransactionType.SELECT_KEEPER
 
 
 @dataclass(frozen=True)
@@ -76,4 +56,3 @@ class ResetPayload(BaseTxPayload):
     """Represent a transaction payload of type 'reset'."""
 
     period_count: int
-    transaction_type = TransactionType.RESET

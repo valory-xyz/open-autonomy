@@ -38,7 +38,6 @@ from packages.valory.skills.hello_world_abci.payloads import (
     RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
-    TransactionType,
 )
 
 
@@ -70,7 +69,7 @@ class SynchronizedData(
         )
 
 
-class HelloWorldABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
+class HelloWorldABCIAbstractRound(AbstractRound, ABC):
     """Abstract round for the Hello World ABCI skill."""
 
     synchronized_data_class: Type[BaseSynchronizedData] = SynchronizedData
@@ -84,7 +83,7 @@ class HelloWorldABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
 class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
     """A round in which the agents get registered"""
 
-    allowed_tx_type = RegistrationPayload.transaction_type
+    payload_class = RegistrationPayload
     payload_attribute = "sender"
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -104,7 +103,7 @@ class CollectRandomnessRound(
 ):
     """A round for collecting randomness"""
 
-    allowed_tx_type = CollectRandomnessPayload.transaction_type
+    payload_class = CollectRandomnessPayload
     payload_attribute = "randomness"
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
@@ -116,7 +115,7 @@ class CollectRandomnessRound(
 class SelectKeeperRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRound):
     """A round in a which keeper is selected"""
 
-    allowed_tx_type = SelectKeeperPayload.transaction_type
+    payload_class = SelectKeeperPayload
     payload_attribute = "keeper"
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
@@ -128,7 +127,7 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRo
 class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
     """A round in which the keeper prints the message"""
 
-    allowed_tx_type = PrintMessagePayload.transaction_type
+    payload_class = PrintMessagePayload
     payload_attribute = "message"
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -149,7 +148,7 @@ class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
 class ResetAndPauseRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRound):
     """This class represents the base reset round."""
 
-    allowed_tx_type = ResetPayload.transaction_type
+    payload_class = ResetPayload
     payload_attribute = "period_count"
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:

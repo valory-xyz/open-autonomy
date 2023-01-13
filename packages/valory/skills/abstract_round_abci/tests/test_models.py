@@ -60,6 +60,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.abstract_round_abci.models import (
+    TendermintRecoveryParams,
     _MetaSharedState,
     check_type,
 )
@@ -323,7 +324,7 @@ class ConcreteRound(AbstractRound):
 
     synchronized_data_class = MagicMock()
     payload_attribute = MagicMock()
-    allowed_tx_type = MagicMock()
+    payload_class = MagicMock()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Handle the end of the block."""
@@ -383,6 +384,39 @@ class TestSharedState:
                 == "0xoracle"
             )
 
+    @pytest.mark.parametrize(
+        "address_to_acn_deliverable, n_participants, expected",
+        (
+            ({}, 4, None),
+            ({i: "test" for i in range(4)}, 4, "test"),
+            (
+                {i: TendermintRecoveryParams("test") for i in range(4)},
+                4,
+                TendermintRecoveryParams("test"),
+            ),
+            ({1: "test", 2: "non-matching", 3: "test", 4: "test"}, 4, "test"),
+            ({i: "test" for i in range(4)}, 4, "test"),
+            ({1: "no", 2: "result", 3: "matches", 4: ""}, 4, None),
+        ),
+    )
+    def test_get_acn_result(
+        self,
+        address_to_acn_deliverable: Dict[str, Any],
+        n_participants: int,
+        expected: Optional[str],
+    ) -> None:
+        """Test `get_acn_result`."""
+        shared_state = SharedState(
+            abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
+        )
+        shared_state.context.params.setup_params = {"test": []}
+        shared_state.setup()
+        shared_state.synchronized_data.update(participants=set(range(n_participants)))
+        shared_state.address_to_acn_deliverable = address_to_acn_deliverable
+        actual = shared_state.get_acn_result()
+
+        assert actual == expected
+
     def test_recovery_params_on_init(self) -> None:
         """Test that `tm_recovery_params` get initialized correctly."""
         shared_state = SharedState(name="", skill_context=MagicMock())
@@ -391,7 +425,7 @@ class TestSharedState:
         assert shared_state.tm_recovery_params.reset_index == RESET_INDEX_DEFAULT
         assert (
             shared_state.tm_recovery_params.reset_from_round
-            == AbciAppTest.initial_round_cls
+            == AbciAppTest.initial_round_cls.auto_round_id()
         )
         assert shared_state.tm_recovery_params.reset_params is None
 
