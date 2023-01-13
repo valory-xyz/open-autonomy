@@ -1,3 +1,12 @@
+# IPFS Protocol
+
+## Description
+
+This is a protocol for interacting with IPFS.
+
+## Specification
+
+```yaml
 ---
 name: ipfs
 author: valory
@@ -31,3 +40,8 @@ termination: [ipfs_hash, files, error]
 roles: {skill, connection}
 end_states: [ok, error]
 keep_terminal_state_dialogues: false
+...
+```
+
+## Links
+
