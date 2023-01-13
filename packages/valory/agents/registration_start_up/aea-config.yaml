@@ -16,7 +16,7 @@ connections:
 - valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
 - valory/p2p_libp2p_client:0.1.0:bafybeidkk33xbga54szmitk6uwsi3ef56hbbdbuasltqtiyki34hgfpnxa
 contracts:
-- valory/service_registry:0.1.0:bafybeif4mgymtachjdhyzemxp7oj2i7itusjvrsxw7cheuvhtypizutu5e
+- valory/service_registry:0.1.0:bafybeidfj6ajbcu6b6q6notthn77vrrgfcgsmqemsom3aapabhgmn4kf5e
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm
@@ -27,8 +27,8 @@ protocols:
 - valory/tendermint:0.1.0:bafybeiep2dilpmu3je4z2kq7yc7l6n7ax5knwfax2ufvmnflt3uj2wrbju
 skills:
 - valory/abstract_abci:0.1.0:bafybeid3udqtjtl4txht2z3tm3z3mr2nqtoddtno3u3urxjqjbbpqeelli
-- valory/abstract_round_abci:0.1.0:bafybeiawbld3v7hqfi6wqi5tlfjxnroetfrp6fzxq7wq3hv36ptj55illi
-- valory/registration_abci:0.1.0:bafybeiahloghmk5ohcnibuq2kl7evpmvni4xdruluyybxtazxjf3avaeli
+- valory/abstract_round_abci:0.1.0:bafybeia2orcsjwev5q2brk4zi46dze7yblovwhzwt7jekceefjqk6yghzy
+- valory/registration_abci:0.1.0:bafybeibdhtwijvpeziuygkvgsfz3qwvygytqjnz5prsk3fu24drkfi7dbq
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -60,9 +60,9 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-cosmos:
-    version: ==1.27.0
+    version: ==1.28.0
   open-aea-ledger-ethereum:
-    version: ==1.27.0
+    version: ==1.28.0
   open-aea-test-autonomy:
     version: ==0.7.0
 skill_exception_policy: just_log

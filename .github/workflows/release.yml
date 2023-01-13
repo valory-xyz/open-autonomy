@@ -1,0 +1,130 @@
+name: Release Flow
+
+# Controls when the action will run.
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish-pip-packages:
+    name: Create Framework & Plugin Releases
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10"]
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-versions }}
+      - name: Install dependencies
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get autoremove
+          sudo apt-get autoclean
+          python -m pip install --upgrade pip
+          pip install pipenv twine
+
+      - name: Build wheels and source tarball
+        run: |
+          echo Processing open-autonomy
+          pipenv run make dist
+
+          echo Processing aea-test-autonomy
+          cd plugins/aea-test-autonomy
+          pipenv run python setup.py sdist bdist_wheel
+          cd ../..
+
+      - name: Publish open-autonomy Framework to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          skip_existing: true
+          packages_dir: dist/
+
+      - name: Publish open-aea-test-autonomy Plugin to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          skip_existing: true
+          packages_dir: plugins/aea-test-autonomy/dist/
+
+  publish-autonomy-packages:
+    name: Push Open Autonomy Packages
+    runs-on: ubuntu-latest
+    needs:
+      - publish-pip-packages
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10"]
+
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-versions }}
+      - name: Install dependencies
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get autoremove
+          sudo apt-get autoclean
+          python -m pip install --upgrade pip
+          pip install open-autonomy[all] --no-cache
+
+      - name: Push Packages
+        run: |
+          autonomy init --reset --author valory --ipfs --remote
+          autonomy push-all
+
+  publish-images:
+    name: Publish Docker Images
+    runs-on: ubuntu-latest
+    needs:
+      - publish-autonomy-packages
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up tag
+      run: echo export TAG=$(python3 -c "from setup import about; print(about[\"__version__\"])") > env.sh
+    - name: Build version tagged images
+      run: |
+        source env.sh
+        docker build -t valory/open-autonomy-docs:$TAG -f deployments/Dockerfiles/documentation/Dockerfile . && \
+        docker build -t valory/open-autonomy:$TAG -f deployments/Dockerfiles/autonomy/Dockerfile . && \
+        docker build -t valory/open-autonomy-tendermint:$TAG -f deployments/Dockerfiles/tendermint/Dockerfile . && \
+        docker build -t valory/open-autonomy-hardhat:$TAG -f deployments/Dockerfiles/hardhat/Dockerfile . && \
+        docker build -t valory/open-autonomy-user:$TAG -f deployments/Dockerfiles/autonomy-user/Dockerfile . 
+    - name: Tag to latest
+      run:  |
+        source env.sh
+        docker tag valory/open-autonomy-docs:$TAG valory/open-autonomy-docs:latest
+        docker tag valory/open-autonomy:$TAG valory/open-autonomy:latest
+        docker tag valory/open-autonomy-tendermint:$TAG valory/open-autonomy-tendermint:latest
+        docker tag valory/open-autonomy-hardhat:$TAG valory/open-autonomy-hardhat:latest
+        docker tag valory/open-autonomy-user:$TAG valory/open-autonomy-user:latest
+    - name: Docker login
+      env:
+        DOCKER_USER: ${{secrets.DOCKER_USER}}
+        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      run: |
+        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
+    - name: Docker Push
+      run: |
+        source env.sh
+        docker push valory/open-autonomy-docs:$TAG 
+        docker push valory/open-autonomy-docs:latest
+      
+        docker push valory/open-autonomy:$TAG 
+        docker push valory/open-autonomy:latest
+      
+        docker push valory/open-autonomy-tendermint:$TAG 
+        docker push valory/open-autonomy-tendermint:latest
+      
+        docker push valory/open-autonomy-hardhat:$TAG 
+        docker push valory/open-autonomy-hardhat:latest
+      
+        docker push valory/open-autonomy-user:$TAG 
+        docker push valory/open-autonomy-user:latest

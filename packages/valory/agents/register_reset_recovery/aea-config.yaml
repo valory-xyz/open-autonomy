@@ -23,9 +23,9 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 skills:
 - valory/abstract_abci:0.1.0:bafybeid3udqtjtl4txht2z3tm3z3mr2nqtoddtno3u3urxjqjbbpqeelli
-- valory/abstract_round_abci:0.1.0:bafybeiawbld3v7hqfi6wqi5tlfjxnroetfrp6fzxq7wq3hv36ptj55illi
-- valory/register_reset_recovery_abci:0.1.0:bafybeih55cvvcz2p6rocbdv3qa4hm7dkcdg4gqbddsraqbxb2y7peem7o4
-- valory/registration_abci:0.1.0:bafybeiahloghmk5ohcnibuq2kl7evpmvni4xdruluyybxtazxjf3avaeli
+- valory/abstract_round_abci:0.1.0:bafybeia2orcsjwev5q2brk4zi46dze7yblovwhzwt7jekceefjqk6yghzy
+- valory/register_reset_recovery_abci:0.1.0:bafybeie3dyfi7aohgfmdiaw4smxdrlel3qgngqystv5nmuvpk6otf5qhna
+- valory/registration_abci:0.1.0:bafybeibdhtwijvpeziuygkvgsfz3qwvygytqjnz5prsk3fu24drkfi7dbq
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -57,9 +57,9 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-cosmos:
-    version: ==1.27.0
+    version: ==1.28.0
   open-aea-ledger-ethereum:
-    version: ==1.27.0
+    version: ==1.28.0
   open-aea-test-autonomy:
     version: ==0.5.0
 default_connection: null
