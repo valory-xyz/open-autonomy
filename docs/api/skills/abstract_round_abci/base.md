@@ -19,14 +19,14 @@ Get the name of a property.
 #### consensus`_`threshold
 
 ```python
-def consensus_threshold(n: int) -> int
+def consensus_threshold(nb: int) -> int
 ```
 
 Get consensus threshold.
 
 **Arguments**:
 
-- `n`: the number of participants
+- `nb`: the number of participants
 
 **Returns**:
 
@@ -147,10 +147,6 @@ between the type of payload and the payload class to build it.
 This is necessary to recover the right payload class to instantiate
 at decoding time.
 
-Each class that has this class as metaclass must have a class
-attribute 'transaction_type', which for simplicity is required
-to be convertible to string, for serialization purposes.
-
 <a id="packages.valory.skills.abstract_round_abci.base._MetaPayload.__new__"></a>
 
 #### `__`new`__`
@@ -166,81 +162,33 @@ Create a new class object.
 ## BaseTxPayload Objects
 
 ```python
-class BaseTxPayload(ABC, metaclass=_MetaPayload)
+@dataclass(frozen=True)
+class BaseTxPayload(, metaclass=_MetaPayload)
 ```
 
 This class represents a base class for transaction payload classes.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.__init__"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.data"></a>
 
-#### `__`init`__`
-
-```python
-def __init__(sender: str, id_: Optional[str] = None, round_count: int = ROUND_COUNT_DEFAULT, **kwargs: Any, ,) -> None
-```
-
-Initialize a transaction payload.
-
-**Arguments**:
-
-- `sender`: the sender (Ethereum) address
-- `id_`: the id of the transaction
-- `round_count`: the count of the round in which the payload was sent
-- `kwargs`: the keyword arguments
-
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.sender"></a>
-
-#### sender
+#### data
 
 ```python
 @property
-def sender() -> str
+def data() -> Dict[str, Any]
 ```
 
-Get the sender.
+Data
 
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.round_count"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.json"></a>
 
-#### round`_`count
+#### json
 
 ```python
 @property
-def round_count() -> int
+def json() -> Dict[str, Any]
 ```
 
-Get the round count.
-
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.round_count"></a>
-
-#### round`_`count
-
-```python
-@round_count.setter
-def round_count(round_count: int) -> None
-```
-
-Set the round count.
-
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.encode"></a>
-
-#### encode
-
-```python
-def encode() -> bytes
-```
-
-Encode the payload.
-
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.decode"></a>
-
-#### decode
-
-```python
-@classmethod
-def decode(cls, obj: bytes) -> "BaseTxPayload"
-```
-
-Decode the payload.
+Json
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.from_json"></a>
 
@@ -253,41 +201,6 @@ def from_json(cls, obj: Dict) -> "BaseTxPayload"
 
 Decode the payload.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.json"></a>
-
-#### json
-
-```python
-@property
-def json() -> Dict
-```
-
-Get the JSON representation of the payload.
-
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.data"></a>
-
-#### data
-
-```python
-@property
-def data() -> Dict
-```
-
-Get the dictionary data.
-
-The returned dictionary is required to be used
-as keyword constructor initializer, i.e. these two
-should have the same effect:
-
-    sender = "..."
-    some_kwargs = {...}
-    p1 = SomePayloadClass(sender, **some_kwargs)
-    p2 = SomePayloadClass(sender, **p1.data)
-
-**Returns**:
-
-a dictionary which contains the payload data
-
 <a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.with_new_id"></a>
 
 #### with`_`new`_`id
@@ -298,45 +211,37 @@ def with_new_id() -> "BaseTxPayload"
 
 Create a new payload with the same content but new id.
 
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.__eq__"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.encode"></a>
 
-#### `__`eq`__`
-
-```python
-def __eq__(other: Any) -> bool
-```
-
-Check equality.
-
-<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.__hash__"></a>
-
-#### `__`hash`__`
+#### encode
 
 ```python
-def __hash__() -> int
+def encode() -> bytes
 ```
 
-Hash the payload.
+Encode
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseTxPayload.decode"></a>
+
+#### decode
+
+```python
+@classmethod
+def decode(cls, obj: bytes) -> "BaseTxPayload"
+```
+
+Decode
 
 <a id="packages.valory.skills.abstract_round_abci.base.Transaction"></a>
 
 ## Transaction Objects
 
 ```python
+@dataclass(frozen=True)
 class Transaction(ABC)
 ```
 
 Class to represent a transaction for the ephemeral chain of a period.
-
-<a id="packages.valory.skills.abstract_round_abci.base.Transaction.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(payload: BaseTxPayload, signature: str) -> None
-```
-
-Initialize a transaction object.
 
 <a id="packages.valory.skills.abstract_round_abci.base.Transaction.encode"></a>
 
@@ -373,16 +278,6 @@ Verify the signature is correct.
 
 :raises: SignatureNotValidError: if the signature is not valid.
 - `ledger_id`: the ledger id of the address
-
-<a id="packages.valory.skills.abstract_round_abci.base.Transaction.__eq__"></a>
-
-#### `__`eq`__`
-
-```python
-def __eq__(other: Any) -> bool
-```
-
-Check equality.
 
 <a id="packages.valory.skills.abstract_round_abci.base.Block"></a>
 
@@ -1223,8 +1118,7 @@ Initialize the class.
 ## AbstractRound Objects
 
 ```python
-class AbstractRound(
-    Generic[EventType, TransactionType],  ABC, metaclass=_MetaAbstractRound)
+class AbstractRound(Generic[EventType],  ABC, metaclass=_MetaAbstractRound)
 ```
 
 This class represents an abstract round.
@@ -1235,7 +1129,7 @@ although this is not enforced at this level of abstraction.
 
 Concrete classes must set:
 - synchronized_data_class: the data class associated with this round;
-- allowed_tx_type: the transaction type that is allowed for this round;
+- payload_class: the payload type that is allowed for this round;
 - payload_attribute: the attribute of the payload of this round.
 
 Optionally, round_id can be defined, although it is recommended to use the autogenerated id.
@@ -1245,7 +1139,7 @@ Optionally, round_id can be defined, although it is recommended to use the autog
 #### `__`init`__`
 
 ```python
-def __init__(synchronized_data: BaseSynchronizedData, consensus_params: ConsensusParams, previous_round_tx_type: Optional[TransactionType] = None) -> None
+def __init__(synchronized_data: BaseSynchronizedData, consensus_params: ConsensusParams, previous_round_payload_class: Optional[Type[BaseTxPayload]] = None) -> None
 ```
 
 Initialize the round.
@@ -1343,12 +1237,12 @@ on which the consensus is reached; in other words,
 each read operation on the state should be done
 only after each block, and not after each transaction.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.check_allowed_tx_type"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.check_payload_type"></a>
 
-#### check`_`allowed`_`tx`_`type
+#### check`_`payload`_`type
 
 ```python
-def check_allowed_tx_type(transaction: Transaction) -> None
+def check_payload_type(transaction: Transaction) -> None
 ```
 
 Check the transaction is of the allowed transaction type.
@@ -2286,17 +2180,6 @@ def latest_result() -> Optional[BaseSynchronizedData]
 ```
 
 Get the latest result of the round.
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.background_round_tx_type"></a>
-
-#### background`_`round`_`tx`_`type
-
-```python
-@property
-def background_round_tx_type() -> Optional[str]
-```
-
-Returns the allowed transaction type for background round.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.check_transaction"></a>
 

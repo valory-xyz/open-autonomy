@@ -197,3 +197,14 @@ def health_check(**kwargs: Any) -> None
 
 Do a health-check of the Tendermint network.
 
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.tendermint.FlaskTendermintDockerImage.cleanup"></a>
+
+#### cleanup
+
+```python
+@staticmethod
+def cleanup(nb_containers: int) -> None
+```
+
+Cleanup dangling containers.
+

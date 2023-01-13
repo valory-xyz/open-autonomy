@@ -98,13 +98,14 @@ from packages.valory.skills.abstract_round_abci.io_.ipfs import (
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState,
     TendermintRecoveryParams,
-    _DEFAULT_REQUEST_RETRY_DELAY,
-    _DEFAULT_REQUEST_TIMEOUT,
-    _DEFAULT_TX_MAX_ATTEMPTS,
-    _DEFAULT_TX_TIMEOUT,
 )
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
+
+_DEFAULT_REQUEST_TIMEOUT = 10.0
+_DEFAULT_REQUEST_RETRY_DELAY = 1.0
+_DEFAULT_TX_MAX_ATTEMPTS = 10
+_DEFAULT_TX_TIMEOUT = 10.0
 
 settings.load_profile(profile_name)
 
@@ -424,7 +425,7 @@ class RoundA(AbstractRound):
 
     round_id = "round_a"
     synchronized_data_class = BaseSynchronizedData
-    allowed_tx_type = MagicMock()
+    payload_class = MagicMock()
     payload_attribute = MagicMock()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
@@ -549,7 +550,7 @@ class TestBaseBehaviour:
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.behaviour = BehaviourATest(name="", skill_context=self.context_mock)
         self.behaviour.context.logger = logging  # type: ignore
-        self.behaviour.params.sleep_time = 0.01
+        self.behaviour.params.sleep_time = 0.01  # type: ignore
 
     def test_behaviour_id(self) -> None:
         """Test behaviour_id on instance."""

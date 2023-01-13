@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -42,7 +42,6 @@ class ROUNDS:
         BaseSynchronizedData,
         DegenerateRound,
         EventToTimeout,
-        TransactionType
     )
 
     from packages.{author}.skills.{skill_name}.payloads import (
@@ -69,8 +68,8 @@ class ROUNDS:
     class {RoundCls}({ABCRoundCls}):
         \"\"\"{RoundCls}\"\"\"
 
-        allowed_tx_type = {PayloadCls}.transaction_type
-        payload_attribute = {PayloadCls}.transaction_type.value
+        payload_class = {PayloadCls}
+        payload_attribute = ""  # TODO: update
         synchronized_data_class = SynchronizedData
 
         {todo_abstract_round_cls}
@@ -201,50 +200,18 @@ class PAYLOADS:
     HEADER = """\
     \"\"\"This module contains the transaction payloads of the {AbciApp}.\"\"\"
 
-    from abc import ABC
-    from enum import Enum
-    from typing import Any, Dict, Hashable, Optional
+    from dataclasses import dataclass
 
     from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
     """
 
-    TRANSACTION_TYPE_SECTION = """\
-    class TransactionType(Enum):
-        \"\"\"Enumeration of transaction types.\"\"\"
-
-        {tx_types}
-
-        def __str__(self) -> str:
-            \"\"\"Get the string value of the transaction type.\"\"\"
-            return self.value
-
-    """
-
-    BASE_PAYLOAD_CLS = """\
-    class Base{FSMName}Payload(BaseTxPayload, ABC):
-        \"\"\"Base payload for {AbciApp}.\"\"\"
-
-        def __init__(self, sender: str, content: Hashable, **kwargs: Any) -> None:
-            \"\"\"Initialize a transaction payload.\"\"\"
-
-            super().__init__(sender, **kwargs)
-            setattr(self, f"_{{self.transaction_type}}", content)
-            p = property(lambda self: getattr(self, f"_{{self.transaction_type}}"))
-            setattr(self.__class__, f"{{self.transaction_type}}", p)
-
-        @property
-        def data(self) -> Dict[str, Hashable]:
-            \"\"\"Get the data.\"\"\"
-            return dict(content=getattr(self, str(self.transaction_type)))
-
-    """
-
     PAYLOAD_CLS = """\
-    class {PayloadCls}(Base{FSMName}Payload):
+    @dataclass(frozen=True)
+    class {PayloadCls}(BaseTxPayload):
         \"\"\"Represent a transaction payload for the {RoundCls}.\"\"\"
 
-        transaction_type = TransactionType.{tx_type}
+        # TODO: define your attributes
 
     """
 
@@ -257,8 +224,6 @@ class MODELS:
 
     HEADER = """\
     \"\"\"This module contains the shared state for the abci skill of {AbciApp}.\"\"\"
-
-    from typing import Any
 
     from packages.valory.skills.abstract_round_abci.models import BaseParams
     from packages.valory.skills.abstract_round_abci.models import (
@@ -274,9 +239,7 @@ class MODELS:
     class SharedState(BaseSharedState):
         \"\"\"Keep the current shared state of the skill.\"\"\"
 
-        def __init__(self, *args: Any, **kwargs: Any) -> None:
-            \"\"\"Initialize the state.\"\"\"
-            super().__init__(*args, abci_app_cls={AbciApp}, **kwargs)
+        abci_app_cls = {AbciApp}
 
 
     Params = BaseParams

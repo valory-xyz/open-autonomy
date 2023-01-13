@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,43 +18,14 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for the reset_pause_abci app."""
-from enum import Enum
-from typing import Any, Dict
+
+from dataclasses import dataclass
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
 
-class TransactionType(Enum):
-    """Enumeration of transaction types."""
-
-    RESETPAUSE = "reset_pause"
-
-    def __str__(self) -> str:
-        """Get the string value of the transaction type."""
-        return self.value
-
-
+@dataclass(frozen=True)
 class ResetPausePayload(BaseTxPayload):
     """Represent a transaction payload of type 'reset'."""
 
-    transaction_type = TransactionType.RESETPAUSE
-
-    def __init__(self, sender: str, period_count: int, **kwargs: Any) -> None:
-        """Initialize an 'reset_pause' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param period_count: the period count id
-        :param kwargs: the keyword arguments
-        """
-        super().__init__(sender, **kwargs)
-        self._period_count = period_count
-
-    @property
-    def period_count(self) -> int:
-        """Get the period_count."""
-        return self._period_count
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(period_count=self.period_count)
+    period_count: int

@@ -9,74 +9,72 @@ fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeicjyrltgdmwzvctebhfteyyd5mbrjashiji4glwf5vwcijuyzzm24
   abci_app_chain.py: bafybeick5fz6hpbbvpmjkm2o3rl5csgvqf4ivwmqdluj2p4jmcpea4xmsq
-  base.py: bafybeiahgo7gxwjzuwy2pgb2lfbx6ot2clc7ushtr462j5drxdya6bfgs4
-  behaviour_utils.py: bafybeibimqtnea3crykhitu2fbalsvbtncyacemsngekuipg2aed4ee7oy
+  base.py: bafybeifsrjdcxt6axljcua2ekvtyxwmqoziymebufapzf6dzvbe4ow6usm
+  behaviour_utils.py: bafybeicoe2tewrvzswupprv6swepesjth5gosigtzku5b7glsvrtgpnxli
   behaviours.py: bafybeicapzsvzowpjawkxgkhf2m4qb7c3alh5rsysrxp55o7pmjt6bu2g4
-  common.py: bafybeif3curciq7wpc25uf3sufz4rfcl5jwlewy6u2sg34smdlcbzyeirq
+  common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
   dialogues.py: bafybeigeilbvfwb65ayrd5urdh3cj6br46vk3agvpxxselfqlkts26mgme
-  handlers.py: bafybeiej2xhlm3fzm5p5eir3dqngikcxu22z4eueuqrxweayytspmyoa2a
+  handlers.py: bafybeidhjejkgi7cy5submbkno5euzdauhps43gzxvgvkmgljiypo4fafu
   io_/__init__.py: bafybeihv6ytxeo5jkbdlqjum4pfo4aaluvw4m7c55k5xncvvs7ubrlokhy
   io_/ipfs.py: bafybeig46asto3f7xfhirb66vhrraff4vf4xhzhaqxlkzxb3sr3obmajki
   io_/load.py: bafybeifdki3qeq4aplu6chpozysmeqrt23lxhvcmlefsbesdrklh4wxu64
   io_/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
   io_/store.py: bafybeihlmiuacveuz4edd7lqyhzgxpd7vhsinfchudoyvhw6xrt7j5lgc4
-  models.py: bafybeieuxrjvvsxpucn6f4czqhqbi3z3go7vdsmzut7o7eynm2qudhedqy
-  serializer.py: bafybeiezjdtp33nub7ual5ibt4vi7dj3ilmyw7wqq374ctub5oo7wgp7mm
+  models.py: bafybeiezmikg2vtqilxg2ymd5y6esqqjl2gebw6uod72l5jwn5yw5qhgkq
   test_tools/__init__.py: bafybeibayeahoo73eztt2chpwi45taj2uv3dxbpyn47ksqfjoepjyaoca4
-  test_tools/abci_app.py: bafybeie2jclzdq3g42xhuzoguo3ood5nn36f4wk7halko7dfijvgr42fke
-  test_tools/base.py: bafybeibyx55dvxnnracqqdnebihnqgq2qpv4d3s7qd4vkvewi4a3jhkh6m
-  test_tools/common.py: bafybeidjlnq7yksyhz3hjmpyrudvgzhgpttjhlsdk5mecjvrkei6ix7gk4
+  test_tools/abci_app.py: bafybeicnd4xvumelx2fgp46kxt62usoq3pp3zrcgmpsr6ufu56k5ozh5mm
+  test_tools/base.py: bafybeihjcngjn5e4bvlde3atyy46wqcpkec46p5rejqptxzlgnyegak6ly
+  test_tools/common.py: bafybeid33uleev4ogpnpql5zvw55h74osg7hfmxv66fcbgs356cp56edpy
   test_tools/integration.py: bafybeifqq3bx46hz2deph3usvrt7u45tpsapvocofd2zu3yh7rfl5nlmzq
-  test_tools/rounds.py: bafybeie2jfbcggymlmfgbtvg7ert6ozi4ovexjdrm4jousidk5pzs5cbn4
+  test_tools/rounds.py: bafybeibw7ivk6nra7dpf3mzlp6otxnrgvompkdozpgpxbflopd3qkv7aue
   tests/__init__.py: bafybeiebss5rdfh7tdbw2qi3tjpf6cjgwuonowsw6bimyosfie2ngxhhzy
-  tests/conftest.py: bafybeicxlzenhn45ie2vud4aikhucqh6gqzlutjoe32ffxgovmnwo3igwq
+  tests/conftest.py: bafybeib2la4772z2gelqooqmci4nxoerl6qdhv3ckxa335mg4q7nu4ykey
   tests/data/__init__.py: bafybeifmqjnrqgbau4tshhdtrosru7xyjky72ljlrf3ynrk76fxjcsgfpi
   tests/data/dummy_abci/__init__.py: bafybeiaoqyjlgez5gkvutl22ihebcjk3zskve5gdt5wbap5zkmhehoddca
-  tests/data/dummy_abci/behaviours.py: bafybeidoteu7oqtswxi7vis5qbi3pugdsclgaceo5apgubslicgq2dm5py
+  tests/data/dummy_abci/behaviours.py: bafybeibei4ngebbktuq6a2uvwhrulgkvn6uhaj5k3a75zihkxwnfarqh4m
   tests/data/dummy_abci/dialogues.py: bafybeiaswubmqa7trhajbjn34okmpftk2sehsqrjg7znzrrd7j32xzx4vq
   tests/data/dummy_abci/handlers.py: bafybeifik3ftljs63u7nm4gadxpqbcvqj53p7qftzzzfto3ioad57k3x3u
-  tests/data/dummy_abci/models.py: bafybeicbo55kojhegbzwhjf7mn3v2o3g3dpafs63ufjmvw6d5abnnq2zym
-  tests/data/dummy_abci/payloads.py: bafybeidjxq2caqfnwrncjn442ywmpzrlub53pfxqnij4xqejthdhjpvpf4
-  tests/data/dummy_abci/rounds.py: bafybeiack37yc4lxnczxh3aswqulsk34cddyc2pesreichids2sq3i4z4u
-  tests/test_abci_app_chain.py: bafybeidbpoplff6lsisbq4zp2jkkoeockrqjexzu3kt4sz7zedwhct7ham
-  tests/test_base.py: bafybeietaoebj3fztf6hq5aga6ux2ktivcoidmkp4am47smacj24xb2rtu
-  tests/test_base_rounds.py: bafybeiauo5c3ghiptxonlr2edtsdtnp6okm3qj6pm2wbsipiuwzwmxsjiy
-  tests/test_behaviours.py: bafybeig3wrjoyrjaxswd5jjemmf4lfhds3bfpiwkqgu2ocujnzvqcplbdm
-  tests/test_behaviours_utils.py: bafybeigccq4lze5kz4anjuasganavesxxvm6mq77ewng7rrbrhyyudwclm
-  tests/test_common.py: bafybeiaguonalwsoyarjxj4t6ndu3f6fr42mpiqrn4l3kkgtoplueye6ee
+  tests/data/dummy_abci/models.py: bafybeiear3i45wbaylrkbnm2fbtqorxx56glul36piuah7m7jb56f5rpoq
+  tests/data/dummy_abci/payloads.py: bafybeiczldqiumb7prcusb7l5vb575vschwyseyigpupvteldfyz7h6fyi
+  tests/data/dummy_abci/rounds.py: bafybeichpgk5bwhdslonnhhwvm4lem5rrrs5m3jlnycpomi7z32h7jkfia
+  tests/test_abci_app_chain.py: bafybeidz573eh6m66x2spovp3yhhzyqheqyaspsrvas4loamdawdilwgki
+  tests/test_base.py: bafybeiex3zl3qv2iliijhwaip6eapbotbqcjhoj7hnbp33jmwlppiwaqva
+  tests/test_base_rounds.py: bafybeib2slbrwb43zovdwyraskg77yxfpm4gkntr22sb23ipuspzebspg4
+  tests/test_behaviours.py: bafybeic4nvzrewmqmaxhclcu7irwwuqk6q77vq2kjyaflb6ysv6dkln3rm
+  tests/test_behaviours_utils.py: bafybeihwqc3vgvm6apidzk63ghjqxfgu2xye6h2ew5ccrzjaicnxx4nfyu
+  tests/test_common.py: bafybeigruyqp6h4qim3nsijeg5mvoot2dei2yzm5zxpank22vjyyiaysue
   tests/test_dialogues.py: bafybeihgvpbqee6wjgetg2c453vqhc5f4sklwvuvx7vhg4fjr7kvpzicui
-  tests/test_handlers.py: bafybeibnzrlz6bzhycvmp2lajfijzveokxq6h2bnkji3rpe4csqyvtvvpi
+  tests/test_handlers.py: bafybeidwcuj4utg7ltmx6637echpthhzw5lxledfxyhz2p27emkwbtvocm
   tests/test_io/__init__.py: bafybeid3sssvbbyju4snrdssxyafleuo57sqyuepl25btxcbuj3p5oonsm
   tests/test_io/test_ipfs.py: bafybeigablspercc233scupiajflzqjqzxnjzinlkq6wday3fzg4adegvq
   tests/test_io/test_load.py: bafybeih5qt3etx3bi2zt2kebra322obxq7s77g3r6xzztsix3ihdpfdixy
   tests/test_io/test_store.py: bafybeibqfdgj7unktgkwligf4jnhlytijz7wyczykghylpy2smx76q3d5a
-  tests/test_models.py: bafybeidsetpzwp45r5ebyymiotzsnma72ke6pyb6u4kqpdh3yu4k32z3ca
-  tests/test_serializer.py: bafybeiddbdxrr2nhzemk6jrcxmhjwwfxur6dfj3kpeyrgme7xdggf54p6m
+  tests/test_models.py: bafybeidavhhxsr5ncr7ln2aro2yznhzbfknh7erdyr5mtnfuyn255p3dva
   tests/test_tools/__init__.py: bafybeiew6gu4pgp2sjevq4dbnmv2ail5dph7vj4yi7h3eae4gzx7vj7cbq
-  tests/test_tools/base.py: bafybeia3sbvrvidzwgmqbqzqi5lbmhs7pnzcmcxbriduc7np5o552ckcle
+  tests/test_tools/base.py: bafybeihi7ax53326dhin3riwwwk3bouqvsoeq26han4nspodzj6hrk3gia
   tests/test_tools/test_base.py: bafybeigazjhuluth3ge2i6llh6zjtfvpdpd5x34vu3ctz7sfvmekc7vyce
   tests/test_tools/test_common.py: bafybeieauphpcqm5on7d2u2lc5lrf3esbhojp6sxlf7phrlmpqy5cfoitq
   tests/test_tools/test_integration.py: bafybeiesmfr2r5glo566qy5z3dtuqf6uckqskoamehhjpnjrsekbyjedjq
-  tests/test_tools/test_rounds.py: bafybeicyz47ec4njsue67nltjv4fpr53d34qcjdr2rxipl5jbgbn3joybu
+  tests/test_tools/test_rounds.py: bafybeibaovb72xuyisjc7amn2hlt5bv72vck43blpnrfayfmozxdywrdbe
   tests/test_utils.py: bafybeigkob3r2tfsgazviaiwylmtyzhufodgrswf4byptqqm7k6uxdg5bq
-  utils.py: bafybeiguanitvfc2ijitnwet33hvqxkztlhpe6nxfxamkj2z2bny5d3sjq
+  utils.py: bafybeicurqoxngvsupa2z6uaa6hgvso2xabz3oc6k6ojj6uqj2tej3xrgq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeifln72jkbha5xtkafjj4swrwrktck4ziwk6j7plmzecskhlyamgu4
-- valory/http_client:0.23.0:bafybeigggahci7hq6tr3tyueatgkvgn73y4b3av2vk7vtr7jkeuwsqcteq
-- valory/ledger:0.19.0:bafybeicpxyoxez7lperltamvikxu6vzk2lhqakbivce4nzywyzoqbxoogm
-- valory/p2p_libp2p_client:0.1.0:bafybeiayoofxmj6z3pasn2akqj3udgq2ta2ar6mv6zoehstul2btvv3gqa
+- valory/abci:0.1.0:bafybeicmhpw2f5c3vds6lwlv2q4fa5nd6zonnvgdretrwfly7ylpiofdqq
+- valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
+- valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
+- valory/p2p_libp2p_client:0.1.0:bafybeidkk33xbga54szmitk6uwsi3ef56hbbdbuasltqtiyki34hgfpnxa
 contracts:
 - valory/service_registry:0.1.0:bafybeif4mgymtachjdhyzemxp7oj2i7itusjvrsxw7cheuvhtypizutu5e
 protocols:
-- open_aea/signing:1.0.0:bafybeihgwrowgtegpe4ixe3iy5jx65u7pxebl5btrkywzmx7g52gjtbnpi
+- open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm
-- valory/contract_api:1.0.0:bafybeif32nchkgn6yet7e5gt4auhf7lsahxnj4t36kxbw55p3gi7qpeuxq
-- valory/http:1.0.0:bafybeifru3qs6udfzprax7jxktbsuzn7immfvi3scgfspifq3zdxwkgvnm
-- valory/ledger_api:1.0.0:bafybeigqr4y3ykz3iulrcoqmji7hy3dxaoy7zmyyzff4ivpbubcpwdknai
-- valory/tendermint:0.1.0:bafybeicsvfd3cioe66tbcjc3sbprfhfeotwprliosqvvon5iccov4kflni
+- valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
+- valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
+- valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
+- valory/tendermint:0.1.0:bafybeiep2dilpmu3je4z2kq7yc7l6n7ax5knwfax2ufvmnflt3uj2wrbju
 skills:
-- valory/abstract_abci:0.1.0:bafybeieeqbasxxghxaj7xffnto7ybegom2kl4y544cskysowmjcjd3szhe
+- valory/abstract_abci:0.1.0:bafybeid3udqtjtl4txht2z3tm3z3mr2nqtoddtno3u3urxjqjbbpqeelli
 behaviours:
   main:
     args: {}
@@ -150,4 +148,6 @@ dependencies:
     version: ==2022.2.1
   requests:
     version: ==2.28.1
+  typing_extensions:
+    version: ==3.10.0.2
 is_abstract: true

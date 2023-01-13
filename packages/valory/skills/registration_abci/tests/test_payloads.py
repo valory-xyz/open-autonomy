@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,20 +24,16 @@
 import pytest
 
 from packages.valory.skills.abstract_round_abci.base import Transaction
-from packages.valory.skills.registration_abci.payloads import (
-    RegistrationPayload,
-    TransactionType,
-)
+from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 
 
 def test_registration_abci_payload() -> None:
     """Test `RegistrationPayload`."""
 
-    payload = RegistrationPayload(sender="sender")
+    payload = RegistrationPayload(sender="sender", initialisation="dummy")
 
-    assert payload.initialisation is None
-    assert payload.data == {}
-    assert payload.transaction_type == TransactionType.REGISTRATION
+    assert payload.initialisation == "dummy"
+    assert payload.data == {"initialisation": "dummy"}
     assert RegistrationPayload.from_json(payload.json) == payload
 
 
@@ -46,5 +42,5 @@ def test_registration_abci_payload_raises() -> None:
     payload = RegistrationPayload(sender="sender", initialisation="0" * 10 ** 7)
     signature = "signature"
     tx = Transaction(payload, signature)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Transaction must be smaller"):
         tx.encode()

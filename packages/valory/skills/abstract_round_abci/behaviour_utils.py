@@ -44,7 +44,7 @@ from typing import (
     cast,
 )
 
-import pytz  # pylint: disable=import-error
+import pytz
 from aea.exceptions import enforce
 from aea.mail.base import EnvelopeContext
 from aea.protocols.base import Message
@@ -403,10 +403,9 @@ class IPFSBehaviour(SimpleBehaviour, ABC):
         """Initialize an `IPFSBehaviour`."""
         super().__init__(**kwargs)
         self.ipfs_enabled = False
-        # If params are not found `AttributeError` will be raised. This is fine, because something will have gone wrong.
         # If `ipfs_domain_name` is not specified for the skill, then we get a `None` default.
         # Therefore, `IPFSBehaviour` will be disabled.
-        domain = getattr(self.params, "ipfs_domain_name", None)  # pylint: disable=E1101
+        domain = self.context.params.ipfs_domain_name
         loader_cls = kwargs.pop("loader_cls", Loader)
         storer_cls = kwargs.pop("storer_cls", Storer)
         if domain is not None:  # pragma: nocover
@@ -707,9 +706,10 @@ class BaseBehaviour(
         :yield: the responses
         """
         stop_condition = self.is_round_ended(self.matching_round.auto_round_id())
-        payload.round_count = cast(
+        round_count = cast(
             SharedState, self.context.state
         ).synchronized_data.round_count
+        object.__setattr__(payload, "round_count", round_count)
         yield from self._send_transaction(
             payload,
             resetting,
