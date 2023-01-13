@@ -969,7 +969,7 @@ class TestBaseSynchronizedData:
 
     def test_properties(self) -> None:
         """Test several properties"""
-        participants = {"b", "a"}
+        participants = ["b", "a"]
         randomness_str = (
             "3439d92d58e47d342131d446a3abe264396dd264717897af30525c98408c834f"
         )
@@ -999,7 +999,7 @@ class TestBaseSynchronizedData:
             )
         )
         assert self.base_synchronized_data.period_count == 0
-        assert base_synchronized_data.all_participants == participants
+        assert base_synchronized_data.all_participants == frozenset(participants)
         assert base_synchronized_data.sorted_participants == ["a", "b"]
         assert abs(base_synchronized_data.keeper_randomness - randomness_value) < 1e-10
         assert base_synchronized_data.most_voted_randomness == randomness_str
@@ -2208,18 +2208,33 @@ class TestRoundSequence:
                 result=background_round_result[0],
             )
 
-    def test_reset_state(self) -> None:
+    @pytest.mark.parametrize("restart_from_round", (ConcreteRoundA, MagicMock()))
+    def test_reset_state(self, restart_from_round: AbstractRound) -> None:
         """Tests reset_state"""
-        restart_from_round = ConcreteRoundA
         round_count, reset_index = 1, 1
         with mock.patch.object(
             self.round_sequence,
             "_reset_to_default_params",
         ) as mock_reset:
-            self.round_sequence.reset_state(
-                restart_from_round, round_count, reset_index
-            )
-            mock_reset.assert_called()
+            transition_fn = self.round_sequence.abci_app.transition_function
+            round_id = restart_from_round.auto_round_id()
+            if restart_from_round in transition_fn:
+                self.round_sequence.reset_state(round_id, round_count, reset_index)
+                mock_reset.assert_called()
+            else:
+                round_ids = {cls.auto_round_id() for cls in transition_fn}
+                with pytest.raises(
+                    ABCIAppInternalError,
+                    match=re.escape(
+                        "internal error: Cannot reset state. The Tendermint recovery parameters are incorrect. "
+                        "Did you update the `restart_from_round` with an incorrect round id? "
+                        f"Found {round_id}, but the app's transition function has the following round ids: "
+                        f"{round_ids}.",
+                    ),
+                ):
+                    self.round_sequence.reset_state(
+                        restart_from_round.auto_round_id(), round_count, reset_index
+                    )
 
     def test_reset_to_default_params(self) -> None:
         """Tests _reset_to_default_params."""

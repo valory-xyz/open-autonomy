@@ -2653,7 +2653,7 @@ Reset blockchain after tendermint reset.
 #### reset`_`state
 
 ```python
-def reset_state(restart_from_round: AppState, round_count: int, reset_index: int) -> None
+def reset_state(restart_from_round: str, round_count: int, reset_index: int) -> None
 ```
 
 This method resets the state of RoundSequence to the begging of the period.

@@ -9,7 +9,7 @@ fingerprint:
   __init__.py: bafybeihgxrmmp63exxkdmvlu565kehvuucg4iivnejwutaehb2p7xzxu4q
   tests/__init__.py: bafybeigkkq3hon4wuyrazwnt5tiu23idpelf6a7kzbmawty7zfrpqnmnhi
   tests/base.py: bafybeiabs77cqjz2jnipn5lxaw6kfuwmhsv4ivxiseprhv47wifhryoro4
-  tests/test_register_reset_recovery.py: bafybeibykr63lamqyzazluxdq7qbwvrmhlb7rp7nw3dfwsdzv4rvx7ixse
+  tests/test_register_reset_recovery.py: bafybeia52b5vekjflsv3khgdr2eeijxy3cmmad5isqldbczs4mnym5bdka
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeicmhpw2f5c3vds6lwlv2q4fa5nd6zonnvgdretrwfly7ylpiofdqq
@@ -23,12 +23,13 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 skills:
 - valory/abstract_abci:0.1.0:bafybeid3udqtjtl4txht2z3tm3z3mr2nqtoddtno3u3urxjqjbbpqeelli
-- valory/abstract_round_abci:0.1.0:bafybeifs7cbhm5s2e4vbgyryloujdzmfcnlgco4ui3bxw2ja5mwl5mmlxa
-- valory/register_reset_recovery_abci:0.1.0:bafybeibimhsmwctbj36iltn5wrckdfyr4iyvu55x72lnuw7htfjg6nlqn4
-- valory/registration_abci:0.1.0:bafybeiff6xs2pactbwckzf2mq63mdnugyt7amyooeoipsyb7lpe7s2fnqu
+- valory/abstract_round_abci:0.1.0:bafybeiawbld3v7hqfi6wqi5tlfjxnroetfrp6fzxq7wq3hv36ptj55illi
+- valory/register_reset_recovery_abci:0.1.0:bafybeih55cvvcz2p6rocbdv3qa4hm7dkcdg4gqbddsraqbxb2y7peem7o4
+- valory/registration_abci:0.1.0:bafybeiahloghmk5ohcnibuq2kl7evpmvni4xdruluyybxtazxjf3avaeli
 default_ledger: ethereum
 required_ledgers:
 - ethereum
+- cosmos
 default_routing: {}
 connection_private_key_paths: {}
 private_key_paths: {}
@@ -55,7 +56,10 @@ logging_config:
       - logfile
       propagate: true
 dependencies:
-  open-aea-ledger-ethereum: {}
+  open-aea-ledger-cosmos:
+    version: ==1.27.0
+  open-aea-ledger-ethereum:
+    version: ==1.27.0
   open-aea-test-autonomy:
     version: ==0.5.0
 default_connection: null
@@ -83,23 +87,14 @@ public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
 config:
   nodes:
-  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9005}
-    public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
-  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9006}
-    public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
+  - uri: ${P2P_URI:str:localhost:11000}
+    public_key: ${P2P_PUBLIC_KEY:str:03c74dbfbe7bbc1b42429f78778017a3cd7eaf9d59d1634c9505a3f7c1a9350e71}
 cert_requests:
 - identifier: acn
   ledger_id: ethereum
   message_format: '{public_key}'
   not_after: '2023-01-01'
   not_before: '2022-01-01'
-  public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
-  save_path: .certs/acn_cosmos_9005.txt
-- identifier: acn
-  ledger_id: ethereum
-  message_format: '{public_key}'
-  not_after: '2023-01-01'
-  not_before: '2022-01-01'
-  public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
-  save_path: .certs/acn_cosmos_9006.txt
-is_abstract: true
+  public_key: ${P2P_PUBLIC_KEY:str:03c74dbfbe7bbc1b42429f78778017a3cd7eaf9d59d1634c9505a3f7c1a9350e71}
+  save_path: .certs/acn_cosmos_11000.txt
+is_abstract: false

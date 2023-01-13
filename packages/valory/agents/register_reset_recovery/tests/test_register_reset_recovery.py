@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,17 +19,24 @@
 
 """Integration tests for the valory/register_reset skill."""
 
-# pylint: skip-file
 
 from pathlib import Path
 
 import pytest
 from aea.configurations.data_types import PublicId
 from aea_test_autonomy.base_test_classes.agents import RoundChecks
-from aea_test_autonomy.fixture_helpers import (  # noqa: F401
+from aea_test_autonomy.fixture_helpers import (  # noqa: F401  # pylint: disable=unused-import
+    UseACNNode,
+    UseRegistries,
     abci_host,
     abci_port,
+    acn_config,
+    acn_node,
     flask_tendermint,
+    hardhat_port,
+    key_pairs,
+    nb_nodes,
+    registries_scope_class,
     tendermint_port,
 )
 
@@ -52,7 +59,9 @@ STRICT_CHECK_STRINGS = ("Current round count is 25.",)
 @pytest.mark.e2e
 @pytest.mark.integration
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestRegisterResetRecoverStartup(BaseTestRegisterResetRecoveryEnd2End):
+class TestRegisterResetRecoverStartup(
+    UseRegistries, UseACNNode, BaseTestRegisterResetRecoveryEnd2End
+):
     """Test the ABCI register-reset skill with 4 agents starting up."""
 
     agent_package = "valory/register_reset_recovery:0.1.0"

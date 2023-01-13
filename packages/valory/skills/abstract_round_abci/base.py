@@ -720,7 +720,7 @@ class BaseSynchronizedData:
     @property
     def all_participants(self) -> FrozenSet[str]:
         """Get all registered participants."""
-        all_participants = self.db.get_strict("all_participants")
+        all_participants = frozenset(self.db.get_strict("all_participants"))
         if len(all_participants) == 0:
             raise ValueError("List participants cannot be empty.")
         return cast(FrozenSet[str], all_participants)
@@ -2767,7 +2767,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
 
     def reset_state(
         self,
-        restart_from_round: AppState,
+        restart_from_round: str,
         round_count: int,
         reset_index: int,
     ) -> None:
@@ -2783,4 +2783,15 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._reset_to_default_params()
         self.abci_app.synchronized_data.db.round_count = round_count
         self.abci_app.reset_index = reset_index
-        self.abci_app.schedule_round(restart_from_round)
+        round_id_to_cls = {
+            cls.auto_round_id(): cls for cls in self.abci_app.transition_function
+        }
+        restart_from_round_cls = round_id_to_cls.get(restart_from_round, None)
+        if restart_from_round_cls is None:
+            raise ABCIAppInternalError(
+                "Cannot reset state. The Tendermint recovery parameters are incorrect. "
+                "Did you update the `restart_from_round` with an incorrect round id? "
+                f"Found {restart_from_round}, but the app's transition function has the following round ids: "
+                f"{set(round_id_to_cls.keys())}."
+            )
+        self.abci_app.schedule_round(restart_from_round_cls)

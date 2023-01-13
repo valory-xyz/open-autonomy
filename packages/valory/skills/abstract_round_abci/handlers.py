@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 import ipaddress
 import json
 from abc import ABC
+from dataclasses import asdict
 from enum import Enum
 from typing import Any, Callable, Dict, FrozenSet, List, Optional, cast
 
@@ -55,7 +56,11 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.dialogues import AbciDialogue
-from packages.valory.skills.abstract_round_abci.models import Requests, SharedState
+from packages.valory.skills.abstract_round_abci.models import (
+    Requests,
+    SharedState,
+    TendermintRecoveryParams,
+)
 
 
 def exception_to_info_msg(exception: Exception) -> str:
@@ -524,7 +529,11 @@ class TendermintHandler(Handler):
         not_in_registered_addresses = "Sender not registered for on-chain service"
         sending_request_response = "Sending Tendermint request response"
         failed_to_parse_address = "Failed to parse Tendermint network address"
+        failed_to_parse_params = (
+            "Failed to parse Tendermint recovery parameters from message"
+        )
         collected_config_info = "Collected Tendermint config info"
+        collected_params = "Collected Tendermint recovery parameters"
         received_error_without_target_message = (
             "Received error message but could not retrieve target message"
         )
@@ -578,15 +587,6 @@ class TendermintHandler(Handler):
         attribute = cast(PublicId, self.SUPPORTED_PROTOCOL).name + "_dialogues"
         return getattr(self.context, attribute, None)
 
-    def _send_error_response(
-        self, message: TendermintMessage, dialogue: TendermintDialogue
-    ) -> None:
-        """Check if sender is among on-chain registered addresses"""
-        # do not respond to errors to avoid loops
-        log_message = self.LogMessages.not_in_registered_addresses.value
-        self.context.logger.info(f"{log_message}: {message}")
-        self._reply_with_tendermint_error(message, dialogue, log_message)
-
     def handle(self, message: Message) -> None:
         """Handle incoming Tendermint config-sharing messages"""
 
@@ -599,15 +599,14 @@ class TendermintHandler(Handler):
             return
 
         message = cast(TendermintMessage, message)
-        if message.performative == TendermintMessage.Performative.REQUEST:
-            self._handle_request(message, dialogue)
-        elif message.performative == TendermintMessage.Performative.RESPONSE:
-            self._handle_response(message, dialogue)
-        elif message.performative == TendermintMessage.Performative.ERROR:
-            self._handle_error(message, dialogue)
-        else:
+        handler_name = f"_{message.performative.value}"
+        handler = getattr(self, handler_name, None)
+        if handler is None:
             log_message = self.LogMessages.performative_not_recognized.value
             self.context.logger.info(f"{log_message}: {message}")
+            return
+
+        handler(message, dialogue)
 
     def _reply_with_tendermint_error(
         self,
@@ -628,7 +627,26 @@ class TendermintHandler(Handler):
         log_message += f". Received: {message}, replied: {response}"
         self.context.logger.info(log_message)
 
-    def _handle_request(
+    def _not_registered_error(
+        self, message: TendermintMessage, dialogue: TendermintDialogue
+    ) -> None:
+        """Check if sender is among on-chain registered addresses"""
+        # do not respond to errors to avoid loops
+        log_message = self.LogMessages.not_in_registered_addresses.value
+        self.context.logger.info(f"{log_message}: {message}")
+        self._reply_with_tendermint_error(message, dialogue, log_message)
+
+    def _check_registered(
+        self, message: TendermintMessage, dialogue: TendermintDialogue
+    ) -> bool:
+        """Check if the sender is registered on-chain and if not, reply with an error"""
+        if message.sender in self.registered_addresses:
+            return True
+
+        self._not_registered_error(message, dialogue)
+        return False
+
+    def _get_genesis_info(
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> None:
         """Handler Tendermint config-sharing request message"""
@@ -639,13 +657,12 @@ class TendermintHandler(Handler):
             self._reply_with_tendermint_error(message, dialogue, log_message)
             return
 
-        if message.sender not in self.registered_addresses:
-            self._send_error_response(message, dialogue)
+        if not self._check_registered(message, dialogue):
             return
 
         info = self.registered_addresses[self.context.agent_address]
         response = dialogue.reply(
-            performative=TendermintMessage.Performative.RESPONSE,
+            performative=TendermintMessage.Performative.GENESIS_INFO,
             target_message=message,
             info=json.dumps(info),
         )
@@ -653,13 +670,30 @@ class TendermintHandler(Handler):
         log_message = self.LogMessages.sending_request_response.value
         self.context.logger.info(f"{log_message}: {response}")
 
-    def _handle_response(
+    def _get_recovery_params(
+        self, message: TendermintMessage, dialogue: TendermintDialogue
+    ) -> None:
+        """Handle a request message for the recovery parameters."""
+        if not self._check_registered(message, dialogue):
+            return
+
+        shared_state = cast(SharedState, self.context.state)
+        recovery_params = shared_state.tm_recovery_params
+        response = dialogue.reply(
+            performative=TendermintMessage.Performative.RECOVERY_PARAMS,
+            target_message=message,
+            params=json.dumps(asdict(recovery_params)),
+        )
+        self.context.outbox.put_message(message=response)
+        log_message = self.LogMessages.sending_request_response.value
+        self.context.logger.info(f"{log_message}: {response}")
+
+    def _genesis_info(
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> None:
         """Process Tendermint config-sharing response messages"""
 
-        if message.sender not in self.registered_addresses:
-            self._send_error_response(message, dialogue)
+        if not self._check_registered(message, dialogue):
             return
 
         try:  # validate message contains a valid address
@@ -681,12 +715,37 @@ class TendermintHandler(Handler):
         self.context.logger.info(f"{log_message}: {message}")
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogues.dialogue_stats.add_dialogue_endstate(
-            TendermintDialogue.EndState.CONFIG_SHARED, dialogue.is_self_initiated
+            TendermintDialogue.EndState.COMMUNICATED, dialogue.is_self_initiated
         )
 
-    def _handle_error(
+    def _recovery_params(
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> None:
+        """Process params-sharing response messages."""
+
+        if not self._check_registered(message, dialogue):
+            return
+
+        try:
+            recovery_params = json.loads(message.params)
+            shared_state = cast(SharedState, self.context.state)
+            shared_state.address_to_acn_deliverable[
+                message.sender
+            ] = TendermintRecoveryParams(**recovery_params)
+        except (json.JSONDecodeError, TypeError) as exc:
+            log_message = self.LogMessages.failed_to_parse_params.value
+            self.context.logger.error(f"{log_message}: {exc} {message}")
+            self._reply_with_tendermint_error(message, dialogue, log_message)
+            return
+
+        log_message = self.LogMessages.collected_params.value
+        self.context.logger.info(f"{log_message}: {message}")
+        dialogues = cast(TendermintDialogues, self.dialogues)
+        dialogues.dialogue_stats.add_dialogue_endstate(
+            TendermintDialogue.EndState.COMMUNICATED, dialogue.is_self_initiated
+        )
+
+    def _error(self, message: TendermintMessage, dialogue: TendermintDialogue) -> None:
         """Handle error message as response"""
 
         target_message = dialogue.get_message_by_id(message.target)
@@ -700,5 +759,5 @@ class TendermintHandler(Handler):
         self.context.logger.info(log_message)
         dialogues = cast(TendermintDialogues, self.dialogues)
         dialogues.dialogue_stats.add_dialogue_endstate(
-            TendermintDialogue.EndState.CONFIG_NOT_SHARED, dialogue.is_self_initiated
+            TendermintDialogue.EndState.NOT_COMMUNICATED, dialogue.is_self_initiated
         )
