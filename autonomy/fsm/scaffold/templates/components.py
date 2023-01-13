@@ -168,7 +168,7 @@ class BEHAVIOURS:
 
             with self.context.benchmark_tool.measure(self.behaviour_id).local():
                 sender = self.context.agent_address
-                payload = self.payload_class(sender=sender, content=...)
+                payload = self.matching_round.payload_class(sender=sender, content=...)
 
             with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
                 yield from self.send_a2a_transaction(payload)
