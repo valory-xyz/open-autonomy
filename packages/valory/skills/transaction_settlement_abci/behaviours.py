@@ -329,7 +329,7 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             keepers = deque((self._select_keeper(),))
-            payload = self.payload_class(
+            payload = self.matching_round.payload_class(
                 self.context.agent_address, self.serialized_keepers(keepers, 1)
             )
 
@@ -387,7 +387,7 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
             else:
                 keepers.appendleft(self._select_keeper())
 
-            payload = self.payload_class(
+            payload = self.matching_round.payload_class(
                 self.context.agent_address,
                 self.serialized_keepers(keepers, keeper_retries),
             )
@@ -431,7 +431,7 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
                 self.context.logger.info(
                     f"Finalized with transaction hash: {self.synchronized_data.to_be_validated_tx_hash}"
                 )
-            payload = self.payload_class(self.context.agent_address, is_correct)
+            payload = self.matching_round.payload_class(self.context.agent_address, is_correct)
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
@@ -505,7 +505,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
                 )
 
             verified_res = tx_hist_payload_to_hex(verification_status, tx_hash)
-            payload = self.payload_class(self.context.agent_address, verified_res)
+            payload = self.matching_round.payload_class(self.context.agent_address, verified_res)
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
@@ -648,7 +648,7 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
                 self._tx_hashes += cast(str, tx_data["tx_digest"])
                 return
 
-            payload = self.payload_class(self.context.agent_address, self._tx_hashes)
+            payload = self.matching_round.payload_class(self.context.agent_address, self._tx_hashes)
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
@@ -681,7 +681,7 @@ class SignatureBehaviour(TransactionSettlementBaseBehaviour):
                 f"Consensus reached on tx hash: {self.synchronized_data.most_voted_tx_hash}"
             )
             signature_hex = yield from self._get_safe_tx_signature()
-            payload = self.payload_class(self.context.agent_address, signature_hex)
+            payload = self.matching_round.payload_class(self.context.agent_address, signature_hex)
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
@@ -786,7 +786,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
                 "received_hash": bool(tx_data["tx_digest"]),
             }
 
-            payload = self.payload_class(
+            payload = self.matching_round.payload_class(
                 self.context.agent_address,
                 cast(Dict[str, Union[str, int, bool]], tx_data_serialized),
             )
@@ -857,7 +857,7 @@ class ResetBehaviour(TransactionSettlementBaseBehaviour):
         self.context.logger.info(
             f"Period {self.synchronized_data.period_count} was not finished. Resetting!"
         )
-        payload = self.payload_class(
+        payload = self.matching_round.payload_class(
             self.context.agent_address, self.synchronized_data.period_count
         )
         yield from self.send_a2a_transaction(payload)

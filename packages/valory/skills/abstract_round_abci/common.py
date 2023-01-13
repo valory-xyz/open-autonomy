@@ -127,7 +127,7 @@ class RandomnessBehaviour(BaseBehaviour, ABC):
                 self.context.logger.info(f"Retrieved DRAND values: {observation}.")
 
         if observation:
-            payload = self.payload_class(  # type: ignore
+            payload = self.matching_round.payload_class(  # type: ignore
                 self.context.agent_address,
                 round_id=observation["round"],
                 randomness=observation["randomness"],
@@ -215,7 +215,7 @@ class SelectKeeperBehaviour(BaseBehaviour, ABC):
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            payload = self.payload_class(  # type: ignore
+            payload = self.matching_round.payload_class(  # type: ignore
                 self.context.agent_address, self._select_keeper()
             )
 

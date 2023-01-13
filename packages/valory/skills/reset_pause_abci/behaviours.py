@@ -80,7 +80,7 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseBehaviour):
         self.context.logger.info("Period end.")
         self.context.benchmark_tool.save(self.synchronized_data.period_count)
 
-        payload = self.payload_class(
+        payload = self.matching_round.payload_class(
             self.context.agent_address, self.synchronized_data.period_count
         )
         yield from self.send_a2a_transaction(payload, reset_tm_nodes)

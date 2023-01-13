@@ -22,7 +22,7 @@ import datetime
 import json
 from abc import ABC
 from enum import Enum
-from typing import Any, Dict, Generator, Optional, Set, Type, cast
+from typing import Any, Dict, Generator, Optional, Set, Type, cast, Union
 
 from aea.mail.base import EnvelopeContext
 
@@ -56,6 +56,8 @@ WAIT_FOR_BLOCK_TIMEOUT = 60.0  # 1 minute
 class RegistrationBaseBehaviour(BaseBehaviour, ABC):
     """Agent registration to the FSM App."""
 
+    matching_round: Union[RegistrationStartupRound, RegistrationRound]
+
     def async_act(self) -> Generator:
         """
         Do the action.
@@ -71,7 +73,7 @@ class RegistrationBaseBehaviour(BaseBehaviour, ABC):
             initialisation = json.dumps(
                 self.synchronized_data.db.setup_data, sort_keys=True
             )
-            payload = self.payload_class(
+            payload = self.matching_round.payload_class(
                 self.context.agent_address, initialisation=initialisation
             )
 

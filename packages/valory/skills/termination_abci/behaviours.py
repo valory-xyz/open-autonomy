@@ -113,7 +113,7 @@ class BackgroundBehaviour(BaseBehaviour):
             return
 
         self.context.logger.info("Successfully prepared termination multisend tx.")
-        termination_payload = self.payload_class(
+        termination_payload = self.matching_round.payload_class(
             self.context.agent_address, background_data=background_data
         )
         yield from self.send_a2a_transaction(termination_payload)

@@ -69,7 +69,7 @@ class DummyStartingBehaviour(DummyBaseBehaviour):
     """DummyStartingBehaviour"""
 
     behaviour_id: str = "dummy_starting"
-    matching_round: Type[AbstractRound] = DummyStartingRound
+    matching_round = DummyStartingRound
 
     def async_act(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
@@ -77,7 +77,7 @@ class DummyStartingBehaviour(DummyBaseBehaviour):
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             content = "dummy"
             sender = self.context.agent_address
-            payload = DummyStartingPayload(sender=sender, content=content)
+            payload = self.matching_round.payload_class(sender=sender, content=content)
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
@@ -90,15 +90,14 @@ class DummyRandomnessBehaviour(RandomnessBehaviour):
     """DummyRandomnessBehaviour"""
 
     behaviour_id: str = "dummy_randomness"
-    matching_round: Type[AbstractRound] = DummyRandomnessRound
-    payload_class = DummyRandomnessPayload
+    matching_round = DummyRandomnessRound
 
 
 class DummyKeeperSelectionBehaviour(SelectKeeperBehaviour):
     """DummyKeeperSelectionBehaviour"""
 
     behaviour_id: str = "dummy_keeper_selection"
-    matching_round: Type[AbstractRound] = DummyKeeperSelectionRound
+    matching_round = DummyKeeperSelectionRound
     payload_class = DummyKeeperSelectionPayload
 
     @staticmethod
@@ -113,7 +112,7 @@ class DummyKeeperSelectionBehaviour(SelectKeeperBehaviour):
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             keepers = deque((self._select_keeper(),))
-            payload = self.payload_class(
+            payload = self.matching_round.payload_class(
                 self.context.agent_address, self.serialized_keepers(keepers)
             )
 
@@ -128,7 +127,7 @@ class DummyFinalBehaviour(DummyBaseBehaviour):
     """DummyFinalBehaviour"""
 
     behaviour_id: str = "dummy_final"
-    matching_round: Type[AbstractRound] = DummyFinalRound
+    matching_round = DummyFinalRound
 
     def async_act(self) -> Generator:
         """Do the act, supporting asynchronous execution."""
@@ -136,7 +135,7 @@ class DummyFinalBehaviour(DummyBaseBehaviour):
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             content = True
             sender = self.context.agent_address
-            payload = DummyFinalPayload(sender=sender, content=content)
+            payload = self.matching_round.payload_class(sender=sender, content=content)
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)

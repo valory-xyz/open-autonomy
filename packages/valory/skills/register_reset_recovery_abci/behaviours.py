@@ -48,7 +48,7 @@ class ShareRoundCountBehaviour(BaseBehaviour):
         ).synchronized_data.round_count
 
         self.context.logger.info(f"Current round count is {round_count}. ")
-        payload = self.payload_class(
+        payload = self.matching_round.payload_class(
             sender=self.context.agent_address, current_round_count=round_count
         )
         # the following sleep acts as a buffer so that
