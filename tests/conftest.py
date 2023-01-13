@@ -39,6 +39,7 @@ else:
 
 CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
 ROOT_DIR = Path(CUR_PATH, "..").resolve().absolute()
+DATA_DIR = ROOT_DIR / "tests" / "data"
 
 skip_docker_tests = pytest.mark.skipif(
     platform.system() != "Linux",
