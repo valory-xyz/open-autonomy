@@ -1,0 +1,15 @@
+name: dummy_contract
+author: dummy_author
+version: 0.1.0
+type: contract
+description: The scaffold contract scaffolds a contract to be implemented by the developer.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: bafybeibdtu3vxwxt4mialjngrsdkupiog2ec2q55ur5gd6sr4ycmpsjpou
+  contract.py: bafybeiao6o6secn46xfha2d5vafknbeiej2xjopeptbajqn77hcsow7xte
+fingerprint_ignore_patterns: []
+class_name: MyScaffoldContract
+contract_interface_paths: {}
+dependencies: {}
+contracts: []
