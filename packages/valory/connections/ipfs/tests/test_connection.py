@@ -21,6 +21,7 @@
 """Tests for ipfs connection."""
 import asyncio
 import os
+import platform
 import tempfile
 from typing import Dict, List, Optional
 from unittest import mock
@@ -222,6 +223,10 @@ class TestIpfsConnection:
             assert message is not None
             mock_logger.assert_called_with(expected_log)
 
+    @pytest.mark.skipif(
+        platform.system() == "Windows",
+        reason="PermissionError: [Errno 13] Permission denied",
+    )
     @pytest.mark.parametrize(
         ("extra_files", "download_side_effect", "is_dir"),
         [
