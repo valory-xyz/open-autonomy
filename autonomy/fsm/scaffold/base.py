@@ -124,9 +124,6 @@ class AbstractFileGenerator(ABC):
             for event_name in self.dfa.alphabet_in
         ]
 
-        tx_type_list = list(map(_camel_case_to_snake_case, self.base_names))
-        tx_type_list = [f'{tx_type.upper()} = "{tx_type}"' for tx_type in tx_type_list]
-
         tf = json.dumps(self.dfa.parse_transition_func(), indent=4)
         behaviours = json.dumps(self.behaviours, indent=4)
 
@@ -139,7 +136,6 @@ class AbstractFileGenerator(ABC):
             all_rounds=_indent_wrapper(",\n".join(self.all_rounds)),
             behaviours=_indent_wrapper(",\n".join(self.behaviours)),
             payloads=_indent_wrapper(",\n".join(self.payloads)),
-            tx_types=_indent_wrapper("\n".join(tx_type_list)),
             events=_indent_wrapper("\n".join(events_list)),
             initial_round_cls=self.dfa.default_start_state,
             initial_states=_remove_quotes(str(self.dfa.start_states)),
