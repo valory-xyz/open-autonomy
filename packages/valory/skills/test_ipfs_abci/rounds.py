@@ -27,7 +27,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     AppState,
     BaseSynchronizedData,
     CollectDifferentUntilAllRound,
-    get_name,
 )
 from packages.valory.skills.test_ipfs_abci.payloads import DummyPayload
 
@@ -43,7 +42,7 @@ class IpfsRound(CollectDifferentUntilAllRound):
     """Dummy ipfs round."""
 
     allowed_tx_type = DummyPayload.transaction_type
-    payload_attribute = get_name(DummyPayload.sender)
+    payload_attribute = "sender"
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
