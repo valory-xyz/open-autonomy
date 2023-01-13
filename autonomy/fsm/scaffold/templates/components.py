@@ -137,9 +137,6 @@ class BEHAVIOURS:
         {AbciApp},
         {rounds},
     )
-    from packages.{author}.skills.{skill_name}.rounds import (
-        {payloads},
-    )
 
     """
 
@@ -171,7 +168,7 @@ class BEHAVIOURS:
 
             with self.context.benchmark_tool.measure(self.behaviour_id).local():
                 sender = self.context.agent_address
-                payload = {PayloadCls}(sender=sender, content=...)
+                payload = self.payload_class(sender=sender, content=...)
 
             with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
                 yield from self.send_a2a_transaction(payload)
