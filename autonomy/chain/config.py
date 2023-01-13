@@ -62,7 +62,6 @@ class ContractConfig:
 
     name: str
     contracts: Dict[ChainType, str]
-    abi_file: str
 
 
 @dataclass
@@ -119,7 +118,6 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
             )
             for chain_type in ChainType
         },
-        abi_file=chain_constants.COMPONENT_REGISTRY_ABI_FILENAME,
     )
 
     agent_registry = ContractConfig(
@@ -130,7 +128,6 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
             )
             for chain_type in ChainType
         },
-        abi_file=chain_constants.AGENT_REGISTRY_ABI_FILENAME,
     )
 
     service_registry = ContractConfig(
@@ -141,7 +138,6 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
             )
             for chain_type in ChainType
         },
-        abi_file=chain_constants.SERVICE_REGISTRY_ABI_FILENAME,
     )
 
     service_manager = ContractConfig(
@@ -152,7 +148,6 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
             )
             for chain_type in ChainType
         },
-        abi_file=chain_constants.SERVICE_MANAGER_ABI_FILENAME,
     )
 
     registries_manager = ContractConfig(
@@ -163,7 +158,16 @@ class ContractConfigs:  # pylint: disable=too-few-public-methods
             )
             for chain_type in ChainType
         },
-        abi_file=chain_constants.REGISTRIES_MANAGER_ABI_FILENAME,
+    )
+
+    gnosis_safe_proxy_factory = ContractConfig(
+        name="gnosis_safe_proxy_factory",
+        contracts={
+            chain_type: getattr(
+                chain_constants, f"GNOSIS_SAFE_MULTISIG_ADDRESS_{chain_type.name}"
+            )
+            for chain_type in ChainType
+        },
     )
 
     @classmethod

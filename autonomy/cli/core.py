@@ -37,6 +37,7 @@ from autonomy.cli.packages import package_manager
 from autonomy.cli.publish import publish
 from autonomy.cli.push_all import push_all
 from autonomy.cli.replay import replay_group
+from autonomy.cli.service import service
 
 
 cli.add_command(analyse_group)
@@ -50,6 +51,7 @@ cli.add_command(fetch)
 cli.add_command(build_image)
 cli.add_command(package_manager)
 cli.add_command(mint)
+cli.add_command(service)
 
 
 click.version_option(autonomy.__version__, prog_name="autonomy")(cli)

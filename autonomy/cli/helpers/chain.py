@@ -20,11 +20,12 @@
 """On-chain interaction helpers."""
 
 from pathlib import Path
-from typing import List, Optional, cast
+from typing import List, Optional, Tuple, cast
 
 import click
 from aea.configurations.data_types import PackageType
 from aea.configurations.loader import load_configuration_object
+from aea.crypto.base import Crypto, LedgerApi
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 
 from autonomy.chain.base import UnitType
@@ -36,17 +37,54 @@ from autonomy.chain.constants import (
 from autonomy.chain.exceptions import (
     ComponentMintFailed,
     FailedToRetrieveTokenId,
+    InstanceRegistrationFailed,
     InvalidMintParameter,
+    ServiceDeployFailed,
+    ServiceRegistrationFailed,
 )
 from autonomy.chain.metadata import publish_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
 from autonomy.chain.mint import mint_component as _mint_component
 from autonomy.chain.mint import mint_service as _mint_service
+from autonomy.chain.service import activate_service as _activate_service
+from autonomy.chain.service import deploy_service as _deploy_service
+from autonomy.chain.service import register_instance as _register_instance
 from autonomy.chain.utils import (
     verify_component_dependencies,
     verify_service_dependencies,
 )
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS, Service
+
+
+def get_ledger_and_crypto_objects(
+    chain_type: ChainType,
+    keys: Path,
+    password: Optional[str] = None,
+) -> Tuple[LedgerApi, Crypto]:
+    """Create ledger_api and crypto objects"""
+
+    chain_config = ChainConfigs.get(chain_type=chain_type)
+    if chain_config.rpc is None:
+        raise click.ClickException(
+            f"RPC cannot be `None` for chain config; chain_type={chain_type}"
+        )
+
+    crypto = EthereumCrypto(
+        private_key_path=keys,
+        password=password,
+    )
+
+    ledger_api = EthereumApi(
+        **{
+            "address": chain_config.rpc,
+            "chain_id": chain_config.chain_id,
+            "is_gas_estimation_enabled": True,
+        }
+    )
+
+    ledger_api.api.eth.default_account = crypto.address
+
+    return ledger_api, crypto
 
 
 def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
@@ -65,23 +103,12 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
     if is_agent and len(dependencies) == 0:
         raise click.ClickException("Agent packages needs to have dependencies")
 
-    chain_config = ChainConfigs.get(chain_type=chain_type)
-    if chain_config.rpc is None:
-        raise click.ClickException(
-            f"RPC cannot be `None` for chain config; chain_type={chain_type}"
-        )
-
-    crypto = EthereumCrypto(
-        private_key_path=keys,
+    ledger_api, crypto = get_ledger_and_crypto_objects(
+        chain_type=chain_type,
+        keys=keys,
         password=password,
     )
-    ledger_api = EthereumApi(
-        **{
-            "address": chain_config.rpc,
-            "chain_id": chain_config.chain_id,
-            "is_gas_estimation_enabled": True,
-        }
-    )
+
     package_configuration = load_configuration_object(
         package_type=package_type,
         directory=package_path,
@@ -158,23 +185,12 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
 ) -> None:
     """Mint service component"""
 
-    chain_config = ChainConfigs.get(chain_type=chain_type)
-    if chain_config.rpc is None:
-        raise click.ClickException(
-            f"RPC cannot be `None` for chain config; chain_type={chain_type}"
-        )
-
-    crypto = EthereumCrypto(
-        private_key_path=keys,
+    ledger_api, crypto = get_ledger_and_crypto_objects(
+        chain_type=chain_type,
+        keys=keys,
         password=password,
     )
-    ledger_api = EthereumApi(
-        **{
-            "address": chain_config.rpc,
-            "chain_id": chain_config.chain_id,
-            "is_gas_estimation_enabled": True,
-        }
-    )
+
     package_configuration = load_configuration_object(
         package_type=PackageType.SERVICE,
         directory=package_path,
@@ -233,3 +249,94 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
         raise click.ClickException(
             "Could not verify metadata hash to retrieve the token ID"
         )
+
+
+def activate_service(
+    service_id: int,
+    bond_value: int,
+    keys: Path,
+    chain_type: ChainType,
+    password: Optional[str] = None,
+) -> None:
+    """Activate on-chain service"""
+
+    ledger_api, crypto = get_ledger_and_crypto_objects(
+        chain_type=chain_type,
+        keys=keys,
+        password=password,
+    )
+
+    try:
+        _activate_service(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            chain_type=chain_type,
+            service_id=service_id,
+            bond_value=bond_value,
+        )
+    except ServiceRegistrationFailed as e:
+        raise click.ClickException(str(e)) from e
+
+    click.echo("Service activated successfully")
+
+
+def register_instance(  # pylint: disable=too-many-arguments
+    service_id: int,
+    instance: str,
+    agent_id: int,
+    bond_value: int,
+    keys: Path,
+    chain_type: ChainType,
+    password: Optional[str] = None,
+) -> None:
+    """Activate on-chain service"""
+
+    ledger_api, crypto = get_ledger_and_crypto_objects(
+        chain_type=chain_type,
+        keys=keys,
+        password=password,
+    )
+
+    try:
+        _register_instance(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            chain_type=chain_type,
+            service_id=service_id,
+            instance=instance,
+            agent_id=agent_id,
+            bond_value=bond_value,
+        )
+    except InstanceRegistrationFailed as e:
+        raise click.ClickException(str(e)) from e
+
+    click.echo("Agent instance registered successfully")
+
+
+def deploy_service(
+    service_id: int,
+    keys: Path,
+    chain_type: ChainType,
+    deployment_payload: Optional[str] = None,
+    password: Optional[str] = None,
+) -> None:
+    """Activate on-chain service"""
+
+    ledger_api, crypto = get_ledger_and_crypto_objects(
+        chain_type=chain_type,
+        keys=keys,
+        password=password,
+    )
+
+    try:
+        _deploy_service(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            chain_type=chain_type,
+            service_id=service_id,
+            deployment_payload=deployment_payload,
+        )
+    except ServiceDeployFailed as e:
+        raise click.ClickException(str(e)) from e
+
+    click.echo("Service deployed succesfully")
