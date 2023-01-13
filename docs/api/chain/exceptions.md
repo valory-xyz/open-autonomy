@@ -54,3 +54,13 @@ class DependencyError(ChainInteractionError)
 
 Raise when component metadata retrieving fails.
 
+<a id="autonomy.chain.exceptions.InvalidMintParameter"></a>
+
+## InvalidMintParameter Objects
+
+```python
+class InvalidMintParameter(ChainInteractionError)
+```
+
+Raise when the parameter provided for minting a component is invalid
+

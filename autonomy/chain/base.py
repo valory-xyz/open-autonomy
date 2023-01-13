@@ -31,6 +31,8 @@ from autonomy.chain.constants import (
     CONTRACTS_DIR_FRAMEWORK,
     CONTRACTS_DIR_LOCAL,
     REGISTRIES_MANAGER_CONTRACT,
+    SERVICE_MANAGER_CONTRACT,
+    SERVICE_REGISTRY_CONTRACT,
 )
 
 
@@ -45,8 +47,10 @@ class RegistryContracts:
     """On chain registry contracts helper"""
 
     _registries_manager: Optional[Contract] = None
+    _service_manager: Optional[Contract] = None
     _component_registry: Optional[Contract] = None
     _agent_registry: Optional[Contract] = None
+    _service_registry: Optional[Contract] = None
 
     @staticmethod
     def get_contract(public_id: PublicId) -> Contract:
@@ -78,6 +82,18 @@ class RegistryContracts:
         return self._registries_manager
 
     @property
+    def service_manager(
+        self,
+    ) -> Contract:
+        """Returns an instance of the registries manager contract."""
+        if self._service_manager is None:
+            self._service_manager = self.get_contract(
+                public_id=SERVICE_MANAGER_CONTRACT
+            )
+
+        return self._service_manager
+
+    @property
     def component_registry(
         self,
     ) -> Contract:
@@ -100,6 +116,18 @@ class RegistryContracts:
             )
 
         return self._agent_registry
+
+    @property
+    def service_registry(
+        self,
+    ) -> Contract:
+        """Returns an instance of the registries manager contract."""
+        if self._service_registry is None:
+            self._service_registry = self.get_contract(
+                public_id=SERVICE_REGISTRY_CONTRACT,
+            )
+
+        return self._service_registry
 
 
 registry_contracts = RegistryContracts()

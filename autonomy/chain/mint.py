@@ -19,6 +19,7 @@
 
 """Helpers for minting components"""
 
+from math import ceil
 from typing import Dict, List, Optional
 
 from aea.crypto.base import Crypto, LedgerApi
@@ -30,8 +31,14 @@ from autonomy.chain.constants import (
     AGENT_REGISTRY_CONTRACT,
     COMPONENT_REGISTRY_CONTRACT,
     REGISTRIES_MANAGER_CONTRACT,
+    SERVICE_MANAGER_CONTRACT,
+    SERVICE_REGISTRY_CONTRACT,
 )
-from autonomy.chain.exceptions import ComponentMintFailed, FailedToRetrieveTokenId
+from autonomy.chain.exceptions import (
+    ComponentMintFailed,
+    FailedToRetrieveTokenId,
+    InvalidMintParameter,
+)
 
 
 DEFAULT_NFT_IMAGE_HASH = "bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm"
@@ -91,6 +98,86 @@ def mint_component(
                 AGENT_REGISTRY_CONTRACT.name
             ).contracts[chain_type],
             metadata_hash=metadata_hash,
+        )
+
+    except RequestsConnectionError as e:
+        raise FailedToRetrieveTokenId(
+            "Connection interrupted while waiting for the unitId emit event"
+        ) from e
+
+
+def mint_service(  # pylint: disable=too-many-arguments
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    metadata_hash: str,
+    chain_type: ChainType,
+    agent_ids: List[int],
+    number_of_slots_per_agent: List[int],
+    cost_of_bond_per_agent: List[int],
+    threshold: int,
+) -> Optional[int]:
+    """Publish component on-chain."""
+
+    if len(agent_ids) == 0:
+        raise InvalidMintParameter("Please provide at least one agent id")
+
+    if len(number_of_slots_per_agent) == 0:
+        raise InvalidMintParameter("Please for provide number of slots for agents")
+
+    if len(cost_of_bond_per_agent) == 0:
+        raise InvalidMintParameter("Please for provide cost of bond for agents")
+
+    if (
+        len(agent_ids) != len(number_of_slots_per_agent)
+        or len(agent_ids) != len(cost_of_bond_per_agent)
+        or len(number_of_slots_per_agent) != len(cost_of_bond_per_agent)
+    ):
+        raise InvalidMintParameter(
+            "Make sure the number of agent ids, number of slots for agents and cost of bond for agents match"
+        )
+
+    if any(map(lambda x: x == 0, number_of_slots_per_agent)):
+        raise InvalidMintParameter("Number of slots cannot be zero")
+
+    if any(map(lambda x: x == 0, cost_of_bond_per_agent)):
+        raise InvalidMintParameter("Cost of bond cannot be zero")
+
+    number_of_agent_instances = sum(number_of_slots_per_agent)
+    if threshold < (ceil((number_of_agent_instances * 2 + 1) / 3)):
+        raise InvalidMintParameter(
+            "The threshold value should at least be greater than or equal to ceil((n * 2 + 1) / 3), "
+            "n is total number of agent instances in the service"
+        )
+
+    agent_params = [
+        [n, c] for n, c in zip(number_of_slots_per_agent, cost_of_bond_per_agent)
+    ]
+    try:
+        tx = registry_contracts.service_manager.get_create_transaction(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                SERVICE_MANAGER_CONTRACT.name
+            ).contracts[chain_type],
+            owner=crypto.address,
+            metadata_hash=metadata_hash,
+            agent_ids=agent_ids,
+            agent_params=agent_params,
+            threshold=threshold,
+        )
+        transact(
+            ledger_api=ledger_api,
+            crypto=crypto,
+            tx=tx,
+        )
+    except RequestsConnectionError as e:
+        raise ComponentMintFailed("Cannot connect to the given RPC") from e
+
+    try:
+        return registry_contracts.service_registry.filter_token_id_from_emitted_events(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                SERVICE_REGISTRY_CONTRACT.name
+            ).contracts[chain_type],
         )
 
     except RequestsConnectionError as e:

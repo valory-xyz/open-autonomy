@@ -69,7 +69,9 @@ class TestMintComponents(BaseCliTest):
             (PackageType.AGENT, "packages/valory/agents/hello_world"),
         ),
     )
-    def test_mint(self, package_type: PackageType, package_path: str) -> None:
+    def test_mint_components(
+        self, package_type: PackageType, package_path: str
+    ) -> None:
         """Test mint components."""
 
         commands = [
@@ -133,3 +135,30 @@ class TestMintComponents(BaseCliTest):
                 "Connection interrupted while waiting for the unitId emit event"
                 in result.stderr
             )
+
+    def test_mint_service(
+        self,
+    ) -> None:
+        """Test mint components."""
+
+        with mock.patch("autonomy.cli.helpers.chain.verify_service_dependencies"):
+            result = self.run_cli(
+                commands=(
+                    "service",
+                    "packages/valory/services/hello_world",
+                    str(ETHEREUM_KEY_DEPLOYER),
+                    "-a",
+                    "1",
+                    "-n",
+                    "4",
+                    "-c",
+                    "1000",
+                    "--threshold",
+                    "3",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert "Service minted with:" in result.output
+        assert "Metadata Hash:" in result.output
+        assert "Token ID:" in result.output

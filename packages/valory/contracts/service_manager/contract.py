@@ -20,7 +20,7 @@
 """This module contains the class to connect to the Service Registry contract."""
 
 import logging
-from typing import Any, Optional, cast
+from typing import Any, Dict, List, Optional
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -28,18 +28,15 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 
 
-PUBLIC_ID = PublicId.from_str("valory/agent_registry:0.1.0")
-
-AGENT_UNIT_TYPE = 1
-UNIT_HASH_PREFIX = "0x{metadata_hash}"
+PUBLIC_ID = PublicId.from_str("valory/service_manager:0.1.0")
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
 
 
-class AgentRegistryContract(Contract):
-    """The Agent Registry contract."""
+class ServiceManagerContract(Contract):
+    """The Service manager contract."""
 
     contract_id = PUBLIC_ID
 
@@ -65,47 +62,32 @@ class AgentRegistryContract(Contract):
         raise NotImplementedError
 
     @classmethod
-    def get_token_uri(
+    def get_create_transaction(  # pylint: disable=too-many-arguments
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        token_id: int,
-    ) -> str:
-        """Returns `CreateUnit` event filter."""
-
-        contract_interface = cls.get_instance(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-        )
-        return contract_interface.functions.tokenURI(token_id).call()
-
-    @classmethod
-    def filter_token_id_from_emitted_events(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
+        owner: str,
         metadata_hash: str,
-    ) -> Optional[int]:
-        """Returns `CreateUnit` event filter."""
+        agent_ids: List[int],
+        agent_params: List[List[int]],
+        threshold: int,
+    ) -> Dict[str, Any]:
+        """Retrieve the service owner."""
 
-        contract_interface = cls.get_instance(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
+        tx_params = ledger_api.build_transaction(
+            contract_instance=cls.get_instance(
+                ledger_api=ledger_api, contract_address=contract_address
+            ),
+            method_name="create",
+            method_args={
+                "serviceOwner": owner,
+                "configHash": metadata_hash,
+                "agentIds": agent_ids,
+                "agentParams": agent_params,
+                "threshold": threshold,
+            },
+            tx_args={
+                "sender_address": owner,
+            },
         )
-
-        events = contract_interface.events.CreateUnit.createFilter(
-            fromBlock="latest"
-        ).get_all_entries()
-
-        for event in events:
-            event_args = event["args"]
-            if event_args["uType"] == AGENT_UNIT_TYPE:
-                hash_bytes32 = cast(bytes, event_args["unitHash"]).hex()
-                unit_hash_bytes = UNIT_HASH_PREFIX.format(
-                    metadata_hash=hash_bytes32
-                ).encode()
-                metadata_hash_bytes = ledger_api.api.toBytes(text=metadata_hash)
-                if unit_hash_bytes == metadata_hash_bytes:
-                    return cast(int, event_args["unitId"])
-
-        return None
+        return tx_params

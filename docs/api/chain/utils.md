@@ -19,7 +19,7 @@ Split IPFS hash from the ipfs uri
 #### resolve`_`component`_`id
 
 ```python
-def resolve_component_id(ledger_api: LedgerApi, contract_address: str, token_id: int) -> Dict
+def resolve_component_id(ledger_api: LedgerApi, contract_address: str, token_id: int, is_agent: bool = False) -> Dict
 ```
 
 Resolve component ID
@@ -30,6 +30,16 @@ Resolve component ID
 
 ```python
 def verify_component_dependencies(ledger_api: LedgerApi, contract_address: str, dependencies: List[int], package_configuration: PackageConfiguration, skip_hash_check: bool = False) -> None
+```
+
+Verify package dependencies using on-chain metadata.
+
+<a id="autonomy.chain.utils.verify_service_dependencies"></a>
+
+#### verify`_`service`_`dependencies
+
+```python
+def verify_service_dependencies(ledger_api: LedgerApi, contract_address: str, agent_id: int, service_configuration: Service, skip_hash_check: bool = False) -> None
 ```
 
 Verify package dependencies using on-chain metadata.

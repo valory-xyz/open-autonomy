@@ -28,7 +28,7 @@ from aea.cli.utils.decorators import pass_ctx
 from aea.configurations.data_types import PackageType
 
 from autonomy.chain.config import ChainType
-from autonomy.cli.helpers.chain import mint_component
+from autonomy.cli.helpers.chain import mint_component, mint_service
 from autonomy.cli.utils.click_utils import PathArgument, chain_selection_flag_
 
 
@@ -205,7 +205,7 @@ def agent(
     dependencies: Tuple[str],
     nft: Optional[str],
 ) -> None:
-    """Mint an agent component."""
+    """Mint an agent."""
 
     mint_component(
         package_path=package_path,
@@ -213,6 +213,65 @@ def agent(
         keys=keys,
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
         dependencies=list(map(int, dependencies)),
+        password=password,
+        nft_image_hash=nft,
+        skip_hash_check=ctx.config.get("skip_hash_check", False),
+    )
+
+
+@mint.command()
+@package_path_decorator
+@key_path_decorator
+@password_decorator
+@nft_decorator
+@pass_ctx
+@click.option(
+    "-a",
+    "--agent-id",
+    type=int,
+    help="Canonical agent ID",
+    required=True,
+)
+@click.option(
+    "-n",
+    "--number-of-slots",
+    type=int,
+    help="Number of agent instances for the agent",
+    required=True,
+)
+@click.option(
+    "-c",
+    "--cost-of-bond",
+    type=int,
+    help="Cost of bond for the agent (Wei)",
+    required=True,
+)
+@click.option(
+    "--threshold",
+    type=int,
+    required=True,
+)
+def service(  # pylint: disable=too-many-arguments
+    ctx: Context,
+    package_path: Path,
+    keys: Path,
+    agent_id: int,
+    number_of_slots: int,
+    cost_of_bond: int,
+    threshold: int,
+    password: Optional[str],
+    nft: Optional[str],
+) -> None:
+    """Mint a service"""
+
+    mint_service(
+        package_path=package_path,
+        keys=keys,
+        agent_id=agent_id,
+        number_of_slots=number_of_slots,
+        cost_of_bond=cost_of_bond,
+        threshold=threshold,
+        chain_type=cast(ChainType, ctx.config.get("chain_type")),
         password=password,
         nft_image_hash=nft,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
