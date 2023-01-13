@@ -19,7 +19,7 @@ Split IPFS hash from the ipfs uri
 #### resolve`_`component`_`id
 
 ```python
-def resolve_component_id(ledger_api: LedgerApi, contract_address: str, token_id: int, is_agent: bool = False) -> Dict
+def resolve_component_id(ledger_api: LedgerApi, contract_address: str, token_id: int, is_agent: bool = False, is_service: bool = False) -> Dict
 ```
 
 Resolve component ID
