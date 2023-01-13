@@ -155,12 +155,10 @@ class PayloadsFileGenerator(AbstractFileGenerator, PAYLOADS):
         payloads: List[str] = []
 
         for payload_name, round_name in zip(self.payloads, self.rounds):
-            tx_type = _camel_case_to_snake_case(round_name.replace(ROUND, ""))
             payload_class_str = self.PAYLOAD_CLS.format(
                 FSMName=self.fsm_name,
                 PayloadCls=payload_name,
                 RoundCls=round_name,
-                tx_type=tx_type.upper(),
             )
             payloads.append(payload_class_str)
 

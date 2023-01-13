@@ -42,7 +42,6 @@ class ROUNDS:
         BaseSynchronizedData,
         DegenerateRound,
         EventToTimeout,
-        TransactionType
     )
 
     from packages.{author}.skills.{skill_name}.payloads import (
