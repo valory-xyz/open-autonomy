@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeigmjag2ddtrfsrcklillz7iiyzwoulyp7ns4xrxlqejfgsqe74dmu
   __init__.py: bafybeigstxhr6bts7xwyx62cokwkwf3wrunratprkrg5vzokuq7ioqtsp4
-  behaviours.py: bafybeihrhaa2vgnae6hbevd2pep7ajzpgewkjd25h23jrrkexh7vq3iqwe
+  behaviours.py: bafybeiguo7q4hd47po6gouexxf6kdhrvkkowufe2aypmzupicqlklkw4mu
   composition.py: bafybeiab4mcvz6g24jtjtaqz6q72udk7shnhfz24bbkx5ggq4dqlutxeha
   dialogues.py: bafybeiflpquascygrfxcgb4ufiigqykmvbxlgbrxxa6cxmiy6f4w3aknmq
   handlers.py: bafybeigrvstfrd4yce5fdzs6wovkkvvf4a4abxfrs4xh273jl4t4h5ddga
@@ -26,8 +26,8 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihqdo4ni64uvrfjxhehoatiptcxqu76erlqq2ck5klwzi4vznfrtu
-- valory/registration_abci:0.1.0:bafybeidccp665mqwzwrcl3hpo2nd7xj5vsoknay2h2wkxllstfefzwwywq
+- valory/abstract_round_abci:0.1.0:bafybeicguqbdxubcsrax7rvbkp6kpdpcbgwvmghotrlqs5nzj4m7b45f2i
+- valory/registration_abci:0.1.0:bafybeicwhbqvthh5qf4sozhvi743cr66ynohzm57mlba6zwyvbkytlgin4
 behaviours:
   main:
     args: {}

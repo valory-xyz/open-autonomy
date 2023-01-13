@@ -431,7 +431,9 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
                 self.context.logger.info(
                     f"Finalized with transaction hash: {self.synchronized_data.to_be_validated_tx_hash}"
                 )
-            payload = self.matching_round.payload_class(self.context.agent_address, is_correct)
+            payload = self.matching_round.payload_class(
+                self.context.agent_address, is_correct
+            )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
@@ -505,7 +507,9 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
                 )
 
             verified_res = tx_hist_payload_to_hex(verification_status, tx_hash)
-            payload = self.matching_round.payload_class(self.context.agent_address, verified_res)
+            payload = self.matching_round.payload_class(
+                self.context.agent_address, verified_res
+            )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
@@ -648,7 +652,9 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
                 self._tx_hashes += cast(str, tx_data["tx_digest"])
                 return
 
-            payload = self.matching_round.payload_class(self.context.agent_address, self._tx_hashes)
+            payload = self.matching_round.payload_class(
+                self.context.agent_address, self._tx_hashes
+            )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
@@ -681,7 +687,9 @@ class SignatureBehaviour(TransactionSettlementBaseBehaviour):
                 f"Consensus reached on tx hash: {self.synchronized_data.most_voted_tx_hash}"
             )
             signature_hex = yield from self._get_safe_tx_signature()
-            payload = self.matching_round.payload_class(self.context.agent_address, signature_hex)
+            payload = self.matching_round.payload_class(
+                self.context.agent_address, signature_hex
+            )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)

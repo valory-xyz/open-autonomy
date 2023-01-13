@@ -409,17 +409,6 @@ def __init__(**kwargs: Any)
 
 Initialize a base behaviour.
 
-<a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.payload_class"></a>
-
-#### payload`_`class
-
-```python
-@property
-def payload_class() -> Type["BaseBehaviour.matching_round.payload_class"]
-```
-
-Payload class
-
 <a id="packages.valory.skills.abstract_round_abci.behaviour_utils.BaseBehaviour.auto_behaviour_id"></a>
 
 #### auto`_`behaviour`_`id

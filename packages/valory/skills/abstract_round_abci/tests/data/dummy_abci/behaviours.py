@@ -23,7 +23,6 @@ from abc import ABC
 from collections import deque
 from typing import Deque, Generator, Set, Type, cast
 
-from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
@@ -34,12 +33,6 @@ from packages.valory.skills.abstract_round_abci.common import (
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.models import (
     Params,
-)
-from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.payloads import (
-    DummyFinalPayload,
-    DummyKeeperSelectionPayload,
-    DummyRandomnessPayload,
-    DummyStartingPayload,
 )
 from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.rounds import (
     DummyAbciApp,
@@ -98,7 +91,6 @@ class DummyKeeperSelectionBehaviour(SelectKeeperBehaviour):
 
     behaviour_id: str = "dummy_keeper_selection"
     matching_round = DummyKeeperSelectionRound
-    payload_class = DummyKeeperSelectionPayload
 
     @staticmethod
     def serialized_keepers(keepers: Deque[str], keeper_retries: int = 1) -> str:
