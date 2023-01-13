@@ -646,7 +646,7 @@ class TendermintHandler(Handler):
         self._not_registered_error(message, dialogue)
         return False
 
-    def _request_genesis_info(
+    def _get_genesis_info(
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> None:
         """Handler Tendermint config-sharing request message"""
@@ -662,7 +662,7 @@ class TendermintHandler(Handler):
 
         info = self.registered_addresses[self.context.agent_address]
         response = dialogue.reply(
-            performative=TendermintMessage.Performative.RESPONSE_GENESIS_INFO,
+            performative=TendermintMessage.Performative.GENESIS_INFO,
             target_message=message,
             info=json.dumps(info),
         )
@@ -670,7 +670,7 @@ class TendermintHandler(Handler):
         log_message = self.LogMessages.sending_request_response.value
         self.context.logger.info(f"{log_message}: {response}")
 
-    def _request_recovery_params(
+    def _get_recovery_params(
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> None:
         """Handle a request message for the recovery parameters."""
@@ -680,7 +680,7 @@ class TendermintHandler(Handler):
         shared_state = cast(SharedState, self.context.state)
         recovery_params = shared_state.tm_recovery_params
         response = dialogue.reply(
-            performative=TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS,
+            performative=TendermintMessage.Performative.RECOVERY_PARAMS,
             target_message=message,
             params=json.dumps(asdict(recovery_params)),
         )
@@ -688,7 +688,7 @@ class TendermintHandler(Handler):
         log_message = self.LogMessages.sending_request_response.value
         self.context.logger.info(f"{log_message}: {response}")
 
-    def _response_genesis_info(
+    def _genesis_info(
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> None:
         """Process Tendermint config-sharing response messages"""
@@ -718,7 +718,7 @@ class TendermintHandler(Handler):
             TendermintDialogue.EndState.COMMUNICATED, dialogue.is_self_initiated
         )
 
-    def _response_recovery_params(
+    def _recovery_params(
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> None:
         """Process params-sharing response messages."""

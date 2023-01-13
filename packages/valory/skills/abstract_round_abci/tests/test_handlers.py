@@ -378,7 +378,7 @@ class TestTendermintHandler:
 
     def test_handle_no_addresses_retrieved_yet(self, caplog: LogCaptureFixture) -> None:
         """Test handle request no registered addresses"""
-        performative = TendermintMessage.Performative.REQUEST_GENESIS_INFO
+        performative = TendermintMessage.Performative.GET_GENESIS_INFO
         message = TendermintMessage(performative)  # type: ignore
         message.sender = "Alice"
         with self.mocked_registered_addresses({}):
@@ -392,7 +392,7 @@ class TestTendermintHandler:
         self, caplog: LogCaptureFixture
     ) -> None:
         """Test handle response sender not in registered addresses"""
-        performative = TendermintMessage.Performative.RESPONSE_GENESIS_INFO
+        performative = TendermintMessage.Performative.GENESIS_INFO
         message = TendermintMessage(performative, info="info")  # type: ignore
         message.sender = "Alice"
         self.handler.handle(message)
@@ -400,9 +400,9 @@ class TestTendermintHandler:
         assert log_message in caplog.text
 
     # request
-    def test_handle_request_genesis_info(self, caplog: LogCaptureFixture) -> None:
+    def test_handle_get_genesis_info(self, caplog: LogCaptureFixture) -> None:
         """Test handle request for genesis info"""
-        performative = TendermintMessage.Performative.REQUEST_GENESIS_INFO
+        performative = TendermintMessage.Performative.GET_GENESIS_INFO
         message = TendermintMessage(performative)  # type: ignore
         self.context.agent_address = message.sender = self.agent_name
         with self.mocked_registered_addresses(self.dummy_validator_config):
@@ -415,7 +415,7 @@ class TestTendermintHandler:
         """Test handle response for genesis info with invalid address."""
         validator_config = self.dummy_validator_config
         validator_config[self.agent_name]["hostname"] = "random"
-        performative = TendermintMessage.Performative.RESPONSE_GENESIS_INFO
+        performative = TendermintMessage.Performative.GENESIS_INFO
         info = json.dumps(validator_config[self.agent_name])
         message = TendermintMessage(performative, info=info)  # type: ignore
         self.context.agent_address = message.sender = self.agent_name
@@ -424,9 +424,9 @@ class TestTendermintHandler:
         log_message = self.handler.LogMessages.failed_to_parse_address.value
         assert log_message in caplog.text
 
-    def test_handle_response_genesis_info(self, caplog: LogCaptureFixture) -> None:
+    def test_handle_genesis_info(self, caplog: LogCaptureFixture) -> None:
         """Test handle response for genesis info with valid address"""
-        performative = TendermintMessage.Performative.RESPONSE_GENESIS_INFO
+        performative = TendermintMessage.Performative.GENESIS_INFO
         info = json.dumps(self.dummy_validator_config[self.agent_name])
         message = TendermintMessage(performative, info=info)  # type: ignore
         self.context.agent_address = message.sender = self.agent_name
@@ -439,8 +439,8 @@ class TestTendermintHandler:
     @pytest.mark.parametrize(
         "performative",
         (
-            TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS,
-            TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS,
+            TendermintMessage.Performative.RECOVERY_PARAMS,
+            TendermintMessage.Performative.GET_RECOVERY_PARAMS,
         ),
     )
     def test_recovery_params(
@@ -450,13 +450,13 @@ class TestTendermintHandler:
         caplog: LogCaptureFixture,
     ) -> None:
         """Test handle response for recovery parameters."""
-        if performative == TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS:
+        if performative == TendermintMessage.Performative.GET_RECOVERY_PARAMS:
             self.context.state.tm_recovery_params = TendermintRecoveryParams(
                 "DummyRound"
             )
             message = TendermintMessage(performative)  # type: ignore
             log_message = self.handler.LogMessages.sending_request_response.value
-        elif performative == TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS:
+        elif performative == TendermintMessage.Performative.RECOVERY_PARAMS:
             params = json.dumps(
                 asdict(TendermintRecoveryParams(DummyRound.auto_round_id()))
             )
@@ -493,7 +493,7 @@ class TestTendermintHandler:
             ),
         ),
     )
-    def test_response_recovery_params_error(
+    def test_recovery_params_error(
         self,
         side_effect: Any,
         expected_exception: str,
@@ -501,7 +501,7 @@ class TestTendermintHandler:
     ) -> None:
         """Test handle response for recovery parameters."""
         message = TendermintMessage(
-            TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS, params=MagicMock()  # type: ignore
+            TendermintMessage.Performative.RECOVERY_PARAMS, params=MagicMock()  # type: ignore
         )
 
         self.context.agent_address = message.sender = self.agent_name
@@ -558,7 +558,7 @@ class TestTendermintHandler:
     ) -> None:
         """Test sender not in registered addresses."""
 
-        performative = TendermintMessage.Performative.REQUEST_GENESIS_INFO
+        performative = TendermintMessage.Performative.GET_GENESIS_INFO
         message = TendermintMessage(performative)  # type: ignore
         self.context.agent_address = message.sender = "dummy"
         with self.mocked_registered_addresses(self.dummy_validator_config):

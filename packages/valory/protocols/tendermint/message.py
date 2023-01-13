@@ -49,10 +49,10 @@ class TendermintMessage(Message):
         """Performatives for the tendermint protocol."""
 
         ERROR = "error"
-        REQUEST_GENESIS_INFO = "request_genesis_info"
-        REQUEST_RECOVERY_PARAMS = "request_recovery_params"
-        RESPONSE_GENESIS_INFO = "response_genesis_info"
-        RESPONSE_RECOVERY_PARAMS = "response_recovery_params"
+        GENESIS_INFO = "genesis_info"
+        GET_GENESIS_INFO = "get_genesis_info"
+        GET_RECOVERY_PARAMS = "get_recovery_params"
+        RECOVERY_PARAMS = "recovery_params"
 
         def __str__(self) -> str:
             """Get the string representation."""
@@ -60,10 +60,10 @@ class TendermintMessage(Message):
 
     _performatives = {
         "error",
-        "request_genesis_info",
-        "request_recovery_params",
-        "response_genesis_info",
-        "response_recovery_params",
+        "genesis_info",
+        "get_genesis_info",
+        "get_recovery_params",
+        "recovery_params",
     }
     __slots__: Tuple[str, ...] = tuple()
 
@@ -216,7 +216,7 @@ class TendermintMessage(Message):
             # Check correct contents
             actual_nb_of_contents = len(self._body) - DEFAULT_BODY_SIZE
             expected_nb_of_contents = 0
-            if self.performative == TendermintMessage.Performative.REQUEST_GENESIS_INFO:
+            if self.performative == TendermintMessage.Performative.GET_GENESIS_INFO:
                 expected_nb_of_contents = 0
                 if self.is_set("query"):
                     expected_nb_of_contents += 1
@@ -228,8 +228,7 @@ class TendermintMessage(Message):
                         ),
                     )
             elif (
-                self.performative
-                == TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS
+                self.performative == TendermintMessage.Performative.GET_RECOVERY_PARAMS
             ):
                 expected_nb_of_contents = 0
                 if self.is_set("query"):
@@ -241,10 +240,7 @@ class TendermintMessage(Message):
                             type(query)
                         ),
                     )
-            elif (
-                self.performative
-                == TendermintMessage.Performative.RESPONSE_GENESIS_INFO
-            ):
+            elif self.performative == TendermintMessage.Performative.GENESIS_INFO:
                 expected_nb_of_contents = 1
                 enforce(
                     isinstance(self.info, str),
@@ -252,10 +248,7 @@ class TendermintMessage(Message):
                         type(self.info)
                     ),
                 )
-            elif (
-                self.performative
-                == TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS
-            ):
+            elif self.performative == TendermintMessage.Performative.RECOVERY_PARAMS:
                 expected_nb_of_contents = 1
                 enforce(
                     isinstance(self.params, str),

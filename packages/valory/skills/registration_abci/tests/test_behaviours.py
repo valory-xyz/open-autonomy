@@ -289,7 +289,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_tendermint_message,
             message_type=TendermintMessage,
-            performative=TendermintMessage.Performative.REQUEST_GENESIS_INFO,
+            performative=TendermintMessage.Performative.GET_GENESIS_INFO,
             sender=self.state.context.agent_address,
             to=actual_tendermint_message.to,
             **request_kwargs,
@@ -301,7 +301,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
                 actual_tendermint_message.dialogue_reference[0],
                 "stub",
             ),
-            performative=TendermintMessage.Performative.RESPONSE_GENESIS_INFO,
+            performative=TendermintMessage.Performative.GENESIS_INFO,
             target=actual_tendermint_message.message_id,
             message_id=-1,
             to=self.state.context.agent_address,

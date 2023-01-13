@@ -1679,8 +1679,8 @@ class TestBaseBehaviour:
     @pytest.mark.parametrize(
         "performative",
         (
-            TendermintMessage.Performative.REQUEST_GENESIS_INFO,
-            TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS,
+            TendermintMessage.Performative.GET_GENESIS_INFO,
+            TendermintMessage.Performative.GET_RECOVERY_PARAMS,
         ),
     )
     @pytest.mark.parametrize(
@@ -1737,8 +1737,8 @@ class TestBaseBehaviour:
     @pytest.mark.parametrize(
         "performative",
         (
-            TendermintMessage.Performative.REQUEST_GENESIS_INFO,
-            TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS,
+            TendermintMessage.Performative.GET_GENESIS_INFO,
+            TendermintMessage.Performative.GET_RECOVERY_PARAMS,
         ),
     )
     @pytest.mark.parametrize(
@@ -1836,7 +1836,7 @@ class TestBaseBehaviour:
                 )
 
             perform_acn_request_mock.assert_called_once_with(
-                TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS
+                TendermintMessage.Performative.GET_RECOVERY_PARAMS
             )
 
     def test_start_reset(self) -> None:

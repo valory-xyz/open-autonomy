@@ -39,33 +39,33 @@ class TendermintDialogue(Dialogue):
 
     INITIAL_PERFORMATIVES: FrozenSet[Message.Performative] = frozenset(
         {
-            TendermintMessage.Performative.REQUEST_GENESIS_INFO,
-            TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS,
+            TendermintMessage.Performative.GET_GENESIS_INFO,
+            TendermintMessage.Performative.GET_RECOVERY_PARAMS,
         }
     )
     TERMINAL_PERFORMATIVES: FrozenSet[Message.Performative] = frozenset(
         {
-            TendermintMessage.Performative.RESPONSE_GENESIS_INFO,
-            TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS,
+            TendermintMessage.Performative.GENESIS_INFO,
+            TendermintMessage.Performative.RECOVERY_PARAMS,
             TendermintMessage.Performative.ERROR,
         }
     )
     VALID_REPLIES: Dict[Message.Performative, FrozenSet[Message.Performative]] = {
         TendermintMessage.Performative.ERROR: frozenset(),
-        TendermintMessage.Performative.REQUEST_GENESIS_INFO: frozenset(
+        TendermintMessage.Performative.GENESIS_INFO: frozenset(),
+        TendermintMessage.Performative.GET_GENESIS_INFO: frozenset(
             {
-                TendermintMessage.Performative.RESPONSE_GENESIS_INFO,
+                TendermintMessage.Performative.GENESIS_INFO,
                 TendermintMessage.Performative.ERROR,
             }
         ),
-        TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS: frozenset(
+        TendermintMessage.Performative.GET_RECOVERY_PARAMS: frozenset(
             {
-                TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS,
+                TendermintMessage.Performative.RECOVERY_PARAMS,
                 TendermintMessage.Performative.ERROR,
             }
         ),
-        TendermintMessage.Performative.RESPONSE_GENESIS_INFO: frozenset(),
-        TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS: frozenset(),
+        TendermintMessage.Performative.RECOVERY_PARAMS: frozenset(),
     }
 
     class Role(Dialogue.Role):

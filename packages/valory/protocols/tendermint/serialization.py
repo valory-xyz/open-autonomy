@@ -54,30 +54,30 @@ class TendermintSerializer(Serializer):
         dialogue_message_pb.target = msg.target
 
         performative_id = msg.performative
-        if performative_id == TendermintMessage.Performative.REQUEST_GENESIS_INFO:
-            performative = tendermint_pb2.TendermintMessage.Request_Genesis_Info_Performative()  # type: ignore
+        if performative_id == TendermintMessage.Performative.GET_GENESIS_INFO:
+            performative = tendermint_pb2.TendermintMessage.Get_Genesis_Info_Performative()  # type: ignore
             if msg.is_set("query"):
                 performative.query_is_set = True
                 query = msg.query
                 performative.query = query
-            tendermint_msg.request_genesis_info.CopyFrom(performative)
-        elif performative_id == TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS:
-            performative = tendermint_pb2.TendermintMessage.Request_Recovery_Params_Performative()  # type: ignore
+            tendermint_msg.get_genesis_info.CopyFrom(performative)
+        elif performative_id == TendermintMessage.Performative.GET_RECOVERY_PARAMS:
+            performative = tendermint_pb2.TendermintMessage.Get_Recovery_Params_Performative()  # type: ignore
             if msg.is_set("query"):
                 performative.query_is_set = True
                 query = msg.query
                 performative.query = query
-            tendermint_msg.request_recovery_params.CopyFrom(performative)
-        elif performative_id == TendermintMessage.Performative.RESPONSE_GENESIS_INFO:
-            performative = tendermint_pb2.TendermintMessage.Response_Genesis_Info_Performative()  # type: ignore
+            tendermint_msg.get_recovery_params.CopyFrom(performative)
+        elif performative_id == TendermintMessage.Performative.GENESIS_INFO:
+            performative = tendermint_pb2.TendermintMessage.Genesis_Info_Performative()  # type: ignore
             info = msg.info
             performative.info = info
-            tendermint_msg.response_genesis_info.CopyFrom(performative)
-        elif performative_id == TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS:
-            performative = tendermint_pb2.TendermintMessage.Response_Recovery_Params_Performative()  # type: ignore
+            tendermint_msg.genesis_info.CopyFrom(performative)
+        elif performative_id == TendermintMessage.Performative.RECOVERY_PARAMS:
+            performative = tendermint_pb2.TendermintMessage.Recovery_Params_Performative()  # type: ignore
             params = msg.params
             performative.params = params
-            tendermint_msg.response_recovery_params.CopyFrom(performative)
+            tendermint_msg.recovery_params.CopyFrom(performative)
         elif performative_id == TendermintMessage.Performative.ERROR:
             performative = tendermint_pb2.TendermintMessage.Error_Performative()  # type: ignore
             error_code = msg.error_code
@@ -118,19 +118,19 @@ class TendermintSerializer(Serializer):
         performative = tendermint_pb.WhichOneof("performative")
         performative_id = TendermintMessage.Performative(str(performative))
         performative_content = dict()  # type: Dict[str, Any]
-        if performative_id == TendermintMessage.Performative.REQUEST_GENESIS_INFO:
-            if tendermint_pb.request_genesis_info.query_is_set:
-                query = tendermint_pb.request_genesis_info.query
+        if performative_id == TendermintMessage.Performative.GET_GENESIS_INFO:
+            if tendermint_pb.get_genesis_info.query_is_set:
+                query = tendermint_pb.get_genesis_info.query
                 performative_content["query"] = query
-        elif performative_id == TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS:
-            if tendermint_pb.request_recovery_params.query_is_set:
-                query = tendermint_pb.request_recovery_params.query
+        elif performative_id == TendermintMessage.Performative.GET_RECOVERY_PARAMS:
+            if tendermint_pb.get_recovery_params.query_is_set:
+                query = tendermint_pb.get_recovery_params.query
                 performative_content["query"] = query
-        elif performative_id == TendermintMessage.Performative.RESPONSE_GENESIS_INFO:
-            info = tendermint_pb.response_genesis_info.info
+        elif performative_id == TendermintMessage.Performative.GENESIS_INFO:
+            info = tendermint_pb.genesis_info.info
             performative_content["info"] = info
-        elif performative_id == TendermintMessage.Performative.RESPONSE_RECOVERY_PARAMS:
-            params = tendermint_pb.response_recovery_params.params
+        elif performative_id == TendermintMessage.Performative.RECOVERY_PARAMS:
+            params = tendermint_pb.recovery_params.params
             performative_content["params"] = params
         elif performative_id == TendermintMessage.Performative.ERROR:
             pb2_error_code = tendermint_pb.error.error_code

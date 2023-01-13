@@ -1773,7 +1773,7 @@ class BaseBehaviour(
             "Requesting the Tendermint recovery parameters from the other agents via the ACN."
         )
 
-        performative = TendermintMessage.Performative.REQUEST_RECOVERY_PARAMS
+        performative = TendermintMessage.Performative.GET_RECOVERY_PARAMS
         acn_result = yield from self._perform_acn_request(performative)  # type: ignore
 
         if acn_result is None:
