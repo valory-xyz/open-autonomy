@@ -237,20 +237,11 @@ Decode
 ## Transaction Objects
 
 ```python
+@dataclass(frozen=True)
 class Transaction(ABC)
 ```
 
 Class to represent a transaction for the ephemeral chain of a period.
-
-<a id="packages.valory.skills.abstract_round_abci.base.Transaction.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(payload: BaseTxPayload, signature: str) -> None
-```
-
-Initialize a transaction object.
 
 <a id="packages.valory.skills.abstract_round_abci.base.Transaction.encode"></a>
 
@@ -287,16 +278,6 @@ Verify the signature is correct.
 
 :raises: SignatureNotValidError: if the signature is not valid.
 - `ledger_id`: the ledger id of the address
-
-<a id="packages.valory.skills.abstract_round_abci.base.Transaction.__eq__"></a>
-
-#### `__`eq`__`
-
-```python
-def __eq__(other: Any) -> bool
-```
-
-Check equality.
 
 <a id="packages.valory.skills.abstract_round_abci.base.Block"></a>
 

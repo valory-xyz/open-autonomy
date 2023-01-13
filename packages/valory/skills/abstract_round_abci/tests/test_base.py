@@ -329,7 +329,9 @@ class TestTransactions:
 def test_verify_transaction_negative_case(*_mocks: Any) -> None:
     """Test verify() of transaction, negative case."""
     transaction = Transaction(MagicMock(sender="right_sender", json={}), "")
-    with pytest.raises(SignatureNotValidError, match="signature not valid."):
+    with pytest.raises(
+        SignatureNotValidError, match="Signature not valid on transaction: .*"
+    ):
         transaction.verify("")
 
 

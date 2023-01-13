@@ -221,13 +221,12 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
         return cls.from_json(json.loads(obj.decode()))
 
 
+@dataclass(frozen=True)
 class Transaction(ABC):
     """Class to represent a transaction for the ephemeral chain of a period."""
 
-    def __init__(self, payload: BaseTxPayload, signature: str) -> None:
-        """Initialize a transaction object."""
-        self.payload = payload
-        self.signature = signature
+    payload: BaseTxPayload
+    signature: str
 
     def encode(self) -> bytes:
         """Encode the transaction."""
@@ -261,13 +260,7 @@ class Transaction(ABC):
             identifier=ledger_id, message=payload_bytes, signature=self.signature
         )
         if self.payload.sender not in addresses:
-            raise SignatureNotValidError("signature not valid.")
-
-    def __eq__(self, other: Any) -> bool:
-        """Check equality."""
-        if not isinstance(other, Transaction):
-            return NotImplemented
-        return self.payload == other.payload and self.signature == other.signature
+            raise SignatureNotValidError(f"Signature not valid on transaction: {self}")
 
 
 class Block:  # pylint: disable=too-few-public-methods
