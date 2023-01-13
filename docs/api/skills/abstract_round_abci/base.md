@@ -163,7 +163,7 @@ Create a new class object.
 
 ```python
 @dataclass(frozen=True)
-class BaseTxPayload(ABC, metaclass=_MetaPayload)
+class BaseTxPayload(, metaclass=_MetaPayload)
 ```
 
 This class represents a base class for transaction payload classes.
