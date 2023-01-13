@@ -28,13 +28,6 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseBehaviour,
 )
 from packages.valory.skills.hello_world_abci.models import HelloWorldParams, SharedState
-from packages.valory.skills.hello_world_abci.payloads import (
-    CollectRandomnessPayload,
-    PrintMessagePayload,
-    RegistrationPayload,
-    ResetPayload,
-    SelectKeeperPayload,
-)
 from packages.valory.skills.hello_world_abci.rounds import (
     CollectRandomnessRound,
     HelloWorldAbciApp,
@@ -77,7 +70,7 @@ class RegistrationBehaviour(HelloWorldABCIBaseBehaviour):
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour (set done event).
         """
-        payload = RegistrationPayload(self.context.agent_address)
+        payload = self.payload_class(self.context.agent_address)
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
         self.set_done()
@@ -113,7 +106,7 @@ class CollectRandomnessBehaviour(HelloWorldABCIBaseBehaviour):
 
         if observation:
             self.context.logger.info(f"Retrieved DRAND values: {observation}.")
-            payload = CollectRandomnessPayload(
+            payload = self.payload_class(
                 self.context.agent_address,
                 observation["round"],
                 observation["randomness"],
@@ -160,7 +153,7 @@ class SelectKeeperBehaviour(HelloWorldABCIBaseBehaviour, ABC):
         keeper_address = participants[index]
 
         self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
-        payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
+        payload = self.payload_class(self.context.agent_address, keeper_address)
 
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
@@ -198,7 +191,7 @@ class PrintMessageBehaviour(HelloWorldABCIBaseBehaviour, ABC):
         print(printed_message)
         self.context.logger.info(f"printed_message={printed_message}")
 
-        payload = PrintMessagePayload(self.context.agent_address, printed_message)
+        payload = self.payload_class(self.context.agent_address, printed_message)
 
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
@@ -232,7 +225,7 @@ class ResetAndPauseBehaviour(HelloWorldABCIBaseBehaviour):
                 f"Period {self.synchronized_data.period_count} was not finished. Resetting!"
             )
 
-        payload = ResetPayload(
+        payload = self.payload_class(
             self.context.agent_address, self.synchronized_data.period_count
         )
 

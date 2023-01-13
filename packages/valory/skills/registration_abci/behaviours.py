@@ -42,7 +42,6 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 from packages.valory.skills.abstract_round_abci.utils import parse_tendermint_p2p_url
 from packages.valory.skills.registration_abci.dialogues import TendermintDialogues
 from packages.valory.skills.registration_abci.models import SharedState
-from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
     RegistrationRound,
@@ -72,7 +71,7 @@ class RegistrationBaseBehaviour(BaseBehaviour, ABC):
             initialisation = json.dumps(
                 self.synchronized_data.db.setup_data, sort_keys=True
             )
-            payload = RegistrationPayload(
+            payload = self.payload_class(
                 self.context.agent_address, initialisation=initialisation
             )
 

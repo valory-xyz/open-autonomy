@@ -29,9 +29,6 @@ from packages.valory.skills.register_reset_recovery_abci.composition import (
     RegisterResetRecoveryAbciApp,
 )
 from packages.valory.skills.register_reset_recovery_abci.models import SharedState
-from packages.valory.skills.register_reset_recovery_abci.payloads import (
-    RoundCountPayload,
-)
 from packages.valory.skills.register_reset_recovery_abci.rounds import RoundCountRound
 from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,
@@ -51,7 +48,7 @@ class ShareRoundCountBehaviour(BaseBehaviour):
         ).synchronized_data.round_count
 
         self.context.logger.info(f"Current round count is {round_count}. ")
-        payload = RoundCountPayload(
+        payload = self.payload_class(
             sender=self.context.agent_address, current_round_count=round_count
         )
         # the following sleep acts as a buffer so that

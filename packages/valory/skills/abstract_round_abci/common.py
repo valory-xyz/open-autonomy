@@ -56,8 +56,6 @@ def random_selection(elements: List[Any], randomness: float) -> str:
 class RandomnessBehaviour(BaseBehaviour, ABC):
     """Check whether Tendermint nodes are running."""
 
-    payload_class: Type[BaseTxPayload]
-
     def failsafe_randomness(
         self,
     ) -> Generator[None, None, RandomnessObservation]:
@@ -160,8 +158,6 @@ class RandomnessBehaviour(BaseBehaviour, ABC):
 
 class SelectKeeperBehaviour(BaseBehaviour, ABC):
     """Select the keeper agent."""
-
-    payload_class: Type[BaseTxPayload]
 
     def _select_keeper(self) -> str:
         """

@@ -28,7 +28,6 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseBehaviour,
 )
 from packages.valory.skills.reset_pause_abci.models import Params, SharedState
-from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 from packages.valory.skills.reset_pause_abci.rounds import (
     ResetAndPauseRound,
     ResetPauseAbciApp,
@@ -81,7 +80,7 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseBehaviour):
         self.context.logger.info("Period end.")
         self.context.benchmark_tool.save(self.synchronized_data.period_count)
 
-        payload = ResetPausePayload(
+        payload = self.payload_class(
             self.context.agent_address, self.synchronized_data.period_count
         )
         yield from self.send_a2a_transaction(payload, reset_tm_nodes)

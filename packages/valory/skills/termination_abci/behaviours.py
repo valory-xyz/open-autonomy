@@ -40,7 +40,6 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
 )
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.termination_abci.models import TerminationParams
-from packages.valory.skills.termination_abci.payloads import BackgroundPayload
 from packages.valory.skills.termination_abci.rounds import (
     BackgroundRound,
     SynchronizedData,
@@ -114,7 +113,7 @@ class BackgroundBehaviour(BaseBehaviour):
             return
 
         self.context.logger.info("Successfully prepared termination multisend tx.")
-        termination_payload = BackgroundPayload(
+        termination_payload = self.payload_class(
             self.context.agent_address, background_data=background_data
         )
         yield from self.send_a2a_transaction(termination_payload)
