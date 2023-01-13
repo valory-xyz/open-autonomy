@@ -505,9 +505,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
                 )
 
             verified_res = tx_hist_payload_to_hex(verification_status, tx_hash)
-            payload = self.payload_class(
-                self.context.agent_address, verified_res
-            )
+            payload = self.payload_class(self.context.agent_address, verified_res)
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
@@ -650,9 +648,7 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
                 self._tx_hashes += cast(str, tx_data["tx_digest"])
                 return
 
-            payload = self.payload_class(
-                self.context.agent_address, self._tx_hashes
-            )
+            payload = self.payload_class(self.context.agent_address, self._tx_hashes)
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)

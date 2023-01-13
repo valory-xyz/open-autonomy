@@ -23,10 +23,9 @@ import hashlib
 import random
 from abc import ABC
 from math import floor
-from typing import Any, Dict, Generator, List, Optional, Type, Union, cast
+from typing import Any, Dict, Generator, List, Optional, Union, cast
 
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
-from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
 
