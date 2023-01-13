@@ -80,9 +80,6 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.abstract_round_abci.base import _logger as default_logger
 from packages.valory.skills.abstract_round_abci.base import get_name
-from packages.valory.skills.abstract_round_abci.serializer import (
-    DictProtobufStructSerializer,
-)
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     AbciAppTest,
     ConcreteBackgroundRound,
@@ -104,6 +101,11 @@ settings.load_profile(profile_name)
 
 
 PACKAGE_DIR = Path(__file__).parent.parent
+
+
+DUMMY_CONCRETE_BACKGROUND_PAYLOAD = ConcreteBackgroundRound.payload_class(
+    sender="sender"
+)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -148,28 +150,20 @@ class BasePayload(BaseTxPayload, ABC):
 class PayloadA(BasePayload):
     """Payload class for payload type 'A'."""
 
-    transaction_type = PayloadEnum.A
-
 
 @dataclass(frozen=True)
 class PayloadB(BasePayload):
     """Payload class for payload type 'B'."""
-
-    transaction_type = PayloadEnum.B
 
 
 @dataclass(frozen=True)
 class PayloadC(BasePayload):
     """Payload class for payload type 'C'."""
 
-    transaction_type = PayloadEnum.C
-
 
 @dataclass(frozen=True)
 class PayloadD(BasePayload):
     """Payload class for payload type 'D'."""
-
-    transaction_type = PayloadEnumB.A
 
 
 @dataclass(frozen=True)
@@ -177,14 +171,12 @@ class DummyPayload(BasePayload):
     """Dummy payload class."""
 
     dummy_attribute: int
-    transaction_type = PayloadEnum.DUMMY
 
 
 @dataclass(frozen=True)
 class TooBigPayload(BaseTxPayload):
     """Base payload class for testing."""
 
-    transaction_type = PayloadEnum.TOO_BIG_TO_FIT_IN_HERE
     dummy_field: str = "0" * 10 ** 7
 
 
@@ -242,7 +234,7 @@ def test_abstract_round_instantiation_without_attributes_raises_error() -> None:
 
         class MyRoundBehaviourC(AbstractRound):
             synchronized_data_class = MagicMock()
-            allowed_tx_type = MagicMock()
+            payload_class = MagicMock()
 
 
 class TestTransactions:
@@ -250,7 +242,7 @@ class TestTransactions:
 
     def setup(self) -> None:
         """Set up the test."""
-        self.old_value = copy(_MetaPayload.transaction_type_to_payload_cls)
+        self.old_value = copy(_MetaPayload.registry)
 
     def test_encode_decode(self) -> None:
         """Test encoding and decoding of payloads."""
@@ -280,6 +272,16 @@ class TestTransactions:
         expected = Transaction(payload, signature)
         actual = expected.decode(expected.encode())
         assert expected == actual
+
+    def test_encode_too_big_payload(self) -> None:
+        """Test encode of a too big payload."""
+        sender = "sender"
+        payload = TooBigPayload(sender)
+        with pytest.raises(
+            ValueError,
+            match=f"{type(payload)} must be smaller than {MAX_READ_IN_BYTES} bytes",
+        ):
+            payload.encode()
 
     def test_encode_too_big_transaction(self) -> None:
         """Test encode of a too big transaction."""
@@ -318,7 +320,7 @@ class TestTransactions:
 
     def teardown(self) -> None:
         """Tear down the test."""
-        _MetaPayload.transaction_type_to_payload_cls = self.old_value
+        _MetaPayload.registry = self.old_value
 
 
 @mock.patch(
@@ -327,8 +329,17 @@ class TestTransactions:
 def test_verify_transaction_negative_case(*_mocks: Any) -> None:
     """Test verify() of transaction, negative case."""
     transaction = Transaction(MagicMock(sender="right_sender", json={}), "")
-    with pytest.raises(SignatureNotValidError, match="signature not valid."):
+    with pytest.raises(
+        SignatureNotValidError, match="Signature not valid on transaction: .*"
+    ):
         transaction.verify("")
+
+
+@dataclass(frozen=True)
+class SomeClass(BaseTxPayload):
+    """Test class."""
+
+    content: Dict
 
 
 @given(
@@ -337,54 +348,11 @@ def test_verify_transaction_negative_case(*_mocks: Any) -> None:
         values=one_of(floats(allow_nan=False, allow_infinity=False), booleans()),
     )
 )
-def test_dict_serializer_is_deterministic(obj: Any) -> None:
+def test_payload_serializer_is_deterministic(obj: Any) -> None:
     """Test that 'DictProtobufStructSerializer' is deterministic."""
-    obj_bytes = DictProtobufStructSerializer.encode(obj)
-    for _ in range(100):
-        assert obj_bytes == DictProtobufStructSerializer.encode(obj)
-        assert obj == DictProtobufStructSerializer.decode(obj_bytes)
-
-
-class TestMetaPayloadUtilityMethods:
-    """Test _MetaPayload private utility methods."""
-
-    def setup(self) -> None:
-        """Set up the test."""
-        self.old_value = copy(_MetaPayload.transaction_type_to_payload_cls)
-
-    def test_meta_payload_validate_tx_type(self) -> None:
-        """
-        Test _MetaPayload._validate_transaction_type utility method.
-
-        First, it registers a class object with a transaction type name into the
-        _MetaPayload map from transaction type name to classes.
-        Then, it tries to validate a new insertion with the same transaction type name
-        but different class object. This will raise an error.
-        """
-        tx_type_name = "transaction_type"
-        tx_cls_1 = MagicMock(__name__="name_1")
-        tx_cls_2 = MagicMock(__name__="name_2")
-        _MetaPayload.transaction_type_to_payload_cls[tx_type_name] = tx_cls_1
-
-        with pytest.raises(ValueError):
-            _MetaPayload._validate_transaction_type(tx_type_name, tx_cls_2)
-
-    def test_get_field_positive(self) -> None:
-        """Test the utility class method "_get_field", positive case"""
-        expected_value = 42
-        result = _MetaPayload._get_field(
-            MagicMock(field_name=expected_value), "field_name"
-        )
-        return result == expected_value
-
-    def test_get_field_negative(self) -> None:
-        """Test the utility class method "_get_field", negative case"""
-        with pytest.raises(ValueError):
-            _MetaPayload._get_field(MagicMock, "field_name")
-
-    def teardown(self) -> None:
-        """Tear down the test."""
-        _MetaPayload.transaction_type_to_payload_cls = self.old_value
+    obj_ = SomeClass(sender="", content=obj)
+    obj_bytes = obj_.encode()
+    assert obj_ == BaseTxPayload.decode(obj_bytes)
 
 
 def test_initialize_block() -> None:
@@ -1057,7 +1025,7 @@ class TestAbstractRound:
 
     def setup(self) -> None:
         """Set up the tests."""
-        self.known_payload_type = ConcreteRoundA.allowed_tx_type
+        self.known_payload_type = ConcreteRoundA.payload_class
         self.participants = {"a", "b"}
         self.base_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(setup_data=dict(participants=[self.participants]))
@@ -1072,7 +1040,7 @@ class TestAbstractRound:
 
         class MyConcreteRound(AbstractRound):
 
-            allowed_tx_type = MagicMock()
+            payload_class = MagicMock()
             synchronized_data_class = MagicMock()
             payload_attribute = MagicMock()
 
@@ -1093,7 +1061,7 @@ class TestAbstractRound:
         class MyConcreteRound(AbstractRound):
             # here round_id is missing
             # ...
-            allowed_tx_type = MagicMock()
+            payload_class = MagicMock()
             synchronized_data_class = MagicMock()
             payload_attribute = MagicMock()
 
@@ -1110,18 +1078,18 @@ class TestAbstractRound:
         my_concrete_round = MyConcreteRound(MagicMock(), MagicMock())
         assert my_concrete_round.round_id == "my_concrete_round"
 
-    def test_must_set_allowed_tx_type(self) -> None:
-        """Test that the 'allowed_tx_type' must be set in concrete classes."""
+    def test_must_set_payload_class_type(self) -> None:
+        """Test that the 'payload_class' must be set in concrete classes."""
 
         with pytest.raises(
-            AbstractRoundInternalError, match="'allowed_tx_type' not set on .*"
+            AbstractRoundInternalError, match="'payload_class' not set on .*"
         ):
 
             class MyConcreteRound(AbstractRound):
 
                 synchronized_data_class = MagicMock()
                 payload_attribute = MagicMock()
-                # here allowed_tx_type is missing
+                # here payload_class is missing
                 # ...
 
                 def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
@@ -1133,12 +1101,12 @@ class TestAbstractRound:
                 def process_payload(self, payload: BaseTxPayload) -> None:
                     pass
 
-    def test_check_allowed_tx_type_with_previous_round_transaction(self) -> None:
-        """Test check 'allowed_tx_type'."""
+    def test_check_payload_type_with_previous_round_transaction(self) -> None:
+        """Test check 'check_payload_type'."""
 
         class MyConcreteRound(AbstractRound):
 
-            allowed_tx_type = "allowed_tx_type"
+            payload_class = BaseTxPayload
             synchronized_data_class = MagicMock()
             payload_attribute = MagicMock()
 
@@ -1154,19 +1122,17 @@ class TestAbstractRound:
         with pytest.raises(LateArrivingTransaction), mock.patch.object(
             default_logger, "debug"
         ) as mock_logger:
-            MyConcreteRound(
-                MagicMock(), MagicMock(), "previous_transaction"
-            ).check_allowed_tx_type(
-                MagicMock(payload=MagicMock(transaction_type="previous_transaction"))
+            MyConcreteRound(MagicMock(), MagicMock(), BaseTxPayload).check_payload_type(
+                MagicMock(payload=BaseTxPayload("dummy"))
             )
             mock_logger.assert_called()
 
-    def test_check_allowed_tx_type(self) -> None:
-        """Test check 'allowed_tx_type'."""
+    def test_check_payload_type(self) -> None:
+        """Test check 'check_payload_type'."""
 
         class MyConcreteRound(AbstractRound):
 
-            allowed_tx_type = None
+            payload_class = None
             synchronized_data_class = MagicMock()
             payload_attribute = MagicMock()
 
@@ -1183,7 +1149,7 @@ class TestAbstractRound:
             TransactionTypeNotRecognizedError,
             match="current round does not allow transactions",
         ):
-            MyConcreteRound(MagicMock(), MagicMock()).check_allowed_tx_type(MagicMock())
+            MyConcreteRound(MagicMock(), MagicMock()).check_payload_type(MagicMock())
 
     def test_synchronized_data_getter(self) -> None:
         """Test 'synchronized_data' property getter."""
@@ -1194,37 +1160,36 @@ class TestAbstractRound:
         """Test 'check_transaction' method, with unknown payload type."""
         tx_type = "unknown_payload"
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type = tx_type
+        tx_mock.payload_class = tx_type
         with pytest.raises(
             TransactionTypeNotRecognizedError,
-            match=f"request '{tx_type}' not recognized",
+            match="request '.*' not recognized",
         ):
             self.round.check_transaction(tx_mock)
 
     def test_check_transaction_known_payload(self) -> None:
         """Test 'check_transaction' method, with known payload type."""
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type = self.known_payload_type
+        tx_mock.payload = self.known_payload_type(sender="dummy")
         self.round.check_transaction(tx_mock)
 
     def test_process_transaction_negative_unknown_payload(self) -> None:
         """Test 'process_transaction' method, with unknown payload type."""
-        tx_type = "unknown_payload"
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type = tx_type
+        tx_mock.payload = object
         with pytest.raises(
             TransactionTypeNotRecognizedError,
-            match=f"request '{tx_type}' not recognized",
+            match="request '.*' not recognized",
         ):
             self.round.process_transaction(tx_mock)
 
     def test_process_transaction_negative_check_transaction_fails(self) -> None:
         """Test 'process_transaction' method, with 'check_transaction' failing."""
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type = "payload_a"
+        tx_mock.payload = object
         error_message = "transaction not valid"
         with mock.patch.object(
-            self.round, "check_allowed_tx_type", side_effect=ValueError(error_message)
+            self.round, "check_payload_type", side_effect=ValueError(error_message)
         ):
             with pytest.raises(ValueError, match=error_message):
                 self.round.process_transaction(tx_mock)
@@ -1232,7 +1197,7 @@ class TestAbstractRound:
     def test_process_transaction_positive(self) -> None:
         """Test 'process_transaction' method, positive case."""
         tx_mock = MagicMock()
-        tx_mock.payload.transaction_type = "payload_a"
+        tx_mock.payload = BaseTxPayload(sender="dummy")
         self.round.process_transaction(tx_mock)
 
     def test_check_majority_possible_raises_error_when_nb_participants_is_0(
@@ -1735,13 +1700,7 @@ class TestAbciApp:
     @mock.patch.object(ConcreteBackgroundRound, "check_transaction")
     @pytest.mark.parametrize(
         "transaction",
-        [
-            mock.MagicMock(
-                payload=MagicMock(
-                    transaction_type=ConcreteBackgroundRound.allowed_tx_type
-                )
-            )
-        ],
+        [mock.MagicMock(payload=DUMMY_CONCRETE_BACKGROUND_PAYLOAD)],
     )
     def test_check_transaction_for_background_round(
         self,
@@ -1756,13 +1715,7 @@ class TestAbciApp:
     @mock.patch.object(ConcreteBackgroundRound, "process_transaction")
     @pytest.mark.parametrize(
         "transaction",
-        [
-            mock.MagicMock(
-                payload=MagicMock(
-                    transaction_type=ConcreteBackgroundRound.allowed_tx_type
-                )
-            )
-        ],
+        [mock.MagicMock(payload=DUMMY_CONCRETE_BACKGROUND_PAYLOAD)],
     )
     def test_process_transaction_for_background_round(
         self,
@@ -2306,7 +2259,7 @@ def test_meta_abci_app_when_final_round_not_subclass_of_degenerate_round() -> No
     class FinalRound(AbstractRound):
         """A round class for testing."""
 
-        allowed_tx_type = MagicMock()
+        payload_class = MagicMock()
         synchronized_data_class = MagicMock()
         payload_attribute = MagicMock()
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -247,8 +247,7 @@ class TEST_PAYLOADS:
     import pytest
 
     from packages.{author}.skills.{skill_name}.payloads import (
-        TransactionType,
-        Base{FSMName}Payload,
+        BaseTxPayload,
         {payloads},
     )
 
@@ -258,9 +257,8 @@ class TEST_PAYLOADS:
         \"\"\"PayloadTestCase\"\"\"
 
         name: str
-        payload_cls: Type[Base{FSMName}Payload]
+        payload_cls: Type[BaseTxPayload]
         content: Hashable
-        transaction_type: TransactionType
 
     """
 
@@ -272,8 +270,6 @@ class TEST_PAYLOADS:
 
         payload = test_case.payload_cls(sender="sender", content=test_case.content)
         assert payload.sender == "sender"
-        assert getattr(payload, f"{{payload.transaction_type}}") == test_case.content
-        assert payload.transaction_type == test_case.transaction_type
         assert payload.from_json(payload.json) == payload
 
     """

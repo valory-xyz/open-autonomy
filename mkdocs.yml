@@ -211,7 +211,6 @@ nav:
             - Load: 'api/skills/abstract_round_abci/io_/load.md'
             - Paths: 'api/skills/abstract_round_abci/io_/paths.md'
             - Store: 'api/skills/abstract_round_abci/io_/store.md'
-          - Serializer: 'api/skills/abstract_round_abci/serializer.md'
           - Utils: 'api/skills/abstract_round_abci/utils.md'
         - Registration ABCI:
           - Behaviours: 'api/skills/registration_abci/behaviours.md'

@@ -4,26 +4,6 @@
 
 This module contains the transaction payloads for common apps.
 
-<a id="packages.valory.skills.transaction_settlement_abci.payloads.TransactionType"></a>
-
-## TransactionType Objects
-
-```python
-class TransactionType(Enum)
-```
-
-Enumeration of transaction types.
-
-<a id="packages.valory.skills.transaction_settlement_abci.payloads.TransactionType.__str__"></a>
-
-#### `__`str`__`
-
-```python
-def __str__() -> str
-```
-
-Get the string value of the transaction type.
-
 <a id="packages.valory.skills.transaction_settlement_abci.payloads.RandomnessPayload"></a>
 
 ## RandomnessPayload Objects

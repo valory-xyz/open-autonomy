@@ -81,7 +81,6 @@ class DummyEvent(Enum):
 class DummyTxPayload(BaseTxPayload):
     """Dummy Transaction Payload."""
 
-    transaction_type = "DummyPayload"
     value: Optional[str] = None
     vote: Optional[bool] = None
 
@@ -110,7 +109,7 @@ def get_dummy_tx_payloads(
 class DummyRound(AbstractRound):
     """Dummy round."""
 
-    allowed_tx_type = DummyTxPayload.transaction_type
+    payload_class = DummyTxPayload
     payload_attribute = "value"
     synchronized_data_class = BaseSynchronizedData
 

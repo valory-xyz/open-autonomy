@@ -217,7 +217,7 @@ class FailedRound(DegenerateRound, ABC):
 class CollectSignatureRound(CollectDifferentUntilThresholdRound):
     """A round in which agents sign the transaction"""
 
-    allowed_tx_type = SignaturePayload.transaction_type
+    payload_class = SignaturePayload
     payload_attribute = "signature"
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
@@ -228,7 +228,7 @@ class CollectSignatureRound(CollectDifferentUntilThresholdRound):
 class FinalizationRound(OnlyKeeperSendsRound):
     """A round that represents transaction signing has finished"""
 
-    allowed_tx_type = FinalizationTxPayload.transaction_type
+    payload_class = FinalizationTxPayload
     payload_attribute = "tx_data"
     synchronized_data_class = SynchronizedData
 
@@ -296,7 +296,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
 class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
     """A round for generating randomness"""
 
-    allowed_tx_type = RandomnessPayload.transaction_type
+    payload_class = RandomnessPayload
     payload_attribute = "randomness"
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
@@ -308,7 +308,7 @@ class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
 class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound):
     """A round in which a keeper is selected for transaction submission"""
 
-    allowed_tx_type = SelectKeeperPayload.transaction_type
+    payload_class = SelectKeeperPayload
     payload_attribute = "keepers"
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
@@ -366,7 +366,7 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
 class ValidateTransactionRound(VotingRound):
     """A round in which agents validate the transaction"""
 
-    allowed_tx_type = ValidatePayload.transaction_type
+    payload_class = ValidatePayload
     payload_attribute = "vote"
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
@@ -416,7 +416,7 @@ class ValidateTransactionRound(VotingRound):
 class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
     """A round in which agents check the transaction history to see if any previous tx has been validated"""
 
-    allowed_tx_type = CheckTransactionHistoryPayload.transaction_type
+    payload_class = CheckTransactionHistoryPayload
     payload_attribute = "verified_res"
     synchronized_data_class = SynchronizedData
     collection_key = get_name(SynchronizedData.participant_to_check)
@@ -476,7 +476,7 @@ class CheckLateTxHashesRound(CheckTransactionHistoryRound):
 class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
     """A round in which agents synchronize potentially late arriving messages"""
 
-    allowed_tx_type = SynchronizeLateMessagesPayload.transaction_type
+    payload_class = SynchronizeLateMessagesPayload
     payload_attribute = "tx_hashes"
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
@@ -513,7 +513,7 @@ class FinishedTransactionSubmissionRound(DegenerateRound, ABC):
 class ResetRound(CollectSameUntilThresholdRound):
     """A round that represents the reset of a period"""
 
-    allowed_tx_type = ResetPayload.transaction_type
+    payload_class = ResetPayload
     payload_attribute = "period_count"
     synchronized_data_class = SynchronizedData
 

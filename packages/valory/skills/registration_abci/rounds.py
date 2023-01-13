@@ -53,7 +53,7 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
     This round waits until all agents have registered.
     """
 
-    allowed_tx_type = RegistrationPayload.transaction_type
+    payload_class = RegistrationPayload
     payload_attribute = "initialisation"
     synchronized_data_class = BaseSynchronizedData
 
@@ -78,7 +78,7 @@ class RegistrationRound(CollectSameUntilThresholdRound):
     and then a further x block confirmations.
     """
 
-    allowed_tx_type = RegistrationPayload.transaction_type
+    payload_class = RegistrationPayload
     payload_attribute = "initialisation"
     required_block_confirmations = 10
     done_event = Event.DONE
