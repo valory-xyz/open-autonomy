@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,56 +21,37 @@
 
 # pylint: skip-file
 
-import os.path
-import unittest.mock
-from pathlib import PosixPath
-from typing import Dict, Iterator, cast
+from typing import Dict, cast
+from unittest import mock
 
 import pytest
-from aea_cli_ipfs.ipfs_utils import IPFSDaemon
 
-from packages.valory.skills.abstract_round_abci.io_.ipfs import IPFSInteract
+from packages.valory.skills.abstract_round_abci.io_.ipfs import (
+    IPFSInteract,
+    IPFSInteractionError,
+)
+from packages.valory.skills.abstract_round_abci.io_.load import AbstractLoader
 from packages.valory.skills.abstract_round_abci.io_.store import (
+    AbstractStorer,
     StoredJSONType,
     SupportedFiletype,
-    SupportedMultipleObjectsType,
-    SupportedSingleObjectType,
 )
 
 
 use_ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
 
 
-@pytest.fixture(scope="module")
-def ipfs_daemon() -> Iterator[bool]:
-    """Starts an IPFS daemon for the tests."""
-    print("Starting IPFS daemon...")
-    daemon = IPFSDaemon()
-    daemon.start()
-    yield daemon.is_started()
-    print("Tearing down IPFS daemon...")
-    daemon.stop()
-
-
-@use_ipfs_daemon
 class TestIPFSInteract:
     """Test `IPFSInteract`."""
 
     def setup(self) -> None:
         """Setup test class."""
-        self.ipfs_interact = IPFSInteract("/dns/localhost/tcp/5001/http")
+        self.ipfs_interact = IPFSInteract()
 
-    @unittest.mock.patch.object(
-        IPFSInteract,
-        "_IPFSInteract__remove_filepath",
-        wraps=IPFSInteract._IPFSInteract__remove_filepath,  # type: ignore
-    )
     @pytest.mark.parametrize("multiple", (True, False))
     def test_store_and_send_and_back(
         self,
-        remove_filepath_mock: unittest.mock.Mock,
         multiple: bool,
-        tmp_path: PosixPath,
         dummy_obj: StoredJSONType,
         dummy_multiple_obj: Dict[str, StoredJSONType],
     ) -> None:
@@ -78,38 +59,51 @@ class TestIPFSInteract:
         obj: StoredJSONType
         if multiple:
             obj = dummy_multiple_obj
-            filepath = str(tmp_path)
+            filepath = "dummy_dir"
         else:
             obj = dummy_obj
-            filepath = os.path.join(tmp_path, "test_file.json")
+            filepath = "test_file.json"
 
-        hash_ = self.ipfs_interact.store_and_send(
+        serialized_objects = self.ipfs_interact.store(
             filepath, obj, multiple, SupportedFiletype.JSON
         )
-        result = self.ipfs_interact.get_and_read(
-            hash_, str(tmp_path), multiple, "test_file.json", SupportedFiletype.JSON
+        expected_objects = obj
+        actual_objects = cast(
+            Dict[str, str],
+            self.ipfs_interact.load(
+                serialized_objects,
+                SupportedFiletype.JSON,
+            ),
         )
-
-        remove_path = f"{filepath}{os.path.sep}" if multiple else filepath
-        remove_filepath_mock.assert_called_with(remove_path)
-
         if multiple:
-            result = cast(SupportedMultipleObjectsType, result)
-            assert len(result) == len(
-                dummy_multiple_obj
-            ), "loaded objects length and dummy objects length do not match."
-            assert set(result.keys()) == set(
-                dummy_multiple_obj.keys()
-            ), "loaded objects and dummy objects filenames do not match."
+            # here we manually remove the trailing the dir from the name.
+            # This is done by the IPFS connection under normal circumstances.
+            actual_objects = {
+                k.lstrip(filepath).lstrip("/").lstrip("\\"): v
+                for k, v in actual_objects.items()
+            }
 
-            # iterate through the loaded objects and their filenames and the dummy objects and their filenames.
-            for actual_json, expected_json in zip(
-                result.values(), dummy_multiple_obj.values()
-            ):
-                # assert loaded json with expected.
-                assert actual_json == expected_json
+        assert actual_objects == expected_objects
 
-        else:
-            result = cast(SupportedSingleObjectType, result)
-            # assert loaded json with expected.
-            assert result == dummy_obj
+    def test_store_fails(self, dummy_multiple_obj: Dict[str, StoredJSONType]) -> None:
+        """Tests when "store" fails."""
+        dummy_filepath = "dummy_dir"
+        multiple = False
+        with mock.patch.object(
+            AbstractStorer,
+            "store",
+            side_effect=ValueError,
+        ), pytest.raises(IPFSInteractionError):
+            self.ipfs_interact.store(
+                dummy_filepath, dummy_multiple_obj, multiple, SupportedFiletype.JSON
+            )
+
+    def test_load_fails(self, dummy_multiple_obj: Dict[str, StoredJSONType]) -> None:
+        """Tests when "load" fails."""
+        dummy_object = {"test": "test"}
+        with mock.patch.object(
+            AbstractLoader,
+            "load",
+            side_effect=ValueError,
+        ), pytest.raises(IPFSInteractionError):
+            self.ipfs_interact.load(dummy_object)

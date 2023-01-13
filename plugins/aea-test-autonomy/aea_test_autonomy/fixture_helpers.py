@@ -26,10 +26,11 @@
 # pylint: disable=unused-argument
 
 import logging
-from typing import Any, Dict, Generator, List, Tuple, cast
+from typing import Any, Dict, Generator, Iterator, List, Tuple, cast
 
 import docker
 import pytest
+from aea_cli_ipfs.ipfs_utils import IPFSDaemon
 from aea_test_autonomy.configurations import GANACHE_CONFIGURATION, KEY_PAIRS, LOCALHOST
 from aea_test_autonomy.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
 from aea_test_autonomy.docker.amm_net import AMMNetDockerImage
@@ -581,3 +582,18 @@ class HardHatAMMBaseTest(HardHatBaseTest):
         """Build the image."""
         client = docker.from_env()
         return AMMNetDockerImage(client, cls.addr, cls.port)
+
+
+@pytest.fixture(scope="class")
+def ipfs_daemon() -> Iterator[bool]:
+    """Starts an IPFS daemon for the tests."""
+    print("Starting IPFS daemon...")
+    daemon = IPFSDaemon()
+    daemon.start()
+    yield daemon.is_started()
+    print("Tearing down IPFS daemon...")
+    daemon.stop()
+
+
+use_ipfs_daemon = pytest.mark.usefixtures("ipfs_daemon")
+LOCAL_IPFS = "/dns/localhost/tcp/5001/http"

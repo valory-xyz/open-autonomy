@@ -267,6 +267,9 @@ class HANDLERS:
         HttpHandler as BaseHttpHandler,
     )
     from packages.valory.skills.abstract_round_abci.handlers import (
+        IpfsHandler as BaseIpfsHandler,
+    )
+    from packages.valory.skills.abstract_round_abci.handlers import (
         LedgerApiHandler as BaseLedgerApiHandler,
     )
     from packages.valory.skills.abstract_round_abci.handlers import (
@@ -283,6 +286,7 @@ class HANDLERS:
     LedgerApiHandler = BaseLedgerApiHandler
     ContractApiHandler = BaseContractApiHandler
     TendermintHandler = BaseTendermintHandler
+    IpfsHandler = BaseIpfsHandler
     """
 
 
@@ -312,6 +316,12 @@ class DIALOGUES:
     )
     from packages.valory.skills.abstract_round_abci.dialogues import (
         HttpDialogues as BaseHttpDialogues,
+    )
+    from packages.valory.skills.abstract_round_abci.dialogues import (
+        IpfsDialogue as BaseIpfsDialogue,
+    )
+    from packages.valory.skills.abstract_round_abci.dialogues import (
+        IpfsDialogues as BaseIpfsDialogues,
     )
     from packages.valory.skills.abstract_round_abci.dialogues import (
         LedgerApiDialogue as BaseLedgerApiDialogue,
@@ -355,4 +365,8 @@ class DIALOGUES:
 
     TendermintDialogue = BaseTendermintDialogue
     TendermintDialogues = BaseTendermintDialogues
+
+
+    IpfsDialogue = BaseIpfsDialogue
+    IpfsDialogues = BaseIpfsDialogues
     """

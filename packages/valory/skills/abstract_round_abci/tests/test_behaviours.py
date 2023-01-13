@@ -209,7 +209,6 @@ class TestAbstractRoundBehaviour:
         context_mock = MagicMock()
         context_mock.state.round_sequence = self.round_sequence_mock
         context_mock.state.round_sequence.syncing_up = False
-        context_mock.params.ipfs_domain_name = None
         self.round_sequence_mock.block_stall_deadline_expired = False
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
         self.behaviour.tm_manager = self.behaviour.instantiate_behaviour_cls(TmManager)  # type: ignore
@@ -627,7 +626,6 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour(_: mock._patch) -> None:
     round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
     context_mock = MagicMock()
     context_mock.state.round_sequence = round_sequence
-    context_mock.params.ipfs_domain_name = None
     behaviour = RoundBehaviour(name="", skill_context=context_mock)
     behaviour.setup()
 

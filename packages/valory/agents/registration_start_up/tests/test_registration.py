@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -42,10 +42,12 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     acn_node,
     flask_tendermint,
     hardhat_port,
+    ipfs_daemon,
     key_pairs,
     nb_nodes,
     registries_scope_class,
     tendermint_port,
+    use_ipfs_daemon,
 )
 
 from packages.valory.skills.registration_abci.behaviours import (
@@ -82,6 +84,7 @@ STRICT_CHECK_STRINGS = (
 HAPPY_PATH = (RoundChecks(RegistrationStartupRound.auto_round_id()),)
 
 
+@use_ipfs_daemon
 class RegistrationStartUpTestConfig(UseRegistries, UseACNNode, BaseTestEnd2End):
     """Base class for e2e tests using the ACN client connection"""
 

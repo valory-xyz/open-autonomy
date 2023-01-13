@@ -31,9 +31,12 @@ from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany, Result
 from aea_test_autonomy.configurations import ANY_ADDRESS
 from aea_test_autonomy.docker.registries import SERVICE_REGISTRY
-from aea_test_autonomy.fixture_helpers import (
+from aea_test_autonomy.fixture_helpers import (  # noqa: F401; pylint: disable=unused-import
     FlaskTendermintDockerImage,
+    LOCAL_IPFS,
     UseFlaskTendermintNode,
+    ipfs_daemon,
+    use_ipfs_daemon,
 )
 from web3 import Web3
 
@@ -57,6 +60,7 @@ class RoundChecks:
     n_periods: int = 1
 
 
+@use_ipfs_daemon
 @pytest.mark.e2e
 @pytest.mark.integration
 class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
@@ -224,7 +228,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             "1",
             type_="int",
         )
-
+        self.set_config(
+            "vendor.valory.connections.ipfs.config.ipfs_domain",
+            LOCAL_IPFS,
+        )
         self.__set_extra_configs()
 
     @staticmethod

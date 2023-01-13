@@ -104,7 +104,6 @@ irrelevant_config = {
     "on_chain_service_id": None,
     "share_tm_config_on_startup": False,
     "tendermint_p2p_url": "str",
-    "ipfs_domain_name": None,
     "setup": {},
 }
 irrelevant_config["genesis_config"] = irrelevant_genesis_config
