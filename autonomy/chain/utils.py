@@ -44,25 +44,39 @@ def resolve_component_id(
     contract_address: str,
     token_id: int,
     is_agent: bool = False,
+    is_service: bool = False,
 ) -> Dict:
     """Resolve component ID"""
 
-    if is_agent:
-        metadata_uri = registry_contracts.agent_registry.get_token_uri(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-            token_id=token_id,
-        )
-    else:
-        metadata_uri = registry_contracts.component_registry.get_token_uri(
-            ledger_api=ledger_api,
-            contract_address=contract_address,
-            token_id=token_id,
-        )
+    try:
+        if is_service:
+            metadata_uri = registry_contracts.service_registry.get_token_uri(
+                ledger_api=ledger_api,
+                contract_address=contract_address,
+                token_id=token_id,
+            )
+        elif is_agent:
+            metadata_uri = registry_contracts.agent_registry.get_token_uri(
+                ledger_api=ledger_api,
+                contract_address=contract_address,
+                token_id=token_id,
+            )
+        else:
+            metadata_uri = registry_contracts.component_registry.get_token_uri(
+                ledger_api=ledger_api,
+                contract_address=contract_address,
+                token_id=token_id,
+            )
+    except RequestConnectionError as e:
+        raise FailedToRetrieveComponentMetadata("Error connecting to the RPC") from e
 
     try:
         return r_get(url=metadata_uri).json()
-    except (RequestConnectionError, JSONDecodeError) as e:
+    except RequestConnectionError as e:
+        raise FailedToRetrieveComponentMetadata(
+            "Error connecting to the IPFS gateway"
+        ) from e
+    except JSONDecodeError as e:
         raise FailedToRetrieveComponentMetadata() from e
 
 
