@@ -7,7 +7,7 @@ message TendermintMessage{
   // Custom Types
   message ErrorCode{
     enum ErrorCodeEnum {
-      ERROR_CODE_ENUM_INVALID_REQUEST = 0;
+      INVALID_REQUEST = 0;
     }
     ErrorCodeEnum error_code = 1;
   }

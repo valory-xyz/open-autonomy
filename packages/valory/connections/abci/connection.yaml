@@ -55,7 +55,7 @@ fingerprint_ignore_patterns: []
 build_entrypoint: check_dependencies.py
 connections: []
 protocols:
-- valory/abci:0.1.0:bafybeia6f64jlz72tet7avdecc3t6nq3ojmwep4n3yqfat7m5tj3epmsfm
+- valory/abci:0.1.0:bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm
 class_name: ABCIServerConnection
 config:
   host: 127.0.0.1
