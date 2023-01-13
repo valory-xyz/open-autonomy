@@ -153,8 +153,7 @@ class _MetaPayload(ABCMeta):
         """Create a new class object."""
         new_cls = super().__new__(mcs, name, bases, namespace, **kwargs)
 
-        if ABC in bases:
-            # abstract class, return
+        if new_cls.__module__ == mcs.__module__ and new_cls.__name__ == "BaseTxPayload":
             return new_cls
         if not issubclass(new_cls, BaseTxPayload):
             raise ValueError(  # pragma: no cover
@@ -169,7 +168,7 @@ class _MetaPayload(ABCMeta):
 
 
 @dataclass(frozen=True)
-class BaseTxPayload(ABC, metaclass=_MetaPayload):
+class BaseTxPayload(metaclass=_MetaPayload):
     """This class represents a base class for transaction payload classes."""
 
     sender: str
