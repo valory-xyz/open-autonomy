@@ -273,9 +273,9 @@ class TestDeploymentGenerators(BaseDeploymentTests):
     def test_update_agent_number_based_on_keys_file(self) -> None:
         """Test JSONDecodeError on read_keys"""
 
-        public_id = PublicId("Georg", "Hegel")
+        public_id = PublicId("george", "hegel")
         service = Service(
-            "Arthur", "Schopenhauer", public_id, number_of_agents=1_000_000
+            "arthur", "schopenhauer", public_id, number_of_agents=1_000_000
         )
         builder = ServiceBuilder(
             service=service,
