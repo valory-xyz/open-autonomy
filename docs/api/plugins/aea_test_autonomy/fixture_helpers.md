@@ -543,3 +543,24 @@ def ipfs_daemon() -> Iterator[bool]
 
 Starts an IPFS daemon for the tests.
 
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.ipfs_domain"></a>
+
+#### ipfs`_`domain
+
+```python
+@pytest.fixture(scope="session")
+def ipfs_domain() -> str
+```
+
+Get the ipfs domain
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseLocalIpfs"></a>
+
+## UseLocalIpfs Objects
+
+```python
+class UseLocalIpfs()
+```
+
+Use local IPFS daemon.
+

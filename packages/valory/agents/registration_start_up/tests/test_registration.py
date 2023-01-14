@@ -43,6 +43,7 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     flask_tendermint,
     hardhat_port,
     ipfs_daemon,
+    ipfs_domain,
     key_pairs,
     nb_nodes,
     registries_scope_class,
@@ -84,7 +85,6 @@ STRICT_CHECK_STRINGS = (
 HAPPY_PATH = (RoundChecks(RegistrationStartupRound.auto_round_id()),)
 
 
-@use_ipfs_daemon
 class RegistrationStartUpTestConfig(UseRegistries, UseACNNode, BaseTestEnd2End):
     """Base class for e2e tests using the ACN client connection"""
 
