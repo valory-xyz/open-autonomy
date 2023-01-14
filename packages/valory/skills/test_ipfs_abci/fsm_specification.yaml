@@ -1,0 +1,13 @@
+alphabet_in:
+- DONE
+- ROUND_TIMEOUT
+default_start_state: IpfsRound
+final_states: []
+label: IpfsTestAbciApp
+start_states:
+- IpfsRound
+states:
+- IpfsRound
+transition_func:
+    (IpfsRound, DONE): IpfsRound
+    (IpfsRound, ROUND_TIMEOUT): IpfsRound

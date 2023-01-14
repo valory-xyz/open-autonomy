@@ -366,3 +366,13 @@ def handle(message: Message) -> None
 
 Handle incoming Tendermint config-sharing messages
 
+<a id="packages.valory.skills.abstract_round_abci.handlers.IpfsHandler"></a>
+
+## IpfsHandler Objects
+
+```python
+class IpfsHandler(AbstractResponseHandler)
+```
+
+A class for handling IPFS messages.
+

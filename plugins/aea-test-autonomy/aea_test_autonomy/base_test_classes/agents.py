@@ -31,9 +31,10 @@ from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany, Result
 from aea_test_autonomy.configurations import ANY_ADDRESS
 from aea_test_autonomy.docker.registries import SERVICE_REGISTRY
-from aea_test_autonomy.fixture_helpers import (
+from aea_test_autonomy.fixture_helpers import (  # noqa: F401; pylint: disable=unused-import
     FlaskTendermintDockerImage,
     UseFlaskTendermintNode,
+    UseLocalIpfs,
 )
 from web3 import Web3
 
@@ -59,7 +60,7 @@ class RoundChecks:
 
 @pytest.mark.e2e
 @pytest.mark.integration
-class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
+class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
     """
     Base class for end-to-end tests of agents with a skill extending the abstract_abci_round skill.
 
@@ -224,7 +225,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             "1",
             type_="int",
         )
-
+        self.set_config(
+            "vendor.valory.connections.ipfs.config.ipfs_domain",
+            self.ipfs_domain,
+        )
         self.__set_extra_configs()
 
     @staticmethod

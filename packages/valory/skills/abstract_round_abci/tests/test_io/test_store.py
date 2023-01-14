@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,17 +22,14 @@
 # pylint: skip-file
 
 import json
-import os.path
-from itertools import product
-from pathlib import PosixPath
-from typing import Dict, Optional, cast
+from pathlib import Path, PosixPath
+from typing import Optional, cast
 
 import pytest
 
 from packages.valory.skills.abstract_round_abci.io_.store import (
     CustomStorerType,
     JSONStorer,
-    StoredJSONType,
     Storer,
     SupportedFiletype,
     SupportedStorerType,
@@ -42,6 +39,11 @@ from packages.valory.skills.abstract_round_abci.io_.store import (
 class TestStorer:
     """Tests for the `Storer`."""
 
+    def setup(self) -> None:
+        """Setup the tests."""
+        self.path = "tmp"
+        self.json_storer = Storer(SupportedFiletype.JSON, None, self.path)
+
     def __dummy_custom_storer(self) -> None:
         """A dummy custom storing function to use for the tests."""
 
@@ -50,11 +52,11 @@ class TestStorer:
         "filetype, custom_storer, expected_storer",
         (
             (None, None, None),
-            (SupportedFiletype.JSON, None, JSONStorer.store_single_file),
+            (SupportedFiletype.JSON, None, JSONStorer.serialize_object),
             (
                 SupportedFiletype.JSON,
                 __dummy_custom_storer,
-                JSONStorer.store_single_file,
+                JSONStorer.serialize_object,
             ),
             (None, __dummy_custom_storer, __dummy_custom_storer),
         ),
@@ -85,29 +87,18 @@ class TestStorer:
                 == expected_storer.__code__.co_code
             )
 
-    @staticmethod
-    @pytest.mark.parametrize("multiple, index", product((True, False), repeat=2))
-    def test_store(
-        multiple: bool,
-        index: bool,
-        tmp_path: PosixPath,
-        dummy_obj: StoredJSONType,
-        dummy_multiple_obj: Dict[str, StoredJSONType],
-    ) -> None:
+    def test_store(self) -> None:
         """Test `store`."""
-        if multiple:
-            storer = Storer(SupportedFiletype.JSON, None, str(tmp_path))
-            storer.store(dummy_multiple_obj, multiple, index=index)
-            for filename, expected_json in dummy_multiple_obj.items():
-                filepath = os.path.join(tmp_path, filename)
-                with open(filepath, "r") as outfile:
-                    saved_json = json.load(outfile)
-                assert saved_json, expected_json
+        dummy_object = {"test": "test"}
+        expected_object = {self.path: json.dumps(dummy_object, indent=4)}
+        actual_object = self.json_storer.store(dummy_object, False)
+        assert expected_object == actual_object
 
-        else:
-            filepath = os.path.join(tmp_path, "test_obj.csv")
-            storer = Storer(SupportedFiletype.JSON, None, filepath)
-            storer.store(dummy_obj, multiple, index=index)
-            with open(filepath, "r") as outfile:
-                saved_json = json.load(outfile)
-            assert saved_json == dummy_obj
+    def test_store_multiple(self) -> None:
+        """Test `store` when multiple files are present."""
+        dummy_object = {"test": "test"}
+        dummy_filename = "test"
+        expected_path = Path(f"{self.path}/{dummy_filename}").__str__()
+        expected_object = {expected_path: json.dumps(dummy_object, indent=4)}
+        actual_object = self.json_storer.store({dummy_filename: dummy_object}, True)
+        assert expected_object == actual_object

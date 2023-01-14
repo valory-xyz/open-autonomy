@@ -35,6 +35,7 @@ from packages.valory.protocols.abci import AbciMessage
 from packages.valory.protocols.abci.custom_types import Events, ValidatorUpdates
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.ipfs import IpfsMessage
 from packages.valory.protocols.ledger_api import LedgerApiMessage
 from packages.valory.protocols.tendermint.dialogues import (
     TendermintDialogue,
@@ -761,3 +762,16 @@ class TendermintHandler(Handler):
         dialogues.dialogue_stats.add_dialogue_endstate(
             TendermintDialogue.EndState.NOT_COMMUNICATED, dialogue.is_self_initiated
         )
+
+
+class IpfsHandler(AbstractResponseHandler):
+    """A class for handling IPFS messages."""
+
+    SUPPORTED_PROTOCOL: Optional[PublicId] = IpfsMessage.protocol_id
+    allowed_response_performatives = frozenset(
+        {
+            IpfsMessage.Performative.IPFS_HASH,
+            IpfsMessage.Performative.FILES,
+            IpfsMessage.Performative.ERROR,
+        }
+    )

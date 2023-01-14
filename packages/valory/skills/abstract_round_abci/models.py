@@ -303,9 +303,6 @@ class BaseParams(
             "share_tm_config_on_startup", kwargs, bool
         )
         self.tendermint_p2p_url: str = self._ensure("tendermint_p2p_url", kwargs, str)
-        self.ipfs_domain_name: Optional[str] = self._ensure(
-            "ipfs_domain_name", kwargs, Optional[str]
-        )
         setup_params_: Dict[str, Any] = self._ensure("setup", kwargs, dict)
 
         def check_val(val: Any, skill_id: str) -> List[Any]:
