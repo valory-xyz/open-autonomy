@@ -36,6 +36,8 @@ setup(
     author="Valory AG",
     license="Apache-2.0",
     description="Plugin containing test tools for open-autonomy packages.",
+    long_description="Plugin containing test tools for open-autonomy packages.",
+    long_description_content_type="text/markdown",
     packages=find_packages(
         where=".", include=["aea_test_autonomy", "aea_test_autonomy.*"]
     ),

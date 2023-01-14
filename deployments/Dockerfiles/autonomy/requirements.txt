@@ -4,5 +4,4 @@ open-aea[all]==1.28.0
 open-aea-cli-ipfs==1.28.0
 open-aea-ledger-ethereum==1.28.0
 open-aea-ledger-cosmos==1.28.0
-open-aea-ledger-fetchai==1.28.0
 protobuf==3.19.4
