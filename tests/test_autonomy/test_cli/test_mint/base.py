@@ -51,7 +51,7 @@ from tests.conftest import DATA_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
-PACKAGES_DIR = DATA_DIR / "packages"
+PACKAGES_DIR = DATA_DIR / "dummy_packages"
 DUMMY_PACKAGE_MANAGER = get_package_manager(packages_dir=PACKAGES_DIR)
 DUMMY_AUTHOR = "dummy_author"
 DUMMY_PROTOCOL = PackageId(
