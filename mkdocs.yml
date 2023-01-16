@@ -72,6 +72,7 @@ nav:
       - Dev mode: 'advanced_reference/developer_tooling/dev_mode.md'
       - Execution replay: 'advanced_reference/developer_tooling/execution_replay.md'
       - Benchmarking: 'advanced_reference/developer_tooling/benchmarking.md'
+      - Debugging in the cluster: 'advanced_reference/developer_tooling/debugging_in_the_cluster.md'
     - Deployment:
       - Container Control Flow: 'control_flow.md'
       - Local Deployment: 'application_deployment.md'
@@ -265,7 +266,9 @@ extra:
     open_autonomy: '[Open Autonomy](https://github.com/valory-xyz/open-autonomy)'
     open_autonomy_api: '[Open Autonomy API](https://docs.autonolas.network/)'
     on_chain_frontend: '[on-chain protocol frontend](https://protocol.autonolas.network/)'
-
+    open_aea_repository: '[Open AEA repository](https://github.com/valory-xyz/open-aea)'
+    open_autonomy_repository: '[Open Autonomy repository](https://github.com/valory-xyz/open-aea)'
+    price_oracle_service: 'Price Oracle service'
 
 
 #extra_css:
