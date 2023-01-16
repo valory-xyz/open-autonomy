@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 import datetime
 import heapq
 import itertools
+import json
 import logging
 import re
 import sys
@@ -29,7 +30,7 @@ import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from collections import Counter
 from copy import copy, deepcopy
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from inspect import isclass
 from math import ceil
@@ -57,9 +58,6 @@ from packages.valory.connections.ledger.connection import (
     PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.abci.custom_types import Header
-from packages.valory.skills.abstract_round_abci.serializer import (
-    DictProtobufStructSerializer,
-)
 
 
 _logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
@@ -78,7 +76,6 @@ VALUE_NOT_PROVIDED = object()
 BLOCKS_STALL_TOLERANCE = 60
 
 EventType = TypeVar("EventType")
-TransactionType = TypeVar("TransactionType")
 
 
 def get_name(prop: Any) -> str:
@@ -90,14 +87,14 @@ def get_name(prop: Any) -> str:
     return prop.fget.__name__
 
 
-def consensus_threshold(n: int) -> int:  # pylint: disable=invalid-name
+def consensus_threshold(nb: int) -> int:
     """
     Get consensus threshold.
 
-    :param n: the number of participants
+    :param nb: the number of participants
     :return: the consensus threshold
     """
-    return ceil((2 * n + 1) / 3)
+    return ceil((2 * nb + 1) / 3)
 
 
 class ABCIAppException(Exception):
@@ -148,177 +145,93 @@ class _MetaPayload(ABCMeta):
     between the type of payload and the payload class to build it.
     This is necessary to recover the right payload class to instantiate
     at decoding time.
-
-    Each class that has this class as metaclass must have a class
-    attribute 'transaction_type', which for simplicity is required
-    to be convertible to string, for serialization purposes.
     """
 
-    transaction_type_to_payload_cls: Dict[str, Type["BaseTxPayload"]] = {}
+    registry: Dict[str, Type["BaseTxPayload"]] = {}
 
     def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type:  # type: ignore
         """Create a new class object."""
         new_cls = super().__new__(mcs, name, bases, namespace, **kwargs)
 
-        if ABC in bases:
-            # abstract class, return
+        if new_cls.__module__ == mcs.__module__ and new_cls.__name__ == "BaseTxPayload":
             return new_cls
         if not issubclass(new_cls, BaseTxPayload):
             raise ValueError(  # pragma: no cover
                 f"class {name} must inherit from {BaseTxPayload.__name__}"
             )
         new_cls = cast(Type[BaseTxPayload], new_cls)
-
-        transaction_type = str(mcs._get_field(new_cls, "transaction_type"))
-        mcs._validate_transaction_type(transaction_type, new_cls)
         # remember association from transaction type to payload class
-        mcs.transaction_type_to_payload_cls[transaction_type] = new_cls
+        _metaclass_registry_key = f"{new_cls.__module__}.{new_cls.__name__}"  # type: ignore
+        mcs.registry[_metaclass_registry_key] = new_cls
 
         return new_cls
 
-    @classmethod
-    def _validate_transaction_type(
-        mcs, transaction_type: str, new_payload_cls: Type["BaseTxPayload"]
-    ) -> None:
-        """Check that a transaction type is not already associated to a concrete payload class."""
-        if transaction_type in mcs.transaction_type_to_payload_cls:
-            previous_payload_cls = mcs.transaction_type_to_payload_cls[transaction_type]
-            if new_payload_cls.__name__ != previous_payload_cls.__name__:
-                raise ValueError(
-                    f"transaction type with name {transaction_type} already "
-                    f"used by class {previous_payload_cls}, and cannot be "
-                    f"used by class {new_payload_cls} "
-                )
 
-    @classmethod
-    def _get_field(mcs, cls: Type, field_name: str) -> Any:
-        """Get a field from a class if present, otherwise raise error."""
-        if not hasattr(cls, field_name) or getattr(cls, field_name) is None:
-            raise ValueError(f"class {cls} must set '{field_name}' class field")
-        return getattr(cls, field_name)
-
-
-class BaseTxPayload(ABC, metaclass=_MetaPayload):
+@dataclass(frozen=True)
+class BaseTxPayload(metaclass=_MetaPayload):
     """This class represents a base class for transaction payload classes."""
 
-    transaction_type: Any
-
-    def __init__(
-        self,
-        sender: str,
-        id_: Optional[str] = None,
-        round_count: int = ROUND_COUNT_DEFAULT,
-        **kwargs: Any,
-    ) -> None:
-        """
-        Initialize a transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param id_: the id of the transaction
-        :param round_count: the count of the round in which the payload was sent
-        :param kwargs: the keyword arguments
-        """
-        self.id_ = uuid.uuid4().hex if id_ is None else id_
-        self._round_count = round_count
-        self._sender = sender
-        # kwargs exists for typing only
-        enforce(len(kwargs) == 0, f"kwargs passed to {type(self)} must be empty")
+    sender: str
+    round_count: int = field(default=ROUND_COUNT_DEFAULT, init=False)
+    id_: str = field(default_factory=lambda: uuid.uuid4().hex, init=False)
 
     @property
-    def sender(self) -> str:
-        """Get the sender."""
-        return self._sender
+    def data(self) -> Dict[str, Any]:
+        """Data"""
+        excluded = ["sender", "round_count", "id_", "_metaclass_registry_key"]
+        return {k: v for k, v in asdict(self).items() if k not in excluded}
 
+    # TODO: refactor - these methods are not strictly needed
     @property
-    def round_count(self) -> int:
-        """Get the round count."""
-        return self._round_count
-
-    @round_count.setter
-    def round_count(self, round_count: int) -> None:
-        """Set the round count."""
-        self._round_count = round_count
-
-    def encode(self) -> bytes:
-        """Encode the payload."""
-        return DictProtobufStructSerializer.encode(self.json)
-
-    @classmethod
-    def decode(cls, obj: bytes) -> "BaseTxPayload":
-        """Decode the payload."""
-        return cls.from_json(DictProtobufStructSerializer.decode(obj))
+    def json(self) -> Dict[str, Any]:
+        """Json"""
+        data, cls = asdict(self), self.__class__
+        data["_metaclass_registry_key"] = f"{cls.__module__}.{cls.__name__}"
+        return data
 
     @classmethod
     def from_json(cls, obj: Dict) -> "BaseTxPayload":
         """Decode the payload."""
         data = copy(obj)
-        transaction_type = str(data.pop("transaction_type"))
-        payload_cls = _MetaPayload.transaction_type_to_payload_cls[transaction_type]
-        return payload_cls(**data)
-
-    @property
-    def json(self) -> Dict:
-        """Get the JSON representation of the payload."""
-        return dict(
-            transaction_type=str(self.transaction_type),
-            id_=self.id_,
-            sender=self.sender,
-            round_count=self.round_count,
-            **self.data,
-        )
-
-    @property
-    def data(self) -> Dict:
-        """
-        Get the dictionary data.
-
-        The returned dictionary is required to be used
-        as keyword constructor initializer, i.e. these two
-        should have the same effect:
-
-            sender = "..."
-            some_kwargs = {...}
-            p1 = SomePayloadClass(sender, **some_kwargs)
-            p2 = SomePayloadClass(sender, **p1.data)
-
-        :return: a dictionary which contains the payload data
-        """
-        return {}
+        round_count, id_ = data.pop("round_count"), data.pop("id_")
+        payload_cls = _MetaPayload.registry[data.pop("_metaclass_registry_key")]
+        payload = payload_cls(**data)  # type: ignore
+        object.__setattr__(payload, "round_count", round_count)
+        object.__setattr__(payload, "id_", id_)
+        return payload
 
     def with_new_id(self) -> "BaseTxPayload":
         """Create a new payload with the same content but new id."""
-        return type(self)(
-            self.sender, id_=uuid.uuid4().hex, round_count=self.round_count, **self.data
-        )
+        new = type(self)(sender=self.sender, **self.data)  # type: ignore
+        object.__setattr__(new, "round_count", self.round_count)
+        return new
 
-    def __eq__(self, other: Any) -> bool:
-        """Check equality."""
-        if not isinstance(other, BaseTxPayload):
-            return NotImplemented
-        return (
-            self.id_ == other.id_
-            and self.round_count == other.round_count
-            and self.sender == other.sender
-            and self.data == other.data
-        )
+    def encode(self) -> bytes:
+        """Encode"""
+        encoded_data = json.dumps(self.json, sort_keys=True).encode()
+        if sys.getsizeof(encoded_data) > MAX_READ_IN_BYTES:
+            msg = f"{type(self)} must be smaller than {MAX_READ_IN_BYTES} bytes"
+            raise ValueError(msg)
+        return encoded_data
 
-    def __hash__(self) -> int:
-        """Hash the payload."""
-        return hash(tuple(sorted(self.data.items())))
+    @classmethod
+    def decode(cls, obj: bytes) -> "BaseTxPayload":
+        """Decode"""
+        return cls.from_json(json.loads(obj.decode()))
 
 
+@dataclass(frozen=True)
 class Transaction(ABC):
     """Class to represent a transaction for the ephemeral chain of a period."""
 
-    def __init__(self, payload: BaseTxPayload, signature: str) -> None:
-        """Initialize a transaction object."""
-        self.payload = payload
-        self.signature = signature
+    payload: BaseTxPayload
+    signature: str
 
     def encode(self) -> bytes:
         """Encode the transaction."""
+
         data = dict(payload=self.payload.json, signature=self.signature)
-        encoded_data = DictProtobufStructSerializer.encode(data)
+        encoded_data = json.dumps(data, sort_keys=True).encode()
         if sys.getsizeof(encoded_data) > MAX_READ_IN_BYTES:
             raise ValueError(
                 f"Transaction must be smaller than {MAX_READ_IN_BYTES} bytes"
@@ -328,10 +241,10 @@ class Transaction(ABC):
     @classmethod
     def decode(cls, obj: bytes) -> "Transaction":
         """Decode the transaction."""
-        data = DictProtobufStructSerializer.decode(obj)
+
+        data = json.loads(obj.decode())
         signature = data["signature"]
-        payload_dict = data["payload"]
-        payload = BaseTxPayload.from_json(payload_dict)
+        payload = BaseTxPayload.from_json(data["payload"])
         return Transaction(payload, signature)
 
     def verify(self, ledger_id: str) -> None:
@@ -341,18 +254,12 @@ class Transaction(ABC):
         :param ledger_id: the ledger id of the address
         :raises: SignatureNotValidError: if the signature is not valid.
         """
-        payload_bytes = DictProtobufStructSerializer.encode(self.payload.json)
+        payload_bytes = self.payload.encode()
         addresses = LedgerApis.recover_message(
             identifier=ledger_id, message=payload_bytes, signature=self.signature
         )
         if self.payload.sender not in addresses:
-            raise SignatureNotValidError("signature not valid.")
-
-    def __eq__(self, other: Any) -> bool:
-        """Check equality."""
-        if not isinstance(other, Transaction):
-            return NotImplemented
-        return self.payload == other.payload and self.signature == other.signature
+            raise SignatureNotValidError(f"Signature not valid on transaction: {self}")
 
 
 class Block:  # pylint: disable=too-few-public-methods
@@ -813,7 +720,7 @@ class BaseSynchronizedData:
     @property
     def all_participants(self) -> FrozenSet[str]:
         """Get all registered participants."""
-        all_participants = self.db.get_strict("all_participants")
+        all_participants = frozenset(self.db.get_strict("all_participants"))
         if len(all_participants) == 0:
             raise ValueError("List participants cannot be empty.")
         return cast(FrozenSet[str], all_participants)
@@ -947,9 +854,9 @@ class _MetaAbstractRound(ABCMeta):
             raise AbstractRoundInternalError(
                 f"'synchronized_data_class' not set on {abstract_round_cls}"
             )
-        if not hasattr(abstract_round_cls, "allowed_tx_type"):
+        if not hasattr(abstract_round_cls, "payload_class"):
             raise AbstractRoundInternalError(
-                f"'allowed_tx_type' not set on {abstract_round_cls}"
+                f"'payload_class' not set on {abstract_round_cls}"
             )
         if not hasattr(abstract_round_cls, "payload_attribute"):
             raise AbstractRoundInternalError(
@@ -957,9 +864,7 @@ class _MetaAbstractRound(ABCMeta):
             )
 
 
-class AbstractRound(
-    Generic[EventType, TransactionType], ABC, metaclass=_MetaAbstractRound
-):
+class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
     """
     This class represents an abstract round.
 
@@ -969,16 +874,16 @@ class AbstractRound(
 
     Concrete classes must set:
     - synchronized_data_class: the data class associated with this round;
-    - allowed_tx_type: the transaction type that is allowed for this round;
+    - payload_class: the payload type that is allowed for this round;
     - payload_attribute: the attribute of the payload of this round.
 
     Optionally, round_id can be defined, although it is recommended to use the autogenerated id.
     """
 
     __pattern = re.compile(r"(?<!^)(?=[A-Z])")
-    _previous_round_tx_type: Optional[TransactionType]
+    _previous_round_payload_class: Optional[Type[BaseTxPayload]]
 
-    allowed_tx_type: Optional[TransactionType]
+    payload_class: Optional[Type[BaseTxPayload]]
     payload_attribute: str
     synchronized_data_class: Type[BaseSynchronizedData]
 
@@ -988,13 +893,13 @@ class AbstractRound(
         self,
         synchronized_data: BaseSynchronizedData,
         consensus_params: ConsensusParams,
-        previous_round_tx_type: Optional[TransactionType] = None,
+        previous_round_payload_class: Optional[Type[BaseTxPayload]] = None,
     ) -> None:
         """Initialize the round."""
         self._consensus_params = consensus_params
         self._synchronized_data = synchronized_data
         self.block_confirmations = 0
-        self._previous_round_tx_type = previous_round_tx_type
+        self._previous_round_payload_class = previous_round_payload_class
 
     @classmethod
     def auto_round_id(cls) -> str:
@@ -1027,7 +932,7 @@ class AbstractRound(
 
         :param transaction: the transaction
         """
-        self.check_allowed_tx_type(transaction)
+        self.check_payload_type(transaction)
         self.check_payload(transaction.payload)
 
     def process_transaction(self, transaction: Transaction) -> None:
@@ -1039,7 +944,7 @@ class AbstractRound(
 
         :param transaction: the transaction.
         """
-        self.check_allowed_tx_type(transaction)
+        self.check_payload_type(transaction)
         self.process_payload(transaction.payload)
 
     @abstractmethod
@@ -1062,7 +967,7 @@ class AbstractRound(
         only after each block, and not after each transaction.
         """
 
-    def check_allowed_tx_type(self, transaction: Transaction) -> None:
+    def check_payload_type(self, transaction: Transaction) -> None:
         """
         Check the transaction is of the allowed transaction type.
 
@@ -1070,22 +975,21 @@ class AbstractRound(
         :raises: TransactionTypeNotRecognizedError if the transaction can be
                  applied to the current state.
         """
-        if self.allowed_tx_type is None:
+        if self.payload_class is None:
             raise TransactionTypeNotRecognizedError(
                 "current round does not allow transactions"
             )
-        tx_type = transaction.payload.transaction_type
 
-        if self._previous_round_tx_type is not None and str(tx_type) == str(
-            self._previous_round_tx_type
-        ):
+        payload_class = type(transaction.payload)
+
+        if payload_class is self._previous_round_payload_class:
             raise LateArrivingTransaction(
-                f"request '{tx_type}' is from previous round; skipping"
+                f"request '{transaction.payload}' is from previous round; skipping"
             )
 
-        if str(tx_type) != str(self.allowed_tx_type):
+        if payload_class is not self.payload_class:
             raise TransactionTypeNotRecognizedError(
-                f"request '{tx_type}' not recognized; only {self.allowed_tx_type} is supported"
+                f"request '{payload_class}' not recognized; only {self.payload_class} is supported"
             )
 
     @classmethod
@@ -1223,7 +1127,7 @@ class DegenerateRound(AbstractRound, ABC):
     It is a sink round.
     """
 
-    allowed_tx_type = None
+    payload_class = None
     payload_attribute = ""
     synchronized_data_class = BaseSynchronizedData
 
@@ -1950,20 +1854,16 @@ class _MetaAbciApp(ABCMeta):
             len(invalid_final_states) == 0,
             f"db post conditions contain invalid final states: {invalid_final_states}",
         )
-        all_pre_conditions = set(  # pylint: disable=consider-using-set-comprehension
-            [
-                value
-                for values in abci_app_cls.db_pre_conditions.values()
-                for value in values
-            ]
-        )
-        all_post_conditions = set(  # pylint: disable=consider-using-set-comprehension
-            [
-                value
-                for values in abci_app_cls.db_post_conditions.values()
-                for value in values
-            ]
-        )
+        all_pre_conditions = {
+            value
+            for values in abci_app_cls.db_pre_conditions.values()
+            for value in values
+        }
+        all_post_conditions = {
+            value
+            for values in abci_app_cls.db_post_conditions.values()
+            for value in values
+        }
         enforce(
             len(all_pre_conditions.intersection(all_post_conditions)) == 0,
             "db pre and post conditions intersect",
@@ -2243,10 +2143,10 @@ class AbciApp(
             self.synchronized_data,
             self.consensus_params,
             (
-                self._last_round.allowed_tx_type
+                self._last_round.payload_class
                 if self._last_round is not None
-                and self._last_round.allowed_tx_type
-                != self._current_round_cls.allowed_tx_type
+                and self._last_round.payload_class
+                != self._current_round_cls.payload_class
                 # when transitioning to a round with the same payload type we set None as otherwise it will allow no tx to be sumitted
                 else None
             ),
@@ -2298,13 +2198,6 @@ class AbciApp(
         """Get the latest result of the round."""
         return None if len(self._round_results) == 0 else self._round_results[-1]
 
-    @property
-    def background_round_tx_type(self) -> Optional[str]:
-        """Returns the allowed transaction type for background round."""
-        if self.is_termination_set:
-            return cast(AppState, self.background_round_cls).allowed_tx_type
-        return None  # pragma: no cover
-
     def check_transaction(self, transaction: Transaction) -> None:
         """
         Check a transaction.
@@ -2315,9 +2208,11 @@ class AbciApp(
 
         :param transaction: the transaction.
         """
+
+        payload_type = type(transaction.payload)
         if (
             self.is_termination_set
-            and transaction.payload.transaction_type == self.background_round_tx_type
+            and payload_type is cast(AppState, self.background_round_cls).payload_class
         ):
             self.background_round.check_transaction(transaction)
             return
@@ -2333,9 +2228,11 @@ class AbciApp(
 
         :param transaction: the transaction.
         """
+
+        payload_type = type(transaction.payload)
         if (
             self.is_termination_set
-            and transaction.payload.transaction_type == self.background_round_tx_type
+            and payload_type is cast(AppState, self.background_round_cls).payload_class
         ):
             self.background_round.process_transaction(transaction)
             return
@@ -2870,7 +2767,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
 
     def reset_state(
         self,
-        restart_from_round: AppState,
+        restart_from_round: str,
         round_count: int,
         reset_index: int,
     ) -> None:
@@ -2886,4 +2783,15 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._reset_to_default_params()
         self.abci_app.synchronized_data.db.round_count = round_count
         self.abci_app.reset_index = reset_index
-        self.abci_app.schedule_round(restart_from_round)
+        round_id_to_cls = {
+            cls.auto_round_id(): cls for cls in self.abci_app.transition_function
+        }
+        restart_from_round_cls = round_id_to_cls.get(restart_from_round, None)
+        if restart_from_round_cls is None:
+            raise ABCIAppInternalError(
+                "Cannot reset state. The Tendermint recovery parameters are incorrect. "
+                "Did you update the `restart_from_round` with an incorrect round id? "
+                f"Found {restart_from_round}, but the app's transition function has the following round ids: "
+                f"{set(round_id_to_cls.keys())}."
+            )
+        self.abci_app.schedule_round(restart_from_round_cls)

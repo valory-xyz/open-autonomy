@@ -118,8 +118,8 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
     @pytest.mark.parametrize(
         "setup_data, expected_initialisation",
         (
-            ({}, None),
-            ({"test": []}, None),
+            ({}, "{}"),
+            ({"test": []}, "{}"),
             ({"test": [], "valid": [1, 2]}, '{"valid": [1, 2]}'),
         ),
     )
@@ -175,8 +175,8 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     def setup(self, **kwargs: Any) -> None:
         """Setup"""
         super().setup(**kwargs)
-        self.state.params.sleep_time = 0.01
-        self.state.params.share_tm_config_on_startup = True
+        self.state.params.__dict__["sleep_time"] = 0.01
+        self.state.params.__dict__["share_tm_config_on_startup"] = True
 
     @property
     def agent_instances(self) -> List[str]:
@@ -195,21 +195,18 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
 
     # mock patches
     @property
-    def mocked_service_registry_address(self) -> mock._patch:
+    def mocked_service_registry_address(self) -> mock._patch_dict:
         """Mocked service registry address"""
-        return mock.patch.object(
-            self.state.params,
-            "service_registry_address",
-            return_value=SERVICE_REGISTRY_ADDRESS,
+        return mock.patch.dict(
+            self.state.params.__dict__,
+            {"service_registry_address": SERVICE_REGISTRY_ADDRESS},
         )
 
     @property
-    def mocked_on_chain_service_id(self) -> mock._patch:
+    def mocked_on_chain_service_id(self) -> mock._patch_dict:
         """Mocked on chain service id"""
-        return mock.patch.object(
-            self.state.params,
-            "on_chain_service_id",
-            return_value=ON_CHAIN_SERVICE_ID,
+        return mock.patch.dict(
+            self.state.params.__dict__, {"on_chain_service_id": ON_CHAIN_SERVICE_ID}
         )
 
     def mocked_wait_for_condition(self, should_timeout: bool) -> mock._patch:
@@ -289,7 +286,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_tendermint_message,
             message_type=TendermintMessage,
-            performative=TendermintMessage.Performative.REQUEST,
+            performative=TendermintMessage.Performative.GET_GENESIS_INFO,
             sender=self.state.context.agent_address,
             to=actual_tendermint_message.to,
             **request_kwargs,
@@ -301,7 +298,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
                 actual_tendermint_message.dialogue_reference[0],
                 "stub",
             ),
-            performative=TendermintMessage.Performative.RESPONSE,
+            performative=TendermintMessage.Performative.GENESIS_INFO,
             target=actual_tendermint_message.message_id,
             message_id=-1,
             to=self.state.context.agent_address,

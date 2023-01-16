@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -101,4 +101,4 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
         )
 
         assert test_round.accepting_payloads_from != participants
-        assert test_round.accepting_payloads_from == all_participants
+        assert test_round.accepting_payloads_from == frozenset(all_participants)

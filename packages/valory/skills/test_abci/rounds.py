@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the simple ABCI application."""
-from abc import ABC
+
 from enum import Enum
 from typing import Dict, Optional, Tuple, Type
 
@@ -28,9 +28,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
     CollectDifferentUntilAllRound,
-    get_name,
 )
-from packages.valory.skills.test_abci.payloads import DummyPayload, TransactionType
+from packages.valory.skills.test_abci.payloads import DummyPayload
 
 
 class Event(Enum):
@@ -41,9 +40,7 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
 
 
-class DummyRound(
-    CollectDifferentUntilAllRound, AbstractRound[Event, TransactionType], ABC
-):
+class DummyRound(CollectDifferentUntilAllRound):
     """
     This class represents the registration round.
 
@@ -53,8 +50,8 @@ class DummyRound(
     It schedules the SelectKeeperARound.
     """
 
-    allowed_tx_type = DummyPayload.transaction_type
-    payload_attribute = get_name(DummyPayload.sender)
+    payload_class = DummyPayload
+    payload_attribute = "sender"
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:

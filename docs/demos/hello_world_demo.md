@@ -255,12 +255,14 @@ This is an excerpt of the `aea-config.yaml` file:
 connections:
 - valory/abci:0.1.0:<ipfs_hash>
 - valory/http_client:0.23.0:<ipfs_hash>
+- valory/ipfs:0.1.0:<ipfs_hash>
 - valory/p2p_libp2p_client:0.1.0:<ipfs_hash>
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:<ipfs_hash>
 - valory/abci:0.1.0:<ipfs_hash>
 - valory/http:1.0.0:<ipfs_hash>
+- valory/ipfs:0.1.0:<ipfs_hash>
 skills:
 - valory/abstract_abci:0.1.0:<ipfs_hash>
 - valory/abstract_round_abci:0.1.0:<ipfs_hash>
@@ -348,8 +350,8 @@ Let's look how each of these objects are implemented. If you have fetched the He
   class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
       """A round in which the keeper prints the message"""
 
-      allowed_tx_type = PrintMessagePayload.transaction_type
-      payload_attribute = get_name(PrintMessagePayload.message)
+      payload_class = PrintMessagePayload
+      payload_attribute = "message"
 
       def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
           """Process the end of the block."""
@@ -490,30 +492,11 @@ class HelloWorldRoundBehaviour(AbstractRoundBehaviour):
 **`payloads.py`**: This file defines the payloads associated to the consensus engine for each of the states. Payload classes are mostly used to encapsulate data values, and carry almost no business logic. Consider for instance the payload associated to the `PrintMessageBehaviour`:
 
 ```python
-class PrintMessagePayload(BaseHelloWorldAbciPayload):
+@dataclass(frozen=True)
+class PrintMessagePayload(BaseTxPayload):
     """Represent a transaction payload of type 'randomness'."""
 
-    transaction_type = TransactionType.PRINT_MESSAGE
-
-    def __init__(self, sender: str, message: str, **kwargs: Any) -> None:
-        """Initialize a 'select_keeper' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param message: the message printed by the agent
-        :param kwargs: the keyword arguments
-        """
-        super().__init__(sender, **kwargs)
-        self._message = message
-
-    @property
-    def message(self) -> str:
-        """Get the message"""
-        return self._message
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(message=self.message)
+    message: str
 ```
 
 

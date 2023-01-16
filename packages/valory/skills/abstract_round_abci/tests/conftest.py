@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -60,3 +60,50 @@ def hypothesis_cleanup() -> Generator:
     if hypothesis_dir.exists():
         with suppress(OSError, PermissionError):  # pragma: nocover
             shutil.rmtree(hypothesis_dir)
+
+
+# We do not care about these keys but need to set them in the behaviours' tests,
+# because `packages.valory.skills.abstract_round_abci.models._ensure` is used.
+irrelevant_genesis_config = {
+    "consensus_params": {
+        "block": {"max_bytes": "str", "max_gas": "str", "time_iota_ms": "str"},
+        "evidence": {
+            "max_age_num_blocks": "str",
+            "max_age_duration": "str",
+            "max_bytes": "str",
+        },
+        "validator": {"pub_key_types": ["str"]},
+        "version": {},
+    },
+    "genesis_time": "str",
+    "chain_id": "str",
+    "voting_power": "str",
+}
+irrelevant_config = {
+    "tendermint_url": "str",
+    "max_healthcheck": 0,
+    "round_timeout_seconds": 0.0,
+    "sleep_time": 0,
+    "retry_timeout": 0,
+    "retry_attempts": 0,
+    "keeper_timeout": 0.0,
+    "observation_interval": 0,
+    "drand_public_key": "str",
+    "tendermint_com_url": "str",
+    "tendermint_max_retries": 0,
+    "reset_tendermint_after": 0,
+    "cleanup_history_depth": 0,
+    "voting_power": 0,
+    "tendermint_check_sleep_delay": 0,
+    "cleanup_history_depth_current": None,
+    "request_timeout": 0.0,
+    "request_retry_delay": 0.0,
+    "tx_timeout": 0.0,
+    "max_attempts": 0,
+    "service_registry_address": None,
+    "on_chain_service_id": None,
+    "share_tm_config_on_startup": False,
+    "tendermint_p2p_url": "str",
+    "setup": {},
+}
+irrelevant_config["genesis_config"] = irrelevant_genesis_config

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -31,9 +31,10 @@ from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany, Result
 from aea_test_autonomy.configurations import ANY_ADDRESS
 from aea_test_autonomy.docker.registries import SERVICE_REGISTRY
-from aea_test_autonomy.fixture_helpers import (
+from aea_test_autonomy.fixture_helpers import (  # noqa: F401; pylint: disable=unused-import
     FlaskTendermintDockerImage,
     UseFlaskTendermintNode,
+    UseLocalIpfs,
 )
 from web3 import Web3
 
@@ -59,7 +60,7 @@ class RoundChecks:
 
 @pytest.mark.e2e
 @pytest.mark.integration
-class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
+class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
     """
     Base class for end-to-end tests of agents with a skill extending the abstract_abci_round skill.
 
@@ -224,7 +225,10 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode):
             "1",
             type_="int",
         )
-
+        self.set_config(
+            "vendor.valory.connections.ipfs.config.ipfs_domain",
+            self.ipfs_domain,
+        )
         self.__set_extra_configs()
 
     @staticmethod
@@ -492,3 +496,9 @@ class BaseTestEnd2EndExecution(BaseTestEnd2End):
             agent_name = self._get_agent_name(i)
             self._launch_agent_i(i)
             logging.info(f"Restarted {agent_name}")
+
+    @classmethod
+    def teardown_class(cls) -> None:
+        """Teardown the test."""
+        super().teardown_class()
+        FlaskTendermintDockerImage.cleanup(cls.nb_nodes)

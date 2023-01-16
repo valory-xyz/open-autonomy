@@ -88,10 +88,8 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
         # _MetaPayload.transaction_type_to_payload_cls, and restore it
         # in the teardown function. We do a shallow copy so we avoid
         # to modify the old mapping during the execution of the tests.
-        cls.old_tx_type_to_payload_cls = copy(
-            _MetaPayload.transaction_type_to_payload_cls
-        )
-        _MetaPayload.transaction_type_to_payload_cls = {}
+        cls.old_tx_type_to_payload_cls = copy(_MetaPayload.registry)
+        _MetaPayload.registry = {}
         super().setup_class(**kwargs)  # pylint: disable=no-value-for-parameter
         assert (
             cls._skill.skill_context._agent_context is not None
@@ -135,7 +133,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
 
         if kwargs.get("param_overrides") is not None:
             for param_name, param_value in kwargs["param_overrides"].items():
-                setattr(cls.behaviour.context.params, param_name, param_value)
+                cls.behaviour.context.params.__dict__[param_name] = param_value
 
     def setup(self, **kwargs: Any) -> None:
         """
@@ -151,7 +149,9 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
         self._skill.skill_context.state.round_sequence.end_sync()
 
         self.benchmark_dir = TemporaryDirectory()
-        self._skill.skill_context.benchmark_tool.log_dir = Path(self.benchmark_dir.name)
+        self._skill.skill_context.benchmark_tool.__dict__["log_dir"] = Path(
+            self.benchmark_dir.name
+        )
         assert (  # nosec
             cast(BaseBehaviour, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour.initial_behaviour_cls.auto_behaviour_id()
@@ -415,7 +415,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
     @classmethod
     def teardown_class(cls) -> None:
         """Teardown the test class."""
-        _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls
+        _MetaPayload.registry = cls.old_tx_type_to_payload_cls
 
     def teardown(self, **kwargs: Any) -> None:
         """Teardown."""
@@ -432,6 +432,7 @@ class DummyContext:
         round_timeout_seconds: float = 1.0
 
     _skill: MagicMock = MagicMock()
+    skill_id = "dummy_skill_id"
 
     @property
     def is_abstract_component(self) -> bool:

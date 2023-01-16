@@ -58,12 +58,17 @@ from hypothesis import strategies as st
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import HttpDialogues
+from packages.valory.connections.ipfs.connection import IpfsDialogues
+from packages.valory.connections.ipfs.connection import PUBLIC_ID as IPFS_CONNECTION_ID
 from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.ipfs import IpfsMessage
+from packages.valory.protocols.ipfs.dialogues import IpfsDialogue
 from packages.valory.protocols.ledger_api.custom_types import (
     SignedTransaction,
     TransactionDigest,
 )
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
+from packages.valory.protocols.tendermint import TendermintMessage
 from packages.valory.skills.abstract_round_abci import behaviour_utils
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
@@ -79,6 +84,7 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     DegenerateBehaviour,
     GENESIS_TIME_FMT,
     HEIGHT_OFFSET_MULTIPLIER,
+    IPFSBehaviour,
     MIN_HEIGHT_OFFSET,
     NON_200_RETURN_CODE_DURING_RESET_THRESHOLD,
     RESET_HASH,
@@ -97,13 +103,14 @@ from packages.valory.skills.abstract_round_abci.io_.ipfs import (
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState,
     TendermintRecoveryParams,
-    _DEFAULT_REQUEST_RETRY_DELAY,
-    _DEFAULT_REQUEST_TIMEOUT,
-    _DEFAULT_TX_MAX_ATTEMPTS,
-    _DEFAULT_TX_TIMEOUT,
 )
 from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 
+
+_DEFAULT_REQUEST_TIMEOUT = 10.0
+_DEFAULT_REQUEST_RETRY_DELAY = 1.0
+_DEFAULT_TX_MAX_ATTEMPTS = 10
+_DEFAULT_TX_TIMEOUT = 10.0
 
 settings.load_profile(profile_name)
 
@@ -423,7 +430,7 @@ class RoundA(AbstractRound):
 
     round_id = "round_a"
     synchronized_data_class = BaseSynchronizedData
-    allowed_tx_type = MagicMock()
+    payload_class = MagicMock()
     payload_attribute = MagicMock()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
@@ -504,6 +511,17 @@ def _wait_until_transaction_delivered_patch(
     yield
 
 
+def dummy_generator_wrapper(return_value: Any = None) -> Callable[[Any], Generator]:
+    """A wrapper around a dummy generator that yields nothing and returns the given return value."""
+
+    def dummy_generator(*_: Any) -> Generator[None, None, Any]:
+        """A dummy generator that yields nothing and returns the given return value."""
+        yield
+        return return_value
+
+    return dummy_generator
+
+
 class TestBaseBehaviour:
     """Tests for the 'BaseBehaviour' class."""
 
@@ -513,7 +531,6 @@ class TestBaseBehaviour:
         """Set up the tests."""
         self.context_mock = MagicMock()
         self.context_params_mock = MagicMock(
-            ipfs_domain_name=None,
             request_timeout=_DEFAULT_REQUEST_TIMEOUT,
             request_retry_delay=_DEFAULT_REQUEST_RETRY_DELAY,
             tx_timeout=_DEFAULT_TX_TIMEOUT,
@@ -534,58 +551,164 @@ class TestBaseBehaviour:
         self.context_mock.state.round_sequence.syncing_up = False
         self.context_mock.state.round_sequence.block_stall_deadline_expired = False
         self.context_mock.http_dialogues = HttpDialogues()
+        self.context_mock.ipfs_dialogues = IpfsDialogues(
+            connection_id=str(IPFS_CONNECTION_ID)
+        )
+        self.context_mock.outbox = MagicMock(put_message=self.dummy_put_message)
+        self.context_mock.requests = MagicMock(request_id_to_callback={})
         self.context_mock.handlers.__dict__ = {"http": MagicMock()}
         self.behaviour = BehaviourATest(name="", skill_context=self.context_mock)
         self.behaviour.context.logger = logging  # type: ignore
+        self.behaviour.params.sleep_time = 0.01  # type: ignore
+
+    def dummy_put_message(self, *args: Any, **kwargs: Any) -> None:
+        """A dummy implementation of Outbox.put_message"""
+        return
 
     def test_behaviour_id(self) -> None:
         """Test behaviour_id on instance."""
         assert self.behaviour.behaviour_id == BehaviourATest.auto_behaviour_id()
 
-    def test_send_to_ipfs(self, caplog: LogCaptureFixture) -> None:
+    @pytest.mark.parametrize(
+        "ipfs_response, expected_log",
+        [
+            (
+                MagicMock(
+                    ipfs_hash="test", performative=IpfsMessage.Performative.IPFS_HASH
+                ),
+                "Successfully stored with IPFS hash: test",
+            ),
+            (
+                MagicMock(
+                    ipfs_hash="test", performative=IpfsMessage.Performative.ERROR
+                ),
+                f"Expected performative {IpfsMessage.Performative.IPFS_HASH} but got {IpfsMessage.Performative.ERROR}.",
+            ),
+        ],
+    )
+    def test_send_to_ipfs(
+        self,
+        caplog: LogCaptureFixture,
+        ipfs_response: IpfsMessage,
+        expected_log: str,
+    ) -> None:
         """Test send_to_ipfs"""
 
-        assert self.behaviour.ipfs_enabled is False
-        expected = "Trying to perform an IPFS operation, but IPFS has not been enabled!"
-        with pytest.raises(ValueError, match=expected):
-            self.behaviour.send_to_ipfs("filepath", [])
+        def dummy_do_ipfs_req(
+            *args: Any, **kwargs: Any
+        ) -> Generator[None, None, Optional[IpfsMessage]]:
+            """A dummy method to be used in mocks."""
+            return ipfs_response
+            yield
 
-        self.behaviour.ipfs_enabled = True
-        self.behaviour._ipfs_interact = IPFSInteract(None)  # type: ignore
         with mock.patch.object(
-            IPFSInteract, "store_and_send", return_value="mock_hash"
+            IPFSBehaviour,
+            "_build_ipfs_store_file_req",
+            return_value=(MagicMock(), MagicMock()),
+        ) as build_req, mock.patch.object(
+            BaseBehaviour, "_do_ipfs_request", side_effect=dummy_do_ipfs_req
+        ) as do_req:
+            generator = self.behaviour.send_to_ipfs("dummy_filename", {})
+            try_send(generator)
+            build_req.assert_called()
+            do_req.assert_called()
+            assert expected_log in caplog.text
+
+    def test_ipfs_store_fails(self, caplog: LogCaptureFixture) -> None:
+        """Test for failure during building store_file_req."""
+        expected_logs = "An error occurred while trying to send a file to IPFS:"
+        with mock.patch.object(
+            IPFSBehaviour,
+            "_build_ipfs_store_file_req",
+            side_effect=IPFSInteractionError,
+        ), caplog.at_level(logging.ERROR):
+            generator = self.behaviour.send_to_ipfs("dummy_filename", {})
+            try_send(generator)
+            assert expected_logs in caplog.text
+
+    def test_do_ipfs_request(self) -> None:
+        """Test _do_ipfs_request"""
+        message, dialogue = cast(
+            IpfsDialogues, self.context_mock.ipfs_dialogues
+        ).create(str(IPFS_CONNECTION_ID), IpfsMessage.Performative.GET_FILES)
+        message = cast(IpfsMessage, message)
+        dialogue = cast(IpfsDialogue, dialogue)
+
+        def dummy_wait_for_message(
+            *args: Any, **kwargs: Any
+        ) -> Generator[None, None, Message]:
+            """A dummy implementation of AsyncBehaviour.wait_for_message to be used for mocks."""
+            return MagicMock()
+            yield
+
+        with mock.patch.object(
+            AsyncBehaviour, "wait_for_message", side_effect=dummy_wait_for_message
         ):
-            with caplog.at_level(logging.INFO):
-                self.behaviour.send_to_ipfs("filepath", [])
-                assert "IPFS hash is: mock_hash" in caplog.text
+            gen = self.behaviour._do_ipfs_request(
+                dialogue,
+                message,
+            )
+            try_send(gen)
 
-        side_effect = IPFSInteractionError
-        with mock.patch.object(IPFSInteract, "store_and_send", side_effect=side_effect):
-            with caplog.at_level(logging.ERROR):
-                self.behaviour.send_to_ipfs("filepath", [])
-                expected = "An error occurred while trying to send a file to IPFS:"
-                assert expected in caplog.text
-
-    def test_get_from_ipfs(self, caplog: LogCaptureFixture) -> None:
+    @pytest.mark.parametrize(
+        "ipfs_response, expected_log",
+        [
+            (
+                MagicMock(
+                    files={"dummy_file_name": "test"},
+                    performative=IpfsMessage.Performative.FILES,
+                ),
+                "Retrieved 1 objects from ipfs.",
+            ),
+            (
+                MagicMock(
+                    ipfs_hash="test", performative=IpfsMessage.Performative.ERROR
+                ),
+                f"Expected performative {IpfsMessage.Performative.FILES} but got {IpfsMessage.Performative.ERROR}.",
+            ),
+        ],
+    )
+    def test_get_from_ipfs(
+        self,
+        caplog: LogCaptureFixture,
+        ipfs_response: IpfsMessage,
+        expected_log: str,
+    ) -> None:
         """Test get_from_ipfs"""
 
-        assert self.behaviour.ipfs_enabled is False
-        expected = "Trying to perform an IPFS operation, but IPFS has not been enabled!"
-        with pytest.raises(ValueError, match=expected):
-            self.behaviour.get_from_ipfs("mock_hash", "target_dir")
+        def dummy_do_ipfs_req(
+            *args: Any, **kwargs: Any
+        ) -> Generator[None, None, Optional[IpfsMessage]]:
+            """A dummy method to be used in mocks."""
+            return ipfs_response
+            yield
 
-        self.behaviour.ipfs_enabled = True
-        self.behaviour._ipfs_interact = IPFSInteract(None)  # type: ignore
-        with mock.patch.object(IPFSInteract, "get_and_read"):
-            with caplog.at_level(logging.INFO):
-                self.behaviour.get_from_ipfs("mock_hash", "target_dir")
+        with mock.patch.object(
+            IPFSBehaviour,
+            "_build_ipfs_get_file_req",
+            return_value=(MagicMock(), MagicMock()),
+        ) as build_req, mock.patch.object(
+            IPFSBehaviour,
+            "_deserialize_ipfs_objects",
+            return_value=MagicMock(),
+        ), mock.patch.object(
+            BaseBehaviour, "_do_ipfs_request", side_effect=dummy_do_ipfs_req
+        ) as do_req:
+            generator = self.behaviour.get_from_ipfs("dummy_ipfs_hash")
+            try_send(generator)
+            build_req.assert_called()
+            do_req.assert_called()
+            assert expected_log in caplog.text
 
-        side_effect = IPFSInteractionError
-        with mock.patch.object(IPFSInteract, "store_and_send", side_effect=side_effect):
-            with caplog.at_level(logging.ERROR):
-                self.behaviour.get_from_ipfs("mock_hash", "target_dir")
-                expected = "An error occurred while trying to fetch a file from IPFS:"
-                assert expected in caplog.text
+    def test_ipfs_get_fails(self, caplog: LogCaptureFixture) -> None:
+        """Test for failure during building get_files req."""
+        expected_logs = "An error occurred while trying to fetch a file from IPFS:"
+        with mock.patch.object(
+            IPFSBehaviour, "_build_ipfs_get_file_req", side_effect=IPFSInteractionError
+        ), caplog.at_level(logging.ERROR):
+            generator = self.behaviour.get_from_ipfs("dummy_ipfs_hash")
+            try_send(generator)
+            assert expected_logs in caplog.text
 
     def test_params_property(self) -> None:
         """Test the 'params' property."""
@@ -1663,17 +1786,175 @@ class TestBaseBehaviour:
         """Test the stop method."""
         self.behaviour.stop()
 
-    @staticmethod
-    def dummy_sleep(*_: Any) -> Generator[None, None, None]:
-        """Dummy `sleep` method."""
-        yield
+    @pytest.mark.parametrize(
+        "performative",
+        (
+            TendermintMessage.Performative.GET_GENESIS_INFO,
+            TendermintMessage.Performative.GET_RECOVERY_PARAMS,
+        ),
+    )
+    @pytest.mark.parametrize(
+        "address_to_acn_deliverable, n_pending",
+        (
+            ({}, 0),
+            ({i: None for i in range(3)}, 3),
+            ({0: "test", 1: None, 2: None}, 2),
+            ({i: "test" for i in range(3)}, 0),
+        ),
+    )
+    def test_acn_request_from_pending(
+        self,
+        performative: TendermintMessage.Performative,
+        address_to_acn_deliverable: Dict[str, Any],
+        n_pending: int,
+    ) -> None:
+        """Test the `_acn_request_from_pending` method."""
+        self.behaviour.context.state.address_to_acn_deliverable = (
+            address_to_acn_deliverable
+        )
+        gen = self.behaviour._acn_request_from_pending(performative)
+
+        if n_pending == 0:
+            with pytest.raises(StopIteration):
+                next(gen)
+            return
+
+        with mock.patch.object(
+            self.behaviour.context.tendermint_dialogues,
+            "create",
+            return_value=(MagicMock(), MagicMock()),
+        ) as dialogues_mock:
+            dialogues_mock.assert_not_called()
+            self.behaviour.context.outbox.put_message = MagicMock()
+            self.behaviour.context.outbox.put_message.assert_not_called()
+
+            next(gen)
+
+            dialogues_expected_calls = tuple(
+                mock.call(counterparty=address, performative=performative)
+                for address, deliverable in address_to_acn_deliverable.items()
+                if deliverable is None
+            )
+            dialogues_mock.assert_has_calls(dialogues_expected_calls)
+            assert self.behaviour.context.outbox.put_message.call_count == len(
+                dialogues_expected_calls
+            )
+
+        time.sleep(self.behaviour.params.sleep_time)
+        with pytest.raises(StopIteration):
+            next(gen)
+
+    @pytest.mark.parametrize(
+        "performative",
+        (
+            TendermintMessage.Performative.GET_GENESIS_INFO,
+            TendermintMessage.Performative.GET_RECOVERY_PARAMS,
+        ),
+    )
+    @pytest.mark.parametrize(
+        "address_to_acn_deliverable_per_attempt, expected_result",
+        (
+            (
+                tuple({"address": None} for _ in range(10)),
+                None,
+            ),  # an example in which no agent responds
+            (
+                (
+                    {f"address{i}": None for i in range(3)},
+                    {"address1": None, "address2": "test", "address3": None},
+                )
+                + tuple(
+                    {"address1": None, "address2": "test", "address3": "malicious"}
+                    for _ in range(8)
+                ),
+                None,
+            ),  # an example in which no majority is reached
+            (
+                tuple({f"address{i}": None for i in range(3)} for _ in range(3))
+                + ({"address1": "test", "address2": "test", "address3": None},),
+                "test",
+            ),  # an example in which majority is reached during the 4th ACN attempt
+        ),
+    )
+    def test_perform_acn_request(
+        self,
+        performative: TendermintMessage.Performative,
+        address_to_acn_deliverable_per_attempt: Tuple[Dict[str, Any], ...],
+        expected_result: Any,
+    ) -> None:
+        """Test the `_perform_acn_request` method."""
+        final_attempt_idx = len(address_to_acn_deliverable_per_attempt) - 1
+        gen = self.behaviour._perform_acn_request(performative)
+
+        with mock.patch.object(
+            self.behaviour,
+            "_acn_request_from_pending",
+            side_effect=dummy_generator_wrapper(),
+        ) as _acn_request_from_pending_mock:
+            for i in range(self.behaviour.params.max_attempts):
+                acn_result = expected_result if i == final_attempt_idx + 1 else None
+                with mock.patch.object(
+                    self.behaviour.context.state,
+                    "get_acn_result",
+                    return_value=acn_result,
+                ):
+                    if i != final_attempt_idx + 1:
+                        self.behaviour.context.state.address_to_acn_deliverable = (
+                            address_to_acn_deliverable_per_attempt[i]
+                        )
+                        next(gen)
+                        continue
+
+                    try:
+                        next(gen)
+                    except StopIteration as exc:
+                        assert exc.value == expected_result
+                    else:
+                        raise AssertionError(
+                            "The `_perform_acn_request` was expected to yield for the last time."
+                        )
+
+                    break
+
+            n_expected_calls = final_attempt_idx + 1
+            expected_calls = tuple(
+                mock.call(performative) for _ in range(n_expected_calls)
+            )
+            assert _acn_request_from_pending_mock.call_count == n_expected_calls
+            _acn_request_from_pending_mock.assert_has_calls(expected_calls)
+
+    @pytest.mark.parametrize("expected_result", (True, False))
+    def test_request_recovery_params(self, expected_result: bool) -> None:
+        """Test `request_recovery_params`."""
+        acn_result = "not None ACN result" if expected_result else None
+        request_recovery_params = self.behaviour.request_recovery_params()
+
+        with mock.patch.object(
+            self.behaviour,
+            "_perform_acn_request",
+            side_effect=dummy_generator_wrapper(acn_result),
+        ) as perform_acn_request_mock:
+            next(request_recovery_params)
+
+            try:
+                next(request_recovery_params)
+            except StopIteration as exc:
+                assert exc.value is expected_result
+            else:
+                raise AssertionError(
+                    "The `request_recovery_params` was expected to yield for the last time."
+                )
+
+            perform_acn_request_mock.assert_called_once_with(
+                TendermintMessage.Performative.GET_RECOVERY_PARAMS
+            )
 
     def test_start_reset(self) -> None:
         """Test the `_start_reset` method."""
         with mock.patch.object(
             BaseBehaviour,
             "wait_from_last_timestamp",
-            new_callable=lambda *_: self.dummy_sleep,
+            new_callable=lambda *_: dummy_generator_wrapper(),
         ):
             res = self.behaviour._start_reset()
             for _ in range(2):
@@ -1852,13 +2133,13 @@ class TestBaseBehaviour:
         ), mock.patch.object(
             BaseBehaviour,
             "wait_from_last_timestamp",
-            new_callable=lambda *_: self.dummy_sleep,
+            new_callable=lambda *_: dummy_generator_wrapper(),
         ), mock.patch.object(
             BaseBehaviour, "_do_request", new_callable=lambda *_: dummy_do_request
         ), mock.patch.object(
             BaseBehaviour, "_get_status", new_callable=lambda *_: dummy_get_status
         ), mock.patch.object(
-            BaseBehaviour, "sleep", new_callable=lambda *_: self.dummy_sleep
+            BaseBehaviour, "sleep", new_callable=lambda *_: dummy_generator_wrapper()
         ):
             self.behaviour.context.state.round_sequence.height = local_height
             reset = self.behaviour.reset_tendermint_with_wait(on_startup=on_startup)
@@ -1916,7 +2197,7 @@ class TestBaseBehaviour:
                     )
                     assert (
                         tm_recovery_params.reset_from_round
-                        == self.behaviour.matching_round
+                        == self.behaviour.matching_round.auto_round_id()
                     )
             else:
                 pytest.fail("`reset_tendermint_with_wait` did not finish!")
@@ -1943,7 +2224,6 @@ def test_degenerate_behaviour_async_act() -> None:
         sleep_time_before_exit = 0.01
 
     context = MagicMock()
-    context.params.ipfs_domain_name = None
     # this is needed to trigger execution of async_act
     context.state.round_sequence.syncing_up = False
     context.state.round_sequence.block_stall_deadline_expired = False
@@ -1996,7 +2276,6 @@ class TestTmManager:
         """Set up the tests."""
         self.context_mock = MagicMock()
         self.context_params_mock = MagicMock(
-            ipfs_domain_name=None,
             request_timeout=_DEFAULT_REQUEST_TIMEOUT,
             request_retry_delay=_DEFAULT_REQUEST_RETRY_DELAY,
             tx_timeout=_DEFAULT_TX_TIMEOUT,
@@ -2028,6 +2307,13 @@ class TestTmManager:
             self.tm_manager.act_wrapper()
 
     @pytest.mark.parametrize(
+        "acn_communication_success",
+        (
+            True,
+            False,
+        ),
+    )
+    @pytest.mark.parametrize(
         ("tm_reset_success", "num_active_peers"),
         [
             (True, 4),
@@ -2038,6 +2324,7 @@ class TestTmManager:
     )
     def test_handle_unhealthy_tm(
         self,
+        acn_communication_success: bool,
         tm_reset_success: bool,
         num_active_peers: Optional[int],
     ) -> None:
@@ -2061,10 +2348,23 @@ class TestTmManager:
             self.tm_manager, "sleep", side_effect=mock_sleep
         ), mock.patch(
             "sys.exit"
-        ) as mock_sys_exit:
-            try_send(gen)
-            try_send(gen)
-            try_send(gen)
+        ) as mock_sys_exit, mock.patch.object(
+            BaseBehaviour,
+            "request_recovery_params",
+            side_effect=dummy_generator_wrapper(acn_communication_success),
+        ):
+            next(gen)
+            next(gen)
+
+            if not acn_communication_success:
+                with pytest.raises(StopIteration):
+                    next(gen)
+                return
+
+            next(gen)
+            with pytest.raises(StopIteration):
+                next(gen)
+
             if (
                 num_active_peers is not None
                 and num_active_peers < self._DUMMY_CONSENSUS_THRESHOLD
@@ -2085,8 +2385,9 @@ class TestTmManager:
         self, expected_reset_params: Optional[List[Tuple[str, str]]]
     ) -> None:
         """Test that reset params returns the correct params."""
-        if expected_reset_params is not None:
-            self.recovery_params.reset_params = expected_reset_params
+        self.context_mock.state.tm_recovery_params = TendermintRecoveryParams(
+            reset_from_round="does not matter", reset_params=expected_reset_params
+        )
         actual_reset_params = self.tm_manager._get_reset_params(False)
         assert expected_reset_params == actual_reset_params
 
@@ -2188,3 +2489,43 @@ def test_base_behaviour_instantiation_without_attributes_raises_error() -> None:
 
         class MyBaseBehaviour(BaseBehaviour):
             pass
+
+
+class TestIPFSBehaviour:
+    """Test IPFSBehaviour tests."""
+
+    def setup(self) -> None:
+        """Sets up the tests."""
+        self.context_mock = MagicMock()
+        self.context_mock.ipfs_dialogues = IpfsDialogues(
+            connection_id=str(IPFS_CONNECTION_ID)
+        )
+        self.behaviour = BehaviourATest(name="", skill_context=self.context_mock)
+
+    def test_build_ipfs_message(self) -> None:
+        """Tests _build_ipfs_message."""
+        res = self.behaviour._build_ipfs_message(IpfsMessage.Performative.GET_FILES)  # type: ignore
+        assert res is not None
+
+    def test_build_ipfs_store_file_req(self) -> None:
+        """Tests _build_ipfs_store_file_req."""
+        with mock.patch.object(
+            IPFSInteract, "store", return_value=MagicMock()
+        ) as mock_store:
+            res = self.behaviour._build_ipfs_store_file_req("dummy_filename", {})
+            mock_store.assert_called()
+            assert res is not None
+
+    def test_build_ipfs_get_file_req(self) -> None:
+        """Tests _build_ipfs_get_file_req."""
+        res = self.behaviour._build_ipfs_get_file_req("dummy_ipfs_hash")
+        assert res is not None
+
+    def test_deserialize_ipfs_objects(self) -> None:
+        """Tests _deserialize_ipfs_objects"""
+        with mock.patch.object(
+            IPFSInteract, "load", return_value=MagicMock()
+        ) as mock_load:
+            res = self.behaviour._deserialize_ipfs_objects({})
+            mock_load.assert_called()
+            assert res is not None
