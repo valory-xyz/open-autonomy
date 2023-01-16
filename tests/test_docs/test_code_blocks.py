@@ -194,6 +194,7 @@ class TestPythonSnippets(BaseTestDocCode):
         "docs/key_concepts/abci_app_abstract_round.md",  # just a placeholder example
         "docs/demos/price_oracle_fsms.md",  # price oracle has been extracted to a separate repo on #1441
         "docs/demos/price_oracle_technical_details.md",  # price oracle has been extracted to a separate repo on #1441
+        "docs/advanced_reference/developer_tooling/benchmarking.md",  # just placeholder examples
     ]
 
 

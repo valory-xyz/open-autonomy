@@ -31,7 +31,7 @@ To set up the tool, you need to follow a couple of steps detailed below. Note th
 
 2. Ensure that the skill configuration file `skill.yaml` points correctly to the skill benchmark tool in the section `models`.
 
-    ```json
+    ```yaml
     models:
         benchmark_tool:
             args:
