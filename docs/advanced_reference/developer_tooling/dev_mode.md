@@ -79,16 +79,10 @@ Execute the next steps in a separate terminal.
 
     This will create a deployment environment in dev mode within the `./abci_build` folder.
 
-5. **Run the service.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally. You also need to create and set up the directories `persistent_data/logs` and `persistent_data/venvs`.
+5. **Run the service.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
 
     ```bash
     cd abci_build
-
-    mkdir -p persistent_data/logs
-    mkdir -p persistent_data/venvs
-    sudo chown -R 1000:1000 -R persistent_data/logs
-    sudo chown -R 1000:1000 -R persistent_data/venvs   
-  
     autonomy deploy run
     ```
 
@@ -99,5 +93,3 @@ Execute the next steps in a separate terminal.
 Once the agents are running, you can make changes to the agent's code as well as the local {{open_aea_repository}}, and it will trigger the service restart.
 
 The trigger is caused by any Python file closing in either the `open-autonomy/packages` or the `open-aea/` directory. So even if you haven't made any change and still want to restart the service, just open any Python file press `Ctrl+S` or save it from the file menu and it will trigger the restart.
-
-
