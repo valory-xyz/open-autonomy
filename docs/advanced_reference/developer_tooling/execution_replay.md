@@ -1,4 +1,4 @@
-The replay functionality of the dev mode allows to replay a previous execution of agents in a service, for debugging purposes. This guide assumes that you have successfully [built an run an agent service in dev mode](./dev_mode.md#build-and-execute-an-agent-service-in-dev-mode).
+The replay functionality of the dev mode allows to replay a previous execution of agents in a service for debugging purposes. This guide assumes that you have successfully [built an run an agent service in dev mode](./dev_mode.md#build-and-execute-an-agent-service-in-dev-mode).
 
 ## Replay agent execution
 
