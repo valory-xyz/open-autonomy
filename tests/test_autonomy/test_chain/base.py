@@ -98,14 +98,20 @@ DEFAULT_SERVICE_MINT_PARAMETERS = (
 
 
 @skip_docker_tests
-# @pytest.mark.usefixtures("registries_scope_class")
+@pytest.mark.usefixtures("registries_scope_class")
 class BaseChainInteractionTest(BaseCliTest):
     """Base chain interaction test"""
 
     ledger_api: LedgerApi
     crypto: Crypto
     chain_type: ChainType = ChainType.LOCAL
-    key_path: Path = ETHEREUM_KEY_DEPLOYER
+
+    key_file: Path = ETHEREUM_KEY_DEPLOYER
+
+    def setup(self) -> None:
+        """Setup test."""
+        super().setup()
+        self.cli_runner.mix_stderr = False
 
     @classmethod
     def setup_class(cls) -> None:
@@ -113,7 +119,8 @@ class BaseChainInteractionTest(BaseCliTest):
         super().setup_class()
 
         cls.ledger_api, cls.crypto = get_ledger_and_crypto_objects(
-            chain_type=cls.chain_type, keys=ETHEREUM_KEY_DEPLOYER
+            chain_type=cls.chain_type,
+            keys=cls.key_file,
         )
 
     @staticmethod
