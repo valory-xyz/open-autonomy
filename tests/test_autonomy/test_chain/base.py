@@ -79,6 +79,7 @@ DUMMY_SERVICE = PackageId(
     public_id=PublicId(author=DUMMY_AUTHOR, name="dummy_service", version="0.1.0"),
 )
 
+DUMMY_HASH = "bafybei0000000000000000000000000000000000000000000000000000"
 NUMBER_OF_SLOTS_PER_AGENT = 4
 COST_OF_BOND_FOR_AGENT = 1000
 THRESHOLD = 3
@@ -97,7 +98,7 @@ DEFAULT_SERVICE_MINT_PARAMETERS = (
 
 
 @skip_docker_tests
-@pytest.mark.usefixtures("registries_scope_class")
+# @pytest.mark.usefixtures("registries_scope_class")
 class BaseChainInteractionTest(BaseCliTest):
     """Base chain interaction test"""
 
