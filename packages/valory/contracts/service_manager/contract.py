@@ -95,7 +95,7 @@ class ServiceManagerContract(Contract):
         return tx_params
 
     @classmethod
-    def get_activate_registration_transaction(
+    def get_activate_registration_transaction(  # pylint: disable=too-many-arguments
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
