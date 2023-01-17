@@ -19,6 +19,7 @@
 
 """Test mint helpers."""
 
+import re
 import tempfile
 from pathlib import Path
 from unittest import mock
@@ -28,12 +29,108 @@ from aea.configurations.constants import DEFAULT_README_FILE
 from aea.configurations.data_types import PublicId
 
 from autonomy.chain.base import registry_contracts
+from autonomy.chain.config import ChainType
 from autonomy.chain.constants import COMPONENT_REGISTRY_CONTRACT, CONTRACTS_DIR_LOCAL
+from autonomy.chain.exceptions import InvalidMintParameter
 from autonomy.chain.metadata import publish_metadata, serialize_metadata
-from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
+from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH, mint_service
 
 
 DUMMY_HASH = "bafybei0000000000000000000000000000000000000000000000000000"
+
+
+def test_mint_service_invalid_paramters() -> None:
+    """Test invalid parameters"""
+
+    with pytest.raises(
+        InvalidMintParameter, match="Please provide at least one agent id"
+    ):
+        mint_service(
+            ledger_api=mock.MagicMock(),  # type: ignore
+            crypto=mock.MagicMock(),  # type: ignore
+            chain_type=ChainType.LOCAL,
+            metadata_hash=DUMMY_HASH,
+            agent_ids=[],
+            number_of_slots_per_agent=[],
+            cost_of_bond_per_agent=[],
+            threshold=0,
+        )
+
+    with pytest.raises(
+        InvalidMintParameter, match="Please for provide number of slots for agents"
+    ):
+        mint_service(
+            ledger_api=mock.MagicMock(),  # type: ignore
+            crypto=mock.MagicMock(),  # type: ignore
+            chain_type=ChainType.LOCAL,
+            metadata_hash=DUMMY_HASH,
+            agent_ids=[1],
+            number_of_slots_per_agent=[],
+            cost_of_bond_per_agent=[],
+            threshold=0,
+        )
+
+    with pytest.raises(
+        InvalidMintParameter, match="Please for provide cost of bond for agents"
+    ):
+        mint_service(
+            ledger_api=mock.MagicMock(),  # type: ignore
+            crypto=mock.MagicMock(),  # type: ignore
+            chain_type=ChainType.LOCAL,
+            metadata_hash=DUMMY_HASH,
+            agent_ids=[1],
+            number_of_slots_per_agent=[4],
+            cost_of_bond_per_agent=[],
+            threshold=0,
+        )
+
+    with pytest.raises(
+        InvalidMintParameter,
+        match=re.escape(
+            "The threshold value should at least be greater than or equal to ceil((n * 2 + 1) / 3), "
+            "n is total number of agent instances in the service"
+        ),
+    ):
+        mint_service(
+            ledger_api=mock.MagicMock(),  # type: ignore
+            crypto=mock.MagicMock(),  # type: ignore
+            chain_type=ChainType.LOCAL,
+            metadata_hash=DUMMY_HASH,
+            agent_ids=[1],
+            number_of_slots_per_agent=[4],
+            cost_of_bond_per_agent=[1000],
+            threshold=2,
+        )
+
+    with pytest.raises(
+        InvalidMintParameter,
+        match="Number of slots cannot be zero",
+    ):
+        mint_service(
+            ledger_api=mock.MagicMock(),  # type: ignore
+            crypto=mock.MagicMock(),  # type: ignore
+            chain_type=ChainType.LOCAL,
+            metadata_hash=DUMMY_HASH,
+            agent_ids=[1],
+            number_of_slots_per_agent=[0],
+            cost_of_bond_per_agent=[1000],
+            threshold=0,
+        )
+
+    with pytest.raises(
+        InvalidMintParameter,
+        match="Cost of bond cannot be zero",
+    ):
+        mint_service(
+            ledger_api=mock.MagicMock(),  # type: ignore
+            crypto=mock.MagicMock(),  # type: ignore
+            chain_type=ChainType.LOCAL,
+            metadata_hash=DUMMY_HASH,
+            agent_ids=[1],
+            number_of_slots_per_agent=[4],
+            cost_of_bond_per_agent=[0],
+            threshold=0,
+        )
 
 
 def test_serialize_metadata() -> None:
