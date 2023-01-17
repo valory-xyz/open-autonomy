@@ -170,7 +170,9 @@ class TestScaffoldFSMAutonomyTests(BaseScaffoldFSMTest):
         # from the AEA command `aea test by-path ...`
         result = self.start_subprocess(*cli_args)
         result.wait(timeout=60.0)
-        assert result.returncode == 0
+        assert (
+            result.returncode == 0
+        ), f"stdout: {self.stdout[result.pid]}, stderr: {self.stderr[result.pid]}"
 
 
 class TestScaffoldFSMLocalRegistry(BaseScaffoldFSMTest):
@@ -211,4 +213,6 @@ class TestScaffoldFSMLocalRegistry(BaseScaffoldFSMTest):
         # from the AEA command `aea test by-path ...`
         result = self.start_subprocess(*cli_args)
         result.wait(timeout=60.0)
-        assert result.returncode == 0
+        assert (
+            result.returncode == 0
+        ), f"stdout: {self.stdout[result.pid]}, stderr: {self.stderr[result.pid]}"
