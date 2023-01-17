@@ -72,6 +72,7 @@ def mint_component(
             component_type=component_type,
             metadata_hash=metadata_hash,
             dependencies=dependencies,
+            raise_on_try=True,
         )
         transact(
             ledger_api=ledger_api,
@@ -146,6 +147,8 @@ def mint_service(  # pylint: disable=too-many-arguments
             agent_ids=agent_ids,
             agent_params=agent_params,
             threshold=threshold,
+            raise_on_try=True,
+
         )
         transact(
             ledger_api=ledger_api,
