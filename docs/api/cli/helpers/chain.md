@@ -39,7 +39,7 @@ Mint service component
 #### activate`_`service
 
 ```python
-def activate_service(service_id: int, bond_value: int, keys: Path, chain_type: ChainType, password: Optional[str] = None) -> None
+def activate_service(service_id: int, keys: Path, chain_type: ChainType, password: Optional[str] = None) -> None
 ```
 
 Activate on-chain service
@@ -49,7 +49,7 @@ Activate on-chain service
 #### register`_`instance
 
 ```python
-def register_instance(service_id: int, instance: str, agent_id: int, bond_value: int, keys: Path, chain_type: ChainType, password: Optional[str] = None) -> None
+def register_instance(service_id: int, instance: str, agent_id: int, keys: Path, chain_type: ChainType, password: Optional[str] = None) -> None
 ```
 
 Activate on-chain service
