@@ -53,7 +53,6 @@ class BaseTestTerminationEnd2End(
     Test subclasses must set NB_AGENTS, agent_package, wait_to_finish and check_strings.
     """
 
-    cli_log_options = ["-v", "INFO"]  # no need for debug
     skill_package = "valory/register_termination_abci:0.1.0"
     SAFE_CONTRACT_ADDRESS = _DEFAULT_SAFE_CONTRACT_ADDRESS
     SERVICE_REGISTRY_ADDRESS = _DEFAULT_SERVICE_REGISTRY_ADDRESS

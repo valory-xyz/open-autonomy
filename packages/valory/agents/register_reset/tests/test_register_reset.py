@@ -31,11 +31,18 @@ from aea_test_autonomy.base_test_classes.agents import (
 )
 from aea_test_autonomy.configurations import KEY_PAIRS
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401
+    UseACNNode,
+    UseRegistries,
     abci_host,
     abci_port,
+    acn_config,
+    acn_node,
     flask_tendermint,
+    hardhat_port,
     ipfs_daemon,
     ipfs_domain,
+    nb_nodes,
+    registries_scope_class,
     tendermint_port,
 )
 
@@ -110,12 +117,11 @@ class TestTendermintReset(BaseTestEnd2EndExecution):
 @pytest.mark.integration
 @pytest.mark.flaky(reruns=1)
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestTendermintResetInterrupt(BaseTestEnd2EndExecution):
+class TestTendermintResetInterrupt(UseRegistries, UseACNNode, BaseTestEnd2EndExecution):
     """Test the ABCI register-reset skill with 4 agents when an agent gets interrupted on Tendermint reset."""
 
     agent_package = "valory/register_reset:0.1.0"
     skill_package = "valory/register_reset_abci:0.1.0"
-    cli_log_options = ["-v", "INFO"]
     key_pairs = KEY_PAIRS
     wait_before_stop = 60
     wait_to_finish = 300
