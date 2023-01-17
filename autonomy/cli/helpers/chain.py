@@ -118,7 +118,9 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
             package_type_config_class=PACKAGE_TYPE_TO_CONFIG_CLASS,
         )
     except FileNotFoundError as e:  # pragma: nocover
-        raise click.ClickException(f"Cannot find configuration file for {package_type}")
+        raise click.ClickException(
+            f"Cannot find configuration file for {package_type}"
+        ) from e
 
     if chain_type == ChainType.LOCAL and nft_image_hash is None:
         nft_image_hash = DEFAULT_NFT_IMAGE_HASH
@@ -210,6 +212,14 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
     except FileNotFoundError as e:  # pragma: nocover
         raise click.ClickException(
             f"Cannot find configuration file for {PackageType.SERVICE}"
+        ) from e
+
+    if chain_type == ChainType.LOCAL and nft_image_hash is None:
+        nft_image_hash = DEFAULT_NFT_IMAGE_HASH
+
+    if chain_type != ChainType.LOCAL and nft_image_hash is None:
+        raise click.ClickException(
+            f"Please provide hash for NFT image to mint component on `{chain_type.value}` chain"
         )
 
     try:
@@ -273,7 +283,6 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
 
 def activate_service(
     service_id: int,
-    bond_value: int,
     keys: Path,
     chain_type: ChainType,
     password: Optional[str] = None,
@@ -292,7 +301,6 @@ def activate_service(
             crypto=crypto,
             chain_type=chain_type,
             service_id=service_id,
-            bond_value=bond_value,
         )
     except ServiceRegistrationFailed as e:
         raise click.ClickException(str(e)) from e
@@ -304,7 +312,6 @@ def register_instance(  # pylint: disable=too-many-arguments
     service_id: int,
     instance: str,
     agent_id: int,
-    bond_value: int,
     keys: Path,
     chain_type: ChainType,
     password: Optional[str] = None,
@@ -325,12 +332,11 @@ def register_instance(  # pylint: disable=too-many-arguments
             service_id=service_id,
             instance=instance,
             agent_id=agent_id,
-            bond_value=bond_value,
         )
     except InstanceRegistrationFailed as e:
         raise click.ClickException(str(e)) from e
 
-    click.echo("Agent instance registered successfully")
+    click.echo("Agent instance registered succesfully")
 
 
 def deploy_service(
