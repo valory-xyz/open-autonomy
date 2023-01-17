@@ -20,7 +20,7 @@ contracts:
 - valory/gnosis_safe:0.1.0:bafybeiamw5sluyueflxsvzukmayctl3ijc76fx5twstwnc7ons6lw2goa4
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeieqvrttr6fiidrzab5t2toyewixqg7oayvdo64sidi33ouro5ixdu
 - valory/multisend:0.1.0:bafybeigjywkl7hydjsrkogob3xebj2ifhqwmfhhxoeyrndzhhxi5u6amey
-- valory/service_registry:0.1.0:bafybeig2jjfmx7zhg4zovtwuqhutbzp76didwzkap7b2ggzw2iewzonjle
+- valory/service_registry:0.1.0:bafybeie4vaa2udr4vluqni76dj2juuktogjkpwrbhbfqnskna3q2or2eka
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/abci:0.1.0:bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm
@@ -31,12 +31,12 @@ protocols:
 - valory/tendermint:0.1.0:bafybeid6b2wlb24g6d3godmqms44qvnpkhlvb27icotuobvnscmdmlhaha
 skills:
 - valory/abstract_abci:0.1.0:bafybeid3udqtjtl4txht2z3tm3z3mr2nqtoddtno3u3urxjqjbbpqeelli
-- valory/abstract_round_abci:0.1.0:bafybeid2edxpmpw3ybasrpj6s7my4xhhqh5e7yejnhgpng45wdfoeyhahq
-- valory/register_termination_abci:0.1.0:bafybeiaq45incpphbbdbjixo5xbh5zjz6bqeu7x5v3xebb6htgt6jm7t7m
-- valory/registration_abci:0.1.0:bafybeiehilaea4ylgbokov3shod5cvnkh4zm2i6onwfnfgpskwxwunz6eu
-- valory/reset_pause_abci:0.1.0:bafybeifcazd2s3hfgvhv37uabmxagijpjlgo5jg4pfc3ncikajgezxg3ei
-- valory/termination_abci:0.1.0:bafybeigabhpivafxlc344b4ahdj2c5wvvsquqfwdzu3bqqigrby3gipzdu
-- valory/transaction_settlement_abci:0.1.0:bafybeifhdnclwriucaht2rm2o57sozlsdxffhpxrj6kbczny6uhg43f3hu
+- valory/abstract_round_abci:0.1.0:bafybeigofsncoyslx3bgmwwfjtuxvpw3zeo4uch7rrpfrlnflymzzwtvbu
+- valory/register_termination_abci:0.1.0:bafybeidl43p42hc37xllhyax6jh4anu6u7ufz7bktcdfgihy5mzq3vyfpi
+- valory/registration_abci:0.1.0:bafybeigxn6t56tzjykplqbkrsornimj67pvthorrjd3vzdqd2lgot6iiba
+- valory/reset_pause_abci:0.1.0:bafybeifmhol4ouzl2fubkpjsjfyzoamh7mzybwguxsz6ywgnxhbgdn2imm
+- valory/termination_abci:0.1.0:bafybeibitin4q4jdnolyitbbkjmkaujja3tyvfrisyqxc7batqjsbdchsy
+- valory/transaction_settlement_abci:0.1.0:bafybeib43svx66aoq2baekns63qvwyz57ska4ytrmmkvjc6rolazxjr5uu
 default_ledger: ethereum
 required_ledgers:
 - ethereum
