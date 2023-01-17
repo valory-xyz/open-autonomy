@@ -4,6 +4,16 @@
 
 On-chain interaction helpers.
 
+<a id="autonomy.cli.helpers.chain.get_ledger_and_crypto_objects"></a>
+
+#### get`_`ledger`_`and`_`crypto`_`objects
+
+```python
+def get_ledger_and_crypto_objects(chain_type: ChainType, keys: Path, password: Optional[str] = None) -> Tuple[LedgerApi, Crypto]
+```
+
+Create ledger_api and crypto objects
+
 <a id="autonomy.cli.helpers.chain.mint_component"></a>
 
 #### mint`_`component
@@ -23,4 +33,34 @@ def mint_service(package_path: Path, keys: Path, chain_type: ChainType, agent_id
 ```
 
 Mint service component
+
+<a id="autonomy.cli.helpers.chain.activate_service"></a>
+
+#### activate`_`service
+
+```python
+def activate_service(service_id: int, bond_value: int, keys: Path, chain_type: ChainType, password: Optional[str] = None) -> None
+```
+
+Activate on-chain service
+
+<a id="autonomy.cli.helpers.chain.register_instance"></a>
+
+#### register`_`instance
+
+```python
+def register_instance(service_id: int, instance: str, agent_id: int, bond_value: int, keys: Path, chain_type: ChainType, password: Optional[str] = None) -> None
+```
+
+Activate on-chain service
+
+<a id="autonomy.cli.helpers.chain.deploy_service"></a>
+
+#### deploy`_`service
+
+```python
+def deploy_service(service_id: int, keys: Path, chain_type: ChainType, deployment_payload: Optional[str] = None, password: Optional[str] = None) -> None
+```
+
+Activate on-chain service
 

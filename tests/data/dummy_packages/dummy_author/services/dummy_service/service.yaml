@@ -1,0 +1,11 @@
+name: dummy_service
+author: dummy_author
+version: 0.1.0
+description: Dummy service
+aea_version: '>=1.0.0, <2.0.0'
+license: Apache-2.0
+fingerprint:
+  README.md: bafybeidtsspnbrkqb55jjnpl3ai5qhcoumm6h5dqf76e6gxldklbxmdusi
+fingerprint_ignore_patterns: []
+number_of_agents: 1
+agent: dummy_author/dummy_agent:0.1.0:bafybeihjl5fgwnfecwknnhulebj3e7ktyz6ba6flbjwmpibzj2ih3gweo4

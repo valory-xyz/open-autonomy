@@ -1,0 +1,37 @@
+name: dummy_skill
+author: dummy_author
+version: 0.1.0
+type: skill
+description: The scaffold skill is a scaffold for your own skill implementation.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: bafybeigcrc4d2l5dtshvkz7rsokqmhb7ku2274my6zgvknwvszwoxg67ly
+  behaviours.py: bafybeiaebqkzpxtcxfq7ubw6ggghuzigrmg7gbohttd6xicvejl5dymmsq
+  handlers.py: bafybeicobt2sakex5iu47q67nedk74ccszhkeo2gfugkikzhnssqgxvmtq
+  my_model.py: bafybeic3ptxpsvhkemmqj2h7omqxarfdyhpvtyogpwvrorswxpgedcduxm
+fingerprint_ignore_patterns: []
+connections:
+- dummy_author/dummy_connection:0.1.0:bafybeiezr7lccxkfv2fslmrngmn6fmjkck6ukah7qfpioobpzuyam2xb2m
+contracts:
+- dummy_author/dummy_contract:0.1.0:bafybeigjwno7m7qthgybxwfglwfebnfghadcpmtzsn5kiw7f27ezcb7fyq
+protocols:
+- dummy_author/dummy_protocol:0.1.0:bafybeifuoztgfa2772jfvx5kyosgz7vrjfu6w6lo2mj3prziomdd3tp5xi
+skills: []
+behaviours:
+  scaffold:
+    args:
+      foo: bar
+    class_name: MyScaffoldBehaviour
+handlers:
+  scaffold:
+    args:
+      foo: bar
+    class_name: MyScaffoldHandler
+models:
+  scaffold:
+    args:
+      foo: bar
+    class_name: MyModel
+dependencies: {}
+is_abstract: false

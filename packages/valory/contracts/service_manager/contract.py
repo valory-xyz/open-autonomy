@@ -91,3 +91,82 @@ class ServiceManagerContract(Contract):
             },
         )
         return tx_params
+
+    @classmethod
+    def get_activate_registration_transaction(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        owner: str,
+        service_id: int,
+        security_deposit: int,
+    ) -> Dict[str, Any]:
+        """Retrieve the service owner."""
+
+        tx_params = ledger_api.build_transaction(
+            contract_instance=cls.get_instance(
+                ledger_api=ledger_api, contract_address=contract_address
+            ),
+            method_name="activateRegistration",
+            method_args={
+                "serviceId": service_id,
+            },
+            tx_args={"sender_address": owner, "value": security_deposit},
+        )
+
+        return tx_params
+
+    @classmethod
+    def get_register_instance_transaction(  # pylint: disable=too-many-arguments
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        owner: str,
+        service_id: int,
+        instances: List[str],
+        agent_ids: List[int],
+        security_deposit: int,
+    ) -> Dict[str, Any]:
+        """Retrieve the service owner."""
+
+        tx_params = ledger_api.build_transaction(
+            contract_instance=cls.get_instance(
+                ledger_api=ledger_api, contract_address=contract_address
+            ),
+            method_name="registerAgents",
+            method_args={
+                "serviceId": service_id,
+                "agentInstances": instances,
+                "agentIds": agent_ids,
+            },
+            tx_args={"sender_address": owner, "value": security_deposit},
+        )
+
+        return tx_params
+
+    @classmethod
+    def get_service_deploy_transaction(  # pylint: disable=too-many-arguments
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        owner: str,
+        service_id: int,
+        gnosis_safe_multisig: str,
+        deployment_payload: str,
+    ) -> Dict[str, Any]:
+        """Retrieve the service owner."""
+
+        tx_params = ledger_api.build_transaction(
+            contract_instance=cls.get_instance(
+                ledger_api=ledger_api, contract_address=contract_address
+            ),
+            method_name="deploy",
+            method_args={
+                "serviceId": service_id,
+                "multisigImplementation": gnosis_safe_multisig,
+                "data": deployment_payload,
+            },
+            tx_args={"sender_address": owner},
+        )
+
+        return tx_params

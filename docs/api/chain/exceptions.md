@@ -64,3 +64,33 @@ class InvalidMintParameter(ChainInteractionError)
 
 Raise when the parameter provided for minting a component is invalid
 
+<a id="autonomy.chain.exceptions.ServiceRegistrationFailed"></a>
+
+## ServiceRegistrationFailed Objects
+
+```python
+class ServiceRegistrationFailed(ChainInteractionError)
+```
+
+Raise when service activation fails.
+
+<a id="autonomy.chain.exceptions.InstanceRegistrationFailed"></a>
+
+## InstanceRegistrationFailed Objects
+
+```python
+class InstanceRegistrationFailed(ChainInteractionError)
+```
+
+Raise when instance registration fails.
+
+<a id="autonomy.chain.exceptions.ServiceDeployFailed"></a>
+
+## ServiceDeployFailed Objects
+
+```python
+class ServiceDeployFailed(ChainInteractionError)
+```
+
+Raise when service activation fails.
+

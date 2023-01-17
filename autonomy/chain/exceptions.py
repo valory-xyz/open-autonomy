@@ -42,3 +42,15 @@ class DependencyError(ChainInteractionError):
 
 class InvalidMintParameter(ChainInteractionError):
     """Raise when the parameter provided for minting a component is invalid"""
+
+
+class ServiceRegistrationFailed(ChainInteractionError):
+    """Raise when service activation fails."""
+
+
+class InstanceRegistrationFailed(ChainInteractionError):
+    """Raise when instance registration fails."""
+
+
+class ServiceDeployFailed(ChainInteractionError):
+    """Raise when service activation fails."""

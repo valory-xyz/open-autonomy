@@ -1,0 +1,11 @@
+{
+    "dev": {
+        "protocol/dummy_author/dummy_protocol/0.1.0": "bafybeifuoztgfa2772jfvx5kyosgz7vrjfu6w6lo2mj3prziomdd3tp5xi",
+        "contract/dummy_author/dummy_contract/0.1.0": "bafybeigjwno7m7qthgybxwfglwfebnfghadcpmtzsn5kiw7f27ezcb7fyq",
+        "connection/dummy_author/dummy_connection/0.1.0": "bafybeiezr7lccxkfv2fslmrngmn6fmjkck6ukah7qfpioobpzuyam2xb2m",
+        "skill/dummy_author/dummy_skill/0.1.0": "bafybeibku44tyjantfk3344gjrwhc2pk3estuose4ewnvf72fjuphe7fjm",
+        "agent/dummy_author/dummy_agent/0.1.0": "bafybeihjl5fgwnfecwknnhulebj3e7ktyz6ba6flbjwmpibzj2ih3gweo4",
+        "service/dummy_author/dummy_service/0.1.0": "bafybeiehaezsrmyhndukl4cts75nlx2rtkoomwn26vqxbtsa4crzwj3lje"
+    },
+    "third_party": {}
+}
