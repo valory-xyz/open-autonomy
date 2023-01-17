@@ -19,16 +19,16 @@
 
 """Test utils."""
 
+import re
 from typing import Dict
 from unittest import mock
 
-import pytest, re
+import pytest
 from aea.configurations.data_types import PackageId, PublicId
 
 from autonomy.chain.exceptions import DependencyError
 from autonomy.chain.utils import (
     get_ipfs_hash_from_uri,
-    registry_contracts,
     verify_component_dependencies,
     verify_service_dependencies,
 )
