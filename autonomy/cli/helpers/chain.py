@@ -36,6 +36,8 @@ from autonomy.chain.constants import (
 )
 from autonomy.chain.exceptions import (
     ComponentMintFailed,
+    DependencyError,
+    FailedToRetrieveComponentMetadata,
     FailedToRetrieveTokenId,
     InstanceRegistrationFailed,
     InvalidMintParameter,
@@ -123,15 +125,20 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
             f"Please provide hash for NFT image to mint component on `{chain_type.value}` chain"
         )
 
-    verify_component_dependencies(
-        ledger_api=ledger_api,
-        contract_address=ContractConfigs.get(
-            COMPONENT_REGISTRY_CONTRACT.name
-        ).contracts[chain_type],
-        dependencies=dependencies,
-        package_configuration=package_configuration,
-        skip_hash_check=skip_hash_check,
-    )
+    try:
+        verify_component_dependencies(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                COMPONENT_REGISTRY_CONTRACT.name
+            ).contracts[chain_type],
+            dependencies=dependencies,
+            package_configuration=package_configuration,
+            skip_hash_check=skip_hash_check,
+        )
+    except FailedToRetrieveComponentMetadata as e:
+        raise click.ClickException(f"Dependency verification failed; {e}") from e
+    except DependencyError as e:
+        raise click.ClickException(f"Dependency verification failed; {e}") from e
 
     metadata_hash = publish_metadata(
         public_id=package_configuration.public_id,
@@ -197,15 +204,20 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
         package_type_config_class=PACKAGE_TYPE_TO_CONFIG_CLASS,
     )
 
-    verify_service_dependencies(
-        ledger_api=ledger_api,
-        contract_address=ContractConfigs.get(AGENT_REGISTRY_CONTRACT.name).contracts[
-            chain_type
-        ],
-        agent_id=agent_id,
-        service_configuration=cast(Service, package_configuration),
-        skip_hash_check=skip_hash_check,
-    )
+    try:
+        verify_service_dependencies(
+            ledger_api=ledger_api,
+            contract_address=ContractConfigs.get(
+                AGENT_REGISTRY_CONTRACT.name
+            ).contracts[chain_type],
+            agent_id=agent_id,
+            service_configuration=cast(Service, package_configuration),
+            skip_hash_check=skip_hash_check,
+        )
+    except FailedToRetrieveComponentMetadata as e:
+        raise click.ClickException(f"Dependency verification failed; {e}") from e
+    except DependencyError as e:
+        raise click.ClickException(f"Dependency verification failed; {e}") from e
 
     metadata_hash = publish_metadata(
         public_id=package_configuration.public_id,
@@ -277,7 +289,7 @@ def activate_service(
     except ServiceRegistrationFailed as e:
         raise click.ClickException(str(e)) from e
 
-    click.echo("Service activated successfully")
+    click.echo("Service activated succesfully")
 
 
 def register_instance(  # pylint: disable=too-many-arguments

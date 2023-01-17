@@ -1,0 +1,14 @@
+name: dummy_protocol
+author: dummy_author
+version: 0.1.0
+type: protocol
+description: The scaffold protocol scaffolds a protocol to be implemented by the developer.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+protocol_specification_id: open_aea/scaffold:0.1.0
+fingerprint:
+  __init__.py: bafybeifx6kkibxqs2usntjsageb5oj6m7ybia4vfq2ruzuolnbitkky3la
+  message.py: bafybeicnr2m7syjojyitd6yj754ia2r7wjqfnxrojnmdjy5aprkdbakh34
+  serialization.py: bafybeiehvj4sskk4ennn3rpedmgakv5m3kxtkakvewgtwtpao3kemvugsq
+fingerprint_ignore_patterns: []
+dependencies: {}
