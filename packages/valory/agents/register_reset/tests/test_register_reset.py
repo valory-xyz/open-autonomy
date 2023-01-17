@@ -16,6 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# flake8: noqa: F811
 
 """Integration tests for the valory/register_reset skill."""
 
@@ -41,6 +42,7 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     hardhat_port,
     ipfs_daemon,
     ipfs_domain,
+    key_pairs,
     nb_nodes,
     registries_scope_class,
     tendermint_port,
