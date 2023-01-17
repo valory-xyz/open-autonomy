@@ -102,20 +102,10 @@ Get a GenesisEvidence instance as a json dictionary.
 
 ```python
 @dataclass(frozen=True)
-class GenesisValidator()
+class GenesisValidator(TypeCheckMixin)
 ```
 
 A dataclass to store the genesis validator.
-
-<a id="packages.valory.skills.abstract_round_abci.models.GenesisValidator.__post_init__"></a>
-
-#### `__`post`_`init`__`
-
-```python
-def __post_init__() -> None
-```
-
-Check type consistency.
 
 <a id="packages.valory.skills.abstract_round_abci.models.GenesisValidator.to_json"></a>
 
@@ -306,6 +296,16 @@ def synchronized_data() -> BaseSynchronizedData
 
 Get the latest synchronized_data if available.
 
+<a id="packages.valory.skills.abstract_round_abci.models.SharedState.get_acn_result"></a>
+
+#### get`_`acn`_`result
+
+```python
+def get_acn_result() -> Any
+```
+
+Get the majority of the ACN deliverables.
+
 <a id="packages.valory.skills.abstract_round_abci.models.Requests"></a>
 
 ## Requests Objects
@@ -401,6 +401,8 @@ class TendermintRecoveryParams(TypeCheckMixin)
 ```
 
 A dataclass to hold all parameters related to agent <-> tendermint recovery procedures.
+
+This must be frozen so that we make sure it does not get edited.
 
 <a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs"></a>
 
@@ -572,7 +574,7 @@ Measure consensus block.
 ## BenchmarkTool Objects
 
 ```python
-class BenchmarkTool(Model,  FrozenMixin)
+class BenchmarkTool(Model,  TypeCheckMixin,  FrozenMixin)
 ```
 
 BenchmarkTool

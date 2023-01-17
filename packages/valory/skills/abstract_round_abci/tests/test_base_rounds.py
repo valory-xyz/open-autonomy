@@ -161,7 +161,7 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
             ABCIAppInternalError,
             match="internal error: `CollectDifferentUntilAllRound` encountered a value 'agent_0' that already exists.",
         ):
-            first_payload._sender = "other"
+            object.__setattr__(first_payload, "sender", "other")
             test_round.process_payload(first_payload)
 
         with pytest.raises(
@@ -288,7 +288,7 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
         test_round.collection.clear()
         payloads = get_dummy_tx_payloads(self.participants, value=None)
         for payload in payloads:  # must overwrite the value...
-            payload._value = None
+            object.__setattr__(payload, "value", None)
             test_round.process_payload(payload)
         assert test_round.most_voted_payload is None
         return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
@@ -485,7 +485,7 @@ class TestVotingRound(_BaseRoundTestClass):
         a, b, c, d = self.participants
 
         class InvalidPayload(BaseTxPayload):
-            transaction_type = "InvalidPayload"
+            """InvalidPayload"""
 
         def get_dummy_tx_payloads_(
             participants: FrozenSet[str],
@@ -569,7 +569,7 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
             consensus_params=self.consensus_params,
         )
         payloads = get_dummy_tx_payloads(self.participants)
-        payloads[3]._value = None
+        object.__setattr__(payloads[3], "value", None)
         for payload in payloads:
             test_round.process_payload(payload)
 

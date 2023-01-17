@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ from packages.valory.skills.hello_world_abci.payloads import (
     RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
-    TransactionType,
 )
 
 
@@ -37,19 +36,16 @@ def test_registration_payload() -> None:
     payload = RegistrationPayload(sender="sender")
 
     assert payload.sender == "sender"
-    assert payload.transaction_type == TransactionType.REGISTRATION
 
 
 def test_collect_randomness_payload() -> None:
     """Test `CollectRandomnessPayload`"""
 
-    payload = CollectRandomnessPayload(
-        sender="sender", round_id=1, randomness="1", id_="id"
-    )
+    payload = CollectRandomnessPayload(sender="sender", round_id=1, randomness="1")
 
     assert payload.round_id == 1
     assert payload.randomness == "1"
-    assert payload.id_ == "id"
+    assert payload.id_
     assert payload.data == {"round_id": 1, "randomness": "1"}
 
 
@@ -60,7 +56,6 @@ def test_select_keeper_payload() -> None:
 
     assert payload.keeper == "keeper"
     assert payload.data == {"keeper": "keeper"}
-    assert payload.transaction_type == TransactionType.SELECT_KEEPER
 
 
 def test_print_message_payload() -> None:
@@ -70,18 +65,14 @@ def test_print_message_payload() -> None:
 
     assert payload.message == "message"
     assert payload.data == {"message": "message"}
-    assert payload.transaction_type == TransactionType.PRINT_MESSAGE
 
 
 def test_reset_payload() -> None:
     """Test `ResetPayload`"""
 
-    payload = ResetPayload(sender="sender", period_count=1, id_="id")
+    payload = ResetPayload(sender="sender", period_count=1)
 
     assert payload.period_count == 1
-    assert payload.id_ == "id"
+    assert payload.id_
     assert payload.data == {"period_count": 1}
-    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
-
-    assert str(payload.transaction_type) == str(TransactionType.RESET)
-    assert payload.transaction_type == TransactionType.RESET
+    assert hash(payload)

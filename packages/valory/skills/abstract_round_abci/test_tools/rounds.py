@@ -21,11 +21,11 @@
 
 import re
 from copy import deepcopy
+from dataclasses import dataclass
 from enum import Enum
 from typing import (
     Any,
     Callable,
-    Dict,
     FrozenSet,
     Generator,
     List,
@@ -52,10 +52,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectionRound,
     ConsensusParams,
     OnlyKeeperSendsRound,
-    ROUND_COUNT_DEFAULT,
     TransactionNotValidError,
     VotingRound,
-    get_name,
 )
 
 
@@ -79,40 +77,12 @@ class DummyEvent(Enum):
     FAIL = "fail"
 
 
+@dataclass(frozen=True)
 class DummyTxPayload(BaseTxPayload):
     """Dummy Transaction Payload."""
 
-    transaction_type = "DummyPayload"
-    _value: Optional[str]
-    _vote: Optional[bool]
-
-    def __init__(
-        self,
-        sender: str,
-        value: Any,
-        vote: Optional[bool] = False,
-        round_count: int = ROUND_COUNT_DEFAULT,
-    ) -> None:
-        """Initialize a dummy transaction payload."""
-
-        super().__init__(sender, None, round_count)
-        self._value = value
-        self._vote = vote
-
-    @property
-    def value(self) -> Any:
-        """Get the tx value."""
-        return self._value
-
-    @property
-    def vote(self) -> Optional[bool]:
-        """Get the vote value."""
-        return self._vote
-
-    @property
-    def data(self) -> Dict[str, Any]:
-        """Data"""
-        return dict(value=self.value)
+    value: Optional[str] = None
+    vote: Optional[bool] = None
 
 
 class DummySynchronizedData(BaseSynchronizedData):
@@ -139,8 +109,8 @@ def get_dummy_tx_payloads(
 class DummyRound(AbstractRound):
     """Dummy round."""
 
-    allowed_tx_type = DummyTxPayload.transaction_type
-    payload_attribute = get_name(DummyTxPayload.value)
+    payload_class = DummyTxPayload
+    payload_attribute = "value"
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
@@ -613,7 +583,8 @@ class _BaseRoundTestClass(BaseRoundTestClass):  # pylint: disable=too-few-public
         test_round: AbstractRound, value: Optional[Any] = None
     ) -> None:
         """Test errors raised by payloads with wrong round count."""
-        payload_with_wrong_round_count = DummyTxPayload("sender", value, False, 0)
+        payload_with_wrong_round_count = DummyTxPayload("sender", value, False)
+        object.__setattr__(payload_with_wrong_round_count, "round_count", 0)
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape("Expected round count -1 and got 0."),

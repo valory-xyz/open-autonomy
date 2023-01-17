@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -69,10 +69,8 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
         # _MetaPayload.transaction_type_to_payload_cls, and restore it
         # in the teardown function. We do a shallow copy so we avoid
         # to modify the old mapping during the execution of the tests.
-        self.old_tx_type_to_payload_cls = copy(
-            _MetaPayload.transaction_type_to_payload_cls
-        )
-        _MetaPayload.transaction_type_to_payload_cls = {}
+        self.old_tx_type_to_payload_cls = copy(_MetaPayload.registry)
+        _MetaPayload.registry = {}
 
         self.run_cli_command(
             "create",
@@ -87,7 +85,7 @@ class BaseScaffoldFSMTest(AEATestCaseMany):
         self,
     ) -> None:
         """Teardown test."""
-        _MetaPayload.transaction_type_to_payload_cls = self.old_tx_type_to_payload_cls  # type: ignore
+        _MetaPayload.registry = self.old_tx_type_to_payload_cls  # type: ignore
         with suppress(OSError, FileExistsError, PermissionError):
             shutil.rmtree(str(Path(self.t, self.agent_name)))
 
@@ -172,7 +170,9 @@ class TestScaffoldFSMAutonomyTests(BaseScaffoldFSMTest):
         # from the AEA command `aea test by-path ...`
         result = self.start_subprocess(*cli_args)
         result.wait(timeout=60.0)
-        assert result.returncode == 0
+        assert (
+            result.returncode == 0
+        ), f"stdout: {self.stdout[result.pid]}, stderr: {self.stderr[result.pid]}"
 
 
 class TestScaffoldFSMLocalRegistry(BaseScaffoldFSMTest):
@@ -213,4 +213,6 @@ class TestScaffoldFSMLocalRegistry(BaseScaffoldFSMTest):
         # from the AEA command `aea test by-path ...`
         result = self.start_subprocess(*cli_args)
         result.wait(timeout=60.0)
-        assert result.returncode == 0
+        assert (
+            result.returncode == 0
+        ), f"stdout: {self.stdout[result.pid]}, stderr: {self.stderr[result.pid]}"

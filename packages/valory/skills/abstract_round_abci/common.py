@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ class RandomnessBehaviour(BaseBehaviour, ABC):
                 self.context.logger.info(f"Retrieved DRAND values: {observation}.")
 
         if observation:
-            payload = self.payload_class(
+            payload = self.payload_class(  # type: ignore
                 self.context.agent_address,
                 round_id=observation["round"],
                 randomness=observation["randomness"],
@@ -220,7 +220,7 @@ class SelectKeeperBehaviour(BaseBehaviour, ABC):
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            payload = self.payload_class(
+            payload = self.payload_class(  # type: ignore
                 self.context.agent_address, self._select_keeper()
             )
 

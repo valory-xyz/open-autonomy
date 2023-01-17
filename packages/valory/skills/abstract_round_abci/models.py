@@ -22,6 +22,7 @@
 import inspect
 import json
 from abc import ABC, ABCMeta
+from collections import Counter
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -38,7 +39,6 @@ from typing import (
     cast,
     get_type_hints,
 )
-from unittest.mock import MagicMock
 
 from aea.exceptions import enforce
 from aea.skills.base import Model, SkillContext
@@ -47,15 +47,16 @@ from packages.valory.protocols.http.message import HttpMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
-    AbstractRound,
     BaseSynchronizedData,
     ConsensusParams,
     RESET_INDEX_DEFAULT,
     ROUND_COUNT_DEFAULT,
     RoundSequence,
+    consensus_threshold,
     get_name,
 )
 from packages.valory.skills.abstract_round_abci.utils import (
+    check_type,
     get_data_from_nested_dict,
     get_value_with_type,
 )
@@ -66,10 +67,6 @@ DEFAULT_BACKOFF_FACTOR: float = 2.0
 DEFAULT_TYPE_NAME: str = "str"
 
 
-HeadersType = List[Tuple[str, str]]
-ParametersType = HeadersType
-
-
 class FrozenMixin:  # pylint: disable=too-few-public-methods
     """Mixin for classes to enforce read-only attributes."""
 
@@ -78,13 +75,17 @@ class FrozenMixin:  # pylint: disable=too-few-public-methods
     def __delattr__(self, *args: Any) -> None:
         """Override __delattr__ to make object immutable."""
         if self._frozen:
-            raise AttributeError("This object is frozen!")
+            raise AttributeError(
+                "This object is frozen! To unfreeze switch `self._frozen` via `__dict__`."
+            )
         super().__delattr__(*args)
 
     def __setattr__(self, *args: Any) -> None:
         """Override __setattr__ to make object immutable."""
         if self._frozen:
-            raise AttributeError("This object is frozen!")
+            raise AttributeError(
+                "This object is frozen! To unfreeze switch `self._frozen` via `__dict__`."
+            )
         super().__setattr__(*args)
 
 
@@ -95,27 +96,7 @@ class TypeCheckMixin:  # pylint: disable=too-few-public-methods
         """Check that the type of the provided attributes is correct."""
         for attr, type_ in get_type_hints(self).items():
             value = getattr(self, attr)
-            self.__check_type(attr, value, type_)
-
-    @classmethod
-    def __check_type(cls, name: str, value: Any, type_: Type) -> None:
-        """Check type."""
-        if type_ is Any:
-            # trivial - any type requires no check
-            return
-        if isinstance(value, MagicMock):
-            # testing - any magic value is ignored
-            return
-        generics = () if getattr(type_, "__args__", None) is None else type_.__args__
-        if len(generics) > 0 and inspect.isclass(value):
-            if not any([issubclass(value, generic) for generic in generics]):
-                raise TypeError(f"{name} must be a subclass of {generics}")
-        elif len(generics) > 0:
-            # non-trivial - many different cases possible
-            return
-        else:
-            if not isinstance(value, type_):
-                raise TypeError(f"{name} must be a {type_}, found {type(value)}")
+            check_type(attr, value, type_)
 
     @classmethod
     def _ensure(cls, key: str, kwargs: Dict, type_: Any) -> Any:
@@ -128,7 +109,7 @@ class TypeCheckMixin:  # pylint: disable=too-few-public-methods
         )
         value = kwargs.pop(key)
         try:
-            cls.__check_type(key, value, type_)
+            check_type(key, value, type_)
         except TypeError:  # pragma: nocover
             enforce(
                 False,
@@ -172,18 +153,10 @@ class GenesisEvidence(TypeCheckMixin):
 
 
 @dataclass(frozen=True)
-class GenesisValidator:
+class GenesisValidator(TypeCheckMixin):
     """A dataclass to store the genesis validator."""
 
     pub_key_types: Tuple[str, ...]
-
-    def __post_init__(self) -> None:
-        """Check type consistency."""
-        if not (
-            isinstance(self.pub_key_types, tuple)
-            and all([isinstance(x, str) for x in self.pub_key_types])
-        ):
-            raise TypeError("pub_key_types must be a Tuple[str, ...]")
 
     def to_json(self) -> Dict[str, List[str]]:
         """Get a GenesisValidator instance as a json dictionary."""
@@ -330,9 +303,6 @@ class BaseParams(
             "share_tm_config_on_startup", kwargs, bool
         )
         self.tendermint_p2p_url: str = self._ensure("tendermint_p2p_url", kwargs, str)
-        self.ipfs_domain_name: Optional[str] = self._ensure(
-            "ipfs_domain_name", kwargs, Optional[str]
-        )
         setup_params_: Dict[str, Any] = self._ensure("setup", kwargs, dict)
 
         def check_val(val: Any, skill_id: str) -> List[Any]:
@@ -427,8 +397,9 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
         """Initialize the state."""
         self.abci_app_cls._is_abstract = skill_context.is_abstract_component
         self._round_sequence: Optional[RoundSequence] = None
+        self.address_to_acn_deliverable: Dict[str, Any] = {}
         self.tm_recovery_params: TendermintRecoveryParams = TendermintRecoveryParams(
-            self.abci_app_cls.initial_round_cls
+            self.abci_app_cls.initial_round_cls.auto_round_id()
         )
         kwargs["skill_context"] = skill_context
         super().__init__(*args, **kwargs)
@@ -460,6 +431,24 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
     def synchronized_data(self) -> BaseSynchronizedData:
         """Get the latest synchronized_data if available."""
         return self.round_sequence.latest_synchronized_data
+
+    def get_acn_result(self) -> Any:
+        """Get the majority of the ACN deliverables."""
+        if len(self.address_to_acn_deliverable) == 0:
+            return None
+
+        # the current agent does not participate, so we need `nb_participants - 1`
+        threshold = consensus_threshold(self.synchronized_data.nb_participants - 1)
+        counter = Counter(self.address_to_acn_deliverable.values())
+        most_common_value, n_appearances = counter.most_common(1)[0]
+
+        if n_appearances < threshold:
+            return None
+
+        self.context.logger.debug(
+            f"ACN result is '{most_common_value}' from '{self.address_to_acn_deliverable}'."
+        )
+        return most_common_value
 
 
 class Requests(Model, FrozenMixin):
@@ -519,10 +508,9 @@ class RetriesInfo(TypeCheckMixin):
     @classmethod
     def from_json_dict(cls, kwargs: Dict) -> "RetriesInfo":
         """Initialize a retries info object from kwargs."""
-        retries_attempted: int = 0
         retries: int = kwargs.pop("retries", NUMBER_OF_RETRIES)
         backoff_factor: float = kwargs.pop("backoff_factor", DEFAULT_BACKOFF_FACTOR)
-        return cls(retries, backoff_factor, retries_attempted)
+        return cls(retries, backoff_factor)
 
     @property
     def suggested_sleep_time(self) -> float:
@@ -532,9 +520,12 @@ class RetriesInfo(TypeCheckMixin):
 
 @dataclass(frozen=True)
 class TendermintRecoveryParams(TypeCheckMixin):
-    """A dataclass to hold all parameters related to agent <-> tendermint recovery procedures."""
+    """A dataclass to hold all parameters related to agent <-> tendermint recovery procedures.
 
-    reset_from_round: Type[AbstractRound]
+    This must be frozen so that we make sure it does not get edited.
+    """
+
+    reset_from_round: str
     round_count: int = ROUND_COUNT_DEFAULT
     reset_index: int = RESET_INDEX_DEFAULT
     reset_params: Optional[List[Tuple[str, str]]] = None
@@ -548,8 +539,12 @@ class ApiSpecs(Model, FrozenMixin, TypeCheckMixin):
         self.url: str = self._ensure("url", kwargs, str)
         self.api_id: str = self._ensure("api_id", kwargs, str)
         self.method: str = self._ensure("method", kwargs, str)
-        self.headers: HeadersType = self._ensure("headers", kwargs, list)
-        self.parameters: ParametersType = self._ensure("parameters", kwargs, list)
+        self.headers: List[Tuple[str, str]] = self._ensure(
+            "headers", kwargs, List[Tuple[str, str]]
+        )
+        self.parameters: List[Tuple[str, str]] = self._ensure(
+            "parameters", kwargs, List[Tuple[str, str]]
+        )
         self.response_info = ResponseInfo.from_json_dict(kwargs)
         self.retries_info = RetriesInfo.from_json_dict(kwargs)
         super().__init__(*args, **kwargs)
@@ -730,7 +725,7 @@ class BenchmarkBehaviour:
         return self._measure(BenchmarkBlockTypes.CONSENSUS.value)
 
 
-class BenchmarkTool(Model, FrozenMixin):
+class BenchmarkTool(Model, TypeCheckMixin, FrozenMixin):
     """
     BenchmarkTool
 
@@ -743,7 +738,8 @@ class BenchmarkTool(Model, FrozenMixin):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Benchmark tool for rounds behaviours."""
         self.benchmark_data = {}
-        self.log_dir = Path(kwargs.pop("log_dir", "/logs"))
+        log_dir_ = self._ensure("log_dir", kwargs, str)
+        self.log_dir = Path(log_dir_)
         super().__init__(*args, **kwargs)
         self._frozen = True
 

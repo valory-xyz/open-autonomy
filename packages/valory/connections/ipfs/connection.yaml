@@ -1,0 +1,31 @@
+name: ipfs
+author: valory
+version: 0.1.0
+type: connection
+description: A connection responsible for uploading and downloading files from IPFS.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: bafybeiercvjoct4tygo4oif5y4chnst2y7b6mhdgdj3zvoeakstbn4m7g4
+  connection.py: bafybeifnjyjqmhlxenw7m4rfnjw2b6mwaevdl3hrcalefptd2tpm5lrbcy
+  readme.md: bafybeihdrtloo2stz7frhfhtl5m7ewwigdeehnujf6julwj6c5pzr7iefu
+  tests/__init__.py: bafybeicqjmce5v5ympy2rcryfh644rxrtujvbcuzk7ylmfmzynoh6wujx4
+  tests/test_connection.py: bafybeicloh5qckpfbggemscbji4czk774wjcjod3liej3hxjyvecl4zxiq
+fingerprint_ignore_patterns: []
+connections: []
+protocols:
+- valory/ipfs:0.1.0:bafybeigknxxwh2xts7ijbacils4a4cgq7jhcdvwahshbw22zw5hnncsfla
+class_name: IpfsConnection
+config:
+  ipfs_domain: null
+excluded_protocols: []
+restricted_to_protocols: []
+dependencies:
+  ipfshttpclient:
+    version: ==0.8.0a2
+  open-aea-cli-ipfs:
+    version: ==1.28.0.post1
+  requests:
+    version: ==2.28.1
+is_abstract: false
+cert_requests: []

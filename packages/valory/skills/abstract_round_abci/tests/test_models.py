@@ -35,6 +35,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from aea.exceptions import AEAEnforceError
+from typing_extensions import Literal, TypedDict
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
@@ -59,8 +60,9 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.abstract_round_abci.models import (
-    TypeCheckMixin,
+    TendermintRecoveryParams,
     _MetaSharedState,
+    check_type,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import AbciAppTest
 from packages.valory.skills.abstract_round_abci.tests.conftest import (
@@ -74,8 +76,8 @@ BASE_DUMMY_SPECS_CONFIG = dict(
     url="http://dummy",
     api_id="api_id",
     method="GET",
-    headers=[["Dummy-Header", "dummy_value"]],
-    parameters=[["Dummy-Param", "dummy_param"]],
+    headers=[("Dummy-Header", "dummy_value")],
+    parameters=[("Dummy-Param", "dummy_param")],
 )
 
 
@@ -122,8 +124,8 @@ class TestApiSpecsModel:
         assert self.api_specs.url == "http://dummy"
         assert self.api_specs.api_id == "api_id"
         assert self.api_specs.method == "GET"
-        assert self.api_specs.headers == [["Dummy-Header", "dummy_value"]]
-        assert self.api_specs.parameters == [["Dummy-Param", "dummy_param"]]
+        assert self.api_specs.headers == [("Dummy-Header", "dummy_value")]
+        assert self.api_specs.parameters == [("Dummy-Param", "dummy_param")]
         assert self.api_specs.response_info.response_key == "value"
         assert self.api_specs.response_info.response_index == 0
         assert self.api_specs.response_info.response_type == "float"
@@ -164,8 +166,8 @@ class TestApiSpecsModel:
         actual_specs = {
             "url": "http://dummy",
             "method": "GET",
-            "headers": [["Dummy-Header", "dummy_value"]],
-            "parameters": [["Dummy-Param", "dummy_param"]],
+            "headers": [("Dummy-Header", "dummy_value")],
+            "parameters": [("Dummy-Param", "dummy_param")],
         }
 
         specs = self.api_specs.get_spec()
@@ -322,7 +324,7 @@ class ConcreteRound(AbstractRound):
 
     synchronized_data_class = MagicMock()
     payload_attribute = MagicMock()
-    allowed_tx_type = MagicMock()
+    payload_class = MagicMock()
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Handle the end of the block."""
@@ -382,6 +384,39 @@ class TestSharedState:
                 == "0xoracle"
             )
 
+    @pytest.mark.parametrize(
+        "address_to_acn_deliverable, n_participants, expected",
+        (
+            ({}, 4, None),
+            ({i: "test" for i in range(4)}, 4, "test"),
+            (
+                {i: TendermintRecoveryParams("test") for i in range(4)},
+                4,
+                TendermintRecoveryParams("test"),
+            ),
+            ({1: "test", 2: "non-matching", 3: "test", 4: "test"}, 4, "test"),
+            ({i: "test" for i in range(4)}, 4, "test"),
+            ({1: "no", 2: "result", 3: "matches", 4: ""}, 4, None),
+        ),
+    )
+    def test_get_acn_result(
+        self,
+        address_to_acn_deliverable: Dict[str, Any],
+        n_participants: int,
+        expected: Optional[str],
+    ) -> None:
+        """Test `get_acn_result`."""
+        shared_state = SharedState(
+            abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
+        )
+        shared_state.context.params.setup_params = {"test": []}
+        shared_state.setup()
+        shared_state.synchronized_data.update(participants=set(range(n_participants)))
+        shared_state.address_to_acn_deliverable = address_to_acn_deliverable
+        actual = shared_state.get_acn_result()
+
+        assert actual == expected
+
     def test_recovery_params_on_init(self) -> None:
         """Test that `tm_recovery_params` get initialized correctly."""
         shared_state = SharedState(name="", skill_context=MagicMock())
@@ -390,7 +425,7 @@ class TestSharedState:
         assert shared_state.tm_recovery_params.reset_index == RESET_INDEX_DEFAULT
         assert (
             shared_state.tm_recovery_params.reset_from_round
-            == AbciAppTest.initial_round_cls
+            == AbciAppTest.initial_round_cls.auto_round_id()
         )
         assert shared_state.tm_recovery_params.reset_params is None
 
@@ -484,7 +519,6 @@ def test_base_params_model_initialization() -> None:
         on_chain_service_id=None,
         share_tm_config_on_startup=False,
         tendermint_p2p_url="",
-        ipfs_domain_name=None,
     )
     bp = BaseParams(**kwargs)
 
@@ -513,9 +547,7 @@ def test_genesis_block() -> None:
     gb = GenesisBlock(**json)
     assert gb.to_json() == json
 
-    with pytest.raises(
-        TypeError, match="max_bytes must be a <class 'str'>, found <class 'int'>"
-    ):
+    with pytest.raises(TypeError, match="Error in field 'max_bytes'. Expected type .*"):
         json["max_bytes"] = 0  # type: ignore
         GenesisBlock(**json)
 
@@ -533,7 +565,9 @@ def test_genesis_validator() -> None:
     ge = GenesisValidator(pub_key_types=tuple(json["pub_key_types"]))
     assert ge.to_json() == json
 
-    with pytest.raises(TypeError, match="pub_key_types must be a Tuple"):
+    with pytest.raises(
+        TypeError, match="Error in field 'pub_key_types'. Expected type .*"
+    ):
         GenesisValidator(**json)  # type: ignore
 
 
@@ -578,32 +612,97 @@ def test_shared_state_instantiation_without_attributes_raises_error() -> None:
             abci_app_cls = MagicMock
 
 
-def test_type_check_mixin() -> None:
+@dataclass
+class A:
+    """Class for testing."""
+
+    value: int
+
+
+@dataclass
+class B:
+    """Class for testing."""
+
+    value: str
+
+
+class C(TypedDict):
+    """Class for testing."""
+
+    name: str
+    year: int
+
+
+class D(TypedDict, total=False):
+    """Class for testing."""
+
+    name: str
+    year: int
+
+
+testdata_positive = [
+    ("test_arg", 1, int),
+    ("test_arg", "1", str),
+    ("test_arg", True, bool),
+    ("test_arg", 1, Optional[int]),
+    ("test_arg", None, Optional[int]),
+    ("test_arg", "1", Optional[str]),
+    ("test_arg", None, Optional[str]),
+    ("test_arg", None, Optional[bool]),
+    ("test_arg", None, Optional[List[int]]),
+    ("test_arg", [], Optional[List[int]]),
+    ("test_arg", [1], Optional[List[int]]),
+    ("test_arg", {"str": 1}, Optional[Dict[str, int]]),
+    ("test_arg", {"str": A(1)}, Dict[str, A]),
+    ("test_arg", [("1", "2")], List[Tuple[str, str]]),
+    ("test_arg", [1], List[Optional[int]]),
+    ("test_arg", [1, None], List[Optional[int]]),
+    ("test_arg", A, Type[A]),
+    ("test_arg", A, Optional[Type[A]]),
+    ("test_arg", None, Optional[Type[A]]),
+    ("test_arg", MagicMock(), Optional[Type[A]]),  # any type allowed
+    ("test_arg", {"name": "str", "year": 1}, C),
+    ("test_arg", 42, Literal[42]),
+    ("test_arg", {"name": "str"}, D),
+]
+
+
+@pytest.mark.parametrize("name,value,type_hint", testdata_positive)
+def test_type_check_positive(name: str, value: Any, type_hint: Any) -> None:
     """Test the type check mixin."""
 
-    @dataclass
-    class A:
-        """Class for testing."""
+    check_type(name, value, type_hint)
 
-        value: int
 
-    @dataclass
-    class TestClass(TypeCheckMixin):
-        """Class for testing."""
+testdata_negative = [
+    ("test_arg", "1", int),
+    ("test_arg", 1, str),
+    ("test_arg", None, bool),
+    ("test_arg", "1", Optional[int]),
+    ("test_arg", 1, Optional[str]),
+    ("test_arg", 1, Optional[bool]),
+    ("test_arg", ["1"], Optional[List[int]]),
+    ("test_arg", {"str": "1"}, Optional[Dict[str, int]]),
+    ("test_arg", {1: 1}, Optional[Dict[str, int]]),
+    ("test_arg", {"str": B("1")}, Dict[str, A]),
+    ("test_arg", [()], List[Tuple[str, str]]),
+    ("test_arg", [("1",)], List[Tuple[str, str]]),
+    ("test_arg", [("1", 1)], List[Tuple[str, str]]),
+    ("test_arg", [("1", 1, "1")], List[Tuple[str, ...]]),
+    ("test_arg", ["1"], List[Optional[int]]),
+    ("test_arg", [1, None, "1"], List[Optional[int]]),
+    ("test_arg", B, Type[A]),
+    ("test_arg", B, Optional[Type[A]]),
+    ("test_arg", {"name": "str", "year": "1"}, C),
+    ("test_arg", 41, Literal[42]),
+    ("test_arg", C({"name": "str", "year": 1}), A),
+    ("test_arg", {"name": "str"}, C),
+]
 
-        simple_type_arg: str
-        any_type_arg: Any
-        magic_mock_type_arg: MagicMock
-        non_concrete_arg: Type[A]
-        complex_type_arg: Optional[List[str]] = None
 
-    args = ("str", None, MagicMock(), A, None)
-    TestClass(*args)
-    with pytest.raises(TypeError, match="non_concrete_arg must be a subclass of .*"):
-        args_ = ("str", None, MagicMock(), MagicMock, None)
-        TestClass(*args_)  # type: ignore
-    with pytest.raises(
-        TypeError, match="simple_type_arg must be a <class 'str'>, found <class 'int'>"
-    ):
-        args__ = (1, None, MagicMock(), MagicMock, None)
-        TestClass(*args__)  # type: ignore
+@pytest.mark.parametrize("name,value,type_hint", testdata_negative)
+def test_type_check_negative(name: str, value: Any, type_hint: Any) -> None:
+    """Test the type check mixin."""
+
+    with pytest.raises(TypeError):
+        check_type(name, value, type_hint)

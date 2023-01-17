@@ -244,3 +244,27 @@ Initialize dialogues.
 
 - `kwargs`: keyword arguments
 
+<a id="packages.valory.skills.abstract_round_abci.dialogues.IpfsDialogues"></a>
+
+## IpfsDialogues Objects
+
+```python
+class IpfsDialogues(Model,  BaseIpfsDialogues)
+```
+
+A class to keep track of IPFS dialogues.
+
+<a id="packages.valory.skills.abstract_round_abci.dialogues.IpfsDialogues.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(**kwargs: Any) -> None
+```
+
+Initialize dialogues.
+
+**Arguments**:
+
+- `kwargs`: keyword arguments
+

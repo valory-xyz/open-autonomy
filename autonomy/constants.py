@@ -22,7 +22,6 @@ import os
 from autonomy.__version__ import __version__ as DEFAULT_AUTONOMY_VERSION
 
 
-VALORY = "valory"
 DEFAULT_BUILD_FOLDER = "abci_build"
 DEFAULT_KEYS_FILE = "keys.json"
 DEFAULT_IMAGE_VERSION = "latest"
@@ -58,4 +57,4 @@ DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE = (
 ACN_IMAGE_NAME = os.environ.get("ACN_IMAGE_NAME", "valory/open-acn-node")
 
 OAR_IMAGE = "valory/oar-{agent}:{version}"
-ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeid2edxpmpw3ybasrpj6s7my4xhhqh5e7yejnhgpng45wdfoeyhahq"
+ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeibpkhjzgihmnopsoypxevbvyzjfkvgpvharo6cbgkiv5qcpefd6da"

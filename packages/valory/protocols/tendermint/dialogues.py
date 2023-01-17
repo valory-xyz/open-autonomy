@@ -38,20 +38,34 @@ class TendermintDialogue(Dialogue):
     """The tendermint dialogue class maintains state of a dialogue and manages it."""
 
     INITIAL_PERFORMATIVES: FrozenSet[Message.Performative] = frozenset(
-        {TendermintMessage.Performative.REQUEST}
+        {
+            TendermintMessage.Performative.GET_GENESIS_INFO,
+            TendermintMessage.Performative.GET_RECOVERY_PARAMS,
+        }
     )
     TERMINAL_PERFORMATIVES: FrozenSet[Message.Performative] = frozenset(
-        {TendermintMessage.Performative.RESPONSE, TendermintMessage.Performative.ERROR}
+        {
+            TendermintMessage.Performative.GENESIS_INFO,
+            TendermintMessage.Performative.RECOVERY_PARAMS,
+            TendermintMessage.Performative.ERROR,
+        }
     )
     VALID_REPLIES: Dict[Message.Performative, FrozenSet[Message.Performative]] = {
         TendermintMessage.Performative.ERROR: frozenset(),
-        TendermintMessage.Performative.REQUEST: frozenset(
+        TendermintMessage.Performative.GENESIS_INFO: frozenset(),
+        TendermintMessage.Performative.GET_GENESIS_INFO: frozenset(
             {
-                TendermintMessage.Performative.RESPONSE,
+                TendermintMessage.Performative.GENESIS_INFO,
                 TendermintMessage.Performative.ERROR,
             }
         ),
-        TendermintMessage.Performative.RESPONSE: frozenset(),
+        TendermintMessage.Performative.GET_RECOVERY_PARAMS: frozenset(
+            {
+                TendermintMessage.Performative.RECOVERY_PARAMS,
+                TendermintMessage.Performative.ERROR,
+            }
+        ),
+        TendermintMessage.Performative.RECOVERY_PARAMS: frozenset(),
     }
 
     class Role(Dialogue.Role):
@@ -62,8 +76,8 @@ class TendermintDialogue(Dialogue):
     class EndState(Dialogue.EndState):
         """This class defines the end states of a tendermint dialogue."""
 
-        CONFIG_SHARED = 0
-        CONFIG_NOT_SHARED = 1
+        COMMUNICATED = 0
+        NOT_COMMUNICATED = 1
 
     def __init__(
         self,
@@ -94,8 +108,8 @@ class TendermintDialogues(Dialogues, ABC):
 
     END_STATES = frozenset(
         {
-            TendermintDialogue.EndState.CONFIG_SHARED,
-            TendermintDialogue.EndState.CONFIG_NOT_SHARED,
+            TendermintDialogue.EndState.COMMUNICATED,
+            TendermintDialogue.EndState.NOT_COMMUNICATED,
         }
     )
 

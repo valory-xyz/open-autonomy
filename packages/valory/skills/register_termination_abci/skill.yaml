@@ -10,8 +10,8 @@ fingerprint:
   __init__.py: bafybeicc7zwcm4vljmtobhmgkqinpjgoztznwhfzkndvnnsrolr6eivmsm
   behaviours.py: bafybeicmgb3hz2f6rhnpctcojeesayvmwicvl4mybbseyscdvzr6luepni
   composition.py: bafybeiadbacacvh4bshv3butbcomyjyxm45vcguivos5ghtflsrwxzv66y
-  dialogues.py: bafybeidlaxto7h652uthpw6ycewqmd44jckh2dztgr464bywieinuha7cm
-  handlers.py: bafybeicjoxcuw7d4zaumh5gjc5tbhljxdhp73evohr4npurxjmkux4g4qy
+  dialogues.py: bafybeif7uhfjkcz3ryhti6gafqxhvciw4ec5bdshxvq3355tun5ydkzrna
+  handlers.py: bafybeifktnmipajc5wtdfjlb46uqd6owlwlcxdvurabehqvdxkvwxdckum
   models.py: bafybeiha3uip6slahhuqdiusjeosy3yhr7r6u3wxxhrrhhokaxuczofrsm
   tests/__init__.py: bafybeid2pb3mfobqtzsadxzris67d4hkmcflqfnzay3y3errmtd7tdtvoe
   tests/test_behaviours.py: bafybeiawbfepzyltckutgb3hettltrn5pladutcbzlqnpd3jdu4bixlb3i
@@ -23,10 +23,10 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeid2edxpmpw3ybasrpj6s7my4xhhqh5e7yejnhgpng45wdfoeyhahq
-- valory/registration_abci:0.1.0:bafybeiehilaea4ylgbokov3shod5cvnkh4zm2i6onwfnfgpskwxwunz6eu
-- valory/reset_pause_abci:0.1.0:bafybeifcazd2s3hfgvhv37uabmxagijpjlgo5jg4pfc3ncikajgezxg3ei
-- valory/termination_abci:0.1.0:bafybeigabhpivafxlc344b4ahdj2c5wvvsquqfwdzu3bqqigrby3gipzdu
+- valory/abstract_round_abci:0.1.0:bafybeibpkhjzgihmnopsoypxevbvyzjfkvgpvharo6cbgkiv5qcpefd6da
+- valory/registration_abci:0.1.0:bafybeidsjpifmwso4dd4x7p2hj3p6sj76q57psk5kcwaozs6x2ccvdlvre
+- valory/reset_pause_abci:0.1.0:bafybeibalvw33vt2ocqevued742eaajyvnrlc5t6rqlish4gtmtw5etrd4
+- valory/termination_abci:0.1.0:bafybeifruk3bnnjq7r5l5a4xn7db6oytbma7ka5gvbrgnqej7q4nlgqaru
 behaviours:
   main:
     args: {}
@@ -64,6 +64,9 @@ models:
   http_dialogues:
     args: {}
     class_name: HttpDialogues
+  ipfs_dialogues:
+    args: {}
+    class_name: IpfsDialogues
   ledger_api_dialogues:
     args: {}
     class_name: LedgerApiDialogues
@@ -93,7 +96,7 @@ models:
           version: {}
         voting_power: '10'
       history_check_timeout: 1205
-      ipfs_domain_name: null
+      init_fallback_gas: 0
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
       max_attempts: 10

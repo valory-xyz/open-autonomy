@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,10 +21,7 @@
 
 # pylint: skip-file
 
-from packages.valory.skills.reset_pause_abci.payloads import (
-    ResetPausePayload,
-    TransactionType,
-)
+from packages.valory.skills.reset_pause_abci.payloads import ResetPausePayload
 
 
 def test_reset_pause_payload() -> None:
@@ -34,5 +31,4 @@ def test_reset_pause_payload() -> None:
 
     assert payload.period_count == 1
     assert payload.data == {"period_count": 1}
-    assert payload.transaction_type == TransactionType.RESETPAUSE
     assert ResetPausePayload.from_json(payload.json) == payload

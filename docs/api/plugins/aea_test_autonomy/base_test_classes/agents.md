@@ -27,7 +27,7 @@ n_periods: is the number of periods this event should appear for the check to be
 @pytest.mark.e2e
 
 @pytest.mark.integration
-class BaseTestEnd2End(AEATestCaseMany,  UseFlaskTendermintNode)
+class BaseTestEnd2End(AEATestCaseMany,  UseFlaskTendermintNode,  UseLocalIpfs)
 ```
 
 Base class for end-to-end tests of agents with a skill extending the abstract_abci_round skill.

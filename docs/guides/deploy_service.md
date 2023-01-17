@@ -1,11 +1,12 @@
 Deploying a service with the {{open_autonomy}} framework requires that you have an already available service configuration, which you could be a service created from scratch, fetched from the [IPFS](https://ipfs.io/), or already registered in the on-chain protocol.
 
 ## What you will learn
+
 In this guide, you will learn how to:
 
 * Create a local deployment for testing purposes of
-    * a service stored in your machine.
-    * a service available in the on-chain registry.
+  * a service stored in your machine.
+  * a service available in the on-chain registry.
 * Create a cloud deployment of a service.
 
 Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
@@ -14,18 +15,20 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 Local deployments of a service are recommended to test your service before you publish it to a remote registry. Open a terminal and follow the steps below.
 
-1. Navigate to the local folder of the service that you want to deploy. That is, the folder containing the `service.yaml` file.
+1. **Build the agents' image.** Navigate to the local folder of the service that you want to deploy, that is, the folder containing the `service.yaml` file, and build the Docker image of the service agents:
 
-2. Build the Docker image of the service agents:
     ```bash
+    cd <service_folder>
     autonomy build-image
     ```
+
     After the command finishes building the image, you can see that it has been created by executing:
+
     ```bash
     docker image ls | grep <service_agent_name>
     ```
 
-3. Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that make up the service.
+2. **Prepare the keys file.** Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that make up the service.
 
     ??? example "Example of a `keys.json` file"
 
@@ -54,12 +57,14 @@ Local deployments of a service are recommended to test your service before you p
         ]
         ```
 
-4. Build the deployment setup for the service:
+3. **Build the deployment.** Within the service folder, execute the command below to build the service deployment.
+
     ```bash
     autonomy deploy build keys.json --aev
     ```
 
     This will create a deployment environment within the `./abci_build` folder with the following structure:
+
     ```bash
     abci_build/
     ├── agent_keys
@@ -78,28 +83,29 @@ Local deployments of a service are recommended to test your service before you p
     │   ├── tm_state
     │   └── venvs
     └── docker-compose.yaml
-    ```    
+    ```
 
-5. Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally using
+4. **Run the service.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
+
     ```bash
     cd abci_build
     autonomy deploy run
     ```
+
     You can cancel the local execution by pressing `Ctrl-C`.
 
-
-
 ## On-chain deployment
+
 The {{open_autonomy}} framework provides a convenient interface for services that are [registered in the on-chain protocol](./register_packages_on_chain.md##register-a-service).
 
   1. **Find the service ID.** Explore the [services section](https://protocol.autonolas.network/agents) of the protocol frontend, and note the ID of the service that you want to deploy. The service must be in **Finished Registration** state.
 
   2. **Execute the service deployment.** Execute the following command
+
     ```bash
     autonomy deploy from-token <ID> keys.json --use-goerli
     ```
     where `keys.json` contains the addresses and keys of (some of) the registered agents in the service.
-
 
 ## Cloud deployment
 

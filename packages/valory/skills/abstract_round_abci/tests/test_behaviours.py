@@ -49,6 +49,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     _MetaRoundBehaviour,
 )
+from packages.valory.skills.abstract_round_abci.models import TendermintRecoveryParams
 
 
 BEHAVIOUR_A_ID = "behaviour_a"
@@ -71,7 +72,7 @@ class RoundA(AbstractRound):
     """Round A."""
 
     round_id = ROUND_A_ID
-    allowed_tx_type = "payload_a"
+    payload_class = BaseTxPayload
     payload_attribute = ""
     synchronized_data_class = BaseSynchronizedData
 
@@ -89,7 +90,7 @@ class RoundB(AbstractRound):
     """Round B."""
 
     round_id = ROUND_B_ID
-    allowed_tx_type = "payload_b"
+    payload_class = BaseTxPayload
     payload_attribute = ""
     synchronized_data_class = BaseSynchronizedData
 
@@ -107,7 +108,7 @@ class ConcreteBackgroundRound(AbstractRound):
     """Concrete Background Round."""
 
     round_id = ROUND_B_ID
-    allowed_tx_type = "background_payload"
+    payload_class = BaseTxPayload
     payload_attribute = ""
     synchronized_data_class = BaseSynchronizedData
 
@@ -208,7 +209,6 @@ class TestAbstractRoundBehaviour:
         context_mock = MagicMock()
         context_mock.state.round_sequence = self.round_sequence_mock
         context_mock.state.round_sequence.syncing_up = False
-        context_mock.params.ipfs_domain_name = None
         self.round_sequence_mock.block_stall_deadline_expired = False
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
         self.behaviour.tm_manager = self.behaviour.instantiate_behaviour_cls(TmManager)  # type: ignore
@@ -626,7 +626,6 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour(_: mock._patch) -> None:
     round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
     context_mock = MagicMock()
     context_mock.state.round_sequence = round_sequence
-    context_mock.params.ipfs_domain_name = None
     behaviour = RoundBehaviour(name="", skill_context=context_mock)
     behaviour.setup()
 
@@ -673,6 +672,10 @@ def test_reset_should_be_performed_when_tm_unhealthy() -> None:
     round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
     context_mock = MagicMock()
     context_mock.state.round_sequence = round_sequence
+    tm_recovery_params = TendermintRecoveryParams(
+        reset_from_round=RoundA.auto_round_id()
+    )
+    context_mock.state.get_acn_result = MagicMock(return_value=tm_recovery_params)
     context_mock.params.ipfs_domain_name = None
     behaviour = RoundBehaviour(name="", skill_context=context_mock)
     behaviour.setup()

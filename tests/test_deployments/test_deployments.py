@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -273,9 +273,9 @@ class TestDeploymentGenerators(BaseDeploymentTests):
     def test_update_agent_number_based_on_keys_file(self) -> None:
         """Test JSONDecodeError on read_keys"""
 
-        public_id = PublicId("Georg", "Hegel")
+        public_id = PublicId("george", "hegel")
         service = Service(
-            "Arthur", "Schopenhauer", public_id, number_of_agents=1_000_000
+            "arthur", "schopenhauer", public_id, number_of_agents=1_000_000
         )
         builder = ServiceBuilder(
             service=service,

@@ -18,6 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """This module contains helper classes for behaviours."""
+
+
 import datetime
 import inspect
 import json
@@ -27,7 +29,7 @@ import re
 import sys
 from abc import ABC, ABCMeta, abstractmethod
 from enum import Enum
-from functools import partial, wraps
+from functools import partial
 from typing import (
     Any,
     Callable,
@@ -44,6 +46,7 @@ from typing import (
 
 import pytz
 from aea.exceptions import enforce
+from aea.mail.base import EnvelopeContext
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
 from aea.skills.behaviours import SimpleBehaviour
@@ -57,12 +60,19 @@ from packages.open_aea.protocols.signing.custom_types import (
 from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
+from packages.valory.connections.ipfs.connection import PUBLIC_ID as IPFS_CONNECTION_ID
+from packages.valory.connections.p2p_libp2p_client.connection import (
+    PUBLIC_ID as P2P_LIBP2P_CLIENT_PUBLIC_ID,
+)
 from packages.valory.contracts.service_registry.contract import (  # noqa: F401  # pylint: disable=unused-import
     ServiceRegistryContract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.ipfs import IpfsMessage
+from packages.valory.protocols.ipfs.dialogues import IpfsDialogue, IpfsDialogues
 from packages.valory.protocols.ledger_api import LedgerApiMessage
+from packages.valory.protocols.tendermint import TendermintMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
@@ -79,6 +89,7 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     LedgerApiDialogue,
     LedgerApiDialogues,
     SigningDialogues,
+    TendermintDialogues,
 )
 from packages.valory.skills.abstract_round_abci.io_.ipfs import (
     IPFSInteract,
@@ -369,84 +380,92 @@ class AsyncBehaviour(ABC):
         self.__state = self.AsyncState.READY
 
 
-def _check_ipfs_enabled(fn: Callable) -> Callable:
-    """Decorator that raises error if IPFS is not enabled."""
-
-    @wraps(fn)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        """The wrap that checks and raises the error."""
-        ipfs_enabled = args[0].ipfs_enabled
-
-        if not ipfs_enabled:  # pragma: no cover
-            raise ValueError(
-                "Trying to perform an IPFS operation, but IPFS has not been enabled! "
-                "Please set `ipfs_domain_name` configuration."
-            )
-
-        return fn(*args, **kwargs)
-
-    return wrapper
-
-
 class IPFSBehaviour(SimpleBehaviour, ABC):
     """Behaviour for interactions with IPFS."""
 
     def __init__(self, **kwargs: Any):
         """Initialize an `IPFSBehaviour`."""
         super().__init__(**kwargs)
-        self.ipfs_enabled = False
-        # If `ipfs_domain_name` is not specified for the skill, then we get a `None` default.
-        # Therefore, `IPFSBehaviour` will be disabled.
-        domain = self.context.params.ipfs_domain_name
         loader_cls = kwargs.pop("loader_cls", Loader)
         storer_cls = kwargs.pop("storer_cls", Storer)
-        if domain is not None:  # pragma: nocover
-            self.ipfs_enabled = True
-            self._ipfs_interact = IPFSInteract(domain, loader_cls, storer_cls)
+        self._ipfs_interact = IPFSInteract(loader_cls, storer_cls)
 
-    @_check_ipfs_enabled
-    def send_to_ipfs(
+    def _build_ipfs_message(
         self,
-        filepath: str,
+        performative: IpfsMessage.Performative,
+        timeout: Optional[float] = None,
+        **kwargs: Any,
+    ) -> Tuple[IpfsMessage, IpfsDialogue]:
+        """Builds an IPFS message."""
+        ipfs_dialogues = cast(IpfsDialogues, self.context.ipfs_dialogues)
+        message, dialogue = ipfs_dialogues.create(
+            counterparty=str(IPFS_CONNECTION_ID),
+            performative=performative,
+            timeout=timeout,
+            **kwargs,
+        )
+        return message, dialogue
+
+    def _build_ipfs_store_file_req(  # pylint: disable=too-many-arguments
+        self,
+        filename: str,
         obj: SupportedObjectType,
         multiple: bool = False,
         filetype: Optional[SupportedFiletype] = None,
         custom_storer: Optional[CustomStorerType] = None,
+        timeout: Optional[float] = None,
         **kwargs: Any,
-    ) -> Optional[str]:
-        """Send a file to IPFS."""
-        try:
-            hash_ = self._ipfs_interact.store_and_send(
-                filepath, obj, multiple, filetype, custom_storer, **kwargs
-            )
-            self.context.logger.info(f"IPFS hash is: {hash_}")
-            return hash_
-        except IPFSInteractionError as e:  # pragma: no cover
-            self.context.logger.error(
-                f"An error occurred while trying to send a file to IPFS: {str(e)}"
-            )
-            return None
+    ) -> Tuple[IpfsMessage, IpfsDialogue]:
+        """
+        Builds a STORE_FILES ipfs message.
 
-    @_check_ipfs_enabled
-    def get_from_ipfs(  # pylint: disable=too-many-arguments
+        :param filename: the file name to store obj in. If "multiple" is True, filename will be the name of the dir.
+        :param obj: the object(s) to serialize and store in IPFS as "filename".
+        :param multiple: whether obj should be stored as multiple files, i.e. directory.
+        :param custom_storer: a custom serializer for "obj".
+        :param timeout: timeout for the request.
+        :returns: the ipfs message, and its corresponding dialogue.
+        """
+        serialized_objects = self._ipfs_interact.store(
+            filename, obj, multiple, filetype, custom_storer, **kwargs
+        )
+        message, dialogue = self._build_ipfs_message(
+            performative=IpfsMessage.Performative.STORE_FILES,  # type: ignore
+            files=serialized_objects,
+            timeout=timeout,
+        )
+        return message, dialogue
+
+    def _build_ipfs_get_file_req(
         self,
-        hash_: str,
-        target_dir: str,
-        multiple: bool = False,
-        filename: Optional[str] = None,
+        ipfs_hash: str,
+        timeout: Optional[float] = None,
+    ) -> Tuple[IpfsMessage, IpfsDialogue]:
+        """
+        Builds a GET_FILES IPFS request.
+
+        :param ipfs_hash: the ipfs hash of the file/dir to download.
+        :param timeout: timeout for the request.
+        :returns: the ipfs message, and its corresponding dialogue.
+        """
+        message, dialogue = self._build_ipfs_message(
+            performative=IpfsMessage.Performative.GET_FILES,  # type: ignore
+            ipfs_hash=ipfs_hash,
+            timeout=timeout,
+        )
+        return message, dialogue
+
+    def _deserialize_ipfs_objects(  # pylint: disable=too-many-arguments
+        self,
+        serialized_objects: Dict[str, str],
         filetype: Optional[SupportedFiletype] = None,
         custom_loader: CustomLoaderType = None,
     ) -> Optional[SupportedObjectType]:
-        """Get a file from IPFS."""
-        try:
-            return self._ipfs_interact.get_and_read(
-                hash_, target_dir, multiple, filename, filetype, custom_loader
-            )
-        except IPFSInteractionError as e:
-            self.context.logger.error(
-                f"An error occurred while trying to fetch a file from IPFS: {str(e)}"
-            )
-            return None
+        """Deserialize objects received from IPFS."""
+        deserialized_object = self._ipfs_interact.load(
+            serialized_objects, filetype, custom_loader
+        )
+        return deserialized_object
 
 
 class CleanUpBehaviour(SimpleBehaviour, ABC):
@@ -698,9 +717,10 @@ class BaseBehaviour(
         :yield: the responses
         """
         stop_condition = self.is_round_ended(self.matching_round.auto_round_id())
-        payload.round_count = cast(
+        round_count = cast(
             SharedState, self.context.state
         ).synchronized_data.round_count
+        object.__setattr__(payload, "round_count", round_count)
         yield from self._send_transaction(
             payload,
             resetting,
@@ -1698,6 +1718,87 @@ class BaseBehaviour(
             return RPCResponseStatus.ALREADY_KNOWN
         return RPCResponseStatus.UNCLASSIFIED_ERROR
 
+    def _acn_request_from_pending(
+        self, performative: TendermintMessage.Performative
+    ) -> Generator:
+        """Perform an ACN request to each one of the agents which have not sent a response yet."""
+        not_responded_yet = {
+            address
+            for address, deliverable in cast(
+                SharedState, self.context.state
+            ).address_to_acn_deliverable.items()
+            if deliverable is None
+        }
+
+        if len(not_responded_yet) == 0:
+            return
+
+        self.context.logger.debug(f"Need ACN response from {not_responded_yet}.")
+        for address in not_responded_yet:
+            self.context.logger.debug(f"Sending ACN request to {address}.")
+            dialogues = cast(TendermintDialogues, self.context.tendermint_dialogues)
+            message, _ = dialogues.create(
+                counterparty=address, performative=performative
+            )
+            message = cast(TendermintMessage, message)
+            context = EnvelopeContext(connection_id=P2P_LIBP2P_CLIENT_PUBLIC_ID)
+            self.context.outbox.put_message(message=message, context=context)
+
+        # we wait for the `address_to_acn_deliverable` to be populated with the responses (done by the tm handler)
+        yield from self.sleep(self.params.sleep_time)
+
+    def _perform_acn_request(
+        self, performative: TendermintMessage.Performative
+    ) -> Generator[None, None, Any]:
+        """Perform an ACN request.
+
+        Waits `sleep_time` to receive a common response from the majority of the agents.
+        Retries `max_attempts` times only for the agents which have not responded yet.
+
+        :param performative: the ACN request performative.
+        :return: the result that the majority of the agents sent. If majority cannot be reached, returns `None`.
+        """
+        ourself = {self.context.agent_address}
+        # reset the ACN deliverables at the beginning of a new request
+        addresses = self.synchronized_data.all_participants - ourself
+        cast(
+            SharedState, self.context.state
+        ).address_to_acn_deliverable = dict.fromkeys(addresses)
+
+        for i in range(self.params.max_attempts):
+            self.context.logger.debug(
+                f"ACN attempt {i + 1}/{self.params.max_attempts}."
+            )
+            yield from self._acn_request_from_pending(performative)
+
+            result = cast(SharedState, self.context.state).get_acn_result()
+            if result is not None:
+                return result
+
+        return None
+
+    def request_recovery_params(self) -> Generator[None, None, bool]:
+        """Request the Tendermint recovery parameters from the other agents via the ACN."""
+
+        self.context.logger.info(
+            "Requesting the Tendermint recovery parameters from the other agents via the ACN."
+        )
+
+        performative = TendermintMessage.Performative.GET_RECOVERY_PARAMS
+        acn_result = yield from self._perform_acn_request(performative)  # type: ignore
+
+        if acn_result is None:
+            self.context.logger.warning(
+                "No majority has been reached for the Tendermint recovery parameters request via the ACN."
+            )
+            return False
+
+        cast(SharedState, self.context.state).tm_recovery_params = acn_result
+        self.context.logger.info(
+            f"Updated the Tendermint recovery parameters from the other agents via the ACN: {acn_result}"
+        )
+        return True
+
     @property
     def hard_reset_sleep(self) -> float:
         """
@@ -1853,7 +1954,7 @@ class BaseBehaviour(
                             reset_params=reset_params,
                             reset_index=reset_index,
                             round_count=round_count,
-                            reset_from_round=restart_from_round,
+                            reset_from_round=restart_from_round.auto_round_id(),
                         )
                     self._end_reset()
 
@@ -1899,6 +2000,107 @@ class BaseBehaviour(
             # as the reset is being performed to update the tm config.
             yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
         return True
+
+    def send_to_ipfs(  # pylint: disable=too-many-arguments
+        self,
+        filename: str,
+        obj: SupportedObjectType,
+        multiple: bool = False,
+        filetype: Optional[SupportedFiletype] = None,
+        custom_storer: Optional[CustomStorerType] = None,
+        timeout: Optional[float] = None,
+        **kwargs: Any,
+    ) -> Generator[None, None, Optional[str]]:
+        """
+        Store an object on IPFS.
+
+        :param filename: the file name to store obj in. If "multiple" is True, filename will be the name of the dir.
+        :param obj: the object(s) to serialize and store in IPFS as "filename".
+        :param multiple: whether obj should be stored as multiple files, i.e. directory.
+        :param filetype: the file type of the object being downloaded.
+        :param custom_storer: a custom serializer for "obj".
+        :param timeout: timeout for the request.
+        :returns: the downloaded object, corresponding to ipfs_hash.
+        """
+        try:
+            message, dialogue = self._build_ipfs_store_file_req(
+                filename,
+                obj,
+                multiple,
+                filetype,
+                custom_storer,
+                timeout,
+                **kwargs,
+            )
+            ipfs_message = yield from self._do_ipfs_request(dialogue, message, timeout)
+            if ipfs_message.performative != IpfsMessage.Performative.IPFS_HASH:
+                self.context.logger.error(
+                    f"Expected performative {IpfsMessage.Performative.IPFS_HASH} but got {ipfs_message.performative}."
+                )
+                return None
+            ipfs_hash = ipfs_message.ipfs_hash
+            self.context.logger.info(f"Successfully stored with IPFS hash: {ipfs_hash}")
+            return ipfs_hash
+        except IPFSInteractionError as e:  # pragma: no cover
+            self.context.logger.error(
+                f"An error occurred while trying to send a file to IPFS: {str(e)}"
+            )
+            return None
+
+    def get_from_ipfs(  # pylint: disable=too-many-arguments
+        self,
+        ipfs_hash: str,
+        filetype: Optional[SupportedFiletype] = None,
+        custom_loader: CustomLoaderType = None,
+        timeout: Optional[float] = None,
+    ) -> Generator[None, None, Optional[SupportedObjectType]]:
+        """
+        Gets an object from IPFS.
+
+        :param ipfs_hash: the ipfs hash of the file/dir to download.
+        :param filetype: the file type of the object being downloaded.
+        :param custom_loader: a custom deserializer for the object received from IPFS.
+        :param timeout: timeout for the request.
+        :returns: the downloaded object, corresponding to ipfs_hash.
+        """
+        try:
+            message, dialogue = self._build_ipfs_get_file_req(ipfs_hash, timeout)
+            ipfs_message = yield from self._do_ipfs_request(dialogue, message, timeout)
+            if ipfs_message.performative != IpfsMessage.Performative.FILES:
+                self.context.logger.error(
+                    f"Expected performative {IpfsMessage.Performative.FILES} but got {ipfs_message.performative}."
+                )
+                return None
+            serialized_objects = ipfs_message.files
+            deserialized_objects = self._deserialize_ipfs_objects(
+                serialized_objects, filetype, custom_loader
+            )
+            self.context.logger.info(
+                f"Retrieved {len(ipfs_message.files)} objects from ipfs."
+            )
+            return deserialized_objects
+        except IPFSInteractionError as e:
+            self.context.logger.error(
+                f"An error occurred while trying to fetch a file from IPFS: {str(e)}"
+            )
+            return None
+
+    def _do_ipfs_request(
+        self,
+        dialogue: IpfsDialogue,
+        message: IpfsMessage,
+        timeout: Optional[float] = None,
+    ) -> Generator[None, None, IpfsMessage]:
+        """Performs an IPFS request, and asynchronosuly waits for response."""
+        self.context.outbox.put_message(message=message)
+        request_nonce = self._get_request_nonce_from_dialogue(dialogue)
+        cast(Requests, self.context.requests).request_id_to_callback[
+            request_nonce
+        ] = self.get_callback_request()
+        # notify caller by propagating potential timeout exception.
+        response = yield from self.wait_for_message(timeout=timeout)
+        ipfs_message = cast(IpfsMessage, response)
+        return ipfs_message
 
 
 class TmManager(BaseBehaviour):
@@ -1970,6 +2172,14 @@ class TmManager(BaseBehaviour):
 
         # since we have reached this point that means that the cause of blocks not being received
         # cannot be attributed to a lack of peers in the network
+        # therefore, we request the recovery parameters via the ACN, and if we succeed, we use them to recover
+        acn_communication_success = yield from self.request_recovery_params()
+        if not acn_communication_success:
+            self.context.logger.error(
+                "Failed to get the recovery parameters via the ACN. Cannot reset Tendermint."
+            )
+            return
+
         shared_state = cast(SharedState, self.context.state)
         recovery_params = shared_state.tm_recovery_params
         shared_state.round_sequence.reset_state(

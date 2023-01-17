@@ -34,13 +34,13 @@ def __init__(path: str)
 
 Initialize an abstract storer.
 
-<a id="packages.valory.skills.abstract_round_abci.io_.store.AbstractStorer.store_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.AbstractStorer.serialize_object"></a>
 
-#### store`_`single`_`file
+#### serialize`_`object
 
 ```python
 @abstractmethod
-def store_single_file(filename: str, obj: SupportedSingleObjectType, **kwargs: Any) -> None
+def serialize_object(filename: str, obj: SupportedSingleObjectType, **kwargs: Any) -> Dict[str, str]
 ```
 
 Store a single file.
@@ -50,10 +50,10 @@ Store a single file.
 #### store
 
 ```python
-def store(obj: SupportedObjectType, multiple: bool, **kwargs: Any) -> None
+def store(obj: SupportedObjectType, multiple: bool, **kwargs: Any) -> Dict[str, str]
 ```
 
-Store one or multiple files.
+Serialize one or multiple objects.
 
 <a id="packages.valory.skills.abstract_round_abci.io_.store.JSONStorer"></a>
 
@@ -65,15 +65,24 @@ class JSONStorer(AbstractStorer)
 
 A JSON file storer.
 
-<a id="packages.valory.skills.abstract_round_abci.io_.store.JSONStorer.store_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.JSONStorer.serialize_object"></a>
 
-#### store`_`single`_`file
+#### serialize`_`object
 
 ```python
-def store_single_file(filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any) -> None
+def serialize_object(filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any) -> Dict[str, str]
 ```
 
-Store a JSON.
+Serialize an object to JSON.
+
+**Arguments**:
+
+- `filename`: under which name the provided object should be serialized. Note that it will appear in IPFS with this name.
+- `obj`: the object to store.
+
+**Returns**:
+
+a dict mapping the name to the serialized object.
 
 <a id="packages.valory.skills.abstract_round_abci.io_.store.Storer"></a>
 
@@ -83,7 +92,7 @@ Store a JSON.
 class Storer(AbstractStorer)
 ```
 
-Class which stores files.
+Class which serializes objects.
 
 <a id="packages.valory.skills.abstract_round_abci.io_.store.Storer.__init__"></a>
 
@@ -95,13 +104,13 @@ def __init__(filetype: Optional[Any], custom_storer: Optional[CustomStorerType],
 
 Initialize a `Storer`.
 
-<a id="packages.valory.skills.abstract_round_abci.io_.store.Storer.store_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.store.Storer.serialize_object"></a>
 
-#### store`_`single`_`file
+#### serialize`_`object
 
 ```python
-def store_single_file(filename: str, obj: NativelySupportedObjectType, **kwargs: Any) -> None
+def serialize_object(filename: str, obj: NativelySupportedObjectType, **kwargs: Any) -> Dict[str, str]
 ```
 
-Store a single file.
+Store a single object.
 

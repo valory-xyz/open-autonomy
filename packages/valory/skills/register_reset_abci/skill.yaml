@@ -10,9 +10,9 @@ fingerprint:
   __init__.py: bafybeidkwdyziihk46z6bghnf25lqnbse2glybnty7bwia5sey5nundfq4
   behaviours.py: bafybeierwaykvll6vrzd5ck55ts7k4xlyyjp7uwvtzwk3qxiiickplkyjq
   composition.py: bafybeihbka7osaxcvevlsletvvy6qecnzeoro5gl74u75l3maxzqkcg4ui
-  dialogues.py: bafybeib4jbdycm2vofni3vp6draqet3nejoviqjurcilrzindr4k5dg5fa
+  dialogues.py: bafybeigabhaykiyzbluu4mk6bbrmqhzld2kyp32pg24bvjmzrrb74einwm
   fsm_specification.yaml: bafybeiabsy6pmiv6bd2jvn3gagbv6sm553vsm3krfpejcjiyrrlsgphkqi
-  handlers.py: bafybeieoh4kobdrpkwwoclfvzd5lwnaex5tmnlg5uanc6twm7q7hdzr3by
+  handlers.py: bafybeiasrimz6o3db4egqyjrpckt7f6ob4unphfcb5vyisger4sohfwopu
   models.py: bafybeiea6ceqicak4okblv5kwjd6ystuyxsyvmomeklcsns33bovfua6ki
   tests/__init__.py: bafybeifyyzb3rbknjnqrdsp34pya3koxyihbbvoiiuh3rxttehoolzch5e
   tests/test_behaviours.py: bafybeiev3itsy23bwnjqvsxgnsk4ivmrfwzusy626dj67tdprg6ig3vw3m
@@ -24,9 +24,9 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeid2edxpmpw3ybasrpj6s7my4xhhqh5e7yejnhgpng45wdfoeyhahq
-- valory/registration_abci:0.1.0:bafybeiehilaea4ylgbokov3shod5cvnkh4zm2i6onwfnfgpskwxwunz6eu
-- valory/reset_pause_abci:0.1.0:bafybeifcazd2s3hfgvhv37uabmxagijpjlgo5jg4pfc3ncikajgezxg3ei
+- valory/abstract_round_abci:0.1.0:bafybeibpkhjzgihmnopsoypxevbvyzjfkvgpvharo6cbgkiv5qcpefd6da
+- valory/registration_abci:0.1.0:bafybeidsjpifmwso4dd4x7p2hj3p6sj76q57psk5kcwaozs6x2ccvdlvre
+- valory/reset_pause_abci:0.1.0:bafybeibalvw33vt2ocqevued742eaajyvnrlc5t6rqlish4gtmtw5etrd4
 behaviours:
   main:
     args: {}
@@ -41,6 +41,9 @@ handlers:
   http:
     args: {}
     class_name: HttpHandler
+  ipfs:
+    args: {}
+    class_name: IpfsHandler
   ledger_api:
     args: {}
     class_name: LedgerApiHandler
@@ -64,6 +67,9 @@ models:
   http_dialogues:
     args: {}
     class_name: HttpDialogues
+  ipfs_dialogues:
+    args: {}
+    class_name: IpfsDialogues
   ledger_api_dialogues:
     args: {}
     class_name: LedgerApiDialogues

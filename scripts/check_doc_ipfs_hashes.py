@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ ROOT_DIR = Path(__file__).parent.parent
 HASH_SKIPS = (
     "bafybeie553shfmnds6v7defynjv5kmjkqf2aygj345jbbcssevtnkbodbe",
     "bafybeie6zryhy7v3fb4mwlu3br4brfxva4m5j2fyldbclq2v3d6modmewm",
+    "bafybeieo2gmyuut6chwnonutmcxo75wz7mpjxtim6c2naaarqpp5wa46ge",
 )
 
 
