@@ -12,7 +12,7 @@
         "contract/valory/component_registry/0.1.0": "bafybeibcqiqt4zvpoqgcx5w55ozvu75uhrmqlk6l4pgmft3h5e53yein3i",
         "contract/valory/agent_registry/0.1.0": "bafybeieivlbdjsvg4guh5ntxwn3afkfgwpd6vb5gpr3e2qizbko37stsvq",
         "contract/valory/registries_manager/0.1.0": "bafybeihopx73x7e4rqaudzt4k7i6vxfk5i62i3eswyghi4iimzcepkr4be",
-        "contract/valory/service_manager/0.1.0": "bafybeiahsyrncldqbh4zt3ppnvhcg2ntdyse5iwd444tu63pa3lenj6i7y",
+        "contract/valory/service_manager/0.1.0": "bafybeif4k7py5qep6s32r264easeg2dpkdfctbwsjimeym7ubfhoxge3s4",
         "skill/valory/transaction_settlement_abci/0.1.0": "bafybeic2vwnjgy7kaq5qzfphk5ebd7vbcufgvcjhq7q2jvbnogpvrny2xa",
         "skill/valory/registration_abci/0.1.0": "bafybeihmf7gaw2farjwljvcju7v75w4upfcczypkqj33x5fkhoabr7coie",
         "skill/valory/reset_pause_abci/0.1.0": "bafybeih4633edrccvtifi5ba4u466gjhjiwhzkqex7eb2yexjilutgkkvm",
