@@ -48,19 +48,11 @@ def service(ctx: Context, chain_type: str) -> None:
 @service.command()
 @pass_ctx
 @click.argument("service_id", type=int)
-@click.option(
-    "-b",
-    "--bond-value",
-    type=int,
-    required=True,
-    help="Cost of bond",
-)
 @key_path_decorator
 @password_decorator
 def activate(
     ctx: Context,
     service_id: int,
-    bond_value: int,
     keys: Path,
     password: Optional[str],
 ) -> None:
@@ -71,7 +63,6 @@ def activate(
         keys=keys,
         chain_type=ctx.config["chain_type"],
         password=password,
-        bond_value=bond_value,
     )
 
 
@@ -92,13 +83,6 @@ def activate(
     required=True,
     help="Agent ID",
 )
-@click.option(
-    "-b",
-    "--bond-value",
-    type=int,
-    required=True,
-    help="Cost of bond",
-)
 @key_path_decorator
 @password_decorator
 def register(  # pylint: disable=too-many-arguments
@@ -106,7 +90,6 @@ def register(  # pylint: disable=too-many-arguments
     service_id: int,
     instance: str,
     agent_id: int,
-    bond_value: int,
     keys: Path,
     password: Optional[str],
 ) -> None:
@@ -116,7 +99,6 @@ def register(  # pylint: disable=too-many-arguments
         service_id=service_id,
         instance=instance,
         agent_id=agent_id,
-        bond_value=bond_value,
         keys=keys,
         chain_type=ctx.config["chain_type"],
         password=password,
