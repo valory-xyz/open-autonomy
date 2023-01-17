@@ -132,7 +132,7 @@ Within the **Pre-Registration** state you should press _Activate Registration_ t
 In the **Active registration** state you should specify the [Görli testnet](https://goerli.net/) addresses (starting by `0x...`) of the agent instances that are part of the service. Press _Register Agents_ to associate them with the service. Once you have finished, press _Terminate_ to proceed to the **Finished Registration** state. Again, you will need authorization from your wallet to complete the transaction.
 
 ### Deploy the multisig contract for the service
-The goal of the **Finished Registration** state is to deploy the Gnosis safe multisig contract that will be associated to the service. The parameters you see in this screen are associated to the creation of the safe (check the `setup` method [here](https://github.com/safe-global/safe-contracts/blob/main/contracts/GnosisSafe.sol)). If you are not familiar with the setup of such contract, you can leave the default values and press _Submit_. Once again, you will be prompted for authorization.
+The goal of the **Finished Registration** state is to deploy the Gnosis safe multisig contract that will be associated to the service. The parameters you see in this screen are associated to the creation of the safe (check the `setup` method [here](https://github.com/safe-global/safe-contracts/blob/v1.3.0/contracts/GnosisSafe.sol)). If you are not familiar with the setup of such contract, you can leave the default values and press _Submit_. Once again, you will be prompted for authorization.
 
 
  Congratulations! Your service is should be now in **Deployed** state in the on-chain protocol!

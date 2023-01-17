@@ -341,7 +341,7 @@ def main() -> None:
                     and "build" not in file.parts
                 )
             )
-            and "tests/data/packages" not in file_str
+            and "dummy_packages" not in file_str
         )
 
     python_files_filtered = filter(_file_filter, python_files)
