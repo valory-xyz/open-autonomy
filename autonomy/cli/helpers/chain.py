@@ -111,11 +111,14 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
         password=password,
     )
 
-    package_configuration = load_configuration_object(
-        package_type=package_type,
-        directory=package_path,
-        package_type_config_class=PACKAGE_TYPE_TO_CONFIG_CLASS,
-    )
+    try:
+        package_configuration = load_configuration_object(
+            package_type=package_type,
+            directory=package_path,
+            package_type_config_class=PACKAGE_TYPE_TO_CONFIG_CLASS,
+        )
+    except FileNotFoundError as e:  # pragma: nocover
+        raise click.ClickException(f"Cannot find configuration file for {package_type}")
 
     if chain_type == ChainType.LOCAL and nft_image_hash is None:
         nft_image_hash = DEFAULT_NFT_IMAGE_HASH
@@ -198,11 +201,16 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
         password=password,
     )
 
-    package_configuration = load_configuration_object(
-        package_type=PackageType.SERVICE,
-        directory=package_path,
-        package_type_config_class=PACKAGE_TYPE_TO_CONFIG_CLASS,
-    )
+    try:
+        package_configuration = load_configuration_object(
+            package_type=PackageType.SERVICE,
+            directory=package_path,
+            package_type_config_class=PACKAGE_TYPE_TO_CONFIG_CLASS,
+        )
+    except FileNotFoundError as e:  # pragma: nocover
+        raise click.ClickException(
+            f"Cannot find configuration file for {PackageType.SERVICE}"
+        )
 
     try:
         verify_service_dependencies(
