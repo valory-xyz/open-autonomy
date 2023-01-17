@@ -33,6 +33,7 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
+from packages.valory.skills.abstract_round_abci.models import TypeCheckMixin
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     TransactionSubmissionAbciApp,
 )
@@ -49,7 +50,7 @@ class SharedState(BaseSharedState):
 
 
 @dataclass
-class MutableParams:
+class MutableParams(TypeCheckMixin):
     """Collection for the mutable parameters."""
 
     fallback_gas: int

@@ -10,11 +10,11 @@ fingerprint:
   __init__.py: bafybeigstxhr6bts7xwyx62cokwkwf3wrunratprkrg5vzokuq7ioqtsp4
   behaviours.py: bafybeiaynfsluc7vfmel7vhcxcsqwjh6dyl7mcrwgnr7k7dfhsip4fvkjq
   composition.py: bafybeiab4mcvz6g24jtjtaqz6q72udk7shnhfz24bbkx5ggq4dqlutxeha
-  dialogues.py: bafybeiflpquascygrfxcgb4ufiigqykmvbxlgbrxxa6cxmiy6f4w3aknmq
-  handlers.py: bafybeigrvstfrd4yce5fdzs6wovkkvvf4a4abxfrs4xh273jl4t4h5ddga
+  dialogues.py: bafybeicbclhk2sbw6inutj2ccmkqipo4daphehvuf2jeypmvmv4ogpxr2a
+  handlers.py: bafybeih26owzkshjt3itwvkdb2j3rrmsp3dxeeiiubhq6tfy2lalog7lcq
   models.py: bafybeicrwzylgk6aui3b6t3ipzg6iaqmxctprlf55b3xyvnt6auqcvzkvi
-  payloads.py: bafybeif3xvmrd6enjexvhpwp4ypsyk4j5tyecyphpf2lba665xonmd2cjy
-  rounds.py: bafybeiawhp6k77dz4knpskpq7hxhml2kqactnugwh6q3ymbw7mcmzpqdha
+  payloads.py: bafybeigcwu3xbu23z6ezcnxvabwx2lzpkoyzefprvjvlow4nejjhp2q22m
+  rounds.py: bafybeifj7i2yzqbhrlwmrbmwztna3v4arwo6h7oan5g4yh7nooqksg6ybi
   tests/__init__.py: bafybeigl6apxxiffa4ls45lukhbquaunzm2cspxdyf6thy5dz2rya44seq
   tests/test_behaviours.py: bafybeie37z7wx7zshrlqbicgm7pw4erns7b3fxbo3hroop4b7vgailqwnm
   tests/test_dialogues.py: bafybeifna75wlo2zpymsx2oa5ct7uzujgo6ahnvd5yhzvnn6ekoxrgeaei
@@ -26,8 +26,8 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigofsncoyslx3bgmwwfjtuxvpw3zeo4uch7rrpfrlnflymzzwtvbu
-- valory/registration_abci:0.1.0:bafybeigxn6t56tzjykplqbkrsornimj67pvthorrjd3vzdqd2lgot6iiba
+- valory/abstract_round_abci:0.1.0:bafybeifqynuqoj4734wjlomvzofbd6bfxniegf2nlke625dpakp6nhmj74
+- valory/registration_abci:0.1.0:bafybeihcrvznzc2xo5yl4ye4pk4p5fza6lm7tqekbinkduiysotpq7zpjq
 behaviours:
   main:
     args: {}
@@ -42,6 +42,9 @@ handlers:
   http:
     args: {}
     class_name: HttpHandler
+  ipfs:
+    args: {}
+    class_name: IpfsHandler
   ledger_api:
     args: {}
     class_name: LedgerApiHandler
@@ -65,6 +68,9 @@ models:
   http_dialogues:
     args: {}
     class_name: HttpDialogues
+  ipfs_dialogues:
+    args: {}
+    class_name: IpfsDialogues
   ledger_api_dialogues:
     args: {}
     class_name: LedgerApiDialogues
@@ -92,7 +98,6 @@ models:
             - ed25519
           version: {}
         voting_power: '10'
-      ipfs_domain_name: null
       keeper_timeout: 30.0
       max_attempts: 10
       max_healthcheck: 120
@@ -111,7 +116,7 @@ models:
         - - '0x0000000000000000000000000000000000000000'
         safe_contract_address:
         - '0x0000000000000000000000000000000000000000'
-      share_tm_config_on_startup: false
+      share_tm_config_on_startup: true
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080

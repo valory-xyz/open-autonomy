@@ -131,6 +131,7 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         config.handlers.create(
             "tendermint", SkillComponentConfiguration("TendermintHandler")
         )
+        config.handlers.create("ipfs", SkillComponentConfiguration("IpfsHandler"))
 
     def _update_models(  # pylint: disable=no-self-use
         self, config: SkillConfig
@@ -165,6 +166,9 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         )
         config.models.create(
             "tendermint_dialogues", SkillComponentConfiguration("TendermintDialogues")
+        )
+        config.models.create(
+            "ipfs_dialogues", SkillComponentConfiguration("IpfsDialogues")
         )
 
     @classmethod

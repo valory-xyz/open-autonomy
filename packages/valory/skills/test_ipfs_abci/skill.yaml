@@ -1,0 +1,148 @@
+name: test_ipfs_abci
+author: valory
+version: 0.1.0
+type: skill
+description: IPFS e2e testing application.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: bafybeidwzlddf2imw56detc62pyyoaz3sshsb36xaq44jusn2obs4ywnz4
+  __init__.py: bafybeigeaq5dcvmldbdcfvgvapzkb4atm3dgku7fmwkab5xyn7jh33t2mm
+  behaviours.py: bafybeiahprijrr6efsazi7ga6pn5n2ztac6goqg37viwdwvphx5orpnrmu
+  dialogues.py: bafybeigpwuzku3we7axmxeamg7vn656maww6emuztau5pg3ebsoquyfdqm
+  fsm_specification.yaml: bafybeibtalbhngsddj4h4k6d3zk54zipt24ffqjpdpybm2hdd7mejnmabm
+  handlers.py: bafybeihkbafgvs2sl62k6lamrddymegvhd2k35ka7k7guvbok6nc4pv5mm
+  models.py: bafybeibuypazzxl3fmxjqxv6cxghjhjznyvvjnpulmgz7h3w7bogemjlnq
+  payloads.py: bafybeidc2vpmyqaphlmftqld3kgknxpn7ghjn77rngr5ib4geqbagjfboq
+  rounds.py: bafybeihrmootzt43shxbe63uxunqeahwgc2brpdikpvzj7wccnudmlegai
+  tests/__init__.py: bafybeicx3dc4ujymhcaae3zvdmmfik7dmhhcmwwwoiqwk5nyykyohg2rte
+  tests/test_behaviours.py: bafybeibtgcgcigzisqsys6l7lqynuehy7yif73ld75zyohby6cf7su7xw4
+  tests/test_dialogues.py: bafybeifwjwhxsbfpsjranr474ru7fyai5xxeckkv2nzj2duwkozl5ufaxe
+  tests/test_handlers.py: bafybeicoa6x4tf4pmr5dityxxzp5w2aegn2ubcubxzq7e4minclcwy3cw4
+  tests/test_models.py: bafybeifyidlrsnut4mrqtenfwo5lmsplp6wm46ej6xide7bvin2j5k7kre
+  tests/test_payloads.py: bafybeihdizr6r5xnd5hudj7ho7ye3dkcppjt753ulaofyazqpokxnf6cga
+  tests/test_rounds.py: bafybeieunfszrjcgwh6bjbeiopxd574va6rni7c75wsul3nmklvchmu23e
+fingerprint_ignore_patterns: []
+connections: []
+contracts: []
+protocols: []
+skills:
+- valory/abstract_round_abci:0.1.0:bafybeifqynuqoj4734wjlomvzofbd6bfxniegf2nlke625dpakp6nhmj74
+behaviours:
+  main:
+    args: {}
+    class_name: TestAbciConsensusBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: ABCIHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ipfs:
+    args: {}
+    class_name: IpfsHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+  tendermint:
+    args: {}
+    class_name: TendermintHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ipfs_dialogues:
+    args: {}
+    class_name: IpfsDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      cleanup_history_depth: 1
+      cleanup_history_depth_current: null
+      consensus:
+        max_participants: 1
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      finalize_timeout: 60.0
+      genesis_config:
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_num_blocks: '100000'
+            max_age_duration: '172800000000000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        voting_power: '10'
+      history_check_timeout: 1205
+      init_fallback_gas: 0
+      keeper_allowed_retries: 3
+      keeper_timeout: 30.0
+      max_attempts: 10
+      max_healthcheck: 120
+      multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
+      observation_interval: 10
+      on_chain_service_id: null
+      request_retry_delay: 1.0
+      request_timeout: 10.0
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30.0
+      service_id: test_ipfs_abci
+      service_registry_address: null
+      setup:
+        all_participants:
+        - - '0x0000000000000000000000000000000000000000'
+        safe_contract_address:
+        - '0x0000000000000000000000000000000000000000'
+      share_tm_config_on_startup: false
+      sleep_time: 1
+      tendermint_check_sleep_delay: 3
+      tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
+      tendermint_p2p_url: localhost:26656
+      tendermint_url: http://localhost:26657
+      termination_sleep: 900
+      tx_timeout: 10.0
+      validate_timeout: 1205
+    class_name: Params
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
+dependencies: {}
+is_abstract: false

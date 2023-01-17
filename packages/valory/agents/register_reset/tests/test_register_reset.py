@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     abci_host,
     abci_port,
     flask_tendermint,
+    ipfs_daemon,
+    ipfs_domain,
     tendermint_port,
 )
 

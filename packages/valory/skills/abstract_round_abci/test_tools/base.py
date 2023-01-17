@@ -88,10 +88,8 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
         # _MetaPayload.transaction_type_to_payload_cls, and restore it
         # in the teardown function. We do a shallow copy so we avoid
         # to modify the old mapping during the execution of the tests.
-        cls.old_tx_type_to_payload_cls = copy(
-            _MetaPayload.transaction_type_to_payload_cls
-        )
-        _MetaPayload.transaction_type_to_payload_cls = {}
+        cls.old_tx_type_to_payload_cls = copy(_MetaPayload.registry)
+        _MetaPayload.registry = {}
         super().setup_class(**kwargs)  # pylint: disable=no-value-for-parameter
         assert (
             cls._skill.skill_context._agent_context is not None
@@ -417,7 +415,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
     @classmethod
     def teardown_class(cls) -> None:
         """Teardown the test class."""
-        _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls
+        _MetaPayload.registry = cls.old_tx_type_to_payload_cls
 
     def teardown(self, **kwargs: Any) -> None:
         """Teardown."""

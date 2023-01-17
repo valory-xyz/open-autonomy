@@ -9,17 +9,17 @@ fingerprint:
   README.md: bafybeihrn52tx65lerztcuqmuyncrctfvpu2do7wwjycxxj56orejx2cu4
   __init__.py: bafybeie63javimotebwcrwaydwe2gc7a7h7cjhol6l6e5ushlgreorm7hi
   behaviours.py: bafybeidbua357aqaesxe47dt25g6gaobdns7girofrtlzphhl5vke26ggy
-  dialogues.py: bafybeib4jbdycm2vofni3vp6draqet3nejoviqjurcilrzindr4k5dg5fa
-  handlers.py: bafybeibujz375cm52h67pjh7rrg2xnulol6vyjkoedljq37p6ucbwgragy
+  dialogues.py: bafybeigabhaykiyzbluu4mk6bbrmqhzld2kyp32pg24bvjmzrrb74einwm
+  handlers.py: bafybeidozrorf2r377r7jpd6hr335z5okymksw2pmwjc35tbjzl5teyvza
   models.py: bafybeihvs3uy4uawukzwo4hymb5npmxsnu2xohk7udwenmragytahn3jyi
-  payloads.py: bafybeibp4ty4dnrpkezdmxqdv6icp5d23chkfs5ufygrxb2eouvxsdvv2e
-  rounds.py: bafybeib5hc6y7nzibmxnsexvsdsc4nessooip7ausytb7np73cgwzt444a
+  payloads.py: bafybeic2sfla3qpruqfe5wnofozafsn7qil2vj75e2eqt2fgxrsclmljhi
+  rounds.py: bafybeidxi7ugfxmbe67ocjrhmyqrvwdsvkkygf4jtkc4hp5zgucbuxylny
   tests/__init__.py: bafybeicmlbk5j45t5qgvrlv7n3e3kpih2s3ibmjremouifdgcig6cajryq
   tests/test_behaviours.py: bafybeig5eoozzy37eyw247vuegufula4pbptlgqopkqlre4dyt2qabzjrq
   tests/test_dialogues.py: bafybeicd4f6di6m527d724vo6xcmbmpxgqr22rtzkkcvcqpjzievb5imra
   tests/test_handlers.py: bafybeigwsx5yhtxruoqai3cckiupm3wbu3vucxyxnc6us27oa3nnqgs2xe
   tests/test_models.py: bafybeihtud7c4q4eaop4knivs5yzo6ktaqefrbyjtthuwy34mytcbtpeqq
-  tests/test_payloads.py: bafybeigdkysovfmacsvdcw4gsjfijjcwza64zsospifl2v7hwgmz27af5y
+  tests/test_payloads.py: bafybeics4anvfjkbkvunvfjdp27lxh25j67fmkcvs7jnen5lat4lklrc3i
   tests/test_rounds.py: bafybeiggmnvzts36xlwvzyjinq2376xcokwkfe2dgw52zkklkbiyogjeg4
 fingerprint_ignore_patterns: []
 connections: []
@@ -27,7 +27,7 @@ contracts: []
 protocols: []
 skills:
 - valory/abstract_abci:0.1.0:bafybeid3udqtjtl4txht2z3tm3z3mr2nqtoddtno3u3urxjqjbbpqeelli
-- valory/abstract_round_abci:0.1.0:bafybeigofsncoyslx3bgmwwfjtuxvpw3zeo4uch7rrpfrlnflymzzwtvbu
+- valory/abstract_round_abci:0.1.0:bafybeifqynuqoj4734wjlomvzofbd6bfxniegf2nlke625dpakp6nhmj74
 behaviours:
   main:
     args: {}
@@ -42,6 +42,9 @@ handlers:
   http:
     args: {}
     class_name: HttpHandler
+  ipfs:
+    args: {}
+    class_name: IpfsHandler
   ledger_api:
     args: {}
     class_name: LedgerApiHandler
@@ -65,6 +68,9 @@ models:
   http_dialogues:
     args: {}
     class_name: HttpDialogues
+  ipfs_dialogues:
+    args: {}
+    class_name: IpfsDialogues
   ledger_api_dialogues:
     args: {}
     class_name: LedgerApiDialogues
@@ -92,7 +98,6 @@ models:
             - ed25519
           version: {}
         voting_power: '10'
-      ipfs_domain_name: null
       keeper_timeout: 30.0
       max_attempts: 10
       max_healthcheck: 120

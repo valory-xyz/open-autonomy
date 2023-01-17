@@ -1,8 +1,7 @@
 watchdog==2.1.6
 requests==2.27.1
-open-aea[all]==1.27.0.post1
-open-aea-cli-ipfs==1.27.0.post4
-open-aea-ledger-ethereum==1.27.0
-open-aea-ledger-cosmos==1.27.0
-open-aea-ledger-fetchai==1.27.0
+open-aea[all]==1.28.0.post1
+open-aea-cli-ipfs==1.28.0.post1
+open-aea-ledger-ethereum==1.28.0.post1
+open-aea-ledger-cosmos==1.28.0.post1
 protobuf==3.19.4

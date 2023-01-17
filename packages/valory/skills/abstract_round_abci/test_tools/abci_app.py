@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ class _ConcreteRound(AbstractRound, ABC):
 class ConcreteRoundA(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
-    allowed_tx_type = "payload_a"
+    payload_class = BaseTxPayload
 
     def end_block(self) -> Tuple[MagicMock, MagicMock]:
         """End block."""
@@ -62,37 +62,37 @@ class ConcreteRoundA(_ConcreteRound):
 class ConcreteRoundB(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
-    allowed_tx_type = "payload_b"
+    payload_class = BaseTxPayload
 
 
 class ConcreteRoundC(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
-    allowed_tx_type = "payload_c"
+    payload_class = BaseTxPayload
 
 
 class ConcreteBackgroundRound(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
-    allowed_tx_type = "payload_background_c"
+    payload_class = BaseTxPayload
 
 
 class ConcreteTerminationRoundA(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
-    allowed_tx_type = "payload_termination_a"
+    payload_class = BaseTxPayload
 
 
 class ConcreteTerminationRoundB(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
-    allowed_tx_type = "payload_termination_b"
+    payload_class = BaseTxPayload
 
 
 class ConcreteTerminationRoundC(_ConcreteRound):
     """Dummy instantiation of the AbstractRound class."""
 
-    allowed_tx_type = "payload_termination_c"
+    payload_class = BaseTxPayload
 
 
 class ConcreteEvents(Enum):

@@ -127,6 +127,9 @@ SimpleABCIBaseState
 RegistrationBehaviour
 BaseState
 IPFSBehaviour
+IpfsConnection
+IPFS
+ipfs
 AsyncBehaviour
 CleanUpBehaviour
 BaseSimpleAbciPayload

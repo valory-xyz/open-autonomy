@@ -22,12 +22,12 @@ import os
 from autonomy.__version__ import __version__ as DEFAULT_AUTONOMY_VERSION
 
 
-VALORY = "valory"
 DEFAULT_BUILD_FOLDER = "abci_build"
 DEFAULT_KEYS_FILE = "keys.json"
 DEFAULT_IMAGE_VERSION = "latest"
 SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME = "autonolas-registries"
 DOCKER_COMPOSE_YAML = "docker-compose.yaml"
+VALORY = "valory"
 
 AUTONOMY_IMAGE_VERSION = os.environ.get(
     "AUTONOMY_IMAGE_VERSION", DEFAULT_AUTONOMY_VERSION
@@ -58,4 +58,4 @@ DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE = (
 ACN_IMAGE_NAME = os.environ.get("ACN_IMAGE_NAME", "valory/open-acn-node")
 
 OAR_IMAGE = "valory/oar-{agent}:{version}"
-ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeigofsncoyslx3bgmwwfjtuxvpw3zeo4uch7rrpfrlnflymzzwtvbu"
+ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeifqynuqoj4734wjlomvzofbd6bfxniegf2nlke625dpakp6nhmj74"
