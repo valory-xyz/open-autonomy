@@ -71,6 +71,7 @@ class ServiceManagerContract(Contract):
         agent_ids: List[int],
         agent_params: List[List[int]],
         threshold: int,
+        raise_on_try: bool = False,
     ) -> Dict[str, Any]:
         """Retrieve the service owner."""
 
@@ -89,6 +90,7 @@ class ServiceManagerContract(Contract):
             tx_args={
                 "sender_address": owner,
             },
+            raise_on_try=raise_on_try,
         )
         return tx_params
 
@@ -100,6 +102,7 @@ class ServiceManagerContract(Contract):
         owner: str,
         service_id: int,
         security_deposit: int,
+        raise_on_try: bool = False,
     ) -> Dict[str, Any]:
         """Retrieve the service owner."""
 
@@ -112,6 +115,7 @@ class ServiceManagerContract(Contract):
                 "serviceId": service_id,
             },
             tx_args={"sender_address": owner, "value": security_deposit},
+            raise_on_try=raise_on_try,
         )
 
         return tx_params
@@ -126,6 +130,7 @@ class ServiceManagerContract(Contract):
         instances: List[str],
         agent_ids: List[int],
         security_deposit: int,
+        raise_on_try: bool = False,
     ) -> Dict[str, Any]:
         """Retrieve the service owner."""
 
@@ -140,6 +145,7 @@ class ServiceManagerContract(Contract):
                 "agentIds": agent_ids,
             },
             tx_args={"sender_address": owner, "value": security_deposit},
+            raise_on_try=raise_on_try,
         )
 
         return tx_params
@@ -153,6 +159,7 @@ class ServiceManagerContract(Contract):
         service_id: int,
         gnosis_safe_multisig: str,
         deployment_payload: str,
+        raise_on_try: bool = False,
     ) -> Dict[str, Any]:
         """Retrieve the service owner."""
 
@@ -167,6 +174,7 @@ class ServiceManagerContract(Contract):
                 "data": deployment_payload,
             },
             tx_args={"sender_address": owner},
+            raise_on_try=raise_on_try,
         )
 
         return tx_params

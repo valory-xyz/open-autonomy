@@ -77,6 +77,7 @@ class RegistriesManagerContract(Contract):
         metadata_hash: str,
         owner: str,
         dependencies: Optional[List[int]] = None,
+        raise_on_try: bool = False,
     ) -> None:
         """Create a component."""
 
@@ -94,5 +95,6 @@ class RegistriesManagerContract(Contract):
             tx_args={
                 "sender_address": owner,
             },
+            raise_on_try=raise_on_try,
         )
         return tx_params
