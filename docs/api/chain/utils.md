@@ -22,7 +22,7 @@ Split IPFS hash from the ipfs uri
 def resolve_component_id(ledger_api: LedgerApi, contract_address: str, token_id: int, is_agent: bool = False, is_service: bool = False) -> Dict
 ```
 
-Resolve component ID
+Resolve component ID to metadata json
 
 <a id="autonomy.chain.utils.verify_component_dependencies"></a>
 

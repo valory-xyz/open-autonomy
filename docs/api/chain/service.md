@@ -4,6 +4,26 @@
 
 Helper functions to manage on-chain services
 
+<a id="autonomy.chain.service.get_agent_instances"></a>
+
+#### get`_`agent`_`instances
+
+```python
+def get_agent_instances(ledger_api: LedgerApi, chain_type: ChainType, token_id: int) -> Dict
+```
+
+Get the list of agent instances.
+
+**Arguments**:
+
+- `ledger_api`: `aea.crypto.LedgerApi` object for interacting with the chain
+- `chain_type`: Chain type
+- `token_id`: Token ID pointing to the on-chain service
+
+**Returns**:
+
+number of agent instances and the list of registered addressed
+
 <a id="autonomy.chain.service.get_service_info"></a>
 
 #### get`_`service`_`info
