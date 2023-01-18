@@ -86,7 +86,7 @@ def mint_component(
     """Publish component on-chain."""
 
     if dependencies is not None:
-        dependencies = sorted(dependencies)
+        dependencies = sorted(set(dependencies))
 
     try:
         tx = registry_contracts.registries_manager.get_create_transaction(
