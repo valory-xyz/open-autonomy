@@ -29,6 +29,7 @@ import pytest
 from aea.test_tools.click_testing import CliRunner
 
 from autonomy.analyse.abci.app_spec import FSMSpecificationLoader as FSMSpecLoader
+from autonomy.chain.config import ChainType
 from autonomy.cli.utils.click_utils import (
     PathArgument,
     abci_spec_format_flag,
@@ -36,7 +37,6 @@ from autonomy.cli.utils.click_utils import (
     image_profile_flag,
     sys_path_patch,
 )
-from autonomy.deploy.chain import CHAIN_CONFIG
 from autonomy.deploy.image import ImageProfiles
 
 
@@ -53,7 +53,11 @@ class ClickFlagTestCase:
     "test_case",
     [
         ClickFlagTestCase(image_profile_flag, ImageProfiles.ALL),
-        ClickFlagTestCase(chain_selection_flag, tuple(CHAIN_CONFIG), opt_prefix="use-"),
+        ClickFlagTestCase(
+            chain_selection_flag,
+            tuple(map(lambda x: x.value, ChainType)),
+            opt_prefix="use-",
+        ),
         ClickFlagTestCase(abci_spec_format_flag, FSMSpecLoader.OutputFormats.ALL),
     ],
 )
@@ -69,7 +73,7 @@ def test_flag_decorators(test_case: ClickFlagTestCase) -> None:
     for parameter, item in zip(dummy.params, reversed(test_case.items)):
         assert isinstance(parameter, click.Option)
         assert item in parameter.flag_value
-        assert parameter.opts == [f"--{test_case.opt_prefix}{item}"]
+        assert parameter.opts == [f"--{test_case.opt_prefix}" + item.replace("_", "-")]
         assert parameter.help
 
 
