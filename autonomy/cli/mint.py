@@ -250,7 +250,7 @@ def agent(
     "--threshold",
     type=int,
     required=True,
-    help="Threshold for the minimum numbers required to run the service"
+    help="Threshold for the minimum numbers required to run the service",
 )
 def service(  # pylint: disable=too-many-arguments
     ctx: Context,
