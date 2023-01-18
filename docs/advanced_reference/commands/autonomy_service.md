@@ -5,10 +5,10 @@ Tools to manage on chain services
 ### Options
 
 `--use-ethereum`
-: Use ethereum to chain profile to interact with the contracts.
+: Use `ethereum` to chain profile to interact with the contracts.
 
 `--use-goerli`
-: Use goerli to chain profile to interact with the contracts.
+: Use `goerli` to chain profile to interact with the contracts.
 
 `--use-custom-chain`
 : Use custom-chain to chain profile to interact with the contracts.
@@ -19,7 +19,7 @@ Tools to manage on chain services
 `--skip-hash-check`
 : Skip hash check when verifying dependencies on chain
 
-To understand how to use various chain profiles refere to `Chain Selection` section on the `autonomy mint` command documentation.
+To understand how to use various chain profiles refer to `Chain Selection` section on the `autonomy mint` command documentation.
 
 ## `autonomy service activate`
 

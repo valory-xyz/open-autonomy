@@ -1,14 +1,14 @@
 # `autonomy mint`
 
-Toos to mint components on chain
+Tools to mint components on chain
 
 ### Options
 
 `--use-ethereum`
-: Use ethereum to chain profile to interact with the contracts.
+: Use `ethereum` to chain profile to interact with the contracts.
 
 `--use-goerli`
-: Use goerli to chain profile to interact with the contracts.
+: Use `goerli` to chain profile to interact with the contracts.
 
 `--use-custom-chain`
 : Use custom-chain to chain profile to interact with the contracts.
@@ -23,7 +23,7 @@ Toos to mint components on chain
 
 This command group contains tools for minting components, agents and service packages. You can specify what type of chain you want by providing a `--use-CHAINTYPE` flag. The current implementation provides 4 different types of chain to choose from `local`, `goerli`, `ethereum` and `custom` chain. 
 
-If you use the local chain, make sure you have a local hardhat deployment with the required registry contracts deployed. If you want to use a custom chain you'll have to provide the chain parameters as the environment varibles.
+If you use the local chain, make sure you have a local hardhat deployment with the required registry contracts deployed. If you want to use a custom chain you'll have to provide the chain parameters as the environment variables.
 
 Required variables if you want to use a custom chain
 
@@ -38,8 +38,8 @@ Required variables if you want to use a custom chain
 
 In the same way, if you want to use chain other than custom and local you'll have to provide the RPC address as following environment variables.
 
-- `GOERLI_CHAIN_RPC` : RPC endpoint for goerli testnet
-- `ETHEREUM_CHAIN_RPC` : RPC endpoint for ethereum mainnet
+- `GOERLI_CHAIN_RPC` : RPC endpoint for `goerli` testnet
+- `ETHEREUM_CHAIN_RPC` : RPC endpoint for `ethereum` mainnet
 
 ## `autonomy mint protocol/contract/connection/skill`
 
@@ -60,7 +60,7 @@ In the same way, if you want to use chain other than custom and local you'll hav
 
 ### Examples
 
-You can mint the component directly using `autonomy mint COMPONENT_TYPE PATH_TO_PACKAGE PATH_TO_FUNDED_KEYS`. Additionally you'll have to provide the dependencies if the component have any and an hash poiting to the `NFT` unique to the component. If you're using the local chain, the `NFT` is not required.
+You can mint the component directly using `autonomy mint COMPONENT_TYPE PATH_TO_PACKAGE PATH_TO_FUNDED_KEYS`. Additionally you'll have to provide the dependencies if the component have any and an hash pointing to the `NFT` unique to the component. If you're using the local chain, the `NFT` is not required.
 
 For example to mint a skill
 
@@ -87,7 +87,7 @@ For example to mint a skill
 
 ### Examples
 
-Unlike the components, the agent packages are required to have atleast one dependency to be minted. Otherwise the process is same.
+Unlike the components, the agent packages are required to have at least one dependency to be minted. Otherwise the process is same.
 
 ## `autonomy mint service`
 
@@ -113,7 +113,7 @@ Unlike the components, the agent packages are required to have atleast one depen
 : Cost of bond for the agent (Wei)
 
 `--threshold INTEGER`
-: Threshold for the minimum numbers required torun the service
+: Threshold for the minimum numbers required to run the service
 
 ### Examples
 
