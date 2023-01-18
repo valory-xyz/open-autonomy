@@ -19,7 +19,6 @@
 
 """On-chain tools configurations."""
 
-import json
 import os
 from dataclasses import dataclass
 from enum import Enum
@@ -30,12 +29,6 @@ from autonomy.chain import constants as chain_constants
 
 DEFAULT_LOCAL_RPC = "http://127.0.0.1:8545"
 DEFAULT_LOCAL_CHAIN_ID = 31337
-
-
-def get_abi(filename: str) -> Dict:
-    """Service contract ABI."""
-    with (chain_constants.ABI_DIR / filename).open(mode="r", encoding="utf-8") as fp:
-        return json.load(fp=fp)
 
 
 def _get_chain_id_for_custom_chain() -> Optional[int]:

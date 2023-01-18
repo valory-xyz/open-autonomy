@@ -29,17 +29,10 @@ from autonomy.constants import VALORY
 from autonomy.data import DATA_DIR
 
 
-ABI_DIR = DATA_DIR / "abis"
 CONTRACTS_DIR_FRAMEWORK = DATA_DIR / CONTRACTS
 CONTRACTS_DIR_LOCAL = (
     AUTONOMY_DIR.parent / PACKAGES / VALORY / CONTRACTS
 )  # use from an editable/local installation
-
-COMPONENT_REGISTRY_ABI_FILENAME = "ComponentRegistry.json"
-AGENT_REGISTRY_ABI_FILENAME = "AgentRegistry.json"
-REGISTRIES_MANAGER_ABI_FILENAME = "RegistriesManager.json"
-SERVICE_MANAGER_ABI_FILENAME = "ServiceManager.json"
-SERVICE_REGISTRY_ABI_FILENAME = "ServiceRegistry.json"
 
 
 # contract addresses from `valory/autonolas-registries` image
