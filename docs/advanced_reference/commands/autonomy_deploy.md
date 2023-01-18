@@ -125,7 +125,7 @@ Run a service deployment registered in the on-chain protocol.
 
 This command allows to deploy services directly without having the need to explicitly fetch them locally (also known as "one-click deployment"). The command requires the `TOKEN_ID` which can be checked in the {{on_chain_frontend}}. See the [register a service on-chain](../../guides/register_packages_on_chain.md#register-a-service) guide for more information.
 
-Currently, the command supports Autonolas staging chain, Görli testnet and Ethereum mainnet for resolving `TOKEN_ID`s, but if you have a contract deployed on some other chain you can provide the RPC URL to the chain and contract address using `--rpc` and `--sca`, respectively.
+To understand how to use various chain profiles refer to `Chain Selection` section on the `autonomy mint` command documentation.
 
 ### Usage
 
@@ -134,11 +134,6 @@ autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 ```
 
 ### Options
-`--rpc RPC_URL`
-:   Custom RPC URL.
-
-`--sca SERVICE_CONTRACT_ADDRESS`
-:   Service contract address for custom RPC URL.
 
 `--n INTEGER`
 :   Number of agents to include in the build.
@@ -149,14 +144,17 @@ autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 `--aev`
 :   Apply environment variable when loading service config.
 
-`--use-goerli`
-:   Use Görli chain to resolve the `TOKEN_ID`.
-
 `--use-ethereum`
-:   Use Ethereum chain to resolve the `TOKEN_ID`.
+: Use `ethereum` chain to resolve the token id.
 
-`--use-staging`
-:   Use staging chain to resolve the `TOKEN_ID`.
+`--use-goerli`
+: Use `goerli` chain to resolve the token id.
+
+`--use-custom-chain`
+: Use custom chain to resolve the token id.
+
+`--use-local`
+: Use local chain to resolve the token id.
 
 `--help`
 :   Show the help message and exit.
@@ -168,4 +166,4 @@ autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 autonomy deploy from-token --use-goerli 2 keys.json
 ```
 
-Runs the service deployment registered with `TOKEN_ID`=2 in the Görli on-chain protocol. The deployment will be run for as many agents as keys are defined in the `keys.json` file.
+Runs the service deployment registered with `TOKEN_ID`=2 in the Görli on-chain protocol. The deployment will be run for as many agents as keys are defined in the `keys.json` file. 

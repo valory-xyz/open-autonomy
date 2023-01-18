@@ -253,7 +253,7 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
     default=False,
     help="Apply environment variable when loading service config.",
 )
-@chain_selection_flag()
+@chain_selection_flag(help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
 def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-locals

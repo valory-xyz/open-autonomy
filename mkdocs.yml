@@ -68,6 +68,8 @@ nav:
       - autonomy analyse: 'advanced_reference/commands/autonomy_analyse.md'
       - autonomy fetch: 'advanced_reference/commands/autonomy_fetch.md'
       - autonomy scaffold: 'advanced_reference/commands/autonomy_scaffold.md'           
+      - autonomy mint: 'advanced_reference/commands/autonomy_mint.md'           
+      - autonomy service: 'advanced_reference/commands/autonomy_service.md'           
     - Developer tooling:
       - Dev mode: 'advanced_reference/developer_tooling/dev_mode.md'
       - Execution replay: 'advanced_reference/developer_tooling/execution_replay.md'

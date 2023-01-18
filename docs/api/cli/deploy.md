@@ -152,7 +152,7 @@ Run deployment.
     default=False,
     help="Apply environment variable when loading service config.",
 )
-@chain_selection_flag()
+@chain_selection_flag(help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
 def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, chain_type: ChainType, skip_image: bool, n: Optional[int], aev: bool = False, password: Optional[str] = None) -> None

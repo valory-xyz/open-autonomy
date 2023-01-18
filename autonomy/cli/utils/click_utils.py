@@ -74,6 +74,7 @@ def abci_spec_format_flag(
 def chain_selection_flag(
     default: ChainType = ChainType.LOCAL,
     mark_default: bool = True,
+    help_string_format: str = "To use {} chain profile to interact with the contracts",
 ) -> Callable:
     """Flags for abci spec outputs formats."""
 
@@ -84,7 +85,7 @@ def chain_selection_flag(
                 f"--use-{chain_name}",
                 "chain_type",
                 flag_value=chain_type.value,
-                help=f"Use {chain_name} to resolve the token id.",
+                help=help_string_format.format(chain_name),
                 default=(chain_type == default) and mark_default,
             )(f)
         return f

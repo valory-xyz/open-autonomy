@@ -50,7 +50,7 @@ dependencies_decorator = click.option(
     "--dependencies",
     type=str,
     multiple=True,
-    help="Dependency for the package",
+    help="Dependencies for the package",
 )
 nft_decorator = click.option(
     "--nft",
@@ -250,6 +250,7 @@ def agent(
     "--threshold",
     type=int,
     required=True,
+    help="Threshold for the minimum numbers required to run the service",
 )
 def service(  # pylint: disable=too-many-arguments
     ctx: Context,
