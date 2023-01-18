@@ -164,7 +164,7 @@ class ServiceRegistryContract(Contract):
         contract_address: str,
         token_id: int,
     ) -> str:
-        """Returns `CreateUnit` event filter."""
+        """Retrieve service information"""
 
         contract_interface = cls.get_instance(
             ledger_api=ledger_api,
@@ -179,7 +179,7 @@ class ServiceRegistryContract(Contract):
         contract_address: str,
         token_id: int,
     ) -> str:
-        """Returns `CreateUnit` event filter."""
+        """Resolve token URI"""
 
         contract_interface = cls.get_instance(
             ledger_api=ledger_api,
