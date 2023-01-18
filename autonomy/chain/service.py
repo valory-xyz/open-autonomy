@@ -19,7 +19,7 @@
 
 """Helper functions to manage on-chain services"""
 
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from aea.crypto.base import Crypto, LedgerApi
 from requests.exceptions import ConnectionError as RequestsConnectionError
@@ -43,6 +43,27 @@ from autonomy.chain.mint import transact
 DEFAULT_DEPLOY_PAYLOAD = "0x"
 
 ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
+
+
+def get_agent_instances(
+    ledger_api: LedgerApi, chain_type: ChainType, token_id: int
+) -> Dict:
+    """
+    Get the list of agent instances.
+
+    :param ledger_api: `aea.crypto.LedgerApi` object for interacting with the chain
+    :param chain_type: Chain type
+    :param token_id: Token ID pointing to the on-chain service
+    :returns: number of agent instances and the list of registered addressed
+    """
+
+    return registry_contracts.service_registry.get_agent_instances(
+        ledger_api=ledger_api,
+        contract_address=ContractConfigs.get(SERVICE_REGISTRY_CONTRACT.name).contracts[
+            chain_type
+        ],
+        service_id=token_id,
+    )
 
 
 def get_service_info(

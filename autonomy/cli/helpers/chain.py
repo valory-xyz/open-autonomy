@@ -26,6 +26,7 @@ import click
 from aea.configurations.data_types import PackageType
 from aea.configurations.loader import load_configuration_object
 from aea.crypto.base import Crypto, LedgerApi
+from aea.crypto.registries import make_crypto
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 
 from autonomy.chain.base import UnitType
@@ -60,7 +61,7 @@ from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS, Service
 
 def get_ledger_and_crypto_objects(
     chain_type: ChainType,
-    keys: Path,
+    keys: Optional[Path] = None,
     password: Optional[str] = None,
 ) -> Tuple[LedgerApi, Crypto]:
     """Create ledger_api and crypto objects"""
@@ -71,10 +72,13 @@ def get_ledger_and_crypto_objects(
             f"RPC cannot be `None` for chain config; chain_type={chain_type}"
         )
 
-    crypto = EthereumCrypto(
-        private_key_path=keys,
-        password=password,
-    )
+    if keys is None:
+        crypto = make_crypto("ethereum")
+    else:
+        crypto = EthereumCrypto(
+            private_key_path=keys,
+            password=password,
+        )
 
     ledger_api = EthereumApi(
         **{
@@ -85,7 +89,6 @@ def get_ledger_and_crypto_objects(
     )
 
     ledger_api.api.eth.default_account = crypto.address
-
     return ledger_api, crypto
 
 
