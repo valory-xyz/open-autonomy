@@ -19,7 +19,7 @@ fingerprint:
   tests/helpers/slow_tendermint_server/tendermint.py: bafybeidqggrm4koidktdqsgd5qaoorfwjrxwt3wkx4fjo7xdhvwlzy4eua
   tests/helpers/slow_tendermint_server/wrapper.sh: bafybeif2wssashoaw7ifz6q3ocmejkuz32ycwta4w5dcjunns4g2awkv2y
   tests/test_hard_reset_race_condition.py: bafybeihnw7j7aahu2kqsak7vr2bjjf6rvkvyyk4gylbhjcmandwoe5of3u
-  tests/test_register_reset.py: bafybeicj4ydqrx7amwei4pb7rc73yel2fcsr336c53qropvhvl3e7wam4y
+  tests/test_register_reset.py: bafybeiaxp5at34oplp2jxaa5xajpl4f75f6aninbfxyev2x34uzcehs5bi
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeicmhpw2f5c3vds6lwlv2q4fa5nd6zonnvgdretrwfly7ylpiofdqq
@@ -116,4 +116,4 @@ cert_requests:
   not_before: '2022-01-01'
   public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
   save_path: .certs/acn_cosmos_9006.txt
-is_abstract: true
+is_abstract: false
