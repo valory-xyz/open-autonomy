@@ -5,16 +5,16 @@ Tools to manage on chain services
 ### Options
 
 `--use-ethereum`
-: Use `ethereum` to chain profile to interact with the contracts.
+: Use `ethereum` chain profile to interact with the contracts.
 
 `--use-goerli`
-: Use `goerli` to chain profile to interact with the contracts.
+: Use `goerli` chain profile to interact with the contracts.
 
 `--use-custom-chain`
-: Use custom-chain to chain profile to interact with the contracts.
+: Use custom-chain chain profile to interact with the contracts.
 
 `--use-local`
-: Use local to chain profile to interact with the contracts.
+: Use local chain profile to interact with the contracts.
 
 `--skip-hash-check`
 : Skip hash check when verifying dependencies on chain

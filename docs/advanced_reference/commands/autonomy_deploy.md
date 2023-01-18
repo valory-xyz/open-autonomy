@@ -125,7 +125,7 @@ Run a service deployment registered in the on-chain protocol.
 
 This command allows to deploy services directly without having the need to explicitly fetch them locally (also known as "one-click deployment"). The command requires the `TOKEN_ID` which can be checked in the {{on_chain_frontend}}. See the [register a service on-chain](../../guides/register_packages_on_chain.md#register-a-service) guide for more information.
 
-Currently, the command supports Autonolas staging chain, Görli testnet and Ethereum mainnet for resolving `TOKEN_ID`s, but if you have a contract deployed on some other chain you can provide the RPC URL to the chain and contract address using `--rpc` and `--sca`, respectively.
+To understand how to use various chain profiles refer to `Chain Selection` section on the `autonomy mint` command documentation.
 
 ### Usage
 
@@ -166,4 +166,4 @@ autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 autonomy deploy from-token --use-goerli 2 keys.json
 ```
 
-Runs the service deployment registered with `TOKEN_ID`=2 in the Görli on-chain protocol. The deployment will be run for as many agents as keys are defined in the `keys.json` file. To understand how to use various chain profiles refer to `Chain Selection` section on the `autonomy mint` command documentation.
+Runs the service deployment registered with `TOKEN_ID`=2 in the Görli on-chain protocol. The deployment will be run for as many agents as keys are defined in the `keys.json` file. 

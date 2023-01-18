@@ -1,20 +1,20 @@
-# `autonomy mint`
-
 Tools to mint components on chain
+
+## `autonomy mint`
 
 ### Options
 
 `--use-ethereum`
-: Use `ethereum` to chain profile to interact with the contracts.
+: Use `ethereum` chain profile to interact with the contracts.
 
 `--use-goerli`
-: Use `goerli` to chain profile to interact with the contracts.
+: Use `goerli` chain profile to interact with the contracts.
 
 `--use-custom-chain`
-: Use custom-chain to chain profile to interact with the contracts.
+: Use custom-chain chain profile to interact with the contracts.
 
 `--use-local`
-: Use local to chain profile to interact with the contracts.
+: Use local chain profile to interact with the contracts.
 
 `--skip-hash-check`
 : Skip hash check when verifying dependencies on chain
@@ -41,7 +41,7 @@ In the same way, if you want to use chain other than custom and local you'll hav
 - `GOERLI_CHAIN_RPC` : RPC endpoint for `goerli` testnet
 - `ETHEREUM_CHAIN_RPC` : RPC endpoint for `ethereum` mainnet
 
-## `autonomy mint protocol/contract/connection/skill`
+## `autonomy mint [protocol | contract | connection | skill]`
 
 ### Usage
 
@@ -49,13 +49,13 @@ In the same way, if you want to use chain other than custom and local you'll hav
 
 ### Options
 
-`--password TEXT`
+`--password`
 : Password for key pair
 
-`-d, --dependencies TEXT`
+`-d, --dependency`
 : Dependency for the package
 
-`--nft TEXT`
+`--nft`
 : IPFS hash for the NFT image
 
 ### Examples
@@ -76,13 +76,13 @@ For example to mint a skill
 
 ### Options
 
-`--password TEXT`
+`--password`
 : Password for key pair
 
-`-d, --dependencies TEXT`
+`-d, --dependency`
 : Dependency for the package
 
-`--nft TEXT`
+`--nft`
 : IPFS hash for the NFT image
 
 ### Examples
@@ -97,22 +97,22 @@ Unlike the components, the agent packages are required to have at least one depe
 
 ### Options
   
-`--password TEXT`
+`--password`
 : Password for key pair
 
-`--nft TEXT`
+`--nft`
 : IPFS hash for the NFT image
 
-`-a, --agent-id INTEGER`
+`-a, --agent-id`
 : Canonical agent ID
 
-`-n, --number-of-slots INTEGER`
+`-n, --number-of-slots`
 : Number of agent instances for the agent
 
-`-c, --cost-of-bond INTEGER`
+`-c, --cost-of-bond`
 : Cost of bond for the agent (Wei)
 
-`--threshold INTEGER`
+`--threshold`
 : Threshold for the minimum numbers required to run the service
 
 ### Examples

@@ -47,7 +47,7 @@ password_decorator = click.option(
 )
 dependencies_decorator = click.option(
     "-d",
-    "--dependencies",
+    "--dependency",
     type=str,
     multiple=True,
     help="Dependency for the package",
