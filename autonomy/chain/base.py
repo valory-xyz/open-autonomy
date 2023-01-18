@@ -37,14 +37,22 @@ from autonomy.chain.constants import (
 
 
 class UnitType(Enum):
-    """Unit type."""
+    """
+    Unit type
+
+    Same as https://github.com/valory-xyz/autonolas-registries/blob/v1.0.1/contracts/interfaces/IRegistry.sol#L6-L9
+    """
 
     COMPONENT = 0
     AGENT = 1
 
 
 class ServiceState(Enum):
-    """Service state."""
+    """
+    Service state
+
+    Same as https://github.com/valory-xyz/autonolas-registries/blob/v1.0.1/contracts/ServiceRegistry.sol#L41-L48
+    """
 
     NON_EXISTENT = 0
     PRE_REGISTRATION = 1
