@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ class BaseTestRegisterResetRecoveryEnd2End(
     Test subclasses must set NB_AGENTS, agent_package, wait_to_finish and check_strings.
     """
 
-    cli_log_options = ["-v", "INFO"]  # no need for debug
     skill_package = "valory/register_reset_recovery_abci:0.1.0"
     tm_break_string = "Current round count is 3."
     wait_before_stop = 100  # wait for 100s for tm_break_string to show
