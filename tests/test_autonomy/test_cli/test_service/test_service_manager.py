@@ -213,5 +213,4 @@ class TestServiceManager(BaseServiceManagerTest):
 
         # Will fail becaue the service is already deployed
         assert result.exit_code == 1, result.stdout
-        assert "Service deployment failed" in result.stderr
-        assert "WrongServiceState" in result.stderr
+        assert "Service needs to be in finished registration state" in result.stderr
