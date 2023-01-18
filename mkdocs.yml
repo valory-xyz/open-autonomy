@@ -116,7 +116,6 @@ nav:
         - Deploy:
           - Base: 'api/deploy/base.md'
           - Build: 'api/deploy/build.md'
-          - Chain: 'api/deploy/chain.md'
           - Constants: 'api/deploy/constants.md'
           - Image: 'api/deploy/image.md'
           - Generators:
