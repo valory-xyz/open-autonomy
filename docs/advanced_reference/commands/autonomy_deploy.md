@@ -134,11 +134,6 @@ autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 ```
 
 ### Options
-`--rpc RPC_URL`
-:   Custom RPC URL.
-
-`--sca SERVICE_CONTRACT_ADDRESS`
-:   Service contract address for custom RPC URL.
 
 `--n INTEGER`
 :   Number of agents to include in the build.
@@ -149,14 +144,17 @@ autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 `--aev`
 :   Apply environment variable when loading service config.
 
-`--use-goerli`
-:   Use Görli chain to resolve the `TOKEN_ID`.
-
 `--use-ethereum`
-:   Use Ethereum chain to resolve the `TOKEN_ID`.
+: Use ethereum to resolve the token id.
 
-`--use-staging`
-:   Use staging chain to resolve the `TOKEN_ID`.
+`--use-goerli`
+: Use goerli to resolve the token id.
+
+`--use-custom-chain`
+: Use custom-chain to resolve the token id.
+
+`--use-local`
+: Use local to resolve the token id.
 
 `--help`
 :   Show the help message and exit.
@@ -168,4 +166,4 @@ autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 autonomy deploy from-token --use-goerli 2 keys.json
 ```
 
-Runs the service deployment registered with `TOKEN_ID`=2 in the Görli on-chain protocol. The deployment will be run for as many agents as keys are defined in the `keys.json` file.
+Runs the service deployment registered with `TOKEN_ID`=2 in the Görli on-chain protocol. The deployment will be run for as many agents as keys are defined in the `keys.json` file. To understand how to use various chain profiles refere to `Chain Selection` section on the `autonomy mint` command documentation.
