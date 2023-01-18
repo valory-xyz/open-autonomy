@@ -145,16 +145,16 @@ autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 :   Apply environment variable when loading service config.
 
 `--use-ethereum`
-: Use `ethereum` to resolve the token id.
+: Use `ethereum` chain to resolve the token id.
 
 `--use-goerli`
-: Use `goerli` to resolve the token id.
+: Use `goerli` chain to resolve the token id.
 
 `--use-custom-chain`
-: Use custom-chain to resolve the token id.
+: Use custom chain to resolve the token id.
 
 `--use-local`
-: Use local to resolve the token id.
+: Use local chain to resolve the token id.
 
 `--help`
 :   Show the help message and exit.

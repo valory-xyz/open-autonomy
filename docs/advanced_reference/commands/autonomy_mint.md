@@ -64,7 +64,7 @@ You can mint the component directly using `autonomy mint COMPONENT_TYPE PATH_TO_
 
 For example to mint a skill
 
-`autonomy mint skill PATH_TO_SKILL PATH_TO_FUNDED_KEYS -d DEPENDENCY_ID --nft bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm` 
+`autonomy mint skill PATH_TO_SKILL PATH_TO_FUNDED_KEYS -d DEPENDENCY_ID --nft IPFS_HASH_FOR_THE_NFT` 
 
 > Note: the NFT hash used in the example is for demonstration purposes only
 
@@ -119,7 +119,7 @@ Unlike the components, the agent packages are required to have at least one depe
 
 Minting a service requires parameters other than the agent dependency, you will have to specify the number of slots and the cost of bond for that agent.
 
-`autonomy mint skill PATH_TO_SKILL PATH_TO_FUNDED_KEYS -a 1 -n 4 -c 1000 --threshold 3 --nft bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm` 
+`autonomy mint skill PATH_TO_SKILL PATH_TO_FUNDED_KEYS -a 1 -n 4 -c 1000 --threshold 3 --nft IPFS_HASH_FOR_THE_NFT` 
 
 > Note: the NFT hash used in the example is for demonstration purposes only
 
