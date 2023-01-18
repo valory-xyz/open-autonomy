@@ -143,7 +143,7 @@ Mint an agent.
     "--threshold",
     type=int,
     required=True,
-    help="Threshold for the minimum numbers required to run the service"
+    help="Threshold for the minimum numbers required to run the service",
 )
 def service(ctx: Context, package_path: Path, keys: Path, agent_id: int, number_of_slots: int, cost_of_bond: int, threshold: int, password: Optional[str], nft: Optional[str]) -> None
 ```

@@ -12,7 +12,9 @@ Chain interaction base classes.
 class UnitType(Enum)
 ```
 
-Unit type.
+Unit type
+
+Same as https://github.com/valory-xyz/autonolas-registries/blob/v1.0.1/contracts/interfaces/IRegistry.sol#L6-L9
 
 <a id="autonomy.chain.base.ServiceState"></a>
 
@@ -22,7 +24,9 @@ Unit type.
 class ServiceState(Enum)
 ```
 
-Service state.
+Service state
+
+Same as https://github.com/valory-xyz/autonolas-registries/blob/v1.0.1/contracts/ServiceRegistry.sol#L41-L48
 
 <a id="autonomy.chain.base.RegistryContracts"></a>
 
