@@ -9,7 +9,7 @@ On-chain interaction helpers.
 #### get`_`ledger`_`and`_`crypto`_`objects
 
 ```python
-def get_ledger_and_crypto_objects(chain_type: ChainType, keys: Path, password: Optional[str] = None) -> Tuple[LedgerApi, Crypto]
+def get_ledger_and_crypto_objects(chain_type: ChainType, keys: Optional[Path] = None, password: Optional[str] = None) -> Tuple[LedgerApi, Crypto]
 ```
 
 Create ledger_api and crypto objects

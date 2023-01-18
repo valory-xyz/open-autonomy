@@ -11,7 +11,7 @@ Implementation of the `autonomy service` command
 ```python
 @click.group("service")
 @pass_ctx
-@chain_selection_flag_()
+@chain_selection_flag()
 def service(ctx: Context, chain_type: str) -> None
 ```
 

@@ -46,7 +46,7 @@ def resolve_component_id(
     is_agent: bool = False,
     is_service: bool = False,
 ) -> Dict:
-    """Resolve component ID"""
+    """Resolve component ID to metadata json"""
 
     try:
         if is_service:
@@ -71,7 +71,9 @@ def resolve_component_id(
             "Error connecting to the IPFS gateway"
         ) from e
     except JSONDecodeError as e:
-        raise FailedToRetrieveComponentMetadata() from e
+        raise FailedToRetrieveComponentMetadata(
+            "Error decoding json data; make sure metadata file for the service exist on the IPFS registry"
+        ) from e
 
 
 def verify_component_dependencies(

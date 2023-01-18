@@ -33,12 +33,12 @@ from autonomy.cli.helpers.chain import (
     register_instance,
 )
 from autonomy.cli.mint import key_path_decorator, password_decorator
-from autonomy.cli.utils.click_utils import chain_selection_flag_
+from autonomy.cli.utils.click_utils import chain_selection_flag
 
 
 @click.group("service")
 @pass_ctx
-@chain_selection_flag_()
+@chain_selection_flag()
 def service(ctx: Context, chain_type: str) -> None:
     """Manage on-chain services."""
 

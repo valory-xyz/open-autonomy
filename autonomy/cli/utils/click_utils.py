@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import click
 
 from autonomy.analyse.abci.app_spec import FSMSpecificationLoader
 from autonomy.chain.config import ChainType
-from autonomy.deploy.chain import CHAIN_CONFIG
 from autonomy.deploy.image import ImageProfiles
 
 
@@ -73,25 +72,6 @@ def abci_spec_format_flag(
 
 
 def chain_selection_flag(
-    default: str = "staging", mark_default: bool = True
-) -> Callable:
-    """Flags for abci spec outputs formats."""
-
-    def wrapper(f: Callable) -> Callable:
-        for chain in CHAIN_CONFIG.keys():
-            f = click.option(
-                f"--use-{chain}",
-                "chain_type",
-                flag_value=chain,
-                help=f"Use {chain} chain to resolve the token id.",
-                default=(chain == default) and mark_default,
-            )(f)
-        return f
-
-    return wrapper
-
-
-def chain_selection_flag_(
     default: ChainType = ChainType.LOCAL,
     mark_default: bool = True,
 ) -> Callable:

@@ -11,7 +11,7 @@ Mint command group definitions.
 ```python
 @click.group("mint")
 @pass_ctx
-@chain_selection_flag_()
+@chain_selection_flag()
 @click.option(
     "--skip-hash-check",
     is_flag=True,

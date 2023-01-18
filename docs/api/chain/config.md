@@ -4,16 +4,6 @@
 
 On-chain tools configurations.
 
-<a id="autonomy.chain.config.get_abi"></a>
-
-#### get`_`abi
-
-```python
-def get_abi(filename: str) -> Dict
-```
-
-Service contract ABI.
-
 <a id="autonomy.chain.config.ChainType"></a>
 
 ## ChainType Objects
