@@ -47,10 +47,10 @@ password_decorator = click.option(
 )
 dependencies_decorator = click.option(
     "-d",
-    "--dependency",
+    "--dependencies",
     type=str,
     multiple=True,
-    help="Dependency for the package",
+    help="Dependencies for the package",
 )
 nft_decorator = click.option(
     "--nft",

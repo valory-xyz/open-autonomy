@@ -52,8 +52,8 @@ In the same way, if you want to use chain other than custom and local you'll hav
 `--password`
 : Password for key pair
 
-`-d, --dependency`
-: Dependency for the package
+`-d, --dependencies`
+: Dependencies for the package
 
 `--nft`
 : IPFS hash for the NFT image
@@ -79,8 +79,8 @@ For example to mint a skill
 `--password`
 : Password for key pair
 
-`-d, --dependency`
-: Dependency for the package
+`-d, --dependencies`
+: Dependencies for the package
 
 `--nft`
 : IPFS hash for the NFT image
