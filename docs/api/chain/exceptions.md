@@ -52,7 +52,7 @@ Raise when component metadata retrieving fails.
 class DependencyError(ChainInteractionError)
 ```
 
-Raise when component metadata retrieving fails.
+Raise when component dependency check fails.
 
 <a id="autonomy.chain.exceptions.InvalidMintParameter"></a>
 

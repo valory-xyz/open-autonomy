@@ -25,16 +25,9 @@ Manage on-chain services.
 @service.command()
 @pass_ctx
 @click.argument("service_id", type=int)
-@click.option(
-    "-b",
-    "--bond-value",
-    type=int,
-    required=True,
-    help="Cost of bond",
-)
 @key_path_decorator
 @password_decorator
-def activate(ctx: Context, service_id: int, bond_value: int, keys: Path, password: Optional[str]) -> None
+def activate(ctx: Context, service_id: int, keys: Path, password: Optional[str]) -> None
 ```
 
 Activate service.
@@ -61,16 +54,9 @@ Activate service.
     required=True,
     help="Agent ID",
 )
-@click.option(
-    "-b",
-    "--bond-value",
-    type=int,
-    required=True,
-    help="Cost of bond",
-)
 @key_path_decorator
 @password_decorator
-def register(ctx: Context, service_id: int, instance: str, agent_id: int, bond_value: int, keys: Path, password: Optional[str]) -> None
+def register(ctx: Context, service_id: int, instance: str, agent_id: int, keys: Path, password: Optional[str]) -> None
 ```
 
 Register instances.

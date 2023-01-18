@@ -14,6 +14,16 @@ class UnitType(Enum)
 
 Unit type.
 
+<a id="autonomy.chain.base.ServiceState"></a>
+
+## ServiceState Objects
+
+```python
+class ServiceState(Enum)
+```
+
+Service state.
+
 <a id="autonomy.chain.base.RegistryContracts"></a>
 
 ## RegistryContracts Objects

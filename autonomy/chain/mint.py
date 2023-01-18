@@ -20,7 +20,7 @@
 """Helpers for minting components"""
 
 from math import ceil
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from aea.crypto.base import Crypto, LedgerApi
 from requests.exceptions import ConnectionError as RequestsConnectionError
@@ -53,6 +53,28 @@ def transact(ledger_api: LedgerApi, crypto: Crypto, tx: Dict) -> Dict:
     return ledger_api.get_transaction_receipt(tx_digest=tx_digest)
 
 
+def sort_service_dependency_metadata(
+    agent_ids: List[int],
+    number_of_slots_per_agents: List[int],
+    cost_of_bond_per_agent: List[int],
+) -> Tuple[List[int], ...]:
+    """Sort service dependencies and their respective parameters"""
+
+    ids_sorted = []
+    slots_sorted = []
+    securities_sorted = []
+
+    for idx, n_slots, b_cost in sorted(
+        zip(agent_ids, number_of_slots_per_agents, cost_of_bond_per_agent),
+        key=lambda x: x[0],
+    ):
+        ids_sorted.append(idx)
+        slots_sorted.append(n_slots)
+        securities_sorted.append(b_cost)
+
+    return ids_sorted, slots_sorted, securities_sorted
+
+
 def mint_component(
     ledger_api: LedgerApi,
     crypto: Crypto,
@@ -62,6 +84,9 @@ def mint_component(
     dependencies: Optional[List[int]] = None,
 ) -> Optional[int]:
     """Publish component on-chain."""
+
+    if dependencies is not None:
+        dependencies = sorted(dependencies)
 
     try:
         tx = registry_contracts.registries_manager.get_create_transaction(
@@ -73,6 +98,7 @@ def mint_component(
             component_type=component_type,
             metadata_hash=metadata_hash,
             dependencies=dependencies,
+            raise_on_try=True,
         )
         transact(
             ledger_api=ledger_api,
@@ -149,6 +175,16 @@ def mint_service(  # pylint: disable=too-many-arguments
             "n is total number of agent instances in the service"
         )
 
+    (
+        agent_ids,
+        number_of_slots_per_agent,
+        cost_of_bond_per_agent,
+    ) = sort_service_dependency_metadata(
+        agent_ids=agent_ids,
+        number_of_slots_per_agents=number_of_slots_per_agent,
+        cost_of_bond_per_agent=cost_of_bond_per_agent,
+    )
+
     agent_params = [
         [n, c] for n, c in zip(number_of_slots_per_agent, cost_of_bond_per_agent)
     ]
@@ -163,6 +199,7 @@ def mint_service(  # pylint: disable=too-many-arguments
             agent_ids=agent_ids,
             agent_params=agent_params,
             threshold=threshold,
+            raise_on_try=True,
         )
         transact(
             ledger_api=ledger_api,

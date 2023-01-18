@@ -14,6 +14,16 @@ def transact(ledger_api: LedgerApi, crypto: Crypto, tx: Dict) -> Dict
 
 Make a transaction and return a receipt
 
+<a id="autonomy.chain.mint.sort_service_dependency_metadata"></a>
+
+#### sort`_`service`_`dependency`_`metadata
+
+```python
+def sort_service_dependency_metadata(agent_ids: List[int], number_of_slots_per_agents: List[int], cost_of_bond_per_agent: List[int]) -> Tuple[List[int], ...]
+```
+
+Sort service dependencies and their respective parameters
+
 <a id="autonomy.chain.mint.mint_component"></a>
 
 #### mint`_`component

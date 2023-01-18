@@ -21,7 +21,7 @@ contracts:
 - valory/gnosis_safe:0.1.0:bafybeibfgujzm23e2owls6pqyro5jvzpketidqwqpabf47xvlbpglhcmpe
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeid6mn6bdqory2v5ch4oqeqbp22njlrx77hq3u4k6xjrdtebgc472e
 - valory/multisend:0.1.0:bafybeigjywkl7hydjsrkogob3xebj2ifhqwmfhhxoeyrndzhhxi5u6amey
-- valory/service_registry:0.1.0:bafybeicikx4puthybmhbyjvpsucjru7cee72kvk7oaai6arxuklmoavzve
+- valory/service_registry:0.1.0:bafybeie7im3n7rwuyunduz7whchekh35dw4zdff7pvrvhzytj6mmpypaqi
 protocols:
 - open_aea/signing:1.0.0:bafybeiclsbgrviyxbmi2vex5ze3dhr7ywohrqedebx26jozayxvroqtegq
 - valory/abci:0.1.0:bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm
@@ -33,12 +33,12 @@ protocols:
 - valory/tendermint:0.1.0:bafybeiep2dilpmu3je4z2kq7yc7l6n7ax5knwfax2ufvmnflt3uj2wrbju
 skills:
 - valory/abstract_abci:0.1.0:bafybeid3udqtjtl4txht2z3tm3z3mr2nqtoddtno3u3urxjqjbbpqeelli
-- valory/abstract_round_abci:0.1.0:bafybeiaurujsbpi2cswwau2bhbmridkt62weszsx2mncsxbpv6kifeeula
-- valory/register_termination_abci:0.1.0:bafybeid7owa553qoytnnevvjxqarle5xasti7vs5eqfelkmowrqb5luugi
-- valory/registration_abci:0.1.0:bafybeiaeb27eencrlkowrnrpqin67mcfgj26dw455zkpmi72dzxhd4yzyq
-- valory/reset_pause_abci:0.1.0:bafybeiem52rev4dpytqiyu6zueppzlk2opaxhhpg6tvmmmrefv46v5pnzu
-- valory/termination_abci:0.1.0:bafybeib25lropahjv34hxl7qhwn5op4acsfzvbsjgsdlrrsembvupajney
-- valory/transaction_settlement_abci:0.1.0:bafybeidly4ekzceu5ulj4f5bejykrbwt4drixnrk6lu3zpe7iayjdlrul4
+- valory/abstract_round_abci:0.1.0:bafybeifqynuqoj4734wjlomvzofbd6bfxniegf2nlke625dpakp6nhmj74
+- valory/register_termination_abci:0.1.0:bafybeifqzyux2dwek7o7koqnekp5oizoqjy3ertsxqovdfwje3ragpcuei
+- valory/registration_abci:0.1.0:bafybeihcrvznzc2xo5yl4ye4pk4p5fza6lm7tqekbinkduiysotpq7zpjq
+- valory/reset_pause_abci:0.1.0:bafybeigvg6mdpiweni6w37rjdseb4yu5l6b3qktpoe5guyztohwm3pwnwy
+- valory/termination_abci:0.1.0:bafybeigvjk4o2f3636nmntmgnpjgjekg633d3swciwkvqufinajdab4d2u
+- valory/transaction_settlement_abci:0.1.0:bafybeig6pyoggf3iam3mqirfuyyttfeoacjtrittkcf4j3wtssyf7avibu
 default_ledger: ethereum
 required_ledgers:
 - ethereum

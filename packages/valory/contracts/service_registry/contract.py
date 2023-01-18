@@ -158,6 +158,21 @@ class ServiceRegistryContract(Contract):
         )
 
     @classmethod
+    def get_service_information(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        token_id: int,
+    ) -> str:
+        """Returns `CreateUnit` event filter."""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        return contract_interface.functions.getService(token_id).call()
+
+    @classmethod
     def get_token_uri(
         cls,
         ledger_api: LedgerApi,

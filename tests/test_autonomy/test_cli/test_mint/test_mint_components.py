@@ -30,7 +30,7 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from autonomy.chain.mint import registry_contracts
 
-from tests.test_autonomy.test_cli.test_mint.base import (
+from tests.test_autonomy.test_chain.base import (
     BaseChainInteractionTest,
     DEFAULT_SERVICE_MINT_PARAMETERS,
     DUMMY_AGENT,
@@ -59,11 +59,6 @@ class TestMintComponents(BaseChainInteractionTest):
     """Test `autonomy develop mint` command."""
 
     cli_options = ("mint",)
-
-    def setup(self) -> None:
-        """Setup test."""
-        super().setup()
-        self.cli_runner.mix_stderr = False
 
     @pytest.mark.parametrize(
         argnames=("package_id"),

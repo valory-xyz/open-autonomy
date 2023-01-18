@@ -79,6 +79,7 @@ DUMMY_SERVICE = PackageId(
     public_id=PublicId(author=DUMMY_AUTHOR, name="dummy_service", version="0.1.0"),
 )
 
+DUMMY_HASH = "bafybei0000000000000000000000000000000000000000000000000000"
 NUMBER_OF_SLOTS_PER_AGENT = 4
 COST_OF_BOND_FOR_AGENT = 1000
 THRESHOLD = 3
@@ -104,7 +105,13 @@ class BaseChainInteractionTest(BaseCliTest):
     ledger_api: LedgerApi
     crypto: Crypto
     chain_type: ChainType = ChainType.LOCAL
-    key_path: Path = ETHEREUM_KEY_DEPLOYER
+
+    key_file: Path = ETHEREUM_KEY_DEPLOYER
+
+    def setup(self) -> None:
+        """Setup test."""
+        super().setup()
+        self.cli_runner.mix_stderr = False
 
     @classmethod
     def setup_class(cls) -> None:
@@ -112,7 +119,8 @@ class BaseChainInteractionTest(BaseCliTest):
         super().setup_class()
 
         cls.ledger_api, cls.crypto = get_ledger_and_crypto_objects(
-            chain_type=cls.chain_type, keys=ETHEREUM_KEY_DEPLOYER
+            chain_type=cls.chain_type,
+            keys=cls.key_file,
         )
 
     @staticmethod

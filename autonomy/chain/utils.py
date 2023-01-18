@@ -50,23 +50,17 @@ def resolve_component_id(
 
     try:
         if is_service:
-            metadata_uri = registry_contracts.service_registry.get_token_uri(
-                ledger_api=ledger_api,
-                contract_address=contract_address,
-                token_id=token_id,
-            )
+            token_uri_callable = registry_contracts.service_registry.get_token_uri
         elif is_agent:
-            metadata_uri = registry_contracts.agent_registry.get_token_uri(
-                ledger_api=ledger_api,
-                contract_address=contract_address,
-                token_id=token_id,
-            )
+            token_uri_callable = registry_contracts.agent_registry.get_token_uri
         else:
-            metadata_uri = registry_contracts.component_registry.get_token_uri(
-                ledger_api=ledger_api,
-                contract_address=contract_address,
-                token_id=token_id,
-            )
+            token_uri_callable = registry_contracts.component_registry.get_token_uri
+
+        metadata_uri = token_uri_callable(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+            token_id=token_id,
+        )
     except RequestConnectionError as e:
         raise FailedToRetrieveComponentMetadata("Error connecting to the RPC") from e
 
