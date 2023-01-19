@@ -45,7 +45,7 @@ In the same way, if you want to use chain other than custom and local you'll hav
 
 ### Usage
 
-`autonomy mint COMPONENT_TYPE [OPTIONS] PACKAGE_PATH KEYS`
+`autonomy mint [protocol | contract | connection | skill] [OPTIONS] PACKAGE_PATH KEYS`
 
 ### Options
 
@@ -60,7 +60,7 @@ In the same way, if you want to use chain other than custom and local you'll hav
 
 ### Examples
 
-You can mint the component directly using `autonomy mint COMPONENT_TYPE PATH_TO_PACKAGE PATH_TO_FUNDED_KEYS`. Additionally you'll have to provide the dependencies if the component have any and an hash pointing to the `NFT` unique to the component. If you're using the local chain, the `NFT` is not required.
+You can mint the component directly using `autonomy mint [protocol | contract | connection | skill] PATH_TO_PACKAGE PATH_TO_FUNDED_KEYS`. Additionally you'll have to provide the dependencies if the component have any and an hash pointing to the `NFT` unique to the component. If you're using the local chain, the `NFT` is not required.
 
 For example to mint a skill
 
@@ -119,7 +119,7 @@ Unlike the components, the agent packages are required to have at least one depe
 
 Minting a service requires parameters other than the agent dependency, you will have to specify the number of slots and the cost of bond for that agent.
 
-`autonomy mint skill PATH_TO_SKILL PATH_TO_FUNDED_KEYS -a 1 -n 4 -c 1000 --threshold 3 --nft IPFS_HASH_FOR_THE_NFT` 
+`autonomy mint service PATH_TO_SKILL PATH_TO_FUNDED_KEYS -a 1 -n 4 -c 1000 --threshold 3 --nft IPFS_HASH_FOR_THE_NFT` 
 
 > Note: the NFT hash used in the example is for demonstration purposes only
 
