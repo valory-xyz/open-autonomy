@@ -191,9 +191,12 @@ def run_handler_check(
 ) -> None:
     """Check handler definitions."""
 
-    with reraise_as_click_exception(FileNotFoundError, ValueError, ImportError):
+    registry_path = Path(ctx.registry_path)
+    with reraise_as_click_exception(
+        FileNotFoundError, ValueError, ImportError
+    ), sys_path_patch(registry_path.parent):
         for yaml_file in sorted(
-            Path(ctx.registry_path).resolve().glob(f"*/*/*/{DEFAULT_SKILL_CONFIG_FILE}")
+            registry_path.resolve().glob(f"*/*/*/{DEFAULT_SKILL_CONFIG_FILE}")
         ):
             if yaml_file.parent.name in ignore:
                 click.echo(f"Skipping {yaml_file.parent}")
