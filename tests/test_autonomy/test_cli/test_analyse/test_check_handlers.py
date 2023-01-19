@@ -95,7 +95,10 @@ class TestCheckHandlers(BaseCliTest):
             / DEFAULT_SKILL_CONFIG_FILE
         )
 
-        with mock.patch.object(Path, "glob", return_value=[check_file, skip_file]):
+        with mock.patch(
+            "autonomy.cli.analyse.list_all_skill_yaml_files",
+            return_value=[check_file, skip_file],
+        ):
             result = self.run_cli()
 
         assert result.exit_code == 0, result.output
@@ -108,7 +111,7 @@ class TestCheckHandlers(BaseCliTest):
         """Test check-handlers command fail."""
         result = self.run_cli(("-h", "dummy"))
 
-        assert result.exit_code == 1
+        assert result.exit_code == 1, result.output
         assert "Common handler 'dummy' is not defined in" in result.output
 
     def test_check_handlers_missing_handler(
