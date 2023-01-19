@@ -21,6 +21,9 @@
 
 
 import importlib
+import importlib.machinery
+import importlib.util
+import types
 from pathlib import Path
 from typing import List
 
@@ -28,30 +31,30 @@ import yaml
 
 from autonomy.configurations.constants import CLASS_NAME, HANDLERS
 
+HANDLERS_FILE = f"{HANDLERS}.py"
 
-def resolve_handler_path_to_module(skill_path: Path) -> str:
+
+def load_handler_module_from_skill_path(skill_path: Path) -> types.ModuleType:
     """Resolve handler path to current workind directory."""
-    handler_file_path = skill_path.relative_to(Path.cwd().resolve())
-    return ".".join(
-        (
-            *handler_file_path.parts,
-            HANDLERS,
-        )
+
+    loader = importlib.machinery.SourceFileLoader(
+        HANDLERS, str(skill_path / "handlers.py")
     )
+    spec = importlib.util.spec_from_loader(HANDLERS, loader)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    return module
 
 
 def check_handlers(config_file: Path, common_handlers: List[str]) -> None:
     """Check handlers"""
 
-    module_name = resolve_handler_path_to_module(config_file.parent)
+    if not (config_file.parent / HANDLERS_FILE).exists():
+        raise FileNotFoundError(f"Handler file does not exist in {config_file.parent}")
 
-    try:
-        module = importlib.import_module(module_name)
-        module_attributes = dir(module)
-    except ModuleNotFoundError as e:
-        raise FileNotFoundError(
-            f"Handler file does not exist in {config_file.parent}"
-        ) from e
+    module = load_handler_module_from_skill_path(config_file.parent)
+    module_attributes = dir(module)
 
     with open(str(config_file), mode="r", encoding="utf-8") as fp:
         config = yaml.safe_load(fp)
@@ -64,5 +67,5 @@ def check_handlers(config_file: Path, common_handlers: List[str]) -> None:
         for handler_info in config[HANDLERS].values():
             if handler_info["class_name"] not in module_attributes:
                 raise ValueError(
-                    f"Handler {handler_info[CLASS_NAME]} declared in {config_file} is missing from {module_name}"
+                    f"Handler {handler_info[CLASS_NAME]} declared in {config_file} is missing from {config_file.parent / HANDLERS}.py"
                 )

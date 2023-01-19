@@ -125,8 +125,8 @@ class TestCheckHandlers(BaseCliTest):
             with mock.patch("autonomy.analyse.handlers.dir", return_value=[]):
                 # Mock Path.relative_to() and return any valid module so import_module does not fail
                 with mock.patch(
-                    "autonomy.analyse.handlers.resolve_handler_path_to_module",
-                    return_value="pathlib",
+                    "autonomy.analyse.handlers.load_handler_module_from_skill_path",
+                    return_value=None,
                 ):
                     check_handlers(
                         Path(
