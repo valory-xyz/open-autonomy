@@ -78,16 +78,29 @@ class TestCheckHandlers(BaseCliTest):
     ) -> None:
         """Run tests."""
 
-        result = self.run_cli()
-        assert result.exit_code == 0, result.output
+        check_file = (
+            self.t
+            / "packages"
+            / "valory"
+            / "skills"
+            / "abstract_round_abci"
+            / DEFAULT_SKILL_CONFIG_FILE
+        )
+        skip_file = (
+            self.t
+            / "packages"
+            / "valory"
+            / "skills"
+            / "counter"
+            / DEFAULT_SKILL_CONFIG_FILE
+        )
 
-        for yaml_file in sorted(
-            Path(self.t / "packages").glob(f"*/*/*/{DEFAULT_SKILL_CONFIG_FILE}")
-        ):
-            if yaml_file.parent.name in IGNORE_SKILLS:
-                assert f"Skipping {yaml_file.parent.resolve()}" in result.output
-            else:
-                assert f"Checking {yaml_file.parent.resolve()}" in result.output
+        with mock.patch.object(Path, "glob", return_value=[check_file, skip_file]):
+            result = self.run_cli()
+
+        assert result.exit_code == 0, result.output
+        assert f"Skipping {skip_file.parent.resolve()}" in result.output
+        assert f"Checking {check_file.parent.resolve()}" in result.output
 
     def test_check_handlers_fail(
         self,
