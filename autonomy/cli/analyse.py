@@ -26,11 +26,12 @@ import click
 from aea.cli.utils.click_utils import reraise_as_click_exception
 from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
-from aea.configurations.constants import DEFAULT_SKILL_CONFIG_FILE, PACKAGES
+from aea.configurations.constants import PACKAGES
 
 from autonomy.analyse.abci.logs import parse_file
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
 from autonomy.analyse.handlers import check_handlers
+from autonomy.cli.helpers.analyse import list_all_skill_yaml_files, load_package_tree
 from autonomy.cli.helpers.docstring import analyse_docstrings
 from autonomy.cli.helpers.fsm_spec import check_all as check_all_fsm
 from autonomy.cli.helpers.fsm_spec import check_one as check_one_fsm
@@ -195,9 +196,8 @@ def run_handler_check(
     with reraise_as_click_exception(
         FileNotFoundError, ValueError, ImportError
     ), sys_path_patch(registry_path.parent):
-        for yaml_file in sorted(
-            registry_path.glob(f"*/*/*/{DEFAULT_SKILL_CONFIG_FILE}")
-        ):
+        load_package_tree(packages_dir=registry_path)
+        for yaml_file in list_all_skill_yaml_files(registry_path):
             if yaml_file.parent.name in ignore:
                 click.echo(f"Skipping {yaml_file.parent.name}")
                 continue
