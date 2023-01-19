@@ -99,8 +99,8 @@ class TestCheckHandlers(BaseCliTest):
             result = self.run_cli()
 
         assert result.exit_code == 0, result.output
-        assert f"Skipping {skip_file.parent.resolve()}" in result.output
-        assert f"Checking {check_file.parent.resolve()}" in result.output
+        assert f"Skipping {skip_file.parent.name}" in result.output
+        assert f"Checking {check_file.parent.name}" in result.output
 
     def test_check_handlers_fail(
         self,

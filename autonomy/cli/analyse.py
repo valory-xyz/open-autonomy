@@ -196,13 +196,13 @@ def run_handler_check(
         FileNotFoundError, ValueError, ImportError
     ), sys_path_patch(registry_path.parent):
         for yaml_file in sorted(
-            registry_path.resolve().glob(f"*/*/*/{DEFAULT_SKILL_CONFIG_FILE}")
+            registry_path.glob(f"*/*/*/{DEFAULT_SKILL_CONFIG_FILE}")
         ):
             if yaml_file.parent.name in ignore:
-                click.echo(f"Skipping {yaml_file.parent}")
+                click.echo(f"Skipping {yaml_file.parent.name}")
                 continue
 
-            click.echo(f"Checking {yaml_file.parent}")
+            click.echo(f"Checking {yaml_file.parent.name}")
             check_handlers(
                 yaml_file.resolve(),
                 common_handlers=common_handlers,
