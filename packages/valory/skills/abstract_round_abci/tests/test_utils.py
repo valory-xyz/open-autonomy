@@ -20,6 +20,7 @@
 """Test the utils.py module of the skill."""
 
 from collections import defaultdict
+from string import printable
 from typing import Any, List, Tuple, Type
 from unittest import mock
 
@@ -34,6 +35,8 @@ from packages.valory.skills.abstract_round_abci.utils import (
     VerifyDrand,
     get_data_from_nested_dict,
     get_value_with_type,
+    is_json_serializable,
+    is_primitive_or_none,
     parse_tendermint_p2p_url,
     to_int,
 )
@@ -223,3 +226,43 @@ def test_parse_tendermint_p2p_url(url: str, expected_output: Tuple[str, int]) ->
     """Test `parse_tendermint_p2p_url` method."""
 
     assert parse_tendermint_p2p_url(url=url) == expected_output
+
+
+@given(
+    st.one_of(st.none(), st.integers(), st.floats(), st.text(), st.booleans()),
+    st.one_of(
+        st.nothing(),
+        st.frozensets(st.integers()),
+        st.sets(st.integers()),
+        st.lists(st.integers()),
+        st.dictionaries(st.integers(), st.integers()),
+        st.dates(),
+        st.complex_numbers(),
+        st.just(object()),
+    ),
+)
+def test_is_primitive_or_none(valid_obj: Any, invalid_obj: Any) -> None:
+    """Test `is_primitive_or_none`."""
+    assert is_primitive_or_none(valid_obj)
+    assert not is_primitive_or_none(invalid_obj)
+
+
+@given(
+    st.recursive(
+        st.none() | st.booleans() | st.floats() | st.text(printable),
+        lambda children: st.lists(children)
+        | st.dictionaries(st.text(printable), children),
+    ),
+    st.one_of(
+        st.nothing(),
+        st.frozensets(st.integers()),
+        st.sets(st.integers()),
+        st.dates(),
+        st.complex_numbers(),
+        st.just(object()),
+    ),
+)
+def test_is_json_serializable(valid_obj: Any, invalid_obj: Any) -> None:
+    """Test `is_json_serializable`."""
+    assert is_json_serializable(valid_obj)
+    assert not is_json_serializable(invalid_obj)

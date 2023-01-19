@@ -18,8 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """Test the base.py module of the skill."""
+
 import dataclasses
 import datetime
+import json
 import logging
 import re
 import shutil
@@ -670,6 +672,23 @@ class TestAbciAppDB:
         self.db.increment_round_count()
         assert self.db.round_count == 0
 
+    @mock.patch(
+        "packages.valory.skills.abstract_round_abci.base.is_json_serializable",
+        return_value=False,
+    )
+    def test_validate(self, _: mock._patch) -> None:
+        """Test `validate` method."""
+        data = "does not matter"
+
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=re.escape(
+                "internal error: `AbciAppDB` data must be json-serializable. Please convert non-serializable data in "
+                f"`{data}`. You may use `AbciAppDB.validate(your_data)` to validate your data for the `AbciAppDB`."
+            ),
+        ):
+            AbciAppDB.validate(data)
+
     @pytest.mark.parametrize(
         "setup_data, update_data, expected_data",
         (
@@ -890,6 +909,30 @@ class TestAbciAppDB:
 
         db.cleanup(cleanup_history_depth, cleanup_history_depth_current)
         assert db._data == expected
+
+    def test_serialize(self) -> None:
+        """Test `serialize` method."""
+        assert self.db.serialize() == '{"0": {"participants": [["a", "b"]]}}'
+
+    @pytest.mark.parametrize(
+        "data", (0, "test_syncing", {"test": "syncing"}, list(range(9)))
+    )
+    def test_sync(self, data: Any) -> None:
+        """Test `sync` method."""
+        try:
+            serialized_data = json.dumps(data)
+        except TypeError as exc:
+            raise AssertionError(
+                "Incorrectly parametrized test. Data must be json serializable."
+            ) from exc
+
+        self.db.sync(serialized_data)
+        assert self.db._data == data
+
+    def test_hash(self) -> None:
+        """Test `hash` method."""
+        expected_hash = b"\x89j\xd8\xf7\x9b\x98>\x97b|\xbeI~y\x8b\x9a\xba\x92\xd4I\x05 \xe8\xc9\xcaQ\x80\xbf{:\xef\xc2"
+        assert self.db.hash() == expected_hash
 
 
 class TestBaseSynchronizedData:
