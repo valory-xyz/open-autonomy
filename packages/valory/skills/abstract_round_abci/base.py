@@ -58,6 +58,7 @@ from packages.valory.connections.ledger.connection import (
     PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.abci.custom_types import Header
+from packages.valory.skills.abstract_round_abci.utils import is_json_serializable
 
 
 _logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
@@ -589,6 +590,19 @@ class AbciAppDB:
     def get_strict(self, key: str) -> Any:
         """Get a value from the data dictionary and raise if it is None."""
         return self.get(key)
+
+    @staticmethod
+    def validate(data: Any) -> None:
+        """Validate if the given data are json serializable and therefore can be accepted into the database.
+
+        :param data: the data to check.
+        :raises ABCIAppInternalError: If the data are not serializable.
+        """
+        if not is_json_serializable(data):
+            raise ABCIAppInternalError(
+                f"`AbciAppDB` data must be json-serializable. Please convert non-serializable data in `{data}`. "
+                "You may use `AbciAppDB.validate(your_data)` to validate your data for the `AbciAppDB`."
+            )
 
     def update(self, **kwargs: Any) -> None:
         """Update the current data."""
