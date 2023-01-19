@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,12 +24,14 @@ import importlib
 import importlib.machinery
 import importlib.util
 import types
+from importlib.machinery import ModuleSpec
 from pathlib import Path
-from typing import List
+from typing import List, cast
 
 import yaml
 
 from autonomy.configurations.constants import CLASS_NAME, HANDLERS
+
 
 HANDLERS_FILE = f"{HANDLERS}.py"
 
@@ -40,9 +42,9 @@ def load_handler_module_from_skill_path(skill_path: Path) -> types.ModuleType:
     loader = importlib.machinery.SourceFileLoader(
         HANDLERS, str(skill_path / "handlers.py")
     )
-    spec = importlib.util.spec_from_loader(HANDLERS, loader)
+    spec = cast(ModuleSpec, importlib.util.spec_from_loader(HANDLERS, loader))
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    loader.exec_module(module)
 
     return module
 
