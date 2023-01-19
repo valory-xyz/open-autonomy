@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ from aea.cli.utils.click_utils import (
 )
 from aea.cli.utils.context import Context
 
+from autonomy.chain.config import ChainType
 from autonomy.cli.helpers.deployment import (
     build_and_deploy_from_token,
     build_deployment,
@@ -244,13 +245,6 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
 @deploy_group.command(name="from-token")
 @click.argument("token_id", type=int)
 @click.argument("keys_file", type=click.Path())
-@click.option("--rpc", "rpc_url", type=str, help="Custom RPC URL")
-@click.option(
-    "--sca",
-    "service_contract_address",
-    type=str,
-    help="Service contract address for custom RPC URL.",
-)
 @click.option("--n", type=int, help="Number of agents to include in the build.")
 @click.option("--skip-image", is_flag=True, default=False, help="Skip building images.")
 @click.option(
@@ -259,16 +253,14 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
     default=False,
     help="Apply environment variable when loading service config.",
 )
-@chain_selection_flag()
+@chain_selection_flag(help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
 def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-locals
     click_context: click.Context,
     token_id: int,
     keys_file: Path,
-    chain_type: str,
-    rpc_url: Optional[str],
-    service_contract_address: Optional[str],
+    chain_type: ChainType,
     skip_image: bool,
     n: Optional[int],
     aev: bool = False,
@@ -286,9 +278,7 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
         build_and_deploy_from_token(
             token_id=token_id,
             keys_file=keys_file,
-            chain_type=chain_type,
-            rpc_url=rpc_url,
-            service_contract_address=service_contract_address,
+            chain_type=ChainType(chain_type),
             skip_image=skip_image,
             n=n,
             aev=aev,

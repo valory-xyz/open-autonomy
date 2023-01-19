@@ -1,0 +1,17 @@
+name: registries_manager
+author: valory
+version: 0.1.0
+type: contract
+description: Registries Manager contract
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: bafybeihqlwkxffyqkqzzoqbm3t5caqxl75po6yk5cfjg5jp56dy47qqmv4
+  build/RegistriesManager.json: bafybeigu6whhxx6zd7kqhmpjpak4ufj4az2jk4k4rwi4tshr25qzcb3e6q
+  contract.py: bafybeic3cplere7jbkb7qjlbhcd6skjtnzwyxw27ra4y3uqelf67q6tl3q
+fingerprint_ignore_patterns: []
+contracts: []
+class_name: RegistriesManagerContract
+contract_interface_paths:
+  ethereum: build/RegistriesManager.json
+dependencies: {}

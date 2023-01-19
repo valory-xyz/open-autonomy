@@ -1,0 +1,17 @@
+name: component_registry
+author: valory
+version: 0.1.0
+type: contract
+description: Component registry contract
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: bafybeihqlwkxffyqkqzzoqbm3t5caqxl75po6yk5cfjg5jp56dy47qqmv4
+  build/ComponentRegistry.json: bafybeicssz7csipr7lhxvro6chtd45f6iqykserv35ppjtxetpx75ouno4
+  contract.py: bafybeidf26bmnxugpvbwwdx5ah5csbzoap26ao6p4wjazlecomwup2zghi
+fingerprint_ignore_patterns: []
+contracts: []
+class_name: ComponentRegistryContract
+contract_interface_paths:
+  ethereum: build/ComponentRegistry.json
+dependencies: {}

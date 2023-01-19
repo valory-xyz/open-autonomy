@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,15 +29,18 @@ from aea.helpers.base import cd
 from compose.cli import main as docker_compose
 from compose.config.errors import ConfigurationError
 from docker.errors import NotFound
-from requests.exceptions import ConnectionError as RequestsConnectionError
 from web3.exceptions import BadFunctionCallOutput
 
+from autonomy.chain.config import ChainType, ContractConfigs
+from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
+from autonomy.chain.service import get_agent_instances, get_service_info
+from autonomy.chain.utils import resolve_component_id
+from autonomy.cli.helpers.chain import get_ledger_and_crypto_objects
 from autonomy.cli.helpers.registry import fetch_service_ipfs
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
 from autonomy.configurations.loader import load_service_config
 from autonomy.constants import DEFAULT_BUILD_FOLDER
 from autonomy.deploy.build import generate_deployment
-from autonomy.deploy.chain import ServiceRegistry
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
     BENCHMARKS_DIR,
@@ -176,30 +179,31 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
 
 def _resolve_on_chain_token_id(
     token_id: int,
-    chain_type: str,
-    rpc_url: Optional[str],
-    service_contract_address: Optional[str],
+    chain_type: ChainType,
 ) -> Tuple[Dict[str, str], List[str], str]:
     """Resolve service metadata from tokenID"""
 
-    service_registry = ServiceRegistry(chain_type, rpc_url, service_contract_address)
-    click.echo(
-        "Fetching service metadata using:\n"
-        + f"\tRPC: {service_registry.rpc_url}\n"
-        + f"\tContract: {service_registry.service_contract_address}"
-    )
+    ledger_api, _ = get_ledger_and_crypto_objects(chain_type=chain_type)
+    contract_address = ContractConfigs.service_registry.contracts[chain_type]
+
+    click.echo(f"Fetching service metadata using chain type {chain_type.value}")
 
     try:
-        metadata = service_registry.resolve_token_id(token_id)
-        _, agent_instances = service_registry.get_agent_instances(token_id)
-        _, multisig_address, *_ = service_registry.get_service_info(token_id)
-    except RequestsConnectionError as e:
-        raise click.ClickException(
-            f"Error connecting RPC endpoint; RPC={service_registry.rpc_url}"
-        ) from e
+        metadata = resolve_component_id(
+            ledger_api=ledger_api, contract_address=contract_address, token_id=token_id
+        )
+        info = get_agent_instances(
+            ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
+        )
+        agent_instances = info["agentInstances"]
+        (_, multisig_address, *_,) = get_service_info(
+            ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
+        )
+    except FailedToRetrieveComponentMetadata as e:
+        raise click.ClickException(str(e)) from e
     except BadFunctionCallOutput as e:
         raise click.ClickException(
-            f"Cannot find the service registry deployment; Service contract address {service_registry.service_contract_address}"
+            f"Cannot find the service registry deployment; Service contract address {contract_address}"
         ) from e
 
     return metadata, agent_instances, multisig_address
@@ -208,9 +212,7 @@ def _resolve_on_chain_token_id(
 def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many-locals
     token_id: int,
     keys_file: Path,
-    chain_type: str,
-    rpc_url: Optional[str],
-    service_contract_address: Optional[str],
+    chain_type: ChainType,
     skip_image: bool,
     n: Optional[int],
     aev: bool = False,
@@ -222,8 +224,6 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
     service_metadata, agent_instances, multisig_address = _resolve_on_chain_token_id(
         token_id=token_id,
         chain_type=chain_type,
-        rpc_url=rpc_url,
-        service_contract_address=service_contract_address,
     )
 
     click.echo("Service name: " + service_metadata["name"])

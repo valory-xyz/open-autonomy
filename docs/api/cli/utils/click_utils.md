@@ -29,7 +29,7 @@ Flags for abci spec outputs formats.
 #### chain`_`selection`_`flag
 
 ```python
-def chain_selection_flag(default: str = "staging", mark_default: bool = True) -> Callable
+def chain_selection_flag(default: ChainType = ChainType.LOCAL, mark_default: bool = True, help_string_format: str = "To use {} chain profile to interact with the contracts") -> Callable
 ```
 
 Flags for abci spec outputs formats.

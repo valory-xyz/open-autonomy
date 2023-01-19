@@ -1,0 +1,27 @@
+agent_name: dummy_agent
+author: dummy_author
+version: 0.1.0
+description: Dummy agent
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: bafybeic7ag2ttt7nluqedgdn3krez7olzgp7x5yilrst7qjtoahwzrshna
+  readme.md: bafybeiacryxttipf4w4frfczygcyxyxhpobbywnybkpbtuuzzsffl2tczy
+fingerprint_ignore_patterns: []
+connections:
+- dummy_author/dummy_connection:0.1.0:bafybeiezr7lccxkfv2fslmrngmn6fmjkck6ukah7qfpioobpzuyam2xb2m
+contracts:
+- dummy_author/dummy_contract:0.1.0:bafybeigjwno7m7qthgybxwfglwfebnfghadcpmtzsn5kiw7f27ezcb7fyq
+protocols:
+- dummy_author/dummy_protocol:0.1.0:bafybeifuoztgfa2772jfvx5kyosgz7vrjfu6w6lo2mj3prziomdd3tp5xi
+skills:
+- dummy_author/dummy_skill:0.1.0:bafybeibku44tyjantfk3344gjrwhc2pk3estuose4ewnvf72fjuphe7fjm
+default_ledger: ethereum
+required_ledgers:
+- ethereum
+default_routing: {}
+connection_private_key_paths: {}
+private_key_paths: {}
+logging_config: {}
+dependencies: {}
+default_connection: valory/dummy_connection:0.1.0

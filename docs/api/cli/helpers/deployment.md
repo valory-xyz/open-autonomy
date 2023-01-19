@@ -29,7 +29,7 @@ Build deployment.
 #### build`_`and`_`deploy`_`from`_`token
 
 ```python
-def build_and_deploy_from_token(token_id: int, keys_file: Path, chain_type: str, rpc_url: Optional[str], service_contract_address: Optional[str], skip_image: bool, n: Optional[int], aev: bool = False, password: Optional[str] = None) -> None
+def build_and_deploy_from_token(token_id: int, keys_file: Path, chain_type: ChainType, skip_image: bool, n: Optional[int], aev: bool = False, password: Optional[str] = None) -> None
 ```
 
 Build and run deployment from tokenID.

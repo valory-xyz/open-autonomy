@@ -144,13 +144,6 @@ Run deployment.
 @deploy_group.command(name="from-token")
 @click.argument("token_id", type=int)
 @click.argument("keys_file", type=click.Path())
-@click.option("--rpc", "rpc_url", type=str, help="Custom RPC URL")
-@click.option(
-    "--sca",
-    "service_contract_address",
-    type=str,
-    help="Service contract address for custom RPC URL.",
-)
 @click.option("--n", type=int, help="Number of agents to include in the build.")
 @click.option("--skip-image", is_flag=True, default=False, help="Skip building images.")
 @click.option(
@@ -159,10 +152,10 @@ Run deployment.
     default=False,
     help="Apply environment variable when loading service config.",
 )
-@chain_selection_flag()
+@chain_selection_flag(help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
-def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, chain_type: str, rpc_url: Optional[str], service_contract_address: Optional[str], skip_image: bool, n: Optional[int], aev: bool = False, password: Optional[str] = None) -> None
+def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, chain_type: ChainType, skip_image: bool, n: Optional[int], aev: bool = False, password: Optional[str] = None) -> None
 ```
 
 Run service deployment.
