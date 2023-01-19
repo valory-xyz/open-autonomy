@@ -32,7 +32,7 @@ Mint component.
 def mint_service(package_path: Path, keys: Path, chain_type: ChainType, agent_id: int, number_of_slots: int, cost_of_bond: int, threshold: int, nft_image_hash: Optional[str] = None, password: Optional[str] = None, skip_hash_check: bool = False) -> None
 ```
 
-Mint service component
+Mint service
 
 <a id="autonomy.cli.helpers.chain.activate_service"></a>
 
@@ -52,7 +52,7 @@ Activate on-chain service
 def register_instance(service_id: int, instance: str, agent_id: int, keys: Path, chain_type: ChainType, password: Optional[str] = None) -> None
 ```
 
-Activate on-chain service
+Register agents instances on an activated service
 
 <a id="autonomy.cli.helpers.chain.deploy_service"></a>
 
@@ -62,5 +62,5 @@ Activate on-chain service
 def deploy_service(service_id: int, keys: Path, chain_type: ChainType, deployment_payload: Optional[str] = None, password: Optional[str] = None) -> None
 ```
 
-Activate on-chain service
+Deploy a service with registration activated
 

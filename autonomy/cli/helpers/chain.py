@@ -198,7 +198,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
     password: Optional[str] = None,
     skip_hash_check: bool = False,
 ) -> None:
-    """Mint service component"""
+    """Mint service"""
 
     ledger_api, crypto = get_ledger_and_crypto_objects(
         chain_type=chain_type,
