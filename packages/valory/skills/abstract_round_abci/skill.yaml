@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeicjyrltgdmwzvctebhfteyyd5mbrjashiji4glwf5vwcijuyzzm24
   abci_app_chain.py: bafybeick5fz6hpbbvpmjkm2o3rl5csgvqf4ivwmqdluj2p4jmcpea4xmsq
-  base.py: bafybeifsrjdcxt6axljcua2ekvtyxwmqoziymebufapzf6dzvbe4ow6usm
+  base.py: bafybeighirx6sw6snl5bod4i2jfnxnrtnwlxuhdksnn2ki65cac4ueoecu
   behaviour_utils.py: bafybeigpinjgf4am6zkozbiveys2fugmt2jukpb4iseefmk2jmg54ezrn4
   behaviours.py: bafybeicapzsvzowpjawkxgkhf2m4qb7c3alh5rsysrxp55o7pmjt6bu2g4
   common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
@@ -38,7 +38,7 @@ fingerprint:
   tests/data/dummy_abci/payloads.py: bafybeiczldqiumb7prcusb7l5vb575vschwyseyigpupvteldfyz7h6fyi
   tests/data/dummy_abci/rounds.py: bafybeichpgk5bwhdslonnhhwvm4lem5rrrs5m3jlnycpomi7z32h7jkfia
   tests/test_abci_app_chain.py: bafybeidz573eh6m66x2spovp3yhhzyqheqyaspsrvas4loamdawdilwgki
-  tests/test_base.py: bafybeiex3zl3qv2iliijhwaip6eapbotbqcjhoj7hnbp33jmwlppiwaqva
+  tests/test_base.py: bafybeifxpndo7dq563wvqna7wwefb4vatophfk5upwzsddbchv4fzv2ape
   tests/test_base_rounds.py: bafybeib2slbrwb43zovdwyraskg77yxfpm4gkntr22sb23ipuspzebspg4
   tests/test_behaviours.py: bafybeibupzyvoyyrtvmptcxl7qdrpzjsesjgyt66zrwh6dkrhrgnmnd734
   tests/test_behaviours_utils.py: bafybeifputvrk3m56yg3rfvhfarfvw3lkswplmtn2gaampif2an7jpmp7e
@@ -56,8 +56,8 @@ fingerprint:
   tests/test_tools/test_common.py: bafybeieauphpcqm5on7d2u2lc5lrf3esbhojp6sxlf7phrlmpqy5cfoitq
   tests/test_tools/test_integration.py: bafybeiesmfr2r5glo566qy5z3dtuqf6uckqskoamehhjpnjrsekbyjedjq
   tests/test_tools/test_rounds.py: bafybeibaovb72xuyisjc7amn2hlt5bv72vck43blpnrfayfmozxdywrdbe
-  tests/test_utils.py: bafybeigkob3r2tfsgazviaiwylmtyzhufodgrswf4byptqqm7k6uxdg5bq
-  utils.py: bafybeicurqoxngvsupa2z6uaa6hgvso2xabz3oc6k6ojj6uqj2tej3xrgq
+  tests/test_utils.py: bafybeic2rj7hunfcyi2dlopg3gyxzevvrll24othy237wgg6qbvbuansx4
+  utils.py: bafybeihfhcy6i4teyxx44lhfcgc6jwc6xmrsjlspdpr7ns5ycv444vk67a
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeicmhpw2f5c3vds6lwlv2q4fa5nd6zonnvgdretrwfly7ylpiofdqq

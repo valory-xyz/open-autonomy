@@ -749,6 +749,25 @@ def get_strict(key: str) -> Any
 
 Get a value from the data dictionary and raise if it is None.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.validate"></a>
+
+#### validate
+
+```python
+@staticmethod
+def validate(data: Any) -> None
+```
+
+Validate if the given data are json serializable and therefore can be accepted into the database.
+
+**Arguments**:
+
+- `data`: the data to check.
+
+**Raises**:
+
+- `ABCIAppInternalError`: If the data are not serializable.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.update"></a>
 
 #### update
@@ -835,6 +854,44 @@ def cleanup_current_histories(cleanup_history_depth_current: int) -> None
 ```
 
 Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.serialize"></a>
+
+#### serialize
+
+```python
+def serialize() -> str
+```
+
+Serialize the data of the database to a string.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.sync"></a>
+
+#### sync
+
+```python
+def sync(serialized_data: str) -> None
+```
+
+Synchronize the data using a serialized object.
+
+**Arguments**:
+
+- `serialized_data`: the serialized data to use in order to sync the db.
+
+**Raises**:
+
+- `ABCIAppInternalError`: if the given data cannot be deserialized.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.hash"></a>
+
+#### hash
+
+```python
+def hash() -> bytes
+```
+
+Create a hash of the data.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.data_to_lists"></a>
 
