@@ -95,7 +95,17 @@ def activate_service(
     chain_type: ChainType,
     service_id: int,
 ) -> None:
-    """Activate service."""
+    """
+    Activate service.
+
+    Once you have minted the service on-chain, you'll have to activate the service
+    before you can proceed further.
+
+    :param ledger_api: `aea.crypto.LedgerApi` object for interacting with the chain
+    :param crypto: `aea.crypto.Crypto` object which has a funded key
+    :param chain_type: Chain type
+    :param service_id: Service ID retrieved after minting a service
+    """
 
     (cost_of_bond, *_, service_state, _,) = get_service_info(
         ledger_api=ledger_api, chain_type=chain_type, token_id=service_id
@@ -135,7 +145,25 @@ def register_instance(  # pylint: disable=too-many-arguments
     instance: str,
     agent_id: int,
 ) -> None:
-    """Activate service."""
+    """
+    Register instance.
+
+    Once you have a service with an active registration, you can register agent
+    which will be a part of the service deployment. Using this method you can
+    register maximum N amounts per agents, N being the number of slots for an agent
+    with agent id being `agent_id`.
+
+    Make sure the instance address you provide is not already a part of any service
+    and not as same as the service owner.
+
+    :param ledger_api: `aea.crypto.LedgerApi` object for interacting with the chain
+    :param crypto: `aea.crypto.Crypto` object which has a funded key
+    :param chain_type: Chain type
+    :param service_id: Service ID retrieved after minting a service
+    :param instance: Address of the agent instance
+    :param agent_id: Agent ID of the agent that you want this instance to be a part
+                    of when deployed
+    """
 
     (cost_of_bond, *_, service_state, _,) = get_service_info(
         ledger_api=ledger_api,
@@ -183,8 +211,19 @@ def deploy_service(
     service_id: int,
     deployment_payload: Optional[str] = None,
 ) -> None:
-    """Activate service."""
+    """
+    Deploy service.
 
+    Using this method you can deploy a service on-chain once you have activated
+    the service and registered the required agent instances.
+
+    :param ledger_api: `aea.crypto.LedgerApi` object for interacting with the chain
+    :param crypto: `aea.crypto.Crypto` object which has a funded key
+    :param chain_type: Chain type
+    :param service_id: Service ID retrieved after minting a service
+    :param deployment_payload: Deployment payload to include when making the
+                            deployment transaction
+    """
     deployment_payload = deployment_payload or DEFAULT_DEPLOY_PAYLOAD
     (*_, service_state, _,) = get_service_info(
         ledger_api=ledger_api,

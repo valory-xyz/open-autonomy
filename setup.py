@@ -106,11 +106,7 @@ if __name__ == "__main__":
                 "test_tools/data/*",
             ],
         },
-        packages=find_packages(include=["autonomy*"])
-        + [
-            "packages.valory.contracts.component_registry",
-            "packages.valory.contracts.registries_manager",
-        ],
+        packages=find_packages(include=["autonomy*"]),
         classifiers=[
             "Environment :: Console",
             "Environment :: Web Environment",

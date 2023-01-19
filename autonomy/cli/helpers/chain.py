@@ -319,7 +319,7 @@ def register_instance(  # pylint: disable=too-many-arguments
     chain_type: ChainType,
     password: Optional[str] = None,
 ) -> None:
-    """Activate on-chain service"""
+    """Register agents instances on an activated service"""
 
     ledger_api, crypto = get_ledger_and_crypto_objects(
         chain_type=chain_type,
@@ -349,7 +349,7 @@ def deploy_service(
     deployment_payload: Optional[str] = None,
     password: Optional[str] = None,
 ) -> None:
-    """Activate on-chain service"""
+    """Deploy a service with registration activated"""
 
     ledger_api, crypto = get_ledger_and_crypto_objects(
         chain_type=chain_type,
