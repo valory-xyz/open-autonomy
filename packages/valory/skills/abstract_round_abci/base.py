@@ -18,7 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the base classes for the models classes of the skill."""
+
 import datetime
+import hashlib
 import heapq
 import itertools
 import json
@@ -668,6 +670,30 @@ class AbciAppDB:
             key: history[-cleanup_history_depth_current:]
             for key, history in self._data[self.reset_index].items()
         }
+
+    def serialize(self) -> str:
+        """Serialize the data of the database to a string."""
+        return json.dumps(self._data, sort_keys=True)
+
+    def sync(self, serialized_data: str) -> None:
+        """Synchronize the data using a serialized object.
+
+        :param serialized_data: the serialized data to use in order to sync the db.
+        :raises ABCIAppInternalError: if the given data cannot be deserialized.
+        """
+        try:
+            self._data = json.loads(serialized_data)
+        except json.JSONDecodeError as exc:
+            raise ABCIAppInternalError(
+                f"Could not decode data using {serialized_data}: {exc}"
+            ) from exc
+
+    def hash(self) -> bytes:
+        """Create a hash of the data."""
+        # Compute the sha256 hash of the serialized data
+        sha256 = hashlib.sha256()
+        sha256.update(self.serialize().encode("utf-8"))
+        return sha256.digest()
 
     @staticmethod
     def data_to_lists(data: Dict[str, Any]) -> Dict[str, List[Any]]:
