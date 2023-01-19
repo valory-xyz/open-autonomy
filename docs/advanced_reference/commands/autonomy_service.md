@@ -1,6 +1,6 @@
 # `autonomy service`
 
-Tools to manage on chain services
+Tools to manage on chain services. Once you have a service and the required components minted on chain, you can start with the service deployment process using the service manager.
 
 ### Options
 
