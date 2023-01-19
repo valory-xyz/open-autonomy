@@ -548,13 +548,15 @@ class AbciAppDB:
 
     @staticmethod
     def _check_data(data: Any) -> None:
-        """Check that all fields in setup data were passed as a list"""
+        """Check that all fields in setup data were passed as a list, and that the data can be accepted into the db."""
         if not isinstance(data, dict) or not all(
             [isinstance(v, list) for v in data.values()]
         ):
             raise ValueError(
                 f"AbciAppDB data must be `Dict[str, List[Any]]`, found `{type(data)}` instead."
             )
+
+        AbciAppDB.validate(data)
 
     @property
     def reset_index(self) -> int:
@@ -606,6 +608,8 @@ class AbciAppDB:
 
     def update(self, **kwargs: Any) -> None:
         """Update the current data."""
+        self.validate(kwargs)
+
         # Append new data to the key history
         data = self._data[self.reset_index]
         for key, value in deepcopy(kwargs).items():
