@@ -1,7 +1,4 @@
-#The Open Autonomy framework
-
-
-
+## Open Autonomy Framework
 
 {{open_autonomy}} is a framework for the creation of **agent services**: off-chain
 autonomous services which run as a multi-agent-system (MAS) and offer **enhanced functionalities
