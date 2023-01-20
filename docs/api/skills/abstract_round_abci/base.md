@@ -1490,6 +1490,17 @@ def __init__(*args: Any, **kwargs: Any)
 
 Initialize the collection round.
 
+<a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.serialized_collection"></a>
+
+#### serialized`_`collection
+
+```python
+@property
+def serialized_collection() -> Dict[str, Dict[str, Any]]
+```
+
+A collection with the addresses mapped to serialized payloads.
+
 <a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.accepting_payloads_from"></a>
 
 #### accepting`_`payloads`_`from
