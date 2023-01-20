@@ -636,7 +636,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         self,
     ) -> None:
         """Test finalize behaviour."""
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        participants = (self.skill.skill_context.agent_address, "a_1", "a_2")
         retries = 1
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
@@ -760,8 +760,10 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         # keepers need to have length == 42 in order to be parsed
         agent_address_mock.return_value = "-" * 42
         retries = 1
-        participants = frozenset(
-            {self.skill.skill_context.agent_address, "a_1" + "-" * 39, "a_2" + "-" * 39}
+        participants = (
+            self.skill.skill_context.agent_address,
+            "a_1" + "-" * 39,
+            "a_2" + "-" * 39,
         )
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
@@ -853,8 +855,10 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         max_priority_fee_per_gas: Optional[int] = None
 
         retries = 1
-        participants = frozenset(
-            {self.skill.skill_context.agent_address, "a_1" + "-" * 39, "a_2" + "-" * 39}
+        participants = (
+            self.skill.skill_context.agent_address,
+            "a_1" + "-" * 39,
+            "a_2" + "-" * 39,
         )
         kwargs = dict(
             safe_contract_address="safe_contract_address",
@@ -931,7 +935,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
 
     def test_handle_late_messages(self) -> None:
         """Test `handle_late_messages.`"""
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        participants = (self.skill.skill_context.agent_address, "a_1", "a_2")
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=self.behaviour_class.auto_behaviour_id(),
@@ -941,7 +945,7 @@ class TestFinalizeBehaviour(TransactionSettlementFSMBehaviourBaseCase):
                         dict(
                             most_voted_keeper_address="most_voted_keeper_address",
                             participants=participants,
-                            keepers=deque([self.skill.skill_context.agent_address]),
+                            keepers="keepers",
                         )
                     ),
                 )
@@ -986,7 +990,7 @@ class TestValidateTransactionBehaviour(TransactionSettlementFSMBehaviourBaseCase
 
     def _fast_forward(self) -> None:
         """Fast-forward to relevant behaviour."""
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        participants = (self.skill.skill_context.agent_address, "a_1", "a_2")
         most_voted_keeper_address = self.skill.skill_context.agent_address
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
@@ -1097,8 +1101,10 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
                     setup_data=AbciAppDB.data_to_lists(
                         dict(
                             safe_contract_address="safe_contract_address",
-                            participants=frozenset(
-                                {self.skill.skill_context.agent_address, "a_1", "a_2"}
+                            participants=(
+                                self.skill.skill_context.agent_address,
+                                "a_1",
+                                "a_2",
                             ),
                             participant_to_signature={},
                             most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
@@ -1190,7 +1196,7 @@ class TestCheckLateTxHashesBehaviour(TransactionSettlementFSMBehaviourBaseCase):
         agent_address = self.skill.skill_context.agent_address
         kwargs = dict(
             safe_contract_address="safe_contract_address",
-            participants=frozenset({agent_address, "a_1", "a_2"}),
+            participants=(agent_address, "a_1", "a_2"),
             participant_to_signature={},
             most_voted_tx_hash="",
             late_arriving_tx_hashes=late_arriving_tx_hashes,
@@ -1239,7 +1245,7 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
             TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
         ).params.mutable_params.late_messages = late_messages
 
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        participants = (self.skill.skill_context.agent_address, "a_1", "a_2")
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
             behaviour_id=SynchronizeLateMessagesBehaviour.auto_behaviour_id(),

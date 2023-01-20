@@ -64,7 +64,7 @@ class TestDummyRound(BaseRoundTestClass):
 
         actual_next_behaviour = BaseSynchronizedData(
             AbciAppDB(
-                setup_data=dict(participants=[frozenset(test_round.collection.keys())]),
+                setup_data=dict(participants=[tuple(test_round.collection)]),
             )
         )
 

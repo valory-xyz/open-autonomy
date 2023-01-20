@@ -81,17 +81,18 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
             RegistrationEvent.DONE,
         )
 
-        assert self.synchronized_data.db._data[0] == {
-            "all_participants": [
-                frozenset({"agent_0", "agent_1", "agent_2", "agent_3"}),
-            ],
-            "oracle_contract_address": ["stub_oracle_contract_address"],
-            "participants": [
-                frozenset({"agent_1", "agent_3", "agent_0", "agent_2"}),
-                frozenset({"agent_1", "agent_3", "agent_0", "agent_2"}),
-            ],
-            "safe_contract_address": ["stub_safe_contract_address"],
-        }
+        assert all(
+            (
+                self.synchronized_data.all_participants
+                == frozenset({"agent_2", "agent_0", "agent_1", "agent_3"}),
+                self.synchronized_data.participants
+                == frozenset({"agent_2", "agent_0", "agent_1", "agent_3"}),
+                self.synchronized_data.safe_contract_address
+                == "stub_safe_contract_address",
+                self.synchronized_data.db.get("oracle_contract_address")
+                == "stub_oracle_contract_address",
+            )
+        )
 
     def test_run_default_not_finished(
         self,
@@ -122,14 +123,18 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
                 most_voted_payload="none",
             )
 
-        assert self.synchronized_data.db._data[0] == {
-            "all_participants": [
-                frozenset({"agent_2", "agent_0", "agent_1", "agent_3"})
-            ],
-            "oracle_contract_address": ["stub_oracle_contract_address"],
-            "participants": [frozenset({"agent_2", "agent_0", "agent_1", "agent_3"})],
-            "safe_contract_address": ["stub_safe_contract_address"],
-        }
+        assert all(
+            (
+                self.synchronized_data.all_participants
+                == frozenset({"agent_2", "agent_0", "agent_1", "agent_3"}),
+                self.synchronized_data.participants
+                == frozenset({"agent_2", "agent_0", "agent_1", "agent_3"}),
+                self.synchronized_data.safe_contract_address
+                == "stub_safe_contract_address",
+                self.synchronized_data.db.get("oracle_contract_address")
+                == "stub_oracle_contract_address",
+            )
+        )
 
     def _run_with_round(
         self,
@@ -152,7 +157,7 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
             synchronized_data_update_fn=(
                 lambda *x: SynchronizedData(
                     AbciAppDB(
-                        setup_data=dict(participants=[self.participants]),
+                        setup_data=dict(participants=[tuple(self.participants)]),
                     )
                 )
             ),
@@ -209,17 +214,18 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
             round_payloads=round_payloads,
         )
 
-        assert self.synchronized_data.db._data[0] == {
-            "all_participants": [
-                frozenset({"agent_1", "agent_2", "agent_3", "agent_0"})
-            ],
-            "oracle_contract_address": ["stub_oracle_contract_address"],
-            "participants": [
-                frozenset({"agent_1", "agent_2", "agent_3", "agent_0"}),
-                frozenset({"agent_1", "agent_2", "agent_3", "agent_0"}),
-            ],
-            "safe_contract_address": ["stub_safe_contract_address"],
-        }
+        assert all(
+            (
+                self.synchronized_data.all_participants
+                == frozenset({"agent_2", "agent_0", "agent_1", "agent_3"}),
+                self.synchronized_data.participants
+                == frozenset({"agent_2", "agent_0", "agent_1", "agent_3"}),
+                self.synchronized_data.safe_contract_address
+                == "stub_safe_contract_address",
+                self.synchronized_data.db.get("oracle_contract_address")
+                == "stub_oracle_contract_address",
+            )
+        )
 
     def test_run_default_not_finished(
         self,
@@ -241,14 +247,18 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
             confirmations=None,
         )
 
-        assert self.synchronized_data.db._data[0] == {
-            "all_participants": [
-                frozenset({"agent_2", "agent_0", "agent_1", "agent_3"})
-            ],
-            "oracle_contract_address": ["stub_oracle_contract_address"],
-            "participants": [frozenset({"agent_2", "agent_0", "agent_1", "agent_3"})],
-            "safe_contract_address": ["stub_safe_contract_address"],
-        }
+        assert all(
+            (
+                self.synchronized_data.all_participants
+                == frozenset({"agent_2", "agent_0", "agent_1", "agent_3"}),
+                self.synchronized_data.participants
+                == frozenset({"agent_2", "agent_0", "agent_1", "agent_3"}),
+                self.synchronized_data.safe_contract_address
+                == "stub_safe_contract_address",
+                self.synchronized_data.db.get("oracle_contract_address")
+                == "stub_oracle_contract_address",
+            )
+        )
 
     def _run_with_round(
         self,
@@ -272,7 +282,7 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
             synchronized_data_update_fn=(
                 lambda *x: SynchronizedData(
                     AbciAppDB(
-                        setup_data=dict(participants=[self.participants]),
+                        setup_data=dict(participants=[tuple(self.participants)]),
                     )
                 )
             ),
@@ -318,11 +328,15 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
             with mock.patch.object(test_round, "block_confirmations", 11):
                 self._test_no_majority_event(test_round)
 
-        assert self.synchronized_data.db._data[0] == {
-            "all_participants": [
-                frozenset({"agent_2", "agent_0", "agent_1", "agent_3"})
-            ],
-            "oracle_contract_address": ["stub_oracle_contract_address"],
-            "participants": [frozenset({"agent_2", "agent_0", "agent_1", "agent_3"})],
-            "safe_contract_address": ["stub_safe_contract_address"],
-        }
+        assert all(
+            (
+                self.synchronized_data.all_participants
+                == frozenset({"agent_2", "agent_0", "agent_1", "agent_3"}),
+                self.synchronized_data.participants
+                == frozenset({"agent_2", "agent_0", "agent_1", "agent_3"}),
+                self.synchronized_data.safe_contract_address
+                == "stub_safe_contract_address",
+                self.synchronized_data.db.get("oracle_contract_address")
+                == "stub_oracle_contract_address",
+            )
+        )

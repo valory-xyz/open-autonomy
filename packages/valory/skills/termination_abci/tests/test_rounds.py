@@ -63,8 +63,8 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
         self.synchronized_data = SynchronizedData(
             AbciAppDB(
                 setup_data=dict(
-                    participants=[self.participants],
-                    all_participants=[self.participants],
+                    participants=[tuple(self.participants)],
+                    all_participants=[tuple(self.participants)],
                 ),
             )
         )

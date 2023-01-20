@@ -548,7 +548,7 @@ class DummyBaseVotingRoundTestWithEndBlock(DummyVotingRound):
             synchronized_data = cast(
                 DummySynchronizedData,
                 self.synchronized_data.update(
-                    is_keeper_set=self.collection,
+                    is_keeper_set=bool(self.collection),
                 ),
             )
             return synchronized_data, DummyEvent.DONE

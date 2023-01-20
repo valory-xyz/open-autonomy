@@ -249,9 +249,12 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes=dict(
-                        get_participant_to_votes(self.participants)
-                    )
+                    participant_to_votes={
+                        address: payload.json
+                        for address, payload in get_participant_to_votes(
+                            self.participants
+                        ).items()
+                    }
                 ),
                 synchronized_data_attr_checks=[
                     lambda _synchronized_data: _synchronized_data.participant_to_votes.keys()
@@ -275,9 +278,12 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=False),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes=dict(
-                        get_participant_to_votes(self.participants, vote=False)
-                    )
+                    participant_to_votes={
+                        address: payload.json
+                        for address, payload in get_participant_to_votes(
+                            self.participants, vote=False
+                        ).items()
+                    }
                 ),
                 synchronized_data_attr_checks=[],
                 exit_event=self._event_class.NEGATIVE,
@@ -299,9 +305,12 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=None),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes=dict(
-                        get_participant_to_votes(self.participants, vote=None)
-                    )
+                    participant_to_votes={
+                        address: payload.json
+                        for address, payload in get_participant_to_votes(
+                            self.participants, vote=None
+                        ).items()
+                    }
                 ),
                 synchronized_data_attr_checks=[],
                 exit_event=self._event_class.NONE,
@@ -345,11 +354,12 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
                     self.participants, most_voted_payload
                 ),
                 synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
-                    participant_to_selection=dict(
-                        self._participant_to_selection(
+                    participant_to_selection={
+                        address: payload.json
+                        for address, payload in self._participant_to_selection(
                             self.participants, most_voted_payload
-                        )
-                    )
+                        ).items()
+                    }
                 ),
                 synchronized_data_attr_checks=[
                     lambda _synchronized_data: _synchronized_data.participant_to_selection.keys()
@@ -582,7 +592,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         self.synchronized_data = cast(
             TransactionSettlementSynchronizedSata,
             self.synchronized_data.update(
-                participants=frozenset([f"agent_{i}" + "-" * 35 for i in range(4)]),
+                participants=([f"agent_{i}" + "-" * 35 for i in range(4)]),
                 missed_messages=missed_messages,
                 tx_hashes_history=tx_hashes_history,
                 keepers=get_keepers(keepers, keeper_retries),
@@ -624,7 +634,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                     blacklisted_keepers=blacklisted_keepers,
                     keepers=get_keepers(keepers, keeper_retries),
                     keeper_retries=keeper_retries,
-                    final_verification_status=VerificationStatus(status),
+                    final_verification_status=VerificationStatus(status).value,
                 ),
                 synchronized_data_attr_checks=[
                     lambda _synchronized_data: _synchronized_data.tx_hashes_history,
@@ -739,12 +749,13 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                     self.participants, expected_status, expected_tx_hash
                 ),
                 synchronized_data_update_fn=lambda synchronized_data, _: synchronized_data.update(
-                    participant_to_check=dict(
-                        get_participant_to_check(
+                    participant_to_check={
+                        address: payload.json
+                        for address, payload in get_participant_to_check(
                             self.participants, expected_status, expected_tx_hash
-                        )
-                    ),
-                    final_verification_status=VerificationStatus(int(expected_status)),
+                        ).items()
+                    },
+                    final_verification_status=int(expected_status),
                     tx_hashes_history=[expected_tx_hash],
                     keepers=keepers,
                     final_tx_hash="0xb0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
@@ -835,12 +846,23 @@ def test_synchronized_datas() -> None:
     """Test SynchronizedData."""
 
     participants = get_participants()
-    participant_to_randomness = get_participant_to_randomness(participants, 1)
+    participant_to_randomness = {
+        address: payload.json
+        for address, payload in get_participant_to_randomness(participants, 1).items()
+    }
     most_voted_randomness = get_most_voted_randomness()
-    participant_to_selection = get_participant_to_selection(participants, "test")
+    participant_to_selection = {
+        address: payload.json
+        for address, payload in get_participant_to_selection(
+            participants, "test"
+        ).items()
+    }
     safe_contract_address = get_safe_contract_address()
     most_voted_tx_hash = get_most_voted_tx_hash()
-    participant_to_signature = get_participant_to_signature(participants)
+    participant_to_signature = {
+        address: payload.json
+        for address, payload in get_participant_to_signature(participants).items()
+    }
     final_tx_hash = get_final_tx_hash()
     actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
     late_arriving_tx_hashes = get_late_arriving_tx_hashes()
@@ -858,7 +880,7 @@ def test_synchronized_datas() -> None:
         AbciAppDB(
             setup_data=AbciAppDB.data_to_lists(
                 dict(
-                    participants=participants,
+                    participants=tuple(participants),
                     participant_to_randomness=participant_to_randomness,
                     most_voted_randomness=most_voted_randomness,
                     participant_to_selection=participant_to_selection,
@@ -919,8 +941,8 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
                     self.participants, next_period_count
                 ),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.create(
-                    participants=[self.participants],
-                    all_participants=[self.participants],
+                    participants=[tuple(self.participants)],
+                    all_participants=[tuple(self.participants)],
                     keeper_randomness=[DUMMY_RANDOMNESS],
                 ),
                 synchronized_data_attr_checks=[],  # [lambda _synchronized_data: _synchronized_data.participants],

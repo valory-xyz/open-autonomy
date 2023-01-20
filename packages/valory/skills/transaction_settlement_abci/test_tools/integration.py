@@ -142,7 +142,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
             participant_to_signature[address] = SignaturePayload(
                 sender=address,
                 signature=signature_hex,
-            )
+            ).json
 
         self.tx_settlement_synchronized_data.update(
             participant_to_signature=participant_to_signature,
@@ -251,7 +251,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
             hashes.append(tx_digest)
             update_params = dict(
                 tx_hashes_history="".join(hashes),
-                final_verification_status=tx_data["status"],
+                final_verification_status=VerificationStatus(tx_data["status"]).value,
             )
         else:
             # store the tx hash that we have missed and update missed messages.
@@ -312,6 +312,6 @@ class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
             ], f"Message not verified: {verif_msg.state.body}"
 
             self.tx_settlement_synchronized_data.update(
-                final_verification_status=VerificationStatus.VERIFIED,
+                final_verification_status=VerificationStatus.VERIFIED.value,
                 final_tx_hash=self.tx_settlement_synchronized_data.to_be_validated_tx_hash,
             )

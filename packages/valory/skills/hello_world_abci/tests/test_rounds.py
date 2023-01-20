@@ -82,7 +82,7 @@ class TestRegistrationRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_behaviour = SynchronizedData(
-            AbciAppDB(setup_data=dict(participants=[frozenset(test_round.collection)]))
+            AbciAppDB(setup_data=dict(participants=[tuple(test_round.collection)]))
         )
 
         res = test_round.end_block()
@@ -124,7 +124,7 @@ class TestCollectRandomnessRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_behaviour = self.synchronized_data.update(
-            participant_to_randomness=test_round.collection,
+            participant_to_randomness=test_round.serialized_collection,
             most_voted_randomness=test_round.most_voted_payload,
         )
 
@@ -171,7 +171,7 @@ class TestSelectKeeperRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_behaviour = self.synchronized_data.update(
-            participant_to_selection=test_round.collection,
+            participant_to_selection=test_round.serialized_collection,
             most_voted_keeper_address=test_round.most_voted_payload,
         )
 
@@ -223,7 +223,7 @@ class TestPrintMessageRound(BaseRoundTestClass):
         actual_next_behaviour = SynchronizedData(
             AbciAppDB(
                 setup_data=dict(
-                    participants=[test_round.collection],
+                    participants=[tuple(test_round.collection)],
                     printed_messages=[printed_messages],
                 )
             )
@@ -271,8 +271,8 @@ class TestResetAndPauseRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_behaviour = self.synchronized_data.create(
-            participants=[self.synchronized_data.participants],
-            all_participants=[self.synchronized_data.all_participants],
+            participants=[tuple(self.synchronized_data.participants)],
+            all_participants=[tuple(self.synchronized_data.all_participants)],
         )
 
         res = test_round.end_block()
@@ -290,16 +290,16 @@ class TestResetAndPauseRound(BaseRoundTestClass):
 def test_synchronized_data() -> None:  # pylint:too-many-locals
     """Test SynchronizedData."""
 
-    participants = frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
+    participants = tuple(f"agent_{i}" for i in range(MAX_PARTICIPANTS))
     participant_to_randomness = {
         participant: CollectRandomnessPayload(
             sender=participant, randomness=RANDOMNESS, round_id=0
-        )
+        ).json
         for participant in participants
     }
     most_voted_randomness = "0xabcd"
     participant_to_selection = {
-        participant: SelectKeeperPayload(sender=participant, keeper="keeper")
+        participant: SelectKeeperPayload(sender=participant, keeper="keeper").json
         for participant in participants
     }
     most_voted_keeper_address = "keeper"
@@ -319,7 +319,7 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
         )
     )
 
-    assert synchronized_data.participants == participants
+    assert synchronized_data.participants == frozenset(participants)
     assert synchronized_data.period_count == 0
     assert synchronized_data.participant_to_randomness == participant_to_randomness
     assert synchronized_data.most_voted_randomness == most_voted_randomness

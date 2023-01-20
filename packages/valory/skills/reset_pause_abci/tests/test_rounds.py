@@ -75,8 +75,8 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
                     self.participants, next_period_count
                 ),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.create(
-                    participants=[self.participants],
-                    all_participants=[self.participants],
+                    participants=[tuple(self.participants)],
+                    all_participants=[tuple(self.participants)],
                     keeper_randomness=[DUMMY_RANDOMNESS],
                 ),
                 synchronized_data_attr_checks=[],  # [lambda _synchronized_data: _synchronized_data.participants],
