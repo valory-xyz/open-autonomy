@@ -405,6 +405,7 @@ autonomy/data/contracts/registries_manager
 autonomy/data/contracts/component_registry
 autonomy/data/contracts/service_registry
 autonomy/data/contracts/agent_registry
+autonomy/data/contracts/service_manager
 
 .vscode/
 
