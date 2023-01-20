@@ -1,6 +1,8 @@
 #The Open Autonomy framework
 
-
+<figure markdown>
+![](images/open-autonomy-framework-logo.png)
+</figure>
 
 
 {{open_autonomy}} is a framework for the creation of **agent services**: off-chain
@@ -10,10 +12,24 @@ smart contracts provide, making it possible to execute arbitrarily complex opera
 (such as machine-learning algorithms). Most importantly, agent services are
 **decentralized**, **trust-minimized**, **transparent**, and **robust**.
 
-<img src="./images/agent_service_index_page.svg" alt="Open Autonomy" class="center" style="display: block; margin-left: auto; margin-right: auto;width:35%;">
+
+## Building with Open Autonomy
+
+The framework is designed to speed up the development life cycle of autonomous services, helping you to bring your services from an idea to production as quick as possible. Overall, this is the general path that you should have in mind when developing with {{open_autonomy}}:
+
+1. **Idea.** Flesh out the service idea.
+2. **Specification.** Define the service specification in a high-level language used by the framework. 
+3. **Scaffold.** Use the scaffolding tool to build the skeleton of your service.
+4. **Code.** Make the necessary adjustments so that the service implements the desired business logic.
+5. **Deploy** and **Run** your service.
+
+You'll find a more comprehensive description of the developing path in the [overview of the development process](guides/overview_of_the_development_process.md) section.
 
 
-##Browse the docs
+
+
+
+## Browse the docs
 
 Get started with the framework, **learn the main concepts** and get some context on how agent services
 fit in the wider crypto ecosystem.
