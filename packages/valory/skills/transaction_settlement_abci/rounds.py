@@ -33,6 +33,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectDifferentUntilThresholdRound,
     CollectNonEmptyUntilThresholdRound,
     CollectSameUntilThresholdRound,
+    CollectionRound,
     DegenerateRound,
     OnlyKeeperSendsRound,
     VotingRound,
@@ -91,10 +92,9 @@ class SynchronizedData(
     @property
     def participant_to_signature(self) -> Mapping[str, SignaturePayload]:
         """Get the participant_to_signature."""
-        return cast(
-            Mapping[str, SignaturePayload],
-            self.db.get_strict("participant_to_signature"),
-        )
+        serialized = self.db.get_strict("participant_to_signature")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(Mapping[str, SignaturePayload], deserialized)
 
     @property
     def tx_hashes_history(self) -> List[str]:
@@ -204,10 +204,9 @@ class SynchronizedData(
         self,
     ) -> Mapping[str, CheckTransactionHistoryPayload]:  # pragma: no cover
         """Get the mapping from participants to checks."""
-        return cast(
-            Mapping[str, CheckTransactionHistoryPayload],
-            self.db.get_strict("participant_to_check"),
-        )
+        serialized = self.db.get_strict("participant_to_check")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(Mapping[str, CheckTransactionHistoryPayload], deserialized)
 
 
 class FailedRound(DegenerateRound, ABC):

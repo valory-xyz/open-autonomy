@@ -851,19 +851,25 @@ class BaseSynchronizedData:
         return set(textwrap.wrap(raw, ADDRESS_LENGTH))
 
     @property
-    def participant_to_selection(self) -> Mapping:
+    def participant_to_selection(self) -> DeserializedCollection:
         """Check whether keeper is set."""
-        return cast(Dict, self.db.get_strict("participant_to_selection"))
+        serialized = self.db.get_strict("participant_to_selection")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(DeserializedCollection, deserialized)
 
     @property
-    def participant_to_randomness(self) -> Mapping:
+    def participant_to_randomness(self) -> DeserializedCollection:
         """Check whether keeper is set."""
-        return cast(Dict, self.db.get_strict("participant_to_randomness"))
+        serialized = self.db.get_strict("participant_to_randomness")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(DeserializedCollection, deserialized)
 
     @property
-    def participant_to_votes(self) -> Mapping:
+    def participant_to_votes(self) -> DeserializedCollection:
         """Check whether keeper is set."""
-        return cast(Dict, self.db.get_strict("participant_to_votes"))
+        serialized = self.db.get_strict("participant_to_votes")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(DeserializedCollection, deserialized)
 
     @property
     def safe_contract_address(self) -> str:
