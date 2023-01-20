@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -62,9 +62,6 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         apply_environment_variables=apply_environment_variables,
     )
     service_builder.log_level = log_level
-    multisig_address = "0xADDRESS"
-    agent_instances = [f"0xagent{i}" for i in range(4)]
-
     service_builder.try_update_runtime_params(
         multisig_address=multisig_address,
         agent_instances=agent_instances,
