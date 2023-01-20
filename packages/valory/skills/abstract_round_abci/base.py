@@ -1214,6 +1214,11 @@ class CollectionRound(AbstractRound, ABC):
         self.collection: Dict[str, BaseTxPayload] = {}
 
     @property
+    def serialized_collection(self) -> Dict[str, Dict[str, Any]]:
+        """A collection with the addresses mapped to serialized payloads."""
+        return {address: payload.json for address, payload in self.collection.items()}
+
+    @property
     def accepting_payloads_from(self) -> FrozenSet[str]:
         """Accepting from the active set, or also from (re)joiners"""
         if self._allow_rejoin_payloads:
