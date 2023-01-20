@@ -6,7 +6,7 @@ To use custom images when building a deployment you will have to use a certain e
    
 2. `valory/oar-{agent}` 
     
-    This image contains an agent package and an deployment environment for the same agent. This image uses the open autonomy base as the base. You cannot change the name of the image but you can overwrite the version tag using the `--image-version` flag when building the deployment.
+    This image contains an agent package and an deployment environment for the same agent. This image uses the open `valory/open-autonomy` as the base. You cannot change the name of the image but you can overwrite the version tag using the `--image-version` flag when building the deployment.
 
 3. `valory/open-autonomy-tendermint`
    
