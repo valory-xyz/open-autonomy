@@ -701,6 +701,10 @@ class AbciAppDB:
         return {k: [v] for k, v in data.items()}
 
 
+SerializedCollection = Dict[str, Dict[str, Any]]
+DeserializedCollection = Mapping[str, BaseTxPayload]
+
+
 class BaseSynchronizedData:
     """
     Class to represent the synchronized data.
@@ -1213,10 +1217,27 @@ class CollectionRound(AbstractRound, ABC):
         super().__init__(*args, **kwargs)
         self.collection: Dict[str, BaseTxPayload] = {}
 
+    @staticmethod
+    def serialize_collection(
+        collection: DeserializedCollection,
+    ) -> SerializedCollection:
+        """Deserialize a serialized collection."""
+        return {address: payload.json for address, payload in collection.items()}
+
+    @staticmethod
+    def deserialize_collection(
+        serialized: SerializedCollection,
+    ) -> DeserializedCollection:
+        """Deserialize a serialized collection."""
+        return {
+            address: BaseTxPayload.from_json(payload_json)
+            for address, payload_json in serialized.items()
+        }
+
     @property
-    def serialized_collection(self) -> Dict[str, Dict[str, Any]]:
+    def serialized_collection(self) -> SerializedCollection:
         """A collection with the addresses mapped to serialized payloads."""
-        return {address: payload.json for address, payload in self.collection.items()}
+        return self.serialize_collection(self.collection)
 
     @property
     def accepting_payloads_from(self) -> FrozenSet[str]:
