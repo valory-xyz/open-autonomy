@@ -61,8 +61,8 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
                 synchronized_data_class=self.synchronized_data_class,
                 **AbciAppDB.data_to_lists(
                     dict(
-                        participants=self.synchronized_data.participants,
-                        all_participants=self.synchronized_data.all_participants,
+                        participants=tuple(self.synchronized_data.participants),
+                        all_participants=tuple(self.synchronized_data.all_participants),
                         **extra_kwargs,
                     )
                 ),
