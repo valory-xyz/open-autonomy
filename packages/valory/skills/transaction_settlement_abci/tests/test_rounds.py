@@ -49,6 +49,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     CollectSameUntilThresholdRound,
+    CollectionRound,
     MAX_INT_256,
     TransactionNotValidError,
     VotingRound,
@@ -162,6 +163,15 @@ def get_participant_to_votes(
     }
 
 
+def get_participant_to_votes_serialized(
+    participants: FrozenSet[str], vote: Optional[bool] = True
+) -> Dict[str, Dict[str, Any]]:
+    """participant_to_votes"""
+    return CollectionRound.serialize_collection(
+        get_participant_to_votes(participants, vote)
+    )
+
+
 def get_most_voted_tx_hash() -> str:
     """most_voted_tx_hash"""
     return "tx_hash"
@@ -249,12 +259,9 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes={
-                        address: payload.json
-                        for address, payload in get_participant_to_votes(
-                            self.participants
-                        ).items()
-                    }
+                    participant_to_votes=get_participant_to_votes_serialized(
+                        self.participants
+                    )
                 ),
                 synchronized_data_attr_checks=[
                     lambda _synchronized_data: _synchronized_data.participant_to_votes.keys()
@@ -278,12 +285,9 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=False),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes={
-                        address: payload.json
-                        for address, payload in get_participant_to_votes(
-                            self.participants, vote=False
-                        ).items()
-                    }
+                    participant_to_votes=get_participant_to_votes_serialized(
+                        self.participants, vote=False
+                    )
                 ),
                 synchronized_data_attr_checks=[],
                 exit_event=self._event_class.NEGATIVE,
@@ -305,12 +309,9 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=None),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes={
-                        address: payload.json
-                        for address, payload in get_participant_to_votes(
-                            self.participants, vote=None
-                        ).items()
-                    }
+                    participant_to_votes=get_participant_to_votes_serialized(
+                        self.participants, vote=None
+                    )
                 ),
                 synchronized_data_attr_checks=[],
                 exit_event=self._event_class.NONE,
@@ -354,12 +355,11 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
                     self.participants, most_voted_payload
                 ),
                 synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
-                    participant_to_selection={
-                        address: payload.json
-                        for address, payload in self._participant_to_selection(
+                    participant_to_selection=CollectionRound.serialize_collection(
+                        self._participant_to_selection(
                             self.participants, most_voted_payload
-                        ).items()
-                    }
+                        )
+                    )
                 ),
                 synchronized_data_attr_checks=[
                     lambda _synchronized_data: _synchronized_data.participant_to_selection.keys()
@@ -749,12 +749,11 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                     self.participants, expected_status, expected_tx_hash
                 ),
                 synchronized_data_update_fn=lambda synchronized_data, _: synchronized_data.update(
-                    participant_to_check={
-                        address: payload.json
-                        for address, payload in get_participant_to_check(
+                    participant_to_check=CollectionRound.serialize_collection(
+                        get_participant_to_check(
                             self.participants, expected_status, expected_tx_hash
-                        ).items()
-                    },
+                        )
+                    ),
                     final_verification_status=int(expected_status),
                     tx_hashes_history=[expected_tx_hash],
                     keepers=keepers,
@@ -846,23 +845,19 @@ def test_synchronized_datas() -> None:
     """Test SynchronizedData."""
 
     participants = get_participants()
-    participant_to_randomness = {
-        address: payload.json
-        for address, payload in get_participant_to_randomness(participants, 1).items()
-    }
+    participant_to_randomness = CollectionRound.serialize_collection(
+        get_participant_to_randomness(participants, 1)
+    )
     most_voted_randomness = get_most_voted_randomness()
-    participant_to_selection = {
-        address: payload.json
-        for address, payload in get_participant_to_selection(
-            participants, "test"
-        ).items()
-    }
+    participant_to_selection = CollectionRound.serialize_collection(
+        get_participant_to_selection(participants, "test")
+    )
     safe_contract_address = get_safe_contract_address()
     most_voted_tx_hash = get_most_voted_tx_hash()
-    participant_to_signature = {
-        address: payload.json
-        for address, payload in get_participant_to_signature(participants).items()
-    }
+    participant_to_signature = get_participant_to_signature(participants)
+    participant_to_signature_serialized = CollectionRound.serialize_collection(
+        participant_to_signature
+    )
     final_tx_hash = get_final_tx_hash()
     actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
     late_arriving_tx_hashes = get_late_arriving_tx_hashes()
@@ -886,7 +881,7 @@ def test_synchronized_datas() -> None:
                     participant_to_selection=participant_to_selection,
                     safe_contract_address=safe_contract_address,
                     most_voted_tx_hash=most_voted_tx_hash,
-                    participant_to_signature=participant_to_signature,
+                    participant_to_signature=participant_to_signature_serialized,
                     final_tx_hash=final_tx_hash,
                     late_arriving_tx_hashes=late_arriving_tx_hashes,
                     keepers=keepers,

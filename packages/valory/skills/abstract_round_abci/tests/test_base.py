@@ -68,6 +68,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     Block,
     BlockBuilder,
     Blockchain,
+    CollectionRound,
     ConsensusParams,
     EventType,
     LateArrivingTransaction,
@@ -1019,9 +1020,9 @@ class TestBaseSynchronizedData:
         randomness_value = 0.20400769574270503
         most_voted_keeper_address = "most_voted_keeper_address"
         blacklisted_keepers = "blacklisted_keepers"
-        participant_to_selection = "participant_to_selection"
-        participant_to_randomness = "participant_to_randomness"
-        participant_to_votes = "participant_to_votes"
+        participant_to_selection = participant_to_randomness = participant_to_votes = {
+            "sender": DummyPayload(sender="sender", dummy_attribute=0)
+        }
         safe_contract_address = "0x0"
 
         base_synchronized_data = BaseSynchronizedData(
@@ -1033,9 +1034,15 @@ class TestBaseSynchronizedData:
                         most_voted_randomness=randomness_str,
                         most_voted_keeper_address=most_voted_keeper_address,
                         blacklisted_keepers=blacklisted_keepers,
-                        participant_to_selection=participant_to_selection,
-                        participant_to_randomness=participant_to_randomness,
-                        participant_to_votes=participant_to_votes,
+                        participant_to_selection=CollectionRound.serialize_collection(
+                            participant_to_selection
+                        ),
+                        participant_to_randomness=CollectionRound.serialize_collection(
+                            participant_to_randomness
+                        ),
+                        participant_to_votes=CollectionRound.serialize_collection(
+                            participant_to_votes
+                        ),
                         safe_contract_address=safe_contract_address,
                     )
                 )
