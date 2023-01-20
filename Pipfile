@@ -32,6 +32,3 @@ py-eth-sig-utils = "==0.4.0"
 ### tests deps
 mistune = "==2.0.3"
 tomte = {version = "==0.1.5", extras = ["tox", "tests"]}
-
-[requires]
-python_version = "3.10"
