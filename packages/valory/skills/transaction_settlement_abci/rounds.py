@@ -167,10 +167,10 @@ class SynchronizedData(
     @property
     def final_verification_status(self) -> VerificationStatus:
         """Get the final verification status."""
-        return cast(
-            VerificationStatus,
-            self.db.get("final_verification_status", VerificationStatus.NOT_VERIFIED),
-        )
+        status_value = self.db.get("final_verification_status", None)
+        if status_value is None:
+            return VerificationStatus.NOT_VERIFIED
+        return VerificationStatus(status_value)
 
     @property
     def most_voted_tx_hash(self) -> str:
