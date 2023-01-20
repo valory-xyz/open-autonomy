@@ -5,6 +5,11 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.7.0` to `v0.8.0`
+
+- Support for `--rpc` and `--sca` flags has been deprecated on `autonomy deploy from-token` command. Refer to the CLI documentation to understand how to use custom `RPC`.
+- The transaction payload classes needs to be defined using the data classes and needs to be immutable
+
 ## `v0.6.0` to `v0.7.0`
 
 Breaking changes
