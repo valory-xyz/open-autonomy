@@ -31,7 +31,7 @@ Docs:
 - Adds documentation for `autonomy mint` and `autonomy service` command groups
 
 Chores:
-- Updated `tendermint` docker image to use local `wait-for-it.sh` script instead of downloading from source
+- Updates `tendermint` docker image to use local `wait-for-it.sh` script instead of downloading from source
 
 # 0.7.0 (2023-01-04)
 
