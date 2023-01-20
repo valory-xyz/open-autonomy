@@ -255,7 +255,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
                     ],
                     get_name(
                         SynchronizedData.final_verification_status
-                    ): verification_status,
+                    ): verification_status.value,
                     get_name(SynchronizedData.keepers): self.keeper_payload[
                         "serialized_keepers"
                     ],
@@ -397,7 +397,7 @@ class ValidateTransactionRound(VotingRound):
                     self.collection_key: self.serialized_collection,
                     get_name(
                         SynchronizedData.final_verification_status
-                    ): VerificationStatus.VERIFIED,
+                    ): VerificationStatus.VERIFIED.value,
                     get_name(SynchronizedData.final_tx_hash): final_tx_hash,
                 },
             )
@@ -443,7 +443,7 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                         self.selection_key: self.most_voted_payload,
                         get_name(
                             SynchronizedData.final_verification_status
-                        ): return_status,
+                        ): return_status.value,
                         get_name(SynchronizedData.final_tx_hash): return_tx_hash,
                     },
                 )
