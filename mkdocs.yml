@@ -79,6 +79,7 @@ nav:
       - Container Control Flow: 'control_flow.md'
       - Local Deployment: 'application_deployment.md'
       - Cloud Deployment: 'using_stack_deployment.md'
+    - Using custom images in a deployment: 'advanced_reference/use_custom_images.md'
     - API:
       - Library:
         - Constants: 'api/constants.md'
