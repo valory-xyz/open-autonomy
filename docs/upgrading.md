@@ -9,6 +9,11 @@ Below we describe the additional manual steps required to upgrade between differ
 
 - Support for `--rpc` and `--sca` flags has been deprecated on `autonomy deploy from-token` command. Refer to the CLI documentation to understand how to use custom `RPC`.
 - The transaction payload classes needs to be defined using the data classes and needs to be immutable
+- `Transaction` is a data class
+- IPFS connection and protocol need to be added to your `aea-config.yaml`, if they utilize `valory/abstract_round_abci` skill.
+- IPFS dialogues and handler need to be specified.
+- `send_to_ipfs` and `get_from_ipfs` are now moved to `BaseBehaviour` and are generators.
+- E2E tests now utilize a local deployment of the IPFS, as such you will need to import the `ipfs_daemon` and `ipfs_domain` fixtures from `aea_test_autonomy.fixture_helpers`.
 
 ## `v0.6.0` to `v0.7.0`
 

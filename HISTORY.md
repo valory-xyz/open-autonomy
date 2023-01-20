@@ -17,6 +17,7 @@ Packages:
 - Enables the usage of `libp2p` connection on `TestTendermintResetInterrup` and `DEBUG` as default logging level
 - Updates the implementation of the base transaction payload class to use data classes and makes them immutable
 - Updates various skill packages to use the new payload class design
+- `Transaction` is implemented using data class now
 
 Plugins:
 - Updates the `TendermintRecoveryParams` to clean up the images at the end of the test
