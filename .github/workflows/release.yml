@@ -98,10 +98,10 @@ jobs:
       run: |
         source env.sh
         docker build -t valory/open-autonomy-docs:$TAG -f deployments/Dockerfiles/documentation/Dockerfile . && \
-        docker build -t valory/open-autonomy:$TAG -f deployments/Dockerfiles/autonomy/Dockerfile . && \
-        docker build -t valory/open-autonomy-tendermint:$TAG -f deployments/Dockerfiles/tendermint/Dockerfile . && \
-        docker build -t valory/open-autonomy-hardhat:$TAG -f deployments/Dockerfiles/hardhat/Dockerfile . && \
-        docker build -t valory/open-autonomy-user:$TAG -f deployments/Dockerfiles/autonomy-user/Dockerfile . 
+        docker build -t valory/open-autonomy:$TAG deployments/Dockerfiles/autonomy && \
+        docker build -t valory/open-autonomy-tendermint:$TAG deployments/Dockerfiles/tendermint && \
+        docker build -t valory/open-autonomy-hardhat:$TAG deployments/Dockerfiles/hardhat && \
+        docker build -t valory/open-autonomy-user:$TAG deployments/Dockerfiles/autonomy-user
     - name: Tag to latest
       run:  |
         source env.sh
@@ -115,21 +115,21 @@ jobs:
         DOCKER_USER: ${{secrets.DOCKER_USER}}
         DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
       run: |
-        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
+        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
     - name: Docker Push
       run: |
         source env.sh
-        docker push valory/open-autonomy-docs:$TAG 
+        docker push valory/open-autonomy-docs:$TAG
         docker push valory/open-autonomy-docs:latest
       
-        docker push valory/open-autonomy:$TAG 
+        docker push valory/open-autonomy:$TAG
         docker push valory/open-autonomy:latest
       
-        docker push valory/open-autonomy-tendermint:$TAG 
+        docker push valory/open-autonomy-tendermint:$TAG
         docker push valory/open-autonomy-tendermint:latest
       
-        docker push valory/open-autonomy-hardhat:$TAG 
+        docker push valory/open-autonomy-hardhat:$TAG
         docker push valory/open-autonomy-hardhat:latest
       
-        docker push valory/open-autonomy-user:$TAG 
+        docker push valory/open-autonomy-user:$TAG
         docker push valory/open-autonomy-user:latest
