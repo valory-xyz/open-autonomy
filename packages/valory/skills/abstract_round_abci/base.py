@@ -1438,7 +1438,7 @@ class CollectSameUntilThresholdRound(CollectionRound, ABC):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
-                    self.collection_key: self.collection,
+                    self.collection_key: self.serialized_collection,
                     self.selection_key: self.most_voted_payload,
                 },
             )
@@ -1585,7 +1585,7 @@ class VotingRound(CollectionRound, ABC):
         if self.positive_vote_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                **{self.collection_key: self.collection},
+                **{self.collection_key: self.serialized_collection},
             )
             return synchronized_data, self.done_event
         if self.negative_vote_threshold_reached:
@@ -1631,7 +1631,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound, ABC):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
-                    self.collection_key: self.collection,
+                    self.collection_key: self.serialized_collection,
                 },
             )
             return synchronized_data, self.done_event

@@ -394,7 +394,7 @@ class ValidateTransactionRound(VotingRound):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
-                    self.collection_key: self.collection,
+                    self.collection_key: self.serialized_collection,
                     get_name(
                         SynchronizedData.final_verification_status
                     ): VerificationStatus.VERIFIED,
@@ -439,7 +439,7 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 synchronized_data = self.synchronized_data.update(
                     synchronized_data_class=self.synchronized_data_class,
                     **{
-                        self.collection_key: self.collection,
+                        self.collection_key: self.serialized_collection,
                         self.selection_key: self.most_voted_payload,
                         get_name(
                             SynchronizedData.final_verification_status
