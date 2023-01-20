@@ -87,6 +87,7 @@ class BaseHelloWorldABCITest(
     package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
     ROUND_TIMEOUT_SECONDS = 30
 
+
 @pytest.mark.usefixtures(
     "flask_tendermint", "tendermint_port", "abci_host", "abci_port"
 )
