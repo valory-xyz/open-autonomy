@@ -2741,7 +2741,7 @@ Reset blockchain after tendermint reset.
 #### reset`_`state
 
 ```python
-def reset_state(restart_from_round: str, round_count: int, reset_index: int) -> None
+def reset_state(restart_from_round: str, round_count: int, reset_index: int, serialized_db_state: Optional[str] = None) -> None
 ```
 
 This method resets the state of RoundSequence to the begging of the period.
@@ -2753,4 +2753,5 @@ Note: This is intended to be used only for agent <-> tendermint communication re
 - `restart_from_round`: from which round to restart the abci. This round should be the first round in the last period.
 - `round_count`: the round count at the beginning of the period -1.
 - `reset_index`: the reset index (a.k.a. period count) -1.
+- `serialized_db_state`: the state of the database at the beginning of the period. If provided, the database will be reset to this state.
 

@@ -2842,6 +2842,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         restart_from_round: str,
         round_count: int,
         reset_index: int,
+        serialized_db_state: Optional[str] = None,
     ) -> None:
         """
         This method resets the state of RoundSequence to the begging of the period.
@@ -2851,10 +2852,13 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         :param restart_from_round: from which round to restart the abci. This round should be the first round in the last period.
         :param round_count: the round count at the beginning of the period -1.
         :param reset_index: the reset index (a.k.a. period count) -1.
+        :param serialized_db_state: the state of the database at the beginning of the period. If provided, the database will be reset to this state.
         """
         self._reset_to_default_params()
         self.abci_app.synchronized_data.db.round_count = round_count
         self.abci_app.reset_index = reset_index
+        if serialized_db_state is not None:
+            self.abci_app.synchronized_data.db.sync(serialized_db_state)
         round_id_to_cls = {
             cls.auto_round_id(): cls for cls in self.abci_app.transition_function
         }

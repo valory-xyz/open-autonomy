@@ -1914,6 +1914,7 @@ class BaseBehaviour(
                             reset_index=reset_index,
                             round_count=round_count,
                             reset_from_round=restart_from_round.auto_round_id(),
+                            serialized_db_state=shared_state.synchronized_data.db.serialize(),
                         )
                     self._end_reset()
 
@@ -2145,6 +2146,7 @@ class TmManager(BaseBehaviour):
             restart_from_round=recovery_params.reset_from_round,
             round_count=recovery_params.round_count,
             reset_index=recovery_params.reset_index,
+            serialized_db_state=recovery_params.serialized_db_state,
         )
 
         for _ in range(self._max_reset_retry):
