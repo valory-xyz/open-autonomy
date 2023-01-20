@@ -357,7 +357,7 @@ Let's look how each of these objects are implemented. If you have fetched the He
           """Process the end of the block."""
           if self.collection_threshold_reached:
               synchronized_data = self.synchronized_data.update(
-                  participants=self.collection,
+                  participants=tuple(self.collection),
                   printed_messages=[
                       cast(PrintMessagePayload, payload).message
                       for payload in self.collection.values()
