@@ -36,7 +36,7 @@ nav:
     - Publish and fetch packages: 'guides/publish_fetch_packages.md'
     - Register packages on-chain: 'guides/register_packages_on_chain.md'
     - Deploy a service: 'guides/deploy_service.md'
-    - Using custom images in a deployment: `guides/use_custom_images.md`
+    - Using custom images in a deployment: 'guides/use_custom_images.md'
     - Configure access to external chains: 'guides/configure_access_external_chains.md'
   - Demo agent services:
     - 'demos/index.md'  
