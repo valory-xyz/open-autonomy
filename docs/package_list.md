@@ -4,6 +4,10 @@
 | connection/valory/abci/0.1.0                                  | `bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vm` |
 | connection/valory/ipfs/0.1.0                                  | `bafybeihtvkn5uv3ibumme7zzmrxx7iehc6lnjhil726h2jidpdzzjnd5ay` |
 | contract/valory/gnosis_safe_proxy_factory/0.1.0               | `bafybeiguhnndevhp7iui65fhcezkunygdw2cwsofl4rcfzr2u2n6ql366q` |
+| contract/valory/component_registry/0.1.0                      | `bafybeibcqiqt4zvpoqgcx5w55ozvu75uhrmqlk6l4pgmft3h5e53yein3i` |
+| contract/valory/agent_registry/0.1.0                          | `bafybeieivlbdjsvg4guh5ntxwn3afkfgwpd6vb5gpr3e2qizbko37stsvq` |
+| contract/valory/registries_manager/0.1.0                      | `bafybeihmnjgw764eftqk7dk65ba2un6qifmi2mfcmxjziaecusznegze3i` |
+| contract/valory/service_manager/0.1.0                         | `bafybeidcfapx6fneknzg66snljmkdzptr4vjacoa3zsjjg36gpabuzbjka` |
 | skill/valory/test_ipfs_abci/0.1.0                             | `bafybeifsvxkpf6t3cpx4zntdonsvktcpo74hyg4wegduvu3r7quhlzmope` |
 | agent/valory/test_ipfs/0.1.0                                  | `bafybeib6brg6m3avhf7cxehh63novt4j5kztwzuqjat4bpjffqxgb5yq4m` |
 | contract/valory/service_registry/0.1.0                        | `bafybeic6lh2z6g4vq2ykgydkhriahewhgztw7fspnfwpptd45nulkmgd7i` |
@@ -26,13 +30,13 @@
 | agent/valory/abstract_abci/0.1.0                              | `bafybeihl2hjq3zk4t5qxwm6s7bqipxzcqgfbceiqvlpq27thrfkdvlmhlq` |
 | agent/valory/counter/0.1.0                                    | `bafybeids4ahsdw45zr7x3qw4g3lvx2hrvwxgkjxax2xd42ivpzych6lq4e` |
 | agent/valory/counter_client/0.1.0                             | `bafybeidpyc2syvuv3px52gmeaismyhcn4xskbzts22frwlxrwioj53vh6i` |
-| agent/valory/hello_world/0.1.0                                | `bafybeieupdxi66bjdqlvfe57ulk5lwqlezlevty3juml3tadvuv2agdedy` |
+| agent/valory/hello_world/0.1.0                                | `bafybeide674zcajmy4jrkzsnuix4e7d5y7mdns5gh7hho45u34ol554rda` |
 | agent/valory/register_reset/0.1.0                             | `bafybeihmxxt4nsloqmge6cbmipnhzx3w3q7li6qbzbbzfnre5waoyokcka` |
 | agent/valory/register_termination/0.1.0                       | `bafybeidlte6p6l5cq7dm2uvffzonwvn7dadarosufksilzpz4pcwzfuwi4` |
 | agent/valory/registration_start_up/0.1.0                      | `bafybeidsq3hvz5t5maw3q2cpcjxeblhq5t6er6vonihnvabdjwdrtzoc3u` |
 | agent/valory/test_abci/0.1.0                                  | `bafybeibt24viicghxmz42nx257cpsofutikvvxjqjupq5eyltn7it3fzmy` |
 | service/valory/counter/0.1.0                                  | `bafybeifybor6ha2wjo4vkkzkpifxfamat2ohmooozimiuwpgkkusxwxjwe` |
-| service/valory/hello_world/0.1.0                              | `bafybeia7shfaqq6zjemszy4dzdepoylnrpnfp4pebqk24lk4oh4rsbzrou` |
+| service/valory/hello_world/0.1.0                              | `bafybeicmofhlkbd3ibt4kmsbqid5ybekx2k5huucgyskd3whaw2axgab3y` |
 | service/valory/register_reset/0.1.0                           | `bafybeibl5nshxupfpajes7hgtpnuxtocwmalixslnsu3wgeoestl4aqkbe` |
 | skill/valory/register_reset_recovery_abci/0.1.0               | `bafybeif3vr6o2w27tbuzog6kdfo3ccnu6ivvbhwksdzofvfuvj6ujle3xa` |
 | agent/valory/register_reset_recovery/0.1.0                    | `bafybeiaoknzenxau2zoevd2cu5iwcdj3acgmbvpyzcps2sogjcfwhjfa2q` |
