@@ -26,7 +26,7 @@ import itertools
 import re
 import sys
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import yaml
 from aea.cli.packages import get_package_manager
@@ -246,7 +246,7 @@ class PackageHashManager:
 
 
 def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
-    paths: list[Path] = None, fix: bool = False
+    paths: List[Path] = None, fix: bool = False
 ) -> None:
     """Fix ipfs hashes in the docs"""
 
