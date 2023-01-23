@@ -251,7 +251,7 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     """Fix ipfs hashes in the docs"""
 
     if paths is None:
-        paths = [Path("./docs")]
+        paths = [Path("docs")]
 
     all_md_files = itertools.chain.from_iterable([path.rglob("*.md") for path in paths])
     errors = False
@@ -400,6 +400,6 @@ if __name__ == "__main__":
     print("Start checking doc IPFS hashes.")
     parser = argparse.ArgumentParser()
     parser.add_argument("--fix", action="store_true")
-    parser.add_argument("-p", "--paths", type=Path, nargs="*", default=[Path("./docs")])
+    parser.add_argument("-p", "--paths", type=Path, nargs="*", default=[Path("docs")])
     args = parser.parse_args()
     check_ipfs_hashes(paths=args.paths, fix=args.fix)
