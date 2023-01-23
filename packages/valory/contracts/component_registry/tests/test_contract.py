@@ -55,7 +55,7 @@ class TestComponentRegistry(BaseRegistriesContractsTest):
 
         assert (
             token_uri
-            == "https://gateway.autonolas.tech/ipfs/f01701220f6da10e4468f23f9a435c6bbd3f292271823991e637a23ec8a040b2502169275"
+            == "https://gateway.autonolas.tech/ipfs/f01701220f6da10e4468f23f9a435c6bbd3f292271823991e637a23ec8a040b2502169275"  # nosec
         )
 
     def test_filter_token_id_from_emitted_events(self) -> None:
