@@ -24,7 +24,7 @@ from unittest import mock
 
 from aea_test_autonomy.base_test_classes.contracts import BaseRegistriesContractsTest
 from aea_test_autonomy.docker.base import skip_docker_tests
-from aea_test_autonomy.docker.registries import COMPONENT_REGISTRY
+from aea_test_autonomy.docker.registries import AGENT_REGISTRY
 
 from packages.valory.contracts.agent_registry.contract import (
     AGENT_UNIT_TYPE,
@@ -41,7 +41,7 @@ class TestAgentRegistry(BaseRegistriesContractsTest):
     """Test agent registry."""
 
     contract: AgentRegistryContract
-    contract_address = COMPONENT_REGISTRY
+    contract_address = AGENT_REGISTRY
     contract_directory = PACKAGE_DIR
 
     def test_get_token_uri(self) -> None:
@@ -55,7 +55,7 @@ class TestAgentRegistry(BaseRegistriesContractsTest):
 
         assert (
             token_uri
-            == "https://gateway.autonolas.tech/ipfs/f01701220f6da10e4468f23f9a435c6bbd3f292271823991e637a23ec8a040b2502169275"  # nosec
+            == "https://gateway.autonolas.tech/ipfs/f01701220985b4c36158b51f8a865faceff8141dbc0989c349a1a41ba1e2ac8e5b24536b2"  # nosec
         )
 
     def test_filter_token_id_from_emitted_events(self) -> None:
