@@ -18,13 +18,15 @@
 #
 # ------------------------------------------------------------------------------
 
+
 """This module contains the tools for autoupdating ipfs hashes in the documentation."""
 
 import argparse
+import itertools
 import re
 import sys
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import yaml
 from aea.cli.packages import get_package_manager
@@ -244,11 +246,14 @@ class PackageHashManager:
 
 
 def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
-    fix: bool = False,
+    paths: List[Path] = None, fix: bool = False
 ) -> None:
     """Fix ipfs hashes in the docs"""
 
-    all_md_files = Path("docs").rglob("*.md")
+    if paths is None:
+        paths = [Path("docs")]
+
+    all_md_files = itertools.chain.from_iterable([path.rglob("*.md") for path in paths])
     errors = False
     hash_mismatches = False
     old_to_new_hashes = {}
@@ -296,7 +301,10 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
                 old_to_new_hashes[doc_hash] = expected_hash
             else:
                 print(
-                    f"IPFS hash mismatch in doc file {md_file}. Expected {expected_hash}, got {doc_hash}:\n    {doc_full_cmd}"
+                    f"IPFS hash mismatch in doc file {md_file}.\n"
+                    f"\tCommand string: {doc_full_cmd}\n"
+                    f"\tExpected: {expected_hash}\n"
+                    f"\tFound: {doc_hash}\n"
                 )
 
     # Fix packages in python files
@@ -334,7 +342,10 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
                 old_to_new_hashes[py_hash] = expected_hash
             else:
                 print(
-                    f"IPFS hash mismatch on file {py_file}. Expected {expected_hash}, got {py_hash}:\n    {full_package}"
+                    f"IPFS hash mismatch on file {py_file}.\n"
+                    f"\tPackage: {full_package}\n"
+                    f"\tExpected: {expected_hash}\n,"
+                    f"\tFound: {py_hash}:\n"
                 )
 
     # Fix hashes in package list
@@ -352,8 +363,9 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
 
         print(
             f"IPFS hash mismatch in doc file {package_list_file}.\n"
-            f"Expected {expected_hash}, got {package_hash}\n"
-            f'in package {match["package_type"]}/{match["vendor"]}/{match["package"]}.\n'
+            f'\tPackage: {match["package_type"]}/{match["vendor"]}/{match["package"]}\n'
+            f"\tExpected: {expected_hash},\n"
+            f"\tFound: {package_hash}\n"
         )
         hash_mismatches = True
 
@@ -381,11 +393,13 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
         )
         sys.exit(1)
 
-    print("OK")
+    print("Checking doc IPFS hashes finished successfully.")
 
 
 if __name__ == "__main__":
+    print("Start checking doc IPFS hashes.")
     parser = argparse.ArgumentParser()
     parser.add_argument("--fix", action="store_true")
+    parser.add_argument("-p", "--paths", type=Path, nargs="*", default=[Path("docs")])
     args = parser.parse_args()
-    check_ipfs_hashes(fix=args.fix)
+    check_ipfs_hashes(paths=args.paths, fix=args.fix)
