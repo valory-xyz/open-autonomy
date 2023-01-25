@@ -19,8 +19,10 @@
 
 """Helpers for minting components"""
 
+import datetime
+import time
 from math import ceil
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 from aea.crypto.base import Crypto, LedgerApi
 from requests.exceptions import ConnectionError as RequestsConnectionError
@@ -30,6 +32,7 @@ from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import (
     AGENT_REGISTRY_CONTRACT,
     COMPONENT_REGISTRY_CONTRACT,
+    EVENT_VERIFICATION_TIMEOUT,
     REGISTRIES_MANAGER_CONTRACT,
     SERVICE_MANAGER_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
@@ -75,13 +78,32 @@ def sort_service_dependency_metadata(
     return ids_sorted, slots_sorted, securities_sorted
 
 
-def mint_component(
+def wait_for_component_to_mint(
+    token_retriever: Callable[[], Optional[int]],
+    timeout: Optional[float] = None,
+    sleep: float = 1.0,
+) -> int:
+    """Wait for service activation."""
+
+    timeout = timeout or EVENT_VERIFICATION_TIMEOUT
+    deadline = datetime.datetime.now() + datetime.timedelta(seconds=timeout)
+    while datetime.datetime.now() < deadline:
+        token_id = token_retriever()
+        if token_id is not None:
+            return token_id
+        time.sleep(sleep)
+
+    raise TimeoutError("Could not retrieve the token in given time limit.")
+
+
+def mint_component(  # pylint: disable=too-many-arguments
     ledger_api: LedgerApi,
     crypto: Crypto,
     metadata_hash: str,
     component_type: UnitType,
     chain_type: ChainType,
     dependencies: Optional[List[int]] = None,
+    timeout: Optional[float] = None,
 ) -> Optional[int]:
     """Publish component on-chain."""
 
@@ -110,26 +132,39 @@ def mint_component(
 
     try:
         if component_type == UnitType.COMPONENT:
-            return registry_contracts.component_registry.filter_token_id_from_emitted_events(
-                ledger_api=ledger_api,
-                contract_address=ContractConfigs.get(
-                    COMPONENT_REGISTRY_CONTRACT.name
-                ).contracts[chain_type],
-                metadata_hash=metadata_hash,
-            )
 
-        return registry_contracts.agent_registry.filter_token_id_from_emitted_events(
-            ledger_api=ledger_api,
-            contract_address=ContractConfigs.get(
-                AGENT_REGISTRY_CONTRACT.name
-            ).contracts[chain_type],
-            metadata_hash=metadata_hash,
+            def token_retriever() -> bool:
+                """Retrieve token"""
+                return registry_contracts.component_registry.filter_token_id_from_emitted_events(
+                    ledger_api=ledger_api,
+                    contract_address=ContractConfigs.get(
+                        COMPONENT_REGISTRY_CONTRACT.name
+                    ).contracts[chain_type],
+                    metadata_hash=metadata_hash,
+                )
+
+        else:
+
+            def token_retriever() -> bool:
+                """Retrieve token"""
+                return registry_contracts.agent_registry.filter_token_id_from_emitted_events(
+                    ledger_api=ledger_api,
+                    contract_address=ContractConfigs.get(
+                        AGENT_REGISTRY_CONTRACT.name
+                    ).contracts[chain_type],
+                    metadata_hash=metadata_hash,
+                )
+
+        return wait_for_component_to_mint(
+            token_retriever=token_retriever, timeout=timeout
         )
 
     except RequestsConnectionError as e:
         raise FailedToRetrieveTokenId(
             "Connection interrupted while waiting for the unitId emit event"
         ) from e
+    except TimeoutError as e:
+        raise FailedToRetrieveTokenId(str(e)) from e
 
 
 def mint_service(  # pylint: disable=too-many-arguments
@@ -141,6 +176,7 @@ def mint_service(  # pylint: disable=too-many-arguments
     number_of_slots_per_agent: List[int],
     cost_of_bond_per_agent: List[int],
     threshold: int,
+    timeout: Optional[float] = None,
 ) -> Optional[int]:
     """Publish component on-chain."""
 
@@ -210,14 +246,25 @@ def mint_service(  # pylint: disable=too-many-arguments
         raise ComponentMintFailed("Cannot connect to the given RPC") from e
 
     try:
-        return registry_contracts.service_registry.filter_token_id_from_emitted_events(
-            ledger_api=ledger_api,
-            contract_address=ContractConfigs.get(
-                SERVICE_REGISTRY_CONTRACT.name
-            ).contracts[chain_type],
+
+        def token_retriever() -> bool:
+            """Retrieve token"""
+            return (
+                registry_contracts.service_registry.filter_token_id_from_emitted_events(
+                    ledger_api=ledger_api,
+                    contract_address=ContractConfigs.get(
+                        SERVICE_REGISTRY_CONTRACT.name
+                    ).contracts[chain_type],
+                )
+            )
+
+        return wait_for_component_to_mint(
+            token_retriever=token_retriever, timeout=timeout
         )
 
     except RequestsConnectionError as e:
         raise FailedToRetrieveTokenId(
             "Connection interrupted while waiting for the unitId emit event"
         ) from e
+    except TimeoutError as e:
+        raise FailedToRetrieveTokenId(str(e)) from e
