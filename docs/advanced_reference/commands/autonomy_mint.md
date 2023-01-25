@@ -37,14 +37,17 @@ This command group consists of a number of functionalities to mint components, a
 `--skip-hash-check`
 : Skip hash check when verifying dependencies on chain.
 
-## `autonomy mint {protocol | contract | connection | skill}`
+## `autonomy mint protocol` / `contract` / `connection` / `skill`
 
 Mint a protocol, contract, connection or skill in the on-chain protocol.
 
 ### Usage
 
 ```bash
-autonomy mint {protocol | contract | connection | skill} [OPTIONS] PACKAGE_PATH KEYS_FILE
+autonomy mint protocol [OPTIONS] PACKAGE_PATH KEYS_FILE
+autonomy mint contract [OPTIONS] PACKAGE_PATH KEYS_FILE
+autonomy mint connection [OPTIONS] PACKAGE_PATH KEYS_FILE
+autonomy mint skill [OPTIONS] PACKAGE_PATH KEYS_FILE
 ```
 ### Options
 
