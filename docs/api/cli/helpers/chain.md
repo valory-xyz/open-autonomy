@@ -19,7 +19,7 @@ Create ledger_api and crypto objects
 #### mint`_`component
 
 ```python
-def mint_component(package_path: Path, package_type: PackageType, keys: Path, chain_type: ChainType, dependencies: List[int], nft_image_hash: Optional[str] = None, password: Optional[str] = None, skip_hash_check: bool = False) -> None
+def mint_component(package_path: Path, package_type: PackageType, keys: Path, chain_type: ChainType, dependencies: List[int], nft_image_hash: Optional[str] = None, password: Optional[str] = None, skip_hash_check: bool = False, timeout: Optional[float] = None) -> None
 ```
 
 Mint component.
@@ -29,7 +29,7 @@ Mint component.
 #### mint`_`service
 
 ```python
-def mint_service(package_path: Path, keys: Path, chain_type: ChainType, agent_id: int, number_of_slots: int, cost_of_bond: int, threshold: int, nft_image_hash: Optional[str] = None, password: Optional[str] = None, skip_hash_check: bool = False) -> None
+def mint_service(package_path: Path, keys: Path, chain_type: ChainType, agent_id: int, number_of_slots: int, cost_of_bond: int, threshold: int, nft_image_hash: Optional[str] = None, password: Optional[str] = None, skip_hash_check: bool = False, timeout: Optional[float] = None) -> None
 ```
 
 Mint service
@@ -39,7 +39,7 @@ Mint service
 #### activate`_`service
 
 ```python
-def activate_service(service_id: int, keys: Path, chain_type: ChainType, password: Optional[str] = None) -> None
+def activate_service(service_id: int, keys: Path, chain_type: ChainType, password: Optional[str] = None, timeout: Optional[float] = None) -> None
 ```
 
 Activate on-chain service
@@ -49,7 +49,7 @@ Activate on-chain service
 #### register`_`instance
 
 ```python
-def register_instance(service_id: int, instance: str, agent_id: int, keys: Path, chain_type: ChainType, password: Optional[str] = None) -> None
+def register_instance(service_id: int, instances: List[str], agent_ids: List[int], keys: Path, chain_type: ChainType, password: Optional[str] = None, timeout: Optional[float] = None) -> None
 ```
 
 Register agents instances on an activated service
@@ -59,7 +59,7 @@ Register agents instances on an activated service
 #### deploy`_`service
 
 ```python
-def deploy_service(service_id: int, keys: Path, chain_type: ChainType, deployment_payload: Optional[str] = None, password: Optional[str] = None) -> None
+def deploy_service(service_id: int, keys: Path, chain_type: ChainType, deployment_payload: Optional[str] = None, password: Optional[str] = None, timeout: Optional[float] = None) -> None
 ```
 
 Deploy a service with registration activated
