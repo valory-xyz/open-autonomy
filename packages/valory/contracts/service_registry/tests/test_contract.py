@@ -135,7 +135,7 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
 
         assert (
             token_uri
-            == "https://gateway.autonolas.tech/ipfs/f017012205555555555555555555555555555555555555555555555555555555555555555"
+            == "https://gateway.autonolas.tech/ipfs/f017012205555555555555555555555555555555555555555555555555555555555555555"  # nosec
         )
 
     def test_get_service_information(self) -> None:
