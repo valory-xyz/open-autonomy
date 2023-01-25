@@ -584,6 +584,23 @@ class HardHatAMMBaseTest(HardHatBaseTest):
         return AMMNetDockerImage(client, cls.addr, cls.port)
 
 
+class RegistriesBaseTest(HardHatBaseTest):
+    """Base pytest class for component registries."""
+
+    addr: str = DEFAULT_HARDHAT_ADDR
+    port: int = DEFAULT_HARDHAT_PORT
+
+    @classmethod
+    def _build_image(cls) -> DockerImage:
+        """Build the image."""
+        client = docker.from_env()
+        return RegistriesDockerImage(
+            client=client,
+            addr=cls.addr,
+            port=cls.port,
+        )
+
+
 @pytest.fixture(scope="class")
 def ipfs_daemon() -> Iterator[bool]:
     """Starts an IPFS daemon for the tests."""

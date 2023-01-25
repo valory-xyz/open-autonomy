@@ -66,6 +66,16 @@ class BaseHardhatAMMContractTest(BaseContractTest,  HardHatAMMBaseTest)
 
 Base test case for testing AMM contracts on Hardhat.
 
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.contracts.BaseRegistriesContractsTest"></a>
+
+## BaseRegistriesContractsTest Objects
+
+```python
+class BaseRegistriesContractsTest(BaseContractTest,  RegistriesBaseTest)
+```
+
+Base test case for the registries contract.
+
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.contracts.BaseContractWithDependencyTest"></a>
 
 ## BaseContractWithDependencyTest Objects
