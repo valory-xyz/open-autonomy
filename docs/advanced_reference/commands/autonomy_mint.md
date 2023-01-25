@@ -4,20 +4,18 @@ This command group consists of a number of functionalities to mint components, a
 
 ## Options
 
-`{--use-ethereum | --use-goerli | --use-local | --use-custom}`
-: Chain profile to interact with the protocol smart contracts: either Ethereum, Görli, custom chain or local profile.
-
-    The `--use-ethereum` option requires that you define the following environment variable:
+`--use-ethereum`
+: Use the Ethereum chain profile to interact with the on-chain registry contracts. This option requires that you define the following environment variable:
 
     - `ETHEREUM_CHAIN_RPC` : RPC endpoint for the Ethereum mainnet chain.
 
-    The `--use-goerli` option requires that you define the following environment variable:
+`--use-goerli`
+: Use the Görli chain profile to interact with the on-chain registry contracts. This option requires that you define the following environment variable:
 
     - `GOERLI_CHAIN_RPC` : RPC endpoint for the Görli testnet chain.
 
-    The `--use-local` option requires that you have a local Hardhat node with the required contracts deployed.
-    
-    The `--use-custom` option requires that you define the following environment variables (see the [Autonolas Protocol section](https://docs.autonolas.network/protocol/) for more information):
+`--use-custom-chain`
+: Use the custom-chain chain profile to interact with the on-chain registry contracts. This option requires that you define the following environment variables (see the [Autonolas Protocol section](https://docs.autonolas.network/protocol/) for more information):
 
     - `CUSTOM_CHAIN_RPC` : RPC endpoint for the custom chain.
     - `CUSTOM_CHAIN_ID` : Chain ID.
@@ -29,25 +27,34 @@ This command group consists of a number of functionalities to mint components, a
     - `CUSTOM_SERVICE_REGISTRY_ADDRESS` : custom Service Registry contract address.
     - `CUSTOM_GNOSIS_SAFE_MULTISIG_ADDRESS` : custom Gnosis Safe multisig contract address.
 
+`--use-local`
+: Use the local chain profile to interact with the on-chain registry contracts. This option requires that you have a local Hardhat node with the required contracts deployed.
+
+!!! note
+
+    The options `--use-ethereum`, `--use-goerli`, `--use-custom-chain` and `--use-local` are mutually exclusive.
 
 `--skip-hash-check`
-: Skip hash check when verifying dependencies on chain
+: Skip hash check when verifying dependencies on chain.
 
 ## `autonomy mint {protocol | contract | connection | skill}`
 
+Mint a protocol, contract, connection or skill in the on-chain protocol.
+
 ### Usage
 
-`autonomy mint {protocol | contract | connection | skill} [OPTIONS] PACKAGE_PATH KEYS_FILE`
-
+```bash
+autonomy mint {protocol | contract | connection | skill} [OPTIONS] PACKAGE_PATH KEYS_FILE
+```
 ### Options
 
-`--password`
+`--password PASSWORD`
 : Password for the key file.
 
-`-d, --dependencies`
+`-d, --dependencies DEPENDENCY_ID`
 : Dependencies for the package.
 
-`--nft`
+`--nft NFT_HASH`
 : IPFS hash for the NFT image representing the package. Note that if you are using a local chain this option is not required.
 
 ### Examples
@@ -55,28 +62,27 @@ This command group consists of a number of functionalities to mint components, a
 Mint the `hello_world_abci` {{fsm_app}} skill with dependencies 11 and 42 in a custom chain:
 
 ```bash
-autonomy mint --use-custom skill -d 11 -d 42 --nft <nft_ipfs_hash> ./packages/valory/skills/hello_world_abci my_keys_file
+autonomy mint --use-custom-chain skill -d 11 -d 42 --nft <nft_ipfs_hash> ./packages/valory/skills/hello_world_abci my_keys_file
 ```
 
 ## `autonomy mint agent`
 
+Mint an agent in the on-chain protocol.
 ### Usage
 
-`autonomy mint agent [OPTIONS] PACKAGE_PATH KEYS_FILE`
+```bash
+autonomy mint agent [OPTIONS] PACKAGE_PATH KEYS_FILE
+```
 
 ### Options
 
-`--password`
+`--password PASSWORD`
 : Password for the key file.
 
-`-d, --dependencies`
-: Dependencies for the package.
+`-d, --dependencies DEPENDENCY_ID`
+: Dependencies for the package. In order to be minted, agent packages require at least one dependency.
 
-    !!! warning "Important"
-
-        In order to be minted, agent packages require at least one dependency.
-
-`--nft`
+`--nft NFT_HASH`
 : IPFS hash for the NFT image representing the package. Note that if you are using a local chain this option is not required.
 
 ### Examples
@@ -89,25 +95,28 @@ autonomy mint --use-ethereum agent -d 43 --nft <nft_ipfs_hash> ./packages/valory
 
 ## `autonomy mint service`
 
+Mint a service in the on-chain protocol.
 ### Usage
 
-`autonomy mint service [OPTIONS] PACKAGE_PATH KEYS_FILE`
+```bash
+autonomy mint service [OPTIONS] PACKAGE_PATH KEYS_FILE
+```
 
 ### Options
   
-`--password`
+`--password PASSWORD`
 : Password for the key file.
 
-`--nft`
+`--nft NFT_HASH`
 : IPFS hash for the NFT image representing the package. Note that if you are using a local chain this option is not required.
 
-`-a, --agent-id`
+`-a, --agent-id AGENT_ID`
 : Canonical agent ID.
 
-`-n, --number-of-slots`
+`-n, --number-of-slots NUM_SLOTS`
 : Number of agent instances for the canonical agent.
 
-`-c, --cost-of-bond`
+`-c, --cost-of-bond COST_BOND`
 : Cost of bond for the agent (Wei).
 
 `--threshold`
