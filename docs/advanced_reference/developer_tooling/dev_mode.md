@@ -20,7 +20,7 @@ Execute the next steps in a separate terminal.
 1. **Fetch the service.** Fetch the Price Oracle service from the remote registry.
 
     ```bash
-    autonomy fetch valory/oracle_hardhat:0.1.0:bafybeieo2gmyuut6chwnonutmcxo75wz7mpjxtim6c2naaarqpp5wa46ge --service
+    autonomy fetch valory/oracle_hardhat:0.1.0:<hash> --service
     ```
 
 2. **Build the agents' image.** Navigate to the local folder of the service, and build the Docker image of the service agents in dev mode.
