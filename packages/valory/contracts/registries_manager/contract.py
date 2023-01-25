@@ -52,21 +52,21 @@ class RegistriesManagerContract(Contract):
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get the Safe transaction."""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def get_raw_message(
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[bytes]:
         """Get raw message."""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def get_state(
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get state."""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def get_create_transaction(  # pylint: disable=too-many-arguments
@@ -78,7 +78,7 @@ class RegistriesManagerContract(Contract):
         owner: str,
         dependencies: Optional[List[int]] = None,
         raise_on_try: bool = False,
-    ) -> None:
+    ) -> JSONLike:
         """Create a component."""
 
         tx_params = ledger_api.build_transaction(
