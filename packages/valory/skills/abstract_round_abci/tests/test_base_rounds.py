@@ -54,35 +54,67 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 class TestCollectionRound(_BaseRoundTestClass):
     """Test class for CollectionRound."""
 
+    def setup(
+        self,
+    ) -> None:
+        """Setup test."""
+        super().setup()
+
+        self.test_round = DummyCollectionRound(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+
+    def test_serialized_collection(self) -> None:
+        """Test `serialized_collection` property."""
+        assert self.test_round.serialized_collection == {}
+
+        for payload in self.tx_payloads:
+            self.test_round.process_payload(payload)
+
+        mcs_key = "packages.valory.skills.abstract_round_abci.test_tools.rounds.DummyTxPayload"
+        expected = {
+            f"agent_{i}": {
+                "_metaclass_registry_key": mcs_key,
+                "id_": self.tx_payloads[i].id_,
+                "round_count": self.tx_payloads[i].round_count,
+                "sender": self.tx_payloads[i].sender,
+                "value": self.tx_payloads[i].value,
+                "vote": self.tx_payloads[i].vote,
+            }
+            for i in range(4)
+        }
+
+        assert self.test_round.serialized_collection == expected
+
     def test_run(
         self,
     ) -> None:
         """Run tests."""
 
-        test_round = DummyCollectionRound(
-            synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
-        )
         round_id = DummyCollectionRound.auto_round_id()
 
         # collection round may set a flag to allow payments from inactive agents (rejoin)
-        assert test_round._allow_rejoin_payloads is False  # default
-        assert test_round.accepting_payloads_from == self.synchronized_data.participants
-        test_round._allow_rejoin_payloads = True
+        assert self.test_round._allow_rejoin_payloads is False  # default
         assert (
-            test_round.accepting_payloads_from
+            self.test_round.accepting_payloads_from
+            == self.synchronized_data.participants
+        )
+        self.test_round._allow_rejoin_payloads = True
+        assert (
+            self.test_round.accepting_payloads_from
             == self.synchronized_data.all_participants
         )
 
         first_payload, *_ = self.tx_payloads
-        test_round.process_payload(first_payload)
-        assert test_round.collection[first_payload.sender] == first_payload
+        self.test_round.process_payload(first_payload)
+        assert self.test_round.collection[first_payload.sender] == first_payload
 
         with pytest.raises(
             ABCIAppInternalError,
             match=f"internal error: sender agent_0 has already sent value for round: {round_id}",
         ):
-            test_round.process_payload(first_payload)
+            self.test_round.process_payload(first_payload)
 
         with pytest.raises(
             ABCIAppInternalError,
@@ -90,7 +122,7 @@ class TestCollectionRound(_BaseRoundTestClass):
                 "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
-            test_round.process_payload(DummyTxPayload("sender", "value"))
+            self.test_round.process_payload(DummyTxPayload("sender", "value"))
 
         with pytest.raises(
             ABCIAppInternalError,
@@ -98,15 +130,15 @@ class TestCollectionRound(_BaseRoundTestClass):
                 f"internal error: Expecting serialized data of chunk size 2, got: 0xZZZ in {round_id}"
             ),
         ):
-            test_round._hash_length = 2
-            test_round.process_payload(DummyTxPayload("agent_1", "0xZZZ"))
-            test_round._hash_length = None
+            self.test_round._hash_length = 2
+            self.test_round.process_payload(DummyTxPayload("agent_1", "0xZZZ"))
+            self.test_round._hash_length = None
 
         with pytest.raises(
             TransactionNotValidError,
             match=f"sender agent_0 has already sent value for round: {round_id}",
         ):
-            test_round.check_payload(first_payload)
+            self.test_round.check_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
@@ -114,7 +146,7 @@ class TestCollectionRound(_BaseRoundTestClass):
                 "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
-            test_round.check_payload(DummyTxPayload("sender", "value"))
+            self.test_round.check_payload(DummyTxPayload("sender", "value"))
 
         with pytest.raises(
             TransactionNotValidError,
@@ -122,9 +154,9 @@ class TestCollectionRound(_BaseRoundTestClass):
                 f"Expecting serialized data of chunk size 2, got: 0xZZZ in {round_id}"
             ),
         ):
-            test_round.check_payload(DummyTxPayload("agent_1", "0xZZZ"))
+            self.test_round.check_payload(DummyTxPayload("agent_1", "0xZZZ"))
 
-        self._test_payload_with_wrong_round_count(test_round)
+        self._test_payload_with_wrong_round_count(self.test_round)
 
 
 class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):

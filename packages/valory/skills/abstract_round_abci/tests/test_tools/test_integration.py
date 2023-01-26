@@ -122,7 +122,7 @@ class TestIntegrationBaseCase(FSMBehaviourTestToolSetup):
 
         behaviour_id = DummyStartingBehaviour.auto_behaviour_id()
         synchronized_data = SynchronizedData(
-            AbciAppDB(setup_data=dict(participants=[frozenset("abcd")]))
+            AbciAppDB(setup_data=dict(participants=[tuple("abcd")]))
         )
 
         handlers = [test_instance.signing_handler]

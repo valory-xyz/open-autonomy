@@ -701,6 +701,10 @@ class AbciAppDB:
         return {k: [v] for k, v in data.items()}
 
 
+SerializedCollection = Dict[str, Dict[str, Any]]
+DeserializedCollection = Mapping[str, BaseTxPayload]
+
+
 class BaseSynchronizedData:
     """
     Class to represent the synchronized data.
@@ -756,7 +760,7 @@ class BaseSynchronizedData:
     @property
     def participants(self) -> FrozenSet[str]:
         """Get the currently active participants."""
-        participants = self.db.get_strict("participants")
+        participants = frozenset(self.db.get_strict("participants"))
         if len(participants) == 0:
             raise ValueError("List participants cannot be empty.")
         return cast(FrozenSet[str], participants)
@@ -847,19 +851,25 @@ class BaseSynchronizedData:
         return set(textwrap.wrap(raw, ADDRESS_LENGTH))
 
     @property
-    def participant_to_selection(self) -> Mapping:
+    def participant_to_selection(self) -> DeserializedCollection:
         """Check whether keeper is set."""
-        return cast(Dict, self.db.get_strict("participant_to_selection"))
+        serialized = self.db.get_strict("participant_to_selection")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(DeserializedCollection, deserialized)
 
     @property
-    def participant_to_randomness(self) -> Mapping:
+    def participant_to_randomness(self) -> DeserializedCollection:
         """Check whether keeper is set."""
-        return cast(Dict, self.db.get_strict("participant_to_randomness"))
+        serialized = self.db.get_strict("participant_to_randomness")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(DeserializedCollection, deserialized)
 
     @property
-    def participant_to_votes(self) -> Mapping:
+    def participant_to_votes(self) -> DeserializedCollection:
         """Check whether keeper is set."""
-        return cast(Dict, self.db.get_strict("participant_to_votes"))
+        serialized = self.db.get_strict("participant_to_votes")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(DeserializedCollection, deserialized)
 
     @property
     def safe_contract_address(self) -> str:
@@ -1213,6 +1223,28 @@ class CollectionRound(AbstractRound, ABC):
         super().__init__(*args, **kwargs)
         self.collection: Dict[str, BaseTxPayload] = {}
 
+    @staticmethod
+    def serialize_collection(
+        collection: DeserializedCollection,
+    ) -> SerializedCollection:
+        """Deserialize a serialized collection."""
+        return {address: payload.json for address, payload in collection.items()}
+
+    @staticmethod
+    def deserialize_collection(
+        serialized: SerializedCollection,
+    ) -> DeserializedCollection:
+        """Deserialize a serialized collection."""
+        return {
+            address: BaseTxPayload.from_json(payload_json)
+            for address, payload_json in serialized.items()
+        }
+
+    @property
+    def serialized_collection(self) -> SerializedCollection:
+        """A collection with the addresses mapped to serialized payloads."""
+        return self.serialize_collection(self.collection)
+
     @property
     def accepting_payloads_from(self) -> FrozenSet[str]:
         """Accepting from the active set, or also from (re)joiners"""
@@ -1433,7 +1465,7 @@ class CollectSameUntilThresholdRound(CollectionRound, ABC):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
-                    self.collection_key: self.collection,
+                    self.collection_key: self.serialized_collection,
                     self.selection_key: self.most_voted_payload,
                 },
             )
@@ -1580,7 +1612,7 @@ class VotingRound(CollectionRound, ABC):
         if self.positive_vote_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                **{self.collection_key: self.collection},
+                **{self.collection_key: self.serialized_collection},
             )
             return synchronized_data, self.done_event
         if self.negative_vote_threshold_reached:
@@ -1626,7 +1658,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound, ABC):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
-                    self.collection_key: self.collection,
+                    self.collection_key: self.serialized_collection,
                 },
             )
             return synchronized_data, self.done_event

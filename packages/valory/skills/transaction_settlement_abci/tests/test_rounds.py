@@ -49,6 +49,7 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
     CollectSameUntilThresholdRound,
+    CollectionRound,
     MAX_INT_256,
     TransactionNotValidError,
     VotingRound,
@@ -162,6 +163,15 @@ def get_participant_to_votes(
     }
 
 
+def get_participant_to_votes_serialized(
+    participants: FrozenSet[str], vote: Optional[bool] = True
+) -> Dict[str, Dict[str, Any]]:
+    """participant_to_votes"""
+    return CollectionRound.serialize_collection(
+        get_participant_to_votes(participants, vote)
+    )
+
+
 def get_most_voted_tx_hash() -> str:
     """most_voted_tx_hash"""
     return "tx_hash"
@@ -249,8 +259,8 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes=dict(
-                        get_participant_to_votes(self.participants)
+                    participant_to_votes=get_participant_to_votes_serialized(
+                        self.participants
                     )
                 ),
                 synchronized_data_attr_checks=[
@@ -275,8 +285,8 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=False),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes=dict(
-                        get_participant_to_votes(self.participants, vote=False)
+                    participant_to_votes=get_participant_to_votes_serialized(
+                        self.participants, vote=False
                     )
                 ),
                 synchronized_data_attr_checks=[],
@@ -299,8 +309,8 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
                 test_round=test_round,
                 round_payloads=get_participant_to_votes(self.participants, vote=None),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    participant_to_votes=dict(
-                        get_participant_to_votes(self.participants, vote=None)
+                    participant_to_votes=get_participant_to_votes_serialized(
+                        self.participants, vote=None
                     )
                 ),
                 synchronized_data_attr_checks=[],
@@ -345,7 +355,7 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
                     self.participants, most_voted_payload
                 ),
                 synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data.update(
-                    participant_to_selection=dict(
+                    participant_to_selection=CollectionRound.serialize_collection(
                         self._participant_to_selection(
                             self.participants, most_voted_payload
                         )
@@ -582,7 +592,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         self.synchronized_data = cast(
             TransactionSettlementSynchronizedSata,
             self.synchronized_data.update(
-                participants=frozenset([f"agent_{i}" + "-" * 35 for i in range(4)]),
+                participants=([f"agent_{i}" + "-" * 35 for i in range(4)]),
                 missed_messages=missed_messages,
                 tx_hashes_history=tx_hashes_history,
                 keepers=get_keepers(keepers, keeper_retries),
@@ -624,7 +634,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                     blacklisted_keepers=blacklisted_keepers,
                     keepers=get_keepers(keepers, keeper_retries),
                     keeper_retries=keeper_retries,
-                    final_verification_status=VerificationStatus(status),
+                    final_verification_status=VerificationStatus(status).value,
                 ),
                 synchronized_data_attr_checks=[
                     lambda _synchronized_data: _synchronized_data.tx_hashes_history,
@@ -739,12 +749,12 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
                     self.participants, expected_status, expected_tx_hash
                 ),
                 synchronized_data_update_fn=lambda synchronized_data, _: synchronized_data.update(
-                    participant_to_check=dict(
+                    participant_to_check=CollectionRound.serialize_collection(
                         get_participant_to_check(
                             self.participants, expected_status, expected_tx_hash
                         )
                     ),
-                    final_verification_status=VerificationStatus(int(expected_status)),
+                    final_verification_status=int(expected_status),
                     tx_hashes_history=[expected_tx_hash],
                     keepers=keepers,
                     final_tx_hash="0xb0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
@@ -836,11 +846,20 @@ def test_synchronized_datas() -> None:
 
     participants = get_participants()
     participant_to_randomness = get_participant_to_randomness(participants, 1)
+    participant_to_randomness_serialized = CollectionRound.serialize_collection(
+        participant_to_randomness
+    )
     most_voted_randomness = get_most_voted_randomness()
     participant_to_selection = get_participant_to_selection(participants, "test")
+    participant_to_selection_serialized = CollectionRound.serialize_collection(
+        participant_to_selection
+    )
     safe_contract_address = get_safe_contract_address()
     most_voted_tx_hash = get_most_voted_tx_hash()
     participant_to_signature = get_participant_to_signature(participants)
+    participant_to_signature_serialized = CollectionRound.serialize_collection(
+        participant_to_signature
+    )
     final_tx_hash = get_final_tx_hash()
     actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
     late_arriving_tx_hashes = get_late_arriving_tx_hashes()
@@ -858,13 +877,13 @@ def test_synchronized_datas() -> None:
         AbciAppDB(
             setup_data=AbciAppDB.data_to_lists(
                 dict(
-                    participants=participants,
-                    participant_to_randomness=participant_to_randomness,
+                    participants=tuple(participants),
+                    participant_to_randomness=participant_to_randomness_serialized,
                     most_voted_randomness=most_voted_randomness,
-                    participant_to_selection=participant_to_selection,
+                    participant_to_selection=participant_to_selection_serialized,
                     safe_contract_address=safe_contract_address,
                     most_voted_tx_hash=most_voted_tx_hash,
-                    participant_to_signature=participant_to_signature,
+                    participant_to_signature=participant_to_signature_serialized,
                     final_tx_hash=final_tx_hash,
                     late_arriving_tx_hashes=late_arriving_tx_hashes,
                     keepers=keepers,
@@ -879,6 +898,8 @@ def test_synchronized_datas() -> None:
     assert synchronized_data_____.most_voted_randomness == most_voted_randomness
     assert synchronized_data_____.safe_contract_address == safe_contract_address
     assert synchronized_data_____.most_voted_tx_hash == most_voted_tx_hash
+    assert synchronized_data_____.participant_to_randomness == participant_to_randomness
+    assert synchronized_data_____.participant_to_selection == participant_to_selection
     assert synchronized_data_____.participant_to_signature == participant_to_signature
     assert synchronized_data_____.final_tx_hash == final_tx_hash
     assert synchronized_data_____.late_arriving_tx_hashes == late_arriving_tx_hashes
@@ -919,8 +940,8 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
                     self.participants, next_period_count
                 ),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.create(
-                    participants=[self.participants],
-                    all_participants=[self.participants],
+                    participants=[tuple(self.participants)],
+                    all_participants=[tuple(self.participants)],
                     keeper_randomness=[DUMMY_RANDOMNESS],
                 ),
                 synchronized_data_attr_checks=[],  # [lambda _synchronized_data: _synchronized_data.participants],

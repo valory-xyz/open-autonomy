@@ -1112,7 +1112,7 @@ Get the current cycle's blacklisted keepers who cannot submit a transaction.
 
 ```python
 @property
-def participant_to_selection() -> Mapping
+def participant_to_selection() -> DeserializedCollection
 ```
 
 Check whether keeper is set.
@@ -1123,7 +1123,7 @@ Check whether keeper is set.
 
 ```python
 @property
-def participant_to_randomness() -> Mapping
+def participant_to_randomness() -> DeserializedCollection
 ```
 
 Check whether keeper is set.
@@ -1134,7 +1134,7 @@ Check whether keeper is set.
 
 ```python
 @property
-def participant_to_votes() -> Mapping
+def participant_to_votes() -> DeserializedCollection
 ```
 
 Check whether keeper is set.
@@ -1489,6 +1489,39 @@ def __init__(*args: Any, **kwargs: Any)
 ```
 
 Initialize the collection round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.serialize_collection"></a>
+
+#### serialize`_`collection
+
+```python
+@staticmethod
+def serialize_collection(collection: DeserializedCollection) -> SerializedCollection
+```
+
+Deserialize a serialized collection.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.deserialize_collection"></a>
+
+#### deserialize`_`collection
+
+```python
+@staticmethod
+def deserialize_collection(serialized: SerializedCollection) -> DeserializedCollection
+```
+
+Deserialize a serialized collection.
+
+<a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.serialized_collection"></a>
+
+#### serialized`_`collection
+
+```python
+@property
+def serialized_collection() -> SerializedCollection
+```
+
+A collection with the addresses mapped to serialized payloads.
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.accepting_payloads_from"></a>
 

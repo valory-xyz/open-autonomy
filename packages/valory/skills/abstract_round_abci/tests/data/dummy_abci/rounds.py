@@ -83,7 +83,7 @@ class DummyStartingRound(CollectSameUntilAllRound, DummyMixinRound):
 
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
-                participants=self.collection,
+                participants=tuple(self.collection),
                 synchronized_data_class=SynchronizedData,
             )
             return synchronized_data, Event.DONE

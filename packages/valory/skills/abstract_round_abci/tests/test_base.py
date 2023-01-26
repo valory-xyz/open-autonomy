@@ -52,6 +52,7 @@ from hypothesis.strategies import (
     text,
 )
 
+import packages.valory.skills.abstract_round_abci.base as abci_base
 from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppException,
@@ -68,6 +69,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     Block,
     BlockBuilder,
     Blockchain,
+    CollectionRound,
     ConsensusParams,
     EventType,
     LateArrivingTransaction,
@@ -513,7 +515,7 @@ class TestAbciAppDB:
 
     def setup(self) -> None:
         """Set up the tests."""
-        self.participants = {"a", "b"}
+        self.participants = ("a", "b")
         self.db = AbciAppDB(
             setup_data=dict(participants=[self.participants]),
         )
@@ -672,8 +674,9 @@ class TestAbciAppDB:
         self.db.increment_round_count()
         assert self.db.round_count == 0
 
-    @mock.patch(
-        "packages.valory.skills.abstract_round_abci.base.is_json_serializable",
+    @mock.patch.object(
+        abci_base,
+        "is_json_serializable",
         return_value=False,
     )
     def test_validate(self, _: mock._patch) -> None:
@@ -940,14 +943,14 @@ class TestBaseSynchronizedData:
 
     def setup(self) -> None:
         """Set up the tests."""
-        self.participants = {"a", "b"}
+        self.participants = ("a", "b")
         self.base_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(setup_data=dict(participants=[self.participants]))
         )
 
     def test_participants_getter_positive(self) -> None:
         """Test 'participants' property getter."""
-        assert self.participants == self.base_synchronized_data.participants
+        assert frozenset(self.participants) == self.base_synchronized_data.participants
 
     def test_nb_participants_getter(self) -> None:
         """Test 'participants' property getter."""
@@ -967,21 +970,21 @@ class TestBaseSynchronizedData:
 
     def test_update(self) -> None:
         """Test the 'update' method."""
-        participants = {"a"}
+        participants = ("a",)
         expected = BaseSynchronizedData(
             db=AbciAppDB(setup_data=dict(participants=[participants]))
         )
         actual = self.base_synchronized_data.update(participants=participants)
         assert expected.participants == actual.participants
-        assert actual.db._data == {0: {"participants": [{"a", "b"}, {"a"}]}}
+        assert actual.db._data == {0: {"participants": [("a", "b"), ("a",)]}}
 
     def test_create(self) -> None:
         """Test the 'create' method."""
-        participants = {"a"}
+        participants = ("a",)
         actual = self.base_synchronized_data.create(participants=[participants])
         assert actual.db._data == {
-            0: {"participants": [{"a", "b"}]},
-            1: {"participants": [{"a"}]},
+            0: {"participants": [("a", "b")]},
+            1: {"participants": [("a",)]},
         }
 
     def test_repr(self) -> None:
@@ -995,7 +998,7 @@ class TestBaseSynchronizedData:
     ) -> None:
         """Tets when participants list is set to zero."""
         base_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(setup_data=dict(participants=[{}]))
+            db=AbciAppDB(setup_data=dict(participants=[tuple()]))
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
             _ = base_synchronized_data.participants
@@ -1005,7 +1008,7 @@ class TestBaseSynchronizedData:
     ) -> None:
         """Tets when participants list is set to zero."""
         base_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(setup_data=dict(all_participants=[{}]))
+            db=AbciAppDB(setup_data=dict(all_participants=[tuple()]))
         )
         with pytest.raises(ValueError, match="List participants cannot be empty."):
             _ = base_synchronized_data.all_participants
@@ -1019,9 +1022,9 @@ class TestBaseSynchronizedData:
         randomness_value = 0.20400769574270503
         most_voted_keeper_address = "most_voted_keeper_address"
         blacklisted_keepers = "blacklisted_keepers"
-        participant_to_selection = "participant_to_selection"
-        participant_to_randomness = "participant_to_randomness"
-        participant_to_votes = "participant_to_votes"
+        participant_to_selection = participant_to_randomness = participant_to_votes = {
+            "sender": DummyPayload(sender="sender", dummy_attribute=0)
+        }
         safe_contract_address = "0x0"
 
         base_synchronized_data = BaseSynchronizedData(
@@ -1033,9 +1036,15 @@ class TestBaseSynchronizedData:
                         most_voted_randomness=randomness_str,
                         most_voted_keeper_address=most_voted_keeper_address,
                         blacklisted_keepers=blacklisted_keepers,
-                        participant_to_selection=participant_to_selection,
-                        participant_to_randomness=participant_to_randomness,
-                        participant_to_votes=participant_to_votes,
+                        participant_to_selection=CollectionRound.serialize_collection(
+                            participant_to_selection
+                        ),
+                        participant_to_randomness=CollectionRound.serialize_collection(
+                            participant_to_randomness
+                        ),
+                        participant_to_votes=CollectionRound.serialize_collection(
+                            participant_to_votes
+                        ),
                         safe_contract_address=safe_contract_address,
                     )
                 )
@@ -1069,7 +1078,7 @@ class TestAbstractRound:
     def setup(self) -> None:
         """Set up the tests."""
         self.known_payload_type = ConcreteRoundA.payload_class
-        self.participants = {"a", "b"}
+        self.participants = ("a", "b")
         self.base_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(setup_data=dict(participants=[self.participants]))
         )
@@ -1197,7 +1206,7 @@ class TestAbstractRound:
     def test_synchronized_data_getter(self) -> None:
         """Test 'synchronized_data' property getter."""
         state = self.round.synchronized_data
-        assert state.participants == self.participants
+        assert state.participants == frozenset(self.participants)
 
     def test_check_transaction_unknown_payload(self) -> None:
         """Test 'check_transaction' method, with unknown payload type."""
