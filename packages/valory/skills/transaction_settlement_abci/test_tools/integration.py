@@ -144,6 +144,23 @@ class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
                 signature=signature_hex,
             ).json
 
+        # FIXME: The following loop is a patch. The
+        #  [_get_python_modules](https://github.com/valory-xyz/open-aea/blob/d0e60881b1371442c3572df86c53fc92dc9228fa/aea/skills/base.py#L907-L925)
+        #  is getting the python modules from the skill directory.
+        #  As we can see from the code, the path will end up being relative, which means that the
+        #  [_metaclass_registry_key](https://github.com/valory-xyz/open-autonomy/blob/5d151f1fff4934f70be8c5f6be77705cc2e6ef4c/packages/valory/skills/abstract_round_abci/base.py#L167)
+        #  inserted in the `_MetaPayload`'s registry will also be relative. However, this is causing issues when calling
+        #  `BaseTxPayload.from_json(payload_json)` later from the property below
+        #  (`self.tx_settlement_synchronized_data.participant_to_signature`) because the `payload_json` will have been
+        #  serialized using an imported payload (the `SignaturePayload` above), and therefore a key error will be
+        #  raised since the imported payload's path is not relative and the registry has a relative path as a key.
+        for payload in participant_to_signature.values():
+            registry_key = "_metaclass_registry_key"
+            payload_value = payload[registry_key]
+            payload_cls_name = payload_value.split(".")[-1]
+            patched_registry_key = f"payloads.{payload_cls_name}"
+            payload[registry_key] = patched_registry_key
+
         self.tx_settlement_synchronized_data.update(
             participant_to_signature=participant_to_signature,
         )
