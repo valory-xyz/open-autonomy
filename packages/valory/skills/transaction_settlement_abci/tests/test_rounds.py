@@ -845,12 +845,14 @@ def test_synchronized_datas() -> None:
     """Test SynchronizedData."""
 
     participants = get_participants()
-    participant_to_randomness = CollectionRound.serialize_collection(
-        get_participant_to_randomness(participants, 1)
+    participant_to_randomness = get_participant_to_randomness(participants, 1)
+    participant_to_randomness_serialized = CollectionRound.serialize_collection(
+        participant_to_randomness
     )
     most_voted_randomness = get_most_voted_randomness()
-    participant_to_selection = CollectionRound.serialize_collection(
-        get_participant_to_selection(participants, "test")
+    participant_to_selection = get_participant_to_selection(participants, "test")
+    participant_to_selection_serialized = CollectionRound.serialize_collection(
+        participant_to_selection
     )
     safe_contract_address = get_safe_contract_address()
     most_voted_tx_hash = get_most_voted_tx_hash()
@@ -876,9 +878,9 @@ def test_synchronized_datas() -> None:
             setup_data=AbciAppDB.data_to_lists(
                 dict(
                     participants=tuple(participants),
-                    participant_to_randomness=participant_to_randomness,
+                    participant_to_randomness=participant_to_randomness_serialized,
                     most_voted_randomness=most_voted_randomness,
-                    participant_to_selection=participant_to_selection,
+                    participant_to_selection=participant_to_selection_serialized,
                     safe_contract_address=safe_contract_address,
                     most_voted_tx_hash=most_voted_tx_hash,
                     participant_to_signature=participant_to_signature_serialized,
@@ -896,6 +898,8 @@ def test_synchronized_datas() -> None:
     assert synchronized_data_____.most_voted_randomness == most_voted_randomness
     assert synchronized_data_____.safe_contract_address == safe_contract_address
     assert synchronized_data_____.most_voted_tx_hash == most_voted_tx_hash
+    assert synchronized_data_____.participant_to_randomness == participant_to_randomness
+    assert synchronized_data_____.participant_to_selection == participant_to_selection
     assert synchronized_data_____.participant_to_signature == participant_to_signature
     assert synchronized_data_____.final_tx_hash == final_tx_hash
     assert synchronized_data_____.late_arriving_tx_hashes == late_arriving_tx_hashes

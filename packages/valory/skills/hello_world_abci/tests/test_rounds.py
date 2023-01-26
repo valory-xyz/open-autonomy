@@ -24,7 +24,11 @@
 import logging  # noqa: F401
 from typing import cast
 
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB, MAX_INT_256
+from packages.valory.skills.abstract_round_abci.base import (
+    AbciAppDB,
+    CollectionRound,
+    MAX_INT_256,
+)
 from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
     BaseRoundTestClass as ExternalBaseRoundTestClass,
 )
@@ -294,14 +298,20 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
     participant_to_randomness = {
         participant: CollectRandomnessPayload(
             sender=participant, randomness=RANDOMNESS, round_id=0
-        ).json
+        )
         for participant in participants
     }
+    participant_to_randomness_serialized = CollectionRound.serialize_collection(
+        participant_to_randomness
+    )
     most_voted_randomness = "0xabcd"
     participant_to_selection = {
-        participant: SelectKeeperPayload(sender=participant, keeper="keeper").json
+        participant: SelectKeeperPayload(sender=participant, keeper="keeper")
         for participant in participants
     }
+    participant_to_selection_serialized = CollectionRound.serialize_collection(
+        participant_to_selection
+    )
     most_voted_keeper_address = "keeper"
 
     synchronized_data = SynchronizedData(
@@ -310,9 +320,9 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
                 dict(
                     participants=participants,
                     setup_params={},
-                    participant_to_randomness=participant_to_randomness,
+                    participant_to_randomness=participant_to_randomness_serialized,
                     most_voted_randomness=most_voted_randomness,
-                    participant_to_selection=participant_to_selection,
+                    participant_to_selection=participant_to_selection_serialized,
                     most_voted_keeper_address=most_voted_keeper_address,
                 )
             ),
