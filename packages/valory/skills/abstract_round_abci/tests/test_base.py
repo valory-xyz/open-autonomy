@@ -52,6 +52,7 @@ from hypothesis.strategies import (
     text,
 )
 
+import packages.valory.skills.abstract_round_abci.base as abci_base
 from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppException,
@@ -673,8 +674,9 @@ class TestAbciAppDB:
         self.db.increment_round_count()
         assert self.db.round_count == 0
 
-    @mock.patch(
-        "packages.valory.skills.abstract_round_abci.base.is_json_serializable",
+    @mock.patch.object(
+        abci_base,
+        "is_json_serializable",
         return_value=False,
     )
     def test_validate(self, _: mock._patch) -> None:
