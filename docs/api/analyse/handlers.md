@@ -4,12 +4,12 @@
 
 Analyse handlers.
 
-<a id="autonomy.analyse.handlers.resolve_handler_path_to_module"></a>
+<a id="autonomy.analyse.handlers.load_handler_module_from_skill_path"></a>
 
-#### resolve`_`handler`_`path`_`to`_`module
+#### load`_`handler`_`module`_`from`_`skill`_`path
 
 ```python
-def resolve_handler_path_to_module(skill_path: Path) -> str
+def load_handler_module_from_skill_path(skill_path: Path) -> types.ModuleType
 ```
 
 Resolve handler path to current workind directory.

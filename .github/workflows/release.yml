@@ -8,7 +8,7 @@ on:
 jobs:
   publish-pip-packages:
     name: Create Framework & Plugin Releases
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -25,6 +25,7 @@ jobs:
           sudo apt-get autoclean
           python -m pip install --upgrade pip
           pip install pipenv twine
+          python --version
 
       - name: Build wheels and source tarball
         run: |
@@ -54,7 +55,7 @@ jobs:
 
   publish-autonomy-packages:
     name: Push Open Autonomy Packages
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     needs:
       - publish-pip-packages
     strategy:
@@ -82,7 +83,11 @@ jobs:
 
   publish-images:
     name: Publish Docker Images
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10"]
     needs:
       - publish-autonomy-packages
     steps:
@@ -93,10 +98,10 @@ jobs:
       run: |
         source env.sh
         docker build -t valory/open-autonomy-docs:$TAG -f deployments/Dockerfiles/documentation/Dockerfile . && \
-        docker build -t valory/open-autonomy:$TAG -f deployments/Dockerfiles/autonomy/Dockerfile . && \
-        docker build -t valory/open-autonomy-tendermint:$TAG -f deployments/Dockerfiles/tendermint/Dockerfile . && \
-        docker build -t valory/open-autonomy-hardhat:$TAG -f deployments/Dockerfiles/hardhat/Dockerfile . && \
-        docker build -t valory/open-autonomy-user:$TAG -f deployments/Dockerfiles/autonomy-user/Dockerfile . 
+        docker build -t valory/open-autonomy:$TAG deployments/Dockerfiles/autonomy && \
+        docker build -t valory/open-autonomy-tendermint:$TAG deployments/Dockerfiles/tendermint && \
+        docker build -t valory/open-autonomy-hardhat:$TAG deployments/Dockerfiles/hardhat && \
+        docker build -t valory/open-autonomy-user:$TAG deployments/Dockerfiles/autonomy-user
     - name: Tag to latest
       run:  |
         source env.sh
@@ -110,21 +115,21 @@ jobs:
         DOCKER_USER: ${{secrets.DOCKER_USER}}
         DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
       run: |
-        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
+        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
     - name: Docker Push
       run: |
         source env.sh
-        docker push valory/open-autonomy-docs:$TAG 
+        docker push valory/open-autonomy-docs:$TAG
         docker push valory/open-autonomy-docs:latest
       
-        docker push valory/open-autonomy:$TAG 
+        docker push valory/open-autonomy:$TAG
         docker push valory/open-autonomy:latest
       
-        docker push valory/open-autonomy-tendermint:$TAG 
+        docker push valory/open-autonomy-tendermint:$TAG
         docker push valory/open-autonomy-tendermint:latest
       
-        docker push valory/open-autonomy-hardhat:$TAG 
+        docker push valory/open-autonomy-hardhat:$TAG
         docker push valory/open-autonomy-hardhat:latest
       
-        docker push valory/open-autonomy-user:$TAG 
+        docker push valory/open-autonomy-user:$TAG
         docker push valory/open-autonomy-user:latest

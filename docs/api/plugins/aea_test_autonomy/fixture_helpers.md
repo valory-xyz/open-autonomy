@@ -532,6 +532,16 @@ class HardHatAMMBaseTest(HardHatBaseTest)
 
 Base pytest class for HardHat with Gnosis and Uniswap deployed.
 
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.RegistriesBaseTest"></a>
+
+## RegistriesBaseTest Objects
+
+```python
+class RegistriesBaseTest(HardHatBaseTest)
+```
+
+Base pytest class for component registries.
+
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.ipfs_daemon"></a>
 
 #### ipfs`_`daemon

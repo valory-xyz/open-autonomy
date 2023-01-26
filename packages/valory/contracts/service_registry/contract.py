@@ -21,7 +21,7 @@
 
 import hashlib
 import logging
-from typing import Any, Dict, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -47,6 +47,8 @@ _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
 
+ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
+
 
 class ServiceRegistryContract(Contract):
     """The Service Registry contract."""
@@ -58,21 +60,21 @@ class ServiceRegistryContract(Contract):
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get the Safe transaction."""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def get_raw_message(
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[bytes]:
         """Get raw message."""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def get_state(
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get state."""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def verify_contract(
@@ -116,7 +118,7 @@ class ServiceRegistryContract(Contract):
         exists = ledger_api.contract_method_call(
             contract_instance=contract_instance,
             method_name="exists",
-            serviceId=service_id,
+            unitId=service_id,
         )
 
         return cast(bool, exists)
@@ -163,7 +165,7 @@ class ServiceRegistryContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         token_id: int,
-    ) -> str:
+    ) -> ServiceInfo:
         """Retrieve service information"""
 
         contract_interface = cls.get_instance(
@@ -193,7 +195,7 @@ class ServiceRegistryContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
     ) -> Optional[int]:
-        """Returns `CreateUnit` event filter."""
+        """Returns `CreateService` event filter."""
 
         contract_interface = cls.get_instance(
             ledger_api=ledger_api,

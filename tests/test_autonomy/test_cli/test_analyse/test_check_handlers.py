@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -85,9 +85,9 @@ class TestCheckHandlers(BaseCliTest):
             Path(self.t / "packages").glob(f"*/*/*/{DEFAULT_SKILL_CONFIG_FILE}")
         ):
             if yaml_file.parent.name in IGNORE_SKILLS:
-                assert f"Skipping {yaml_file.parent.resolve()}" in result.output
+                assert f"Skipping {yaml_file.parent.name}" in result.output
             else:
-                assert f"Checking {yaml_file.parent.resolve()}" in result.output
+                assert f"Checking {yaml_file.parent.name}" in result.output
 
     def test_check_handlers_fail(
         self,
@@ -95,7 +95,7 @@ class TestCheckHandlers(BaseCliTest):
         """Test check-handlers command fail."""
         result = self.run_cli(("-h", "dummy"))
 
-        assert result.exit_code == 1
+        assert result.exit_code == 1, result.output
         assert "Common handler 'dummy' is not defined in" in result.output
 
     def test_check_handlers_missing_handler(
@@ -112,8 +112,8 @@ class TestCheckHandlers(BaseCliTest):
             with mock.patch("autonomy.analyse.handlers.dir", return_value=[]):
                 # Mock Path.relative_to() and return any valid module so import_module does not fail
                 with mock.patch(
-                    "autonomy.analyse.handlers.resolve_handler_path_to_module",
-                    return_value="pathlib",
+                    "autonomy.analyse.handlers.load_handler_module_from_skill_path",
+                    return_value=None,
                 ):
                     check_handlers(
                         Path(
