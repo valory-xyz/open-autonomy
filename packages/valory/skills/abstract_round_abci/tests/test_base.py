@@ -1914,22 +1914,23 @@ class TestRoundSequence:
         assert expected in caplog.text
 
     @pytest.mark.parametrize("last_round_transition_root_hash", (b"", b"test"))
-    @pytest.mark.parametrize("round_count, reset_index", ((0, 0), (4, 2), (8, 1)))
     def test_last_round_transition_root_hash(
-        self, last_round_transition_root_hash: bytes, round_count: int, reset_index: int
+        self,
+        last_round_transition_root_hash: bytes,
     ) -> None:
         """Test 'last_round_transition_root_hash' method."""
         self.round_sequence._last_round_transition_root_hash = (
             last_round_transition_root_hash
         )
-        self.round_sequence.abci_app.synchronized_data.db.round_count = round_count
-        self.round_sequence.abci_app._reset_index = reset_index
 
         if last_round_transition_root_hash == b"":
-            assert (
-                self.round_sequence.last_round_transition_root_hash
-                == f"root:{round_count}reset:{reset_index}".encode("utf-8")
-            )
+            with mock.patch.object(
+                RoundSequence,
+                "root_hash",
+                new_callable=mock.PropertyMock,
+                return_value="test",
+            ):
+                assert self.round_sequence.last_round_transition_root_hash == "test"
         else:
             assert (
                 self.round_sequence.last_round_transition_root_hash

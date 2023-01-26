@@ -2653,17 +2653,13 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         """
         Get the Merkle root hash of the application state.
 
-        Create an app hash that always increases in order to avoid conflicts between resets.
-        Eventually, we do not necessarily need to have a value that increases, but we have to generate a hash that
-        is always different among the resets, since our abci's state is different even thought we have reset the chain!
-        For example, if we are in height 11, reset and then reach height 11 again, if we end up using the same hash
-        at height 11 between the resets, then this is problematic.
+        This is going to be the database's hash.
+        In this way, the app hash will be reflecting our application's state,
+        and will guarantee that all the agents on the chain apply the changes of the arriving blocks in the same way.
 
         :return: the root hash to be included as the Header.AppHash in the next block.
         """
-        return f"root:{self.abci_app.synchronized_data.db.round_count}reset:{self.abci_app.reset_index}".encode(
-            "utf-8"
-        )
+        return self.abci_app.synchronized_data.db.hash()
 
     @property
     def tm_height(self) -> int:
