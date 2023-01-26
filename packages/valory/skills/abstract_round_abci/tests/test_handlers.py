@@ -328,15 +328,14 @@ class TestTendermintHandler:
         self.dialogues = TendermintDialogues(name="dummy", skill_context=self.context)
 
     # helper
-    def mocked_registered_addresses(
-        self, addresses: Dict[str, Dict[str, str]]
-    ) -> mock._patch:
-        """Mocked registered addresses"""
+    @staticmethod
+    def mocked_initial_tm_configs(configs: Dict[str, Dict[str, str]]) -> mock._patch:
+        """Mocked initial tm configs"""
         return mock.patch.object(
             TendermintHandler,
-            "registered_addresses",
+            "initial_tm_configs",
             new_callable=mock.PropertyMock,
-            return_value=addresses,
+            return_value=configs,
         )
 
     @property
@@ -381,7 +380,7 @@ class TestTendermintHandler:
         performative = TendermintMessage.Performative.GET_GENESIS_INFO
         message = TendermintMessage(performative)  # type: ignore
         message.sender = "Alice"
-        with self.mocked_registered_addresses({}):
+        with self.mocked_initial_tm_configs({}):
             self.handler.handle(message)
             log_message = self.handler.LogMessages.no_addresses_retrieved_yet.value
             assert log_message in caplog.text
@@ -405,7 +404,7 @@ class TestTendermintHandler:
         performative = TendermintMessage.Performative.GET_GENESIS_INFO
         message = TendermintMessage(performative)  # type: ignore
         self.context.agent_address = message.sender = self.agent_name
-        with self.mocked_registered_addresses(self.dummy_validator_config):
+        with self.mocked_initial_tm_configs(self.dummy_validator_config):
             self.handler.handle(message)
             log_message = self.handler.LogMessages.sending_request_response.value
             assert log_message in caplog.text
@@ -419,7 +418,7 @@ class TestTendermintHandler:
         info = json.dumps(validator_config[self.agent_name])
         message = TendermintMessage(performative, info=info)  # type: ignore
         self.context.agent_address = message.sender = self.agent_name
-        with self.mocked_registered_addresses(validator_config):
+        with self.mocked_initial_tm_configs(validator_config):
             self.handler.handle(message)
         log_message = self.handler.LogMessages.failed_to_parse_address.value
         assert log_message in caplog.text
@@ -430,7 +429,7 @@ class TestTendermintHandler:
         info = json.dumps(self.dummy_validator_config[self.agent_name])
         message = TendermintMessage(performative, info=info)  # type: ignore
         self.context.agent_address = message.sender = self.agent_name
-        with self.mocked_registered_addresses(self.dummy_validator_config):
+        with self.mocked_initial_tm_configs(self.dummy_validator_config):
             self.handler.handle(message)
         log_message = self.handler.LogMessages.collected_config_info.value
         assert log_message in caplog.text
@@ -468,11 +467,9 @@ class TestTendermintHandler:
             )
 
         self.context.agent_address = message.sender = self.agent_name
-        registered_addresses = (
-            {self.agent_name: {"dummy": "value"}} if registered else {}
-        )
+        tm_configs = {self.agent_name: {"dummy": "value"}} if registered else {}
 
-        with self.mocked_registered_addresses(registered_addresses):
+        with self.mocked_initial_tm_configs(tm_configs):
             self.handler.handle(message)
 
         if not registered:
@@ -505,8 +502,8 @@ class TestTendermintHandler:
         )
 
         self.context.agent_address = message.sender = self.agent_name
-        registered_addresses = {self.agent_name: {"dummy": "value"}}
-        with self.mocked_registered_addresses(registered_addresses), mock.patch.object(
+        tm_configs = {self.agent_name: {"dummy": "value"}}
+        with self.mocked_initial_tm_configs(tm_configs), mock.patch.object(
             json, "loads", side_effect=side_effect
         ):
             self.handler.handle(message)
@@ -519,7 +516,7 @@ class TestTendermintHandler:
     def test_handle_error(self, caplog: LogCaptureFixture) -> None:
         """Test handle error"""
         message = self.make_error_message()
-        with self.mocked_registered_addresses(self.dummy_validator_config):
+        with self.mocked_initial_tm_configs(self.dummy_validator_config):
             self.handler.handle(message)
         log_message = self.handler.LogMessages.received_error_response.value
         assert log_message in caplog.text
@@ -534,7 +531,7 @@ class TestTendermintHandler:
         self.handler.dialogues.update = lambda _: dialogue  # type: ignore
         callback = lambda *args, **kwargs: None  # noqa: E731
         self.context.requests.request_id_to_callback = {nonce: callback}
-        with self.mocked_registered_addresses(self.dummy_validator_config):
+        with self.mocked_initial_tm_configs(self.dummy_validator_config):
             self.handler.handle(message)
         log_message = (
             self.handler.LogMessages.received_error_without_target_message.value
@@ -548,7 +545,7 @@ class TestTendermintHandler:
         """Test performative no recognized"""
         message = self.make_error_message()
         message._slots.performative = MagicMock(value="wacky")
-        with self.mocked_registered_addresses(self.dummy_validator_config):
+        with self.mocked_initial_tm_configs(self.dummy_validator_config):
             self.handler.handle(message)
         log_message = self.handler.LogMessages.performative_not_recognized.value
         assert log_message in caplog.text
@@ -561,7 +558,7 @@ class TestTendermintHandler:
         performative = TendermintMessage.Performative.GET_GENESIS_INFO
         message = TendermintMessage(performative)  # type: ignore
         self.context.agent_address = message.sender = "dummy"
-        with self.mocked_registered_addresses(self.dummy_validator_config):
+        with self.mocked_initial_tm_configs(self.dummy_validator_config):
             self.handler.handle(message)
             log_message = self.handler.LogMessages.not_in_registered_addresses.value
             assert log_message in caplog.text

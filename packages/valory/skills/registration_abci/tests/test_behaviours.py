@@ -337,7 +337,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         """Mock Tendermint update"""
 
         validator_configs = self.state.format_genesis_data(
-            self.state.registered_addresses
+            self.state.initial_tm_configs
         )
         body = json.dumps(validator_configs).encode(self.state.ENCODING)
         url = self.state.tendermint_parameter_url
@@ -376,7 +376,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     # tests
     def test_init(self) -> None:
         """Empty init"""
-        assert self.state.registered_addresses == {}
+        assert self.state.initial_tm_configs == {}
         assert self.state.local_tendermint_params == {}
         assert self.state.updated_genesis_data == {}
 
@@ -480,13 +480,13 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mock_is_correct_contract()
             self.mock_get_agent_instances(*self.agent_instances)
 
-            assert set(self.state.registered_addresses) == set(self.agent_instances)
-            my_info = self.state.registered_addresses[self.state.context.agent_address]
+            assert set(self.state.initial_tm_configs) == set(self.agent_instances)
+            my_info = self.state.initial_tm_configs[self.state.context.agent_address]
             assert (
                 my_info["hostname"]
                 == urlparse(self.state.context.params.tendermint_url).hostname
             )
-            assert not any(map(self.state.registered_addresses.get, self.other_agents))
+            assert not any(map(self.state.initial_tm_configs.get, self.other_agents))
             log_message = self.state.LogMessages.response_service_info
             assert log_message.value in caplog.text
 
@@ -503,7 +503,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mock_is_correct_contract()
             self.mock_get_agent_instances(*self.agent_instances)
             self.mock_get_tendermint_info(*self.other_agents)
-            assert all(map(self.state.registered_addresses.get, self.other_agents))
+            assert all(map(self.state.initial_tm_configs.get, self.other_agents))
             log_message = self.state.LogMessages.collection_complete
             assert log_message.value in caplog.text
 
