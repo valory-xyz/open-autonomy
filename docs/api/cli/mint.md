@@ -12,12 +12,13 @@ Mint command group definitions.
 @click.group("mint")
 @pass_ctx
 @chain_selection_flag()
+@timeout_flag
 @click.option(
     "--skip-hash-check",
     is_flag=True,
     help="Skip hash check when verifying dependencies on chain",
 )
-def mint(ctx: Context, chain_type: str, skip_hash_check: bool) -> None
+def mint(ctx: Context, chain_type: str, skip_hash_check: bool, timeout: float) -> None
 ```
 
 Mint component on-chain.

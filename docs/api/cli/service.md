@@ -12,7 +12,8 @@ Implementation of the `autonomy service` command
 @click.group("service")
 @pass_ctx
 @chain_selection_flag()
-def service(ctx: Context, chain_type: str) -> None
+@timeout_flag
+def service(ctx: Context, chain_type: str, timeout: float) -> None
 ```
 
 Manage on-chain services.
@@ -43,20 +44,24 @@ Activate service.
 @click.option(
     "-i",
     "--instance",
+    "instances",
     type=str,
     required=True,
+    multiple=True,
     help="Agent instance address",
 )
 @click.option(
     "-a",
     "--agent-id",
+    "agent_ids",
     type=int,
     required=True,
+    multiple=True,
     help="Agent ID",
 )
 @key_path_decorator
 @password_decorator
-def register(ctx: Context, service_id: int, instance: str, agent_id: int, keys: Path, password: Optional[str]) -> None
+def register(ctx: Context, service_id: int, instances: List[str], agent_ids: List[int], keys: Path, password: Optional[str]) -> None
 ```
 
 Register instances.

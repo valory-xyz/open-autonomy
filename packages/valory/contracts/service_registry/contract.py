@@ -21,7 +21,7 @@
 
 import hashlib
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -195,7 +195,7 @@ class ServiceRegistryContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
     ) -> Optional[int]:
-        """Returns `CreateService` event filter."""
+        """Returns `CreateUnit` event filter."""
 
         contract_interface = cls.get_instance(
             ledger_api=ledger_api,
@@ -212,3 +212,80 @@ class ServiceRegistryContract(Contract):
                 return cast(int, event_args["serviceId"])
 
         return None
+
+    @classmethod
+    def verify_service_has_been_activated(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        service_id: int,
+    ) -> bool:
+        """Checks for a successful service registration event in the latest block"""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+
+        events = contract_interface.events.ActivateRegistration.createFilter(
+            fromBlock="latest"
+        ).get_all_entries()
+        for event in events:
+            if event["args"]["serviceId"] == service_id:
+                return True
+
+        return False
+
+    @classmethod
+    def verify_agent_instance_registration(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        service_id: int,
+        instance_check: Set[str],
+    ) -> Set[str]:
+        """Checks for the registered instances and filters out the instances that are registered from the given array"""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+
+        events = contract_interface.events.RegisterInstance.createFilter(
+            fromBlock="latest"
+        ).get_all_entries()
+
+        successful = set()
+        for event in events:
+            event_args = event["args"]
+            if event_args["serviceId"] != service_id:
+                continue
+
+            agent_instance = event_args["agentInstance"]
+            if agent_instance in instance_check:
+                successful.add(agent_instance)
+
+        return successful
+
+    @classmethod
+    def verify_service_has_been_deployed(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        service_id: int,
+    ) -> bool:
+        """Checks for a successful service registration event in the latest block"""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+
+        events = contract_interface.events.DeployService.createFilter(
+            fromBlock="latest"
+        ).get_all_entries()
+        for event in events:
+            if event["args"]["serviceId"] == service_id:
+                return True
+
+        return False

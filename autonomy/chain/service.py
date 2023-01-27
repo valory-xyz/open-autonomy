@@ -19,7 +19,9 @@
 
 """Helper functions to manage on-chain services"""
 
-from typing import Dict, List, Optional, Tuple
+import datetime
+import time
+from typing import Callable, Dict, List, Optional, Tuple
 
 from aea.crypto.base import Crypto, LedgerApi
 from requests.exceptions import ConnectionError as RequestsConnectionError
@@ -28,6 +30,7 @@ from web3.exceptions import ContractLogicError
 from autonomy.chain.base import ServiceState, registry_contracts
 from autonomy.chain.config import ChainType, ContractConfigs
 from autonomy.chain.constants import (
+    EVENT_VERIFICATION_TIMEOUT,
     GNOSIS_SAFE_MULTISIG_CONTRACT,
     SERVICE_MANAGER_CONTRACT,
     SERVICE_REGISTRY_CONTRACT,
@@ -89,11 +92,63 @@ def get_service_info(
     )
 
 
+def wait_for_success_event(
+    success_check: Callable[[], bool],
+    message: str = "Timeout error",
+    timeout: Optional[float] = None,
+    sleep: float = 1.0,
+) -> None:
+    """Wait for success event."""
+
+    timeout = timeout or EVENT_VERIFICATION_TIMEOUT
+    deadline = datetime.datetime.now() + datetime.timedelta(seconds=timeout)
+    while datetime.datetime.now() < deadline:
+        if success_check():
+            return
+        time.sleep(sleep)
+    raise TimeoutError(message)
+
+
+def wait_for_agent_instance_registration(
+    ledger_api: LedgerApi,
+    chain_type: ChainType,
+    service_id: int,
+    instances: List[str],
+    timeout: Optional[float] = None,
+) -> None:
+    """Wait for agent instance registration."""
+
+    timeout = timeout or EVENT_VERIFICATION_TIMEOUT
+    deadline = datetime.datetime.now() + datetime.timedelta(seconds=timeout)
+    instance_check = set(instances)
+
+    while datetime.datetime.now() < deadline:
+        successful_instances = (
+            registry_contracts.service_registry.verify_agent_instance_registration(
+                ledger_api=ledger_api,
+                contract_address=ContractConfigs.get(
+                    SERVICE_REGISTRY_CONTRACT.name
+                ).contracts[chain_type],
+                service_id=service_id,
+                instance_check=instance_check,
+            )
+        )
+
+        instance_check = instance_check.difference(successful_instances)
+        if len(instance_check) == 0:
+            return
+
+    raise TimeoutError(
+        f"Could not verify the instance registration for {instance_check} in given time"
+    )
+
+
 def activate_service(
     ledger_api: LedgerApi,
     crypto: Crypto,
     chain_type: ChainType,
     service_id: int,
+    timeout: Optional[float] = None,
 ) -> None:
     """
     Activate service.
@@ -105,6 +160,7 @@ def activate_service(
     :param crypto: `aea.crypto.Crypto` object which has a funded key
     :param chain_type: Chain type
     :param service_id: Service ID retrieved after minting a service
+    :param timeout: Time to wait for activation event to emit
     """
 
     (cost_of_bond, *_, service_state, _,) = get_service_info(
@@ -136,14 +192,37 @@ def activate_service(
     except ContractLogicError as e:
         raise ServiceRegistrationFailed(f"Service activation failed; {e}") from e
 
+    try:
+
+        def success_check() -> bool:
+            """Success check"""
+            return (
+                registry_contracts.service_registry.verify_service_has_been_activated(
+                    ledger_api=ledger_api,
+                    contract_address=ContractConfigs.get(
+                        SERVICE_REGISTRY_CONTRACT.name
+                    ).contracts[chain_type],
+                    service_id=service_id,
+                )
+            )
+
+        wait_for_success_event(
+            success_check=success_check,
+            message="Could not verify the service activation in given time",
+            timeout=timeout,
+        )
+    except TimeoutError as e:
+        raise ServiceRegistrationFailed(e) from e
+
 
 def register_instance(  # pylint: disable=too-many-arguments
     ledger_api: LedgerApi,
     crypto: Crypto,
     chain_type: ChainType,
     service_id: int,
-    instance: str,
-    agent_id: int,
+    instances: List[str],
+    agent_ids: List[int],
+    timeout: Optional[float] = None,
 ) -> None:
     """
     Register instance.
@@ -160,10 +239,16 @@ def register_instance(  # pylint: disable=too-many-arguments
     :param crypto: `aea.crypto.Crypto` object which has a funded key
     :param chain_type: Chain type
     :param service_id: Service ID retrieved after minting a service
-    :param instance: Address of the agent instance
-    :param agent_id: Agent ID of the agent that you want this instance to be a part
+    :param instances: Address of the agent instance
+    :param agent_ids: Agent ID of the agent that you want this instance to be a part
                     of when deployed
+    :param timeout: Time to wait for register instance event to emit
     """
+
+    if len(agent_ids) != len(instances):
+        raise InstanceRegistrationFailed(
+            "Number of agent instances and agent IDs needs to be same"
+        )
 
     (cost_of_bond, *_, service_state, _,) = get_service_info(
         ledger_api=ledger_api,
@@ -177,6 +262,8 @@ def register_instance(  # pylint: disable=too-many-arguments
     if service_state != ServiceState.ACTIVE_REGISTRATION.value:
         raise InstanceRegistrationFailed("Service needs to be in active state")
 
+    security_deposit = cost_of_bond * len(agent_ids)
+
     try:
         tx = registry_contracts.service_manager.get_register_instance_transaction(
             ledger_api=ledger_api,
@@ -185,13 +272,9 @@ def register_instance(  # pylint: disable=too-many-arguments
             ).contracts[chain_type],
             owner=crypto.address,
             service_id=service_id,
-            instances=[
-                instance,
-            ],
-            agent_ids=[
-                agent_id,
-            ],
-            security_deposit=cost_of_bond,
+            instances=instances,
+            agent_ids=agent_ids,
+            security_deposit=security_deposit,
             raise_on_try=True,
         )
 
@@ -203,6 +286,17 @@ def register_instance(  # pylint: disable=too-many-arguments
     except ContractLogicError as e:
         raise InstanceRegistrationFailed(f"Instance registration failed; {e}") from e
 
+    try:
+        wait_for_agent_instance_registration(
+            ledger_api=ledger_api,
+            chain_type=chain_type,
+            service_id=service_id,
+            instances=instances,
+            timeout=timeout,
+        )
+    except TimeoutError as e:
+        raise InstanceRegistrationFailed(e) from e
+
 
 def deploy_service(
     ledger_api: LedgerApi,
@@ -210,6 +304,7 @@ def deploy_service(
     chain_type: ChainType,
     service_id: int,
     deployment_payload: Optional[str] = None,
+    timeout: Optional[float] = None,
 ) -> None:
     """
     Deploy service.
@@ -223,6 +318,7 @@ def deploy_service(
     :param service_id: Service ID retrieved after minting a service
     :param deployment_payload: Deployment payload to include when making the
                             deployment transaction
+    :param timeout: Time to wait for deploy event to emit
     """
     deployment_payload = deployment_payload or DEFAULT_DEPLOY_PAYLOAD
     (*_, service_state, _,) = get_service_info(
@@ -258,3 +354,23 @@ def deploy_service(
         ) from e
     except ContractLogicError as e:
         raise ServiceDeployFailed(f"Service deployment failed; {e}") from e
+
+    try:
+
+        def success_check() -> bool:
+            """Success check"""
+            return registry_contracts.service_registry.verify_service_has_been_deployed(
+                ledger_api=ledger_api,
+                contract_address=ContractConfigs.get(
+                    SERVICE_REGISTRY_CONTRACT.name
+                ).contracts[chain_type],
+                service_id=service_id,
+            )
+
+        wait_for_success_event(
+            success_check=success_check,
+            message=f"Could not verify the service deployment for service {service_id} in given time",
+            timeout=timeout,
+        )
+    except TimeoutError as e:
+        raise ServiceDeployFailed(e) from e

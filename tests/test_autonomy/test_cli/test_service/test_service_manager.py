@@ -87,8 +87,8 @@ class BaseServiceManagerTest(BaseChainInteractionTest):
             crypto=self.crypto,
             chain_type=self.chain_type,
             service_id=service_id,
-            instance=(agent_instance or make_crypto("ethereum").address),
-            agent_id=AGENT_ID,
+            instances=[(agent_instance or make_crypto("ethereum").address)],
+            agent_ids=[AGENT_ID],
         )
 
 

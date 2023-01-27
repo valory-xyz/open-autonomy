@@ -21,7 +21,7 @@ contracts:
 - valory/gnosis_safe:0.1.0:bafybeiefwo2ddyhjxcpy2rlchcubv6bj35e5x4kstxwfyvyvdvcpvcoe5q
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeiguhnndevhp7iui65fhcezkunygdw2cwsofl4rcfzr2u2n6ql366q
 - valory/multisend:0.1.0:bafybeigjywkl7hydjsrkogob3xebj2ifhqwmfhhxoeyrndzhhxi5u6amey
-- valory/service_registry:0.1.0:bafybeidvtkbsy7hbpntxajp37mpi3iv5pt7hsmwyb33di5semxl6vnrj4e
+- valory/service_registry:0.1.0:bafybeibiwousikhaafhuyfbflz6s3f6vi4eqomqpnecfyqzvrpygwagd6q
 protocols:
 - open_aea/signing:1.0.0:bafybeiclsbgrviyxbmi2vex5ze3dhr7ywohrqedebx26jozayxvroqtegq
 - valory/abci:0.1.0:bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm
@@ -33,12 +33,12 @@ protocols:
 - valory/tendermint:0.1.0:bafybeiep2dilpmu3je4z2kq7yc7l6n7ax5knwfax2ufvmnflt3uj2wrbju
 skills:
 - valory/abstract_abci:0.1.0:bafybeidwizzka3qjotu35zzstoqunp3hjhkx6oojqnlwqsvd3qnjjpmusq
-- valory/abstract_round_abci:0.1.0:bafybeia6veyqeda52maqhf5o3msh4pnqfgs75p4yhsnmjyufnpzwj6fely
-- valory/register_termination_abci:0.1.0:bafybeide34oiodgdbmt2jq355jxxugharnjmaiqvc4ve63rngan6ueu6am
-- valory/registration_abci:0.1.0:bafybeihmpau26ozigfyloriqbp2xf4kwlpn5fqegfuiilx3cuiaqqj73ve
-- valory/reset_pause_abci:0.1.0:bafybeid7ishwoji7hyxn4gpr5qrtqgxts5nac2psv34s4iqgokv3r5fuyi
-- valory/termination_abci:0.1.0:bafybeibsuiicqepbljdu4ouw7nyfznghu3b67hli2ygepcghki3qvjvpe4
-- valory/transaction_settlement_abci:0.1.0:bafybeibcmvxjefm24k6u4jkl5zzeu6za6ezrmtclvzli3jppp2ddddim7u
+- valory/abstract_round_abci:0.1.0:bafybeifops2ci4swt3yp6sev4t2skaw63ardmw3pgfeqira3nshw2d4n6i
+- valory/register_termination_abci:0.1.0:bafybeiccirv6kcmz5x4nihiadcc2wsewv5pxyq6ydzpavj5insd43iiigu
+- valory/registration_abci:0.1.0:bafybeia2tnyomkkx25tqe3w2q4ynrww6nbd6vmv5niuyqj36elubrk75im
+- valory/reset_pause_abci:0.1.0:bafybeigmzla5f55elpninlwt4grvcmeh4v3yfll572lu3rouys4a5lwimi
+- valory/termination_abci:0.1.0:bafybeigmise22u7pyivwb6jrfmh5teb5ic7kwlbxsqpmfh2sree2n665bi
+- valory/transaction_settlement_abci:0.1.0:bafybeifpnvlaxpciywhtfgai56y7qjinaw6oadats3w5ytwuzfw5e5bcp4
 default_ledger: ethereum
 required_ledgers:
 - ethereum
