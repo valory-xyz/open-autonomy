@@ -9,8 +9,8 @@ fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeicjyrltgdmwzvctebhfteyyd5mbrjashiji4glwf5vwcijuyzzm24
   abci_app_chain.py: bafybeick5fz6hpbbvpmjkm2o3rl5csgvqf4ivwmqdluj2p4jmcpea4xmsq
-  base.py: bafybeifaonvvv6smxrfaxcozkcvwlfmmqdmjexoxwz2dcov5tsizxpagzi
-  behaviour_utils.py: bafybeiecsdfqooizc4rq4xxmlptuomzkwoo7ldqvqc5i6ugrvj4i3gjuti
+  base.py: bafybeibciq2i563wncokse2n7asmhyfd5odhj7mhbnov3q6aztegauu4fe
+  behaviour_utils.py: bafybeie5yveggsyepvnebzssvqpvx5pqfxpdlydnfs45wrjq2i4dbkwvte
   behaviours.py: bafybeicapzsvzowpjawkxgkhf2m4qb7c3alh5rsysrxp55o7pmjt6bu2g4
   common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
   dialogues.py: bafybeid5sgrfa7ghnnjpssltgtey5gzt5kc2jlaitffaukvhhdbhrzcjti
@@ -20,7 +20,7 @@ fingerprint:
   io_/load.py: bafybeigkywwlsheqvd4gpyfwaxqzkkb2ih2poyicqk7e7n2mrsghxzyns4
   io_/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
   io_/store.py: bafybeig24lslvhf7amim55ig5zzre4z45pcx3r2ozlagg3mtbr6rry2wpu
-  models.py: bafybeidvyvidqvto6ktelkvnds25ys3pn6har2ux4rgwddg5llvpmdqju4
+  models.py: bafybeic7bdg6pzii5mht3ns7aab4w66uxjceearvud2urrko5ntt3apqia
   test_tools/__init__.py: bafybeibayeahoo73eztt2chpwi45taj2uv3dxbpyn47ksqfjoepjyaoca4
   test_tools/abci_app.py: bafybeicnd4xvumelx2fgp46kxt62usoq3pp3zrcgmpsr6ufu56k5ozh5mm
   test_tools/base.py: bafybeihjcngjn5e4bvlde3atyy46wqcpkec46p5rejqptxzlgnyegak6ly
