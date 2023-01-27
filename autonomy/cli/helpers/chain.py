@@ -101,6 +101,7 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
     nft_image_hash: Optional[str] = None,
     password: Optional[str] = None,
     skip_hash_check: bool = False,
+    timeout: Optional[float] = None,
 ) -> None:
     """Mint component."""
 
@@ -163,6 +164,7 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
             component_type=UnitType.AGENT if is_agent else UnitType.COMPONENT,
             chain_type=chain_type,
             dependencies=dependencies,
+            timeout=timeout,
         )
     except InvalidMintParameter as e:
         raise click.ClickException(f"Invalid parameters provided; {e}") from e
@@ -197,6 +199,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
     nft_image_hash: Optional[str] = None,
     password: Optional[str] = None,
     skip_hash_check: bool = False,
+    timeout: Optional[float] = None,
 ) -> None:
     """Mint service"""
 
@@ -263,6 +266,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
                 cost_of_bond,
             ],
             threshold=threshold,
+            timeout=timeout,
         )
     except ComponentMintFailed as e:
         raise click.ClickException(
@@ -289,6 +293,7 @@ def activate_service(
     keys: Path,
     chain_type: ChainType,
     password: Optional[str] = None,
+    timeout: Optional[float] = None,
 ) -> None:
     """Activate on-chain service"""
 
@@ -304,6 +309,7 @@ def activate_service(
             crypto=crypto,
             chain_type=chain_type,
             service_id=service_id,
+            timeout=timeout,
         )
     except ServiceRegistrationFailed as e:
         raise click.ClickException(str(e)) from e
@@ -313,11 +319,12 @@ def activate_service(
 
 def register_instance(  # pylint: disable=too-many-arguments
     service_id: int,
-    instance: str,
-    agent_id: int,
+    instances: List[str],
+    agent_ids: List[int],
     keys: Path,
     chain_type: ChainType,
     password: Optional[str] = None,
+    timeout: Optional[float] = None,
 ) -> None:
     """Register agents instances on an activated service"""
 
@@ -333,8 +340,9 @@ def register_instance(  # pylint: disable=too-many-arguments
             crypto=crypto,
             chain_type=chain_type,
             service_id=service_id,
-            instance=instance,
-            agent_id=agent_id,
+            instances=instances,
+            agent_ids=agent_ids,
+            timeout=timeout,
         )
     except InstanceRegistrationFailed as e:
         raise click.ClickException(str(e)) from e
@@ -348,6 +356,7 @@ def deploy_service(
     chain_type: ChainType,
     deployment_payload: Optional[str] = None,
     password: Optional[str] = None,
+    timeout: Optional[float] = None,
 ) -> None:
     """Deploy a service with registration activated"""
 
@@ -364,6 +373,7 @@ def deploy_service(
             chain_type=chain_type,
             service_id=service_id,
             deployment_payload=deployment_payload,
+            timeout=timeout,
         )
     except ServiceDeployFailed as e:
         raise click.ClickException(str(e)) from e
