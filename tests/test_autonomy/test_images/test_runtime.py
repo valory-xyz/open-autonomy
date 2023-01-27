@@ -50,13 +50,20 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
     """Test image build and run."""
 
     client: docker.DockerClient
+    agent: str
     path: Path = ROOT_DIR / "autonomy" / "data" / DOCKERFILES / "agent"
     tag: str = OAR_IMAGE.format(agent=AGENT.name, version="latest")
-    agent: str = str(
-        AGENT.with_hash(
-            get_package_hash_from_latest_tag(package=AGENT.to_uri_path)
-        ).public_id
-    )
+
+    @classmethod
+    def setup_class(cls) -> None:
+        """Setup class."""
+        super().setup_class()
+
+        cls.agent = str(
+            AGENT.with_hash(
+                get_package_hash_from_latest_tag(package=AGENT.to_uri_path)
+            ).public_id
+        )
 
     def test_image_fail(self) -> None:
         """Test image build fail."""
