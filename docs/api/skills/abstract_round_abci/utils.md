@@ -322,3 +322,23 @@ def check_type(name: str, value: Any, type_hint: Any) -> None
 
 Check value against type hint recursively
 
+<a id="packages.valory.skills.abstract_round_abci.utils.is_primitive_or_none"></a>
+
+#### is`_`primitive`_`or`_`none
+
+```python
+def is_primitive_or_none(obj: Any) -> bool
+```
+
+Checks if the given object is a primitive type or `None`.
+
+<a id="packages.valory.skills.abstract_round_abci.utils.is_json_serializable"></a>
+
+#### is`_`json`_`serializable
+
+```python
+def is_json_serializable(obj: Any) -> bool
+```
+
+Checks if the given object is json serializable.
+

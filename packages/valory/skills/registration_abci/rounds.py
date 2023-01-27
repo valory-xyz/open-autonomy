@@ -63,7 +63,7 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
             return None
 
         synchronized_data = self.synchronized_data.update(
-            participants=frozenset(self.collection),
+            participants=tuple(self.collection),
             synchronized_data_class=self.synchronized_data_class,
         )
 
@@ -94,7 +94,7 @@ class RegistrationRound(CollectSameUntilThresholdRound):
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
             synchronized_data = self.synchronized_data.update(
-                participants=frozenset(self.collection),
+                participants=tuple(self.collection),
                 synchronized_data_class=self.synchronized_data_class,
             )
             return synchronized_data, Event.DONE

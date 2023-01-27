@@ -411,7 +411,7 @@ class TestSharedState:
         )
         shared_state.context.params.setup_params = {"test": []}
         shared_state.setup()
-        shared_state.synchronized_data.update(participants=set(range(n_participants)))
+        shared_state.synchronized_data.update(participants=tuple(range(n_participants)))
         shared_state.address_to_acn_deliverable = address_to_acn_deliverable
         actual = shared_state.get_acn_result()
 

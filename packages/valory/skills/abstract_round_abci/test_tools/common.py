@@ -351,8 +351,10 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
     ) -> None:
         """Test select keeper agent."""
         agent_address_mock.return_value = "test_agent_address" + "t" * 24
-        participants = frozenset(
-            {self.skill.skill_context.agent_address, "a_1" + "t" * 39, "a_2" + "t" * 39}
+        participants = (
+            self.skill.skill_context.agent_address,
+            "a_1" + "t" * 39,
+            "a_2" + "t" * 39,
         )
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
@@ -398,7 +400,7 @@ class BaseSelectKeeperBehaviourTest(CommonBaseCase):
         self,
     ) -> None:
         """Test select keeper agent."""
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
+        participants = (self.skill.skill_context.agent_address, "a_1", "a_2")
         preexisting_keeper = next(iter(participants))
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,

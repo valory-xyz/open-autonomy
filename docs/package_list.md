@@ -8,8 +8,8 @@
 | contract/valory/agent_registry/0.1.0                          | `bafybeibkj4pm6ziqh2fl3xfsjiou4ibnxlipmvmqhgvc7xwpnaddbtxzli` |
 | contract/valory/registries_manager/0.1.0                      | `bafybeighjuqdj2oq6tqckf7j3mqtighe7lpaahh7qt3sqxtbtjlur4tmj4` |
 | contract/valory/service_manager/0.1.0                         | `bafybeiea3bophgb6ikqvpd7lzyluthlhoazbbrknvfncu4j7wbubfsrjeu` |
-| skill/valory/test_ipfs_abci/0.1.0                             | `bafybeiefd5ywhi5qe2bn4gjsjbrclnd7x34kkasfnfn6fyjcewtx2lb5f4` |
-| agent/valory/test_ipfs/0.1.0                                  | `bafybeige4zha32rkfcngko5k7xqwlfvqu5gj2xn27cemktnemh4als335q` |
+| skill/valory/test_ipfs_abci/0.1.0                             | `bafybeihbl32vydzhp4lo6buzbg56y55wt2nkaaigyl3y6j6dsercpm36hm` |
+| agent/valory/test_ipfs/0.1.0                                  | `bafybeicir34an675wgivf425dqz42wr4ual47fl2fqqfnyjx4jyo67otci` |
 | contract/valory/service_registry/0.1.0                        | `bafybeibiwousikhaafhuyfbflz6s3f6vi4eqomqpnecfyqzvrpygwagd6q` |
 | protocol/valory/tendermint/0.1.0                              | `bafybeiep2dilpmu3je4z2kq7yc7l6n7ax5knwfax2ufvmnflt3uj2wrbju` |
 | protocol/valory/ipfs/0.1.0                                    | `bafybeigknxxwh2xts7ijbacils4a4cgq7jhcdvwahshbw22zw5hnncsfla` |
@@ -40,7 +40,6 @@
 | service/valory/register_reset/0.1.0                           | `bafybeihm4tec47lrqhaaf5sfycf7a2ijnaadeu4dmk4lnzkmzmfss5w4a4` |
 | skill/valory/register_reset_recovery_abci/0.1.0               | `bafybeigqr44icqxzsf3goifn2q2e2vi4lefsggpg5z7ukt6mhjseagixbq` |
 | agent/valory/register_reset_recovery/0.1.0                    | `bafybeibe3wut4py24ubd3akfrjjzwsy5lqztoyviqrj6qrhdfek3r3sipa` |
-| contract/valory/multicall2/0.1.0                              | `bafybeieiss6xbk74c2wi6zxxjbhfc5nspe3nftm7o2vm3afqxttnk2cvty` |
 | protocol/open_aea/signing/1.0.0                               | `bafybeiclsbgrviyxbmi2vex5ze3dhr7ywohrqedebx26jozayxvroqtegq` |
 | protocol/valory/acn/1.1.0                                     | `bafybeieldogmtf3m4jdsvt4vvyay3jh54rjn3deasymfw43vz3o42vigmq` |
 | protocol/valory/http/1.0.0                                    | `bafybeifru3qs6udfzprax7jxktbsuzn7immfvi3scgfspifq3zdxwkgvnm` |

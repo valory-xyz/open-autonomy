@@ -33,6 +33,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectDifferentUntilThresholdRound,
     CollectNonEmptyUntilThresholdRound,
     CollectSameUntilThresholdRound,
+    CollectionRound,
     DegenerateRound,
     OnlyKeeperSendsRound,
     VotingRound,
@@ -91,10 +92,9 @@ class SynchronizedData(
     @property
     def participant_to_signature(self) -> Mapping[str, SignaturePayload]:
         """Get the participant_to_signature."""
-        return cast(
-            Mapping[str, SignaturePayload],
-            self.db.get_strict("participant_to_signature"),
-        )
+        serialized = self.db.get_strict("participant_to_signature")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(Mapping[str, SignaturePayload], deserialized)
 
     @property
     def tx_hashes_history(self) -> List[str]:
@@ -167,10 +167,10 @@ class SynchronizedData(
     @property
     def final_verification_status(self) -> VerificationStatus:
         """Get the final verification status."""
-        return cast(
-            VerificationStatus,
-            self.db.get("final_verification_status", VerificationStatus.NOT_VERIFIED),
-        )
+        status_value = self.db.get("final_verification_status", None)
+        if status_value is None:
+            return VerificationStatus.NOT_VERIFIED
+        return VerificationStatus(status_value)
 
     @property
     def most_voted_tx_hash(self) -> str:
@@ -204,10 +204,9 @@ class SynchronizedData(
         self,
     ) -> Mapping[str, CheckTransactionHistoryPayload]:  # pragma: no cover
         """Get the mapping from participants to checks."""
-        return cast(
-            Mapping[str, CheckTransactionHistoryPayload],
-            self.db.get_strict("participant_to_check"),
-        )
+        serialized = self.db.get_strict("participant_to_check")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(Mapping[str, CheckTransactionHistoryPayload], deserialized)
 
 
 class FailedRound(DegenerateRound, ABC):
@@ -255,7 +254,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
                     ],
                     get_name(
                         SynchronizedData.final_verification_status
-                    ): verification_status,
+                    ): verification_status.value,
                     get_name(SynchronizedData.keepers): self.keeper_payload[
                         "serialized_keepers"
                     ],
@@ -394,10 +393,10 @@ class ValidateTransactionRound(VotingRound):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
-                    self.collection_key: self.collection,
+                    self.collection_key: self.serialized_collection,
                     get_name(
                         SynchronizedData.final_verification_status
-                    ): VerificationStatus.VERIFIED,
+                    ): VerificationStatus.VERIFIED.value,
                     get_name(SynchronizedData.final_tx_hash): final_tx_hash,
                 },
             )
@@ -439,11 +438,11 @@ class CheckTransactionHistoryRound(CollectSameUntilThresholdRound):
                 synchronized_data = self.synchronized_data.update(
                     synchronized_data_class=self.synchronized_data_class,
                     **{
-                        self.collection_key: self.collection,
+                        self.collection_key: self.serialized_collection,
                         self.selection_key: self.most_voted_payload,
                         get_name(
                             SynchronizedData.final_verification_status
-                        ): return_status,
+                        ): return_status.value,
                         get_name(SynchronizedData.final_tx_hash): return_tx_hash,
                     },
                 )
