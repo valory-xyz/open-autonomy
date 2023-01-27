@@ -327,17 +327,6 @@ class TestTendermintHandler:
         self.handler.context.logger = logging.getLogger()
         self.dialogues = TendermintDialogues(name="dummy", skill_context=self.context)
 
-    # helper
-    @staticmethod
-    def mocked_initial_tm_configs(configs: Dict[str, Dict[str, str]]) -> mock._patch:
-        """Mocked initial tm configs"""
-        return mock.patch.object(
-            TendermintHandler,
-            "initial_tm_configs",
-            new_callable=mock.PropertyMock,
-            return_value=configs,
-        )
-
     @property
     def dummy_validator_config(self) -> Dict[str, Dict[str, str]]:
         """Dummy validator config"""
@@ -380,12 +369,12 @@ class TestTendermintHandler:
         performative = TendermintMessage.Performative.GET_GENESIS_INFO
         message = TendermintMessage(performative)  # type: ignore
         message.sender = "Alice"
-        with self.mocked_initial_tm_configs({}):
-            self.handler.handle(message)
-            log_message = self.handler.LogMessages.no_addresses_retrieved_yet.value
-            assert log_message in caplog.text
-            log_message = self.handler.LogMessages.sending_error_response.value
-            assert log_message in caplog.text
+        self.handler.initial_tm_configs = {}
+        self.handler.handle(message)
+        log_message = self.handler.LogMessages.no_addresses_retrieved_yet.value
+        assert log_message in caplog.text
+        log_message = self.handler.LogMessages.sending_error_response.value
+        assert log_message in caplog.text
 
     def test_handle_not_in_registered_addresses(
         self, caplog: LogCaptureFixture
@@ -404,10 +393,10 @@ class TestTendermintHandler:
         performative = TendermintMessage.Performative.GET_GENESIS_INFO
         message = TendermintMessage(performative)  # type: ignore
         self.context.agent_address = message.sender = self.agent_name
-        with self.mocked_initial_tm_configs(self.dummy_validator_config):
-            self.handler.handle(message)
-            log_message = self.handler.LogMessages.sending_request_response.value
-            assert log_message in caplog.text
+        self.handler.initial_tm_configs = self.dummy_validator_config
+        self.handler.handle(message)
+        log_message = self.handler.LogMessages.sending_request_response.value
+        assert log_message in caplog.text
 
     # response
     def test_handle_response_invalid_addresses(self, caplog: LogCaptureFixture) -> None:
@@ -418,8 +407,8 @@ class TestTendermintHandler:
         info = json.dumps(validator_config[self.agent_name])
         message = TendermintMessage(performative, info=info)  # type: ignore
         self.context.agent_address = message.sender = self.agent_name
-        with self.mocked_initial_tm_configs(validator_config):
-            self.handler.handle(message)
+        self.handler.initial_tm_configs = validator_config
+        self.handler.handle(message)
         log_message = self.handler.LogMessages.failed_to_parse_address.value
         assert log_message in caplog.text
 
@@ -429,8 +418,8 @@ class TestTendermintHandler:
         info = json.dumps(self.dummy_validator_config[self.agent_name])
         message = TendermintMessage(performative, info=info)  # type: ignore
         self.context.agent_address = message.sender = self.agent_name
-        with self.mocked_initial_tm_configs(self.dummy_validator_config):
-            self.handler.handle(message)
+        self.handler.initial_tm_configs = self.dummy_validator_config
+        self.handler.handle(message)
         log_message = self.handler.LogMessages.collected_config_info.value
         assert log_message in caplog.text
 
@@ -469,8 +458,8 @@ class TestTendermintHandler:
         self.context.agent_address = message.sender = self.agent_name
         tm_configs = {self.agent_name: {"dummy": "value"}} if registered else {}
 
-        with self.mocked_initial_tm_configs(tm_configs):
-            self.handler.handle(message)
+        self.handler.initial_tm_configs = tm_configs
+        self.handler.handle(message)
 
         if not registered:
             log_message = self.handler.LogMessages.not_in_registered_addresses.value
@@ -503,9 +492,8 @@ class TestTendermintHandler:
 
         self.context.agent_address = message.sender = self.agent_name
         tm_configs = {self.agent_name: {"dummy": "value"}}
-        with self.mocked_initial_tm_configs(tm_configs), mock.patch.object(
-            json, "loads", side_effect=side_effect
-        ):
+        self.handler.initial_tm_configs = tm_configs
+        with mock.patch.object(json, "loads", side_effect=side_effect):
             self.handler.handle(message)
 
         log_message = self.handler.LogMessages.failed_to_parse_params.value
@@ -516,8 +504,8 @@ class TestTendermintHandler:
     def test_handle_error(self, caplog: LogCaptureFixture) -> None:
         """Test handle error"""
         message = self.make_error_message()
-        with self.mocked_initial_tm_configs(self.dummy_validator_config):
-            self.handler.handle(message)
+        self.handler.initial_tm_configs = self.dummy_validator_config
+        self.handler.handle(message)
         log_message = self.handler.LogMessages.received_error_response.value
         assert log_message in caplog.text
 
@@ -531,8 +519,8 @@ class TestTendermintHandler:
         self.handler.dialogues.update = lambda _: dialogue  # type: ignore
         callback = lambda *args, **kwargs: None  # noqa: E731
         self.context.requests.request_id_to_callback = {nonce: callback}
-        with self.mocked_initial_tm_configs(self.dummy_validator_config):
-            self.handler.handle(message)
+        self.handler.initial_tm_configs = self.dummy_validator_config
+        self.handler.handle(message)
         log_message = (
             self.handler.LogMessages.received_error_without_target_message.value
         )
@@ -545,8 +533,8 @@ class TestTendermintHandler:
         """Test performative no recognized"""
         message = self.make_error_message()
         message._slots.performative = MagicMock(value="wacky")
-        with self.mocked_initial_tm_configs(self.dummy_validator_config):
-            self.handler.handle(message)
+        self.handler.initial_tm_configs = self.dummy_validator_config
+        self.handler.handle(message)
         log_message = self.handler.LogMessages.performative_not_recognized.value
         assert log_message in caplog.text
 
@@ -558,7 +546,7 @@ class TestTendermintHandler:
         performative = TendermintMessage.Performative.GET_GENESIS_INFO
         message = TendermintMessage(performative)  # type: ignore
         self.context.agent_address = message.sender = "dummy"
-        with self.mocked_initial_tm_configs(self.dummy_validator_config):
-            self.handler.handle(message)
-            log_message = self.handler.LogMessages.not_in_registered_addresses.value
-            assert log_message in caplog.text
+        self.handler.initial_tm_configs = self.dummy_validator_config
+        self.handler.handle(message)
+        log_message = self.handler.LogMessages.not_in_registered_addresses.value
+        assert log_message in caplog.text
