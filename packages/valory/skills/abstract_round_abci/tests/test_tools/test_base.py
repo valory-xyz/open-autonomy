@@ -85,7 +85,7 @@ class TestFSMBehaviourBaseCaseSetup(FSMBehaviourTestToolSetup):
         round_behaviour = skill.skill_context.behaviours.main
         behaviour_id = behaviour.behaviour_id
         synchronized_data = SynchronizedData(
-            AbciAppDB(setup_data=dict(participants=[frozenset("abcd")]))
+            AbciAppDB(setup_data=dict(participants=[tuple("abcd")]))
         )
 
         test_instance.fast_forward_to_behaviour(

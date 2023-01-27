@@ -462,3 +462,21 @@ def check_type(name: str, value: Any, type_hint: Any) -> None:
     if err is not None:
         err.path.append(name)
         raise err
+
+
+def is_primitive_or_none(obj: Any) -> bool:
+    """Checks if the given object is a primitive type or `None`."""
+    primitives = (bool, int, float, str)
+    return isinstance(obj, primitives) or obj is None
+
+
+def is_json_serializable(obj: Any) -> bool:
+    """Checks if the given object is json serializable."""
+    if isinstance(obj, (tuple, list)):
+        return all(is_json_serializable(x) for x in obj)
+    if isinstance(obj, dict):
+        return all(
+            is_primitive_or_none(k) and is_json_serializable(v) for k, v in obj.items()
+        )
+
+    return is_primitive_or_none(obj)

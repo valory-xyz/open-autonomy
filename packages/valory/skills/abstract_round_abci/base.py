@@ -18,7 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the base classes for the models classes of the skill."""
+
 import datetime
+import hashlib
 import heapq
 import itertools
 import json
@@ -58,6 +60,7 @@ from packages.valory.connections.ledger.connection import (
     PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.abci.custom_types import Header
+from packages.valory.skills.abstract_round_abci.utils import is_json_serializable
 
 
 _logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
@@ -547,13 +550,15 @@ class AbciAppDB:
 
     @staticmethod
     def _check_data(data: Any) -> None:
-        """Check that all fields in setup data were passed as a list"""
+        """Check that all fields in setup data were passed as a list, and that the data can be accepted into the db."""
         if not isinstance(data, dict) or not all(
             [isinstance(v, list) for v in data.values()]
         ):
             raise ValueError(
                 f"AbciAppDB data must be `Dict[str, List[Any]]`, found `{type(data)}` instead."
             )
+
+        AbciAppDB.validate(data)
 
     @property
     def reset_index(self) -> int:
@@ -590,8 +595,23 @@ class AbciAppDB:
         """Get a value from the data dictionary and raise if it is None."""
         return self.get(key)
 
+    @staticmethod
+    def validate(data: Any) -> None:
+        """Validate if the given data are json serializable and therefore can be accepted into the database.
+
+        :param data: the data to check.
+        :raises ABCIAppInternalError: If the data are not serializable.
+        """
+        if not is_json_serializable(data):
+            raise ABCIAppInternalError(
+                f"`AbciAppDB` data must be json-serializable. Please convert non-serializable data in `{data}`. "
+                "You may use `AbciAppDB.validate(your_data)` to validate your data for the `AbciAppDB`."
+            )
+
     def update(self, **kwargs: Any) -> None:
         """Update the current data."""
+        self.validate(kwargs)
+
         # Append new data to the key history
         data = self._data[self.reset_index]
         for key, value in deepcopy(kwargs).items():
@@ -651,10 +671,38 @@ class AbciAppDB:
             for key, history in self._data[self.reset_index].items()
         }
 
+    def serialize(self) -> str:
+        """Serialize the data of the database to a string."""
+        return json.dumps(self._data, sort_keys=True)
+
+    def sync(self, serialized_data: str) -> None:
+        """Synchronize the data using a serialized object.
+
+        :param serialized_data: the serialized data to use in order to sync the db.
+        :raises ABCIAppInternalError: if the given data cannot be deserialized.
+        """
+        try:
+            self._data = json.loads(serialized_data)
+        except json.JSONDecodeError as exc:
+            raise ABCIAppInternalError(
+                f"Could not decode data using {serialized_data}: {exc}"
+            ) from exc
+
+    def hash(self) -> bytes:
+        """Create a hash of the data."""
+        # Compute the sha256 hash of the serialized data
+        sha256 = hashlib.sha256()
+        sha256.update(self.serialize().encode("utf-8"))
+        return sha256.digest()
+
     @staticmethod
     def data_to_lists(data: Dict[str, Any]) -> Dict[str, List[Any]]:
         """Convert Dict[str, Any] to Dict[str, List[Any]]."""
         return {k: [v] for k, v in data.items()}
+
+
+SerializedCollection = Dict[str, Dict[str, Any]]
+DeserializedCollection = Mapping[str, BaseTxPayload]
 
 
 class BaseSynchronizedData:
@@ -712,7 +760,7 @@ class BaseSynchronizedData:
     @property
     def participants(self) -> FrozenSet[str]:
         """Get the currently active participants."""
-        participants = self.db.get_strict("participants")
+        participants = frozenset(self.db.get_strict("participants"))
         if len(participants) == 0:
             raise ValueError("List participants cannot be empty.")
         return cast(FrozenSet[str], participants)
@@ -803,19 +851,25 @@ class BaseSynchronizedData:
         return set(textwrap.wrap(raw, ADDRESS_LENGTH))
 
     @property
-    def participant_to_selection(self) -> Mapping:
+    def participant_to_selection(self) -> DeserializedCollection:
         """Check whether keeper is set."""
-        return cast(Dict, self.db.get_strict("participant_to_selection"))
+        serialized = self.db.get_strict("participant_to_selection")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(DeserializedCollection, deserialized)
 
     @property
-    def participant_to_randomness(self) -> Mapping:
+    def participant_to_randomness(self) -> DeserializedCollection:
         """Check whether keeper is set."""
-        return cast(Dict, self.db.get_strict("participant_to_randomness"))
+        serialized = self.db.get_strict("participant_to_randomness")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(DeserializedCollection, deserialized)
 
     @property
-    def participant_to_votes(self) -> Mapping:
+    def participant_to_votes(self) -> DeserializedCollection:
         """Check whether keeper is set."""
-        return cast(Dict, self.db.get_strict("participant_to_votes"))
+        serialized = self.db.get_strict("participant_to_votes")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(DeserializedCollection, deserialized)
 
     @property
     def safe_contract_address(self) -> str:
@@ -1169,6 +1223,28 @@ class CollectionRound(AbstractRound, ABC):
         super().__init__(*args, **kwargs)
         self.collection: Dict[str, BaseTxPayload] = {}
 
+    @staticmethod
+    def serialize_collection(
+        collection: DeserializedCollection,
+    ) -> SerializedCollection:
+        """Deserialize a serialized collection."""
+        return {address: payload.json for address, payload in collection.items()}
+
+    @staticmethod
+    def deserialize_collection(
+        serialized: SerializedCollection,
+    ) -> DeserializedCollection:
+        """Deserialize a serialized collection."""
+        return {
+            address: BaseTxPayload.from_json(payload_json)
+            for address, payload_json in serialized.items()
+        }
+
+    @property
+    def serialized_collection(self) -> SerializedCollection:
+        """A collection with the addresses mapped to serialized payloads."""
+        return self.serialize_collection(self.collection)
+
     @property
     def accepting_payloads_from(self) -> FrozenSet[str]:
         """Accepting from the active set, or also from (re)joiners"""
@@ -1389,7 +1465,7 @@ class CollectSameUntilThresholdRound(CollectionRound, ABC):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
-                    self.collection_key: self.collection,
+                    self.collection_key: self.serialized_collection,
                     self.selection_key: self.most_voted_payload,
                 },
             )
@@ -1536,7 +1612,7 @@ class VotingRound(CollectionRound, ABC):
         if self.positive_vote_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                **{self.collection_key: self.collection},
+                **{self.collection_key: self.serialized_collection},
             )
             return synchronized_data, self.done_event
         if self.negative_vote_threshold_reached:
@@ -1582,7 +1658,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound, ABC):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
-                    self.collection_key: self.collection,
+                    self.collection_key: self.serialized_collection,
                 },
             )
             return synchronized_data, self.done_event
