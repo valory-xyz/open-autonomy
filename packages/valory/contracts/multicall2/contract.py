@@ -54,7 +54,7 @@ class Multicall2Contract(Contract):
         :param kwargs: the keyword arguments.
         :return: the tx  # noqa: DAR202
         """
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def get_raw_message(
@@ -71,7 +71,7 @@ class Multicall2Contract(Contract):
         :param kwargs: the keyword arguments.
         :return: the tx  # noqa: DAR202
         """
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def get_state(
@@ -88,7 +88,7 @@ class Multicall2Contract(Contract):
         :param kwargs: the keyword arguments.
         :return: the tx  # noqa: DAR202
         """
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def encode_function_call(
