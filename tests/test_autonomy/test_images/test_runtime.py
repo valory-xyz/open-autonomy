@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test `valory/open-autonomy` image."""
+"""Test `valory/oar-{agent}` image."""
 
 from pathlib import Path
 from typing import cast

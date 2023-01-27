@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test `valory/open-autonomy` image."""
+"""Test `valory/open-autonomy-tendermint` image."""
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
