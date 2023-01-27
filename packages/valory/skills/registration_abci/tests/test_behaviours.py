@@ -178,6 +178,11 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
         self.state.params.__dict__["sleep_time"] = 0.01
         self.state.params.__dict__["share_tm_config_on_startup"] = True
 
+    def teardown(self, **kwargs: Any) -> None:
+        """Teardown."""
+        super().teardown(**kwargs)
+        self.state.initial_tm_configs = {}
+
     @property
     def agent_instances(self) -> List[str]:
         """Agent instance addresses"""
