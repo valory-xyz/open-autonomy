@@ -19,6 +19,7 @@
 
 """Conftest module for Pytest."""
 import inspect
+import json
 import os
 import platform
 import subprocess  # nosec
@@ -26,6 +27,8 @@ from pathlib import Path
 from typing import Optional
 
 import pytest
+from aea.configurations.constants import PACKAGES
+from aea.package_manager.base import PACKAGES_FILE
 
 
 # https://pytest-cov.readthedocs.io/en/latest/subprocess-support.html#if-you-use-multiprocessing-process
@@ -75,3 +78,15 @@ def get_file_from_tag(file_path: str, latest_tag: Optional[str] = None) -> str:
         check=True,
     )
     return res.stdout.decode("utf-8")
+
+
+def get_package_hash_from_latest_tag(package: str) -> str:
+    """Get package hash from latest tag."""
+
+    packages = json.loads(
+        get_file_from_tag(
+            file_path=str(Path(PACKAGES, PACKAGES_FILE)),
+        )
+    )
+
+    return packages["dev"][package]
