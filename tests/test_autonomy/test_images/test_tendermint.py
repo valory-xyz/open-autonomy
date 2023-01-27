@@ -31,10 +31,11 @@ from docker.models.containers import Container
 from autonomy.constants import TENDERMINT_IMAGE_NAME, TENDERMINT_IMAGE_VERSION
 from autonomy.deploy.constants import DOCKERFILES
 
-from tests.conftest import ROOT_DIR
+from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_images.base import BaseImageBuildTest
 
 
+@skip_docker_tests
 class TestOpenAutonomyBaseImage(BaseImageBuildTest):
     """Test image build and run."""
 
