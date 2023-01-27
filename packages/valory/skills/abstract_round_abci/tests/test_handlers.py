@@ -339,7 +339,8 @@ class TestTendermintHandler:
             }
         }
 
-    def make_error_message(self) -> TendermintMessage:
+    @staticmethod
+    def make_error_message() -> TendermintMessage:
         """Make dummy error message"""
         performative = TendermintMessage.Performative.ERROR
         error_code = TendermintMessage.ErrorCode.INVALID_REQUEST
