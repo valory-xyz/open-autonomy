@@ -39,7 +39,8 @@
         "service/valory/hello_world/0.1.0": "bafybeierhffbquiu3geu4tzvnl6zqqlbtqzkr6nandl74kimbnh5efeovm",
         "service/valory/register_reset/0.1.0": "bafybeiber3hj2ft2s552iv4dfxdsjrdsv3xjtf3uj5qplmn5zmtxluoyfu",
         "skill/valory/register_reset_recovery_abci/0.1.0": "bafybeibu76mirmad3bampkpfh5xcbuyhfbtwpzcwlzquakurozqultokpq",
-        "agent/valory/register_reset_recovery/0.1.0": "bafybeigjcvruzni5otl54rvlguxzohqywgw5eqounpotma4hti3lzz6atm"
+        "agent/valory/register_reset_recovery/0.1.0": "bafybeigjcvruzni5otl54rvlguxzohqywgw5eqounpotma4hti3lzz6atm",
+        "contract/valory/multicall2/0.1.0": "bafybeieiss6xbk74c2wi6zxxjbhfc5nspe3nftm7o2vm3afqxttnk2cvty"
     },
     "third_party": {
         "protocol/open_aea/signing/1.0.0": "bafybeiclsbgrviyxbmi2vex5ze3dhr7ywohrqedebx26jozayxvroqtegq",
