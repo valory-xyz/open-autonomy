@@ -40,6 +40,7 @@
 | service/valory/register_reset/0.1.0                           | `bafybeiaw22av462imbrwwvxz7n3mfrxnaa6qi2zwprgbjdli6sk2qz2nlu` |
 | skill/valory/register_reset_recovery_abci/0.1.0               | `bafybeigthtqfabtq3vwzdc2k456xbb4ubydt72cqzf2kfmzcujieeu5khi` |
 | agent/valory/register_reset_recovery/0.1.0                    | `bafybeicgpvbvgkkmojubqt2sggqorz7doepdghho67oxzskp4xzhh3kh5u` |
+| contract/valory/multicall2/0.1.0                              | `bafybeieiss6xbk74c2wi6zxxjbhfc5nspe3nftm7o2vm3afqxttnk2cvty` |
 | protocol/open_aea/signing/1.0.0                               | `bafybeiclsbgrviyxbmi2vex5ze3dhr7ywohrqedebx26jozayxvroqtegq` |
 | protocol/valory/acn/1.1.0                                     | `bafybeieldogmtf3m4jdsvt4vvyay3jh54rjn3deasymfw43vz3o42vigmq` |
 | protocol/valory/http/1.0.0                                    | `bafybeifru3qs6udfzprax7jxktbsuzn7immfvi3scgfspifq3zdxwkgvnm` |
