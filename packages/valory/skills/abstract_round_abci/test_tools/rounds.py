@@ -580,10 +580,12 @@ class _BaseRoundTestClass(BaseRoundTestClass):  # pylint: disable=too-few-public
 
     @staticmethod
     def _test_payload_with_wrong_round_count(
-        test_round: AbstractRound, value: Optional[Any] = None
+        test_round: AbstractRound,
+        value: Optional[str] = None,
+        vote: Optional[bool] = None,
     ) -> None:
         """Test errors raised by payloads with wrong round count."""
-        payload_with_wrong_round_count = DummyTxPayload("sender", value, False)
+        payload_with_wrong_round_count = DummyTxPayload("sender", value, vote)
         object.__setattr__(payload_with_wrong_round_count, "round_count", 0)
         with pytest.raises(
             TransactionNotValidError,

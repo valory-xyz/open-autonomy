@@ -488,7 +488,7 @@ class DummyOnlyKeeperSendsRoundTest(DummyOnlyKeeperSendsRound):
                 cast(
                     DummySynchronizedData,
                     self.synchronized_data.update(
-                        blacklisted_keepers=self.keeper_payload
+                        blacklisted_keepers=self.keeper_payload.values[0]
                     ),
                 ),
                 self.dummy_exit_event,

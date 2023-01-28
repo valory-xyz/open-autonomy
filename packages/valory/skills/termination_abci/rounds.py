@@ -73,7 +73,6 @@ class BackgroundRound(CollectSameUntilThresholdRound):
     """Defines the background round, which runs concurrently with other rounds."""
 
     payload_class = BackgroundPayload
-    payload_attribute: str = "background_data"
     synchronized_data_class = SynchronizedData
 
     def process_payload(self, payload: BaseTxPayload) -> None:
@@ -90,12 +89,6 @@ class BackgroundRound(CollectSameUntilThresholdRound):
             raise ABCIAppInternalError(
                 f"sender {sender} has already sent value for round: {self.round_id}"
             )
-
-        if self._hash_length:
-            content = payload.data.get(self.payload_attribute)
-            if not content or len(content) % self._hash_length:
-                msg = f"Expecting serialized data of chunk size {self._hash_length}"
-                raise ABCIAppInternalError(f"{msg}, got: {content} in {self.round_id}")
 
         self.collection[sender] = payload
 
@@ -115,14 +108,6 @@ class BackgroundRound(CollectSameUntilThresholdRound):
             raise TransactionNotValidError(
                 f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
-
-        if self._hash_length:
-            content = payload.data.get(self.payload_attribute)
-            if not content or len(content) % self._hash_length:
-                msg = f"Expecting serialized data of chunk size {self._hash_length}"
-                raise TransactionNotValidError(
-                    f"{msg}, got: {content} in {self.round_id}"
-                )
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -146,7 +131,6 @@ class TerminationRound(AbstractRound):
 
     payload_class = None
     synchronized_data_class = SynchronizedData
-    payload_attribute = ""
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """No logic required here."""

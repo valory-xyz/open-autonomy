@@ -125,16 +125,6 @@ class TestCollectionRound(_BaseRoundTestClass):
             self.test_round.process_payload(DummyTxPayload("sender", "value"))
 
         with pytest.raises(
-            ABCIAppInternalError,
-            match=re.escape(
-                f"internal error: Expecting serialized data of chunk size 2, got: 0xZZZ in {round_id}"
-            ),
-        ):
-            self.test_round._hash_length = 2
-            self.test_round.process_payload(DummyTxPayload("agent_1", "0xZZZ"))
-            self.test_round._hash_length = None
-
-        with pytest.raises(
             TransactionNotValidError,
             match=f"sender agent_0 has already sent value for round: {round_id}",
         ):
@@ -147,14 +137,6 @@ class TestCollectionRound(_BaseRoundTestClass):
             ),
         ):
             self.test_round.check_payload(DummyTxPayload("sender", "value"))
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match=re.escape(
-                f"Expecting serialized data of chunk size 2, got: 0xZZZ in {round_id}"
-            ),
-        ):
-            self.test_round.check_payload(DummyTxPayload("agent_1", "0xZZZ"))
 
         self._test_payload_with_wrong_round_count(self.test_round)
 
@@ -191,14 +173,14 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: `CollectDifferentUntilAllRound` encountered a value 'agent_0' that already exists.",
+            match="internal error: `CollectDifferentUntilAllRound` encountered a value '.*' that already exists.",
         ):
             object.__setattr__(first_payload, "sender", "other")
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="`CollectDifferentUntilAllRound` encountered a value 'agent_0' that already exists.",
+            match="`CollectDifferentUntilAllRound` encountered a value '.*' that already exists.",
         ):
             test_round.check_payload(first_payload)
 
@@ -254,8 +236,8 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: `CollectSameUntilAllRound` encountered a value 'other' "
-            "which is not the same as the already existing one: 'test",
+            match="internal error: `CollectSameUntilAllRound` encountered a value '.*' "
+            "which is not the same as the already existing one: '.*'",
         ):
             bad_payload = DummyTxPayload(
                 sender="other",
@@ -265,8 +247,8 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
 
         with pytest.raises(
             TransactionNotValidError,
-            match="`CollectSameUntilAllRound` encountered a value 'other' "
-            "which is not the same as the already existing one: 'test",
+            match="`CollectSameUntilAllRound` encountered a value '.*' "
+            "which is not the same as the already existing one: '.*'",
         ):
             test_round.check_payload(bad_payload)
 

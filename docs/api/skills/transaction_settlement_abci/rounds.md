@@ -386,6 +386,26 @@ def end_block() -> Optional[Tuple[BaseSynchronizedData, Event]]
 
 Process the end of the block.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizeLateMessagesRound.process_payload"></a>
+
+#### process`_`payload
+
+```python
+def process_payload(payload: BaseTxPayload) -> None
+```
+
+Process payload.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizeLateMessagesRound.check_payload"></a>
+
+#### check`_`payload
+
+```python
+def check_payload(payload: BaseTxPayload) -> None
+```
+
+Check Payload
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedTransactionSubmissionRound"></a>
 
 ## FinishedTransactionSubmissionRound Objects
