@@ -1684,7 +1684,7 @@ Check Payload
 
 ```python
 @property
-def common_payload() -> Tuple[Any]
+def common_payload() -> Any
 ```
 
 Get the common payload among the agents.

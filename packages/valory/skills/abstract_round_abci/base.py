@@ -1389,7 +1389,7 @@ class CollectSameUntilAllRound(_CollectUntilAllRound, ABC):
     @property
     def common_payload(
         self,
-    ) -> Tuple[Any]:
+    ) -> Any:
         """Get the common payload among the agents."""
         return self.common_payload_values[0]
 
