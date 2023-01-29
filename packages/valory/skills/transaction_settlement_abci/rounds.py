@@ -123,6 +123,12 @@ class SynchronizedData(
         return len(self.keepers) > malicious_threshold
 
     @property
+    def most_voted_randomness_round(self) -> int:  # pragma: no cover
+        """Get the first in priority keeper to try to re-submit a transaction."""
+        round_ = self.db.get_strict("most_voted_randomness_round")
+        return cast(int, round_)
+
+    @property
     def most_voted_keeper_address(self) -> str:
         """Get the first in priority keeper to try to re-submit a transaction."""
         return self.keepers[0]
@@ -211,6 +217,15 @@ class SynchronizedData(
         deserialized = CollectionRound.deserialize_collection(serialized)
         return cast(Mapping[str, CheckTransactionHistoryPayload], deserialized)
 
+    @property
+    def participant_to_late_messages(
+        self,
+    ) -> Mapping[str, SynchronizeLateMessagesPayload]:  # pragma: no cover
+        """Get the mapping from participants to checks."""
+        serialized = self.db.get_strict("participant_to_late_message")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(Mapping[str, SynchronizeLateMessagesPayload], deserialized)
+
 
 class FailedRound(DegenerateRound, ABC):
     """A round that represents that the period failed"""
@@ -229,6 +244,7 @@ class CollectSignatureRound(CollectDifferentUntilThresholdRound):
 class FinalizationRound(OnlyKeeperSendsRound):
     """A round that represents transaction signing has finished"""
 
+    keeper_payload: Optional[FinalizationTxPayload] = None
     payload_class = FinalizationTxPayload
     synchronized_data_class = SynchronizedData
 
@@ -238,10 +254,10 @@ class FinalizationRound(OnlyKeeperSendsRound):
         Tuple[BaseSynchronizedData, Enum]
     ]:  # pylint: disable=too-many-return-statements
         """Process the end of the block."""
-        if not self.has_keeper_sent_payload:
+        if self.keeper_payload is None:
             return None
 
-        if self.keeper_payload is None:  # pragma: no cover
+        if self.keeper_payload.tx_data is None:
             return self.synchronized_data, Event.FINALIZATION_FAILED
 
         verification_status = VerificationStatus(
@@ -303,7 +319,10 @@ class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
     collection_key = get_name(SynchronizedData.participant_to_randomness)
-    selection_key = get_name(SynchronizedData.most_voted_randomness)
+    selection_key = (
+        get_name(SynchronizedData.most_voted_randomness_round),
+        get_name(SynchronizedData.most_voted_randomness),
+    )
 
 
 class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound):
@@ -477,9 +496,10 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
     payload_class = SynchronizeLateMessagesPayload
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
-    no_majority_event = Event.NO_MAJORITY
     none_event = Event.NONE
-    collection_key = get_name(SynchronizedData.late_arriving_tx_hashes)
+    required_block_confirmations = 3
+    selection_key = get_name(SynchronizedData.late_arriving_tx_hashes)
+    collection_key = get_name(SynchronizedData.participant_to_late_messages)
     # if the payload is serialized to bytes, we verify that the length specified matches
     _hash_length = TX_HASH_LENGTH
 
@@ -505,6 +525,7 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
+        # TODO: move check into payload definition via `post_init`
         payload = cast(SynchronizeLateMessagesPayload, payload)
         if self._hash_length:
             content = payload.tx_hashes
@@ -515,6 +536,7 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check Payload"""
+        # TODO: move check into payload definition via `post_init`
         payload = cast(SynchronizeLateMessagesPayload, payload)
         if self._hash_length:
             content = payload.tx_hashes

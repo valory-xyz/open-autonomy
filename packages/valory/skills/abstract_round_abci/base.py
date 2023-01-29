@@ -49,6 +49,7 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
+    Union,
     cast,
 )
 
@@ -1209,9 +1210,11 @@ class CollectionRound(AbstractRound, ABC):
     This class represents abstract logic for collection based rounds where
     the round object needs to collect data from different agents. The data
     might for example be from a voting round or estimation round.
+
+    `_allow_rejoin_payloads` is used to allow agents not currently active to
+    deliver a payload.
     """
 
-    # allow_rejoin is used to allow agents not currently active to deliver a payload
     _allow_rejoin_payloads: bool = False
 
     def __init__(self, *args: Any, **kwargs: Any):
@@ -1304,9 +1307,9 @@ class _CollectUntilAllRound(CollectionRound, ABC):
     """
     _CollectUntilAllRound
 
-    This class represents logic for when rounds need to collect payloads from all agents.
+    This class represents abstract logic for when rounds need to collect payloads from all agents.
 
-    This round should only be used for registration of new agents.
+    This round should only be used when non-BFT behaviour is acceptable.
     """
 
     def check_payload(self, payload: BaseTxPayload) -> None:
@@ -1415,14 +1418,23 @@ class CollectSameUntilThresholdRound(CollectionRound, ABC):
 
     This class represents logic for rounds where a round needs to collect
     same payload from k of n agents.
+
+    `done_event` is emitted when a) the collection threshold (k of n) is reached,
+    and b) the most voted payload has non-empty attributes. In this case all
+    payloads are saved under `collection_key` and the most voted payload attributes
+    are saved under `selection_key`.
+
+    `none_event` is emitted when a) the collection threshold (k of n) is reached,
+    and b) the most voted payload has only empty attributes.
+
+    `no_majority_event` is emitted when it is impossible to reach a k of n majority.
     """
 
     done_event: Any
     no_majority_event: Any
     none_event: Any
     collection_key: str
-    selection_key: str
-    save_all_values: bool = False
+    selection_key: Union[str, Tuple[str, ...]]
 
     @property
     def threshold_reached(
@@ -1457,18 +1469,25 @@ class CollectSameUntilThresholdRound(CollectionRound, ABC):
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
-        if self.threshold_reached and self.most_voted_payload is not None:
+        if self.threshold_reached and any(
+            [val is not None for val in self.most_voted_payload_values]
+        ):
+            if isinstance(self.selection_key, tuple):
+                data = dict(zip(self.selection_key, self.most_voted_payload_values))
+                data[self.collection_key] = self.serialized_collection
+            else:
+                data = {
+                    self.collection_key: self.serialized_collection,
+                    self.selection_key: self.most_voted_payload,
+                }
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                **{
-                    self.collection_key: self.serialized_collection,
-                    self.selection_key: self.most_voted_payload_values
-                    if self.save_all_values
-                    else self.most_voted_payload,
-                },
+                **data,
             )
             return synchronized_data, self.done_event
-        if self.threshold_reached and self.most_voted_payload is None:
+        if self.threshold_reached and not any(
+            [val is not None for val in self.most_voted_payload_values]
+        ):
             return self.synchronized_data, self.none_event
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
@@ -1482,19 +1501,20 @@ class OnlyKeeperSendsRound(AbstractRound, ABC):
     OnlyKeeperSendsRound
 
     This class represents logic for rounds where only one agent sends a
-    payload
+    payload.
+
+    `done_event` is emitted when a) the keeper payload has been received and b)
+    the keeper payload has non-empty attributes. In this case all attributes are saved
+    under `payload_key`.
+
+    `fail_event` is emitted when a) the keeper payload has been received and b)
+    the keeper payload has only empty attributes
     """
 
-    keeper_payload: Any
+    keeper_payload: Optional[BaseTxPayload] = None
     done_event: Any
     fail_event: Any
-    payload_key: str
-    save_all_values: bool = False
-
-    def __init__(self, *args: Any, **kwargs: Any):
-        """Initialize the 'collect-observation' round."""
-        super().__init__(*args, **kwargs)
-        self.keeper_sent_payload = False
+    payload_key: Union[str, Tuple[str, ...]]
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Handle a deploy safe payload."""
@@ -1513,11 +1533,10 @@ class OnlyKeeperSendsRound(AbstractRound, ABC):
         if sender != self.synchronized_data.most_voted_keeper_address:
             raise ABCIAppInternalError(f"{sender} not elected as keeper.")
 
-        if self.keeper_sent_payload:
+        if self.keeper_payload is not None:
             raise ABCIAppInternalError("keeper already set the payload.")
 
         self.keeper_payload = payload
-        self.keeper_sent_payload = True
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check a deploy safe payload can be applied to the current state."""
@@ -1539,31 +1558,28 @@ class OnlyKeeperSendsRound(AbstractRound, ABC):
         if not sender_is_elected_sender:
             raise TransactionNotValidError(f"{sender} not elected as keeper.")
 
-        if self.keeper_sent_payload:
+        if self.keeper_payload is not None:
             raise TransactionNotValidError("keeper payload value already set.")
-
-    @property
-    def has_keeper_sent_payload(
-        self,
-    ) -> bool:
-        """Check if keeper has sent the payload."""
-
-        return self.keeper_sent_payload
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
-        # if reached participant threshold, set the result
-        if self.has_keeper_sent_payload and self.keeper_payload.values[0] is not None:
+        if self.keeper_payload is not None and any(
+            [val is not None for val in self.keeper_payload.values]
+        ):
+            if isinstance(self.payload_key, tuple):
+                data = dict(zip(self.payload_key, self.keeper_payload.values))
+            else:
+                data = {
+                    self.payload_key: self.keeper_payload.values[0],
+                }
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                **{
-                    self.payload_key: self.keeper_payload.values
-                    if self.save_all_values
-                    else self.keeper_payload.values[0]
-                },
+                **data,
             )
             return synchronized_data, self.done_event
-        if self.has_keeper_sent_payload and self.keeper_payload.values[0] is None:
+        if self.keeper_payload is not None and not any(
+            [val is not None for val in self.keeper_payload.values]
+        ):
             return self.synchronized_data, self.fail_event
         return None
 
@@ -1573,7 +1589,20 @@ class VotingRound(CollectionRound, ABC):
     VotingRound
 
     This class represents logic for rounds where a round needs votes from
-    agents, pass if k same votes of n agents
+    agents. Votes are in the form of `True` (positive), `False` (negative)
+    and `None` (abstain). The round ends when k of n agents make the same vote.
+
+    `done_event` is emitted when a) the collection threshold (k of n) is reached
+    with k positive votes. In this case all payloads are saved under `collection_key`.
+
+    `negative_event` is emitted when a) the collection threshold (k of n) is reached
+    with k negative votes.
+
+    `none_event` is emitted when a) the collection threshold (k of n) is reached
+    with k abstain votes.
+
+    `no_majority_event` is emitted when it is impossible to reach a k of n majority for
+    either of the options.
     """
 
     done_event: Any
@@ -1610,7 +1639,6 @@ class VotingRound(CollectionRound, ABC):
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
-        # if reached participant threshold, set the result
         if self.positive_vote_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
@@ -1633,11 +1661,17 @@ class CollectDifferentUntilThresholdRound(CollectionRound, ABC):
     CollectDifferentUntilThresholdRound
 
     This class represents logic for rounds where a round needs to collect
-    different payloads from k of n agents
+    different payloads from k of n agents.
+
+    `done_event` is emitted when a) the required block confirmations
+    have been met, and b) the collection threshold (k of n) is reached. In
+    this case all payloads are saved under `collection_key`.
+
+    Extended `required_block_confirmations` to allow for arrival of more
+    payloads.
     """
 
     done_event: Any
-    no_majority_event: Any
     collection_key: str
     required_block_confirmations: int = 0
 
@@ -1652,10 +1686,9 @@ class CollectDifferentUntilThresholdRound(CollectionRound, ABC):
         """Process the end of the block."""
         if self.collection_threshold_reached:
             self.block_confirmations += 1
-        if (  # contracts are set from previous rounds
+        if (
             self.collection_threshold_reached
             and self.block_confirmations > self.required_block_confirmations
-            # we also wait here as it gives more (available) agents time to join
         ):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
@@ -1664,40 +1697,50 @@ class CollectDifferentUntilThresholdRound(CollectionRound, ABC):
                 },
             )
             return synchronized_data, self.done_event
-        if (
-            not self.is_majority_possible(
-                self.collection, self.synchronized_data.nb_participants
-            )
-            and self.block_confirmations > self.required_block_confirmations
-        ):
-            return self.synchronized_data, self.no_majority_event  # pragma: no cover
+
         return None
 
 
 class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound, ABC):
     """
-    Collect all the data among agents.
+    CollectNonEmptyUntilThresholdRound
 
-    This class represents logic for rounds where we need to collect
-    payloads from each agent which will contain optional, different data and only keep the non-empty.
+    This class represents logic for rounds where a round needs to collect
+    optionally different payloads from k of n agents, where we only keep the non-empty attributes.
 
-    This round may be used for cases that we want to collect all the agent's data, such as late-arriving messages.
+    `done_event` is emitted when a) the required block confirmations
+    have been met, b) the collection threshold (k of n) is reached, and
+    c) some non-empty attribute values have been collected. In this case
+    all payloads are saved under `collection_key`. Under `selection_key`
+    the non-empty attribute values are stored.
+
+    `none_event` is emitted when a) the required block confirmations
+    have been met, b) the collection threshold (k of n) is reached, and
+    c) no non-empty attribute values have been collected.
+
+    Attention: A `none_event` might be triggered even though some of the
+    remaining n-k agents might send non-empty attributes! Extended
+    `required_block_confirmations` can alleviate this somewhat.
     """
 
     none_event: Any
-    save_all_values: bool = False
+    selection_key: Union[str, Tuple[str, ...]]
 
-    def _get_non_empty_values(self) -> List:
-        """Get the non-empty values from the payload, for the given attribute."""
-        non_empty_values = []
+    def _get_non_empty_values(self) -> Tuple[Tuple[Any, ...], ...]:
+        """Get the non-empty values from the payload, for all attributes."""
+        non_empty_values: List[List[Any]] = []
 
         for payload in self.collection.values():
-            if payload.values[0] is not None:
-                non_empty_values.append(
-                    payload.values if self.save_all_values else payload.values[0]
-                )
-
-        return non_empty_values
+            if non_empty_values == []:
+                non_empty_values = [
+                    [] if value is None else [value] for value in payload.values
+                ]
+                continue
+            for count, value in enumerate(payload.values):
+                if value is not None:
+                    non_empty_values[count].append(value)
+        non_empty_values_ = tuple(tuple(li) for li in non_empty_values)
+        return non_empty_values_
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
@@ -1709,25 +1752,22 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound, AB
         ):
             non_empty_values = self._get_non_empty_values()
 
+            if isinstance(self.selection_key, tuple):
+                data: Dict[str, Any] = dict(zip(self.selection_key, non_empty_values))
+            else:
+                data = {
+                    self.selection_key: non_empty_values[0],
+                }
+            data[self.collection_key] = self.serialized_collection
+
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                **{
-                    self.collection_key: non_empty_values,
-                },
+                **data,
             )
 
-            if len(non_empty_values) == 0:
-                return synchronized_data, self.none_event
+            if all([len(tu) == 0 for tu in non_empty_values]):
+                return self.synchronized_data, self.none_event
             return synchronized_data, self.done_event
-
-        # TODO: https://github.com/valory-xyz/open-autonomy/pull/1466#issuecomment-1288067700
-        if (
-            not self.is_majority_possible(
-                self.collection, self.synchronized_data.nb_participants
-            )
-            and self.block_confirmations > self.required_block_confirmations
-        ):
-            return self.synchronized_data, self.no_majority_event
         return None
 
 

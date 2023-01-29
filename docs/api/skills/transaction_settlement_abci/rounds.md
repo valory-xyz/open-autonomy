@@ -71,6 +71,17 @@ def keepers_threshold_exceeded() -> bool
 
 Check if the number of selected keepers has exceeded the allowed limit.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.most_voted_randomness_round"></a>
+
+#### most`_`voted`_`randomness`_`round
+
+```python
+@property
+def most_voted_randomness_round() -> int
+```
+
+Get the first in priority keeper to try to re-submit a transaction.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.most_voted_keeper_address"></a>
 
 #### most`_`voted`_`keeper`_`address
@@ -209,6 +220,17 @@ Get the most voted checked result.
 ```python
 @property
 def participant_to_check() -> Mapping[str, CheckTransactionHistoryPayload]
+```
+
+Get the mapping from participants to checks.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.participant_to_late_messages"></a>
+
+#### participant`_`to`_`late`_`messages
+
+```python
+@property
+def participant_to_late_messages() -> Mapping[str, SynchronizeLateMessagesPayload]
 ```
 
 Get the mapping from participants to checks.
