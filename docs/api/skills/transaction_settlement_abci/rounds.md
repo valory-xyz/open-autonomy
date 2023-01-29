@@ -521,7 +521,6 @@ Transition states:
     8. SynchronizeLateMessagesRound
         - done: 9.
         - round timeout: 8.
-        - no majority: 8.
         - none: 6.
         - missed and late messages mismatch: 12.
     9. CheckLateTxHashesRound

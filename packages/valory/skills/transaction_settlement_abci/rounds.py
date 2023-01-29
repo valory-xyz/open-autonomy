@@ -630,7 +630,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         8. SynchronizeLateMessagesRound
             - done: 9.
             - round timeout: 8.
-            - no majority: 8.
             - none: 6.
             - missed and late messages mismatch: 12.
         9. CheckLateTxHashesRound
@@ -716,7 +715,6 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         SynchronizeLateMessagesRound: {
             Event.DONE: CheckLateTxHashesRound,
             Event.ROUND_TIMEOUT: SynchronizeLateMessagesRound,
-            Event.NO_MAJORITY: SynchronizeLateMessagesRound,
             Event.NONE: SelectKeeperTransactionSubmissionRoundB,
             Event.MISSED_AND_LATE_MESSAGES_MISMATCH: FailedRound,
         },
