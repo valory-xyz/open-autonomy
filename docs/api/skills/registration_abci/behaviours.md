@@ -40,6 +40,28 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour)
 
 Agent registration to the FSM App.
 
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.initial_tm_configs"></a>
+
+#### initial`_`tm`_`configs
+
+```python
+@property
+def initial_tm_configs() -> Dict[str, Dict[str, Any]]
+```
+
+A mapping of the other agents' addresses to their initial Tendermint configuration.
+
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.initial_tm_configs"></a>
+
+#### initial`_`tm`_`configs
+
+```python
+@initial_tm_configs.setter
+def initial_tm_configs(configs: Dict[str, Dict[str, Any]]) -> None
+```
+
+A mapping of the other agents' addresses to their initial Tendermint configuration.
+
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.LogMessages"></a>
 
 ## LogMessages Objects
@@ -59,17 +81,6 @@ def __str__() -> str
 ```
 
 For ease of use in formatted string literals
-
-<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.registered_addresses"></a>
-
-#### registered`_`addresses
-
-```python
-@property
-def registered_addresses() -> Dict[str, Dict[str, Any]]
-```
-
-Agent addresses registered on-chain for the service
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.tendermint_parameter_url"></a>
 
