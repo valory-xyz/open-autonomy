@@ -175,7 +175,7 @@ Base Deployment Class.
 #### `__`init`__`
 
 ```python
-def __init__(service_builder: ServiceBuilder, build_dir: Path, dev_mode: bool = False, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None)
+def __init__(service_builder: ServiceBuilder, build_dir: Path, use_testnet: bool = False, dev_mode: bool = False, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None)
 ```
 
 Initialise with only kwargs.

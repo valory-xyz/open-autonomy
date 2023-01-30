@@ -19,7 +19,7 @@ Kubernetes Deployment Generator.
 #### `__`init`__`
 
 ```python
-def __init__(service_builder: ServiceBuilder, build_dir: Path, dev_mode: bool = False, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None) -> None
+def __init__(service_builder: ServiceBuilder, build_dir: Path, dev_mode: bool = False, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, use_testnet: bool = False) -> None
 ```
 
 Initialise the deployment generator.
