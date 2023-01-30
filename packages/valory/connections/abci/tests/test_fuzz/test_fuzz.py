@@ -39,10 +39,6 @@ if running_on_ci:
     settings.load_profile(CI)
 
 
-@pytest.mark.skipif(
-    platform.system() == "Windows",
-    reason="<IocpProactor overlapped#=1175 result#=0> is running after closing for ... seconds (windows_events.py:871)",
-)
 class TestFuzzyGrpc(BaseFuzzyTests):
     """Test the connection when gRPC is used"""
 
