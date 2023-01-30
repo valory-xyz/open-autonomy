@@ -92,6 +92,16 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     updated_genesis_data: Dict[str, Any] = {}
     collection_complete: bool = False
 
+    @property
+    def initial_tm_configs(self) -> Dict[str, Dict[str, Any]]:
+        """A mapping of the other agents' addresses to their initial Tendermint configuration."""
+        return self.context.state.initial_tm_configs
+
+    @initial_tm_configs.setter
+    def initial_tm_configs(self, configs: Dict[str, Dict[str, Any]]) -> None:
+        """A mapping of the other agents' addresses to their initial Tendermint configuration."""
+        self.context.state.initial_tm_configs = configs
+
     class LogMessages(Enum):
         """Log messages used in RegistrationStartupBehaviour"""
 
@@ -125,14 +135,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         def __str__(self) -> str:
             """For ease of use in formatted string literals"""
             return self.value
-
-    @property
-    def registered_addresses(self) -> Dict[str, Dict[str, Any]]:
-        """Agent addresses registered on-chain for the service"""
-        return cast(
-            Dict[str, Dict[str, Any]],
-            self.synchronized_data.db.get("registered_addresses", {}),
-        )
 
     @property
     def tendermint_parameter_url(self) -> str:
@@ -265,7 +267,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             peer_id=self.local_tendermint_params["peer_id"],
         )
         info[self.context.agent_address] = validator_config
-        self.synchronized_data.db.update(registered_addresses=info)
+        self.initial_tm_configs = info
         log_message = self.LogMessages.response_service_info.value
         self.context.logger.info(f"{log_message}: {info}")
         return True
@@ -290,7 +292,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     def request_tendermint_info(self) -> Generator[None, None, bool]:
         """Request Tendermint info from other agents"""
 
-        still_missing = {k for k, v in self.registered_addresses.items() if not v}
+        still_missing = {k for k, v in self.initial_tm_configs.items() if not v}
         log_message = self.LogMessages.request_others
         self.context.logger.info(f"{log_message}: {still_missing}")
 
@@ -306,9 +308,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         # we wait for the messages that were put in the outbox.
         yield from self.sleep(self.params.sleep_time)
 
-        if all(self.registered_addresses.values()):
+        if all(self.initial_tm_configs.values()):
             log_message = self.LogMessages.collection_complete
-            self.context.logger.info(f"{log_message}: {self.registered_addresses}")
+            self.context.logger.info(f"{log_message}: {self.initial_tm_configs}")
             self.collection_complete = True
         return self.collection_complete
 
@@ -341,7 +343,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Make HTTP POST request to update agent's local Tendermint node"""
 
         url = self.tendermint_parameter_url
-        genesis_data = self.format_genesis_data(self.registered_addresses)
+        genesis_data = self.format_genesis_data(self.initial_tm_configs)
         log_message = self.LogMessages.request_update
         self.context.logger.info(f"{log_message}: {genesis_data}")
 
@@ -421,7 +423,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
                 return
 
         # make service registry contract call
-        if not self.registered_addresses:
+        if not self.initial_tm_configs:
             successful = yield from self.get_addresses()
             if not successful:
                 yield from self.sleep(self.params.sleep_time)

@@ -309,41 +309,27 @@ def teardown() -> None
 
 Tear down the handler.
 
-<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.synchronized_data"></a>
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.initial_tm_configs"></a>
 
-#### synchronized`_`data
-
-```python
-@property
-def synchronized_data() -> BaseSynchronizedData
-```
-
-Not yet synchronized here.
-
-The Tendermint network needs to be (re-)established after
-Tendermint configuration exchange with the other agents
-registered on-chain for this service.
-
-This handler is used during RegistrationStartupBehaviour.
-At this point there is no historical data yet over which
-consensus has been achieved. We access it here to store
-the information of other agents' Tendermint configurations
-under `registered_addresses`.
-
-**Returns**:
-
-the synchronized data.
-
-<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.registered_addresses"></a>
-
-#### registered`_`addresses
+#### initial`_`tm`_`configs
 
 ```python
 @property
-def registered_addresses() -> Dict[str, Dict[str, Any]]
+def initial_tm_configs() -> Dict[str, Dict[str, Any]]
 ```
 
-Registered addresses retrieved on-chain from service registry contract
+A mapping of the other agents' addresses to their initial Tendermint configuration.
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.initial_tm_configs"></a>
+
+#### initial`_`tm`_`configs
+
+```python
+@initial_tm_configs.setter
+def initial_tm_configs(configs: Dict[str, Dict[str, Any]]) -> None
+```
+
+A mapping of the other agents' addresses to their initial Tendermint configuration.
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.dialogues"></a>
 

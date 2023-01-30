@@ -2653,17 +2653,13 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         """
         Get the Merkle root hash of the application state.
 
-        Create an app hash that always increases in order to avoid conflicts between resets.
-        Eventually, we do not necessarily need to have a value that increases, but we have to generate a hash that
-        is always different among the resets, since our abci's state is different even thought we have reset the chain!
-        For example, if we are in height 11, reset and then reach height 11 again, if we end up using the same hash
-        at height 11 between the resets, then this is problematic.
+        This is going to be the database's hash.
+        In this way, the app hash will be reflecting our application's state,
+        and will guarantee that all the agents on the chain apply the changes of the arriving blocks in the same way.
 
         :return: the root hash to be included as the Header.AppHash in the next block.
         """
-        return f"root:{self.abci_app.synchronized_data.db.round_count}reset:{self.abci_app.reset_index}".encode(
-            "utf-8"
-        )
+        return self.abci_app.synchronized_data.db.hash()
 
     @property
     def tm_height(self) -> int:
@@ -2846,6 +2842,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         restart_from_round: str,
         round_count: int,
         reset_index: int,
+        serialized_db_state: Optional[str] = None,
     ) -> None:
         """
         This method resets the state of RoundSequence to the begging of the period.
@@ -2855,10 +2852,13 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         :param restart_from_round: from which round to restart the abci. This round should be the first round in the last period.
         :param round_count: the round count at the beginning of the period -1.
         :param reset_index: the reset index (a.k.a. period count) -1.
+        :param serialized_db_state: the state of the database at the beginning of the period. If provided, the database will be reset to this state.
         """
         self._reset_to_default_params()
         self.abci_app.synchronized_data.db.round_count = round_count
         self.abci_app.reset_index = reset_index
+        if serialized_db_state is not None:
+            self.abci_app.synchronized_data.db.sync(serialized_db_state)
         round_id_to_cls = {
             cls.auto_round_id(): cls for cls in self.abci_app.transition_function
         }
