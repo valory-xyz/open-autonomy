@@ -381,6 +381,7 @@ class BaseDeploymentGenerator(abc.ABC):
     output: str
     tendermint_job_config: Optional[str]
     dev_mode: bool
+    use_testnet: bool
 
     packages_dir: Path
     open_aea_dir: Path
@@ -390,6 +391,7 @@ class BaseDeploymentGenerator(abc.ABC):
         self,
         service_builder: ServiceBuilder,
         build_dir: Path,
+        use_testnet: bool = False,
         dev_mode: bool = False,
         packages_dir: Optional[Path] = None,
         open_aea_dir: Optional[Path] = None,
@@ -399,6 +401,7 @@ class BaseDeploymentGenerator(abc.ABC):
 
         self.service_builder = service_builder
         self.build_dir = build_dir
+        self.use_testnet = use_testnet
         self.dev_mode = dev_mode
         self.packages_dir = packages_dir or Path.cwd().absolute() / "packages"
         self.open_aea_dir = open_aea_dir or Path.home().absolute() / "open-aea"

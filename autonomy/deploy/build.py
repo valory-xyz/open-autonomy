@@ -50,6 +50,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     image_version: Optional[str] = None,
     use_hardhat: bool = False,
     use_acn: bool = False,
+    use_testnet: bool = False,
 ) -> str:
     """Generate the deployment for the service."""
 
@@ -75,6 +76,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         packages_dir=packages_dir,
         open_aea_dir=open_aea_dir,
         open_autonomy_dir=open_autonomy_dir,
+        use_testnet=use_testnet,
     )
 
     (

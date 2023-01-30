@@ -60,15 +60,17 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         packages_dir: Optional[Path] = None,
         open_aea_dir: Optional[Path] = None,
         open_autonomy_dir: Optional[Path] = None,
+        use_testnet: bool = False,
     ) -> None:
         """Initialise the deployment generator."""
         super().__init__(
-            service_builder,
-            build_dir,
-            dev_mode,
-            packages_dir,
-            open_aea_dir,
-            open_autonomy_dir,
+            service_builder=service_builder,
+            build_dir=build_dir,
+            use_testnet=use_testnet,
+            dev_mode=dev_mode,
+            packages_dir=packages_dir,
+            open_aea_dir=open_aea_dir,
+            open_autonomy_dir=open_autonomy_dir,
         )
         self.resources: List[str] = []
 
@@ -189,7 +191,11 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     ) -> "KubernetesGenerator":
         """Write output to build dir"""
 
-        output = "---\n".join([self.output, cast(str, self.tendermint_job_config)])
+        if self.use_testnet:
+            output = "---\n".join([self.output, cast(str, self.tendermint_job_config)])
+        else:
+            output = self.output
+
         if not self.build_dir.is_dir():  # pragma: no cover
             self.build_dir.mkdir()
         with open(
