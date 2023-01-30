@@ -2261,8 +2261,15 @@ class TestRoundSequence:
                 result=background_round_result[0],
             )
 
+    @mock.patch.object(AbciAppDB, "sync")
     @pytest.mark.parametrize("restart_from_round", (ConcreteRoundA, MagicMock()))
-    def test_reset_state(self, restart_from_round: AbstractRound) -> None:
+    @pytest.mark.parametrize("serialized_db_state", (None, "serialized state"))
+    def test_reset_state(
+        self,
+        _: mock._patch,
+        restart_from_round: AbstractRound,
+        serialized_db_state: str,
+    ) -> None:
         """Tests reset_state"""
         round_count, reset_index = 1, 1
         with mock.patch.object(
@@ -2272,7 +2279,9 @@ class TestRoundSequence:
             transition_fn = self.round_sequence.abci_app.transition_function
             round_id = restart_from_round.auto_round_id()
             if restart_from_round in transition_fn:
-                self.round_sequence.reset_state(round_id, round_count, reset_index)
+                self.round_sequence.reset_state(
+                    round_id, round_count, reset_index, serialized_db_state
+                )
                 mock_reset.assert_called()
             else:
                 round_ids = {cls.auto_round_id() for cls in transition_fn}
@@ -2286,7 +2295,10 @@ class TestRoundSequence:
                     ),
                 ):
                     self.round_sequence.reset_state(
-                        restart_from_round.auto_round_id(), round_count, reset_index
+                        restart_from_round.auto_round_id(),
+                        round_count,
+                        reset_index,
+                        serialized_db_state,
                     )
 
     def test_reset_to_default_params(self) -> None:
