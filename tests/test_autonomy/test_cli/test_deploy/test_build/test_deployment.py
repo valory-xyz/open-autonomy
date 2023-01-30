@@ -135,12 +135,35 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         assert result.exit_code == 0, result.output
         assert build_dir.exists()
 
+        assert not (build_dir / "nodes").exists()
+
         self.check_docker_compose_build(
             build_dir=build_dir,
         )
         self.load_and_check_docker_compose_file(
             path=build_dir / DockerComposeGenerator.output_name
         )
+
+    def test_docker_compose_build_with_testnet(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--force",
+                    "--local",
+                    "--use-testnet",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert (build_dir / "nodes").exists()
 
     def test_docker_compose_build_log_level(
         self,
@@ -367,13 +390,21 @@ class TestKubernetesBuild(BaseDeployBuildTest):
         with open(path / "build.yaml", "r") as fp:
             return list(yaml.safe_load_all(fp))
 
-    @staticmethod
-    def check_kubernetes_build(build_dir: Path) -> None:
+    @classmethod
+    def check_kubernetes_build(cls, build_dir: Path) -> None:
         """Check kubernetes build dir."""
 
         build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
         assert any(
             child in build_tree for child in ["persistent_storage", "build.yaml"]
+        )
+
+        kubernetes_config = cls.load_kubernetes_config(path=build_dir)
+        assert all(
+            [
+                resource["metadata"]["name"] != "config-nodes"
+                for resource in kubernetes_config
+            ]
         )
 
     def test_kubernetes_build(
@@ -397,10 +428,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
         assert result.exit_code == 0, result.output
         assert build_dir.exists()
 
-        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
-        assert any(
-            child in build_tree for child in ["persistent_storage", "build.yaml"]
-        )
+        self.check_kubernetes_build(build_dir=build_dir)
 
     def test_kubernetes_build_log_level(
         self,
@@ -507,4 +535,37 @@ class TestKubernetesBuild(BaseDeployBuildTest):
                 / KUBERNETES_AGENT_KEY_NAME.format(agent_n=i)
             ).exists()
             for i in range(4)
+        )
+
+    def test_kubernetes_build_with_testnet(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--force",
+                    "--local",
+                    "--kubernetes",
+                    "--use-testnet",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+
+        kubernetes_config = self.load_kubernetes_config(
+            path=build_dir,
+        )
+
+        assert any(
+            [
+                resource["metadata"]["name"] == "config-nodes"
+                for resource in kubernetes_config
+            ]
         )
