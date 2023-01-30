@@ -18,17 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """Tests for valory/service_registry contract."""
-import hashlib
 from pathlib import Path
-from typing import Dict, cast
+from typing import Any, List, Optional, Set
 from unittest import mock
-from unittest.mock import MagicMock
 
 import pytest
-from aea.contracts.base import Contract
-from aea.crypto.base import Crypto, LedgerApi
-from aea.test_tools.test_contract import BaseContractTestCase
 from aea_ledger_ethereum import EthereumCrypto
+from aea_test_autonomy.base_test_classes.contracts import BaseRegistriesContractsTest
 from aea_test_autonomy.docker.base import skip_docker_tests
 
 from packages.valory.contracts.service_registry.contract import (
@@ -46,34 +42,34 @@ INVALID_SERVICE_ID = 0
 CHAIN_ID = 31337
 
 
-class BaseServiceRegistryContractTest(BaseContractTestCase):
+def event_filter_patch(event: str, return_value: Any) -> mock._patch:
+    """Returns an event filter patch for the given event name."""
+    return mock.patch.object(
+        ServiceRegistryContract,
+        "get_instance",
+        return_value=mock.MagicMock(
+            events=mock.MagicMock(
+                **{
+                    event: mock.MagicMock(
+                        createFilter=lambda **_: mock.MagicMock(
+                            get_all_entries=lambda *_: return_value
+                        )
+                    )
+                }
+            )
+        ),
+    )
+
+
+class BaseServiceRegistryContractTest(BaseRegistriesContractsTest):
     """Base class for Service Registry contract tests"""
 
+    contract: ServiceRegistryContract
     contract_address = EXPECTED_CONTRACT_ADDRESS_BY_CHAIN_ID[CHAIN_ID]
     invalid_contract_address = SERVICE_REGISTRY_INVALID
     path_to_contract = PACKAGE_DIR
     ledger_identifier = EthereumCrypto.identifier
-
-    @classmethod
-    def finish_contract_deployment(cls) -> str:
-        """Finish the contract deployment."""
-        return cls.contract_address
-
-    @classmethod
-    def _deploy_contract(
-        cls,
-        contract: Contract,
-        ledger_api: LedgerApi,
-        deployer_crypto: Crypto,
-        gas: int,
-    ) -> Dict:
-        """Deploy contract."""
-        return {}
-
-    @property
-    def contract(self) -> ServiceRegistryContract:
-        """Get the contract."""
-        return cast(ServiceRegistryContract, super().contract)
+    contract_directory = PACKAGE_DIR
 
 
 @skip_docker_tests
@@ -91,15 +87,10 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
             contract_address = self.invalid_contract_address
             bytecode += "invalid"
 
-        with mock.patch.object(
-            self.ledger_api.api.manager, "request_blocking", return_value=CHAIN_ID
-        ), mock.patch.object(
-            hashlib, "sha512", return_value=MagicMock(hexdigest=lambda: bytecode)
-        ):
-            result = self.contract.verify_contract(
-                self.ledger_api,
-                contract_address,
-            )
+        result = self.contract.verify_contract(
+            self.ledger_api,
+            contract_address,
+        )
 
         assert result["verified"] is valid_address, result
 
@@ -108,62 +99,207 @@ class TestServiceRegistryContract(BaseServiceRegistryContractTest):
     )
     def test_exists(self, service_id: int, expected: int) -> None:
         """Test whether service id exists"""
-
-        with mock.patch.object(
+        exists = self.contract.exists(
             self.ledger_api,
-            "contract_method_call",
-            return_value=expected,
-        ):
-            exists = self.contract.exists(
-                self.ledger_api,
-                self.contract_address,
-                service_id,
-            )
+            self.contract_address,
+            service_id,
+        )
 
         assert exists is expected
 
     def test_get_agent_instances(self) -> None:
         """Test agent instances retrieval"""
 
-        return_value = dict(
-            numAgentInstances=0,
-            agentInstances=[],
-        )
+        return_value = {
+            "numAgentInstances": 4,
+            "agentInstances": [
+                "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+                "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+                "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            ],
+        }
 
         assert self.contract_address is not None
 
-        with mock.patch.object(
+        result = self.contract.get_agent_instances(
             self.ledger_api,
-            "contract_method_call",
-            return_value=list(return_value.values()),
-        ):
-            result = self.contract.get_agent_instances(
-                self.ledger_api,
-                self.contract_address,
-                VALID_SERVICE_ID,
-            )
+            self.contract_address,
+            VALID_SERVICE_ID,
+        )
 
         assert result == return_value
 
     def test_get_service_owner(self) -> None:
         """Test service owner retrieval."""
-        service_owner = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed"
-
+        service_owner = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
         assert self.contract_address is not None
 
-        with mock.patch.object(
-            ServiceRegistryContract,
-            "get_instance",
-        ), mock.patch.object(
-            self.ledger_api.api,
-            "toChecksumAddress",
-            return_value=service_owner,
-        ):
-            actual = self.contract.get_service_owner(
-                self.ledger_api,
-                self.contract_address,
-                VALID_SERVICE_ID,
-            )
+        actual = self.contract.get_service_owner(
+            self.ledger_api,
+            self.contract_address,
+            VALID_SERVICE_ID,
+        )
 
         expected = dict(service_owner=service_owner)
         assert expected == actual
+
+    def test_get_token_uri(self) -> None:
+        """Test `get_token_uri` method."""
+
+        token_uri = self.contract.get_token_uri(
+            self.ledger_api,
+            self.contract_address,
+            VALID_SERVICE_ID,
+        )
+
+        assert (
+            token_uri
+            == "https://gateway.autonolas.tech/ipfs/f017012205555555555555555555555555555555555555555555555555555555555555555"  # nosec
+        )
+
+    def test_get_service_information(self) -> None:
+        """Test `test_get_service_information` method."""
+
+        (
+            security_deposit,
+            multisig_address,
+            ipfs_hash_for_config,
+            threshold,
+            max_number_of_agent_instances,
+            number_of_agent_instances,
+            service_state,
+            list_of_cannonical_agents,
+        ) = self.contract.get_service_information(
+            self.ledger_api,
+            self.contract_address,
+            VALID_SERVICE_ID,
+        )
+
+        assert security_deposit == 10000000000000000
+        assert multisig_address == "0xD8dE647170163a981bb3Fdb2063583eAcF7D55AC"
+        assert ipfs_hash_for_config == b"UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+        assert threshold == 3
+        assert max_number_of_agent_instances == 4
+        assert number_of_agent_instances == 4
+        assert service_state == 4
+        assert list_of_cannonical_agents == [1]
+
+    @pytest.mark.parametrize(
+        ("return_value", "assert_value"),
+        (
+            ([], None),
+            (
+                [
+                    {
+                        "args": {
+                            "serviceId": 1,
+                        }
+                    }
+                ],
+                1,
+            ),
+        ),
+    )
+    def test_filter_token_id_from_emitted_events(
+        self, return_value: List, assert_value: Optional[int]
+    ) -> None:
+        """Test `filter_token_id_from_emitted_events` method"""
+
+        with event_filter_patch(event="CreateService", return_value=return_value):
+            token_id = self.contract.filter_token_id_from_emitted_events(
+                ledger_api=self.ledger_api,
+                contract_address=self.contract_address,
+            )
+
+            if assert_value is None:
+                assert token_id is None
+            else:
+                assert token_id == 1
+
+    @pytest.mark.parametrize(
+        ("return_value", "assert_value"),
+        (
+            ([], False),
+            (
+                [
+                    {
+                        "args": {
+                            "serviceId": 0,
+                        }
+                    }
+                ],
+                True,
+            ),
+        ),
+    )
+    def test_verify_service_has_been_activated(
+        self, return_value: List, assert_value: bool
+    ) -> None:
+        """Test `verify_service_has_been_activated` method."""
+
+        with event_filter_patch(
+            event="ActivateRegistration", return_value=return_value
+        ):
+            success = self.contract.verify_service_has_been_activated(
+                ledger_api=self.ledger_api,
+                contract_address=self.contract_address,
+                service_id=0,
+            )
+
+            assert success is assert_value
+
+    @pytest.mark.parametrize(
+        ("return_value", "assert_value"),
+        (
+            ([], set()),
+            (
+                [{"args": {"serviceId": 0, "agentInstance": "0x"}}],
+                {"0x"},
+            ),
+        ),
+    )
+    def test_verify_agent_instance_registration(
+        self, return_value: List, assert_value: Set[str]
+    ) -> None:
+        """Test `verify_agent_instance_registration` method."""
+
+        with event_filter_patch(event="RegisterInstance", return_value=return_value):
+            successful = self.contract.verify_agent_instance_registration(
+                ledger_api=self.ledger_api,
+                contract_address=self.contract_address,
+                service_id=0,
+                instance_check={"0x"},
+            )
+
+            assert successful == assert_value
+
+    @pytest.mark.parametrize(
+        ("return_value", "assert_value"),
+        (
+            ([], False),
+            (
+                [
+                    {
+                        "args": {
+                            "serviceId": 0,
+                        }
+                    }
+                ],
+                True,
+            ),
+        ),
+    )
+    def test_verify_service_has_been_deployed(
+        self, return_value: List, assert_value: bool
+    ) -> None:
+        """Test `verify_service_has_been_deployed` method."""
+
+        with event_filter_patch(event="DeployService", return_value=return_value):
+            success = self.contract.verify_service_has_been_deployed(
+                ledger_api=self.ledger_api,
+                contract_address=self.contract_address,
+                service_id=0,
+            )
+
+            assert success is assert_value

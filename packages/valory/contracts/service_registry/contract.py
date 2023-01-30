@@ -21,7 +21,7 @@
 
 import hashlib
 import logging
-from typing import Any, Dict, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -47,6 +47,8 @@ _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
 
+ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
+
 
 class ServiceRegistryContract(Contract):
     """The Service Registry contract."""
@@ -58,21 +60,21 @@ class ServiceRegistryContract(Contract):
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get the Safe transaction."""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def get_raw_message(
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[bytes]:
         """Get raw message."""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def get_state(
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get state."""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def verify_contract(
@@ -116,7 +118,7 @@ class ServiceRegistryContract(Contract):
         exists = ledger_api.contract_method_call(
             contract_instance=contract_instance,
             method_name="exists",
-            serviceId=service_id,
+            unitId=service_id,
         )
 
         return cast(bool, exists)
@@ -163,7 +165,7 @@ class ServiceRegistryContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         token_id: int,
-    ) -> str:
+    ) -> ServiceInfo:
         """Retrieve service information"""
 
         contract_interface = cls.get_instance(
@@ -210,3 +212,80 @@ class ServiceRegistryContract(Contract):
                 return cast(int, event_args["serviceId"])
 
         return None
+
+    @classmethod
+    def verify_service_has_been_activated(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        service_id: int,
+    ) -> bool:
+        """Checks for a successful service registration event in the latest block"""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+
+        events = contract_interface.events.ActivateRegistration.createFilter(
+            fromBlock="latest"
+        ).get_all_entries()
+        for event in events:
+            if event["args"]["serviceId"] == service_id:
+                return True
+
+        return False
+
+    @classmethod
+    def verify_agent_instance_registration(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        service_id: int,
+        instance_check: Set[str],
+    ) -> Set[str]:
+        """Checks for the registered instances and filters out the instances that are registered from the given array"""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+
+        events = contract_interface.events.RegisterInstance.createFilter(
+            fromBlock="latest"
+        ).get_all_entries()
+
+        successful = set()
+        for event in events:
+            event_args = event["args"]
+            if event_args["serviceId"] != service_id:
+                continue
+
+            agent_instance = event_args["agentInstance"]
+            if agent_instance in instance_check:
+                successful.add(agent_instance)
+
+        return successful
+
+    @classmethod
+    def verify_service_has_been_deployed(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        service_id: int,
+    ) -> bool:
+        """Checks for a successful service registration event in the latest block"""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+
+        events = contract_interface.events.DeployService.createFilter(
+            fromBlock="latest"
+        ).get_all_entries()
+        for event in events:
+            if event["args"]["serviceId"] == service_id:
+                return True
+
+        return False

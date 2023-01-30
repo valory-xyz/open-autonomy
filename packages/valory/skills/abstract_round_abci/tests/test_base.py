@@ -932,6 +932,20 @@ class TestAbciAppDB:
         self.db.sync(serialized_data)
         assert self.db._data == data
 
+    @mock.patch.object(
+        json,
+        "loads",
+        side_effect=json.JSONDecodeError(MagicMock(), MagicMock(), MagicMock()),
+    )
+    def test_sync_incorrect_data(self, _: mock._patch) -> None:
+        """Test `sync` method."""
+        serialized_data = "incorrectly serialized"
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=f"Could not decode data using {serialized_data}: ",
+        ):
+            self.db.sync(serialized_data)
+
     def test_hash(self) -> None:
         """Test `hash` method."""
         expected_hash = b"\x89j\xd8\xf7\x9b\x98>\x97b|\xbeI~y\x8b\x9a\xba\x92\xd4I\x05 \xe8\xc9\xcaQ\x80\xbf{:\xef\xc2"

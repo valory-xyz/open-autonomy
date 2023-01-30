@@ -1,83 +1,120 @@
 # `autonomy service`
 
-Tools to manage on chain services. Once you have a service and the required components minted on chain, you can start with the service deployment process using the service manager.
+Tools to manage services minted on-chain.
 
-### Options
+This command group consists of a number of functionalities to manage the life cycle of services that have been minted in the on-chain protocol.
+
+## Options
 
 `--use-ethereum`
-: Use `ethereum` chain profile to interact with the contracts.
+: Use the Ethereum chain profile to interact with the on-chain registry contracts. This option requires that you define the following environment variable:
+
+    - `ETHEREUM_CHAIN_RPC` : RPC endpoint for the Ethereum mainnet chain.
 
 `--use-goerli`
-: Use `goerli` chain profile to interact with the contracts.
+: Use the Görli chain profile to interact with the on-chain registry contracts. This option requires that you define the following environment variable:
+
+    - `GOERLI_CHAIN_RPC` : RPC endpoint for the Görli testnet chain.
 
 `--use-custom-chain`
-: Use custom-chain chain profile to interact with the contracts.
+: Use the custom-chain chain profile to interact with the on-chain registry contracts. This option requires that you define the following environment variables (see the [Autonolas Protocol section](https://docs.autonolas.network/protocol/) for more information):
+
+    - `CUSTOM_CHAIN_RPC` : RPC endpoint for the custom chain.
+    - `CUSTOM_CHAIN_ID` : Chain ID.
+    - `CUSTOM_COMPONENT_REGISTRY_ADDRESS` : custom Component Registry
+ contract address.
+    - `CUSTOM_AGENT_REGISTRY_ADDRESS` : custom Agent Registry contract address.
+    - `CUSTOM_REGISTRIES_MANAGER_ADDRESS` : custom Registries Manager contract address.
+    - `CUSTOM_SERVICE_MANAGER_ADDRESS` : custom Service Manager contract address.
+    - `CUSTOM_SERVICE_REGISTRY_ADDRESS` : custom Service Registry contract address.
+    - `CUSTOM_GNOSIS_SAFE_MULTISIG_ADDRESS` : custom Gnosis Safe multisig contract address.
 
 `--use-local`
-: Use local chain profile to interact with the contracts.
+: Use the local chain profile to interact with the on-chain registry contracts. This option requires that you have a local Hardhat node with the required contracts deployed.
+
+!!! note
+
+    The options `--use-ethereum`, `--use-goerli`, `--use-custom-chain` and `--use-local` are mutually exclusive.
 
 `--skip-hash-check`
-: Skip hash check when verifying dependencies on chain
-
-To understand how to use various chain profiles refer to `Chain Selection` section on the `autonomy mint` command documentation.
+: Skip hash check when verifying dependencies on chain.
 
 ## `autonomy service activate`
 
+Activate a service minted in the on-chain protocol.
+
 ### Usage
 
-`autonomy service activate [OPTIONS] SERVICE_ID KEYS`
+```bash
+autonomy service activate [OPTIONS] SERVICE_ID KEYS_FILE
+```
 
 ### Options
 
-`--password TEXT`
-: Password for key pair
+`--password PASSWORD`
+: Password for the key file.
 
 ### Examples
 
-To activate a service which is already minted on chain run
+To activate a service with ID 42 in the on-chain protocol:
 
-`autonomy service activate SERVICE_ID PATH_TO_FUNDED_KEY`
-
-Make sure the key you provide is the same as the one you used to mint the service.
+```bash
+autonomy service activate 42 my_keys_file
+```
 
 ## `autonomy service register`
 
+Register an agent instance in a service minted and activated in the on-chain protocol.
 ### Usage
 
-`autonomy service register [OPTIONS] SERVICE_ID KEYS`
+```bash
+autonomy service register [OPTIONS] SERVICE_ID KEYS_FILE
+```
 
 ### Options
 
-`-i, --instance TEXT`
-: Agent instance address
+`-i, --instance AGENT_ADDRESS`
+: Agent instance address.
 
-`-a, --agent-id INTEGER`
-: Agent ID
+`-a, --agent-id AGENT_ID`
+: Canonical agent ID.
 
-`--password TEXT`
-: Password for key pair
+`--password PASSWORD`
+: Password for the key file.
 
 ### Examples
 
-To register an instance with agent ID 1 run
+To register an agent instance of canonical agent ID 56 with address `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266` on the service with ID 42 in the on-chain protocol:
 
-`autonomy service register -i 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 -a 1`
+```bash
+autonomy service register -i 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 -a 56 42 my_keys_file
+```
 
-> Note: address used here is taken from a hardhat deployment
-
-This will add the provided address as the instance for the agent id 1 for the given service. When providing the instance address make sure that the address you provide is funded, is not the same as the service owner and has not already been registered in any other service.
+When providing the agent instance address make sure that the address you provide is funded.
 
 ## `autonomy service deploy`
 
+Deploy a service in the on-chain protocol.
+
+This command can be executed after all desired agents have been registered in the corresponding service in the on-chain protocol.
+
 ### Usage
 
-`autonomy service deploy [OPTIONS] SERVICE_ID KEYS`
-
+```bash
+autonomy service deploy [OPTIONS] SERVICE_ID KEYS_FILE
+```
 ### Options
 
-`-d, --deployment-payload`
-: Deployment payload value
+`-d, --deployment-payload PAYLOAD`
+: Deployment payload value.
+
+`--password PASSWORD`
+: Password for the key file.
 
 ### Examples
 
-To deploy a service just run the command in the given usage format.
+To deploy a service with ID 42 in the on-chain protocol:
+
+```bash
+autonomy service deploy 42 my_keys_file
+```

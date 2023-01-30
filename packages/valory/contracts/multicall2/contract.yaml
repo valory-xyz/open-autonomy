@@ -1,0 +1,23 @@
+name: multicall2
+author: valory
+version: 0.1.0
+type: contract
+description: The MakerDAO multicall2 contract.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: bafybeiblecacbcjfghnmqw3ttmgm3kiyhpdhmwfi77jowsab5y7gy2cqn4
+  build/multicall2.json: bafybeiccd7a7mwq4z62voom765tijsdc4qjnl6u23qg5upqepa5lo2262q
+  contract.py: bafybeig2azsvda7xcf7xsg46kwttgmn4gfeszxhyvl5qbfj4kbc5j2rddy
+  tests/__init__.py: bafybeidpkdejmolv6wufw2ik36fdtymdscfrjvmg6ekjk7u4ikifmsnega
+  tests/test_contract.py: bafybeih4q6mlsqpug375nudfy4vyhrl5vu7fwt7w4xe6y264kcwp53zu3m
+fingerprint_ignore_patterns: []
+class_name: Multicall2Contract
+contract_interface_paths:
+  ethereum: build/multicall2.json
+contracts: []
+dependencies:
+  open-aea-ledger-ethereum:
+    version: ==1.28.0.post1
+  web3:
+    version: ==5.25.0

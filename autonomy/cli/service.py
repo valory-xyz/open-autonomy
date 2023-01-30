@@ -20,7 +20,7 @@
 """Implementation of the `autonomy service` command"""
 
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 import click
 from aea.cli.utils.context import Context
@@ -32,17 +32,19 @@ from autonomy.cli.helpers.chain import (
     deploy_service,
     register_instance,
 )
-from autonomy.cli.mint import key_path_decorator, password_decorator
+from autonomy.cli.mint import key_path_decorator, password_decorator, timeout_flag
 from autonomy.cli.utils.click_utils import chain_selection_flag
 
 
 @click.group("service")
 @pass_ctx
 @chain_selection_flag()
-def service(ctx: Context, chain_type: str) -> None:
+@timeout_flag
+def service(ctx: Context, chain_type: str, timeout: float) -> None:
     """Manage on-chain services."""
 
     ctx.config["chain_type"] = ChainType(chain_type)
+    ctx.config["timeout"] = timeout
 
 
 @service.command()
@@ -63,6 +65,7 @@ def activate(
         keys=keys,
         chain_type=ctx.config["chain_type"],
         password=password,
+        timeout=ctx.config["timeout"],
     )
 
 
@@ -72,15 +75,19 @@ def activate(
 @click.option(
     "-i",
     "--instance",
+    "instances",
     type=str,
     required=True,
+    multiple=True,
     help="Agent instance address",
 )
 @click.option(
     "-a",
     "--agent-id",
+    "agent_ids",
     type=int,
     required=True,
+    multiple=True,
     help="Agent ID",
 )
 @key_path_decorator
@@ -88,8 +95,8 @@ def activate(
 def register(  # pylint: disable=too-many-arguments
     ctx: Context,
     service_id: int,
-    instance: str,
-    agent_id: int,
+    instances: List[str],
+    agent_ids: List[int],
     keys: Path,
     password: Optional[str],
 ) -> None:
@@ -97,11 +104,12 @@ def register(  # pylint: disable=too-many-arguments
 
     register_instance(
         service_id=service_id,
-        instance=instance,
-        agent_id=agent_id,
+        instances=instances,
+        agent_ids=agent_ids,
         keys=keys,
         chain_type=ctx.config["chain_type"],
         password=password,
+        timeout=ctx.config["timeout"],
     )
 
 

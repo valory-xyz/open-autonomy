@@ -1,5 +1,39 @@
 # Release History - `open-autonomy`
 
+# 0.8.0 (2023-01-20)
+
+Autonomy:
+- Adds support for minting components using the `autonomy mint` command group
+- Adds support for managing on chain services using the `autonomy service` group
+- Updates the `autonomy deploy from-token` command to use APIs from `autonomy.chain` module
+- Fixes the bug on the `autonomy analyse handlers` command by loading all of the dependencies before running a check
+
+Packages:
+- Introduces type checking utility as part of the `abstract_round_abci` skill
+- Adds support for sharing the recovery parameters on the tendermint protocol and handler
+- Introduces `valory/ipfs` protocol and connection for handling `IPFS` uploads and downloads
+- Updates `TendermintRecoveryParams` implementation to make it compatible for sharing the parameters using the `ACN`
+- Updates the recovery mechanism in order to first retrieve the `Tendermint` recovery parameters via the `ACN` before attempting to reset
+- Enables the usage of `libp2p` connection on `TestTendermintResetInterrup` and `DEBUG` as default logging level
+- Updates the implementation of the base transaction payload class to use data classes and makes them immutable
+- Updates various skill packages to use the new payload class design
+- `Transaction` is implemented using data class now
+
+Plugins:
+- Updates the `TendermintRecoveryParams` to clean up the images at the end of the test
+- Adds a fixture for the local `IPFS` node address
+
+Tests:
+- Adds test coverage for `packages/valory/skills/abstract_round_abci/abci_app_chain.py`
+
+Docs:
+- Updates documentation on the developer tooling to better explain the usage of benchmarking tools
+- Adds documentation on the usage of the custom docker images for the deployment setup
+- Adds documentation for `autonomy mint` and `autonomy service` command groups
+
+Chores:
+- Updates `tendermint` docker image to use local `wait-for-it.sh` script instead of downloading from source
+
 # 0.7.0 (2023-01-04)
 
 Autonomy:
