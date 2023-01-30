@@ -522,7 +522,8 @@ class RetriesInfo(TypeCheckMixin):
 
 @dataclass(frozen=True)
 class TendermintRecoveryParams(TypeCheckMixin):
-    """A dataclass to hold all parameters related to agent <-> tendermint recovery procedures.
+    """
+    A dataclass to hold all parameters related to agent <-> tendermint recovery procedures.
 
     This must be frozen so that we make sure it does not get edited.
     """
@@ -531,6 +532,7 @@ class TendermintRecoveryParams(TypeCheckMixin):
     round_count: int = ROUND_COUNT_DEFAULT
     reset_index: int = RESET_INDEX_DEFAULT
     reset_params: Optional[List[Tuple[str, str]]] = None
+    serialized_db_state: Optional[str] = None
 
 
 class ApiSpecs(Model, FrozenMixin, TypeCheckMixin):

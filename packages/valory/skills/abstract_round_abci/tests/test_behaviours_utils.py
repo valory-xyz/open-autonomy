@@ -21,7 +21,6 @@
 
 import json
 import logging
-import math
 import platform
 import time
 from abc import ABC
@@ -83,9 +82,8 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviourInternalError,
     DegenerateBehaviour,
     GENESIS_TIME_FMT,
-    HEIGHT_OFFSET_MULTIPLIER,
+    INITIAL_HEIGHT,
     IPFSBehaviour,
-    MIN_HEIGHT_OFFSET,
     NON_200_RETURN_CODE_DURING_RESET_THRESHOLD,
     RPCResponseStatus,
     SendException,
@@ -1967,9 +1965,7 @@ class TestBaseBehaviour:
             assert actual is None
 
         else:
-            offset = math.ceil(interval * HEIGHT_OFFSET_MULTIPLIER)
-            offset = max(MIN_HEIGHT_OFFSET, offset)
-            initial_height = str(height + offset)
+            initial_height = INITIAL_HEIGHT
             genesis_time = timestamp.astimezone(pytz.UTC).strftime(GENESIS_TIME_FMT)
 
             expected = [
@@ -2093,15 +2089,7 @@ class TestBaseBehaviour:
             reset = self.behaviour.reset_tendermint_with_wait(on_startup=on_startup)
             for _ in range(n_iter):
                 next(reset)
-            offset = math.ceil(
-                self.behaviour.params.observation_interval * HEIGHT_OFFSET_MULTIPLIER
-            )
-            offset = max(MIN_HEIGHT_OFFSET, offset)
-            assert offset == 10
-            initial_height = str(
-                self.behaviour.context.state.round_sequence.last_round_transition_tm_height
-                + offset
-            )
+            initial_height = INITIAL_HEIGHT
             genesis_time = self.behaviour.context.state.round_sequence.last_round_transition_timestamp.astimezone(
                 pytz.UTC
             ).strftime(

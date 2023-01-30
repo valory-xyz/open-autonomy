@@ -23,7 +23,6 @@
 import datetime
 import inspect
 import json
-import math
 import pprint
 import re
 import sys
@@ -113,11 +112,10 @@ from packages.valory.skills.abstract_round_abci.models import (
 # TODO: port registration code from registration_abci to here
 
 
-MIN_HEIGHT_OFFSET = 10
-HEIGHT_OFFSET_MULTIPLIER = 1
 NON_200_RETURN_CODE_DURING_RESET_THRESHOLD = 3
 GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 INITIAL_APP_HASH = ""
+INITIAL_HEIGHT = "0"
 TM_REQ_TIMEOUT = 5  # 5 seconds
 
 
@@ -1826,23 +1824,9 @@ class BaseBehaviour(
         genesis_time = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
             GENESIS_TIME_FMT
         )
-        # Initial height needs to account for the asynchrony among agents.
-        # For that reason, we are using an offset in the initial block's height.
-        # The bigger the observation interval, the larger the lag among the agents might be.
-        # Also, if the observation interval is too tiny, we do not want the offset to be too small.
-        # Therefore, we choose between a minimum value and the interval multiplied by a constant.
-        # The larger the `HEIGHT_OFFSET_MULTIPLIER` constant's value, the larger the margin of error.
-        initial_height = str(
-            self.context.state.round_sequence.last_round_transition_tm_height
-            + max(
-                MIN_HEIGHT_OFFSET,
-                math.ceil(self.params.observation_interval * HEIGHT_OFFSET_MULTIPLIER),
-            )
-        )
-
         return [
             ("genesis_time", genesis_time),
-            ("initial_height", initial_height),
+            ("initial_height", INITIAL_HEIGHT),
         ]
 
     def reset_tendermint_with_wait(  # pylint: disable=too-many-locals, too-many-statements
@@ -1914,6 +1898,7 @@ class BaseBehaviour(
                             reset_index=reset_index,
                             round_count=round_count,
                             reset_from_round=restart_from_round.auto_round_id(),
+                            serialized_db_state=shared_state.synchronized_data.db.serialize(),
                         )
                     self._end_reset()
 
@@ -2145,6 +2130,7 @@ class TmManager(BaseBehaviour):
             restart_from_round=recovery_params.reset_from_round,
             round_count=recovery_params.round_count,
             reset_index=recovery_params.reset_index,
+            serialized_db_state=recovery_params.serialized_db_state,
         )
 
         for _ in range(self._max_reset_retry):
