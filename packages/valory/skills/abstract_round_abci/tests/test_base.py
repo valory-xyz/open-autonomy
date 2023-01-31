@@ -937,17 +937,25 @@ class TestAbciAppDB:
         self.db.sync(serialized_data)
         assert self.db._data == data
 
-    @mock.patch.object(
-        json,
-        "loads",
-        side_effect=json.JSONDecodeError(MagicMock(), MagicMock(), MagicMock()),
+    @pytest.mark.parametrize(
+        "serialized_data, match",
+        (
+            (b"", "Could not decode data using "),
+            (
+                json.dumps({"invalid_index": {}}),
+                "An invalid index was found while trying to sync the db using data: ",
+            ),
+            (
+                json.dumps("invalid"),
+                "Could not decode db data with an invalid format: ",
+            ),
+        ),
     )
-    def test_sync_incorrect_data(self, _: mock._patch) -> None:
-        """Test `sync` method."""
-        serialized_data = "incorrectly serialized"
+    def test_sync_incorrect_data(self, serialized_data: Any, match: str) -> None:
+        """Test `sync` method with incorrect data."""
         with pytest.raises(
             ABCIAppInternalError,
-            match=f"Could not decode data using {serialized_data}: ",
+            match=match,
         ):
             self.db.sync(serialized_data)
 
