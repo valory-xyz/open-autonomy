@@ -592,6 +592,13 @@ class TestAbciAppDB:
                 "by updating an item passed via the `__init__`!"
             )
 
+    @pytest.mark.parametrize("data", {0: [{"test": 2}]})
+    def test_reset_index(self, data: Dict) -> None:
+        """Test `reset_index`."""
+        assert self.db.reset_index == 0
+        self.db.sync(self.db.serialize())
+        assert self.db.reset_index == 0
+
     def test_round_count_setter(self) -> None:
         """Tests the round count setter."""
         expected_value = 1
