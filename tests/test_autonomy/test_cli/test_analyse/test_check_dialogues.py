@@ -20,7 +20,7 @@
 """Test `autonomy analyse dialgues` module."""
 
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 from unittest import mock
 
 import yaml
@@ -76,113 +76,101 @@ class BaseAnalyseDialoguesTest(BaseCliTest):
 class TestAnalyseDialogues(BaseAnalyseDialoguesTest):
     """Test analyse dialogues."""
 
-    def test_analyse_default(self) -> None:
-        """Test analyse."""
-
-        config_data = [
-            ("abci_dialogues", "AbciDialogues"),
-        ]
-
+    def run_test(
+        self,
+        config_data: List[Tuple[str, str]],
+        dialogues: List[str],
+        exit_code: int,
+        stdout_checks: List[str],
+        commands: Optional[Tuple[str]] = None,
+    ) -> None:
+        """Run test."""
         self.make_dummy_skill(
             config_data=config_data,
-            dialogues=["AbciDialogues"],
+            dialogues=dialogues,
         )
 
         with self.patch_list_skills():
-            result = self.run_cli(commands=())
+            result = self.run_cli(commands=(commands or ()))
 
-        assert result.exit_code == 0, result.stdout
+        assert result.exit_code == exit_code, result.stdout
+
+        for check in stdout_checks:
+            assert check in result.stdout
+
+    def test_analyse_default(self) -> None:
+        """Test analyse."""
+
+        self.run_test(
+            config_data=[
+                ("abci_dialogues", "AbciDialogues"),
+            ],
+            dialogues=["AbciDialogues"],
+            exit_code=0,
+            stdout_checks=["Checking"],
+        )
 
     def test_analyse_fail_dialogues_does_not_exist(self) -> None:
         """Test analyse."""
 
-        self.make_dummy_skill(
+        self.run_test(
             config_data=[],
             dialogues=[],
+            exit_code=1,
+            stdout_checks=["dialogue file does not exist"],
         )
-
-        with self.patch_list_skills():
-            result = self.run_cli(commands=())
-
-        assert result.exit_code == 1, result.stdout
-        assert "dialogue file does not exist" in result.output
 
     def test_analyse_fail_wrong_class_name(self) -> None:
         """Test analyse."""
 
-        config_data = [
-            ("abci_dialogues", "AbciDialogue"),
-        ]
-
-        self.make_dummy_skill(
-            config_data=config_data,
+        self.run_test(
+            config_data=[
+                ("abci_dialogues", "AbciDialogue"),
+            ],
             dialogues=["AbciDialogue"],
-        )
-
-        with self.patch_list_skills():
-            result = self.run_cli(commands=())
-
-        assert result.exit_code == 1, result.stdout
-        assert (
-            "Class name for a dialogue should end with `Dialogues`; dialogue=abci_dialogues; class=AbciDialogue"
-            in result.output
+            exit_code=1,
+            stdout_checks=[
+                "Class name for a dialogue should end with `Dialogues`; dialogue=abci_dialogues; class=AbciDialogue"
+            ],
         )
 
     def test_analyse_fail_wrong_dialogue_name(self) -> None:
         """Test analyse."""
 
-        config_data = [
-            ("abci_dialogue", "AbciDialogues"),
-        ]
-
-        self.make_dummy_skill(
-            config_data=config_data,
+        self.run_test(
+            config_data=[
+                ("abci_dialogue", "AbciDialogues"),
+            ],
             dialogues=["AbciDialogues"],
-        )
-
-        with self.patch_list_skills():
-            result = self.run_cli(commands=())
-
-        assert result.exit_code == 1, result.stdout
-        assert (
-            "Dialogue name should end with `dialogues`; dialogue=abci_dialogue; class=AbciDialogues"
-            in result.output
+            exit_code=1,
+            stdout_checks=[
+                "Dialogue name should end with `dialogues`; dialogue=abci_dialogue; class=AbciDialogues"
+            ],
         )
 
     def test_analyse_fail_common_dialogue_not_found(self) -> None:
         """Test analyse."""
 
-        config_data = [
-            ("abci_dialogues", "AbciDialogues"),
-        ]
-
-        self.make_dummy_skill(
-            config_data=config_data,
+        self.run_test(
+            config_data=[
+                ("abci_dialogues", "AbciDialogues"),
+            ],
             dialogues=["AbciDialogues"],
+            exit_code=1,
+            stdout_checks=["Common dialogue 'some_dialogues' is not defined"],
+            commands=("-d", "some_dialogues"),
         )
-
-        with self.patch_list_skills():
-            result = self.run_cli(commands=("-d", "some_dialogues"))
-
-        assert result.exit_code == 1, result.stdout
-        assert "Common dialogue 'some_dialogues' is not defined" in result.output
 
     def test_analyse_fail_common_dialogue_class_not_found(self) -> None:
         """Test analyse."""
 
-        config_data = [
-            ("abci_dialogues", "AbciDialogues"),
-            ("some_dialogues", "SomeDialogues"),
-        ]
-
-        self.make_dummy_skill(
-            config_data=config_data,
+        self.run_test(
+            config_data=[
+                ("abci_dialogues", "AbciDialogues"),
+                ("some_dialogues", "SomeDialogues"),
+            ],
             dialogues=["AbciDialogues"],
+            exit_code=1,
+            stdout_checks=["dialogue SomeDialogues declared in", "is missing from"],
+            commands=("-d", "some_dialogues"),
         )
-
-        with self.patch_list_skills():
-            result = self.run_cli(commands=("-d", "some_dialogues"))
-
-        assert result.exit_code == 1, result.stdout
-        assert "dialogue SomeDialogues declared in" in result.output
-        assert "is missing from" in result.output
