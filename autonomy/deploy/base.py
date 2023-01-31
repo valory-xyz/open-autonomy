@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -381,6 +381,7 @@ class BaseDeploymentGenerator(abc.ABC):
     output: str
     tendermint_job_config: Optional[str]
     dev_mode: bool
+    use_tm_testnet_setup: bool
 
     packages_dir: Path
     open_aea_dir: Path
@@ -390,6 +391,7 @@ class BaseDeploymentGenerator(abc.ABC):
         self,
         service_builder: ServiceBuilder,
         build_dir: Path,
+        use_tm_testnet_setup: bool = False,
         dev_mode: bool = False,
         packages_dir: Optional[Path] = None,
         open_aea_dir: Optional[Path] = None,
@@ -399,6 +401,7 @@ class BaseDeploymentGenerator(abc.ABC):
 
         self.service_builder = service_builder
         self.build_dir = build_dir
+        self.use_tm_testnet_setup = use_tm_testnet_setup
         self.dev_mode = dev_mode
         self.packages_dir = packages_dir or Path.cwd().absolute() / "packages"
         self.open_aea_dir = open_aea_dir or Path.home().absolute() / "open-aea"

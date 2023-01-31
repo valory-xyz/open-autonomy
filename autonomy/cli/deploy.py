@@ -138,6 +138,14 @@ def deploy_group(
     default=False,
     help="Include an ACN node in the deployment setup.",
 )
+@click.option(
+    "-ltm",
+    "--local-tm-setup",
+    "use_tm_testnet_setup",
+    is_flag=True,
+    default=False,
+    help="Use local tendermint chain setup.",
+)
 @click.option("--image-version", type=str, help="Define runtime image version.")
 @registry_flag()
 @password_option(confirmation_prompt=True)
@@ -160,6 +168,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     image_version: Optional[str] = None,
     use_hardhat: bool = False,
     use_acn: bool = False,
+    use_tm_testnet_setup: bool = False,
 ) -> None:
     """Build deployment setup for n agents."""
 
@@ -207,6 +216,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             image_version=image_version,
             use_hardhat=use_hardhat,
             use_acn=use_acn,
+            use_tm_testnet_setup=use_tm_testnet_setup,
         )
     except (NotValidKeysFile, FileNotFoundError, FileExistsError) as e:
         shutil.rmtree(build_dir)
