@@ -77,6 +77,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
     capture_log = True
     # generic service configurations
     ROUND_TIMEOUT_SECONDS = 10.0
+    OBSERVATION_INTERVAL = 3
     KEEPER_TIMEOUT = 30.0
     # generic node healthcheck configuration
     HEALTH_CHECK_MAX_RETRIES = 20
@@ -212,7 +213,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
         )
         self.set_config(
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.observation_interval",
-            3,
+            self.OBSERVATION_INTERVAL,
             type_="int",
         )
         self.set_config(
