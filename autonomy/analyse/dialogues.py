@@ -33,9 +33,6 @@ import yaml
 from autonomy.analyse.constants import CLASS_NAME, DIALOGUES, DIALOGUES_FILE, MODELS
 
 
-DIALOGUES_LOWER = DIALOGUES.lower()
-
-
 def load_dialogues_module_from_skill_path(skill_path: Path) -> types.ModuleType:
     """Load `dialogues.py` module for the given skill."""
 
@@ -49,15 +46,16 @@ def load_dialogues_module_from_skill_path(skill_path: Path) -> types.ModuleType:
     return module
 
 
-def validate_and_get_dialogues(configuration: Dict[str, Any]) -> Dict[str, str]:
+def validate_and_get_dialogues(
+    models_configuration: Dict[str, Dict[str, str]]
+) -> Dict[str, str]:
     """Returns dialogue names to class name mappings"""
-
     mapping = {}
-    for name, info in cast(Dict[str, Dict[str, str]], configuration[MODELS]).items():
-        name_ends_with_dialogue = name.endswith(DIALOGUES_LOWER)
+    for name, info in models_configuration.items():
+        name_ends_with_dialogue = name.endswith(DIALOGUES)
 
         class_name = info[CLASS_NAME]
-        class_ends_with_dialogue = class_name.lower().endswith(DIALOGUES_LOWER)
+        class_ends_with_dialogue = class_name.lower().endswith(DIALOGUES)
 
         if not class_ends_with_dialogue and not name_ends_with_dialogue:
             continue
@@ -88,11 +86,13 @@ def check_dialogues_in_a_skill_package(config_file: Path, dialogues: List[str]) 
 
     with open(str(config_file), mode="r", encoding="utf-8") as fp:
         config = yaml.safe_load(fp)
-        dialogue_to_class = validate_and_get_dialogues(configuration=config)
+        dialogue_to_class = validate_and_get_dialogues(
+            models_configuration=cast(Dict[str, Dict[str, str]], config[MODELS])
+        )
 
         for dialogue_name in dialogues:
-            if not dialogue_name.endswith(DIALOGUES_LOWER):
-                dialogue_name = f"{dialogue_name}_{DIALOGUES_LOWER}"
+            if not dialogue_name.endswith(DIALOGUES):
+                dialogue_name = f"{dialogue_name}_{DIALOGUES}"
 
             if dialogue_name not in dialogue_to_class:
                 raise ValueError(

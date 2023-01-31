@@ -223,7 +223,7 @@ def run_handler_check(
     default=[
         "abci",
     ],
-    help="Specify which handlers to check. Eg. -h handler_a -h handler_b -h handler_c",
+    help="Specify which dialogues to check. Eg. -d dialogue_a -d dialogue_b -d dialogue_c",
     multiple=True,
 )
 @click.option(
