@@ -101,16 +101,18 @@ Deploy an agent service.
     help="Include an ACN node in the deployment setup.",
 )
 @click.option(
-    "--use-testnet",
+    "-ltm",
+    "--local-tm-setup",
+    "use_tm_testnet_setup",
     is_flag=True,
     default=False,
-    help="Use tendermint testnet setup.",
+    help="Use local tendermint chain setup.",
 )
 @click.option("--image-version", type=str, help="Define runtime image version.")
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @click.pass_context
-def build_deployment_command(click_context: click.Context, keys_file: Optional[Path], deployment_type: str, output_dir: Optional[Path], dev_mode: bool, force_overwrite: bool, registry: str, number_of_agents: Optional[int] = None, password: Optional[str] = None, open_aea_dir: Optional[Path] = None, packages_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, log_level: str = INFO, aev: bool = False, image_version: Optional[str] = None, use_hardhat: bool = False, use_acn: bool = False, use_testnet: bool = False) -> None
+def build_deployment_command(click_context: click.Context, keys_file: Optional[Path], deployment_type: str, output_dir: Optional[Path], dev_mode: bool, force_overwrite: bool, registry: str, number_of_agents: Optional[int] = None, password: Optional[str] = None, open_aea_dir: Optional[Path] = None, packages_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, log_level: str = INFO, aev: bool = False, image_version: Optional[str] = None, use_hardhat: bool = False, use_acn: bool = False, use_tm_testnet_setup: bool = False) -> None
 ```
 
 Build deployment setup for n agents.
