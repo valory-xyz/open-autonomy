@@ -12,7 +12,7 @@ smart contracts provide, making it possible to execute arbitrarily complex opera
 (such as machine-learning algorithms). Most importantly, agent services are
 **decentralized**, **trust-minimized**, **transparent**, and **robust**.
 
-!!! abstract "Read the whitepaper"
+!!! abstract "Read the Whitepaper"
 
     The [Autonolas Whitepaper](https://autonolas.network/whitepaper/autonolas-whitepaper.pdf), presents a comprehensive discussion on the architecture of the Autonolas Ecosystem. The Open Autonomy framework connects with the **Technical Architecture** section therein as a facilitator to build autonomous services.
     
