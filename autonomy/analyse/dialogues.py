@@ -58,7 +58,7 @@ def validate_and_get_dialogues(
         class_ends_with_dialogue = class_name.lower().endswith(DIALOGUES)
 
         if not class_ends_with_dialogue and not name_ends_with_dialogue:
-            continue
+            continue  # pragma: nocover
 
         if name_ends_with_dialogue and not class_ends_with_dialogue:
             raise ValueError(

@@ -174,3 +174,14 @@ class TestAnalyseDialogues(BaseAnalyseDialoguesTest):
             stdout_checks=["dialogue SomeDialogues declared in", "is missing from"],
             commands=("-d", "some_dialogues"),
         )
+
+    def test_analyse_skip_file(self) -> None:
+        """Test analyse."""
+
+        self.run_test(
+            config_data=[],
+            dialogues=[],
+            exit_code=0,
+            stdout_checks=["Skipping some_skill"],
+            commands=("-i", "some_skill"),
+        )
