@@ -19,7 +19,7 @@ Load `dialogues.py` module for the given skill.
 #### validate`_`and`_`get`_`dialogues
 
 ```python
-def validate_and_get_dialogues(configuration: Dict[str, Any]) -> Dict[str, str]
+def validate_and_get_dialogues(models_configuration: Dict[str, Dict[str, str]]) -> Dict[str, str]
 ```
 
 Returns dialogue names to class name mappings
