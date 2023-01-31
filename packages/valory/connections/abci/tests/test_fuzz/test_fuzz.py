@@ -19,9 +19,7 @@
 
 """Fuzzy tests for valory/abci connection"""
 import os
-import platform
 
-import pytest
 from hypothesis import settings
 
 from packages.valory.connections.abci import CI

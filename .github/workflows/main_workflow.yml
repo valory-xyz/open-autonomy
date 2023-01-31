@@ -5,6 +5,7 @@ on:
     branches:
       - develop
       - main
+      - tmp_branch
   pull_request:
 
 env:
