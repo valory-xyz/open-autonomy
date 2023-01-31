@@ -551,8 +551,10 @@ class AbciAppDB:
     @staticmethod
     def _check_data(data: Any) -> None:
         """Check that all fields in setup data were passed as a list, and that the data can be accepted into the db."""
-        if not isinstance(data, dict) or not all(
-            [isinstance(v, list) for v in data.values()]
+        if (
+            not isinstance(data, dict)
+            or not all((isinstance(k, str) for k in data.keys()))
+            or not all((isinstance(v, list) for v in data.values()))
         ):
             raise ValueError(
                 f"AbciAppDB data must be `Dict[str, List[Any]]`, found `{type(data)}` instead."
