@@ -322,7 +322,7 @@ class TestTendermintDeploymentGenerators(BaseDeploymentTests):
             for spec in get_valid_deployments():
                 spec_path = self.write_deployment(spec)
                 deployer_instance, app_instance = self.load_deployer_and_app(
-                    spec_path, deployment_generator, use_testnet=True
+                    spec_path, deployment_generator, use_tm_testnet_setup=True
                 )
                 res = deployer_instance.generate_config_tendermint()  # type: ignore
                 assert (

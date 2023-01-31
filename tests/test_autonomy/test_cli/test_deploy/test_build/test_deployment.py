@@ -158,7 +158,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                     str(self.t / DEFAULT_BUILD_FOLDER),
                     "--force",
                     "--local",
-                    "--use-testnet",
+                    "--local-tm-setup",
                 )
             )
 
@@ -553,7 +553,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
                     "--force",
                     "--local",
                     "--kubernetes",
-                    "--use-testnet",
+                    "--local-tm-setup",
                 )
             )
 
