@@ -26,7 +26,7 @@ import importlib.util
 import types
 from importlib.machinery import ModuleSpec
 from pathlib import Path
-from typing import Any, Dict, List, cast
+from typing import Dict, List, cast
 
 import yaml
 

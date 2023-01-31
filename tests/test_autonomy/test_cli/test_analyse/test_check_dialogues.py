@@ -82,7 +82,7 @@ class TestAnalyseDialogues(BaseAnalyseDialoguesTest):
         dialogues: List[str],
         exit_code: int,
         stdout_checks: List[str],
-        commands: Optional[Tuple[str]] = None,
+        commands: Optional[Tuple[str, ...]] = None,
     ) -> None:
         """Run test."""
         self.make_dummy_skill(
