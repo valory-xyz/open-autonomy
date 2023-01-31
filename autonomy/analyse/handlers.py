@@ -30,10 +30,7 @@ from typing import List, cast
 
 import yaml
 
-from autonomy.configurations.constants import CLASS_NAME, HANDLERS
-
-
-HANDLERS_FILE = f"{HANDLERS}.py"
+from autonomy.analyse.constants import CLASS_NAME, HANDLERS, HANDLERS_FILE
 
 
 def load_handler_module_from_skill_path(skill_path: Path) -> types.ModuleType:

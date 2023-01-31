@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,20 +17,13 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Configuration constants."""
+"""Constants for analyse module."""
 
+CLASS_NAME = "class_name"
 
-from pathlib import Path
+HANDLERS = "handlers"
+DIALOGUES = "dialogues"
+MODELS = "models"
 
-
-CONFIG_PATH = Path(__file__).absolute().parent
-SCHEMAS_DIR = CONFIG_PATH / "schemas"
-DEFAULT_SERVICE_CONFIG_FILE = "service.yaml"
-SERVICE = "service"
-SERVICES = "services"
-INIT_PY = "__init__.py"
-PYCACHE = "__pycache__"
-
-DEFAULT_FSM_SPEC_YAML = "fsm_specification.yaml"
-DEFAULT_FSM_SPEC_JSON = "fsm_specification.json"
-DEFAULT_FSM_SPEC_MERMAID = "fsm_specification.md"
+HANDLERS_FILE = f"{HANDLERS}.py"
+DIALOGUES_FILE = f"{DIALOGUES}.py"
