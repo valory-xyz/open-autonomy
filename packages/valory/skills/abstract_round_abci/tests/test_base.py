@@ -924,10 +924,8 @@ class TestAbciAppDB:
         """Test `serialize` method."""
         assert self.db.serialize() == '{"0": {"participants": [["a", "b"]]}}'
 
-    @pytest.mark.parametrize(
-        "data", (0, "test_syncing", {"test": "syncing"}, list(range(9)))
-    )
-    def test_sync(self, data: Any) -> None:
+    @pytest.mark.parametrize("data", ({0: {"test": [0]}},))
+    def test_sync(self, data: Dict[int, Dict[str, List[Any]]]) -> None:
         """Test `sync` method."""
         try:
             serialized_data = json.dumps(data)
