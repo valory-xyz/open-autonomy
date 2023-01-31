@@ -69,7 +69,6 @@ OK_CODE = 0
 ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 ROUND_COUNT_DEFAULT = -1
-RESET_INDEX_DEFAULT = -1
 MIN_HISTORY_DEPTH = 1
 ADDRESS_LENGTH = 42
 MAX_INT_256 = 2 ** 256 - 1
@@ -2064,7 +2063,6 @@ class AbciApp(
         self._last_timestamp: Optional[datetime.datetime] = None
         self._current_timeout_entries: List[int] = []
         self._timeouts = Timeouts[EventType]()
-        self._reset_index = 0
         self._is_termination_set = (
             self.background_round_cls is not None
             and self.termination_transition_function is not None
@@ -2109,16 +2107,6 @@ class AbciApp(
             else latest_result
         )
         return result
-
-    @property
-    def reset_index(self) -> int:
-        """Return the reset index."""
-        return self._reset_index
-
-    @reset_index.setter
-    def reset_index(self, reset_index: int) -> None:
-        """Set the reset index."""
-        self._reset_index = reset_index
 
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:
@@ -2453,7 +2441,6 @@ class AbciApp(
         self.synchronized_data.db.cleanup(
             cleanup_history_depth, cleanup_history_depth_current
         )
-        self._reset_index += 1
 
     def cleanup_current_histories(self, cleanup_history_depth_current: int) -> None:
         """Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter."""
@@ -2860,7 +2847,6 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self,
         restart_from_round: str,
         round_count: int,
-        reset_index: int,
         serialized_db_state: Optional[str] = None,
     ) -> None:
         """
@@ -2870,12 +2856,10 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
 
         :param restart_from_round: from which round to restart the abci. This round should be the first round in the last period.
         :param round_count: the round count at the beginning of the period -1.
-        :param reset_index: the reset index (a.k.a. period count) -1.
         :param serialized_db_state: the state of the database at the beginning of the period. If provided, the database will be reset to this state.
         """
         self._reset_to_default_params()
         self.abci_app.synchronized_data.db.round_count = round_count
-        self.abci_app.reset_index = reset_index
         if serialized_db_state is not None:
             self.abci_app.synchronized_data.db.sync(serialized_db_state)
         round_id_to_cls = {

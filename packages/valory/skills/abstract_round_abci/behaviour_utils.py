@@ -1884,18 +1884,12 @@ class BaseBehaviour(
                         # so that in the future if the communication with tendermint breaks, and we need to
                         # perform a hard reset to restore it, we can use these as the right ones
                         shared_state = cast(SharedState, self.context.state)
-                        # we take one from the reset index and round count because they are incremented
-                        # when resetting and scheduling rounds respectively
-                        reset_index = (
-                            shared_state.round_sequence.abci_app.reset_index - 1
-                        )
                         round_count = shared_state.synchronized_data.db.round_count - 1
                         # in case we need to reset in order to recover agent <-> tm communication
                         # we store this round as the one to start from
                         restart_from_round = self.matching_round
                         shared_state.tm_recovery_params = TendermintRecoveryParams(
                             reset_params=reset_params,
-                            reset_index=reset_index,
                             round_count=round_count,
                             reset_from_round=restart_from_round.auto_round_id(),
                             serialized_db_state=shared_state.synchronized_data.db.serialize(),
@@ -2129,7 +2123,6 @@ class TmManager(BaseBehaviour):
         shared_state.round_sequence.reset_state(
             restart_from_round=recovery_params.reset_from_round,
             round_count=recovery_params.round_count,
-            reset_index=recovery_params.reset_index,
             serialized_db_state=recovery_params.serialized_db_state,
         )
 
