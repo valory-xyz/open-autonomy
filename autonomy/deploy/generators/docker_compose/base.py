@@ -121,7 +121,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
     def generate_config_tendermint(self) -> "DockerComposeGenerator":
         """Generate the command to configure tendermint testnet."""
 
-        if not self.use_testnet:
+        if not self.use_tm_testnet_setup:
             return self
 
         hosts = (
