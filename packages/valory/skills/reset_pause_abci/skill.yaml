@@ -70,6 +70,9 @@ models:
   ipfs_dialogues:
     args: {}
     class_name: IpfsDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
   params:
     args:
       cleanup_history_depth: 1

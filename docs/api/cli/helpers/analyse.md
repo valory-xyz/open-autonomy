@@ -24,3 +24,13 @@ def list_all_skill_yaml_files(registry_path: Path) -> List[Path]
 
 List all skill yaml files in a local registry
 
+<a id="autonomy.cli.helpers.analyse.run_dialogues_check"></a>
+
+#### run`_`dialogues`_`check
+
+```python
+def run_dialogues_check(packages_dir: Path, ignore: List[str], dialogues: List[str]) -> None
+```
+
+Run dialogues check.
+
