@@ -34,3 +34,13 @@ def run_dialogues_check(packages_dir: Path, ignore: List[str], dialogues: List[s
 
 Run dialogues check.
 
+<a id="autonomy.cli.helpers.analyse.check_service_readiness"></a>
+
+#### check`_`service`_`readiness
+
+```python
+def check_service_readiness(token_id: Optional[int], service_path: Path, chain_type: ChainType) -> None
+```
+
+Check deployment readiness of a service.
+
