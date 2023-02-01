@@ -297,9 +297,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
             missed_messages[
                 tuple(self.tx_settlement_synchronized_data.all_participants)[0]
             ] += 1
-            self.tx_settlement_synchronized_data.update(
-                missed_messages=missed_messages
-            )
+            self.tx_settlement_synchronized_data.update(missed_messages=missed_messages)
         else:
             handlers: HandlersType = [
                 self.ledger_handler,

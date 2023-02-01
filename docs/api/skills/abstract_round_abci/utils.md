@@ -342,3 +342,13 @@ def is_json_serializable(obj: Any) -> bool
 
 Checks if the given object is json serializable.
 
+<a id="packages.valory.skills.abstract_round_abci.utils.filter_negative"></a>
+
+#### filter`_`negative
+
+```python
+def filter_negative(mapping: Dict[str, int]) -> Iterator[str]
+```
+
+Return the keys of a dictionary for which the values are negative integers.
+

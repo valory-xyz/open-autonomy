@@ -100,7 +100,9 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
             lambda *_, **__: mock.MagicMock()
         )
 
-        db = AbciAppDB(setup_data={"all_participants": [f"agent_{i}" for i in range(4)]})
+        db = AbciAppDB(
+            setup_data={"all_participants": [f"agent_{i}" for i in range(4)]}
+        )
         self.test_cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(db)
 
         test_instance = cast(_TxHelperIntegration, self.setup_test_cls())

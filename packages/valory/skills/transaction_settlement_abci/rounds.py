@@ -626,7 +626,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - round timeout: 8.
             - no majority: 8.
             - none: 6.
-            - missed and late messages mismatch: 12.
+            - suspicious activity: 12.
         9. CheckLateTxHashesRound
             - done: 11.
             - negative: 12.
