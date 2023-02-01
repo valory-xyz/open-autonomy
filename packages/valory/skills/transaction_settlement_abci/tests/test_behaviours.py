@@ -1190,7 +1190,7 @@ class TestCheckTransactionHistoryBehaviour(TransactionSettlementFSMBehaviourBase
 class TestCheckLateTxHashesBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test CheckLateTxHashesBehaviour."""
 
-    def _fast_forward(self, late_arriving_tx_hashes: str) -> None:
+    def _fast_forward(self, late_arriving_tx_hashes: Dict[str, str]) -> None:
         """Fast-forward to relevant behaviour."""
 
         agent_address = self.skill.skill_context.agent_address
@@ -1215,8 +1215,7 @@ class TestCheckLateTxHashesBehaviour(TransactionSettlementFSMBehaviourBaseCase):
 
     def test_check_tx_history_behaviour(self) -> None:
         """Test CheckTransactionHistoryBehaviour."""
-
-        self._fast_forward(late_arriving_tx_hashes="")
+        self._fast_forward(late_arriving_tx_hashes={})
         self.behaviour.act_wrapper()
         self.behaviour.act_wrapper()
         self.mock_a2a_transaction()
