@@ -40,7 +40,6 @@ from typing_extensions import Literal, TypedDict
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
-    RESET_INDEX_DEFAULT,
     ROUND_COUNT_DEFAULT,
 )
 from packages.valory.skills.abstract_round_abci.models import (
@@ -422,7 +421,6 @@ class TestSharedState:
         shared_state = SharedState(name="", skill_context=MagicMock())
         assert shared_state.tm_recovery_params is not None
         assert shared_state.tm_recovery_params.round_count == ROUND_COUNT_DEFAULT
-        assert shared_state.tm_recovery_params.reset_index == RESET_INDEX_DEFAULT
         assert (
             shared_state.tm_recovery_params.reset_from_round
             == AbciAppTest.initial_round_cls.auto_round_id()

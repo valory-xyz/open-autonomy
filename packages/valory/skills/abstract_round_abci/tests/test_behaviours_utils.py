@@ -2128,10 +2128,6 @@ class TestBaseBehaviour:
                         == shared_state.synchronized_data.db.round_count - 1
                     )
                     assert (
-                        tm_recovery_params.reset_index
-                        == shared_state.round_sequence.abci_app.reset_index - 1
-                    )
-                    assert (
                         tm_recovery_params.reset_from_round
                         == self.behaviour.matching_round.auto_round_id()
                     )

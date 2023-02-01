@@ -1538,13 +1538,6 @@ class TestAbciApp:
         CopyOfAbciApp._is_abstract = flag
         assert CopyOfAbciApp.is_abstract() is flag
 
-    @given(integers())
-    def test_reset_index(self, reset_index: int) -> None:
-        """Test `reset_index` getter and setter."""
-
-        self.abci_app.reset_index = reset_index
-        assert self.abci_app.reset_index == self.abci_app._reset_index == reset_index
-
     def test_initial_round_cls_not_set(self) -> None:
         """Test when 'initial_round_cls' is not set."""
 
@@ -2298,7 +2291,7 @@ class TestRoundSequence:
         serialized_db_state: str,
     ) -> None:
         """Tests reset_state"""
-        round_count, reset_index = 1, 1
+        round_count = 1
         with mock.patch.object(
             self.round_sequence,
             "_reset_to_default_params",
@@ -2307,7 +2300,7 @@ class TestRoundSequence:
             round_id = restart_from_round.auto_round_id()
             if restart_from_round in transition_fn:
                 self.round_sequence.reset_state(
-                    round_id, round_count, reset_index, serialized_db_state
+                    round_id, round_count, serialized_db_state
                 )
                 mock_reset.assert_called()
             else:
@@ -2324,7 +2317,6 @@ class TestRoundSequence:
                     self.round_sequence.reset_state(
                         restart_from_round.auto_round_id(),
                         round_count,
-                        reset_index,
                         serialized_db_state,
                     )
 
