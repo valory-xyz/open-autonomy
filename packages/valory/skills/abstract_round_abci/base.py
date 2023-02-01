@@ -551,8 +551,10 @@ class AbciAppDB:
     @staticmethod
     def _check_data(data: Any) -> None:
         """Check that all fields in setup data were passed as a list, and that the data can be accepted into the db."""
-        if not isinstance(data, dict) or not all(
-            [isinstance(v, list) for v in data.values()]
+        if (
+            not isinstance(data, dict)
+            or not all((isinstance(k, str) for k in data.keys()))
+            or not all((isinstance(v, list) for v in data.values()))
         ):
             raise ValueError(
                 f"AbciAppDB data must be `Dict[str, List[Any]]`, found `{type(data)}` instead."
@@ -675,6 +677,11 @@ class AbciAppDB:
         """Serialize the data of the database to a string."""
         return json.dumps(self._data, sort_keys=True)
 
+    @staticmethod
+    def _as_abci_data(data: Dict) -> Dict[int, Any]:
+        """Hook to load serialized data as `AbciAppDB` data."""
+        return {int(index): content for index, content in data.items()}
+
     def sync(self, serialized_data: str) -> None:
         """Synchronize the data using a serialized object.
 
@@ -682,11 +689,23 @@ class AbciAppDB:
         :raises ABCIAppInternalError: if the given data cannot be deserialized.
         """
         try:
-            self._data = json.loads(serialized_data)
+            loaded_data = json.loads(serialized_data)
+            loaded_data = self._as_abci_data(loaded_data)
         except json.JSONDecodeError as exc:
             raise ABCIAppInternalError(
                 f"Could not decode data using {serialized_data}: {exc}"
             ) from exc
+        except AttributeError as exc:
+            raise ABCIAppInternalError(
+                f"Could not decode db data with an invalid format: {serialized_data}"
+            ) from exc
+        except ValueError as exc:
+            raise ABCIAppInternalError(
+                f"An invalid index was found while trying to sync the db using data: {serialized_data}"
+            ) from exc
+
+        self._check_data(dict(tuple(loaded_data.values())[0]))
+        self._data = loaded_data
 
     def hash(self) -> bytes:
         """Create a hash of the data."""

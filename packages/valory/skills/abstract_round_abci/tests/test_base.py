@@ -592,6 +592,13 @@ class TestAbciAppDB:
                 "by updating an item passed via the `__init__`!"
             )
 
+    @pytest.mark.parametrize("data", {0: [{"test": 2}]})
+    def test_reset_index(self, data: Dict) -> None:
+        """Test `reset_index`."""
+        assert self.db.reset_index == 0
+        self.db.sync(self.db.serialize())
+        assert self.db.reset_index == 0
+
     def test_round_count_setter(self) -> None:
         """Tests the round count setter."""
         expected_value = 1
@@ -917,10 +924,8 @@ class TestAbciAppDB:
         """Test `serialize` method."""
         assert self.db.serialize() == '{"0": {"participants": [["a", "b"]]}}'
 
-    @pytest.mark.parametrize(
-        "data", (0, "test_syncing", {"test": "syncing"}, list(range(9)))
-    )
-    def test_sync(self, data: Any) -> None:
+    @pytest.mark.parametrize("data", ({0: {"test": [0]}},))
+    def test_sync(self, data: Dict[int, Dict[str, List[Any]]]) -> None:
         """Test `sync` method."""
         try:
             serialized_data = json.dumps(data)
@@ -932,17 +937,25 @@ class TestAbciAppDB:
         self.db.sync(serialized_data)
         assert self.db._data == data
 
-    @mock.patch.object(
-        json,
-        "loads",
-        side_effect=json.JSONDecodeError(MagicMock(), MagicMock(), MagicMock()),
+    @pytest.mark.parametrize(
+        "serialized_data, match",
+        (
+            (b"", "Could not decode data using "),
+            (
+                json.dumps({"invalid_index": {}}),
+                "An invalid index was found while trying to sync the db using data: ",
+            ),
+            (
+                json.dumps("invalid"),
+                "Could not decode db data with an invalid format: ",
+            ),
+        ),
     )
-    def test_sync_incorrect_data(self, _: mock._patch) -> None:
-        """Test `sync` method."""
-        serialized_data = "incorrectly serialized"
+    def test_sync_incorrect_data(self, serialized_data: Any, match: str) -> None:
+        """Test `sync` method with incorrect data."""
         with pytest.raises(
             ABCIAppInternalError,
-            match=f"Could not decode data using {serialized_data}: ",
+            match=match,
         ):
             self.db.sync(serialized_data)
 

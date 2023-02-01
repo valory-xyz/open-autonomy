@@ -69,11 +69,9 @@ class RegistrationBaseBehaviour(BaseBehaviour, ABC):
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            initialisation = json.dumps(
-                self.synchronized_data.db.setup_data, sort_keys=True
-            )
+            serialized_db = self.synchronized_data.db.serialize()
             payload = RegistrationPayload(
-                self.context.agent_address, initialisation=initialisation
+                self.context.agent_address, initialisation=serialized_db
             )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
