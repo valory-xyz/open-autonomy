@@ -1702,14 +1702,14 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound, AB
 
     none_event: Any
 
-    def _get_non_empty_values(self) -> List:
+    def _get_non_empty_values(self) -> Dict[str, Any]:
         """Get the non-empty values from the payload, for the given attribute."""
-        non_empty_values = []
+        non_empty_values = {}
 
-        for payload in self.collection.values():
+        for sender, payload in self.collection.items():
             attribute_value = getattr(payload, self.payload_attribute, None)
             if attribute_value is not None:
-                non_empty_values.append(attribute_value)
+                non_empty_values[sender] = attribute_value
 
         return non_empty_values
 
