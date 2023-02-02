@@ -89,7 +89,6 @@ class TestTendermintStartup(BaseTestEnd2EndExecution):
 
 @pytest.mark.e2e
 @pytest.mark.integration
-@pytest.mark.flaky(reruns=1)
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestTendermintReset(BaseTestEnd2EndExecution):
     """Test the ABCI register-reset skill with 4 agents when resetting Tendermint."""
@@ -99,18 +98,19 @@ class TestTendermintReset(BaseTestEnd2EndExecution):
     happy_path = HAPPY_PATH
     key_pairs = KEY_PAIRS
     wait_to_finish = 200
-    __reset_tendermint_every = 1
+    _reset_tendermint_every = 1
+    _observation_interval = 15
     package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     # reset every `__reset_tendermint_every` rounds
     extra_configs = [
         {
             "dotted_path": f"{__args_prefix}.reset_tendermint_after",
-            "value": __reset_tendermint_every,
+            "value": _reset_tendermint_every,
         },
         {
             "dotted_path": f"{__args_prefix}.observation_interval",
-            "value": 15,
+            "value": _observation_interval,
         },
     ]
 
@@ -164,3 +164,21 @@ class TestTendermintResetInterruptNoRejoin(TestTendermintResetInterrupt):
     restart_after = wait_to_finish
     # check if we manage to reset with Tendermint with the rest of the agents; first agent will not rejoin in this test
     exclude_from_checks = [0]
+
+
+@pytest.mark.e2e
+@pytest.mark.integration
+class TestTendermintResetRejoin(TestTendermintReset):
+    """Test the ABCI register-reset skill with 4 agents when resetting Tendermint and one agent tries to rejoin."""
+
+    stop_string = (
+        f"Entered in the '{RegistrationRound.auto_round_id()}' round for period 1"
+    )
+    n_terminal = 1
+    wait_before_stop = 100
+    _n_resets_before_rejoin = 1
+    restart_after = (
+        TestTendermintReset._observation_interval
+        * TestTendermintReset._reset_tendermint_every
+        * _n_resets_before_rejoin
+    )
