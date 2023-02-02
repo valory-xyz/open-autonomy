@@ -10,7 +10,7 @@ fingerprint:
   __init__.py: bafybeicjyrltgdmwzvctebhfteyyd5mbrjashiji4glwf5vwcijuyzzm24
   abci_app_chain.py: bafybeick5fz6hpbbvpmjkm2o3rl5csgvqf4ivwmqdluj2p4jmcpea4xmsq
   base.py: bafybeig2ndz2fumc45epdn7d72z4fnad5caxho3upgpybqboyfptnusf7m
-  behaviour_utils.py: bafybeify6zyqkafcpoksghrsger5abd2fukz3ddy6254muzxuug7emahei
+  behaviour_utils.py: bafybeicileexjlqpljklwrudnohxsqbxtikipi37ge6tnpezzriq3fvhuu
   behaviours.py: bafybeicapzsvzowpjawkxgkhf2m4qb7c3alh5rsysrxp55o7pmjt6bu2g4
   common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
   dialogues.py: bafybeid5sgrfa7ghnnjpssltgtey5gzt5kc2jlaitffaukvhhdbhrzcjti
@@ -41,7 +41,7 @@ fingerprint:
   tests/test_base.py: bafybeihkdugc3st6uznqde37x74dzoukuohkfcag4v5fxkwllhe2fvybbe
   tests/test_base_rounds.py: bafybeifv2yxdkr6qejepzy7c4mdb3osczsoy6op3abdr45uy2ucqnmjpxa
   tests/test_behaviours.py: bafybeibupzyvoyyrtvmptcxl7qdrpzjsesjgyt66zrwh6dkrhrgnmnd734
-  tests/test_behaviours_utils.py: bafybeid5m4bonwpcet37jm7lcbfosfqjhpzbxkiyaeqxifaeasgmiqnxgm
+  tests/test_behaviours_utils.py: bafybeibbqdmozqwixfxah6xodljgxzstipo7cywohgxoxg3ijmkw67bxma
   tests/test_common.py: bafybeigruyqp6h4qim3nsijeg5mvoot2dei2yzm5zxpank22vjyyiaysue
   tests/test_dialogues.py: bafybeigpfrslqaz2yullyehia5bsl7cmy2qqxtz627ig7rbrypw5xfzeum
   tests/test_handlers.py: bafybeie3dopk2rhun4qeq4p7dswgfvwbbzr4f2mcmc5githzbec2yxrvgq
@@ -60,7 +60,7 @@ fingerprint:
   utils.py: bafybeigy6henuivr6d4obgzex2oh4doqu7ayj2x7zc5v3knev4qlfs2yaa
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vm
+- valory/abci:0.1.0:bafybeighcaluiqf4ss6oxx42cmyrsrfpuciazliuni5xmrfooo3f52d24a
 - valory/http_client:0.23.0:bafybeigggahci7hq6tr3tyueatgkvgn73y4b3av2vk7vtr7jkeuwsqcteq
 - valory/ipfs:0.1.0:bafybeihtvkn5uv3ibumme7zzmrxx7iehc6lnjhil726h2jidpdzzjnd5ay
 - valory/ledger:0.19.0:bafybeicpxyoxez7lperltamvikxu6vzk2lhqakbivce4nzywyzoqbxoogm
@@ -76,7 +76,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeigqr4y3ykz3iulrcoqmji7hy3dxaoy7zmyyzff4ivpbubcpwdknai
 - valory/tendermint:0.1.0:bafybeiep2dilpmu3je4z2kq7yc7l6n7ax5knwfax2ufvmnflt3uj2wrbju
 skills:
-- valory/abstract_abci:0.1.0:bafybeidwizzka3qjotu35zzstoqunp3hjhkx6oojqnlwqsvd3qnjjpmusq
+- valory/abstract_abci:0.1.0:bafybeia3p6gguzuciufv7abp72f6rbkui7z3hrzp7pyrhi4bzui7hjaxkq
 behaviours:
   main:
     args: {}
