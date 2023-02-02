@@ -100,7 +100,9 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
             lambda *_, **__: mock.MagicMock()
         )
 
-        db = AbciAppDB(setup_data={})
+        db = AbciAppDB(
+            setup_data={"all_participants": [f"agent_{i}" for i in range(4)]}
+        )
         self.test_cls.tx_settlement_synchronized_data = TxSettlementSynchronizedSata(db)
 
         test_instance = cast(_TxHelperIntegration, self.setup_test_cls())
@@ -197,9 +199,9 @@ class Test_TxHelperIntegration(FSMBehaviourTestToolSetup):
 
         test_instance = self.instantiate_test()
         synchronized_data = test_instance.tx_settlement_synchronized_data
-        assert synchronized_data.missed_messages == 0
+        assert synchronized_data.n_missed_messages == 0
         test_instance.validate_tx(simulate_timeout=True)
-        assert synchronized_data.missed_messages == 1
+        assert synchronized_data.n_missed_messages == 1
 
     def test_validate_tx_failure(self) -> None:
         """Test validate tx failure"""
