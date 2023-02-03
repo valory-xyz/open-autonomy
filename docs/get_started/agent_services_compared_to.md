@@ -18,7 +18,7 @@ The table below highlights the main differences between agent services and other
 | **Continuous/always-on** |  :heavy_check_mark: |                    | :heavy_check_mark: |               :heavy_check_mark:              |
 | **Flexible**             |  :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |                                               |
 | **Composable**           |  :heavy_check_mark: | :heavy_check_mark: |                    |                                               |
-| **DAO-Owned**            |  :heavy_check_mark: | :heavy_check_mark: |                    |                                               |
+| **DAO-owned**            |  :heavy_check_mark: | :heavy_check_mark: |                    |                                               |
 | **Full-stack**           |  :heavy_check_mark: |                    |                    |                :heavy_check_mark:             |
 
 **Smart contracts** are computer programs that live on-chain. They are crypto-native, can be audited and can use any functionality already available in the blockchain. Their security relies
