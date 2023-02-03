@@ -271,7 +271,10 @@ class TendermintNode:
                     ]:
                         if line.find(trigger) >= 0:
                             self._stop_tm_process()
-                            self._start_tm_process()
+                            # we can only reach this step if monitoring was activated
+                            # so we make sure that after reset the monitoring continues
+                            monitoring = True
+                            self._start_tm_process(monitoring)
                             self.write_line(
                                 f"Restarted the HTTP RPC server, as a connection was dropped with message:\n\t\t {line}\n"
                             )
