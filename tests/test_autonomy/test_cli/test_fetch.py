@@ -159,6 +159,22 @@ class TestFetchServiceCommand(FetchTest):
 
         shutil.rmtree(service_dir)
 
+    def test_fetch_service_mixed(
+        self,
+    ) -> None:
+        """Test fetch service in mixed mode."""
+        with mock.patch(
+            "autonomy.cli.helpers.registry.fetch_service_local",
+            side_effect=Exception("expected"),
+        ) as fetch_local_mock, mock.patch(
+            "autonomy.cli.helpers.registry.fetch_service_ipfs"
+        ) as fetch_remote_mock:
+            result = self.run_cli(("--mixed", "valory/counter"))
+
+        assert result.exit_code == 0, result.output
+        fetch_local_mock.assert_called_once()
+        fetch_remote_mock.assert_called_once()
+
     def test_not_a_service_package(
         self,
     ) -> None:
