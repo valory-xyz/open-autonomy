@@ -34,7 +34,7 @@ Find a more comprehensive description in the [overview of the development proces
 
 Get started with {{open_autonomy}}, **learn the main concepts** and get some context on how agent services fit in the wider crypto ecosystem.
 
-[Get started](./get_started/what_is_the_open_autonomy_framework.md){ .md-button .md-button--primary}
+[Get started](./get_started/what_is_an_agent_service.md){ .md-button .md-button--primary}
 
 ------
 
