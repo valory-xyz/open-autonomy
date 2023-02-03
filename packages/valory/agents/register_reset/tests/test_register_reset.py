@@ -66,7 +66,7 @@ HAPPY_PATH = (
 @pytest.mark.integration
 @pytest.mark.flaky(reruns=1)
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestTendermintStartup(BaseTestEnd2EndExecution):
+class TestTendermintStartup(UseRegistries, UseACNNode, BaseTestEnd2EndExecution):
     """Test the ABCI register-reset skill with 4 agents starting up."""
 
     agent_package = "valory/register_reset:0.1.0"
@@ -90,7 +90,7 @@ class TestTendermintStartup(BaseTestEnd2EndExecution):
 @pytest.mark.e2e
 @pytest.mark.integration
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestTendermintReset(BaseTestEnd2EndExecution):
+class TestTendermintReset(UseRegistries, UseACNNode, BaseTestEnd2EndExecution):
     """Test the ABCI register-reset skill with 4 agents when resetting Tendermint."""
 
     agent_package = "valory/register_reset:0.1.0"

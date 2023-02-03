@@ -19,7 +19,7 @@ fingerprint:
   tests/helpers/slow_tendermint_server/tendermint.py: bafybeibdtbgu3yb7cczxnuui5ewp2npdxmpunjzoeqoqfv5itq567qw2em
   tests/helpers/slow_tendermint_server/wrapper.sh: bafybeif2wssashoaw7ifz6q3ocmejkuz32ycwta4w5dcjunns4g2awkv2y
   tests/test_hard_reset_race_condition.py: bafybeihnw7j7aahu2kqsak7vr2bjjf6rvkvyyk4gylbhjcmandwoe5of3u
-  tests/test_register_reset.py: bafybeibg7zzm2lbe7c6rh6jn3ff66pba777abppkvl5jzgyuttrrdkha2q
+  tests/test_register_reset.py: bafybeibyoxg4txwcddz3uiwoq4e63vyjttygrfzfb7zk4gd7g3sski2uxi
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeighcaluiqf4ss6oxx42cmyrsrfpuciazliuni5xmrfooo3f52d24a
@@ -36,7 +36,7 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeia3p6gguzuciufv7abp72f6rbkui7z3hrzp7pyrhi4bzui7hjaxkq
 - valory/abstract_round_abci:0.1.0:bafybeif4rehfw55bbuciw6bklqpsu2gpzocj4kwcrafzzonu3rvbpytoge
-- valory/register_reset_abci:0.1.0:bafybeiefgltgcvc5g5uacjlppn36gf6ggwp2v7sczlkyltbyynunjb32we
+- valory/register_reset_abci:0.1.0:bafybeidhmdpgsycrlmnzns6iuj5bvlnqjfhnu7hy7oujbapa3akljstqgm
 - valory/registration_abci:0.1.0:bafybeiei2cdsj6nkxc36esgdlzx3huwj4536ctiv6qmygyatmxl4intkyy
 - valory/reset_pause_abci:0.1.0:bafybeih7bwli72k57ldm6hdg57gvdna2kahh5mhydkpewlcrby7o7nqhia
 default_ledger: ethereum
@@ -97,23 +97,14 @@ public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
 config:
   nodes:
-  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9005}
-    public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
-  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9006}
-    public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
+  - uri: ${P2P_URI:str:localhost:11000}
+    public_key: ${P2P_PUBLIC_KEY:str:03c74dbfbe7bbc1b42429f78778017a3cd7eaf9d59d1634c9505a3f7c1a9350e71}
 cert_requests:
 - identifier: acn
   ledger_id: ethereum
   message_format: '{public_key}'
   not_after: '2023-01-01'
   not_before: '2022-01-01'
-  public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
-  save_path: .certs/acn_cosmos_9005.txt
-- identifier: acn
-  ledger_id: ethereum
-  message_format: '{public_key}'
-  not_after: '2023-01-01'
-  not_before: '2022-01-01'
-  public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
-  save_path: .certs/acn_cosmos_9006.txt
+  public_key: ${P2P_PUBLIC_KEY:str:03c74dbfbe7bbc1b42429f78778017a3cd7eaf9d59d1634c9505a3f7c1a9350e71}
+  save_path: .certs/acn_cosmos_11000.txt
 is_abstract: false
