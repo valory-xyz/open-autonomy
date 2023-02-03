@@ -1715,12 +1715,10 @@ class BaseBehaviour(
         :param performative: the ACN request performative.
         :return: the result that the majority of the agents sent. If majority cannot be reached, returns `None`.
         """
-        ourself = {self.context.agent_address}
-        # reset the ACN deliverables at the beginning of a new request
-        addresses = self.synchronized_data.all_participants - ourself
-        cast(
+        shared_state = cast(
             SharedState, self.context.state
-        ).address_to_acn_deliverable = dict.fromkeys(addresses)
+        )
+        shared_state.address_to_acn_deliverable = shared_state.acn_container()
 
         for i in range(self.params.max_attempts):
             self.context.logger.debug(
