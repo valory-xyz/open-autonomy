@@ -28,10 +28,10 @@ from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
 from aea.configurations.constants import PACKAGES
 
-from autonomy.analyse.abci.logs import parse_file
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
 from autonomy.analyse.handlers import check_handlers
 from autonomy.cli.helpers.analyse import (
+    ParseLogs,
     list_all_skill_yaml_files,
     load_package_tree,
     run_dialogues_check,
@@ -47,6 +47,7 @@ from autonomy.cli.utils.click_utils import (
 )
 
 
+TIME_FORMAT_TEMPLATE = "YYYY-MM-DD-H-M-S-MS"
 BENCHMARKS_DIR = Path("./benchmarks.html")
 
 filterwarnings("ignore")
@@ -160,13 +161,61 @@ def docstrings(ctx: Context, update: bool) -> None:
                 click.echo("No update needed.")
 
 
-@analyse_group.command(name="logs")
-@click.argument("file", type=click.Path(file_okay=True, dir_okay=False, exists=True))
-def parse_logs(file: str) -> None:
-    """Parse logs of an agent service."""
+@analyse_group.command("logs")
+@click.option(
+    "--from-dir",
+    "logs_dir",
+    type=click.Path(
+        exists=True,
+    ),
+    required=True,
+    help="Path to logs directory",
+)
+@click.option(
+    "--reset-db",
+    is_flag=True,
+    help="Path to logs directory",
+)
+@click.option(
+    "-a",
+    "--agent",
+    "agents",
+    type=str,
+    multiple=True,
+    help="Agent IDs to include in analysis",
+    required=True,
+)
+@click.option(
+    "--start-time",
+    type=str,
+    help=f"Start time in `{TIME_FORMAT_TEMPLATE}` format",
+)
+@click.option(
+    "--end-time",
+    type=str,
+    help=f"End time in `{TIME_FORMAT_TEMPLATE}` format",
+)
+def _parse_logs(
+    logs_dir: Optional[Path],
+    agents: List[str],
+    start_time: Optional[str],
+    end_time: Optional[str],
+    reset_db: bool = False,
+) -> None:
+    """A tool for analysing autonomous agent runtime logs"""
 
-    with reraise_as_click_exception(Exception):
-        parse_file(file)
+    parser = ParseLogs()
+    if logs_dir is not None:
+        parser.from_dir(logs_dir=Path(logs_dir))
+
+    parser.create_tables(reset=reset_db)
+    result = parser.select(agents=agents, start_time=start_time, end_time=end_time)
+
+    for agent, logs in result.items():
+        click.echo(f"--- Agent {agent} ---")
+        for timestamp, log_level, message in logs:
+            click.echo(f"[{timestamp}] [{log_level}] {message}")
+        click.echo("--- End of logs ---\n")
 
 
 @analyse_group.command(name="handlers")

@@ -19,8 +19,9 @@
 
 """Helpers for analyse command"""
 
+from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import Dict, List, Optional, Union, cast
 
 import click
 from aea.components.base import load_aea_package
@@ -30,6 +31,9 @@ from aea.configurations.loader import load_configuration_object
 from aea.package_manager.v1 import PackageManagerV1
 
 from autonomy.analyse.dialogues import check_dialogues_in_a_skill_package
+from autonomy.analyse.logs.base import LOGS_DB, LogRow, TIME_FORMAT
+from autonomy.analyse.logs.collection import FromDirectory, LogCollection
+from autonomy.analyse.logs.db import AgentLogsDB
 from autonomy.cli.utils.click_utils import sys_path_patch
 
 
@@ -77,3 +81,64 @@ def run_dialogues_check(
                 )
     except (ValueError, FileNotFoundError, ImportError) as e:
         raise click.ClickException(str(e))
+
+
+class ParseLogs:
+    """Parse agent logs."""
+
+    _dbs: Dict[str, AgentLogsDB]
+    _collection: LogCollection
+    _db_path: Path
+
+    def __init__(self) -> None:
+        """Initialize object."""
+
+    def from_dir(self, logs_dir: Path) -> "ParseLogs":
+        """From directory"""
+
+        self._db_path = logs_dir / LOGS_DB
+        self._collection = FromDirectory(directory=logs_dir)
+        self._dbs = {
+            agent: AgentLogsDB(agent=agent, file=self._db_path)
+            for agent in self._collection.agents
+        }
+
+        return self
+
+    def create_tables(self, reset: bool = False) -> "ParseLogs":
+        """Create required tables."""
+
+        for agent, db in self._dbs.items():
+            db_exists = db.exists()
+            if db_exists and not reset:
+                continue
+
+            self._collection.create_agent_db(
+                agent=agent,
+                db=db,
+                reset=reset,
+            )
+
+        return self
+
+    def select(
+        self,
+        agents: List[str],
+        start_time: Optional[Union[str, datetime]],
+        end_time: Optional[Union[str, datetime]],
+    ) -> Dict[str, List[LogRow]]:
+        """Query and return results."""
+
+        if start_time is not None:
+            start_time = datetime.strptime(cast(str, start_time), TIME_FORMAT)
+
+        if end_time is not None:
+            end_time = datetime.strptime(cast(str, end_time), TIME_FORMAT)
+
+        results = {}
+        for agent in agents:
+            results[agent] = self._dbs[agent].select(
+                start_time=start_time, end_time=end_time
+            )
+
+        return results
