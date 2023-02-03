@@ -7,19 +7,19 @@ Recall that an **autonomous service** is a decentralized service that runs off-c
 
 The table below highlights the main differences between agent services and other software solutions.
 
-|                          | **Autonomous services (agent services)** |   Smart contracts  |    Web services    | Custom decentralized services (e.g., Oracles) |
-|--------------------------|:-------------------:|:------------------:|:------------------:|:---------------------------------------------:|
-| **Location**             |      Off-chain      |      On-chain      |      Off-chain     |                   Off-chain                   |
-| **Decentralized**        |  :heavy_check_mark: | :heavy_check_mark: |                    |               :heavy_check_mark:              |
-| **Robust**               |  :heavy_check_mark: | :heavy_check_mark: |                    |               :heavy_check_mark:              |
-| **Transparent**          |  :heavy_check_mark: | :heavy_check_mark: |                    |               :heavy_check_mark:              |
-| **Complex processing**   |  :heavy_check_mark: |                    | :heavy_check_mark: |               :heavy_check_mark:              |
-| **Cross-chain**          |  :heavy_check_mark: |                    | :heavy_check_mark: |               :heavy_check_mark:              |
-| **Continuous/always-on** |  :heavy_check_mark: |                    | :heavy_check_mark: |               :heavy_check_mark:              |
-| **Flexible**             |  :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |                                               |
-| **Composable**           |  :heavy_check_mark: | :heavy_check_mark: |                    |                                               |
-| **DAO-owned**            |  :heavy_check_mark: | :heavy_check_mark: |                    |                                               |
-| **Full-stack**           |  :heavy_check_mark: |                    |                    |                :heavy_check_mark:             |
+|                          |   Smart contracts  |    Web services    | Custom decentralized services (e.g., Oracles) | **Autonomous services (agent services)** |
+|--------------------------|:------------------:|:------------------:|:---------------------------------------------:|:----------------------------------------:|
+| **Location**             |      On-chain      |      Off-chain     |                   Off-chain                   |                 Off-chain                |
+| **Decentralized**        | :heavy_check_mark: |         :x:        |               :heavy_check_mark:              |            :heavy_check_mark:            |
+| **Robust**               | :heavy_check_mark: |         :x:        |               :heavy_check_mark:              |            :heavy_check_mark:            |
+| **Transparent**          | :heavy_check_mark: |         :x:        |               :heavy_check_mark:              |            :heavy_check_mark:            |
+| **Complex processing**   |         :x:        | :heavy_check_mark: |               :heavy_check_mark:              |            :heavy_check_mark:            |
+| **Cross-chain**          |         :x:        | :heavy_check_mark: |               :heavy_check_mark:              |            :heavy_check_mark:            |
+| **Continuous/always-on** |         :x:        | :heavy_check_mark: |               :heavy_check_mark:              |            :heavy_check_mark:            |
+| **Flexible**             | :heavy_check_mark: | :heavy_check_mark: |                      :x:                      |            :heavy_check_mark:            |
+| **Composable**           | :heavy_check_mark: |         :x:        |                      :x:                      |            :heavy_check_mark:            |
+| **DAO-owned**            | :heavy_check_mark: |         :x:        |                      :x:                      |            :heavy_check_mark:            |
+| **Full-stack**           |         :x:        | :heavy_check_mark: |                      :x:                      |            :heavy_check_mark:            |
 
 **Smart contracts** are computer programs that live on-chain. They are crypto-native, can be audited and can use any functionality already available in the blockchain. Their security relies
 on the security of the underlying blockchain. However, due to their nature, they have a number of limitations, including the inability of doing complex operations, talking to other APIs or interact with other blockchains.
