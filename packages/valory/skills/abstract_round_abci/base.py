@@ -75,7 +75,7 @@ MAX_INT_256 = 2 ** 256 - 1
 RESET_COUNT_START = 0
 VALUE_NOT_PROVIDED = object()
 # tolerance in seconds for new blocks not having arrived yet
-BLOCKS_STALL_TOLERANCE = 60
+BLOCKS_STALL_TOLERANCE = 10
 
 EventType = TypeVar("EventType")
 
@@ -710,8 +710,11 @@ class AbciAppDB:
         """Create a hash of the data."""
         # Compute the sha256 hash of the serialized data
         sha256 = hashlib.sha256()
-        sha256.update(self.serialize().encode("utf-8"))
-        return sha256.digest()
+        data = self.serialize()
+        sha256.update(data.encode("utf-8"))
+        hash_ = sha256.digest()
+        _logger.info(f"hash: {hash_.hex()}; data: {self.serialize()}")
+        return hash_
 
     @staticmethod
     def data_to_lists(data: Dict[str, Any]) -> Dict[str, List[Any]]:
@@ -2371,7 +2374,7 @@ class AbciApp(
             self._current_round_cls = None
             self._current_round = None
 
-    def update_time(self, timestamp: datetime.datetime) -> None:
+    def update_time(self, timestamp: datetime.datetime, is_syncing: bool = False) -> None:
         """
         Observe timestamp from last block.
 
@@ -2390,7 +2393,7 @@ class AbciApp(
             return
 
         earliest_deadline, _ = self._timeouts.get_earliest_timeout()
-        while earliest_deadline <= timestamp:
+        while not is_syncing and earliest_deadline <= timestamp:
             # the earliest deadline is expired. Pop it from the
             # priority queue and process the timeout event.
             expired_deadline, timeout_event = self._timeouts.pop_timeout()
@@ -2713,7 +2716,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         )
         self._block_builder.reset()
         self._block_builder.header = header
-        self.abci_app.update_time(header.timestamp)
+        self.abci_app.update_time(header.timestamp, self.syncing_up)
         # we use the local time of the agent to specify the expiration of the deadline
         self._block_stall_deadline = datetime.datetime.now() + datetime.timedelta(
             seconds=BLOCKS_STALL_TOLERANCE
@@ -2862,6 +2865,10 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self.abci_app.synchronized_data.db.round_count = round_count
         if serialized_db_state is not None:
             self.abci_app.synchronized_data.db.sync(serialized_db_state)
+            # When the agents prepare the recovery state, their db reflects the state of their last round.
+            # Furthermore, that hash is then in turn used as the init hash when the tm network is reset.
+            self._last_round_transition_root_hash = self.root_hash
+
         round_id_to_cls = {
             cls.auto_round_id(): cls for cls in self.abci_app.transition_function
         }

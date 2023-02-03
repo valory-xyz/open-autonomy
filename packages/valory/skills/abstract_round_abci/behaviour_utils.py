@@ -1872,10 +1872,6 @@ class BaseBehaviour(
                         self.context.state.round_sequence.reset_blockchain(
                             is_replay=is_replay, is_init=True
                         )
-                    self.context.state.round_sequence.abci_app.cleanup(
-                        self.params.cleanup_history_depth,
-                        self.params.cleanup_history_depth_current,
-                    )
                     for handler_name in self.context.handlers.__dict__.keys():
                         dialogues = getattr(self.context, f"{handler_name}_dialogues")
                         dialogues.cleanup()
@@ -1894,6 +1890,10 @@ class BaseBehaviour(
                             reset_from_round=restart_from_round.auto_round_id(),
                             serialized_db_state=shared_state.synchronized_data.db.serialize(),
                         )
+                    self.context.state.round_sequence.abci_app.cleanup(
+                        self.params.cleanup_history_depth,
+                        self.params.cleanup_history_depth_current,
+                    )
                     self._end_reset()
 
                 else:

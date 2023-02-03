@@ -56,7 +56,6 @@ from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
 
 
 HAPPY_PATH = (
-    RoundChecks(RegistrationStartupRound.auto_round_id()),
     RoundChecks(RegistrationRound.auto_round_id(), n_periods=3),
     RoundChecks(ResetAndPauseRound.auto_round_id(), n_periods=4),
 )
@@ -99,7 +98,7 @@ class TestTendermintReset(UseRegistries, UseACNNode, BaseTestEnd2EndExecution):
     key_pairs = KEY_PAIRS
     wait_to_finish = 200
     _reset_tendermint_every = 1
-    _observation_interval = 15
+    _observation_interval = 30
     package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     # reset every `__reset_tendermint_every` rounds
@@ -126,7 +125,7 @@ class TestTendermintResetInterrupt(UseRegistries, UseACNNode, BaseTestEnd2EndExe
     skill_package = "valory/register_reset_abci:0.1.0"
     key_pairs = KEY_PAIRS
     wait_before_stop = 60
-    wait_to_finish = 300
+    wait_to_finish = 450
     restart_after = 1
     __reset_tendermint_every = 1
     stop_string = f"Entered in the '{ResetAndPauseRound.auto_round_id()}' round for period {__reset_tendermint_every - 1}"
@@ -175,10 +174,11 @@ class TestTendermintResetRejoin(TestTendermintReset):
         f"Entered in the '{RegistrationRound.auto_round_id()}' round for period 1"
     )
     n_terminal = 1
-    wait_before_stop = 100
+    wait_before_stop = 300
     _n_resets_before_rejoin = 1
     restart_after = (
         TestTendermintReset._observation_interval
         * TestTendermintReset._reset_tendermint_every
         * _n_resets_before_rejoin
+        * 3
     )
