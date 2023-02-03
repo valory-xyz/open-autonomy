@@ -29,8 +29,8 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeif32nchkgn6yet7e5gt4auhf7lsahxnj4t36kxbw55p3gi7qpeuxq
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeif4gzyhhxizgpisl6d6hvkffc43c4thc6nnsfbfrynnbkaluzruga
-- valory/transaction_settlement_abci:0.1.0:bafybeie6z7amzuardobkxy4b4n4yuzbbhwwpfjc67zvfyxivdb44y6wls4
+- valory/abstract_round_abci:0.1.0:bafybeicbfb36p74pw7yh7hlasknenba6hhdmjrql7xghw63qq2bvtfoofa
+- valory/transaction_settlement_abci:0.1.0:bafybeih2rx2sbbt4p3uarcybwxwav4rzwcukeus4x2uwbesr3yjjkpvtvu
 behaviours:
   main:
     args: {}
@@ -74,6 +74,9 @@ models:
   ipfs_dialogues:
     args: {}
     class_name: IpfsDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
   params:
     args:
       cleanup_history_depth: 1

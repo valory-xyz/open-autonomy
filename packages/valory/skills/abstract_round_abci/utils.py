@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utility functions for the 'abstract_round_abci' skill."""
+
 import builtins
 import collections
 import dataclasses
@@ -30,6 +31,7 @@ from typing import (
     Any,
     Dict,
     FrozenSet,
+    Iterator,
     List,
     Optional,
     Set,
@@ -480,3 +482,8 @@ def is_json_serializable(obj: Any) -> bool:
         )
 
     return is_primitive_or_none(obj)
+
+
+def filter_negative(mapping: Dict[str, int]) -> Iterator[str]:
+    """Return the keys of a dictionary for which the values are negative integers."""
+    return (key for key, number in mapping.items() if number < 0)

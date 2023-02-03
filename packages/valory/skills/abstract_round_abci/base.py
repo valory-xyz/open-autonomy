@@ -70,7 +70,6 @@ OK_CODE = 0
 ERROR_CODE = 1
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 ROUND_COUNT_DEFAULT = -1
-RESET_INDEX_DEFAULT = -1
 MIN_HISTORY_DEPTH = 1
 ADDRESS_LENGTH = 42
 MAX_INT_256 = 2 ** 256 - 1
@@ -557,8 +556,10 @@ class AbciAppDB:
     @staticmethod
     def _check_data(data: Any) -> None:
         """Check that all fields in setup data were passed as a list, and that the data can be accepted into the db."""
-        if not isinstance(data, dict) or not all(
-            [isinstance(v, list) for v in data.values()]
+        if (
+            not isinstance(data, dict)
+            or not all((isinstance(k, str) for k in data.keys()))
+            or not all((isinstance(v, list) for v in data.values()))
         ):
             raise ValueError(
                 f"AbciAppDB data must be `Dict[str, List[Any]]`, found `{type(data)}` instead."
@@ -681,6 +682,11 @@ class AbciAppDB:
         """Serialize the data of the database to a string."""
         return json.dumps(self._data, sort_keys=True)
 
+    @staticmethod
+    def _as_abci_data(data: Dict) -> Dict[int, Any]:
+        """Hook to load serialized data as `AbciAppDB` data."""
+        return {int(index): content for index, content in data.items()}
+
     def sync(self, serialized_data: str) -> None:
         """Synchronize the data using a serialized object.
 
@@ -688,11 +694,23 @@ class AbciAppDB:
         :raises ABCIAppInternalError: if the given data cannot be deserialized.
         """
         try:
-            self._data = json.loads(serialized_data)
+            loaded_data = json.loads(serialized_data)
+            loaded_data = self._as_abci_data(loaded_data)
         except json.JSONDecodeError as exc:
             raise ABCIAppInternalError(
                 f"Could not decode data using {serialized_data}: {exc}"
             ) from exc
+        except AttributeError as exc:
+            raise ABCIAppInternalError(
+                f"Could not decode db data with an invalid format: {serialized_data}"
+            ) from exc
+        except ValueError as exc:
+            raise ABCIAppInternalError(
+                f"An invalid index was found while trying to sync the db using data: {serialized_data}"
+            ) from exc
+
+        self._check_data(dict(tuple(loaded_data.values())[0]))
+        self._data = loaded_data
 
     def hash(self) -> bytes:
         """Create a hash of the data."""
@@ -1726,20 +1744,21 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound, AB
     none_event: Any
     selection_key: Union[str, Tuple[str, ...]]
 
-    def _get_non_empty_values(self) -> Tuple[Tuple[Any, ...], ...]:
+    def _get_non_empty_values(self) -> Dict[str, Tuple[Any, ...]]:
         """Get the non-empty values from the payload, for all attributes."""
-        non_empty_values: List[List[Any]] = []
+        non_empty_values: Dict[str, List[List[Any]]] = {}
 
-        for payload in self.collection.values():
-            if non_empty_values == []:
-                non_empty_values = [
-                    [] if value is None else [value] for value in payload.values
+        for sender, payload in self.collection.items():
+            if sender not in non_empty_values:
+                non_empty_values[sender] = [
+                    value for value in payload.values if value is not None
                 ]
+                if len(non_empty_values[sender]) == 0:
+                    del non_empty_values[sender]
                 continue
-            for count, value in enumerate(payload.values):
-                if value is not None:
-                    non_empty_values[count].append(value)
-        non_empty_values_ = tuple(tuple(li) for li in non_empty_values)
+        non_empty_values_ = {
+            sender: tuple(li) for sender, li in non_empty_values.items()
+        }
         return non_empty_values_
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
@@ -1753,10 +1772,15 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound, AB
             non_empty_values = self._get_non_empty_values()
 
             if isinstance(self.selection_key, tuple):
-                data: Dict[str, Any] = dict(zip(self.selection_key, non_empty_values))
+                data: Dict[str, Any] = {
+                    sender: dict(zip(self.selection_key, values))
+                    for sender, values in non_empty_values.items()
+                }
             else:
                 data = {
-                    self.selection_key: non_empty_values[0],
+                    self.selection_key: {
+                        sender: values[0] for sender, values in non_empty_values.items()
+                    },
                 }
             data[self.collection_key] = self.serialized_collection
 
@@ -2089,7 +2113,6 @@ class AbciApp(
         self._last_timestamp: Optional[datetime.datetime] = None
         self._current_timeout_entries: List[int] = []
         self._timeouts = Timeouts[EventType]()
-        self._reset_index = 0
         self._is_termination_set = (
             self.background_round_cls is not None
             and self.termination_transition_function is not None
@@ -2134,16 +2157,6 @@ class AbciApp(
             else latest_result
         )
         return result
-
-    @property
-    def reset_index(self) -> int:
-        """Return the reset index."""
-        return self._reset_index
-
-    @reset_index.setter
-    def reset_index(self, reset_index: int) -> None:
-        """Set the reset index."""
-        self._reset_index = reset_index
 
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:
@@ -2478,7 +2491,6 @@ class AbciApp(
         self.synchronized_data.db.cleanup(
             cleanup_history_depth, cleanup_history_depth_current
         )
-        self._reset_index += 1
 
     def cleanup_current_histories(self, cleanup_history_depth_current: int) -> None:
         """Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter."""
@@ -2697,17 +2709,13 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         """
         Get the Merkle root hash of the application state.
 
-        Create an app hash that always increases in order to avoid conflicts between resets.
-        Eventually, we do not necessarily need to have a value that increases, but we have to generate a hash that
-        is always different among the resets, since our abci's state is different even thought we have reset the chain!
-        For example, if we are in height 11, reset and then reach height 11 again, if we end up using the same hash
-        at height 11 between the resets, then this is problematic.
+        This is going to be the database's hash.
+        In this way, the app hash will be reflecting our application's state,
+        and will guarantee that all the agents on the chain apply the changes of the arriving blocks in the same way.
 
         :return: the root hash to be included as the Header.AppHash in the next block.
         """
-        return f"root:{self.abci_app.synchronized_data.db.round_count}reset:{self.abci_app.reset_index}".encode(
-            "utf-8"
-        )
+        return self.abci_app.synchronized_data.db.hash()
 
     @property
     def tm_height(self) -> int:
@@ -2889,7 +2897,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self,
         restart_from_round: str,
         round_count: int,
-        reset_index: int,
+        serialized_db_state: Optional[str] = None,
     ) -> None:
         """
         This method resets the state of RoundSequence to the begging of the period.
@@ -2898,11 +2906,12 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
 
         :param restart_from_round: from which round to restart the abci. This round should be the first round in the last period.
         :param round_count: the round count at the beginning of the period -1.
-        :param reset_index: the reset index (a.k.a. period count) -1.
+        :param serialized_db_state: the state of the database at the beginning of the period. If provided, the database will be reset to this state.
         """
         self._reset_to_default_params()
         self.abci_app.synchronized_data.db.round_count = round_count
-        self.abci_app.reset_index = reset_index
+        if serialized_db_state is not None:
+            self.abci_app.synchronized_data.db.sync(serialized_db_state)
         round_id_to_cls = {
             cls.auto_round_id(): cls for cls in self.abci_app.transition_function
         }

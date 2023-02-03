@@ -46,7 +46,6 @@ from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AddBlockError,
-    BaseSynchronizedData,
     ERROR_CODE,
     LateArrivingTransaction,
     OK_CODE,
@@ -553,33 +552,14 @@ class TendermintHandler(Handler):
         """Tear down the handler."""
 
     @property
-    def synchronized_data(self) -> BaseSynchronizedData:
-        """Not yet synchronized here.
+    def initial_tm_configs(self) -> Dict[str, Dict[str, Any]]:
+        """A mapping of the other agents' addresses to their initial Tendermint configuration."""
+        return self.context.state.initial_tm_configs
 
-        The Tendermint network needs to be (re-)established after
-        Tendermint configuration exchange with the other agents
-        registered on-chain for this service.
-
-        This handler is used during RegistrationStartupBehaviour.
-        At this point there is no historical data yet over which
-        consensus has been achieved. We access it here to store
-        the information of other agents' Tendermint configurations
-        under `registered_addresses`.
-
-        :return: the synchronized data.
-        """
-        return cast(
-            BaseSynchronizedData,
-            cast(SharedState, self.context.state).synchronized_data,
-        )
-
-    @property
-    def registered_addresses(self) -> Dict[str, Dict[str, Any]]:
-        """Registered addresses retrieved on-chain from service registry contract"""
-        return cast(
-            Dict[str, Dict[str, Any]],
-            self.synchronized_data.db.get("registered_addresses", {}),
-        )
+    @initial_tm_configs.setter
+    def initial_tm_configs(self, configs: Dict[str, Dict[str, Any]]) -> None:
+        """A mapping of the other agents' addresses to their initial Tendermint configuration."""
+        self.context.state.initial_tm_configs = configs
 
     @property
     def dialogues(self) -> Optional[TendermintDialogues]:
@@ -641,7 +621,7 @@ class TendermintHandler(Handler):
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> bool:
         """Check if the sender is registered on-chain and if not, reply with an error"""
-        if message.sender in self.registered_addresses:
+        if message.sender in self.initial_tm_configs:
             return True
 
         self._not_registered_error(message, dialogue)
@@ -652,7 +632,7 @@ class TendermintHandler(Handler):
     ) -> None:
         """Handler Tendermint config-sharing request message"""
 
-        if not self.registered_addresses:
+        if not self.initial_tm_configs:
             log_message = self.LogMessages.no_addresses_retrieved_yet.value
             self.context.logger.info(f"{log_message}: {message}")
             self._reply_with_tendermint_error(message, dialogue, log_message)
@@ -661,7 +641,7 @@ class TendermintHandler(Handler):
         if not self._check_registered(message, dialogue):
             return
 
-        info = self.registered_addresses[self.context.agent_address]
+        info = self.initial_tm_configs[self.context.agent_address]
         response = dialogue.reply(
             performative=TendermintMessage.Performative.GENESIS_INFO,
             target_message=message,
@@ -709,9 +689,9 @@ class TendermintHandler(Handler):
             self._reply_with_tendermint_error(message, dialogue, log_message)
             return
 
-        registered_addresses = self.registered_addresses
-        registered_addresses[message.sender] = validator_config
-        self.synchronized_data.db.update(registered_addresses=registered_addresses)
+        initial_tm_configs = self.initial_tm_configs
+        initial_tm_configs[message.sender] = validator_config
+        self.initial_tm_configs = initial_tm_configs
         log_message = self.LogMessages.collected_config_info.value
         self.context.logger.info(f"{log_message}: {message}")
         dialogues = cast(TendermintDialogues, self.dialogues)

@@ -93,6 +93,7 @@ common-checks-2:
 	tox -e check-abci-docstrings
 	tox -e check-abciapp-specs
 	tox -e check-handlers
+	tox -e check-dialogues
 	tox -e check-doc-links-hashes
 
 .PHONY: docs

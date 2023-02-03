@@ -175,10 +175,21 @@ Get the most_voted_tx_hash.
 
 ```python
 @property
-def missed_messages() -> int
+def missed_messages() -> Dict[str, int]
 ```
 
-Check the number of missed messages.
+The number of missed messages per agent address.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.n_missed_messages"></a>
+
+#### n`_`missed`_`messages
+
+```python
+@property
+def n_missed_messages() -> int
+```
+
+The number of missed messages in total.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.should_check_late_messages"></a>
 
@@ -197,10 +208,21 @@ Check if we should check for late-arriving messages.
 
 ```python
 @property
-def late_arriving_tx_hashes() -> List[str]
+def late_arriving_tx_hashes() -> Dict[str, List[str]]
 ```
 
 Get the late_arriving_tx_hashes.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.suspects"></a>
+
+#### suspects
+
+```python
+@property
+def suspects() -> Tuple[str]
+```
+
+Get the suspect agents.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.most_voted_check_result"></a>
 
@@ -522,7 +544,7 @@ Transition states:
         - done: 9.
         - round timeout: 8.
         - none: 6.
-        - missed and late messages mismatch: 12.
+        - suspicious activity: 12.
     9. CheckLateTxHashesRound
         - done: 11.
         - negative: 12.

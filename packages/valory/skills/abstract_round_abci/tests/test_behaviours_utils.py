@@ -21,7 +21,6 @@
 
 import json
 import logging
-import math
 import platform
 import time
 from abc import ABC
@@ -83,12 +82,9 @@ from packages.valory.skills.abstract_round_abci.behaviour_utils import (
     BaseBehaviourInternalError,
     DegenerateBehaviour,
     GENESIS_TIME_FMT,
-    HEIGHT_OFFSET_MULTIPLIER,
+    INITIAL_HEIGHT,
     IPFSBehaviour,
-    MIN_HEIGHT_OFFSET,
     NON_200_RETURN_CODE_DURING_RESET_THRESHOLD,
-    RESET_HASH,
-    ROOT_HASH,
     RPCResponseStatus,
     SendException,
     TimeoutException,
@@ -456,20 +452,9 @@ class BehaviourATest(BaseBehaviour):
 
 def _get_status_patch_wrapper(
     latest_block_height: int,
-    expected_round_count: Optional[int],
-    expected_reset_index: Optional[int],
+    app_hash: str,
 ) -> Callable[[Any, Any], Generator[None, None, MagicMock]]:
     """Wrapper for `_get_status` method patch."""
-
-    if any(
-        app_hash_param is None
-        for app_hash_param in (expected_round_count, expected_reset_index)
-    ):
-        app_hash = ""
-    else:
-        app_hash = (
-            f"{ROOT_HASH}{expected_round_count}{RESET_HASH}{expected_reset_index}"
-        )
 
     def _get_status_patch(*_: Any, **__: Any) -> Generator[None, None, MagicMock]:
         """Patch `_get_status` method"""
@@ -822,36 +807,8 @@ class TestBaseBehaviour:
         gen = self.behaviour.send_a2a_transaction(MagicMock())
         try_send(gen)
 
-    def test_sync_state(self) -> None:
-        """Test `_sync_state`."""
-        app_hash = ""
-        self.behaviour._sync_state(app_hash)
-        assert self.behaviour.context.state.round_sequence.abci_app.reset_index == 0
-
-        app_hash = "726F6F743A356072657365743A370"
-        self.behaviour._sync_state(app_hash)
-        assert self.behaviour.context.state.round_sequence.abci_app.reset_index == 70
-
-        app_hash = "incorrect"
-        with pytest.raises(
-            ValueError,
-            match=(
-                "Expected an app hash of the form: `726F6F743A3{ROUND_COUNT}72657365743A3{RESET_INDEX}`,"
-                "which is derived from `root:{ROUND_COUNT}reset:{RESET_INDEX}`. "
-                "For example, `root:90reset:4` would be `726F6F743A39072657365743A34`. "
-                f"However, the app hash received is: `{app_hash}`."
-            ),
-        ):
-            self.behaviour._sync_state(app_hash)
-
-    @pytest.mark.parametrize(
-        "expected_round_count, expected_reset_index",
-        ((None, None), (0, 0), (123, 4), (235235, 754)),
-    )
     def test_async_act_wrapper_agent_sync_mode(
         self,
-        expected_round_count: Optional[int],
-        expected_reset_index: Optional[int],
     ) -> None:
         """Test 'async_act_wrapper' in sync mode."""
         self.behaviour.context.state.round_sequence.syncing_up = True
@@ -861,23 +818,12 @@ class TestBaseBehaviour:
         with mock.patch.object(logging, "info") as log_mock, mock.patch.object(
             BaseBehaviour,
             "_get_status",
-            _get_status_patch_wrapper(0, expected_round_count, expected_reset_index),
+            _get_status_patch_wrapper(0, "test"),
         ):
             gen = self.behaviour.async_act_wrapper()
             for __ in range(3):
                 try_send(gen)
             log_mock.assert_called_with("local height == remote == 0; Sync complete...")
-
-        if any(
-            app_hash_param is None
-            for app_hash_param in (expected_round_count, expected_reset_index)
-        ):
-            expected_reset_index = 0
-
-        assert (
-            self.behaviour.context.state.round_sequence.abci_app.reset_index
-            == expected_reset_index
-        )
 
     @mock.patch.object(BaseBehaviour, "_get_status", _get_status_wrong_patch)
     def test_async_act_wrapper_agent_sync_mode_where_height_dont_match(self) -> None:
@@ -2002,9 +1948,15 @@ class TestBaseBehaviour:
         ),
         st.integers(),
         st.integers(),
+        st.integers(),
     )
     def test_get_reset_params(
-        self, default: bool, timestamp: datetime, height: int, interval: int
+        self,
+        default: bool,
+        timestamp: datetime,
+        height: int,
+        interval: int,
+        period: int,
     ) -> None:
         """Test `_get_reset_params` method."""
         self.context_mock.state.round_sequence.last_round_transition_timestamp = (
@@ -2012,6 +1964,7 @@ class TestBaseBehaviour:
         )
         self.context_mock.state.round_sequence.last_round_transition_tm_height = height
         self.behaviour.params.observation_interval = interval
+        self.context_state_synchronized_data_mock.period_count = period
 
         actual = self.behaviour._get_reset_params(default)
 
@@ -2019,14 +1972,14 @@ class TestBaseBehaviour:
             assert actual is None
 
         else:
-            offset = math.ceil(interval * HEIGHT_OFFSET_MULTIPLIER)
-            offset = max(MIN_HEIGHT_OFFSET, offset)
-            initial_height = str(height + offset)
+            initial_height = INITIAL_HEIGHT
             genesis_time = timestamp.astimezone(pytz.UTC).strftime(GENESIS_TIME_FMT)
+            period_count = str(period)
 
             expected = [
                 ("genesis_time", genesis_time),
                 ("initial_height", initial_height),
+                ("period_count", period_count),
             ]
 
             assert actual == expected
@@ -2127,6 +2080,8 @@ class TestBaseBehaviour:
                 return mock.MagicMock(body=b"")
             return mock.MagicMock(body=json.dumps(status_response).encode())
 
+        period_count_mock = MagicMock()
+        self.context_state_synchronized_data_mock.period_count = period_count_mock
         self.behaviour.params.observation_interval = 1
         with mock.patch.object(
             BaseBehaviour, "_is_timeout_expired", return_value=False
@@ -2145,15 +2100,7 @@ class TestBaseBehaviour:
             reset = self.behaviour.reset_tendermint_with_wait(on_startup=on_startup)
             for _ in range(n_iter):
                 next(reset)
-            offset = math.ceil(
-                self.behaviour.params.observation_interval * HEIGHT_OFFSET_MULTIPLIER
-            )
-            offset = max(MIN_HEIGHT_OFFSET, offset)
-            assert offset == 10
-            initial_height = str(
-                self.behaviour.context.state.round_sequence.last_round_transition_tm_height
-                + offset
-            )
+            initial_height = INITIAL_HEIGHT
             genesis_time = self.behaviour.context.state.round_sequence.last_round_transition_timestamp.astimezone(
                 pytz.UTC
             ).strftime(
@@ -2164,6 +2111,7 @@ class TestBaseBehaviour:
                 [
                     ("genesis_time", genesis_time),
                     ("initial_height", initial_height),
+                    ("period_count", str(period_count_mock)),
                 ]
                 if not on_startup
                 else None
@@ -2190,10 +2138,6 @@ class TestBaseBehaviour:
                     assert (
                         tm_recovery_params.round_count
                         == shared_state.synchronized_data.db.round_count - 1
-                    )
-                    assert (
-                        tm_recovery_params.reset_index
-                        == shared_state.round_sequence.abci_app.reset_index - 1
                     )
                     assert (
                         tm_recovery_params.reset_from_round

@@ -61,6 +61,8 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
         if not self.collection_threshold_reached:
             return None
 
+        self.synchronized_data.db.sync(self.common_payload)
+
         synchronized_data = self.synchronized_data.update(
             participants=tuple(self.collection),
             synchronized_data_class=self.synchronized_data_class,
@@ -91,6 +93,8 @@ class RegistrationRound(CollectSameUntilThresholdRound):
             and self.block_confirmations
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
+            self.synchronized_data.db.sync(self.most_voted_payload)
+
             synchronized_data = self.synchronized_data.update(
                 participants=tuple(self.collection),
                 synchronized_data_class=self.synchronized_data_class,

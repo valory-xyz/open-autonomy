@@ -583,12 +583,18 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
             consensus_params=self.consensus_params,
         )
         payloads = get_dummy_tx_payloads(self.participants)
-        object.__setattr__(payloads[3], "value", None)
+        none_payload_idx = 3
+        object.__setattr__(payloads[none_payload_idx], "value", None)
         for payload in payloads:
             test_round.process_payload(payload)
 
         non_empty_values = test_round._get_non_empty_values()
-        assert non_empty_values[0] == tuple([f"agent_{i}" for i in range(3)])
+        assert non_empty_values == {
+            tuple(sorted(self.participants))[i]: (f"agent_{i}", False)
+            if i != none_payload_idx
+            else (False,)
+            for i in range(4)
+        }
 
         self._test_payload_with_wrong_round_count(test_round)
 

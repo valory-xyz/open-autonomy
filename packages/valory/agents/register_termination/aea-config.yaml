@@ -12,7 +12,7 @@ fingerprint:
   tests/test_register_reset.py: bafybeieaeelbyrorts3akgsu7xp27jdsv5u7r4psatdxph2agvpym7em6m
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vm
+- valory/abci:0.1.0:bafybeighcaluiqf4ss6oxx42cmyrsrfpuciazliuni5xmrfooo3f52d24a
 - valory/http_client:0.23.0:bafybeigggahci7hq6tr3tyueatgkvgn73y4b3av2vk7vtr7jkeuwsqcteq
 - valory/ipfs:0.1.0:bafybeihtvkn5uv3ibumme7zzmrxx7iehc6lnjhil726h2jidpdzzjnd5ay
 - valory/ledger:0.19.0:bafybeicpxyoxez7lperltamvikxu6vzk2lhqakbivce4nzywyzoqbxoogm
@@ -32,13 +32,13 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeigqr4y3ykz3iulrcoqmji7hy3dxaoy7zmyyzff4ivpbubcpwdknai
 - valory/tendermint:0.1.0:bafybeiep2dilpmu3je4z2kq7yc7l6n7ax5knwfax2ufvmnflt3uj2wrbju
 skills:
-- valory/abstract_abci:0.1.0:bafybeidwizzka3qjotu35zzstoqunp3hjhkx6oojqnlwqsvd3qnjjpmusq
-- valory/abstract_round_abci:0.1.0:bafybeif4gzyhhxizgpisl6d6hvkffc43c4thc6nnsfbfrynnbkaluzruga
-- valory/register_termination_abci:0.1.0:bafybeiercz4g3snr4ry65tl77k57c6y6s5xceasnoh4f3xyoubfuo5vnea
-- valory/registration_abci:0.1.0:bafybeib2ul466ldsn4d2kgslzktqbxpuhkrxs2adprama4qdpccvyqsrou
-- valory/reset_pause_abci:0.1.0:bafybeicgomvhh6pbqajfw2mvroyukhd3sncll5kvn6uf4s2ioevcdi7n5y
-- valory/termination_abci:0.1.0:bafybeig43eaagejbndsyiz7vnmkc5voiww5qderhtegvjdw234g2wfzfgy
-- valory/transaction_settlement_abci:0.1.0:bafybeie6z7amzuardobkxy4b4n4yuzbbhwwpfjc67zvfyxivdb44y6wls4
+- valory/abstract_abci:0.1.0:bafybeia3p6gguzuciufv7abp72f6rbkui7z3hrzp7pyrhi4bzui7hjaxkq
+- valory/abstract_round_abci:0.1.0:bafybeicbfb36p74pw7yh7hlasknenba6hhdmjrql7xghw63qq2bvtfoofa
+- valory/register_termination_abci:0.1.0:bafybeidxxu4a4m6whx6tjosntv5gztgdq7vmv4ppleujdyohp2wys5ypji
+- valory/registration_abci:0.1.0:bafybeig67p735tdua3riqdmqai7lim3xue2pdx7wo5to5wjinqumtb3xvm
+- valory/reset_pause_abci:0.1.0:bafybeidzw3sza4hdbhepvasqx2ptmgwn67zv5iwkidmvbeecqvpdc22oa4
+- valory/termination_abci:0.1.0:bafybeiaoveqlzfk33o2nh4tubbjwi2nutgd6s7oe77iiphnwcm5hxgridq
+- valory/transaction_settlement_abci:0.1.0:bafybeih2rx2sbbt4p3uarcybwxwav4rzwcukeus4x2uwbesr3yjjkpvtvu
 default_ledger: ethereum
 required_ledgers:
 - ethereum
