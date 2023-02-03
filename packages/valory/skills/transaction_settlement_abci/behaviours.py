@@ -630,7 +630,11 @@ class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
     @property
     def history(self) -> List[str]:
         """Get the history of hashes."""
-        return self.synchronized_data.late_arriving_tx_hashes
+        return [
+            hash_
+            for hashes in self.synchronized_data.late_arriving_tx_hashes.values()
+            for hash_ in hashes
+        ]
 
 
 class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):

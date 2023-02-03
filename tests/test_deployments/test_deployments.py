@@ -207,14 +207,14 @@ class BaseDeploymentTests(ABC, CleanDirectoryClass):
         return str(self.working_dir / TEST_DEPLOYMENT_PATH)
 
     def load_deployer_and_app(
-        self, app: str, deployer: BaseDeploymentGenerator
+        self, app: str, deployer: BaseDeploymentGenerator, **kwargs: Any
     ) -> Tuple[BaseDeploymentGenerator, ServiceBuilder]:
         """Handles loading the 2 required instances"""
         app_instance = ServiceBuilder.from_dir(
             path=Path(app).parent,
             keys_file=DEFAULT_KEY_PATH,
         )
-        instance = deployer(service_builder=app_instance, build_dir=self.temp_dir.name)  # type: ignore
+        instance = deployer(service_builder=app_instance, build_dir=self.temp_dir.name, **kwargs)  # type: ignore
         return instance, app_instance
 
 
@@ -322,7 +322,7 @@ class TestTendermintDeploymentGenerators(BaseDeploymentTests):
             for spec in get_valid_deployments():
                 spec_path = self.write_deployment(spec)
                 deployer_instance, app_instance = self.load_deployer_and_app(
-                    spec_path, deployment_generator
+                    spec_path, deployment_generator, use_tm_testnet_setup=True
                 )
                 res = deployer_instance.generate_config_tendermint()  # type: ignore
                 assert (

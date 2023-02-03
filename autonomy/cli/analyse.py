@@ -31,7 +31,13 @@ from aea.configurations.constants import PACKAGES
 from autonomy.analyse.abci.logs import parse_file
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
 from autonomy.analyse.handlers import check_handlers
-from autonomy.cli.helpers.analyse import list_all_skill_yaml_files, load_package_tree
+from autonomy.chain.config import ChainType
+from autonomy.cli.helpers.analyse import (
+    check_service_readiness,
+    list_all_skill_yaml_files,
+    load_package_tree,
+    run_dialogues_check,
+)
 from autonomy.cli.helpers.docstring import analyse_docstrings
 from autonomy.cli.helpers.fsm_spec import check_all as check_all_fsm
 from autonomy.cli.helpers.fsm_spec import check_one as check_one_fsm
@@ -39,6 +45,7 @@ from autonomy.cli.helpers.fsm_spec import update_one as update_one_fsm
 from autonomy.cli.utils.click_utils import (
     PathArgument,
     abci_spec_format_flag,
+    chain_selection_flag,
     sys_path_patch,
 )
 
@@ -209,6 +216,43 @@ def run_handler_check(
             )
 
 
+@analyse_group.command(name="dialogues")
+@pass_ctx
+@click.option(
+    "--dialogue",
+    "-d",
+    "dialogues",
+    type=str,
+    default=[
+        "abci",
+    ],
+    help="Specify which dialogues to check. Eg. -d dialogue_a -d dialogue_b -d dialogue_c",
+    multiple=True,
+)
+@click.option(
+    "--ignore",
+    "-i",
+    type=str,
+    default=[
+        "abstract_abci",
+    ],
+    help="Specify which skills to skip. Eg. -i skill_0 -i skill_1 -i skill_2",
+    multiple=True,
+)
+def _check_dialogues(
+    ctx: Context,
+    ignore: List[str],
+    dialogues: List[str],
+) -> None:
+    """Check dialogues definitions in a skill package."""
+
+    run_dialogues_check(
+        packages_dir=Path(ctx.registry_path),
+        ignore=ignore,
+        dialogues=dialogues,
+    )
+
+
 @analyse_group.command(name="benchmarks")
 @click.argument(
     "path",
@@ -240,3 +284,30 @@ def benchmark(path: Path, block_type: str, period: int, output: Path) -> None:
 
     with reraise_as_click_exception(Exception):
         aggregate(path=path, block_type=block_type, period=period, output=Path(output))
+
+
+@analyse_group.command(name="service")
+@click.option(
+    "--token-id",
+    type=int,
+    help="Token ID of the service to check on-chain state of the service",
+)
+@click.argument(
+    "service_path",
+    type=PathArgument(
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+)
+@chain_selection_flag()
+def _check_service(
+    token_id: Optional[int], service_path: Path, chain_type: str
+) -> None:
+    """Check deployment readiness of a service"""
+
+    check_service_readiness(
+        token_id=token_id,
+        service_path=service_path,
+        chain_type=ChainType(chain_type),
+    )

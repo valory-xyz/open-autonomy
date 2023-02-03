@@ -2121,28 +2121,6 @@ def synchronized_data() -> BaseSynchronizedData
 
 Return the current synchronized data.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.reset_index"></a>
-
-#### reset`_`index
-
-```python
-@property
-def reset_index() -> int
-```
-
-Return the reset index.
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.reset_index"></a>
-
-#### reset`_`index
-
-```python
-@reset_index.setter
-def reset_index(reset_index: int) -> None
-```
-
-Set the reset index.
-
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.get_all_rounds"></a>
 
 #### get`_`all`_`rounds
@@ -2657,11 +2635,9 @@ def root_hash() -> bytes
 
 Get the Merkle root hash of the application state.
 
-Create an app hash that always increases in order to avoid conflicts between resets.
-Eventually, we do not necessarily need to have a value that increases, but we have to generate a hash that
-is always different among the resets, since our abci's state is different even thought we have reset the chain!
-For example, if we are in height 11, reset and then reach height 11 again, if we end up using the same hash
-at height 11 between the resets, then this is problematic.
+This is going to be the database's hash.
+In this way, the app hash will be reflecting our application's state,
+and will guarantee that all the agents on the chain apply the changes of the arriving blocks in the same way.
 
 **Returns**:
 
@@ -2777,7 +2753,7 @@ Reset blockchain after tendermint reset.
 #### reset`_`state
 
 ```python
-def reset_state(restart_from_round: str, round_count: int, reset_index: int) -> None
+def reset_state(restart_from_round: str, round_count: int, serialized_db_state: Optional[str] = None) -> None
 ```
 
 This method resets the state of RoundSequence to the begging of the period.
@@ -2788,5 +2764,5 @@ Note: This is intended to be used only for agent <-> tendermint communication re
 
 - `restart_from_round`: from which round to restart the abci. This round should be the first round in the last period.
 - `round_count`: the round count at the beginning of the period -1.
-- `reset_index`: the reset index (a.k.a. period count) -1.
+- `serialized_db_state`: the state of the database at the beginning of the period. If provided, the database will be reset to this state.
 

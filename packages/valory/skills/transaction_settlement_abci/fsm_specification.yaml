@@ -7,12 +7,12 @@ alphabet_in:
 - FINALIZE_TIMEOUT
 - INCORRECT_SERIALIZATION
 - INSUFFICIENT_FUNDS
-- MISSED_AND_LATE_MESSAGES_MISMATCH
 - NEGATIVE
 - NONE
 - NO_MAJORITY
 - RESET_TIMEOUT
 - ROUND_TIMEOUT
+- SUSPICIOUS_ACTIVITY
 - VALIDATE_TIMEOUT
 default_start_state: RandomnessTransactionSubmissionRound
 final_states:
@@ -78,10 +78,10 @@ transition_func:
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, NO_MAJORITY): ResetRound
     (SelectKeeperTransactionSubmissionRoundBAfterTimeout, ROUND_TIMEOUT): SelectKeeperTransactionSubmissionRoundBAfterTimeout
     (SynchronizeLateMessagesRound, DONE): CheckLateTxHashesRound
-    (SynchronizeLateMessagesRound, MISSED_AND_LATE_MESSAGES_MISMATCH): FailedRound
     (SynchronizeLateMessagesRound, NONE): SelectKeeperTransactionSubmissionRoundB
     (SynchronizeLateMessagesRound, NO_MAJORITY): SynchronizeLateMessagesRound
     (SynchronizeLateMessagesRound, ROUND_TIMEOUT): SynchronizeLateMessagesRound
+    (SynchronizeLateMessagesRound, SUSPICIOUS_ACTIVITY): FailedRound
     (ValidateTransactionRound, DONE): FinishedTransactionSubmissionRound
     (ValidateTransactionRound, NEGATIVE): CheckTransactionHistoryRound
     (ValidateTransactionRound, NONE): SelectKeeperTransactionSubmissionRoundB

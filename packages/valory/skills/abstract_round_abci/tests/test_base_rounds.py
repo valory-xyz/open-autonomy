@@ -588,7 +588,9 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
             test_round.process_payload(payload)
 
         non_empty_values = test_round._get_non_empty_values()
-        assert non_empty_values == [f"agent_{i}" for i in range(3)]
+        assert non_empty_values == {
+            sorted(tuple(self.participants))[i]: f"agent_{i}" for i in range(3)
+        }
 
         self._test_payload_with_wrong_round_count(test_round)
 

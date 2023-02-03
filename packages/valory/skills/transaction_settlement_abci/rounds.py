@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the `transaction settlement` ABCI application."""
+
 import textwrap
 from abc import ABC
 from collections import deque
@@ -42,6 +43,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     VotingRound,
     get_name,
 )
+from packages.valory.skills.abstract_round_abci.utils import filter_negative
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     VerificationStatus,
     tx_hist_hex_to_payload,
@@ -78,7 +80,7 @@ class Event(Enum):
     CHECK_HISTORY = "check_history"
     CHECK_LATE_ARRIVING_MESSAGE = "check_late_arriving_message"
     FINALIZATION_FAILED = "finalization_failed"
-    MISSED_AND_LATE_MESSAGES_MISMATCH = "missed_and_late_messages_mismatch"
+    SUSPICIOUS_ACTIVITY = "suspicious_activity"
     INSUFFICIENT_FUNDS = "insufficient_funds"
     INCORRECT_SERIALIZATION = "incorrect_serialization"
 
@@ -181,21 +183,38 @@ class SynchronizedData(
         return cast(str, self.db.get_strict("most_voted_tx_hash"))
 
     @property
-    def missed_messages(self) -> int:
-        """Check the number of missed messages."""
-        return cast(int, self.db.get("missed_messages", 0))
+    def missed_messages(self) -> Dict[str, int]:
+        """The number of missed messages per agent address."""
+        default = dict.fromkeys(self.all_participants, 0)
+        missed_messages = self.db.get("missed_messages", default)
+        return cast(Dict[str, int], missed_messages)
+
+    @property
+    def n_missed_messages(self) -> int:
+        """The number of missed messages in total."""
+        return sum(self.missed_messages.values())
 
     @property
     def should_check_late_messages(self) -> bool:
         """Check if we should check for late-arriving messages."""
-        return self.missed_messages > 0
+        return self.n_missed_messages > 0
 
     @property
-    def late_arriving_tx_hashes(self) -> List[str]:
+    def late_arriving_tx_hashes(self) -> Dict[str, List[str]]:
         """Get the late_arriving_tx_hashes."""
-        late_arrivals = cast(List[str], self.db.get_strict("late_arriving_tx_hashes"))
-        parsed_hashes = map(lambda h: textwrap.wrap(h, TX_HASH_LENGTH), late_arrivals)
-        return [h for hashes in parsed_hashes for h in hashes]
+        late_arrivals = cast(
+            Dict[str, str], self.db.get_strict("late_arriving_tx_hashes")
+        )
+        parsed_hashes = {
+            sender: textwrap.wrap(hashes, TX_HASH_LENGTH)
+            for sender, hashes in late_arrivals.items()
+        }
+        return parsed_hashes
+
+    @property
+    def suspects(self) -> Tuple[str]:
+        """Get the suspect agents."""
+        return cast(Tuple[str], self.db.get("suspects", tuple()))
 
     @property
     def most_voted_check_result(self) -> str:  # pragma: no cover
@@ -342,16 +361,16 @@ class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            synchronized_data = cast(SynchronizedData, self.synchronized_data)
+            keeper = synchronized_data.most_voted_keeper_address
+            missed_messages = synchronized_data.missed_messages
+            missed_messages[keeper] += 1
+
             synchronized_data = cast(
                 SynchronizedData,
                 self.synchronized_data.update(
                     synchronized_data_class=self.synchronized_data_class,
-                    **{
-                        get_name(SynchronizedData.missed_messages): cast(
-                            SynchronizedData, self.synchronized_data
-                        ).missed_messages
-                        + 1
-                    },
+                    **{get_name(SynchronizedData.missed_messages): missed_messages},
                 ),
             )
             if synchronized_data.keepers_threshold_exceeded:
@@ -489,17 +508,34 @@ class SynchronizeLateMessagesRound(CollectNonEmptyUntilThresholdRound):
         if result is None:
             return None
 
-        synchronized_data, event = cast(Tuple[BaseSynchronizedData, Event], result)
+        synchronized_data, event = cast(Tuple[SynchronizedData, Event], result)
 
-        synchronized_data = cast(SynchronizedData, self.synchronized_data)
-        n_late_arriving_tx_hashes = len(synchronized_data.late_arriving_tx_hashes)
-        if n_late_arriving_tx_hashes > synchronized_data.missed_messages:
-            return synchronized_data, Event.MISSED_AND_LATE_MESSAGES_MISMATCH
+        late_arriving_tx_hashes_counts = {
+            sender: len(hashes)
+            for sender, hashes in synchronized_data.late_arriving_tx_hashes.items()
+        }
+        missed_after_sync = {
+            sender: missed - late_arriving_tx_hashes_counts.get(sender, 0)
+            for sender, missed in synchronized_data.missed_messages.items()
+        }
+        suspects = tuple(filter_negative(missed_after_sync))
 
-        still_missing = synchronized_data.missed_messages - n_late_arriving_tx_hashes
-        synchronized_data = synchronized_data.update(
-            synchronized_data_class=self.synchronized_data_class,
-            **{get_name(SynchronizedData.missed_messages): still_missing},
+        if suspects:
+            synchronized_data = cast(
+                SynchronizedData,
+                synchronized_data.update(
+                    synchronized_data_class=self.synchronized_data_class,
+                    **{get_name(SynchronizedData.suspects): suspects},
+                ),
+            )
+            return synchronized_data, Event.SUSPICIOUS_ACTIVITY
+
+        synchronized_data = cast(
+            SynchronizedData,
+            synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
+                **{get_name(SynchronizedData.missed_messages): missed_after_sync},
+            ),
         )
         return synchronized_data, event
 
@@ -610,7 +646,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - round timeout: 8.
             - no majority: 8.
             - none: 6.
-            - missed and late messages mismatch: 12.
+            - suspicious activity: 12.
         9. CheckLateTxHashesRound
             - done: 11.
             - negative: 12.
@@ -696,7 +732,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             Event.ROUND_TIMEOUT: SynchronizeLateMessagesRound,
             Event.NO_MAJORITY: SynchronizeLateMessagesRound,
             Event.NONE: SelectKeeperTransactionSubmissionRoundB,
-            Event.MISSED_AND_LATE_MESSAGES_MISMATCH: FailedRound,
+            Event.SUSPICIOUS_ACTIVITY: FailedRound,
         },
         CheckLateTxHashesRound: {
             Event.DONE: FinishedTransactionSubmissionRound,
