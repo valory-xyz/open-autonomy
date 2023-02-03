@@ -264,8 +264,10 @@ class TendermintNode:
                     for trigger in [
                         # this occurs when we lose connection from the tm side
                         "RPC HTTP server stopped",
-                        # this occurs when we lose connection from the AEA side.
-                        "Stopping abci.socketClient for error: read message: EOF module=abci-client connection=",
+                        # whenever the node is stopped because of a closed connection
+                        # from on any of the tendermint modules (abci, p2p, rpc, etc)
+                        # we restart the node
+                        "Stopping abci.socketClient for error: read message: EOF",
                     ]:
                         if line.find(trigger) >= 0:
                             self._stop_tm_process()
