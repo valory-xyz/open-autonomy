@@ -621,7 +621,8 @@ class TendermintHandler(Handler):
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> bool:
         """Check if the sender is registered on-chain and if not, reply with an error"""
-        if message.sender in self.initial_tm_configs:
+        others_addresses = self.context.state.acn_container()
+        if message.sender in others_addresses:
             return True
 
         self._not_registered_error(message, dialogue)
