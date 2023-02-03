@@ -290,7 +290,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     def request_tendermint_info(self) -> Generator[None, None, bool]:
         """Request Tendermint info from other agents"""
 
-        still_missing = {k for k, v in self.initial_tm_configs.items() if not v}
+        still_missing = {k for k, v in self.initial_tm_configs.items() if not v} - {self.context.agent_address}
         log_message = self.LogMessages.request_others
         self.context.logger.info(f"{log_message}: {still_missing}")
 

@@ -406,13 +406,6 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
         kwargs["skill_context"] = skill_context
         super().__init__(*args, **kwargs)
 
-    def acn_container(self) -> Dict[str, Any]:
-        """Create a container for ACN results, i.e., a mapping from others' addresses to `None`."""
-        ourself = {self.context.agent_address}
-        others_addresses = self.synchronized_data.all_participants - ourself
-
-        return dict.fromkeys(others_addresses)
-
     def setup(self) -> None:
         """Set up the model."""
         self._round_sequence = RoundSequence(self.abci_app_cls)
@@ -428,7 +421,9 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
             consensus_params,
             self.context.logger,
         )
-        self.initial_tm_configs = self.acn_container()
+        self.initial_tm_configs: Dict[str, Dict[str, Any]] = dict.fromkeys(
+            self.synchronized_data.all_participants
+        )
 
     @property
     def round_sequence(self) -> RoundSequence:
