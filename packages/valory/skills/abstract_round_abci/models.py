@@ -543,6 +543,9 @@ class TendermintRecoveryParams(TypeCheckMixin):
     reset_params: Optional[List[Tuple[str, str]]] = None
     serialized_db_state: Optional[str] = None
 
+    def __hash__(self):
+        return hash(self.reset_from_round + str(self.round_count) + self.serialized_db_state + json.dumps(self.reset_params))
+
 
 class ApiSpecs(Model, FrozenMixin, TypeCheckMixin):
     """A model that wraps APIs to get cryptocurrency prices."""
