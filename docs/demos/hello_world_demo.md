@@ -306,6 +306,7 @@ Let's look how each of these objects are implemented. If you have fetched the He
       class AbstractRound{
         +round_id
         +allowed_tx_type
+        +payload_attribute
         -_synchronized_data
         +synchronized_data()
         +end_block()*
@@ -334,6 +335,7 @@ Let's look how each of these objects are implemented. If you have fetched the He
       class PrintMessageRound{
         +round_id = "print_message"
         +allowed_tx_type = PrintMessagePayload.transaction_type
+        +payload_attribute = "message"
         +end_block()
       }
   </div>
@@ -345,24 +347,27 @@ Let's look how each of these objects are implemented. If you have fetched the He
   Since most of the logic is already implemented in the base classes, the programmer only needs to define a few parameters and methods within the `Round`. Most notably, the method `end_block`, which is the callback triggered when the ABCI notifies the end of a block in the consensus gadget:
 
   ```python
-  class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
-      """A round in which the keeper prints the message"""
+class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
+    """A round in which the keeper prints the message"""
 
-      payload_class = PrintMessagePayload
+    payload_class = PrintMessagePayload
+    payload_attribute = "message"
 
-      def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
-          """Process the end of the block."""
-          if self.collection_threshold_reached:
-              synchronized_data = self.synchronized_data.update(
-                  participants=tuple(self.collection),
-                  printed_messages=[
-                      cast(PrintMessagePayload, payload).message
-                      for payload in self.collection.values()
-                  ],
-                  synchronized_data_class=SynchronizedData,
-              )
-              return synchronized_data, Event.DONE
-          return None
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
+        """Process the end of the block."""
+        if self.collection_threshold_reached:
+            synchronized_data = self.synchronized_data.update(
+                participants=tuple(sorted(self.collection)),
+                printed_messages=sorted(
+                    [
+                        cast(PrintMessagePayload, payload).message
+                        for payload in self.collection.values()
+                    ]
+                ),
+                synchronized_data_class=SynchronizedData,
+            )
+            return synchronized_data, Event.DONE
+        return None
   ```
 
   The method updates a number of variables collected at that point, and returns the appropriate event (`DONE`) so that the `AbciApp` can process and transit to the next round.
