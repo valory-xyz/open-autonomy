@@ -1948,9 +1948,15 @@ class TestBaseBehaviour:
         ),
         st.integers(),
         st.integers(),
+        st.integers(),
     )
     def test_get_reset_params(
-        self, default: bool, timestamp: datetime, height: int, interval: int
+        self,
+        default: bool,
+        timestamp: datetime,
+        height: int,
+        interval: int,
+        period: int,
     ) -> None:
         """Test `_get_reset_params` method."""
         self.context_mock.state.round_sequence.last_round_transition_timestamp = (
@@ -1958,6 +1964,7 @@ class TestBaseBehaviour:
         )
         self.context_mock.state.round_sequence.last_round_transition_tm_height = height
         self.behaviour.params.observation_interval = interval
+        self.context_state_synchronized_data_mock.period_count = period
 
         actual = self.behaviour._get_reset_params(default)
 
@@ -1967,10 +1974,12 @@ class TestBaseBehaviour:
         else:
             initial_height = INITIAL_HEIGHT
             genesis_time = timestamp.astimezone(pytz.UTC).strftime(GENESIS_TIME_FMT)
+            period_count = str(period)
 
             expected = [
                 ("genesis_time", genesis_time),
                 ("initial_height", initial_height),
+                ("period_count", period_count),
             ]
 
             assert actual == expected
@@ -2071,6 +2080,8 @@ class TestBaseBehaviour:
                 return mock.MagicMock(body=b"")
             return mock.MagicMock(body=json.dumps(status_response).encode())
 
+        period_count_mock = MagicMock()
+        self.context_state_synchronized_data_mock.period_count = period_count_mock
         self.behaviour.params.observation_interval = 1
         with mock.patch.object(
             BaseBehaviour, "_is_timeout_expired", return_value=False
@@ -2100,6 +2111,7 @@ class TestBaseBehaviour:
                 [
                     ("genesis_time", genesis_time),
                     ("initial_height", initial_height),
+                    ("period_count", str(period_count_mock)),
                 ]
                 if not on_startup
                 else None

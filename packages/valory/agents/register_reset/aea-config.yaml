@@ -14,15 +14,15 @@ fingerprint:
   tests/helpers/docker/docker.py: bafybeid6n36kkub2vfswnpqffebuhg67mxrukp3jignihrz4v2hn2mmrwi
   tests/helpers/slow_tendermint_server/Dockerfile: bafybeihextohv7h5z3rowlrkl5egi7h5yuuwtdsn5jhuxqwejjozk2feky
   tests/helpers/slow_tendermint_server/__init__.py: bafybeieosq65nub4bhueyjug3auh36fpcqcwtyrjkomffyi4jyrrvirlnm
-  tests/helpers/slow_tendermint_server/app.py: bafybeieww3fhdlt424rpqttw3a5aaxmxqkcivcthhtiertoumquscoj7ie
+  tests/helpers/slow_tendermint_server/app.py: bafybeifa22ks3tvq34dcnvwmxunwafevg344c2dc64eaia3d3js2sw3pqa
   tests/helpers/slow_tendermint_server/config-template.toml: bafybeibzoxwjjn5cacrtx4p2gov75ktg467xoyglistwjn5xt5l6d6tpea
-  tests/helpers/slow_tendermint_server/tendermint.py: bafybeidqggrm4koidktdqsgd5qaoorfwjrxwt3wkx4fjo7xdhvwlzy4eua
+  tests/helpers/slow_tendermint_server/tendermint.py: bafybeibdtbgu3yb7cczxnuui5ewp2npdxmpunjzoeqoqfv5itq567qw2em
   tests/helpers/slow_tendermint_server/wrapper.sh: bafybeif2wssashoaw7ifz6q3ocmejkuz32ycwta4w5dcjunns4g2awkv2y
   tests/test_hard_reset_race_condition.py: bafybeihnw7j7aahu2kqsak7vr2bjjf6rvkvyyk4gylbhjcmandwoe5of3u
   tests/test_register_reset.py: bafybeiaxp5at34oplp2jxaa5xajpl4f75f6aninbfxyev2x34uzcehs5bi
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vm
+- valory/abci:0.1.0:bafybeighcaluiqf4ss6oxx42cmyrsrfpuciazliuni5xmrfooo3f52d24a
 - valory/http_client:0.23.0:bafybeigggahci7hq6tr3tyueatgkvgn73y4b3av2vk7vtr7jkeuwsqcteq
 - valory/ipfs:0.1.0:bafybeihtvkn5uv3ibumme7zzmrxx7iehc6lnjhil726h2jidpdzzjnd5ay
 - valory/ledger:0.19.0:bafybeicpxyoxez7lperltamvikxu6vzk2lhqakbivce4nzywyzoqbxoogm
@@ -34,11 +34,11 @@ protocols:
 - valory/http:1.0.0:bafybeifru3qs6udfzprax7jxktbsuzn7immfvi3scgfspifq3zdxwkgvnm
 - valory/ipfs:0.1.0:bafybeigknxxwh2xts7ijbacils4a4cgq7jhcdvwahshbw22zw5hnncsfla
 skills:
-- valory/abstract_abci:0.1.0:bafybeidwizzka3qjotu35zzstoqunp3hjhkx6oojqnlwqsvd3qnjjpmusq
-- valory/abstract_round_abci:0.1.0:bafybeidjl53fe2r6vhtjg4mvc5y5wmdseb3cq6hqewgfgp23q4gpxyb5ni
-- valory/register_reset_abci:0.1.0:bafybeid72kxnad42boq5s6w3upc37tjoyhtykaoip3vacivebivridwnd4
-- valory/registration_abci:0.1.0:bafybeifvnwfkzhbtfpqc7ln4gy6faw6xuvd7znvjo6oshb246wh764gyou
-- valory/reset_pause_abci:0.1.0:bafybeibcph3dt5t46q2uikzlxb5xq3v5g2ex2vm2yrtp25uf36sbztc2oe
+- valory/abstract_abci:0.1.0:bafybeia3p6gguzuciufv7abp72f6rbkui7z3hrzp7pyrhi4bzui7hjaxkq
+- valory/abstract_round_abci:0.1.0:bafybeiebqobjix7rlsksx3di6uuu2vag34nmr2j6z6z6lenyqyugpljnbu
+- valory/register_reset_abci:0.1.0:bafybeidpwpvanc5mipl3cgche4ajty754rpcvrsd6evxla3broosj4qec4
+- valory/registration_abci:0.1.0:bafybeic7ulyndu75vfhsnrpfhzgtvittt5xhpj67efkn6faaicuq4hgsr4
+- valory/reset_pause_abci:0.1.0:bafybeibuxcqt2esk4axgap6jefsvr2oyl6eje5z76uprojs7gqmyqg4hsy
 default_ledger: ethereum
 required_ledgers:
 - ethereum

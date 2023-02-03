@@ -1827,6 +1827,7 @@ class BaseBehaviour(
         return [
             ("genesis_time", genesis_time),
             ("initial_height", INITIAL_HEIGHT),
+            ("period_count", str(self.synchronized_data.period_count)),
         ]
 
     def reset_tendermint_with_wait(  # pylint: disable=too-many-locals, too-many-statements

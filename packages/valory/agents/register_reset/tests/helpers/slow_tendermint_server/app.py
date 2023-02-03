@@ -168,6 +168,7 @@ def create_app(
                 request.args.get("genesis_time", defaults["genesis_time"]),
                 # default should be 1: https://github.com/tendermint/tendermint/pull/5191/files
                 request.args.get("initial_height", "1"),
+                request.args.get("period_count", "0"),
             )
             tendermint_node.start(start_monitoring=perform_monitoring)
             # we assume we have a 5 seconds delay between the time the tendermint node starts

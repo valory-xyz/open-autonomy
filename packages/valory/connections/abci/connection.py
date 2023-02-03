@@ -1285,13 +1285,18 @@ class TendermintNode:  # pragma: no cover (covered via deployments/Dockerfiles/t
                 self.write_line(f"Error!: {str(e)}")
         self.write_line("Monitoring thread terminated\n")
 
-    def reset_genesis_file(self, genesis_time: str, initial_height: str) -> None:
+    def reset_genesis_file(
+        self, genesis_time: str, initial_height: str, period_count: str
+    ) -> None:
         """Reset genesis file."""
 
         genesis_file = Path(str(self.params.home), "config", "genesis.json")
         genesis_config = json.loads(genesis_file.read_text(encoding=ENCODING))
         genesis_config["genesis_time"] = genesis_time
         genesis_config["initial_height"] = initial_height
+        # chain id should be max 50 chars.
+        # this means that the app would theoretically break when a 40-digit period is reached
+        genesis_config["chain_id"] = f"autonolas-{period_count}"
         genesis_file.write_text(json.dumps(genesis_config, indent=2), encoding=ENCODING)
 
 
