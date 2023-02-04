@@ -42,7 +42,6 @@ class IpfsRound(CollectDifferentUntilAllRound):
     """Dummy ipfs round."""
 
     payload_class = DummyPayload
-    payload_attribute = "sender"
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:

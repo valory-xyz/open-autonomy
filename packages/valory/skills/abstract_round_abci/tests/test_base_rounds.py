@@ -125,16 +125,6 @@ class TestCollectionRound(_BaseRoundTestClass):
             self.test_round.process_payload(DummyTxPayload("sender", "value"))
 
         with pytest.raises(
-            ABCIAppInternalError,
-            match=re.escape(
-                f"internal error: Expecting serialized data of chunk size 2, got: 0xZZZ in {round_id}"
-            ),
-        ):
-            self.test_round._hash_length = 2
-            self.test_round.process_payload(DummyTxPayload("agent_1", "0xZZZ"))
-            self.test_round._hash_length = None
-
-        with pytest.raises(
             TransactionNotValidError,
             match=f"sender agent_0 has already sent value for round: {round_id}",
         ):
@@ -147,14 +137,6 @@ class TestCollectionRound(_BaseRoundTestClass):
             ),
         ):
             self.test_round.check_payload(DummyTxPayload("sender", "value"))
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match=re.escape(
-                f"Expecting serialized data of chunk size 2, got: 0xZZZ in {round_id}"
-            ),
-        ):
-            self.test_round.check_payload(DummyTxPayload("agent_1", "0xZZZ"))
 
         self._test_payload_with_wrong_round_count(self.test_round)
 
@@ -191,14 +173,14 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: `CollectDifferentUntilAllRound` encountered a value 'agent_0' that already exists.",
+            match="internal error: `CollectDifferentUntilAllRound` encountered a value '.*' that already exists.",
         ):
             object.__setattr__(first_payload, "sender", "other")
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="`CollectDifferentUntilAllRound` encountered a value 'agent_0' that already exists.",
+            match="`CollectDifferentUntilAllRound` encountered a value '.*' that already exists.",
         ):
             test_round.check_payload(first_payload)
 
@@ -254,8 +236,8 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: `CollectSameUntilAllRound` encountered a value 'other' "
-            "which is not the same as the already existing one: 'test",
+            match="internal error: `CollectSameUntilAllRound` encountered a value '.*' "
+            "which is not the same as the already existing one: '.*'",
         ):
             bad_payload = DummyTxPayload(
                 sender="other",
@@ -265,8 +247,8 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
 
         with pytest.raises(
             TransactionNotValidError,
-            match="`CollectSameUntilAllRound` encountered a value 'other' "
-            "which is not the same as the already existing one: 'test",
+            match="`CollectSameUntilAllRound` encountered a value '.*' "
+            "which is not the same as the already existing one: '.*'",
         ):
             test_round.check_payload(bad_payload)
 
@@ -318,9 +300,10 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
 
         test_round.none_event = DummyEvent.NONE
         test_round.collection.clear()
-        payloads = get_dummy_tx_payloads(self.participants, value=None)
-        for payload in payloads:  # must overwrite the value...
-            object.__setattr__(payload, "value", None)
+        payloads = get_dummy_tx_payloads(
+            self.participants, value=None, is_value_none=True, is_vote_none=True
+        )
+        for payload in payloads:
             test_round.process_payload(payload)
         assert test_round.most_voted_payload is None
         return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
@@ -377,10 +360,10 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
             consensus_params=self.consensus_params,
         )
 
-        assert not test_round.has_keeper_sent_payload
+        assert test_round.keeper_payload is None
         first_payload, *_ = self.tx_payloads
         test_round.process_payload(first_payload)
-        assert test_round.has_keeper_sent_payload
+        assert test_round.keeper_payload is not None
 
         with pytest.raises(
             ABCIAppInternalError,
@@ -553,7 +536,6 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
         test_round.required_block_confirmations = required_confirmations
         test_round.collection_key = "collection_key"
         test_round.done_event = 0
-        test_round.no_majority_event = 1
         assert (
             test_round.consensus_threshold <= required_confirmations
         ), "Incorrect test parametrization: required confirmations cannot be set with a smalled value than the consensus threshold"
@@ -601,13 +583,17 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
             consensus_params=self.consensus_params,
         )
         payloads = get_dummy_tx_payloads(self.participants)
-        object.__setattr__(payloads[3], "value", None)
+        none_payload_idx = 3
+        object.__setattr__(payloads[none_payload_idx], "value", None)
         for payload in payloads:
             test_round.process_payload(payload)
 
         non_empty_values = test_round._get_non_empty_values()
         assert non_empty_values == {
-            sorted(tuple(self.participants))[i]: f"agent_{i}" for i in range(3)
+            tuple(sorted(self.participants))[i]: (f"agent_{i}", False)
+            if i != none_payload_idx
+            else (False,)
+            for i in range(4)
         }
 
         self._test_payload_with_wrong_round_count(test_round)
@@ -618,7 +604,6 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
-
         first_payload, *payloads = get_dummy_tx_payloads(self.participants)
         test_round.process_payload(first_payload)
 
@@ -627,38 +612,6 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
             test_round.process_payload(payload)
 
         assert test_round.collection_threshold_reached
-
-    @pytest.mark.parametrize("is_majority_possible", (True, False))
-    @pytest.mark.parametrize("reach_block_confirmations", (True, False))
-    def test_end_block_no_threshold_reached(
-        self, is_majority_possible: bool, reach_block_confirmations: bool
-    ) -> None:
-        """Test `end_block` when no collection threshold is reached."""
-        test_round = DummyCollectNonEmptyUntilThresholdRound(
-            synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
-        )
-        test_round.block_confirmations = (
-            test_round.required_block_confirmations + 1
-            if reach_block_confirmations
-            else 0
-        )
-
-        # TODO: fix below - type error indicates problem with this
-        test_round.is_majority_possible = lambda *_: is_majority_possible  # type: ignore
-        test_round.no_majority_event = DummyEvent.NO_MAJORITY
-
-        res = test_round.end_block()
-
-        if (
-            test_round.block_confirmations > test_round.required_block_confirmations
-            and not is_majority_possible
-        ):
-            assert res is not None
-            assert res[0].db == self.synchronized_data.db
-            assert res[1] == test_round.no_majority_event
-        else:
-            assert res is None
 
     @pytest.mark.parametrize(
         "is_value_none, expected_event",
@@ -670,8 +623,10 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
-
-        payloads = get_dummy_tx_payloads(self.participants, is_value_none=is_value_none)
+        test_round.selection_key = "dummy_selection_key"
+        payloads = get_dummy_tx_payloads(
+            self.participants, is_value_none=is_value_none, is_vote_none=True
+        )
         for payload in payloads:
             test_round.process_payload(payload)
 

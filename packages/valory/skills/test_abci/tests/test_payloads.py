@@ -27,6 +27,7 @@ from packages.valory.skills.test_abci.payloads import DummyPayload
 def test_dummy_payload() -> None:
     """Test `DummyPayload`."""
 
-    payload = DummyPayload(sender="sender")
+    payload = DummyPayload(sender="sender", content=1)
 
     assert payload.sender == "sender"
+    assert payload.content == 1

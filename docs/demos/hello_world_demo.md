@@ -305,8 +305,7 @@ Let's look how each of these objects are implemented. If you have fetched the He
       AbstractRound <|-- HelloWorldABCIAbstractRound
       class AbstractRound{
         +round_id
-        +allowed_tx_type
-        +payload_attribute
+        +payload_class
         -_synchronized_data
         +synchronized_data()
         +end_block()*
@@ -333,9 +332,7 @@ Let's look how each of these objects are implemented. If you have fetched the He
         +check_payload()
       }
       class PrintMessageRound{
-        +round_id = "print_message"
-        +allowed_tx_type = PrintMessagePayload.transaction_type
-        +payload_attribute = "message"
+        +payload_class = PrintMessagePayload
         +end_block()
       }
   </div>
@@ -351,7 +348,6 @@ class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
     """A round in which the keeper prints the message"""
 
     payload_class = PrintMessagePayload
-    payload_attribute = "message"
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
