@@ -24,6 +24,8 @@ AppExceptions
 AppErrors
 ABCIApp
 FSMBehaviour
+DAO-owned
+DAO-Owned
 ABCIApps
 Ethereum
 ABCIHandler

@@ -1,4 +1,4 @@
-One of the best ways to understand how autonomous services (more concretely, agent services) fit into
+One of the best ways to understand how autonomous services (more concretely, [agent services](./what_is_an_agent_service.md)) fit into
 the wider ecosystem of crypto services and applications is to compare them with existing solutions.
 
 Recall that an **autonomous service** is a decentralized service that runs off-chain and provides functionalities to objects living on-chain. Autonomous services are outside the purview and control of a single authority, and can be designed for a variety of purposes, including acting as a decentralized oracle for smart contracts, or executing complex investing strategies that cannot be easily encoded on-chain. An **agent service** is a particular type of autonomous service which is implemented as a multi-agent system.
@@ -7,16 +7,19 @@ Recall that an **autonomous service** is a decentralized service that runs off-c
 
 The table below highlights the main differences between agent services and other software solutions.
 
-|                          | Autonomous services (agent services) |   Smart contracts  |    Web services    | Custom decentralized services (e.g., Oracles) |
-|--------------------------|:-------------------:|:------------------:|:------------------:|:---------------------------------------------:|
-| **Location**             |      Off-chain      |      On-chain      |      Off-chain     |                   Off-chain                   |
-| **Decentralized**        |  :heavy_check_mark: | :heavy_check_mark: |                    |               :heavy_check_mark:              |
-| **Robust**               |  :heavy_check_mark: | :heavy_check_mark: |                    |               :heavy_check_mark:              |
-| **Transparent**          |  :heavy_check_mark: | :heavy_check_mark: |                    |               :heavy_check_mark:              |
-| **Composable**           |  :heavy_check_mark: | :heavy_check_mark: |                    |                                               |
-| **Complex processing**   |  :heavy_check_mark: |                    | :heavy_check_mark: |               :heavy_check_mark:              |
-| **Cross-chain**          |  :heavy_check_mark: |                    | :heavy_check_mark: |               :heavy_check_mark:              |
-| **Continuous/always on** |  :heavy_check_mark: |                    | :heavy_check_mark: |               :heavy_check_mark:              |
+|                          |   Smart contracts  |    Web services    | Custom decentralized services (e.g., Oracles) | **Autonomous services (agent services)** |
+|--------------------------|:------------------:|:------------------:|:---------------------------------------------:|:----------------------------------------:|
+| **Location**             |      On-chain      |      Off-chain     |                   Off-chain                   |                 Off-chain                |
+| **Decentralized**        | :heavy_check_mark: |         :x:        |               :heavy_check_mark:              |            :heavy_check_mark:            |
+| **Robust**               | :heavy_check_mark: |         :x:        |               :heavy_check_mark:              |            :heavy_check_mark:            |
+| **Transparent**          | :heavy_check_mark: |         :x:        |               :heavy_check_mark:              |            :heavy_check_mark:            |
+| **Complex processing**   |         :x:        | :heavy_check_mark: |               :heavy_check_mark:              |            :heavy_check_mark:            |
+| **Cross-chain**          |         :x:        | :heavy_check_mark: |               :heavy_check_mark:              |            :heavy_check_mark:            |
+| **Continuous/always-on** |         :x:        | :heavy_check_mark: |               :heavy_check_mark:              |            :heavy_check_mark:            |
+| **Flexible**             | :heavy_check_mark: | :heavy_check_mark: |                      :x:                      |            :heavy_check_mark:            |
+| **Composable**           | :heavy_check_mark: |         :x:        |                      :x:                      |            :heavy_check_mark:            |
+| **DAO-owned**            | :heavy_check_mark: |         :x:        |                      :x:                      |            :heavy_check_mark:            |
+| **Full-stack**           |         :x:        | :heavy_check_mark: |                      :x:                      |            :heavy_check_mark:            |
 
 **Smart contracts** are computer programs that live on-chain. They are crypto-native, can be audited and can use any functionality already available in the blockchain. Their security relies
 on the security of the underlying blockchain. However, due to their nature, they have a number of limitations, including the inability of doing complex operations, talking to other APIs or interact with other blockchains.
@@ -27,7 +30,7 @@ on the security of the underlying blockchain. However, due to their nature, they
 
 This is where **autonomous services** (implemented as agent services with the {{open_autonomy}} framework) comes into play in the broader ecosystem of crypto software. Agent services are composable, crypto-native services that can execute complex processing, take action on their own and run continuously.
 
-For a more detailed discussion, we refer the reader to take a look at the [Autonolas Education](https://www.autonolas.network/education-articles) article series.
+For a more detailed discussion, take a look at the [Autonolas Education](https://www.autonolas.network/education-articles) article series.
 
 
 ## Agent services vs. single-agent applications
