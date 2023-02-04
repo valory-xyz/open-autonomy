@@ -1490,6 +1490,9 @@ This class represents abstract logic for collection based rounds where
 the round object needs to collect data from different agents. The data
 might for example be from a voting round or estimation round.
 
+`_allow_rejoin_payloads` is used to allow agents not currently active to
+deliver a payload.
+
 <a id="packages.valory.skills.abstract_round_abci.base.CollectionRound.__init__"></a>
 
 #### `__`init`__`
@@ -1596,9 +1599,9 @@ class _CollectUntilAllRound(CollectionRound,  ABC)
 
 _CollectUntilAllRound
 
-This class represents logic for when rounds need to collect payloads from all agents.
+This class represents abstract logic for when rounds need to collect payloads from all agents.
 
-This round should only be used for registration of new agents.
+This round should only be used when non-BFT behaviour is acceptable.
 
 <a id="packages.valory.skills.abstract_round_abci.base._CollectUntilAllRound.check_payload"></a>
 
@@ -1713,6 +1716,16 @@ CollectSameUntilThresholdRound
 This class represents logic for rounds where a round needs to collect
 same payload from k of n agents.
 
+`done_event` is emitted when a) the collection threshold (k of n) is reached,
+and b) the most voted payload has non-empty attributes. In this case all
+payloads are saved under `collection_key` and the most voted payload attributes
+are saved under `selection_key`.
+
+`none_event` is emitted when a) the collection threshold (k of n) is reached,
+and b) the most voted payload has only empty attributes.
+
+`no_majority_event` is emitted when it is impossible to reach a k of n majority.
+
 <a id="packages.valory.skills.abstract_round_abci.base.CollectSameUntilThresholdRound.threshold_reached"></a>
 
 #### threshold`_`reached
@@ -1769,17 +1782,14 @@ class OnlyKeeperSendsRound(AbstractRound,  ABC)
 OnlyKeeperSendsRound
 
 This class represents logic for rounds where only one agent sends a
-payload
+payload.
 
-<a id="packages.valory.skills.abstract_round_abci.base.OnlyKeeperSendsRound.__init__"></a>
+`done_event` is emitted when a) the keeper payload has been received and b)
+the keeper payload has non-empty attributes. In this case all attributes are saved
+under `payload_key`.
 
-#### `__`init`__`
-
-```python
-def __init__(*args: Any, **kwargs: Any)
-```
-
-Initialize the 'collect-observation' round.
+`fail_event` is emitted when a) the keeper payload has been received and b)
+the keeper payload has only empty attributes
 
 <a id="packages.valory.skills.abstract_round_abci.base.OnlyKeeperSendsRound.process_payload"></a>
 
@@ -1800,17 +1810,6 @@ def check_payload(payload: BaseTxPayload) -> None
 ```
 
 Check a deploy safe payload can be applied to the current state.
-
-<a id="packages.valory.skills.abstract_round_abci.base.OnlyKeeperSendsRound.has_keeper_sent_payload"></a>
-
-#### has`_`keeper`_`sent`_`payload
-
-```python
-@property
-def has_keeper_sent_payload() -> bool
-```
-
-Check if keeper has sent the payload.
 
 <a id="packages.valory.skills.abstract_round_abci.base.OnlyKeeperSendsRound.end_block"></a>
 
@@ -1833,7 +1832,20 @@ class VotingRound(CollectionRound,  ABC)
 VotingRound
 
 This class represents logic for rounds where a round needs votes from
-agents, pass if k same votes of n agents
+agents. Votes are in the form of `True` (positive), `False` (negative)
+and `None` (abstain). The round ends when k of n agents make the same vote.
+
+`done_event` is emitted when a) the collection threshold (k of n) is reached
+with k positive votes. In this case all payloads are saved under `collection_key`.
+
+`negative_event` is emitted when a) the collection threshold (k of n) is reached
+with k negative votes.
+
+`none_event` is emitted when a) the collection threshold (k of n) is reached
+with k abstain votes.
+
+`no_majority_event` is emitted when it is impossible to reach a k of n majority for
+either of the options.
 
 <a id="packages.valory.skills.abstract_round_abci.base.VotingRound.vote_count"></a>
 
@@ -1900,7 +1912,14 @@ class CollectDifferentUntilThresholdRound(CollectionRound,  ABC)
 CollectDifferentUntilThresholdRound
 
 This class represents logic for rounds where a round needs to collect
-different payloads from k of n agents
+different payloads from k of n agents.
+
+`done_event` is emitted when a) the required block confirmations
+have been met, and b) the collection threshold (k of n) is reached. In
+this case all payloads are saved under `collection_key`.
+
+Extended `required_block_confirmations` to allow for arrival of more
+payloads.
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectDifferentUntilThresholdRound.collection_threshold_reached"></a>
 
@@ -1931,12 +1950,24 @@ Process the end of the block.
 class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound,  ABC)
 ```
 
-Collect all the data among agents.
+CollectNonEmptyUntilThresholdRound
 
-This class represents logic for rounds where we need to collect
-payloads from each agent which will contain optional, different data and only keep the non-empty.
+This class represents logic for rounds where a round needs to collect
+optionally different payloads from k of n agents, where we only keep the non-empty attributes.
 
-This round may be used for cases that we want to collect all the agent's data, such as late-arriving messages.
+`done_event` is emitted when a) the required block confirmations
+have been met, b) the collection threshold (k of n) is reached, and
+c) some non-empty attribute values have been collected. In this case
+all payloads are saved under `collection_key`. Under `selection_key`
+the non-empty attribute values are stored.
+
+`none_event` is emitted when a) the required block confirmations
+have been met, b) the collection threshold (k of n) is reached, and
+c) no non-empty attribute values have been collected.
+
+Attention: A `none_event` might be triggered even though some of the
+remaining n-k agents might send non-empty attributes! Extended
+`required_block_confirmations` can alleviate this somewhat.
 
 <a id="packages.valory.skills.abstract_round_abci.base.CollectNonEmptyUntilThresholdRound.end_block"></a>
 

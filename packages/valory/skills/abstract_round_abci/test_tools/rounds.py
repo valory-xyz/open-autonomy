@@ -94,13 +94,14 @@ def get_dummy_tx_payloads(
     value: Any = None,
     vote: Optional[bool] = False,
     is_value_none: bool = False,
+    is_vote_none: bool = False,
 ) -> List[DummyTxPayload]:
     """Returns a list of DummyTxPayload objects."""
     return [
         DummyTxPayload(
             sender=agent,
             value=(value or agent) if not is_value_none else value,
-            vote=vote,
+            vote=vote if not is_vote_none else None,
         )
         for agent in sorted(participants)
     ]
@@ -384,11 +385,11 @@ class BaseOnlyKeeperSendsRoundTest(  # pylint: disable=too-few-public-methods
         """Test for rounds derived from OnlyKeeperSendsRound."""
 
         assert test_round.end_block() is None
-        assert not test_round.has_keeper_sent_payload
+        assert test_round.keeper_payload is None
 
         test_round.process_payload(keeper_payloads)
         yield test_round
-        assert test_round.has_keeper_sent_payload
+        assert test_round.keeper_payload is not None
 
         yield test_round
         actual_next_synchronized_data = synchronized_data_update_fn(

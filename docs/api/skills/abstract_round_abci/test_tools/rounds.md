@@ -50,7 +50,7 @@ Dummy synchronized data for tests.
 #### get`_`dummy`_`tx`_`payloads
 
 ```python
-def get_dummy_tx_payloads(participants: FrozenSet[str], value: Any = None, vote: Optional[bool] = False, is_value_none: bool = False) -> List[DummyTxPayload]
+def get_dummy_tx_payloads(participants: FrozenSet[str], value: Any = None, vote: Optional[bool] = False, is_value_none: bool = False, is_vote_none: bool = False) -> List[DummyTxPayload]
 ```
 
 Returns a list of DummyTxPayload objects.
