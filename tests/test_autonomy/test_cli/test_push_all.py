@@ -61,7 +61,7 @@ class TestPushAll(BaseCliTest):
         )
         published_packages = []
 
-        def _push_patch(_: Any, public_id: Any) -> None:
+        def _push_patch(_: Any, public_id: Any, retries: Any) -> None:
             published_packages.append(public_id)
 
         with mock.patch(
