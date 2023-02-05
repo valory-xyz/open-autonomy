@@ -45,7 +45,6 @@ class RoundCountRound(CollectSameUntilThresholdRound):
     """A round in which the round count is stored as a list."""
 
     payload_class = RoundCountPayload
-    payload_attribute = "current_round_count"
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:

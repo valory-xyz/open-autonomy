@@ -19,7 +19,6 @@ strict: true
 nav:
   - Home: 'index.md'
   - Get started:
-    - What is the Open Autonomy framework: 'get_started/what_is_the_open_autonomy_framework.md'
     - What is an agent service: 'get_started/what_is_an_agent_service.md'
     - Why do we need agent services: 'get_started/why_do_we_need_agent_services.md'
     - Agent services compared to...: 'get_started/agent_services_compared_to.md'

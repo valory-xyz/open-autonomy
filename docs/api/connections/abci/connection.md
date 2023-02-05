@@ -827,7 +827,7 @@ Check server status.
 #### reset`_`genesis`_`file
 
 ```python
-def reset_genesis_file(genesis_time: str, initial_height: str) -> None
+def reset_genesis_file(genesis_time: str, initial_height: str, period_count: str) -> None
 ```
 
 Reset genesis file.

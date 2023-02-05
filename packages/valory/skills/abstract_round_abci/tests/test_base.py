@@ -234,12 +234,6 @@ def test_abstract_round_instantiation_without_attributes_raises_error() -> None:
         class MyRoundBehaviourB(AbstractRound):
             synchronized_data_class = MagicMock()
 
-    with pytest.raises(AbstractRoundInternalError):
-
-        class MyRoundBehaviourC(AbstractRound):
-            synchronized_data_class = MagicMock()
-            payload_class = MagicMock()
-
 
 class TestTransactions:
     """Test Transactions class."""
