@@ -86,6 +86,7 @@ class BaseHelloWorldABCITest(
     strict_check_strings: Tuple[str, ...] = STRICT_CHECK_STRINGS
     package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
     ROUND_TIMEOUT_SECONDS = 30
+    OBSERVATION_INTERVAL = 8
 
 
 @pytest.mark.usefixtures(

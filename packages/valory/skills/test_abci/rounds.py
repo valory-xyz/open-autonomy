@@ -51,7 +51,6 @@ class DummyRound(CollectDifferentUntilAllRound):
     """
 
     payload_class = DummyPayload
-    payload_attribute = "sender"
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:

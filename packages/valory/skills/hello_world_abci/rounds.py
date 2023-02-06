@@ -29,6 +29,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AppState,
     BaseSynchronizedData,
     CollectDifferentUntilAllRound,
+    CollectSameUntilAllRound,
     CollectSameUntilThresholdRound,
     get_name,
 )
@@ -80,18 +81,17 @@ class HelloWorldABCIAbstractRound(AbstractRound, ABC):
         return cast(SynchronizedData, self._synchronized_data)
 
 
-class RegistrationRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRound):
+class RegistrationRound(CollectSameUntilAllRound, HelloWorldABCIAbstractRound):
     """A round in which the agents get registered"""
 
     payload_class = RegistrationPayload
-    payload_attribute = "sender"
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
 
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
-                participants=tuple(self.collection),
+                participants=tuple(sorted(self.collection)),
                 synchronized_data_class=SynchronizedData,
             )
             return synchronized_data, Event.DONE
@@ -104,7 +104,6 @@ class CollectRandomnessRound(
     """A round for collecting randomness"""
 
     payload_class = CollectRandomnessPayload
-    payload_attribute = "randomness"
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
@@ -116,7 +115,6 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractRo
     """A round in a which keeper is selected"""
 
     payload_class = SelectKeeperPayload
-    payload_attribute = "keeper"
     synchronized_data_class = SynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
@@ -128,17 +126,18 @@ class PrintMessageRound(CollectDifferentUntilAllRound, HelloWorldABCIAbstractRou
     """A round in which the keeper prints the message"""
 
     payload_class = PrintMessagePayload
-    payload_attribute = "message"
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
-                participants=tuple(self.collection),
-                printed_messages=[
-                    cast(PrintMessagePayload, payload).message
-                    for payload in self.collection.values()
-                ],
+                participants=tuple(sorted(self.collection)),
+                printed_messages=sorted(
+                    [
+                        cast(PrintMessagePayload, payload).message
+                        for payload in self.collection.values()
+                    ]
+                ),
                 synchronized_data_class=SynchronizedData,
             )
             return synchronized_data, Event.DONE
@@ -149,15 +148,16 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractR
     """This class represents the base reset round."""
 
     payload_class = ResetPayload
-    payload_attribute = "period_count"
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             # TODO `cross_period_persisted_keys` should be used here instead
             synchronized_data = self.synchronized_data.create(
-                participants=[tuple(self.synchronized_data.participants)],
-                all_participants=[tuple(self.synchronized_data.all_participants)],
+                participants=[tuple(sorted(self.synchronized_data.participants))],
+                all_participants=[
+                    tuple(sorted(self.synchronized_data.all_participants))
+                ],
             )
             return synchronized_data, Event.DONE
         if not self.is_majority_possible(

@@ -9,24 +9,24 @@ fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeicjyrltgdmwzvctebhfteyyd5mbrjashiji4glwf5vwcijuyzzm24
   abci_app_chain.py: bafybeick5fz6hpbbvpmjkm2o3rl5csgvqf4ivwmqdluj2p4jmcpea4xmsq
-  base.py: bafybeielvwkxqtqkl4skehml4y6opvzdiheuzvw457rfuzvwaqljlhzzbe
-  behaviour_utils.py: bafybeicqml4hkgwhridks6kaaegkcubxjz3nkht3qj3esypxwtfdwpl6e4
+  base.py: bafybeiexxy5lfc5wl4ads6upcrtdwr4ky3agxbp75tzyskrfdsjgqzfutq
+  behaviour_utils.py: bafybeicileexjlqpljklwrudnohxsqbxtikipi37ge6tnpezzriq3fvhuu
   behaviours.py: bafybeicapzsvzowpjawkxgkhf2m4qb7c3alh5rsysrxp55o7pmjt6bu2g4
   common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
   dialogues.py: bafybeid5sgrfa7ghnnjpssltgtey5gzt5kc2jlaitffaukvhhdbhrzcjti
-  handlers.py: bafybeicjhq36feqlgnwwitnvdkpiswy3spkobxotjctaqlunhlexb4xfdu
+  handlers.py: bafybeiacbb2fmuq4mlzrkt5buckkfy2t3cjphpix55i7fyeqpamfklcvsy
   io_/__init__.py: bafybeihv6ytxeo5jkbdlqjum4pfo4aaluvw4m7c55k5xncvvs7ubrlokhy
   io_/ipfs.py: bafybeiffdxdt36rcwu5tyfav2umvw3hvlfjwbys3626p2g2gdlfi7djzly
   io_/load.py: bafybeigkywwlsheqvd4gpyfwaxqzkkb2ih2poyicqk7e7n2mrsghxzyns4
   io_/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
   io_/store.py: bafybeig24lslvhf7amim55ig5zzre4z45pcx3r2ozlagg3mtbr6rry2wpu
-  models.py: bafybeifuop5a4xx5ybgs54n2mfesqppsuslmzjc5sg56kp6gn5jwvshw3a
+  models.py: bafybeibcpb3k3ykbhbmhguq3wortxivvn4nlsa5a7phw542wk4yb22tkvm
   test_tools/__init__.py: bafybeibayeahoo73eztt2chpwi45taj2uv3dxbpyn47ksqfjoepjyaoca4
   test_tools/abci_app.py: bafybeicnd4xvumelx2fgp46kxt62usoq3pp3zrcgmpsr6ufu56k5ozh5mm
   test_tools/base.py: bafybeihjcngjn5e4bvlde3atyy46wqcpkec46p5rejqptxzlgnyegak6ly
   test_tools/common.py: bafybeibxlx7es632kdoeivfrjahns3kknkxfmw4rj2dcxjwqm5j6vx25sq
   test_tools/integration.py: bafybeifqq3bx46hz2deph3usvrt7u45tpsapvocofd2zu3yh7rfl5nlmzq
-  test_tools/rounds.py: bafybeigjmba5jkcanha5gwof2bw2blpse62xi3y32aas5q4fr65zmpxb5a
+  test_tools/rounds.py: bafybeibfqh2bpzpw3j33ye7457jssd74hrl7eofg7f5d5o2ll3rhixdzk4
   tests/__init__.py: bafybeiebss5rdfh7tdbw2qi3tjpf6cjgwuonowsw6bimyosfie2ngxhhzy
   tests/conftest.py: bafybeiftbi6oj3ad5ypsh2xsgjhh2uxmujvaxm5lcvjlkmdpmhbpcdvj6y
   tests/data/__init__.py: bafybeifmqjnrqgbau4tshhdtrosru7xyjky72ljlrf3ynrk76fxjcsgfpi
@@ -38,8 +38,8 @@ fingerprint:
   tests/data/dummy_abci/payloads.py: bafybeiczldqiumb7prcusb7l5vb575vschwyseyigpupvteldfyz7h6fyi
   tests/data/dummy_abci/rounds.py: bafybeibcif5i7r6zo2lsdlt5m7oj7zrsl65qlwj6xbyb2b5xxznzlgjj4u
   tests/test_abci_app_chain.py: bafybeidz573eh6m66x2spovp3yhhzyqheqyaspsrvas4loamdawdilwgki
-  tests/test_base.py: bafybeihkdugc3st6uznqde37x74dzoukuohkfcag4v5fxkwllhe2fvybbe
-  tests/test_base_rounds.py: bafybeifv2yxdkr6qejepzy7c4mdb3osczsoy6op3abdr45uy2ucqnmjpxa
+  tests/test_base.py: bafybeibiy4zylgbjr45hrmsjp7kj25x5wqntuqog4uickjeh4uz5dsecga
+  tests/test_base_rounds.py: bafybeigkwdfhbv2jpc2fubpscozxydqr3uqyomnx6x6p4xakwqx3rmndve
   tests/test_behaviours.py: bafybeibupzyvoyyrtvmptcxl7qdrpzjsesjgyt66zrwh6dkrhrgnmnd734
   tests/test_behaviours_utils.py: bafybeibbqdmozqwixfxah6xodljgxzstipo7cywohgxoxg3ijmkw67bxma
   tests/test_common.py: bafybeigruyqp6h4qim3nsijeg5mvoot2dei2yzm5zxpank22vjyyiaysue
@@ -55,28 +55,28 @@ fingerprint:
   tests/test_tools/test_base.py: bafybeibta6c25ugpwvcv6qf6tmmi3kb7e6j4d2znen7yguxc6hrc5badtm
   tests/test_tools/test_common.py: bafybeieauphpcqm5on7d2u2lc5lrf3esbhojp6sxlf7phrlmpqy5cfoitq
   tests/test_tools/test_integration.py: bafybeidxkvb2kizi7djrpuw446dqxo2v5s7j2dbdrdpfmnd2ggezaxbnkm
-  tests/test_tools/test_rounds.py: bafybeicou7bxewz72psopzw2ni3shly5edb4vhq2m3rxo3g6dxuvspimcq
+  tests/test_tools/test_rounds.py: bafybeiabzx2gwirkydxfykzmvawqxbv4f3macdvcu4ccam5gufg3pecdwi
   tests/test_utils.py: bafybeib2ymdkjsuzunyp4u5xmumatwbgrohcocsvek7l3d4epvuuotnwcy
   utils.py: bafybeigy6henuivr6d4obgzex2oh4doqu7ayj2x7zc5v3knev4qlfs2yaa
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeieppewajdcnxrf4tknc4tghysjfo4b5fnmw5at2m2mfefgd4icgyi
-- valory/http_client:0.23.0:bafybeigggahci7hq6tr3tyueatgkvgn73y4b3av2vk7vtr7jkeuwsqcteq
-- valory/ipfs:0.1.0:bafybeihtvkn5uv3ibumme7zzmrxx7iehc6lnjhil726h2jidpdzzjnd5ay
-- valory/ledger:0.19.0:bafybeicpxyoxez7lperltamvikxu6vzk2lhqakbivce4nzywyzoqbxoogm
-- valory/p2p_libp2p_client:0.1.0:bafybeiayoofxmj6z3pasn2akqj3udgq2ta2ar6mv6zoehstul2btvv3gqa
+- valory/abci:0.1.0:bafybeid6lgp7f3c7lkdc4wmuxvuclggkeprms33mv2bl2k4rbimqm3dt3i
+- valory/http_client:0.23.0:bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi
+- valory/ipfs:0.1.0:bafybeia7kzgw4tmkl6k2vjbnss4egvhcf4fmt7cnmpjjjbjogz2bu2j3fu
+- valory/ledger:0.19.0:bafybeiavzloea5rtoxfdqjuexkqzpgbq73n4sl6af2vwa4bv2wd22qigyi
+- valory/p2p_libp2p_client:0.1.0:bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva
 contracts:
-- valory/service_registry:0.1.0:bafybeibiwousikhaafhuyfbflz6s3f6vi4eqomqpnecfyqzvrpygwagd6q
+- valory/service_registry:0.1.0:bafybeia5om4we7rsl7fm6z6s6yp37gkwvzbhjc325rdv3h2ryn3bp5t3ka
 protocols:
-- open_aea/signing:1.0.0:bafybeiclsbgrviyxbmi2vex5ze3dhr7ywohrqedebx26jozayxvroqtegq
-- valory/abci:0.1.0:bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm
-- valory/contract_api:1.0.0:bafybeif32nchkgn6yet7e5gt4auhf7lsahxnj4t36kxbw55p3gi7qpeuxq
-- valory/http:1.0.0:bafybeifru3qs6udfzprax7jxktbsuzn7immfvi3scgfspifq3zdxwkgvnm
-- valory/ipfs:0.1.0:bafybeigknxxwh2xts7ijbacils4a4cgq7jhcdvwahshbw22zw5hnncsfla
-- valory/ledger_api:1.0.0:bafybeigqr4y3ykz3iulrcoqmji7hy3dxaoy7zmyyzff4ivpbubcpwdknai
-- valory/tendermint:0.1.0:bafybeiep2dilpmu3je4z2kq7yc7l6n7ax5knwfax2ufvmnflt3uj2wrbju
+- open_aea/signing:1.0.0:bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4
+- valory/abci:0.1.0:bafybeiacx2blykdxecheozr33ywnaxfigw5oxi7wifpnelryk3buyk5hzm
+- valory/contract_api:1.0.0:bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy
+- valory/http:1.0.0:bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty
+- valory/ipfs:0.1.0:bafybeihlgai5pbmkb6mjhvgy4gkql5uvpwvxbpdowczgz4ovxat6vajrq4
+- valory/ledger_api:1.0.0:bafybeih6hfzj2obw5oajnt6ng6355edgvi5ngoaub44vpuszqoplfvyaom
+- valory/tendermint:0.1.0:bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54
 skills:
-- valory/abstract_abci:0.1.0:bafybeidbp24oaegzh2buagequemynipflitdwfv67hobaus3zmvf4jtcte
+- valory/abstract_abci:0.1.0:bafybeigmslzmfdftzdaakdjhkxy572bvgxblv7lps54li6a4o2jw2b3foa
 behaviours:
   main:
     args: {}
@@ -145,7 +145,7 @@ dependencies:
   ipfshttpclient:
     version: ==0.8.0a2
   open-aea-cli-ipfs:
-    version: ==1.28.0.post1
+    version: ==1.29.0
   open-aea-test-autonomy:
     version: ==0.8.0
   protobuf:
