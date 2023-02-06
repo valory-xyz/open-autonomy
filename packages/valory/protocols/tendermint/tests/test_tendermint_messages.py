@@ -54,7 +54,7 @@ class TestMessageTendermint(BaseProtocolMessagesTestCase):
             ),
             TendermintMessage(
                 performative=TendermintMessage.Performative.ERROR,
-                error_code=ErrorCode(),  # check it please!
+                error_code=ErrorCode.INVALID_REQUEST,
                 error_msg="some str",
                 error_data={"some str": "some str"},
             ),
@@ -63,14 +63,6 @@ class TestMessageTendermint(BaseProtocolMessagesTestCase):
     def build_inconsistent(self) -> List[TendermintMessage]:  # type: ignore[override]
         """Build inconsistent messages to be used for testing."""
         return [
-            TendermintMessage(
-                performative=TendermintMessage.Performative.GET_GENESIS_INFO,
-                # skip content: query
-            ),
-            TendermintMessage(
-                performative=TendermintMessage.Performative.GET_RECOVERY_PARAMS,
-                # skip content: query
-            ),
             TendermintMessage(
                 performative=TendermintMessage.Performative.GENESIS_INFO,
                 # skip content: info

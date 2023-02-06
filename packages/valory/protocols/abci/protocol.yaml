@@ -19,7 +19,7 @@ fingerprint:
   tests/conftest.py: bafybeidomydt6bdji22rndrdb5w773vvdja55o5m5n4pbfslx7ey5euot4
   tests/test_abci.py: bafybeig4gex7e62uxca7riaetmr2pu5xekxg3d7xjvck72zjd3uxny4v64
   tests/test_abci_dialogues.py: bafybeiby6ahpj6dnvjagnyyew3hgncstay37tt3xqu5x2c2yx3nldwvzzi
-  tests/test_abci_messages.py: bafybeifcwkwnvtir67xadqp6quhc2yaylglmfbvs3c4hf7xxht4s3kgsc4
+  tests/test_abci_messages.py: bafybeidbec7g3gvyr4jon57m6pfcobslj3nvnnynzeib3mgvm46d3ywdgi
 fingerprint_ignore_patterns: []
 dependencies:
   protobuf: {}
