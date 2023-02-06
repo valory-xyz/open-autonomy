@@ -180,5 +180,4 @@ class TestTendermintResetRejoin(TestTendermintReset):
         TestTendermintReset._observation_interval
         * TestTendermintReset._reset_tendermint_every
         * _n_resets_before_rejoin
-        * 3
     )

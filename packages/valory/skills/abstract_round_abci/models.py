@@ -428,9 +428,7 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
             consensus_params,
             self.context.logger,
         )
-        self.initial_tm_configs: Dict[str, Dict[str, Any]] = dict.fromkeys(
-            self.synchronized_data.all_participants
-        )
+        self.initial_tm_configs = dict.fromkeys(self.synchronized_data.all_participants)
 
     @property
     def round_sequence(self) -> RoundSequence:
@@ -543,8 +541,13 @@ class TendermintRecoveryParams(TypeCheckMixin):
     reset_params: Optional[List[Tuple[str, str]]] = None
     serialized_db_state: Optional[str] = None
 
-    def __hash__(self):
-        return hash(self.reset_from_round + str(self.round_count) + self.serialized_db_state + json.dumps(self.reset_params))
+    def __hash__(self) -> int:
+        return hash(
+            self.reset_from_round
+            + str(self.round_count)
+            + self.serialized_db_state
+            + json.dumps(self.reset_params)
+        )
 
 
 class ApiSpecs(Model, FrozenMixin, TypeCheckMixin):
