@@ -22,7 +22,7 @@ fingerprint:
   tests/test_register_reset.py: bafybeiaxp5at34oplp2jxaa5xajpl4f75f6aninbfxyev2x34uzcehs5bi
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeidrfuj3rriqc7sgkue6vrb2fm4ivtmnc2262axmmwzhj6i2r5s3tq
+- valory/abci:0.1.0:bafybeid6lgp7f3c7lkdc4wmuxvuclggkeprms33mv2bl2k4rbimqm3dt3i
 - valory/http_client:0.23.0:bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi
 - valory/ipfs:0.1.0:bafybeia7kzgw4tmkl6k2vjbnss4egvhcf4fmt7cnmpjjjbjogz2bu2j3fu
 - valory/ledger:0.19.0:bafybeiavzloea5rtoxfdqjuexkqzpgbq73n4sl6af2vwa4bv2wd22qigyi
@@ -30,15 +30,15 @@ connections:
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4
-- valory/abci:0.1.0:bafybeigntf6jcubmtojycaikwzhg6pytmpc555xvcq6sjo3kvh6jcrqvoq
+- valory/abci:0.1.0:bafybeiacx2blykdxecheozr33ywnaxfigw5oxi7wifpnelryk3buyk5hzm
 - valory/http:1.0.0:bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty
 - valory/ipfs:0.1.0:bafybeihlgai5pbmkb6mjhvgy4gkql5uvpwvxbpdowczgz4ovxat6vajrq4
 skills:
-- valory/abstract_abci:0.1.0:bafybeicrh7ujltm3apljeghmjowxgskxtnpiqrf4wmsnhkvye3aaie4f6q
-- valory/abstract_round_abci:0.1.0:bafybeiheynfnms6uzygj34ql4helptmi5zdbgpczwr47vqmplzb5i6ztyi
-- valory/register_reset_abci:0.1.0:bafybeihm3y7exthoitb4hx3lp7rsrughb5awvflf2g7l2cw6wrsyzkpa34
-- valory/registration_abci:0.1.0:bafybeiagur7ic5nkzbgcr7ralg2ppzcdaq5xv6sbqd47sgfsy3uazxmxnu
-- valory/reset_pause_abci:0.1.0:bafybeic2tv4aphzdnwuqajpvsgdnvkuh6aog2t6ekaopq6hkxtiytna3ki
+- valory/abstract_abci:0.1.0:bafybeigmslzmfdftzdaakdjhkxy572bvgxblv7lps54li6a4o2jw2b3foa
+- valory/abstract_round_abci:0.1.0:bafybeian437oylzaba3q27zoq3xutcmk72q4svc4itubqni7cdr2kl26gq
+- valory/register_reset_abci:0.1.0:bafybeigwyzl3pghi3m5envk4pptpkcf4qzg2evopq3wrzyofdo3msuffci
+- valory/registration_abci:0.1.0:bafybeiefryslmbbelnqe4nbevnuladm56iyqddjliqsw3j6lpv2vgemaye
+- valory/reset_pause_abci:0.1.0:bafybeicp5ccnaptfqyfznqf5mkk4aabnin7aya4tfsvkjun5izatpyfhjy
 default_ledger: ethereum
 required_ledgers:
 - ethereum
