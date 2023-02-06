@@ -1141,7 +1141,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods  # pragma: no 
         return kwargs
 
 
-class TendermintNode:  # pragma: no cover (covered via deployments/Dockerfiles/tendermint/tendermint.py)
+class TendermintNode:
     """A class to manage a Tendermint node."""
 
     def __init__(self, params: TendermintParams, logger: Optional[Logger] = None):
@@ -1262,12 +1262,17 @@ class TendermintNode:  # pragma: no cover (covered via deployments/Dockerfiles/t
                     for trigger in [
                         # this occurs when we lose connection from the tm side
                         "RPC HTTP server stopped",
-                        # this occurs when we lose connection from the AEA side.
-                        "Stopping abci.socketClient for error: read message: EOF module=abci-client connection=",
+                        # whenever the node is stopped because of a closed connection
+                        # from on any of the tendermint modules (abci, p2p, rpc, etc)
+                        # we restart the node
+                        "Stopping abci.socketClient for error: read message: EOF",
                     ]:
                         if line.find(trigger) >= 0:
                             self._stop_tm_process()
-                            self._start_tm_process()
+                            # we can only reach this step if monitoring was activated
+                            # so we make sure that after reset the monitoring continues
+                            monitoring = True
+                            self._start_tm_process(monitoring)
                             self.write_line(
                                 f"Restarted the HTTP RPC server, as a connection was dropped with message:\n\t\t {line}\n"
                             )
