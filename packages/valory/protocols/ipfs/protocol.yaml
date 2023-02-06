@@ -14,6 +14,8 @@ fingerprint:
   ipfs_pb2.py: bafybeieelqejl5ygoxho6g6q5adry45twyd73nzabjfi4ufxhc47aqvxni
   message.py: bafybeihufe4v6jlwrzz5doeesr3tdsjgksi2shymrcdngfhmi3h6rsqoie
   serialization.py: bafybeifi5snrp4knrxwftskyjb5zuipjfqeipqw6nxn4mbk42vdwkstxd4
+  tests/test_ipfs_dialogues.py: bafybeigqi2cal5m252qf3ry75mldfd5kyqj3bgstvyzpjgpjgxhi2otpoa
+  tests/test_ipfs_messages.py: bafybeiasgajluoijzuln3s4gcbv5xenzazejt5kgbs54momozsntzrudw4
 fingerprint_ignore_patterns: []
 dependencies:
   protobuf: {}

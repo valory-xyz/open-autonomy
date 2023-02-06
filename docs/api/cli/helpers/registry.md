@@ -14,6 +14,26 @@ def fetch_service(ctx: Context, public_id: PublicId) -> Path
 
 Fetch service.
 
+<a id="autonomy.cli.helpers.registry.fetch_service_mixed"></a>
+
+#### fetch`_`service`_`mixed
+
+```python
+def fetch_service_mixed(ctx: Context, public_id: PublicId) -> Path
+```
+
+Fetch service in mixed mode.
+
+<a id="autonomy.cli.helpers.registry.fetch_service_remote"></a>
+
+#### fetch`_`service`_`remote
+
+```python
+def fetch_service_remote(public_id: PublicId) -> Path
+```
+
+Fetch service in remote mode.
+
 <a id="autonomy.cli.helpers.registry.fetch_service_ipfs"></a>
 
 #### fetch`_`service`_`ipfs
