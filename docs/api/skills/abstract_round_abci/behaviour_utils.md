@@ -623,7 +623,7 @@ the request callback.
 #### get`_`http`_`response
 
 ```python
-def get_http_response(method: str, url: str, content: Optional[bytes] = None, headers: Optional[List[OrderedDict[str, str]]] = None, parameters: Optional[List[Tuple[str, str]]] = None) -> Generator[None, None, HttpMessage]
+def get_http_response(method: str, url: str, content: Optional[bytes] = None, headers: Optional[Dict[str, str]] = None, parameters: Optional[Dict[str, str]] = None) -> Generator[None, None, HttpMessage]
 ```
 
 Send an http request message from the skill context.
