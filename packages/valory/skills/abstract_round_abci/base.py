@@ -713,7 +713,7 @@ class AbciAppDB:
         data = self.serialize()
         sha256.update(data.encode("utf-8"))
         hash_ = sha256.digest()
-        _logger.info(f"hash: {hash_.hex()}; data: {self.serialize()}")
+        _logger.debug(f"root hash: {hash_.hex()}; data: {self.serialize()}")
         return hash_
 
     @staticmethod
@@ -2284,6 +2284,17 @@ class AbciApp(
         """Get the latest result of the round."""
         return None if len(self._round_results) == 0 else self._round_results[-1]
 
+    def cleanup_timeouts(self) -> None:
+        """
+        Remove all timeouts.
+
+        Note that this is method is meant to be used only when performing recovery.
+        Calling it in normal execution will result in unexpected behaviour.
+        """
+        self._timeouts = Timeouts[EventType]()
+        self._current_timeout_entries = []
+        self._last_timestamp = None
+
     def check_transaction(self, transaction: Transaction) -> None:
         """
         Check a transaction.
@@ -2374,7 +2385,7 @@ class AbciApp(
             self._current_round_cls = None
             self._current_round = None
 
-    def update_time(self, timestamp: datetime.datetime, is_syncing: bool = False) -> None:
+    def update_time(self, timestamp: datetime.datetime) -> None:
         """
         Observe timestamp from last block.
 
@@ -2393,7 +2404,7 @@ class AbciApp(
             return
 
         earliest_deadline, _ = self._timeouts.get_earliest_timeout()
-        while not is_syncing and earliest_deadline <= timestamp:
+        while earliest_deadline <= timestamp:
             # the earliest deadline is expired. Pop it from the
             # priority queue and process the timeout event.
             expired_deadline, timeout_event = self._timeouts.pop_timeout()
@@ -2716,7 +2727,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         )
         self._block_builder.reset()
         self._block_builder.header = header
-        self.abci_app.update_time(header.timestamp, self.syncing_up)
+        self.abci_app.update_time(header.timestamp)
         # we use the local time of the agent to specify the expiration of the deadline
         self._block_stall_deadline = datetime.datetime.now() + datetime.timedelta(
             seconds=BLOCKS_STALL_TOLERANCE
@@ -2869,6 +2880,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             # Furthermore, that hash is then in turn used as the init hash when the tm network is reset.
             self._last_round_transition_root_hash = self.root_hash
 
+        self.abci_app.cleanup_timeouts()
         round_id_to_cls = {
             cls.auto_round_id(): cls for cls in self.abci_app.transition_function
         }

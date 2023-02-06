@@ -1715,9 +1715,7 @@ class BaseBehaviour(
         :param performative: the ACN request performative.
         :return: the result that the majority of the agents sent. If majority cannot be reached, returns `None`.
         """
-        shared_state = cast(
-            SharedState, self.context.state
-        )
+        shared_state = cast(SharedState, self.context.state)
         # reset the ACN deliverables at the beginning of a new request
         shared_state.address_to_acn_deliverable = shared_state.acn_container()
 
@@ -2128,7 +2126,8 @@ class TmManager(BaseBehaviour):
 
         for _ in range(self._max_reset_retry):
             reset_successfully = yield from self.reset_tendermint_with_wait(
-                is_recovery=True
+                on_startup=True,
+                is_recovery=True,
             )
             if reset_successfully:
                 self.context.logger.info(
@@ -2140,6 +2139,8 @@ class TmManager(BaseBehaviour):
                 # doesn't guarantee us this, since the block stall deadline is greater than the
                 # hard_reset_sleep, 60s vs 20s. In other words, we haven't received a block for at
                 # least 60s, so wait_from_last_timestamp() will return immediately.
+                # By setting "on_startup" to True in the reset_tendermint_with_wait() call above,
+                # wait_from_last_timestamp() will not be called at all.
                 yield from self.sleep(self.hard_reset_sleep)
                 return
 
