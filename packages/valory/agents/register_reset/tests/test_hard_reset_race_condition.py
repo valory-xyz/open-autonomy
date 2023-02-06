@@ -16,6 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# flake8: noqa: F811
 
 """Integration tests for the valory/register_reset skill."""
 

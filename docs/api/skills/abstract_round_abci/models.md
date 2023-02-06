@@ -264,6 +264,16 @@ def __init__(*args: Any, *, skill_context: SkillContext, **kwargs: Any, ,) -> No
 
 Initialize the state.
 
+<a id="packages.valory.skills.abstract_round_abci.models.SharedState.acn_container"></a>
+
+#### acn`_`container
+
+```python
+def acn_container() -> Dict[str, Any]
+```
+
+Create a container for ACN results, i.e., a mapping from others' addresses to `None`.
+
 <a id="packages.valory.skills.abstract_round_abci.models.SharedState.setup"></a>
 
 #### setup
@@ -403,6 +413,16 @@ class TendermintRecoveryParams(TypeCheckMixin)
 A dataclass to hold all parameters related to agent <-> tendermint recovery procedures.
 
 This must be frozen so that we make sure it does not get edited.
+
+<a id="packages.valory.skills.abstract_round_abci.models.TendermintRecoveryParams.__hash__"></a>
+
+#### `__`hash`__`
+
+```python
+def __hash__() -> int
+```
+
+Hash the object.
 
 <a id="packages.valory.skills.abstract_round_abci.models.ApiSpecs"></a>
 

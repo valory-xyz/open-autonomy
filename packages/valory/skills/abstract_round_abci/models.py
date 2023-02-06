@@ -542,10 +542,11 @@ class TendermintRecoveryParams(TypeCheckMixin):
     serialized_db_state: Optional[str] = None
 
     def __hash__(self) -> int:
+        """Hash the object."""
         return hash(
             self.reset_from_round
             + str(self.round_count)
-            + self.serialized_db_state
+            + str(self.serialized_db_state)
             + json.dumps(self.reset_params)
         )
 

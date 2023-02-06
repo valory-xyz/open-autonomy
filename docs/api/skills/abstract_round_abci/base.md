@@ -2314,6 +2314,19 @@ def latest_result() -> Optional[BaseSynchronizedData]
 
 Get the latest result of the round.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.cleanup_timeouts"></a>
+
+#### cleanup`_`timeouts
+
+```python
+def cleanup_timeouts() -> None
+```
+
+Remove all timeouts.
+
+Note that this is method is meant to be used only when performing recovery.
+Calling it in normal execution will result in unexpected behaviour.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AbciApp.check_transaction"></a>
 
 #### check`_`transaction

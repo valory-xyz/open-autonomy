@@ -323,6 +323,8 @@ class TestTendermintHandler:
         """Set up the tests."""
         self.agent_name = "Alice"
         self.context = MagicMock(skill_id=PublicId.from_str("dummy/skill:0.1.0"))
+        other_agents = ["Alice", "Bob", "Charlie"]
+        self.context.state = MagicMock(acn_container=lambda: other_agents)
         self.handler = TendermintHandler(name="dummy", skill_context=self.context)
         self.handler.context.logger = logging.getLogger()
         self.dialogues = TendermintDialogues(name="dummy", skill_context=self.context)
@@ -383,7 +385,7 @@ class TestTendermintHandler:
         """Test handle response sender not in registered addresses"""
         performative = TendermintMessage.Performative.GENESIS_INFO
         message = TendermintMessage(performative, info="info")  # type: ignore
-        message.sender = "Alice"
+        message.sender = "NotAlice"
         self.handler.handle(message)
         log_message = self.handler.LogMessages.not_in_registered_addresses.value
         assert log_message in caplog.text
@@ -439,6 +441,9 @@ class TestTendermintHandler:
         caplog: LogCaptureFixture,
     ) -> None:
         """Test handle response for recovery parameters."""
+        if not registered:
+            self.agent_name = "not-registered"
+
         if performative == TendermintMessage.Performative.GET_RECOVERY_PARAMS:
             self.context.state.tm_recovery_params = TendermintRecoveryParams(
                 "DummyRound"
@@ -476,7 +481,7 @@ class TestTendermintHandler:
             ),
             (
                 {"not a dict"},
-                "argument after ** must be a mapping, not str",
+                "string indices must be integers",
             ),
         ),
     )
