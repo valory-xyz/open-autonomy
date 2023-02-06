@@ -26,8 +26,8 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_abci:0.1.0:bafybeia6jakdjpttotadbbmb6gcigfpsfmwuzj3xstfllkqssq7f6bugma
-- valory/abstract_round_abci:0.1.0:bafybeiayljxrwj5r55lx7wlc23spqni7fhrs7i43dfrmadkwobcqcnuwji
+- valory/abstract_abci:0.1.0:bafybeif53sj52ule5ch2hhjc6ixd72z6ka25v5lby2gkmn5cntoaa3uzfa
+- valory/abstract_round_abci:0.1.0:bafybeicu2copq6rwiiabg5jhtvbrpgxkjib63dq5r4xidn7zsz5mxhywfm
 behaviours:
   main:
     args: {}
@@ -128,9 +128,9 @@ models:
   randomness_api:
     args:
       api_id: cloudflare
-      headers: {}
+      headers: []
       method: GET
-      parameters: {}
+      parameters: []
       response_key: null
       response_type: dict
       retries: 5
