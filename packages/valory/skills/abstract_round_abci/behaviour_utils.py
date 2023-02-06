@@ -1800,7 +1800,7 @@ class BaseBehaviour(
             0, self._timeout
         )
 
-    def _get_reset_params(self, default: bool) -> Optional[List[Tuple[str, str]]]:
+    def _get_reset_params(self, default: bool) -> Optional[Dict[str, str]]:
         """Get the parameters for a hard reset request to Tendermint."""
         if default:
             return None
@@ -1811,11 +1811,11 @@ class BaseBehaviour(
         genesis_time = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
             GENESIS_TIME_FMT
         )
-        return [
-            ("genesis_time", genesis_time),
-            ("initial_height", INITIAL_HEIGHT),
-            ("period_count", str(self.synchronized_data.period_count)),
-        ]
+        return {
+            "genesis_time": genesis_time,
+            "initial_height": INITIAL_HEIGHT,
+            "period_count": str(self.synchronized_data.period_count),
+        }
 
     def reset_tendermint_with_wait(  # pylint: disable=too-many-locals, too-many-statements
         self,
@@ -2133,7 +2133,7 @@ class TmManager(BaseBehaviour):
 
         self.context.logger.info("Failed to reset tendermint.")
 
-    def _get_reset_params(self, default: bool) -> Optional[List[Tuple[str, str]]]:
+    def _get_reset_params(self, default: bool) -> Optional[Dict[str, str]]:
         """
         Get the parameters for a hard reset request when trying to recover agent <-> tendermint communication.
 

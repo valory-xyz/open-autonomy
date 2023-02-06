@@ -530,7 +530,7 @@ class TendermintRecoveryParams(TypeCheckMixin):
 
     reset_from_round: str
     round_count: int = ROUND_COUNT_DEFAULT
-    reset_params: Optional[List[Tuple[str, str]]] = None
+    reset_params: Optional[Dict[str, str]] = None
     serialized_db_state: Optional[str] = None
 
 
