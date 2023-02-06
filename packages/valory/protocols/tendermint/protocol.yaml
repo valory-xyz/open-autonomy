@@ -19,7 +19,7 @@ fingerprint:
   tests/__init__.py: bafybeiguds53xs5tmygjd26a7xxilzdrgi2x262relfagdlvdzymacumie
   tests/test_tendermint.py: bafybeihnjxpkvgsclevn4bwi4qepw56vz554wox7gmhnjwobelbee7xpce
   tests/test_tendermint_dialogues.py: bafybeieoviq62cv62h4nglyr7qflzb32bjcvjbepmytgfpycuypnz3mriy
-  tests/test_tendermint_messages.py: bafybeiavcr72ex6tn6i2u3visvnf4qubm63hfc42fm476tg5kmppttzd4q
+  tests/test_tendermint_messages.py: bafybeifqebxh5x5i5luiiypi6mqtcroejmb7ov6foj37ipfgqm7h5f5yve
 fingerprint_ignore_patterns: []
 dependencies:
   protobuf: {}
