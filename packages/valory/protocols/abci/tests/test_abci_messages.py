@@ -25,20 +25,105 @@ from typing import List
 from aea.test_tools.test_protocol import BaseProtocolMessagesTestCase
 
 from packages.valory.protocols.abci.custom_types import (
+    BlockID,
+    BlockParams,
     CheckTxType,
+    CheckTxTypeEnum,
     ConsensusParams,
+    ConsensusVersion,
+    Duration,
+    Event,
+    EventAttribute,
     Events,
+    Evidence,
+    EvidenceParams,
+    EvidenceType,
     Evidences,
     Header,
     LastCommitInfo,
+    PartSetHeader,
+    ProofOp,
     ProofOps,
+    PublicKey,
     Result,
+    ResultType,
     SnapShots,
     Snapshot,
     Timestamp,
+    Validator,
+    ValidatorParams,
+    ValidatorUpdate,
     ValidatorUpdates,
+    VersionParams,
+    VoteInfo,
 )
 from packages.valory.protocols.abci.message import AbciMessage
+
+
+event = Event("type", [EventAttribute(b"key", b"value", True)])
+events = Events([event, event])
+
+header = Header(
+    ConsensusVersion(0, 0),
+    "chain_id",
+    0,
+    Timestamp(0, 0),
+    BlockID(b"hash", PartSetHeader(0, b"hash")),
+    b"last_commit_hash",
+    b"data_hash",
+    b"validators_hash",
+    b"next_validators_hash",
+    b"consensus_hash",
+    b"app_hash",
+    b"last_results_hash",
+    b"evidence_hash",
+    b"proposer_address",
+)
+
+validator = Validator(b"address", 0)
+last_commit_info = LastCommitInfo(
+    0,
+    [
+        VoteInfo(validator, True),
+        VoteInfo(validator, False),
+    ],
+)
+
+consensus_params = ConsensusParams(
+    BlockParams(0, 0),
+    EvidenceParams(0, Duration(0, 0), 0),
+    ValidatorParams(["pub_key"]),
+    VersionParams(0),
+)
+
+evidences = Evidences(
+    [
+        Evidence(EvidenceType.UNKNOWN, validator, 0, Timestamp(0, 0), 0),
+        Evidence(EvidenceType.DUPLICATE_VOTE, validator, 0, Timestamp(0, 0), 0),
+    ]
+)
+
+
+validators = ValidatorUpdates(
+    [
+        ValidatorUpdate(
+            PublicKey(b"pub_key_bytes", PublicKey.PublicKeyType.ed25519), 1
+        ),
+        ValidatorUpdate(
+            PublicKey(b"pub_key_bytes", PublicKey.PublicKeyType.secp256k1), 2
+        ),
+    ]
+)
+snapshot = Snapshot(0, 0, 0, b"hash", b"metadata")
+snapshots = SnapShots([snapshot, snapshot])
+proof_ops = (
+    ProofOps(
+        [
+            ProofOp("type", b"key", b"data"),
+            ProofOp("type", b"key", b"data"),
+        ]
+    ),
+)
 
 
 class TestMessageAbci(BaseProtocolMessagesTestCase):
@@ -69,10 +154,10 @@ class TestMessageAbci(BaseProtocolMessagesTestCase):
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.REQUEST_INIT_CHAIN,
-                time=Timestamp(),  # check it please!
+                time=Timestamp(seconds=1, nanos=1),
                 chain_id="some str",
-                consensus_params=ConsensusParams(),
-                validators=ValidatorUpdates(),  # check it please!
+                consensus_params=consensus_params,
+                validators=validators,
                 app_state_bytes=b"some_bytes",
                 initial_height=12,
             ),
@@ -86,14 +171,14 @@ class TestMessageAbci(BaseProtocolMessagesTestCase):
             AbciMessage(
                 performative=AbciMessage.Performative.REQUEST_BEGIN_BLOCK,
                 hash=b"some_bytes",
-                header=Header(),  # check it please!
-                last_commit_info=LastCommitInfo(),  # check it please!
-                byzantine_validators=Evidences(),  # check it please!
+                header=header,
+                last_commit_info=last_commit_info,
+                byzantine_validators=evidences,
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.REQUEST_CHECK_TX,
                 tx=b"some_bytes",
-                type=CheckTxType(),  # check it please!
+                type=CheckTxType(CheckTxTypeEnum.NEW),
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.REQUEST_DELIVER_TX,
@@ -111,7 +196,7 @@ class TestMessageAbci(BaseProtocolMessagesTestCase):
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.REQUEST_OFFER_SNAPSHOT,
-                snapshot=Snapshot(),  # check it please!
+                snapshot=Snapshot(0, 0, 0, b"hash", b"metadata"),
                 app_hash=b"some_bytes",
             ),
             AbciMessage(
@@ -153,8 +238,8 @@ class TestMessageAbci(BaseProtocolMessagesTestCase):
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
-                consensus_params=ConsensusParams(),
-                validators=ValidatorUpdates(),  # check it please!
+                consensus_params=consensus_params,
+                validators=validators,
                 app_hash=b"some_bytes",
             ),
             AbciMessage(
@@ -165,13 +250,18 @@ class TestMessageAbci(BaseProtocolMessagesTestCase):
                 index=12,
                 key=b"some_bytes",
                 value=b"some_bytes",
-                proof_ops=ProofOps(),  # check it please!
+                proof_ops=ProofOps(
+                    [
+                        ProofOp("type", b"key", b"data"),
+                        ProofOp("type", b"key", b"data"),
+                    ]
+                ),
                 height=12,
                 codespace="some str",
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.RESPONSE_BEGIN_BLOCK,
-                events=Events(),  # check it please!
+                events=events,
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.RESPONSE_CHECK_TX,
@@ -181,7 +271,7 @@ class TestMessageAbci(BaseProtocolMessagesTestCase):
                 info="some str",
                 gas_wanted=12,
                 gas_used=12,
-                events=Events(),  # check it please!
+                events=events,
                 codespace="some str",
             ),
             AbciMessage(
@@ -192,14 +282,14 @@ class TestMessageAbci(BaseProtocolMessagesTestCase):
                 info="some str",
                 gas_wanted=12,
                 gas_used=12,
-                events=Events(),  # check it please!
+                events=events,
                 codespace="some str",
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.RESPONSE_END_BLOCK,
-                validator_updates=ValidatorUpdates(),  # check it please!
-                consensus_param_updates=ConsensusParams(),
-                events=Events(),  # check it please!
+                validator_updates=validators,
+                consensus_param_updates=consensus_params,
+                events=events,
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.RESPONSE_COMMIT,
@@ -208,11 +298,11 @@ class TestMessageAbci(BaseProtocolMessagesTestCase):
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.RESPONSE_LIST_SNAPSHOTS,
-                snapshots=SnapShots(),  # check it please!
+                snapshots=snapshots,
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.RESPONSE_OFFER_SNAPSHOT,
-                result=Result(),  # check it please!
+                result=Result(ResultType.UNKNOWN),
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.RESPONSE_LOAD_SNAPSHOT_CHUNK,
@@ -220,13 +310,13 @@ class TestMessageAbci(BaseProtocolMessagesTestCase):
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.RESPONSE_APPLY_SNAPSHOT_CHUNK,
-                result=Result(),  # check it please!
+                result=Result(ResultType.UNKNOWN),
                 refetch_chunks=(12,),
                 reject_senders=("some str",),
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.DUMMY,
-                dummy_consensus_params=ConsensusParams(),  # check it please!
+                dummy_consensus_params=consensus_params,
             ),
         ]
 
@@ -250,11 +340,10 @@ class TestMessageAbci(BaseProtocolMessagesTestCase):
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.REQUEST_INIT_CHAIN,
-                # skip content: time
+                # skip content: time,app_state_bytes
                 chain_id="some str",
-                consensus_params=ConsensusParams(),
-                validators=ValidatorUpdates(),  # check it please!
-                app_state_bytes=b"some_bytes",
+                consensus_params=consensus_params,
+                validators=validators,
                 initial_height=12,
             ),
             AbciMessage(
@@ -267,14 +356,14 @@ class TestMessageAbci(BaseProtocolMessagesTestCase):
             AbciMessage(
                 performative=AbciMessage.Performative.REQUEST_BEGIN_BLOCK,
                 # skip content: hash
-                header=Header(),  # check it please!
-                last_commit_info=LastCommitInfo(),  # check it please!
-                byzantine_validators=Evidences(),  # check it please!
+                header=header,
+                last_commit_info=last_commit_info,
+                byzantine_validators=evidences,
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.REQUEST_CHECK_TX,
                 # skip content: tx
-                type=CheckTxType(),  # check it please!
+                type=CheckTxType(CheckTxTypeEnum.NEW),
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.REQUEST_DELIVER_TX,
@@ -325,8 +414,7 @@ class TestMessageAbci(BaseProtocolMessagesTestCase):
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.RESPONSE_INIT_CHAIN,
-                # skip content: consensus_params
-                validators=ValidatorUpdates(),  # check it please!
+                # skip content: consensus_params, validators
                 app_hash=b"some_bytes",
             ),
             AbciMessage(
@@ -337,7 +425,7 @@ class TestMessageAbci(BaseProtocolMessagesTestCase):
                 index=12,
                 key=b"some_bytes",
                 value=b"some_bytes",
-                proof_ops=ProofOps(),  # check it please!
+                proof_ops=proof_ops,
                 height=12,
                 codespace="some str",
             ),
@@ -353,7 +441,7 @@ class TestMessageAbci(BaseProtocolMessagesTestCase):
                 info="some str",
                 gas_wanted=12,
                 gas_used=12,
-                events=Events(),  # check it please!
+                events=events,
                 codespace="some str",
             ),
             AbciMessage(
@@ -364,14 +452,14 @@ class TestMessageAbci(BaseProtocolMessagesTestCase):
                 info="some str",
                 gas_wanted=12,
                 gas_used=12,
-                events=Events(),  # check it please!
+                events=events,
                 codespace="some str",
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.RESPONSE_END_BLOCK,
                 # skip content: validator_updates
-                consensus_param_updates=ConsensusParams(),
-                events=Events(),  # check it please!
+                consensus_param_updates=consensus_params,
+                events=events,
             ),
             AbciMessage(
                 performative=AbciMessage.Performative.RESPONSE_COMMIT,
