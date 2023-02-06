@@ -24,22 +24,10 @@ import logging
 import platform
 import time
 from abc import ABC
-from collections import OrderedDict
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generator,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -1300,8 +1288,8 @@ class TestBaseBehaviour:
             self.behaviour._build_http_request_message(
                 "",
                 "",
-                parameters=[("foo", "bar")],
-                headers=[OrderedDict({"foo": "foo_val", "bar": "bar_val"})],
+                parameters={"foo": "bar"},
+                headers={"foo": "foo_val", "bar": "bar_val"},
             )
 
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())

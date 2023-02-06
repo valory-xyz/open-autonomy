@@ -29,19 +29,7 @@ import sys
 from abc import ABC, ABCMeta, abstractmethod
 from enum import Enum
 from functools import partial
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generator,
-    List,
-    Optional,
-    OrderedDict,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
 
 import pytz
 from aea.exceptions import enforce
@@ -1234,8 +1222,8 @@ class BaseBehaviour(
         method: str,
         url: str,
         content: Optional[bytes] = None,
-        headers: Optional[List[OrderedDict[str, str]]] = None,
-        parameters: Optional[List[Tuple[str, str]]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        parameters: Optional[Dict[str, str]] = None,
     ) -> Generator[None, None, HttpMessage]:
         """
         Send an http request message from the skill context.
@@ -1301,8 +1289,8 @@ class BaseBehaviour(
         method: str,
         url: str,
         content: Optional[bytes] = None,
-        headers: Optional[List[OrderedDict[str, str]]] = None,
-        parameters: Optional[List[Tuple[str, str]]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        parameters: Optional[Dict[str, str]] = None,
     ) -> Tuple[HttpMessage, HttpDialogue]:
         """
         Send an http request message from the skill context.
@@ -1319,15 +1307,14 @@ class BaseBehaviour(
         """
         if parameters:
             url = url + "?"
-            for key, val in parameters:
+            for key, val in parameters.items():
                 url += f"{key}={val}&"
             url = url[:-1]
 
         header_string = ""
         if headers:
-            for header in headers:
-                for key, val in header.items():
-                    header_string += f"{key}: {val}\r\n"
+            for key, val in headers.items():
+                header_string += f"{key}: {val}\r\n"
 
         # context
         http_dialogues = cast(HttpDialogues, self.context.http_dialogues)
