@@ -30,7 +30,7 @@ protocols:
 - valory/contract_api:1.0.0:bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeihejkws6jcuwjauoabidxujq3tjt2oq65rigefpy4td7ked7xdzqa
-- valory/transaction_settlement_abci:0.1.0:bafybeie3zbshin3xbnfs2dnewyiazluco5wf3j2wsm2jumjt6n4y3zsbby
+- valory/transaction_settlement_abci:0.1.0:bafybeidt34mtgw6kk5m3wzfcf42llwdan6kguskvxg6vhd5tfd3ho7bjh4
 behaviours:
   main:
     args: {}

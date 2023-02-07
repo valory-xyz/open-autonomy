@@ -51,7 +51,10 @@ class TestSharedState:
         shared_state: SharedState,
     ) -> None:
         """Test setup."""
-        shared_state.context.params.setup_params = {"test": []}
+        shared_state.context.params.setup_params = {
+            "test": [],
+            "all_participants": [["0x0"]],
+        }
         shared_state.context.params.consensus_params = MagicMock()
         shared_state.setup()
         assert (
