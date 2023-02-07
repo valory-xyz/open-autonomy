@@ -468,15 +468,6 @@ class TestConsensusParams:
         lookalike = ObjectImitator(self.consensus_params)
         assert not self.consensus_params == lookalike
 
-    def test_from_json(self) -> None:
-        """Test 'from_json' method."""
-        expected = ConsensusParams(self.max_participants)
-        json_object = dict(
-            max_participants=self.max_participants,
-        )
-        actual = ConsensusParams.from_json(json_object)
-        assert expected == actual
-
 
 class TestAbciAppDB:
     """Test 'AbciAppDB' class."""

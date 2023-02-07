@@ -423,16 +423,6 @@ class ConsensusParams:
         """Get the consensus threshold."""
         return consensus_threshold(self.max_participants)
 
-    @classmethod
-    def from_json(cls, obj: Dict) -> "ConsensusParams":
-        """Get from JSON."""
-        max_participants = obj["max_participants"]
-        enforce(
-            isinstance(max_participants, int) and max_participants >= 0,
-            "max_participants must be an integer greater than 0.",
-        )
-        return cls(max_participants)
-
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
         if not isinstance(other, ConsensusParams):
