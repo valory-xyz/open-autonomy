@@ -225,7 +225,6 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         return {
             "cleanup_history_depth": 1,
             "cleanup_history_depth_current": None,
-            "consensus": {"max_participants": 1},
             "drand_public_key": "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31",
             "finalize_timeout": 60.0,
             "genesis_config": {

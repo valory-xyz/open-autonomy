@@ -280,9 +280,6 @@ class BaseParams(
         self.reset_tendermint_after: int = self._ensure(
             "reset_tendermint_after", kwargs, int
         )
-        self.consensus_params: ConsensusParams = ConsensusParams.from_json(
-            self._ensure("consensus", kwargs, dict)
-        )
         self.cleanup_history_depth: int = self._ensure(
             "cleanup_history_depth", kwargs, int
         )
