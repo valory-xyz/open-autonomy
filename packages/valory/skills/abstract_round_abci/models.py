@@ -434,7 +434,8 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
     def setup(self) -> None:
         """Set up the model."""
         self._round_sequence = RoundSequence(self.abci_app_cls)
-        consensus_params = cast(BaseParams, self.context.params).consensus_params
+        # consensus parameters will not be available if the current skill is abstract
+        consensus_params = getattr(self.context.params, "consensus_params", None)
         setup_params = cast(BaseParams, self.context.params).setup_params
         self.round_sequence.setup(
             BaseSynchronizedData(
