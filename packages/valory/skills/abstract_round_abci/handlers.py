@@ -709,12 +709,6 @@ class TendermintHandler(Handler):
 
         try:
             recovery_params = json.loads(message.params)
-            # fix `reset_params` type
-            if recovery_params["reset_params"] is not None:
-                # if `reset_params` is not None, we must convert from list to tuple
-                recovery_params["reset_params"] = [
-                    tuple(params) for params in recovery_params["reset_params"]
-                ]
             shared_state = cast(SharedState, self.context.state)
             shared_state.address_to_acn_deliverable[
                 message.sender

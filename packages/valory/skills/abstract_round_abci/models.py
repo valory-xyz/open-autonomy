@@ -548,7 +548,7 @@ class TendermintRecoveryParams(TypeCheckMixin):
             self.reset_from_round
             + str(self.round_count)
             + str(self.serialized_db_state)
-            + json.dumps(self.reset_params)
+            + json.dumps(self.reset_params, sort_keys=True)
         )
 
 

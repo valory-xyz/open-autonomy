@@ -29,8 +29,8 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicergmqqnvgqiw6jl6xhu6ov3fn57swgo2ca2fj53fq773s32i744
-- valory/transaction_settlement_abci:0.1.0:bafybeialyh4fn2xgc5tgygkq2twjznfumloa5x7lnyorqa7ux6ydq6loga
+- valory/abstract_round_abci:0.1.0:bafybeidpjr4ed6pkwja3ocegj3iszhyqdzdvzh2r244ezzg4r5t4q5teru
+- valory/transaction_settlement_abci:0.1.0:bafybeifmtgppojflba32zqr2wfedpsbb7vpzdcqgdnevtfyeliqk7fbvq4
 behaviours:
   main:
     args: {}
