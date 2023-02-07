@@ -24,22 +24,10 @@ import logging
 import platform
 import time
 from abc import ABC
-from collections import OrderedDict
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generator,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -1300,8 +1288,8 @@ class TestBaseBehaviour:
             self.behaviour._build_http_request_message(
                 "",
                 "",
-                parameters=[("foo", "bar")],
-                headers=[OrderedDict({"foo": "foo_val", "bar": "bar_val"})],
+                parameters={"foo": "bar"},
+                headers={"foo": "foo_val", "bar": "bar_val"},
             )
 
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
@@ -1976,11 +1964,11 @@ class TestBaseBehaviour:
             genesis_time = timestamp.astimezone(pytz.UTC).strftime(GENESIS_TIME_FMT)
             period_count = str(period)
 
-            expected = [
-                ("genesis_time", genesis_time),
-                ("initial_height", initial_height),
-                ("period_count", period_count),
-            ]
+            expected = {
+                "genesis_time": genesis_time,
+                "initial_height": initial_height,
+                "period_count": period_count,
+            }
 
             assert actual == expected
 
@@ -2108,11 +2096,11 @@ class TestBaseBehaviour:
             )
 
             expected_parameters = (
-                [
-                    ("genesis_time", genesis_time),
-                    ("initial_height", initial_height),
-                    ("period_count", str(period_count_mock)),
-                ]
+                {
+                    "genesis_time": genesis_time,
+                    "initial_height": initial_height,
+                    "period_count": str(period_count_mock),
+                }
                 if not on_startup
                 else None
             )
@@ -2318,15 +2306,12 @@ class TestTmManager:
     @pytest.mark.parametrize(
         "expected_reset_params",
         (
-            [
-                ("genesis_time", "genesis-time"),
-                ("initial_height", "1"),
-            ],
+            {"genesis_time": "genesis-time", "initial_height": "1"},
             None,
         ),
     )
     def test_get_reset_params(
-        self, expected_reset_params: Optional[List[Tuple[str, str]]]
+        self, expected_reset_params: Optional[Dict[str, str]]
     ) -> None:
         """Test that reset params returns the correct params."""
         self.context_mock.state.tm_recovery_params = TendermintRecoveryParams(

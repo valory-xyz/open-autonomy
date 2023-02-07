@@ -698,7 +698,7 @@ class SignatureBehaviour(TransactionSettlementBaseBehaviour):
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             self.context.logger.info(
-                f"Consensus reached on tx hash: {self.synchronized_data.most_voted_tx_hash}"
+                f"Agreement reached on tx data: {self.synchronized_data.most_voted_tx_hash}"
             )
             signature_hex = yield from self._get_safe_tx_signature()
             payload = SignaturePayload(self.context.agent_address, signature_hex)

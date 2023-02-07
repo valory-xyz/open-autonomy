@@ -24,6 +24,7 @@
 import builtins
 import json
 import logging
+from collections import OrderedDict
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -75,8 +76,8 @@ BASE_DUMMY_SPECS_CONFIG = dict(
     url="http://dummy",
     api_id="api_id",
     method="GET",
-    headers=[("Dummy-Header", "dummy_value")],
-    parameters=[("Dummy-Param", "dummy_param")],
+    headers=OrderedDict([("Dummy-Header", "dummy_value")]),
+    parameters=OrderedDict([("Dummy-Param", "dummy_param")]),
 )
 
 
@@ -123,8 +124,8 @@ class TestApiSpecsModel:
         assert self.api_specs.url == "http://dummy"
         assert self.api_specs.api_id == "api_id"
         assert self.api_specs.method == "GET"
-        assert self.api_specs.headers == [("Dummy-Header", "dummy_value")]
-        assert self.api_specs.parameters == [("Dummy-Param", "dummy_param")]
+        assert self.api_specs.headers == {"Dummy-Header": "dummy_value"}
+        assert self.api_specs.parameters == {"Dummy-Param": "dummy_param"}
         assert self.api_specs.response_info.response_key == "value"
         assert self.api_specs.response_info.response_index == 0
         assert self.api_specs.response_info.response_type == "float"
@@ -165,8 +166,8 @@ class TestApiSpecsModel:
         actual_specs = {
             "url": "http://dummy",
             "method": "GET",
-            "headers": [("Dummy-Header", "dummy_value")],
-            "parameters": [("Dummy-Param", "dummy_param")],
+            "headers": {"Dummy-Header": "dummy_value"},
+            "parameters": {"Dummy-Param": "dummy_param"},
         }
 
         specs = self.api_specs.get_spec()
