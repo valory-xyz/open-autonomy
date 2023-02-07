@@ -331,6 +331,9 @@ class BaseParams(
                     get_name(BaseSynchronizedData.all_participants),
                 }
             )
+            self.consensus_params = ConsensusParams(
+                len(self.setup_params[get_name(BaseSynchronizedData.all_participants)])
+            )
         self._frozen = True
 
     def _ensure_setup(self, necessary_keys: Iterable[str]) -> Any:

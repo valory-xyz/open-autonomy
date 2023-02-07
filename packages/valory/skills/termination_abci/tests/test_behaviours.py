@@ -33,7 +33,7 @@ from packages.valory.contracts.multisend.contract import MultiSendContract
 from packages.valory.contracts.service_registry.contract import ServiceRegistryContract
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.contract_api.custom_types import RawTransaction, State
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB, ConsensusParams
 from packages.valory.skills.abstract_round_abci.behaviour_utils import AsyncBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import BaseBehaviour
 from packages.valory.skills.abstract_round_abci.test_tools.base import (
@@ -105,6 +105,10 @@ class BaseTerminationTest(FSMBehaviourBaseCase):
             and self.behaviour.current_behaviour.behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
+        max_participants = len(data.get("participants", []))
+        self.behaviour.current_behaviour.params.__dict__[
+            "consensus_params"
+        ] = ConsensusParams(max_participants)
 
     def complete(self) -> None:
         """Complete test"""
