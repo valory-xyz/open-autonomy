@@ -34,6 +34,7 @@ from typing import (
     Iterable,
     List,
     Optional,
+    OrderedDict,
     Tuple,
     Type,
     cast,
@@ -529,7 +530,7 @@ class TendermintRecoveryParams(TypeCheckMixin):
 
     reset_from_round: str
     round_count: int = ROUND_COUNT_DEFAULT
-    reset_params: Optional[List[Tuple[str, str]]] = None
+    reset_params: Optional[Dict[str, str]] = None
     serialized_db_state: Optional[str] = None
 
 
@@ -541,11 +542,11 @@ class ApiSpecs(Model, FrozenMixin, TypeCheckMixin):
         self.url: str = self._ensure("url", kwargs, str)
         self.api_id: str = self._ensure("api_id", kwargs, str)
         self.method: str = self._ensure("method", kwargs, str)
-        self.headers: List[Tuple[str, str]] = self._ensure(
-            "headers", kwargs, List[Tuple[str, str]]
+        self.headers: Dict[str, str] = dict(
+            self._ensure("headers", kwargs, OrderedDict[str, str])
         )
-        self.parameters: List[Tuple[str, str]] = self._ensure(
-            "parameters", kwargs, List[Tuple[str, str]]
+        self.parameters: Dict[str, str] = dict(
+            self._ensure("parameters", kwargs, OrderedDict[str, str])
         )
         self.response_info = ResponseInfo.from_json_dict(kwargs)
         self.retries_info = RetriesInfo.from_json_dict(kwargs)

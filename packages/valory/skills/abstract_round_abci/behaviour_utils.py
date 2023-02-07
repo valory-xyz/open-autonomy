@@ -29,19 +29,7 @@ import sys
 from abc import ABC, ABCMeta, abstractmethod
 from enum import Enum
 from functools import partial
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generator,
-    List,
-    Optional,
-    OrderedDict,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
 
 import pytz
 from aea.exceptions import enforce
@@ -1234,8 +1222,8 @@ class BaseBehaviour(
         method: str,
         url: str,
         content: Optional[bytes] = None,
-        headers: Optional[List[OrderedDict[str, str]]] = None,
-        parameters: Optional[List[Tuple[str, str]]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        parameters: Optional[Dict[str, str]] = None,
     ) -> Generator[None, None, HttpMessage]:
         """
         Send an http request message from the skill context.
@@ -1301,8 +1289,8 @@ class BaseBehaviour(
         method: str,
         url: str,
         content: Optional[bytes] = None,
-        headers: Optional[List[OrderedDict[str, str]]] = None,
-        parameters: Optional[List[Tuple[str, str]]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        parameters: Optional[Dict[str, str]] = None,
     ) -> Tuple[HttpMessage, HttpDialogue]:
         """
         Send an http request message from the skill context.
@@ -1319,15 +1307,14 @@ class BaseBehaviour(
         """
         if parameters:
             url = url + "?"
-            for key, val in parameters:
+            for key, val in parameters.items():
                 url += f"{key}={val}&"
             url = url[:-1]
 
         header_string = ""
         if headers:
-            for header in headers:
-                for key, val in header.items():
-                    header_string += f"{key}: {val}\r\n"
+            for key, val in headers.items():
+                header_string += f"{key}: {val}\r\n"
 
         # context
         http_dialogues = cast(HttpDialogues, self.context.http_dialogues)
@@ -1813,7 +1800,7 @@ class BaseBehaviour(
             0, self._timeout
         )
 
-    def _get_reset_params(self, default: bool) -> Optional[List[Tuple[str, str]]]:
+    def _get_reset_params(self, default: bool) -> Optional[Dict[str, str]]:
         """Get the parameters for a hard reset request to Tendermint."""
         if default:
             return None
@@ -1824,11 +1811,11 @@ class BaseBehaviour(
         genesis_time = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
             GENESIS_TIME_FMT
         )
-        return [
-            ("genesis_time", genesis_time),
-            ("initial_height", INITIAL_HEIGHT),
-            ("period_count", str(self.synchronized_data.period_count)),
-        ]
+        return {
+            "genesis_time": genesis_time,
+            "initial_height": INITIAL_HEIGHT,
+            "period_count": str(self.synchronized_data.period_count),
+        }
 
     def reset_tendermint_with_wait(  # pylint: disable=too-many-locals, too-many-statements
         self,
@@ -2146,7 +2133,7 @@ class TmManager(BaseBehaviour):
 
         self.context.logger.info("Failed to reset tendermint.")
 
-    def _get_reset_params(self, default: bool) -> Optional[List[Tuple[str, str]]]:
+    def _get_reset_params(self, default: bool) -> Optional[Dict[str, str]]:
         """
         Get the parameters for a hard reset request when trying to recover agent <-> tendermint communication.
 
