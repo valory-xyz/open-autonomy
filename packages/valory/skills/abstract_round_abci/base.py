@@ -716,8 +716,11 @@ class AbciAppDB:
         """Create a hash of the data."""
         # Compute the sha256 hash of the serialized data
         sha256 = hashlib.sha256()
-        sha256.update(self.serialize().encode("utf-8"))
-        return sha256.digest()
+        data = self.serialize()
+        sha256.update(data.encode("utf-8"))
+        hash_ = sha256.digest()
+        _logger.debug(f"root hash: {hash_.hex()}; data: {self.serialize()}")
+        return hash_
 
     @staticmethod
     def data_to_lists(data: Dict[str, Any]) -> Dict[str, List[Any]]:
@@ -2331,6 +2334,17 @@ class AbciApp(
         """Get the latest result of the round."""
         return None if len(self._round_results) == 0 else self._round_results[-1]
 
+    def cleanup_timeouts(self) -> None:
+        """
+        Remove all timeouts.
+
+        Note that this is method is meant to be used only when performing recovery.
+        Calling it in normal execution will result in unexpected behaviour.
+        """
+        self._timeouts = Timeouts[EventType]()
+        self._current_timeout_entries = []
+        self._last_timestamp = None
+
     def check_transaction(self, transaction: Transaction) -> None:
         """
         Check a transaction.
@@ -2912,6 +2926,11 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self.abci_app.synchronized_data.db.round_count = round_count
         if serialized_db_state is not None:
             self.abci_app.synchronized_data.db.sync(serialized_db_state)
+            # When the agents prepare the recovery state, their db reflects the state of their last round.
+            # Furthermore, that hash is then in turn used as the init hash when the tm network is reset.
+            self._last_round_transition_root_hash = self.root_hash
+
+        self.abci_app.cleanup_timeouts()
         round_id_to_cls = {
             cls.auto_round_id(): cls for cls in self.abci_app.transition_function
         }

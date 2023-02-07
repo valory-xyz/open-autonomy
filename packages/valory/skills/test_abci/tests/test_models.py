@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -51,7 +51,10 @@ class TestSharedState:
         shared_state: SharedState,
     ) -> None:
         """Test setup."""
-        shared_state.context.params.setup_params = {"test": []}
+        shared_state.context.params.setup_params = {
+            "test": [],
+            "all_participants": [["0x0"]],
+        }
         shared_state.context.params.consensus_params = MagicMock()
         shared_state.setup()
         assert (

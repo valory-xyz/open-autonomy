@@ -993,31 +993,21 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
 
     async def _handle_message(self, message: Request, peer_name: str) -> None:
         """Handle a single message from a peer."""
-        # TODO: remove the following try/except and logs, https://github.com/valory-xyz/open-autonomy/issues/1655
         try:
             req_type = message.WhichOneof("value")
-            self.logger.info(
-                f"Received message of type: {req_type} on abci connection."
-            )
             result = _TendermintProtocolDecoder.process(
                 message, self._dialogues, str(self.target_skill_id)
             )
-            self.logger.info(f"Received result={result} from processing message.")
             if result is not None:
                 request, dialogue = result
                 # associate request to peer, so we remember who to reply to
                 self._request_id_to_socket[
                     dialogue.incomplete_dialogue_label
                 ] = peer_name
-                self.logger.info(
-                    f"Associated request with id={dialogue.incomplete_dialogue_label} to peer={peer_name}."
-                )
                 envelope = Envelope(
                     to=request.to, sender=request.sender, message=request
                 )
-                self.logger.info(f"Created envelope={envelope}.")
                 await cast(asyncio.Queue, self.queue).put(envelope)
-                self.logger.info(f"Successfully put envelope in queue={envelope}.")
             else:  # pragma: nocover
                 self.logger.warning(f"Decoded request {req_type} was not a match.")
         except Exception as e:  # pylint: disable=broad-except  # pragma: no cover
@@ -1151,7 +1141,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods  # pragma: no 
         return kwargs
 
 
-class TendermintNode:  # pragma: no cover (covered via deployments/Dockerfiles/tendermint/tendermint.py)
+class TendermintNode:
     """A class to manage a Tendermint node."""
 
     def __init__(self, params: TendermintParams, logger: Optional[Logger] = None):
@@ -1272,12 +1262,17 @@ class TendermintNode:  # pragma: no cover (covered via deployments/Dockerfiles/t
                     for trigger in [
                         # this occurs when we lose connection from the tm side
                         "RPC HTTP server stopped",
-                        # this occurs when we lose connection from the AEA side.
-                        "Stopping abci.socketClient for error: read message: EOF module=abci-client connection=",
+                        # whenever the node is stopped because of a closed connection
+                        # from on any of the tendermint modules (abci, p2p, rpc, etc)
+                        # we restart the node
+                        "Stopping abci.socketClient for error: read message: EOF",
                     ]:
                         if line.find(trigger) >= 0:
                             self._stop_tm_process()
-                            self._start_tm_process()
+                            # we can only reach this step if monitoring was activated
+                            # so we make sure that after reset the monitoring continues
+                            monitoring = True
+                            self._start_tm_process(monitoring)
                             self.write_line(
                                 f"Restarted the HTTP RPC server, as a connection was dropped with message:\n\t\t {line}\n"
                             )
@@ -1469,10 +1464,6 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         self.channel = cast(Union[TcpServerChannel, GrpcServerChannel], self.channel)
         try:
             message = await self.channel.get_message()
-            # TODO: remove the following, https://github.com/valory-xyz/open-autonomy/issues/1655
-            self.logger.info(
-                f"Received message={message} on `ABCIServerConnection.receive()`."
-            )
             return message
         except CancelledError:  # pragma: no cover
             return None

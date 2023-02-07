@@ -397,14 +397,22 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
         """Initialize the state."""
         self.abci_app_cls._is_abstract = skill_context.is_abstract_component
         self._round_sequence: Optional[RoundSequence] = None
-        # a mapping of the other agents' addresses to their initial Tendermint configuration, to be retrieved via ACN
+        # a mapping of the agents' addresses to their initial Tendermint configuration, to be retrieved via ACN
         self.initial_tm_configs: Dict[str, Dict[str, Any]] = {}
+        # a mapping of the other agents' addresses to ACN deliverables
         self.address_to_acn_deliverable: Dict[str, Any] = {}
         self.tm_recovery_params: TendermintRecoveryParams = TendermintRecoveryParams(
             self.abci_app_cls.initial_round_cls.auto_round_id()
         )
         kwargs["skill_context"] = skill_context
         super().__init__(*args, **kwargs)
+
+    def acn_container(self) -> Dict[str, Any]:
+        """Create a container for ACN results, i.e., a mapping from others' addresses to `None`."""
+        ourself = {self.context.agent_address}
+        others_addresses = self.synchronized_data.all_participants - ourself
+
+        return dict.fromkeys(others_addresses)
 
     def setup(self) -> None:
         """Set up the model."""
@@ -421,6 +429,7 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
             consensus_params,
             self.context.logger,
         )
+        self.initial_tm_configs = dict.fromkeys(self.synchronized_data.all_participants)
 
     @property
     def round_sequence(self) -> RoundSequence:
@@ -532,6 +541,15 @@ class TendermintRecoveryParams(TypeCheckMixin):
     round_count: int = ROUND_COUNT_DEFAULT
     reset_params: Optional[Dict[str, str]] = None
     serialized_db_state: Optional[str] = None
+
+    def __hash__(self) -> int:
+        """Hash the object."""
+        return hash(
+            self.reset_from_round
+            + str(self.round_count)
+            + str(self.serialized_db_state)
+            + json.dumps(self.reset_params, sort_keys=True)
+        )
 
 
 class ApiSpecs(Model, FrozenMixin, TypeCheckMixin):

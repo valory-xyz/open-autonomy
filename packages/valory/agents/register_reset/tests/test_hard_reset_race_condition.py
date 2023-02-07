@@ -16,6 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# flake8: noqa: F811
 
 """Integration tests for the valory/register_reset skill."""
 
@@ -31,11 +32,19 @@ from aea_test_autonomy.base_test_classes.agents import (
 )
 from aea_test_autonomy.configurations import KEY_PAIRS
 from aea_test_autonomy.fixture_helpers import (  # noqa: F401
+    UseACNNode,
+    UseRegistries,
     abci_host,
     abci_port,
+    acn_config,
+    acn_node,
+    flask_tendermint,
+    hardhat_port,
     ipfs_daemon,
     ipfs_domain,
+    key_pairs,
     nb_nodes,
+    registries_scope_class,
     tendermint_port,
 )
 
@@ -60,7 +69,7 @@ HAPPY_PATH = (
 @pytest.mark.integration
 @pytest.mark.flaky(reruns=1)
 @pytest.mark.parametrize("nb_nodes", (4,))
-class TestRaceConditionTendermintReset(BaseTestEnd2EndExecution):
+class TestRaceConditionTendermintReset(UseACNNode, BaseTestEnd2EndExecution):
     """Test that ABCI register-reset skill with 4 agents when resetting Tendermint, with a slow Tendermint server."""
 
     agent_package = "valory/register_reset:0.1.0"

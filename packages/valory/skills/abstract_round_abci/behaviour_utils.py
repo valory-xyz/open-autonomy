@@ -1702,12 +1702,9 @@ class BaseBehaviour(
         :param performative: the ACN request performative.
         :return: the result that the majority of the agents sent. If majority cannot be reached, returns `None`.
         """
-        ourself = {self.context.agent_address}
+        shared_state = cast(SharedState, self.context.state)
         # reset the ACN deliverables at the beginning of a new request
-        addresses = self.synchronized_data.all_participants - ourself
-        cast(
-            SharedState, self.context.state
-        ).address_to_acn_deliverable = dict.fromkeys(addresses)
+        shared_state.address_to_acn_deliverable = shared_state.acn_container()
 
         for i in range(self.params.max_attempts):
             self.context.logger.debug(
@@ -1860,10 +1857,6 @@ class BaseBehaviour(
                         self.context.state.round_sequence.reset_blockchain(
                             is_replay=is_replay, is_init=True
                         )
-                    self.context.state.round_sequence.abci_app.cleanup(
-                        self.params.cleanup_history_depth,
-                        self.params.cleanup_history_depth_current,
-                    )
                     for handler_name in self.context.handlers.__dict__.keys():
                         dialogues = getattr(self.context, f"{handler_name}_dialogues")
                         dialogues.cleanup()
@@ -1882,6 +1875,10 @@ class BaseBehaviour(
                             reset_from_round=restart_from_round.auto_round_id(),
                             serialized_db_state=shared_state.synchronized_data.db.serialize(),
                         )
+                    self.context.state.round_sequence.abci_app.cleanup(
+                        self.params.cleanup_history_depth,
+                        self.params.cleanup_history_depth_current,
+                    )
                     self._end_reset()
 
                 else:
@@ -2116,7 +2113,8 @@ class TmManager(BaseBehaviour):
 
         for _ in range(self._max_reset_retry):
             reset_successfully = yield from self.reset_tendermint_with_wait(
-                is_recovery=True
+                on_startup=True,
+                is_recovery=True,
             )
             if reset_successfully:
                 self.context.logger.info(
@@ -2128,6 +2126,8 @@ class TmManager(BaseBehaviour):
                 # doesn't guarantee us this, since the block stall deadline is greater than the
                 # hard_reset_sleep, 60s vs 20s. In other words, we haven't received a block for at
                 # least 60s, so wait_from_last_timestamp() will return immediately.
+                # By setting "on_startup" to True in the reset_tendermint_with_wait() call above,
+                # wait_from_last_timestamp() will not be called at all.
                 yield from self.sleep(self.hard_reset_sleep)
                 return
 

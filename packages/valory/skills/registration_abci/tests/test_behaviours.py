@@ -68,6 +68,7 @@ PACKAGE_DIR = Path(__file__).parent.parent
 
 
 SERVICE_REGISTRY_ADDRESS = "0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0"
+ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 CONTRACT_ID = str(ServiceRegistryContract.contract_id)
 ON_CHAIN_SERVICE_ID = 42
 DUMMY_ADDRESS = "localhost"
@@ -381,7 +382,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     # tests
     def test_init(self) -> None:
         """Empty init"""
-        assert self.state.initial_tm_configs == {}
+        assert self.state.initial_tm_configs == {ZERO_ADDRESS: None}
         assert self.state.local_tendermint_params == {}
         assert self.state.updated_genesis_data == {}
 
@@ -502,6 +503,11 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             caplog.at_level(logging.INFO, logger=self.logger),
             self.mocked_service_registry_address,
             self.mocked_on_chain_service_id,
+            mock.patch.object(
+                self._skill.skill_context.state,
+                "acn_container",
+                side_effect=lambda: self.agent_instances,
+            ),
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
@@ -528,6 +534,11 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mocked_service_registry_address,
             self.mocked_on_chain_service_id,
             self.mocked_yield_from_sleep,
+            mock.patch.object(
+                self._skill.skill_context.state,
+                "acn_container",
+                side_effect=lambda: self.agent_instances,
+            ),
         ):
             self.behaviour.act_wrapper()
             self.mock_get_local_tendermint_params()
@@ -572,6 +583,11 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
                 side_effect=self.dummy_reset_tendermint_with_wait_wrapper(
                     valid_response
                 ),
+            ),
+            mock.patch.object(
+                self._skill.skill_context.state,
+                "acn_container",
+                side_effect=lambda: self.agent_instances,
             ),
         ):
             self.behaviour.act_wrapper()

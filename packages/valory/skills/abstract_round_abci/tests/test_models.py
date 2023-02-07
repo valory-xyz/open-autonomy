@@ -346,7 +346,10 @@ class TestSharedState:
     def test_setup(self, *_: Any) -> None:
         """Test setup method."""
         shared_state = SharedState(name="", skill_context=MagicMock())
-        shared_state.context.params.setup_params = {"test": []}
+        shared_state.context.params.setup_params = {
+            "test": [],
+            "all_participants": [["0x0"]],
+        }
         shared_state.context.params.consensus_params = MagicMock()
         shared_state.setup()
 
@@ -360,7 +363,10 @@ class TestSharedState:
     def test_synchronized_data_positive(self, *_: Any) -> None:
         """Test 'synchronized_data' property getter, negative case (not available)."""
         shared_state = SharedState(name="", skill_context=MagicMock())
-        shared_state.context.params.setup_params = {"test": []}
+        shared_state.context.params.setup_params = {
+            "test": [],
+            "all_participants": [["0x0"]],
+        }
         shared_state.context.params.consensus_params = MagicMock()
         shared_state.setup()
         shared_state.round_sequence.abci_app._round_results = [MagicMock()]
@@ -373,6 +379,7 @@ class TestSharedState:
             mock_params.setup_params = {
                 "safe_contract_address": ["0xsafe"],
                 "oracle_contract_address": ["0xoracle"],
+                "all_participants": ["0x0"],
             }
             shared_state.setup()
             assert (
@@ -409,7 +416,10 @@ class TestSharedState:
         shared_state = SharedState(
             abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
         )
-        shared_state.context.params.setup_params = {"test": []}
+        shared_state.context.params.setup_params = {
+            "test": [],
+            "all_participants": [["0x0"]],
+        }
         shared_state.setup()
         shared_state.synchronized_data.update(participants=tuple(range(n_participants)))
         shared_state.address_to_acn_deliverable = address_to_acn_deliverable

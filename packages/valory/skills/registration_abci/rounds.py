@@ -84,6 +84,9 @@ class RegistrationRound(CollectSameUntilThresholdRound):
     done_event = Event.DONE
     synchronized_data_class = BaseSynchronizedData
 
+    # this allows rejoining agents to send payloads
+    _allow_rejoin_payloads = True
+
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
