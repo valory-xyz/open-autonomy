@@ -559,17 +559,6 @@ def consensus_threshold() -> int
 
 Get the consensus threshold.
 
-<a id="packages.valory.skills.abstract_round_abci.base.ConsensusParams.from_json"></a>
-
-#### from`_`json
-
-```python
-@classmethod
-def from_json(cls, obj: Dict) -> "ConsensusParams"
-```
-
-Get from JSON.
-
 <a id="packages.valory.skills.abstract_round_abci.base.ConsensusParams.__eq__"></a>
 
 #### `__`eq`__`
