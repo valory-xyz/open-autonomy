@@ -94,7 +94,7 @@ class BaseTerminationTest(FSMBehaviourBaseCase):
     def fast_forward(self, data: Optional[Dict[str, Any]] = None) -> None:
         """Fast-forward on initialization"""
 
-        data = data if data is not None else {}
+        data = data or {}
         self.fast_forward_to_behaviour(
             self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
