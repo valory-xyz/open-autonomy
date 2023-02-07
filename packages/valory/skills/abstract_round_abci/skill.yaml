@@ -44,7 +44,7 @@ fingerprint:
   tests/test_behaviours_utils.py: bafybeievcmpgushs6uuhppqwzqqbc4rspkk6paf5ejzoxggizake2xmt54
   tests/test_common.py: bafybeigruyqp6h4qim3nsijeg5mvoot2dei2yzm5zxpank22vjyyiaysue
   tests/test_dialogues.py: bafybeigpfrslqaz2yullyehia5bsl7cmy2qqxtz627ig7rbrypw5xfzeum
-  tests/test_handlers.py: bafybeibcc3dhsgwcy73qoyb5rxc42f2vbd4eeqtihsjqxines2gpbgreby
+  tests/test_handlers.py: bafybeiho7ruvh6gilajz5ns6cljdrxis2tzualmgkksprwdpm7art4ambm
   tests/test_io/__init__.py: bafybeid3sssvbbyju4snrdssxyafleuo57sqyuepl25btxcbuj3p5oonsm
   tests/test_io/test_ipfs.py: bafybeihkazdsdooi3vuypf4nu5g6pqnp5xmxg2vjjv4hlwgfl4gsyzaape
   tests/test_io/test_load.py: bafybeidgnxt5rt67ackbcgi5vnlliedxakcnzgihogplolck7kp57pc6iy

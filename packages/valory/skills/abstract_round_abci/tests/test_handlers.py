@@ -481,7 +481,7 @@ class TestTendermintHandler:
             ),
             (
                 {"not a dict"},
-                "string indices must be integers",
+                "argument after ** must be a mapping, not str",
             ),
         ),
     )
