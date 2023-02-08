@@ -607,7 +607,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         self.synchronized_data = cast(
             TransactionSettlementSynchronizedSata,
             self.synchronized_data.update(
-                participants=([f"agent_{i}" + "-" * 35 for i in range(4)]),
+                participants=tuple(self.participants),
                 missed_messages=missed_messages,
                 tx_hashes_history=tx_hashes_history,
                 keepers=get_keepers(keepers, keeper_retries),
