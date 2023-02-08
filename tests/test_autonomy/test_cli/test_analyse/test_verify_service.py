@@ -28,15 +28,20 @@ from aea.configurations.data_types import ComponentId, ComponentType, PublicId
 from aea.helpers.cid import to_v0
 from aea_cli_ipfs.ipfs_utils import IPFSTool
 
-from autonomy.analyse.service import REQUIRED_PARAM_VALUES, ServiceAnalyser
+from autonomy.analyse.service import ServiceAnalyser
 from autonomy.configurations.base import Service
 
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
-DUMMY_AGENT_HASH = "bafybeiaotnukv7oq2sknot73a4zssrrnjezh6nd2fwptrznxtnovy2rusm"
-DUMMY_CONNECTION_HASH = "bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vm"
-DUMMY_SKILL_HASH = "bafybeifulxavwyxg2ubmphw6z2hwbgc2mxrstfarccygbesl3xqtqjcoqe"
+DUMMY_AGENT_HASH = "bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vm"
+DUMMY_LEDGER_CONNECTION_HASH = (
+    "bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vn"
+)
+DUMMY_ABCI_CONNECTION_HASH = (
+    "bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vo"
+)
+DUMMY_SKILL_HASH = "bafybeib56ojddzexxbapowofypmpk6zeznqaumwgj7ftneb5ua6sk5k5vp"
 
 
 def get_dummy_service_config() -> Dict:
@@ -70,14 +75,20 @@ def get_dummy_overrides_skill() -> Dict:
                         "safe_contract_address": [
                             ["0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"]
                         ],
+                        "all_participants": [["0x"]],
                     },
+                    "tendermint_url": "tendermint_url",
+                    "tendermint_com_url": "tendermint_com_url",
+                    "service_registry_address": "service_registry_address",
+                    "share_tm_config_on_startup": "share_tm_config_on_startup",
+                    "on_chain_service_id": "on_chain_service_id",
                 },
             }
         },
     }
 
 
-def get_dummy_overrides_connection() -> Dict:
+def get_dummy_overrides_ledger_connection() -> Dict:
     """Returns dummy connection overrides"""
     return {
         "public_id": "valory/ledger:0.1.0",
@@ -95,6 +106,19 @@ def get_dummy_overrides_connection() -> Dict:
     }
 
 
+def get_dummy_overrides_abci_connection() -> Dict:
+    """Returns dummy connection overrides"""
+    return {
+        "public_id": "valory/abci:0.1.0",
+        "type": "connection",
+        "config": {
+            "host": "host",
+            "port": "port",
+            "use_tendermint": "use_tendermint",
+        },
+    }
+
+
 def get_dummy_agent_config() -> Dict:
     """Returns dummy agent config"""
     return {
@@ -107,7 +131,8 @@ def get_dummy_agent_config() -> Dict:
         "fingerprint": {},
         "fingerprint_ignore_patterns": [],
         "connections": [
-            f"valory/abci:0.1.0:{DUMMY_CONNECTION_HASH}",
+            f"valory/abci:0.1.0:{DUMMY_ABCI_CONNECTION_HASH}",
+            f"valory/ledger:0.1.0:{DUMMY_LEDGER_CONNECTION_HASH}",
         ],
         "contracts": [],
         "protocols": [],
@@ -160,9 +185,11 @@ class BaseAnalyseServiceTest(BaseCliTest):
         return mock.patch.object(ServiceAnalyser, "verify_overrides", **kwargs)
 
     @staticmethod
-    def patch_check_required_overrides(**kwargs: Any) -> mock._patch:
-        """Patch `ServiceAnalyser.check_required_overrides` method"""
-        return mock.patch.object(ServiceAnalyser, "check_required_overrides", **kwargs)
+    def patch_validate_service_overrides(**kwargs: Any) -> mock._patch:
+        """Patch `ServiceAnalyser.validate_service_overrides` method"""
+        return mock.patch.object(
+            ServiceAnalyser, "validate_service_overrides", **kwargs
+        )
 
     @staticmethod
     def patch_check_skill_override(**kwargs: Any) -> mock._patch:
@@ -211,7 +238,7 @@ class BaseAnalyseServiceTest(BaseCliTest):
 class TestCheckRequiredOverrides(BaseAnalyseServiceTest):
     """Test override verification."""
 
-    def test_params_not_defined(self) -> None:
+    def test_abci_skill_params_not_defined(self) -> None:
         """Test successful run."""
 
         skill_config = get_dummy_overrides_skill()
@@ -226,14 +253,15 @@ class TestCheckRequiredOverrides(BaseAnalyseServiceTest):
 
         assert result.exit_code == 1, result.stdout
         assert (
-            "Aborting check, overrides not provided for `models:params` parameter"
+            "ABCI skill validation failed; 'params' is a required property"
             in result.stderr
         )
 
-    def test_required_param_not_defined(self) -> None:
+    def test_abci_skill_required_arg_not_defined(self) -> None:
         """Test successful run."""
 
         skill_config = get_dummy_overrides_skill()
+        del skill_config["models"]["params"]["args"]["tendermint_url"]
 
         with self.patch_service_loader(
             data=[get_dummy_service_config(), skill_config]
@@ -244,18 +272,16 @@ class TestCheckRequiredOverrides(BaseAnalyseServiceTest):
 
         assert result.exit_code == 1, result.stdout
         assert (
-            "`share_tm_config_on_startup` needs to be defined in the `models:params:args` parameter"
+            "Error: ABCI skill validation failed; 'tendermint_url' is a required property"
             in result.stderr
         )
 
-    def test_setup_param_not_defined(self) -> None:
+    def test_abci_skill_setup_param_not_defined(self) -> None:
         """Test successful run."""
 
         skill_config = get_dummy_overrides_skill()
-        for p in REQUIRED_PARAM_VALUES:
-            skill_config["models"]["params"]["args"][p] = None
 
-        del skill_config["models"]["params"]["args"]["setup"]
+        del skill_config["models"]["params"]["args"]["setup"]["all_participants"]
 
         with self.patch_service_loader(
             data=[get_dummy_service_config(), skill_config]
@@ -266,21 +292,18 @@ class TestCheckRequiredOverrides(BaseAnalyseServiceTest):
 
         assert result.exit_code == 1, result.stdout
         assert (
-            "Aborting check, overrides not provided for `models:params:args:setup` parameter"
+            "Error: ABCI skill validation failed; 'all_participants' is a required property"
             in result.stderr
         )
 
-    def test_setup_params_not_defined(self) -> None:
+    def test_ledger_connection_setup_param_not_defined(self) -> None:
         """Test successful run."""
 
-        skill_config = get_dummy_overrides_skill()
-        for p in REQUIRED_PARAM_VALUES:
-            skill_config["models"]["params"]["args"][p] = None
-
-        skill_config["models"]["params"]["args"]["setup"] = {}
+        connection_config = get_dummy_overrides_ledger_connection()
+        del connection_config["config"]["ledger_apis"]["ethereum"]["address"]
 
         with self.patch_service_loader(
-            data=[get_dummy_service_config(), skill_config]
+            data=[get_dummy_service_config(), connection_config]
         ), self.patch_ipfs_tool([]), self.patch_agent_loader(
             data=[get_dummy_agent_config()]
         ):
@@ -288,7 +311,26 @@ class TestCheckRequiredOverrides(BaseAnalyseServiceTest):
 
         assert result.exit_code == 1, result.stdout
         assert (
-            "`safe_contract_address` needs to be defined in the `models:params:args:setup` parameter"
+            "Error: Ledger connection validation failed; 'address' is a required property"
+            in result.stderr
+        )
+
+    def test_abci_connection_setup_param_not_defined(self) -> None:
+        """Test successful run."""
+
+        connection_config = get_dummy_overrides_abci_connection()
+        del connection_config["config"]["host"]
+
+        with self.patch_service_loader(
+            data=[get_dummy_service_config(), connection_config]
+        ), self.patch_ipfs_tool([]), self.patch_agent_loader(
+            data=[get_dummy_agent_config()]
+        ):
+            result = self.run_cli(commands=(str(self.t),))
+
+        assert result.exit_code == 1, result.stdout
+        assert (
+            "Error: ABCI connection validation failed; 'host' is a required property"
             in result.stderr
         )
 
@@ -303,7 +345,7 @@ class TestCheckAgentPackagePublished(BaseAnalyseServiceTest):
             data=[get_dummy_service_config(), get_dummy_overrides_skill()]
         ), self.patch_ipfs_tool([]), self.patch_agent_loader(
             data=[get_dummy_agent_config()]
-        ), self.patch_check_required_overrides():
+        ), self.patch_validate_service_overrides():
             result = self.run_cli(commands=(str(self.t),))
 
         assert result.exit_code == 1, result.stdout
@@ -323,7 +365,7 @@ class TestVerifyOverrides(BaseAnalyseServiceTest):
             data=[get_dummy_service_config(), get_dummy_overrides_skill()]
         ), self.patch_ipfs_tool([]), self.patch_agent_loader(
             data=[get_dummy_agent_config()]
-        ), self.patch_check_required_overrides(), self.patch_check_agent_package_published():
+        ), self.patch_validate_service_overrides(), self.patch_check_agent_package_published():
             result = self.run_cli(commands=(str(self.t),))
 
         assert result.exit_code == 1, result.stdout
@@ -344,7 +386,7 @@ class TestCheckAgentDependenciesPublished(BaseAnalyseServiceTest):
             data=[get_dummy_service_config(), get_dummy_overrides_skill()]
         ), self.patch_ipfs_tool([]), self.patch_agent_loader(
             data=[get_dummy_agent_config()]
-        ), self.patch_check_required_overrides(), self.patch_check_agent_package_published(), self.patch_verify_overrides():
+        ), self.patch_validate_service_overrides(), self.patch_check_agent_package_published(), self.patch_verify_overrides():
             result = self.run_cli(commands=(str(self.t),))
 
         assert result.exit_code == 1, result.stdout
@@ -378,23 +420,36 @@ class TestCheckSuccessful(BaseAnalyseServiceTest):
         """Test run."""
 
         skill_config = get_dummy_overrides_skill()
-
         models = skill_config.pop("models")
-        models["params"]["args"]["share_tm_config_on_startup"] = None
-        models["params"]["args"]["on_chain_service_id"] = None
-        models["params"]["args"]["setup"]["all_participants"] = None
-
         for i in range(4):
             skill_config[i] = {"models": deepcopy(models)}
 
         with self.patch_service_loader(
-            data=[get_dummy_service_config(), skill_config]
+            data=[
+                get_dummy_service_config(),
+                skill_config,
+                get_dummy_overrides_abci_connection(),
+                get_dummy_overrides_ledger_connection(),
+            ]
         ), self.patch_ipfs_tool(
             pins=list(
-                map(to_v0, [DUMMY_AGENT_HASH, DUMMY_CONNECTION_HASH, DUMMY_SKILL_HASH])
+                map(
+                    to_v0,
+                    [
+                        DUMMY_AGENT_HASH,
+                        DUMMY_LEDGER_CONNECTION_HASH,
+                        DUMMY_ABCI_CONNECTION_HASH,
+                        DUMMY_SKILL_HASH,
+                    ],
+                )
             )
         ), self.patch_agent_loader(
-            data=[get_dummy_agent_config(), get_dummy_overrides_skill()]
+            data=[
+                get_dummy_agent_config(),
+                get_dummy_overrides_skill(),
+                get_dummy_overrides_abci_connection(),
+                get_dummy_overrides_ledger_connection(),
+            ]
         ):
             result = self.run_cli(commands=(str(self.t),))
 
