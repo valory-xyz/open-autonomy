@@ -31,5 +31,19 @@ TIMESTAMP_REGEX = re.compile(r"^(\[(\d+-\d+-\d+ \d+:\d+:\d+,\d+)\])")
 LOG_ROW_REGEX = re.compile(
     r"\[(\d+-\d+-\d+ \d+:\d+:\d+,\d+)\] \[([A-Z]+)\]( \[agent\])? (.*)"
 )
+NOISE_FILTER_REGEX = re.compile(
+    r"Created envelope=Envelope|"
+    r"Successfully put envelope in queue=Envelope|"
+    r"Received message of type:|"
+    r"Received result=\(Message|"
+    r"Received message=Envelope|"
+    r"Associated request with id=|"
+    r"Created a new local deadline for the next|"
+    r"arrived block with timestamp|"
+    r"no pending timeout, move time forward|"
+    r"current AbciApp time"
+)
+ENTER_BEHAVIOUR_REGEX = re.compile(r"Entered in the \'([a-z_]+)\' behaviour")
+ENTER_ROUND_REGEX = re.compile(r"Entered in the \'([a-z_]+)\' round for period (\d+)")
 
-LogRow = Tuple[datetime, str, str]
+LogRow = Tuple[datetime, str, str, int, str, str]
