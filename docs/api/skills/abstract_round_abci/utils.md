@@ -39,16 +39,6 @@ Verify drand value retried from external APIs.
 
 bool, error message
 
-<a id="packages.valory.skills.abstract_round_abci.utils.to_int"></a>
-
-#### to`_`int
-
-```python
-def to_int(most_voted_estimate: float, decimals: int) -> int
-```
-
-Convert to int.
-
 <a id="packages.valory.skills.abstract_round_abci.utils.get_data_from_nested_dict"></a>
 
 #### get`_`data`_`from`_`nested`_`dict
