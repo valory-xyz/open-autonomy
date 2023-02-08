@@ -146,7 +146,7 @@ You can define values for overridden attributes in two ways:
 
 2. Use an environment variable with a default value using the syntax
    ```yaml
-   <overridden_attribute>: ${<ENVIRONMENT_VARIABLE>:<type>:<default_value>}  
+   <overridden_attribute>: ${<env_var_name>:<type>:<default_value>}  
    ```
    for example:
    ```yaml
@@ -249,7 +249,7 @@ If you have repetitive overridden parameters, you can define them using [YAML an
 
 ## Export to environment variables
 
-When building the deployments, the overrides from the service components are exported as system environment variables inside the docker containers and picked up at runtime by the agents. The exported environment variables are labelled with their upper case JSON path:
+When building the deployments, the overrides from the service components are exported as system environment variables inside the Docker containers and picked up at runtime by the agents. The exported environment variables are labelled with their upper case JSON path:
 
 ```
 <COMPONENT_TYPE>_<UPPERCASE_ATTRIBUTE_PATH>=<value>
