@@ -25,9 +25,16 @@ from pathlib import Path
 from typing import Dict, Set
 
 from aea.configurations.base import AgentConfig
-from aea.configurations.data_types import ComponentType, PackageId, PublicId
+from aea.configurations.data_types import (
+    ComponentId,
+    ComponentType,
+    PackageId,
+    PublicId,
+)
 from aea.crypto.base import LedgerApi
 from aea.helpers.cid import to_v0
+from jsonschema.exceptions import ValidationError
+from jsonschema.validators import Draft4Validator
 
 from autonomy.chain.base import ServiceState
 from autonomy.chain.config import ChainType
@@ -36,15 +43,101 @@ from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
 
 
-REQUIRED_SETUP_PARAMETERES = (
-    "safe_contract_address",
-    "all_participants",
-)
+ABCI_CONNECTION_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "config": {
+            "type": "object",
+            "required": [
+                "host",
+                "port",
+                "use_tendermint",
+            ],
+        },
+        "required": ["config"],
+    },
+}
 
-REQUIRED_PARAM_VALUES = (
-    "share_tm_config_on_startup",
-    "on_chain_service_id",
-)
+LEDGER_CONNECTION_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "config": {
+            "type": "object",
+            "properties": {
+                "ledger_apis": {
+                    "type": "object",
+                    "properties": {
+                        "ethereum": {
+                            "type": "object",
+                            "properties": {
+                                "address": {},
+                                "chain_id": {},
+                                "poa_chain": {},
+                                "default_gas_price_strategy": {},
+                            },
+                            "required": [
+                                "address",
+                                "chain_id",
+                                "poa_chain",
+                                "default_gas_price_strategy",
+                            ],
+                        },
+                    },
+                    "required": ["ethereum"],
+                }
+            },
+            "required": ["ledger_apis"],
+        },
+    },
+    "required": ["config"],
+}
+
+ABCI_SKILL_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "models": {
+            "type": "object",
+            "properties": {
+                "params": {
+                    "type": "object",
+                    "properties": {
+                        "args": {
+                            "type": "object",
+                            "properties": {
+                                "setup": {
+                                    "type": "object",
+                                    "required": [
+                                        "safe_contract_address",
+                                        "all_participants",
+                                    ],
+                                }
+                            },
+                            "required": [
+                                "setup",
+                                "tendermint_url",
+                                "tendermint_com_url",
+                                "service_registry_address",
+                                "share_tm_config_on_startup",
+                                "on_chain_service_id",
+                            ],
+                        },
+                    },
+                    "required": [
+                        "args",
+                    ],
+                },
+            },
+            "required": [
+                "params",
+            ],
+        }
+    },
+    "required": ["models"],
+}
+
+ABCI_CONNECTION_VALIDATOR = Draft4Validator(schema=ABCI_CONNECTION_SCHEMA)
+LEDGER_CONNECTION_VALIDATOR = Draft4Validator(schema=LEDGER_CONNECTION_SCHEMA)
+ABCI_SKILL_VALIDATOR = Draft4Validator(schema=ABCI_SKILL_SCHEMA)
 
 
 class ServiceValidationFailed(Exception):
@@ -120,32 +213,72 @@ class ServiceAnalyser:
             )
 
     @staticmethod
-    def check_skill_override(override: Dict) -> None:
-        """Check skill override."""
+    def _validate_override(
+        validator: Draft4Validator,
+        overrides: Dict,
+        has_multiple_overrides: bool,
+        error_message: str,
+    ) -> None:
+        """Run validator on the given override."""
+        try:
+            if has_multiple_overrides:
+                _ = list(map(validator.validate, overrides.values()))
+            else:
+                validator.validate(overrides)
+        except ValidationError as e:
+            raise ServiceValidationFailed(error_message.format(error=e.message)) from e
 
-        if "params" not in override["models"]:
-            raise ServiceValidationFailed(
-                "Aborting check, overrides not provided for `models:params` parameter"
+    @classmethod
+    def validate_override(
+        cls,
+        component_id: ComponentId,
+        override: Dict,
+        has_multiple_overrides: bool,
+    ) -> None:
+        """Validate override"""
+
+        if component_id.component_type == ComponentType.SKILL:
+            cls._validate_override(
+                validator=ABCI_SKILL_VALIDATOR,
+                overrides=override,
+                has_multiple_overrides=has_multiple_overrides,
+                error_message="ABCI skill validation failed; {error}",
+            )
+        if (
+            component_id.component_type == ComponentType.CONNECTION
+            and component_id.name == "abci"
+        ):
+            cls._validate_override(
+                validator=ABCI_CONNECTION_VALIDATOR,
+                overrides=override,
+                has_multiple_overrides=has_multiple_overrides,
+                error_message="ABCI connection validation failed; {error}",
+            )
+        if (
+            component_id.component_type == ComponentType.CONNECTION
+            and component_id.name == "ledger"
+        ):
+            cls._validate_override(
+                validator=LEDGER_CONNECTION_VALIDATOR,
+                overrides=override,
+                has_multiple_overrides=has_multiple_overrides,
+                error_message="Ledger connection validation failed; {error}",
             )
 
-        for param in REQUIRED_PARAM_VALUES:
-            if param not in override["models"]["params"]["args"]:
-                raise ServiceValidationFailed(
-                    f"`{param}` needs to be defined in the `models:params:args` parameter"
-                )
+    def validate_agent_overrides(self, agent_config: AgentConfig) -> None:
+        """Check required overrides."""
 
-        if "setup" not in override["models"]["params"]["args"]:
-            raise ServiceValidationFailed(
-                "Aborting check, overrides not provided for `models:params:args:setup` parameter"
+        for (
+            component_id,
+            component_config,
+        ) in agent_config.component_configurations.items():
+            self.validate_override(
+                component_id=component_id,
+                override=component_config,
+                has_multiple_overrides=False,
             )
 
-        for setup_param in REQUIRED_SETUP_PARAMETERES:
-            if setup_param not in override["models"]["params"]["args"]["setup"]:
-                raise ServiceValidationFailed(
-                    f"`{setup_param}` needs to be defined in the `models:params:args:setup` parameter"
-                )
-
-    def check_required_overrides(self) -> None:
+    def validate_service_overrides(self) -> None:
         """Check required overrides."""
         for _component_config in self.service_config.overrides:
             (
@@ -153,9 +286,8 @@ class ServiceAnalyser:
                 component_id,
                 has_multiple_overrides,
             ) = Service.process_metadata(configuration=_component_config.copy())
-            if component_id.component_type == ComponentType.SKILL:
-                logging.info(f"Verifying overrides for {component_id}")
-                if has_multiple_overrides:
-                    _ = list(map(self.check_skill_override, component_config.values()))
-                else:
-                    self.check_skill_override(override=component_config)
+            self.validate_override(
+                component_id=component_id,
+                override=component_config,
+                has_multiple_overrides=has_multiple_overrides,
+            )

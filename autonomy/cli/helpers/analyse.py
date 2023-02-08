@@ -126,7 +126,7 @@ def check_service_readiness(
         ipfs_pins = IPFSTool().all_pins()
 
         click.echo("Verifying overrides")
-        service_analyser.check_required_overrides()
+        service_analyser.validate_service_overrides()
 
         click.echo("Checking if the agent package is published")
         service_analyser.check_agent_package_published(ipfs_pins=ipfs_pins)
@@ -136,6 +136,7 @@ def check_service_readiness(
         )
         click.echo("Cross verifying overrides between agent and service")
         service_analyser.verify_overrides(agent_config=agent_config)
+        service_analyser.validate_agent_overrides(agent_config=agent_config)
 
         click.echo("Checking if agent dependencies are published")
         service_analyser.check_agent_dependencies_published(
