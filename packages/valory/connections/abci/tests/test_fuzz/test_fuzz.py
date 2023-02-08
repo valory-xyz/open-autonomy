@@ -19,9 +19,7 @@
 
 """Fuzzy tests for valory/abci connection"""
 import os
-import platform
 
-import pytest
 from hypothesis import settings
 
 from packages.valory.connections.abci import CI
@@ -39,10 +37,6 @@ if running_on_ci:
     settings.load_profile(CI)
 
 
-@pytest.mark.skipif(
-    platform.system() == "Windows",
-    reason="<IocpProactor overlapped#=1175 result#=0> is running after closing for ... seconds (windows_events.py:871)",
-)
 class TestFuzzyGrpc(BaseFuzzyTests):
     """Test the connection when gRPC is used"""
 
@@ -51,10 +45,6 @@ class TestFuzzyGrpc(BaseFuzzyTests):
     AGENT_TIMEOUT_SECONDS = 30
 
 
-@pytest.mark.skipif(
-    platform.system() == "Windows",
-    reason="<IocpProactor overlapped#=1175 result#=0> is running after closing for ... seconds (windows_events.py:871)",
-)
 class TestFuzzyTcp(BaseFuzzyTests):
     """Test the connection when TCP is used"""
 
