@@ -43,14 +43,18 @@ You can define custom arguments for the skill, if required.
             super().__init__(*args, **kwargs)
     ```
 
-## Required argument and overrides
+## Required arguments and overrides
 
 Ensure that your {{fsm_app}} skill, agent and service configuration files (`skill.yaml`, `aea-config.yaml`, and `service.yaml`, respectively) define the appropriate arguments and overrides:
 
-* The `skill.yaml` file must define default/placeholder values for the arguments associated to the `YourSkillParams` class.
-* The `aea-config.yaml` file must define overrides for `valory/abci` connection, `valory/ledger` connection, `valory/p2p_libp2p_client` connection, and your {{fsm_app}} skill. Environment variables used for agent-level overrides must be labelled according to their upper case JSON path.
-*  The `service.yaml` file must define overrides for `valory/ledger` connection and your {{fsm_app}} skill (optionally, also for `valory/p2p_libp2p_client` connection). Environment variables used for service-level overrides don't need to follow any particular syntax. However, they will be exported as their upper case JSON path.
+`skill.yaml`
+:   Must define default/placeholder values for the arguments associated to the `YourSkillParams` class.
 
+`aea-config.yaml`
+:   Must define overrides for `valory/abci` connection, `valory/ledger` connection, `valory/p2p_libp2p_client` connection, and your {{fsm_app}} skill. Environment variables used for agent-level overrides can use the simplified syntax `${<type>:<default_value>}`.
+
+`service.yaml`
+:   Must define overrides for `valory/ledger` connection and your {{fsm_app}} skill (optionally, also for `valory/p2p_libp2p_client` connection). Environment variables used for service-level overrides use the syntax `${<env_var_name>:<type>:<default_value>}`. They will be [exported](../guides/service_configuration_file.md#export-to-environment-variables) as their upper case JSON path in the agent Docker container.
 See also the [service level overrides](../guides/service_configuration_file.md#service-level-overrides) and [multiple overrides](../guides/service_configuration_file.md#multiple-overrides) sections for more information.
 
 === "skill.yaml"
@@ -104,10 +108,10 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
     config:
       ledger_apis:
         ethereum:
-          address: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS:str:http://localhost:8545}
-          chain_id: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_CHAIN_ID:int:31337}
-          poa_chain: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_POA_CHAIN:bool:false}
-          default_gas_price_strategy: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_DEFAULT_GAS_PRICE_STRATEGY:str:eip1559}
+          address: ${str:http://localhost:8545}
+          chain_id: ${int:31337}
+          poa_chain: ${bool:false}
+          default_gas_price_strategy: ${str:eip1559}
            
     ---
     public_id: valory/p2p_libp2p_client:0.1.0
@@ -133,20 +137,20 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
     models:
       benchmark_tool:
         args:
-          log_dir: ${SKILL_<YOUR_SKILL_NAME>_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+          log_dir: ${str:/benchmarks}
 
       params:
         args:
           consensus:
-            max_participants: ${SKILL_<YOUR_SKILL_NAME>_MODELS_PARAMS_ARGS_CONSENSUS_MAX_PARTICIPANTS:int:4}
+            max_participants: ${int:4}
           setup:
-            all_participants: ${SKILL_<YOUR_SKILL_NAME>_MODELS_PARAMS_ARGS_SETUP_ALL_PARTICIPANTS:list:[]}      
-            safe_contract_address: ${SKILL_<YOUR_SKILL_NAME>_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS:list:[]}
+            all_participants: ${list:[]}      
+            safe_contract_address: ${list:[]}
           tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
           tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
-          service_registry_address: ${SKILL_<YOUR_SKILL_NAME>_MODELS_PARAMS_ARGS_SERVICE_REGISTRY_ADDRESS:str:none}
-          share_tm_config_on_startup: ${SKILL_<YOUR_SKILL_NAME>_MODELS_PARAMS_ARGS_SHARE_TM_CONFIG_ON_STARTUP:bool:false}
-          on_chain_service_id: ${SKILL_<YOUR_SKILL_NAME>_MODELS_PARAMS_ARGS_ON_CHAIN_SERVICE_ID:int:none}
+          service_registry_address: ${str:none}
+          share_tm_config_on_startup: ${bool:false}
+          on_chain_service_id: ${int:none}
           (...)
     ```
 
@@ -171,7 +175,7 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
     models:
       benchmark_tool:
         args:
-          log_dir: ${SKILL_<YOUR_SKILL_NAME>_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
+          log_dir: ${LOG_DIR:str:/benchmarks}
 
       params:
         args:

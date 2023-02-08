@@ -370,6 +370,6 @@ models:
   params:
     args:
       list_with_mappings:
-        - key: ${<ENVIRONMENT_VARIABLE>:<type>:<default_value>}
-        - key: ${<ENVIRONMENT_VARIABLE>:<type>:<default_value>}
+        - key: ${<env_var_name>:<type>:<default_value>}
+        - key: ${<env_var_name>:<type>:<default_value>}
 ```
