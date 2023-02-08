@@ -26,7 +26,7 @@ skills:
 - valory/abstract_round_abci:0.1.0:bafybeicu2copq6rwiiabg5jhtvbrpgxkjib63dq5r4xidn7zsz5mxhywfm
 - valory/registration_abci:0.1.0:bafybeiaom7ta6djg3y6zaucsa6xfimqnhlbew64d67yq3aug6fgeen6quq
 - valory/reset_pause_abci:0.1.0:bafybeiad344pzi4rcuvzad6jhlv3olbh7gfhhxs3ykfnqhlxjey5cbw4vu
-- valory/termination_abci:0.1.0:bafybeicge3wbruzn2wbmbbvx4iaxrqnlvt73fijmrev7c7ng2qz3cuy4pa
+- valory/termination_abci:0.1.0:bafybeic73ribiijvu5rueicjfdbwr3bhth2me63d2p5n5ljcxnqr3f56na
 behaviours:
   main:
     args: {}
@@ -131,9 +131,9 @@ models:
   randomness_api:
     args:
       api_id: cloudflare
-      headers: []
+      headers: {}
       method: GET
-      parameters: []
+      parameters: {}
       response_key: null
       response_type: dict
       retries: 5
