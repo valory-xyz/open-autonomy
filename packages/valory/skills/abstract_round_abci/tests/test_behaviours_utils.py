@@ -62,6 +62,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     BaseTxPayload,
     DegenerateRound,
+    OK_CODE,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -1133,7 +1134,6 @@ class TestBaseBehaviour:
                 "Received tendermint code != 0. Retrying in 1.0 seconds..."
             )
 
-    @pytest.mark.skip
     @mock.patch.object(BaseBehaviour, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
@@ -1146,7 +1146,7 @@ class TestBaseBehaviour:
         "_check_http_return_code_200",
         return_value=True,
     )
-    @mock.patch("json.loads")
+    @mock.patch("json.loads", return_value={"result": {"hash": "", "code": OK_CODE}})
     def test_send_transaction_wait_delivery_timeout_exception(self, *_: Any) -> None:
         """Test '_send_transaction', timeout exception on tx delivery."""
         timeout = 0.05
