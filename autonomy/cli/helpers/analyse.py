@@ -90,6 +90,8 @@ class ParseLogs:
     _collection: LogCollection
     _db_path: Path
 
+    results: Dict[str, List[LogRow]]
+
     def __init__(self) -> None:
         """Initialize object."""
 
@@ -121,12 +123,16 @@ class ParseLogs:
 
         return self
 
-    def select(
+    def select(  # pylint: disable=too-many-arguments
         self,
         agents: List[str],
         start_time: Optional[Union[str, datetime]],
         end_time: Optional[Union[str, datetime]],
-    ) -> Dict[str, List[LogRow]]:
+        log_level: Optional[str],
+        period: Optional[int],
+        round_name: Optional[str],
+        behaviour_name: Optional[str],
+    ) -> "ParseLogs":
         """Query and return results."""
 
         if start_time is not None:
@@ -138,7 +144,44 @@ class ParseLogs:
         results = {}
         for agent in agents:
             results[agent] = self._dbs[agent].select(
-                start_time=start_time, end_time=end_time
+                start_time=start_time,
+                end_time=end_time,
+                log_level=log_level,
+                period=period,
+                round_name=round_name,
+                behaviour_name=behaviour_name,
             )
 
-        return results
+        self.results = results
+        return self
+
+    @staticmethod
+    def _print_fsm(logs: List[LogRow]) -> None:
+        """Print FSM execution path"""
+        period = -1
+        behaviour_id = "agent_startup"
+        for _, _, _, _period, _, _behaviour_id in logs:
+            if _period != period:
+                period = _period
+                click.echo(f"|_ Period {period}")
+
+            if _behaviour_id != behaviour_id:
+                behaviour_id = _behaviour_id
+                click.echo(f"| |_ {behaviour_id}")
+
+    def fsm(self) -> None:
+        """Output FSM path"""
+
+        for agent, logs in self.results.items():
+            click.echo(f"FSM path for {agent}")
+            self._print_fsm(logs=logs)
+            click.echo("|_ end\n")
+
+    def table(self) -> None:
+        """Print table."""
+
+        for agent, logs in self.results.items():
+            click.echo(f"--- {agent} ---")
+            for timestamp, log_level, message, _, _, _ in logs:
+                click.echo(f"[{timestamp}][{log_level}] {message}")
+            click.echo("--- End ---")

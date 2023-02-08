@@ -45,9 +45,10 @@ from autonomy.cli.utils.click_utils import (
     abci_spec_format_flag,
     sys_path_patch,
 )
+from autonomy.deploy.constants import LOGGING_LEVELS
 
 
-TIME_FORMAT_TEMPLATE = "YYYY-MM-DD-H-M-S-MS"
+TIME_FORMAT_TEMPLATE = "YYYY-MM-DD H:M:S,MS"
 BENCHMARKS_DIR = Path("./benchmarks.html")
 
 filterwarnings("ignore")
@@ -195,12 +196,46 @@ def docstrings(ctx: Context, update: bool) -> None:
     type=str,
     help=f"End time in `{TIME_FORMAT_TEMPLATE}` format",
 )
-def _parse_logs(
+@click.option(
+    "--log-level",
+    type=click.Choice(choices=LOGGING_LEVELS, case_sensitive=True),
+    help="Logging level.",
+)
+@click.option(
+    "--period",
+    type=int,
+    help="Period ID",
+)
+@click.option(
+    "--round",
+    "round_name",
+    type=str,
+    help="Round name",
+)
+@click.option(
+    "--behaviour",
+    "behaviour_name",
+    type=str,
+    help="Behaviour name filter",
+)
+@click.option(
+    "--fsm",
+    "fsm_path",
+    is_flag=True,
+    type=str,
+    help="Print only the FSM execution path",
+)
+def _parse_logs(  # pylint: disable=too-many-arguments
     logs_dir: Optional[Path],
     agents: List[str],
     start_time: Optional[str],
     end_time: Optional[str],
+    log_level: Optional[str],
+    period: Optional[int],
+    round_name: Optional[str],
+    behaviour_name: Optional[str],
     reset_db: bool = False,
+    fsm_path: bool = False,
 ) -> None:
     """A tool for analysing autonomous agent runtime logs"""
 
@@ -209,13 +244,21 @@ def _parse_logs(
         parser.from_dir(logs_dir=Path(logs_dir))
 
     parser.create_tables(reset=reset_db)
-    result = parser.select(agents=agents, start_time=start_time, end_time=end_time)
+    selection = parser.select(
+        agents=agents,
+        start_time=start_time,
+        end_time=end_time,
+        log_level=log_level,
+        period=period,
+        round_name=round_name,
+        behaviour_name=behaviour_name,
+    )
 
-    for agent, logs in result.items():
-        click.echo(f"--- Agent {agent} ---")
-        for timestamp, log_level, message in logs:
-            click.echo(f"[{timestamp}] [{log_level}] {message}")
-        click.echo("--- End of logs ---\n")
+    if fsm_path:
+        selection.fsm()
+        return
+
+    selection.table()
 
 
 @analyse_group.command(name="handlers")
