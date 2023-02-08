@@ -16,8 +16,12 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+
 # pylint: disable=unused-argument,no-self-use
+
 """Tests for valory/test_ipfs_abci skill's behaviours."""
+
+import json
 import sys
 from typing import Any, Callable, Generator, Optional
 from unittest import mock
@@ -84,7 +88,7 @@ class TestDummyIpfsBehaviour:
         ), mock.patch.object(
             BaseBehaviour,
             "send_to_ipfs",
-            side_effect=self.wrap_dummy_get_from_ipfs(dummy_object),
+            side_effect=self.wrap_dummy_send_to_ipfs(json.dumps(dummy_object)),
         ), mock.patch.object(
             BaseBehaviour, "sleep", side_effect=self.wrap_dummy_sleep()
         ), mock.patch.object(
