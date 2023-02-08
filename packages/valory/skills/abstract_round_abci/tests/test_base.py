@@ -29,7 +29,6 @@ from abc import ABC
 from contextlib import suppress
 from copy import copy, deepcopy
 from dataclasses import dataclass
-from enum import Enum
 from pathlib import Path
 from time import sleep
 from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type
@@ -81,9 +80,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     _MetaAbciApp,
     _MetaAbstractRound,
     _MetaPayload,
+    get_name,
 )
-from packages.valory.skills.abstract_round_abci.base import _logger as default_logger
-from packages.valory.skills.abstract_round_abci.base import get_name
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     AbciAppTest,
     ConcreteBackgroundRound,
@@ -120,30 +118,6 @@ def hypothesis_cleanup() -> Generator:
     if hypothesis_dir.exists():
         with suppress(OSError, PermissionError):
             shutil.rmtree(hypothesis_dir)
-
-
-class PayloadEnum(Enum):
-    """Payload enumeration type."""
-
-    A = "A"
-    B = "B"
-    C = "C"
-    DUMMY = "DUMMY"
-    TOO_BIG_TO_FIT_IN_HERE = "TOO_BIG_TO_FIT_IN_HERE"
-
-    def __str__(self) -> str:
-        """Get the string representation."""
-        return self.value
-
-
-class PayloadEnumB(Enum):
-    """Payload enumeration type."""
-
-    A = "AA"
-
-    def __str__(self) -> str:
-        """Get the string representation."""
-        return self.value
 
 
 class BasePayload(BaseTxPayload, ABC):
@@ -1163,16 +1137,6 @@ class TestAbstractRound:
                 synchronized_data_class = MagicMock()
                 payload_attribute = MagicMock()
                 # here payload_class is missing
-                # ...
-
-                def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
-                    pass
-
-                def check_payload(self, payload: BaseTxPayload) -> None:
-                    pass
-
-                def process_payload(self, payload: BaseTxPayload) -> None:
-                    pass
 
     def test_check_payload_type_with_previous_round_transaction(self) -> None:
         """Test check 'check_payload_type'."""
@@ -1192,13 +1156,10 @@ class TestAbstractRound:
             def process_payload(self, payload: BaseTxPayload) -> None:
                 pass
 
-        with pytest.raises(LateArrivingTransaction), mock.patch.object(
-            default_logger, "debug"
-        ) as mock_logger:
+        with pytest.raises(LateArrivingTransaction):
             MyConcreteRound(MagicMock(), MagicMock(), BaseTxPayload).check_payload_type(
                 MagicMock(payload=BaseTxPayload("dummy"))
             )
-            mock_logger.assert_called()
 
     def test_check_payload_type(self) -> None:
         """Test check 'check_payload_type'."""
@@ -2349,22 +2310,12 @@ def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:
 def test_meta_abci_app_when_final_round_not_subclass_of_degenerate_round() -> None:
     """Test instantiation of meta-class when a final round is not a subclass of DegenerateRound."""
 
-    class FinalRound(AbstractRound):
+    class FinalRound(AbstractRound, ABC):
         """A round class for testing."""
 
         payload_class = MagicMock()
         synchronized_data_class = MagicMock()
         payload_attribute = MagicMock()
-
-        def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
-            pass
-
-        def check_payload(self, payload: BaseTxPayload) -> None:
-            pass
-
-        def process_payload(self, payload: BaseTxPayload) -> None:
-            pass
-
         round_id = "final_round"
 
     with pytest.raises(

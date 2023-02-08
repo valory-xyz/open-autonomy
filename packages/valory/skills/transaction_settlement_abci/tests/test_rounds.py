@@ -390,13 +390,6 @@ class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
     _synchronized_data_class = TransactionSettlementSynchronizedSata
     _event_class = TransactionSettlementEvent
 
-    @staticmethod
-    def _participant_to_selection(
-        participants: FrozenSet[str], keepers: str
-    ) -> Mapping[str, BaseTxPayload]:
-        """Get participant to selection"""
-        return get_participant_to_selection(participants, keepers)
-
     @pytest.mark.parametrize(
         "most_voted_payload, keepers, exit_event",
         (

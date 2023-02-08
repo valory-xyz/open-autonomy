@@ -20,7 +20,6 @@
 """Test the rounds of the skill."""
 
 from copy import deepcopy
-from typing import FrozenSet
 
 from packages.valory.skills.abstract_round_abci.base import BaseSynchronizedData
 from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
@@ -33,14 +32,6 @@ from packages.valory.skills.register_reset_recovery_abci.rounds import (
     Event,
     RoundCountRound,
 )
-
-
-MAX_PARTICIPANTS: int = 4
-
-
-def get_participants() -> FrozenSet[str]:
-    """Participants"""
-    return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
 
 
 class BaseRoundTestClass(

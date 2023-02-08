@@ -165,12 +165,6 @@ class AsyncBehaviourTest(AsyncBehaviour, ABC):
         """Do 'async_act'."""
 
 
-def async_behaviour_initial_state_is_ready() -> None:
-    """Check that the initial async state is "READY"."""
-    behaviour = AsyncBehaviourTest()
-    assert behaviour.state == AsyncBehaviour.AsyncState.READY
-
-
 def test_async_behaviour_ticks() -> None:
     """Test "AsyncBehaviour", only ticks."""
 
@@ -301,7 +295,6 @@ def test_async_behaviour_wait_for_condition_with_timeout() -> None:
         def async_act(self) -> Generator:
             self.counter += 1
             yield from self.wait_for_condition(lambda: False, timeout=0.05)
-            self.counter += 1
 
     behaviour = MyAsyncBehaviour()
     assert behaviour.counter == 0
@@ -370,9 +363,6 @@ def test_async_behaviour_without_yield() -> None:
         def async_act_wrapper(self) -> Generator:
             pass
 
-        def async_act(self) -> Generator:
-            pass
-
     behaviour = MyAsyncBehaviour()
     behaviour.act()
     assert behaviour.state == AsyncBehaviour.AsyncState.READY
@@ -384,9 +374,6 @@ def test_async_behaviour_raise_stopiteration() -> None:
     class MyAsyncBehaviour(AsyncBehaviourTest):
         def async_act_wrapper(self) -> Generator:
             raise StopIteration
-
-        def async_act(self) -> Generator:
-            pass
 
     behaviour = MyAsyncBehaviour()
     behaviour.act()
@@ -420,7 +407,6 @@ class RoundA(AbstractRound):
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Handle end block."""
-        return None
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check payload."""
@@ -436,7 +422,6 @@ class BehaviourATest(BaseBehaviour):
 
     def async_act(self) -> Generator:
         """Do the 'async_act'."""
-        yield
 
 
 def _get_status_patch_wrapper(
@@ -2173,19 +2158,8 @@ def test_degenerate_behaviour_async_act() -> None:
 def test_make_degenerate_behaviour() -> None:
     """Test 'make_degenerate_behaviour'."""
 
-    class FinalRound(DegenerateRound):
+    class FinalRound(DegenerateRound, ABC):
         """A final round for testing."""
-
-        synchronized_data_class = BaseSynchronizedData
-
-        def check_payload(self, payload: BaseTxPayload) -> None:
-            pass
-
-        def process_payload(self, payload: BaseTxPayload) -> None:
-            pass
-
-        def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
-            pass
 
     new_cls = make_degenerate_behaviour(FinalRound)
 
