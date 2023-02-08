@@ -25,7 +25,6 @@ import dataclasses
 import sys
 import types
 import typing
-from decimal import Decimal
 from hashlib import sha256
 from typing import (
     Any,
@@ -123,17 +122,6 @@ class VerifyDrand:  # pylint: disable=too-few-public-methods
             return False, "Failed bls.Verify check."
 
         return True, None
-
-
-def to_int(most_voted_estimate: float, decimals: int) -> int:
-    """Convert to int."""
-    most_voted_estimate_ = str(most_voted_estimate)
-    decimal_places = most_voted_estimate_[::-1].find(".")
-    if decimal_places > decimals:
-        most_voted_estimate_ = most_voted_estimate_[: -(decimal_places - decimals)]
-    most_voted_estimate_decimal = Decimal(most_voted_estimate_)
-    int_value = int(most_voted_estimate_decimal * (10 ** decimals))
-    return int_value
 
 
 def get_data_from_nested_dict(
