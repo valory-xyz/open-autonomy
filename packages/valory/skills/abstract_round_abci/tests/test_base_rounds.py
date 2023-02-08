@@ -23,7 +23,7 @@
 
 import re
 from enum import Enum
-from typing import FrozenSet, List, Optional, Tuple, cast
+from typing import FrozenSet, List, Optional, Tuple, Union, cast
 
 import pytest
 
@@ -264,8 +264,13 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
 class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
     """Test CollectSameUntilThresholdRound."""
 
+    @pytest.mark.parametrize(
+        "selection_key",
+        ("dummy_selection_key", tuple(f"dummy_selection_key_{i}" for i in range(2))),
+    )
     def test_run(
         self,
+        selection_key: Union[str, Tuple[str, ...]],
     ) -> None:
         """Run tests."""
 
@@ -274,7 +279,7 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
             consensus_params=self.consensus_params,
         )
         test_round.collection_key = "dummy_collection_key"
-        test_round.selection_key = "dummy_selection_key"
+        test_round.selection_key = selection_key
         assert test_round.end_block() is None
 
         first_payload, *payloads = get_dummy_tx_payloads(
@@ -348,8 +353,12 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
 class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest):
     """Test OnlyKeeperSendsRound."""
 
+    @pytest.mark.parametrize(
+        "payload_key", ("dummy_key", tuple(f"dummy_key_{i}" for i in range(2)))
+    )
     def test_run(
         self,
+        payload_key: Union[str, Tuple[str, ...]],
     ) -> None:
         """Run tests."""
 
@@ -405,7 +414,7 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
         self._test_payload_with_wrong_round_count(test_round)
 
         test_round.done_event = DummyEvent.DONE
-        test_round.payload_key = "dummy_key"
+        test_round.payload_key = payload_key
         assert test_round.end_block()
 
     def test_keeper_payload_is_none(
@@ -547,11 +556,21 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
             res = test_round.end_block()
-            if test_round.block_confirmations <= required_confirmations:
-                assert res is None
-            else:
-                assert res is not None
-                assert res[1] == test_round.done_event
+            assert test_round.block_confirmations <= required_confirmations
+            assert res is None
+        assert test_round.collection_threshold_reached
+        payloads_since_consensus = 2
+        confirmations_remaining = required_confirmations - payloads_since_consensus
+        for _ in range(confirmations_remaining):
+            res = test_round.end_block()
+            assert test_round.block_confirmations <= required_confirmations
+            assert res is None
+
+        res = test_round.end_block()
+        assert test_round.block_confirmations > required_confirmations
+        assert res is not None
+        assert res[1] == test_round.done_event
+
         assert test_round.collection_threshold_reached
         self._test_payload_with_wrong_round_count(test_round)
 
@@ -614,16 +633,25 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         assert test_round.collection_threshold_reached
 
     @pytest.mark.parametrize(
+        "selection_key",
+        ("dummy_selection_key", tuple(f"dummy_selection_key_{i}" for i in range(2))),
+    )
+    @pytest.mark.parametrize(
         "is_value_none, expected_event",
         ((True, DummyEvent.NONE), (False, DummyEvent.DONE)),
     )
-    def test_end_block(self, is_value_none: bool, expected_event: str) -> None:
+    def test_end_block(
+        self,
+        selection_key: Union[str, Tuple[str, ...]],
+        is_value_none: bool,
+        expected_event: str,
+    ) -> None:
         """Test `end_block` when collection threshold is reached."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
-        test_round.selection_key = "dummy_selection_key"
+        test_round.selection_key = selection_key
         payloads = get_dummy_tx_payloads(
             self.participants, is_value_none=is_value_none, is_vote_none=True
         )

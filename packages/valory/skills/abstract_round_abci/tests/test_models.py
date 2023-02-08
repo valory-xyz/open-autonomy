@@ -343,22 +343,39 @@ class TestSharedState:
         """Test the initialization of the shared state."""
         SharedState(name="", skill_context=MagicMock())
 
-    def test_setup(self, *_: Any) -> None:
-        """Test setup method."""
-        shared_state = SharedState(name="", skill_context=MagicMock())
+    @staticmethod
+    def dummy_state_setup(shared_state: SharedState) -> None:
+        """Setup a shared state instance with dummy params."""
         shared_state.context.params.setup_params = {
             "test": [],
-            "all_participants": [["0x0"]],
+            "all_participants": [list(range(4))],
         }
         shared_state.context.params.consensus_params = MagicMock()
         shared_state.setup()
 
+    def test_setup(self, *_: Any) -> None:
+        """Test setup method."""
+        shared_state = SharedState(name="", skill_context=MagicMock())
+        assert shared_state.initial_tm_configs == {}
+        self.dummy_state_setup(shared_state)
+        assert shared_state.initial_tm_configs == {i: None for i in range(4)}
+
+    @pytest.mark.parametrize("self_idx", (range(4)))
+    def test_acn_container(self, self_idx: int) -> None:
+        """Test the `acn_container` method."""
+
+        shared_state = SharedState(
+            name="", skill_context=MagicMock(agent_address=self_idx)
+        )
+        self.dummy_state_setup(shared_state)
+        expected = {i: None for i in range(4) if i != self_idx}
+        assert shared_state.acn_container() == expected
+
     def test_synchronized_data_negative_not_available(self, *_: Any) -> None:
         """Test 'synchronized_data' property getter, negative case (not available)."""
         shared_state = SharedState(name="", skill_context=MagicMock())
-        with mock.patch.object(shared_state.context, "params"):
-            with pytest.raises(ValueError, match="round sequence not available"):
-                shared_state.synchronized_data
+        with pytest.raises(ValueError, match="round sequence not available"):
+            shared_state.synchronized_data
 
     def test_synchronized_data_positive(self, *_: Any) -> None:
         """Test 'synchronized_data' property getter, negative case (not available)."""

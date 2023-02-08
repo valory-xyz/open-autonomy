@@ -538,29 +538,53 @@ class TestSelectKeeperTransactionSubmissionBehaviourB(
         "keeper_retries",
         new_callable=mock.PropertyMock,
     )
+    @mock.patch.object(
+        TransactionSettlementSynchronizedSata,
+        "final_verification_status",
+        new_callable=mock.PropertyMock,
+    )
     @pytest.mark.parametrize(
-        "keepers, keeper_retries, blacklisted_keepers",
+        "keepers, keeper_retries, blacklisted_keepers, final_verification_status",
         (
-            (deque(f"keeper_{i}" for i in range(4)), 1, set()),
-            (deque(("test_keeper",)), 2, set()),
-            (deque(("test_keeper",)), 2, {"a1"}),
-            (deque(("test_keeper",)), 2, {"test_keeper"}),
-            (deque(("test_keeper",)), 2, {"a_1", "a_2", "test_keeper"}),
-            (deque(("test_keeper",)), 1, set()),
-            (deque(("test_keeper",)), 3, set()),
+            (
+                deque(f"keeper_{i}" for i in range(4)),
+                1,
+                set(),
+                VerificationStatus.NOT_VERIFIED,
+            ),
+            (deque(("test_keeper",)), 2, set(), VerificationStatus.PENDING),
+            (deque(("test_keeper",)), 2, set(), VerificationStatus.NOT_VERIFIED),
+            (deque(("test_keeper",)), 2, {"a1"}, VerificationStatus.NOT_VERIFIED),
+            (
+                deque(("test_keeper",)),
+                2,
+                {"test_keeper"},
+                VerificationStatus.NOT_VERIFIED,
+            ),
+            (
+                deque(("test_keeper",)),
+                2,
+                {"a_1", "a_2", "test_keeper"},
+                VerificationStatus.NOT_VERIFIED,
+            ),
+            (deque(("test_keeper",)), 1, set(), VerificationStatus.NOT_VERIFIED),
+            (deque(("test_keeper",)), 3, set(), VerificationStatus.NOT_VERIFIED),
         ),
     )
     def test_select_keeper(
         self,
+        final_verification_status_mock: mock.PropertyMock,
         keeper_retries_mock: mock.PropertyMock,
         keepers_mock: mock.PropertyMock,
         keepers: Deque[str],
         keeper_retries: int,
         blacklisted_keepers: Set[str],
+        final_verification_status: VerificationStatus,
     ) -> None:
         """Test select keeper agent."""
         keepers_mock.return_value = keepers
         keeper_retries_mock.return_value = keeper_retries
+        final_verification_status_mock.return_value = final_verification_status
         super().test_select_keeper(blacklisted_keepers=blacklisted_keepers)
 
     @mock.patch.object(
