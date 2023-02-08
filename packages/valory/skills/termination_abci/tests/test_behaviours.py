@@ -18,6 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """This package contains round behaviours of Background Behaviours."""
+
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Type
@@ -72,7 +74,8 @@ class BehaviourTestCase:
     initial_data: Dict[str, Any]
     ok_reqs: List[Callable]
     err_reqs: List[Callable]
-    expected_logs: List[str]
+    expected_log: str
+    expected_log_level: int
 
 
 class BaseTerminationTest(FSMBehaviourBaseCase):
@@ -410,14 +413,16 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                 initial_data=_INITIAL_DATA,
                 ok_reqs=[],
                 err_reqs=[_mock_get_service_owner_request],
-                expected_logs=[_SERVICE_OWNER_ERR_LOG],
+                expected_log=_SERVICE_OWNER_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent fails to get zero transfer event",
                 initial_data=_INITIAL_DATA,
                 ok_reqs=[_mock_get_service_owner_request],
                 err_reqs=[_mock_get_zero_transfer_events_request],
-                expected_logs=[_ZERO_TRANSFER_EVENTS_ERR_LOG],
+                expected_log=_ZERO_TRANSFER_EVENTS_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent fails to get owner removal event",
@@ -427,7 +432,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     _mock_get_zero_transfer_events_request,
                 ],
                 err_reqs=[_mock_get_removed_owner_events_request],
-                expected_logs=[_SERVICE_OWNER_REMOVED_EVENTS_ERR_LOG],
+                expected_log=_SERVICE_OWNER_REMOVED_EVENTS_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent fails to get the safe owners",
@@ -438,7 +444,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     _mock_get_removed_owner_events_request,
                 ],
                 err_reqs=[_mock_get_owners_request],
-                expected_logs=[_SAFE_OWNERS_ERR_LOG],
+                expected_log=_SAFE_OWNERS_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent fails to get a remove safe owner tx",
@@ -450,7 +457,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     _mock_get_owners_request,
                 ],
                 err_reqs=[_mock_get_remove_owner_data_request],
-                expected_logs=[_REMOVE_OWNER_ERR_LOG],
+                expected_log=_REMOVE_OWNER_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent fails to get a swap safe owner tx",
@@ -463,7 +471,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     *[_mock_get_remove_owner_data_request] * (_NUM_SAFE_OWNERS - 1),
                 ],
                 err_reqs=[_mock_get_swap_owner_data_request],
-                expected_logs=[_SWAP_OWNER_ERR_LOG],
+                expected_log=_SWAP_OWNER_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent fails to prepare multisend tx",
@@ -477,7 +486,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     _mock_get_swap_owner_data_request,
                 ],
                 err_reqs=[_mock_get_tx_data_request],
-                expected_logs=[_MULTISEND_ERR_LOG],
+                expected_log=_MULTISEND_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent fails to get a hash for the multisend tx",
@@ -492,7 +502,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     _mock_get_tx_data_request,
                 ],
                 err_reqs=[_mock_get_raw_safe_transaction_hash_request],
-                expected_logs=[_SAFE_HASH_ERR_LOG],
+                expected_log=_SAFE_HASH_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent completes the whole flow",
@@ -508,7 +519,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     _mock_get_raw_safe_transaction_hash_request,
                 ],
                 err_reqs=[],
-                expected_logs=[_SUCCESS_LOG],
+                expected_log=_SUCCESS_LOG,
+                expected_log_level=logging.INFO,
             ),
             BehaviourTestCase(
                 name="agent drops message because app already stopped",
@@ -518,7 +530,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     _mock_is_stopped,
                     _mock_get_service_owner_request,
                 ],
-                expected_logs=[_IS_STOPPED_LOG],
+                expected_log=_IS_STOPPED_LOG,
+                expected_log_level=logging.INFO,
             ),
             BehaviourTestCase(
                 name="agent could not send message because state != WAITING_MESSAGE",
@@ -528,27 +541,27 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     _mock_state_is_not_waiting_message,
                     _mock_get_service_owner_request,
                 ],
-                expected_logs=[_IS_NOT_WAITING_MESSAGE],
+                expected_log=_IS_NOT_WAITING_MESSAGE,
+                expected_log_level=logging.WARNING,
             ),
         ],
     )
-    @pytest.mark.skip  # Needs to be investigated, fails in CI only. look at #1710
     def test_run(self, test_case: BehaviourTestCase, caplog: LogCaptureFixture) -> None:
         """Test multiple paths of termination."""
         self.fast_forward(data=test_case.initial_data)
-        self.behaviour.act_wrapper()
+        with caplog.at_level(test_case.expected_log_level):
+            self.behaviour.act_wrapper()
 
-        # apply the OK mocks first
-        for ok_req in test_case.ok_reqs:
-            ok_req(self)
+            # apply the OK mocks first
+            for ok_req in test_case.ok_reqs:
+                ok_req(self)
 
-        # apply the failing mocks
-        for err_req in test_case.err_reqs:
-            err_req(self, error=True)
+            # apply the failing mocks
+            for err_req in test_case.err_reqs:
+                err_req(self, error=True)
 
         # check that the expected logs appear
-        for expected_log in test_case.expected_logs:
-            assert expected_log in caplog.text
+        assert test_case.expected_log in caplog.text
 
         if len(test_case.err_reqs) == 0:
             # no mocked requests fail,
