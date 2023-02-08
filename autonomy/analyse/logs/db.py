@@ -22,7 +22,7 @@
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from typing import Iterator, List, Optional
+from typing import Any, Iterator, List, Optional
 
 from autonomy.analyse.logs.base import LogRow
 
@@ -30,15 +30,19 @@ from autonomy.analyse.logs.base import LogRow
 TIMESTAMP = "timestamp"
 LOG_LEVEL = "log_level"
 MESSAGE = "message"
+PERIOD = "period"
+ROUND = "round_name"
+BEHAVIOUR = "behaviour_name"
 
 QUERY_CREATE_LOG_TABLE = (
-    "CREATE TABLE {agent} (timestamp TIMESTAMP, log_level TEXT, message TEXT);"
+    "CREATE TABLE {agent} "
+    + f"({TIMESTAMP} TIMESTAMP, {LOG_LEVEL} TEXT, {MESSAGE} TEXT, {PERIOD} INTEGER, {ROUND} TEXT, {BEHAVIOUR} TEXT);"
 )
 QUERY_CHECK_TABLE_EXISTS = (
     "SELECT name FROM sqlite_master WHERE type='table' AND name=?;"
 )
 QUERY_DROP_TABLE = "DROP TABLE {agent};"
-QUERY_INSERT_LOG = "INSERT INTO {agent} VALUES (?, ?, ?);"
+QUERY_INSERT_LOG = "INSERT INTO {agent} VALUES (?, ?, ?, ?, ?, ?);"
 
 
 class AgentLogsDB:
@@ -56,15 +60,19 @@ class AgentLogsDB:
             detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
         )
 
-    def select(
+    def select(  # pylint: disable=too-many-arguments
         self,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
+        log_level: Optional[str] = None,
+        period: Optional[int] = None,
+        round_name: Optional[str] = None,
+        behaviour_name: Optional[str] = None,
     ) -> List[LogRow]:
         """Build select query."""
 
         query = f"SELECT * from {self.agent}"
-        paramaters = []
+        paramaters: List[Any] = []
 
         def _append_condition(_query: str, condition: str) -> str:
             """Append condition at the end of the query."""
@@ -79,6 +87,22 @@ class AgentLogsDB:
         if end_time is not None:
             query = _append_condition(_query=query, condition=f"{TIMESTAMP}<?")
             paramaters.append(end_time)
+
+        if log_level is not None:
+            query = _append_condition(_query=query, condition=f"{LOG_LEVEL}=?")
+            paramaters.append(log_level)
+
+        if period is not None:
+            query = _append_condition(_query=query, condition=f"{PERIOD}=?")
+            paramaters.append(period)
+
+        if round_name is not None:
+            query = _append_condition(_query=query, condition=f"{ROUND}=?")
+            paramaters.append(round_name)
+
+        if behaviour_name is not None:
+            query = _append_condition(_query=query, condition=f"{BEHAVIOUR}=?")
+            paramaters.append(behaviour_name)
 
         query += ";"
         return self.cursor.execute(query, paramaters).fetchall()
@@ -116,13 +140,19 @@ class AgentLogsDB:
 
         return self
 
-    def insert_one(
-        self, timestamp: datetime, log_level: str, message: str
+    def insert_one(  # pylint: disable=too-many-arguments
+        self,
+        timestamp: datetime,
+        log_level: str,
+        message: str,
+        period: int,
+        round_name: str,
+        behaviour_name: str,
     ) -> "AgentLogsDB":
         """Insert a record"""
         self.cursor.execute(
             QUERY_INSERT_LOG,
-            (timestamp, log_level, message),
+            (timestamp, log_level, message, period, round_name, behaviour_name),
         )
         self._db.commit()
 
@@ -133,10 +163,10 @@ class AgentLogsDB:
         logs: Iterator[LogRow],
     ) -> "AgentLogsDB":
         """Insert a record"""
-        for timestamp, log_level, message in logs:
+        for timestamp, log_level, message, period, round_name, behaviour_name in logs:
             self.cursor.execute(
                 QUERY_INSERT_LOG.format(agent=self.agent),
-                (timestamp, log_level, message),
+                (timestamp, log_level, message, period, round_name, behaviour_name),
             )
         self._db.commit()
         return self

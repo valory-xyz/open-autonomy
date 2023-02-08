@@ -20,14 +20,18 @@
 """Log streams"""
 
 
+import re
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
 from typing import Generator, List, Optional, TextIO, Tuple, cast
 
 from autonomy.analyse.logs.base import (
+    ENTER_BEHAVIOUR_REGEX,
+    ENTER_ROUND_REGEX,
     LOG_ROW_REGEX,
     LogRow,
+    NOISE_FILTER_REGEX,
     TIMESTAMP_REGEX,
     TIME_FORMAT,
 )
@@ -76,6 +80,9 @@ class LogCollection(ABC):
         """Parse logs and yield rows."""
         with file.open(mode="r") as fp:
             prev_line: Optional[str] = fp.readline()
+            current_period = 0
+            current_round = "agent_startup"
+            current_behaviour = "agent_startup"
             while True:
                 line, prev_line = cls.get_next_log_block(
                     fp=fp, prev_line=cast(str, prev_line)
@@ -83,13 +90,24 @@ class LogCollection(ABC):
                 if line is None and prev_line is None:
                     break
 
-                match = LOG_ROW_REGEX.match(string=cast(str, line))
-                if match is None:
+                if len(NOISE_FILTER_REGEX.findall(string=cast(str, line))) > 0:
                     continue
 
-                _timestamp, log_level, _, log_block = match.groups()
+                match = LOG_ROW_REGEX.match(string=cast(str, line))
+                _timestamp, log_level, _, log_block = cast(re.Match, match).groups()
                 timestamp = datetime.strptime(_timestamp, TIME_FORMAT)
-                yield timestamp, log_level, log_block
+
+                match = ENTER_BEHAVIOUR_REGEX.match(string=log_block)
+                if match is not None:
+                    (current_behaviour,) = match.groups()
+
+                match = ENTER_ROUND_REGEX.match(string=log_block)
+                if match is not None:
+                    (current_round, current_period) = cast(
+                        Tuple[str, int], match.groups()
+                    )
+
+                yield timestamp, log_level, log_block, current_period, current_round, current_behaviour
 
 
 class FromDirectory(LogCollection):
