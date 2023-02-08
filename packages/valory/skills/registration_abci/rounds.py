@@ -54,13 +54,14 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
     """
 
     payload_class = RegistrationPayload
-    payload_attribute = "initialisation"
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if not self.collection_threshold_reached:
             return None
+
+        self.synchronized_data.db.sync(self.common_payload)
 
         synchronized_data = self.synchronized_data.update(
             participants=tuple(self.collection),
@@ -79,10 +80,12 @@ class RegistrationRound(CollectSameUntilThresholdRound):
     """
 
     payload_class = RegistrationPayload
-    payload_attribute = "initialisation"
     required_block_confirmations = 10
     done_event = Event.DONE
     synchronized_data_class = BaseSynchronizedData
+
+    # this allows rejoining agents to send payloads
+    _allow_rejoin_payloads = True
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -93,6 +96,8 @@ class RegistrationRound(CollectSameUntilThresholdRound):
             and self.block_confirmations
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
+            self.synchronized_data.db.sync(self.most_voted_payload)
+
             synchronized_data = self.synchronized_data.update(
                 participants=tuple(self.collection),
                 synchronized_data_class=self.synchronized_data_class,

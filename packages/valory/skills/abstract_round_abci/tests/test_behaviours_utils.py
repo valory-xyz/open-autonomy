@@ -24,22 +24,10 @@ import logging
 import platform
 import time
 from abc import ABC
-from collections import OrderedDict
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generator,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -1300,8 +1288,8 @@ class TestBaseBehaviour:
             self.behaviour._build_http_request_message(
                 "",
                 "",
-                parameters=[("foo", "bar")],
-                headers=[OrderedDict({"foo": "foo_val", "bar": "bar_val"})],
+                parameters={"foo": "bar"},
+                headers={"foo": "foo_val", "bar": "bar_val"},
             )
 
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
@@ -1948,9 +1936,15 @@ class TestBaseBehaviour:
         ),
         st.integers(),
         st.integers(),
+        st.integers(),
     )
     def test_get_reset_params(
-        self, default: bool, timestamp: datetime, height: int, interval: int
+        self,
+        default: bool,
+        timestamp: datetime,
+        height: int,
+        interval: int,
+        period: int,
     ) -> None:
         """Test `_get_reset_params` method."""
         self.context_mock.state.round_sequence.last_round_transition_timestamp = (
@@ -1958,6 +1952,7 @@ class TestBaseBehaviour:
         )
         self.context_mock.state.round_sequence.last_round_transition_tm_height = height
         self.behaviour.params.observation_interval = interval
+        self.context_state_synchronized_data_mock.period_count = period
 
         actual = self.behaviour._get_reset_params(default)
 
@@ -1967,11 +1962,13 @@ class TestBaseBehaviour:
         else:
             initial_height = INITIAL_HEIGHT
             genesis_time = timestamp.astimezone(pytz.UTC).strftime(GENESIS_TIME_FMT)
+            period_count = str(period)
 
-            expected = [
-                ("genesis_time", genesis_time),
-                ("initial_height", initial_height),
-            ]
+            expected = {
+                "genesis_time": genesis_time,
+                "initial_height": initial_height,
+                "period_count": period_count,
+            }
 
             assert actual == expected
 
@@ -2071,6 +2068,8 @@ class TestBaseBehaviour:
                 return mock.MagicMock(body=b"")
             return mock.MagicMock(body=json.dumps(status_response).encode())
 
+        period_count_mock = MagicMock()
+        self.context_state_synchronized_data_mock.period_count = period_count_mock
         self.behaviour.params.observation_interval = 1
         with mock.patch.object(
             BaseBehaviour, "_is_timeout_expired", return_value=False
@@ -2097,10 +2096,11 @@ class TestBaseBehaviour:
             )
 
             expected_parameters = (
-                [
-                    ("genesis_time", genesis_time),
-                    ("initial_height", initial_height),
-                ]
+                {
+                    "genesis_time": genesis_time,
+                    "initial_height": initial_height,
+                    "period_count": str(period_count_mock),
+                }
                 if not on_startup
                 else None
             )
@@ -2126,10 +2126,6 @@ class TestBaseBehaviour:
                     assert (
                         tm_recovery_params.round_count
                         == shared_state.synchronized_data.db.round_count - 1
-                    )
-                    assert (
-                        tm_recovery_params.reset_index
-                        == shared_state.round_sequence.abci_app.reset_index - 1
                     )
                     assert (
                         tm_recovery_params.reset_from_round
@@ -2310,15 +2306,12 @@ class TestTmManager:
     @pytest.mark.parametrize(
         "expected_reset_params",
         (
-            [
-                ("genesis_time", "genesis-time"),
-                ("initial_height", "1"),
-            ],
+            {"genesis_time": "genesis-time", "initial_height": "1"},
             None,
         ),
     )
     def test_get_reset_params(
-        self, expected_reset_params: Optional[List[Tuple[str, str]]]
+        self, expected_reset_params: Optional[Dict[str, str]]
     ) -> None:
         """Test that reset params returns the correct params."""
         self.context_mock.state.tm_recovery_params = TendermintRecoveryParams(

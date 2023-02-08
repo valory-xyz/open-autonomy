@@ -630,7 +630,11 @@ class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
     @property
     def history(self) -> List[str]:
         """Get the history of hashes."""
-        return self.synchronized_data.late_arriving_tx_hashes
+        return [
+            hash_
+            for hashes in self.synchronized_data.late_arriving_tx_hashes.values()
+            for hash_ in hashes
+        ]
 
 
 class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
@@ -694,7 +698,7 @@ class SignatureBehaviour(TransactionSettlementBaseBehaviour):
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             self.context.logger.info(
-                f"Consensus reached on tx hash: {self.synchronized_data.most_voted_tx_hash}"
+                f"Agreement reached on tx data: {self.synchronized_data.most_voted_tx_hash}"
             )
             signature_hex = yield from self._get_safe_tx_signature()
             payload = SignaturePayload(self.context.agent_address, signature_hex)

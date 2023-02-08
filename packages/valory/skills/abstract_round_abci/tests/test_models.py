@@ -24,6 +24,7 @@
 import builtins
 import json
 import logging
+from collections import OrderedDict
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -40,7 +41,6 @@ from typing_extensions import Literal, TypedDict
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
-    RESET_INDEX_DEFAULT,
     ROUND_COUNT_DEFAULT,
 )
 from packages.valory.skills.abstract_round_abci.models import (
@@ -76,8 +76,8 @@ BASE_DUMMY_SPECS_CONFIG = dict(
     url="http://dummy",
     api_id="api_id",
     method="GET",
-    headers=[("Dummy-Header", "dummy_value")],
-    parameters=[("Dummy-Param", "dummy_param")],
+    headers=OrderedDict([("Dummy-Header", "dummy_value")]),
+    parameters=OrderedDict([("Dummy-Param", "dummy_param")]),
 )
 
 
@@ -124,8 +124,8 @@ class TestApiSpecsModel:
         assert self.api_specs.url == "http://dummy"
         assert self.api_specs.api_id == "api_id"
         assert self.api_specs.method == "GET"
-        assert self.api_specs.headers == [("Dummy-Header", "dummy_value")]
-        assert self.api_specs.parameters == [("Dummy-Param", "dummy_param")]
+        assert self.api_specs.headers == {"Dummy-Header": "dummy_value"}
+        assert self.api_specs.parameters == {"Dummy-Param": "dummy_param"}
         assert self.api_specs.response_info.response_key == "value"
         assert self.api_specs.response_info.response_index == 0
         assert self.api_specs.response_info.response_type == "float"
@@ -166,8 +166,8 @@ class TestApiSpecsModel:
         actual_specs = {
             "url": "http://dummy",
             "method": "GET",
-            "headers": [("Dummy-Header", "dummy_value")],
-            "parameters": [("Dummy-Param", "dummy_param")],
+            "headers": {"Dummy-Header": "dummy_value"},
+            "parameters": {"Dummy-Param": "dummy_param"},
         }
 
         specs = self.api_specs.get_spec()
@@ -346,7 +346,10 @@ class TestSharedState:
     def test_setup(self, *_: Any) -> None:
         """Test setup method."""
         shared_state = SharedState(name="", skill_context=MagicMock())
-        shared_state.context.params.setup_params = {"test": []}
+        shared_state.context.params.setup_params = {
+            "test": [],
+            "all_participants": [["0x0"]],
+        }
         shared_state.context.params.consensus_params = MagicMock()
         shared_state.setup()
 
@@ -360,7 +363,10 @@ class TestSharedState:
     def test_synchronized_data_positive(self, *_: Any) -> None:
         """Test 'synchronized_data' property getter, negative case (not available)."""
         shared_state = SharedState(name="", skill_context=MagicMock())
-        shared_state.context.params.setup_params = {"test": []}
+        shared_state.context.params.setup_params = {
+            "test": [],
+            "all_participants": [["0x0"]],
+        }
         shared_state.context.params.consensus_params = MagicMock()
         shared_state.setup()
         shared_state.round_sequence.abci_app._round_results = [MagicMock()]
@@ -373,6 +379,7 @@ class TestSharedState:
             mock_params.setup_params = {
                 "safe_contract_address": ["0xsafe"],
                 "oracle_contract_address": ["0xoracle"],
+                "all_participants": ["0x0"],
             }
             shared_state.setup()
             assert (
@@ -409,7 +416,10 @@ class TestSharedState:
         shared_state = SharedState(
             abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
         )
-        shared_state.context.params.setup_params = {"test": []}
+        shared_state.context.params.setup_params = {
+            "test": [],
+            "all_participants": [["0x0"]],
+        }
         shared_state.setup()
         shared_state.synchronized_data.update(participants=tuple(range(n_participants)))
         shared_state.address_to_acn_deliverable = address_to_acn_deliverable
@@ -422,7 +432,6 @@ class TestSharedState:
         shared_state = SharedState(name="", skill_context=MagicMock())
         assert shared_state.tm_recovery_params is not None
         assert shared_state.tm_recovery_params.round_count == ROUND_COUNT_DEFAULT
-        assert shared_state.tm_recovery_params.reset_index == RESET_INDEX_DEFAULT
         assert (
             shared_state.tm_recovery_params.reset_from_round
             == AbciAppTest.initial_round_cls.auto_round_id()

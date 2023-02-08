@@ -621,7 +621,8 @@ class TendermintHandler(Handler):
         self, message: TendermintMessage, dialogue: TendermintDialogue
     ) -> bool:
         """Check if the sender is registered on-chain and if not, reply with an error"""
-        if message.sender in self.initial_tm_configs:
+        others_addresses = self.context.state.acn_container()
+        if message.sender in others_addresses:
             return True
 
         self._not_registered_error(message, dialogue)
@@ -632,16 +633,15 @@ class TendermintHandler(Handler):
     ) -> None:
         """Handler Tendermint config-sharing request message"""
 
-        if not self.initial_tm_configs:
+        if not self._check_registered(message, dialogue):
+            return
+        info = self.initial_tm_configs.get(self.context.agent_address, None)
+        if info is None:
             log_message = self.LogMessages.no_addresses_retrieved_yet.value
             self.context.logger.info(f"{log_message}: {message}")
             self._reply_with_tendermint_error(message, dialogue, log_message)
             return
 
-        if not self._check_registered(message, dialogue):
-            return
-
-        info = self.initial_tm_configs[self.context.agent_address]
         response = dialogue.reply(
             performative=TendermintMessage.Performative.GENESIS_INFO,
             target_message=message,
@@ -683,7 +683,7 @@ class TendermintHandler(Handler):
             hostname = cast(str, validator_config["hostname"])
             if hostname != "localhost" and not hostname.startswith("node"):
                 ipaddress.ip_network(hostname)
-        except ValueError as e:
+        except (KeyError, ValueError) as e:
             log_message = self.LogMessages.failed_to_parse_address.value
             self.context.logger.error(f"{log_message}: {e} {message}")
             self._reply_with_tendermint_error(message, dialogue, log_message)

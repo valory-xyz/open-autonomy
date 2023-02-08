@@ -120,9 +120,9 @@ models:
   randomness_api:
     args:
       api_id: cloudflare
-      headers: []
+      headers: {}
       method: GET
-      parameters: []
+      parameters: {}
       response_key: null
       response_type: dict
       retries: 5

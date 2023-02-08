@@ -69,11 +69,9 @@ class RegistrationBaseBehaviour(BaseBehaviour, ABC):
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            initialisation = json.dumps(
-                self.synchronized_data.db.setup_data, sort_keys=True
-            )
+            serialized_db = self.synchronized_data.db.serialize()
             payload = RegistrationPayload(
-                self.context.agent_address, initialisation=initialisation
+                self.context.agent_address, initialisation=serialized_db
             )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
@@ -292,7 +290,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     def request_tendermint_info(self) -> Generator[None, None, bool]:
         """Request Tendermint info from other agents"""
 
-        still_missing = {k for k, v in self.initial_tm_configs.items() if not v}
+        still_missing = {k for k, v in self.initial_tm_configs.items() if not v} - {
+            self.context.agent_address
+        }
         log_message = self.LogMessages.request_others
         self.context.logger.info(f"{log_message}: {still_missing}")
 
@@ -422,8 +422,10 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
                 yield from self.sleep(self.params.sleep_time)
                 return
 
-        # make service registry contract call
-        if not self.initial_tm_configs:
+        # if the agent doesn't have it's tm config info set, then make service registry contract call
+        # to get the rest of the agents, so we can get their tm config info later
+        info = self.initial_tm_configs.get(self.context.agent_address, None)
+        if info is None:
             successful = yield from self.get_addresses()
             if not successful:
                 yield from self.sleep(self.params.sleep_time)

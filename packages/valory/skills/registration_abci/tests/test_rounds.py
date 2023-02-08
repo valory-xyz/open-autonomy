@@ -65,7 +65,7 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
             consensus_params=self.consensus_params,
         )
 
-        most_voted_payload = "dummy"
+        most_voted_payload = self.synchronized_data.db.serialize()
         round_payloads = {
             participant: RegistrationPayload(
                 sender=participant,
@@ -201,7 +201,7 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
         round_payloads = {
             participant: RegistrationPayload(
                 sender=participant,
-                initialisation='{"dummy_key": "dummy_value"}',
+                initialisation=self.synchronized_data.db.serialize(),
             )
             for participant in self.participants
         }
@@ -210,7 +210,7 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
             test_round=test_round,
             expected_event=RegistrationEvent.DONE,
             confirmations=11,
-            most_voted_payload='{"dummy_key": "dummy_value"}',
+            most_voted_payload=self.synchronized_data.db.serialize(),
             round_payloads=round_payloads,
         )
 

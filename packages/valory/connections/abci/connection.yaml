@@ -9,7 +9,7 @@ fingerprint:
   Makefile: bafybeibdgarch56r46dfy7x7fouj52nbjpjs4fgtrd3prgtwelowyjan5i
   __init__.py: bafybeiafpun3qgjw6zpiuq6jovo2taxkavw2gd7mn5yv73sh3uy5pea3o4
   check_dependencies.py: bafybeihmhemryyl2iacwwrqebr7us7wx4otvwbdbtckwkl5kxqopidyzwm
-  connection.py: bafybeiho2dtpgq6kipdq4tyhgtxjsweujfsqwjwqmjduw6epa3bumemnai
+  connection.py: bafybeigkuoipfmszst35fjrncigscnzf763nk625t4mk2mjnss6crchtwa
   dialogues.py: bafybeibpdsphu5vqjpieczrb3ulhqfcq4l73qnx6j3zhbz4dpunwegboxq
   gogoproto/__init__.py: bafybeifmpcbkrpygdt7uvhpq6gaxgskofpczxktoalp2cwyouay46drcke
   gogoproto/gogo_pb2.py: bafybeih2nnsem7jmzljqgc4qptoaj2zlfbuyooqiymuvomwrzzavs26ufe
@@ -55,7 +55,7 @@ fingerprint_ignore_patterns: []
 build_entrypoint: check_dependencies.py
 connections: []
 protocols:
-- valory/abci:0.1.0:bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm
+- valory/abci:0.1.0:bafybeiacx2blykdxecheozr33ywnaxfigw5oxi7wifpnelryk3buyk5hzm
 class_name: ABCIServerConnection
 config:
   host: 127.0.0.1

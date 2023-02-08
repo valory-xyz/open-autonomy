@@ -29,19 +29,7 @@ import sys
 from abc import ABC, ABCMeta, abstractmethod
 from enum import Enum
 from functools import partial
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generator,
-    List,
-    Optional,
-    OrderedDict,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
 
 import pytz
 from aea.exceptions import enforce
@@ -1234,8 +1222,8 @@ class BaseBehaviour(
         method: str,
         url: str,
         content: Optional[bytes] = None,
-        headers: Optional[List[OrderedDict[str, str]]] = None,
-        parameters: Optional[List[Tuple[str, str]]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        parameters: Optional[Dict[str, str]] = None,
     ) -> Generator[None, None, HttpMessage]:
         """
         Send an http request message from the skill context.
@@ -1301,8 +1289,8 @@ class BaseBehaviour(
         method: str,
         url: str,
         content: Optional[bytes] = None,
-        headers: Optional[List[OrderedDict[str, str]]] = None,
-        parameters: Optional[List[Tuple[str, str]]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        parameters: Optional[Dict[str, str]] = None,
     ) -> Tuple[HttpMessage, HttpDialogue]:
         """
         Send an http request message from the skill context.
@@ -1319,15 +1307,14 @@ class BaseBehaviour(
         """
         if parameters:
             url = url + "?"
-            for key, val in parameters:
+            for key, val in parameters.items():
                 url += f"{key}={val}&"
             url = url[:-1]
 
         header_string = ""
         if headers:
-            for header in headers:
-                for key, val in header.items():
-                    header_string += f"{key}: {val}\r\n"
+            for key, val in headers.items():
+                header_string += f"{key}: {val}\r\n"
 
         # context
         http_dialogues = cast(HttpDialogues, self.context.http_dialogues)
@@ -1715,12 +1702,9 @@ class BaseBehaviour(
         :param performative: the ACN request performative.
         :return: the result that the majority of the agents sent. If majority cannot be reached, returns `None`.
         """
-        ourself = {self.context.agent_address}
+        shared_state = cast(SharedState, self.context.state)
         # reset the ACN deliverables at the beginning of a new request
-        addresses = self.synchronized_data.all_participants - ourself
-        cast(
-            SharedState, self.context.state
-        ).address_to_acn_deliverable = dict.fromkeys(addresses)
+        shared_state.address_to_acn_deliverable = shared_state.acn_container()
 
         for i in range(self.params.max_attempts):
             self.context.logger.debug(
@@ -1813,7 +1797,7 @@ class BaseBehaviour(
             0, self._timeout
         )
 
-    def _get_reset_params(self, default: bool) -> Optional[List[Tuple[str, str]]]:
+    def _get_reset_params(self, default: bool) -> Optional[Dict[str, str]]:
         """Get the parameters for a hard reset request to Tendermint."""
         if default:
             return None
@@ -1824,10 +1808,11 @@ class BaseBehaviour(
         genesis_time = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
             GENESIS_TIME_FMT
         )
-        return [
-            ("genesis_time", genesis_time),
-            ("initial_height", INITIAL_HEIGHT),
-        ]
+        return {
+            "genesis_time": genesis_time,
+            "initial_height": INITIAL_HEIGHT,
+            "period_count": str(self.synchronized_data.period_count),
+        }
 
     def reset_tendermint_with_wait(  # pylint: disable=too-many-locals, too-many-statements
         self,
@@ -1872,10 +1857,6 @@ class BaseBehaviour(
                         self.context.state.round_sequence.reset_blockchain(
                             is_replay=is_replay, is_init=True
                         )
-                    self.context.state.round_sequence.abci_app.cleanup(
-                        self.params.cleanup_history_depth,
-                        self.params.cleanup_history_depth_current,
-                    )
                     for handler_name in self.context.handlers.__dict__.keys():
                         dialogues = getattr(self.context, f"{handler_name}_dialogues")
                         dialogues.cleanup()
@@ -1884,22 +1865,20 @@ class BaseBehaviour(
                         # so that in the future if the communication with tendermint breaks, and we need to
                         # perform a hard reset to restore it, we can use these as the right ones
                         shared_state = cast(SharedState, self.context.state)
-                        # we take one from the reset index and round count because they are incremented
-                        # when resetting and scheduling rounds respectively
-                        reset_index = (
-                            shared_state.round_sequence.abci_app.reset_index - 1
-                        )
                         round_count = shared_state.synchronized_data.db.round_count - 1
                         # in case we need to reset in order to recover agent <-> tm communication
                         # we store this round as the one to start from
                         restart_from_round = self.matching_round
                         shared_state.tm_recovery_params = TendermintRecoveryParams(
                             reset_params=reset_params,
-                            reset_index=reset_index,
                             round_count=round_count,
                             reset_from_round=restart_from_round.auto_round_id(),
                             serialized_db_state=shared_state.synchronized_data.db.serialize(),
                         )
+                    self.context.state.round_sequence.abci_app.cleanup(
+                        self.params.cleanup_history_depth,
+                        self.params.cleanup_history_depth_current,
+                    )
                     self._end_reset()
 
                 else:
@@ -2129,13 +2108,13 @@ class TmManager(BaseBehaviour):
         shared_state.round_sequence.reset_state(
             restart_from_round=recovery_params.reset_from_round,
             round_count=recovery_params.round_count,
-            reset_index=recovery_params.reset_index,
             serialized_db_state=recovery_params.serialized_db_state,
         )
 
         for _ in range(self._max_reset_retry):
             reset_successfully = yield from self.reset_tendermint_with_wait(
-                is_recovery=True
+                on_startup=True,
+                is_recovery=True,
             )
             if reset_successfully:
                 self.context.logger.info(
@@ -2147,12 +2126,14 @@ class TmManager(BaseBehaviour):
                 # doesn't guarantee us this, since the block stall deadline is greater than the
                 # hard_reset_sleep, 60s vs 20s. In other words, we haven't received a block for at
                 # least 60s, so wait_from_last_timestamp() will return immediately.
+                # By setting "on_startup" to True in the reset_tendermint_with_wait() call above,
+                # wait_from_last_timestamp() will not be called at all.
                 yield from self.sleep(self.hard_reset_sleep)
                 return
 
         self.context.logger.info("Failed to reset tendermint.")
 
-    def _get_reset_params(self, default: bool) -> Optional[List[Tuple[str, str]]]:
+    def _get_reset_params(self, default: bool) -> Optional[Dict[str, str]]:
         """
         Get the parameters for a hard reset request when trying to recover agent <-> tendermint communication.
 

@@ -234,12 +234,6 @@ def test_abstract_round_instantiation_without_attributes_raises_error() -> None:
         class MyRoundBehaviourB(AbstractRound):
             synchronized_data_class = MagicMock()
 
-    with pytest.raises(AbstractRoundInternalError):
-
-        class MyRoundBehaviourC(AbstractRound):
-            synchronized_data_class = MagicMock()
-            payload_class = MagicMock()
-
 
 class TestTransactions:
     """Test Transactions class."""
@@ -592,6 +586,13 @@ class TestAbciAppDB:
                 "by updating an item passed via the `__init__`!"
             )
 
+    @pytest.mark.parametrize("data", {0: [{"test": 2}]})
+    def test_reset_index(self, data: Dict) -> None:
+        """Test `reset_index`."""
+        assert self.db.reset_index == 0
+        self.db.sync(self.db.serialize())
+        assert self.db.reset_index == 0
+
     def test_round_count_setter(self) -> None:
         """Tests the round count setter."""
         expected_value = 1
@@ -917,10 +918,8 @@ class TestAbciAppDB:
         """Test `serialize` method."""
         assert self.db.serialize() == '{"0": {"participants": [["a", "b"]]}}'
 
-    @pytest.mark.parametrize(
-        "data", (0, "test_syncing", {"test": "syncing"}, list(range(9)))
-    )
-    def test_sync(self, data: Any) -> None:
+    @pytest.mark.parametrize("data", ({0: {"test": [0]}},))
+    def test_sync(self, data: Dict[int, Dict[str, List[Any]]]) -> None:
         """Test `sync` method."""
         try:
             serialized_data = json.dumps(data)
@@ -932,17 +931,25 @@ class TestAbciAppDB:
         self.db.sync(serialized_data)
         assert self.db._data == data
 
-    @mock.patch.object(
-        json,
-        "loads",
-        side_effect=json.JSONDecodeError(MagicMock(), MagicMock(), MagicMock()),
+    @pytest.mark.parametrize(
+        "serialized_data, match",
+        (
+            (b"", "Could not decode data using "),
+            (
+                json.dumps({"invalid_index": {}}),
+                "An invalid index was found while trying to sync the db using data: ",
+            ),
+            (
+                json.dumps("invalid"),
+                "Could not decode db data with an invalid format: ",
+            ),
+        ),
     )
-    def test_sync_incorrect_data(self, _: mock._patch) -> None:
-        """Test `sync` method."""
-        serialized_data = "incorrectly serialized"
+    def test_sync_incorrect_data(self, serialized_data: Any, match: str) -> None:
+        """Test `sync` method with incorrect data."""
         with pytest.raises(
             ABCIAppInternalError,
-            match=f"Could not decode data using {serialized_data}: ",
+            match=match,
         ):
             self.db.sync(serialized_data)
 
@@ -1524,13 +1531,6 @@ class TestAbciApp:
 
         CopyOfAbciApp._is_abstract = flag
         assert CopyOfAbciApp.is_abstract() is flag
-
-    @given(integers())
-    def test_reset_index(self, reset_index: int) -> None:
-        """Test `reset_index` getter and setter."""
-
-        self.abci_app.reset_index = reset_index
-        assert self.abci_app.reset_index == self.abci_app._reset_index == reset_index
 
     def test_initial_round_cls_not_set(self) -> None:
         """Test when 'initial_round_cls' is not set."""
@@ -2285,7 +2285,7 @@ class TestRoundSequence:
         serialized_db_state: str,
     ) -> None:
         """Tests reset_state"""
-        round_count, reset_index = 1, 1
+        round_count = 1
         with mock.patch.object(
             self.round_sequence,
             "_reset_to_default_params",
@@ -2294,7 +2294,7 @@ class TestRoundSequence:
             round_id = restart_from_round.auto_round_id()
             if restart_from_round in transition_fn:
                 self.round_sequence.reset_state(
-                    round_id, round_count, reset_index, serialized_db_state
+                    round_id, round_count, serialized_db_state
                 )
                 mock_reset.assert_called()
             else:
@@ -2311,7 +2311,6 @@ class TestRoundSequence:
                     self.round_sequence.reset_state(
                         restart_from_round.auto_round_id(),
                         round_count,
-                        reset_index,
                         serialized_db_state,
                     )
 
