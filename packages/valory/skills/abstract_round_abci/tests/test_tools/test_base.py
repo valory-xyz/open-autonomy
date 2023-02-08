@@ -57,9 +57,6 @@ class TestFSMBehaviourBaseCaseSetup(FSMBehaviourTestToolSetup):
 
     test_cls = FSMBehaviourBaseCase
 
-    @pytest.mark.skip(
-        "enable once base class is fixed: https://github.com/valory-xyz/open-aea/issues/492"
-    )
     @pytest.mark.parametrize("kwargs", [{}])
     def test_setup_fails_without_path(self, kwargs: Dict[str, Dict[str, Any]]) -> None:
         """Test setup"""
