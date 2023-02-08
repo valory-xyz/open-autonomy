@@ -51,5 +51,5 @@ Ensure that your machine satisfies the following requirements:
         If you have an already initialized local registry in a path other than `./packages`, you can indicate so using the flag `--registry-path` before a particular command. For example,
 
         ``` bash
-        autonomy --registry-path=../my_registry <command>
+        autonomy --registry-path=~/projects/my_packages <command>
         ```
