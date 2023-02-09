@@ -66,15 +66,9 @@ LEDGER_CONNECTION_SCHEMA = {
             "properties": {
                 "ledger_apis": {
                     "type": "object",
-                    "properties": {
-                        "ethereum": {
+                    "patternProperties": {
+                        "^(ethereum|fetchai|cosmos)$": {
                             "type": "object",
-                            "properties": {
-                                "address": {},
-                                "chain_id": {},
-                                "poa_chain": {},
-                                "default_gas_price_strategy": {},
-                            },
                             "required": [
                                 "address",
                                 "chain_id",
@@ -83,7 +77,8 @@ LEDGER_CONNECTION_SCHEMA = {
                             ],
                         },
                     },
-                    "required": ["ethereum"],
+                    "additionalProperties": False,
+                    "minProperties": 1,
                 }
             },
             "required": ["ledger_apis"],
@@ -116,6 +111,7 @@ ABCI_SKILL_SCHEMA = {
                                 "setup",
                                 "tendermint_url",
                                 "tendermint_com_url",
+                                "tendermint_p2p_url",
                                 "service_registry_address",
                                 "share_tm_config_on_startup",
                                 "on_chain_service_id",
@@ -134,6 +130,9 @@ ABCI_SKILL_SCHEMA = {
     },
     "required": ["models"],
 }
+
+ABCI = "abci"
+LEDGER = "ledger"
 
 ABCI_CONNECTION_VALIDATOR = Draft4Validator(schema=ABCI_CONNECTION_SCHEMA)
 LEDGER_CONNECTION_VALIDATOR = Draft4Validator(schema=LEDGER_CONNECTION_SCHEMA)
@@ -237,7 +236,10 @@ class ServiceAnalyser:
     ) -> None:
         """Validate override"""
 
-        if component_id.component_type == ComponentType.SKILL:
+        if (
+            component_id.component_type == ComponentType.SKILL
+            and ABCI in component_id.name
+        ):
             cls._validate_override(
                 validator=ABCI_SKILL_VALIDATOR,
                 overrides=override,
@@ -246,7 +248,7 @@ class ServiceAnalyser:
             )
         if (
             component_id.component_type == ComponentType.CONNECTION
-            and component_id.name == "abci"
+            and component_id.name == ABCI
         ):
             cls._validate_override(
                 validator=ABCI_CONNECTION_VALIDATOR,
@@ -256,7 +258,7 @@ class ServiceAnalyser:
             )
         if (
             component_id.component_type == ComponentType.CONNECTION
-            and component_id.name == "ledger"
+            and component_id.name == LEDGER
         ):
             cls._validate_override(
                 validator=LEDGER_CONNECTION_VALIDATOR,

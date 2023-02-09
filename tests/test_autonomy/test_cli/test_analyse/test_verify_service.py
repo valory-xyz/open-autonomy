@@ -65,7 +65,7 @@ def get_dummy_service_config() -> Dict:
 def get_dummy_overrides_skill() -> Dict:
     """Returns dummy skill overrides."""
     return {
-        "public_id": "valory/dummy_skill:0.1.0",
+        "public_id": "valory/abci_skill:0.1.0",
         "type": "skill",
         "models": {
             "params": {
@@ -79,6 +79,7 @@ def get_dummy_overrides_skill() -> Dict:
                     },
                     "tendermint_url": "tendermint_url",
                     "tendermint_com_url": "tendermint_com_url",
+                    "tendermint_p2p_url": "tendermint_p2p_url",
                     "service_registry_address": "service_registry_address",
                     "share_tm_config_on_startup": "share_tm_config_on_startup",
                     "on_chain_service_id": "on_chain_service_id",
@@ -296,7 +297,48 @@ class TestCheckRequiredOverrides(BaseAnalyseServiceTest):
             in result.stderr
         )
 
-    def test_ledger_connection_setup_param_not_defined(self) -> None:
+    def test_ledger_connection_ledger_not_defined(self) -> None:
+        """Test successful run."""
+
+        connection_config = get_dummy_overrides_ledger_connection()
+        del connection_config["config"]["ledger_apis"]["ethereum"]
+
+        with self.patch_service_loader(
+            data=[get_dummy_service_config(), connection_config]
+        ), self.patch_ipfs_tool([]), self.patch_agent_loader(
+            data=[get_dummy_agent_config()]
+        ):
+            result = self.run_cli(commands=(str(self.t),))
+
+        assert result.exit_code == 1, result.stdout
+        assert (
+            "Error: Ledger connection validation failed; {} does not have enough properties"
+            in result.stderr
+        )
+
+    def test_ledger_connection_unknown_ledger_defined(self) -> None:
+        """Test successful run."""
+
+        connection_config = get_dummy_overrides_ledger_connection()
+        connection_config["config"]["ledger_apis"]["ethereum_1"] = connection_config[
+            "config"
+        ]["ledger_apis"].pop("ethereum")
+
+        with self.patch_service_loader(
+            data=[get_dummy_service_config(), connection_config]
+        ), self.patch_ipfs_tool([]), self.patch_agent_loader(
+            data=[get_dummy_agent_config()]
+        ):
+            result = self.run_cli(commands=(str(self.t),))
+
+        assert result.exit_code == 1, result.stdout
+        assert (
+            "Error: Ledger connection validation failed; "
+            "'ethereum_1' does not match any of the regexes: '^(ethereum|fetchai|cosmos)$'"
+            in result.stderr
+        )
+
+    def test_ledger_connection_param_not_defined(self) -> None:
         """Test successful run."""
 
         connection_config = get_dummy_overrides_ledger_connection()
