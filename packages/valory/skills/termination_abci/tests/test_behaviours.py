@@ -20,6 +20,7 @@
 """This package contains round behaviours of Background Behaviours."""
 
 import logging
+import platform
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Type
@@ -567,7 +568,11 @@ class TestBackgroundBehaviour(BaseTerminationTest):
 
             log_found = False
             for log_args in mock_logger.call_args_list:
-                actual_log_level, actual_log = log_args.args[:2]
+                if platform.python_version().startswith("3.7"):
+                    actual_log_level, actual_log = log_args[0][:2]
+                else:
+                    actual_log_level, actual_log = log_args.args[:2]
+
                 if actual_log.startswith(test_case.expected_log):
                     assert actual_log_level == test_case.expected_log_level, (
                         f"{test_case.expected_log} was expected to log on {test_case.expected_log_level} log level, "
