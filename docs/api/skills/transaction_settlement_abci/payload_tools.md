@@ -43,7 +43,8 @@ Initialize the exception.
 #### tx`_`hist`_`payload`_`to`_`hex
 
 ```python
-def tx_hist_payload_to_hex(verification: VerificationStatus, tx_hash: Optional[str] = None) -> str
+def tx_hist_payload_to_hex(verification: VerificationStatus,
+                           tx_hash: Optional[str] = None) -> str
 ```
 
 Serialise history payload to a hex string.
@@ -53,7 +54,8 @@ Serialise history payload to a hex string.
 #### tx`_`hist`_`hex`_`to`_`payload
 
 ```python
-def tx_hist_hex_to_payload(payload: str) -> Tuple[VerificationStatus, Optional[str]]
+def tx_hist_hex_to_payload(
+        payload: str) -> Tuple[VerificationStatus, Optional[str]]
 ```
 
 Decode history payload.
@@ -63,7 +65,16 @@ Decode history payload.
 #### hash`_`payload`_`to`_`hex
 
 ```python
-def hash_payload_to_hex(safe_tx_hash: str, ether_value: int, safe_tx_gas: int, to_address: str, data: bytes, operation: int = SafeOperation.CALL.value, base_gas: int = 0, safe_gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS) -> str
+def hash_payload_to_hex(safe_tx_hash: str,
+                        ether_value: int,
+                        safe_tx_gas: int,
+                        to_address: str,
+                        data: bytes,
+                        operation: int = SafeOperation.CALL.value,
+                        base_gas: int = 0,
+                        safe_gas_price: int = 0,
+                        gas_token: str = NULL_ADDRESS,
+                        refund_receiver: str = NULL_ADDRESS) -> str
 ```
 
 Serialise to a hex string.

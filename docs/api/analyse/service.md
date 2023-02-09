@@ -40,7 +40,8 @@ Initialise object.
 
 ```python
 @staticmethod
-def check_on_chain_state(ledger_api: LedgerApi, chain_type: ChainType, token_id: int) -> None
+def check_on_chain_state(ledger_api: LedgerApi, chain_type: ChainType,
+                         token_id: int) -> None
 ```
 
 Check on-chain state of a service.
@@ -60,7 +61,8 @@ Check if the agent package is published or not
 #### check`_`agent`_`dependencies`_`published
 
 ```python
-def check_agent_dependencies_published(agent_config: AgentConfig, ipfs_pins: Set[str]) -> None
+def check_agent_dependencies_published(agent_config: AgentConfig,
+                                       ipfs_pins: Set[str]) -> None
 ```
 
 Check if the agent package is published or not

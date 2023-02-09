@@ -56,7 +56,9 @@ Update dependencies.
 #### check`_`dependencies
 
 ```python
-def check_dependencies(configuration: PackageConfiguration) -> List[Tuple[PackageId, DepedencyMismatchErrors]]
+def check_dependencies(
+    configuration: PackageConfiguration
+) -> List[Tuple[PackageId, DepedencyMismatchErrors]]
 ```
 
 Update dependencies.
@@ -66,7 +68,7 @@ Update dependencies.
 ## PackageManagerV0 Objects
 
 ```python
-class PackageManagerV0(BasePackageManagerV0,  _PackageManagerWithServicePatch)
+class PackageManagerV0(BasePackageManagerV0, _PackageManagerWithServicePatch)
 ```
 
 Patch package manager for service component.
@@ -76,7 +78,7 @@ Patch package manager for service component.
 ## PackageManagerV1 Objects
 
 ```python
-class PackageManagerV1(BasePackageManagerV1,  _PackageManagerWithServicePatch)
+class PackageManagerV1(BasePackageManagerV1, _PackageManagerWithServicePatch)
 ```
 
 Patch package manager for service component.

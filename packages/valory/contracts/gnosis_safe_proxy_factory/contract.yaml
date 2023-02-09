@@ -11,7 +11,7 @@ fingerprint:
   build/ProxyFactory_V1_3_0.json: bafybeibmhgw6us3nzg5d4vb3krg3udxgnux66vuz26pjcigdjc7zn5jrxm
   contract.py: bafybeih7756f2ba6m2w5w4zhxck2bowngudbhfj5ylppxyidzmsojpsk3q
   tests/__init__.py: bafybeied5o76k2pgmpqlofnfo2mhoncecnigkm24t26qrnhhqzvtg3g3b4
-  tests/test_contract.py: bafybeibmdn6psioky2jbzrxxblxlbybcpikilhxr7f4knk2trms3abogle
+  tests/test_contract.py: bafybeidgcxvkl4xjg5dbjzl3o6ffoylkdewrpni6lxm3624qrebbwmqeay
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: GnosisSafeProxyFactoryContract

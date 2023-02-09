@@ -19,7 +19,9 @@ Spawn a local Ethereum network with deployed Gnosis Safe and Uniswap contracts, 
 #### `__`init`__`
 
 ```python
-def __init__(client: docker.DockerClient, addr: str = DEFAULT_HARDHAT_ADDR, port: int = DEFAULT_HARDHAT_PORT)
+def __init__(client: docker.DockerClient,
+             addr: str = DEFAULT_HARDHAT_ADDR,
+             port: int = DEFAULT_HARDHAT_PORT)
 ```
 
 Initialize.

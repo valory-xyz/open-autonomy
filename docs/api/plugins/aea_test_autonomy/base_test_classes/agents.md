@@ -27,7 +27,7 @@ n_periods: is the number of periods this event should appear for the check to be
 @pytest.mark.e2e
 
 @pytest.mark.integration
-class BaseTestEnd2End(AEATestCaseMany,  UseFlaskTendermintNode,  UseLocalIpfs)
+class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs)
 ```
 
 Base class for end-to-end tests of agents with a skill extending the abstract_abci_round skill.
@@ -55,7 +55,11 @@ Setup class
 
 ```python
 @classmethod
-def set_config(cls, dotted_path: str, value: Any, type_: Optional[str] = None, aev: bool = True) -> Result
+def set_config(cls,
+               dotted_path: str,
+               value: Any,
+               type_: Optional[str] = None,
+               aev: bool = True) -> Result
 ```
 
 Set config value.
@@ -86,7 +90,12 @@ Prepare and launch the agents.
 
 ```python
 @classmethod
-def missing_from_output(cls, happy_path: Tuple[RoundChecks, ...] = (), strict_check_strings: Tuple[str, ...] = (), period: int = 1, is_terminating: bool = True, **kwargs: Any, ,) -> Tuple[List[str], List[str]]
+def missing_from_output(cls,
+                        happy_path: Tuple[RoundChecks, ...] = (),
+                        strict_check_strings: Tuple[str, ...] = (),
+                        period: int = 1,
+                        is_terminating: bool = True,
+                        **kwargs: Any) -> Tuple[List[str], List[str]]
 ```
 
 Check if strings are present in process output.

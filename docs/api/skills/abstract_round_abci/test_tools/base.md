@@ -9,7 +9,7 @@ Tests for valory/abstract_round_abci skill's behaviours.
 ## FSMBehaviourBaseCase Objects
 
 ```python
-class FSMBehaviourBaseCase(BaseSkillTestCase,  ABC)
+class FSMBehaviourBaseCase(BaseSkillTestCase, ABC)
 ```
 
 Base case for testing FSMBehaviour classes.
@@ -46,7 +46,9 @@ Called each time before a test method is called.
 #### fast`_`forward`_`to`_`behaviour
 
 ```python
-def fast_forward_to_behaviour(behaviour: AbstractRoundBehaviour, behaviour_id: str, synchronized_data: BaseSynchronizedData) -> None
+def fast_forward_to_behaviour(behaviour: AbstractRoundBehaviour,
+                              behaviour_id: str,
+                              synchronized_data: BaseSynchronizedData) -> None
 ```
 
 Fast forward the FSM to a behaviour.
@@ -56,7 +58,8 @@ Fast forward the FSM to a behaviour.
 #### mock`_`ledger`_`api`_`request
 
 ```python
-def mock_ledger_api_request(request_kwargs: Dict, response_kwargs: Dict) -> None
+def mock_ledger_api_request(request_kwargs: Dict,
+                            response_kwargs: Dict) -> None
 ```
 
 Mock http request.
@@ -71,7 +74,8 @@ Mock http request.
 #### mock`_`contract`_`api`_`request
 
 ```python
-def mock_contract_api_request(contract_id: str, request_kwargs: Dict, response_kwargs: Dict) -> None
+def mock_contract_api_request(contract_id: str, request_kwargs: Dict,
+                              response_kwargs: Dict) -> None
 ```
 
 Mock http request.

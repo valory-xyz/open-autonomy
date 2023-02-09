@@ -19,7 +19,10 @@ Image build profiles.
 #### build`_`image
 
 ```python
-def build_image(agent: PublicId, pull: bool = False, dev: bool = False, version: Optional[str] = None) -> None
+def build_image(agent: PublicId,
+                pull: bool = False,
+                dev: bool = False,
+                version: Optional[str] = None) -> None
 ```
 
 Command to build images from for skaffold deployment.

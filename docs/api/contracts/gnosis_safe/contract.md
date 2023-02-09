@@ -40,7 +40,8 @@ The Gnosis Safe contract.
 
 ```python
 @classmethod
-def get_raw_transaction(cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any) -> Optional[JSONLike]
+def get_raw_transaction(cls, ledger_api: LedgerApi, contract_address: str,
+                        **kwargs: Any) -> Optional[JSONLike]
 ```
 
 Get the Safe transaction.
@@ -51,7 +52,8 @@ Get the Safe transaction.
 
 ```python
 @classmethod
-def get_raw_message(cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any) -> Optional[bytes]
+def get_raw_message(cls, ledger_api: LedgerApi, contract_address: str,
+                    **kwargs: Any) -> Optional[bytes]
 ```
 
 Get raw message.
@@ -62,7 +64,8 @@ Get raw message.
 
 ```python
 @classmethod
-def get_state(cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any) -> Optional[JSONLike]
+def get_state(cls, ledger_api: LedgerApi, contract_address: str,
+              **kwargs: Any) -> Optional[JSONLike]
 ```
 
 Get state.
@@ -73,7 +76,8 @@ Get state.
 
 ```python
 @classmethod
-def get_deploy_transaction(cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any) -> Optional[JSONLike]
+def get_deploy_transaction(cls, ledger_api: LedgerApi, deployer_address: str,
+                           **kwargs: Any) -> Optional[JSONLike]
 ```
 
 Get deploy transaction.
@@ -94,7 +98,21 @@ an optional JSON-like object.
 
 ```python
 @classmethod
-def get_raw_safe_transaction_hash(cls, ledger_api: EthereumApi, contract_address: str, to_address: str, value: int, data: bytes, operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, safe_nonce: Optional[int] = None, safe_version: Optional[str] = None, chain_id: Optional[int] = None) -> JSONLike
+def get_raw_safe_transaction_hash(cls,
+                                  ledger_api: EthereumApi,
+                                  contract_address: str,
+                                  to_address: str,
+                                  value: int,
+                                  data: bytes,
+                                  operation: int = SafeOperation.CALL.value,
+                                  safe_tx_gas: int = 0,
+                                  base_gas: int = 0,
+                                  gas_price: int = 0,
+                                  gas_token: str = NULL_ADDRESS,
+                                  refund_receiver: str = NULL_ADDRESS,
+                                  safe_nonce: Optional[int] = None,
+                                  safe_version: Optional[str] = None,
+                                  chain_id: Optional[int] = None) -> JSONLike
 ```
 
 Get the hash of the raw Safe transaction.
@@ -105,7 +123,6 @@ Note, because safe_nonce is included in the tx_hash the agents implicitly agree 
 
 **Arguments**:
 
-    (e.g. base transaction fee, signature check, payment of the refund)
 - `ledger_api`: the ledger API object
 - `contract_address`: the contract address
 - `to_address`: the tx recipient address
@@ -114,6 +131,7 @@ Note, because safe_nonce is included in the tx_hash the agents implicitly agree 
 - `operation`: Operation type of Safe transaction
 - `safe_tx_gas`: Gas that should be used for the Safe transaction
 - `base_gas`: Gas costs for that are independent of the transaction execution
+(e.g. base transaction fee, signature check, payment of the refund)
 - `gas_price`: Gas price that should be used for the payment calculation
 - `gas_token`: Token address (or `0x000..000` if ETH) that is used for the payment
 - `refund_receiver`: Address of receiver of gas payment (or `0x000..000`  if tx.origin).
@@ -131,14 +149,33 @@ the hash of the raw Safe transaction
 
 ```python
 @classmethod
-def get_raw_safe_transaction(cls, ledger_api: EthereumApi, contract_address: str, sender_address: str, owners: Tuple[str], to_address: str, value: int, data: bytes, signatures_by_owner: Dict[str, str], operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, safe_gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, gas_price: Optional[int] = None, nonce: Optional[Nonce] = None, max_fee_per_gas: Optional[int] = None, max_priority_fee_per_gas: Optional[int] = None, old_price: Optional[Dict[str, Wei]] = None, fallback_gas: int = 0) -> JSONLike
+def get_raw_safe_transaction(cls,
+                             ledger_api: EthereumApi,
+                             contract_address: str,
+                             sender_address: str,
+                             owners: Tuple[str],
+                             to_address: str,
+                             value: int,
+                             data: bytes,
+                             signatures_by_owner: Dict[str, str],
+                             operation: int = SafeOperation.CALL.value,
+                             safe_tx_gas: int = 0,
+                             base_gas: int = 0,
+                             safe_gas_price: int = 0,
+                             gas_token: str = NULL_ADDRESS,
+                             refund_receiver: str = NULL_ADDRESS,
+                             gas_price: Optional[int] = None,
+                             nonce: Optional[Nonce] = None,
+                             max_fee_per_gas: Optional[int] = None,
+                             max_priority_fee_per_gas: Optional[int] = None,
+                             old_price: Optional[Dict[str, Wei]] = None,
+                             fallback_gas: int = 0) -> JSONLike
 ```
 
 Get the raw Safe transaction
 
 **Arguments**:
 
-    (e.g. base transaction fee, signature check, payment of the refund)
 - `ledger_api`: the ledger API object
 - `contract_address`: the contract address
 - `sender_address`: the address of the sender
@@ -150,6 +187,7 @@ Get the raw Safe transaction
 - `operation`: Operation type of Safe transaction
 - `safe_tx_gas`: Gas that should be used for the Safe transaction
 - `base_gas`: Gas costs for that are independent of the transaction execution
+(e.g. base transaction fee, signature check, payment of the refund)
 - `safe_gas_price`: Gas price that should be used for the payment calculation
 - `gas_token`: Token address (or `0x000..000` if ETH) that is used for the payment
 - `refund_receiver`: Address of receiver of gas payment (or `0x000..000`  if tx.origin).
@@ -170,7 +208,8 @@ the raw Safe transaction
 
 ```python
 @classmethod
-def verify_contract(cls, ledger_api: LedgerApi, contract_address: str) -> JSONLike
+def verify_contract(cls, ledger_api: LedgerApi,
+                    contract_address: str) -> JSONLike
 ```
 
 Verify the contract's bytecode
@@ -190,7 +229,22 @@ the verified status
 
 ```python
 @classmethod
-def verify_tx(cls, ledger_api: EthereumApi, contract_address: str, tx_hash: str, owners: Tuple[str], to_address: str, value: int, data: bytes, signatures_by_owner: Dict[str, str], operation: int = SafeOperation.CALL.value, safe_tx_gas: int = 0, base_gas: int = 0, gas_price: int = 0, gas_token: str = NULL_ADDRESS, refund_receiver: str = NULL_ADDRESS, safe_version: Optional[str] = None) -> JSONLike
+def verify_tx(cls,
+              ledger_api: EthereumApi,
+              contract_address: str,
+              tx_hash: str,
+              owners: Tuple[str],
+              to_address: str,
+              value: int,
+              data: bytes,
+              signatures_by_owner: Dict[str, str],
+              operation: int = SafeOperation.CALL.value,
+              safe_tx_gas: int = 0,
+              base_gas: int = 0,
+              gas_price: int = 0,
+              gas_token: str = NULL_ADDRESS,
+              refund_receiver: str = NULL_ADDRESS,
+              safe_version: Optional[str] = None) -> JSONLike
 ```
 
 Verify a tx hash exists on the blockchain.
@@ -199,7 +253,6 @@ Currently, the implementation is an overkill as most of the verification is impl
 
 **Arguments**:
 
-    (e.g. base transaction fee, signature check, payment of the refund)
 - `ledger_api`: the ledger API object
 - `contract_address`: the contract address
 - `tx_hash`: the transaction hash
@@ -211,6 +264,7 @@ Currently, the implementation is an overkill as most of the verification is impl
 - `operation`: Operation type of Safe transaction
 - `safe_tx_gas`: Gas that should be used for the Safe transaction
 - `base_gas`: Gas costs for that are independent of the transaction execution
+(e.g. base transaction fee, signature check, payment of the refund)
 - `gas_price`: Gas price that should be used for the payment calculation
 - `gas_token`: Token address (or `0x000..000` if ETH) that is used for the payment
 - `refund_receiver`: Address of receiver of gas payment (or `0x000..000`  if tx.origin).
@@ -226,13 +280,13 @@ the verified status
 
 ```python
 @classmethod
-def revert_reason(cls, ledger_api: EthereumApi, contract_address: str, tx: TxData) -> JSONLike
+def revert_reason(cls, ledger_api: EthereumApi, contract_address: str,
+                  tx: TxData) -> JSONLike
 ```
 
 Check the revert reason of a transaction.
 
 **Arguments**:
-
 
 - `ledger_api`: the ledger API object.
 - `contract_address`: the contract address
@@ -248,7 +302,8 @@ the revert reason message.
 
 ```python
 @classmethod
-def get_safe_nonce(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike
+def get_safe_nonce(cls, ledger_api: EthereumApi,
+                   contract_address: str) -> JSONLike
 ```
 
 Retrieve the safe's nonce
@@ -268,7 +323,11 @@ the safe nonce
 
 ```python
 @classmethod
-def get_ingoing_transfers(cls, ledger_api: EthereumApi, contract_address: str, from_block: Optional[str] = None, to_block: Optional[str] = "latest") -> JSONLike
+def get_ingoing_transfers(cls,
+                          ledger_api: EthereumApi,
+                          contract_address: str,
+                          from_block: Optional[str] = None,
+                          to_block: Optional[str] = "latest") -> JSONLike
 ```
 
 A list of transfers into the contract.
@@ -290,7 +349,8 @@ list of transfers
 
 ```python
 @classmethod
-def get_balance(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike
+def get_balance(cls, ledger_api: EthereumApi,
+                contract_address: str) -> JSONLike
 ```
 
 Retrieve the safe's balance
@@ -310,7 +370,8 @@ the safe balance (in wei)
 
 ```python
 @classmethod
-def get_amount_spent(cls, ledger_api: EthereumApi, contract_address: str, tx_hash: str) -> JSONLike
+def get_amount_spent(cls, ledger_api: EthereumApi, contract_address: str,
+                     tx_hash: str) -> JSONLike
 ```
 
 Get the amount of ether spent in a tx.
@@ -331,7 +392,11 @@ the safe balance (in wei)
 
 ```python
 @classmethod
-def get_safe_txs(cls, ledger_api: EthereumApi, contract_address: str, from_block: BlockIdentifier = "earliest", to_block: BlockIdentifier = "latest") -> JSONLike
+def get_safe_txs(cls,
+                 ledger_api: EthereumApi,
+                 contract_address: str,
+                 from_block: BlockIdentifier = "earliest",
+                 to_block: BlockIdentifier = "latest") -> JSONLike
 ```
 
 Get all the safe tx hashes.
@@ -342,10 +407,7 @@ Get all the safe tx hashes.
 - `contract_address`: the contract address (not used)
 - `from_block`: from which block to search for events
 - `to_block`: to which block to search for events
-
-**Returns**:
-
-the safe txs
+:return: the safe txs
 
 <a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_removed_owner_events"></a>
 
@@ -353,7 +415,12 @@ the safe txs
 
 ```python
 @classmethod
-def get_removed_owner_events(cls, ledger_api: EthereumApi, contract_address: str, removed_owner: Optional[str] = None, from_block: BlockIdentifier = "earliest", to_block: BlockIdentifier = "latest") -> JSONLike
+def get_removed_owner_events(cls,
+                             ledger_api: EthereumApi,
+                             contract_address: str,
+                             removed_owner: Optional[str] = None,
+                             from_block: BlockIdentifier = "earliest",
+                             to_block: BlockIdentifier = "latest") -> JSONLike
 ```
 
 Get all RemovedOwner events for a safe contract.
@@ -376,7 +443,12 @@ the added owner events
 
 ```python
 @classmethod
-def get_zero_transfer_events(cls, ledger_api: EthereumApi, contract_address: str, sender_address: str, from_block: BlockIdentifier = "earliest", to_block: BlockIdentifier = "latest") -> JSONLike
+def get_zero_transfer_events(cls,
+                             ledger_api: EthereumApi,
+                             contract_address: str,
+                             sender_address: str,
+                             from_block: BlockIdentifier = "earliest",
+                             to_block: BlockIdentifier = "latest") -> JSONLike
 ```
 
 Get all zero transfer events from a given sender to the safe address.
@@ -388,10 +460,7 @@ Get all zero transfer events from a given sender to the safe address.
 - `sender_address`: the owner of the service, ie the address that triggers termination
 - `from_block`: from which block to search for events
 - `to_block`: to which block to search for events
-
-**Returns**:
-
-the zero transfer events
+:return: the zero transfer events
 
 <a id="packages.valory.contracts.gnosis_safe.contract.GnosisSafeContract.get_remove_owner_data"></a>
 
@@ -399,7 +468,8 @@ the zero transfer events
 
 ```python
 @classmethod
-def get_remove_owner_data(cls, ledger_api: EthereumApi, contract_address: str, owner: str, threshold: int) -> JSONLike
+def get_remove_owner_data(cls, ledger_api: EthereumApi, contract_address: str,
+                          owner: str, threshold: int) -> JSONLike
 ```
 
 Get a removeOwner() encoded tx.
@@ -424,7 +494,8 @@ the zero transfer events
 
 ```python
 @classmethod
-def get_swap_owner_data(cls, ledger_api: EthereumApi, contract_address: str, old_owner: str, new_owner: str) -> JSONLike
+def get_swap_owner_data(cls, ledger_api: EthereumApi, contract_address: str,
+                        old_owner: str, new_owner: str) -> JSONLike
 ```
 
 Get a swapOwner() encoded tx.
@@ -449,7 +520,8 @@ the zero transfer events
 
 ```python
 @classmethod
-def get_owners(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike
+def get_owners(cls, ledger_api: EthereumApi,
+               contract_address: str) -> JSONLike
 ```
 
 Get the safe owners.

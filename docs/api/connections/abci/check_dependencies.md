@@ -57,7 +57,8 @@ the string representation.
 #### print`_`ok`_`message
 
 ```python
-def print_ok_message(binary_name: str, actual_version: VERSION, version_lower_bound: VERSION) -> None
+def print_ok_message(binary_name: str, actual_version: VERSION,
+                     version_lower_bound: VERSION) -> None
 ```
 
 Print OK message.
@@ -73,7 +74,11 @@ Print OK message.
 #### check`_`binary
 
 ```python
-def check_binary(binary_name: str, args: List[str], version_regex: Pattern, version_lower_bound: VERSION, only_warning: bool = False) -> None
+def check_binary(binary_name: str,
+                 args: List[str],
+                 version_regex: Pattern,
+                 version_lower_bound: VERSION,
+                 only_warning: bool = False) -> None
 ```
 
 Check a binary is accessible from the terminal.

@@ -9,7 +9,8 @@ IPFS hash helpers.
 #### load`_`configuration
 
 ```python
-def load_configuration(package_type: PackageType, package_path: Path) -> PackageConfiguration
+def load_configuration(package_type: PackageType,
+                       package_path: Path) -> PackageConfiguration
 ```
 
 Load a configuration, knowing the type and the path to the package root.
@@ -28,9 +29,13 @@ the configuration object.
 #### update`_`hashes
 
 ```python
-def update_hashes(packages_dir: Path, no_wrap: bool = False, vendor: Optional[str] = None, config_loader: Callable[
-        [PackageType, Path], PackageConfiguration
-    ] = load_configuration) -> int
+def update_hashes(
+    packages_dir: Path,
+    no_wrap: bool = False,
+    vendor: Optional[str] = None,
+    config_loader: Callable[[PackageType, Path],
+                            PackageConfiguration] = load_configuration
+) -> int
 ```
 
 Process all AEA packages, update fingerprint, and update packages.json file.

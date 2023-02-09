@@ -9,7 +9,8 @@ Service component base.
 #### load`_`service`_`config
 
 ```python
-def load_service_config(service_path: Path, substitute_env_vars: bool = False) -> Service
+def load_service_config(service_path: Path,
+                        substitute_env_vars: bool = False) -> Service
 ```
 
 Load service config from the path.

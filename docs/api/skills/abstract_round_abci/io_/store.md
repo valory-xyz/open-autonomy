@@ -40,7 +40,8 @@ Initialize an abstract storer.
 
 ```python
 @abstractmethod
-def serialize_object(filename: str, obj: SupportedSingleObjectType, **kwargs: Any) -> Dict[str, str]
+def serialize_object(filename: str, obj: SupportedSingleObjectType,
+                     **kwargs: Any) -> Dict[str, str]
 ```
 
 Store a single file.
@@ -50,7 +51,8 @@ Store a single file.
 #### store
 
 ```python
-def store(obj: SupportedObjectType, multiple: bool, **kwargs: Any) -> Dict[str, str]
+def store(obj: SupportedObjectType, multiple: bool,
+          **kwargs: Any) -> Dict[str, str]
 ```
 
 Serialize one or multiple objects.
@@ -70,7 +72,8 @@ A JSON file storer.
 #### serialize`_`object
 
 ```python
-def serialize_object(filename: str, obj: NativelySupportedSingleObjectType, **kwargs: Any) -> Dict[str, str]
+def serialize_object(filename: str, obj: NativelySupportedSingleObjectType,
+                     **kwargs: Any) -> Dict[str, str]
 ```
 
 Serialize an object to JSON.
@@ -99,7 +102,8 @@ Class which serializes objects.
 #### `__`init`__`
 
 ```python
-def __init__(filetype: Optional[Any], custom_storer: Optional[CustomStorerType], path: str)
+def __init__(filetype: Optional[Any],
+             custom_storer: Optional[CustomStorerType], path: str)
 ```
 
 Initialize a `Storer`.
@@ -109,7 +113,8 @@ Initialize a `Storer`.
 #### serialize`_`object
 
 ```python
-def serialize_object(filename: str, obj: NativelySupportedObjectType, **kwargs: Any) -> Dict[str, str]
+def serialize_object(filename: str, obj: NativelySupportedObjectType,
+                     **kwargs: Any) -> Dict[str, str]
 ```
 
 Store a single object.
