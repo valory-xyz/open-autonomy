@@ -56,6 +56,10 @@ from autonomy.deploy.generators.docker_compose.templates import (
 # and 192.167.11.3 so we will start from 192.167.11.4 for abci and tendermint nodes
 N_RESERVED_IP_ADDRESSES = 4
 
+DEFAULT_PACKAGES_PATH = Path.cwd().absolute() / "packages"
+DEFAULT_OPEN_AEA_DIR: Path = Path.home().absolute() / "open-aea"
+DEFAULT_OPEN_AUTONOMY_DIR: Path = Path.home().absolute() / "open-autonomy"
+
 
 def build_tendermint_node_config(
     node_id: int,
@@ -86,9 +90,9 @@ def build_agent_config(  # pylint: disable=too-many-arguments
     agent_vars: Dict,
     runtime_image: str,
     dev_mode: bool = False,
-    package_dir: Path = Path.cwd().absolute() / "packages",
-    open_aea_dir: Path = Path.home().absolute() / "open-aea",
-    open_autonomy_dir: Path = Path.home().absolute() / "open-autonomy",
+    package_dir: Path = DEFAULT_PACKAGES_PATH,
+    open_aea_dir: Path = DEFAULT_OPEN_AEA_DIR,
+    open_autonomy_dir: Path = DEFAULT_OPEN_AUTONOMY_DIR,
 ) -> str:
     """Build agent config."""
 

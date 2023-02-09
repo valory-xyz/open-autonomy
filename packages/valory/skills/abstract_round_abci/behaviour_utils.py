@@ -287,7 +287,7 @@ class AsyncBehaviour(ABC):
         finally:
             self.__state = self.AsyncState.RUNNING
 
-    def setup(self) -> None:
+    def setup(self) -> None:  # noqa: B027  # flake8 suggest make it abstract
         """Setup behaviour."""
 
     def act(self) -> None:
