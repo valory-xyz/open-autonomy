@@ -543,7 +543,7 @@ class RetriesInfo(TypeCheckMixin):
     @property
     def suggested_sleep_time(self) -> float:
         """The suggested amount of time to sleep."""
-        return self.backoff_factor ** self.retries_attempted
+        return self.backoff_factor**self.retries_attempted
 
 
 @dataclass(frozen=True)

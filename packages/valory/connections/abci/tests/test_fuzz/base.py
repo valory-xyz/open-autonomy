@@ -150,13 +150,13 @@ class BaseFuzzyTests(AEATestCaseMany):
 
     @given(
         time_seconds=integers(0, INT_64_MAX_VALUE),
-        time_nanos=integers(0, 10 ** 9),
+        time_nanos=integers(0, 10**9),
         chain_id=text(),
         block_max_bytes=integers(1, INT_64_MAX_VALUE),
         block_max_gas=integers(-1, INT_32_MAX_VALUE),
         evidence_max_age_num_blocks=integers(INT_64_MIN_VALUE, INT_64_MAX_VALUE),
         evidence_max_age_seconds=integers(0, INT_64_MAX_VALUE),
-        evidence_max_age_nanos=integers(0, 10 ** 9),
+        evidence_max_age_nanos=integers(0, 10**9),
         evidence_max_bytes=integers(1, INT_64_MAX_VALUE),
         pub_key_types=lists(booleans()),
         app_version=integers(0, INT_32_MAX_VALUE),
@@ -219,7 +219,7 @@ class BaseFuzzyTests(AEATestCaseMany):
         chain_id=text(),
         height=integers(-INT_64_MAX_VALUE, INT_64_MAX_VALUE),
         time_seconds=integers(1, INT_64_MAX_VALUE),
-        time_nanos=integers(0, 10 ** 9),
+        time_nanos=integers(0, 10**9),
         last_block_id_hash=binary(),
         last_commit_hash=binary(),
         data_hash=binary(),
@@ -242,7 +242,7 @@ class BaseFuzzyTests(AEATestCaseMany):
         evidence_validator_power=lists(integers(INT_64_MIN_VALUE, INT_64_MAX_VALUE)),
         evidence_height=lists(integers(INT_64_MIN_VALUE, INT_64_MAX_VALUE)),
         evidence_time_seconds=lists(integers(1, INT_64_MAX_VALUE)),
-        evidence_time_nanos=lists(integers(0, 10 ** 9)),
+        evidence_time_nanos=lists(integers(0, 10**9)),
         evidence_total_voting_power=lists(integers(0, INT_64_MAX_VALUE)),
     )
     def test_begin_block(

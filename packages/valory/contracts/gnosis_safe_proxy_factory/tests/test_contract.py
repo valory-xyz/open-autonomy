@@ -34,8 +34,8 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
 PACKAGE_DIR = Path(__file__).parent.parent
 
 DEFAULT_GAS = 1000000
-DEFAULT_MAX_FEE_PER_GAS = 10 ** 10
-DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
+DEFAULT_MAX_FEE_PER_GAS = 10**10
+DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10**10
 SAFE_CONTRACT = "0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552"
 
 

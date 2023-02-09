@@ -61,8 +61,8 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.tests.test_contract imp
 PACKAGE_DIR = Path(__file__).parent.parent
 
 DEFAULT_GAS = 1000000
-DEFAULT_MAX_FEE_PER_GAS = 10 ** 15
-DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 15
+DEFAULT_MAX_FEE_PER_GAS = 10**15
+DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10**15
 EXPECTED_TX_KEYS = {
     "chainId",
     "data",
@@ -126,7 +126,7 @@ class BaseContractTest(BaseGanacheContractTest):
         """Get the nonce."""
         if cls.SALT_NONCE is not None:
             return cls.SALT_NONCE
-        return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
+        return secrets.SystemRandom().randint(0, 2**256 - 1)
 
 
 class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
@@ -179,7 +179,7 @@ class BaseContractTestHardHatSafeNet(BaseHardhatGnosisContractTest):
         """Get the nonce."""
         if cls.SALT_NONCE is not None:
             return cls.SALT_NONCE
-        return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
+        return secrets.SystemRandom().randint(0, 2**256 - 1)
 
     def _verify_safe_tx(
         self,
