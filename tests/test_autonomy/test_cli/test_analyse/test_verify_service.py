@@ -138,7 +138,7 @@ def get_dummy_agent_config() -> Dict:
         "contracts": [],
         "protocols": [],
         "skills": [
-            f"valory/dummy_skill:0.1.0:{DUMMY_SKILL_HASH}",
+            f"valory/abci_skill:0.1.0:{DUMMY_SKILL_HASH}",
         ],
         "default_ledger": "ethereum",
         "required_ledgers": ["ethereum"],
@@ -413,7 +413,7 @@ class TestVerifyOverrides(BaseAnalyseServiceTest):
         assert result.exit_code == 1, result.stdout
         assert (
             "Service config has an overrides which are not defined in the agent config; "
-            "packages with missing overrides={PackageId(skill, valory/dummy_skill:0.1.0)}"
+            "packages with missing overrides={PackageId(skill, valory/abci_skill:0.1.0)}"
             in result.stderr
         )
 
