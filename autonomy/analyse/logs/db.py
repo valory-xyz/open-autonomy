@@ -22,7 +22,7 @@
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Iterator, List, Optional
+from typing import Any, Iterator, List, Optional, Tuple
 
 from autonomy.analyse.logs.base import LogRow
 
@@ -33,6 +33,7 @@ MESSAGE = "message"
 PERIOD = "period"
 ROUND = "round_name"
 BEHAVIOUR = "behaviour_name"
+EXIT_EVENT = "exit_event"
 
 QUERY_CREATE_LOG_TABLE = (
     "CREATE TABLE {agent} "
@@ -106,6 +107,12 @@ class AgentLogsDB:
 
         query += ";"
         return self.cursor.execute(query, paramaters).fetchall()
+
+    def execution_path(self) -> List[Tuple[int, str, str]]:
+        """Extraction FSM execution path"""
+        return self.cursor.execute(
+            f"SELECT {PERIOD}, {ROUND}, MAX({EXIT_EVENT}) from aea_0 GROUP BY {ROUND};"
+        ).fetchall()
 
     @property
     def cursor(self) -> sqlite3.Cursor:

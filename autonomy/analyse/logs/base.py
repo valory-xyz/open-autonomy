@@ -45,5 +45,6 @@ NOISE_FILTER_REGEX = re.compile(
 )
 ENTER_BEHAVIOUR_REGEX = re.compile(r"Entered in the \'([a-z_]+)\' behaviour")
 ENTER_ROUND_REGEX = re.compile(r"Entered in the \'([a-z_]+)\' round for period (\d+)")
+EXIT_ROUND_REGEX = re.compile(r"'([a-z_]+)' round is done with event: (Event\.[A-Z_]+)")
 
 LogRow = Tuple[datetime, str, str, int, str, str]

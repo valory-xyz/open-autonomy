@@ -21,7 +21,7 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Union, cast
+from typing import Dict, List, Optional, Tuple, Union, cast
 
 import click
 from aea.components.base import load_aea_package
@@ -31,7 +31,13 @@ from aea.configurations.loader import load_configuration_object
 from aea.package_manager.v1 import PackageManagerV1
 
 from autonomy.analyse.dialogues import check_dialogues_in_a_skill_package
-from autonomy.analyse.logs.base import LOGS_DB, LogRow, TIME_FORMAT
+from autonomy.analyse.logs.base import (
+    ENTER_ROUND_REGEX,
+    EXIT_ROUND_REGEX,
+    LOGS_DB,
+    LogRow,
+    TIME_FORMAT,
+)
 from autonomy.analyse.logs.collection import FromDirectory, LogCollection
 from autonomy.analyse.logs.db import AgentLogsDB
 from autonomy.cli.utils.click_utils import sys_path_patch
@@ -155,27 +161,24 @@ class ParseLogs:
         self.results = results
         return self
 
-    @staticmethod
-    def _print_fsm(logs: List[LogRow]) -> None:
-        """Print FSM execution path"""
-        period = -1
-        behaviour_id = "agent_startup"
-        for _, _, _, _period, _, _behaviour_id in logs:
-            if _period != period:
-                period = _period
-                click.echo(f"|_ Period {period}")
-
-            if _behaviour_id != behaviour_id:
-                behaviour_id = _behaviour_id
-                click.echo(f"| |_ {behaviour_id}")
-
-    def fsm(self) -> None:
+    def execution_path(self) -> None:
         """Output FSM path"""
-
         for agent, logs in self.results.items():
-            click.echo(f"FSM path for {agent}")
-            self._print_fsm(logs=logs)
-            click.echo("|_ end\n")
+            period = -1
+            click.echo(f"Agent {agent}")
+            for _, _, message, _, _, _ in logs:
+                match = ENTER_ROUND_REGEX.match(message)
+                if match is not None:
+                    _, _period = cast(Tuple[str, int], match.groups())
+                    if _period != period:
+                        period = _period
+                        click.echo(f"|_ Period {period}")
+
+                match = EXIT_ROUND_REGEX.match(message)
+                if match is not None:
+                    round_name, exit_event = match.groups()
+                    click.echo(f"| |_ {round_name} | {exit_event}")
+            click.echo("|_ End\n")
 
     def table(self) -> None:
         """Print table."""

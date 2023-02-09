@@ -255,10 +255,9 @@ def _parse_logs(  # pylint: disable=too-many-arguments
     )
 
     if fsm_path:
-        selection.fsm()
-        return
+        return selection.execution_path()
 
-    selection.table()
+    return selection.table()
 
 
 @analyse_group.command(name="handlers")
