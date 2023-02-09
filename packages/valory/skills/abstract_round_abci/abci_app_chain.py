@@ -162,7 +162,7 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
             for path in get_paths(next_initial_state, next_app, new_previous_apps):
                 # if element not in path:
                 paths.append([element] + path)
-        return paths if paths != [] else default
+        return paths if paths else default
 
     all_paths: List[
         List[Tuple[AppState, Type[AbciApp], Optional[AppState]]]

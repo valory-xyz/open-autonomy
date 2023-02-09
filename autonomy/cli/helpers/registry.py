@@ -22,7 +22,7 @@
 import os
 import shutil
 import tempfile
-from distutils.dir_util import copy_tree
+from distutils.dir_util import copy_tree  # pylint: disable=deprecated-module
 from pathlib import Path
 from shutil import copytree
 from typing import cast

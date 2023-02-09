@@ -406,7 +406,7 @@ def check_dataclass(value: Any, ty: Type[Any]) -> Result:
     return None
 
 
-def check_typeddict(value: Any, ty: Type[Type[Any]]) -> Result:
+def check_typeddict(value: Any, ty: Type[Any]) -> Result:
     """Check typeddict type."""
     if not isinstance(value, dict):
         return AutonomyTypeError(ty, value)  # pragma: no cover
