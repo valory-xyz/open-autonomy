@@ -549,7 +549,10 @@ class TestBackgroundBehaviour(BaseTerminationTest):
     def test_run(self, test_case: BehaviourTestCase, caplog: LogCaptureFixture) -> None:
         """Test multiple paths of termination."""
         self.fast_forward(data=test_case.initial_data)
-        with caplog.at_level(test_case.expected_log_level):
+        with caplog.at_level(
+            test_case.expected_log_level,
+            "packages.valory.skills.termination_abci.behaviours.logging",
+        ):
             self.behaviour.act_wrapper()
 
             # apply the OK mocks first
