@@ -25,7 +25,7 @@ import os
 import tempfile
 from abc import ABC
 from math import ceil
-from typing import Any, Dict, cast
+from typing import Any, Dict, Union, cast
 
 from aea.crypto.base import Crypto
 from aea.crypto.registries import make_crypto, make_ledger_api
@@ -263,6 +263,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
                 "maxFeePerGas": DUMMY_MAX_FEE_PER_GAS,
             }, "The used parameters do not match the ones returned from the gas pricing method!"
 
+        update_params: Dict[str, Union[int, str, Dict[str, int]]]
         if not simulate_timeout:
             hashes = self.tx_settlement_synchronized_data.tx_hashes_history
             hashes.append(tx_digest)

@@ -331,14 +331,18 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
                 happy_path
             )
             # Create dictionary to keep track of how many times this string has appeared so far.
-            check_strings_to_n_appearances = dict.fromkeys(check_strings_to_n_periods)
+            check_strings_to_n_appearances = dict.fromkeys(
+                check_strings_to_n_periods, 0
+            )
             end_time = time.time() + kwargs["timeout"]
             # iterate while the check strings are still present in the dictionary,
             # i.e. have not appeared for the required amount of times.
             while bool(check_strings_to_n_periods) and time.time() < end_time:
                 for line in check_strings_to_n_periods.copy().keys():
                     # count the number of times the line has appeared so far.
-                    n_times_appeared = cls.stdout[kwargs["process"].pid].count(line)
+                    n_times_appeared: int = cls.stdout[kwargs["process"].pid].count(
+                        line
+                    )
                     # track the number times the line has appeared so far.
                     check_strings_to_n_appearances[line] = n_times_appeared
                     # if the required number has been reached, delete them from the check dictionaries.

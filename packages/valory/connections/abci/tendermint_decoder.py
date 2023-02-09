@@ -87,7 +87,7 @@ class _TendermintProtocolDecoder:
         enforce(is_request, "only Request messages are allowed")
         message_type = f"request_{message.WhichOneof('value')}"
         handler: Callable[
-            [Request, AbciDialogues, str], Tuple[AbciMessage, AbciDialogue]
+            [Request, AbciDialogues, str], Optional[Tuple[AbciMessage, AbciDialogue]]
         ] = getattr(cls, message_type, cls.no_match)
         result = handler(message, dialogues, counterparty)
         return result

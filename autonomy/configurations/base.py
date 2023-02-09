@@ -74,6 +74,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         "build_entrypoint",
         "agent",
         "number_of_agents",
+        "description",
         "_aea_version",
         "_aea_version_specifiers",
         "_directory",
