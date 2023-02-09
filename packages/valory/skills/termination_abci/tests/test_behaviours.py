@@ -26,7 +26,6 @@ from typing import Any, Callable, Dict, List, Optional, Type
 from unittest import mock
 
 import pytest
-from _pytest.logging import LogCaptureFixture
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.multisend.contract import MultiSendContract
@@ -546,13 +545,16 @@ class TestBackgroundBehaviour(BaseTerminationTest):
             ),
         ],
     )
-    def test_run(self, test_case: BehaviourTestCase, caplog: LogCaptureFixture) -> None:
+    def test_run(self, test_case: BehaviourTestCase) -> None:
         """Test multiple paths of termination."""
         self.fast_forward(data=test_case.initial_data)
-        with caplog.at_level(
-            test_case.expected_log_level,
-            "packages.valory.skills.termination_abci.behaviours.logging",
-        ):
+        # repeating this check for the `current_behaviour` here to avoid `mypy` reporting:
+        # `error: Item "None" of "Optional[BaseBehaviour]" has no attribute "context"` when accessing the context below
+        assert self.behaviour.current_behaviour is not None
+
+        with mock.patch.object(
+            self.behaviour.current_behaviour.context.logger, "log"
+        ) as mock_logger:
             self.behaviour.act_wrapper()
 
             # apply the OK mocks first
@@ -563,8 +565,22 @@ class TestBackgroundBehaviour(BaseTerminationTest):
             for err_req in test_case.err_reqs:
                 err_req(self, error=True)
 
-        # check that the expected logs appear
-        assert test_case.expected_log in caplog.text
+            log_found = False
+            for log_args in mock_logger.call_args_list:
+                actual_log_level, actual_log = log_args.args[:2]
+                if actual_log.startswith(test_case.expected_log):
+                    assert actual_log_level == test_case.expected_log_level, (
+                        f"{test_case.expected_log} was expected to log on {test_case.expected_log_level} log level, "
+                        f"but logged on {log_args[0]} instead."
+                    )
+                    log_found = True
+                    break
+
+            if not log_found:
+                raise AssertionError(
+                    f'Expected log message "{test_case.expected_log}" was not found in captured logs: '
+                    f"{mock_logger.call_args_list}."
+                )
 
         if len(test_case.err_reqs) == 0:
             # no mocked requests fail,
