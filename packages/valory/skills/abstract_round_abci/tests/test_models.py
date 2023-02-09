@@ -53,6 +53,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     GenesisConsensusParams,
     GenesisEvidence,
     GenesisValidator,
+    MIN_OBSERVATION_INTERVAL,
     NUMBER_OF_RETRIES,
     Requests,
 )
@@ -526,7 +527,7 @@ def test_base_params_model_initialization() -> None:
         sleep_time=1,
         retry_timeout=1,
         retry_attempts=1,
-        observation_interval=1,
+        observation_interval=MIN_OBSERVATION_INTERVAL,
         drand_public_key="",
         tendermint_com_url="",
         reset_tendermint_after=1,
@@ -564,6 +565,13 @@ def test_base_params_model_initialization() -> None:
         match="Value `b` in `setup` set in `models.params.args` of `skill.yaml` of .* is not a list",
     ):
         kwargs["setup"] = {"a": "b"}
+        BaseParams(**kwargs)
+
+    with pytest.raises(
+        AEAEnforceError,
+        match=f"`observation_interval` must be greater than or equal to {MIN_OBSERVATION_INTERVAL}",
+    ):
+        kwargs["observation_interval"] = MIN_OBSERVATION_INTERVAL - 1
         BaseParams(**kwargs)
 
 
