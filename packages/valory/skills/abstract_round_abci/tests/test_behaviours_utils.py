@@ -2192,7 +2192,9 @@ class TestTmManager:
                 consensus_threshold=self._DUMMY_CONSENSUS_THRESHOLD
             ),
         )
-        self.context_state_synchronized_data_mock = MagicMock()
+        self.context_state_synchronized_data_mock = MagicMock(
+            consensus_threshold=self._DUMMY_CONSENSUS_THRESHOLD
+        )
         self.context_mock.params = self.context_params_mock
         self.context_mock.state.synchronized_data = (
             self.context_state_synchronized_data_mock

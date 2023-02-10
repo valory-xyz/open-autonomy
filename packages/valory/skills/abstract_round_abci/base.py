@@ -783,6 +783,33 @@ class BaseSynchronizedData:
         return cast(FrozenSet[str], all_participants)
 
     @property
+    def max_participants(self) -> int:
+        """Get the number of all the participants."""
+        return len(self.all_participants)
+
+    @property
+    def consensus_threshold(self) -> int:
+        """Get the consensus threshold."""
+        threshold = self.db.get_strict("consensus_threshold")
+        min_threshold = consensus_threshold(self.max_participants)
+
+        if threshold is None:
+            return min_threshold
+
+        threshold = int(threshold)
+        max_threshold = len(self.all_participants)
+
+        if min_threshold <= threshold <= max_threshold:
+            return threshold
+
+        expected_range = (
+            f"can only be {min_threshold}"
+            if min_threshold == max_threshold
+            else f"not in [{min_threshold}, {max_threshold}]"
+        )
+        raise ValueError(f"Consensus threshold {threshold} {expected_range}.")
+
+    @property
     def sorted_participants(self) -> Sequence[str]:
         """
         Get the sorted participants' addresses.
@@ -1049,9 +1076,8 @@ class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
                 f"request '{payload_class}' not recognized; only {self.payload_class} is supported"
             )
 
-    @classmethod
     def check_majority_possible_with_new_voter(
-        cls,
+        self,
         votes_by_participant: Dict[str, BaseTxPayload],
         new_voter: str,
         new_vote: BaseTxPayload,
@@ -1088,13 +1114,12 @@ class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
         # add the new vote
         votes_by_participant[new_voter] = new_vote
 
-        cls.check_majority_possible(
+        self.check_majority_possible(
             votes_by_participant, nb_participants, exception_cls=exception_cls
         )
 
-    @classmethod
     def check_majority_possible(
-        cls,
+        self,
         votes_by_participant: Dict[str, BaseTxPayload],
         nb_participants: int,
         exception_cls: Type[ABCIAppException] = ABCIAppException,
@@ -1139,16 +1164,17 @@ class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
         nb_votes_received = sum(vote_count.values())
         nb_remaining_votes = nb_participants - nb_votes_received
 
-        threshold = consensus_threshold(nb_participants)
-
-        if nb_remaining_votes + largest_nb_votes < threshold:
+        if (
+            nb_remaining_votes + largest_nb_votes
+            < self.synchronized_data.consensus_threshold
+        ):
             raise exception_cls(
-                f"cannot reach quorum={threshold}, number of remaining votes={nb_remaining_votes}, number of most voted item's votes={largest_nb_votes}"
+                f"cannot reach quorum={self.synchronized_data.consensus_threshold}, "
+                f"number of remaining votes={nb_remaining_votes}, number of most voted item's votes={largest_nb_votes}"
             )
 
-    @classmethod
     def is_majority_possible(
-        cls, votes_by_participant: Dict[str, BaseTxPayload], nb_participants: int
+        self, votes_by_participant: Dict[str, BaseTxPayload], nb_participants: int
     ) -> bool:
         """
         Return true if a Byzantine majority is achievable, false otherwise.
@@ -1158,7 +1184,7 @@ class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
         :return: True if the majority is still possible, false otherwise.
         """
         try:
-            cls.check_majority_possible(votes_by_participant, nb_participants)
+            self.check_majority_possible(votes_by_participant, nb_participants)
         except ABCIAppException:
             return False
         return True
@@ -1341,7 +1367,7 @@ class _CollectUntilAllRound(CollectionRound, ABC):
         self,
     ) -> bool:
         """Check that the collection threshold has been reached."""
-        return len(self.collection) >= self._consensus_params.max_participants
+        return len(self.collection) >= self.synchronized_data.max_participants
 
 
 class CollectDifferentUntilAllRound(_CollectUntilAllRound, ABC):
@@ -1407,10 +1433,10 @@ class CollectSameUntilAllRound(_CollectUntilAllRound, ABC):
         most_common_payload_values, max_votes = self.payload_values_count.most_common(
             1
         )[0]
-        if max_votes < self._consensus_params.max_participants:
+        if max_votes < self.synchronized_data.max_participants:
             raise ABCIAppInternalError(
                 f"{max_votes} votes are not enough for `CollectSameUntilAllRound`. Expected: "
-                f"`n_votes = max_participants = {self._consensus_params.max_participants}`"
+                f"`n_votes = max_participants = {self.synchronized_data.max_participants}`"
             )
         return most_common_payload_values
 
@@ -1445,7 +1471,9 @@ class CollectSameUntilThresholdRound(CollectionRound, ABC):
     ) -> bool:
         """Check if the threshold has been reached."""
         counts = self.payload_values_count.values()
-        return any(count >= self.consensus_threshold for count in counts)
+        return any(
+            count >= self.synchronized_data.consensus_threshold for count in counts
+        )
 
     @property
     def most_voted_payload(
@@ -1466,7 +1494,7 @@ class CollectSameUntilThresholdRound(CollectionRound, ABC):
         most_voted_payload_values, max_votes = self.payload_values_count.most_common()[
             0
         ]
-        if max_votes < self.consensus_threshold:
+        if max_votes < self.synchronized_data.consensus_threshold:
             raise ABCIAppInternalError("not enough votes")
         return most_voted_payload_values
 
@@ -1628,17 +1656,17 @@ class VotingRound(CollectionRound, ABC):
     @property
     def positive_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
-        return self.vote_count[True] >= self.consensus_threshold
+        return self.vote_count[True] >= self.synchronized_data.consensus_threshold
 
     @property
     def negative_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
-        return self.vote_count[False] >= self.consensus_threshold
+        return self.vote_count[False] >= self.synchronized_data.consensus_threshold
 
     @property
     def none_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
-        return self.vote_count[None] >= self.consensus_threshold
+        return self.vote_count[None] >= self.synchronized_data.consensus_threshold
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
@@ -1683,7 +1711,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound, ABC):
         self,
     ) -> bool:
         """Check if the threshold has been reached."""
-        return len(self.collection) >= self.consensus_threshold
+        return len(self.collection) >= self.synchronized_data.consensus_threshold
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""

@@ -26,6 +26,7 @@ from packages.valory.skills.test_ipfs_abci.rounds import IpfsRound
 def test_end_block() -> None:
     """Test IpfsRound.end_block()"""
     dummy_round = IpfsRound(
-        synchronized_data=MagicMock(), consensus_params=MagicMock(max_participants=1)
+        synchronized_data=MagicMock(max_participants=4),
+        consensus_params=MagicMock(max_participants=1)
     )
     dummy_round.end_block()

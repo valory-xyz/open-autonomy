@@ -546,7 +546,7 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
         test_round.collection_key = "collection_key"
         test_round.done_event = 0
         assert (
-            test_round.consensus_threshold <= required_confirmations
+            test_round.synchronized_data.consensus_threshold <= required_confirmations
         ), "Incorrect test parametrization: required confirmations cannot be set with a smalled value than the consensus threshold"
 
         first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=False)

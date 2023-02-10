@@ -65,6 +65,7 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
                 setup_data=dict(
                     participants=[tuple(self.participants)],
                     all_participants=[tuple(self.participants)],
+                    consensus_threshold=[3],
                 ),
             )
         )

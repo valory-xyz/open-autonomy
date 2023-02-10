@@ -277,6 +277,7 @@ class TestResetAndPauseRound(BaseRoundTestClass):
         actual_next_behaviour = self.synchronized_data.create(
             participants=[tuple(self.synchronized_data.participants)],
             all_participants=[tuple(self.synchronized_data.all_participants)],
+            consensus_threshold=[3],
         )
 
         res = test_round.end_block()

@@ -148,7 +148,10 @@ class TestBackgroundBehaviour(BaseTerminationTest):
     _MOCK_TX_RESPONSE = b"0xIrrelevantForTests".hex()
     _MOCK_TX_HASH = "0x" + "0" * 64
     _INITIAL_DATA: Dict[str, Any] = dict(
-        safe_contract_address=SAFE_ADDRESS, participants=_SAFE_OWNERS
+        all_participants=_SAFE_OWNERS,
+        safe_contract_address=SAFE_ADDRESS,
+        participants=_SAFE_OWNERS,
+        consensus_threshold=3,
     )
 
     _STATE_ERR_LOG = (
@@ -599,7 +602,12 @@ class TestBackgroundBehaviour(BaseTerminationTest):
     def test_termination_majority_already_reached(self) -> None:
         """Tests the background behaviour when the termination is already reached."""
         self.fast_forward(
-            data=dict(termination_majority_reached=True, participants=["a"])
+            data=dict(
+                termination_majority_reached=True,
+                all_participants=["a"],
+                participants=["a"],
+                consensus_threshold=1,
+            )
         )
         with mock.patch.object(
             self.behaviour_class, "check_for_signal"

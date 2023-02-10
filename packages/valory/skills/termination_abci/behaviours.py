@@ -483,7 +483,7 @@ class BackgroundBehaviour(BaseBehaviour):
         """Checks whether the service has enough participants to reach consensus."""
         return (
             self.synchronized_data.nb_participants
-            >= self.params.consensus_params.consensus_threshold
+            >= self.synchronized_data.consensus_threshold
         )
 
     def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
