@@ -29,7 +29,7 @@ Tools to analyse a service
 #### `__`init`__`
 
 ```python
-def __init__(service_path: Path) -> None
+def __init__(service_config: Service, is_on_chain_check: bool = False, logger: Optional[logging.Logger] = None) -> None
 ```
 
 Initialise object.
@@ -39,21 +39,10 @@ Initialise object.
 #### check`_`on`_`chain`_`state
 
 ```python
-@staticmethod
 def check_on_chain_state(ledger_api: LedgerApi, chain_type: ChainType, token_id: int) -> None
 ```
 
 Check on-chain state of a service.
-
-<a id="autonomy.analyse.service.ServiceAnalyser.check_agent_package_published"></a>
-
-#### check`_`agent`_`package`_`published
-
-```python
-def check_agent_package_published(ipfs_pins: Set[str]) -> None
-```
-
-Check if the agent package is published or not
 
 <a id="autonomy.analyse.service.ServiceAnalyser.check_agent_dependencies_published"></a>
 
@@ -65,12 +54,12 @@ def check_agent_dependencies_published(agent_config: AgentConfig, ipfs_pins: Set
 
 Check if the agent package is published or not
 
-<a id="autonomy.analyse.service.ServiceAnalyser.verify_overrides"></a>
+<a id="autonomy.analyse.service.ServiceAnalyser.cross_verify_overrides"></a>
 
-#### verify`_`overrides
+#### cross`_`verify`_`overrides
 
 ```python
-def verify_overrides(agent_config: AgentConfig) -> None
+def cross_verify_overrides(agent_config: AgentConfig) -> None
 ```
 
 Cross verify overrides between service config and agent config
@@ -85,6 +74,16 @@ def validate_override(cls, component_id: ComponentId, override: Dict, has_multip
 ```
 
 Validate override
+
+<a id="autonomy.analyse.service.ServiceAnalyser.validate_skill_config"></a>
+
+#### validate`_`skill`_`config
+
+```python
+def validate_skill_config(skill_config: SkillConfig) -> None
+```
+
+Check required overrides.
 
 <a id="autonomy.analyse.service.ServiceAnalyser.validate_agent_overrides"></a>
 
