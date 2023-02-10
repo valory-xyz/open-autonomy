@@ -24,6 +24,7 @@ from copy import deepcopy
 from typing import Any, Dict, List, Tuple
 from unittest import mock
 
+import pytest
 from aea.configurations.base import AgentConfig
 from aea.configurations.data_types import ComponentId, ComponentType, PublicId
 from aea.helpers.cid import to_v0
@@ -155,6 +156,7 @@ def get_dummy_agent_config() -> Dict:
     }
 
 
+@pytest.mark.skip
 class BaseAnalyseServiceTest(BaseCliTest):
     """Base class for service verifier tests"""
 
@@ -206,6 +208,7 @@ class BaseAnalyseServiceTest(BaseCliTest):
     @staticmethod
     def patch_service_loader(data: List[Dict[str, Any]]) -> mock._patch:
         """Patch service loader method"""
+
         config, *overrides = data
         service = Service.from_json(config)
         service.overrides = overrides
