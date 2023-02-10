@@ -107,7 +107,7 @@ class TestBuildImage(BaseCliTest):
     ) -> None:
         """Test prod build."""
 
-        test_version = "".join(choices(ascii_letters, k=6))
+        test_version = "".join(choices(ascii_letters, k=6))  # nosec
         result = self.run_cli(("--version", test_version))
 
         assert result.exit_code == 0, result.output
