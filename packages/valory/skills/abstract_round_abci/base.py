@@ -35,7 +35,6 @@ from copy import copy, deepcopy
 from dataclasses import asdict, astuple, dataclass, field
 from enum import Enum
 from inspect import isclass
-from math import ceil
 from typing import (
     Any,
     Dict,
@@ -61,7 +60,10 @@ from packages.valory.connections.ledger.connection import (
     PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.abci.custom_types import Header
-from packages.valory.skills.abstract_round_abci.utils import is_json_serializable
+from packages.valory.skills.abstract_round_abci.utils import (
+    consensus_threshold,
+    is_json_serializable,
+)
 
 
 _logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
@@ -88,16 +90,6 @@ def get_name(prop: Any) -> str:
     if prop.fget is None:
         raise ValueError(f"fget of {prop} is None")  # pragma: nocover
     return prop.fget.__name__
-
-
-def consensus_threshold(nb: int) -> int:
-    """
-    Get consensus threshold.
-
-    :param nb: the number of participants
-    :return: the consensus threshold
-    """
-    return ceil((2 * nb + 1) / 3)
 
 
 class ABCIAppException(Exception):

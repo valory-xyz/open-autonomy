@@ -33,6 +33,7 @@ from packages.valory.skills.abstract_round_abci.utils import (
     DEFAULT_TENDERMINT_P2P_PORT,
     MAX_UINT64,
     VerifyDrand,
+    consensus_threshold,
     filter_negative,
     get_data_from_nested_dict,
     get_value_with_type,
@@ -259,3 +260,12 @@ def test_filter_negative(positive: Dict[str, int], negative: Dict[str, int]) -> 
     """Test `filter_negative`."""
     assert len(tuple(filter_negative(positive))) == 0
     assert set(filter_negative(negative)) == set(negative.keys())
+
+
+@pytest.mark.parametrize(
+    "nb, threshold",
+    ((1, 1), (2, 2), (3, 3), (4, 3), (5, 4), (6, 5), (100, 67), (300, 201)),
+)
+def test_consensus_threshold(nb: int, threshold: int) -> None:
+    """Test `consensus_threshold`."""
+    assert consensus_threshold(nb) == threshold

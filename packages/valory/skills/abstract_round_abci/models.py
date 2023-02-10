@@ -52,12 +52,12 @@ from packages.valory.skills.abstract_round_abci.base import (
     ConsensusParams,
     ROUND_COUNT_DEFAULT,
     RoundSequence,
-    consensus_threshold,
     get_name,
 )
 from packages.valory.skills.abstract_round_abci.utils import (
     check,
     check_type,
+    consensus_threshold,
     get_data_from_nested_dict,
     get_value_with_type,
 )
