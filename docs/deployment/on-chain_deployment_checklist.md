@@ -148,9 +148,9 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
             safe_contract_address: ${list:[]}
           tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
           tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
-          service_registry_address: ${str:none}
+          service_registry_address: ${str:null}
           share_tm_config_on_startup: ${bool:false}
-          on_chain_service_id: ${int:none}
+          on_chain_service_id: ${int:null}
           (...)
     ```
 
