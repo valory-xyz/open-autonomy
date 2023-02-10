@@ -39,7 +39,6 @@ from packages.valory.skills.abstract_round_abci.utils import (
     is_json_serializable,
     is_primitive_or_none,
     parse_tendermint_p2p_url,
-    to_int,
 )
 
 
@@ -143,23 +142,6 @@ def test_verify_randomness_hash_fuzz(input_bytes: bytes) -> None:
     """Test VerifyDrand._verify_randomness_hash"""
 
     VerifyDrand._verify_randomness_hash(input_bytes, input_bytes)
-
-
-def test_to_int_positive() -> None:
-    """Test `to_int` function."""
-    assert to_int(0.542, 5) == 54200
-    assert to_int(0.542, 2) == 54
-    assert to_int(542, 2) == 54200
-
-
-@given(
-    st.floats(width=64, allow_nan=False, allow_infinity=False),
-    st.integers(min_value=0, max_value=20),
-)
-@pytest.mark.skip(reason="https://github.com/valory-xyz/open-autonomy/issues/1614")
-def test_fuzz_to_int(estimate: float, decimals: int) -> None:
-    """Test fuzz to_int."""
-    to_int(estimate, decimals)
 
 
 @given(

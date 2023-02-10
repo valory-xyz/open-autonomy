@@ -62,6 +62,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     BaseTxPayload,
     DegenerateRound,
+    OK_CODE,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -162,12 +163,6 @@ class AsyncBehaviourTest(AsyncBehaviour, ABC):
 
     def async_act(self) -> Generator:
         """Do 'async_act'."""
-
-
-def async_behaviour_initial_state_is_ready() -> None:
-    """Check that the initial async state is "READY"."""
-    behaviour = AsyncBehaviourTest()
-    assert behaviour.state == AsyncBehaviour.AsyncState.READY
 
 
 def test_async_behaviour_ticks() -> None:
@@ -300,7 +295,6 @@ def test_async_behaviour_wait_for_condition_with_timeout() -> None:
         def async_act(self) -> Generator:
             self.counter += 1
             yield from self.wait_for_condition(lambda: False, timeout=0.05)
-            self.counter += 1
 
     behaviour = MyAsyncBehaviour()
     assert behaviour.counter == 0
@@ -369,9 +363,6 @@ def test_async_behaviour_without_yield() -> None:
         def async_act_wrapper(self) -> Generator:
             pass
 
-        def async_act(self) -> Generator:
-            pass
-
     behaviour = MyAsyncBehaviour()
     behaviour.act()
     assert behaviour.state == AsyncBehaviour.AsyncState.READY
@@ -383,9 +374,6 @@ def test_async_behaviour_raise_stopiteration() -> None:
     class MyAsyncBehaviour(AsyncBehaviourTest):
         def async_act_wrapper(self) -> Generator:
             raise StopIteration
-
-        def async_act(self) -> Generator:
-            pass
 
     behaviour = MyAsyncBehaviour()
     behaviour.act()
@@ -419,7 +407,6 @@ class RoundA(AbstractRound):
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Handle end block."""
-        return None
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check payload."""
@@ -435,7 +422,6 @@ class BehaviourATest(BaseBehaviour):
 
     def async_act(self) -> Generator:
         """Do the 'async_act'."""
-        yield
 
 
 def _get_status_patch_wrapper(
@@ -1133,7 +1119,6 @@ class TestBaseBehaviour:
                 "Received tendermint code != 0. Retrying in 1.0 seconds..."
             )
 
-    @pytest.mark.skip
     @mock.patch.object(BaseBehaviour, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
@@ -1146,7 +1131,7 @@ class TestBaseBehaviour:
         "_check_http_return_code_200",
         return_value=True,
     )
-    @mock.patch("json.loads")
+    @mock.patch("json.loads", return_value={"result": {"hash": "", "code": OK_CODE}})
     def test_send_transaction_wait_delivery_timeout_exception(self, *_: Any) -> None:
         """Test '_send_transaction', timeout exception on tx delivery."""
         timeout = 0.05
@@ -2173,19 +2158,8 @@ def test_degenerate_behaviour_async_act() -> None:
 def test_make_degenerate_behaviour() -> None:
     """Test 'make_degenerate_behaviour'."""
 
-    class FinalRound(DegenerateRound):
+    class FinalRound(DegenerateRound, ABC):
         """A final round for testing."""
-
-        synchronized_data_class = BaseSynchronizedData
-
-        def check_payload(self, payload: BaseTxPayload) -> None:
-            pass
-
-        def process_payload(self, payload: BaseTxPayload) -> None:
-            pass
-
-        def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
-            pass
 
     new_cls = make_degenerate_behaviour(FinalRound)
 

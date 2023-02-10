@@ -390,13 +390,6 @@ class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
     _synchronized_data_class = TransactionSettlementSynchronizedSata
     _event_class = TransactionSettlementEvent
 
-    @staticmethod
-    def _participant_to_selection(
-        participants: FrozenSet[str], keepers: str
-    ) -> Mapping[str, BaseTxPayload]:
-        """Get participant to selection"""
-        return get_participant_to_selection(participants, keepers)
-
     @pytest.mark.parametrize(
         "most_voted_payload, keepers, exit_event",
         (
@@ -607,7 +600,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         self.synchronized_data = cast(
             TransactionSettlementSynchronizedSata,
             self.synchronized_data.update(
-                participants=([f"agent_{i}" + "-" * 35 for i in range(4)]),
+                participants=tuple(self.participants),
                 missed_messages=missed_messages,
                 tx_hashes_history=tx_hashes_history,
                 keepers=get_keepers(keepers, keeper_retries),
@@ -659,6 +652,44 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
                     lambda _synchronized_data: _synchronized_data.final_verification_status,
                 ],
                 exit_event=exit_event,
+            )
+        )
+
+    def test_finalization_round_no_tx_data(self) -> None:
+        """Test finalization round when `tx_data` is `None`."""
+        keepers = deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))
+        keeper_retries = 2
+        self.synchronized_data = cast(
+            TransactionSettlementSynchronizedSata,
+            self.synchronized_data.update(
+                participants=tuple(f"agent_{i}" + "-" * 35 for i in range(4)),
+                keepers=get_keepers(keepers, keeper_retries),
+            ),
+        )
+
+        sender = keepers[0]
+
+        test_round = self._round_class(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                keeper_payloads=FinalizationTxPayload(
+                    sender=sender,
+                    tx_data=None,
+                ),
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.tx_hashes_history,
+                    lambda _synchronized_data: _synchronized_data.blacklisted_keepers,
+                    lambda _synchronized_data: _synchronized_data.keepers,
+                    lambda _synchronized_data: _synchronized_data.keeper_retries,
+                    lambda _synchronized_data: _synchronized_data.final_verification_status,
+                ],
+                exit_event=TransactionSettlementEvent.FINALIZATION_FAILED,
             )
         )
 
@@ -836,16 +867,24 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
             )
         )
 
-    def test_incorrect_serialization_not_accepted(self) -> None:
-        """Test wrong serialization not collected"""
+    @pytest.mark.parametrize("correct_serialization", (True, False))
+    def test_check_payload(self, correct_serialization: bool) -> None:
+        """Test the `check_payload` method."""
 
         test_round = SynchronizeLateMessagesRound(
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
         sender = list(test_round.accepting_payloads_from).pop()
-        tx_hashes = "0" * (TX_HASH_LENGTH - 1)
+        hash_length = TX_HASH_LENGTH
+        if not correct_serialization:
+            hash_length -= 1
+        tx_hashes = "0" * hash_length
         payload = SynchronizeLateMessagesPayload(sender=sender, tx_hashes=tx_hashes)
+
+        if correct_serialization:
+            test_round.check_payload(payload)
+            return
 
         with pytest.raises(
             TransactionNotValidError, match="Expecting serialized data of chunk size"

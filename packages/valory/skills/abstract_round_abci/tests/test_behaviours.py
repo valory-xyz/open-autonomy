@@ -21,7 +21,7 @@
 
 # pylint: skip-file
 
-from enum import Enum
+from abc import ABC
 from pathlib import Path
 from typing import Any, Dict, Generator, Optional, Tuple
 from unittest import mock
@@ -153,14 +153,10 @@ class BehaviourB(BaseBehaviour):
         yield
 
 
-class BehaviourC(BaseBehaviour):
+class BehaviourC(BaseBehaviour, ABC):
     """Dummy behaviour."""
 
-    matching_round = RoundB
-
-    def async_act(self) -> Generator:
-        """Dummy act method."""
-        yield
+    matching_round = MagicMock()
 
 
 def test_auto_behaviour_id() -> None:
@@ -262,8 +258,6 @@ class TestAbstractRoundBehaviour:
                 behaviours = mock_behaviours  # type: ignore
                 initial_behaviour_cls = MagicMock()
 
-            MyRoundBehaviour(name=MagicMock(), skill_context=MagicMock())
-
     def test_get_behaviour_id_to_behaviour_mapping_negative(self) -> None:
         """Test classmethod '_get_behaviour_id_to_behaviour_mapping', negative case."""
         behaviour_id = "behaviour_id"
@@ -314,19 +308,8 @@ class TestAbstractRoundBehaviour:
     def test_get_round_to_behaviour_mapping_with_final_rounds(self) -> None:
         """Test classmethod '_get_round_to_behaviour_mapping' with final rounds."""
 
-        class FinalRound(DegenerateRound):
+        class FinalRound(DegenerateRound, ABC):
             """A final round for testing."""
-
-            synchronized_data_class = BaseSynchronizedData
-
-            def check_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
-            def process_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
-            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
-                pass
 
         behaviour_id_1 = "behaviour_id_1"
         behaviour_1 = MagicMock(behaviour_id=behaviour_id_1, matching_round=RoundA)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 """Test the rounds of the skill."""
 
 from copy import deepcopy
-from typing import FrozenSet
 
 from packages.valory.skills.abstract_round_abci.base import BaseSynchronizedData
 from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
@@ -33,14 +32,6 @@ from packages.valory.skills.register_reset_recovery_abci.rounds import (
     Event,
     RoundCountRound,
 )
-
-
-MAX_PARTICIPANTS: int = 4
-
-
-def get_participants() -> FrozenSet[str]:
-    """Participants"""
-    return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
 
 
 class BaseRoundTestClass(
