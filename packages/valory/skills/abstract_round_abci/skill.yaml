@@ -8,8 +8,8 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeicjyrltgdmwzvctebhfteyyd5mbrjashiji4glwf5vwcijuyzzm24
-  abci_app_chain.py: bafybeick5fz6hpbbvpmjkm2o3rl5csgvqf4ivwmqdluj2p4jmcpea4xmsq
-  base.py: bafybeidkfonpuoxlfboxfku4nufsv2wqgq574ibkaf7lvh7lunr5ne2i3y
+  abci_app_chain.py: bafybeiapoloeugiyrclb6giqz3rrhoxs4szer2lxrdxafg4fe45nqe4i2y
+  base.py: bafybeig27vlmgl2b2r3yhjb772abmdaduw4dghgi66bb4dwp22sdh4cxwu
   behaviour_utils.py: bafybeifzuvvbrjsn2pzdimy2u6acfzo2cktdhyjjcdsfxnzmaim4gigiu4
   behaviours.py: bafybeicapzsvzowpjawkxgkhf2m4qb7c3alh5rsysrxp55o7pmjt6bu2g4
   common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
@@ -36,9 +36,9 @@ fingerprint:
   tests/data/dummy_abci/handlers.py: bafybeifik3ftljs63u7nm4gadxpqbcvqj53p7qftzzzfto3ioad57k3x3u
   tests/data/dummy_abci/models.py: bafybeiear3i45wbaylrkbnm2fbtqorxx56glul36piuah7m7jb56f5rpoq
   tests/data/dummy_abci/payloads.py: bafybeiczldqiumb7prcusb7l5vb575vschwyseyigpupvteldfyz7h6fyi
-  tests/data/dummy_abci/rounds.py: bafybeibcif5i7r6zo2lsdlt5m7oj7zrsl65qlwj6xbyb2b5xxznzlgjj4u
-  tests/test_abci_app_chain.py: bafybeidz573eh6m66x2spovp3yhhzyqheqyaspsrvas4loamdawdilwgki
-  tests/test_base.py: bafybeibflgv4prdu4xh6e4ahr6ntgiounsrdhk4zrmwkufmrpfiue43ecy
+  tests/data/dummy_abci/rounds.py: bafybeiboozilxd3wvcrrploums4bhzfrurhr43o66n6d32hnku57dgmb3i
+  tests/test_abci_app_chain.py: bafybeie2kbqvyii6jcxf5fspwg4xqxcfuugq3p5kg45ncjrcm5cctcfrfe
+  tests/test_base.py: bafybeic2fkrkbshj2dbpiichvznhgtu4di4fvdyssoyfayja4m4o7bzzq4
   tests/test_base_rounds.py: bafybeigwpi5oadv7iqtg2figr7e34hr5bwkhiridkhgn5akqa2nyid2fou
   tests/test_behaviours.py: bafybeie2trerlz2hupczwaimsqbczoyakmsk7u37oieljpveuv52xacwey
   tests/test_behaviours_utils.py: bafybeiezlxto63yrjqaay5ztfuupjzvaw76lo5mdyh3mal67aor73fqlo4

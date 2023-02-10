@@ -667,7 +667,7 @@ https://github.com/python/cpython/blob/3.10/Lib/copy.py#L182-L183
 #### `__`init`__`
 
 ```python
-def __init__(setup_data: Dict[str, List[Any]], cross_period_persisted_keys: Optional[List[str]] = None) -> None
+def __init__(setup_data: Dict[str, List[Any]], cross_period_persisted_keys: Optional[Set[str]] = None) -> None
 ```
 
 Initialize the AbciApp database.
@@ -735,7 +735,7 @@ Set the round count.
 
 ```python
 @property
-def cross_period_persisted_keys() -> List[str]
+def cross_period_persisted_keys() -> Set[str]
 ```
 
 Keys in the database which are persistent across periods.

@@ -781,16 +781,16 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         Event.CHECK_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    db_pre_conditions: Dict[AppState, List[str]] = {
-        RandomnessTransactionSubmissionRound: [
+    db_pre_conditions: Dict[AppState, Set[str]] = {
+        RandomnessTransactionSubmissionRound: {
             get_name(SynchronizedData.most_voted_tx_hash),
             get_name(SynchronizedData.participants),
-        ]
+        }
     }
-    db_post_conditions: Dict[AppState, List[str]] = {
-        FinishedTransactionSubmissionRound: [
+    db_post_conditions: Dict[AppState, Set[str]] = {
+        FinishedTransactionSubmissionRound: {
             get_name(SynchronizedData.final_tx_hash),
             get_name(SynchronizedData.final_verification_status),
-        ],
-        FailedRound: [],
+        },
+        FailedRound: set(),
     }

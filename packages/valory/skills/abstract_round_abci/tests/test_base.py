@@ -503,13 +503,13 @@ class TestAbciAppDB:
     )
     @pytest.mark.parametrize(
         "cross_period_persisted_keys, expected_cross_period_persisted_keys",
-        ((None, []), ([], []), (["test"], ["test"])),
+        ((None, set()), (set(), set()), ({"test"}, {"test"})),
     )
     def test_init(
         self,
         data: Dict,
         setup_data: Optional[Dict],
-        cross_period_persisted_keys: Optional[List],
+        cross_period_persisted_keys: Optional[Set],
         expected_cross_period_persisted_keys: List,
     ) -> None:
         """Test constructor."""
@@ -552,7 +552,7 @@ class TestAbciAppDB:
         data_assertion()
 
         if cross_period_persisted_keys_copy:
-            cross_period_persisted_keys_copy.append(new_value_attempt)
+            cross_period_persisted_keys_copy.add(new_value_attempt)
             assert (
                 db.cross_period_persisted_keys == expected_cross_period_persisted_keys
             ), (
@@ -602,10 +602,10 @@ class TestAbciAppDB:
     def test_cross_period_persisted_keys(self) -> None:
         """Test `cross_period_persisted_keys` property"""
         setup_data: Dict[str, List] = {}
-        cross_period_persisted_keys = ["test"]
+        cross_period_persisted_keys = {"test"}
         db = AbciAppDB(setup_data, cross_period_persisted_keys.copy())
 
-        db.cross_period_persisted_keys.append("new_value_attempt")
+        db.cross_period_persisted_keys.add("new_value_attempt")
         assert db.cross_period_persisted_keys == cross_period_persisted_keys, (
             "The database's `cross_period_persisted_keys` have been altered indirectly, "
             "by updating an item retrieved via the `cross_period_persisted_keys` property!"
@@ -1636,12 +1636,12 @@ class TestAbciApp:
         class EmptyAbciApp(AbciAppTest):
             """An AbciApp without termination attrs set."""
 
-            cross_period_persisted_keys = ["1", "2"]
+            cross_period_persisted_keys = {"1", "2"}
 
         class TerminationAbciApp(AbciAppTest):
             """A moch termination AbciApp."""
 
-            cross_period_persisted_keys = ["2", "3"]
+            cross_period_persisted_keys = {"2", "3"}
 
         EmptyAbciApp.add_termination(
             TerminationAbciApp.background_round_cls,
@@ -1652,7 +1652,7 @@ class TestAbciApp:
         assert EmptyAbciApp.background_round_cls is not None
         assert EmptyAbciApp.termination_transition_function is not None
         assert EmptyAbciApp.termination_event is not None
-        assert sorted(EmptyAbciApp.cross_period_persisted_keys) == ["1", "2", "3"]
+        assert EmptyAbciApp.cross_period_persisted_keys == {"1", "2", "3"}
 
     def test_background_round(self) -> None:
         """Test the background_round property."""

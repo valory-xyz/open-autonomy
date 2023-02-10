@@ -63,7 +63,7 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
         synchronized_data = self.synchronized_data.update(
             keeper_randomness=DUMMY_RANDOMNESS,
         )
-        synchronized_data._db._cross_period_persisted_keys = ["keeper_randomness"]
+        synchronized_data._db._cross_period_persisted_keys = {"keeper_randomness"}
         test_round = ResetAndPauseRound(
             synchronized_data=synchronized_data, consensus_params=self.consensus_params
         )
