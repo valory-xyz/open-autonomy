@@ -64,9 +64,7 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
             keeper_randomness=DUMMY_RANDOMNESS, consensus_threshold=3
         )
         synchronized_data._db._cross_period_persisted_keys = {"keeper_randomness"}
-        test_round = ResetAndPauseRound(
-            synchronized_data=synchronized_data, consensus_params=self.consensus_params
-        )
+        test_round = ResetAndPauseRound(synchronized_data=synchronized_data)
         next_period_count = 1
         self._complete_run(
             self._test_round(
@@ -96,9 +94,7 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
             participants=participants, all_participants=all_participants
         )
 
-        test_round = ResetAndPauseRound(
-            synchronized_data=synchronized_data, consensus_params=self.consensus_params
-        )
+        test_round = ResetAndPauseRound(synchronized_data=synchronized_data)
 
         assert test_round.accepting_payloads_from != participants
         assert test_round.accepting_payloads_from == frozenset(all_participants)

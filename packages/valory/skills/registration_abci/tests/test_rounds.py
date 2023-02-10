@@ -62,7 +62,6 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
 
         test_round = RegistrationStartupRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
 
         most_voted_payload = self.synchronized_data.db.serialize()
@@ -108,7 +107,6 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
         )
         test_round = RegistrationStartupRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
 
         with mock.patch.object(
@@ -195,7 +193,6 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
         )
         test_round = RegistrationRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
 
         round_payloads = {
@@ -240,7 +237,6 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
         )
         test_round = RegistrationRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
         self._run_with_round(
             test_round,
@@ -321,7 +317,6 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
 
         test_round = RegistrationRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
 
         with mock.patch.object(test_round, "is_majority_possible", return_value=False):

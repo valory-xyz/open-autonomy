@@ -351,7 +351,6 @@ class TestSharedState:
             "test": [],
             "all_participants": [list(range(4))],
         }
-        shared_state.context.params.consensus_params = MagicMock()
         shared_state.setup()
 
     def test_setup(self, *_: Any) -> None:
@@ -385,7 +384,6 @@ class TestSharedState:
             "test": [],
             "all_participants": [["0x0"]],
         }
-        shared_state.context.params.consensus_params = MagicMock()
         shared_state.setup()
         shared_state.round_sequence.abci_app._round_results = [MagicMock()]
         shared_state.synchronized_data

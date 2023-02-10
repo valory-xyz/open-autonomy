@@ -396,7 +396,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
         abci_app._last_round = old_round
         abci_app._current_round = abci_app.transition_function[
             current_behaviour.matching_round
-        ][done_event](abci_app.synchronized_data, abci_app.consensus_params)
+        ][done_event](abci_app.synchronized_data)
         abci_app._previous_rounds.append(old_round)
         abci_app._current_round_height += 1
         self.behaviour._process_current_round()

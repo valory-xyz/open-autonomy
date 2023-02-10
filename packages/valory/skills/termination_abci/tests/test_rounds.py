@@ -27,7 +27,6 @@ import pytest
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciAppDB,
-    ConsensusParams,
     TransactionNotValidError,
 )
 from packages.valory.skills.termination_abci.payloads import BackgroundPayload
@@ -51,7 +50,6 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
     """Base test class for Rounds."""
 
     synchronized_data: SynchronizedData
-    consensus_params: ConsensusParams
     participants: FrozenSet[str]
 
     def setup(
@@ -69,7 +67,6 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
                 ),
             )
         )
-        self.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
 
 class TestBackgroundRound(BaseRoundTestClass):
@@ -82,7 +79,6 @@ class TestBackgroundRound(BaseRoundTestClass):
 
         test_round = BackgroundRound(
             synchronized_data=deepcopy(self.synchronized_data),
-            consensus_params=self.consensus_params,
         )
         payload_data = "0xdata"
         first_payload, *payloads = [
@@ -121,7 +117,6 @@ class TestBackgroundRound(BaseRoundTestClass):
         """Tests the background round when bad payloads are sent."""
         test_round = BackgroundRound(
             synchronized_data=deepcopy(self.synchronized_data),
-            consensus_params=self.consensus_params,
         )
         payload_data = "0xdata"
         bad_participant = "non_existent"
@@ -172,7 +167,6 @@ class TestTerminationRound(BaseRoundTestClass):
 
         test_round = TerminationRound(
             synchronized_data=deepcopy(self.synchronized_data),
-            consensus_params=self.consensus_params,
         )
         res = test_round.end_block()  # pylint: disable=assignment-from-none
         assert res is None

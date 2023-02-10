@@ -69,7 +69,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     BlockBuilder,
     Blockchain,
     CollectionRound,
-    ConsensusParams,
     EventType,
     LateArrivingTransaction,
     RoundSequence,
@@ -428,45 +427,6 @@ class TestBlockBuilder:
         """Test 'get_block', positive case."""
         self.block_builder.header = MagicMock()
         self.block_builder.get_block()
-
-
-class TestConsensusParams:
-    """Test the 'ConsensusParams' class."""
-
-    def setup(self) -> None:
-        """Set up the tests."""
-        self.max_participants = 4
-        self.consensus_params = ConsensusParams(self.max_participants)
-
-    def test_max_participants_getter(self) -> None:
-        """Test 'max_participants' property getter."""
-        expected_max_participants = self.max_participants
-        assert self.consensus_params.max_participants == expected_max_participants
-
-    @pytest.mark.parametrize(
-        "nb_participants,expected",
-        [
-            (1, 1),
-            (2, 2),
-            (3, 3),
-            (4, 3),
-            (5, 4),
-            (6, 5),
-            (7, 5),
-            (8, 6),
-            (9, 7),
-            (10, 7),
-        ],
-    )
-    def test_threshold_getter(self, nb_participants: int, expected: int) -> None:
-        """Test threshold property getter."""
-        params = ConsensusParams(nb_participants)
-        assert params.consensus_threshold == expected
-
-    def test_consensus_params_not_equal_lookalike(self) -> None:
-        """Test consensus param __eq__ reflection via NotImplemented"""
-        lookalike = ObjectImitator(self.consensus_params)
-        assert not self.consensus_params == lookalike
 
 
 class TestAbciAppDB:
@@ -1156,10 +1116,7 @@ class TestAbstractRound:
                 )
             )
         )
-        self.params = ConsensusParams(
-            max_participants=len(self.participants),
-        )
-        self.round = ConcreteRoundA(self.base_synchronized_data, self.params)
+        self.round = ConcreteRoundA(self.base_synchronized_data)
 
     def test_auto_round_id(self) -> None:
         """Test that the 'auto_round_id()' method works as expected."""
@@ -1201,7 +1158,7 @@ class TestAbstractRound:
                 pass
 
         # no exception as round id is auto-assigned
-        my_concrete_round = MyConcreteRound(MagicMock(), MagicMock())
+        my_concrete_round = MyConcreteRound(MagicMock())
         assert my_concrete_round.round_id == "my_concrete_round"
 
     def test_must_set_payload_class_type(self) -> None:
@@ -1236,7 +1193,7 @@ class TestAbstractRound:
                 pass
 
         with pytest.raises(LateArrivingTransaction):
-            MyConcreteRound(MagicMock(), MagicMock(), BaseTxPayload).check_payload_type(
+            MyConcreteRound(MagicMock(), BaseTxPayload).check_payload_type(
                 MagicMock(payload=BaseTxPayload("dummy"))
             )
 
@@ -1262,7 +1219,7 @@ class TestAbstractRound:
             TransactionTypeNotRecognizedError,
             match="current round does not allow transactions",
         ):
-            MyConcreteRound(MagicMock(), MagicMock()).check_payload_type(MagicMock())
+            MyConcreteRound(MagicMock()).check_payload_type(MagicMock())
 
     def test_synchronized_data_getter(self) -> None:
         """Test 'synchronized_data' property getter."""
@@ -1570,7 +1527,7 @@ class TestAbciApp:
 
     def setup(self) -> None:
         """Set up the test."""
-        self.abci_app = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
+        self.abci_app = AbciAppTest(MagicMock(), MagicMock())
 
     @pytest.mark.parametrize("flag", (True, False))
     def test_is_abstract(self, flag: bool) -> None:
@@ -1766,8 +1723,7 @@ class TestAbciApp:
         dummy_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(setup_data=dict(participants=[max_participants]))
         )
-        dummy_consensus_params = ConsensusParams(max_participants)
-        dummy_round = ConcreteRoundA(dummy_synchronized_data, dummy_consensus_params)
+        dummy_round = ConcreteRoundA(dummy_synchronized_data)
 
         # Add dummy data
         self.abci_app._previous_rounds = [dummy_round] * start_history_depth
@@ -1850,7 +1806,7 @@ class TestRoundSequence:
     def setup(self) -> None:
         """Set up the test."""
         self.round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
-        self.round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
+        self.round_sequence.setup(MagicMock(), MagicMock())
         self.round_sequence.tm_height = 1
 
     @pytest.mark.parametrize("offset", tuple(range(5)))
@@ -2446,7 +2402,7 @@ def test_synchronized_data_type_on_abci_app_init(caplog: LogCaptureFixture) -> N
 
     with mock.patch.object(AbciAppTest, "initial_round_cls") as m:
         m.synchronized_data_class = SynchronizedData
-        abci_app = AbciAppTest(synchronized_data, MagicMock(), logging.getLogger())
+        abci_app = AbciAppTest(synchronized_data, logging.getLogger())
         abci_app.setup()
         assert isinstance(abci_app.synchronized_data, SynchronizedData)
         assert abci_app.synchronized_data.dummy_attr == sentinel

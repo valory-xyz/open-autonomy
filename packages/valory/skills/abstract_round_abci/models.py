@@ -49,7 +49,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
     BaseSynchronizedData,
-    ConsensusParams,
     ROUND_COUNT_DEFAULT,
     RoundSequence,
     get_name,
@@ -321,9 +320,6 @@ class BaseParams(
                 },
                 skill_id,
             )
-            self.consensus_params = ConsensusParams(
-                len(self.setup_params[get_name(BaseSynchronizedData.all_participants)])
-            )
         self._frozen = True
 
     def _ensure_setup(
@@ -437,8 +433,6 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
     def setup(self) -> None:
         """Set up the model."""
         self._round_sequence = RoundSequence(self.abci_app_cls)
-        # consensus parameters will not be available if the current skill is abstract
-        consensus_params = getattr(self.context.params, "consensus_params", None)
         setup_params = cast(BaseParams, self.context.params).setup_params
         self.round_sequence.setup(
             BaseSynchronizedData(
@@ -447,7 +441,6 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
                     cross_period_persisted_keys=self.abci_app_cls.cross_period_persisted_keys,
                 )
             ),
-            consensus_params,
             self.context.logger,
         )
         self.initial_tm_configs = dict.fromkeys(self.synchronized_data.all_participants)

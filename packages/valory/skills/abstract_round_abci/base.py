@@ -398,30 +398,6 @@ class BlockBuilder:
         )
 
 
-class ConsensusParams:
-    """Represent the consensus parameters."""
-
-    def __init__(self, max_participants: int):
-        """Initialize the consensus parameters."""
-        self._max_participants = max_participants
-
-    @property
-    def max_participants(self) -> int:
-        """Get the maximum number of participants."""
-        return self._max_participants
-
-    @property
-    def consensus_threshold(self) -> int:
-        """Get the consensus threshold."""
-        return consensus_threshold(self.max_participants)
-
-    def __eq__(self, other: Any) -> bool:
-        """Check equality."""
-        if not isinstance(other, ConsensusParams):
-            return NotImplemented
-        return self.max_participants == other.max_participants
-
-
 class AbciAppDB:
     """Class to represent all data replicated across agents.
 
@@ -977,11 +953,9 @@ class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
     def __init__(
         self,
         synchronized_data: BaseSynchronizedData,
-        consensus_params: ConsensusParams,
         previous_round_payload_class: Optional[Type[BaseTxPayload]] = None,
     ) -> None:
         """Initialize the round."""
-        self._consensus_params = consensus_params
         self._synchronized_data = synchronized_data
         self.block_confirmations = 0
         self._previous_round_payload_class = previous_round_payload_class
@@ -1189,11 +1163,6 @@ class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
         except ABCIAppException:
             return False
         return True
-
-    @property
-    def consensus_threshold(self) -> int:
-        """Consensus threshold"""
-        return self._consensus_params.consensus_threshold
 
     @abstractmethod
     def check_payload(self, payload: BaseTxPayload) -> None:
@@ -2105,7 +2074,6 @@ class AbciApp(
     def __init__(
         self,
         synchronized_data: BaseSynchronizedData,
-        consensus_params: ConsensusParams,
         logger: logging.Logger,
     ):
         """Initialize the AbciApp."""
@@ -2114,7 +2082,6 @@ class AbciApp(
         synchronized_data = synchronized_data_class(db=synchronized_data.db)
 
         self._initial_synchronized_data = synchronized_data
-        self.consensus_params = consensus_params
         self.logger = logger
 
         self._current_round_cls: Optional[AppState] = None
@@ -2225,7 +2192,6 @@ class AbciApp(
             self.background_round_cls = cast(AppState, self.background_round_cls)
             self._background_round = self.background_round_cls(
                 self._initial_synchronized_data,
-                self.consensus_params,
             )
 
     def _log_start(self) -> None:
@@ -2286,7 +2252,6 @@ class AbciApp(
         self._current_round_cls = round_cls
         self._current_round = round_cls(
             self.synchronized_data,
-            self.consensus_params,
             (
                 self._last_round.payload_class
                 if self._last_round is not None
