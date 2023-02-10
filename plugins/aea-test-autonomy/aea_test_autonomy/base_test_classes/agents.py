@@ -319,6 +319,8 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
         :return: tuple with two lists of missed strings, the strict and the round respectively.
         """
         # Call the original method with the strict checks.
+        if len(strict_check_strings) == 0:
+            logging.warning("No strict check strings provided.")
         kwargs["strings"] = strict_check_strings
         kwargs["is_terminating"] = False
         missing_strict_strings = super().missing_from_output(**kwargs)
