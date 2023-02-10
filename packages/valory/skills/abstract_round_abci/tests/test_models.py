@@ -81,6 +81,37 @@ BASE_DUMMY_SPECS_CONFIG = dict(
     parameters=OrderedDict([("Dummy-Param", "dummy_param")]),
 )
 
+BASE_DUMMY_PARAMS = dict(
+    name="",
+    skill_context=MagicMock(is_abstract_component=True),
+    setup={},
+    tendermint_url="",
+    max_healthcheck=1,
+    round_timeout_seconds=1.0,
+    sleep_time=1,
+    retry_timeout=1,
+    retry_attempts=1,
+    observation_interval=MIN_OBSERVATION_INTERVAL,
+    drand_public_key="",
+    tendermint_com_url="",
+    reset_tendermint_after=1,
+    service_id="abstract_round_abci",
+    service_registry_address="0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0",
+    keeper_timeout=1.0,
+    tendermint_check_sleep_delay=3,
+    tendermint_max_retries=5,
+    cleanup_history_depth=0,
+    genesis_config=irrelevant_genesis_config,
+    cleanup_history_depth_current=None,
+    request_timeout=0.0,
+    request_retry_delay=0.0,
+    tx_timeout=0.0,
+    max_attempts=0,
+    on_chain_service_id=None,
+    share_tm_config_on_startup=False,
+    tendermint_p2p_url="",
+)
+
 
 class TestApiSpecsModel:
     """Test ApiSpecsModel."""
@@ -514,37 +545,7 @@ def test_requests_model_initialization() -> None:
 
 def test_base_params_model_initialization() -> None:
     """Test initialization of the 'BaseParams(Model)' class."""
-    kwargs = dict(
-        name="",
-        skill_context=MagicMock(),
-        setup={},
-        consensus=dict(max_participants=1),
-        tendermint_url="",
-        max_healthcheck=1,
-        round_timeout_seconds=1.0,
-        sleep_time=1,
-        retry_timeout=1,
-        retry_attempts=1,
-        observation_interval=MIN_OBSERVATION_INTERVAL,
-        drand_public_key="",
-        tendermint_com_url="",
-        reset_tendermint_after=1,
-        service_id="abstract_round_abci",
-        service_registry_address="0xa51c1fc2f0d1a1b8494ed1fe312d7c3a78ed91c0",
-        keeper_timeout=1.0,
-        tendermint_check_sleep_delay=3,
-        tendermint_max_retries=5,
-        cleanup_history_depth=0,
-        genesis_config=irrelevant_genesis_config,
-        cleanup_history_depth_current=None,
-        request_timeout=0.0,
-        request_retry_delay=0.0,
-        tx_timeout=0.0,
-        max_attempts=0,
-        on_chain_service_id=None,
-        share_tm_config_on_startup=False,
-        tendermint_p2p_url="",
-    )
+    kwargs = BASE_DUMMY_PARAMS.copy()
     bp = BaseParams(**kwargs)
 
     with pytest.raises(AttributeError, match="This object is frozen!"):
@@ -558,11 +559,36 @@ def test_base_params_model_initialization() -> None:
 
     assert getattr(bp, "request_timeout", None) is None
 
+    kwargs["skill_context"] = MagicMock(is_abstract_component=False)
+    required_setup_params = {
+        "safe_contract_address",
+        "all_participants",
+        "consensus_threshold",
+    }
+    kwargs["setup"] = {setup_param: [] for setup_param in required_setup_params}
+    BaseParams(**kwargs)
+
+
+@pytest.mark.parametrize(
+    "setup, error_text",
+    (
+        ({}, "`setup` params contain no values!"),
+        (
+            {"a": "b"},
+            "Value for `safe_contract_address` missing from the `setup` params.",
+        ),
+    ),
+)
+def test_incorrect_setup(setup: Dict[str, Any], error_text: str) -> None:
+    """Test BaseParams model initialization with incorrect setup data."""
+    kwargs = BASE_DUMMY_PARAMS.copy()
+
     with pytest.raises(
-        TypeError,
-        match="Value `b` in `setup` set in `models.params.args` of `skill.yaml` of .* is not a list",
+        AEAEnforceError,
+        match=error_text,
     ):
-        kwargs["setup"] = {"a": "b"}
+        kwargs["skill_context"] = MagicMock(is_abstract_component=False)
+        kwargs["setup"] = setup
         BaseParams(**kwargs)
 
     with pytest.raises(
