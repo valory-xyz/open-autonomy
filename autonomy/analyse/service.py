@@ -21,8 +21,9 @@
 """Tools for analysing the service for deployment readiness"""
 
 import logging
+import re
 from pathlib import Path
-from typing import Dict, Set
+from typing import Dict, Set, cast
 
 from aea.configurations.base import AgentConfig
 from aea.configurations.data_types import (
@@ -66,8 +67,8 @@ LEDGER_CONNECTION_SCHEMA = {
             "properties": {
                 "ledger_apis": {
                     "type": "object",
-                    "patternProperties": {
-                        "^(ethereum|fetchai|cosmos)$": {
+                    "properties": {
+                        "ethereum": {
                             "type": "object",
                             "required": [
                                 "address",
@@ -133,6 +134,9 @@ ABCI_SKILL_SCHEMA = {
 
 ABCI = "abci"
 LEDGER = "ledger"
+
+
+UNKNOWN_LEDGER_RE = re.compile(r".*\'([a-z_]+)\' was unexpected")
 
 ABCI_CONNECTION_VALIDATOR = Draft4Validator(schema=ABCI_CONNECTION_SCHEMA)
 LEDGER_CONNECTION_VALIDATOR = Draft4Validator(schema=LEDGER_CONNECTION_SCHEMA)
@@ -260,12 +264,25 @@ class ServiceAnalyser:
             component_id.component_type == ComponentType.CONNECTION
             and component_id.name == LEDGER
         ):
-            cls._validate_override(
-                validator=LEDGER_CONNECTION_VALIDATOR,
-                overrides=override,
-                has_multiple_overrides=has_multiple_overrides,
-                error_message="Ledger connection validation failed; {error}",
-            )
+            try:
+                cls._validate_override(
+                    validator=LEDGER_CONNECTION_VALIDATOR,
+                    overrides=override,
+                    has_multiple_overrides=has_multiple_overrides,
+                    error_message="Ledger connection validation failed; {error}",
+                )
+            except ServiceValidationFailed as e:
+                (msg, *_) = e.args
+                unknown_ledger_match = UNKNOWN_LEDGER_RE.match(msg)
+                if unknown_ledger_match is None:
+                    raise
+
+                (unknown_ledger,) = cast(
+                    re.Match, UNKNOWN_LEDGER_RE.match(msg)
+                ).groups()
+                logging.warning(
+                    f"Unknown ledger configuration found with name `{unknown_ledger}`"
+                )
 
     def validate_agent_overrides(self, agent_config: AgentConfig) -> None:
         """Check required overrides."""

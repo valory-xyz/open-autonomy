@@ -19,6 +19,7 @@
 
 """Test `autonomy analyse service` command"""
 
+import logging
 from copy import deepcopy
 from typing import Any, Dict, List, Tuple
 from unittest import mock
@@ -316,27 +317,25 @@ class TestCheckRequiredOverrides(BaseAnalyseServiceTest):
             in result.stderr
         )
 
-    def test_ledger_connection_unknown_ledger_defined(self) -> None:
+    def test_ledger_connection_unknown_ledger_defined(self, caplog: Any) -> None:
         """Test successful run."""
 
         connection_config = get_dummy_overrides_ledger_connection()
-        connection_config["config"]["ledger_apis"]["ethereum_1"] = connection_config[
+        connection_config["config"]["ledger_apis"]["solana"] = connection_config[
             "config"
-        ]["ledger_apis"].pop("ethereum")
+        ]["ledger_apis"]["ethereum"]
 
         with self.patch_service_loader(
             data=[get_dummy_service_config(), connection_config]
         ), self.patch_ipfs_tool([]), self.patch_agent_loader(
             data=[get_dummy_agent_config()]
+        ), caplog.at_level(
+            logging.WARN
         ):
             result = self.run_cli(commands=(str(self.t),))
 
         assert result.exit_code == 1, result.stdout
-        assert (
-            "Error: Ledger connection validation failed; "
-            "'ethereum_1' does not match any of the regexes: '^(ethereum|fetchai|cosmos)$'"
-            in result.stderr
-        )
+        assert "Unknown ledger configuration found with name `solana`" in caplog.text
 
     def test_ledger_connection_param_not_defined(self) -> None:
         """Test successful run."""
