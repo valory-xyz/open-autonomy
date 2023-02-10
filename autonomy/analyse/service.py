@@ -22,8 +22,6 @@
 
 import logging
 import re
-from copy import deepcopy
-from pathlib import Path
 from typing import Dict, Optional, Set, cast
 
 from aea.configurations.base import AgentConfig, SkillConfig

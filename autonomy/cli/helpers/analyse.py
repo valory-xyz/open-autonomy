@@ -25,12 +25,7 @@ from typing import List, Optional, Set, cast
 
 import click
 from aea.components.base import load_aea_package
-from aea.configurations.base import (
-    AgentConfig,
-    PACKAGE_TYPE_TO_CONFIG_CLASS,
-    PackageConfiguration,
-    SkillConfig,
-)
+from aea.configurations.base import AgentConfig, PackageConfiguration, SkillConfig
 from aea.configurations.constants import (
     DEFAULT_SKILL_CONFIG_FILE,
     PACKAGE_TYPE_TO_CONFIG_FILE,
@@ -40,7 +35,6 @@ from aea.configurations.data_types import (
     ComponentType,
     PackageId,
     PackageType,
-    PublicId,
 )
 from aea.configurations.loader import load_configuration_object
 from aea.package_manager.v1 import PackageManagerV1
@@ -100,14 +94,14 @@ def run_dialogues_check(
         raise click.ClickException(str(e))
 
 
-def _get_content_from_ipfs(package_id: PackageId, file: str) -> str:
+def _get_content_from_ipfs(package_id: PackageId, file: str) -> bytes:
     """Read content from the IPFS registry."""
     try:
         ipfs_tool = IPFSTool()
         return ipfs_tool.client.cat(
             f"{package_id.package_hash}/{package_id.name}/{file}"
         )
-    except Exception as e:  # pylint: disable=broad-exception
+    except Exception as e:
         raise click.ClickException(
             "Fetching content from the IPFS registry failed"
             f"\n\tPackage: {package_id}\n\tFile: {file}\n\tError: {e}"
@@ -145,6 +139,8 @@ def _get_chained_abci_skill(
     is_on_chain_check: bool = False,
 ) -> Optional[SkillConfig]:
     """
+    Get chained ABCI skill config
+
     This method cycles through the component overrides defined inside an agent package
     and tries to find out the chained ABCI app.
 
@@ -200,8 +196,8 @@ def _get_ipfs_pins(is_on_chain_check: bool = False) -> Set[str]:
         if not ipfs_tool.daemon.is_started():
             raise click.ClickException("Cannot connect to the IPFS daemon.")
         return ipfs_tool.all_pins()
-    else:
-        return set()
+
+    return set()
 
 
 def _get_service_hash(service_id: PackageId, package_manager: PackageManagerV1) -> str:
@@ -269,7 +265,7 @@ def check_service_readiness(
 
     if skill_config is None:
         raise click.ClickException(
-            f"Please make sure the agent package configuration contains overrides for the chained ABCI app"
+            "Please make sure the agent package configuration contains overrides for the chained ABCI app"
         )
 
     try:
@@ -281,7 +277,7 @@ def check_service_readiness(
         service_analyser.check_on_chain_state(
             ledger_api=ledger_api,
             chain_type=chain_type,
-            token_id=token_id,
+            token_id=cast(int, token_id),
         )
         service_analyser.validate_service_overrides()
         service_analyser.validate_agent_overrides(agent_config=agent_config)
