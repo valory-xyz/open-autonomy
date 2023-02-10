@@ -520,7 +520,7 @@ class AbciAppDB:
     def __init__(
         self,
         setup_data: Dict[str, List[Any]],
-        cross_period_persisted_keys: Optional[List[str]] = None,
+        cross_period_persisted_keys: Optional[Set[str]] = None,
     ) -> None:
         """Initialize the AbciApp database.
 
@@ -533,10 +533,10 @@ class AbciAppDB:
         """
         AbciAppDB._check_data(setup_data)
         self._setup_data = deepcopy(setup_data)
-        self._cross_period_persisted_keys = (
+        self._cross_period_persisted_keys: Set[str] = (
             cross_period_persisted_keys.copy()
             if cross_period_persisted_keys is not None
-            else []
+            else set()
         )
         self._data: Dict[int, Dict[str, List[Any]]] = {
             RESET_COUNT_START: self.setup_data  # the key represents the reset index
@@ -584,7 +584,7 @@ class AbciAppDB:
         self._round_count = round_count
 
     @property
-    def cross_period_persisted_keys(self) -> List[str]:
+    def cross_period_persisted_keys(self) -> Set[str]:
         """Keys in the database which are persistent across periods."""
         return self._cross_period_persisted_keys.copy()
 
@@ -747,12 +747,12 @@ class BaseSynchronizedData:
     # * `period_count` comes from the `reset_index` which is the last key of the `self._data`.
     #    The `self._data` keys are only updated on create, and cleanup operations,
     #    which are also meant to be synchronized since they are used at the rounds.
-    default_db_keys: List[str] = [
+    default_db_keys: Set[str] = {
         "round_count",
         "period_count",
         "nb_participants",
         "safe_contract_address",
-    ]
+    }
 
     def __init__(
         self,
@@ -2015,14 +2015,14 @@ class _MetaAbciApp(ABCMeta):
             len(all_pre_conditions.intersection(all_post_conditions)) == 0,
             "db pre and post conditions intersect",
         )
-        intersection = set(abci_app_cls.default_db_preconditions).intersection(
+        intersection = abci_app_cls.default_db_preconditions.intersection(
             all_pre_conditions
         )
         enforce(
             len(intersection) == 0,
             f"db pre conditions contain value that is a default pre condition: {intersection}",
         )
-        intersection = set(abci_app_cls.default_db_preconditions).intersection(
+        intersection = abci_app_cls.default_db_preconditions.intersection(
             all_post_conditions
         )
         enforce(
@@ -2082,13 +2082,13 @@ class AbciApp(
     transition_function: AbciAppTransitionFunction
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
-    cross_period_persisted_keys: List[str] = ["safe_contract_address"]
+    cross_period_persisted_keys: Set[str] = {"safe_contract_address"}
     background_round_cls: Optional[AppState] = None
     termination_transition_function: Optional[AbciAppTransitionFunction] = None
     termination_event: Optional[EventType] = None
-    default_db_preconditions: List[str] = BaseSynchronizedData.default_db_keys
-    db_pre_conditions: Dict[AppState, List[str]] = {}
-    db_post_conditions: Dict[AppState, List[str]] = {}
+    default_db_preconditions: Set[str] = BaseSynchronizedData.default_db_keys
+    db_pre_conditions: Dict[AppState, Set[str]] = {}
+    db_post_conditions: Dict[AppState, Set[str]] = {}
     _is_abstract: bool = True
 
     def __init__(
@@ -2139,11 +2139,9 @@ class AbciApp(
         cls.termination_transition_function = termination_abci_app.transition_function
         cls.termination_event = termination_event
         new_cross_period_persisted_keys = copy(cls.cross_period_persisted_keys)
-        new_cross_period_persisted_keys.extend(
+        cls.cross_period_persisted_keys = new_cross_period_persisted_keys.union(
             termination_abci_app.cross_period_persisted_keys
         )
-        new_cross_period_persisted_keys = list(set(new_cross_period_persisted_keys))
-        cls.cross_period_persisted_keys = new_cross_period_persisted_keys
         return cls
 
     @property

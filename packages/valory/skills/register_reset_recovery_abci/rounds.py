@@ -19,7 +19,7 @@
 """This module contains the round classes for register reset recovery."""
 
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Type, cast
+from typing import Dict, List, Optional, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -91,4 +91,4 @@ class RoundCountAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
     }
-    db_pre_conditions: Dict[AppState, List[str]] = {RoundCountRound: []}
+    db_pre_conditions: Dict[AppState, Set[str]] = {RoundCountRound: set()}

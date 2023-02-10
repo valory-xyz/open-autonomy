@@ -31,7 +31,7 @@ class AbciApp(
     transition_function: AbciAppTransitionFunction
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
-    cross_period_persisted_keys: List[str] = ["safe_contract_address"]
+    cross_period_persisted_keys: Set[str] = {"safe_contract_address"}
 
     def __init__(
         self,
@@ -104,14 +104,14 @@ class MyAbciApp(AbciApp):
         Event.ROUND_TIMEOUT: 30.0,
     }
     db_pre_conditions: Dict[AppState, List[str]] = {
-        RoundA: [
+        RoundA: {
             get_name(BaseSynchronizedData.required_value),
-        ],
+        },
     }
     db_post_conditions: Dict[AppState, List[str]] = {
-        FinalRound: [
+        FinalRound: {
             get_name(BaseSynchronizedData.generated_value),
-        ],
+        },
     }
     # ...
 ```
