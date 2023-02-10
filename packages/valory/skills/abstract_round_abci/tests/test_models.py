@@ -386,7 +386,9 @@ class TestSharedState:
 
     def test_setup(self, *_: Any) -> None:
         """Test setup method."""
-        shared_state = SharedState(name="", skill_context=MagicMock())
+        shared_state = SharedState(
+            name="", skill_context=MagicMock(is_abstract_component=False)
+        )
         assert shared_state.initial_tm_configs == {}
         self.dummy_state_setup(shared_state)
         assert shared_state.initial_tm_configs == {i: None for i in range(4)}

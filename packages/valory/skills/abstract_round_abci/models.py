@@ -443,7 +443,10 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
             ),
             self.context.logger,
         )
-        self.initial_tm_configs = dict.fromkeys(self.synchronized_data.all_participants)
+        if not self.context.is_abstract_component:
+            self.initial_tm_configs = dict.fromkeys(
+                self.synchronized_data.all_participants
+            )
 
     @property
     def round_sequence(self) -> RoundSequence:
