@@ -14,24 +14,6 @@ def get_name(prop: Any) -> str
 
 Get the name of a property.
 
-<a id="packages.valory.skills.abstract_round_abci.base.consensus_threshold"></a>
-
-#### consensus`_`threshold
-
-```python
-def consensus_threshold(nb: int) -> int
-```
-
-Get consensus threshold.
-
-**Arguments**:
-
-- `nb`: the number of participants
-
-**Returns**:
-
-the consensus threshold
-
 <a id="packages.valory.skills.abstract_round_abci.base.ABCIAppException"></a>
 
 ## ABCIAppException Objects
@@ -517,58 +499,6 @@ def get_block() -> Block
 
 Get the block.
 
-<a id="packages.valory.skills.abstract_round_abci.base.ConsensusParams"></a>
-
-## ConsensusParams Objects
-
-```python
-class ConsensusParams()
-```
-
-Represent the consensus parameters.
-
-<a id="packages.valory.skills.abstract_round_abci.base.ConsensusParams.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(max_participants: int)
-```
-
-Initialize the consensus parameters.
-
-<a id="packages.valory.skills.abstract_round_abci.base.ConsensusParams.max_participants"></a>
-
-#### max`_`participants
-
-```python
-@property
-def max_participants() -> int
-```
-
-Get the maximum number of participants.
-
-<a id="packages.valory.skills.abstract_round_abci.base.ConsensusParams.consensus_threshold"></a>
-
-#### consensus`_`threshold
-
-```python
-@property
-def consensus_threshold() -> int
-```
-
-Get the consensus threshold.
-
-<a id="packages.valory.skills.abstract_round_abci.base.ConsensusParams.__eq__"></a>
-
-#### `__`eq`__`
-
-```python
-def __eq__(other: Any) -> bool
-```
-
-Check equality.
-
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB"></a>
 
 ## AbciAppDB Objects
@@ -996,6 +926,28 @@ def all_participants() -> FrozenSet[str]
 
 Get all registered participants.
 
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.max_participants"></a>
+
+#### max`_`participants
+
+```python
+@property
+def max_participants() -> int
+```
+
+Get the number of all the participants.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.consensus_threshold"></a>
+
+#### consensus`_`threshold
+
+```python
+@property
+def consensus_threshold() -> int
+```
+
+Get the consensus threshold.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.sorted_participants"></a>
 
 #### sorted`_`participants
@@ -1206,7 +1158,6 @@ Optionally, round_id can be defined, although it is recommended to use the autog
 ```python
 def __init__(
     synchronized_data: BaseSynchronizedData,
-    consensus_params: ConsensusParams,
     previous_round_payload_class: Optional[Type[BaseTxPayload]] = None
 ) -> None
 ```
@@ -1330,9 +1281,7 @@ applied to the current state.
 #### check`_`majority`_`possible`_`with`_`new`_`voter
 
 ```python
-@classmethod
 def check_majority_possible_with_new_voter(
-        cls,
         votes_by_participant: Dict[str, BaseTxPayload],
         new_voter: str,
         new_vote: BaseTxPayload,
@@ -1361,9 +1310,7 @@ check fails.
 #### check`_`majority`_`possible
 
 ```python
-@classmethod
 def check_majority_possible(
-        cls,
         votes_by_participant: Dict[str, BaseTxPayload],
         nb_participants: int,
         exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
@@ -1404,8 +1351,7 @@ check fails.
 #### is`_`majority`_`possible
 
 ```python
-@classmethod
-def is_majority_possible(cls, votes_by_participant: Dict[str, BaseTxPayload],
+def is_majority_possible(votes_by_participant: Dict[str, BaseTxPayload],
                          nb_participants: int) -> bool
 ```
 
@@ -1419,17 +1365,6 @@ Return true if a Byzantine majority is achievable, false otherwise.
 **Returns**:
 
 True if the majority is still possible, false otherwise.
-
-<a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.consensus_threshold"></a>
-
-#### consensus`_`threshold
-
-```python
-@property
-def consensus_threshold() -> int
-```
-
-Consensus threshold
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.check_payload"></a>
 
@@ -2139,8 +2074,7 @@ Concrete classes of this class implement the ABCI App.
 #### `__`init`__`
 
 ```python
-def __init__(synchronized_data: BaseSynchronizedData,
-             consensus_params: ConsensusParams, logger: logging.Logger)
+def __init__(synchronized_data: BaseSynchronizedData, logger: logging.Logger)
 ```
 
 Initialize the AbciApp.
