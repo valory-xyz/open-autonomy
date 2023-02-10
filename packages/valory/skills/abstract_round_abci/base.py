@@ -733,6 +733,7 @@ class BaseSynchronizedData:
         "round_count",
         "period_count",
         "nb_participants",
+        "max_participants",
         "safe_contract_address",
     }
 
