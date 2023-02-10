@@ -1121,45 +1121,14 @@ class TestAbstractRound:
     def test_auto_round_id(self) -> None:
         """Test that the 'auto_round_id()' method works as expected."""
 
-        class MyConcreteRound(AbstractRound):
-
-            payload_class = MagicMock()
-            synchronized_data_class = MagicMock()
-            payload_attribute = MagicMock()
-
-            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
-                pass
-
-            def check_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
-            def process_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
-        assert MyConcreteRound.auto_round_id() == "my_concrete_round"
+        assert DummyConcreteRound.auto_round_id() == "dummy_concrete_round"
 
     def test_must_not_set_round_id(self) -> None:
         """Test that the 'round_id' must be set in concrete classes."""
 
-        class MyConcreteRound(AbstractRound):
-            # here round_id is missing
-            # ...
-            payload_class = MagicMock()
-            synchronized_data_class = MagicMock()
-            payload_attribute = MagicMock()
-
-            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
-                pass
-
-            def check_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
-            def process_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
         # no exception as round id is auto-assigned
-        my_concrete_round = MyConcreteRound(MagicMock())
-        assert my_concrete_round.round_id == "my_concrete_round"
+        my_concrete_round = DummyConcreteRound(MagicMock())
+        assert my_concrete_round.round_id == "dummy_concrete_round"
 
     def test_must_set_payload_class_type(self) -> None:
         """Test that the 'payload_class' must be set in concrete classes."""
@@ -1177,20 +1146,10 @@ class TestAbstractRound:
     def test_check_payload_type_with_previous_round_transaction(self) -> None:
         """Test check 'check_payload_type'."""
 
-        class MyConcreteRound(AbstractRound):
+        class MyConcreteRound(DummyConcreteRound):
+            """A concrete round with the payload class defined."""
 
             payload_class = BaseTxPayload
-            synchronized_data_class = MagicMock()
-            payload_attribute = MagicMock()
-
-            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
-                pass
-
-            def check_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
-            def process_payload(self, payload: BaseTxPayload) -> None:
-                pass
 
         with pytest.raises(LateArrivingTransaction):
             MyConcreteRound(MagicMock(), BaseTxPayload).check_payload_type(
@@ -1200,26 +1159,11 @@ class TestAbstractRound:
     def test_check_payload_type(self) -> None:
         """Test check 'check_payload_type'."""
 
-        class MyConcreteRound(AbstractRound):
-
-            payload_class = None
-            synchronized_data_class = MagicMock()
-            payload_attribute = MagicMock()
-
-            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
-                pass
-
-            def check_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
-            def process_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
         with pytest.raises(
             TransactionTypeNotRecognizedError,
             match="current round does not allow transactions",
         ):
-            MyConcreteRound(MagicMock()).check_payload_type(MagicMock())
+            DummyConcreteRound(MagicMock()).check_payload_type(MagicMock())
 
     def test_synchronized_data_getter(self) -> None:
         """Test 'synchronized_data' property getter."""
