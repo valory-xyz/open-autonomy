@@ -22,10 +22,11 @@
 
 import logging
 import re
+from copy import deepcopy
 from pathlib import Path
-from typing import Dict, Set, cast
+from typing import Dict, Optional, Set, cast
 
-from aea.configurations.base import AgentConfig
+from aea.configurations.base import AgentConfig, SkillConfig
 from aea.configurations.data_types import (
     ComponentId,
     ComponentType,
@@ -34,14 +35,15 @@ from aea.configurations.data_types import (
 )
 from aea.crypto.base import LedgerApi
 from aea.helpers.cid import to_v0
+from aea.helpers.logging import setup_logger
 from jsonschema.exceptions import ValidationError
 from jsonschema.validators import Draft4Validator
+from requests.exceptions import ConnectionError as RequestConnectionError
 
 from autonomy.chain.base import ServiceState
 from autonomy.chain.config import ChainType
 from autonomy.chain.service import get_service_info
 from autonomy.configurations.base import Service
-from autonomy.configurations.loader import load_service_config
 
 
 ABCI_CONNECTION_SCHEMA = {
@@ -132,15 +134,58 @@ ABCI_SKILL_SCHEMA = {
     "required": ["models"],
 }
 
+ABCI_SKILL_MODEL_PARAMS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "setup": {
+            "type": "object",
+            "required": [
+                "safe_contract_address",
+                "all_participants",
+            ],
+        }
+    },
+    "required": [
+        "genesis_config",
+        "service_id",
+        "tendermint_url",
+        "max_healthcheck",
+        "round_timeout_seconds",
+        "sleep_time",
+        "retry_timeout",
+        "retry_attempts",
+        "keeper_timeout",
+        "observation_interval",
+        "drand_public_key",
+        "tendermint_com_url",
+        "tendermint_max_retries",
+        "tendermint_check_sleep_delay",
+        "reset_tendermint_after",
+        "consensus",
+        "cleanup_history_depth",
+        "cleanup_history_depth_current",
+        "request_timeout",
+        "request_retry_delay",
+        "tx_timeout",
+        "max_attempts",
+        "service_registry_address",
+        "on_chain_service_id",
+        "share_tm_config_on_startup",
+        "tendermint_p2p_url",
+        "setup",
+    ],
+}
+
 ABCI = "abci"
 LEDGER = "ledger"
 
-
 UNKNOWN_LEDGER_RE = re.compile(r".*\'([a-z_]+)\' was unexpected")
-
 ABCI_CONNECTION_VALIDATOR = Draft4Validator(schema=ABCI_CONNECTION_SCHEMA)
 LEDGER_CONNECTION_VALIDATOR = Draft4Validator(schema=LEDGER_CONNECTION_SCHEMA)
 ABCI_SKILL_VALIDATOR = Draft4Validator(schema=ABCI_SKILL_SCHEMA)
+ABCI_SKILL_MODEL_PARAMS_VALIDATOR = Draft4Validator(
+    schema=ABCI_SKILL_MODEL_PARAMS_SCHEMA
+)
 
 
 class ServiceValidationFailed(Exception):
@@ -150,34 +195,42 @@ class ServiceValidationFailed(Exception):
 class ServiceAnalyser:
     """Tools to analyse a service"""
 
-    def __init__(self, service_path: Path) -> None:
+    def __init__(
+        self,
+        service_config: Service,
+        is_on_chain_check: bool = False,
+        logger: Optional[logging.Logger] = None,
+    ) -> None:
         """Initialise object."""
 
-        self.service_config = load_service_config(service_path=service_path)
+        self.service_config = service_config
+        self.is_on_chain_check = is_on_chain_check
+        self.logger = logger or setup_logger(name="ServiceAnalyser")
 
-    @staticmethod
     def check_on_chain_state(
+        self,
         ledger_api: LedgerApi,
         chain_type: ChainType,
         token_id: int,
     ) -> None:
         """Check on-chain state of a service."""
+        if not self.is_on_chain_check:
+            return
 
-        (*_, service_state, _) = get_service_info(
-            ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
-        )
-
-        if ServiceState(service_state) != ServiceState.DEPLOYED:
-            raise ServiceValidationFailed(
-                "Service needs to be in deployed state on-chain"
+        self.logger.info("Checking if the service is deployed on-chain")
+        try:
+            (*_, _service_state, _) = get_service_info(
+                ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
             )
-
-    def check_agent_package_published(self, ipfs_pins: Set[str]) -> None:
-        """Check if the agent package is published or not"""
-
-        if to_v0(self.service_config.agent.hash) not in ipfs_pins:
+        except RequestConnectionError as e:
             raise ServiceValidationFailed(
-                f"Agent package for service {self.service_config.public_id} not published on the IPFS registry"
+                "On chain service validation failed, could not connect to the RPC"
+            ) from e
+
+        service_state = ServiceState(_service_state)
+        if service_state != ServiceState.DEPLOYED:
+            self.logger.warning(
+                f"Service needs to be in deployed state on-chain; Current state={service_state}"
             )
 
     def check_agent_dependencies_published(
@@ -185,6 +238,10 @@ class ServiceAnalyser:
     ) -> None:
         """Check if the agent package is published or not"""
 
+        if not self.is_on_chain_check:
+            return
+
+        self.logger.info("Checking if agent dependencies are published")
         for dependency in agent_config.package_dependencies:
             if to_v0(dependency.package_hash) not in ipfs_pins:
                 raise ServiceValidationFailed(
@@ -192,13 +249,13 @@ class ServiceAnalyser:
                     f"\n\tagent: {self.service_config.agent.without_hash()}"
                     f"\n\tpackage: {dependency}"
                 )
-            logging.info(
+            self.logger.info(
                 f"\t{dependency.public_id.without_hash()} of type {dependency.package_type} is present"
             )
 
-    def verify_overrides(self, agent_config: AgentConfig) -> None:
+    def cross_verify_overrides(self, agent_config: AgentConfig) -> None:
         """Cross verify overrides between service config and agent config"""
-
+        self.logger.info("Cross verifying overrides between agent and service")
         agent_overrides = set(agent_config.component_configurations)
         service_overrides = {
             PackageId(
@@ -284,9 +341,22 @@ class ServiceAnalyser:
                     f"Unknown ledger configuration found with name `{unknown_ledger}`"
                 )
 
+    def validate_skill_config(self, skill_config: SkillConfig) -> None:
+        """Check required overrides."""
+
+        self.logger.info("Validating skill overrides")
+        model_params = skill_config.models.read("params")
+        self._validate_override(
+            validator=ABCI_SKILL_MODEL_PARAMS_VALIDATOR,
+            overrides=model_params.args,
+            has_multiple_overrides=False,
+            error_message="ABCI skill model parameter validation failed; {error}",
+        )
+
     def validate_agent_overrides(self, agent_config: AgentConfig) -> None:
         """Check required overrides."""
 
+        self.logger.info("Validating agent overrides")
         for (
             component_id,
             component_config,
@@ -299,6 +369,8 @@ class ServiceAnalyser:
 
     def validate_service_overrides(self) -> None:
         """Check required overrides."""
+
+        self.logger.info("Validating service overrides")
         for _component_config in self.service_config.overrides:
             (
                 component_config,
