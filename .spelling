@@ -216,6 +216,10 @@ scaffolded
 quickstart
 HELLO_WORLD
 Whitepaper
+skill.yaml
+service.yaml
+aea-config.yaml
+yaml
  - docs/index.md
 README.md
 s_

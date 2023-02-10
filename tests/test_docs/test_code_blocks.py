@@ -148,6 +148,7 @@ class TestYamlSnippets(BaseTestDocCode):
     skipped_files = [
         "docs/guides/service_configuration_file.md",
         "docs/demos/price_oracle_fsms.md",
+        "docs/deployment/on-chain_deployment_checklist.md",  # just placeholder examples
     ]
 
 
@@ -195,6 +196,7 @@ class TestPythonSnippets(BaseTestDocCode):
         "docs/demos/price_oracle_fsms.md",  # price oracle has been extracted to a separate repo on #1441
         "docs/demos/price_oracle_technical_details.md",  # price oracle has been extracted to a separate repo on #1441
         "docs/advanced_reference/developer_tooling/benchmarking.md",  # just placeholder examples
+        "docs/deployment/on-chain_deployment_checklist.md",  # just placeholder examples
     ]
 
 
