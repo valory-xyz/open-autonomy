@@ -48,7 +48,7 @@ from py_ecc.bls import G2Basic as bls
 from typing_extensions import Literal, TypeGuard, TypedDict
 
 
-MAX_UINT64 = 2 ** 64 - 1
+MAX_UINT64 = 2**64 - 1
 DEFAULT_TENDERMINT_P2P_PORT = 26656
 
 
@@ -406,7 +406,7 @@ def check_dataclass(value: Any, ty: Type[Any]) -> Result:
     return None
 
 
-def check_typeddict(value: Any, ty: Type[Type[Any]]) -> Result:
+def check_typeddict(value: Any, ty: Type[Any]) -> Result:
     """Check typeddict type."""
     if not isinstance(value, dict):
         return AutonomyTypeError(ty, value)  # pragma: no cover

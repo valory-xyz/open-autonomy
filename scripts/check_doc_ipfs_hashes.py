@@ -240,12 +240,11 @@ class PackageHashManager:
 
 
 def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
-    paths: List[Path] = None, fix: bool = False
+    paths: Optional[List[Path]] = None, fix: bool = False
 ) -> None:
     """Fix ipfs hashes in the docs"""
 
-    if paths is None:
-        paths = [Path("docs")]
+    paths = paths or [Path("docs")]
 
     all_md_files = itertools.chain.from_iterable([path.rglob("*.md") for path in paths])
     errors = False

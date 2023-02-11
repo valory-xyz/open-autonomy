@@ -9,7 +9,7 @@ Integration tests for various transaction settlement skill's failure modes.
 ## IntegrationBaseCase Objects
 
 ```python
-class IntegrationBaseCase(FSMBehaviourBaseCase,  ABC)
+class IntegrationBaseCase(FSMBehaviourBaseCase, ABC)
 ```
 
 Base test class for integration tests.
@@ -51,7 +51,11 @@ Get message from decision maker inbox.
 #### process`_`message`_`cycle
 
 ```python
-def process_message_cycle(handler: Optional[Handler] = None, expected_content: Optional[Dict] = None, expected_types: Optional[Dict] = None, mining_interval_secs: float = 0) -> Optional[Message]
+def process_message_cycle(
+        handler: Optional[Handler] = None,
+        expected_content: Optional[Dict] = None,
+        expected_types: Optional[Dict] = None,
+        mining_interval_secs: float = 0) -> Optional[Message]
 ```
 
 Processes one request-response type message cycle.
@@ -79,13 +83,20 @@ the incoming message
 #### process`_`n`_`messages
 
 ```python
-def process_n_messages(ncycles: int, synchronized_data: Optional[BaseSynchronizedData] = None, behaviour_id: Optional[str] = None, handlers: Optional[HandlersType] = None, expected_content: Optional[ExpectedContentType] = None, expected_types: Optional[ExpectedTypesType] = None, fail_send_a2a: bool = False, mining_interval_secs: float = 0) -> Tuple[Optional[Message], ...]
+def process_n_messages(
+        ncycles: int,
+        synchronized_data: Optional[BaseSynchronizedData] = None,
+        behaviour_id: Optional[str] = None,
+        handlers: Optional[HandlersType] = None,
+        expected_content: Optional[ExpectedContentType] = None,
+        expected_types: Optional[ExpectedTypesType] = None,
+        fail_send_a2a: bool = False,
+        mining_interval_secs: float = 0) -> Tuple[Optional[Message], ...]
 ```
 
 Process n message cycles.
 
 **Arguments**:
-
 
 - `behaviour_id`: the behaviour to fast forward to
 - `ncycles`: the number of message cycles to process
@@ -105,7 +116,7 @@ tuple of incoming messages
 ## HardHatHelperIntegration Objects
 
 ```python
-class HardHatHelperIntegration(IntegrationBaseCase,  ABC)
+class HardHatHelperIntegration(IntegrationBaseCase, ABC)
 ```
 
 Base test class for integration tests with HardHat provider.

@@ -46,7 +46,8 @@ Update the skill configuration file.
 
 ```python
 @classmethod
-def get_actual_abstract_round_abci_package_public_id(cls, ctx: Context) -> Optional[PublicId]
+def get_actual_abstract_round_abci_package_public_id(
+        cls, ctx: Context) -> Optional[PublicId]
 ```
 
 Get abstract round abci pacakge id from the registry.

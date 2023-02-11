@@ -255,7 +255,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             return False
 
         # put service info in the shared state for p2p message handler
-        info: Dict[str, Dict[str, str]] = dict.fromkeys(registered_addresses)
+        info: Dict[str, Dict[str, str]] = {i: {} for i in registered_addresses}
         tm_host, tm_port = parse_tendermint_p2p_url(url=self.params.tendermint_p2p_url)
         validator_config = dict(
             hostname=tm_host,

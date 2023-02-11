@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -476,7 +476,8 @@ class TestTendermintBufferFailing(BaseTendermintServerTest):
     def teardown_class(cls) -> None:
         """Teardown the test."""
         # After the test, the node has hanged. We need to kill it and not stop it.
-        cls.tendermint_node._process.kill()
+        if cls.tendermint_node._process:
+            cls.tendermint_node._process.kill()
         cls.app_context.pop()
         shutil.rmtree(cls.tm_home, ignore_errors=True, onerror=readonly_handler)
 

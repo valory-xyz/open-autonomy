@@ -19,8 +19,7 @@ Event enumeration for the price estimation demo.
 ## SynchronizedData Objects
 
 ```python
-class SynchronizedData(
-    BaseSynchronizedData)
+class SynchronizedData(BaseSynchronizedData)
 ```
 
 Class to represent the synchronized data.
@@ -252,7 +251,8 @@ Get the mapping from participants to checks.
 
 ```python
 @property
-def participant_to_late_messages() -> Mapping[str, SynchronizeLateMessagesPayload]
+def participant_to_late_messages(
+) -> Mapping[str, SynchronizeLateMessagesPayload]
 ```
 
 Get the mapping from participants to checks.
@@ -262,7 +262,7 @@ Get the mapping from participants to checks.
 ## FailedRound Objects
 
 ```python
-class FailedRound(DegenerateRound,  ABC)
+class FailedRound(DegenerateRound, ABC)
 ```
 
 A round that represents that the period failed
@@ -292,9 +292,7 @@ A round that represents transaction signing has finished
 #### end`_`block
 
 ```python
-def end_block() -> Optional[
-        Tuple[BaseSynchronizedData, Enum]
-    ]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -334,7 +332,8 @@ Process the end of the block.
 ## SelectKeeperTransactionSubmissionRoundB Objects
 
 ```python
-class SelectKeeperTransactionSubmissionRoundB(SelectKeeperTransactionSubmissionRoundA)
+class SelectKeeperTransactionSubmissionRoundB(
+        SelectKeeperTransactionSubmissionRoundA)
 ```
 
 A round in which a new keeper is selected for transaction submission
@@ -345,7 +344,7 @@ A round in which a new keeper is selected for transaction submission
 
 ```python
 class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
-    SelectKeeperTransactionSubmissionRoundB)
+        SelectKeeperTransactionSubmissionRoundB)
 ```
 
 A round in which a new keeper is selected for tx submission after a round timeout of the previous keeper
@@ -455,7 +454,7 @@ Check Payload
 ## FinishedTransactionSubmissionRound Objects
 
 ```python
-class FinishedTransactionSubmissionRound(DegenerateRound,  ABC)
+class FinishedTransactionSubmissionRound(DegenerateRound, ABC)
 ```
 
 A round that represents the transition to the ResetAndPauseRound

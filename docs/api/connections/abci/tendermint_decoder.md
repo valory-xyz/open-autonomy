@@ -22,7 +22,8 @@ It translates from Tendermint's ABCI Protobuf messages into the AEA's ABCI proto
 
 ```python
 @classmethod
-def process(cls, message: Request, dialogues: AbciDialogues, counterparty: str) -> Optional[Tuple[AbciMessage, AbciDialogue]]
+def process(cls, message: Request, dialogues: AbciDialogues,
+            counterparty: str) -> Optional[Tuple[AbciMessage, AbciDialogue]]
 ```
 
 Process an ABCI request or response.
@@ -33,7 +34,8 @@ Process an ABCI request or response.
 
 ```python
 @classmethod
-def request_echo(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_echo(cls, request: Request, dialogues: AbciDialogues,
+                 counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode an echo request.
@@ -54,7 +56,8 @@ the AbciMessage request.
 
 ```python
 @classmethod
-def request_flush(cls, _request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_flush(cls, _request: Request, dialogues: AbciDialogues,
+                  counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode a flush request.
@@ -75,7 +78,8 @@ the AbciMessage request.
 
 ```python
 @classmethod
-def request_info(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_info(cls, request: Request, dialogues: AbciDialogues,
+                 counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode a info request.
@@ -96,7 +100,8 @@ the AbciMessage request.
 
 ```python
 @classmethod
-def request_set_option(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_set_option(cls, request: Request, dialogues: AbciDialogues,
+                       counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode a set_option request.
@@ -117,7 +122,8 @@ the AbciMessage request.
 
 ```python
 @classmethod
-def request_init_chain(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_init_chain(cls, request: Request, dialogues: AbciDialogues,
+                       counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode a init_chain request.
@@ -138,7 +144,8 @@ the AbciMessage request.
 
 ```python
 @classmethod
-def request_begin_block(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_begin_block(cls, request: Request, dialogues: AbciDialogues,
+                        counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode a begin_block request.
@@ -159,7 +166,8 @@ the AbciMessage request.
 
 ```python
 @classmethod
-def request_check_tx(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_check_tx(cls, request: Request, dialogues: AbciDialogues,
+                     counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode a check_tx request.
@@ -180,7 +188,8 @@ the AbciMessage request.
 
 ```python
 @classmethod
-def request_deliver_tx(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_deliver_tx(cls, request: Request, dialogues: AbciDialogues,
+                       counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode a deliver_tx request.
@@ -201,7 +210,8 @@ the AbciMessage request.
 
 ```python
 @classmethod
-def request_query(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_query(cls, request: Request, dialogues: AbciDialogues,
+                  counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode a query request.
@@ -222,7 +232,8 @@ the AbciMessage request.
 
 ```python
 @classmethod
-def request_commit(cls, _request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_commit(cls, _request: Request, dialogues: AbciDialogues,
+                   counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode a commit request.
@@ -243,7 +254,8 @@ the AbciMessage request.
 
 ```python
 @classmethod
-def request_end_block(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_end_block(cls, request: Request, dialogues: AbciDialogues,
+                      counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode an end_block request.
@@ -264,7 +276,9 @@ the AbciMessage request.
 
 ```python
 @classmethod
-def request_list_snapshots(cls, _request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_list_snapshots(
+        cls, _request: Request, dialogues: AbciDialogues,
+        counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode a list_snapshots request.
@@ -275,7 +289,9 @@ Decode a list_snapshots request.
 
 ```python
 @classmethod
-def request_offer_snapshot(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_offer_snapshot(
+        cls, request: Request, dialogues: AbciDialogues,
+        counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode a offer_snapshot request.
@@ -286,7 +302,9 @@ Decode a offer_snapshot request.
 
 ```python
 @classmethod
-def request_load_snapshot_chunk(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_load_snapshot_chunk(
+        cls, request: Request, dialogues: AbciDialogues,
+        counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode a load_snapshot_chunk request.
@@ -297,7 +315,9 @@ Decode a load_snapshot_chunk request.
 
 ```python
 @classmethod
-def request_apply_snapshot_chunk(cls, request: Request, dialogues: AbciDialogues, counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
+def request_apply_snapshot_chunk(
+        cls, request: Request, dialogues: AbciDialogues,
+        counterparty: str) -> Tuple[AbciMessage, AbciDialogue]
 ```
 
 Decode a apply_snapshot_chunk request.
@@ -308,7 +328,8 @@ Decode a apply_snapshot_chunk request.
 
 ```python
 @classmethod
-def no_match(cls, _request: Request, _dialogues: AbciDialogues, _counterparty: str) -> None
+def no_match(cls, _request: Request, _dialogues: AbciDialogues,
+             _counterparty: str) -> None
 ```
 
 Handle the case in which the request is not supported.

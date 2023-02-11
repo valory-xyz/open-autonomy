@@ -19,7 +19,12 @@ Tendermint Docker image.
 #### `__`init`__`
 
 ```python
-def __init__(client: docker.DockerClient, abci_host: str = DEFAULT_ABCI_HOST, abci_port: int = DEFAULT_ABCI_PORT, port: int = DEFAULT_TENDERMINT_PORT, p2p_port: int = DEFAULT_P2P_PORT, com_port: int = DEFAULT_TENDERMINT_COM_PORT)
+def __init__(client: docker.DockerClient,
+             abci_host: str = DEFAULT_ABCI_HOST,
+             abci_port: int = DEFAULT_ABCI_PORT,
+             port: int = DEFAULT_TENDERMINT_PORT,
+             p2p_port: int = DEFAULT_P2P_PORT,
+             com_port: int = DEFAULT_TENDERMINT_COM_PORT)
 ```
 
 Initialize.
@@ -89,7 +94,12 @@ Flask app with Tendermint Docker image.
 #### `__`init`__`
 
 ```python
-def __init__(client: docker.DockerClient, abci_host: str = DEFAULT_ABCI_HOST, abci_port: int = DEFAULT_ABCI_PORT, port: int = DEFAULT_TENDERMINT_PORT, p2p_port: int = DEFAULT_P2P_PORT, com_port: int = DEFAULT_TENDERMINT_COM_PORT + 2)
+def __init__(client: docker.DockerClient,
+             abci_host: str = DEFAULT_ABCI_HOST,
+             abci_port: int = DEFAULT_ABCI_PORT,
+             port: int = DEFAULT_TENDERMINT_PORT,
+             p2p_port: int = DEFAULT_P2P_PORT,
+             com_port: int = DEFAULT_TENDERMINT_COM_PORT + 2)
 ```
 
 Initialize.

@@ -54,7 +54,7 @@ base_deps = [
     "open-aea[all]==1.29.0",
     "pandas<1.4,>=1.3.4",
     "watchdog >=2.1.6",
-    "pytest==7.0.0",
+    "pytest==7.2.1",
     "open-aea-ledger-ethereum==1.29.0",
     "docker-compose==1.29.2",
     "werkzeug==2.0.3",

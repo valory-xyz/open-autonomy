@@ -415,7 +415,7 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
         self.abci_app_cls._is_abstract = skill_context.is_abstract_component
         self._round_sequence: Optional[RoundSequence] = None
         # a mapping of the agents' addresses to their initial Tendermint configuration, to be retrieved via ACN
-        self.initial_tm_configs: Dict[str, Dict[str, Any]] = {}
+        self.initial_tm_configs: Dict[str, Optional[Dict[str, Any]]] = {}
         # a mapping of the other agents' addresses to ACN deliverables
         self.address_to_acn_deliverable: Dict[str, Any] = {}
         self.tm_recovery_params: TendermintRecoveryParams = TendermintRecoveryParams(
@@ -543,7 +543,7 @@ class RetriesInfo(TypeCheckMixin):
     @property
     def suggested_sleep_time(self) -> float:
         """The suggested amount of time to sleep."""
-        return self.backoff_factor ** self.retries_attempted
+        return self.backoff_factor**self.retries_attempted
 
 
 @dataclass(frozen=True)

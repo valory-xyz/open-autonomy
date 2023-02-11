@@ -155,7 +155,7 @@ class DummyPayload(BasePayload):
 class TooBigPayload(BaseTxPayload):
     """Base payload class for testing."""
 
-    dummy_field: str = "0" * 10 ** 7
+    dummy_field: str = "0" * 10**7
 
 
 class ObjectImitator:
@@ -1797,7 +1797,7 @@ class TestRoundSequence:
         seconds = 1
         nanoseconds = 1000
         expected_timestamp = datetime.datetime.fromtimestamp(
-            seconds + nanoseconds / 10 ** 9
+            seconds + nanoseconds / 10**9
         )
         self.round_sequence._blockchain.add_block(
             Block(MagicMock(height=1, timestamp=expected_timestamp), [])

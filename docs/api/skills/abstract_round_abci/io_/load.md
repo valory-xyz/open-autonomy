@@ -20,7 +20,8 @@ An abstract `Loader` class.
 
 ```python
 @abstractmethod
-def load_single_object(serialized_object: str) -> NativelySupportedSingleObjectType
+def load_single_object(
+        serialized_object: str) -> NativelySupportedSingleObjectType
 ```
 
 Load a single object.
@@ -58,7 +59,8 @@ A JSON file loader.
 #### load`_`single`_`object
 
 ```python
-def load_single_object(serialized_object: str) -> NativelySupportedSingleObjectType
+def load_single_object(
+        serialized_object: str) -> NativelySupportedSingleObjectType
 ```
 
 Read a json file.

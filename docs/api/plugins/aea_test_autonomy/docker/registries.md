@@ -19,7 +19,10 @@ Spawn a local Ethereum network with deployed registry contracts, using HardHat.
 #### `__`init`__`
 
 ```python
-def __init__(client: docker.DockerClient, addr: str = DEFAULT_HARDHAT_ADDR, port: int = DEFAULT_HARDHAT_PORT, env_vars: Optional[Dict] = None)
+def __init__(client: docker.DockerClient,
+             addr: str = DEFAULT_HARDHAT_ADDR,
+             port: int = DEFAULT_HARDHAT_PORT,
+             env_vars: Optional[Dict] = None)
 ```
 
 Initialize.

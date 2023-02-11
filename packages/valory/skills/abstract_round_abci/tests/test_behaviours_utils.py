@@ -163,6 +163,7 @@ class AsyncBehaviourTest(AsyncBehaviour, ABC):
 
     def async_act(self) -> Generator:
         """Do 'async_act'."""
+        yield None
 
 
 def test_async_behaviour_ticks() -> None:
@@ -361,7 +362,7 @@ def test_async_behaviour_without_yield() -> None:
 
     class MyAsyncBehaviour(AsyncBehaviourTest):
         def async_act_wrapper(self) -> Generator:
-            pass
+            return None  # type: ignore  # need to check design, not sure it's proper case with return None
 
     behaviour = MyAsyncBehaviour()
     behaviour.act()
@@ -422,6 +423,7 @@ class BehaviourATest(BaseBehaviour):
 
     def async_act(self) -> Generator:
         """Do the 'async_act'."""
+        yield None
 
 
 def _get_status_patch_wrapper(

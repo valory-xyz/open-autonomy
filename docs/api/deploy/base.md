@@ -29,7 +29,11 @@ Class to assist with generating deployments.
 #### `__`init`__`
 
 ```python
-def __init__(service: Service, keys: Optional[List[Dict[str, str]]] = None, private_keys_password: Optional[str] = None, agent_instances: Optional[List[str]] = None, apply_environment_variables: bool = False) -> None
+def __init__(service: Service,
+             keys: Optional[List[Dict[str, str]]] = None,
+             private_keys_password: Optional[str] = None,
+             agent_instances: Optional[List[str]] = None,
+             apply_environment_variables: bool = False) -> None
 ```
 
 Initialize the Base Deployment.
@@ -84,7 +88,13 @@ Keys.
 
 ```python
 @classmethod
-def from_dir(cls, path: Path, keys_file: Optional[Path] = None, number_of_agents: Optional[int] = None, private_keys_password: Optional[str] = None, agent_instances: Optional[List[str]] = None, apply_environment_variables: bool = False) -> "ServiceBuilder"
+def from_dir(cls,
+             path: Path,
+             keys_file: Optional[Path] = None,
+             number_of_agents: Optional[int] = None,
+             private_keys_password: Optional[str] = None,
+             agent_instances: Optional[List[str]] = None,
+             apply_environment_variables: bool = False) -> "ServiceBuilder"
 ```
 
 Service builder from path.
@@ -95,7 +105,8 @@ Service builder from path.
 
 ```python
 @staticmethod
-def verify_agent_instances(keys: List[Dict[str, str]], agent_instances: List[str]) -> None
+def verify_agent_instances(keys: List[Dict[str, str]],
+                           agent_instances: List[str]) -> None
 ```
 
 Cross verify agent instances with the keys.
@@ -115,7 +126,9 @@ Read in keys from a file on disk.
 #### try`_`update`_`runtime`_`params
 
 ```python
-def try_update_runtime_params(multisig_address: Optional[str] = None, agent_instances: Optional[List[str]] = None) -> None
+def try_update_runtime_params(
+        multisig_address: Optional[str] = None,
+        agent_instances: Optional[List[str]] = None) -> None
 ```
 
 Try and update setup parameters.
@@ -155,7 +168,8 @@ Retrieve vars common for agent.
 #### generate`_`agent
 
 ```python
-def generate_agent(agent_n: int, override_idx: Optional[int] = None) -> Dict[Any, Any]
+def generate_agent(agent_n: int,
+                   override_idx: Optional[int] = None) -> Dict[Any, Any]
 ```
 
 Generate next agent.
@@ -175,7 +189,13 @@ Base Deployment Class.
 #### `__`init`__`
 
 ```python
-def __init__(service_builder: ServiceBuilder, build_dir: Path, use_tm_testnet_setup: bool = False, dev_mode: bool = False, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None)
+def __init__(service_builder: ServiceBuilder,
+             build_dir: Path,
+             use_tm_testnet_setup: bool = False,
+             dev_mode: bool = False,
+             packages_dir: Optional[Path] = None,
+             open_aea_dir: Optional[Path] = None,
+             open_autonomy_dir: Optional[Path] = None)
 ```
 
 Initialise with only kwargs.
@@ -186,7 +206,9 @@ Initialise with only kwargs.
 
 ```python
 @abc.abstractmethod
-def generate(image_version: Optional[str] = None, use_hardhat: bool = False, use_acn: bool = False) -> "BaseDeploymentGenerator"
+def generate(image_version: Optional[str] = None,
+             use_hardhat: bool = False,
+             use_acn: bool = False) -> "BaseDeploymentGenerator"
 ```
 
 Generate the deployment configuration.

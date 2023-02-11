@@ -9,7 +9,10 @@ Utilities for the Open Autonomy test tools.
 #### tendermint`_`health`_`check
 
 ```python
-def tendermint_health_check(url: str, max_retries: int = MAX_RETRIES, sleep_interval: float = 1.0, timeout: float = DEFAULT_REQUESTS_TIMEOUT) -> bool
+def tendermint_health_check(url: str,
+                            max_retries: int = MAX_RETRIES,
+                            sleep_interval: float = 1.0,
+                            timeout: float = DEFAULT_REQUESTS_TIMEOUT) -> bool
 ```
 
 Wait until a Tendermint RPC server is up.

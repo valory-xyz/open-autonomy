@@ -29,7 +29,8 @@ List all skill yaml files in a local registry
 #### run`_`dialogues`_`check
 
 ```python
-def run_dialogues_check(packages_dir: Path, ignore: List[str], dialogues: List[str]) -> None
+def run_dialogues_check(packages_dir: Path, ignore: List[str],
+                        dialogues: List[str]) -> None
 ```
 
 Run dialogues check.
@@ -39,7 +40,8 @@ Run dialogues check.
 #### check`_`service`_`readiness
 
 ```python
-def check_service_readiness(token_id: Optional[int], service_path: Path, chain_type: ChainType) -> None
+def check_service_readiness(token_id: Optional[int], service_path: Path,
+                            chain_type: ChainType) -> None
 ```
 
 Check deployment readiness of a service.

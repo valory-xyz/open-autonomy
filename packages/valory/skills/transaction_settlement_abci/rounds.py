@@ -267,7 +267,7 @@ class FinalizationRound(OnlyKeeperSendsRound):
     payload_class = FinalizationTxPayload
     synchronized_data_class = SynchronizedData
 
-    def end_block(
+    def end_block(  # pylint: disable=too-many-return-statements
         self,
     ) -> Optional[
         Tuple[BaseSynchronizedData, Enum]

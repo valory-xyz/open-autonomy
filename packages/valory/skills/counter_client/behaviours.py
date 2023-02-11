@@ -51,7 +51,7 @@ class BaseBehaviour(Behaviour, ABC):
         self,
         method: str,
         url: str,
-        content: Dict = None,
+        content: Optional[Dict] = None,
         handler_callback: Optional[str] = None,
     ) -> None:
         """

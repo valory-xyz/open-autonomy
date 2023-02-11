@@ -19,7 +19,18 @@ Service package configuration.
 #### `__`init`__`
 
 ```python
-def __init__(name: SimpleIdOrStr, author: SimpleIdOrStr, agent: PublicId, version: str = "", license_: str = "", aea_version: str = "", fingerprint: Optional[Dict[str, str]] = None, fingerprint_ignore_patterns: Optional[Sequence[str]] = None, description: str = "", number_of_agents: int = 4, build_entrypoint: Optional[str] = None, overrides: Optional[List] = None) -> None
+def __init__(name: SimpleIdOrStr,
+             author: SimpleIdOrStr,
+             agent: PublicId,
+             version: str = "",
+             license_: str = "",
+             aea_version: str = "",
+             fingerprint: Optional[Dict[str, str]] = None,
+             fingerprint_ignore_patterns: Optional[Sequence[str]] = None,
+             description: str = "",
+             number_of_agents: int = 4,
+             build_entrypoint: Optional[str] = None,
+             overrides: Optional[List] = None) -> None
 ```
 
 Initialise object.
@@ -63,7 +74,9 @@ Returns an ordered Dict for service config.
 
 ```python
 @classmethod
-def validate_config_data(cls, json_data: Dict, env_vars_friendly: bool = False) -> None
+def validate_config_data(cls,
+                         json_data: Dict,
+                         env_vars_friendly: bool = False) -> None
 ```
 
 Validate config data.
@@ -73,7 +86,8 @@ Validate config data.
 #### check`_`overrides`_`valid
 
 ```python
-def check_overrides_valid(overrides: List, env_vars_friendly: bool = False) -> None
+def check_overrides_valid(overrides: List,
+                          env_vars_friendly: bool = False) -> None
 ```
 
 Uses the AEA helper libraries to check individual overrides.
@@ -94,7 +108,8 @@ Process component override metadata.
 #### process`_`component`_`overrides
 
 ```python
-def process_component_overrides(agent_idx: int, component_configuration_json: Dict) -> Dict
+def process_component_overrides(agent_idx: int,
+                                component_configuration_json: Dict) -> Dict
 ```
 
 Process a component configuration in an agent configuration file.
@@ -114,7 +129,8 @@ the processed component configuration.
 
 ```python
 @staticmethod
-def generate_environment_variables(component_id: ComponentId, component_configuration_json: Dict) -> Dict
+def generate_environment_variables(component_id: ComponentId,
+                                   component_configuration_json: Dict) -> Dict
 ```
 
 Try to process component with a singular component overrides.

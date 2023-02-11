@@ -141,7 +141,7 @@ class TestApiSpecsModel:
         self.api_specs.retries_info.retries_attempted = retries
         assert (
             self.api_specs.retries_info.suggested_sleep_time
-            == DEFAULT_BACKOFF_FACTOR ** retries
+            == DEFAULT_BACKOFF_FACTOR**retries
         )
 
     def test_retries(
