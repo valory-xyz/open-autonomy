@@ -103,12 +103,10 @@ class TestBackgroundRound(BaseRoundTestClass):
         actual_state, event = res
 
         assert (
-            cast(
-                SynchronizedData, actual_state
-            ).termination_majority_reached  # pylint: disable=no-member
-            == cast(
+            cast(SynchronizedData, actual_state).termination_majority_reached
+            == cast(  # pylint: disable=no-member
                 SynchronizedData, expected_state
-            ).termination_majority_reached  # pylint: disable=no-member
+            ).termination_majority_reached
         )
 
         assert event == Event.TERMINATE
