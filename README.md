@@ -103,7 +103,7 @@ consider to cite it with the following BibTex entry:
 
 ```
 @misc{open-autonomy,
-  Author = {David Minarsch and Marco Favorito and Viraj Patel and Adamantios Zaras and David Vilela Freire and Michiel Karrenbelt and 8baller and Ardian Abazi},
+  Author = {David Minarsch and Marco Favorito and Viraj Patel and Adamantios Zaras and David Vilela Freire and Michiel Karrenbelt and 8baller and Ardian Abazi and Yuri Turchenkov and José Moreira Sánchez},
   Title = {Open Autonomy Framework},
   Year = {2021},
 }
