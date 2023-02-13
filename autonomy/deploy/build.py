@@ -20,6 +20,7 @@
 from pathlib import Path
 from typing import Dict, List, Optional, Type
 
+from autonomy.constants import DEFAULT_DOCKER_IMAGE_AUTHOR
 from autonomy.deploy.base import BaseDeploymentGenerator, ServiceBuilder
 from autonomy.deploy.constants import DEPLOYMENT_REPORT, INFO
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
@@ -51,6 +52,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     use_hardhat: bool = False,
     use_acn: bool = False,
     use_tm_testnet_setup: bool = False,
+    image_author: str = DEFAULT_DOCKER_IMAGE_AUTHOR,
 ) -> str:
     """Generate the deployment for the service."""
 
@@ -77,6 +79,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         open_aea_dir=open_aea_dir,
         open_autonomy_dir=open_autonomy_dir,
         use_tm_testnet_setup=use_tm_testnet_setup,
+        image_author=image_author,
     )
 
     (

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -69,9 +69,9 @@ def build_image(
             "AEA_AGENT": str(agent),
             "AUTHOR": get_default_author_from_cli_config(),
         }
+
     else:
         image_version = version or agent.hash
-        tag = OAR_IMAGE.format(agent=agent.name, version=image_version)
         path = str(DATA_DIR / DOCKERFILES / "agent")
         buildargs = {
             "AUTONOMY_IMAGE_NAME": AUTONOMY_IMAGE_NAME,

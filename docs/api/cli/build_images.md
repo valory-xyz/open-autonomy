@@ -29,11 +29,13 @@ Build images.
               is_flag=True,
               help="Pull latest dependencies.",
               default=False)
+@image_author_option
 def build_image(agent: Optional[PublicId],
                 service_dir: Optional[Path],
                 pull: bool = False,
                 dev: bool = False,
-                version: Optional[str] = None) -> None
+                version: Optional[str] = None,
+                image_author: str = DEFAULT_DOCKER_IMAGE_AUTHOR) -> None
 ```
 
 Build runtime images for autonomous agents.

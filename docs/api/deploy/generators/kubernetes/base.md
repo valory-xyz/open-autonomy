@@ -25,7 +25,8 @@ def __init__(service_builder: ServiceBuilder,
              packages_dir: Optional[Path] = None,
              open_aea_dir: Optional[Path] = None,
              open_autonomy_dir: Optional[Path] = None,
-             use_tm_testnet_setup: bool = False) -> None
+             use_tm_testnet_setup: bool = False,
+             image_author: str = DEFAULT_DOCKER_IMAGE_AUTHOR) -> None
 ```
 
 Initialise the deployment generator.

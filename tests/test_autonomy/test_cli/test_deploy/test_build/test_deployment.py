@@ -32,7 +32,7 @@ from aea_test_autonomy.configurations import (
     ETHEREUM_ENCRYPTION_PASSWORD,
 )
 
-from autonomy.constants import DEFAULT_BUILD_FOLDER
+from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_DOCKER_IMAGE_AUTHOR
 from autonomy.deploy.constants import (
     DEBUG,
     DEPLOYMENT_AGENT_KEY_DIRECTORY_SCHEMA,
@@ -377,6 +377,78 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                 rmtree_mock.assert_called_once()
                 assert str(side_effect) in result.stdout
 
+    def test_docker_compose_build_image_author_flag_default(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--force",
+                    "--local",
+                    "--log-level",
+                    DEBUG,
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_docker_compose_build(
+            build_dir=build_dir,
+        )
+
+        docker_compose = self.load_and_check_docker_compose_file(
+            path=build_dir / DockerComposeGenerator.output_name
+        )
+
+        assert (
+            docker_compose["services"]["abci0"]["image"].split("/")[0]
+            == DEFAULT_DOCKER_IMAGE_AUTHOR
+        )
+
+    def test_docker_compose_build_image_author_flag_custom(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        image_author = "some_author"
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--force",
+                    "--local",
+                    "--log-level",
+                    DEBUG,
+                    "--image-author",
+                    image_author,
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_docker_compose_build(
+            build_dir=build_dir,
+        )
+
+        docker_compose = self.load_and_check_docker_compose_file(
+            path=build_dir / DockerComposeGenerator.output_name
+        )
+
+        assert (
+            docker_compose["services"]["abci0"]["image"].split("/")[0] == image_author
+        )
+
 
 class TestKubernetesBuild(BaseDeployBuildTest):
     """Test kubernetes builds."""
@@ -569,3 +641,63 @@ class TestKubernetesBuild(BaseDeployBuildTest):
                 for resource in kubernetes_config
             ]
         )
+
+    def test_kubernetes_build_image_author_default(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--kubernetes",
+                    "--force",
+                    "--local",
+                    "--log-level",
+                    DEBUG,
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_kubernetes_build(build_dir=build_dir)
+
+        build_config = self.load_kubernetes_config(build_dir)
+        assert f"'image': '{DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-" in str(build_config)
+
+    def test_kubernetes_build_image_author_custom(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        image_author = "some_image_author"
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--kubernetes",
+                    "--force",
+                    "--local",
+                    "--log-level",
+                    DEBUG,
+                    "--image-author",
+                    image_author,
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_kubernetes_build(build_dir=build_dir)
+
+        build_config = self.load_kubernetes_config(build_dir)
+        assert f"'image': '{image_author}/oar-" in str(build_config)
+        assert f"'image': '{DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-" not in str(build_config)

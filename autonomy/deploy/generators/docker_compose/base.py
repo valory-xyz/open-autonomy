@@ -164,6 +164,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             image_version = "dev"
 
         runtime_image = OAR_IMAGE.format(
+            image_author=self.image_author,
             agent=self.service_builder.service.agent.name,
             version=image_version,
         )

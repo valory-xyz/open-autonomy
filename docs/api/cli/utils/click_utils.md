@@ -74,3 +74,13 @@ def convert(value: Any, param: Optional[click.Parameter],
 
 Convert path string to `pathlib.Path`
 
+<a id="autonomy.cli.utils.click_utils.image_author_option"></a>
+
+#### image`_`author`_`option
+
+```python
+def image_author_option(fn: Callable) -> Callable
+```
+
+Wrap function with clik option for image-author
+

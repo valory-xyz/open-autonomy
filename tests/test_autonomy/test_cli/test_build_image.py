@@ -32,6 +32,7 @@ from aea.configurations.loader import ConfigLoader
 from aea.helpers.io import open_file
 
 from autonomy.configurations.base import Service
+from autonomy.constants import DEFAULT_DOCKER_IMAGE_AUTHOR
 
 from tests.conftest import get_file_from_tag, skip_docker_tests
 from tests.test_autonomy.base import get_dummy_service_config
@@ -118,6 +119,52 @@ class TestBuildImage(BaseCliTest):
                 )
             )
             == 1
+        )
+
+    @skip_docker_tests
+    def test_image_author_flag(self) -> None:
+        """Test image_author flag."""
+        # with patch("autonomy.cli.build_images._build_image") as build_image_mock:
+        test_version = "".join(choices(ascii_letters, k=6))  # nosec
+        result = self.run_cli(
+            (
+                "--version",
+                test_version,
+            )
+        )
+        assert result.exit_code == 0, result.output
+        assert self.docker_api.images(
+            name=f"{DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-{self.package_id.name}:{test_version}"
+        )
+
+        test_version = "".join(choices(ascii_letters, k=6))  # nosec
+        image_author = "test_author"
+        result = self.run_cli(
+            (
+                "--version",
+                test_version,
+                "--image-author",
+                image_author,
+            )
+        )
+        assert result.exit_code == 0, result.output
+        assert self.docker_api.images(
+            name=f"{image_author}/oar-{self.package_id.name}:{test_version}"
+        )
+
+        test_version = "".join(choices(ascii_letters, k=6))  # nosec
+        image_author = "0bad*author"
+        result = self.run_cli(
+            (
+                "--version",
+                test_version,
+                "--image-author",
+                image_author,
+            )
+        )
+        assert result.exit_code == 1, result.output
+        assert f"Value {image_author} does not match the regular expression " in str(
+            result
         )
 
 
