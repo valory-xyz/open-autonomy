@@ -27,7 +27,12 @@ from aea.cli.utils.config import get_default_author_from_cli_config
 from aea.configurations.utils import PublicId
 from docker import from_env
 
-from autonomy.constants import AUTONOMY_IMAGE_NAME, AUTONOMY_IMAGE_VERSION, OAR_IMAGE
+from autonomy.constants import (
+    AUTONOMY_IMAGE_NAME,
+    AUTONOMY_IMAGE_VERSION,
+    DEFAULT_DOCKER_IMAGE_AUTHOR,
+    OAR_IMAGE,
+)
 from autonomy.data import DATA_DIR
 from autonomy.deploy.constants import DOCKERFILES
 
@@ -46,6 +51,7 @@ def build_image(
     pull: bool = False,
     dev: bool = False,
     version: Optional[str] = None,
+    image_author: str = DEFAULT_DOCKER_IMAGE_AUTHOR,
 ) -> None:
     """Command to build images from for skaffold deployment."""
 
@@ -56,7 +62,6 @@ def build_image(
     docker_client = from_env()
 
     if dev:
-        tag = OAR_IMAGE.format(agent=agent.name, version="dev")
         path = str(DATA_DIR / DOCKERFILES / "dev")
         buildargs = {
             "AUTONOMY_IMAGE_NAME": AUTONOMY_IMAGE_NAME,
@@ -64,7 +69,6 @@ def build_image(
             "AEA_AGENT": str(agent),
             "AUTHOR": get_default_author_from_cli_config(),
         }
-
     else:
         image_version = version or agent.hash
         tag = OAR_IMAGE.format(agent=agent.name, version=image_version)
@@ -75,6 +79,11 @@ def build_image(
             "AEA_AGENT": str(agent),
             "AUTHOR": get_default_author_from_cli_config(),
         }
+    tag = OAR_IMAGE.format(
+        image_author=image_author,
+        agent=agent.name,
+        version="dev" if dev else image_version,
+    )
 
     stream = docker_client.api.build(
         path=path,
