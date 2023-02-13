@@ -158,6 +158,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractR
                 all_participants=[
                     tuple(sorted(self.synchronized_data.all_participants))
                 ],
+                consensus_threshold=[self.synchronized_data.consensus_threshold],
             )
             return synchronized_data, Event.DONE
         if not self.is_majority_possible(
