@@ -40,8 +40,8 @@ Run dialogues check.
 #### check`_`service`_`readiness
 
 ```python
-def check_service_readiness(token_id: Optional[int], service_path: Path,
-                            chain_type: ChainType) -> None
+def check_service_readiness(token_id: Optional[int], service_id: PackageId,
+                            chain_type: ChainType, packages_dir: Path) -> None
 ```
 
 Check deployment readiness of a service.
