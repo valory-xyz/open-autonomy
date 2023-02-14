@@ -31,7 +31,6 @@ from autonomy.analyse.logs.base import (
     ENTER_ROUND_REGEX,
     LOG_ROW_REGEX,
     LogRow,
-    NOISE_FILTER_REGEX,
     TIMESTAMP_REGEX,
     TIME_FORMAT,
 )
@@ -89,9 +88,6 @@ class LogCollection(ABC):
                 )
                 if line is None and prev_line is None:
                     break
-
-                if len(NOISE_FILTER_REGEX.findall(string=cast(str, line))) > 0:
-                    continue
 
                 match = LOG_ROW_REGEX.match(string=cast(str, line))
                 _timestamp, log_level, _, log_block = cast(re.Match, match).groups()
