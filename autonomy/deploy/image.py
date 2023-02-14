@@ -51,7 +51,7 @@ def build_image(
     pull: bool = False,
     dev: bool = False,
     version: Optional[str] = None,
-    image_author: str = DEFAULT_DOCKER_IMAGE_AUTHOR,
+    image_author: Optional[str] = None,
 ) -> None:
     """Command to build images from for skaffold deployment."""
 
@@ -80,7 +80,9 @@ def build_image(
             "AUTHOR": get_default_author_from_cli_config(),
         }
     tag = OAR_IMAGE.format(
-        image_author=image_author,
+        image_author=image_author
+        or get_default_author_from_cli_config()
+        or DEFAULT_DOCKER_IMAGE_AUTHOR,
         agent=agent.name,
         version="dev" if dev else image_version,
     )

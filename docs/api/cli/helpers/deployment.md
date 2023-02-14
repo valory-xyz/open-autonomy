@@ -39,7 +39,7 @@ def build_deployment(keys_file: Path,
                      use_hardhat: bool = False,
                      use_acn: bool = False,
                      use_tm_testnet_setup: bool = False,
-                     image_author: str = DEFAULT_DOCKER_IMAGE_AUTHOR) -> None
+                     image_author: Optional[str] = None) -> None
 ```
 
 Build deployment.

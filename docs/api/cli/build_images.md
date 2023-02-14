@@ -35,7 +35,7 @@ def build_image(agent: Optional[PublicId],
                 pull: bool = False,
                 dev: bool = False,
                 version: Optional[str] = None,
-                image_author: str = DEFAULT_DOCKER_IMAGE_AUTHOR) -> None
+                image_author: Optional[str] = None) -> None
 ```
 
 Build runtime images for autonomous agents.

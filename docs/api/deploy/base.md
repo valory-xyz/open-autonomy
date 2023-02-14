@@ -196,7 +196,7 @@ def __init__(service_builder: ServiceBuilder,
              packages_dir: Optional[Path] = None,
              open_aea_dir: Optional[Path] = None,
              open_autonomy_dir: Optional[Path] = None,
-             image_author: str = DEFAULT_DOCKER_IMAGE_AUTHOR)
+             image_author: Optional[str] = None)
 ```
 
 Initialise with only kwargs.

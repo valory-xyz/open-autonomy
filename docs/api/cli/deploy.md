@@ -115,26 +115,25 @@ Deploy an agent service.
 @password_option(confirmation_prompt=True)
 @image_author_option
 @click.pass_context
-def build_deployment_command(
-        click_context: click.Context,
-        keys_file: Optional[Path],
-        deployment_type: str,
-        output_dir: Optional[Path],
-        dev_mode: bool,
-        force_overwrite: bool,
-        registry: str,
-        number_of_agents: Optional[int] = None,
-        password: Optional[str] = None,
-        open_aea_dir: Optional[Path] = None,
-        packages_dir: Optional[Path] = None,
-        open_autonomy_dir: Optional[Path] = None,
-        log_level: str = INFO,
-        aev: bool = False,
-        image_version: Optional[str] = None,
-        use_hardhat: bool = False,
-        use_acn: bool = False,
-        use_tm_testnet_setup: bool = False,
-        image_author: str = DEFAULT_DOCKER_IMAGE_AUTHOR) -> None
+def build_deployment_command(click_context: click.Context,
+                             keys_file: Optional[Path],
+                             deployment_type: str,
+                             output_dir: Optional[Path],
+                             dev_mode: bool,
+                             force_overwrite: bool,
+                             registry: str,
+                             number_of_agents: Optional[int] = None,
+                             password: Optional[str] = None,
+                             open_aea_dir: Optional[Path] = None,
+                             packages_dir: Optional[Path] = None,
+                             open_autonomy_dir: Optional[Path] = None,
+                             log_level: str = INFO,
+                             aev: bool = False,
+                             image_version: Optional[str] = None,
+                             use_hardhat: bool = False,
+                             use_acn: bool = False,
+                             use_tm_testnet_setup: bool = False,
+                             image_author: Optional[str] = None) -> None
 ```
 
 Build deployment setup for n agents.

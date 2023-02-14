@@ -25,7 +25,6 @@ from typing import Any, Dict, List, Optional, cast
 import yaml
 
 from autonomy.constants import (
-    DEFAULT_DOCKER_IMAGE_AUTHOR,
     HARDHAT_IMAGE_NAME,
     HARDHAT_IMAGE_VERSION,
     OAR_IMAGE,
@@ -62,7 +61,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         open_aea_dir: Optional[Path] = None,
         open_autonomy_dir: Optional[Path] = None,
         use_tm_testnet_setup: bool = False,
-        image_author: str = DEFAULT_DOCKER_IMAGE_AUTHOR,
+        image_author: Optional[str] = None,
     ) -> None:
         """Initialise the deployment generator."""
         super().__init__(

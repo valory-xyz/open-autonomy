@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from warnings import warn
 
+from aea.cli.utils.config import get_default_author_from_cli_config
 from aea.configurations.base import (
     ConnectionConfig,
     ContractConfig,
@@ -397,7 +398,7 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
         packages_dir: Optional[Path] = None,
         open_aea_dir: Optional[Path] = None,
         open_autonomy_dir: Optional[Path] = None,
-        image_author: str = DEFAULT_DOCKER_IMAGE_AUTHOR,
+        image_author: Optional[str] = None,
     ):
         """Initialise with only kwargs."""
 
@@ -412,7 +413,11 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
         )
 
         self.tendermint_job_config: Optional[str] = None
-        self.image_author = image_author
+        self.image_author = (
+            image_author
+            or get_default_author_from_cli_config()
+            or DEFAULT_DOCKER_IMAGE_AUTHOR
+        )
 
     @abc.abstractmethod
     def generate(

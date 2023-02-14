@@ -29,7 +29,6 @@ from aea.configurations.data_types import PublicId
 
 from autonomy.cli.utils.click_utils import image_author_option
 from autonomy.configurations.loader import load_service_config
-from autonomy.constants import DEFAULT_DOCKER_IMAGE_AUTHOR
 from autonomy.deploy.image import ImageBuildFailed
 from autonomy.deploy.image import build_image as _build_image
 
@@ -55,7 +54,7 @@ def build_image(
     pull: bool = False,
     dev: bool = False,
     version: Optional[str] = None,
-    image_author: str = DEFAULT_DOCKER_IMAGE_AUTHOR,
+    image_author: Optional[str] = None,
 ) -> None:
     """Build runtime images for autonomous agents."""
 

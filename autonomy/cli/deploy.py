@@ -39,11 +39,7 @@ from autonomy.cli.helpers.deployment import (
     run_deployment,
 )
 from autonomy.cli.utils.click_utils import chain_selection_flag, image_author_option
-from autonomy.constants import (
-    DEFAULT_BUILD_FOLDER,
-    DEFAULT_DOCKER_IMAGE_AUTHOR,
-    DEFAULT_KEYS_FILE,
-)
+from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_KEYS_FILE
 from autonomy.deploy.base import NotValidKeysFile
 from autonomy.deploy.constants import INFO, LOGGING_LEVELS
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
@@ -174,7 +170,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     use_hardhat: bool = False,
     use_acn: bool = False,
     use_tm_testnet_setup: bool = False,
-    image_author: str = DEFAULT_DOCKER_IMAGE_AUTHOR,
+    image_author: Optional[str] = None,
 ) -> None:
     """Build deployment setup for n agents."""
 
