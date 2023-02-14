@@ -128,7 +128,8 @@ Read in keys from a file on disk.
 ```python
 def try_update_runtime_params(
         multisig_address: Optional[str] = None,
-        agent_instances: Optional[List[str]] = None) -> None
+        agent_instances: Optional[List[str]] = None,
+        consensus_threshold: Optional[int] = None) -> None
 ```
 
 Try and update setup parameters.
