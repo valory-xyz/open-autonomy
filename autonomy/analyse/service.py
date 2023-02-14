@@ -279,7 +279,7 @@ class ServiceAnalyser:
         missing = check_with_set - check_from_set
         if len(missing) > 0:
             message = (
-                f"{check_with_name} contains following configuration which is missing from {check_from_name}\n"
+                f"{check_with_name} contains configuration which is missing from {check_from_name}\n"
                 f"\tPath: {path_str}\n"
                 f"\tMissing parameters: {missing}\n"
             )
@@ -288,7 +288,7 @@ class ServiceAnalyser:
         missing = check_from_set - check_with_set
         if len(missing) > 0:
             message = (
-                f"{check_from_name} contains following configuration which is missing from {check_with_name}\n"
+                f"{check_from_name} contains configuration which is missing from {check_with_name}\n"
                 f"\tPath: {path_str}\n"
                 f"\tMissing parameters: {missing}\n"
             )
@@ -351,35 +351,18 @@ class ServiceAnalyser:
                         check_from_name=str(self.service_config.package_id),
                         check_with_name=str(agent_config.package_id),
                     )
-                    self.logger.info(
-                        "Cross verifying overrides between skill and service"
-                    )
-                    self._check_overrides_recursively(
-                        check_from=skill_override_from_service,
-                        check_with=skill_config_to_check,
-                        check_from_name=str(self.service_config.package_id),
-                        check_with_name=str(skill_config.package_id),
-                    )
                     continue
 
                 for (
                     key,
                     _skill_override_from_service,
                 ) in skill_override_from_service.items():
+                    self.logger.info(f"Verifying the skill override with index {key}")
                     self._check_overrides_recursively(
                         check_from=_skill_override_from_service,
                         check_with=skill_override_from_agent,
-                        check_from_name=f"packages.{self.service_config.author}.services.{self.service_config.name}.{key}",
-                        check_with_name=f"packages.{agent_config.author}.agents.{agent_config.name}",
-                    )
-                    self.logger.info(
-                        f"Cross verifying overrides between skill and service override {key}"
-                    )
-                    self._check_overrides_recursively(
-                        check_from=_skill_override_from_service,
-                        check_with=skill_config_to_check,
                         check_from_name=str(self.service_config.package_id),
-                        check_with_name=str(skill_config.package_id),
+                        check_with_name=str(agent_config.package_id),
                     )
 
         self.logger.info("Cross verifying overrides between skill and agent")
