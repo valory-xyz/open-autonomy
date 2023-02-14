@@ -38,7 +38,6 @@ from autonomy.deploy.base import (
     ENV_VAR_AEA_PASSWORD,
     ENV_VAR_ID,
     ENV_VAR_LOG_LEVEL,
-    ENV_VAR_MAX_PARTICIPANTS,
     ENV_VAR_TENDERMINT_COM_URL,
     ENV_VAR_TENDERMINT_URL,
     NotValidKeysFile,
@@ -52,7 +51,6 @@ COMMON_VARS = (
     ENV_VAR_ID,
     ENV_VAR_AEA_AGENT,
     ENV_VAR_ABCI_HOST,
-    ENV_VAR_MAX_PARTICIPANTS,
     ENV_VAR_TENDERMINT_URL,
     ENV_VAR_TENDERMINT_COM_URL,
     ENV_VAR_LOG_LEVEL,
@@ -139,11 +137,11 @@ class TestServiceBuilder:
         assert len(agents) == 1, agents
 
         agent = spec.generate_agent(0)
-        assert len(agent.keys()) == 14, agent
+        assert len(agent.keys()) == 13, agent
 
         spec.service.overrides = []
         agent = spec.generate_agent(0)
-        assert len(agent.keys()) == 7, agent
+        assert len(agent.keys()) == 6, agent
 
     def test_generate_common_vars(
         self,
@@ -225,6 +223,7 @@ class TestServiceBuilder:
         """Test `try_update_runtime_params` method."""
         multisig_address = "0xMULTISIGADDRESS"
         agent_instances = [f"0xagent{i}" for i in range(4)]
+        consensus_threshold = 3
 
         self._write_service(get_dummy_service_config(file_number=1))
         spec = ServiceBuilder.from_dir(
@@ -240,6 +239,7 @@ class TestServiceBuilder:
         spec.try_update_runtime_params(
             multisig_address=multisig_address,
             agent_instances=agent_instances,
+            consensus_threshold=consensus_threshold,
         )
         skill_config, *_ = spec.service.overrides
         assert skill_config["models"]["params"]["args"]["setup"][
@@ -248,6 +248,9 @@ class TestServiceBuilder:
         assert skill_config["models"]["params"]["args"]["setup"][
             "all_participants"
         ] == [agent_instances]
+        assert skill_config["models"]["params"]["args"]["setup"][
+            "consensus_threshold"
+        ] == [consensus_threshold]
 
     def test_try_update_runtime_params_multiple(
         self,

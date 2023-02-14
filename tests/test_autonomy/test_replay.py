@@ -51,7 +51,6 @@ AGENT_DATA = {
         "ID=0",
         "VALORY_APPLICATION=valory/hello_world:0.1.0:bafybeideb6b5k4i6z7bm3p53eydxgknmwdefo2oshcnlxthjc6oxeox7ua",
         "ABCI_HOST=abci0",
-        "MAX_PARTICIPANTS=4",
         "TENDERMINT_URL=http://node0:26657",
         "TENDERMINT_COM_URL=http://node0:8080",
         "LEDGER_ADDRESS=http://143.110.184.220:8545",

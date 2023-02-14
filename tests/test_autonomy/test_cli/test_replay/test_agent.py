@@ -47,7 +47,6 @@ DOCKER_COMPOSE_DATA = {
                 "AEA_KEY=DUMMY",
                 "VALORY_APPLICATION=DUMMY",
                 "ABCI_HOST=DUMMY",
-                "MAX_PARTICIPANTS=DUMMY",
                 "TENDERMINT_URL=DUMMY",
                 "TENDERMINT_COM_URL=DUMMY",
                 "ID=DUMMY",
