@@ -29,7 +29,9 @@ Tools to analyse a service
 #### `__`init`__`
 
 ```python
-def __init__(service_config: Service, is_on_chain_check: bool = False, logger: Optional[logging.Logger] = None) -> None
+def __init__(service_config: Service,
+             is_on_chain_check: bool = False,
+             logger: Optional[logging.Logger] = None) -> None
 ```
 
 Initialise object.
@@ -39,7 +41,8 @@ Initialise object.
 #### check`_`on`_`chain`_`state
 
 ```python
-def check_on_chain_state(ledger_api: LedgerApi, chain_type: ChainType, token_id: int) -> None
+def check_on_chain_state(ledger_api: LedgerApi, chain_type: ChainType,
+                         token_id: int) -> None
 ```
 
 Check on-chain state of a service.
@@ -49,7 +52,8 @@ Check on-chain state of a service.
 #### check`_`agent`_`dependencies`_`published
 
 ```python
-def check_agent_dependencies_published(agent_config: AgentConfig, ipfs_pins: Set[str]) -> None
+def check_agent_dependencies_published(agent_config: AgentConfig,
+                                       ipfs_pins: Set[str]) -> None
 ```
 
 Check if the agent package is published or not
@@ -59,7 +63,8 @@ Check if the agent package is published or not
 #### cross`_`verify`_`overrides
 
 ```python
-def cross_verify_overrides(agent_config: AgentConfig, skill_config: SkillConfig) -> None
+def cross_verify_overrides(agent_config: AgentConfig,
+                           skill_config: SkillConfig) -> None
 ```
 
 Cross verify overrides between service config and agent config
@@ -70,7 +75,8 @@ Cross verify overrides between service config and agent config
 
 ```python
 @classmethod
-def validate_override(cls, component_id: ComponentId, override: Dict, has_multiple_overrides: bool) -> None
+def validate_override(cls, component_id: ComponentId, override: Dict,
+                      has_multiple_overrides: bool) -> None
 ```
 
 Validate override
