@@ -184,7 +184,6 @@ def docstrings(ctx: Context, update: bool) -> None:
     type=str,
     multiple=True,
     help="Agent IDs to include in analysis",
-    required=True,
 )
 @click.option(
     "--start-time",
@@ -242,6 +241,11 @@ def _parse_logs(  # pylint: disable=too-many-arguments
     parser = ParseLogs()
     if logs_dir is not None:
         parser.from_dir(logs_dir=Path(logs_dir))
+
+    if len(agents) == 0:
+        raise click.ClickException(
+            f"Please provide agent IDs to select logs; Available agents: {parser.agents}"
+        )
 
     parser.create_tables(reset=reset_db)
     selection = parser.select(

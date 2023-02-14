@@ -101,6 +101,12 @@ class ParseLogs:
     def __init__(self) -> None:
         """Initialize object."""
 
+    @property
+    def agents(self) -> List[str]:
+        """Available agents."""
+
+        return self._collection.agents
+
     def from_dir(self, logs_dir: Path) -> "ParseLogs":
         """From directory"""
 
