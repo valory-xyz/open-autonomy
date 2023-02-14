@@ -111,7 +111,7 @@ class AgentLogsDB:
     def execution_path(self) -> List[Tuple[int, str, str]]:
         """Extraction FSM execution path"""
         return self.cursor.execute(
-            f"SELECT {PERIOD}, {ROUND}, MAX({EXIT_EVENT}) from aea_0 GROUP BY {ROUND};"
+            f"SELECT {PERIOD}, {ROUND}, MAX({EXIT_EVENT}) from {self.agent} GROUP BY {ROUND};"
         ).fetchall()
 
     @property
