@@ -227,6 +227,22 @@ def docstrings(ctx: Context, update: bool) -> None:
     type=str,
     help="Print only the FSM execution path",
 )
+@click.option(
+    "-ir",
+    "--include-regex",
+    "include_regexes",
+    multiple=True,
+    type=str,
+    help="Regex pattern to include in the result.",
+)
+@click.option(
+    "-er",
+    "--exclude-regex",
+    "exclude_regexes",
+    multiple=True,
+    type=str,
+    help="Regex pattern to exclude from the result.",
+)
 def _parse_logs(  # pylint: disable=too-many-arguments
     logs_dir: Optional[Path],
     agents: List[str],
@@ -236,6 +252,8 @@ def _parse_logs(  # pylint: disable=too-many-arguments
     period: Optional[int],
     round_name: Optional[str],
     behaviour_name: Optional[str],
+    include_regexes: List[str],
+    exclude_regexes: List[str],
     reset_db: bool = False,
     fsm_path: bool = False,
 ) -> None:
@@ -251,14 +269,18 @@ def _parse_logs(  # pylint: disable=too-many-arguments
         )
 
     parser.create_tables(reset=reset_db)
-    selection = parser.select(
-        agents=agents,
-        start_time=start_time,
-        end_time=end_time,
-        log_level=log_level,
-        period=period,
-        round_name=round_name,
-        behaviour_name=behaviour_name,
+    selection = (
+        parser.select(
+            agents=agents,
+            start_time=start_time,
+            end_time=end_time,
+            log_level=log_level,
+            period=period,
+            round_name=round_name,
+            behaviour_name=behaviour_name,
+        )
+        .re_include(regexes=include_regexes)
+        .re_exclude(regexes=exclude_regexes)
     )
 
     if fsm_path:

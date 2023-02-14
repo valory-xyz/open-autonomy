@@ -19,6 +19,7 @@
 
 """Helpers for analyse command"""
 
+import re
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -174,6 +175,37 @@ class ParseLogs:
             )
 
         self.results = results
+        return self
+
+    def re_include(self, regexes: List[str]) -> "ParseLogs":
+        """Apply a set of regexes on the result."""
+        if len(regexes) == 0:
+            return self
+
+        compiled_re = [re.compile(pattern) for pattern in regexes]
+
+        def _apply_filter(row: LogRow) -> bool:
+            return any(map(lambda _re: _re.match(row[2]) is not None, compiled_re))
+
+        for agent, logs in self.results.items():
+            self.results[agent] = list(filter(_apply_filter, logs))
+
+        return self
+
+    def re_exclude(self, regexes: List[str]) -> "ParseLogs":
+        """Apply a set of regexes on the result."""
+
+        if len(regexes) == 0:
+            return self
+
+        compiled_re = [re.compile(pattern) for pattern in regexes]
+
+        def _apply_filter(row: LogRow) -> bool:
+            return any(map(lambda _re: _re.match(row[2]) is None, compiled_re))
+
+        for agent, logs in self.results.items():
+            self.results[agent] = list(filter(_apply_filter, logs))
+
         return self
 
     def execution_path(self) -> None:
