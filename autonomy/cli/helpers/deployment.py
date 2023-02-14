@@ -134,6 +134,7 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     open_autonomy_dir: Optional[Path] = None,
     agent_instances: Optional[List[str]] = None,
     multisig_address: Optional[str] = None,
+    consensus_threshold: Optional[int] = None,
     log_level: str = INFO,
     apply_environment_variables: bool = False,
     image_version: Optional[str] = None,
@@ -169,6 +170,7 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         open_autonomy_dir=open_autonomy_dir,
         agent_instances=agent_instances,
         multisig_address=multisig_address,
+        consensus_threshold=consensus_threshold,
         log_level=log_level,
         apply_environment_variables=apply_environment_variables,
         image_version=image_version,
@@ -182,7 +184,7 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
 def _resolve_on_chain_token_id(
     token_id: int,
     chain_type: ChainType,
-) -> Tuple[Dict[str, str], List[str], str]:
+) -> Tuple[Dict[str, str], List[str], str, int]:
     """Resolve service metadata from tokenID"""
 
     ledger_api, _ = get_ledger_and_crypto_objects(chain_type=chain_type)
@@ -198,7 +200,7 @@ def _resolve_on_chain_token_id(
             ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
         )
         agent_instances = info["agentInstances"]
-        (_, multisig_address, *_,) = get_service_info(
+        (_, multisig_address, _, consensus_threshold, *_,) = get_service_info(
             ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
         )
     except FailedToRetrieveComponentMetadata as e:
@@ -208,7 +210,7 @@ def _resolve_on_chain_token_id(
             f"Cannot find the service registry deployment; Service contract address {contract_address}"
         ) from e
 
-    return metadata, agent_instances, multisig_address
+    return metadata, agent_instances, multisig_address, consensus_threshold
 
 
 def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many-locals
@@ -223,7 +225,12 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
     """Build and run deployment from tokenID."""
 
     click.echo(f"Building service deployment using token ID: {token_id}")
-    service_metadata, agent_instances, multisig_address = _resolve_on_chain_token_id(
+    (
+        service_metadata,
+        agent_instances,
+        multisig_address,
+        consensus_threshold,
+    ) = _resolve_on_chain_token_id(
         token_id=token_id,
         chain_type=chain_type,
     )
@@ -244,6 +251,7 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
             number_of_agents=n,
             agent_instances=agent_instances,
             multisig_address=multisig_address,
+            consensus_threshold=consensus_threshold,
             apply_environment_variables=aev,
             password=password,
         )

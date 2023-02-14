@@ -45,6 +45,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     open_autonomy_dir: Optional[Path] = None,
     agent_instances: Optional[List[str]] = None,
     multisig_address: Optional[str] = None,
+    consensus_threshold: Optional[int] = None,
     log_level: str = INFO,
     apply_environment_variables: bool = False,
     image_version: Optional[str] = None,
@@ -66,6 +67,7 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     service_builder.try_update_runtime_params(
         multisig_address=multisig_address,
         agent_instances=agent_instances,
+        consensus_threshold=consensus_threshold,
     )
 
     DeploymentGenerator = DEPLOYMENT_OPTIONS[type_of_deployment]

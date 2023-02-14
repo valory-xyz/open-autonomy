@@ -117,11 +117,10 @@ The {{open_autonomy}} framework provides a convenient interface for services tha
     models:
       params:
         args:
-          consensus:
-            max_participants: # Overridden with the registered values
           setup:
             all_participants: # Overridden with the registered values
             safe_contract_address: # Overridden with the registered values
+            consensus_threshold: # Overridden with the registered values
           service_registry_address:  # Overridden with the registered values
           on_chain_service_id: # Overridden with the registered values
     ```

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -47,7 +47,6 @@ DOCKER_COMPOSE_DATA = {
                 "AEA_KEY=DUMMY",
                 "VALORY_APPLICATION=DUMMY",
                 "ABCI_HOST=DUMMY",
-                "MAX_PARTICIPANTS=DUMMY",
                 "TENDERMINT_URL=DUMMY",
                 "TENDERMINT_COM_URL=DUMMY",
                 "ID=DUMMY",

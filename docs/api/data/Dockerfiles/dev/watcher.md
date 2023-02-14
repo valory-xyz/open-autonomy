@@ -28,16 +28,6 @@ Since there's a lot of resource sharing between docker containers one of the
 environments can fallback during `base_setup` so to make sure there's no error
 caused by one of the agents left behind this method will help.
 
-<a id="autonomy.data.Dockerfiles.dev.watcher.wait_for_votes"></a>
-
-#### wait`_`for`_`votes
-
-```python
-def wait_for_votes() -> None
-```
-
-Wait for all the agents to finish voting. (see `call_vote` method.)
-
 <a id="autonomy.data.Dockerfiles.dev.watcher.AEARunner"></a>
 
 ## AEARunner Objects
