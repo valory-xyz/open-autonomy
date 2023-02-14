@@ -282,7 +282,9 @@ def check_service_readiness(
         service_analyser.validate_service_overrides()
         service_analyser.validate_agent_overrides(agent_config=agent_config)
         service_analyser.validate_skill_config(skill_config=skill_config)
-        service_analyser.cross_verify_overrides(agent_config=agent_config)
+        service_analyser.cross_verify_overrides(
+            agent_config=agent_config, skill_config=skill_config
+        )
         service_analyser.check_agent_dependencies_published(
             ipfs_pins=ipfs_pins, agent_config=agent_config
         )

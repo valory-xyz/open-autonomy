@@ -20,9 +20,10 @@
 
 """Tools for analysing the service for deployment readiness"""
 
+import copy
 import logging
 import re
-from typing import Dict, Optional, Set, cast
+from typing import Dict, List, Optional, OrderedDict, Set, cast
 
 from aea.configurations.base import AgentConfig, SkillConfig
 from aea.configurations.data_types import (
@@ -251,8 +252,65 @@ class ServiceAnalyser:
                 f"\t{dependency.public_id.without_hash()} of type {dependency.package_type} is present"
             )
 
-    def cross_verify_overrides(self, agent_config: AgentConfig) -> None:
+    def _check_overrides_recursively(
+        self,
+        check_from: Dict,
+        check_with: Dict,
+        check_from_name: str,
+        check_with_name: str,
+        path: Optional[List[str]] = None,
+    ) -> None:
+        """
+        Check overrides recursively
+
+        :param check_from: Configuration to check from
+        :param check_with: Configuration to compare against
+        :param check_from_name: Name for the `check_from` config
+        :param check_with_name: Name for the `check_with` config
+        :param path: JSON path to the object
+        """
+
+        path = path or []
+        path_str = ".".join(path)
+
+        # service has them and agent does not - warning
+        check_from_set, check_with_set = set(check_from), set(check_with)
+
+        missing = check_with_set - check_from_set
+        if len(missing) > 0:
+            message = (
+                f"{check_with_name} contains following configuration which is missing from {check_from_name}\n"
+                f"\tPath: {path_str}\n"
+                f"\tMissing parameters: {missing}\n"
+            )
+            self.logger.warning(message)
+
+        missing = check_from_set - check_with_set
+        if len(missing) > 0:
+            message = (
+                f"{check_from_name} contains following configuration which is missing from {check_with_name}\n"
+                f"\tPath: {path_str}\n"
+                f"\tMissing parameters: {missing}\n"
+            )
+            self.logger.warning(message)
+
+        for key in check_with_set.intersection(check_from_set):
+            if not isinstance(check_from[key], (dict, Dict, OrderedDict)):
+                continue
+
+            self._check_overrides_recursively(
+                check_from=check_from[key],
+                check_with=check_with[key],
+                check_from_name=check_from_name,
+                check_with_name=check_with_name,
+                path=[*path, key],
+            )
+
+    def cross_verify_overrides(
+        self, agent_config: AgentConfig, skill_config: SkillConfig
+    ) -> None:
         """Cross verify overrides between service config and agent config"""
+
         self.logger.info("Cross verifying overrides between agent and service")
         agent_overrides = set(agent_config.component_configurations)
         service_overrides = {
@@ -269,6 +327,68 @@ class ServiceAnalyser:
                 "Service config has an overrides which are not defined in the agent config; "
                 f"packages with missing overrides={missing_from_agent}"
             )
+
+        skill_override_from_agent = agent_config.component_configurations[
+            skill_config.package_id
+        ]
+        skill_config_to_check = {
+            "models": {
+                "params": {"args": skill_config.json["models"]["params"]["args"]}
+            }
+        }
+
+        for override in self.service_config.overrides:
+            (
+                skill_override_from_service,
+                component_id,
+                has_multiple_overrides,
+            ) = Service.process_metadata(copy.deepcopy(override))
+            if skill_config.component_id == component_id:
+                if not has_multiple_overrides:
+                    self._check_overrides_recursively(
+                        check_from=skill_override_from_service,
+                        check_with=skill_override_from_agent,
+                        check_from_name=str(self.service_config.package_id),
+                        check_with_name=str(agent_config.package_id),
+                    )
+                    self.logger.info(
+                        "Cross verifying overrides between skill and service"
+                    )
+                    self._check_overrides_recursively(
+                        check_from=skill_override_from_service,
+                        check_with=skill_config_to_check,
+                        check_from_name=str(self.service_config.package_id),
+                        check_with_name=str(skill_config.package_id),
+                    )
+                    continue
+
+                for (
+                    key,
+                    _skill_override_from_service,
+                ) in skill_override_from_service.items():
+                    self._check_overrides_recursively(
+                        check_from=_skill_override_from_service,
+                        check_with=skill_override_from_agent,
+                        check_from_name=f"packages.{self.service_config.author}.services.{self.service_config.name}.{key}",
+                        check_with_name=f"packages.{agent_config.author}.agents.{agent_config.name}",
+                    )
+                    self.logger.info(
+                        f"Cross verifying overrides between skill and service override {key}"
+                    )
+                    self._check_overrides_recursively(
+                        check_from=_skill_override_from_service,
+                        check_with=skill_config_to_check,
+                        check_from_name=str(self.service_config.package_id),
+                        check_with_name=str(skill_config.package_id),
+                    )
+
+        self.logger.info("Cross verifying overrides between skill and agent")
+        self._check_overrides_recursively(
+            check_from=skill_override_from_agent,
+            check_with=skill_config_to_check,
+            check_from_name=str(agent_config.package_id),
+            check_with_name=str(skill_config.package_id),
+        )
 
     @staticmethod
     def _validate_override(
