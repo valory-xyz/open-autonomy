@@ -178,7 +178,7 @@ ABCI_SKILL_MODEL_PARAMS_SCHEMA = {
 ABCI = "abci"
 LEDGER = "ledger"
 
-UNKNOWN_LEDGER_RE = re.compile(r".*\'([a-z_]+)\' was unexpected")
+UNKNOWN_LEDGER_RE = re.compile(r".*\(\'(.*)\' was unexpected\)")
 ABCI_CONNECTION_VALIDATOR = Draft4Validator(schema=ABCI_CONNECTION_SCHEMA)
 LEDGER_CONNECTION_VALIDATOR = Draft4Validator(schema=LEDGER_CONNECTION_SCHEMA)
 ABCI_SKILL_VALIDATOR = Draft4Validator(schema=ABCI_SKILL_SCHEMA)
@@ -452,9 +452,7 @@ class ServiceAnalyser:
                 if unknown_ledger_match is None:
                     raise
 
-                (unknown_ledger,) = cast(
-                    re.Match, UNKNOWN_LEDGER_RE.match(msg)
-                ).groups()
+                (unknown_ledger,) = cast(re.Match, unknown_ledger_match).groups()
                 logging.warning(
                     f"Unknown ledger configuration found with name `{unknown_ledger}`"
                 )
