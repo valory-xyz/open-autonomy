@@ -29,7 +29,12 @@ Initialize object.
 #### select
 
 ```python
-def select(start_time: Optional[datetime] = None, end_time: Optional[datetime] = None, log_level: Optional[str] = None, period: Optional[int] = None, round_name: Optional[str] = None, behaviour_name: Optional[str] = None) -> List[LogRow]
+def select(start_time: Optional[datetime] = None,
+           end_time: Optional[datetime] = None,
+           log_level: Optional[str] = None,
+           period: Optional[int] = None,
+           round_name: Optional[str] = None,
+           behaviour_name: Optional[str] = None) -> List[LogRow]
 ```
 
 Build select query.
@@ -90,7 +95,8 @@ Create agent table
 #### insert`_`one
 
 ```python
-def insert_one(timestamp: datetime, log_level: str, message: str, period: int, round_name: str, behaviour_name: str) -> "AgentLogsDB"
+def insert_one(timestamp: datetime, log_level: str, message: str, period: int,
+               round_name: str, behaviour_name: str) -> "AgentLogsDB"
 ```
 
 Insert a record

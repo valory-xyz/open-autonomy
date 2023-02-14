@@ -41,7 +41,9 @@ Returns a list of agent names.
 
 ```python
 @abstractmethod
-def create_agent_db(agent: str, db: AgentLogsDB, reset: bool = False) -> "LogCollection"
+def create_agent_db(agent: str,
+                    db: AgentLogsDB,
+                    reset: bool = False) -> "LogCollection"
 ```
 
 Create logs database.
@@ -52,7 +54,8 @@ Create logs database.
 
 ```python
 @staticmethod
-def get_next_log_block(fp: TextIO, prev_line: str) -> Tuple[Optional[str], Optional[str]]
+def get_next_log_block(fp: TextIO,
+                       prev_line: str) -> Tuple[Optional[str], Optional[str]]
 ```
 
 Get next log block.
@@ -103,7 +106,9 @@ Returns a list of agent names.
 #### create`_`agent`_`db
 
 ```python
-def create_agent_db(agent: str, db: AgentLogsDB, reset: bool = False) -> "FromDirectory"
+def create_agent_db(agent: str,
+                    db: AgentLogsDB,
+                    reset: bool = False) -> "FromDirectory"
 ```
 
 Create logs table for agent.
