@@ -72,7 +72,7 @@ class AgentLogsDB:
     ) -> List[LogRow]:
         """Build select query."""
 
-        query = f"SELECT * from {self.agent}"
+        query = f"SELECT * from {self.agent}"  # nosec
         paramaters: List[Any] = []
 
         def _append_condition(_query: str, condition: str) -> str:
