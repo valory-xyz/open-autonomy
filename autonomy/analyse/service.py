@@ -111,9 +111,6 @@ ABCI_SKILL_SCHEMA = {
                             },
                             "required": [
                                 "setup",
-                                "tendermint_url",
-                                "tendermint_com_url",
-                                "tendermint_p2p_url",
                                 "service_registry_address",
                                 "share_tm_config_on_startup",
                                 "on_chain_service_id",
@@ -476,6 +473,7 @@ class ServiceAnalyser:
                 component_id,
                 has_multiple_overrides,
             ) = Service.process_metadata(configuration=_component_config.copy())
+            self.logger.info(f"Validating {component_id} from the service overrides")
             self.validate_override(
                 component_id=component_id,
                 override=component_config,
