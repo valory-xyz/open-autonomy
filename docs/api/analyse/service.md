@@ -59,7 +59,7 @@ Check if the agent package is published or not
 #### cross`_`verify`_`overrides
 
 ```python
-def cross_verify_overrides(agent_config: AgentConfig) -> None
+def cross_verify_overrides(agent_config: AgentConfig, skill_config: SkillConfig) -> None
 ```
 
 Cross verify overrides between service config and agent config
