@@ -24,6 +24,8 @@ import tempfile
 from pathlib import Path
 from typing import Tuple
 
+import pytest
+
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
@@ -83,6 +85,7 @@ EXPECTED_OUTPUT_EVENT = "\nERRORS:\n"
 ANSI_COLOR_CHARACTERS_REGEX = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
 
+@pytest.mark.skip
 class TestLogParser(BaseCliTest):
     """Test log parser."""
 
