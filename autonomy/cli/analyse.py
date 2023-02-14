@@ -178,7 +178,7 @@ def docstrings(ctx: Context, update: bool) -> None:
 @click.option(
     "--reset-db",
     is_flag=True,
-    help="Path to logs directory",
+    help="Use this flag to reset the log database.",
 )
 @click.option(
     "-a",

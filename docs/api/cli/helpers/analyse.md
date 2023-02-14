@@ -99,6 +99,26 @@ def select(agents: List[str], start_time: Optional[Union[str, datetime]],
 
 Query and return results.
 
+<a id="autonomy.cli.helpers.analyse.ParseLogs.re_include"></a>
+
+#### re`_`include
+
+```python
+def re_include(regexes: List[str]) -> "ParseLogs"
+```
+
+Apply a set of regexes on the result.
+
+<a id="autonomy.cli.helpers.analyse.ParseLogs.re_exclude"></a>
+
+#### re`_`exclude
+
+```python
+def re_exclude(regexes: List[str]) -> "ParseLogs"
+```
+
+Apply a set of regexes on the result.
+
 <a id="autonomy.cli.helpers.analyse.ParseLogs.execution_path"></a>
 
 #### execution`_`path

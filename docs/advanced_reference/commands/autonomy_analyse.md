@@ -179,9 +179,46 @@ Parse logs of an agent service.
 
 ### Usage
 ```bash
-autonomy analyse logs [OPTIONS] FILE
+autonomy analyse logs [OPTIONS]
 ```
 ### Options
+
+`--from-dir PATH`
+:   Path to logs directory  [required]
+
+`--reset-db`
+:   Use this flag to reset the log database.
+
+`-a, --agent TEXT`
+:   Agent IDs to include in analysis
+
+`--start-time TEXT`
+:   Start time in `YYYY-MM-DD H:M:S,MS` format
+
+`--end-time TEXT`
+:   End time in `YYYY-MM-DD H:M:S,MS` format
+
+`--log-level [INFO|DEBUG|WARNING|ERROR|CRITICAL]`
+:   Logging level.
+
+`--period INTEGER`
+:   Period ID
+
+`--round TEXT`
+:   Round name
+
+`--behaviour TEXT`
+:   Behaviour name filter
+
+`--fsm`
+:   Print only the FSM execution path
+
+`-ir, --include-regex TEXT`
+:   Regex pattern to include in the result.
+
+`-er, --exclude-regex TEXT`
+:   Regex pattern to exclude from the result.
+
 `--help`
 :   Show the help message and exit.
 
