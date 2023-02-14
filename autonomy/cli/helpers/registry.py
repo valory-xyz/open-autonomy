@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@
 import os
 import shutil
 import tempfile
-from distutils.dir_util import copy_tree
+from distutils.dir_util import copy_tree  # pylint: disable=deprecated-module
 from pathlib import Path
 from shutil import copytree
 from typing import cast
 
 import click
-from aea.cli.registry.settings import REGISTRY_REMOTE, REMOTE_IPFS
+from aea.cli.registry.settings import REGISTRY_LOCAL, REGISTRY_REMOTE, REMOTE_IPFS
 from aea.cli.utils.click_utils import reraise_as_click_exception
 from aea.cli.utils.config import (
     get_default_remote_registry,
@@ -62,12 +62,29 @@ def fetch_service(ctx: Context, public_id: PublicId) -> Path:
     """Fetch service."""
 
     if ctx.registry_type == REGISTRY_REMOTE:
-        if get_default_remote_registry() == REMOTE_IPFS:
-            return fetch_service_ipfs(public_id)
+        return fetch_service_remote(public_id)
+    if ctx.registry_type == REGISTRY_LOCAL:
+        return fetch_service_local(ctx, public_id)
+    return fetch_service_mixed(ctx, public_id)
 
-        raise Exception("HTTP registry not supported.")
 
-    return fetch_service_local(ctx, public_id)
+def fetch_service_mixed(ctx: Context, public_id: PublicId) -> Path:
+    """Fetch service in mixed mode."""
+    try:
+        return fetch_service_local(ctx, public_id)
+    except Exception as e:  # pylint: disable=broad-except
+        click.echo(
+            f"Fetch from local registry failed (reason={str(e)}), trying remote registry..."
+        )
+        return fetch_service_remote(public_id)
+
+
+def fetch_service_remote(public_id: PublicId) -> Path:
+    """Fetch service in remote mode."""
+    if get_default_remote_registry() == REMOTE_IPFS:
+        return fetch_service_ipfs(public_id)
+
+    raise Exception("HTTP registry not supported.")  # pragma: nocover
 
 
 def fetch_service_ipfs(public_id: PublicId) -> Path:

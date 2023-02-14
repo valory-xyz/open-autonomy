@@ -94,13 +94,14 @@ def get_dummy_tx_payloads(
     value: Any = None,
     vote: Optional[bool] = False,
     is_value_none: bool = False,
+    is_vote_none: bool = False,
 ) -> List[DummyTxPayload]:
     """Returns a list of DummyTxPayload objects."""
     return [
         DummyTxPayload(
             sender=agent,
             value=(value or agent) if not is_value_none else value,
-            vote=vote,
+            vote=vote if not is_vote_none else None,
         )
         for agent in sorted(participants)
     ]
@@ -384,11 +385,11 @@ class BaseOnlyKeeperSendsRoundTest(  # pylint: disable=too-few-public-methods
         """Test for rounds derived from OnlyKeeperSendsRound."""
 
         assert test_round.end_block() is None
-        assert not test_round.has_keeper_sent_payload
+        assert test_round.keeper_payload is None
 
         test_round.process_payload(keeper_payloads)
         yield test_round
-        assert test_round.has_keeper_sent_payload
+        assert test_round.keeper_payload is not None
 
         yield test_round
         actual_next_synchronized_data = synchronized_data_update_fn(
@@ -580,10 +581,12 @@ class _BaseRoundTestClass(BaseRoundTestClass):  # pylint: disable=too-few-public
 
     @staticmethod
     def _test_payload_with_wrong_round_count(
-        test_round: AbstractRound, value: Optional[Any] = None
+        test_round: AbstractRound,
+        value: Optional[str] = None,
+        vote: Optional[bool] = None,
     ) -> None:
         """Test errors raised by payloads with wrong round count."""
-        payload_with_wrong_round_count = DummyTxPayload("sender", value, False)
+        payload_with_wrong_round_count = DummyTxPayload("sender", value, vote)
         object.__setattr__(payload_with_wrong_round_count, "round_count", 0)
         with pytest.raises(
             TransactionNotValidError,

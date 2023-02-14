@@ -21,7 +21,6 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from aea.exceptions import enforce
 from web3.types import Nonce, Wei
 
 from packages.valory.protocols.contract_api import ContractApiMessage
@@ -84,21 +83,17 @@ class TransactionParams(BaseParams):  # pylint: disable=too-many-instance-attrib
         self.keeper_allowed_retries: int = self._ensure(
             "keeper_allowed_retries", kwargs, int
         )
-        self.validate_timeout: int = self._ensure_validate_timeout(kwargs)
+        self.validate_timeout: int = self._ensure_gte(
+            "validate_timeout",
+            kwargs,
+            int,
+            min_value=_MINIMUM_VALIDATE_TIMEOUT,
+        )
         self.finalize_timeout: float = self._ensure("finalize_timeout", kwargs, float)
         self.history_check_timeout: int = self._ensure(
             "history_check_timeout", kwargs, int
         )
         super().__init__(*args, **kwargs)
-
-    def _ensure_validate_timeout(self, kwargs: Dict) -> int:
-        """Ensure that `validate_timeout` exists, and that it is at least _MINIMUM_VALIDATE_TIMEOUT."""
-        validate_timeout = self._ensure("validate_timeout", kwargs, int)
-        enforce(
-            validate_timeout >= _MINIMUM_VALIDATE_TIMEOUT,
-            f"`validate_timeout` must be greater than or equal to {_MINIMUM_VALIDATE_TIMEOUT}",
-        )
-        return validate_timeout
 
 
 RandomnessApi = ApiSpecs

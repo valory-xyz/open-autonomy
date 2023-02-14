@@ -78,7 +78,7 @@ STRATEGY_MAP = dict(  # TODO: strategy to assert failure
     bool=st.booleans(),
     string=st.text(),
     bytes=st.binary(),
-    nanos=st.integers(min_value=0, max_value=10 ** 9 - 1),  # special case
+    nanos=st.integers(min_value=0, max_value=10**9 - 1),  # special case
 )
 
 

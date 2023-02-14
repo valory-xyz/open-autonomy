@@ -19,8 +19,7 @@ Event enumeration for the price estimation demo.
 ## SynchronizedData Objects
 
 ```python
-class SynchronizedData(
-    BaseSynchronizedData)
+class SynchronizedData(BaseSynchronizedData)
 ```
 
 Class to represent the synchronized data.
@@ -70,6 +69,17 @@ def keepers_threshold_exceeded() -> bool
 ```
 
 Check if the number of selected keepers has exceeded the allowed limit.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.most_voted_randomness_round"></a>
+
+#### most`_`voted`_`randomness`_`round
+
+```python
+@property
+def most_voted_randomness_round() -> int
+```
+
+Get the first in priority keeper to try to re-submit a transaction.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.most_voted_keeper_address"></a>
 
@@ -164,10 +174,21 @@ Get the most_voted_tx_hash.
 
 ```python
 @property
-def missed_messages() -> int
+def missed_messages() -> Dict[str, int]
 ```
 
-Check the number of missed messages.
+The number of missed messages per agent address.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.n_missed_messages"></a>
+
+#### n`_`missed`_`messages
+
+```python
+@property
+def n_missed_messages() -> int
+```
+
+The number of missed messages in total.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.should_check_late_messages"></a>
 
@@ -186,10 +207,21 @@ Check if we should check for late-arriving messages.
 
 ```python
 @property
-def late_arriving_tx_hashes() -> List[str]
+def late_arriving_tx_hashes() -> Dict[str, List[str]]
 ```
 
 Get the late_arriving_tx_hashes.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.suspects"></a>
+
+#### suspects
+
+```python
+@property
+def suspects() -> Tuple[str]
+```
+
+Get the suspect agents.
 
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.most_voted_check_result"></a>
 
@@ -213,12 +245,24 @@ def participant_to_check() -> Mapping[str, CheckTransactionHistoryPayload]
 
 Get the mapping from participants to checks.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizedData.participant_to_late_messages"></a>
+
+#### participant`_`to`_`late`_`messages
+
+```python
+@property
+def participant_to_late_messages(
+) -> Mapping[str, SynchronizeLateMessagesPayload]
+```
+
+Get the mapping from participants to checks.
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FailedRound"></a>
 
 ## FailedRound Objects
 
 ```python
-class FailedRound(DegenerateRound,  ABC)
+class FailedRound(DegenerateRound, ABC)
 ```
 
 A round that represents that the period failed
@@ -248,9 +292,7 @@ A round that represents transaction signing has finished
 #### end`_`block
 
 ```python
-def end_block() -> Optional[
-        Tuple[BaseSynchronizedData, Enum]
-    ]
+def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 ```
 
 Process the end of the block.
@@ -290,7 +332,8 @@ Process the end of the block.
 ## SelectKeeperTransactionSubmissionRoundB Objects
 
 ```python
-class SelectKeeperTransactionSubmissionRoundB(SelectKeeperTransactionSubmissionRoundA)
+class SelectKeeperTransactionSubmissionRoundB(
+        SelectKeeperTransactionSubmissionRoundA)
 ```
 
 A round in which a new keeper is selected for transaction submission
@@ -301,7 +344,7 @@ A round in which a new keeper is selected for transaction submission
 
 ```python
 class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
-    SelectKeeperTransactionSubmissionRoundB)
+        SelectKeeperTransactionSubmissionRoundB)
 ```
 
 A round in which a new keeper is selected for tx submission after a round timeout of the previous keeper
@@ -386,12 +429,32 @@ def end_block() -> Optional[Tuple[BaseSynchronizedData, Event]]
 
 Process the end of the block.
 
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizeLateMessagesRound.process_payload"></a>
+
+#### process`_`payload
+
+```python
+def process_payload(payload: BaseTxPayload) -> None
+```
+
+Process payload.
+
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SynchronizeLateMessagesRound.check_payload"></a>
+
+#### check`_`payload
+
+```python
+def check_payload(payload: BaseTxPayload) -> None
+```
+
+Check Payload
+
 <a id="packages.valory.skills.transaction_settlement_abci.rounds.FinishedTransactionSubmissionRound"></a>
 
 ## FinishedTransactionSubmissionRound Objects
 
 ```python
-class FinishedTransactionSubmissionRound(DegenerateRound,  ABC)
+class FinishedTransactionSubmissionRound(DegenerateRound, ABC)
 ```
 
 A round that represents the transition to the ResetAndPauseRound
@@ -479,9 +542,8 @@ Transition states:
     8. SynchronizeLateMessagesRound
         - done: 9.
         - round timeout: 8.
-        - no majority: 8.
         - none: 6.
-        - missed and late messages mismatch: 12.
+        - suspicious activity: 12.
     9. CheckLateTxHashesRound
         - done: 11.
         - negative: 12.

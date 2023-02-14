@@ -36,7 +36,7 @@ from werkzeug.exceptions import InternalServerError, NotFound
 try:
     from .tendermint import TendermintNode, TendermintParams  # type: ignore
 except ImportError:
-    from tendermint import TendermintNode, TendermintParams
+    from tendermint import TendermintNode, TendermintParams  # type: ignore
 
 ENCODING = "utf-8"
 DEFAULT_LOG_FILE = "log.log"
@@ -290,6 +290,7 @@ def create_app(
                 request.args.get("genesis_time", defaults["genesis_time"]),
                 # default should be 1: https://github.com/tendermint/tendermint/pull/5191/files
                 request.args.get("initial_height", "1"),
+                request.args.get("period_count", "0"),
             )
             tendermint_node.start(start_monitoring=perform_monitoring)
             return jsonify({"message": "Reset successful.", "status": True}), 200

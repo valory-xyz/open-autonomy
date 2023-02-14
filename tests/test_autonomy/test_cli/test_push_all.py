@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ class TestPushAll(BaseCliTest):
         )
         published_packages = []
 
-        def _push_patch(_: Any, public_id: Any) -> None:
+        def _push_patch(_: Any, public_id: Any, retries: Any) -> None:
             published_packages.append(public_id)
 
         with mock.patch(

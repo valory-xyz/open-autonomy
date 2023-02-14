@@ -18,18 +18,19 @@
 # ------------------------------------------------------------------------------
 
 """This module contains utility functions for the 'abstract_round_abci' skill."""
+
 import builtins
 import collections
 import dataclasses
 import sys
 import types
 import typing
-from decimal import Decimal
 from hashlib import sha256
 from typing import (
     Any,
     Dict,
     FrozenSet,
+    Iterator,
     List,
     Optional,
     Set,
@@ -47,7 +48,7 @@ from py_ecc.bls import G2Basic as bls
 from typing_extensions import Literal, TypeGuard, TypedDict
 
 
-MAX_UINT64 = 2 ** 64 - 1
+MAX_UINT64 = 2**64 - 1
 DEFAULT_TENDERMINT_P2P_PORT = 26656
 
 
@@ -121,17 +122,6 @@ class VerifyDrand:  # pylint: disable=too-few-public-methods
             return False, "Failed bls.Verify check."
 
         return True, None
-
-
-def to_int(most_voted_estimate: float, decimals: int) -> int:
-    """Convert to int."""
-    most_voted_estimate_ = str(most_voted_estimate)
-    decimal_places = most_voted_estimate_[::-1].find(".")
-    if decimal_places > decimals:
-        most_voted_estimate_ = most_voted_estimate_[: -(decimal_places - decimals)]
-    most_voted_estimate_decimal = Decimal(most_voted_estimate_)
-    int_value = int(most_voted_estimate_decimal * (10 ** decimals))
-    return int_value
 
 
 def get_data_from_nested_dict(
@@ -416,7 +406,7 @@ def check_dataclass(value: Any, ty: Type[Any]) -> Result:
     return None
 
 
-def check_typeddict(value: Any, ty: Type[Type[Any]]) -> Result:
+def check_typeddict(value: Any, ty: Type[Any]) -> Result:
     """Check typeddict type."""
     if not isinstance(value, dict):
         return AutonomyTypeError(ty, value)  # pragma: no cover
@@ -480,3 +470,8 @@ def is_json_serializable(obj: Any) -> bool:
         )
 
     return is_primitive_or_none(obj)
+
+
+def filter_negative(mapping: Dict[str, int]) -> Iterator[str]:
+    """Return the keys of a dictionary for which the values are negative integers."""
+    return (key for key, number in mapping.items() if number < 0)

@@ -77,6 +77,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
     capture_log = True
     # generic service configurations
     ROUND_TIMEOUT_SECONDS = 10.0
+    OBSERVATION_INTERVAL = 10
     KEEPER_TIMEOUT = 30.0
     # generic node healthcheck configuration
     HEALTH_CHECK_MAX_RETRIES = 20
@@ -212,7 +213,7 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
         )
         self.set_config(
             f"vendor.{skill.author}.skills.{skill.name}.models.params.args.observation_interval",
-            3,
+            self.OBSERVATION_INTERVAL,
             type_="int",
         )
         self.set_config(
@@ -330,14 +331,18 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
                 happy_path
             )
             # Create dictionary to keep track of how many times this string has appeared so far.
-            check_strings_to_n_appearances = dict.fromkeys(check_strings_to_n_periods)
+            check_strings_to_n_appearances = dict.fromkeys(
+                check_strings_to_n_periods, 0
+            )
             end_time = time.time() + kwargs["timeout"]
             # iterate while the check strings are still present in the dictionary,
             # i.e. have not appeared for the required amount of times.
             while bool(check_strings_to_n_periods) and time.time() < end_time:
                 for line in check_strings_to_n_periods.copy().keys():
                     # count the number of times the line has appeared so far.
-                    n_times_appeared = cls.stdout[kwargs["process"].pid].count(line)
+                    n_times_appeared: int = cls.stdout[kwargs["process"].pid].count(
+                        line
+                    )
                     # track the number times the line has appeared so far.
                     check_strings_to_n_appearances[line] = n_times_appeared
                     # if the required number has been reached, delete them from the check dictionaries.

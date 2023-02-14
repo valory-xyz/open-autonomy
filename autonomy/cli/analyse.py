@@ -30,8 +30,10 @@ from aea.configurations.constants import PACKAGES
 
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
 from autonomy.analyse.handlers import check_handlers
+from autonomy.chain.config import ChainType
 from autonomy.cli.helpers.analyse import (
     ParseLogs,
+    check_service_readiness,
     list_all_skill_yaml_files,
     load_package_tree,
     run_dialogues_check,
@@ -43,6 +45,7 @@ from autonomy.cli.helpers.fsm_spec import update_one as update_one_fsm
 from autonomy.cli.utils.click_utils import (
     PathArgument,
     abci_spec_format_flag,
+    chain_selection_flag,
     sys_path_patch,
 )
 from autonomy.deploy.constants import LOGGING_LEVELS
@@ -376,3 +379,30 @@ def benchmark(path: Path, block_type: str, period: int, output: Path) -> None:
 
     with reraise_as_click_exception(Exception):
         aggregate(path=path, block_type=block_type, period=period, output=Path(output))
+
+
+@analyse_group.command(name="service")
+@click.option(
+    "--token-id",
+    type=int,
+    help="Token ID of the service to check on-chain state of the service",
+)
+@click.argument(
+    "service_path",
+    type=PathArgument(
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+)
+@chain_selection_flag()
+def _check_service(
+    token_id: Optional[int], service_path: Path, chain_type: str
+) -> None:
+    """Check deployment readiness of a service"""
+
+    check_service_readiness(
+        token_id=token_id,
+        service_path=service_path,
+        chain_type=ChainType(chain_type),
+    )

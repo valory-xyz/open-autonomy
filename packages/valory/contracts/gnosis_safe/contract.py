@@ -60,7 +60,7 @@ SAFE_DEPLOYED_BYTECODE = "0x608060405273ffffffffffffffffffffffffffffffffffffffff
 
 def _get_nonce() -> int:
     """Generate a nonce for the Safe deployment."""
-    return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
+    return secrets.SystemRandom().randint(0, 2**256 - 1)
 
 
 def checksum_address(agent_address: str) -> ChecksumAddress:

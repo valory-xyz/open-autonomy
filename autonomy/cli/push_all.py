@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -34,11 +34,18 @@ from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS
 @click.option(
     "--packages-dir", type=click.Path(file_okay=False, dir_okay=True, exists=True)
 )
+@click.option(
+    "--retries",
+    type=int,
+    default=1,
+    help="Tries on package push to the network.",
+)
 @registry_flag()
-def push_all(packages_dir: Optional[Path], registry: str) -> None:
+def push_all(packages_dir: Optional[Path], retries: int, registry: str) -> None:
     """Push all available packages to a registry."""
     push_all_packages(
         registry,
         packages_dir,
         package_type_config_class=PACKAGE_TYPE_TO_CONFIG_CLASS,
+        retries=retries,
     )

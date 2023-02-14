@@ -264,12 +264,17 @@ class TendermintNode:
                     for trigger in [
                         # this occurs when we lose connection from the tm side
                         "RPC HTTP server stopped",
-                        # this occurs when we lose connection from the AEA side.
-                        "Stopping abci.socketClient for error: read message: EOF module=abci-client connection=",
+                        # whenever the node is stopped because of a closed connection
+                        # from on any of the tendermint modules (abci, p2p, rpc, etc)
+                        # we restart the node
+                        "Stopping abci.socketClient for error: read message: EOF",
                     ]:
                         if line.find(trigger) >= 0:
                             self._stop_tm_process()
-                            self._start_tm_process()
+                            # we can only reach this step if monitoring was activated
+                            # so we make sure that after reset the monitoring continues
+                            monitoring = True
+                            self._start_tm_process(monitoring)
                             self.write_line(
                                 f"Restarted the HTTP RPC server, as a connection was dropped with message:\n\t\t {line}\n"
                             )
@@ -277,11 +282,16 @@ class TendermintNode:
                 self.write_line(f"Error!: {str(e)}")
         self.write_line("Monitoring thread terminated\n")
 
-    def reset_genesis_file(self, genesis_time: str, initial_height: str) -> None:
+    def reset_genesis_file(
+        self, genesis_time: str, initial_height: str, period_count: str
+    ) -> None:
         """Reset genesis file."""
 
         genesis_file = Path(str(self.params.home), "config", "genesis.json")
         genesis_config = json.loads(genesis_file.read_text(encoding=ENCODING))
         genesis_config["genesis_time"] = genesis_time
         genesis_config["initial_height"] = initial_height
+        # chain id should be max 50 chars.
+        # this means that the app would theoretically break when a 40-digit period is reached
+        genesis_config["chain_id"] = f"autonolas-{period_count}"
         genesis_file.write_text(json.dumps(genesis_config, indent=2), encoding=ENCODING)

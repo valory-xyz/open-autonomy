@@ -9,7 +9,7 @@ ABCI App test tools.
 ## `_`ConcreteRound Objects
 
 ```python
-class _ConcreteRound(AbstractRound,  ABC)
+class _ConcreteRound(AbstractRound, ABC)
 ```
 
 ConcreteRound

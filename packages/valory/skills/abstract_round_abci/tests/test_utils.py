@@ -21,7 +21,7 @@
 
 from collections import defaultdict
 from string import printable
-from typing import Any, List, Tuple, Type
+from typing import Any, Dict, List, Tuple, Type
 from unittest import mock
 
 import pytest
@@ -33,12 +33,12 @@ from packages.valory.skills.abstract_round_abci.utils import (
     DEFAULT_TENDERMINT_P2P_PORT,
     MAX_UINT64,
     VerifyDrand,
+    filter_negative,
     get_data_from_nested_dict,
     get_value_with_type,
     is_json_serializable,
     is_primitive_or_none,
     parse_tendermint_p2p_url,
-    to_int,
 )
 
 
@@ -142,23 +142,6 @@ def test_verify_randomness_hash_fuzz(input_bytes: bytes) -> None:
     """Test VerifyDrand._verify_randomness_hash"""
 
     VerifyDrand._verify_randomness_hash(input_bytes, input_bytes)
-
-
-def test_to_int_positive() -> None:
-    """Test `to_int` function."""
-    assert to_int(0.542, 5) == 54200
-    assert to_int(0.542, 2) == 54
-    assert to_int(542, 2) == 54200
-
-
-@given(
-    st.floats(width=64, allow_nan=False, allow_infinity=False),
-    st.integers(min_value=0, max_value=20),
-)
-@pytest.mark.skip(reason="https://github.com/valory-xyz/open-autonomy/issues/1614")
-def test_fuzz_to_int(estimate: float, decimals: int) -> None:
-    """Test fuzz to_int."""
-    to_int(estimate, decimals)
 
 
 @given(
@@ -266,3 +249,13 @@ def test_is_json_serializable(valid_obj: Any, invalid_obj: Any) -> None:
     """Test `is_json_serializable`."""
     assert is_json_serializable(valid_obj)
     assert not is_json_serializable(invalid_obj)
+
+
+@given(
+    positive=st.dictionaries(st.text(), st.integers(min_value=0)),
+    negative=st.dictionaries(st.text(), st.integers(max_value=-1)),
+)
+def test_filter_negative(positive: Dict[str, int], negative: Dict[str, int]) -> None:
+    """Test `filter_negative`."""
+    assert len(tuple(filter_negative(positive))) == 0
+    assert set(filter_negative(negative)) == set(negative.keys())

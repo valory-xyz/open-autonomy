@@ -41,7 +41,7 @@ Get deployment kwargs.
 ## BaseGanacheContractTest Objects
 
 ```python
-class BaseGanacheContractTest(BaseContractTest,  GanacheBaseTest)
+class BaseGanacheContractTest(BaseContractTest, GanacheBaseTest)
 ```
 
 Base test case for testing contracts on Ganache.
@@ -51,7 +51,7 @@ Base test case for testing contracts on Ganache.
 ## BaseHardhatGnosisContractTest Objects
 
 ```python
-class BaseHardhatGnosisContractTest(BaseContractTest,  HardHatGnosisBaseTest)
+class BaseHardhatGnosisContractTest(BaseContractTest, HardHatGnosisBaseTest)
 ```
 
 Base test case for testing contracts on Hardhat with Gnosis.
@@ -61,7 +61,7 @@ Base test case for testing contracts on Hardhat with Gnosis.
 ## BaseHardhatAMMContractTest Objects
 
 ```python
-class BaseHardhatAMMContractTest(BaseContractTest,  HardHatAMMBaseTest)
+class BaseHardhatAMMContractTest(BaseContractTest, HardHatAMMBaseTest)
 ```
 
 Base test case for testing AMM contracts on Hardhat.
@@ -71,7 +71,7 @@ Base test case for testing AMM contracts on Hardhat.
 ## BaseRegistriesContractsTest Objects
 
 ```python
-class BaseRegistriesContractsTest(BaseContractTest,  RegistriesBaseTest)
+class BaseRegistriesContractsTest(BaseContractTest, RegistriesBaseTest)
 ```
 
 Base test case for the registries contract.
@@ -91,8 +91,8 @@ Base test contract with contract dependencies
 ## BaseGanacheContractWithDependencyTest Objects
 
 ```python
-class BaseGanacheContractWithDependencyTest(
-    BaseContractWithDependencyTest,  GanacheBaseTest)
+class BaseGanacheContractWithDependencyTest(BaseContractWithDependencyTest,
+                                            GanacheBaseTest)
 ```
 
 Base test case for testing contracts with dependencies on Ganache.
@@ -103,7 +103,7 @@ Base test case for testing contracts with dependencies on Ganache.
 
 ```python
 class BaseHardhatGnosisContractWithDependencyTest(
-    BaseContractWithDependencyTest,  HardHatGnosisBaseTest)
+        BaseContractWithDependencyTest, HardHatGnosisBaseTest)
 ```
 
 Base test case for testing contracts with dependencies on Hardhat with Gnosis.
@@ -113,8 +113,8 @@ Base test case for testing contracts with dependencies on Hardhat with Gnosis.
 ## BaseHardhatAMMContractWithDependencyTest Objects
 
 ```python
-class BaseHardhatAMMContractWithDependencyTest(
-    BaseContractWithDependencyTest,  HardHatAMMBaseTest)
+class BaseHardhatAMMContractWithDependencyTest(BaseContractWithDependencyTest,
+                                               HardHatAMMBaseTest)
 ```
 
 Base test case for testing AMM contracts with dependencies on Hardhat.

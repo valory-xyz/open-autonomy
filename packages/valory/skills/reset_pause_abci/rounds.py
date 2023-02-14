@@ -20,7 +20,7 @@
 """This module contains the data classes for the reset_pause_abci application."""
 
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, Optional, Set, Tuple
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -47,7 +47,6 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
     """A round that represents that consensus is reached (the final round)"""
 
     payload_class = ResetPausePayload
-    payload_attribute = "period_count"
     _allow_rejoin_payloads = True
     synchronized_data_class = BaseSynchronizedData
 
@@ -125,8 +124,8 @@ class ResetPauseAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_AND_PAUSE_TIMEOUT: 30.0,
     }
-    db_pre_conditions: Dict[AppState, List[str]] = {ResetAndPauseRound: []}
-    db_post_conditions: Dict[AppState, List[str]] = {
-        FinishedResetAndPauseRound: [],
-        FinishedResetAndPauseErrorRound: [],
+    db_pre_conditions: Dict[AppState, Set[str]] = {ResetAndPauseRound: set()}
+    db_post_conditions: Dict[AppState, Set[str]] = {
+        FinishedResetAndPauseRound: set(),
+        FinishedResetAndPauseErrorRound: set(),
     }

@@ -31,7 +31,7 @@ from cmath import inf
 from contextlib import suppress
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Callable, Generator, List, cast
+from typing import Any, Callable, Generator, List, NoReturn, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -313,7 +313,7 @@ class ABCIAppTest:
         )
         return cast(AbciMessage, response)
 
-    def no_match(self, request: AbciMessage) -> None:
+    def no_match(self, request: AbciMessage) -> NoReturn:
         """No match."""
         raise Exception(
             f"Received request with performative {request.performative.value}, but no handler available"

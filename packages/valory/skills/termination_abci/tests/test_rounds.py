@@ -127,7 +127,7 @@ class TestBackgroundRound(BaseRoundTestClass):
         bad_participant_payload = BackgroundPayload(
             sender=bad_participant, background_data=payload_data
         )
-        first_payload, *payloads = [
+        first_payload, *_ = [
             BackgroundPayload(sender=participant, background_data=payload_data)
             for participant in self.participants
         ]
@@ -159,24 +159,6 @@ class TestBackgroundRound(BaseRoundTestClass):
             match=f"sender {first_payload.sender} has already sent value for round",
         ):
             test_round.process_payload(first_payload)
-
-        with pytest.raises(
-            ABCIAppInternalError,
-            match="Expecting serialized data of chunk size 7, got: 0xdata",
-        ):
-
-            test_round._hash_length = 7  # pylint: disable=protected-access
-            test_round.process_payload(payloads[1])
-            test_round._hash_length = None  # pylint: disable=protected-access
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match="Expecting serialized data of chunk size 7, got: 0xdata",
-        ):
-            # 7 is a nice prime number
-            test_round._hash_length = 7  # pylint: disable=protected-access
-            test_round.check_payload(payloads[1])
-            test_round._hash_length = None  # pylint: disable=protected-access
 
 
 class TestTerminationRound(BaseRoundTestClass):

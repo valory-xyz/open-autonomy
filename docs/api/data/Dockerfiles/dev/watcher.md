@@ -104,7 +104,8 @@ Handle file updates.
 #### `__`init`__`
 
 ```python
-def __init__(aea_runner: AEARunner, fingerprint_on_restart: bool = True) -> None
+def __init__(aea_runner: AEARunner,
+             fingerprint_on_restart: bool = True) -> None
 ```
 
 Initialize object.

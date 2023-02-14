@@ -19,7 +19,9 @@ Make a transaction and return a receipt
 #### sort`_`service`_`dependency`_`metadata
 
 ```python
-def sort_service_dependency_metadata(agent_ids: List[int], number_of_slots_per_agents: List[int], cost_of_bond_per_agent: List[int]) -> Tuple[List[int], ...]
+def sort_service_dependency_metadata(
+        agent_ids: List[int], number_of_slots_per_agents: List[int],
+        cost_of_bond_per_agent: List[int]) -> Tuple[List[int], ...]
 ```
 
 Sort service dependencies and their respective parameters
@@ -29,7 +31,9 @@ Sort service dependencies and their respective parameters
 #### wait`_`for`_`component`_`to`_`mint
 
 ```python
-def wait_for_component_to_mint(token_retriever: Callable[[], Optional[int]], timeout: Optional[float] = None, sleep: float = 1.0) -> int
+def wait_for_component_to_mint(token_retriever: Callable[[], Optional[int]],
+                               timeout: Optional[float] = None,
+                               sleep: float = 1.0) -> int
 ```
 
 Wait for service activation.
@@ -39,7 +43,13 @@ Wait for service activation.
 #### mint`_`component
 
 ```python
-def mint_component(ledger_api: LedgerApi, crypto: Crypto, metadata_hash: str, component_type: UnitType, chain_type: ChainType, dependencies: Optional[List[int]] = None, timeout: Optional[float] = None) -> Optional[int]
+def mint_component(ledger_api: LedgerApi,
+                   crypto: Crypto,
+                   metadata_hash: str,
+                   component_type: UnitType,
+                   chain_type: ChainType,
+                   dependencies: Optional[List[int]] = None,
+                   timeout: Optional[float] = None) -> Optional[int]
 ```
 
 Publish component on-chain.
@@ -49,7 +59,15 @@ Publish component on-chain.
 #### mint`_`service
 
 ```python
-def mint_service(ledger_api: LedgerApi, crypto: Crypto, metadata_hash: str, chain_type: ChainType, agent_ids: List[int], number_of_slots_per_agent: List[int], cost_of_bond_per_agent: List[int], threshold: int, timeout: Optional[float] = None) -> Optional[int]
+def mint_service(ledger_api: LedgerApi,
+                 crypto: Crypto,
+                 metadata_hash: str,
+                 chain_type: ChainType,
+                 agent_ids: List[int],
+                 number_of_slots_per_agent: List[int],
+                 cost_of_bond_per_agent: List[int],
+                 threshold: int,
+                 timeout: Optional[float] = None) -> Optional[int]
 ```
 
 Publish component on-chain.

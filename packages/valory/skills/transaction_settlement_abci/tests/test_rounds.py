@@ -219,16 +219,26 @@ def get_participant_to_late_arriving_tx_hashes(
     }
 
 
-def get_late_arriving_tx_hashes() -> List[str]:
+def get_late_arriving_tx_hashes_deserialized() -> Dict[str, List[str]]:
     """Get dummy late-arriving tx hashes."""
     # We want the tx hashes to have a size which can be divided by 64 to be able to parse it.
     # Otherwise, they are not valid.
-    return [
-        "t" * TX_HASH_LENGTH,
-        "e" * TX_HASH_LENGTH,
-        "s" * TX_HASH_LENGTH,
-        "t" * TX_HASH_LENGTH,
-    ]
+    return {
+        "sender": [
+            "t" * TX_HASH_LENGTH,
+            "e" * TX_HASH_LENGTH,
+            "s" * TX_HASH_LENGTH,
+            "t" * TX_HASH_LENGTH,
+        ]
+    }
+
+
+def get_late_arriving_tx_hashes_serialized() -> Dict[str, str]:
+    """Get dummy late-arriving tx hashes."""
+    # We want the tx hashes to have a size which can be divided by 64 to be able to parse it.
+    # Otherwise, they are not valid.
+    deserialized = get_late_arriving_tx_hashes_deserialized()
+    return {sender: "".join(hash_) for sender, hash_ in deserialized.items()}
 
 
 def get_keepers(keepers: Deque[str], retries: int = 1) -> str:
@@ -380,13 +390,6 @@ class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
     _synchronized_data_class = TransactionSettlementSynchronizedSata
     _event_class = TransactionSettlementEvent
 
-    @staticmethod
-    def _participant_to_selection(
-        participants: FrozenSet[str], keepers: str
-    ) -> Mapping[str, BaseTxPayload]:
-        """Get participant to selection"""
-        return get_participant_to_selection(participants, keepers)
-
     @pytest.mark.parametrize(
         "most_voted_payload, keepers, exit_event",
         (
@@ -460,12 +463,15 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
         new_callable=mock.PropertyMock,
     )
     @pytest.mark.parametrize(
+        "keepers", (f"{int(1).to_bytes(32, 'big').hex()}keeper" + "-" * 36,)
+    )
+    @pytest.mark.parametrize(
         "attrs, threshold_exceeded, exit_event",
         (
             (
                 {
                     "tx_hashes_history": "t" * 66,
-                    "missed_messages": 10,
+                    "missed_messages": {f"keeper{'-' * 36}": 10},
                 },
                 True,
                 # Since the threshold has been exceeded, we should return a `CHECK_HISTORY` event.
@@ -473,14 +479,14 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
             ),
             (
                 {
-                    "missed_messages": 10,
+                    "missed_messages": {f"keeper{'-' * 36}": 10},
                 },
                 True,
                 TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
             ),
             (
                 {
-                    "missed_messages": 10,
+                    "missed_messages": {f"keeper{'-' * 36}": 10},
                 },
                 False,
                 TransactionSettlementEvent.DONE,
@@ -490,6 +496,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
     def test_run(
         self,
         threshold_exceeded_mock: mock.PropertyMock,
+        keepers: str,
         attrs: Dict[str, Union[str, int]],
         threshold_exceeded: bool,
         exit_event: TransactionSettlementEvent,
@@ -498,14 +505,15 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
         self.synchronized_data.update(participant_to_selection=dict.fromkeys(self.participants), **attrs)  # type: ignore
         threshold_exceeded_mock.return_value = threshold_exceeded
         most_voted_payload = int(1).to_bytes(32, "big").hex() + "new_keeper" + "-" * 32
-        keeper = ""
-        super().test_run(most_voted_payload, keeper, exit_event)
-        assert (
-            cast(
-                TransactionSettlementSynchronizedSata, self.synchronized_data
-            ).missed_messages
-            == cast(int, attrs["missed_messages"]) + 1
+        super().test_run(most_voted_payload, keepers, exit_event)
+        initial_missed_messages = cast(Dict[str, int], (attrs["missed_messages"]))
+        expected_missed_messages = {
+            sender: missed + 1 for sender, missed in initial_missed_messages.items()
+        }
+        synchronized_data = cast(
+            TransactionSettlementSynchronizedSata, self.synchronized_data
         )
+        assert synchronized_data.missed_messages == expected_missed_messages
 
 
 class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
@@ -521,56 +529,56 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             (
                 "",
                 "",
-                1,
+                {"test": 1},
                 VerificationStatus.ERROR.value,
                 TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
             ),
             (
                 "",
                 "",
-                0,
+                {},
                 VerificationStatus.ERROR.value,
                 TransactionSettlementEvent.FINALIZATION_FAILED,
             ),
             (
                 "t" * 66,
                 "",
-                0,
+                {},
                 VerificationStatus.VERIFIED.value,
                 TransactionSettlementEvent.CHECK_HISTORY,
             ),
             (
                 "t" * 66,
                 "",
-                0,
+                {},
                 VerificationStatus.ERROR.value,
                 TransactionSettlementEvent.CHECK_HISTORY,
             ),
             (
                 "",
                 "",
-                0,
+                {},
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.FINALIZATION_FAILED,
             ),
             (
                 "",
                 "tx_digest" + "t" * 57,
-                0,
+                {},
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.DONE,
             ),
             (
                 "t" * 66,
                 "tx_digest" + "t" * 57,
-                0,
+                {},
                 VerificationStatus.PENDING.value,
                 TransactionSettlementEvent.DONE,
             ),
             (
                 "t" * 66,
                 "",
-                0,
+                {},
                 VerificationStatus.INSUFFICIENT_FUNDS.value,
                 TransactionSettlementEvent.INSUFFICIENT_FUNDS,
             ),
@@ -592,7 +600,7 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
         self.synchronized_data = cast(
             TransactionSettlementSynchronizedSata,
             self.synchronized_data.update(
-                participants=([f"agent_{i}" + "-" * 35 for i in range(4)]),
+                participants=tuple(self.participants),
                 missed_messages=missed_messages,
                 tx_hashes_history=tx_hashes_history,
                 keepers=get_keepers(keepers, keeper_retries),
@@ -647,6 +655,44 @@ class TestFinalizationRound(BaseOnlyKeeperSendsRoundTest):
             )
         )
 
+    def test_finalization_round_no_tx_data(self) -> None:
+        """Test finalization round when `tx_data` is `None`."""
+        keepers = deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))
+        keeper_retries = 2
+        self.synchronized_data = cast(
+            TransactionSettlementSynchronizedSata,
+            self.synchronized_data.update(
+                participants=tuple(f"agent_{i}" + "-" * 35 for i in range(4)),
+                keepers=get_keepers(keepers, keeper_retries),
+            ),
+        )
+
+        sender = keepers[0]
+
+        test_round = self._round_class(
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
+        )
+
+        self._complete_run(
+            self._test_round(
+                test_round=test_round,
+                keeper_payloads=FinalizationTxPayload(
+                    sender=sender,
+                    tx_data=None,
+                ),
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data,
+                synchronized_data_attr_checks=[
+                    lambda _synchronized_data: _synchronized_data.tx_hashes_history,
+                    lambda _synchronized_data: _synchronized_data.blacklisted_keepers,
+                    lambda _synchronized_data: _synchronized_data.keepers,
+                    lambda _synchronized_data: _synchronized_data.keeper_retries,
+                    lambda _synchronized_data: _synchronized_data.final_verification_status,
+                ],
+                exit_event=TransactionSettlementEvent.FINALIZATION_FAILED,
+            )
+        )
+
 
 class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
     """Test CollectSignatureRound."""
@@ -674,14 +720,6 @@ class TestCollectSignatureRound(BaseCollectDifferentUntilThresholdRoundTest):
             )
         )
 
-    def test_no_majority_event(self) -> None:
-        """Test the no-majority event."""
-        test_round = CollectSignatureRound(
-            self.synchronized_data, self.consensus_params
-        )
-        test_round.block_confirmations = test_round.required_block_confirmations + 1
-        self._test_no_majority_event(test_round)
-
 
 class TestValidateTransactionRound(BaseValidateRoundTest):
     """Test ValidateRound."""
@@ -703,25 +741,25 @@ class TestCheckTransactionHistoryRound(BaseCollectSameUntilThresholdRoundTest):
             (
                 "0000000000000000000000000000000000000000000000000000000000000001",
                 "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
-                0,
+                {},
                 TransactionSettlementEvent.DONE,
             ),
             (
                 "0000000000000000000000000000000000000000000000000000000000000002",
                 "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
-                0,
+                {},
                 TransactionSettlementEvent.NEGATIVE,
             ),
             (
                 "0000000000000000000000000000000000000000000000000000000000000003",
                 "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
-                0,
+                {},
                 TransactionSettlementEvent.NONE,
             ),
             (
                 "0000000000000000000000000000000000000000000000000000000000000002",
                 "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
-                1,
+                {"test": 1},
                 TransactionSettlementEvent.CHECK_LATE_ARRIVING_MESSAGE,
             ),
         ),
@@ -788,8 +826,11 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
     @pytest.mark.parametrize(
         "missed_messages, expected_event",
         (
-            (0, TransactionSettlementEvent.MISSED_AND_LATE_MESSAGES_MISMATCH),
-            (8, TransactionSettlementEvent.DONE),
+            (
+                {f"agent_{i}": 0 for i in range(4)},
+                TransactionSettlementEvent.SUSPICIOUS_ACTIVITY,
+            ),
+            ({f"agent_{i}": 2 for i in range(4)}, TransactionSettlementEvent.DONE),
         ),
     )
     def test_runs(
@@ -801,6 +842,11 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
+        late_arriving_tx_hashes = {
+            p: "".join(("1" * TX_HASH_LENGTH, "2" * TX_HASH_LENGTH))
+            for p in self.participants
+        }
+        test_round.required_block_confirmations = 0
         self._complete_run(
             self._test_round(
                 test_round=test_round,
@@ -808,26 +854,37 @@ class TestSynchronizeLateMessagesRound(BaseCollectNonEmptyUntilThresholdRound):
                     self.participants
                 ),
                 synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.update(
-                    late_arriving_tx_hashes=["1" * TX_HASH_LENGTH, "2" * TX_HASH_LENGTH]
-                    * len(self.participants)
+                    late_arriving_tx_hashes=late_arriving_tx_hashes,
+                    suspects=tuple()
+                    if expected_event == TransactionSettlementEvent.DONE
+                    else tuple(sorted(late_arriving_tx_hashes.keys())),
                 ),
                 synchronized_data_attr_checks=[
-                    lambda _synchronized_data: _synchronized_data.late_arriving_tx_hashes
+                    lambda _synchronized_data: _synchronized_data.late_arriving_tx_hashes,
+                    lambda _synchronized_data: _synchronized_data.suspects,
                 ],
                 exit_event=expected_event,
             )
         )
 
-    def test_incorrect_serialization_not_accepted(self) -> None:
-        """Test wrong serialization not collected"""
+    @pytest.mark.parametrize("correct_serialization", (True, False))
+    def test_check_payload(self, correct_serialization: bool) -> None:
+        """Test the `check_payload` method."""
 
         test_round = SynchronizeLateMessagesRound(
             synchronized_data=self.synchronized_data,
             consensus_params=self.consensus_params,
         )
         sender = list(test_round.accepting_payloads_from).pop()
-        tx_hashes = "0" * (TX_HASH_LENGTH - 1)
+        hash_length = TX_HASH_LENGTH
+        if not correct_serialization:
+            hash_length -= 1
+        tx_hashes = "0" * hash_length
         payload = SynchronizeLateMessagesPayload(sender=sender, tx_hashes=tx_hashes)
+
+        if correct_serialization:
+            test_round.check_payload(payload)
+            return
 
         with pytest.raises(
             TransactionNotValidError, match="Expecting serialized data of chunk size"
@@ -862,7 +919,8 @@ def test_synchronized_datas() -> None:
     )
     final_tx_hash = get_final_tx_hash()
     actual_keeper_randomness = int(most_voted_randomness, base=16) / MAX_INT_256
-    late_arriving_tx_hashes = get_late_arriving_tx_hashes()
+    late_arriving_tx_hashes_serialized = get_late_arriving_tx_hashes_serialized()
+    late_arriving_tx_hashes_deserialized = get_late_arriving_tx_hashes_deserialized()
     keepers = get_keepers(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35)))
     expected_keepers = deque(["agent_1" + "-" * 35, "agent_3" + "-" * 35])
 
@@ -885,7 +943,7 @@ def test_synchronized_datas() -> None:
                     most_voted_tx_hash=most_voted_tx_hash,
                     participant_to_signature=participant_to_signature_serialized,
                     final_tx_hash=final_tx_hash,
-                    late_arriving_tx_hashes=late_arriving_tx_hashes,
+                    late_arriving_tx_hashes=late_arriving_tx_hashes_serialized,
                     keepers=keepers,
                     blacklisted_keepers="t" * 42,
                 )
@@ -902,7 +960,10 @@ def test_synchronized_datas() -> None:
     assert synchronized_data_____.participant_to_selection == participant_to_selection
     assert synchronized_data_____.participant_to_signature == participant_to_signature
     assert synchronized_data_____.final_tx_hash == final_tx_hash
-    assert synchronized_data_____.late_arriving_tx_hashes == late_arriving_tx_hashes
+    assert (
+        synchronized_data_____.late_arriving_tx_hashes
+        == late_arriving_tx_hashes_deserialized
+    )
     assert synchronized_data_____.keepers == expected_keepers
     assert synchronized_data_____.keeper_retries == 1
     assert (
@@ -928,7 +989,7 @@ class TestResetRound(BaseCollectSameUntilThresholdRoundTest):
         synchronized_data = self.synchronized_data.update(
             keeper_randomness=DUMMY_RANDOMNESS,
         )
-        synchronized_data._db._cross_period_persisted_keys = ["keeper_randomness"]
+        synchronized_data._db._cross_period_persisted_keys = {"keeper_randomness"}
         test_round = ResetRound(
             synchronized_data=synchronized_data, consensus_params=self.consensus_params
         )

@@ -29,7 +29,6 @@ from abc import ABC
 from contextlib import suppress
 from copy import copy, deepcopy
 from dataclasses import dataclass
-from enum import Enum
 from pathlib import Path
 from time import sleep
 from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type
@@ -81,9 +80,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     _MetaAbciApp,
     _MetaAbstractRound,
     _MetaPayload,
+    get_name,
 )
-from packages.valory.skills.abstract_round_abci.base import _logger as default_logger
-from packages.valory.skills.abstract_round_abci.base import get_name
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     AbciAppTest,
     ConcreteBackgroundRound,
@@ -122,30 +120,6 @@ def hypothesis_cleanup() -> Generator:
             shutil.rmtree(hypothesis_dir)
 
 
-class PayloadEnum(Enum):
-    """Payload enumeration type."""
-
-    A = "A"
-    B = "B"
-    C = "C"
-    DUMMY = "DUMMY"
-    TOO_BIG_TO_FIT_IN_HERE = "TOO_BIG_TO_FIT_IN_HERE"
-
-    def __str__(self) -> str:
-        """Get the string representation."""
-        return self.value
-
-
-class PayloadEnumB(Enum):
-    """Payload enumeration type."""
-
-    A = "AA"
-
-    def __str__(self) -> str:
-        """Get the string representation."""
-        return self.value
-
-
 class BasePayload(BaseTxPayload, ABC):
     """Base payload class for testing."""
 
@@ -181,7 +155,7 @@ class DummyPayload(BasePayload):
 class TooBigPayload(BaseTxPayload):
     """Base payload class for testing."""
 
-    dummy_field: str = "0" * 10 ** 7
+    dummy_field: str = "0" * 10**7
 
 
 class ObjectImitator:
@@ -233,12 +207,6 @@ def test_abstract_round_instantiation_without_attributes_raises_error() -> None:
 
         class MyRoundBehaviourB(AbstractRound):
             synchronized_data_class = MagicMock()
-
-    with pytest.raises(AbstractRoundInternalError):
-
-        class MyRoundBehaviourC(AbstractRound):
-            synchronized_data_class = MagicMock()
-            payload_class = MagicMock()
 
 
 class TestTransactions:
@@ -535,13 +503,13 @@ class TestAbciAppDB:
     )
     @pytest.mark.parametrize(
         "cross_period_persisted_keys, expected_cross_period_persisted_keys",
-        ((None, []), ([], []), (["test"], ["test"])),
+        ((None, set()), (set(), set()), ({"test"}, {"test"})),
     )
     def test_init(
         self,
         data: Dict,
         setup_data: Optional[Dict],
-        cross_period_persisted_keys: Optional[List],
+        cross_period_persisted_keys: Optional[Set],
         expected_cross_period_persisted_keys: List,
     ) -> None:
         """Test constructor."""
@@ -584,7 +552,7 @@ class TestAbciAppDB:
         data_assertion()
 
         if cross_period_persisted_keys_copy:
-            cross_period_persisted_keys_copy.append(new_value_attempt)
+            cross_period_persisted_keys_copy.add(new_value_attempt)
             assert (
                 db.cross_period_persisted_keys == expected_cross_period_persisted_keys
             ), (
@@ -634,10 +602,10 @@ class TestAbciAppDB:
     def test_cross_period_persisted_keys(self) -> None:
         """Test `cross_period_persisted_keys` property"""
         setup_data: Dict[str, List] = {}
-        cross_period_persisted_keys = ["test"]
+        cross_period_persisted_keys = {"test"}
         db = AbciAppDB(setup_data, cross_period_persisted_keys.copy())
 
-        db.cross_period_persisted_keys.append("new_value_attempt")
+        db.cross_period_persisted_keys.add("new_value_attempt")
         assert db.cross_period_persisted_keys == cross_period_persisted_keys, (
             "The database's `cross_period_persisted_keys` have been altered indirectly, "
             "by updating an item retrieved via the `cross_period_persisted_keys` property!"
@@ -1169,16 +1137,6 @@ class TestAbstractRound:
                 synchronized_data_class = MagicMock()
                 payload_attribute = MagicMock()
                 # here payload_class is missing
-                # ...
-
-                def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
-                    pass
-
-                def check_payload(self, payload: BaseTxPayload) -> None:
-                    pass
-
-                def process_payload(self, payload: BaseTxPayload) -> None:
-                    pass
 
     def test_check_payload_type_with_previous_round_transaction(self) -> None:
         """Test check 'check_payload_type'."""
@@ -1198,13 +1156,10 @@ class TestAbstractRound:
             def process_payload(self, payload: BaseTxPayload) -> None:
                 pass
 
-        with pytest.raises(LateArrivingTransaction), mock.patch.object(
-            default_logger, "debug"
-        ) as mock_logger:
+        with pytest.raises(LateArrivingTransaction):
             MyConcreteRound(MagicMock(), MagicMock(), BaseTxPayload).check_payload_type(
                 MagicMock(payload=BaseTxPayload("dummy"))
             )
-            mock_logger.assert_called()
 
     def test_check_payload_type(self) -> None:
         """Test check 'check_payload_type'."""
@@ -1681,12 +1636,12 @@ class TestAbciApp:
         class EmptyAbciApp(AbciAppTest):
             """An AbciApp without termination attrs set."""
 
-            cross_period_persisted_keys = ["1", "2"]
+            cross_period_persisted_keys = {"1", "2"}
 
         class TerminationAbciApp(AbciAppTest):
             """A moch termination AbciApp."""
 
-            cross_period_persisted_keys = ["2", "3"]
+            cross_period_persisted_keys = {"2", "3"}
 
         EmptyAbciApp.add_termination(
             TerminationAbciApp.background_round_cls,
@@ -1697,7 +1652,7 @@ class TestAbciApp:
         assert EmptyAbciApp.background_round_cls is not None
         assert EmptyAbciApp.termination_transition_function is not None
         assert EmptyAbciApp.termination_event is not None
-        assert sorted(EmptyAbciApp.cross_period_persisted_keys) == ["1", "2", "3"]
+        assert EmptyAbciApp.cross_period_persisted_keys == {"1", "2", "3"}
 
     def test_background_round(self) -> None:
         """Test the background_round property."""
@@ -1842,7 +1797,7 @@ class TestRoundSequence:
         seconds = 1
         nanoseconds = 1000
         expected_timestamp = datetime.datetime.fromtimestamp(
-            seconds + nanoseconds / 10 ** 9
+            seconds + nanoseconds / 10**9
         )
         self.round_sequence._blockchain.add_block(
             Block(MagicMock(height=1, timestamp=expected_timestamp), [])
@@ -2355,22 +2310,12 @@ def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:
 def test_meta_abci_app_when_final_round_not_subclass_of_degenerate_round() -> None:
     """Test instantiation of meta-class when a final round is not a subclass of DegenerateRound."""
 
-    class FinalRound(AbstractRound):
+    class FinalRound(AbstractRound, ABC):
         """A round class for testing."""
 
         payload_class = MagicMock()
         synchronized_data_class = MagicMock()
         payload_attribute = MagicMock()
-
-        def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
-            pass
-
-        def check_payload(self, payload: BaseTxPayload) -> None:
-            pass
-
-        def process_payload(self, payload: BaseTxPayload) -> None:
-            pass
-
         round_id = "final_round"
 
     with pytest.raises(

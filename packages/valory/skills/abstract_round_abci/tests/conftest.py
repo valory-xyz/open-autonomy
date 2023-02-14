@@ -29,6 +29,7 @@ import pytest
 from hypothesis import settings
 
 from packages.valory.skills.abstract_round_abci.io_.store import StoredJSONType
+from packages.valory.skills.abstract_round_abci.models import MIN_OBSERVATION_INTERVAL
 
 
 # pylint: skip-file
@@ -87,7 +88,7 @@ irrelevant_config = {
     "retry_timeout": 0,
     "retry_attempts": 0,
     "keeper_timeout": 0.0,
-    "observation_interval": 0,
+    "observation_interval": MIN_OBSERVATION_INTERVAL,
     "drand_public_key": "str",
     "tendermint_com_url": "str",
     "tendermint_max_retries": 0,

@@ -18,7 +18,8 @@ Mint command group definitions.
     is_flag=True,
     help="Skip hash check when verifying dependencies on chain",
 )
-def mint(ctx: Context, chain_type: str, skip_hash_check: bool, timeout: float) -> None
+def mint(ctx: Context, chain_type: str, skip_hash_check: bool,
+         timeout: float) -> None
 ```
 
 Mint component on-chain.
@@ -35,7 +36,9 @@ Mint component on-chain.
 @dependencies_decorator
 @nft_decorator
 @pass_ctx
-def protocol(ctx: Context, package_path: Path, keys: Path, password: Optional[str], dependencies: Tuple[str], nft: Optional[str]) -> None
+def protocol(ctx: Context, package_path: Path, keys: Path,
+             password: Optional[str], dependencies: Tuple[str],
+             nft: Optional[str]) -> None
 ```
 
 Mint a protocol component.
@@ -52,7 +55,9 @@ Mint a protocol component.
 @dependencies_decorator
 @nft_decorator
 @pass_ctx
-def contract(ctx: Context, package_path: Path, keys: Path, password: Optional[str], dependencies: Tuple[str], nft: Optional[str]) -> None
+def contract(ctx: Context, package_path: Path, keys: Path,
+             password: Optional[str], dependencies: Tuple[str],
+             nft: Optional[str]) -> None
 ```
 
 Mint a contract component.
@@ -69,7 +74,9 @@ Mint a contract component.
 @dependencies_decorator
 @nft_decorator
 @pass_ctx
-def connection(ctx: Context, package_path: Path, keys: Path, password: Optional[str], dependencies: Tuple[str], nft: Optional[str]) -> None
+def connection(ctx: Context, package_path: Path, keys: Path,
+               password: Optional[str], dependencies: Tuple[str],
+               nft: Optional[str]) -> None
 ```
 
 Mint a connection component.
@@ -86,7 +93,9 @@ Mint a connection component.
 @dependencies_decorator
 @nft_decorator
 @pass_ctx
-def skill(ctx: Context, package_path: Path, keys: Path, password: Optional[str], dependencies: Tuple[str], nft: Optional[str]) -> None
+def skill(ctx: Context, package_path: Path, keys: Path,
+          password: Optional[str], dependencies: Tuple[str],
+          nft: Optional[str]) -> None
 ```
 
 Mint a skill component.
@@ -103,7 +112,9 @@ Mint a skill component.
 @dependencies_decorator
 @nft_decorator
 @pass_ctx
-def agent(ctx: Context, package_path: Path, keys: Path, password: Optional[str], dependencies: Tuple[str], nft: Optional[str]) -> None
+def agent(ctx: Context, package_path: Path, keys: Path,
+          password: Optional[str], dependencies: Tuple[str],
+          nft: Optional[str]) -> None
 ```
 
 Mint an agent.
@@ -146,7 +157,9 @@ Mint an agent.
     required=True,
     help="Threshold for the minimum numbers required to run the service",
 )
-def service(ctx: Context, package_path: Path, keys: Path, agent_id: int, number_of_slots: int, cost_of_bond: int, threshold: int, password: Optional[str], nft: Optional[str]) -> None
+def service(ctx: Context, package_path: Path, keys: Path, agent_id: int,
+            number_of_slots: int, cost_of_bond: int, threshold: int,
+            password: Optional[str], nft: Optional[str]) -> None
 ```
 
 Mint a service

@@ -19,7 +19,10 @@ Checks that all elements in the set list are unique and not repeated among diffe
 #### chain
 
 ```python
-def chain(abci_apps: Tuple[Type[AbciApp], ...], abci_app_transition_mapping: AbciAppTransitionMapping) -> Type[AbciApp]
+def chain(
+        abci_apps: Tuple[Type[AbciApp], ...],
+        abci_app_transition_mapping: AbciAppTransitionMapping
+) -> Type[AbciApp]
 ```
 
 Concatenate multiple AbciApp types.

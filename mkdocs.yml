@@ -19,7 +19,6 @@ strict: true
 nav:
   - Home: 'index.md'
   - Get started:
-    - What is the Open Autonomy framework: 'get_started/what_is_the_open_autonomy_framework.md'
     - What is an agent service: 'get_started/what_is_an_agent_service.md'
     - Why do we need agent services: 'get_started/why_do_we_need_agent_services.md'
     - Agent services compared to...: 'get_started/agent_services_compared_to.md'
@@ -77,6 +76,7 @@ nav:
       - Debugging in the cluster: 'advanced_reference/developer_tooling/debugging_in_the_cluster.md'
     - Deployment:
       - Container Control Flow: 'control_flow.md'
+      - On-chain deployment checklist: 'deployment/on-chain_deployment_checklist.md'
       - Local Deployment: 'application_deployment.md'
       - Cloud Deployment: 'using_stack_deployment.md'
     - Using custom images in a deployment: 'advanced_reference/use_custom_images.md'

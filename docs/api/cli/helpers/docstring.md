@@ -9,7 +9,8 @@ Helper for docstring analyser.
 #### import`_`rounds`_`module
 
 ```python
-def import_rounds_module(module_path: Path, packages_dir: Optional[Path] = None) -> ModuleType
+def import_rounds_module(module_path: Path,
+                         packages_dir: Optional[Path] = None) -> ModuleType
 ```
 
 Import module using importlib.import_module
@@ -19,13 +20,14 @@ Import module using importlib.import_module
 #### analyse`_`docstrings
 
 ```python
-def analyse_docstrings(module_path: Path, update: bool = False, packages_dir: Optional[Path] = None) -> bool
+def analyse_docstrings(module_path: Path,
+                       update: bool = False,
+                       packages_dir: Optional[Path] = None) -> bool
 ```
 
 Process module.
 
 **Arguments**:
-
 
 - `module_path`: Path to the rounds module
 - `update`: whether to update the content if required

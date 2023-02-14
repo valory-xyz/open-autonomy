@@ -39,7 +39,7 @@ def test_registration_abci_payload() -> None:
 
 def test_registration_abci_payload_raises() -> None:
     """Test `RegistrationPayload`."""
-    payload = RegistrationPayload(sender="sender", initialisation="0" * 10 ** 7)
+    payload = RegistrationPayload(sender="sender", initialisation="0" * 10**7)
     signature = "signature"
     tx = Transaction(payload, signature)
     with pytest.raises(ValueError, match="Transaction must be smaller"):

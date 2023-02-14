@@ -19,7 +19,7 @@
 
 """This module contains the data classes for common apps ABCI application."""
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, Optional, Set, Tuple
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -54,7 +54,6 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
     """
 
     payload_class = RegistrationPayload
-    payload_attribute = "initialisation"
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -81,10 +80,12 @@ class RegistrationRound(CollectSameUntilThresholdRound):
     """
 
     payload_class = RegistrationPayload
-    payload_attribute = "initialisation"
     required_block_confirmations = 10
     done_event = Event.DONE
     synchronized_data_class = BaseSynchronizedData
+
+    # this allows rejoining agents to send payloads
+    _allow_rejoin_payloads = True
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
@@ -151,13 +152,13 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
     }
-    db_pre_conditions: Dict[AppState, List[str]] = {
-        RegistrationStartupRound: [],
-        RegistrationRound: [],
+    db_pre_conditions: Dict[AppState, Set[str]] = {
+        RegistrationStartupRound: set(),
+        RegistrationRound: set(),
     }
-    db_post_conditions: Dict[AppState, List[str]] = {
-        FinishedRegistrationRound: [
+    db_post_conditions: Dict[AppState, Set[str]] = {
+        FinishedRegistrationRound: {
             get_name(BaseSynchronizedData.participants),
             get_name(BaseSynchronizedData.all_participants),
-        ],
+        },
     }

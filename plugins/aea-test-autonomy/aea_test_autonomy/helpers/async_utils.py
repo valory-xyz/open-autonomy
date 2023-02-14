@@ -23,7 +23,7 @@ import logging
 import time
 from asyncio import AbstractEventLoop
 from threading import Thread
-from typing import Any, Awaitable, Callable, Optional
+from typing import Any, Callable, Coroutine, Generator, Optional, Union
 
 
 def wait_for_condition(
@@ -48,7 +48,11 @@ class AnotherThreadTask:
     Provides better cancel behaviour: on cancel it will wait till cancelled completely.
     """
 
-    def __init__(self, coro: Awaitable, loop: AbstractEventLoop) -> None:
+    def __init__(
+        self,
+        coro: Union[Coroutine[Any, Any, Any], Generator[Any, None, Any]],
+        loop: AbstractEventLoop,
+    ) -> None:
         """
         Init the task.
 
@@ -118,7 +122,9 @@ class ThreadedAsyncRunner(Thread):
         self._loop.run_forever()
         logging.debug("Asyncio loop has been stopped.")
 
-    def call(self, coro: Awaitable) -> Any:
+    def call(
+        self, coro: Union[Coroutine[Any, Any, Any], Generator[Any, None, Any]]
+    ) -> Any:
         """
         Run a coroutine inside the event loop.
 
@@ -155,7 +161,11 @@ class BaseThreadedAsyncLoop:
         self.loop = ThreadedAsyncRunner()
         self.loop.start()
 
-    def execute(self, coro: Awaitable, timeout: float = DEFAULT_ASYNC_TIMEOUT) -> Any:
+    def execute(
+        self,
+        coro: Union[Coroutine[Any, Any, Any], Generator[Any, None, Any]],
+        timeout: float = DEFAULT_ASYNC_TIMEOUT,
+    ) -> Any:
         """Execute a coroutine and wait its completion."""
         task: AnotherThreadTask = self.loop.call(coro)
         return task.result(timeout=timeout)

@@ -52,7 +52,8 @@ class TestDummyRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            DummyPayload(sender=participant) for participant in self.participants
+            DummyPayload(sender=participant, content=count)
+            for count, participant in enumerate(self.participants)
         ]
 
         test_round.process_payload(first_payload)

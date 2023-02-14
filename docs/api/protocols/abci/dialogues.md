@@ -42,7 +42,10 @@ This class defines the end states of a abci dialogue.
 #### `__`init`__`
 
 ```python
-def __init__(dialogue_label: DialogueLabel, self_address: Address, role: Dialogue.Role, message_class: Type[AbciMessage] = AbciMessage) -> None
+def __init__(dialogue_label: DialogueLabel,
+             self_address: Address,
+             role: Dialogue.Role,
+             message_class: Type[AbciMessage] = AbciMessage) -> None
 ```
 
 Initialize a dialogue.
@@ -59,7 +62,7 @@ Initialize a dialogue.
 ## AbciDialogues Objects
 
 ```python
-class AbciDialogues(Dialogues,  ABC)
+class AbciDialogues(Dialogues, ABC)
 ```
 
 This class keeps track of all abci dialogues.
@@ -69,7 +72,10 @@ This class keeps track of all abci dialogues.
 #### `__`init`__`
 
 ```python
-def __init__(self_address: Address, role_from_first_message: Callable[[Message, Address], Dialogue.Role], dialogue_class: Type[AbciDialogue] = AbciDialogue) -> None
+def __init__(self_address: Address,
+             role_from_first_message: Callable[[Message, Address],
+                                               Dialogue.Role],
+             dialogue_class: Type[AbciDialogue] = AbciDialogue) -> None
 ```
 
 Initialize dialogues.

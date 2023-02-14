@@ -22,7 +22,7 @@
 # pylint: skip-file
 
 import logging
-from typing import Dict, List, Tuple, Type
+from typing import Dict, Set, Tuple, Type
 from unittest.mock import MagicMock
 
 import pytest
@@ -102,8 +102,8 @@ class TestAbciAppChaining:
         self.timeout2 = 15.0
         self.timeout3 = 20.0
 
-        self.cross_period_persisted_keys_1 = ["1", "2"]
-        self.cross_period_persisted_keys_2 = ["2", "3"]
+        self.cross_period_persisted_keys_1 = {"1", "2"}
+        self.cross_period_persisted_keys_2 = {"2", "3"}
 
         class AbciApp1(AbciApp):
             initial_round_cls = self.round_1a
@@ -120,10 +120,8 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_1c}
             event_to_timeout = {self.event_timeout1: self.timeout1}
-            db_pre_conditions: Dict[AppState, List[str]] = {self.round_1a: []}
-            db_post_conditions: Dict[AppState, List[str]] = {
-                self.round_1c: [self.key_1]
-            }
+            db_pre_conditions: Dict[AppState, Set[str]] = {self.round_1a: set()}
+            db_post_conditions: Dict[AppState, Set[str]] = {self.round_1c: {self.key_1}}
             cross_period_persisted_keys = self.cross_period_persisted_keys_1
 
         self.app1_class = AbciApp1
@@ -143,10 +141,8 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_2c}
             event_to_timeout = {self.event_timeout2: self.timeout2}
-            db_pre_conditions: Dict[AppState, List[str]] = {self.round_2a: [self.key_1]}
-            db_post_conditions: Dict[AppState, List[str]] = {
-                self.round_2c: [self.key_2]
-            }
+            db_pre_conditions: Dict[AppState, Set[str]] = {self.round_2a: {self.key_1}}
+            db_post_conditions: Dict[AppState, Set[str]] = {self.round_2c: {self.key_2}}
             cross_period_persisted_keys = self.cross_period_persisted_keys_2
 
         self.app2_class = AbciApp2
@@ -167,12 +163,10 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_3c}
             event_to_timeout = {self.event_timeout3: self.timeout3}
-            db_pre_conditions: Dict[AppState, List[str]] = {
-                self.round_3a: [self.key_1, self.key_2]
+            db_pre_conditions: Dict[AppState, Set[str]] = {
+                self.round_3a: {self.key_1, self.key_2}
             }
-            db_post_conditions: Dict[AppState, List[str]] = {
-                self.round_3c: [self.key_3]
-            }
+            db_post_conditions: Dict[AppState, Set[str]] = {self.round_3c: {self.key_3}}
 
         self.app3_class = AbciApp3
 
@@ -192,7 +186,7 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_3c}
             event_to_timeout = {self.event_timeout3: self.timeout3}
-            db_post_conditions: Dict[AppState, List[str]] = {self.round_3c: []}
+            db_post_conditions: Dict[AppState, Set[str]] = {self.round_3c: set()}
 
         self.app3_class_dupe = AbciApp3Dupe
 
@@ -211,10 +205,8 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_2c}
             event_to_timeout = {self.event_timeout1: self.timeout2}
-            db_pre_conditions: Dict[AppState, List[str]] = {self.round_2a: [self.key_1]}
-            db_post_conditions: Dict[AppState, List[str]] = {
-                self.round_2c: [self.key_2]
-            }
+            db_pre_conditions: Dict[AppState, Set[str]] = {self.round_2a: {self.key_1}}
+            db_post_conditions: Dict[AppState, Set[str]] = {self.round_2c: {self.key_2}}
 
         self.app2_class_faulty1 = AbciApp2Faulty1
 
@@ -254,11 +246,10 @@ class TestAbciAppChaining:
             self.event_timeout1: self.timeout1,
             self.event_timeout2: self.timeout2,
         }
-        assert sorted(ComposedAbciApp.cross_period_persisted_keys) == sorted(
-            list(
-                set(self.cross_period_persisted_keys_1).union(
-                    set(self.cross_period_persisted_keys_2)
-                )
+        assert (
+            ComposedAbciApp.cross_period_persisted_keys
+            == self.cross_period_persisted_keys_1.union(
+                self.cross_period_persisted_keys_2
             )
         )
 
@@ -466,8 +457,8 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_1c}
             event_to_timeout = {self.event_timeout1: self.timeout1}
-            db_pre_conditions: Dict[AppState, List[str]] = {self.round_1a: []}
-            db_post_conditions: Dict[AppState, List[str]] = {self.round_1c: []}
+            db_pre_conditions: Dict[AppState, Set[str]] = {self.round_1a: set()}
+            db_post_conditions: Dict[AppState, Set[str]] = {self.round_1c: set()}
             cross_period_persisted_keys = self.cross_period_persisted_keys_1
 
         abci_app_transition_mapping: AbciAppTransitionMapping = {
@@ -503,10 +494,8 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_2c}
             event_to_timeout = {self.event_timeout2: self.timeout2}
-            db_pre_conditions: Dict[AppState, List[str]] = {}
-            db_post_conditions: Dict[AppState, List[str]] = {
-                self.round_2c: [self.key_2]
-            }
+            db_pre_conditions: Dict[AppState, Set[str]] = {}
+            db_post_conditions: Dict[AppState, Set[str]] = {self.round_2c: {self.key_2}}
             cross_period_persisted_keys = self.cross_period_persisted_keys_2
 
         abci_app_transition_mapping: AbciAppTransitionMapping = {

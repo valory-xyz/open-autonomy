@@ -39,7 +39,12 @@ Initialize an `IPFSInteract` object.
 #### store
 
 ```python
-def store(filepath: str, obj: SupportedObjectType, multiple: bool, filetype: Optional[SupportedFiletype] = None, custom_storer: Optional[CustomStorerType] = None, **kwargs: Any, ,) -> Dict[str, str]
+def store(filepath: str,
+          obj: SupportedObjectType,
+          multiple: bool,
+          filetype: Optional[SupportedFiletype] = None,
+          custom_storer: Optional[CustomStorerType] = None,
+          **kwargs: Any) -> Dict[str, str]
 ```
 
 Temporarily store a file locally, in order to send it to IPFS and retrieve a hash, and then delete it.
@@ -49,7 +54,9 @@ Temporarily store a file locally, in order to send it to IPFS and retrieve a has
 #### load
 
 ```python
-def load(serialized_objects: Dict[str, str], filetype: Optional[SupportedFiletype] = None, custom_loader: CustomLoaderType = None) -> SupportedObjectType
+def load(serialized_objects: Dict[str, str],
+         filetype: Optional[SupportedFiletype] = None,
+         custom_loader: CustomLoaderType = None) -> SupportedObjectType
 ```
 
 Deserialize objects received via IPFS.

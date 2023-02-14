@@ -9,7 +9,7 @@ This module contains the classes required for dialogue management.
 ## AbciDialogues Objects
 
 ```python
-class AbciDialogues(Model,  BaseAbciDialogues)
+class AbciDialogues(Model, BaseAbciDialogues)
 ```
 
 The dialogues class keeps track of all dialogues.

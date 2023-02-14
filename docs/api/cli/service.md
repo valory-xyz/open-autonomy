@@ -28,7 +28,8 @@ Manage on-chain services.
 @click.argument("service_id", type=int)
 @key_path_decorator
 @password_decorator
-def activate(ctx: Context, service_id: int, keys: Path, password: Optional[str]) -> None
+def activate(ctx: Context, service_id: int, keys: Path,
+             password: Optional[str]) -> None
 ```
 
 Activate service.
@@ -61,7 +62,9 @@ Activate service.
 )
 @key_path_decorator
 @password_decorator
-def register(ctx: Context, service_id: int, instances: List[str], agent_ids: List[int], keys: Path, password: Optional[str]) -> None
+def register(ctx: Context, service_id: int, instances: List[str],
+             agent_ids: List[int], keys: Path,
+             password: Optional[str]) -> None
 ```
 
 Register instances.
@@ -82,7 +85,8 @@ Register instances.
 )
 @key_path_decorator
 @password_decorator
-def deploy(ctx: Context, service_id: int, keys: Path, password: Optional[str], deployment_payload: Optional[str]) -> None
+def deploy(ctx: Context, service_id: int, keys: Path, password: Optional[str],
+           deployment_payload: Optional[str]) -> None
 ```
 
 Activate service.

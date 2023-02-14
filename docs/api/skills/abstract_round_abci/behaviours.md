@@ -19,7 +19,8 @@ A metaclass that validates AbstractRoundBehaviour's attributes.
 #### `__`new`__`
 
 ```python
-def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type
+def __new__(mcs, name: str, bases: Tuple, namespace: Dict,
+            **kwargs: Any) -> Type
 ```
 
 Initialize the class.
@@ -29,8 +30,10 @@ Initialize the class.
 ## AbstractRoundBehaviour Objects
 
 ```python
-class AbstractRoundBehaviour(
-    Behaviour,  ABC,  Generic[EventType], metaclass=_MetaRoundBehaviour)
+class AbstractRoundBehaviour(Behaviour,
+                             ABC,
+                             Generic[EventType],
+                             metaclass=_MetaRoundBehaviour)
 ```
 
 This behaviour implements an abstract round behaviour.

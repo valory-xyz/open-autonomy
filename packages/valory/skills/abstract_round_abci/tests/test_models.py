@@ -24,6 +24,7 @@
 import builtins
 import json
 import logging
+from collections import OrderedDict
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -52,6 +53,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     GenesisConsensusParams,
     GenesisEvidence,
     GenesisValidator,
+    MIN_OBSERVATION_INTERVAL,
     NUMBER_OF_RETRIES,
     Requests,
 )
@@ -75,8 +77,8 @@ BASE_DUMMY_SPECS_CONFIG = dict(
     url="http://dummy",
     api_id="api_id",
     method="GET",
-    headers=[("Dummy-Header", "dummy_value")],
-    parameters=[("Dummy-Param", "dummy_param")],
+    headers=OrderedDict([("Dummy-Header", "dummy_value")]),
+    parameters=OrderedDict([("Dummy-Param", "dummy_param")]),
 )
 
 
@@ -123,8 +125,8 @@ class TestApiSpecsModel:
         assert self.api_specs.url == "http://dummy"
         assert self.api_specs.api_id == "api_id"
         assert self.api_specs.method == "GET"
-        assert self.api_specs.headers == [("Dummy-Header", "dummy_value")]
-        assert self.api_specs.parameters == [("Dummy-Param", "dummy_param")]
+        assert self.api_specs.headers == {"Dummy-Header": "dummy_value"}
+        assert self.api_specs.parameters == {"Dummy-Param": "dummy_param"}
         assert self.api_specs.response_info.response_key == "value"
         assert self.api_specs.response_info.response_index == 0
         assert self.api_specs.response_info.response_type == "float"
@@ -139,7 +141,7 @@ class TestApiSpecsModel:
         self.api_specs.retries_info.retries_attempted = retries
         assert (
             self.api_specs.retries_info.suggested_sleep_time
-            == DEFAULT_BACKOFF_FACTOR ** retries
+            == DEFAULT_BACKOFF_FACTOR**retries
         )
 
     def test_retries(
@@ -165,8 +167,8 @@ class TestApiSpecsModel:
         actual_specs = {
             "url": "http://dummy",
             "method": "GET",
-            "headers": [("Dummy-Header", "dummy_value")],
-            "parameters": [("Dummy-Param", "dummy_param")],
+            "headers": {"Dummy-Header": "dummy_value"},
+            "parameters": {"Dummy-Param": "dummy_param"},
         }
 
         specs = self.api_specs.get_spec()
@@ -342,24 +344,47 @@ class TestSharedState:
         """Test the initialization of the shared state."""
         SharedState(name="", skill_context=MagicMock())
 
+    @staticmethod
+    def dummy_state_setup(shared_state: SharedState) -> None:
+        """Setup a shared state instance with dummy params."""
+        shared_state.context.params.setup_params = {
+            "test": [],
+            "all_participants": [list(range(4))],
+        }
+        shared_state.context.params.consensus_params = MagicMock()
+        shared_state.setup()
+
     def test_setup(self, *_: Any) -> None:
         """Test setup method."""
         shared_state = SharedState(name="", skill_context=MagicMock())
-        shared_state.context.params.setup_params = {"test": []}
-        shared_state.context.params.consensus_params = MagicMock()
-        shared_state.setup()
+        assert shared_state.initial_tm_configs == {}
+        self.dummy_state_setup(shared_state)
+        assert shared_state.initial_tm_configs == {i: None for i in range(4)}
+
+    @pytest.mark.parametrize("self_idx", (range(4)))
+    def test_acn_container(self, self_idx: int) -> None:
+        """Test the `acn_container` method."""
+
+        shared_state = SharedState(
+            name="", skill_context=MagicMock(agent_address=self_idx)
+        )
+        self.dummy_state_setup(shared_state)
+        expected = {i: None for i in range(4) if i != self_idx}
+        assert shared_state.acn_container() == expected
 
     def test_synchronized_data_negative_not_available(self, *_: Any) -> None:
         """Test 'synchronized_data' property getter, negative case (not available)."""
         shared_state = SharedState(name="", skill_context=MagicMock())
-        with mock.patch.object(shared_state.context, "params"):
-            with pytest.raises(ValueError, match="round sequence not available"):
-                shared_state.synchronized_data
+        with pytest.raises(ValueError, match="round sequence not available"):
+            shared_state.synchronized_data
 
     def test_synchronized_data_positive(self, *_: Any) -> None:
         """Test 'synchronized_data' property getter, negative case (not available)."""
         shared_state = SharedState(name="", skill_context=MagicMock())
-        shared_state.context.params.setup_params = {"test": []}
+        shared_state.context.params.setup_params = {
+            "test": [],
+            "all_participants": [["0x0"]],
+        }
         shared_state.context.params.consensus_params = MagicMock()
         shared_state.setup()
         shared_state.round_sequence.abci_app._round_results = [MagicMock()]
@@ -372,6 +397,7 @@ class TestSharedState:
             mock_params.setup_params = {
                 "safe_contract_address": ["0xsafe"],
                 "oracle_contract_address": ["0xoracle"],
+                "all_participants": ["0x0"],
             }
             shared_state.setup()
             assert (
@@ -408,7 +434,10 @@ class TestSharedState:
         shared_state = SharedState(
             abci_app_cls=AbciAppTest, name="", skill_context=MagicMock()
         )
-        shared_state.context.params.setup_params = {"test": []}
+        shared_state.context.params.setup_params = {
+            "test": [],
+            "all_participants": [["0x0"]],
+        }
         shared_state.setup()
         shared_state.synchronized_data.update(participants=tuple(range(n_participants)))
         shared_state.address_to_acn_deliverable = address_to_acn_deliverable
@@ -498,7 +527,7 @@ def test_base_params_model_initialization() -> None:
         sleep_time=1,
         retry_timeout=1,
         retry_attempts=1,
-        observation_interval=1,
+        observation_interval=MIN_OBSERVATION_INTERVAL,
         drand_public_key="",
         tendermint_com_url="",
         reset_tendermint_after=1,
@@ -536,6 +565,13 @@ def test_base_params_model_initialization() -> None:
         match="Value `b` in `setup` set in `models.params.args` of `skill.yaml` of .* is not a list",
     ):
         kwargs["setup"] = {"a": "b"}
+        BaseParams(**kwargs)
+
+    with pytest.raises(
+        AEAEnforceError,
+        match=f"`observation_interval` must be greater than or equal to {MIN_OBSERVATION_INTERVAL}",
+    ):
+        kwargs["observation_interval"] = MIN_OBSERVATION_INTERVAL - 1
         BaseParams(**kwargs)
 
 

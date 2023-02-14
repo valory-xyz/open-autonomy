@@ -21,7 +21,7 @@
 
 from abc import ABC
 from enum import Enum
-from typing import List, Optional, Set, Tuple, cast
+from typing import Optional, Set, Tuple, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -149,4 +149,4 @@ class DummyAbciApp(AbciApp[Event]):
     }
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
-    cross_period_persisted_keys: List[str] = []
+    cross_period_persisted_keys: Set[str] = set()

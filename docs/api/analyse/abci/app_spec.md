@@ -116,7 +116,10 @@ Dumps this DFA spec. to a file in Mermaid format.
 
 ```python
 @classmethod
-def dump(cls, dfa: "DFA", file: Path, spec_format: str = OutputFormats.YAML) -> None
+def dump(cls,
+         dfa: "DFA",
+         file: Path,
+         spec_format: str = OutputFormats.YAML) -> None
 ```
 
 Dumps this DFA spec. to a file in YAML/JSON/Mermaid format.
@@ -136,7 +139,10 @@ Simple specification of a deterministic finite automaton (DFA).
 #### `__`init`__`
 
 ```python
-def __init__(label: str, states: Set[str], default_start_state: str, start_states: Set[str], final_states: Set[str], alphabet_in: Set[str], transition_func: Dict[Tuple[str, str], str])
+def __init__(label: str, states: Set[str], default_start_state: str,
+             start_states: Set[str], final_states: Set[str],
+             alphabet_in: Set[str], transition_func: Dict[Tuple[str, str],
+                                                          str])
 ```
 
 Initialize DFA object.
@@ -206,7 +212,10 @@ Retrieves an exportable representation for YAML/JSON dump of this DFA.
 
 ```python
 @classmethod
-def load(cls, file: Path, spec_format: str = FSMSpecificationLoader.OutputFormats.YAML) -> "DFA"
+def load(
+        cls,
+        file: Path,
+        spec_format: str = FSMSpecificationLoader.OutputFormats.YAML) -> "DFA"
 ```
 
 Loads a DFA JSON specification from file.

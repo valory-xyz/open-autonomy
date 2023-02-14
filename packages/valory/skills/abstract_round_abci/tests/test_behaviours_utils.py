@@ -24,22 +24,10 @@ import logging
 import platform
 import time
 from abc import ABC
-from collections import OrderedDict
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generator,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -74,6 +62,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     BaseTxPayload,
     DegenerateRound,
+    OK_CODE,
     Transaction,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import (
@@ -174,12 +163,7 @@ class AsyncBehaviourTest(AsyncBehaviour, ABC):
 
     def async_act(self) -> Generator:
         """Do 'async_act'."""
-
-
-def async_behaviour_initial_state_is_ready() -> None:
-    """Check that the initial async state is "READY"."""
-    behaviour = AsyncBehaviourTest()
-    assert behaviour.state == AsyncBehaviour.AsyncState.READY
+        yield None
 
 
 def test_async_behaviour_ticks() -> None:
@@ -312,7 +296,6 @@ def test_async_behaviour_wait_for_condition_with_timeout() -> None:
         def async_act(self) -> Generator:
             self.counter += 1
             yield from self.wait_for_condition(lambda: False, timeout=0.05)
-            self.counter += 1
 
     behaviour = MyAsyncBehaviour()
     assert behaviour.counter == 0
@@ -379,10 +362,7 @@ def test_async_behaviour_without_yield() -> None:
 
     class MyAsyncBehaviour(AsyncBehaviourTest):
         def async_act_wrapper(self) -> Generator:
-            pass
-
-        def async_act(self) -> Generator:
-            pass
+            return None  # type: ignore  # need to check design, not sure it's proper case with return None
 
     behaviour = MyAsyncBehaviour()
     behaviour.act()
@@ -395,9 +375,6 @@ def test_async_behaviour_raise_stopiteration() -> None:
     class MyAsyncBehaviour(AsyncBehaviourTest):
         def async_act_wrapper(self) -> Generator:
             raise StopIteration
-
-        def async_act(self) -> Generator:
-            pass
 
     behaviour = MyAsyncBehaviour()
     behaviour.act()
@@ -431,7 +408,6 @@ class RoundA(AbstractRound):
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Handle end block."""
-        return None
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check payload."""
@@ -447,7 +423,7 @@ class BehaviourATest(BaseBehaviour):
 
     def async_act(self) -> Generator:
         """Do the 'async_act'."""
-        yield
+        yield None
 
 
 def _get_status_patch_wrapper(
@@ -1145,7 +1121,6 @@ class TestBaseBehaviour:
                 "Received tendermint code != 0. Retrying in 1.0 seconds..."
             )
 
-    @pytest.mark.skip
     @mock.patch.object(BaseBehaviour, "_send_signing_request")
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
     @mock.patch.object(
@@ -1158,7 +1133,7 @@ class TestBaseBehaviour:
         "_check_http_return_code_200",
         return_value=True,
     )
-    @mock.patch("json.loads")
+    @mock.patch("json.loads", return_value={"result": {"hash": "", "code": OK_CODE}})
     def test_send_transaction_wait_delivery_timeout_exception(self, *_: Any) -> None:
         """Test '_send_transaction', timeout exception on tx delivery."""
         timeout = 0.05
@@ -1300,8 +1275,8 @@ class TestBaseBehaviour:
             self.behaviour._build_http_request_message(
                 "",
                 "",
-                parameters=[("foo", "bar")],
-                headers=[OrderedDict({"foo": "foo_val", "bar": "bar_val"})],
+                parameters={"foo": "bar"},
+                headers={"foo": "foo_val", "bar": "bar_val"},
             )
 
     @mock.patch.object(Transaction, "encode", return_value=MagicMock())
@@ -1948,9 +1923,15 @@ class TestBaseBehaviour:
         ),
         st.integers(),
         st.integers(),
+        st.integers(),
     )
     def test_get_reset_params(
-        self, default: bool, timestamp: datetime, height: int, interval: int
+        self,
+        default: bool,
+        timestamp: datetime,
+        height: int,
+        interval: int,
+        period: int,
     ) -> None:
         """Test `_get_reset_params` method."""
         self.context_mock.state.round_sequence.last_round_transition_timestamp = (
@@ -1958,6 +1939,7 @@ class TestBaseBehaviour:
         )
         self.context_mock.state.round_sequence.last_round_transition_tm_height = height
         self.behaviour.params.observation_interval = interval
+        self.context_state_synchronized_data_mock.period_count = period
 
         actual = self.behaviour._get_reset_params(default)
 
@@ -1967,11 +1949,13 @@ class TestBaseBehaviour:
         else:
             initial_height = INITIAL_HEIGHT
             genesis_time = timestamp.astimezone(pytz.UTC).strftime(GENESIS_TIME_FMT)
+            period_count = str(period)
 
-            expected = [
-                ("genesis_time", genesis_time),
-                ("initial_height", initial_height),
-            ]
+            expected = {
+                "genesis_time": genesis_time,
+                "initial_height": initial_height,
+                "period_count": period_count,
+            }
 
             assert actual == expected
 
@@ -2071,6 +2055,8 @@ class TestBaseBehaviour:
                 return mock.MagicMock(body=b"")
             return mock.MagicMock(body=json.dumps(status_response).encode())
 
+        period_count_mock = MagicMock()
+        self.context_state_synchronized_data_mock.period_count = period_count_mock
         self.behaviour.params.observation_interval = 1
         with mock.patch.object(
             BaseBehaviour, "_is_timeout_expired", return_value=False
@@ -2097,10 +2083,11 @@ class TestBaseBehaviour:
             )
 
             expected_parameters = (
-                [
-                    ("genesis_time", genesis_time),
-                    ("initial_height", initial_height),
-                ]
+                {
+                    "genesis_time": genesis_time,
+                    "initial_height": initial_height,
+                    "period_count": str(period_count_mock),
+                }
                 if not on_startup
                 else None
             )
@@ -2173,19 +2160,8 @@ def test_degenerate_behaviour_async_act() -> None:
 def test_make_degenerate_behaviour() -> None:
     """Test 'make_degenerate_behaviour'."""
 
-    class FinalRound(DegenerateRound):
+    class FinalRound(DegenerateRound, ABC):
         """A final round for testing."""
-
-        synchronized_data_class = BaseSynchronizedData
-
-        def check_payload(self, payload: BaseTxPayload) -> None:
-            pass
-
-        def process_payload(self, payload: BaseTxPayload) -> None:
-            pass
-
-        def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
-            pass
 
     new_cls = make_degenerate_behaviour(FinalRound)
 
@@ -2306,15 +2282,12 @@ class TestTmManager:
     @pytest.mark.parametrize(
         "expected_reset_params",
         (
-            [
-                ("genesis_time", "genesis-time"),
-                ("initial_height", "1"),
-            ],
+            {"genesis_time": "genesis-time", "initial_height": "1"},
             None,
         ),
     )
     def test_get_reset_params(
-        self, expected_reset_params: Optional[List[Tuple[str, str]]]
+        self, expected_reset_params: Optional[Dict[str, str]]
     ) -> None:
         """Test that reset params returns the correct params."""
         self.context_mock.state.tm_recovery_params = TendermintRecoveryParams(

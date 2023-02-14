@@ -24,6 +24,8 @@ AppExceptions
 AppErrors
 ABCIApp
 FSMBehaviour
+DAO-owned
+DAO-Owned
 ABCIApps
 Ethereum
 ABCIHandler
@@ -214,6 +216,10 @@ scaffolded
 quickstart
 HELLO_WORLD
 Whitepaper
+skill.yaml
+service.yaml
+aea-config.yaml
+yaml
  - docs/index.md
 README.md
 s_
@@ -379,6 +385,8 @@ PrintMessageRound
 HelloWorldABCIAbstractRound
 PrintMessageBehaviour
 i
+payload_class
+PrintMessagePayload
  - docs/agent_services_context.md
  - docs/questions-and-answers.md
 m5.large
@@ -394,4 +402,3 @@ information_source
 create_fsm_app.md
  - docs/advanced_reference/commands/autonomy_scaffold.md
 my_fsm_app_skill
-

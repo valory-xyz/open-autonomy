@@ -23,10 +23,14 @@ Analyse an agent service.
 @analyse_group.command(name="fsm-specs")
 @click.option("--package", type=PathArgument())
 @click.option("--app-class", type=str)
-@click.option("--update", is_flag=True, help="Update FSM definition if check fails.")
+@click.option("--update",
+              is_flag=True,
+              help="Update FSM definition if check fails.")
 @abci_spec_format_flag()
 @pass_ctx
-def abci_app_specs(ctx: Context, package: Optional[Path], app_class: Optional[str], spec_format: str, update: bool) -> None
+def abci_app_specs(ctx: Context, package: Optional[Path],
+                   app_class: Optional[str], spec_format: str,
+                   update: bool) -> None
 ```
 
 Generate ABCI app specs.
@@ -63,7 +67,8 @@ Analyse ABCI docstring definitions.
     default=[
         "abci",
     ],
-    help="Specify which handlers to check. Eg. -h handler_a -h handler_b -h handler_c",
+    help=
+    "Specify which handlers to check. Eg. -h handler_a -h handler_b -h handler_c",
     multiple=True,
 )
 @click.option(
@@ -76,7 +81,8 @@ Analyse ABCI docstring definitions.
     help="Specify which skills to skip. Eg. -i skill_0 -i skill_1 -i skill_2",
     multiple=True,
 )
-def run_handler_check(ctx: Context, ignore: List[str], common_handlers: List[str]) -> None
+def run_handler_check(ctx: Context, ignore: List[str],
+                      common_handlers: List[str]) -> None
 ```
 
 Check handler definitions.
@@ -95,7 +101,8 @@ Check handler definitions.
 @click.option(
     "--block-type",
     "-b",
-    type=click.Choice(choices=(*BlockTypes.types, BlockTypes.ALL), case_sensitive=True),
+    type=click.Choice(choices=(*BlockTypes.types, BlockTypes.ALL),
+                      case_sensitive=True),
     default=BlockTypes.ALL,
     required=False,
 )

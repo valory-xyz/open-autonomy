@@ -25,7 +25,7 @@ import os
 import tempfile
 from abc import ABC
 from math import ceil
-from typing import Any, Dict, cast
+from typing import Any, Dict, Union, cast
 
 from aea.crypto.base import Crypto
 from aea.crypto.registries import make_crypto, make_ledger_api
@@ -263,6 +263,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
                 "maxFeePerGas": DUMMY_MAX_FEE_PER_GAS,
             }, "The used parameters do not match the ones returned from the gas pricing method!"
 
+        update_params: Dict[str, Union[int, str, Dict[str, int]]]
         if not simulate_timeout:
             hashes = self.tx_settlement_synchronized_data.tx_hashes_history
             hashes.append(tx_digest)
@@ -277,10 +278,11 @@ class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
             )
             self.mock_a2a_transaction()
             self.behaviour.current_behaviour.params.mutable_params.tx_hash = tx_digest
-            update_params = dict(
-                missed_messages=self.tx_settlement_synchronized_data.missed_messages
-                + 1,
-            )
+            missed_messages = self.tx_settlement_synchronized_data.missed_messages
+            missed_messages[
+                self.tx_settlement_synchronized_data.most_voted_keeper_address
+            ] += 1
+            update_params = dict(missed_messages=missed_messages)
 
         self.tx_settlement_synchronized_data.update(
             synchronized_data_class=None, **update_params
@@ -292,9 +294,11 @@ class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
         """Validate the sent transaction."""
 
         if simulate_timeout:
-            self.tx_settlement_synchronized_data.update(
-                missed_messages=self.tx_settlement_synchronized_data.missed_messages + 1
-            )
+            missed_messages = self.tx_settlement_synchronized_data.missed_messages
+            missed_messages[
+                tuple(self.tx_settlement_synchronized_data.all_participants)[0]
+            ] += 1
+            self.tx_settlement_synchronized_data.update(missed_messages=missed_messages)
         else:
             handlers: HandlersType = [
                 self.ledger_handler,

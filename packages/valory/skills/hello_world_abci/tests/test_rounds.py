@@ -227,8 +227,8 @@ class TestPrintMessageRound(BaseRoundTestClass):
         actual_next_behaviour = SynchronizedData(
             AbciAppDB(
                 setup_data=dict(
-                    participants=[tuple(test_round.collection)],
-                    printed_messages=[printed_messages],
+                    participants=[tuple(sorted(test_round.collection))],
+                    printed_messages=[sorted(printed_messages)],
                 )
             )
         )

@@ -483,12 +483,14 @@ class DummyOnlyKeeperSendsRoundTest(DummyOnlyKeeperSendsRound):
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """A dummy `end_block` implementation."""
-        if self.keeper_sent_payload and self.keeper_payload is not None:
+        if self.keeper_payload is not None and any(
+            [val is not None for val in self.keeper_payload.values]
+        ):
             return (
                 cast(
                     DummySynchronizedData,
                     self.synchronized_data.update(
-                        blacklisted_keepers=self.keeper_payload
+                        blacklisted_keepers=self.keeper_payload.values[0]
                     ),
                 ),
                 self.dummy_exit_event,
