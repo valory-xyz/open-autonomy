@@ -148,7 +148,7 @@ the response.
 ## AbstractResponseHandler Objects
 
 ```python
-class AbstractResponseHandler(Handler,  ABC)
+class AbstractResponseHandler(Handler, ABC)
 ```
 
 Abstract response Handler.
@@ -194,18 +194,18 @@ Handle the response message.
 
 Steps:
 1. Try to recover the 'dialogues' instance, for the protocol
-of this handler, from the skill context. The attribute name used to
-read the attribute is computed by '_get_dialogues_attribute_name()'
-method. If no dialogues instance is found, log a message and return.
+   of this handler, from the skill context. The attribute name used to
+   read the attribute is computed by '_get_dialogues_attribute_name()'
+   method. If no dialogues instance is found, log a message and return.
 2. Try to recover the dialogue; if no dialogue is present, log a message
-and return.
+   and return.
 3. Check whether the performative is in the set of allowed performative;
-if not, log a message and return.
+   if not, log a message and return.
 4. Try to recover the callback of the request associated to the response
-from the 'Requests' model; if no callback is present, log a message
-and return.
+   from the 'Requests' model; if no callback is present, log a message
+   and return.
 5. If the above check have passed, then call the callback with the
-received message.
+   received message.
 
 **Arguments**:
 

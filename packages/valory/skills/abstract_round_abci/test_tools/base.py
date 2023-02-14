@@ -415,7 +415,8 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
     @classmethod
     def teardown_class(cls) -> None:
         """Teardown the test class."""
-        _MetaPayload.registry = cls.old_tx_type_to_payload_cls
+        if getattr(cls, "old_tx_type_to_payload_cls", False):
+            _MetaPayload.registry = cls.old_tx_type_to_payload_cls
 
     def teardown(self, **kwargs: Any) -> None:
         """Teardown."""

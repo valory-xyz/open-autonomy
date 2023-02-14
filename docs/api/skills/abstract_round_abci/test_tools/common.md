@@ -109,17 +109,20 @@ Test SelectKeeperBehaviour.
 #### test`_`select`_`keeper
 
 ```python
-@mock.patch.object(SkillContext, "agent_address", new_callable=mock.PropertyMock)
+@mock.patch.object(SkillContext,
+                   "agent_address",
+                   new_callable=mock.PropertyMock)
 @pytest.mark.parametrize(
-        "blacklisted_keepers",
-        (
-            set(),
-            {"a_1"},
-            {"test_agent_address" + "t" * 24},
-            {"a_1" + "t" * 39, "a_2" + "t" * 39, "test_agent_address" + "t" * 24},
-        ),
-    )
-def test_select_keeper(agent_address_mock: mock.Mock, blacklisted_keepers: Set[str]) -> None
+    "blacklisted_keepers",
+    (
+        set(),
+        {"a_1"},
+        {"test_agent_address" + "t" * 24},
+        {"a_1" + "t" * 39, "a_2" + "t" * 39, "test_agent_address" + "t" * 24},
+    ),
+)
+def test_select_keeper(agent_address_mock: mock.Mock,
+                       blacklisted_keepers: Set[str]) -> None
 ```
 
 Test select keeper agent.

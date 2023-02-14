@@ -10,9 +10,8 @@ Push all available packages to a registry.
 
 ```python
 @click.command("push-all")
-@click.option(
-    "--packages-dir", type=click.Path(file_okay=False, dir_okay=True, exists=True)
-)
+@click.option("--packages-dir",
+              type=click.Path(file_okay=False, dir_okay=True, exists=True))
 @click.option(
     "--retries",
     type=int,
@@ -20,7 +19,8 @@ Push all available packages to a registry.
     help="Tries on package push to the network.",
 )
 @registry_flag()
-def push_all(packages_dir: Optional[Path], retries: int, registry: str) -> None
+def push_all(packages_dir: Optional[Path], retries: int,
+             registry: str) -> None
 ```
 
 Push all available packages to a registry.

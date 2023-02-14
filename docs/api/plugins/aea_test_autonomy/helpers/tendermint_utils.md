@@ -19,7 +19,8 @@ Data class to store Tendermint node info.
 #### `__`init`__`
 
 ```python
-def __init__(node_id: str, abci_port: int, rpc_port: int, p2p_port: int, home: Path)
+def __init__(node_id: str, abci_port: int, rpc_port: int, p2p_port: int,
+             home: Path)
 ```
 
 Initialize Tendermint node info.
@@ -71,7 +72,9 @@ Build a local Tendermint network.
 #### `__`init`__`
 
 ```python
-def __init__(nb_nodes: int, directory: Path, consensus_create_empty_blocks: bool = True) -> None
+def __init__(nb_nodes: int,
+             directory: Path,
+             consensus_create_empty_blocks: bool = True) -> None
 ```
 
 Initialize the builder.
@@ -123,7 +126,8 @@ MixIn class for Pytest classes.
 
 ```python
 @staticmethod
-def health_check(tendermint_net: TendermintLocalNetworkBuilder, **kwargs: Any) -> None
+def health_check(tendermint_net: TendermintLocalNetworkBuilder,
+                 **kwargs: Any) -> None
 ```
 
 Do a health-check of the Tendermint network.

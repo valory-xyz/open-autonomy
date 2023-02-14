@@ -9,7 +9,8 @@ Analyse dialogue definitions.
 #### load`_`dialogues`_`module`_`from`_`skill`_`path
 
 ```python
-def load_dialogues_module_from_skill_path(skill_path: Path) -> types.ModuleType
+def load_dialogues_module_from_skill_path(
+        skill_path: Path) -> types.ModuleType
 ```
 
 Load `dialogues.py` module for the given skill.
@@ -19,7 +20,8 @@ Load `dialogues.py` module for the given skill.
 #### validate`_`and`_`get`_`dialogues
 
 ```python
-def validate_and_get_dialogues(models_configuration: Dict[str, Dict[str, str]]) -> Dict[str, str]
+def validate_and_get_dialogues(
+        models_configuration: Dict[str, Dict[str, str]]) -> Dict[str, str]
 ```
 
 Returns dialogue names to class name mappings
@@ -29,7 +31,8 @@ Returns dialogue names to class name mappings
 #### check`_`dialogues`_`in`_`a`_`skill`_`package
 
 ```python
-def check_dialogues_in_a_skill_package(config_file: Path, dialogues: List[str]) -> None
+def check_dialogues_in_a_skill_package(config_file: Path,
+                                       dialogues: List[str]) -> None
 ```
 
 Check dialogue definitions.

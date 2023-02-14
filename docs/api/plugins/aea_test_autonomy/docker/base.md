@@ -105,35 +105,47 @@ True if the wait was successful, False otherwise.
 #### launch`_`image
 
 ```python
-def launch_image(image: DockerImage, timeout: float = 2.0, max_attempts: int = 10) -> Generator[DockerImage, None, None]
+def launch_image(image: DockerImage,
+                 timeout: float = 2.0,
+                 max_attempts: int = 10) -> Generator[DockerImage, None, None]
 ```
 
 Launch a single container.
 
 **Arguments**:
 
-:yield: image
 - `image`: an instance of Docker image.
 - `timeout`: timeout to launch
 - `max_attempts`: max launch attempts
+
+**Returns**:
+
+image
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.base.launch_many_containers"></a>
 
 #### launch`_`many`_`containers
 
 ```python
-def launch_many_containers(image: DockerImage, nb_containers: int, timeout: float = 2.0, max_attempts: int = 10) -> Generator[DockerImage, None, None]
+def launch_many_containers(
+        image: DockerImage,
+        nb_containers: int,
+        timeout: float = 2.0,
+        max_attempts: int = 10) -> Generator[DockerImage, None, None]
 ```
 
 Launch many containers from an image.
 
 **Arguments**:
 
-:yield: image
 - `image`: an instance of Docker image.
 - `nb_containers`: the number of containers to launch from the image.
 - `timeout`: timeout to launch
 - `max_attempts`: max launch attempts
+
+**Returns**:
+
+image
 
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.docker.base.DockerBaseTest"></a>
 

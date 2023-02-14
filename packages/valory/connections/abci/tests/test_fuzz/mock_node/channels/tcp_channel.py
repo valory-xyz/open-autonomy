@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 
 import asyncio
 import logging
+import platform
 import socket
 from asyncio import AbstractEventLoop
 from threading import Thread
@@ -78,7 +79,14 @@ class TcpChannel(BaseChannel):
         """Set up the channel."""
         if self.is_connected:
             return
-        self.loop = asyncio.new_event_loop()
+
+        if platform.system() == "Windows":
+            self.loop = cast(
+                asyncio.AbstractEventLoop,
+                asyncio.WindowsSelectorEventLoopPolicy().new_event_loop(),  # type: ignore # windows only
+            )
+        else:
+            self.loop = cast(asyncio.AbstractEventLoop, asyncio.new_event_loop())
         self.loop_thread = Thread(target=self._run_loop_in_thread, args=(self.loop,))
         self.loop_thread.start()
 

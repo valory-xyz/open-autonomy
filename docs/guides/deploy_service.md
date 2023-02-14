@@ -107,6 +107,25 @@ The {{open_autonomy}} framework provides a convenient interface for services tha
     ```
     where `keys.json` contains the addresses and keys of (some of) the registered agents in the service.
 
+!!! warning "Important"
+    When deploying a service registered on-chain, the framework automatically overrides a number of configuration arguments in the agent containers with the values registered in the on-chain protocol:
+
+    === "skill.yaml"
+
+    ```yaml
+    (...)
+    models:
+      params:
+        args:
+          consensus:
+            max_participants: # Overridden with the registered values
+          setup:
+            all_participants: # Overridden with the registered values
+            safe_contract_address: # Overridden with the registered values
+          service_registry_address:  # Overridden with the registered values
+          on_chain_service_id: # Overridden with the registered values
+    ```
+
 ## Cloud deployment
 
 !!! info

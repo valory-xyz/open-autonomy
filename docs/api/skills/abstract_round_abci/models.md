@@ -186,8 +186,7 @@ Get a GenesisConfig instance as a json dictionary.
 ## BaseParams Objects
 
 ```python
-class BaseParams(
-    Model,  FrozenMixin,  TypeCheckMixin)
+class BaseParams(Model, FrozenMixin, TypeCheckMixin)
 ```
 
 Parameters.
@@ -239,7 +238,8 @@ A metaclass that validates SharedState's attributes.
 #### `__`new`__`
 
 ```python
-def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type
+def __new__(mcs, name: str, bases: Tuple, namespace: Dict,
+            **kwargs: Any) -> Type
 ```
 
 Initialize the class.
@@ -249,7 +249,7 @@ Initialize the class.
 ## SharedState Objects
 
 ```python
-class SharedState(Model,  ABC, metaclass=_MetaSharedState)
+class SharedState(Model, ABC, metaclass=_MetaSharedState)
 ```
 
 Keep the current shared state of the skill.
@@ -259,7 +259,7 @@ Keep the current shared state of the skill.
 #### `__`init`__`
 
 ```python
-def __init__(*args: Any, *, skill_context: SkillContext, **kwargs: Any, ,) -> None
+def __init__(*args: Any, skill_context: SkillContext, **kwargs: Any) -> None
 ```
 
 Initialize the state.
@@ -321,7 +321,7 @@ Get the majority of the ACN deliverables.
 ## Requests Objects
 
 ```python
-class Requests(Model,  FrozenMixin)
+class Requests(Model, FrozenMixin)
 ```
 
 Keep the current pending requests.
@@ -429,7 +429,7 @@ Hash the object.
 ## ApiSpecs Objects
 
 ```python
-class ApiSpecs(Model,  FrozenMixin,  TypeCheckMixin)
+class ApiSpecs(Model, FrozenMixin, TypeCheckMixin)
 ```
 
 A model that wraps APIs to get cryptocurrency prices.
@@ -594,7 +594,7 @@ Measure consensus block.
 ## BenchmarkTool Objects
 
 ```python
-class BenchmarkTool(Model,  TypeCheckMixin,  FrozenMixin)
+class BenchmarkTool(Model, TypeCheckMixin, FrozenMixin)
 ```
 
 BenchmarkTool

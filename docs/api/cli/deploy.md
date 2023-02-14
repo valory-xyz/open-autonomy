@@ -69,9 +69,9 @@ Deploy an agent service.
     help="Logging level for runtime.",
     default=INFO,
 )
-@click.option(
-    "--packages-dir", type=click.Path(), help="Path to packages dir (Use with dev mode)"
-)
+@click.option("--packages-dir",
+              type=click.Path(),
+              help="Path to packages dir (Use with dev mode)")
 @click.option(
     "--open-aea-dir",
     type=click.Path(),
@@ -108,11 +108,30 @@ Deploy an agent service.
     default=False,
     help="Use local tendermint chain setup.",
 )
-@click.option("--image-version", type=str, help="Define runtime image version.")
+@click.option("--image-version",
+              type=str,
+              help="Define runtime image version.")
 @registry_flag()
 @password_option(confirmation_prompt=True)
 @click.pass_context
-def build_deployment_command(click_context: click.Context, keys_file: Optional[Path], deployment_type: str, output_dir: Optional[Path], dev_mode: bool, force_overwrite: bool, registry: str, number_of_agents: Optional[int] = None, password: Optional[str] = None, open_aea_dir: Optional[Path] = None, packages_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, log_level: str = INFO, aev: bool = False, image_version: Optional[str] = None, use_hardhat: bool = False, use_acn: bool = False, use_tm_testnet_setup: bool = False) -> None
+def build_deployment_command(click_context: click.Context,
+                             keys_file: Optional[Path],
+                             deployment_type: str,
+                             output_dir: Optional[Path],
+                             dev_mode: bool,
+                             force_overwrite: bool,
+                             registry: str,
+                             number_of_agents: Optional[int] = None,
+                             password: Optional[str] = None,
+                             open_aea_dir: Optional[Path] = None,
+                             packages_dir: Optional[Path] = None,
+                             open_autonomy_dir: Optional[Path] = None,
+                             log_level: str = INFO,
+                             aev: bool = False,
+                             image_version: Optional[str] = None,
+                             use_hardhat: bool = False,
+                             use_acn: bool = False,
+                             use_tm_testnet_setup: bool = False) -> None
 ```
 
 Build deployment setup for n agents.
@@ -152,18 +171,31 @@ Run deployment.
 @deploy_group.command(name="from-token")
 @click.argument("token_id", type=int)
 @click.argument("keys_file", type=click.Path())
-@click.option("--n", type=int, help="Number of agents to include in the build.")
-@click.option("--skip-image", is_flag=True, default=False, help="Skip building images.")
+@click.option("--n",
+              type=int,
+              help="Number of agents to include in the build.")
+@click.option("--skip-image",
+              is_flag=True,
+              default=False,
+              help="Skip building images.")
 @click.option(
     "--aev",
     is_flag=True,
     default=False,
     help="Apply environment variable when loading service config.",
 )
-@chain_selection_flag(help_string_format="Use {} chain to resolve the token id.")
+@chain_selection_flag(
+    help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
-def run_deployment_from_token(click_context: click.Context, token_id: int, keys_file: Path, chain_type: ChainType, skip_image: bool, n: Optional[int], aev: bool = False, password: Optional[str] = None) -> None
+def run_deployment_from_token(click_context: click.Context,
+                              token_id: int,
+                              keys_file: Path,
+                              chain_type: ChainType,
+                              skip_image: bool,
+                              n: Optional[int],
+                              aev: bool = False,
+                              password: Optional[str] = None) -> None
 ```
 
 Run service deployment.

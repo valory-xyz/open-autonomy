@@ -287,7 +287,7 @@ class AsyncBehaviour(ABC):
         finally:
             self.__state = self.AsyncState.RUNNING
 
-    def setup(self) -> None:
+    def setup(self) -> None:  # noqa: B027  # flake8 suggest make it abstract
         """Setup behaviour."""
 
     def act(self) -> None:
@@ -1706,6 +1706,7 @@ class BaseBehaviour(
         # reset the ACN deliverables at the beginning of a new request
         shared_state.address_to_acn_deliverable = shared_state.acn_container()
 
+        result = None
         for i in range(self.params.max_attempts):
             self.context.logger.debug(
                 f"ACN attempt {i + 1}/{self.params.max_attempts}."
@@ -1714,9 +1715,9 @@ class BaseBehaviour(
 
             result = cast(SharedState, self.context.state).get_acn_result()
             if result is not None:
-                return result
+                break
 
-        return None
+        return result
 
     def request_recovery_params(self) -> Generator[None, None, bool]:
         """Request the Tendermint recovery parameters from the other agents via the ACN."""

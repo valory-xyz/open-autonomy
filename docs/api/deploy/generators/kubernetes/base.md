@@ -19,7 +19,13 @@ Kubernetes Deployment Generator.
 #### `__`init`__`
 
 ```python
-def __init__(service_builder: ServiceBuilder, build_dir: Path, dev_mode: bool = False, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None, use_tm_testnet_setup: bool = False) -> None
+def __init__(service_builder: ServiceBuilder,
+             build_dir: Path,
+             dev_mode: bool = False,
+             packages_dir: Optional[Path] = None,
+             open_aea_dir: Optional[Path] = None,
+             open_autonomy_dir: Optional[Path] = None,
+             use_tm_testnet_setup: bool = False) -> None
 ```
 
 Initialise the deployment generator.
@@ -29,7 +35,9 @@ Initialise the deployment generator.
 #### build`_`agent`_`deployment
 
 ```python
-def build_agent_deployment(runtime_image: str, agent_ix: int, number_of_agents: int, agent_vars: Dict[str, Any]) -> str
+def build_agent_deployment(runtime_image: str, agent_ix: int,
+                           number_of_agents: int,
+                           agent_vars: Dict[str, Any]) -> str
 ```
 
 Build agent deployment.
@@ -49,7 +57,9 @@ Build configuration job.
 #### generate
 
 ```python
-def generate(image_version: Optional[str] = None, use_hardhat: bool = False, use_acn: bool = False) -> "KubernetesGenerator"
+def generate(image_version: Optional[str] = None,
+             use_hardhat: bool = False,
+             use_acn: bool = False) -> "KubernetesGenerator"
 ```
 
 Generate the deployment.

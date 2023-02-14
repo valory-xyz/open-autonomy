@@ -19,7 +19,11 @@ Split IPFS hash from the ipfs uri
 #### resolve`_`component`_`id
 
 ```python
-def resolve_component_id(ledger_api: LedgerApi, contract_address: str, token_id: int, is_agent: bool = False, is_service: bool = False) -> Dict
+def resolve_component_id(ledger_api: LedgerApi,
+                         contract_address: str,
+                         token_id: int,
+                         is_agent: bool = False,
+                         is_service: bool = False) -> Dict
 ```
 
 Resolve component ID to metadata json
@@ -29,7 +33,11 @@ Resolve component ID to metadata json
 #### verify`_`component`_`dependencies
 
 ```python
-def verify_component_dependencies(ledger_api: LedgerApi, contract_address: str, dependencies: List[int], package_configuration: PackageConfiguration, skip_hash_check: bool = False) -> None
+def verify_component_dependencies(ledger_api: LedgerApi,
+                                  contract_address: str,
+                                  dependencies: List[int],
+                                  package_configuration: PackageConfiguration,
+                                  skip_hash_check: bool = False) -> None
 ```
 
 Verify package dependencies using on-chain metadata.
@@ -39,7 +47,11 @@ Verify package dependencies using on-chain metadata.
 #### verify`_`service`_`dependencies
 
 ```python
-def verify_service_dependencies(ledger_api: LedgerApi, contract_address: str, agent_id: int, service_configuration: Service, skip_hash_check: bool = False) -> None
+def verify_service_dependencies(ledger_api: LedgerApi,
+                                contract_address: str,
+                                agent_id: int,
+                                service_configuration: Service,
+                                skip_hash_check: bool = False) -> None
 ```
 
 Verify package dependencies using on-chain metadata.

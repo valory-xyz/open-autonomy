@@ -20,7 +20,7 @@
 """This module contains the tests for the code-blocks in the documentation."""
 
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional, cast
 
 from tests.conftest import ROOT_DIR
 from tests.test_docs.helper import (  # type: ignore
@@ -76,8 +76,11 @@ class BaseTestDocCode:
             map(
                 str,
                 filter(
-                    lambda f: "api" not in f.parts  # skip api folder
-                    and contains_code_blocks(f, self.code_type.value),
+                    cast(
+                        Callable[[Path], bool],
+                        lambda f: "api" not in f.parts  # skip api folder
+                        and contains_code_blocks(f, self.code_type.value),
+                    ),
                     all_md_files,
                 ),
             )
@@ -111,7 +114,7 @@ class BaseTestDocCode:
                 code_type=self.code_type,
                 doc_process_fn=lambda s: remove_doc_ellipsis(remove_line_comments(s)),
                 code_process_fn=lambda s: remove_ips_hashes(s),
-            ),
+            )
 
             print("OK")
 
@@ -148,6 +151,7 @@ class TestYamlSnippets(BaseTestDocCode):
     skipped_files = [
         "docs/guides/service_configuration_file.md",
         "docs/demos/price_oracle_fsms.md",
+        "docs/deployment/on-chain_deployment_checklist.md",  # just placeholder examples
     ]
 
 
@@ -195,6 +199,7 @@ class TestPythonSnippets(BaseTestDocCode):
         "docs/demos/price_oracle_fsms.md",  # price oracle has been extracted to a separate repo on #1441
         "docs/demos/price_oracle_technical_details.md",  # price oracle has been extracted to a separate repo on #1441
         "docs/advanced_reference/developer_tooling/benchmarking.md",  # just placeholder examples
+        "docs/deployment/on-chain_deployment_checklist.md",  # just placeholder examples
     ]
 
 

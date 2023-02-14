@@ -9,7 +9,8 @@ Metadata helpers.
 #### serialize`_`metadata
 
 ```python
-def serialize_metadata(package_hash: str, public_id: PublicId, description: str, nft_image_hash: str) -> str
+def serialize_metadata(package_hash: str, public_id: PublicId,
+                       description: str, nft_image_hash: str) -> str
 ```
 
 Serialize metadata.
@@ -19,7 +20,8 @@ Serialize metadata.
 #### publish`_`metadata
 
 ```python
-def publish_metadata(public_id: PublicId, package_path: Path, nft_image_hash: str, description: str) -> str
+def publish_metadata(public_id: PublicId, package_path: Path,
+                     nft_image_hash: str, description: str) -> str
 ```
 
 Publish service metadata.

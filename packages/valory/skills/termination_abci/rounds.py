@@ -20,7 +20,7 @@
 """This module contains the termination round classes."""
 
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, cast
+from typing import Dict, Optional, Set, Tuple, cast
 
 from packages.valory.skills.abstract_round_abci.abci_app_chain import (
     AbciAppTransitionMapping,
@@ -164,7 +164,7 @@ class PostTerminationTxAbciApp(AbciApp[Event]):
     # the following is not needed, it is added to satisfy the round check
     # the TerminationRound when run it terminates the agent, so nothing can come after it
     transition_function = {TerminationRound: {Event.TERMINATE: TerminationRound}}
-    db_pre_conditions: Dict[AppState, List[str]] = {TerminationRound: []}
+    db_pre_conditions: Dict[AppState, Set[str]] = {TerminationRound: set()}
 
 
 termination_transition_function: AbciAppTransitionMapping = {

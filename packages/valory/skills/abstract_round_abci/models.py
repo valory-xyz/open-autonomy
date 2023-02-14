@@ -56,12 +56,14 @@ from packages.valory.skills.abstract_round_abci.base import (
     get_name,
 )
 from packages.valory.skills.abstract_round_abci.utils import (
+    check,
     check_type,
     get_data_from_nested_dict,
     get_value_with_type,
 )
 
 
+MIN_OBSERVATION_INTERVAL = 10
 NUMBER_OF_RETRIES: int = 5
 DEFAULT_BACKOFF_FACTOR: float = 2.0
 DEFAULT_TYPE_NAME: str = "str"
@@ -264,8 +266,8 @@ class BaseParams(
         self.retry_timeout: int = self._ensure("retry_timeout", kwargs, int)
         self.retry_attempts: int = self._ensure("retry_attempts", kwargs, int)
         self.keeper_timeout: float = self._ensure("keeper_timeout", kwargs, float)
-        self.observation_interval: int = self._ensure(
-            "observation_interval", kwargs, int
+        self.observation_interval: int = self._ensure_gte(
+            "observation_interval", kwargs, int, min_value=MIN_OBSERVATION_INTERVAL
         )
         self.drand_public_key: str = self._ensure("drand_public_key", kwargs, str)
         self.tendermint_com_url: str = self._ensure("tendermint_com_url", kwargs, str)
@@ -342,6 +344,21 @@ class BaseParams(
         fail_msg = f"Values for `{not_found_keys}` missing from the `setup` params."
         enforce(found, fail_msg)
 
+    def _ensure_gte(
+        self, key: str, kwargs: Dict[str, Any], type_: Type, min_value: Any
+    ) -> Any:
+        """Ensure that the value for the key is greater than or equal to the provided min_value."""
+        err = check(min_value, type_)
+        enforce(
+            err is None,
+            f"min_value must be of type {type_.__name__}, but got {type(min_value).__name__}.",
+        )
+        value = self._ensure(key, kwargs, type_)
+        enforce(
+            value >= min_value, f"`{key}` must be greater than or equal to {min_value}."
+        )
+        return value
+
 
 class _MetaSharedState(ABCMeta):
     """A metaclass that validates SharedState's attributes."""
@@ -398,7 +415,7 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
         self.abci_app_cls._is_abstract = skill_context.is_abstract_component
         self._round_sequence: Optional[RoundSequence] = None
         # a mapping of the agents' addresses to their initial Tendermint configuration, to be retrieved via ACN
-        self.initial_tm_configs: Dict[str, Dict[str, Any]] = {}
+        self.initial_tm_configs: Dict[str, Optional[Dict[str, Any]]] = {}
         # a mapping of the other agents' addresses to ACN deliverables
         self.address_to_acn_deliverable: Dict[str, Any] = {}
         self.tm_recovery_params: TendermintRecoveryParams = TendermintRecoveryParams(
@@ -526,7 +543,7 @@ class RetriesInfo(TypeCheckMixin):
     @property
     def suggested_sleep_time(self) -> float:
         """The suggested amount of time to sleep."""
-        return self.backoff_factor ** self.retries_attempted
+        return self.backoff_factor**self.retries_attempted
 
 
 @dataclass(frozen=True)

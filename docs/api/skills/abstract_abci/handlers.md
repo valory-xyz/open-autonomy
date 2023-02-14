@@ -277,7 +277,8 @@ the response.
 #### list`_`snapshots
 
 ```python
-def list_snapshots(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
+def list_snapshots(message: AbciMessage,
+                   dialogue: AbciDialogue) -> AbciMessage
 ```
 
 Handle a message of REQUEST_LIST_SNAPSHOT performative.
@@ -296,7 +297,8 @@ the response.
 #### offer`_`snapshot
 
 ```python
-def offer_snapshot(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
+def offer_snapshot(message: AbciMessage,
+                   dialogue: AbciDialogue) -> AbciMessage
 ```
 
 Handle a message of REQUEST_OFFER_SNAPSHOT performative.
@@ -315,7 +317,8 @@ the response.
 #### load`_`snapshot`_`chunk
 
 ```python
-def load_snapshot_chunk(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
+def load_snapshot_chunk(message: AbciMessage,
+                        dialogue: AbciDialogue) -> AbciMessage
 ```
 
 Handle a message of REQUEST_LOAD_SNAPSHOT_CHUNK performative.
@@ -334,7 +337,8 @@ the response.
 #### apply`_`snapshot`_`chunk
 
 ```python
-def apply_snapshot_chunk(message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage
+def apply_snapshot_chunk(message: AbciMessage,
+                         dialogue: AbciDialogue) -> AbciMessage
 ```
 
 Handle a message of REQUEST_APPLY_SNAPSHOT_CHUNK performative.

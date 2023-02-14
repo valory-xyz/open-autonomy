@@ -162,16 +162,16 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
             for path in get_paths(next_initial_state, next_app, new_previous_apps):
                 # if element not in path:
                 paths.append([element] + path)
-        return paths if paths != [] else default
+        return paths if paths else default
 
     all_paths: List[
         List[Tuple[AppState, Type[AbciApp], Optional[AppState]]]
     ] = get_paths(abci_apps[0].initial_round_cls, abci_apps[0])
-    new_db_post_conditions: Dict[AppState, List[str]] = {}
+    new_db_post_conditions: Dict[AppState, Set[str]] = {}
     for path in all_paths:
         current_initial_state, current_app, current_final_state = path[0]
-        accumulated_post_conditions: Set[str] = set(
-            current_app.db_pre_conditions.get(current_initial_state, [])
+        accumulated_post_conditions: Set[str] = current_app.db_pre_conditions.get(
+            current_initial_state, set()
         )
         for (next_initial_state, next_app, next_final_state) in path[1:]:
             if current_final_state is None:
@@ -186,7 +186,7 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
             # are compatible with the post conditions of the current apps.
             if next_initial_state in next_app.db_pre_conditions:
                 diff = set.difference(
-                    set(next_app.db_pre_conditions[next_initial_state]),
+                    next_app.db_pre_conditions[next_initial_state],
                     accumulated_post_conditions,
                 )
                 if len(diff) != 0:
@@ -202,9 +202,7 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
             current_final_state = next_final_state
 
         if current_final_state is not None:
-            new_db_post_conditions[current_final_state] = list(
-                accumulated_post_conditions
-            )
+            new_db_post_conditions[current_final_state] = accumulated_post_conditions
 
     # Warn about events duplicated in multiple apps
     app_to_events = {app: app.get_all_events() for app in abci_apps}
@@ -270,10 +268,9 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
     }
 
     # Collect keys to persist across periods from all abcis
-    new_cross_period_persisted_keys = []
+    new_cross_period_persisted_keys: Set[str] = set()
     for app in abci_apps:
-        new_cross_period_persisted_keys.extend(app.cross_period_persisted_keys)
-    new_cross_period_persisted_keys = list(set(new_cross_period_persisted_keys))
+        new_cross_period_persisted_keys.update(app.cross_period_persisted_keys)
 
     # Return the composed result
     class ComposedAbciApp(AbciApp[EventType]):
@@ -284,8 +281,8 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
         transition_function: AbciAppTransitionFunction = new_transition_function
         final_states: Set[AppState] = new_final_states
         event_to_timeout: EventToTimeout = new_events_to_timeout
-        cross_period_persisted_keys: List[str] = new_cross_period_persisted_keys
-        db_pre_conditions: Dict[AppState, List[str]] = new_db_pre_conditions
-        db_post_conditions: Dict[AppState, List[str]] = new_db_post_conditions
+        cross_period_persisted_keys: Set[str] = new_cross_period_persisted_keys
+        db_pre_conditions: Dict[AppState, Set[str]] = new_db_pre_conditions
+        db_post_conditions: Dict[AppState, Set[str]] = new_db_post_conditions
 
     return ComposedAbciApp

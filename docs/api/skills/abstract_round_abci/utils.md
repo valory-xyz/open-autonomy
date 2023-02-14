@@ -31,41 +31,32 @@ Verify drand value retried from external APIs.
 
 **Arguments**:
 
-               public-endpoints section in https://drand.love/developer/http-api/
 - `data`: dictionary containing drand parameters.
 - `pubkey`: league of entropy public key
+public-endpoints section in https://drand.love/developer/http-api/
 
 **Returns**:
 
 bool, error message
-
-<a id="packages.valory.skills.abstract_round_abci.utils.to_int"></a>
-
-#### to`_`int
-
-```python
-def to_int(most_voted_estimate: float, decimals: int) -> int
-```
-
-Convert to int.
 
 <a id="packages.valory.skills.abstract_round_abci.utils.get_data_from_nested_dict"></a>
 
 #### get`_`data`_`from`_`nested`_`dict
 
 ```python
-def get_data_from_nested_dict(nested_dict: Dict, keys: str, separator: str = ":") -> Any
+def get_data_from_nested_dict(nested_dict: Dict,
+                              keys: str,
+                              separator: str = ":") -> Any
 ```
 
 Gets content from a nested dictionary, using serialized response keys which are split by a given separator.
 
 **Arguments**:
 
-Choose the separator carefully, so that it does not conflict with any character of the keys.
-
 - `nested_dict`: the nested dictionary to get the content from
 - `keys`: the keys to use on the nested dictionary in order to get the content
 - `separator`: the separator to use in order to get the keys list.
+Choose the separator carefully, so that it does not conflict with any character of the keys.
 
 **Returns**:
 
@@ -247,7 +238,9 @@ Check union type.
 #### check`_`mono`_`container
 
 ```python
-def check_mono_container(value: Any, ty: Union[Type[List[Any]], Type[Set[Any]], Type[FrozenSet[Any]]]) -> Result
+def check_mono_container(
+    value: Any, ty: Union[Type[List[Any]], Type[Set[Any]],
+                          Type[FrozenSet[Any]]]) -> Result
 ```
 
 Check mono container type.
@@ -277,7 +270,7 @@ Check dataclass type.
 #### check`_`typeddict
 
 ```python
-def check_typeddict(value: Any, ty: Type[Type[Any]]) -> Result
+def check_typeddict(value: Any, ty: Type[Any]) -> Result
 ```
 
 Check typeddict type.

@@ -428,6 +428,19 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             log_message = self.state.LogMessages.failed_verification
             assert log_message.value in caplog.text
 
+    def test_on_chain_service_id_not_set(self, caplog: LogCaptureFixture) -> None:
+        """Test `get_addresses` when `on_chain_service_id` is `None`."""
+
+        with as_context(
+            caplog.at_level(logging.INFO, logger=self.logger),
+            self.mocked_service_registry_address,
+        ):
+            self.behaviour.act_wrapper()
+            self.mock_get_local_tendermint_params()
+            self.mock_is_correct_contract()
+            log_message = self.state.LogMessages.no_on_chain_service_id
+            assert log_message.value in caplog.text
+
     def test_failed_service_info(self, caplog: LogCaptureFixture) -> None:
         """Test get service info failure"""
 

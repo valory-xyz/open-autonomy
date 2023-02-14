@@ -59,7 +59,8 @@ Fetch service from local directory.
 #### publish`_`service`_`package
 
 ```python
-def publish_service_package(click_context: click.Context, registry: str) -> None
+def publish_service_package(click_context: click.Context,
+                            registry: str) -> None
 ```
 
 Publish a service package.

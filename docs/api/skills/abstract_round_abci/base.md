@@ -152,7 +152,8 @@ at decoding time.
 #### `__`new`__`
 
 ```python
-def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type
+def __new__(mcs, name: str, bases: Tuple, namespace: Dict,
+            **kwargs: Any) -> Type
 ```
 
 Create a new class object.
@@ -163,7 +164,7 @@ Create a new class object.
 
 ```python
 @dataclass(frozen=True)
-class BaseTxPayload(, metaclass=_MetaPayload)
+class BaseTxPayload(metaclass=_MetaPayload)
 ```
 
 This class represents a base class for transaction payload classes.
@@ -287,8 +288,11 @@ Verify the signature is correct.
 
 **Arguments**:
 
-:raises: SignatureNotValidError: if the signature is not valid.
 - `ledger_id`: the ledger id of the address
+
+**Raises**:
+
+- `None`: SignatureNotValidError: if the signature is not valid.
 
 <a id="packages.valory.skills.abstract_round_abci.base.Block"></a>
 
@@ -667,7 +671,8 @@ https://github.com/python/cpython/blob/3.10/Lib/copy.py#L182-L183
 #### `__`init`__`
 
 ```python
-def __init__(setup_data: Dict[str, List[Any]], cross_period_persisted_keys: Optional[List[str]] = None) -> None
+def __init__(setup_data: Dict[str, List[Any]],
+             cross_period_persisted_keys: Optional[Set[str]] = None) -> None
 ```
 
 Initialize the AbciApp database.
@@ -735,7 +740,7 @@ Set the round count.
 
 ```python
 @property
-def cross_period_persisted_keys() -> List[str]
+def cross_period_persisted_keys() -> Set[str]
 ```
 
 Keys in the database which are persistent across periods.
@@ -844,7 +849,8 @@ Return a string representation of the data.
 #### cleanup
 
 ```python
-def cleanup(cleanup_history_depth: int, cleanup_history_depth_current: Optional[int] = None) -> None
+def cleanup(cleanup_history_depth: int,
+            cleanup_history_depth_current: Optional[int] = None) -> None
 ```
 
 Reset the db, keeping only the latest entries (periods).
@@ -1037,7 +1043,8 @@ Get the number of participants.
 #### update
 
 ```python
-def update(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
+def update(synchronized_data_class: Optional[Type] = None,
+           **kwargs: Any) -> "BaseSynchronizedData"
 ```
 
 Copy and update the current data.
@@ -1047,7 +1054,8 @@ Copy and update the current data.
 #### create
 
 ```python
-def create(synchronized_data_class: Optional[Type] = None, **kwargs: Any, ,) -> "BaseSynchronizedData"
+def create(synchronized_data_class: Optional[Type] = None,
+           **kwargs: Any) -> "BaseSynchronizedData"
 ```
 
 Copy and update with new data.
@@ -1176,7 +1184,8 @@ A metaclass that validates AbstractRound's attributes.
 #### `__`new`__`
 
 ```python
-def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type
+def __new__(mcs, name: str, bases: Tuple, namespace: Dict,
+            **kwargs: Any) -> Type
 ```
 
 Initialize the class.
@@ -1186,7 +1195,7 @@ Initialize the class.
 ## AbstractRound Objects
 
 ```python
-class AbstractRound(Generic[EventType],  ABC, metaclass=_MetaAbstractRound)
+class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound)
 ```
 
 This class represents an abstract round.
@@ -1206,7 +1215,11 @@ Optionally, round_id can be defined, although it is recommended to use the autog
 #### `__`init`__`
 
 ```python
-def __init__(synchronized_data: BaseSynchronizedData, consensus_params: ConsensusParams, previous_round_payload_class: Optional[Type[BaseTxPayload]] = None) -> None
+def __init__(
+    synchronized_data: BaseSynchronizedData,
+    consensus_params: ConsensusParams,
+    previous_round_payload_class: Optional[Type[BaseTxPayload]] = None
+) -> None
 ```
 
 Initialize the round.
@@ -1316,9 +1329,12 @@ Check the transaction is of the allowed transaction type.
 
 **Arguments**:
 
-:raises: TransactionTypeNotRecognizedError if the transaction can be
-         applied to the current state.
 - `transaction`: the transaction
+
+**Raises**:
+
+- `None`: TransactionTypeNotRecognizedError if the transaction can be
+applied to the current state.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.check_majority_possible_with_new_voter"></a>
 
@@ -1326,21 +1342,30 @@ Check the transaction is of the allowed transaction type.
 
 ```python
 @classmethod
-def check_majority_possible_with_new_voter(cls, votes_by_participant: Dict[str, BaseTxPayload], new_voter: str, new_vote: BaseTxPayload, nb_participants: int, exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
+def check_majority_possible_with_new_voter(
+        cls,
+        votes_by_participant: Dict[str, BaseTxPayload],
+        new_voter: str,
+        new_vote: BaseTxPayload,
+        nb_participants: int,
+        exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
 ```
 
 Check that a Byzantine majority is achievable, once a new vote is added.
 
 **Arguments**:
 
-        before the new vote is added
-                       check fails.
-:raises: exception_cls: in case the check does not pass.
 - `votes_by_participant`: a mapping from a participant to its vote,
+before the new vote is added
 - `new_voter`: the new voter
 - `new_vote`: the new vote
 - `nb_participants`: the total number of participants
 - `exception_cls`: the class of the exception to raise in case the
+check fails.
+
+**Raises**:
+
+- `None`: exception_cls: in case the check does not pass.
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbstractRound.check_majority_possible"></a>
 
@@ -1348,7 +1373,11 @@ Check that a Byzantine majority is achievable, once a new vote is added.
 
 ```python
 @classmethod
-def check_majority_possible(cls, votes_by_participant: Dict[str, BaseTxPayload], nb_participants: int, exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
+def check_majority_possible(
+        cls,
+        votes_by_participant: Dict[str, BaseTxPayload],
+        nb_participants: int,
+        exception_cls: Type[ABCIAppException] = ABCIAppException) -> None
 ```
 
 Check that a Byzantine majority is still achievable.
@@ -1367,15 +1396,15 @@ the most voted item so far to exceed the quorum.
 
 Preconditions on the input:
 - the size of votes_by_participant should not be greater than
-"nb_participants - 1" voters
+  "nb_participants - 1" voters
 - new voter must not be in the current votes_by_participant
 
 **Arguments**:
 
-                      check fails.
 - `votes_by_participant`: a mapping from a participant to its vote
 - `nb_participants`: the total number of participants
 - `exception_cls`: the class of the exception to raise in case the
+check fails.
 
 **Raises**:
 
@@ -1387,7 +1416,8 @@ Preconditions on the input:
 
 ```python
 @classmethod
-def is_majority_possible(cls, votes_by_participant: Dict[str, BaseTxPayload], nb_participants: int) -> bool
+def is_majority_possible(cls, votes_by_participant: Dict[str, BaseTxPayload],
+                         nb_participants: int) -> bool
 ```
 
 Return true if a Byzantine majority is achievable, false otherwise.
@@ -1439,7 +1469,7 @@ Process payload.
 ## DegenerateRound Objects
 
 ```python
-class DegenerateRound(AbstractRound,  ABC)
+class DegenerateRound(AbstractRound, ABC)
 ```
 
 This class represents the finished round during operation.
@@ -1481,7 +1511,7 @@ End block.
 ## CollectionRound Objects
 
 ```python
-class CollectionRound(AbstractRound,  ABC)
+class CollectionRound(AbstractRound, ABC)
 ```
 
 CollectionRound.
@@ -1509,7 +1539,8 @@ Initialize the collection round.
 
 ```python
 @staticmethod
-def serialize_collection(collection: DeserializedCollection) -> SerializedCollection
+def serialize_collection(
+        collection: DeserializedCollection) -> SerializedCollection
 ```
 
 Deserialize a serialized collection.
@@ -1520,7 +1551,8 @@ Deserialize a serialized collection.
 
 ```python
 @staticmethod
-def deserialize_collection(serialized: SerializedCollection) -> DeserializedCollection
+def deserialize_collection(
+        serialized: SerializedCollection) -> DeserializedCollection
 ```
 
 Deserialize a serialized collection.
@@ -1594,7 +1626,7 @@ Check Payload
 ## `_`CollectUntilAllRound Objects
 
 ```python
-class _CollectUntilAllRound(CollectionRound,  ABC)
+class _CollectUntilAllRound(CollectionRound, ABC)
 ```
 
 _CollectUntilAllRound
@@ -1639,7 +1671,7 @@ Check that the collection threshold has been reached.
 ## CollectDifferentUntilAllRound Objects
 
 ```python
-class CollectDifferentUntilAllRound(_CollectUntilAllRound,  ABC)
+class CollectDifferentUntilAllRound(_CollectUntilAllRound, ABC)
 ```
 
 CollectDifferentUntilAllRound
@@ -1664,7 +1696,7 @@ Check Payload
 ## CollectSameUntilAllRound Objects
 
 ```python
-class CollectSameUntilAllRound(_CollectUntilAllRound,  ABC)
+class CollectSameUntilAllRound(_CollectUntilAllRound, ABC)
 ```
 
 This class represents logic for when a round needs to collect the same payload from all the agents.
@@ -1708,7 +1740,7 @@ Get the common payload among the agents.
 ## CollectSameUntilThresholdRound Objects
 
 ```python
-class CollectSameUntilThresholdRound(CollectionRound,  ABC)
+class CollectSameUntilThresholdRound(CollectionRound, ABC)
 ```
 
 CollectSameUntilThresholdRound
@@ -1776,7 +1808,7 @@ Process the end of the block.
 ## OnlyKeeperSendsRound Objects
 
 ```python
-class OnlyKeeperSendsRound(AbstractRound,  ABC)
+class OnlyKeeperSendsRound(AbstractRound, ABC)
 ```
 
 OnlyKeeperSendsRound
@@ -1826,7 +1858,7 @@ Process the end of the block.
 ## VotingRound Objects
 
 ```python
-class VotingRound(CollectionRound,  ABC)
+class VotingRound(CollectionRound, ABC)
 ```
 
 VotingRound
@@ -1906,7 +1938,7 @@ Process the end of the block.
 ## CollectDifferentUntilThresholdRound Objects
 
 ```python
-class CollectDifferentUntilThresholdRound(CollectionRound,  ABC)
+class CollectDifferentUntilThresholdRound(CollectionRound, ABC)
 ```
 
 CollectDifferentUntilThresholdRound
@@ -1947,7 +1979,8 @@ Process the end of the block.
 ## CollectNonEmptyUntilThresholdRound Objects
 
 ```python
-class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound,  ABC)
+class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound,
+                                         ABC)
 ```
 
 CollectNonEmptyUntilThresholdRound
@@ -2043,8 +2076,11 @@ Remove a timeout.
 
 **Arguments**:
 
-:raises: KeyError: if the entry count is not found.
 - `entry_count`: the entry id to remove.
+
+**Raises**:
+
+- `None`: KeyError: if the entry count is not found.
 
 <a id="packages.valory.skills.abstract_round_abci.base.Timeouts.pop_earliest_cancelled_timeouts"></a>
 
@@ -2091,7 +2127,8 @@ A metaclass that validates AbciApp's attributes.
 #### `__`new`__`
 
 ```python
-def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type
+def __new__(mcs, name: str, bases: Tuple, namespace: Dict,
+            **kwargs: Any) -> Type
 ```
 
 Initialize the class.
@@ -2101,8 +2138,7 @@ Initialize the class.
 ## AbciApp Objects
 
 ```python
-class AbciApp(
-    Generic[EventType],  ABC, metaclass=_MetaAbciApp)
+class AbciApp(Generic[EventType], ABC, metaclass=_MetaAbciApp)
 ```
 
 Base class for ABCI apps.
@@ -2114,7 +2150,8 @@ Concrete classes of this class implement the ABCI App.
 #### `__`init`__`
 
 ```python
-def __init__(synchronized_data: BaseSynchronizedData, consensus_params: ConsensusParams, logger: logging.Logger)
+def __init__(synchronized_data: BaseSynchronizedData,
+             consensus_params: ConsensusParams, logger: logging.Logger)
 ```
 
 Initialize the AbciApp.
@@ -2136,7 +2173,9 @@ Return if the abci app is abstract.
 
 ```python
 @classmethod
-def add_termination(cls, background_round_cls: AppState, termination_event: EventType, termination_abci_app: Type["AbciApp"]) -> Type["AbciApp"]
+def add_termination(cls, background_round_cls: AppState,
+                    termination_event: EventType,
+                    termination_abci_app: Type["AbciApp"]) -> Type["AbciApp"]
 ```
 
 Sets the termination related class variables.
@@ -2180,7 +2219,9 @@ Get all the events.
 
 ```python
 @classmethod
-def get_all_round_classes(cls, include_termination_rounds: bool = False) -> Set[AppState]
+def get_all_round_classes(cls,
+                          include_termination_rounds: bool = False
+                          ) -> Set[AppState]
 ```
 
 Get all round classes.
@@ -2220,7 +2261,7 @@ this means:
 - cancel timeout events belonging to the current round;
 - instantiate the new round class and set it as current round;
 - create new timeout events and schedule them according to the latest
-timestamp.
+  timestamp.
 
 **Arguments**:
 
@@ -2368,7 +2409,8 @@ if not we forward to the current round object.
 #### process`_`event
 
 ```python
-def process_event(event: EventType, result: Optional[BaseSynchronizedData] = None) -> None
+def process_event(event: EventType,
+                  result: Optional[BaseSynchronizedData] = None) -> None
 ```
 
 Process a round event.
@@ -2392,7 +2434,8 @@ Observe timestamp from last block.
 #### cleanup
 
 ```python
-def cleanup(cleanup_history_depth: int, cleanup_history_depth_current: Optional[int] = None) -> None
+def cleanup(cleanup_history_depth: int,
+            cleanup_history_depth_current: Optional[int] = None) -> None
 ```
 
 Clear data.
@@ -2754,8 +2797,11 @@ Appends the transaction to build the block on 'end_block' later.
 
 **Arguments**:
 
-:raises:  an Error otherwise.
 - `transaction`: the transaction.
+
+**Raises**:
+
+- `None`: an Error otherwise.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.end_block"></a>
 
@@ -2797,7 +2843,9 @@ Reset blockchain after tendermint reset.
 #### reset`_`state
 
 ```python
-def reset_state(restart_from_round: str, round_count: int, serialized_db_state: Optional[str] = None) -> None
+def reset_state(restart_from_round: str,
+                round_count: int,
+                serialized_db_state: Optional[str] = None) -> None
 ```
 
 This method resets the state of RoundSequence to the begging of the period.

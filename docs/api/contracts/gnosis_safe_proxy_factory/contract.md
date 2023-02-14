@@ -20,7 +20,8 @@ The Gnosis Safe Proxy Factory contract.
 
 ```python
 @classmethod
-def get_raw_transaction(cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any) -> Optional[JSONLike]
+def get_raw_transaction(cls, ledger_api: LedgerApi, contract_address: str,
+                        **kwargs: Any) -> Optional[JSONLike]
 ```
 
 Get the raw transaction.
@@ -31,7 +32,8 @@ Get the raw transaction.
 
 ```python
 @classmethod
-def get_raw_message(cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any) -> Optional[bytes]
+def get_raw_message(cls, ledger_api: LedgerApi, contract_address: str,
+                    **kwargs: Any) -> Optional[bytes]
 ```
 
 Get raw message.
@@ -42,7 +44,8 @@ Get raw message.
 
 ```python
 @classmethod
-def get_state(cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any) -> Optional[JSONLike]
+def get_state(cls, ledger_api: LedgerApi, contract_address: str,
+              **kwargs: Any) -> Optional[JSONLike]
 ```
 
 Get state.
@@ -53,7 +56,8 @@ Get state.
 
 ```python
 @classmethod
-def get_deploy_transaction(cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any) -> Optional[JSONLike]
+def get_deploy_transaction(cls, ledger_api: LedgerApi, deployer_address: str,
+                           **kwargs: Any) -> Optional[JSONLike]
 ```
 
 Get deploy transaction.
@@ -74,7 +78,19 @@ an optional JSON-like object.
 
 ```python
 @classmethod
-def build_tx_deploy_proxy_contract_with_nonce(cls, ledger_api: EthereumApi, proxy_factory_address: str, master_copy: str, address: str, initializer: bytes, salt_nonce: int, gas: int = MIN_GAS, gas_price: Optional[int] = None, max_fee_per_gas: Optional[int] = None, max_priority_fee_per_gas: Optional[int] = None, nonce: Optional[int] = None) -> Tuple[TxParams, str]
+def build_tx_deploy_proxy_contract_with_nonce(
+        cls,
+        ledger_api: EthereumApi,
+        proxy_factory_address: str,
+        master_copy: str,
+        address: str,
+        initializer: bytes,
+        salt_nonce: int,
+        gas: int = MIN_GAS,
+        gas_price: Optional[int] = None,
+        max_fee_per_gas: Optional[int] = None,
+        max_priority_fee_per_gas: Optional[int] = None,
+        nonce: Optional[int] = None) -> Tuple[TxParams, str]
 ```
 
 Deploy proxy contract via Proxy Factory using `createProxyWithNonce` (create2)
@@ -103,7 +119,8 @@ Tuple(tx-hash, tx, deployed contract address)
 
 ```python
 @classmethod
-def verify_contract(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike
+def verify_contract(cls, ledger_api: EthereumApi,
+                    contract_address: str) -> JSONLike
 ```
 
 Verify the contract's bytecode

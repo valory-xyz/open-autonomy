@@ -30,7 +30,8 @@ Initialise an instance of BlockParams.
 
 ```python
 @staticmethod
-def encode(block_params_protobuf_object, block_params_object: "BlockParams") -> None
+def encode(block_params_protobuf_object,
+           block_params_object: "BlockParams") -> None
 ```
 
 Encode an instance of this class into the protocol buffer object.
@@ -95,13 +96,13 @@ Initialise an instance of Duration.
 
 **Arguments**:
 
-    Must be from -315,576,000,000 to +315,576,000,000 inclusive.
-    Durations less than one second are represented with a 0 seconds field and
-    a positive or negative nanos field. For durations of one second or more,
-    a non-zero value for the nanos field must be of the same sign as the seconds field.
-    Must be from -999,999,999 to +999,999,999 inclusive.
 - `seconds`: Signed seconds of the span of time.
+Must be from -315,576,000,000 to +315,576,000,000 inclusive.
 - `nanos`: Signed fractions of a second at nanosecond resolution of the span of time.
+Durations less than one second are represented with a 0 seconds field and
+a positive or negative nanos field. For durations of one second or more,
+a non-zero value for the nanos field must be of the same sign as the seconds field.
+Must be from -999,999,999 to +999,999,999 inclusive.
 
 <a id="packages.valory.protocols.abci.custom_types.Duration.encode"></a>
 
@@ -167,7 +168,8 @@ This class represents an instance of EvidenceParams.
 #### `__`init`__`
 
 ```python
-def __init__(max_age_num_blocks: int, max_age_duration: Duration, max_bytes: int)
+def __init__(max_age_num_blocks: int, max_age_duration: Duration,
+             max_bytes: int)
 ```
 
 Initialise an instance of BlockParams.
@@ -178,7 +180,8 @@ Initialise an instance of BlockParams.
 
 ```python
 @staticmethod
-def encode(evidence_params_protobuf_object, evidence_params_object: "EvidenceParams") -> None
+def encode(evidence_params_protobuf_object,
+           evidence_params_object: "EvidenceParams") -> None
 ```
 
 Encode an instance of this class into the protocol buffer object.
@@ -247,7 +250,8 @@ Initialise an instance of BlockParams.
 
 ```python
 @staticmethod
-def encode(validator_params_protobuf_object, validator_params_object: "ValidatorParams") -> None
+def encode(validator_params_protobuf_object,
+           validator_params_object: "ValidatorParams") -> None
 ```
 
 Encode an instance of this class into the protocol buffer object.
@@ -316,7 +320,8 @@ Initialise an instance of BlockParams.
 
 ```python
 @staticmethod
-def encode(version_params_protobuf_object, version_params_object: "VersionParams") -> None
+def encode(version_params_protobuf_object,
+           version_params_object: "VersionParams") -> None
 ```
 
 Encode an instance of this class into the protocol buffer object.
@@ -374,7 +379,9 @@ This class represents an instance of ConsensusParams.
 #### `__`init`__`
 
 ```python
-def __init__(block: "BlockParams", evidence_params: "EvidenceParams", validator_params: "ValidatorParams", version_params: "VersionParams")
+def __init__(block: "BlockParams", evidence_params: "EvidenceParams",
+             validator_params: "ValidatorParams",
+             version_params: "VersionParams")
 ```
 
 Initialise an instance of ConsensusParams.
@@ -385,7 +392,8 @@ Initialise an instance of ConsensusParams.
 
 ```python
 @staticmethod
-def encode(consensus_params_protobuf_object, consensus_params_object: Optional["ConsensusParams"]) -> None
+def encode(consensus_params_protobuf_object,
+           consensus_params_object: Optional["ConsensusParams"]) -> None
 ```
 
 Encode an instance of this class into the protocol buffer object.
@@ -454,7 +462,8 @@ Initialise an instance of EventAttribute.
 
 ```python
 @staticmethod
-def encode(event_attribute_protobuf_object, event_attribute_object: "EventAttribute") -> None
+def encode(event_attribute_protobuf_object,
+           event_attribute_object: "EventAttribute") -> None
 ```
 
 Encode an instance of this class into the protocol buffer object.
@@ -660,7 +669,8 @@ This class represent an instance of Evidence.
 #### `__`init`__`
 
 ```python
-def __init__(evidence_type: EvidenceType, validator: "Validator", height: int, time: "Timestamp", total_voting_power: int)
+def __init__(evidence_type: EvidenceType, validator: "Validator", height: int,
+             time: "Timestamp", total_voting_power: int)
 ```
 
 Initialise an instance of Evidences.
@@ -819,7 +829,8 @@ Initialise an instance of CheckTxType.
 
 ```python
 @staticmethod
-def encode(check_tx_type_protobuf_object, check_tx_type_object: "CheckTxType") -> None
+def encode(check_tx_type_protobuf_object,
+           check_tx_type_object: "CheckTxType") -> None
 ```
 
 Encode an instance of this class into the protocol buffer object.
@@ -888,7 +899,8 @@ Initialise an instance of ConsensusVersion.
 
 ```python
 @staticmethod
-def encode(consensus_version_protobuf_object, consensus_version_object: "ConsensusVersion") -> None
+def encode(consensus_version_protobuf_object,
+           consensus_version_object: "ConsensusVersion") -> None
 ```
 
 Encode an instance of this class into the protocol buffer object.
@@ -957,7 +969,8 @@ Initialise an instance of PartSetHeader.
 
 ```python
 @staticmethod
-def encode(part_set_header_protobuf_object, part_set_header_object: "PartSetHeader") -> None
+def encode(part_set_header_protobuf_object,
+           part_set_header_object: "PartSetHeader") -> None
 ```
 
 Encode an instance of this class into the protocol buffer object.
@@ -1084,7 +1097,12 @@ This class represents an instance of Header.
 #### `__`init`__`
 
 ```python
-def __init__(version: ConsensusVersion, chain_id: str, height: int, time: "Timestamp", last_block_id: BlockID, last_commit_hash: bytes, data_hash: bytes, validators_hash: bytes, next_validators_hash: bytes, consensus_hash: bytes, app_hash: bytes, last_results_hash: bytes, evidence_hash: bytes, proposer_address: bytes)
+def __init__(version: ConsensusVersion, chain_id: str, height: int,
+             time: "Timestamp", last_block_id: BlockID,
+             last_commit_hash: bytes, data_hash: bytes, validators_hash: bytes,
+             next_validators_hash: bytes, consensus_hash: bytes,
+             app_hash: bytes, last_results_hash: bytes, evidence_hash: bytes,
+             proposer_address: bytes)
 ```
 
 Initialise an instance of Header.
@@ -1313,7 +1331,8 @@ Initialise an instance of LastCommitInfo.
 
 ```python
 @staticmethod
-def encode(last_commit_info_protobuf_object, last_commit_info_object: "LastCommitInfo") -> None
+def encode(last_commit_info_protobuf_object,
+           last_commit_info_object: "LastCommitInfo") -> None
 ```
 
 Encode an instance of this class into the protocol buffer object.
@@ -1602,7 +1621,8 @@ This class represents an instance of Snapshot.
 #### `__`init`__`
 
 ```python
-def __init__(height: int, format_: int, chunks: int, hash_: bytes, metadata: bytes)
+def __init__(height: int, format_: int, chunks: int, hash_: bytes,
+             metadata: bytes)
 ```
 
 Initialise an instance of Snapshot.
@@ -1747,12 +1767,12 @@ Initialise an instance of Timestamp.
 
 **Arguments**:
 
-    1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
-    9999-12-31T23:59:59Z inclusive.
-    Negative second values with fractions must still have non-negative nanos values
-    that count forward in time. Must be from 0 to 999,999,999 inclusive.
 - `seconds`: Represents seconds of UTC time since Unix epoch
+1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
+9999-12-31T23:59:59Z inclusive.
 - `nanos`: Non-negative fractions of a second at nanosecond resolution.
+Negative second values with fractions must still have non-negative nanos values
+that count forward in time. Must be from 0 to 999,999,999 inclusive.
 
 <a id="packages.valory.protocols.abci.custom_types.Timestamp.encode"></a>
 
@@ -1913,7 +1933,8 @@ Initialise an instance of ValidatorUpdate.
 
 ```python
 @staticmethod
-def encode(validator_update_protobuf_object, validator_update_object: "ValidatorUpdate") -> None
+def encode(validator_update_protobuf_object,
+           validator_update_object: "ValidatorUpdate") -> None
 ```
 
 Encode an instance of this class into the protocol buffer object.
@@ -1982,7 +2003,8 @@ Initialise an instance of ValidatorUpdates.
 
 ```python
 @staticmethod
-def encode(validator_updates_protobuf_object, validator_updates_object: "ValidatorUpdates") -> None
+def encode(validator_updates_protobuf_object,
+           validator_updates_object: "ValidatorUpdates") -> None
 ```
 
 Encode an instance of this class into the protocol buffer object.

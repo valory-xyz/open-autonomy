@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ class _TendermintProtocolDecoder:
         enforce(is_request, "only Request messages are allowed")
         message_type = f"request_{message.WhichOneof('value')}"
         handler: Callable[
-            [Request, AbciDialogues, str], Tuple[AbciMessage, AbciDialogue]
+            [Request, AbciDialogues, str], Optional[Tuple[AbciMessage, AbciDialogue]]
         ] = getattr(cls, message_type, cls.no_match)
         result = handler(message, dialogues, counterparty)
         return result

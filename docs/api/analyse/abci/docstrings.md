@@ -29,7 +29,8 @@ docstring
 #### compare`_`docstring`_`content
 
 ```python
-def compare_docstring_content(file_content: str, docstring: str, abci_app_name: str) -> Tuple[bool, str]
+def compare_docstring_content(file_content: str, docstring: str,
+                              abci_app_name: str) -> Tuple[bool, str]
 ```
 
 Update docstrings.

@@ -29,7 +29,7 @@ Get the file content.
 ## RoundFileGenerator Objects
 
 ```python
-class RoundFileGenerator(AbstractFileGenerator,  ROUNDS)
+class RoundFileGenerator(AbstractFileGenerator, ROUNDS)
 ```
 
 File generator for 'rounds.py' modules.
@@ -49,7 +49,7 @@ Scaffold the 'rounds.py' file.
 ## BehaviourFileGenerator Objects
 
 ```python
-class BehaviourFileGenerator(AbstractFileGenerator,  BEHAVIOURS)
+class BehaviourFileGenerator(AbstractFileGenerator, BEHAVIOURS)
 ```
 
 File generator for 'behaviours.py' modules.
@@ -69,7 +69,7 @@ Scaffold the 'behaviours.py' file.
 ## PayloadsFileGenerator Objects
 
 ```python
-class PayloadsFileGenerator(AbstractFileGenerator,  PAYLOADS)
+class PayloadsFileGenerator(AbstractFileGenerator, PAYLOADS)
 ```
 
 File generator for 'payloads.py' modules.
@@ -89,7 +89,7 @@ Get the file content.
 ## ModelsFileGenerator Objects
 
 ```python
-class ModelsFileGenerator(SimpleFileGenerator,  MODELS)
+class ModelsFileGenerator(SimpleFileGenerator, MODELS)
 ```
 
 File generator for 'models.py' modules.
@@ -99,7 +99,7 @@ File generator for 'models.py' modules.
 ## HandlersFileGenerator Objects
 
 ```python
-class HandlersFileGenerator(SimpleFileGenerator,  HANDLERS)
+class HandlersFileGenerator(SimpleFileGenerator, HANDLERS)
 ```
 
 File generator for 'handlers.py' modules.
@@ -109,7 +109,7 @@ File generator for 'handlers.py' modules.
 ## DialoguesFileGenerator Objects
 
 ```python
-class DialoguesFileGenerator(SimpleFileGenerator,  DIALOGUES)
+class DialoguesFileGenerator(SimpleFileGenerator, DIALOGUES)
 ```
 
 File generator for 'dialogues.py' modules.

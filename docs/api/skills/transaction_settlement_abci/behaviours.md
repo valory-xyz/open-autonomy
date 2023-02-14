@@ -9,7 +9,7 @@ This module contains the behaviours for the 'abci' skill.
 ## TransactionSettlementBaseBehaviour Objects
 
 ```python
-class TransactionSettlementBaseBehaviour(BaseBehaviour,  ABC)
+class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC)
 ```
 
 Base behaviour for the common apps' skill.
@@ -73,7 +73,7 @@ Retrieve randomness.
 
 ```python
 class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour,  TransactionSettlementBaseBehaviour)
+        SelectKeeperBehaviour, TransactionSettlementBaseBehaviour)
 ```
 
 Select the keeper agent.
@@ -94,7 +94,7 @@ Do the action.
 
 ```python
 class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-ancestors
-    SelectKeeperTransactionSubmissionBehaviourA)
+        SelectKeeperTransactionSubmissionBehaviourA)
 ```
 
 Select the keeper b agent.
@@ -128,7 +128,7 @@ Steps:
 
 ```python
 class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
-    SelectKeeperTransactionSubmissionBehaviourB)
+        SelectKeeperTransactionSubmissionBehaviourB)
 ```
 
 Select the keeper b agent after a timeout.
@@ -208,7 +208,7 @@ Do the action.
 
 ```python
 class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
-    CheckTransactionHistoryBehaviour)
+        CheckTransactionHistoryBehaviour)
 ```
 
 Check the late-arriving transaction hashes.

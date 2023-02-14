@@ -9,7 +9,7 @@ This module contains the behaviours for the 'abci' skill.
 ## RegistrationBaseBehaviour Objects
 
 ```python
-class RegistrationBaseBehaviour(BaseBehaviour,  ABC)
+class RegistrationBaseBehaviour(BaseBehaviour, ABC)
 ```
 
 Agent registration to the FSM App.
@@ -98,7 +98,8 @@ Tendermint URL for obtaining and updating parameters
 #### is`_`correct`_`contract
 
 ```python
-def is_correct_contract(service_registry_address: str) -> Generator[None, None, bool]
+def is_correct_contract(
+        service_registry_address: str) -> Generator[None, None, bool]
 ```
 
 Contract deployment verification.
@@ -108,7 +109,9 @@ Contract deployment verification.
 #### get`_`agent`_`instances
 
 ```python
-def get_agent_instances(service_registry_address: str, on_chain_service_id: int) -> Generator[None, None, Dict[str, Any]]
+def get_agent_instances(
+        service_registry_address: str,
+        on_chain_service_id: int) -> Generator[None, None, Dict[str, Any]]
 ```
 
 Get service info available on-chain
@@ -148,7 +151,8 @@ Request Tendermint info from other agents
 #### format`_`genesis`_`data
 
 ```python
-def format_genesis_data(collected_agent_info: Dict[str, Any]) -> Dict[str, Any]
+def format_genesis_data(
+        collected_agent_info: Dict[str, Any]) -> Dict[str, Any]
 ```
 
 Format collected agent info for genesis update
