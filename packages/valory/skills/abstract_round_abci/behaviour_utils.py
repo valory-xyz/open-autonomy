@@ -2074,10 +2074,10 @@ class TmManager(BaseBehaviour):
         num_active_peers = yield from self.num_active_peers(timeout=TM_REQ_TIMEOUT)
         if (
             num_active_peers is not None
-            and num_active_peers < self.params.consensus_params.consensus_threshold
+            and num_active_peers < self.synchronized_data.consensus_threshold
         ):
             self.context.logger.error(
-                f"There should be at least {self.params.consensus_params.consensus_threshold} peers in the service,"
+                f"There should be at least {self.synchronized_data.consensus_threshold} peers in the service,"
                 f" only {num_active_peers} are currently active. Shutting down the agent."
             )
             not_ok_code = 1

@@ -166,10 +166,6 @@ class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs):
             json.dumps(self.p2p_seeds),
             "list",
         )
-        self.set_config(
-            f"vendor.{skill.author}.skills.{skill.name}.models.params.args.consensus.max_participants",
-            nb_agents,
-        )
         key_pairs = getattr(self, "key_pairs", None)
         if key_pairs is not None:
             self.set_config(

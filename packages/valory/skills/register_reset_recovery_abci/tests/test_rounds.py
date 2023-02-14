@@ -53,7 +53,6 @@ class TestTerminationRound(BaseRoundTestClass):
 
         test_round = RoundCountRound(
             synchronized_data=deepcopy(self.synchronized_data),
-            consensus_params=self.consensus_params,
         )
         payload_data = 1
         first_payload, *payloads = [

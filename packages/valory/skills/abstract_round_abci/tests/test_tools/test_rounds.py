@@ -248,9 +248,6 @@ class BaseTestBase:
         self.base_round_test._event_class = (  # pylint: disable=protected-access
             DummyEvent
         )
-        self.base_round_test.consensus_params._max_participants = (  # pylint: disable=protected-access
-            MAX_PARTICIPANTS
-        )
 
     def create_test_gen(self, **kwargs: Any) -> None:
         """Create the base test generator."""
@@ -305,13 +302,9 @@ class TestBaseCollectDifferentUntilAllRoundTest(BaseTestBase):
     )
     def test_test_round(self, exit_event: DummyEvent) -> None:
         """Test `_test_round`."""
-        self.base_round_test.consensus_params._max_participants = (  # pylint: disable=protected-access
-            MAX_PARTICIPANTS
-        )
         test_round = DummyCollectDifferentUntilAllRoundWithEndBlock(
             exit_event,
             self.base_round_test.synchronized_data,
-            self.base_round_test.consensus_params,
         )
         round_payloads = [
             DummyTxPayload(f"agent_{i}", str(i)) for i in range(MAX_PARTICIPANTS)
@@ -373,13 +366,9 @@ class TestBaseCollectSameUntilAllRoundTest(BaseTestBase):
         self, exit_event: DummyEvent, common_value: str, finished: bool
     ) -> None:
         """Test `_test_round`."""
-        self.base_round_test.consensus_params._max_participants = (  # pylint: disable=protected-access
-            MAX_PARTICIPANTS
-        )
         test_round = DummyCollectSameUntilAllRoundWithEndBlock(
             exit_event,
             self.base_round_test.synchronized_data,
-            self.base_round_test.consensus_params,
         )
         round_payloads = {
             f"test{i}": DummyTxPayload(f"agent_{i}", common_value)
@@ -445,13 +434,9 @@ class TestBaseCollectSameUntilThresholdRoundTest(BaseTestBase):
     )
     def test_test_round(self, exit_event: DummyEvent, most_voted_payload: str) -> None:
         """Test `_test_round`."""
-        self.base_round_test.consensus_params._max_participants = (  # pylint: disable=protected-access
-            MAX_PARTICIPANTS
-        )
         test_round = DummyCollectSameUntilThresholdRoundWithEndBlock(
             exit_event,
             self.base_round_test.synchronized_data,
-            self.base_round_test.consensus_params,
         )
         round_payloads = {
             f"test{i}": DummyTxPayload(f"agent_{i}", most_voted_payload)
@@ -523,7 +508,6 @@ class TestBaseOnlyKeeperSendsRoundTest(BaseTestBase):
         test_round = DummyOnlyKeeperSendsRoundTest(
             exit_event,
             self.base_round_test.synchronized_data,
-            self.base_round_test.consensus_params,
         )
         keeper_payload = DummyTxPayload(self.most_voted_keeper_address, keeper_value)
         synchronized_data_attr_checks = [
@@ -576,9 +560,6 @@ class TestBaseVotingRoundTest(BaseTestBase):
     )
     def test_test_round(self, is_keeper_set: Optional[bool]) -> None:
         """Test `_test_round`."""
-        self.base_round_test.consensus_params._max_participants = (  # pylint: disable=protected-access
-            MAX_PARTICIPANTS
-        )
         if is_keeper_set is None:
             exit_event = DummyEvent.NONE
             self.test_method_name = "_test_voting_round_none"
@@ -591,7 +572,6 @@ class TestBaseVotingRoundTest(BaseTestBase):
 
         test_round = DummyBaseVotingRoundTestWithEndBlock(
             self.base_round_test.synchronized_data,
-            self.base_round_test.consensus_params,
         )
         round_payloads = {
             f"test{i}": DummyTxPayload(f"agent_{i}", value="", vote=is_keeper_set)
@@ -648,13 +628,9 @@ class TestBaseCollectDifferentUntilThresholdRoundTest(BaseTestBase):
     @given(st.sampled_from(DummyEvent))
     def test_test_round(self, exit_event: DummyEvent) -> None:
         """Test `_test_round`."""
-        self.base_round_test.consensus_params._max_participants = (  # pylint: disable=protected-access
-            MAX_PARTICIPANTS
-        )
         test_round = DummyCollectDifferentUntilThresholdRoundWithEndBlock(
             exit_event,
             self.base_round_test.synchronized_data,
-            self.base_round_test.consensus_params,
         )
         round_payloads = {
             f"test{i}": DummyTxPayload(f"agent_{i}", str(i))

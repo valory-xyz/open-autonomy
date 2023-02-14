@@ -26,6 +26,7 @@ import sys
 import types
 import typing
 from hashlib import sha256
+from math import ceil
 from typing import (
     Any,
     Dict,
@@ -475,3 +476,13 @@ def is_json_serializable(obj: Any) -> bool:
 def filter_negative(mapping: Dict[str, int]) -> Iterator[str]:
     """Return the keys of a dictionary for which the values are negative integers."""
     return (key for key, number in mapping.items() if number < 0)
+
+
+def consensus_threshold(nb: int) -> int:
+    """
+    Get consensus threshold.
+
+    :param nb: the number of participants
+    :return: the consensus threshold
+    """
+    return ceil((2 * nb + 1) / 3)

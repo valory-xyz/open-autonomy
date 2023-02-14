@@ -22,7 +22,6 @@
 # pylint: skip-file
 
 from unittest import mock
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -55,7 +54,6 @@ class TestSharedState:
             "test": [],
             "all_participants": [["0x0"]],
         }
-        shared_state.context.params.consensus_params = MagicMock()
         shared_state.setup()
         assert (
             TestAbciApp.event_to_timeout[Event.ROUND_TIMEOUT]

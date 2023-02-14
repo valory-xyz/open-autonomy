@@ -69,7 +69,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     BlockBuilder,
     Blockchain,
     CollectionRound,
-    ConsensusParams,
     EventType,
     LateArrivingTransaction,
     RoundSequence,
@@ -428,54 +427,6 @@ class TestBlockBuilder:
         """Test 'get_block', positive case."""
         self.block_builder.header = MagicMock()
         self.block_builder.get_block()
-
-
-class TestConsensusParams:
-    """Test the 'ConsensusParams' class."""
-
-    def setup(self) -> None:
-        """Set up the tests."""
-        self.max_participants = 4
-        self.consensus_params = ConsensusParams(self.max_participants)
-
-    def test_max_participants_getter(self) -> None:
-        """Test 'max_participants' property getter."""
-        expected_max_participants = self.max_participants
-        assert self.consensus_params.max_participants == expected_max_participants
-
-    @pytest.mark.parametrize(
-        "nb_participants,expected",
-        [
-            (1, 1),
-            (2, 2),
-            (3, 3),
-            (4, 3),
-            (5, 4),
-            (6, 5),
-            (7, 5),
-            (8, 6),
-            (9, 7),
-            (10, 7),
-        ],
-    )
-    def test_threshold_getter(self, nb_participants: int, expected: int) -> None:
-        """Test threshold property getter."""
-        params = ConsensusParams(nb_participants)
-        assert params.consensus_threshold == expected
-
-    def test_consensus_params_not_equal_lookalike(self) -> None:
-        """Test consensus param __eq__ reflection via NotImplemented"""
-        lookalike = ObjectImitator(self.consensus_params)
-        assert not self.consensus_params == lookalike
-
-    def test_from_json(self) -> None:
-        """Test 'from_json' method."""
-        expected = ConsensusParams(self.max_participants)
-        json_object = dict(
-            max_participants=self.max_participants,
-        )
-        actual = ConsensusParams.from_json(json_object)
-        assert expected == actual
 
 
 class TestAbciAppDB:
@@ -1008,6 +959,70 @@ class TestBaseSynchronizedData:
         with pytest.raises(ValueError, match="List participants cannot be empty."):
             _ = base_synchronized_data.all_participants
 
+    @pytest.mark.parametrize(
+        "n_participants, given_threshold, expected_threshold",
+        (
+            (1, None, 1),
+            (5, None, 4),
+            (10, None, 7),
+            (345, None, 231),
+            (246236, None, 164158),
+            (1, 1, 1),
+            (5, 5, 5),
+            (10, 7, 7),
+            (10, 8, 8),
+            (10, 9, 9),
+            (10, 10, 10),
+            (345, 300, 300),
+            (246236, 194158, 194158),
+        ),
+    )
+    def test_consensus_threshold(
+        self, n_participants: int, given_threshold: int, expected_threshold: int
+    ) -> None:
+        """Test the `consensus_threshold` property."""
+        base_synchronized_data = BaseSynchronizedData(
+            db=AbciAppDB(
+                setup_data=dict(
+                    all_participants=[tuple(range(n_participants))],
+                    consensus_threshold=[given_threshold],
+                )
+            )
+        )
+
+        assert base_synchronized_data.consensus_threshold == expected_threshold
+
+    @pytest.mark.parametrize(
+        "n_participants, given_threshold",
+        (
+            (1, 2),
+            (5, 2),
+            (10, 4),
+            (10, 11),
+            (10, 18),
+            (345, 200),
+            (246236, 164157),
+            (246236, 246237),
+        ),
+    )
+    def test_consensus_threshold_incorrect(
+        self,
+        n_participants: int,
+        given_threshold: int,
+    ) -> None:
+        """Test the `consensus_threshold` property when an incorrect threshold value has been inserted to the db."""
+        base_synchronized_data = BaseSynchronizedData(
+            db=AbciAppDB(
+                setup_data=dict(
+                    all_participants=[tuple(range(n_participants))],
+                    consensus_threshold=[given_threshold],
+                )
+            )
+        )
+
+        with pytest.raises(ValueError, match="Consensus threshold "):
+            _ = base_synchronized_data.consensus_threshold
+
     def test_properties(self) -> None:
         """Test several properties"""
         participants = ["b", "a"]
@@ -1048,6 +1063,7 @@ class TestBaseSynchronizedData:
         assert self.base_synchronized_data.period_count == 0
         assert base_synchronized_data.all_participants == frozenset(participants)
         assert base_synchronized_data.sorted_participants == ["a", "b"]
+        assert base_synchronized_data.max_participants == len(participants)
         assert abs(base_synchronized_data.keeper_randomness - randomness_value) < 1e-10
         assert base_synchronized_data.most_voted_randomness == randomness_str
         assert (
@@ -1067,6 +1083,23 @@ class TestBaseSynchronizedData:
         assert base_synchronized_data.safe_contract_address == safe_contract_address
 
 
+class DummyConcreteRound(AbstractRound):
+    """A dummy concrete round's implementation."""
+
+    payload_class: Optional[Type[BaseTxPayload]] = None
+    synchronized_data_class = MagicMock()
+    payload_attribute = MagicMock()
+
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
+        """A dummy `end_block` implementation."""
+
+    def check_payload(self, payload: BaseTxPayload) -> None:
+        """A dummy `check_payload` implementation."""
+
+    def process_payload(self, payload: BaseTxPayload) -> None:
+        """A dummy `process_payload` implementation."""
+
+
 class TestAbstractRound:
     """Test the 'AbstractRound' class."""
 
@@ -1075,55 +1108,27 @@ class TestAbstractRound:
         self.known_payload_type = ConcreteRoundA.payload_class
         self.participants = ("a", "b")
         self.base_synchronized_data = BaseSynchronizedData(
-            db=AbciAppDB(setup_data=dict(participants=[self.participants]))
+            db=AbciAppDB(
+                setup_data=dict(
+                    all_participants=[self.participants],
+                    participants=[self.participants],
+                    consensus_threshold=[2],
+                )
+            )
         )
-        self.params = ConsensusParams(
-            max_participants=len(self.participants),
-        )
-        self.round = ConcreteRoundA(self.base_synchronized_data, self.params)
+        self.round = ConcreteRoundA(self.base_synchronized_data)
 
     def test_auto_round_id(self) -> None:
         """Test that the 'auto_round_id()' method works as expected."""
 
-        class MyConcreteRound(AbstractRound):
-
-            payload_class = MagicMock()
-            synchronized_data_class = MagicMock()
-            payload_attribute = MagicMock()
-
-            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
-                pass
-
-            def check_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
-            def process_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
-        assert MyConcreteRound.auto_round_id() == "my_concrete_round"
+        assert DummyConcreteRound.auto_round_id() == "dummy_concrete_round"
 
     def test_must_not_set_round_id(self) -> None:
         """Test that the 'round_id' must be set in concrete classes."""
 
-        class MyConcreteRound(AbstractRound):
-            # here round_id is missing
-            # ...
-            payload_class = MagicMock()
-            synchronized_data_class = MagicMock()
-            payload_attribute = MagicMock()
-
-            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
-                pass
-
-            def check_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
-            def process_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
         # no exception as round id is auto-assigned
-        my_concrete_round = MyConcreteRound(MagicMock(), MagicMock())
-        assert my_concrete_round.round_id == "my_concrete_round"
+        my_concrete_round = DummyConcreteRound(MagicMock())
+        assert my_concrete_round.round_id == "dummy_concrete_round"
 
     def test_must_set_payload_class_type(self) -> None:
         """Test that the 'payload_class' must be set in concrete classes."""
@@ -1141,49 +1146,24 @@ class TestAbstractRound:
     def test_check_payload_type_with_previous_round_transaction(self) -> None:
         """Test check 'check_payload_type'."""
 
-        class MyConcreteRound(AbstractRound):
+        class MyConcreteRound(DummyConcreteRound):
+            """A concrete round with the payload class defined."""
 
             payload_class = BaseTxPayload
-            synchronized_data_class = MagicMock()
-            payload_attribute = MagicMock()
-
-            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
-                pass
-
-            def check_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
-            def process_payload(self, payload: BaseTxPayload) -> None:
-                pass
 
         with pytest.raises(LateArrivingTransaction):
-            MyConcreteRound(MagicMock(), MagicMock(), BaseTxPayload).check_payload_type(
+            MyConcreteRound(MagicMock(), BaseTxPayload).check_payload_type(
                 MagicMock(payload=BaseTxPayload("dummy"))
             )
 
     def test_check_payload_type(self) -> None:
         """Test check 'check_payload_type'."""
 
-        class MyConcreteRound(AbstractRound):
-
-            payload_class = None
-            synchronized_data_class = MagicMock()
-            payload_attribute = MagicMock()
-
-            def end_block(self) -> Optional[Tuple[BaseSynchronizedData, EventType]]:
-                pass
-
-            def check_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
-            def process_payload(self, payload: BaseTxPayload) -> None:
-                pass
-
         with pytest.raises(
             TransactionTypeNotRecognizedError,
             match="current round does not allow transactions",
         ):
-            MyConcreteRound(MagicMock(), MagicMock()).check_payload_type(MagicMock())
+            DummyConcreteRound(MagicMock()).check_payload_type(MagicMock())
 
     def test_synchronized_data_getter(self) -> None:
         """Test 'synchronized_data' property getter."""
@@ -1242,11 +1222,13 @@ class TestAbstractRound:
             ABCIAppInternalError,
             match="nb_participants not consistent with votes_by_participants",
         ):
-            AbstractRound.check_majority_possible({}, 0)
+            DummyConcreteRound(self.base_synchronized_data).check_majority_possible(
+                {}, 0
+            )
 
     def test_check_majority_possible_passes_when_vote_set_is_empty(self) -> None:
         """Check that 'check_majority_possible' passes when the set of votes is empty."""
-        AbstractRound.check_majority_possible({}, 1)
+        DummyConcreteRound(self.base_synchronized_data).check_majority_possible({}, 1)
 
     def test_check_majority_possible_passes_when_vote_set_nonempty_and_check_passes(
         self,
@@ -1258,7 +1240,9 @@ class TestAbstractRound:
         - the threshold is 2
         - the other voter can vote for the same item of the first voter
         """
-        AbstractRound.check_majority_possible({"alice": DummyPayload("alice", True)}, 2)
+        DummyConcreteRound(self.base_synchronized_data).check_majority_possible(
+            {"alice": DummyPayload("alice", True)}, 2
+        )
 
     def test_check_majority_possible_passes_when_payload_attributes_majority_match(
         self,
@@ -1270,7 +1254,7 @@ class TestAbstractRound:
         - the threshold is 3 (participants are 4)
         - 3 voters have the same attribute value in their payload
         """
-        AbstractRound.check_majority_possible(
+        DummyConcreteRound(self.base_synchronized_data).check_majority_possible(
             {
                 "voter_1": DummyPayload("voter_1", 0),
                 "voter_2": DummyPayload("voter_2", 0),
@@ -1293,7 +1277,7 @@ class TestAbstractRound:
             ABCIAppException,
             match="cannot reach quorum=2, number of remaining votes=0, number of most voted item's votes=1",
         ):
-            AbstractRound.check_majority_possible(
+            DummyConcreteRound(self.base_synchronized_data).check_majority_possible(
                 {
                     "alice": DummyPayload("alice", False),
                     "bob": DummyPayload("bob", True),
@@ -1303,13 +1287,13 @@ class TestAbstractRound:
 
     def test_is_majority_possible_positive_case(self) -> None:
         """Test 'is_majority_possible', positive case."""
-        assert AbstractRound.is_majority_possible(
+        assert DummyConcreteRound(self.base_synchronized_data).is_majority_possible(
             {"alice": DummyPayload("alice", False)}, 2
         )
 
     def test_is_majority_possible_negative_case(self) -> None:
         """Test 'is_majority_possible', negative case."""
-        assert not AbstractRound.is_majority_possible(
+        assert not DummyConcreteRound(self.base_synchronized_data).is_majority_possible(
             {
                 "alice": DummyPayload("alice", False),
                 "bob": DummyPayload("bob", True),
@@ -1322,7 +1306,9 @@ class TestAbstractRound:
     ) -> None:
         """Test 'check_majority_possible_with_new_vote' raises when new voter already voted."""
         with pytest.raises(ABCIAppInternalError, match="voter has already voted"):
-            AbstractRound.check_majority_possible_with_new_voter(
+            DummyConcreteRound(
+                self.base_synchronized_data
+            ).check_majority_possible_with_new_voter(
                 {"alice": DummyPayload("alice", False)},
                 "alice",
                 DummyPayload("alice", True),
@@ -1337,7 +1323,9 @@ class TestAbstractRound:
             ABCIAppInternalError,
             match="nb_participants not consistent with votes_by_participants",
         ):
-            AbstractRound.check_majority_possible_with_new_voter(
+            DummyConcreteRound(
+                self.base_synchronized_data
+            ).check_majority_possible_with_new_voter(
                 {"alice": DummyPayload("alice", True)},
                 "bob",
                 DummyPayload("bob", True),
@@ -1354,7 +1342,9 @@ class TestAbstractRound:
         - the number of participants is 2, and so the threshold is 2
         - the new voter votes for the same item already voted by voter 1.
         """
-        AbstractRound.check_majority_possible_with_new_voter(
+        DummyConcreteRound(
+            self.base_synchronized_data
+        ).check_majority_possible_with_new_voter(
             {"alice": DummyPayload("alice", True)}, "bob", DummyPayload("bob", True), 2
         )
 
@@ -1481,7 +1471,7 @@ class TestAbciApp:
 
     def setup(self) -> None:
         """Set up the test."""
-        self.abci_app = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
+        self.abci_app = AbciAppTest(MagicMock(), MagicMock())
 
     @pytest.mark.parametrize("flag", (True, False))
     def test_is_abstract(self, flag: bool) -> None:
@@ -1677,8 +1667,7 @@ class TestAbciApp:
         dummy_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(setup_data=dict(participants=[max_participants]))
         )
-        dummy_consensus_params = ConsensusParams(max_participants)
-        dummy_round = ConcreteRoundA(dummy_synchronized_data, dummy_consensus_params)
+        dummy_round = ConcreteRoundA(dummy_synchronized_data)
 
         # Add dummy data
         self.abci_app._previous_rounds = [dummy_round] * start_history_depth
@@ -1761,7 +1750,7 @@ class TestRoundSequence:
     def setup(self) -> None:
         """Set up the test."""
         self.round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
-        self.round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
+        self.round_sequence.setup(MagicMock(), MagicMock())
         self.round_sequence.tm_height = 1
 
     @pytest.mark.parametrize("offset", tuple(range(5)))
@@ -2357,7 +2346,7 @@ def test_synchronized_data_type_on_abci_app_init(caplog: LogCaptureFixture) -> N
 
     with mock.patch.object(AbciAppTest, "initial_round_cls") as m:
         m.synchronized_data_class = SynchronizedData
-        abci_app = AbciAppTest(synchronized_data, MagicMock(), logging.getLogger())
+        abci_app = AbciAppTest(synchronized_data, logging.getLogger())
         abci_app.setup()
         assert isinstance(abci_app.synchronized_data, SynchronizedData)
         assert abci_app.synchronized_data.dummy_attr == sentinel

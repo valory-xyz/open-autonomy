@@ -31,7 +31,6 @@ from typing import (
     Any,
     Callable,
     Dict,
-    Iterable,
     List,
     Optional,
     OrderedDict,
@@ -41,6 +40,7 @@ from typing import (
     get_type_hints,
 )
 
+from aea.configurations.data_types import PublicId
 from aea.exceptions import enforce
 from aea.skills.base import Model, SkillContext
 
@@ -49,15 +49,14 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
     BaseSynchronizedData,
-    ConsensusParams,
     ROUND_COUNT_DEFAULT,
     RoundSequence,
-    consensus_threshold,
     get_name,
 )
 from packages.valory.skills.abstract_round_abci.utils import (
     check,
     check_type,
+    consensus_threshold,
     get_data_from_nested_dict,
     get_value_with_type,
 )
@@ -280,9 +279,6 @@ class BaseParams(
         self.reset_tendermint_after: int = self._ensure(
             "reset_tendermint_after", kwargs, int
         )
-        self.consensus_params: ConsensusParams = ConsensusParams.from_json(
-            self._ensure("consensus", kwargs, dict)
-        )
         self.cleanup_history_depth: int = self._ensure(
             "cleanup_history_depth", kwargs, int
         )
@@ -305,24 +301,10 @@ class BaseParams(
             "share_tm_config_on_startup", kwargs, bool
         )
         self.tendermint_p2p_url: str = self._ensure("tendermint_p2p_url", kwargs, str)
-        setup_params_: Dict[str, Any] = self._ensure("setup", kwargs, dict)
-
-        def check_val(val: Any, skill_id: str) -> List[Any]:
-            """Check that a value a list"""
-            if not isinstance(val, list):
-                raise TypeError(
-                    f"Value `{val}` in `setup` set in `models.params.args` of `skill.yaml` of `{skill_id}` is not a list"
-                )
-            return val
+        self.setup_params: Dict[str, Any] = self._ensure("setup", kwargs, dict)
 
         # we sanitize for null values as these are just kept for schema definitions
         skill_id = kwargs["skill_context"].skill_id
-        setup_params: Dict[str, List[Any]] = {
-            key: check_val(val, skill_id)
-            for key, val in setup_params_.items()
-            if val is not None
-        }
-        self.setup_params = setup_params
         super().__init__(*args, **kwargs)
 
         if not self.context.is_abstract_component:
@@ -330,19 +312,36 @@ class BaseParams(
             # and they should always contain at least `all_participants` and `safe_contract_address`
             self._ensure_setup(
                 {
-                    get_name(BaseSynchronizedData.safe_contract_address),
-                    get_name(BaseSynchronizedData.all_participants),
-                }
+                    get_name(BaseSynchronizedData.safe_contract_address): List[str],
+                    get_name(BaseSynchronizedData.all_participants): List[List[str]],
+                    get_name(BaseSynchronizedData.consensus_threshold): List[
+                        Optional[int]
+                    ],
+                },
+                skill_id,
             )
         self._frozen = True
 
-    def _ensure_setup(self, necessary_keys: Iterable[str]) -> Any:
-        """Ensure that the `setup` params contain all the `necessary_keys`."""
+    def _ensure_setup(
+        self, necessary_params: Dict[str, Type], skill_id: PublicId
+    ) -> Any:
+        """Ensure that the `setup` params contain all the `necessary_keys` and have the correct types."""
         enforce(bool(self.setup_params), "`setup` params contain no values!")
-        not_found_keys = set(necessary_keys) - set(self.setup_params)
-        found = not not_found_keys
-        fail_msg = f"Values for `{not_found_keys}` missing from the `setup` params."
-        enforce(found, fail_msg)
+
+        for key, type_ in necessary_params.items():
+            value = self.setup_params.get(key, None)
+            if value is None:
+                fail_msg = f"Value for `{key}` missing from the `setup` params."
+                enforce(False, fail_msg)
+
+            try:
+                check_type(key, value, type_)
+            except TypeError:  # pragma: nocover
+                enforce(
+                    False,
+                    f"'{key}' must be a {type_}, but type {type(value)} was found in `models.params.args.setup` "
+                    f"of `skill.yaml` of `{skill_id}`",
+                )
 
     def _ensure_gte(
         self, key: str, kwargs: Dict[str, Any], type_: Type, min_value: Any
@@ -434,7 +433,6 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
     def setup(self) -> None:
         """Set up the model."""
         self._round_sequence = RoundSequence(self.abci_app_cls)
-        consensus_params = cast(BaseParams, self.context.params).consensus_params
         setup_params = cast(BaseParams, self.context.params).setup_params
         self.round_sequence.setup(
             BaseSynchronizedData(
@@ -443,10 +441,12 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
                     cross_period_persisted_keys=self.abci_app_cls.cross_period_persisted_keys,
                 )
             ),
-            consensus_params,
             self.context.logger,
         )
-        self.initial_tm_configs = dict.fromkeys(self.synchronized_data.all_participants)
+        if not self.context.is_abstract_component:
+            self.initial_tm_configs = dict.fromkeys(
+                self.synchronized_data.all_participants
+            )
 
     @property
     def round_sequence(self) -> RoundSequence:

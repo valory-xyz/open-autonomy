@@ -14,19 +14,19 @@ fingerprint:
   handlers.py: bafybeie22h45jr2opf2waszr3qt5km2fppcaahalcavhzutgb6pyyywqxq
   models.py: bafybeib5l73zuekjeyhf5mge3u2xbilasbosrcefezb3hsmqrog4o7rpju
   payloads.py: bafybeihychpsosovpyq7bh6aih2cyjkxr23j7becd5apetrqivvnolzm7i
-  rounds.py: bafybeifxc2h2r5ftkxhiyj6iyenyd2egyoixmtavg2ckzdv3mspfqeuy3i
+  rounds.py: bafybeihtyenilgjdq7n7brfsxx7hp6d7u5ung7t4qmgrhnmvzdtcafcal4
   tests/__init__.py: bafybeiclijinxvycj7agcagt2deuuyh7zxyp7k2s55la6lh3jghzqvfux4
   tests/test_behaviours.py: bafybeib3nh4cj57wpnvldvhdqelicvuvckmlf6mfgjhai2bn5np36czobi
   tests/test_dialogues.py: bafybeif7pe7v34cfznzv4htyuevx733ersmk4bqjcgajn2535jmuujdmzm
   tests/test_handlers.py: bafybeiggog2k65ijtvqwkvjvmaoo6khwgfkeodddzl6u76gcvvongwjawy
   tests/test_payloads.py: bafybeifj343tlaiasebfgahfxehn4oi74omgah3ju2pze2fefoouid2zdq
-  tests/test_rounds.py: bafybeiakuboni7l6mwxbee6kj3zecyo3mv4gfprhq6awz3ld6jvaa5aany
+  tests/test_rounds.py: bafybeierruld3cmsscthzcey3hvzzeaqnp5r6tuqfoetzzdbed33hx72pq
 fingerprint_ignore_patterns: []
 connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiddwhbc54i4jsp2o463ks2qqnzh7etlcit2bygfggvt67udsirmci
+- valory/abstract_round_abci:0.1.0:bafybeiegswtf47hos42fgklo6ovbfyrpm4fprxfuvkylom72cbwcjdq6ca
 behaviours:
   main:
     args: {}
@@ -77,8 +77,6 @@ models:
     args:
       cleanup_history_depth: 1
       cleanup_history_depth_current: null
-      consensus:
-        max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       genesis_config:
         genesis_time: '2022-05-20T16:00:21.735122717Z'
@@ -110,11 +108,7 @@ models:
       round_timeout_seconds: 30.0
       service_id: reset_pause_abci
       service_registry_address: null
-      setup:
-        all_participants:
-        - - '0x0000000000000000000000000000000000000000'
-        safe_contract_address:
-        - '0x0000000000000000000000000000000000000000'
+      setup: {}
       share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 3

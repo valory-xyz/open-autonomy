@@ -382,7 +382,7 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
     # tests
     def test_init(self) -> None:
         """Empty init"""
-        assert self.state.initial_tm_configs == {ZERO_ADDRESS: None}
+        assert self.state.initial_tm_configs == {}
         assert self.state.local_tendermint_params == {}
         assert self.state.updated_genesis_data == {}
 
