@@ -159,7 +159,5 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     db_post_conditions: Dict[AppState, Set[str]] = {
         FinishedRegistrationRound: {
             get_name(BaseSynchronizedData.participants),
-            get_name(BaseSynchronizedData.all_participants),
-            get_name(BaseSynchronizedData.consensus_threshold),
         },
     }

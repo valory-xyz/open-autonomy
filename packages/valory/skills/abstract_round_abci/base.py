@@ -729,8 +729,10 @@ class BaseSynchronizedData:
     default_db_keys: Set[str] = {
         "round_count",
         "period_count",
+        "all_participants",
         "nb_participants",
         "max_participants",
+        "consensus_threshold",
         "safe_contract_address",
     }
 
