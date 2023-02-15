@@ -189,6 +189,27 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
           on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
           (...)
     ```
+!!! warning "Important"
+    Recall that when [deploying an on-chain service](../guides/deploy_service.md#on-chain-deployment) using `autonomy deploy from-token`, a number of arguments are overridden with the values registered in the Autonolas Protocol:
+    ```yaml
+    (...)
+    models:
+      params:
+        args:
+          setup:
+            all_participants: # Overridden with the registered values
+            safe_contract_address: # Overridden with the registered values
+            consensus_threshold: # Overridden with the registered values
+          service_registry_address:  # Overridden with the registered values
+          on_chain_service_id: # Overridden with the registered values
+    ```
+
+    For local deployments, the argument `consensus_threshold` can take the value:
+
+    * `null`: then the framework will automatically calculate `consensus_threshold` as $\lceil (2N+1)/3 \rceil$, where $N=$`len(all_participants)`.
+    * Any value $M$ such that $\lceil (2N+1)/3 \rceil \leq M \leq N$.
+    
+    Otherwise, the framework will raise an error and the app will not start. 
 
 ## Publish and mint packages
 
