@@ -31,7 +31,18 @@ from copy import copy, deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from time import sleep
-from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type
+from typing import (
+    Any,
+    Dict,
+    FrozenSet,
+    Generator,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    cast,
+)
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -460,10 +471,17 @@ class TestAbciAppDB:
         self,
         data: Dict,
         setup_data: Optional[Dict],
-        cross_period_persisted_keys: Optional[Set],
-        expected_cross_period_persisted_keys: List,
+        cross_period_persisted_keys: Optional[Set[str]],
+        expected_cross_period_persisted_keys: Set[str],
     ) -> None:
         """Test constructor."""
+        # keys are a set, but we cast them to a frozenset, so we can still update them and also make `mypy`
+        # think that the type is correct, to simulate a user incorrectly passing a different type and check if the
+        # attribute can be altered
+        cast_keys = cast(Optional[FrozenSet[str]], cross_period_persisted_keys)
+        # update with the default keys
+        expected_cross_period_persisted_keys.update(AbciAppDB.default_cross_period_keys)
+
         if setup_data is None:
             # the parametrization of `setup_data` set to `None` is in order to check if the exception is raised
             # when we incorrectly set the data in the configuration file with a type that is not allowed
@@ -473,16 +491,14 @@ class TestAbciAppDB:
                     f"AbciAppDB data must be `Dict[str, List[Any]]`, found `{type(data)}` instead"
                 ),
             ):
-                AbciAppDB(data, cross_period_persisted_keys)
+                AbciAppDB(
+                    data,
+                )
             return
 
         # use copies because otherwise the arguments will be modified and the next test runs will be polluted
         data_copy = deepcopy(data)
-        cross_period_persisted_keys_copy = (
-            cross_period_persisted_keys.copy()
-            if cross_period_persisted_keys
-            else cross_period_persisted_keys
-        )
+        cross_period_persisted_keys_copy = cast_keys.copy() if cast_keys else cast_keys
         db = AbciAppDB(data_copy, cross_period_persisted_keys_copy)
         assert db._data == {0: setup_data}
         assert db.setup_data == setup_data
@@ -503,7 +519,8 @@ class TestAbciAppDB:
         data_assertion()
 
         if cross_period_persisted_keys_copy:
-            cross_period_persisted_keys_copy.add(new_value_attempt)
+            # cast back to set
+            cast(Set[str], cross_period_persisted_keys_copy).add(new_value_attempt)
             assert (
                 db.cross_period_persisted_keys == expected_cross_period_persisted_keys
             ), (
@@ -553,13 +570,12 @@ class TestAbciAppDB:
     def test_cross_period_persisted_keys(self) -> None:
         """Test `cross_period_persisted_keys` property"""
         setup_data: Dict[str, List] = {}
-        cross_period_persisted_keys = {"test"}
+        cross_period_persisted_keys = frozenset({"test"})
         db = AbciAppDB(setup_data, cross_period_persisted_keys.copy())
 
-        db.cross_period_persisted_keys.add("new_value_attempt")
-        assert db.cross_period_persisted_keys == cross_period_persisted_keys, (
-            "The database's `cross_period_persisted_keys` have been altered indirectly, "
-            "by updating an item retrieved via the `cross_period_persisted_keys` property!"
+        assert isinstance(db.cross_period_persisted_keys, frozenset), (
+            "The database's `cross_period_persisted_keys` can be altered indirectly. "
+            "The `cross_period_persisted_keys` was expected to be a `frozenset`!"
         )
 
     def test_get(self) -> None:
@@ -1626,12 +1642,12 @@ class TestAbciApp:
         class EmptyAbciApp(AbciAppTest):
             """An AbciApp without termination attrs set."""
 
-            cross_period_persisted_keys = {"1", "2"}
+            cross_period_persisted_keys = frozenset({"1", "2"})
 
         class TerminationAbciApp(AbciAppTest):
             """A moch termination AbciApp."""
 
-            cross_period_persisted_keys = {"2", "3"}
+            cross_period_persisted_keys = frozenset({"2", "3"})
 
         EmptyAbciApp.add_termination(
             TerminationAbciApp.background_round_cls,

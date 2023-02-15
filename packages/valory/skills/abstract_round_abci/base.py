@@ -478,7 +478,7 @@ class AbciAppDB:
     def __init__(
         self,
         setup_data: Dict[str, List[Any]],
-        cross_period_persisted_keys: Optional[Set[str]] = None,
+        cross_period_persisted_keys: Optional[FrozenSet[str]] = None,
     ) -> None:
         """Initialize the AbciApp database.
 
@@ -542,9 +542,9 @@ class AbciAppDB:
         self._round_count = round_count
 
     @property
-    def cross_period_persisted_keys(self) -> Set[str]:
+    def cross_period_persisted_keys(self) -> FrozenSet[str]:
         """Keys in the database which are persistent across periods."""
-        return self._cross_period_persisted_keys.copy()
+        return self._cross_period_persisted_keys
 
     def get(self, key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]:
         """Given a key, get its last for the current reset index."""
@@ -2062,7 +2062,7 @@ class AbciApp(
     transition_function: AbciAppTransitionFunction
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
-    cross_period_persisted_keys: Set[str] = {"safe_contract_address"}
+    cross_period_persisted_keys: FrozenSet[str] = frozenset()
     background_round_cls: Optional[AppState] = None
     termination_transition_function: Optional[AbciAppTransitionFunction] = None
     termination_event: Optional[EventType] = None
