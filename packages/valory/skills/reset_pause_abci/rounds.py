@@ -54,7 +54,11 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
         """Process the end of the block."""
         if self.threshold_reached:
             extra_kwargs = {}
-            for key in self.synchronized_data.db.cross_period_persisted_keys:
+            cross_period_persisted_keys = (
+                self.synchronized_data.db.cross_period_persisted_keys
+            )
+            cross_period_persisted_keys.update({"consensus_threshold"})
+            for key in cross_period_persisted_keys:
                 extra_kwargs[key] = self.synchronized_data.db.get_strict(key)
             synchronized_data = self.synchronized_data.create(
                 synchronized_data_class=self.synchronized_data_class,

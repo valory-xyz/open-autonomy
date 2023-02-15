@@ -181,10 +181,12 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
         self.skill.skill_context.state.round_sequence.abci_app._current_round_cls = (
             next_behaviour.matching_round
         )
+        # consensus parameters will not be available if the current skill is abstract
+        consensus_params = getattr(
+            self.skill.skill_context.params, "consensus_params", None
+        )
         self.skill.skill_context.state.round_sequence.abci_app._current_round = (
-            next_behaviour.matching_round(
-                synchronized_data, self.skill.skill_context.params.consensus_params
-            )
+            next_behaviour.matching_round(synchronized_data, consensus_params)
         )
 
     def mock_ledger_api_request(
@@ -394,7 +396,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
         abci_app._last_round = old_round
         abci_app._current_round = abci_app.transition_function[
             current_behaviour.matching_round
-        ][done_event](abci_app.synchronized_data, abci_app.consensus_params)
+        ][done_event](abci_app.synchronized_data)
         abci_app._previous_rounds.append(old_round)
         abci_app._current_round_height += 1
         self.behaviour._process_current_round()

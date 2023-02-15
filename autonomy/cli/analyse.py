@@ -23,10 +23,11 @@ from typing import List, Optional, cast
 from warnings import filterwarnings
 
 import click
-from aea.cli.utils.click_utils import reraise_as_click_exception
+from aea.cli.utils.click_utils import PublicIdParameter, reraise_as_click_exception
 from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
 from aea.configurations.constants import PACKAGES
+from aea.configurations.data_types import PackageId, PackageType, PublicId
 
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
 from autonomy.analyse.handlers import check_handlers
@@ -410,21 +411,19 @@ def benchmark(path: Path, block_type: str, period: int, output: Path) -> None:
     help="Token ID of the service to check on-chain state of the service",
 )
 @click.argument(
-    "service_path",
-    type=PathArgument(
-        exists=True,
-        file_okay=False,
-        dir_okay=True,
-    ),
+    "service",
+    type=PublicIdParameter(),
 )
 @chain_selection_flag()
+@pass_ctx
 def _check_service(
-    token_id: Optional[int], service_path: Path, chain_type: str
+    ctx: Context, token_id: Optional[int], service: PublicId, chain_type: str
 ) -> None:
     """Check deployment readiness of a service"""
 
     check_service_readiness(
         token_id=token_id,
-        service_path=service_path,
+        service_id=PackageId(package_type=PackageType.SERVICE, public_id=service),
         chain_type=ChainType(chain_type),
+        packages_dir=Path(ctx.registry_path),
     )

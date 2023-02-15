@@ -36,7 +36,6 @@ class AbciApp(
     def __init__(
         self,
         synchronized_data: BaseSynchronizedData,
-        consensus_params: ConsensusParams,
         logger: logging.Logger,
     ):
         """Initialize the AbciApp."""

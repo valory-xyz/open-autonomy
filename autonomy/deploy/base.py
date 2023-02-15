@@ -49,7 +49,6 @@ from autonomy.deploy.constants import (
 ENV_VAR_ID = "ID"
 ENV_VAR_AEA_AGENT = "AEA_AGENT"
 ENV_VAR_ABCI_HOST = "ABCI_HOST"
-ENV_VAR_MAX_PARTICIPANTS = "MAX_PARTICIPANTS"
 ENV_VAR_TENDERMINT_URL = "TENDERMINT_URL"
 ENV_VAR_TENDERMINT_COM_URL = "TENDERMINT_COM_URL"
 ENV_VAR_LOG_LEVEL = "LOG_LEVEL"
@@ -58,6 +57,7 @@ ENV_VAR_AEA_PASSWORD = "AEA_PASSWORD"  # nosec
 SETUP_PARAM_PATH = ("models", "params", "args", "setup")
 SAFE_CONTRACT_ADDRESS = "safe_contract_address"
 ALL_PARTICIPANTS = "all_participants"
+CONSENSUS_THRESHOLD = "consensus_threshold"
 
 ABCI_HOST = "abci{}"
 TENDERMINT_NODE = "http://node{}:26657"
@@ -277,6 +277,7 @@ class ServiceBuilder:
         self,
         multisig_address: Optional[str] = None,
         agent_instances: Optional[List[str]] = None,
+        consensus_threshold: Optional[int] = None,
     ) -> None:
         """Try and update setup parameters."""
 
@@ -289,6 +290,11 @@ class ServiceBuilder:
         if agent_instances is not None:
             param_overrides.append(
                 (ALL_PARTICIPANTS, [agent_instances]),
+            )
+
+        if consensus_threshold is not None:
+            param_overrides.append(
+                (CONSENSUS_THRESHOLD, [consensus_threshold]),
             )
 
         overrides = copy(self.service.overrides)
@@ -343,7 +349,6 @@ class ServiceBuilder:
             ENV_VAR_ID: agent_n,
             ENV_VAR_AEA_AGENT: self.service.agent,
             ENV_VAR_ABCI_HOST: ABCI_HOST.format(agent_n),
-            ENV_VAR_MAX_PARTICIPANTS: self.service.number_of_agents,
             ENV_VAR_TENDERMINT_URL: TENDERMINT_NODE.format(agent_n),
             ENV_VAR_TENDERMINT_COM_URL: TENDERMINT_COM.format(agent_n),
             ENV_VAR_LOG_LEVEL: self.log_level,

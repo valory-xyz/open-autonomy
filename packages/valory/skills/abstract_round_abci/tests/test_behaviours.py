@@ -606,7 +606,7 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour(_: mock._patch) -> None:
 
     round_sequence = RoundSequence(AbciAppTest)
     round_sequence.end_sync()
-    round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
+    round_sequence.setup(MagicMock(), MagicMock())
     context_mock = MagicMock()
     context_mock.state.round_sequence = round_sequence
     behaviour = RoundBehaviour(name="", skill_context=context_mock)
@@ -652,7 +652,7 @@ def test_reset_should_be_performed_when_tm_unhealthy() -> None:
 
     round_sequence = RoundSequence(AbciAppTest)
     round_sequence.end_sync()
-    round_sequence.setup(MagicMock(), MagicMock(), MagicMock())
+    round_sequence.setup(MagicMock(), MagicMock())
     context_mock = MagicMock()
     context_mock.state.round_sequence = round_sequence
     tm_recovery_params = TendermintRecoveryParams(

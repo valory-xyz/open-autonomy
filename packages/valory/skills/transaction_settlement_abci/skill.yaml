@@ -25,7 +25,7 @@ fingerprint:
   tests/test_models.py: bafybeifysgk6xywarymqbfwnpkjlzrjxtxkgm26k3mfiyerqvovwyyhqsa
   tests/test_payload_tools.py: bafybeieadcp4btveovfkrqa6f4gkeaznvx2r6jtojdexbtkzerijlragge
   tests/test_payloads.py: bafybeidvjqvjvnuw5vt4zgnqwzopvprznmefosqy3wcxukvobaiishygze
-  tests/test_rounds.py: bafybeiaa3yneqer3vhjk6wyr26z3za2tyqkiqn574qf7viw7pycerhama4
+  tests/test_rounds.py: bafybeia6ftd7hfgb7wqnlua37u2bwre54nlh4jcbue2fgkmx3sxy2lijna
   tests/test_tools/__init__.py: bafybeiaq2ftmklvu5vqq6vdfa7mrlmrnusluki35jm5n2yzf57ox5dif74
   tests/test_tools/test_integration.py: bafybeigv6fxogm3aq3extahr75owdqnzepouv3rtxl3m4gai2urtz6u4ea
 fingerprint_ignore_patterns: []
@@ -38,7 +38,7 @@ protocols:
 - valory/contract_api:1.0.0:bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy
 - valory/ledger_api:1.0.0:bafybeih6hfzj2obw5oajnt6ng6355edgvi5ngoaub44vpuszqoplfvyaom
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiddwhbc54i4jsp2o463ks2qqnzh7etlcit2bygfggvt67udsirmci
+- valory/abstract_round_abci:0.1.0:bafybeiegswtf47hos42fgklo6ovbfyrpm4fprxfuvkylom72cbwcjdq6ca
 behaviours:
   main:
     args: {}
@@ -89,8 +89,6 @@ models:
     args:
       cleanup_history_depth: 1
       cleanup_history_depth_current: null
-      consensus:
-        max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       finalize_timeout: 60.0
       genesis_config:
@@ -126,9 +124,7 @@ models:
       round_timeout_seconds: 30.0
       service_id: registration
       service_registry_address: null
-      setup:
-        all_participants:
-        - - '0x0000000000000000000000000000000000000000'
+      setup: {}
       share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 3

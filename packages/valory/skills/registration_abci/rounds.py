@@ -160,5 +160,6 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
         FinishedRegistrationRound: {
             get_name(BaseSynchronizedData.participants),
             get_name(BaseSynchronizedData.all_participants),
+            get_name(BaseSynchronizedData.consensus_threshold),
         },
     }

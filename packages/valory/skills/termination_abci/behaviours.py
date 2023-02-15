@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -483,7 +483,7 @@ class BackgroundBehaviour(BaseBehaviour):
         """Checks whether the service has enough participants to reach consensus."""
         return (
             self.synchronized_data.nb_participants
-            >= self.params.consensus_params.consensus_threshold
+            >= self.synchronized_data.consensus_threshold
         )
 
     def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:

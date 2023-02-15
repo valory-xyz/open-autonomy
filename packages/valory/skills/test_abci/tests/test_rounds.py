@@ -48,7 +48,6 @@ class TestDummyRound(BaseRoundTestClass):
 
         test_round = DummyRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [

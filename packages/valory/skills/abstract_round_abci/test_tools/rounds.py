@@ -50,7 +50,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilAllRound,
     CollectSameUntilThresholdRound,
     CollectionRound,
-    ConsensusParams,
     OnlyKeeperSendsRound,
     TransactionNotValidError,
     VotingRound,
@@ -161,7 +160,6 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
 
     synchronized_data: BaseSynchronizedData
     participants: FrozenSet[str]
-    consensus_params: ConsensusParams
 
     _synchronized_data_class: Type[BaseSynchronizedData]
     _event_class: Any
@@ -177,10 +175,10 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
                 setup_data=dict(
                     participants=[tuple(self.participants)],
                     all_participants=[tuple(self.participants)],
+                    consensus_threshold=[3],
                 ),
             )
         )
-        self.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
     def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
         """Test the NO_MAJORITY event."""
@@ -566,7 +564,6 @@ class _BaseRoundTestClass(BaseRoundTestClass):  # pylint: disable=too-few-public
 
     synchronized_data: BaseSynchronizedData
     participants: FrozenSet[str]
-    consensus_params: ConsensusParams
     tx_payloads: List[DummyTxPayload]
 
     _synchronized_data_class = DummySynchronizedData

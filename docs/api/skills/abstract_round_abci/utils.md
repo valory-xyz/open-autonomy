@@ -345,3 +345,21 @@ def filter_negative(mapping: Dict[str, int]) -> Iterator[str]
 
 Return the keys of a dictionary for which the values are negative integers.
 
+<a id="packages.valory.skills.abstract_round_abci.utils.consensus_threshold"></a>
+
+#### consensus`_`threshold
+
+```python
+def consensus_threshold(nb: int) -> int
+```
+
+Get consensus threshold.
+
+**Arguments**:
+
+- `nb`: the number of participants
+
+**Returns**:
+
+the consensus threshold
+
