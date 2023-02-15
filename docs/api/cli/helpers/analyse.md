@@ -35,6 +35,110 @@ def run_dialogues_check(packages_dir: Path, ignore: List[str],
 
 Run dialogues check.
 
+<a id="autonomy.cli.helpers.analyse.ParseLogs"></a>
+
+## ParseLogs Objects
+
+```python
+class ParseLogs()
+```
+
+Parse agent logs.
+
+<a id="autonomy.cli.helpers.analyse.ParseLogs.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__() -> None
+```
+
+Initialize object.
+
+<a id="autonomy.cli.helpers.analyse.ParseLogs.agents"></a>
+
+#### agents
+
+```python
+@property
+def agents() -> List[str]
+```
+
+Available agents.
+
+<a id="autonomy.cli.helpers.analyse.ParseLogs.from_dir"></a>
+
+#### from`_`dir
+
+```python
+def from_dir(logs_dir: Path) -> "ParseLogs"
+```
+
+From directory
+
+<a id="autonomy.cli.helpers.analyse.ParseLogs.create_tables"></a>
+
+#### create`_`tables
+
+```python
+def create_tables(reset: bool = False) -> "ParseLogs"
+```
+
+Create required tables.
+
+<a id="autonomy.cli.helpers.analyse.ParseLogs.select"></a>
+
+#### select
+
+```python
+def select(agents: List[str], start_time: Optional[Union[str, datetime]],
+           end_time: Optional[Union[str, datetime]], log_level: Optional[str],
+           period: Optional[int], round_name: Optional[str],
+           behaviour_name: Optional[str]) -> "ParseLogs"
+```
+
+Query and return results.
+
+<a id="autonomy.cli.helpers.analyse.ParseLogs.re_include"></a>
+
+#### re`_`include
+
+```python
+def re_include(regexes: List[str]) -> "ParseLogs"
+```
+
+Apply a set of regexes on the result.
+
+<a id="autonomy.cli.helpers.analyse.ParseLogs.re_exclude"></a>
+
+#### re`_`exclude
+
+```python
+def re_exclude(regexes: List[str]) -> "ParseLogs"
+```
+
+Apply a set of regexes on the result.
+
+<a id="autonomy.cli.helpers.analyse.ParseLogs.execution_path"></a>
+
+#### execution`_`path
+
+```python
+def execution_path() -> None
+```
+
+Output FSM path
+
+<a id="autonomy.cli.helpers.analyse.ParseLogs.table"></a>
+
+#### table
+
+```python
+def table() -> None
+```
+
+Print table.
+
 <a id="autonomy.cli.helpers.analyse.check_service_readiness"></a>
 
 #### check`_`service`_`readiness

@@ -53,19 +53,6 @@ def docstrings(ctx: Context, update: bool) -> None
 
 Analyse ABCI docstring definitions.
 
-<a id="autonomy.cli.analyse.parse_logs"></a>
-
-#### parse`_`logs
-
-```python
-@analyse_group.command(name="logs")
-@click.argument("file",
-                type=click.Path(file_okay=True, dir_okay=False, exists=True))
-def parse_logs(file: str) -> None
-```
-
-Parse logs of an agent service.
-
 <a id="autonomy.cli.analyse.run_handler_check"></a>
 
 #### run`_`handler`_`check

@@ -29,11 +29,11 @@ from aea.cli.utils.decorators import pass_ctx
 from aea.configurations.constants import PACKAGES
 from aea.configurations.data_types import PackageId, PackageType, PublicId
 
-from autonomy.analyse.abci.logs import parse_file
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
 from autonomy.analyse.handlers import check_handlers
 from autonomy.chain.config import ChainType
 from autonomy.cli.helpers.analyse import (
+    ParseLogs,
     check_service_readiness,
     list_all_skill_yaml_files,
     load_package_tree,
@@ -49,8 +49,10 @@ from autonomy.cli.utils.click_utils import (
     chain_selection_flag,
     sys_path_patch,
 )
+from autonomy.deploy.constants import LOGGING_LEVELS
 
 
+TIME_FORMAT_TEMPLATE = "YYYY-MM-DD H:M:S,MS"
 BENCHMARKS_DIR = Path("./benchmarks.html")
 
 filterwarnings("ignore")
@@ -164,13 +166,128 @@ def docstrings(ctx: Context, update: bool) -> None:
                 click.echo("No update needed.")
 
 
-@analyse_group.command(name="logs")
-@click.argument("file", type=click.Path(file_okay=True, dir_okay=False, exists=True))
-def parse_logs(file: str) -> None:
-    """Parse logs of an agent service."""
+@analyse_group.command("logs")
+@click.option(
+    "--from-dir",
+    "logs_dir",
+    type=click.Path(
+        exists=True,
+    ),
+    required=True,
+    help="Path to logs directory",
+)
+@click.option(
+    "--reset-db",
+    is_flag=True,
+    help="Use this flag to reset the log database.",
+)
+@click.option(
+    "-a",
+    "--agent",
+    "agents",
+    type=str,
+    multiple=True,
+    help="Agent IDs to include in analysis",
+)
+@click.option(
+    "--start-time",
+    type=str,
+    help=f"Start time in `{TIME_FORMAT_TEMPLATE}` format",
+)
+@click.option(
+    "--end-time",
+    type=str,
+    help=f"End time in `{TIME_FORMAT_TEMPLATE}` format",
+)
+@click.option(
+    "--log-level",
+    type=click.Choice(choices=LOGGING_LEVELS, case_sensitive=True),
+    help="Logging level.",
+)
+@click.option(
+    "--period",
+    type=int,
+    help="Period ID",
+)
+@click.option(
+    "--round",
+    "round_name",
+    type=str,
+    help="Round name",
+)
+@click.option(
+    "--behaviour",
+    "behaviour_name",
+    type=str,
+    help="Behaviour name filter",
+)
+@click.option(
+    "--fsm",
+    "fsm_path",
+    is_flag=True,
+    type=str,
+    help="Print only the FSM execution path",
+)
+@click.option(
+    "-ir",
+    "--include-regex",
+    "include_regexes",
+    multiple=True,
+    type=str,
+    help="Regex pattern to include in the result.",
+)
+@click.option(
+    "-er",
+    "--exclude-regex",
+    "exclude_regexes",
+    multiple=True,
+    type=str,
+    help="Regex pattern to exclude from the result.",
+)
+def _parse_logs(  # pylint: disable=too-many-arguments
+    logs_dir: Optional[Path],
+    agents: List[str],
+    start_time: Optional[str],
+    end_time: Optional[str],
+    log_level: Optional[str],
+    period: Optional[int],
+    round_name: Optional[str],
+    behaviour_name: Optional[str],
+    include_regexes: List[str],
+    exclude_regexes: List[str],
+    reset_db: bool = False,
+    fsm_path: bool = False,
+) -> None:
+    """A tool for analysing autonomous agent runtime logs"""
 
-    with reraise_as_click_exception(Exception):
-        parse_file(file)
+    parser = ParseLogs()
+    if logs_dir is not None:
+        parser.from_dir(logs_dir=Path(logs_dir))
+
+    if len(agents) == 0:
+        raise click.ClickException(
+            f"Please provide agent IDs to select logs; Available agents: {parser.agents}"
+        )
+
+    parser.create_tables(reset=reset_db)
+    selection = (
+        parser.select(
+            agents=agents,
+            start_time=start_time,
+            end_time=end_time,
+            log_level=log_level,
+            period=period,
+            round_name=round_name,
+            behaviour_name=behaviour_name,
+        )
+        .re_include(regexes=include_regexes)
+        .re_exclude(regexes=exclude_regexes)
+    )
+
+    if fsm_path:
+        return selection.execution_path()
+
+    return selection.table()
 
 
 @analyse_group.command(name="handlers")
