@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Test build image."""
-
 import json
 import os
 from pathlib import Path
@@ -27,6 +26,7 @@ from string import ascii_letters
 from typing import Tuple
 
 import docker
+from aea.cli.utils.config import get_default_author_from_cli_config
 from aea.configurations.data_types import PackageId, PackageType, PublicId
 from aea.configurations.loader import ConfigLoader
 from aea.helpers.io import open_file
@@ -84,7 +84,7 @@ class TestBuildImage(BaseCliTest):
         assert (
             len(
                 self.docker_api.images(
-                    name=f"valory/oar-{self.package_id.name}:{self.package_id.package_hash}"
+                    name=f"{get_default_author_from_cli_config() or DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-{self.package_id.name}:{self.package_id.package_hash}"
                 )
             )
             == 1
@@ -99,7 +99,11 @@ class TestBuildImage(BaseCliTest):
 
         assert result.exit_code == 0, result.output
         assert (
-            len(self.docker_api.images(name=f"valory/oar-{self.package_id.name}:dev"))
+            len(
+                self.docker_api.images(
+                    name=f"{get_default_author_from_cli_config() or DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-{self.package_id.name}:dev"
+                )
+            )
             == 1
         )
 
@@ -115,7 +119,7 @@ class TestBuildImage(BaseCliTest):
         assert (
             len(
                 self.docker_api.images(
-                    name=f"valory/oar-{self.package_id.name}:{test_version}"
+                    name=f"{get_default_author_from_cli_config() or DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-{self.package_id.name}:{test_version}"
                 )
             )
             == 1
@@ -124,8 +128,10 @@ class TestBuildImage(BaseCliTest):
     @skip_docker_tests
     def test_image_author_flag(self) -> None:
         """Test image_author flag."""
-        # with patch("autonomy.cli.build_images._build_image") as build_image_mock:
         test_version = "".join(choices(ascii_letters, k=6))  # nosec
+        default_author = (
+            get_default_author_from_cli_config() or DEFAULT_DOCKER_IMAGE_AUTHOR
+        )
         result = self.run_cli(
             (
                 "--version",
@@ -134,7 +140,7 @@ class TestBuildImage(BaseCliTest):
         )
         assert result.exit_code == 0, result.output
         assert self.docker_api.images(
-            name=f"{DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-{self.package_id.name}:{test_version}"
+            name=f"{default_author}/oar-{self.package_id.name}:{test_version}"
         )
 
         test_version = "".join(choices(ascii_letters, k=6))  # nosec

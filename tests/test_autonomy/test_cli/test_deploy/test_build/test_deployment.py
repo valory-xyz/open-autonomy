@@ -26,6 +26,7 @@ from typing import Dict, List, Tuple
 from unittest import mock
 
 import yaml
+from aea.cli.utils.config import get_default_author_from_cli_config
 from aea.configurations.constants import PACKAGES
 from aea_test_autonomy.configurations import (
     ETHEREUM_ENCRYPTED_KEYS,
@@ -409,7 +410,8 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
 
         assert (
             docker_compose["services"]["abci0"]["image"].split("/")[0]
-            == DEFAULT_DOCKER_IMAGE_AUTHOR
+            == get_default_author_from_cli_config()
+            or DEFAULT_DOCKER_IMAGE_AUTHOR
         )
 
     def test_docker_compose_build_image_author_flag_custom(
@@ -668,7 +670,10 @@ class TestKubernetesBuild(BaseDeployBuildTest):
         self.check_kubernetes_build(build_dir=build_dir)
 
         build_config = self.load_kubernetes_config(build_dir)
-        assert f"'image': '{DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-" in str(build_config)
+        assert (
+            f"'image': '{get_default_author_from_cli_config() or  DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-"
+            in str(build_config)
+        )
 
     def test_kubernetes_build_image_author_custom(
         self,
