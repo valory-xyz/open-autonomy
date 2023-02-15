@@ -61,6 +61,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         open_aea_dir: Optional[Path] = None,
         open_autonomy_dir: Optional[Path] = None,
         use_tm_testnet_setup: bool = False,
+        image_author: Optional[str] = None,
     ) -> None:
         """Initialise the deployment generator."""
         super().__init__(
@@ -71,6 +72,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             packages_dir=packages_dir,
             open_aea_dir=open_aea_dir,
             open_autonomy_dir=open_autonomy_dir,
+            image_author=image_author,
         )
         self.resources: List[str] = []
 
@@ -167,6 +169,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_vars = self.service_builder.generate_agents()  # type:ignore
         agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
         runtime_image = OAR_IMAGE.format(
+            image_author=self.image_author,
             agent=self.service_builder.service.agent.name,
             version=image_version,
         )

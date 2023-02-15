@@ -31,6 +31,7 @@ from docker.models.containers import Container
 from autonomy.constants import (
     AUTONOMY_IMAGE_NAME,
     AUTONOMY_IMAGE_VERSION,
+    DEFAULT_DOCKER_IMAGE_AUTHOR,
     OAR_IMAGE,
     TENDERMINT_IMAGE_NAME,
     TENDERMINT_IMAGE_VERSION,
@@ -52,7 +53,9 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
     client: docker.DockerClient
     agent: str
     path: Path = ROOT_DIR / "autonomy" / "data" / DOCKERFILES / "agent"
-    tag: str = OAR_IMAGE.format(agent=AGENT.name, version="latest")
+    tag: str = OAR_IMAGE.format(
+        image_author=DEFAULT_DOCKER_IMAGE_AUTHOR, agent=AGENT.name, version="latest"
+    )
 
     @classmethod
     def setup_class(cls) -> None:

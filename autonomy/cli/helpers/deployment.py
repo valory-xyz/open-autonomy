@@ -141,6 +141,7 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     use_hardhat: bool = False,
     use_acn: bool = False,
     use_tm_testnet_setup: bool = False,
+    image_author: Optional[str] = None,
 ) -> None:
     """Build deployment."""
     if build_dir.is_dir():  # pragma: no cover
@@ -177,6 +178,7 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         use_hardhat=use_hardhat,
         use_acn=use_acn,
         use_tm_testnet_setup=use_tm_testnet_setup,
+        image_author=image_author,
     )
     click.echo(report)
 

@@ -27,7 +27,8 @@ def generate_deployment(type_of_deployment: str,
                         image_version: Optional[str] = None,
                         use_hardhat: bool = False,
                         use_acn: bool = False,
-                        use_tm_testnet_setup: bool = False) -> str
+                        use_tm_testnet_setup: bool = False,
+                        image_author: Optional[str] = None) -> str
 ```
 
 Generate the deployment for the service.

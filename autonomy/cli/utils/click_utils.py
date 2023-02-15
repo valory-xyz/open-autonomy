@@ -25,6 +25,8 @@ from pathlib import Path
 from typing import Any, Callable, Generator, Optional, cast
 
 import click
+from aea.cli.utils.config import get_default_author_from_cli_config
+from aea.helpers.base import SimpleId
 
 from autonomy.analyse.abci.app_spec import FSMSpecificationLoader
 from autonomy.chain.config import ChainType
@@ -111,3 +113,21 @@ class PathArgument(click.Path):
         """Convert path string to `pathlib.Path`"""
         path_string = super().convert(value, param, ctx)
         return None if path_string is None else Path(path_string)
+
+
+def image_author_option(fn: Callable) -> Callable:
+    """Wrap function with clik option for image-author"""
+
+    def _validate(_ctx, _param, value):  # type: ignore
+        if value is None:
+            return get_default_author_from_cli_config()
+        SimpleId(value)
+        return value
+
+    return click.option(
+        "--image-author",
+        type=str,
+        help="Specify author name for docker image.",
+        default=None,
+        callback=_validate,
+    )(fn)

@@ -113,6 +113,7 @@ Deploy an agent service.
               help="Define runtime image version.")
 @registry_flag()
 @password_option(confirmation_prompt=True)
+@image_author_option
 @click.pass_context
 def build_deployment_command(click_context: click.Context,
                              keys_file: Optional[Path],
@@ -131,7 +132,8 @@ def build_deployment_command(click_context: click.Context,
                              image_version: Optional[str] = None,
                              use_hardhat: bool = False,
                              use_acn: bool = False,
-                             use_tm_testnet_setup: bool = False) -> None
+                             use_tm_testnet_setup: bool = False,
+                             image_author: Optional[str] = None) -> None
 ```
 
 Build deployment setup for n agents.

@@ -38,6 +38,7 @@ from aea.configurations.data_types import PublicId
 
 from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
+from autonomy.constants import DEFAULT_DOCKER_IMAGE_AUTHOR
 from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     INFO,
@@ -376,7 +377,7 @@ class ServiceBuilder:
         return agent_vars
 
 
-class BaseDeploymentGenerator(abc.ABC):
+class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-attributes
     """Base Deployment Class."""
 
     service_builder: ServiceBuilder
@@ -401,6 +402,7 @@ class BaseDeploymentGenerator(abc.ABC):
         packages_dir: Optional[Path] = None,
         open_aea_dir: Optional[Path] = None,
         open_autonomy_dir: Optional[Path] = None,
+        image_author: Optional[str] = None,
     ):
         """Initialise with only kwargs."""
 
@@ -415,6 +417,7 @@ class BaseDeploymentGenerator(abc.ABC):
         )
 
         self.tendermint_job_config: Optional[str] = None
+        self.image_author = image_author or DEFAULT_DOCKER_IMAGE_AUTHOR
 
     @abc.abstractmethod
     def generate(

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import click
 from aea.cli.utils.click_utils import PublicIdParameter, reraise_as_click_exception
 from aea.configurations.data_types import PublicId
 
+from autonomy.cli.utils.click_utils import image_author_option
 from autonomy.configurations.loader import load_service_config
 from autonomy.deploy.image import ImageBuildFailed
 from autonomy.deploy.image import build_image as _build_image
@@ -46,12 +47,14 @@ from autonomy.deploy.image import build_image as _build_image
 @click.option("--version", type=str, help="Specify tag version for the image.")
 @click.option("--dev", is_flag=True, help="Build development image.", default=False)
 @click.option("--pull", is_flag=True, help="Pull latest dependencies.", default=False)
+@image_author_option
 def build_image(
     agent: Optional[PublicId],
     service_dir: Optional[Path],
     pull: bool = False,
     dev: bool = False,
     version: Optional[str] = None,
+    image_author: Optional[str] = None,
 ) -> None:
     """Build runtime images for autonomous agents."""
 
@@ -64,8 +67,5 @@ def build_image(
     with reraise_as_click_exception(ImageBuildFailed):
         click.echo(f"Building image with agent: {agent}\n")
         _build_image(
-            agent=agent,
-            pull=pull,
-            dev=dev,
-            version=version,
+            agent=agent, pull=pull, dev=dev, version=version, image_author=image_author
         )

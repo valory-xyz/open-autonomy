@@ -22,7 +22,8 @@ Image build profiles.
 def build_image(agent: PublicId,
                 pull: bool = False,
                 dev: bool = False,
-                version: Optional[str] = None) -> None
+                version: Optional[str] = None,
+                image_author: Optional[str] = None) -> None
 ```
 
 Command to build images from for skaffold deployment.

@@ -38,7 +38,7 @@ from autonomy.cli.helpers.deployment import (
     build_deployment,
     run_deployment,
 )
-from autonomy.cli.utils.click_utils import chain_selection_flag
+from autonomy.cli.utils.click_utils import chain_selection_flag, image_author_option
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_KEYS_FILE
 from autonomy.deploy.base import NotValidKeysFile
 from autonomy.deploy.constants import INFO, LOGGING_LEVELS
@@ -149,6 +149,7 @@ def deploy_group(
 @click.option("--image-version", type=str, help="Define runtime image version.")
 @registry_flag()
 @password_option(confirmation_prompt=True)
+@image_author_option
 @click.pass_context
 def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-locals
     click_context: click.Context,
@@ -169,6 +170,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     use_hardhat: bool = False,
     use_acn: bool = False,
     use_tm_testnet_setup: bool = False,
+    image_author: Optional[str] = None,
 ) -> None:
     """Build deployment setup for n agents."""
 
@@ -217,6 +219,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             use_hardhat=use_hardhat,
             use_acn=use_acn,
             use_tm_testnet_setup=use_tm_testnet_setup,
+            image_author=image_author,
         )
     except (NotValidKeysFile, FileNotFoundError, FileExistsError) as e:
         shutil.rmtree(build_dir)
