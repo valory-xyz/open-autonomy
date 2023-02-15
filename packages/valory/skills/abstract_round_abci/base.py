@@ -475,6 +475,16 @@ class AbciAppDB:
     https://github.com/python/cpython/blob/3.10/Lib/copy.py#L182-L183
     """
 
+    # database keys which values are always set for the next period by default
+    default_cross_period_keys: FrozenSet[str] = frozenset(
+        {
+            "all_participants",
+            "participants",
+            "consensus_threshold",
+            "safe_contract_address",
+        }
+    )
+
     def __init__(
         self,
         setup_data: Dict[str, List[Any]],
@@ -491,15 +501,26 @@ class AbciAppDB:
         """
         AbciAppDB._check_data(setup_data)
         self._setup_data = deepcopy(setup_data)
-        self._cross_period_persisted_keys: Set[str] = (
-            cross_period_persisted_keys.copy()
-            if cross_period_persisted_keys is not None
-            else set()
-        )
         self._data: Dict[int, Dict[str, List[Any]]] = {
             RESET_COUNT_START: self.setup_data  # the key represents the reset index
         }
         self._round_count = ROUND_COUNT_DEFAULT  # ensures first round is indexed at 0!
+
+        self._cross_period_persisted_keys = self.default_cross_period_keys.union(
+            cross_period_persisted_keys or frozenset()
+        )
+        self._cross_period_check()
+
+    def _cross_period_check(self) -> None:
+        """Check the cross period keys against the setup data."""
+        not_in_cross_period = set(self._setup_data).difference(
+            self.cross_period_persisted_keys
+        )
+        if not_in_cross_period:
+            _logger.warning(
+                f"The setup data ({self._setup_data.keys()}) contain keys that are not in the "
+                f"cross period persisted keys ({self.cross_period_persisted_keys}): {not_in_cross_period}"
+            )
 
     @property
     def setup_data(self) -> Dict[str, Any]:
