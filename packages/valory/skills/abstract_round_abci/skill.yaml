@@ -8,8 +8,8 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeicjyrltgdmwzvctebhfteyyd5mbrjashiji4glwf5vwcijuyzzm24
-  abci_app_chain.py: bafybeif7wmjpchznyespmvq4jklixrpqbsf7xvkgvcyuahhlx4yjqpgfpm
-  base.py: bafybeih5t5s5chiagfxofh446p4qkvgye3nnukqzuw3knap5a7joqzrtdm
+  abci_app_chain.py: bafybeic6uzd7oywbnhoqrv5bitan2kw7sgfejgnmjbe5sobvckvk2qisvm
+  base.py: bafybeigbi4zm7p6y7krwokleo6uz76dabbdcmvaccz7qvmcmd647nx3ify
   behaviour_utils.py: bafybeidjivmoimulvgl2slidk7kbbc2ohl44ccjus2y42msyuutapynxba
   behaviours.py: bafybeicapzsvzowpjawkxgkhf2m4qb7c3alh5rsysrxp55o7pmjt6bu2g4
   common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
@@ -26,7 +26,7 @@ fingerprint:
   test_tools/base.py: bafybeib2ynevixrujorskv36x3ywlstimjlltybmtwfrslmec3dtjykteq
   test_tools/common.py: bafybeibxlx7es632kdoeivfrjahns3kknkxfmw4rj2dcxjwqm5j6vx25sq
   test_tools/integration.py: bafybeifqq3bx46hz2deph3usvrt7u45tpsapvocofd2zu3yh7rfl5nlmzq
-  test_tools/rounds.py: bafybeiea2bb4gljytm6ajw5h6d7meoplfcfxnflwlmargepwirwje3f3em
+  test_tools/rounds.py: bafybeie576yxtiramzt5czpt4hnv76gfetzio2t3k5kprhdhvbpfddbaem
   tests/__init__.py: bafybeiebss5rdfh7tdbw2qi3tjpf6cjgwuonowsw6bimyosfie2ngxhhzy
   tests/conftest.py: bafybeihcuoqqpn3pt2it3itzogss4xmy75inz3h2mqsmkmvjnguexfzjde
   tests/data/__init__.py: bafybeifmqjnrqgbau4tshhdtrosru7xyjky72ljlrf3ynrk76fxjcsgfpi
@@ -36,9 +36,9 @@ fingerprint:
   tests/data/dummy_abci/handlers.py: bafybeifik3ftljs63u7nm4gadxpqbcvqj53p7qftzzzfto3ioad57k3x3u
   tests/data/dummy_abci/models.py: bafybeiear3i45wbaylrkbnm2fbtqorxx56glul36piuah7m7jb56f5rpoq
   tests/data/dummy_abci/payloads.py: bafybeiczldqiumb7prcusb7l5vb575vschwyseyigpupvteldfyz7h6fyi
-  tests/data/dummy_abci/rounds.py: bafybeiboozilxd3wvcrrploums4bhzfrurhr43o66n6d32hnku57dgmb3i
-  tests/test_abci_app_chain.py: bafybeicitwtoglfhrzbnxfcxc4epwkd5ihqi7xbdqbocqt33hlpqohyeym
-  tests/test_base.py: bafybeifbbhxkqxc6o4gie4z7ux7foabbnuqmwn4pkxrqgrxz5lprbbnibe
+  tests/data/dummy_abci/rounds.py: bafybeihhheznpcntg4z5cdd7dysnivo2g4x5biv7blriyiyoouqp6xf5aq
+  tests/test_abci_app_chain.py: bafybeif6mf6cs22q7ynsigaz2smi5wqivqz4gjcnjjiyujt6b2qwtba7py
+  tests/test_base.py: bafybeiaqziyqclz4eie56gikai23cimvieldegwnmfcn4fsawig6fljmfa
   tests/test_base_rounds.py: bafybeiatnef47roakdc6g6wvz3wxppb4wdwu2vqoumakkdnz5ehfgzfjea
   tests/test_behaviours.py: bafybeid3yzt6o5ky5rfjvjpytpuad2oazsh3ei3mhvmchxuwplojgtwyiq
   tests/test_behaviours_utils.py: bafybeibcujp62w2cez7eodfjhd6rqvdvxuabny4ikexym2k2smdxujoeay
