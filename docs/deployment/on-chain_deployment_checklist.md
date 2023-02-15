@@ -203,6 +203,18 @@ Ensure that your components, agent and service packages are published to the IPF
 Ensure that your components, agent and service packages are registered in the on-chain protocol. You can [use the protocol front-end](../guides/register_packages_on_chain.md) or use the `autonomy mint` command.
 
 
+## Check the deployment readiness of the service using
+
+```
+$ autonomy analyse service PUBLIC_ID
+```
+
+or if you want to check deployment readiness of an on-chain service
+
+```
+$ autonomy analyse service PUBLIC_ID --token-id TOKEN_ID
+```
+
 ## Publish Docker images (optional)
 
 You can build the Docker images for the service using the `autonomy build-image` command. Alternatively, the images are built automatically when the service is deployed using `autonomy deploy from-token` command
