@@ -684,49 +684,26 @@ class TestAbciAppDB:
         ), "The database has been altered indirectly, by updating the item passed via the `update` method!"
 
     @pytest.mark.parametrize(
-        "setup_data, create_data, correct_data_format",
+        "setup_data, cross_period_persisted_keys",
         (
-            (dict(), {"dummy_key": "dummy_value"}, False),
-            (
-                dict(),
-                {"dummy_key": ["dummy_value1", "dummy_value2"]},
-                True,
-            ),
-            (
-                {"test": [["test"]]},
-                {"test": ["dummy_value1", "dummy_value2"]},
-                True,
-            ),
-            (
-                {"test": ["test"]},
-                {"test": ["dummy_value1", "dummy_value2"]},
-                True,
-            ),
+            (dict(), frozenset()),
+            ({"test": [["test"]]}, frozenset()),
+            ({"test": [["test"]]}, frozenset({"test"})),
+            ({"test": ["test"]}, frozenset({"test"})),
         ),
     )
     def test_create(
         self,
         setup_data: Dict,
-        create_data: Dict,
-        correct_data_format: bool,
+        cross_period_persisted_keys: FrozenSet[str],
     ) -> None:
         """Test `create` db."""
         db = AbciAppDB(setup_data)
-
-        if not correct_data_format:
-            with pytest.raises(
-                ValueError,
-                match=re.escape(
-                    f"AbciAppDB data must be `Dict[str, List[Any]]`, found `{type(create_data)}` instead."
-                ),
-            ):
-                db.create(**create_data)
-            return
-
-        db.create(**create_data)
+        db._cross_period_persisted_keys = cross_period_persisted_keys
+        db.create()
         assert db._data == {
             0: setup_data,
-            1: create_data,
+            1: setup_data if cross_period_persisted_keys else {},
         }, "`create` did not produce the expected result!"
 
         mutable_key = "mutable"
@@ -736,7 +713,7 @@ class TestAbciAppDB:
 
         create_data[mutable_key].append("new_value_attempt")
         assert (
-            db.get(mutable_key) == mutable_value[0]
+            db.get(mutable_key) == mutable_value
         ), "The database has been altered indirectly, by updating the item passed via the `create` method!"
 
     @pytest.mark.parametrize(
@@ -849,8 +826,9 @@ class TestAbciAppDB:
     ) -> None:
         """Test cleanup db."""
         db = AbciAppDB({})
+        db._cross_period_persisted_keys = frozenset()
         for _, data in existing_data.items():
-            db.create(**data)
+            db._create_from_keys(**data)
 
         db.cleanup(cleanup_history_depth, cleanup_history_depth_current)
         assert db._data == expected
@@ -942,11 +920,16 @@ class TestBaseSynchronizedData:
 
     def test_create(self) -> None:
         """Test the 'create' method."""
-        participants = ("a",)
-        actual = self.base_synchronized_data.create(participants=[participants])
+        self.base_synchronized_data.db._cross_period_persisted_keys = frozenset(
+            {"participants"}
+        )
+        assert self.base_synchronized_data.db._data == {
+            0: {"participants": [("a", "b")]}
+        }
+        actual = self.base_synchronized_data.create()
         assert actual.db._data == {
             0: {"participants": [("a", "b")]},
-            1: {"participants": [("a",)]},
+            1: {"participants": [("a", "b")]},
         }
 
     def test_repr(self) -> None:

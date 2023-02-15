@@ -40,6 +40,7 @@ from typing import (
     Dict,
     FrozenSet,
     Generic,
+    Iterable,
     List,
     Mapping,
     Optional,
@@ -594,6 +595,11 @@ class AbciAppDB:
                 "You may use `AbciAppDB.validate(your_data)` to validate your data for the `AbciAppDB`."
             )
 
+    @staticmethod
+    def deterministic(value: Iterable) -> Tuple:
+        """Converts an iterable to a sorted tuple."""
+        return tuple(sorted(value))
+
     def update(self, **kwargs: Any) -> None:
         """Update the current data."""
         self.validate(kwargs)
@@ -604,7 +610,25 @@ class AbciAppDB:
             data.setdefault(key, []).append(value)
 
     def create(self, **kwargs: Any) -> None:
-        """Add a new entry to the data."""
+        """Add a new entry to the data.
+
+        Passes automatically the values of the `cross_period_persisted_keys` to the next period.
+
+        :param kwargs: keyword arguments
+        """
+        for key in self.cross_period_persisted_keys:
+            if key in kwargs:
+                continue
+            value = self.get_latest()[key]
+            if isinstance(value, (set, frozenset)):
+                value = self.deterministic(value)
+            kwargs[key] = value
+        data = self.data_to_lists(kwargs)
+
+        self._create_from_keys(**data)
+
+    def _create_from_keys(self, **kwargs: Any) -> None:
+        """Add a new entry to the data using the provided key-value pairs."""
         AbciAppDB._check_data(kwargs)
         self._data[self.reset_index + 1] = deepcopy(kwargs)
 
@@ -845,10 +869,9 @@ class BaseSynchronizedData:
     def create(
         self,
         synchronized_data_class: Optional[Type] = None,
-        **kwargs: Any,
     ) -> "BaseSynchronizedData":
-        """Copy and update with new data."""
-        self.db.create(**kwargs)
+        """Copy and update with new data. Set values are stored as sorted tuples to the db for determinism."""
+        self.db.create()
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
         )

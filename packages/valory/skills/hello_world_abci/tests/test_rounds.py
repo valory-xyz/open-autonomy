@@ -269,11 +269,7 @@ class TestResetAndPauseRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_behaviour = self.synchronized_data.create(
-            participants=[tuple(self.synchronized_data.participants)],
-            all_participants=[tuple(self.synchronized_data.all_participants)],
-            consensus_threshold=[3],
-        )
+        actual_next_behaviour = self.synchronized_data.create()
 
         res = test_round.end_block()
         assert res is not None
