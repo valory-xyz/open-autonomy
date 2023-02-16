@@ -98,7 +98,7 @@ Local deployments of a service are recommended to test your service before you p
 
 The {{open_autonomy}} framework provides a convenient interface for services that are [registered in the on-chain protocol](./register_packages_on_chain.md##register-a-service).
 
-  1. **Find the service ID.** Explore the [services section](https://protocol.autonolas.network/agents) of the protocol frontend, and note the ID of the service that you want to deploy. The service must be in **Finished Registration** state.
+  1. **Find the service ID.** Explore the [services section](https://protocol.autonolas.network/agents) of the protocol frontend, and note the ID of the service that you want to deploy. The service must be in [Deployed state](https://docs.autonolas.network/protocol/life_cycle_of_a_service/#deployed).
 
   2. **Execute the service deployment.** Execute the following command
 
@@ -108,7 +108,7 @@ The {{open_autonomy}} framework provides a convenient interface for services tha
     where `keys.json` contains the addresses and keys of (some of) the registered agents in the service.
 
 !!! warning "Important"
-    When deploying a service registered on-chain, the framework automatically overrides a number of configuration arguments in the agent containers with the values registered in the on-chain protocol:
+    When deploying a service registered on-chain, the framework automatically overrides a number of configuration arguments (under `setup`) in the agent containers with the values registered in the on-chain protocol:
 
     === "skill.yaml"
 
@@ -121,8 +121,6 @@ The {{open_autonomy}} framework provides a convenient interface for services tha
             all_participants: # Overridden with the registered values
             safe_contract_address: # Overridden with the registered values
             consensus_threshold: # Overridden with the registered values
-          service_registry_address:  # Overridden with the registered values
-          on_chain_service_id: # Overridden with the registered values
     ```
 
 ## Cloud deployment
