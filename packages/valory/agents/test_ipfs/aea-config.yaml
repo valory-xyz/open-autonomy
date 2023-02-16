@@ -29,8 +29,8 @@ protocols:
 - valory/tendermint:0.1.0:bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54
 skills:
 - valory/abstract_abci:0.1.0:bafybeigutrz45w3mlyf7vpappygf4ri3oxkevcw7v2aex3afsrincirtjm
-- valory/abstract_round_abci:0.1.0:bafybeiegswtf47hos42fgklo6ovbfyrpm4fprxfuvkylom72cbwcjdq6ca
-- valory/test_ipfs_abci:0.1.0:bafybeieaki5xdxqx6ovpsnsf4rssclx3lloamzmmj4rxpbo5kbnclaaktu
+- valory/abstract_round_abci:0.1.0:bafybeid4unw5hg6wx3g2slrvvqk7hfqlhpxcdfacuiprfb45o7t3bguyra
+- valory/test_ipfs_abci:0.1.0:bafybeiavcpdfteh75ujejvrbcxi3gci6dvkx4jyywqvvpylo253sje6wsq
 default_ledger: ethereum
 required_ledgers:
 - ethereum

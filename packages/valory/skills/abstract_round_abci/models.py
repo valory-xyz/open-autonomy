@@ -314,7 +314,9 @@ class BaseParams(
                 {
                     get_name(BaseSynchronizedData.safe_contract_address): str,
                     get_name(BaseSynchronizedData.all_participants): List[str],
-                    get_name(BaseSynchronizedData.consensus_threshold): Optional[int],
+                    get_name(BaseSynchronizedData.consensus_threshold): cast(
+                        Type, Optional[int]
+                    ),
                 },
                 skill_id,
             )
