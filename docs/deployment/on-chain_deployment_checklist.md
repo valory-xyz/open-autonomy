@@ -190,7 +190,7 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
           (...)
     ```
 !!! warning "Important"
-    Recall that when [deploying an on-chain service](../guides/deploy_service.md#on-chain-deployment) using `autonomy deploy from-token`, a number of arguments are overridden with the values registered in the Autonolas Protocol:
+    Recall that when [deploying an on-chain service](../guides/deploy_service.md#on-chain-deployment) using `autonomy deploy from-token`, a number of arguments (under `setup`) are overridden with the values registered in the Autonolas Protocol:
     ```yaml
     (...)
     models:
@@ -200,8 +200,6 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
             all_participants: # Overridden with the registered values
             safe_contract_address: # Overridden with the registered values
             consensus_threshold: # Overridden with the registered values
-          service_registry_address:  # Overridden with the registered values
-          on_chain_service_id: # Overridden with the registered values
     ```
 
     For local deployments, the argument `consensus_threshold` can take the value:
