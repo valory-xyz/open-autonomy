@@ -610,15 +610,19 @@ class AbciAppDB:
 
         :param kwargs: keyword arguments
         """
-        for key in self.cross_period_persisted_keys:
-            if key in kwargs:
-                continue
-            value = self.get_latest()[key]
+        for key in self.cross_period_persisted_keys.union(kwargs.keys()):
+            value = kwargs.get(key, VALUE_NOT_PROVIDED)
+            if value is VALUE_NOT_PROVIDED:
+                value = self.get_latest().get(key, VALUE_NOT_PROVIDED)
+            if value is VALUE_NOT_PROVIDED:
+                raise ABCIAppInternalError(
+                    f"Cross period persisted key `{key}` was not found in the db but was required for the next period."
+                )
             if isinstance(value, (set, frozenset)):
                 value = tuple(sorted(value))
             kwargs[key] = value
-        data = self.data_to_lists(kwargs)
 
+        data = self.data_to_lists(kwargs)
         self._create_from_keys(**data)
 
     def _create_from_keys(self, **kwargs: Any) -> None:
