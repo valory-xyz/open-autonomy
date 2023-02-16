@@ -37,6 +37,7 @@ from aea.configurations.data_types import (
     ComponentType,
     PackageId,
     PackageType,
+    PublicId,
 )
 from aea.configurations.loader import load_configuration_object
 from aea.package_manager.v1 import PackageManagerV1
@@ -53,7 +54,9 @@ from autonomy.analyse.logs.base import (
 from autonomy.analyse.logs.collection import FromDirectory, LogCollection
 from autonomy.analyse.logs.db import AgentLogsDB
 from autonomy.analyse.service import ServiceAnalyser, ServiceValidationFailed
-from autonomy.chain.config import ChainType
+from autonomy.chain.config import ChainType, ContractConfigs
+from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
+from autonomy.chain.utils import resolve_component_id
 from autonomy.cli.helpers.chain import get_ledger_and_crypto_objects
 from autonomy.cli.utils.click_utils import sys_path_patch
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS, Service
@@ -251,9 +254,13 @@ def _get_content_from_ipfs(package_id: PackageId, file: str) -> bytes:
             f"{package_id.package_hash}/{package_id.name}/{file}"
         )
     except Exception as e:
+        message, *_ = e.args
+        if "merkledag: not found" in message:
+            message = "File does not exist on the IPFS registry"
+
         raise click.ClickException(
             "Fetching content from the IPFS registry failed"
-            f"\n\tPackage: {package_id}\n\tFile: {file}\n\tError: {e}"
+            f"\n\tPackage: {package_id}\n\tFile: {file}\n\tError: {message}"
         ) from e
 
 
@@ -349,39 +356,41 @@ def _get_ipfs_pins(is_on_chain_check: bool = False) -> Set[str]:
     return set()
 
 
-def _get_service_hash(service_id: PackageId, package_manager: PackageManagerV1) -> str:
-    """Iterate through the available packages and find the hash for the service"""
-
-    for package_id, package_hash in package_manager.dev_packages.items():
-        if (
-            package_id.package_type == PackageType.SERVICE
-            and package_id.public_id.to_any() == service_id.public_id.to_any()
-        ):
-            return package_hash
-
-    raise click.ClickException(
-        f"Service with public id `{service_id.public_id}` not found"
-    )
-
-
-def check_service_readiness(
+def check_service_readiness(  # pylint: disable=too-many-locals
     token_id: Optional[int],
-    service_id: PackageId,
+    public_id: Optional[PublicId],
     chain_type: ChainType,
     packages_dir: Path,
 ) -> None:
     """Check deployment readiness of a service."""
 
-    package_manager = PackageManagerV1.from_dir(packages_dir=packages_dir)
     is_on_chain_check = token_id is not None
+    ledger_api, _ = get_ledger_and_crypto_objects(chain_type=chain_type)
+    package_manager = PackageManagerV1.from_dir(packages_dir=packages_dir)
     ipfs_pins = _get_ipfs_pins(is_on_chain_check=is_on_chain_check)
 
-    service_id = service_id.with_hash(
-        package_hash=_get_service_hash(
-            service_id=service_id,
-            package_manager=package_manager,
-        )
-    )
+    if is_on_chain_check:
+        try:
+            service_info = resolve_component_id(
+                ledger_api=ledger_api,
+                contract_address=ContractConfigs.service_registry.contracts[chain_type],
+                token_id=cast(int, token_id),
+                is_service=True,
+            )
+            package_hash = cast(str, service_info["code_uri"]).replace("ipfs://", "")
+            public_id = PublicId.from_str(service_info["name"]).with_hash(
+                package_hash=package_hash
+            )
+            service_id = PackageId(
+                package_type=PackageType.SERVICE, public_id=public_id
+            )
+        except FailedToRetrieveComponentMetadata as e:
+            raise click.ClickException(
+                f"On chain service verification failed; {e}"
+            ) from e
+    else:
+        service_id = PackageId(package_type=PackageType.SERVICE, public_id=public_id)
+
     service_config = cast(
         Service,
         (
@@ -422,7 +431,6 @@ def check_service_readiness(
             service_config=service_config,
             is_on_chain_check=is_on_chain_check,
         )
-        ledger_api, _ = get_ledger_and_crypto_objects(chain_type=chain_type)
         service_analyser.check_on_chain_state(
             ledger_api=ledger_api,
             chain_type=chain_type,

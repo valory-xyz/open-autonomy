@@ -174,6 +174,43 @@ Ensure that handlers `http` and `signing` are defined in all the {{fsm_app}} ski
 autonomy analyse handlers -h http -h signing -i excluded_skill_1 -i excluded_skill_2
 ```
 
+## `autonomy analyse dialogues`
+
+Check dialogues definitions in a skill package.
+
+This command verifies that all the {{fsm_app}} skills in a local registry (except the explicitly excluded ones) have defined the specified dialogues.
+
+### Usage
+``` bash
+autonomy analyse dialogues [OPTIONS]
+```
+
+### Options
+`-d, --dialogue TEXT`
+:   Specify which dialogues to check. Eg. `-d dialogue_a`, `-d dialogue_b`, `-d dialogue_c`.
+
+`-i, --ignore SKILL_NAME`
+:   Specify which skills to skip. E.g., `-i skill_0`, `-i skill_1`, `-i skill_2`.
+
+`--help`
+:   Show the help message and exit.
+
+### Examples
+
+Ensure that dialogues `abci_dialogues` and `http_dialogues` are defined in all the {{fsm_app}} skills in a local registry, except the skills `excluded_skill_1` and `excluded_skill_2`:
+
+```bash
+autonomy analyse dialogues -d abci_dialogues -d http_dialogues -i excluded_skill_1 -i excluded_skill_2
+```
+
+Or
+
+```bash
+autonomy analyse dialogues -d abci -d http -i excluded_skill_1 -i excluded_skill_2
+```
+
+Since the command will automatically append the `_dialogues` postfix if not provided by the user.
+
 ## `autonomy analyse logs`
 Parse logs of an agent service.
 
@@ -273,4 +310,54 @@ To aggregate stats for `consensus` block type in the second period, execute:
 
 ```bash
     autonomy analyse benchmarks abci_build/persistent_data/benchmarks --period 2 --block-type consensus
+```
+
+## `autonomy analyse service`
+
+Analyse if the service is ready to be deployed or not.
+
+This tool can be used to analyse a service definition and see if there are any potential issues with configuration which can cause issues when running the deployment.
+
+Read the [guide on deployment readiness](../../deployment/on-chain_deployment_checklist.md) for more information.
+
+### Usage
+```bash
+autonomy analyse service [OPTIONS]
+```
+
+### Options
+
+`--token-id INTEGER`
+:  Token ID of the service
+
+`--public-id PUBLIC_ID_OR_HASH` 
+:   Public ID of the service
+
+`--use-ethereum`
+:  To use `ethereum` chain profile to interact with the contracts
+
+`--use-goerli`
+:  To use `goerli` chain profile to interact with the contracts
+
+`--use-custom-chain`
+:  To use `custom-chain` chain profile to interact with the contracts
+
+`--use-local`
+:  To use local chain profile to interact with the contracts
+
+`--help`
+:  Show the help message and exit.
+
+### Examples
+
+Analyse the service `valory/hello_world` using
+
+```bash
+autonomy analyse service --public-id valory/hello_world
+```
+
+Analyse an on-chain service with token ID `1` using
+
+```bash
+autonomy analyse service --token-id 1
 ```
