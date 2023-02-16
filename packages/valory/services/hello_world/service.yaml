@@ -7,43 +7,68 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
 fingerprint_ignore_patterns: []
-agent: valory/hello_world:0.1.0:bafybeihajr3rtkofmxx45cozagz5g3yizwydzio3vq4bo74num3zphpdm4
+agent: valory/hello_world:0.1.0:bafybeifcl3izwfurgxdbhf4n4mu2jv5vlj5vygw6bgjlcjj66wsxefc7ry
 number_of_agents: 4
 ---
 extra:
   benchmark_persistence_params:
-    args: &id001
+    args: &id002
       log_dir: /benchmarks
+  params_args:
+    args:
+      setup: &id001
+        all_participants:
+        - - '0x0000000000000000000000000000000000000000'
+        safe_contract_address:
+        - '0x0000000000000000000000000000000000000000'
+        consensus_threshold:
+        - null
 public_id: valory/hello_world_abci:0.1.0
 type: skill
 0:
   models:
     params:
       args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
+        service_registry_address: null
+        share_tm_config_on_startup: false
+        on_chain_service_id: null
+        setup: *id001
+        hello_world_message: ${HELLO_WORLD_STRING_0:str:HELLO_WORLD! (from Agent 0)}
     benchmark_tool:
-      args: *id001
+      args: *id002
 1:
   models:
     params:
       args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
+        service_registry_address: null
+        share_tm_config_on_startup: false
+        on_chain_service_id: null
+        setup: *id001
+        hello_world_message: ${HELLO_WORLD_STRING_1:str:HELLO_WORLD! (from Agent 1)}
     benchmark_tool:
-      args: *id001
+      args: *id002
 2:
   models:
     params:
       args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
+        service_registry_address: null
+        share_tm_config_on_startup: false
+        on_chain_service_id: null
+        setup: *id001
+        hello_world_message: ${HELLO_WORLD_STRING_2:str:HELLO_WORLD! (from Agent 2)}
     benchmark_tool:
-      args: *id001
+      args: *id002
 3:
   models:
     params:
       args:
-        hello_world_message: ${SERVICE_HELLO_WORLD_HELLO_WORLD_STRING:str:HELLO_WORLD!}
+        service_registry_address: null
+        share_tm_config_on_startup: false
+        on_chain_service_id: null
+        setup: *id001
+        hello_world_message: ${HELLO_WORLD_STRING_3:str:HELLO_WORLD! (from Agent 3)}
     benchmark_tool:
-      args: *id001
+      args: *id002
 ---
 public_id: valory/ledger:0.19.0
 type: connection
