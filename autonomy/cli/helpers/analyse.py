@@ -356,7 +356,7 @@ def _get_ipfs_pins(is_on_chain_check: bool = False) -> Set[str]:
     return set()
 
 
-def check_service_readiness(
+def check_service_readiness(  # pylint: disable=too-many-locals
     token_id: Optional[int],
     public_id: Optional[PublicId],
     chain_type: ChainType,
