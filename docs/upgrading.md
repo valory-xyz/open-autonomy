@@ -7,6 +7,14 @@ Below we describe the additional manual steps required to upgrade between differ
 
 ## `v0.7.0` to `v0.8.0`
 
+Breaking changes
+
+- The synchronized database is now `serializable` and `hashable`. This means that the data inserted into the database are now enforced to be primitive or non-primitive built-in types only, except for sets and `frozensets`. In essence, the data should be `json serializable`.
+- The usage of local tendermint chain is optional in the deployment setup, use `-ltm, --local-tm-setup` when building a deployment using `autonomy deploy build` command to include a local tendermint chain setup.
+- The `cross_period_keys` and database conditions needs to be defined as sets
+ 
+## `v0.7.0` to `v0.8.0`
+
 - Support for `--rpc` and `--sca` flags has been deprecated on `autonomy deploy from-token` command. Refer to the CLI documentation to understand how to use custom `RPC`.
 - The transaction payload classes needs to be defined using the data classes and needs to be immutable
 - `Transaction` is a data class

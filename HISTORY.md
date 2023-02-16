@@ -1,5 +1,54 @@
 # Release History - `open-autonomy`
 
+# 0.9.0 (2023-02-16)
+
+Autonomy:
+- Updates the on-chain interaction functionalities to wait for the relevant event to make sure the interaction was successful
+- Makes the usage of local tendermint chain optional in the deployment setup
+- Introduces `autonomy analyse dialogues` command for analysing the dialogue definitions in a skill package
+- Introduces `autonomy analyse service` command for checking the deployment readiness of a service
+- Introduces `autonomy analyse logs` command for analysing the agent runtime logs
+- Adds support for defining custom author name for docker images on the `autonomy build-image` command
+- Removes the usage of `MAX_PARTICIPANTS` environment variable from deployment setup
+- Adds support for updating the consensus threshold at the runtime using the on-chain metadata
+
+Packages:
+- Makes the synchronized database `serializable` and `hashable`
+- Backports the `makerDAO multicall2` contract from [`agent-academy-1`](https://github.com/valory-xyz/agent-academy-1) repository
+- Simplifies the way the initial height is set on resets. Now, the initial height will always be `0`
+- Removes the need for declaring the `payload_attribute` on the round class implementation
+- Updates the base rounds to simplify the usage when payloads have multiple attributes
+- Adds support for synchronizing the database on registration so that agents can rejoin at any point
+- Removes `reset_index` from `AbciApp` implementation
+- Adds restrictions on which agents can submit in late message round
+- Fixes overlapping blocks by setting unique chain Ids among the tendermint resets
+- Updates the rejoin mechanism to
+  - Restart tendermint whenever there's a connection drop, from the abci or otherwise
+  - Makes sure monitoring is performed even when tendermint is reset by the tendermint server
+  - Clean up `timeouts` and `last_timestamp` before trying to restore state received from peers
+  - Don't wait for the observation interval in cases when reset is performed for recovery
+  - Enables `ACN` communication for rejoining agents, by accepting `requests/responses` from `all_participants`
+- Removes consensus from the skills' configurations and replaces the `max_participants` with the length of the `all_participants` list
+- Updates the `BaseParams` implementation to enforce minimum values for `observation_interval`
+- Updates the `AbciAppDB` implementation to make sure `cross_period_keys` and the database conditions are defined as sets
+
+
+Tests:
+- Adds test coverage for registry contracts
+- Adds test for building and running the base autonomy image, the agent runtime image and the tendermint server image
+- Re-enables the `fuzzer` tests for the `valory/abci` connection on windows platform
+
+Docs:
+- Removes the usage of `max_participants` parameter
+- Rearranges the on-chain registration section to match with the autonolas protocol documentation
+- Adds a link to the `whitepaper`
+- Adds documentation on the deployment readiness checks for a service
+- Adds a guide on initializing an empty local packages repository 
+
+Chores:
+- Increases `CI` timeout for the tests from `70` minutes to `90` minutes
+- Bumps `tomte` to `v0.2.2`
+
 # 0.8.0 (2023-01-20)
 
 Autonomy:
