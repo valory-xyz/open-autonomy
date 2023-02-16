@@ -256,6 +256,7 @@ connections:
 - valory/abci:0.1.0:<ipfs_hash>
 - valory/http_client:0.23.0:<ipfs_hash>
 - valory/ipfs:0.1.0:<ipfs_hash>
+- valory/ledger:0.19.0:<ipfs_hash>
 - valory/p2p_libp2p_client:0.1.0:<ipfs_hash>
 contracts: []
 protocols:
