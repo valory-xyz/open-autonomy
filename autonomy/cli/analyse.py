@@ -27,7 +27,7 @@ from aea.cli.utils.click_utils import PublicIdParameter, reraise_as_click_except
 from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
 from aea.configurations.constants import PACKAGES
-from aea.configurations.data_types import PackageId, PackageType, PublicId
+from aea.configurations.data_types import PublicId
 
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
 from autonomy.analyse.handlers import check_handlers
@@ -408,22 +408,36 @@ def benchmark(path: Path, block_type: str, period: int, output: Path) -> None:
 @click.option(
     "--token-id",
     type=int,
-    help="Token ID of the service to check on-chain state of the service",
+    help="Token ID of the service",
 )
-@click.argument(
-    "service",
+@click.option(
+    "--public-id",
     type=PublicIdParameter(),
+    help="Public ID of the service",
 )
 @chain_selection_flag()
 @pass_ctx
 def _check_service(
-    ctx: Context, token_id: Optional[int], service: PublicId, chain_type: str
+    ctx: Context,
+    token_id: Optional[int],
+    public_id: Optional[PublicId],
+    chain_type: str,
 ) -> None:
     """Check deployment readiness of a service"""
 
+    if token_id is None and public_id is None:
+        raise click.ClickException(
+            "Please provide either the public ID or the on-chain token ID of of the service"
+        )
+
+    if token_id is not None and public_id is not None:
+        raise click.ClickException(
+            "Please provide either the public ID or the on-chain token ID of of the service, not both"
+        )
+
     check_service_readiness(
         token_id=token_id,
-        service_id=PackageId(package_type=PackageType.SERVICE, public_id=service),
+        public_id=public_id,
         chain_type=ChainType(chain_type),
         packages_dir=Path(ctx.registry_path),
     )
