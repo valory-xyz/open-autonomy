@@ -157,7 +157,6 @@ ABCI_SKILL_MODEL_PARAMS_SCHEMA = {
         "tendermint_max_retries",
         "tendermint_check_sleep_delay",
         "reset_tendermint_after",
-        "consensus",
         "cleanup_history_depth",
         "cleanup_history_depth_current",
         "request_timeout",
