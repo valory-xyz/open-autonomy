@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeievb7bhfm46p5adx3x4gvsynjpq35fcrrapzn5m2whcdt4ufxfvfq
   __init__.py: bafybeicjyrltgdmwzvctebhfteyyd5mbrjashiji4glwf5vwcijuyzzm24
   abci_app_chain.py: bafybeic6uzd7oywbnhoqrv5bitan2kw7sgfejgnmjbe5sobvckvk2qisvm
-  base.py: bafybeigbi4zm7p6y7krwokleo6uz76dabbdcmvaccz7qvmcmd647nx3ify
+  base.py: bafybeicvxqb73blnqgp343osiz5bzzn3o5o7nbzk45wkhipojl6t4zilgy
   behaviour_utils.py: bafybeidjivmoimulvgl2slidk7kbbc2ohl44ccjus2y42msyuutapynxba
   behaviours.py: bafybeicapzsvzowpjawkxgkhf2m4qb7c3alh5rsysrxp55o7pmjt6bu2g4
   common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
@@ -38,7 +38,7 @@ fingerprint:
   tests/data/dummy_abci/payloads.py: bafybeiczldqiumb7prcusb7l5vb575vschwyseyigpupvteldfyz7h6fyi
   tests/data/dummy_abci/rounds.py: bafybeihhheznpcntg4z5cdd7dysnivo2g4x5biv7blriyiyoouqp6xf5aq
   tests/test_abci_app_chain.py: bafybeif6mf6cs22q7ynsigaz2smi5wqivqz4gjcnjjiyujt6b2qwtba7py
-  tests/test_base.py: bafybeiaqziyqclz4eie56gikai23cimvieldegwnmfcn4fsawig6fljmfa
+  tests/test_base.py: bafybeiek357ciorty2flxg2l6omccgl55yoi3vonrmp5tssl6nx6y4urja
   tests/test_base_rounds.py: bafybeiatnef47roakdc6g6wvz3wxppb4wdwu2vqoumakkdnz5ehfgzfjea
   tests/test_behaviours.py: bafybeid3yzt6o5ky5rfjvjpytpuad2oazsh3ei3mhvmchxuwplojgtwyiq
   tests/test_behaviours_utils.py: bafybeibcujp62w2cez7eodfjhd6rqvdvxuabny4ikexym2k2smdxujoeay
@@ -60,7 +60,7 @@ fingerprint:
   utils.py: bafybeicckjeq5ubm25squfzevdwlwnios7enstmelc7tw4qpzcv2h7ysmq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeigq2xgfxp4ugwmw4oegtluxrduccu4c7br5zhwlpvjkzidxxs6nzm
+- valory/abci:0.1.0:bafybeifjjat37l634xykpkwenmvlurx4zvfhhrguxauqejepkqnikbh3hy
 - valory/http_client:0.23.0:bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi
 - valory/ipfs:0.1.0:bafybeia7kzgw4tmkl6k2vjbnss4egvhcf4fmt7cnmpjjjbjogz2bu2j3fu
 - valory/ledger:0.19.0:bafybeiavzloea5rtoxfdqjuexkqzpgbq73n4sl6af2vwa4bv2wd22qigyi
@@ -76,7 +76,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeih6hfzj2obw5oajnt6ng6355edgvi5ngoaub44vpuszqoplfvyaom
 - valory/tendermint:0.1.0:bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54
 skills:
-- valory/abstract_abci:0.1.0:bafybeigutrz45w3mlyf7vpappygf4ri3oxkevcw7v2aex3afsrincirtjm
+- valory/abstract_abci:0.1.0:bafybeievxom7ce63rs6bgnxu444on3k4nittwhbc24op44odq75fsah7ca
 behaviours:
   main:
     args: {}

@@ -704,17 +704,6 @@ Validate if the given data are json serializable and therefore can be accepted i
 
 - `ABCIAppInternalError`: If the data are not serializable.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.deterministic"></a>
-
-#### deterministic
-
-```python
-@staticmethod
-def deterministic(value: Iterable) -> Tuple
-```
-
-Converts an iterable to a sorted tuple.
-
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.update"></a>
 
 #### update
