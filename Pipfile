@@ -10,7 +10,7 @@ Flask = "==2.0.2"
 open-aea = {version = "==1.29.0", extras = ["all"]}
 open-aea-ledger-ethereum = "==1.29.0"
 open-aea-cli-ipfs = "==1.29.0"
-Werkzeug= "==2.0.3"
+Werkzeug= "==2.2.3"
 
 [dev-packages]
 ### package deps
