@@ -116,11 +116,9 @@ models:
       service_registry_address: null
       setup:
         all_participants:
-        - - '0x0000000000000000000000000000000000000000'
-        safe_contract_address:
         - '0x0000000000000000000000000000000000000000'
-        consensus_threshold:
-        - null
+        safe_contract_address: '0x0000000000000000000000000000000000000000'
+        consensus_threshold: null
       share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 3

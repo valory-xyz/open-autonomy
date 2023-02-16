@@ -312,11 +312,9 @@ class BaseParams(
             # and they should always contain at least `all_participants` and `safe_contract_address`
             self._ensure_setup(
                 {
-                    get_name(BaseSynchronizedData.safe_contract_address): List[str],
-                    get_name(BaseSynchronizedData.all_participants): List[List[str]],
-                    get_name(BaseSynchronizedData.consensus_threshold): List[
-                        Optional[int]
-                    ],
+                    get_name(BaseSynchronizedData.safe_contract_address): str,
+                    get_name(BaseSynchronizedData.all_participants): List[str],
+                    get_name(BaseSynchronizedData.consensus_threshold): Optional[int],
                 },
                 skill_id,
             )
@@ -329,11 +327,14 @@ class BaseParams(
         enforce(bool(self.setup_params), "`setup` params contain no values!")
 
         for key, type_ in necessary_params.items():
-            value = self.setup_params.get(key, None)
-            if value is None:
+            # check that the key is present, note that None is acceptable for optional keys
+            missing_value = object()
+            value = self.setup_params.get(key, missing_value)
+            if value is missing_value:
                 fail_msg = f"Value for `{key}` missing from the `setup` params."
                 enforce(False, fail_msg)
 
+            # check that the value is of the correct type
             try:
                 check_type(key, value, type_)
             except TypeError:  # pragma: nocover
@@ -437,7 +438,7 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
         self.round_sequence.setup(
             BaseSynchronizedData(
                 AbciAppDB(
-                    setup_data=setup_params,
+                    setup_data=AbciAppDB.data_to_lists(setup_params),
                     cross_period_persisted_keys=self.abci_app_cls.cross_period_persisted_keys,
                 )
             ),
