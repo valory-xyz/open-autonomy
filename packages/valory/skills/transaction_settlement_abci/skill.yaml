@@ -160,7 +160,7 @@ models:
     class_name: TendermintDialogues
 dependencies:
   open-aea-test-autonomy:
-    version: ==0.8.0
+    version: ==0.9.0
   web3:
     version: ==5.25.0
 is_abstract: true
