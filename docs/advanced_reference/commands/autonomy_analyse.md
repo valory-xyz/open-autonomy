@@ -322,12 +322,16 @@ Read the [guide on deployment readiness](../../deployment/on-chain_deployment_ch
 
 ### Usage
 ```bash
-autonomy analyse service [OPTIONS] PUBLIC_ID_OR_HASH
+autonomy analyse service [OPTIONS]
 ```
 
 ### Options
+
 `--token-id INTEGER`
-:  Token ID of the service to check on-chain state of the service
+:  Token ID of the service
+
+`--public-id PUBLIC_ID_OR_HASH` 
+:   Public ID of the service
 
 `--use-ethereum`
 :  To use `ethereum` chain profile to interact with the contracts
@@ -346,16 +350,14 @@ autonomy analyse service [OPTIONS] PUBLIC_ID_OR_HASH
 
 ### Examples
 
-The benchmark data will be stored in the folder `<service_folder>/abci_build/persistent_data/benchmarks`.
-
-To aggregate stats for all periods, execute:
+Analyse the service `valory/hello_world` using
 
 ```bash
-autonomy analyse benchmarks abci_build/persistent_data/benchmarks
+autonomy analyse service --public-id valory/hello_world
 ```
 
-To aggregate stats for `consensus` block type in the second period, execute:
+Analyse an on-chain service with token ID `1` using
 
 ```bash
-    autonomy analyse benchmarks abci_build/persistent_data/benchmarks --period 2 --block-type consensus
+autonomy analyse service --token-id 1
 ```

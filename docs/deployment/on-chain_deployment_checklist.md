@@ -206,13 +206,13 @@ Ensure that your components, agent and service packages are registered in the on
 ## Check the deployment readiness of the service using
 
 ```
-$ autonomy analyse service PUBLIC_ID
+$ autonomy analyse service --public-id PUBLIC_ID
 ```
 
 or if you want to check deployment readiness of an on-chain service
 
 ```
-$ autonomy analyse service PUBLIC_ID --token-id TOKEN_ID
+$ autonomy analyse service --token-id TOKEN_ID
 ```
 
 ## Publish Docker images (optional)
