@@ -684,6 +684,19 @@ class TestAbciAppDB:
         ), "The database has been altered indirectly, by updating the item passed via the `update` method!"
 
     @pytest.mark.parametrize(
+        "replacement_value, expected_replacement",
+        (
+            (132, 132),
+            ("test", "test"),
+            (set("132"), ("1", "2", "3")),
+            ({"132"}, ("132",)),
+            (frozenset("231"), ("1", "2", "3")),
+            (frozenset({"231"}), ("231",)),
+            (("1", "3", "2"), ("1", "3", "2")),
+            (["1", "5", "3"], ["1", "5", "3"]),
+        ),
+    )
+    @pytest.mark.parametrize(
         "setup_data, cross_period_persisted_keys",
         (
             (dict(), frozenset()),
@@ -694,6 +707,8 @@ class TestAbciAppDB:
     )
     def test_create(
         self,
+        replacement_value: Any,
+        expected_replacement: Any,
         setup_data: Dict,
         cross_period_persisted_keys: FrozenSet[str],
     ) -> None:
@@ -708,8 +723,23 @@ class TestAbciAppDB:
 
         mutable_key = "mutable"
         mutable_value = ["test"]
-        create_data = {mutable_key: mutable_value.copy()}
+        existing_key = "test"
+        create_data = {
+            mutable_key: mutable_value.copy(),
+            existing_key: replacement_value,
+        }
         db.create(**create_data)
+
+        assert db._data == {
+            0: setup_data,
+            1: setup_data if cross_period_persisted_keys else {},
+            2: db.data_to_lists(
+                {
+                    mutable_key: mutable_value.copy(),
+                    existing_key: expected_replacement,
+                }
+            ),
+        }, "`create` did not produce the expected result!"
 
         create_data[mutable_key].append("new_value_attempt")
         assert (
