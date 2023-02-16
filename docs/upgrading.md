@@ -10,8 +10,7 @@ Below we describe the additional manual steps required to upgrade between differ
 Breaking changes
 
 - the `max_participants` have been removed. 
-- the `consensus_threshold` should now be specified in the `setup` params. If `null`, then it is calculated automatically.
-
+- the `consensus_threshold` should now be specified in the `setup` parameters. If `null`, then it is calculated automatically.
 - The synchronized database is now `serializable` and `hashable`. This means that the data inserted into the database are now enforced to be primitive or non-primitive built-in types only, except for sets and `frozensets`. In essence, the data should be `json serializable`.
 - The usage of local tendermint chain is optional in the deployment setup, use `-ltm, --local-tm-setup` when building a deployment using `autonomy deploy build` command to include a local tendermint chain setup.
 - The `cross_period_keys` and database conditions needs to be defined as sets
