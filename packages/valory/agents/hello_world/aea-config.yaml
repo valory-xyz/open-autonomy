@@ -70,9 +70,9 @@ models:
   params:
     args:
       hello_world_message: ${str:HELLO_WORLD!}
-      service_registry_address: null
-      share_tm_config_on_startup: false
-      on_chain_service_id: null
+      service_registry_address: ${str:null}
+      share_tm_config_on_startup: ${bool:false}
+      on_chain_service_id: ${int:null}
       setup:
         all_participants: ${list:[]}
         safe_contract_address: ${list:[]}
