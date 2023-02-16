@@ -40,7 +40,6 @@ from typing import (
     Dict,
     FrozenSet,
     Generic,
-    Iterable,
     List,
     Mapping,
     Optional,
@@ -595,11 +594,6 @@ class AbciAppDB:
                 "You may use `AbciAppDB.validate(your_data)` to validate your data for the `AbciAppDB`."
             )
 
-    @staticmethod
-    def deterministic(value: Iterable) -> Tuple:
-        """Converts an iterable to a sorted tuple."""
-        return tuple(sorted(value))
-
     def update(self, **kwargs: Any) -> None:
         """Update the current data."""
         self.validate(kwargs)
@@ -621,7 +615,7 @@ class AbciAppDB:
                 continue
             value = self.get_latest()[key]
             if isinstance(value, (set, frozenset)):
-                value = self.deterministic(value)
+                value = tuple(sorted(value))
             kwargs[key] = value
         data = self.data_to_lists(kwargs)
 
