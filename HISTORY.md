@@ -28,7 +28,7 @@ Packages:
   - Clean up `timeouts` and `last_timestamp` before trying to restore state received from peers
   - Don't wait for the observation interval in cases when reset is performed for recovery
   - Enables `ACN` communication for rejoining agents, by accepting `requests/responses` from `all_participants`
-- Removes consensus from the skills' configurations and replaces the `max_participants` with the length of the `all_participants` list
+- Removes `consensus` parameter from the skills' configurations and replaces the `max_participants` with the length of the `all_participants` list
 - Updates the `BaseParams` implementation to enforce minimum values for `observation_interval`
 - Updates the `AbciAppDB` implementation to make sure `cross_period_keys` and the database conditions are defined as sets
 
@@ -36,11 +36,11 @@ Packages:
 Tests:
 - Adds test coverage for registry contracts
 - Adds test for building and running the base autonomy image, the agent runtime image and the tendermint server image
-- Re-enables the `fuzzer` tests for the `valory/abci` connection on windows platform
+- Re-enables the fuzzer tests for the `valory/abci` connection on windows platform
 
 Docs:
 - Removes the usage of `max_participants` parameter
-- Rearranges the on-chain registration section to match with the autonolas protocol documentation
+- Rearranges the on-chain registration section to match with the Autonolas protocol documentation
 - Adds a link to the `whitepaper`
 - Adds documentation on the deployment readiness checks for a service
 - Adds a guide on initializing an empty local packages repository 

@@ -9,12 +9,16 @@ Below we describe the additional manual steps required to upgrade between differ
 
 Breaking changes
 
-- the `max_participants` have been removed. 
-- the `consensus_threshold` should now be specified in the `setup` parameters. If `null`, then it is calculated automatically.
-- The synchronized database is now `serializable` and `hashable`. This means that the data inserted into the database are now enforced to be primitive or non-primitive built-in types only, except for sets and `frozensets`. In essence, the data should be `json serializable`.
-- The usage of local tendermint chain is optional in the deployment setup, use `-ltm, --local-tm-setup` when building a deployment using `autonomy deploy build` command to include a local tendermint chain setup.
-- The `cross_period_keys` and database conditions needs to be defined as sets
- 
+- On the skill configuration
+  - The `max_participants` parameter has been removed
+  - The `consensus_threshold` should now be specified in the `setup` parameters. If `null`, the recommended setting, then it is calculated automatically from the participants provided.
+- The synchronized database is now `serializable` and `hashable`. This means that the data inserted into the database are now enforced to be primitive or non-primitive built-in types only, except for `sets` and `frozensets` since an error is raised as they cannot be `serialized`/`hashed` and therefore cannot be inserted into the database. In essence, the data should be `json serializable`.
+- The usage of local Tendermint Consensus Gadget is optional in the deployment setup, use `-ltm, --local-tm-setup` when building a deployment using `autonomy deploy build` command to include a Tendermint Consensus Gadget setup.
+- The `cross_period_keys` and database conditions needs to be defined as sets, before they used be defined using a list
+- On the round class implementation
+  - `payload_attribute` attribute has been removed
+  - Usage of payloads with multiple attributes has been simplified since the user can now specify a tuple of keys in order to store all the data of a payload to the database.
+
 ## `v0.7.0` to `v0.8.0`
 
 - Support for `--rpc` and `--sca` flags has been deprecated on `autonomy deploy from-token` command. Refer to the CLI documentation to understand how to use custom `RPC`.
