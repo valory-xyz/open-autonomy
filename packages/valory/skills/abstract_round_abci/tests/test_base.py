@@ -746,6 +746,23 @@ class TestAbciAppDB:
             db.get(mutable_key) == mutable_value
         ), "The database has been altered indirectly, by updating the item passed via the `create` method!"
 
+    def test_create_key_not_in_db(self) -> None:
+        """Test the `create` method when a given or a cross-period key does not exist in the db."""
+        existing_key = "existing_key"
+        non_existing_key = "non_existing_key"
+
+        db = AbciAppDB({existing_key: ["test_value"]})
+        db._cross_period_persisted_keys = frozenset({non_existing_key})
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=f"Cross period persisted key `{non_existing_key}` "
+            "was not found in the db but was required for the next period.",
+        ):
+            db.create()
+
+        db._cross_period_persisted_keys = frozenset({existing_key})
+        db.create(**{non_existing_key: "test_value"})
+
     @pytest.mark.parametrize(
         "existing_data, cleanup_history_depth, cleanup_history_depth_current, expected",
         (
