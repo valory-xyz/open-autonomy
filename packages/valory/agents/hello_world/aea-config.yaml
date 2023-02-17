@@ -11,9 +11,10 @@ fingerprint:
   tests/test_hello_world.py: bafybeifd3wiuxd6bwixejgxig5omvutf3vfntidm7asqiwv2kbrtjidxbu
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeigq2xgfxp4ugwmw4oegtluxrduccu4c7br5zhwlpvjkzidxxs6nzm
+- valory/abci:0.1.0:bafybeihhidrulgjlrlvmk2c2ax7qmb47ywzjnjqv5gwp7fzzbcgplgaz5a
 - valory/http_client:0.23.0:bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi
 - valory/ipfs:0.1.0:bafybeia7kzgw4tmkl6k2vjbnss4egvhcf4fmt7cnmpjjjbjogz2bu2j3fu
+- valory/ledger:0.19.0:bafybeiavzloea5rtoxfdqjuexkqzpgbq73n4sl6af2vwa4bv2wd22qigyi
 - valory/p2p_libp2p_client:0.1.0:bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva
 contracts: []
 protocols:
@@ -22,9 +23,9 @@ protocols:
 - valory/http:1.0.0:bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty
 - valory/ipfs:0.1.0:bafybeihlgai5pbmkb6mjhvgy4gkql5uvpwvxbpdowczgz4ovxat6vajrq4
 skills:
-- valory/abstract_abci:0.1.0:bafybeigutrz45w3mlyf7vpappygf4ri3oxkevcw7v2aex3afsrincirtjm
-- valory/abstract_round_abci:0.1.0:bafybeiegswtf47hos42fgklo6ovbfyrpm4fprxfuvkylom72cbwcjdq6ca
-- valory/hello_world_abci:0.1.0:bafybeibtgdfm2ez7i4umjrzrhlz7hhanylafacakcjpcel3qdvqxjploqy
+- valory/abstract_abci:0.1.0:bafybeiheudaobfaj5lcrqvgwmdysq3za5yjrjtpdiuwhmw5c7lmbgglxti
+- valory/abstract_round_abci:0.1.0:bafybeiami2y2uwvtmjf76hl3jvfahujdir5docjby6erdyjl66ekoblesi
+- valory/hello_world_abci:0.1.0:bafybeiagih5lel6ccikc6d36r5mntzj374x6brxt4a62bqa23w7khorcte
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -57,15 +58,25 @@ dependencies:
   open-aea-ledger-ethereum:
     version: ==1.29.0
   open-aea-test-autonomy:
-    version: ==0.8.0
+    version: ==0.9.0
 default_connection: null
 ---
 public_id: valory/hello_world_abci:0.1.0
 type: skill
 models:
+  benchmark_tool:
+    args:
+      log_dir: ${str:/benchmarks}
   params:
     args:
-      hello_world_message: ${MY_HELLO_WORLD_MESSAGE:str:HELLO_WORLD!}
+      hello_world_message: ${str:HELLO_WORLD!}
+      service_registry_address: ${str:null}
+      share_tm_config_on_startup: ${bool:false}
+      on_chain_service_id: ${int:null}
+      setup:
+        all_participants: ${list:[]}
+        safe_contract_address: ${list:[]}
+        consensus_threshold: ${list:[null]}
       tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
       tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
 ---
@@ -76,6 +87,16 @@ config:
   host: ${ABCI_HOST:str:localhost}
   port: ${ABCI_PORT:int:26658}
   use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
+---
+public_id: valory/ledger:0.19.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS:str:http://localhost:8545}
+      chain_id: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_CHAIN_ID:int:31337}
+      poa_chain: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_POA_CHAIN:bool:false}
+      default_gas_price_strategy: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_DEFAULT_GAS_PRICE_STRATEGY:str:eip1559}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
