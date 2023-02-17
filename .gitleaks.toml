@@ -21,6 +21,7 @@ paths = [
     '''deployments/keys/ropsten_keys.json''',
     '''deployments/keys/cluster_ropsten_keys.json''',
     '''deployments/keys/hardhat_keys.json''',
+    '''tests/data/logs''',
     '''(^(.*)\/node_modules(.))''',
 ]
 
