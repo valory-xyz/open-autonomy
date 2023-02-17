@@ -31,7 +31,7 @@ from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
 LOGS_DIR = DATA_DIR / "logs"
-LOGS_DB = LOGS_DIR / LOGS_DB
+LOGS_DB_FILE = LOGS_DIR / LOGS_DB
 
 AVAILABLE_ROUNDS = (
     "registration_startup",
@@ -53,8 +53,8 @@ class BaseLogAnalyserTest(BaseCliTest):
     def teardown_class(cls) -> None:
         """Teardown class."""
 
-        if LOGS_DB.exists():
-            os.remove(LOGS_DB)
+        if LOGS_DB_FILE.exists():
+            os.remove(LOGS_DB_FILE)
 
 
 class TestAnalyseLogs(BaseLogAnalyserTest):
