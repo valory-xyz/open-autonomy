@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Analyse CLI module."""
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, cast
 from warnings import filterwarnings
@@ -31,6 +32,7 @@ from aea.configurations.data_types import PublicId
 
 from autonomy.analyse.benchmark.aggregate import BlockTypes, aggregate
 from autonomy.analyse.handlers import check_handlers
+from autonomy.analyse.logs.base import TIME_FORMAT
 from autonomy.chain.config import ChainType
 from autonomy.cli.helpers.analyse import (
     ParseLogs,
@@ -172,6 +174,8 @@ def docstrings(ctx: Context, update: bool) -> None:
     "logs_dir",
     type=click.Path(
         exists=True,
+        file_okay=False,
+        dir_okay=True,
     ),
     required=True,
     help="Path to logs directory",
@@ -191,12 +195,16 @@ def docstrings(ctx: Context, update: bool) -> None:
 )
 @click.option(
     "--start-time",
-    type=str,
+    type=click.DateTime(
+        formats=(TIME_FORMAT,),
+    ),
     help=f"Start time in `{TIME_FORMAT_TEMPLATE}` format",
 )
 @click.option(
     "--end-time",
-    type=str,
+    type=click.DateTime(
+        formats=(TIME_FORMAT,),
+    ),
     help=f"End time in `{TIME_FORMAT_TEMPLATE}` format",
 )
 @click.option(
@@ -247,8 +255,8 @@ def docstrings(ctx: Context, update: bool) -> None:
 def _parse_logs(  # pylint: disable=too-many-arguments
     logs_dir: Optional[Path],
     agents: List[str],
-    start_time: Optional[str],
-    end_time: Optional[str],
+    start_time: Optional[datetime],
+    end_time: Optional[datetime],
     log_level: Optional[str],
     period: Optional[int],
     round_name: Optional[str],
@@ -263,6 +271,8 @@ def _parse_logs(  # pylint: disable=too-many-arguments
     parser = ParseLogs()
     if logs_dir is not None:
         parser.from_dir(logs_dir=Path(logs_dir))
+        if parser.n_agents == 0:
+            raise click.ClickException(f"Cannot find agent log data in {logs_dir}")
 
     if len(agents) == 0:
         raise click.ClickException(
