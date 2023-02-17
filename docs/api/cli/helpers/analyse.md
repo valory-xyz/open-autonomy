@@ -144,7 +144,8 @@ Print table.
 #### check`_`service`_`readiness
 
 ```python
-def check_service_readiness(token_id: Optional[int], service_id: PackageId,
+def check_service_readiness(token_id: Optional[int],
+                            public_id: Optional[PublicId],
                             chain_type: ChainType, packages_dir: Path) -> None
 ```
 

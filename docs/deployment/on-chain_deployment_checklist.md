@@ -73,13 +73,13 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
 
       params:
         args:
-          consensus:
-            max_participants: 1
           setup:
             all_participants:
             - - '0x0000000000000000000000000000000000000000'
             safe_contract_address:
             - '0x0000000000000000000000000000000000000000'
+            consensus_threshold:
+            - null            
           tendermint_url: http://localhost:26657
           tendermint_com_url: http://localhost:8080
           service_registry_address: null
@@ -141,11 +141,10 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
 
       params:
         args:
-          consensus:
-            max_participants: ${int:4}
           setup:
             all_participants: ${list:[]}      
             safe_contract_address: ${list:[]}
+            consensus_threshold: ${int:null}
           tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
           tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
           service_registry_address: ${str:null}
@@ -179,11 +178,10 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
 
       params:
         args:
-          consensus:
-            max_participants:  ${MAX_PARTICIPANTS:int:4}
           setup:
             all_participants: ${ALL_PARTICIPANTS:list:['["0x...","0x...","0x...","0x..."]']}      
             safe_contract_address: ${SAFE_CONTRACT_ADDRESS:list:[0x...]}
+            consensus_threshold: ${CONSENSUS_THRESHOLD:int:null}
           tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
           tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
           service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:0x...}
@@ -191,6 +189,25 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
           on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
           (...)
     ```
+!!! warning "Important"
+    Recall that when [deploying an on-chain service](../guides/deploy_service.md#on-chain-deployment) using `autonomy deploy from-token`, a number of arguments (under `setup`) are overridden with the values registered in the Autonolas Protocol:
+    ```yaml
+    (...)
+    models:
+      params:
+        args:
+          setup:
+            all_participants: # Overridden with the registered values
+            safe_contract_address: # Overridden with the registered values
+            consensus_threshold: # Overridden with the registered values
+    ```
+
+    For local deployments, the argument `consensus_threshold` can take the value:
+
+    * `null`: then the framework will automatically calculate `consensus_threshold` as $\lceil (2N+1)/3 \rceil$, where $N=$`len(all_participants)`.
+    * Any value $M$ such that $\lceil (2N+1)/3 \rceil \leq M \leq N$.
+    
+    Otherwise, the framework will raise an error and the app will not start. 
 
 ## Publish and mint packages
 
@@ -200,8 +217,20 @@ Ensure that your components, agent and service packages are published to the IPF
 * [Publish your agents](../guides/publish_fetch_packages.md#publish-an-agent-on-a-registry) using the `autonomy publish` command.
 * [Publish your services](../guides/publish_fetch_packages.md#publish-a-service-on-a-registry) using the `autonomy publish` command.
 
-Ensure that your components, agent and service packages are registered in the on-chain protocol. You can [use the protocol front-end](../guides/register_packages_on_chain.md) or use the `autonomy mint` command.
+Ensure that your components, agents and service packages are [registered in the Autonolas Protocol](../guides/register_packages_on_chain.md).
 
+
+## Check the deployment readiness of the service using
+
+```
+$ autonomy analyse service --public-id PUBLIC_ID
+```
+
+or if you want to check deployment readiness of an on-chain service
+
+```
+$ autonomy analyse service --token-id TOKEN_ID
+```
 
 ## Publish Docker images (optional)
 
