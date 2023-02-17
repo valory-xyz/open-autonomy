@@ -226,3 +226,18 @@ class TestAnalyseLogs(BaseLogAnalyserTest):
                 for _round in AVAILABLE_ROUNDS
             ]
         )
+
+    def test_empty_logs_dir(self) -> None:
+        """Test print agent options."""
+
+        result = self.run_cli(
+            commands=(
+                "--from-dir",
+                str(LOGS_DIR.parent),
+                "-a",
+                "aea_0",
+                "--fsm",
+            )
+        )
+        assert result.exit_code == 1, result.stdout
+        assert "Cannot find agent log data in" in result.output
