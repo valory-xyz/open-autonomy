@@ -25,7 +25,7 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
 
 2. Use the CLI to download the `valory/counter` service.
     ```bash
-    autonomy fetch valory/counter:0.1.0:bafybeiamhvx4q72rfkppyxny6umspor3hf6fltikeotx2him6s2reyzo5m --remote --service
+    autonomy fetch valory/counter:0.1.0:bafybeievnoyqkj4gvafx26om3enbjumzdx7va5wbd6qjvqdb4axt4s5w7a --remote --service
     cd counter
     ```
 

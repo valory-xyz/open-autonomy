@@ -103,11 +103,11 @@ class ROUNDS:
         transition_function: AbciAppTransitionFunction = {transition_function}
         final_states: Set[AppState] = {final_states}
         event_to_timeout: EventToTimeout = {{}}
-        cross_period_persisted_keys: List[str] = []
-        db_pre_conditions: Dict[AppState, List[str]] = {{
+        cross_period_persisted_keys: Set[str] = []
+        db_pre_conditions: Dict[AppState, Set[str]] = {{
             {db_pre_conditions}
         }}
-        db_post_conditions: Dict[AppState, List[str]] = {{
+        db_post_conditions: Dict[AppState, Set[str]] = {{
             {db_post_conditions}
         }}
     """

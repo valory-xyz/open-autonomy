@@ -28,7 +28,6 @@ from typing import Deque, Dict, List, Mapping, Optional, Set, Tuple, cast
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciApp,
-    AbciAppDB,
     AbciAppTransitionFunction,
     AppState,
     BaseSynchronizedData,
@@ -40,6 +39,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     DegenerateRound,
     OnlyKeeperSendsRound,
     TransactionNotValidError,
+    VALUE_NOT_PROVIDED,
     VotingRound,
     get_name,
 )
@@ -597,12 +597,36 @@ class ResetRound(CollectSameUntilThresholdRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            latest_data = self.synchronized_data.db.get_latest()
-            synchronized_data = self.synchronized_data.create(
-                synchronized_data_class=self.synchronized_data_class,
-                **AbciAppDB.data_to_lists(latest_data),
+            synchronized_data = cast(SynchronizedData, self.synchronized_data)
+            # we could have used the `synchronized_data.create()` here and set the `cross_period_persisted_keys`
+            # with the corresponding properties' keys. However, the cross period keys would get passed over
+            # for all the following periods, even those that the tx settlement succeeds.
+            # Therefore, we need to manually call the db's create method and pass the keys we want to keep only
+            # for the next period, which comes after a `NO_MAJORITY` event of the tx settlement skill.
+            # TODO investigate the following:
+            # This probably indicates an issue with the logic of this skill. We should not increase the period since
+            # we have a failure. We could instead just remove the `ResetRound` and transition to the
+            # `RandomnessTransactionSubmissionRound` directly. This would save us one round, would allow us to remove
+            # this hacky logic for the `create`, and would also not increase the period count in non-successful events
+            self.synchronized_data.db.create(
+                **{
+                    db_key: synchronized_data.db.get(db_key, default)
+                    for db_key, default in {
+                        "all_participants": VALUE_NOT_PROVIDED,
+                        "participants": VALUE_NOT_PROVIDED,
+                        "consensus_threshold": VALUE_NOT_PROVIDED,
+                        "safe_contract_address": VALUE_NOT_PROVIDED,
+                        "tx_hashes_history": "",
+                        "keepers": VALUE_NOT_PROVIDED,
+                        "missed_messages": dict.fromkeys(
+                            synchronized_data.all_participants, 0
+                        ),
+                        "late_arriving_tx_hashes": VALUE_NOT_PROVIDED,
+                        "suspects": tuple(),
+                    }.items()
+                }
             )
-            return synchronized_data, Event.DONE
+            return self.synchronized_data, Event.DONE
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
         ):

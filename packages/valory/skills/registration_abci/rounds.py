@@ -64,7 +64,7 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
         self.synchronized_data.db.sync(self.common_payload)
 
         synchronized_data = self.synchronized_data.update(
-            participants=tuple(self.collection),
+            participants=tuple(sorted(self.collection)),
             synchronized_data_class=self.synchronized_data_class,
         )
 
@@ -99,7 +99,7 @@ class RegistrationRound(CollectSameUntilThresholdRound):
             self.synchronized_data.db.sync(self.most_voted_payload)
 
             synchronized_data = self.synchronized_data.update(
-                participants=tuple(self.collection),
+                participants=tuple(sorted(self.collection)),
                 synchronized_data_class=self.synchronized_data_class,
             )
             return synchronized_data, Event.DONE
@@ -159,7 +159,5 @@ class AgentRegistrationAbciApp(AbciApp[Event]):
     db_post_conditions: Dict[AppState, Set[str]] = {
         FinishedRegistrationRound: {
             get_name(BaseSynchronizedData.participants),
-            get_name(BaseSynchronizedData.all_participants),
-            get_name(BaseSynchronizedData.consensus_threshold),
         },
     }

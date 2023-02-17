@@ -590,8 +590,9 @@ https://github.com/python/cpython/blob/3.10/Lib/copy.py#L182-L183
 #### `__`init`__`
 
 ```python
-def __init__(setup_data: Dict[str, List[Any]],
-             cross_period_persisted_keys: Optional[Set[str]] = None) -> None
+def __init__(
+        setup_data: Dict[str, List[Any]],
+        cross_period_persisted_keys: Optional[FrozenSet[str]] = None) -> None
 ```
 
 Initialize the AbciApp database.
@@ -659,7 +660,7 @@ Set the round count.
 
 ```python
 @property
-def cross_period_persisted_keys() -> Set[str]
+def cross_period_persisted_keys() -> FrozenSet[str]
 ```
 
 Keys in the database which are persistent across periods.
@@ -722,6 +723,12 @@ def create(**kwargs: Any) -> None
 ```
 
 Add a new entry to the data.
+
+Passes automatically the values of the `cross_period_persisted_keys` to the next period.
+
+**Arguments**:
+
+- `kwargs`: keyword arguments
 
 <a id="packages.valory.skills.abstract_round_abci.base.AbciAppDB.get_latest_from_reset_index"></a>
 
@@ -995,11 +1002,12 @@ Copy and update the current data.
 #### create
 
 ```python
-def create(synchronized_data_class: Optional[Type] = None,
-           **kwargs: Any) -> "BaseSynchronizedData"
+def create(
+        synchronized_data_class: Optional[Type] = None
+) -> "BaseSynchronizedData"
 ```
 
-Copy and update with new data.
+Copy and update with new data. Set values are stored as sorted tuples to the db for determinism.
 
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.__repr__"></a>
 

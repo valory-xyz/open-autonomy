@@ -106,6 +106,7 @@ ABCI_SKILL_SCHEMA = {
                                     "required": [
                                         "safe_contract_address",
                                         "all_participants",
+                                        "consensus_threshold",
                                     ],
                                 }
                             },
@@ -138,6 +139,7 @@ ABCI_SKILL_MODEL_PARAMS_SCHEMA = {
             "required": [
                 "safe_contract_address",
                 "all_participants",
+                "consensus_threshold",
             ],
         }
     },
@@ -157,7 +159,6 @@ ABCI_SKILL_MODEL_PARAMS_SCHEMA = {
         "tendermint_max_retries",
         "tendermint_check_sleep_delay",
         "reset_tendermint_after",
-        "consensus",
         "cleanup_history_depth",
         "cleanup_history_depth_current",
         "request_timeout",
@@ -330,9 +331,13 @@ class ServiceAnalyser:
         ]
         skill_config_to_check = {
             "models": {
-                "params": {"args": skill_config.json["models"]["params"]["args"]}
+                "params": {"args": skill_config.json["models"]["params"]["args"]},
             }
         }
+        if "benchmark_tool" in skill_config.json["models"]:
+            skill_config_to_check["models"]["benchmark_tool"] = {
+                "args": skill_config.json["models"]["benchmark_tool"]["args"]
+            }
 
         for override in self.service_config.overrides:
             (
