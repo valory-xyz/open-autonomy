@@ -720,7 +720,7 @@ class AbciAppDB:
         data = self.serialize()
         sha256.update(data.encode("utf-8"))
         hash_ = sha256.digest()
-        _logger.debug(f"root hash: {hash_.hex()}; data: {self.serialize()}")
+        _logger.debug(f"root hash: {hash_.hex()}; data: {data}")
         return hash_
 
     @staticmethod

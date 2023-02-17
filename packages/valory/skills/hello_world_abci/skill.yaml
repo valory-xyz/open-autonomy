@@ -27,7 +27,7 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicmfrgoepzl5j65kp4ni25kwu6n6y4lqb2trplpcfqsofv2rz34be
+- valory/abstract_round_abci:0.1.0:bafybeihtp3acivh4z6dlhxbknpjd4ljadxl6jydu44j5dtpgpi6kkcpjt4
 behaviours:
   main:
     args: {}
@@ -112,11 +112,9 @@ models:
       service_registry_address: null
       setup:
         all_participants:
-        - - '0x0000000000000000000000000000000000000000'
-        safe_contract_address:
         - '0x0000000000000000000000000000000000000000'
-        consensus_threshold:
-        - null
+        safe_contract_address: '0x0000000000000000000000000000000000000000'
+        consensus_threshold: null
       share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 3
