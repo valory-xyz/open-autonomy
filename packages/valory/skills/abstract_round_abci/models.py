@@ -51,6 +51,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     ROUND_COUNT_DEFAULT,
     RoundSequence,
+    VALUE_NOT_PROVIDED,
     get_name,
 )
 from packages.valory.skills.abstract_round_abci.utils import (
@@ -330,9 +331,8 @@ class BaseParams(
 
         for key, type_ in necessary_params.items():
             # check that the key is present, note that None is acceptable for optional keys
-            missing_value = object()
-            value = self.setup_params.get(key, missing_value)
-            if value is missing_value:
+            value = self.setup_params.get(key, VALUE_NOT_PROVIDED)
+            if value is VALUE_NOT_PROVIDED:
                 fail_msg = f"Value for `{key}` missing from the `setup` params."
                 enforce(False, fail_msg)
 
