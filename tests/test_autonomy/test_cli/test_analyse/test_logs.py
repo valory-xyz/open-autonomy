@@ -20,6 +20,7 @@
 
 """Tests for the `autonomy analyse logs` command"""
 
+import contextlib
 import os
 from typing import Tuple
 
@@ -28,7 +29,6 @@ from autonomy.deploy.constants import WARNING
 
 from tests.conftest import DATA_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
-import contextlib
 
 
 LOGS_DIR = DATA_DIR / "logs"

@@ -19,11 +19,13 @@
 
 """Tools for testing docker images"""
 
+import contextlib
 import json
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import docker
+from docker.errors import APIError
 from docker.models.containers import Container
 
 
@@ -83,5 +85,6 @@ class BaseImageBuildTest:
         """Teardown test."""
 
         for container in self.running_containers:
-            container.kill()
-            container.wait(timeout=30)
+            with contextlib.suppress(APIError):
+                container.kill()
+                container.wait(timeout=30)
