@@ -28,6 +28,7 @@ from autonomy.deploy.constants import WARNING
 
 from tests.conftest import DATA_DIR
 from tests.test_autonomy.test_cli.base import BaseCliTest
+import contextlib
 
 
 LOGS_DIR = DATA_DIR / "logs"
@@ -53,8 +54,9 @@ class BaseLogAnalyserTest(BaseCliTest):
     def teardown_class(cls) -> None:
         """Teardown class."""
 
-        if LOGS_DB_FILE.exists():
-            os.remove(LOGS_DB_FILE)
+        with contextlib.suppress(PermissionError):
+            if LOGS_DB_FILE.exists():
+                os.remove(LOGS_DB_FILE)
 
 
 class TestAnalyseLogs(BaseLogAnalyserTest):
