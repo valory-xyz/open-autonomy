@@ -24,6 +24,7 @@
 import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from itertools import chain
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -130,7 +131,14 @@ def check_file(
 
 def main() -> None:  # pylint: disable=too-many-locals
     """Check for broken or HTTP links"""
-    all_md_files = [str(p.relative_to(".")) for p in Path("docs").rglob("*.md")]
+    all_md_files = [
+        str(p.relative_to("."))
+        for p in chain(
+            Path("docs").rglob("*.md"),
+            Path("packages").rglob("*.md"),
+            Path(".").glob("*.md"),
+        )
+    ]
 
     broken_links: Dict[str, Dict] = {}
     http_links: Dict[str, List[str]] = {}

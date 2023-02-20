@@ -50,7 +50,7 @@ smart contracts provide, making it possible to execute **arbitrarily complex ope
 
 ## Get started developing agent services
 
-Read the [Open Autonomy documentation](https://docs.autonolas.network/) to learn more about agent services. Follow the [set up](https://docs.autonolas.network/guides/set_up/) and [quick start](https://docs.autonolas.network/guides/quick_start/) guides to start building your own services.
+Read the [Open Autonomy documentation](https://docs.autonolas.network/open-autonomy/) to learn more about agent services. Follow the [set up](https://docs.autonolas.network/open-autonomy/guides/set_up/) and [quick start](https://docs.autonolas.network/open-autonomy/guides/quick_start/) guides to start building your own services.
 
 
 ## For developers contributing to the framework: install from source
@@ -58,7 +58,7 @@ Read the [Open Autonomy documentation](https://docs.autonolas.network/) to learn
 - Ensure your machine satisfies the following requirements:
 
     - Python `>= 3.7`
-    - [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
+    - [Tendermint](https://docs.tendermint.com/v0.34/introduction/install.html) `==0.34.19`
     - [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `==v0.6.0`
     - [Pip](https://pip.pypa.io/en/stable/installation/)
     - [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
