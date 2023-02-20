@@ -21,9 +21,10 @@
 
 import json
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import docker
+from docker.models.containers import Container
 
 
 class BaseImageBuildTest:
@@ -34,11 +35,17 @@ class BaseImageBuildTest:
     tag: str
     agent: str
 
+    running_containers: List[Container]
+
     @classmethod
     def setup_class(cls) -> None:
         """Setup class."""
 
         cls.client = docker.from_env()
+
+    def setup(self) -> None:
+        """Setup test."""
+        self.running_containers = []
 
     def build_image(
         self,
@@ -71,3 +78,10 @@ class BaseImageBuildTest:
                     output += stream_data["status"]
 
         return True, output
+
+    def teardown(self) -> None:
+        """Teardown test."""
+
+        for container in self.running_containers:
+            container.kill()
+            container.wait(timeout=30)

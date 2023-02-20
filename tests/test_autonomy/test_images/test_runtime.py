@@ -119,6 +119,8 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
             ),
         )
 
+        self.running_containers += [tm_container, agent_container]
+
         def _check_for_outputs() -> bool:
             """Check for required outputs."""
             return (
@@ -136,12 +138,6 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
         except TimeoutError:
             successful = False
 
-        tm_container.kill()
-        tm_container.wait(timeout=5)
-
-        agent_container.kill()
-        agent_container.wait(timeout=5)
-
         assert (
             successful
-        ), f"Agent runtime failed with {agent_container.logs().decode()}"
+        ), f"Agent runtime failed with error: {agent_container.logs().decode()}"
