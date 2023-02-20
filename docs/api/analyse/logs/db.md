@@ -90,17 +90,6 @@ def create(reset: bool = False) -> "AgentLogsDB"
 
 Create agent table
 
-<a id="autonomy.analyse.logs.db.AgentLogsDB.insert_one"></a>
-
-#### insert`_`one
-
-```python
-def insert_one(timestamp: datetime, log_level: str, message: str, period: int,
-               round_name: str, behaviour_name: str) -> "AgentLogsDB"
-```
-
-Insert a record
-
 <a id="autonomy.analyse.logs.db.AgentLogsDB.insert_many"></a>
 
 #### insert`_`many

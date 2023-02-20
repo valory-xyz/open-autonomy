@@ -147,24 +147,6 @@ class AgentLogsDB:
 
         return self
 
-    def insert_one(  # pylint: disable=too-many-arguments
-        self,
-        timestamp: datetime,
-        log_level: str,
-        message: str,
-        period: int,
-        round_name: str,
-        behaviour_name: str,
-    ) -> "AgentLogsDB":
-        """Insert a record"""
-        self.cursor.execute(
-            QUERY_INSERT_LOG,
-            (timestamp, log_level, message, period, round_name, behaviour_name),
-        )
-        self._db.commit()
-
-        return self
-
     def insert_many(
         self,
         logs: Iterator[LogRow],

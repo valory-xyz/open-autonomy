@@ -23,7 +23,7 @@ import re
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple, Union, cast
+from typing import Dict, List, Optional, Set, Tuple, cast
 
 import click
 from aea.components.base import load_aea_package
@@ -49,7 +49,6 @@ from autonomy.analyse.logs.base import (
     EXIT_ROUND_REGEX,
     LOGS_DB,
     LogRow,
-    TIME_FORMAT,
 )
 from autonomy.analyse.logs.collection import FromDirectory, LogCollection
 from autonomy.analyse.logs.db import AgentLogsDB
@@ -126,6 +125,12 @@ class ParseLogs:
 
         return self._collection.agents
 
+    @property
+    def n_agents(self) -> int:
+        """Available agents."""
+
+        return self._collection.n_agents
+
     def from_dir(self, logs_dir: Path) -> "ParseLogs":
         """From directory"""
 
@@ -157,20 +162,14 @@ class ParseLogs:
     def select(  # pylint: disable=too-many-arguments
         self,
         agents: List[str],
-        start_time: Optional[Union[str, datetime]],
-        end_time: Optional[Union[str, datetime]],
+        start_time: Optional[datetime],
+        end_time: Optional[datetime],
         log_level: Optional[str],
         period: Optional[int],
         round_name: Optional[str],
         behaviour_name: Optional[str],
     ) -> "ParseLogs":
         """Query and return results."""
-
-        if start_time is not None:
-            start_time = datetime.strptime(cast(str, start_time), TIME_FORMAT)
-
-        if end_time is not None:
-            end_time = datetime.strptime(cast(str, end_time), TIME_FORMAT)
 
         results = {}
         for agent in agents:
