@@ -1,6 +1,8 @@
 The {{open_autonomy}} framework comes with *dev mode* tooling to enable faster service developing and debugging. The dev mode supports running agent services with a number of functionalities enabled:
 
-* **Hot reload,** which enables hot code swapping and reflects changes on the agent code as well as on the local `open-aea` repository without rebuilding or restarting the containers manually.
+* **Hot reload** which enables hot code swapping and reflects changes on the agent code as well as on the local `open-aea` repository without rebuilding or restarting the containers manually.
+* **Hardhat Instance** which can be used as a chain to run the service against.
+* **ACN Instance** which can be used to test various agent communication functionalities, for example establishing the tendermint network at the startup.
 * **Execution replay** of a previous agent in the service.
 * **Benchmark** the performance of an agent service.
 
@@ -8,12 +10,6 @@ The {{open_autonomy}} framework comes with *dev mode* tooling to enable faster s
 Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](../../guides/set_up.md). As a result you should have a Pipenv workspace folder.
 
 ## Build and run an agent service in dev mode
-
-This example is based on the Price Oracle service. The service requires a local Hardhat node. Open a dedicated terminal and run:
-
-```bash
-docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
-```
 
 Execute the next steps in a separate terminal.
 
@@ -79,6 +75,7 @@ Execute the next steps in a separate terminal.
 
     This will create a deployment environment in dev mode within the `./abci_build` folder.
 
+
 5. **Run the service.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
 
     ```bash
@@ -93,3 +90,45 @@ Execute the next steps in a separate terminal.
 Once the agents are running, you can make changes to the agent's code as well as the local {{open_aea_repository}}, and it will trigger the service restart.
 
 The trigger is caused by any Python file closing in either the `open-autonomy/packages` or the `open-aea/` directory. So even if you haven't made any change and still want to restart the service, just open any Python file press `Ctrl+S` or save it from the file menu and it will trigger the restart.
+
+
+## Hardhat instance
+
+By default the deployment setup only include the agent nodes and the tendermint nodes, but if you want to use a local hardhat deployment as a chain for the ledger connection, you can do so by using the `--use-hardhat` flag. This will include a hardhat node as part of the deployment setup. The node will be deployed using the `hardhat` as container name, so you will have to modify your service overrides for the ledger connection and set the ledger address to `http://hardhat:8545` to use this instance or export it as the enviroment variable for the ledger address parameter.
+
+```yaml
+---
+public_id: valory/ledger:0.1.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: ${LEDGER_RPC:str:http://localhost:8545}
+```
+
+Here update the `address` parameter to be `http://hardhat:8545` or export it as `LEDGER_RPC` enviroment variable.
+
+If the `valory/open-autonomy-hardhat` image does not include the contracts required for your service, you can also use images with custom contracts included. Refer [here](../use_custom_images.md) to understand how to use images with custom contracts.
+
+## ACN instance
+
+You can include an ACN for agent communication using the `--use-acn` flag. This will include an ACN node as part of the deployment setup. The node will be deployed using the `acn` as container name, so you will have to modify your service overrides for the `p2p_libp2p_client` connection as following
+
+```yaml
+---
+public_id: valory/p2p_libp2p_client:0.1.0
+type: connection
+config:
+  nodes:
+  - uri: acn:11000
+    public_key: 03c74dbfbe7bbc1b42429f78778017a3cd7eaf9d59d1634c9505a3f7c1a9350e71
+cert_requests:
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2024-01-01'
+  not_before: '2023-01-01'
+  public_key: 03c74dbfbe7bbc1b42429f78778017a3cd7eaf9d59d1634c9505a3f7c1a9350e71
+  save_path: .certs/acn_cosmos_11000.txt
+is_abstract: false
+```

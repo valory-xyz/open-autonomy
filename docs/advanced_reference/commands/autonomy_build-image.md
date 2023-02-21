@@ -2,11 +2,19 @@ Builds the agent image for a service.
 
 The command must be executed within the service directory. That is, a directory containing the service configuration file (`service.yaml`). Labels for images generated using this command will follow the format `valory/oar-<PUBLIC_ID>`.
 
-To build an image for a specific agent without fetching a service, run
+To build an image for a specific agent without fetching a service navigate to the service directory, and run
+
 ```bash
-autonomy build-image PUBLIC_ID_OR_HASH
+autonomy build-image
 ```
-where `PUBLIC_ID_OR_HASH` refers to the agent public ID or hash as stored in a local or remote repository.
+
+Or if you want to build an image for a specific agent package, run
+
+```bash
+autonomy build-image PUBLIC_ID
+```
+
+where `PUBLIC_ID` refers to the agent public ID (with hash included).
 
 ## Usage
 
@@ -26,6 +34,11 @@ autonomy build-image [OPTIONS] [PUBLIC_ID_OR_HASH]
 :   Specify tag version for the image.
 
 ```
+--image-author TEXT  
+```
+:   Specify author name for docker image.
+
+```
 --dev
 ```
 :   Build development image.
@@ -43,8 +56,54 @@ autonomy build-image [OPTIONS] [PUBLIC_ID_OR_HASH]
 
 ## Examples
 
+### To build a runtime image, run
+
 ```bash
-autonomy build-image --service-dir /my_service
+$ cd /my_service
+$ autonomy build-image
 ```
 
-Builds the agent images for the service located in the directory `my_service`.
+or
+
+```bash
+$ autonomy build-image --service-dir /my_service
+```
+
+Builds the agent images for the service located in the directory `my_service`. 
+
+### To build a runtime image using a public ID
+
+```bash
+$ autonomy build-image <author>/<agent_package>:<package_hash>
+```
+
+**Note** The runtime images are build by fetching the packages from the IFPS registry, so before running the command make sure you have all of the required packages published on the IPFS registry.
+
+### To build a runtime image with a custom tag
+
+```bash
+$ autonomy build-image <author>/<agent_package>:<package_hash> --version <version>
+```
+
+This will tag the image using the `<version>` string rather than the `<package_hash>`, Ie `<author>/oar-<agent_package>:<version>`
+
+### Use custom author name for tagging the image
+
+By default the command will use the author name from the local CLI config stored in `~/.aea` to tag the image. The user can override this using the `--image-author` flag.
+
+```bash
+$ autonomy build-image <author>/<agent_package>:<package_hash> --image-author <custom_author>
+```
+
+This will tag the image using as `<custom_author>/oar-<agent_package>:<package_hash>`
+
+### To build a developement image
+
+When running the service in the development mode you will require the development image, it can be built using 
+
+```bash
+$ cd /my_service
+$ autonomy build-image --dev
+```
+
+This will tag the image as `<author>/oar-<agent_package>:dev`.
