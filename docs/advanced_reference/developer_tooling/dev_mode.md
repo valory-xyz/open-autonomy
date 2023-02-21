@@ -94,7 +94,7 @@ The trigger is caused by any Python file closing in either the `open-autonomy/pa
 
 ## Hardhat instance
 
-By default the deployment setup only include the agent nodes and the tendermint nodes, but if you want to use a local hardhat deployment as a chain for the ledger connection, you can do so by using the `--use-hardhat` flag. This will include a hardhat node as part of the deployment setup. The node will be deployed using the `hardhat` as container name, so you will have to modify your service overrides for the ledger connection and set the ledger address to `http://hardhat:8545` to use this instance or export it as the enviroment variable for the ledger address parameter.
+By default the deployment setup only include the agent nodes and the tendermint nodes, but if you want to use a local hardhat deployment as a chain for the ledger connection, you can do so by using the `--use-hardhat` flag. This will include a hardhat node as part of the deployment setup. The node will be deployed using the `hardhat` as container name, so you will have to modify your service overrides for the ledger connection and set the ledger address to `http://hardhat:8545` to use this instance or export it as the environment variable for the ledger address parameter.
 
 ```yaml
 ---
@@ -106,7 +106,7 @@ config:
       address: ${LEDGER_RPC:str:http://localhost:8545}
 ```
 
-Here update the `address` parameter to be `http://hardhat:8545` or export it as `LEDGER_RPC` enviroment variable.
+Here update the `address` parameter to be `http://hardhat:8545` or export it as `LEDGER_RPC` environment variable.
 
 If the `valory/open-autonomy-hardhat` image does not include the contracts required for your service, you can also use images with custom contracts included. Refer [here](../use_custom_images.md) to understand how to use images with custom contracts.
 

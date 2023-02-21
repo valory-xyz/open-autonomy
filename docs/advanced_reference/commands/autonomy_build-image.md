@@ -85,7 +85,7 @@ $ autonomy build-image <author>/<agent_package>:<package_hash>
 $ autonomy build-image <author>/<agent_package>:<package_hash> --version <version>
 ```
 
-This will tag the image using the `<version>` string rather than the `<package_hash>`, Ie `<author>/oar-<agent_package>:<version>`
+This will tag the image using the `<version>` string rather than the `<package_hash>`, which would be `<author>/oar-<agent_package>:<version>` in this case
 
 ### Use custom author name for tagging the image
 
@@ -97,7 +97,7 @@ $ autonomy build-image <author>/<agent_package>:<package_hash> --image-author <c
 
 This will tag the image using as `<custom_author>/oar-<agent_package>:<package_hash>`
 
-### To build a developement image
+### To build a development image
 
 When running the service in the development mode you will require the development image, it can be built using 
 
