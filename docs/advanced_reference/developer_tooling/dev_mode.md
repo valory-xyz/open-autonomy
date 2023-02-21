@@ -1,8 +1,8 @@
 The {{open_autonomy}} framework comes with *dev mode* tooling to enable faster service developing and debugging. The dev mode supports running agent services with a number of functionalities enabled:
 
 * **Hot reload** which enables hot code swapping and reflects changes on the agent code as well as on the local `open-aea` repository without rebuilding or restarting the containers manually.
-* **Hardhat Instance** which can be used as a chain to run the service against.
-* **ACN Instance** which can be used to test various agent communication functionalities, for example establishing the tendermint network at the startup.
+* **Hardhat Instance** which enables the inclusion of a pre-configured Hardhat Instance image in the deployment, which can be used as a test blockchain.
+* **ACN Instance** which enables inclusion of a pre-configured ACN Instance image, which can be used to test various agent communication functionalities, for example establishing the tendermint network at the startup.
 * **Execution replay** of a previous agent in the service.
 * **Benchmark** the performance of an agent service.
 
