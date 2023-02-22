@@ -1,4 +1,4 @@
-The {{open_autonomy}} framework comes with *`dev` mode* tooling to enable faster service developing and debugging. The `dev` mode supports running agent services with a number of functionalities enabled:
+The {{open_autonomy}} framework comes with *developer mode* (`dev` mode) tooling to enable faster service developing and debugging. The `dev` mode supports running agent services with a number of functionalities enabled:
 
 * **Hot reload**, which enables hot code swapping and reflects changes on the agent code as well as on the local `open-aea` repository without rebuilding or restarting the containers manually.
 * **Hardhat Instance**, which enables the inclusion of a pre-configured Hardhat Instance image in the deployment, which can be used as a test blockchain.

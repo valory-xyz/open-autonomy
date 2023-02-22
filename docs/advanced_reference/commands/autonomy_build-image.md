@@ -24,13 +24,13 @@ autonomy build-image [OPTIONS] [PUBLIC_ID]
 :   Path to the service directory.
 
 `--version TEXT`
-:   Version (tag) for the image.
+:   Version tag for the image.
 
 `--image-author TEXT`
 :   Author name for the image.
 
 `--dev`
-:   Build the agent image in [`dev` mode](../developer_tooling/dev_mode.md).
+:   Build the agent image for the [`dev` mode](../developer_tooling/dev_mode.md).
 
 `--pull`
 :   Pull the latest dependencies when building the image.
@@ -40,7 +40,7 @@ autonomy build-image [OPTIONS] [PUBLIC_ID]
 
 ## Examples
 
-* Build the agent image for a service located in the folder `your_service`, which should contain the service configuration file `service.yaml`:
+* Build the runtime image for a service located in the folder `your_service`:
 
     ```bash
     autonomy build-image --service-dir /your_service
@@ -53,13 +53,13 @@ autonomy build-image [OPTIONS] [PUBLIC_ID]
     autonomy build-image
     ```
 
-* Build the agent image for a specific service without fetching it:
+* Build the agent image for a specific service without fetching the service package:
 
     ```bash
-    autonomy build-image <agent_package>:<package_hash>
+    autonomy build-image <author>/<agent_package>:<package_hash>
     ```
 
-    where `<agent_package>:<package_hash>` is the `PUBLIC_ID` of the agent.
+    where `<author>/<package_name>:<package_hash>` is the `PUBLIC_ID` of the agent.
 
 * Build an agent image with a custom version tag:
 
@@ -77,7 +77,7 @@ autonomy build-image [OPTIONS] [PUBLIC_ID]
 
     This will tag the image as `<custom_author>/oar-<agent_package>:<package_hash>`.
 
-* Build an image to be used in [`dev` mode](../developer_tooling/dev_mode.md):
+* Build the runtime image for the  [`dev` mode](../developer_tooling/dev_mode.md):
 
     ```bash
     autonomy build-image --service-dir /your_service --dev
