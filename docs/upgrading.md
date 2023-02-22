@@ -10,7 +10,7 @@ Below we describe the additional manual steps required to upgrade between differ
 Breaking changes
 
 - On the skill configuration
-  - The `max_participants` parameter has been removed
+  - The `max_participants` parameter has been removed. If the `consensus` configuration is empty after removing `max_participants`, it should be removed as well.
   - The `consensus_threshold` should now be specified in the `setup` parameters. If `null`, the recommended setting, then it is calculated automatically from the participants provided.
 - The synchronized database is now `serializable` and `hashable`. This means that the data inserted into the database are now enforced to be primitive or non-primitive built-in types only, except for `sets` and `frozensets` since an error is raised as they cannot be `serialized`/`hashed` and therefore cannot be inserted into the database. In essence, the data should be `json serializable`.
 - The usage of local Tendermint Consensus Gadget is optional in the deployment setup, use `-ltm, --local-tm-setup` when building a deployment using `autonomy deploy build` command to include a Tendermint Consensus Gadget setup.
@@ -18,6 +18,7 @@ Breaking changes
 - On the round class implementation
   - `payload_attribute` attribute has been removed
   - Usage of payloads with multiple attributes has been simplified since the user can now specify a tuple of keys in order to store all the data of a payload to the database.
+- Round selection_key is now a tuple for multiple-attribute payloads.
 
 ## `v0.7.0` to `v0.8.0`
 
@@ -62,7 +63,7 @@ No backwards incompatible changes
 One backwards incompatible change
 ## Service component
 
-- This release introduces a new format for defining multiple overrides for an agent on a service configuration. Please follow this [guide](https://github.com/valory-xyz/open-autonomy/blob/main/docs/guides/service_configuration_file.md) to update your service configurations accordingly. 
+- This release introduces a new format for defining multiple overrides for an agent on a service configuration. Please follow this [guide](https://github.com/valory-xyz/open-autonomy/blob/main/docs/guides/service_configuration_file.md) to update your service configurations accordingly.
 
 ## `v0.3.5` to `v0.4.0`
 
@@ -82,7 +83,7 @@ Multiple backwards incompatible changes
   - Input format for common handlers and skip skills options has been updated
     - Old format - `--common abci,http,contract_api,ledger_api,signing --skip abstract_abci,counter,counter_client,hello_world_abci`
     - New format `-h abci -h http -h contract_api -h ledger_api -h signing -i abstract_abci -i counter -i counter_client -i hello_world_abci`
-  
+
 - `autonomy analyse abci docstrings` has been moved to `autonomy analyse docstrings`
   - `--check` flag has been deprecated and the command will perform the check by default
   - `--update` flag has been introduced to update the docstring if necessary
