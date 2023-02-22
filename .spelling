@@ -403,3 +403,4 @@ create_fsm_app.md
  - docs/advanced_reference/commands/autonomy_scaffold.md
 my_fsm_app_skill
 fuzzer
+selection_key
