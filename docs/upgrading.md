@@ -18,7 +18,7 @@ Breaking changes
 - On the round class implementation
   - `payload_attribute` attribute has been removed
   - Usage of payloads with multiple attributes has been simplified since the user can now specify a tuple of keys in order to store all the data of a payload to the database.
-- Round selection_key is now a tuple for multiple-attribute payloads.
+- Round `selection_key` is now a tuple for multiple-attribute payloads.
 
 ## `v0.7.0` to `v0.8.0`
 
