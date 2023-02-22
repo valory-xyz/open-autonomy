@@ -1,27 +1,44 @@
-The current deployment setup uses 5 docker images.
+The {{open_autonomy}} framework uses up to 6 different Docker images when building a service deployment with the command `autonomy deploy build`. Some of these images are for testing purposes and they are only included if indicated explicitly.
 
-1. `valory/open-autonomy` 
-   
-    This image contains all the required python packages and a virtual environment required to deploy an agent. When building a deployment, the deployment builder will use `valory/open-autonomy` as the name and the current version of the framework as the version tag. If you want to change that you can change the name and the version of the image using `AUTONOMY_IMAGE_NAME` and `AUTONOMY_IMAGE_VERSION` environment variables respectively.
-   
-2. `valory/oar-{agent}` 
-    
-    This image contains an agent package and a deployment environment for the same agent. This image uses the open `valory/open-autonomy` image as the base. You cannot change the name of the image but you can overwrite the version tag using the `--image-version` flag when building the deployment.
+## Images used in production and testing
 
-3. `valory/open-autonomy-tendermint`
-   
-    This image contains the deployment setup for a `tendermint` node. When building a deployment, the deployment builder will use `valory/open-autonomy-tendermint` as the name and the current version of the framework as the version tag. If you want to change that you can change the name and the version of the image using `TENDERMINT_IMAGE_NAME` and `TENDERMINT_IMAGE_VERSION` environment variables respectively.
+`valory/open-autonomy`
 
-4. `valory/open-autonomy-hardhat`
-   
-   This images contains a pre-configured hardhat node which can be used for testing the services locally and running end to end tests for the agent packages.
+: Base image that contains all the required Python packages and a virtual environment required to deploy an agent. The deployment builder will use `valory/open-autonomy` as the name and the current version of the framework as the version tag. You can change the name and the version tag of the image by exporting the environment variables `AUTONOMY_IMAGE_NAME` and `AUTONOMY_IMAGE_VERSION`, respectively.
 
-5. `valory/autonolas-registries` 
-   
-    This image comes with the Autonolas registry contracts pre deployed. This image should only be used when working with the `dev` mode. When building a deployment, the deployment builder will use `valory/open-autonomy-hardhat` as the name and `latest` as the version tag. You can export the `HARDHAT_IMAGE_NAME` and `HARDHAT_IMAGE_VERSION` environment variables to change it to `valory/autonolas-registries:latest`.
+`valory/oar-<author>/<agent_package>:<package_hash>`
 
-    If you want to include custom contracts in this image read [here](https://github.com/valory-xyz/autonolas-registries/blob/main/docs/running_with_custom_contracts.md) on how to do it.
+: This image extends the base image `valory/open-autonomy`. It contains the agent package for a service and a deployment environment for the same agent. This image is built through the `autonomy build-image` command.
 
-6. `valory/open-acn-node` 
-   
-    This image contains the deployment setup for an `ACN` node which can be used for direct agent to agent communication. This image should only be used when working with the `dev` mode. When building a deployment, the deployment builder will use `valory/open-acn-node` as the name and `latest` as the version tag. If you want to change that you can change the name and the version of the image using `ACN_IMAGE_NAME` and `ACN_IMAGE_VERSION` environment variables respectively.
+`valory/open-autonomy-tendermint`
+
+: Defines a Tendermint node in the deployment setup. The deployment builder will use `valory/open-autonomy-tendermint` as the name and the current version of the framework as the version tag. You can change the name and the version tag of the image by exporting the environment variables `TENDERMINT_IMAGE_NAME` and `TENDERMINT_IMAGE_VERSION`, respectively.
+
+## Images used in testing only
+
+`valory/open-autonomy-hardhat`
+
+: Base image that contains a pre-configured Hardhat node which can be used as a test blockchain for testing services locally and running end-to-end tests for the agent packages.
+
+`valory/autonolas-registries`
+
+: This image extends the base image `valory/open-autonomy-hardhat`.
+It comes with the Autonolas Protocol registry contracts pre-deployed. The deployment builder will use `valory/open-autonomy-hardhat` as the name and `latest` as the version tag. You can change the name and the version tag of the image by exporting the environment variables  `HARDHAT_IMAGE_NAME` and `HARDHAT_IMAGE_VERSION`, respectively, to `valory/autonolas-registries:latest`.
+
+    !!! warning "Important"
+
+        This image is only included if explicitly indicated through the flag `--use-hardhat` when building the service deployment (`autonomy deploy build` command).
+
+        This image should only be used when working with the `dev` mode.
+
+    If you require specific custom contracts to test your service, read the [guide to include custom contracts](https://github.com/valory-xyz/autonolas-registries/blob/main/docs/running_with_custom_contracts.md).
+
+`valory/open-acn-node`
+
+: Defines an `ACN` node in the deployment setup, which can be used for direct agent to agent communication. The deployment builder will use `valory/open-acn-node` as the name and `latest` as the version tag. You can change the name and the version tag of the image by exporting the environment variables `ACN_IMAGE_NAME` and `ACN_IMAGE_VERSION`, respectively.
+
+    !!! warning "Important"
+
+        This image is only included if explicitly indicated through the flag `--use-hardhat` when building the service deployment (`autonomy deploy build` command).
+
+        This image should only be used when working with the `dev` mode.

@@ -24,7 +24,7 @@ autonomy build-image [OPTIONS] [PUBLIC_ID]
 :   Path to the service directory.
 
 `--version TEXT`
-:   Tag version for the image.
+:   Version (tag) for the image.
 
 `--image-author TEXT`
 :   Author name for the image.

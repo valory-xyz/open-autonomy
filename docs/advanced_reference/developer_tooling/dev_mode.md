@@ -88,7 +88,7 @@ The trigger is caused by any Python file closing in either the `open-autonomy/pa
 
 ## Hardhat instance
 
-By default the command that builds the deployment (`autonomy deploy build`) only includes the agent nodes and the Tendermint nodes. If you want to include a local Hardhat node as a test blockchain for the ledger connection, you can do so by using the `--use-hardhat` flag in that command.
+By default the command that builds the service deployment (`autonomy deploy build`) only includes the agent nodes and the Tendermint nodes. If you want to include a local Hardhat node as a test blockchain for the ledger connection, you can do so by using the `--use-hardhat` flag in that command.
 
 The deployment setup will include a Hardhat node (image `valory/open-autonomy-hardhat`) using `hardhat` as container name. Therefore, in order to use this node, you must set a [service-level override](../../guides/service_configuration_file.md#service-level-overrides) so that the `valory/ledger` connection address is set to `http://hardhat:8545`.
 You can achieve this by editing the service configuration file `service.yaml` as follows:
@@ -121,7 +121,7 @@ config:
 export LEDGER_RPC = http://hardhat:8545
 ```
 
-If the Hardhat image does not include the contracts required by your service, follow the guide to use [images with custom contracts](../use_custom_images.md).
+If you require specific custom contracts to test your service, read the [guide to include custom contracts](https://github.com/valory-xyz/autonolas-registries/blob/main/docs/running_with_custom_contracts.md).
 
 ## ACN instance
 
