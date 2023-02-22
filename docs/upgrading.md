@@ -5,6 +5,10 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `v0.9.0` to `v0.9.1`
+
+No backwards incompatible changes
+
 ## `v0.8.0` to `v0.9.0`
 
 Breaking changes

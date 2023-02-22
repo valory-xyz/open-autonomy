@@ -1,5 +1,19 @@
 # Release History - `open-autonomy`
 
+# 0.9.1 (2023-02-22)
+
+Autonomy:
+- Updates the `docker-compose` template to enable the usage of `host.docker.internal` as host machine gateway
+
+Tests:
+- Adds test coverage for newly introduced commands on `autonomy analyse` group
+
+Docs:
+- Updates the documentation on the usage of custom images in agent deployments.
+
+Chore:
+- Updates the `tomte` version in the `Pipfile`
+
 # 0.9.0 (2023-02-16)
 
 Autonomy:
