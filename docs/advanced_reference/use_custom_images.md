@@ -6,6 +6,7 @@ The {{open_autonomy}} framework uses up to 6 different Docker images when buildi
 
 : Base image that contains all the required Python packages and a virtual environment required to deploy an agent. The deployment builder will use `valory/open-autonomy` as the name and the current version of the framework as the version tag. You can change the name and the version tag of the image by exporting the environment variables `AUTONOMY_IMAGE_NAME` and `AUTONOMY_IMAGE_VERSION`, respectively.
 
+
 `valory/oar-<author>/<agent_package>:<package_hash>`
 
 : This image extends the base image `valory/open-autonomy`. It contains the agent package for a service and a deployment environment for the same agent. This image is built through the `autonomy build-image` command.
