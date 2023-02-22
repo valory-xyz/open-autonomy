@@ -62,4 +62,4 @@ def some_method(some_arg: Type) -> ReturnType:
 
 ### Agent development
 
-You can find several general recommendations in the **Considerations to Develop FSM Apps** section in our documentation [here](https://docs.autonolas.network/fsm_app_introduction/).
+You can find several general recommendations in the **Considerations to Develop FSM Apps** section in our documentation [here](https://docs.autonolas.network/open-autonomy/key_concepts/fsm_app_introduction/).
