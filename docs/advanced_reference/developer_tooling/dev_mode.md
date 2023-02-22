@@ -88,9 +88,26 @@ The trigger is caused by any Python file closing in either the `open-autonomy/pa
 
 ## Hardhat instance
 
-By default the deployment setup only includes the agent nodes and the Tendermint nodes. If you want to use a local Hardhat instance as a test blockchain for the ledger connection, you can do so by using the `--use-hardhat` flag. This will include a Hardhat node as part of the deployment setup. The node will be deployed using the `hardhat` as container name, so you will have to modify your service overrides for the ledger connection and set the ledger address to `http://hardhat:8545` to use this instance or export it as the environment variable for the ledger address parameter.
+By default the command that builds the deployment (`autonomy deploy build`) only includes the agent nodes and the Tendermint nodes. If you want to include a local Hardhat node as a test blockchain for the ledger connection, you can do so by using the `--use-hardhat` flag in that command.
+
+The deployment setup will include a Hardhat node (image `valory/open-autonomy-hardhat`) using `hardhat` as container name. Therefore, in order to use this node, you must set a [service-level override](../../guides/service_configuration_file.md#service-level-overrides) so that the `valory/ledger` connection address is set to `http://hardhat:8545`.
+You can achieve this by editing the service configuration file `service.yaml` as follows:
 
 ```yaml
+(...)
+---
+public_id: valory/ledger:0.1.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: ${LEDGER_RPC:str:http://hardhat:8545}
+```
+
+Alternatively, you can leave the default `service.yaml` and export an environment variable:
+
+```yaml
+(...)
 ---
 public_id: valory/ledger:0.1.0
 type: connection
@@ -100,13 +117,18 @@ config:
       address: ${LEDGER_RPC:str:http://localhost:8545}
 ```
 
-Here update the `address` parameter to be `http://hardhat:8545` or export it as `LEDGER_RPC` environment variable.
+```bash
+export LEDGER_RPC = http://hardhat:8545
+```
 
-If the `valory/open-autonomy-hardhat` image does not include the contracts required for your service, you can also use images with custom contracts included. Refer [here](../use_custom_images.md) to understand how to use images with custom contracts.
+If the Hardhat image does not include the contracts required by your service, follow the guide to use [images with custom contracts](../use_custom_images.md).
 
 ## ACN instance
 
-You can include an ACN for agent communication using the `--use-acn` flag. This will include an ACN node as part of the deployment setup. The node will be deployed using the `acn` as container name, so you will have to modify your service overrides for the `p2p_libp2p_client` connection as following
+You can also include an ACN node for agent communication using the `--use-acn` flag in `autonomy deploy build`.
+
+The deployment setup will include an ACN node (image `valory/open-acn-node`) using `acn` as container name. Similarly as above, in order to use this node you must set a [service-level override](../../guides/service_configuration_file.md#service-level-overrides) so that the `valory/p2p_libp2p_client` connection parameters are set to the appropriate values.
+You can achieve this by editing the service configuration file `service.yaml` as follows:
 
 ```yaml
 (...)
