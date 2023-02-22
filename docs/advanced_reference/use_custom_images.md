@@ -14,7 +14,7 @@ The current deployment setup uses 5 docker images.
 
 4. `valory/open-autonomy-hardhat`
    
-   This images contains a pre-configured hardhat node which can be used for testing the services locally and running end to end tests for the agent packages.
+    This images contains a pre-configured hardhat node which can be used for testing the services locally and running end to end tests for the agent packages.
 
 5. `valory/autonolas-registries` 
    
