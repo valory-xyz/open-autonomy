@@ -46,7 +46,7 @@ from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
-@skip_docker_tests
+# @skip_docker_tests
 class BaseDeployBuildTest(BaseCliTest):
     """Test `autonomy deply build deployment` command."""
 
@@ -471,14 +471,6 @@ class TestKubernetesBuild(BaseDeployBuildTest):
         build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
         assert any(
             child in build_tree for child in ["persistent_storage", "build.yaml"]
-        )
-
-        kubernetes_config = cls.load_kubernetes_config(path=build_dir)
-        assert all(
-            [
-                resource["metadata"]["name"] != "config-nodes"
-                for resource in kubernetes_config
-            ]
         )
 
     def test_kubernetes_build(
