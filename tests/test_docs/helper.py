@@ -85,13 +85,16 @@ def extract_code_blocks(filepath: str, filter_: Optional[str] = None) -> list:
     """Extract code blocks from .md files."""
     content = Path(filepath).read_text(encoding="utf-8")
 
-    # Count the number of code blocks of type 'filter_' using a regex
-    block_number_regex = len(re.findall(rf"```{filter_}", content)) if filter_ else None
+    # Preprocess the content so mistune is able to find all code blocks
+    # Code inside admonitions, for example, are not recognized as of mistune 2.0.3
+    code_blocks_regex = re.findall(rf"[ \t]*```{filter_}.+?```", content, flags=re.DOTALL)
+    block_number_regex = len(code_blocks_regex)
+    preprocessed_content = "\n".join(code_blocks_regex)
 
     # Get the code blocks the file using mistune
     # and traversing the AST tree
     markdown_parser = mistune.create_markdown(renderer=mistune.AstRenderer())
-    blocks = markdown_parser(content)
+    blocks = markdown_parser(preprocessed_content)
     code_blocks = get_code_blocks_recursive(blocks)
 
     # Filter blocks by type
@@ -100,11 +103,10 @@ def extract_code_blocks(filepath: str, filter_: Optional[str] = None) -> list:
     block_number_mistune = len(list(bash_code_blocks))
 
     # Ensure that mistune found the same number of blocks as regex
-    if block_number_regex:
-        assert block_number_mistune == block_number_regex, (
-            f"Code block number mismatch: regex detected {block_number_regex} {filter_} blocks"
-            f" in {filepath} while mistune extracted {block_number_mistune}"
-        )
+    assert block_number_mistune == block_number_regex, (
+        f"Code block number mismatch: regex detected {block_number_regex} {filter_} blocks"
+        f" in {filepath} while mistune extracted {block_number_mistune}"
+    )
     return list(b["text"] for b in bash_code_blocks)
 
 
