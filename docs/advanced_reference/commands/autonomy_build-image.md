@@ -1,50 +1,86 @@
 Builds the agent image for a service.
 
-The command must be executed within the service directory. That is, a directory containing the service configuration file (`service.yaml`). Labels for images generated using this command will follow the format `valory/oar-<PUBLIC_ID>`.
+This command builds the Docker runtime images for the agent defined in a service configuration file `service.yaml`. By default, the command tags the generated images as
 
-To build an image for a specific agent without fetching a service, run
-```bash
-autonomy build-image PUBLIC_ID_OR_HASH
 ```
-where `PUBLIC_ID_OR_HASH` refers to the agent public ID or hash as stored in a local or remote repository.
+<author>/oar-<agent_package>:<package_hash>
+```
+
+where `<author>` is the author name from the local CLI config (specified with `autonomy init`), `oar` stands for "Open Autonomy Runtime", and `<agent_package>:<package_hash>` is the `PUBLIC_ID` of the agent. These default tags can be modified using certain options described below.
+
+!!! warning "Important"
+
+    The images are built by fetching the packages from the IFPS registry. Therefore, before running the command, make sure that all the required packages are published on the IPFS registry.
 
 ## Usage
 
 ```bash
-autonomy build-image [OPTIONS] [PUBLIC_ID_OR_HASH]
+autonomy build-image [OPTIONS] [PUBLIC_ID]
 ```
 
 ## Options
-```
---service-dir PATH
-```
-:   Path to service directory.
 
-```
---version TEXT
-```
-:   Specify tag version for the image.
+`--service-dir PATH`
+:   Path to the service directory.
 
-```
---dev
-```
-:   Build development image.
+`--version TEXT`
+:   Version tag for the image.
 
-```
---pull
-```
-:   Pull latest dependencies.
+`--image-author TEXT`
+:   Author name for the image.
 
-```
---help
-```
+`--dev`
+:   Build the agent image for the [`dev` mode](../developer_tooling/dev_mode.md).
+
+`--pull`
+:   Pull the latest dependencies when building the image.
+
+`--help`
 :   Show the help message and exit.
-
 
 ## Examples
 
-```bash
-autonomy build-image --service-dir /my_service
-```
+* Build the runtime image for a service located in the folder `your_service`:
 
-Builds the agent images for the service located in the directory `my_service`.
+    ```bash
+    autonomy build-image --service-dir /your_service
+    ```
+
+    Or, alternatively:
+
+    ```bash
+    cd /your_service
+    autonomy build-image
+    ```
+
+* Build the agent image for a specific service without fetching the service package:
+
+    ```bash
+    autonomy build-image <author>/<agent_package>:<package_hash>
+    ```
+
+    where `<author>/<package_name>:<package_hash>` is the `PUBLIC_ID` of the agent.
+
+* Build an agent image with a custom version tag:
+
+    ```bash
+    autonomy build-image <author>/<agent_package>:<package_hash> --version <version>
+    ```
+
+    This will tag the image as `<author>/oar-<agent_package>:<version>`.
+
+* Build an agent image with a custom author name:
+
+    ```bash
+    autonomy build-image <author>/<agent_package>:<package_hash> --image-author <custom_author>
+    ```
+
+    This will tag the image as `<custom_author>/oar-<agent_package>:<package_hash>`.
+
+* Build the runtime image for the  [`dev` mode](../developer_tooling/dev_mode.md):
+
+    ```bash
+    autonomy build-image --service-dir /your_service --dev
+    ```
+
+    This will tag the image as `<author>/oar-<agent_package>:dev`.

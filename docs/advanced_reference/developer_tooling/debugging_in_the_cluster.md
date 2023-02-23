@@ -22,7 +22,7 @@ docker image push <tag>
 
 Finally, build the deployment and run it:
 ```bash
-autonomy deploy build  ../generated_keys.json --force --password ${PASSWORD} --kubernetes --dev
+autonomy deploy build  ../generated_keys.json --force --password ${PASSWORD} --kubernetes --dev -ltm
 kubectl apply -f abci_build/
 kubectl apply -f abci_build/agent_keys
 ```
