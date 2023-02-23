@@ -46,7 +46,7 @@ from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
-# @skip_docker_tests
+@skip_docker_tests
 class BaseDeployBuildTest(BaseCliTest):
     """Test `autonomy deply build deployment` command."""
 
