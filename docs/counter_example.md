@@ -64,7 +64,7 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
 
 5. Build a deployment setup for the demo service:
     ```bash
-    autonomy deploy build keys.json
+    autonomy deploy build keys.json -ltm
     ```
 
     This will build the deployment setup required to run the service locally.

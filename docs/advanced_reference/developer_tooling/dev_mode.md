@@ -59,7 +59,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 4. **Build the deployment.** Within the service folder, execute the command below to build the service deployment in `dev` mode, including a pre-configured Hardhat instance.
 
     ```bash
-    autonomy deploy build keys.json --dev --packages-dir ~/git/open-autonomy/packages --open-autonomy-dir ~/git/open-aea/ --open-aea-dir ~/git/open-autonomy/ --use-hardhat
+    autonomy deploy build keys.json --dev --packages-dir ~/git/open-autonomy/packages --open-autonomy-dir ~/git/open-aea/ --open-aea-dir ~/git/open-autonomy/ --use-hardhat -ltm
     ```
 
     You must modify the paths in the command above appropriately, pointing to:
