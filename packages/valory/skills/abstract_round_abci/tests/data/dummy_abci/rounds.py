@@ -21,7 +21,7 @@
 
 from abc import ABC
 from enum import Enum
-from typing import Optional, Set, Tuple, cast
+from typing import FrozenSet, Optional, Set, Tuple, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -83,7 +83,7 @@ class DummyStartingRound(CollectSameUntilAllRound, DummyMixinRound):
 
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
-                participants=tuple(self.collection),
+                participants=tuple(sorted(self.collection)),
                 synchronized_data_class=SynchronizedData,
             )
             return synchronized_data, Event.DONE
@@ -149,4 +149,4 @@ class DummyAbciApp(AbciApp[Event]):
     }
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
-    cross_period_persisted_keys: Set[str] = set()
+    cross_period_persisted_keys: FrozenSet[str] = frozenset()

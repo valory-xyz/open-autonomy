@@ -23,10 +23,10 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiak3sw4ty4dfsr52frglvwat77jnipxmokefvfisewu2ozq33yoi4
-- valory/registration_abci:0.1.0:bafybeidvbpxoa7owpolbcivwrnnvkfpkq6fp3m2vlg42jn33vvbm4tk2km
-- valory/reset_pause_abci:0.1.0:bafybeihseqnrcgkzwrpbyi5ouao6f2ba75pguvalzrbg4nqj37bwpyt3dy
-- valory/termination_abci:0.1.0:bafybeicvt564cpwb5xmbdsdnofdzqap6tvhctavq2txhzrvaz7ci4ls5zy
+- valory/abstract_round_abci:0.1.0:bafybeiami2y2uwvtmjf76hl3jvfahujdir5docjby6erdyjl66ekoblesi
+- valory/registration_abci:0.1.0:bafybeieaggf6mc43tses5k7fg3pyxca43wsmfvnnzszzucohp5ebg3umwq
+- valory/reset_pause_abci:0.1.0:bafybeic6ayed23np6ngkawsf2you6nnfuvbq4smcepdvvcrw5wxn5jaevy
+- valory/termination_abci:0.1.0:bafybeigg4eyjaeidojnvxdenztaywb7ijtjdtjirpc6pvhglscfqdhfupe
 behaviours:
   main:
     args: {}
@@ -112,11 +112,9 @@ models:
       service_registry_address: null
       setup:
         all_participants:
-        - - '0x0000000000000000000000000000000000000000'
-        safe_contract_address:
-        - '0xD8dE647170163a981bb3Fdb2063583eAcF7D55AC'
-        consensus_threshold:
-        - null
+        - '0x0000000000000000000000000000000000000000'
+        safe_contract_address: '0xD8dE647170163a981bb3Fdb2063583eAcF7D55AC'
+        consensus_threshold: null
       share_tm_config_on_startup: false
       sleep_time: 300
       tendermint_check_sleep_delay: 3

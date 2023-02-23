@@ -152,15 +152,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound, HelloWorldABCIAbstractR
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            # TODO `cross_period_persisted_keys` should be used here instead
-            synchronized_data = self.synchronized_data.create(
-                participants=[tuple(sorted(self.synchronized_data.participants))],
-                all_participants=[
-                    tuple(sorted(self.synchronized_data.all_participants))
-                ],
-                consensus_threshold=[self.synchronized_data.consensus_threshold],
-            )
-            return synchronized_data, Event.DONE
+            return self.synchronized_data.create(), Event.DONE
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
         ):

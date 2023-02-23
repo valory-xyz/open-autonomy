@@ -263,8 +263,9 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             "service_id": service_id,
             "service_registry_address": None,
             "setup": {
-                "all_participants": [["0x0000000000000000000000000000000000000000"]],
-                "safe_contract_address": ["0x0000000000000000000000000000000000000000"],
+                "all_participants": ["0x0000000000000000000000000000000000000000"],
+                "safe_contract_address": "0x0000000000000000000000000000000000000000",
+                "consensus_threshold": None,
             },
             "share_tm_config_on_startup": False,
             "sleep_time": 1,

@@ -102,8 +102,8 @@ class TestAbciAppChaining:
         self.timeout2 = 15.0
         self.timeout3 = 20.0
 
-        self.cross_period_persisted_keys_1 = {"1", "2"}
-        self.cross_period_persisted_keys_2 = {"2", "3"}
+        self.cross_period_persisted_keys_1 = frozenset({"1", "2"})
+        self.cross_period_persisted_keys_2 = frozenset({"2", "3"})
 
         class AbciApp1(AbciApp):
             initial_round_cls = self.round_1a

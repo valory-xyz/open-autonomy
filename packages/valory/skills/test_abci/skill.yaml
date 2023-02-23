@@ -11,7 +11,7 @@ fingerprint:
   behaviours.py: bafybeidbua357aqaesxe47dt25g6gaobdns7girofrtlzphhl5vke26ggy
   dialogues.py: bafybeigabhaykiyzbluu4mk6bbrmqhzld2kyp32pg24bvjmzrrb74einwm
   handlers.py: bafybeidozrorf2r377r7jpd6hr335z5okymksw2pmwjc35tbjzl5teyvza
-  models.py: bafybeic2ehxf3b5sqyjeyahyrowqx2baum3vm3ibswug75iwjghpx6rzli
+  models.py: bafybeihvs3uy4uawukzwo4hymb5npmxsnu2xohk7udwenmragytahn3jyi
   payloads.py: bafybeiepocdewzpsheeo3ximapfvf3bwqozpv2hrwmdlxslh2pmxkiftcy
   rounds.py: bafybeiddkqah5skovlvaghfajpnvi7l5uvpp2lh6qibhpatjfidwennogu
   tests/__init__.py: bafybeicmlbk5j45t5qgvrlv7n3e3kpih2s3ibmjremouifdgcig6cajryq
@@ -27,7 +27,7 @@ contracts: []
 protocols: []
 skills:
 - valory/abstract_abci:0.1.0:bafybeiheudaobfaj5lcrqvgwmdysq3za5yjrjtpdiuwhmw5c7lmbgglxti
-- valory/abstract_round_abci:0.1.0:bafybeiak3sw4ty4dfsr52frglvwat77jnipxmokefvfisewu2ozq33yoi4
+- valory/abstract_round_abci:0.1.0:bafybeiami2y2uwvtmjf76hl3jvfahujdir5docjby6erdyjl66ekoblesi
 behaviours:
   main:
     args: {}
@@ -111,11 +111,9 @@ models:
       service_registry_address: null
       setup:
         all_participants:
-        - - '0x0000000000000000000000000000000000000000'
-        safe_contract_address:
         - '0x0000000000000000000000000000000000000000'
-        consensus_threshold:
-        - null
+        safe_contract_address: '0x0000000000000000000000000000000000000000'
+        consensus_threshold: null
       share_tm_config_on_startup: false
       sleep_time: 1
       tendermint_check_sleep_delay: 10
