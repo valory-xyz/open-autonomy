@@ -71,13 +71,23 @@ def type_filter(type_: Optional[str], b: Dict) -> bool:
     return b["info"].strip() == type_ if b["info"] is not None else False
 
 
+def get_code_blocks_recursive(blocks: List) -> List:
+    code_blocks = []
+    for block in blocks:
+        if block_code_filter(block):
+            code_blocks.append(block)
+        if "children" in block:
+            code_blocks += get_code_blocks_recursive(block["children"])
+    return code_blocks
+
+
 def extract_code_blocks(filepath: str, filter_: Optional[str] = None) -> list:
     """Extract code blocks from .md files."""
     content = Path(filepath).read_text(encoding="utf-8")
     markdown_parser = mistune.create_markdown(renderer=mistune.AstRenderer())
     blocks = markdown_parser(content)
     actual_type_filter = partial(type_filter, filter_)
-    code_blocks = list(filter(block_code_filter, blocks))
+    code_blocks = get_code_blocks_recursive(blocks)
     bash_code_blocks = filter(actual_type_filter, code_blocks)
     return list(b["text"] for b in bash_code_blocks)
 
