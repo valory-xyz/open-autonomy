@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -84,11 +84,27 @@ def get_code_blocks_recursive(blocks: List) -> List:
 def extract_code_blocks(filepath: str, filter_: Optional[str] = None) -> list:
     """Extract code blocks from .md files."""
     content = Path(filepath).read_text(encoding="utf-8")
+
+    # Count the number of code blocks of type 'filter_' using a regex
+    block_number_regex = len(re.findall(rf"```{filter_}", content)) if filter_ else None
+
+    # Get the code blocks the file using mistune
+    # and traversing the AST tree
     markdown_parser = mistune.create_markdown(renderer=mistune.AstRenderer())
     blocks = markdown_parser(content)
-    actual_type_filter = partial(type_filter, filter_)
     code_blocks = get_code_blocks_recursive(blocks)
+
+    # Filter blocks by type
+    actual_type_filter = partial(type_filter, filter_)
     bash_code_blocks = filter(actual_type_filter, code_blocks)
+    block_number_mistune = len(list(bash_code_blocks))
+
+    # Ensure that mistune found the same number of blocks as regex
+    if block_number_regex:
+        assert block_number_mistune == block_number_regex, (
+            f"Code block number mismatch: regex detected {block_number_regex} {filter_} blocks"
+            f" in {filepath} while mistune extracted {block_number_mistune}"
+        )
     return list(b["text"] for b in bash_code_blocks)
 
 
