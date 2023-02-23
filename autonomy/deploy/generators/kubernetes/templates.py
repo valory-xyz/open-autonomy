@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -207,8 +207,8 @@ spec:
             memory: "1512Mi"
             cpu: "1"
           requests:
-            cpu: "0.05"
-            memory: "128Mi"
+            cpu: "1"
+            memory: "1512Mi"
         ports:
           - containerPort: 26656
           - containerPort: 26657
@@ -245,8 +245,8 @@ spec:
             memory: "1512Mi"
             cpu: "1"
           requests:
-            cpu: "0.05"
-            memory: "128Mi"
+            cpu: "1"
+            memory: "1512Mi"
         env:
           - name: HOSTNAME
             value: "agent-node-{validator_ix}"
