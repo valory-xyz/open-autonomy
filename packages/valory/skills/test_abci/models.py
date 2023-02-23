@@ -49,7 +49,7 @@ class SharedState(BaseSharedState):
             Event.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
         TestAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
-            self.context.params.observation_interval + MARGIN
+            self.context.params.reset_pause_duration + MARGIN
         )
 
 

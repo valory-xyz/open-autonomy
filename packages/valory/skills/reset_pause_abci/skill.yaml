@@ -8,11 +8,11 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeigyx3zutnbq2sqlgeo2hi2vjgpmnlspnkyh4wemjfrqkrpel27bwi
   __init__.py: bafybeicx55fcmu5t2lrrs4wqi6bdvsmoq2csfqebyzwy6oh4olmhnvmelu
-  behaviours.py: bafybeidcfzoyrvrs3ww6qsqwupykleukgj7djji6f553yzpb6efzy3xkmq
+  behaviours.py: bafybeich7tmipn2zsuqsmhtbrmmqys3mpvn3jctx6g3kz2atet2atl3j6q
   dialogues.py: bafybeigabhaykiyzbluu4mk6bbrmqhzld2kyp32pg24bvjmzrrb74einwm
   fsm_specification.yaml: bafybeietrxvm2odv3si3ecep3by6rftsirzzazxpmeh73yvtsis2mfaali
   handlers.py: bafybeie22h45jr2opf2waszr3qt5km2fppcaahalcavhzutgb6pyyywqxq
-  models.py: bafybeib5l73zuekjeyhf5mge3u2xbilasbosrcefezb3hsmqrog4o7rpju
+  models.py: bafybeiagj2e73wvzfqti6chbgkxh5tawzdjwqnxlo2bcfa5lyzy6ogzh2u
   payloads.py: bafybeihychpsosovpyq7bh6aih2cyjkxr23j7becd5apetrqivvnolzm7i
   rounds.py: bafybeihtyenilgjdq7n7brfsxx7hp6d7u5ung7t4qmgrhnmvzdtcafcal4
   tests/__init__.py: bafybeiclijinxvycj7agcagt2deuuyh7zxyp7k2s55la6lh3jghzqvfux4
@@ -26,7 +26,7 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiami2y2uwvtmjf76hl3jvfahujdir5docjby6erdyjl66ekoblesi
+- valory/abstract_round_abci:0.1.0:bafybeiak3sw4ty4dfsr52frglvwat77jnipxmokefvfisewu2ozq33yoi4
 behaviours:
   main:
     args: {}
@@ -98,10 +98,10 @@ models:
       keeper_timeout: 30.0
       max_attempts: 10
       max_healthcheck: 120
-      observation_interval: 10
       on_chain_service_id: null
       request_retry_delay: 1.0
       request_timeout: 10.0
+      reset_pause_duration: 10
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3

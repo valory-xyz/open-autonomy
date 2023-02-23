@@ -76,7 +76,7 @@ class TestRegisterResetRecoverStartup(
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     extra_configs = [
         {
-            "dotted_path": f"{__args_prefix}.observation_interval",
+            "dotted_path": f"{__args_prefix}.reset_pause_duration",
             "value": 15,
         },
     ]

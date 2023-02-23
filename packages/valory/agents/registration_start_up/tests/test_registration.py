@@ -110,7 +110,7 @@ class RegistrationStartUpTestConfig(UseRegistries, UseACNNode, BaseTestEnd2End):
             "value": False,
         },
         {
-            "dotted_path": f"{__args_prefix}.observation_interval",
+            "dotted_path": f"{__args_prefix}.reset_pause_duration",
             "value": 15,
         },
     ]

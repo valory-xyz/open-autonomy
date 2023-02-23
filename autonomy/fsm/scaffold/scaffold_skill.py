@@ -252,7 +252,7 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             "keeper_timeout": 30.0,
             "max_attempts": 10,
             "max_healthcheck": 120,
-            "observation_interval": 10,
+            "reset_pause_duration": 10,
             "on_chain_service_id": None,
             "request_retry_delay": 1.0,
             "request_timeout": 10.0,

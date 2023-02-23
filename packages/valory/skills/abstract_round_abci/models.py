@@ -62,7 +62,7 @@ from packages.valory.skills.abstract_round_abci.utils import (
 )
 
 
-MIN_OBSERVATION_INTERVAL = 10
+MIN_RESET_PAUSE_DURATION = 10
 NUMBER_OF_RETRIES: int = 5
 DEFAULT_BACKOFF_FACTOR: float = 2.0
 DEFAULT_TYPE_NAME: str = "str"
@@ -265,8 +265,8 @@ class BaseParams(
         self.retry_timeout: int = self._ensure("retry_timeout", kwargs, int)
         self.retry_attempts: int = self._ensure("retry_attempts", kwargs, int)
         self.keeper_timeout: float = self._ensure("keeper_timeout", kwargs, float)
-        self.observation_interval: int = self._ensure_gte(
-            "observation_interval", kwargs, int, min_value=MIN_OBSERVATION_INTERVAL
+        self.reset_pause_duration: int = self._ensure_gte(
+            "reset_pause_duration", kwargs, int, min_value=MIN_RESET_PAUSE_DURATION
         )
         self.drand_public_key: str = self._ensure("drand_public_key", kwargs, str)
         self.tendermint_com_url: str = self._ensure("tendermint_com_url", kwargs, str)

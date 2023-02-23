@@ -53,7 +53,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     GenesisConsensusParams,
     GenesisEvidence,
     GenesisValidator,
-    MIN_OBSERVATION_INTERVAL,
+    MIN_RESET_PAUSE_DURATION,
     NUMBER_OF_RETRIES,
     Requests,
 )
@@ -91,7 +91,7 @@ BASE_DUMMY_PARAMS = dict(
     sleep_time=1,
     retry_timeout=1,
     retry_attempts=1,
-    observation_interval=MIN_OBSERVATION_INTERVAL,
+    reset_pause_duration=MIN_RESET_PAUSE_DURATION,
     drand_public_key="",
     tendermint_com_url="",
     reset_tendermint_after=1,
@@ -595,9 +595,9 @@ def test_incorrect_setup(setup: Dict[str, Any], error_text: str) -> None:
 
     with pytest.raises(
         AEAEnforceError,
-        match=f"`observation_interval` must be greater than or equal to {MIN_OBSERVATION_INTERVAL}",
+        match=f"`reset_pause_duration` must be greater than or equal to {MIN_RESET_PAUSE_DURATION}",
     ):
-        kwargs["observation_interval"] = MIN_OBSERVATION_INTERVAL - 1
+        kwargs["reset_pause_duration"] = MIN_RESET_PAUSE_DURATION - 1
         BaseParams(**kwargs)
 
 

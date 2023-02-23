@@ -86,7 +86,7 @@ class TestRaceConditionTendermintReset(UseACNNode, BaseTestEnd2EndExecution):
             "value": __reset_tendermint_every,
         },
         {
-            "dotted_path": f"{__args_prefix}.observation_interval",
+            "dotted_path": f"{__args_prefix}.reset_pause_duration",
             "value": 15,
         },
     ]
