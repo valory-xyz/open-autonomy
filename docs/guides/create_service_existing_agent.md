@@ -60,7 +60,6 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
         license: Apache-2.0
         fingerprint:
           README.md: <ipfs_hash>
-          keys.json: <ipfs_hash>
         fingerprint_ignore_patterns: []
         agent: valory/hello_world:0.1.0:<ipfs_hash>
         number_of_agents: 4
