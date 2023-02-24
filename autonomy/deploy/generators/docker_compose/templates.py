@@ -112,6 +112,8 @@ ABCI_NODE_TEMPLATE: str = """
     networks:
       localnet:
         ipv4_address: 192.167.11.{localnet_address_postfix}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./persistent_data/logs:/logs:Z
       - ./agent_keys/agent_{node_id}:/agent_key:Z

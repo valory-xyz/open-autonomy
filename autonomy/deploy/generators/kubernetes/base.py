@@ -194,11 +194,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
     ) -> "KubernetesGenerator":
         """Write output to build dir"""
 
-        if self.use_tm_testnet_setup:
-            output = "---\n".join([self.output, cast(str, self.tendermint_job_config)])
-        else:
-            output = self.output
-
+        output = "---\n".join([self.output, cast(str, self.tendermint_job_config)])
         if not self.build_dir.is_dir():  # pragma: no cover
             self.build_dir.mkdir()
         with open(
