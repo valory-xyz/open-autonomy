@@ -26,10 +26,10 @@ Packages:
   - Restart tendermint whenever there's a connection drop, from the abci or otherwise
   - Makes sure monitoring is performed even when tendermint is reset by the tendermint server
   - Clean up `timeouts` and `last_timestamp` before trying to restore state received from peers
-  - Don't wait for the observation interval in cases when reset is performed for recovery
+  - Don't wait for the reset pause duration in cases when reset is performed for recovery
   - Enables `ACN` communication for rejoining agents, by accepting `requests/responses` from `all_participants`
 - Removes `consensus` parameter from the skills' configurations and replaces the `max_participants` with the length of the `all_participants` list
-- Updates the `BaseParams` implementation to enforce minimum values for `observation_interval`
+- Updates the `BaseParams` implementation to enforce minimum values for `reset_pause_duration`
 - Updates the `AbciAppDB` implementation to make sure `cross_period_keys` and the database conditions are defined as sets
 
 

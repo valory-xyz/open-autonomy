@@ -1938,7 +1938,7 @@ class TestBaseBehaviour:
             timestamp
         )
         self.context_mock.state.round_sequence.last_round_transition_tm_height = height
-        self.behaviour.params.observation_interval = interval
+        self.behaviour.params.reset_pause_duration = interval
         self.context_state_synchronized_data_mock.period_count = period
 
         actual = self.behaviour._get_reset_params(default)
@@ -2057,7 +2057,7 @@ class TestBaseBehaviour:
 
         period_count_mock = MagicMock()
         self.context_state_synchronized_data_mock.period_count = period_count_mock
-        self.behaviour.params.observation_interval = 1
+        self.behaviour.params.reset_pause_duration = 1
         with mock.patch.object(
             BaseBehaviour, "_is_timeout_expired", return_value=False
         ), mock.patch.object(

@@ -11,7 +11,7 @@ fingerprint:
   behaviours.py: bafybeidbua357aqaesxe47dt25g6gaobdns7girofrtlzphhl5vke26ggy
   dialogues.py: bafybeigabhaykiyzbluu4mk6bbrmqhzld2kyp32pg24bvjmzrrb74einwm
   handlers.py: bafybeidozrorf2r377r7jpd6hr335z5okymksw2pmwjc35tbjzl5teyvza
-  models.py: bafybeihvs3uy4uawukzwo4hymb5npmxsnu2xohk7udwenmragytahn3jyi
+  models.py: bafybeic2ehxf3b5sqyjeyahyrowqx2baum3vm3ibswug75iwjghpx6rzli
   payloads.py: bafybeiepocdewzpsheeo3ximapfvf3bwqozpv2hrwmdlxslh2pmxkiftcy
   rounds.py: bafybeiddkqah5skovlvaghfajpnvi7l5uvpp2lh6qibhpatjfidwennogu
   tests/__init__.py: bafybeicmlbk5j45t5qgvrlv7n3e3kpih2s3ibmjremouifdgcig6cajryq
@@ -27,7 +27,7 @@ contracts: []
 protocols: []
 skills:
 - valory/abstract_abci:0.1.0:bafybeibf54u4lafqsd53m7bul4oiu2so4owmtmfeyj3bi4nzsttk3r3nbm
-- valory/abstract_round_abci:0.1.0:bafybeihtp3acivh4z6dlhxbknpjd4ljadxl6jydu44j5dtpgpi6kkcpjt4
+- valory/abstract_round_abci:0.1.0:bafybeigurx2zhkzmnxlyp2ujayozldsbugrbvy4zpybvmcafc2akptsbna
 behaviours:
   main:
     args: {}
@@ -99,10 +99,10 @@ models:
       keeper_timeout: 30.0
       max_attempts: 10
       max_healthcheck: 120
-      observation_interval: 10
       on_chain_service_id: null
       request_retry_delay: 1.0
       request_timeout: 10.0
+      reset_pause_duration: 10
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3

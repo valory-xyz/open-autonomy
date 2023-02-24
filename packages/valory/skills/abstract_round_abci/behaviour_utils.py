@@ -1746,11 +1746,11 @@ class BaseBehaviour(
         """
         Amount of time to sleep before and after performing a hard reset.
 
-        We sleep for half the observation interval as there are no immediate transactions on either side of the reset.
+        We sleep for half the reset pause duration as there are no immediate transactions on either side of the reset.
 
         :returns: the amount of time to sleep in seconds
         """
-        return self.params.observation_interval / 2
+        return self.params.reset_pause_duration / 2
 
     def _start_reset(self, on_startup: bool = False) -> Generator:
         """
@@ -1764,7 +1764,7 @@ class BaseBehaviour(
         """
         if self._check_started is None and not self._is_healthy:
             if not on_startup:
-                # if we are on startup we don't need to wait for the observation interval
+                # if we are on startup we don't need to wait for the reset pause duration
                 # as the reset is being performed to update the tm config.
                 yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
             self._check_started = datetime.datetime.now()
@@ -1920,7 +1920,7 @@ class BaseBehaviour(
             "local height == remote height; continuing execution..."
         )
         if not on_startup:
-            # if we are on startup we don't need to wait for the observation interval
+            # if we are on startup we don't need to wait for the reset pause duration
             # as the reset is being performed to update the tm config.
             yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
         return True
@@ -2058,7 +2058,7 @@ class TmManager(BaseBehaviour):
         """
         Amount of time to sleep before and after performing a hard reset.
 
-        We don't need to wait for half the observation interval, like in normal cases where we perform a hard reset.
+        We don't need to wait for half the reset pause duration, like in normal cases where we perform a hard reset.
 
         :returns: the amount of time to sleep in seconds
         """

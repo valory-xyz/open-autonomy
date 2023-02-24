@@ -66,6 +66,17 @@ def agents() -> List[str]
 
 Available agents.
 
+<a id="autonomy.cli.helpers.analyse.ParseLogs.n_agents"></a>
+
+#### n`_`agents
+
+```python
+@property
+def n_agents() -> int
+```
+
+Available agents.
+
 <a id="autonomy.cli.helpers.analyse.ParseLogs.from_dir"></a>
 
 #### from`_`dir
@@ -91,8 +102,8 @@ Create required tables.
 #### select
 
 ```python
-def select(agents: List[str], start_time: Optional[Union[str, datetime]],
-           end_time: Optional[Union[str, datetime]], log_level: Optional[str],
+def select(agents: List[str], start_time: Optional[datetime],
+           end_time: Optional[datetime], log_level: Optional[str],
            period: Optional[int], round_name: Optional[str],
            behaviour_name: Optional[str]) -> "ParseLogs"
 ```

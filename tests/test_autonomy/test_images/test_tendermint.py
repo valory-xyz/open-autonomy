@@ -83,6 +83,10 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
                 ),
             )
 
+            self.running_containers = [
+                tm_container,
+            ]
+
             def _check_for_outputs() -> bool:
                 """Check for required outputs."""
                 return "abci.socketClient failed to connect" in log_file.read_text()
@@ -97,5 +101,4 @@ class TestOpenAutonomyBaseImage(BaseImageBuildTest):
             except TimeoutError:
                 successful = False
 
-            tm_container.kill()
             assert successful, f"Tendermint runtime failed with {log_file.read_text()}"

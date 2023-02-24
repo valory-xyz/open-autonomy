@@ -18,8 +18,8 @@ fingerprint:
   tests/helpers/slow_tendermint_server/config-template.toml: bafybeibzoxwjjn5cacrtx4p2gov75ktg467xoyglistwjn5xt5l6d6tpea
   tests/helpers/slow_tendermint_server/tendermint.py: bafybeibdtbgu3yb7cczxnuui5ewp2npdxmpunjzoeqoqfv5itq567qw2em
   tests/helpers/slow_tendermint_server/wrapper.sh: bafybeif2wssashoaw7ifz6q3ocmejkuz32ycwta4w5dcjunns4g2awkv2y
-  tests/test_hard_reset_race_condition.py: bafybeia75m3sxf76hutic7442jwhixltetlih7iev3z2lzlvxzasqqyjye
-  tests/test_register_reset.py: bafybeiaprr5wemt57xr2rr2uqnojy2ax4mris5oxadrah2yosx5ecrajfy
+  tests/test_hard_reset_race_condition.py: bafybeidc2m5hb3ajnzghbuvrrpvuyvftbkch75tumtxeg244jko2bwj5uu
+  tests/test_register_reset.py: bafybeiecdipytoorhfpecbzd5pyx7e5zjpxsjc6yyqxezq2q6bhz7yuk7i
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeieag6jmehg54bp4ymwp6iwjvahv3yg4l3k6yqvnw5kqjtsaqmfukm
@@ -35,10 +35,10 @@ protocols:
 - valory/ipfs:0.1.0:bafybeihlgai5pbmkb6mjhvgy4gkql5uvpwvxbpdowczgz4ovxat6vajrq4
 skills:
 - valory/abstract_abci:0.1.0:bafybeibf54u4lafqsd53m7bul4oiu2so4owmtmfeyj3bi4nzsttk3r3nbm
-- valory/abstract_round_abci:0.1.0:bafybeihtp3acivh4z6dlhxbknpjd4ljadxl6jydu44j5dtpgpi6kkcpjt4
-- valory/register_reset_abci:0.1.0:bafybeicdzcvv7hiychksbnwpbzopxtazkk6hqhawawe4nxl6my6eybsx64
-- valory/registration_abci:0.1.0:bafybeifkjgr54krjvnbfinbqkwa3vauaehnlvxzuotig7mzsasx4qpeb7a
-- valory/reset_pause_abci:0.1.0:bafybeiaxd6uhhgeow5vy2btv454rtntpq5ce3g5qmf3cxppxek25eqv5eu
+- valory/abstract_round_abci:0.1.0:bafybeigurx2zhkzmnxlyp2ujayozldsbugrbvy4zpybvmcafc2akptsbna
+- valory/register_reset_abci:0.1.0:bafybeieo6samvngb67kqh3pdmlhdupt4px6te6mkhroqvck74tbz6btole
+- valory/registration_abci:0.1.0:bafybeidc3m4dam5avmqqdwtzowh6nvzyj2xtnljgjijdszu5n67lzacyxy
+- valory/reset_pause_abci:0.1.0:bafybeibahsc5phm6q3fwgfzptbhh3og6fkjwocfiptr2ulfzzre7dclyba
 default_ledger: ethereum
 required_ledgers:
 - ethereum

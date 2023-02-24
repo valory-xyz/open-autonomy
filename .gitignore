@@ -415,3 +415,5 @@ abci_build/
 keys.json
 leak_report
 temp/
+
+logs.db

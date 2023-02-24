@@ -90,7 +90,7 @@ models:
         voting_power: '10'
       keeper_timeout: 30.0
       max_healthcheck: 120
-      observation_interval: 10
+      reset_pause_duration: 10
       on_chain_service_id: null
       reset_tendermint_after: 2
       retry_attempts: 400

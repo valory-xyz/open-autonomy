@@ -88,7 +88,10 @@ nav:
             - App Spec: 'api/analyse/abci/app_spec.md'
             - Docstrings: 'api/analyse/abci/docstrings.md'
             - Handlers: 'api/analyse/handlers.md'
-            - Logs: 'api/analyse/abci/logs.md'
+            - Logs:
+              - Base: 'api/analyse/logs/base.md'
+              - Collection: 'api/analyse/logs/collection.md'
+              - Db: 'api/analyse/logs/db.md'
           - Benchmark:
             - Aggregate: 'api/analyse/benchmark/aggregate.md'
             - HTML: 'api/analyse/benchmark/html.md'

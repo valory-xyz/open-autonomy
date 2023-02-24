@@ -24,9 +24,9 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihtp3acivh4z6dlhxbknpjd4ljadxl6jydu44j5dtpgpi6kkcpjt4
-- valory/registration_abci:0.1.0:bafybeifkjgr54krjvnbfinbqkwa3vauaehnlvxzuotig7mzsasx4qpeb7a
-- valory/reset_pause_abci:0.1.0:bafybeiaxd6uhhgeow5vy2btv454rtntpq5ce3g5qmf3cxppxek25eqv5eu
+- valory/abstract_round_abci:0.1.0:bafybeigurx2zhkzmnxlyp2ujayozldsbugrbvy4zpybvmcafc2akptsbna
+- valory/registration_abci:0.1.0:bafybeidc3m4dam5avmqqdwtzowh6nvzyj2xtnljgjijdszu5n67lzacyxy
+- valory/reset_pause_abci:0.1.0:bafybeibahsc5phm6q3fwgfzptbhh3og6fkjwocfiptr2ulfzzre7dclyba
 behaviours:
   main:
     args: {}
@@ -99,10 +99,10 @@ models:
       keeper_timeout: 30.0
       max_attempts: 10
       max_healthcheck: 120
-      observation_interval: 15
       on_chain_service_id: null
       request_retry_delay: 1.0
       request_timeout: 10.0
+      reset_pause_duration: 15
       reset_tendermint_after: 1
       retry_attempts: 400
       retry_timeout: 3
