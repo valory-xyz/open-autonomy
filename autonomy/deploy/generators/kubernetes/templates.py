@@ -204,11 +204,11 @@ spec:
         imagePullPolicy: Always
         resources:
           limits:
-            memory: "1512Mi"
-            cpu: "1"
+            memory: "350Mi"
+            cpu: "0.05"
           requests:
-            cpu: "1"
-            memory: "1512Mi"
+            cpu: "0.05"
+            memory: "350Mi"
         ports:
           - containerPort: 26656
           - containerPort: 26657
@@ -243,9 +243,9 @@ spec:
         resources:
           limits:
             memory: "1512Mi"
-            cpu: "1"
+            cpu: "0.5"
           requests:
-            cpu: "1"
+            cpu: "0.5"
             memory: "1512Mi"
         env:
           - name: HOSTNAME
