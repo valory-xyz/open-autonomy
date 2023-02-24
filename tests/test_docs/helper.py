@@ -21,7 +21,6 @@
 import os
 import re
 from enum import Enum
-from functools import partial
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
@@ -46,17 +45,23 @@ class CodeType(Enum):
     BASH = "bash"
     NOCODE = "nocode"
 
-def dedent_code(code, n_spaces):
+
+def dedent_code(code: str, n_spaces: int) -> str:
     """Removes n spaces at the beggining of each line"""
     lines = [line[n_spaces:] for line in code.split("\n")]
     return "\n".join(lines)
 
-def extract_code_blocks(filepath: str, filter_: Optional[str] = None) -> list:
+
+def extract_code_blocks(filepath: str, filter_: Optional[str] = None) -> List[str]:
     """Extract code blocks from .md files."""
     content = Path(filepath).read_text(encoding="utf-8")
-    code_blocks= re.findall(rf"([ \t]*)```{filter_}\n(.+?)[ \t]*```", content, flags=re.DOTALL)
+    code_blocks = re.findall(
+        rf"([ \t]*)```{filter_}\n(.+?)[ \t]*```", content, flags=re.DOTALL
+    )
 
-    dedented_code_blocks = [dedent_code(code, len(indent)) for indent, code in code_blocks]
+    dedented_code_blocks = [
+        dedent_code(code, len(indent)) for indent, code in code_blocks
+    ]
     return dedented_code_blocks
 
 

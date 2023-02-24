@@ -124,39 +124,51 @@ class TestYamlSnippets(BaseTestDocCode):
 
     code_type = CodeType.YAML
 
-    # This variable holds a mapping between every doc file and the code file
+    # This variable holds a mapping between every doc file and the code files
     # that contains the referenced code. Since a doc file can contain several code
     # snippets, a list with the target files ordered is provided.
     #
-    # Use skip_blocks to specify a list of blocks that need to be skipped
+    # Use skip_blocks to specify a list of blocks that need to be skipped or add a file to skipped_files
+    # to skip it completely.
     # Add by_line:: at the beginning of a code file path so the check is performed line by line
     # instead of checking the code block as a whole.
 
     md_to_code = {
         "docs/demos/hello_world_demo.md": {
-            "code_files": ["packages/valory/skills/hello_world_abci/fsm_specification.yaml", "packages/valory/agents/hello_world/aea-config.yaml"],
+            "code_files": [
+                "packages/valory/skills/hello_world_abci/fsm_specification.yaml",
+                "packages/valory/agents/hello_world/aea-config.yaml",
+            ],
         },
-        # TODO uncomment and update this doc, when the safe-related rounds get removed from the `price-oracle`.
-        # "docs/demos/price_oracle_fsms.md": {  # flake8: noqa: E800
-        #     "code_files": [  # flake8: noqa: E800
-        #         "packages/valory/skills/registration_abci/fsm_specification.yaml",  # flake8: noqa: E800
-        #         "packages/valory/skills/transaction_settlement_abci/fsm_specification.yaml",  # flake8: noqa: E800
-        #         "packages/valory/skills/reset_pause_abci/fsm_specification.yaml",  # flake8: noqa: E800
-        #     ],  # flake8: noqa: E800
-        #     "skip_blocks": [2, 3, 6],  # flake8: noqa: E800
-        # },  # flake8: noqa: E800
-        "docs/guides/configure_access_external_chains.md": {"skip_blocks": [0, 1, 2, 3, 4]},
-        "docs/guides/create_service_from_scratch.md": {"code_files": ["packages/valory/skills/hello_world_abci/fsm_specification.yaml"]},
+        "docs/demos/price_oracle_fsms.md": {
+            "code_files": [
+                "packages/valory/skills/registration_abci/fsm_specification.yaml",
+            ],
+            "skip_blocks": [1, 2, 3, 4, 5],
+        },
+        "docs/guides/create_service_from_scratch.md": {
+            "code_files": [
+                "packages/valory/skills/hello_world_abci/fsm_specification.yaml"
+            ]
+        },
         "docs/guides/deploy_service.md": {"skip_blocks": [0]},
-        "docs/advanced_reference/developer_tooling/benchmarking.md": {"skip_blocks": [0]},
-        "docs/guides/create_service_existing_agent.md": {"code_files": ["packages/valory/services/hello_world/service.yaml"]},
-        "docs/guides/create_fsm_app.md": {"code_files": ["packages/valory/skills/hello_world_abci/fsm_specification.yaml"]},
+        "docs/advanced_reference/developer_tooling/benchmarking.md": {
+            "skip_blocks": [0]
+        },
+        "docs/guides/create_service_existing_agent.md": {
+            "code_files": ["packages/valory/services/hello_world/service.yaml"]
+        },
+        "docs/guides/create_fsm_app.md": {
+            "code_files": [
+                "packages/valory/skills/hello_world_abci/fsm_specification.yaml"
+            ]
+        },
     }
 
     skipped_files = [
         "docs/guides/service_configuration_file.md",
-        "docs/demos/price_oracle_fsms.md",
         "docs/deployment/on-chain_deployment_checklist.md",  # just placeholder examples
+        "docs/guides/configure_access_external_chains.md",
     ]
 
 
@@ -195,6 +207,8 @@ class TestPythonSnippets(BaseTestDocCode):
                 "packages/valory/skills/hello_world_abci/payloads.py",
             ],
         },
+        "docs/advanced_reference/commands/autonomy_analyse.md": {"skip_blocks": [0]},
+        "docs/key_concepts/aea.md": {"code_files": [], "skip_blocks": [0, 1]},
     }
 
     skipped_files = [
