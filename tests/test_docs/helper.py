@@ -25,12 +25,9 @@ from functools import partial
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
-import mistune  # type: ignore
-
 from tests.conftest import ROOT_DIR
 
 
-MISTUNE_BLOCK_CODE_ID = "block_code"
 IPFS_HASH_REGEX = r"bafybei[A-Za-z0-9]{52}"
 PYTHON_LINE_COMMENT_REGEX = r"^#.*\n"
 DOC_ELLIPSIS_REGEX = r"\s*#\s...\n"
@@ -49,65 +46,18 @@ class CodeType(Enum):
     BASH = "bash"
     NOCODE = "nocode"
 
-
-def block_code_filter(b: Dict) -> bool:
-    """Check Mistune block is a code block."""
-    return b["type"] == MISTUNE_BLOCK_CODE_ID
-
-
-def type_filter(type_: Optional[str], b: Dict) -> bool:
-    """
-    Check Mistune code block is of a certain type.
-
-    If the field "info" is None, return False.
-    If type_ is None, this function always return true.
-
-    :param type_: the expected type of block (optional)
-    :param b: the block dicionary.
-    :return: True if the block should be accepted, false otherwise.
-    """
-    if type_ is None:
-        return True
-    return b["info"].strip() == type_ if b["info"] is not None else False
-
-
-def get_code_blocks_recursive(blocks: List) -> List:
-    code_blocks = []
-    for block in blocks:
-        if block_code_filter(block):
-            code_blocks.append(block)
-        if "children" in block:
-            code_blocks += get_code_blocks_recursive(block["children"])
-    return code_blocks
-
+def dedent_code(code, n_spaces):
+    """Removes n spaces at the beggining of each line"""
+    lines = [line[n_spaces:] for line in code.split("\n")]
+    return "\n".join(lines)
 
 def extract_code_blocks(filepath: str, filter_: Optional[str] = None) -> list:
     """Extract code blocks from .md files."""
     content = Path(filepath).read_text(encoding="utf-8")
+    code_blocks= re.findall(rf"([ \t]*)```{filter_}\n(.+?)[ \t]*```", content, flags=re.DOTALL)
 
-    # Preprocess the content so mistune is able to find all code blocks
-    # Code inside admonitions, for example, are not recognized as of mistune 2.0.3
-    code_blocks_regex = re.findall(rf"[ \t]*```{filter_}.+?```", content, flags=re.DOTALL)
-    block_number_regex = len(code_blocks_regex)
-    preprocessed_content = "\n".join(code_blocks_regex)
-
-    # Get the code blocks the file using mistune
-    # and traversing the AST tree
-    markdown_parser = mistune.create_markdown(renderer=mistune.AstRenderer())
-    blocks = markdown_parser(preprocessed_content)
-    code_blocks = get_code_blocks_recursive(blocks)
-
-    # Filter blocks by type
-    actual_type_filter = partial(type_filter, filter_)
-    bash_code_blocks = filter(actual_type_filter, code_blocks)
-    block_number_mistune = len(list(bash_code_blocks))
-
-    # Ensure that mistune found the same number of blocks as regex
-    assert block_number_mistune == block_number_regex, (
-        f"Code block number mismatch: regex detected {block_number_regex} {filter_} blocks"
-        f" in {filepath} while mistune extracted {block_number_mistune}"
-    )
-    return list(b["text"] for b in bash_code_blocks)
+    dedented_code_blocks = [dedent_code(code, len(indent)) for indent, code in code_blocks]
+    return dedented_code_blocks
 
 
 def extract_python_code(filepath: str) -> str:
@@ -178,7 +128,7 @@ def check_code_blocks_exist(
         list(map(doc_process_fn, code_blocks)) if doc_process_fn else code_blocks
     )
 
-    # Ensure the code block mapping is correct. We ned a code file for each code block in the doc file
+    # Ensure the code block mapping is correct. We need a code file for each code block in the doc file
     assert len(code_blocks) == len(
         code_files
     ), f"Doc checker found {len(code_blocks)} non-skipped code blocks in {md_file} but only {len(code_files)} are being checked"
@@ -200,6 +150,7 @@ def check_code_blocks_exist(
                     line in code
                 ), f"This line in {md_file} doesn't exist in the code file {code_file}:\n\n'{line}'"
             continue
+
         assert (
             code_blocks[i] in code
         ), f"This code-block in {md_file} doesn't exist in the code file {code_file}:\n\n{code_blocks[i]}"

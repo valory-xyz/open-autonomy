@@ -134,7 +134,7 @@ class TestYamlSnippets(BaseTestDocCode):
 
     md_to_code = {
         "docs/demos/hello_world_demo.md": {
-            "code_files": ["packages/valory/agents/hello_world/aea-config.yaml"],
+            "code_files": ["packages/valory/skills/hello_world_abci/fsm_specification.yaml", "packages/valory/agents/hello_world/aea-config.yaml"],
         },
         # TODO uncomment and update this doc, when the safe-related rounds get removed from the `price-oracle`.
         # "docs/demos/price_oracle_fsms.md": {  # flake8: noqa: E800
@@ -145,7 +145,12 @@ class TestYamlSnippets(BaseTestDocCode):
         #     ],  # flake8: noqa: E800
         #     "skip_blocks": [2, 3, 6],  # flake8: noqa: E800
         # },  # flake8: noqa: E800
-        "docs/guides/configure_access_external_chains.md": {"skip_blocks": [0]},
+        "docs/guides/configure_access_external_chains.md": {"skip_blocks": [0, 1, 2, 3, 4]},
+        "docs/guides/create_service_from_scratch.md": {"code_files": ["packages/valory/skills/hello_world_abci/fsm_specification.yaml"]},
+        "docs/guides/deploy_service.md": {"skip_blocks": [0]},
+        "docs/advanced_reference/developer_tooling/benchmarking.md": {"skip_blocks": [0]},
+        "docs/guides/create_service_existing_agent.md": {"code_files": ["packages/valory/services/hello_world/service.yaml"]},
+        "docs/guides/create_fsm_app.md": {"code_files": ["packages/valory/skills/hello_world_abci/fsm_specification.yaml"]},
     }
 
     skipped_files = [
