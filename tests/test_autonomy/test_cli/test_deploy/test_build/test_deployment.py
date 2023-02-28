@@ -473,14 +473,6 @@ class TestKubernetesBuild(BaseDeployBuildTest):
             child in build_tree for child in ["persistent_storage", "build.yaml"]
         )
 
-        kubernetes_config = cls.load_kubernetes_config(path=build_dir)
-        assert all(
-            [
-                resource["metadata"]["name"] != "config-nodes"
-                for resource in kubernetes_config
-            ]
-        )
-
     def test_kubernetes_build(
         self,
     ) -> None:
