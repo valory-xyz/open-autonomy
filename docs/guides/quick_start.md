@@ -58,7 +58,7 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
 
 4. Build the deployment setup for the service:
     ```bash
-    autonomy deploy build keys.json --aev -ltm
+    autonomy deploy build keys.json -ltm
     ```
 
 5. Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally using
