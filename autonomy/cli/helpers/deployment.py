@@ -19,7 +19,6 @@
 
 """Deployment helpers."""
 import os
-import shutil
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -126,7 +125,6 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     build_dir: Path,
     deployment_type: str,
     dev_mode: bool,
-    force_overwrite: bool,
     number_of_agents: Optional[int] = None,
     password: Optional[str] = None,
     packages_dir: Optional[Path] = None,
@@ -144,10 +142,9 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     image_author: Optional[str] = None,
 ) -> None:
     """Build deployment."""
+
     if build_dir.is_dir():  # pragma: no cover
-        if not force_overwrite:
-            raise click.ClickException(f"Build already exists @ {build_dir}")
-        shutil.rmtree(build_dir)
+        raise click.ClickException(f"Build already exists @ {build_dir}")
 
     if not (Path.cwd() / DEFAULT_SERVICE_CONFIG_FILE).exists():
         raise FileNotFoundError(
@@ -249,7 +246,6 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
             build_dir=build_dir,
             deployment_type=DockerComposeGenerator.deployment_type,
             dev_mode=False,
-            force_overwrite=True,
             number_of_agents=n,
             agent_instances=agent_instances,
             multisig_address=multisig_address,

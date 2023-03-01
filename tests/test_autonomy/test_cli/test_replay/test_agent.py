@@ -104,7 +104,6 @@ class TestAgentRunner(BaseCliTest):
                     "deploy",
                     "build",
                     str(self.keys_path),
-                    "--force",
                     "--local",
                     "--o",
                     str(self.t / "abci_build"),
