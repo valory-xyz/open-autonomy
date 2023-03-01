@@ -161,6 +161,7 @@ class TestFromToken(BaseChainInteractionTest):
             assert "Service name: valory/oracle_hardhat" in result.stdout
             assert "Building required images" in result.stdout
             assert "Service build successful" in result.stdout
+            assert "Type:                 kubernetes" in result.stdout
 
         assert (self.t / "service" / "abci_build" / "build.yaml").exists()
 
