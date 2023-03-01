@@ -25,7 +25,7 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
 
 2. Use the CLI to download the `valory/counter` service.
     ```bash
-    autonomy fetch valory/counter:0.1.0:bafybeievnoyqkj4gvafx26om3enbjumzdx7va5wbd6qjvqdb4axt4s5w7a --remote --service
+    autonomy fetch valory/counter:0.1.0:bafybeiatrc3e7ulhtvzdbpoyvp4snkbggkk757nabfvhzv4jfgpxs2fzty --remote --service
     cd counter
     ```
 
@@ -64,7 +64,7 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
 
 5. Build a deployment setup for the demo service:
     ```bash
-    autonomy deploy build keys.json
+    autonomy deploy build keys.json -ltm
     ```
 
     This will build the deployment setup required to run the service locally.

@@ -40,6 +40,7 @@ from aea.configurations.data_types import (
     PublicId,
 )
 from aea.configurations.loader import load_configuration_object
+from aea.crypto.base import LedgerApi
 from aea.package_manager.v1 import PackageManagerV1
 from aea_cli_ipfs.ipfs_utils import IPFSTool
 
@@ -346,13 +347,32 @@ def _get_chained_abci_skill(
 
 def _get_ipfs_pins(is_on_chain_check: bool = False) -> Set[str]:
     """Get IPFS pins."""
-    ipfs_tool = IPFSTool()
     if is_on_chain_check:
+        ipfs_tool = IPFSTool()
         if not ipfs_tool.daemon.is_started():
             raise click.ClickException("Cannot connect to the IPFS daemon.")
         return ipfs_tool.all_pins()
 
     return set()
+
+
+def _get_on_chain_service_id(
+    ledger_api: LedgerApi,
+    chain_type: ChainType,
+    token_id: int,
+) -> PackageId:
+    """Get on chain service ID with package hash"""
+    service_info = resolve_component_id(
+        ledger_api=ledger_api,
+        contract_address=ContractConfigs.service_registry.contracts[chain_type],
+        token_id=cast(int, token_id),
+        is_service=True,
+    )
+    package_hash = cast(str, service_info["code_uri"]).replace("ipfs://", "")
+    public_id = PublicId.from_str(service_info["name"]).with_hash(
+        package_hash=package_hash
+    )
+    return PackageId(package_type=PackageType.SERVICE, public_id=public_id)
 
 
 def check_service_readiness(  # pylint: disable=too-many-locals
@@ -370,18 +390,10 @@ def check_service_readiness(  # pylint: disable=too-many-locals
 
     if is_on_chain_check:
         try:
-            service_info = resolve_component_id(
+            service_id = _get_on_chain_service_id(
                 ledger_api=ledger_api,
-                contract_address=ContractConfigs.service_registry.contracts[chain_type],
+                chain_type=chain_type,
                 token_id=cast(int, token_id),
-                is_service=True,
-            )
-            package_hash = cast(str, service_info["code_uri"]).replace("ipfs://", "")
-            public_id = PublicId.from_str(service_info["name"]).with_hash(
-                package_hash=package_hash
-            )
-            service_id = PackageId(
-                package_type=PackageType.SERVICE, public_id=public_id
             )
         except FailedToRetrieveComponentMetadata as e:
             raise click.ClickException(
@@ -430,6 +442,7 @@ def check_service_readiness(  # pylint: disable=too-many-locals
             service_config=service_config,
             is_on_chain_check=is_on_chain_check,
         )
+
         service_analyser.check_on_chain_state(
             ledger_api=ledger_api,
             chain_type=chain_type,

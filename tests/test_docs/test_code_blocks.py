@@ -151,6 +151,7 @@ class TestYamlSnippets(BaseTestDocCode):
     skipped_files = [
         "docs/guides/service_configuration_file.md",
         "docs/demos/price_oracle_fsms.md",
+        "docs/advanced_reference/developer_tooling/dev_mode.md",
         "docs/deployment/on-chain_deployment_checklist.md",  # just placeholder examples
     ]
 
