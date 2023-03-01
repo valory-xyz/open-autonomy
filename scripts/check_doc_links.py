@@ -41,16 +41,14 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 MAX_WORKERS = 10
-URL_REGEX = r'(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)"]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s)"]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s)"]{2,}|www\.[a-zA-Z0-9]+\.[^\s)"]{2,})'
+URL_REGEX = r'(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s})"]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s})"]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s)"}]{2,}|www\.[a-zA-Z0-9]+\.[^\s)"}]{2,})'
 DEFAULT_REQUEST_TIMEOUT = 5  # seconds
 
 # Allow some links to be HTTP because there is no HTTPS alternative
 # Remove non-url-allowed characters like ` before adding them here
 HTTP_SKIPS = [
     "http://www.fipa.org/repository/ips.php3",
-    "http://host.docker.internal:8545",
     "http://host.docker.internal:8545",  # internal (ERR_NAME_NOT_RESOLVED)
-    "http://host.docker.internal:8545}",  # regex issue
 ]
 
 # Special links that are allowed to respond with an error status
@@ -59,7 +57,6 @@ URL_SKIPS = [
     "https://gateway.autonolas.tech/ipfs/<hash>,",  # non link (400)
     "https://github.com/valory-xyz/open-autonomy/trunk/infrastructure",  # svn link (404)
     "http://host.docker.internal:8545",  # internal (ERR_NAME_NOT_RESOLVED)
-    "http://host.docker.internal:8545}",  # regex issue
 ]
 
 # Define here custom timeouts for some edge cases
@@ -128,6 +125,7 @@ def check_file(
         "file": str(md_file),
         "http_links": http_links,
         "broken_links": broken_links,
+        "n_links": len(m),
     }
 
 
@@ -144,6 +142,7 @@ def main() -> None:  # pylint: disable=too-many-locals
 
     broken_links: Dict[str, Dict] = {}
     http_links: Dict[str, List[str]] = {}
+    n_links = 0
 
     # Configure request retries
     retry_strategy = Retry(
@@ -175,6 +174,10 @@ def main() -> None:  # pylint: disable=too-many-locals
                 http_links[i["file"]] = i["http_links"]
             if i["broken_links"]:
                 broken_links[i["file"]] = i["broken_links"]
+            if i["n_links"]:
+                n_links += i["n_links"]
+
+        print(f"Checked {n_links} links in {len(all_md_files)} files")
 
         # Check errors
         if broken_links:
