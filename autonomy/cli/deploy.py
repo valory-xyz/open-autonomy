@@ -166,7 +166,6 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
 ) -> None:
     """Build deployment setup for n agents."""
 
-
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
     if not keys_file.exists():
         message = f"No such file or directory: {keys_file}. Please provide valid path for keys file."
