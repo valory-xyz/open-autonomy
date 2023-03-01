@@ -60,7 +60,7 @@ Local deployments of a service are recommended to test your service before you p
 3. **Build the deployment.** Within the service folder, execute the command below to build the service deployment.
 
     ```bash
-    autonomy deploy build keys.json --aev
+    autonomy deploy build keys.json -ltm
     ```
 
     This will create a deployment environment within the `./abci_build` folder with the following structure:

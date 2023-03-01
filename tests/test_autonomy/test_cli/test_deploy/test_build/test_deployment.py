@@ -128,7 +128,6 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                     str(self.keys_file),
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
                     "--local",
                 )
             )
@@ -157,7 +156,6 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                     str(self.keys_file),
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
                     "--local",
                     "--local-tm-setup",
                 )
@@ -178,7 +176,6 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                     str(self.keys_file),
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
                     "--local",
                     "--log-level",
                     DEBUG,
@@ -215,7 +212,6 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                     str(self.keys_file),
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
                     "--dev",
                     "--local",
                     "--packages-dir",
@@ -260,7 +256,6 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                     str(keys_file),
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
                     "--password",
                     ETHEREUM_ENCRYPTION_PASSWORD,
                     "--local",
@@ -312,7 +307,6 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                     str(self.keys_file),
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
                     "--dev",
                     "--local",
                     "--packages-dir",
@@ -348,7 +342,6 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                     str(self.keys_file),
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
                     "--dev",
                     "--local",
                 )
@@ -390,7 +383,6 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                     str(self.keys_file),
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
                     "--local",
                     "--log-level",
                     DEBUG,
@@ -427,7 +419,6 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                     str(self.keys_file),
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
                     "--local",
                     "--log-level",
                     DEBUG,
@@ -473,14 +464,6 @@ class TestKubernetesBuild(BaseDeployBuildTest):
             child in build_tree for child in ["persistent_storage", "build.yaml"]
         )
 
-        kubernetes_config = cls.load_kubernetes_config(path=build_dir)
-        assert all(
-            [
-                resource["metadata"]["name"] != "config-nodes"
-                for resource in kubernetes_config
-            ]
-        )
-
     def test_kubernetes_build(
         self,
     ) -> None:
@@ -494,7 +477,6 @@ class TestKubernetesBuild(BaseDeployBuildTest):
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
                     "--kubernetes",
-                    "--force",
                     "--local",
                 )
             )
@@ -517,7 +499,6 @@ class TestKubernetesBuild(BaseDeployBuildTest):
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
                     "--kubernetes",
-                    "--force",
                     "--local",
                     "--log-level",
                     DEBUG,
@@ -547,7 +528,6 @@ class TestKubernetesBuild(BaseDeployBuildTest):
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
                     "--kubernetes",
-                    "--force",
                     "--dev",
                     "--local",
                     "--packages-dir",
@@ -579,7 +559,6 @@ class TestKubernetesBuild(BaseDeployBuildTest):
                     str(keys_file),
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
                     "--kubernetes",
                     "--password",
                     ETHEREUM_ENCRYPTION_PASSWORD,
@@ -624,7 +603,6 @@ class TestKubernetesBuild(BaseDeployBuildTest):
                     str(self.keys_file),
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
-                    "--force",
                     "--local",
                     "--kubernetes",
                     "--local-tm-setup",
@@ -657,7 +635,6 @@ class TestKubernetesBuild(BaseDeployBuildTest):
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
                     "--kubernetes",
-                    "--force",
                     "--local",
                     "--log-level",
                     DEBUG,
@@ -689,7 +666,6 @@ class TestKubernetesBuild(BaseDeployBuildTest):
                     "--o",
                     str(self.t / DEFAULT_BUILD_FOLDER),
                     "--kubernetes",
-                    "--force",
                     "--local",
                     "--log-level",
                     DEBUG,

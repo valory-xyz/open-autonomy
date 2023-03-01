@@ -106,7 +106,7 @@ You can also take a look at the Hello World service FSM specification file, whic
     - ROUND_TIMEOUT
     default_start_state: RegistrationRound
     final_states: []
-    label: packages.valory.skills.hello_world_abci.rounds.HelloWorldAbciApp
+    label: HelloWorldAbciApp
     start_states:
     - RegistrationRound
     states:

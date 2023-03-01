@@ -21,8 +21,6 @@ Options:
   --docker                        Use docker as a backend.
   --kubernetes                    Use kubernetes as a backend.
   --dev                           Create development environment.
-  --force                         Remove existing build and overwrite with new
-                                  one.
   --log-level [INFO|DEBUG|WARNING|ERROR|CRITICAL]
                                   Logging level for runtime.
   --packages-dir PATH             Path to packages dir (Use with dev mode)
@@ -31,6 +29,7 @@ Options:
                                   mode)
   --aev                           Apply environment variable when loading
                                   service config.
+  -ltm, --local-tm-setup          Use local tendermint chain setup.
   --image-version TEXT            Define runtime image version.
   --remote                        To use a remote registry.
   --local                         To use a local registry.
