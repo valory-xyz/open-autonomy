@@ -47,7 +47,7 @@ class CodeType(Enum):
 
 
 def dedent_code(code: str, n_spaces: int) -> str:
-    """Removes n spaces at the beggining of each line"""
+    """Removes n characters at the begining of each line"""
     lines = [line[n_spaces:] for line in code.split("\n")]
     return "\n".join(lines)
 
