@@ -57,13 +57,6 @@ Deploy an agent service.
     help="Create development environment.",
 )
 @click.option(
-    "--force",
-    "force_overwrite",
-    is_flag=True,
-    default=False,
-    help="Remove existing build and overwrite with new one.",
-)
-@click.option(
     "--log-level",
     type=click.Choice(choices=LOGGING_LEVELS, case_sensitive=True),
     help="Logging level for runtime.",
@@ -120,7 +113,6 @@ def build_deployment_command(click_context: click.Context,
                              deployment_type: str,
                              output_dir: Optional[Path],
                              dev_mode: bool,
-                             force_overwrite: bool,
                              registry: str,
                              number_of_agents: Optional[int] = None,
                              password: Optional[str] = None,

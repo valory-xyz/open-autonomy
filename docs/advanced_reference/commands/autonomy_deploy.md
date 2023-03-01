@@ -32,9 +32,6 @@ autonomy deploy build [OPTIONS] [KEYS_FILE]
 `--dev`
 :   Create development environment.
 
-`--force`
-:   Remove existing build and overwrite with new one.
-
 `--log-level [INFO|DEBUG|WARNING|ERROR|CRITICAL]`
 :   Logging level for runtime.
 
