@@ -28,7 +28,6 @@ The summary of the constituent FSMs is as follows:
 | FSM                     | States  | Start states  | Final states  | Events  | Non-trivial transitions (*)   |
 |-----------------------  |-------: |-------------: |-------------: |-------: |------------------------:  |
 | AgentRegistration       |      4  |            2  |            2  |      3  |                       3   |
-| SafeDeployment          |      5  |            1  |            1  |      8  |                      14   |
 | OracleDeployment        |      5  |            1  |            1  |      8  |                      14   |
 | PriceAggregation        |      9  |            1  |            1  |      4  |                       9   |
 | TransactionSubmission   |     10  |            1  |            2  |      9  |                      26   |
@@ -43,26 +42,22 @@ The summary of the constituent FSMs is as follows:
 ```yaml
 alphabet_in:
 - DONE
-- FAST_FORWARD
 - NO_MAJORITY
 default_start_state: RegistrationStartupRound
 final_states:
-- FinishedRegistrationFFWRound
 - FinishedRegistrationRound
 label: AgentRegistrationAbciApp
 start_states:
 - RegistrationRound
 - RegistrationStartupRound
 states:
-- FinishedRegistrationFFWRound
 - FinishedRegistrationRound
 - RegistrationRound
 - RegistrationStartupRound
 transition_func:
-    (RegistrationRound, DONE): FinishedRegistrationFFWRound
+    (RegistrationRound, DONE): FinishedRegistrationRound
     (RegistrationRound, NO_MAJORITY): RegistrationRound
     (RegistrationStartupRound, DONE): FinishedRegistrationRound
-    (RegistrationStartupRound, FAST_FORWARD): FinishedRegistrationFFWRound
 ```
 
 <figure markdown>
@@ -74,62 +69,6 @@ stateDiagram-v2
 </div>
 <figcaption>AgentRegistrationAbciApp FSM</figcaption>
 </figure>
-
-#### `SafeDeploymentAbciApp` FSM
-```yaml
-alphabet_in:
-- DEPLOY_TIMEOUT
-- DONE
-- FAILED
-- NEGATIVE
-- NONE
-- NO_MAJORITY
-- ROUND_TIMEOUT
-- VALIDATE_TIMEOUT
-default_start_state: RandomnessSafeRound
-final_states:
-- FinishedSafeRound
-label: SafeDeploymentAbciApp
-start_states:
-- RandomnessSafeRound
-states:
-- DeploySafeRound
-- FinishedSafeRound
-- RandomnessSafeRound
-- SelectKeeperSafeRound
-- ValidateSafeRound
-transition_func:
-    (DeploySafeRound, DEPLOY_TIMEOUT): SelectKeeperSafeRound
-    (DeploySafeRound, DONE): ValidateSafeRound
-    (DeploySafeRound, FAILED): SelectKeeperSafeRound
-    (RandomnessSafeRound, DONE): SelectKeeperSafeRound
-    (RandomnessSafeRound, NO_MAJORITY): RandomnessSafeRound
-    (RandomnessSafeRound, ROUND_TIMEOUT): RandomnessSafeRound
-    (SelectKeeperSafeRound, DONE): DeploySafeRound
-    (SelectKeeperSafeRound, NO_MAJORITY): RandomnessSafeRound
-    (SelectKeeperSafeRound, ROUND_TIMEOUT): RandomnessSafeRound
-    (ValidateSafeRound, DONE): FinishedSafeRound
-    (ValidateSafeRound, NEGATIVE): RandomnessSafeRound
-    (ValidateSafeRound, NONE): RandomnessSafeRound
-    (ValidateSafeRound, NO_MAJORITY): RandomnessSafeRound
-    (ValidateSafeRound, VALIDATE_TIMEOUT): RandomnessSafeRound
-```
-
-<figure markdown>
-<div class="mermaid">
-stateDiagram-v2
-    RandomnessSafeRound --> SelectKeeperSafeRound: <center>DONE</center>
-    RandomnessSafeRound --> RandomnessSafeRound: <center>NO_MAJORITY<br />ROUND_TIMEOUT</center>
-    DeploySafeRound --> SelectKeeperSafeRound: <center>FAILED<br />DEPLOY_TIMEOUT</center>
-    DeploySafeRound --> ValidateSafeRound: <center>DONE</center>
-    SelectKeeperSafeRound --> DeploySafeRound: <center>DONE</center>
-    SelectKeeperSafeRound --> RandomnessSafeRound: <center>NO_MAJORITY<br />ROUND_TIMEOUT</center>
-    ValidateSafeRound --> FinishedSafeRound: <center>DONE</center>
-    ValidateSafeRound --> RandomnessSafeRound: <center>NO_MAJORITY<br />NONE<br />NEGATIVE<br />VALIDATE_TIMEOUT</center>
-</div>
-<figcaption>SafeDeploymentAbciApp FSM</figcaption>
-</figure>
-
 
 
 #### `OracleDeploymentAbciApp` FSM

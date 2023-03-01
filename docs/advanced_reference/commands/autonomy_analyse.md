@@ -330,7 +330,7 @@ autonomy analyse service [OPTIONS]
 `--token-id INTEGER`
 :  Token ID of the service
 
-`--public-id PUBLIC_ID_OR_HASH` 
+`--public-id PUBLIC_ID_OR_HASH`
 :   Public ID of the service
 
 `--use-ethereum`
