@@ -29,6 +29,7 @@ Options:
                                   mode)
   --aev                           Apply environment variable when loading
                                   service config.
+  -ltm, --local-tm-setup          Use local tendermint chain setup.
   --image-version TEXT            Define runtime image version.
   --remote                        To use a remote registry.
   --local                         To use a local registry.

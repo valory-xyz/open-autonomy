@@ -17,7 +17,7 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
 
 1. Use the CLI to fetch the [Hello World agent service](../demos/hello_world_demo.md). This will connect to the remote registry and download the files that make up the service to the `hello_world` folder:
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeidzmbyyyitioj4mz6xwlnqlvnmjwb5pzfw7qcpgtrv3ytozgbhnri --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeiangkjd6y5jjpubeog25lggrmq3y64b2cqurhmxs26i4tddksbhiq --service
     cd hello_world
     ```
 
@@ -58,7 +58,7 @@ Now that you have set up your machine to work with {{open_autonomy}}, we are in 
 
 4. Build the deployment setup for the service:
     ```bash
-    autonomy deploy build keys.json --aev
+    autonomy deploy build keys.json -ltm
     ```
 
 5. Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally using
