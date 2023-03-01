@@ -100,7 +100,6 @@ class TestTendermintRunner(BaseCliTest):
                 "deploy",
                 "build",
                 str(self.keys_path),
-                "--force",
                 "--o",
                 str(self.t / DEFAULT_BUILD_FOLDER),
                 "--local",
