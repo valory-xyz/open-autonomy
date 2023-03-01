@@ -95,13 +95,6 @@ def deploy_group(
     help="Create development environment.",
 )
 @click.option(
-    "--force",
-    "force_overwrite",
-    is_flag=True,
-    default=False,
-    help="Remove existing build and overwrite with new one.",
-)
-@click.option(
     "--log-level",
     type=click.Choice(choices=LOGGING_LEVELS, case_sensitive=True),
     help="Logging level for runtime.",
@@ -157,7 +150,6 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     deployment_type: str,
     output_dir: Optional[Path],
     dev_mode: bool,
-    force_overwrite: bool,
     registry: str,
     number_of_agents: Optional[int] = None,
     password: Optional[str] = None,
@@ -173,6 +165,7 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     image_author: Optional[str] = None,
 ) -> None:
     """Build deployment setup for n agents."""
+
 
     keys_file = Path(keys_file or DEFAULT_KEYS_FILE).absolute()
     if not keys_file.exists():
@@ -207,7 +200,6 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             build_dir=build_dir,
             deployment_type=deployment_type,
             dev_mode=dev_mode,
-            force_overwrite=force_overwrite,
             number_of_agents=number_of_agents,
             password=password,
             packages_dir=packages_dir,
