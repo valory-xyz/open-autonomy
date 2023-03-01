@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        python-version: ["3.10"]
+        python-version: ["3.10.9"]
 
     timeout-minutes: 10
 
@@ -52,7 +52,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10"]
+        python-version: ["3.10.9"]
 
     timeout-minutes: 30
 
@@ -86,7 +86,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.10"]
+        python-version: ["3.10.9"]
 
     timeout-minutes: 30
 
@@ -174,7 +174,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
-        python-version: [ "3.7", "3.8", "3.9", "3.10" ]
+        python-version: [ "3.7", "3.8", "3.9", "3.10.9" ]
 
     timeout-minutes: 90
 
@@ -361,7 +361,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ "3.10" ]
+        python-version: [ "3.10.9" ]
 
     timeout-minutes: 150
 
