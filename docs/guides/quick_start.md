@@ -6,7 +6,7 @@ We will show how to use the CLI to run a local deployment of the [Hello World se
 - 4 Docker containers implementing a Tendermint node for each agent.
 
 <figure markdown>
-  ![Hello World agent service](../images/hello_world_demo_architecture.svg){align=center}
+  ![Hello World service](../images/hello_world_demo_architecture.svg){align=center}
 </figure>
 
 Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
@@ -65,23 +65,15 @@ Before starting this guide, ensure that your machine satisfies the framework req
             ]
             ```
 
-    2. (Optional) Define the environment variables to customize the service configuration.
+    2. (Optional) Export environment variables to customize the service configuration.
 
-        ??? example "Example of an `.env` file"
-
-            Create an `.env` file with the following contents:
+        ??? example "Example of exported environment variables"
 
             ```bash
-            HELLO_WORLD_STRING_0=Your HELLO WORLD message for Agent 0
-            HELLO_WORLD_STRING_1=Your HELLO WORLD message for Agent 1
-            HELLO_WORLD_STRING_2=Your HELLO WORLD message for Agent 2
-            HELLO_WORLD_STRING_3=Your HELLO WORLD message for Agent 3
-            ```
-
-            and export them to the environment:
-
-            ```bash
-            export $(grep -v '^#' .env | xargs)
+            export HELLO_WORLD_STRING_0="Your HELLO WORLD message for Agent 0"
+            export HELLO_WORLD_STRING_1="Your HELLO WORLD message for Agent 1"
+            export HELLO_WORLD_STRING_2="Your HELLO WORLD message for Agent 2"
+            export HELLO_WORLD_STRING_3="Your HELLO WORLD message for Agent 3"
             ```
 
     3. Build the service deployment:
@@ -97,7 +89,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
     autonomy deploy run
     ```
 
-    This will deploy the [Hello World agent service](../demos/hello_world_demo.md) locally with four agents connected to four Tendermint nodes.
+    This will deploy the [Hello World service](../demos/hello_world_demo.md) locally with four agents connected to four Tendermint nodes.
 
     You can cancel the local execution at any time by pressing ++ctrl+c++.
 
