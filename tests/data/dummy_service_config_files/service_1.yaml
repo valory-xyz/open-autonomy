@@ -17,8 +17,7 @@ models:
     args:
       message: ${str:"Hello, World!"}
       setup:
-        safe_contract_address:
-          - '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'        
+        safe_contract_address: '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
   benchmark_tool:
       args:
         log_dir: /logs

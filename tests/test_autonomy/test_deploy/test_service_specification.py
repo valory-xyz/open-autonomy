@@ -232,9 +232,10 @@ class TestServiceBuilder:
         )
 
         skill_config, *_ = spec.service.overrides
-        assert skill_config["models"]["params"]["args"]["setup"][
-            "safe_contract_address"
-        ] == [DUMMY_CONTRACT_ADDRESS]
+        assert (
+            skill_config["models"]["params"]["args"]["setup"]["safe_contract_address"]
+            == DUMMY_CONTRACT_ADDRESS
+        )
 
         spec.try_update_runtime_params(
             multisig_address=multisig_address,
