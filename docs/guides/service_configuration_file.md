@@ -1,11 +1,5 @@
 The service configuration file `service.yaml` is a YAML file where the main attributes of the agent service are set up, including the particular agent that composes the service. An important feature of service configuration files is that they can override attributes defined in agent or component configurations.
 
-
-<figure markdown>
-![](../images/development_process_define_service.svg)
-<figcaption>Part of the development process covered in this guide</figcaption>
-</figure>
-
 ## What you will learn
 In this guide, you will learn:
 

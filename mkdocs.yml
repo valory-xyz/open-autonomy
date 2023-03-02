@@ -28,10 +28,14 @@ nav:
     - Set up: 'guides/set_up.md'
     - Quick start: 'guides/quick_start.md'
     - Overview of the development process: 'guides/overview_of_the_development_process.md'
-    - Create a service with an existing agent: 'guides/create_service_existing_agent.md'
-    - The service configuration file: 'guides/service_configuration_file.md'
-    - Create a service from scratch: 'guides/create_service_from_scratch.md'
+    - Draft the service idea and define the FSM specification: 'guides/draft_service_idea_and_define_fsm_specification.md'
     - Create an FSM App skill: 'guides/create_fsm_app.md'
+    - Define the agent: 'guides/define_agent.md'
+    - Define the service: 'guides/define_service.md'
+    - The service configuration file: 'guides/service_configuration_file.md'
+
+
+    - Create a service from scratch: 'guides/create_service_from_scratch.md'
     - Publish and fetch packages: 'guides/publish_fetch_packages.md'
     - Register packages on-chain: 'guides/register_packages_on_chain.md'
     - Deploy a service: 'guides/deploy_service.md'
@@ -252,7 +256,8 @@ plugins:
 markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
-  - pymdownx.tabbed 
+  - pymdownx.tabbed:
+      alternate_style: true  
   - pymdownx.highlight
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji
