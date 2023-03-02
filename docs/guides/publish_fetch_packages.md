@@ -165,7 +165,7 @@ If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech
 
 
 ## Publish and fetch services
-This section assumes that you have a newly created service in a workspace folder. It is out of the scope of this guide how to create services. You can review the [guide to create a service with an existing agent](./create_service_existing_agent.md), or the [guide to create a service from scratch](./create_service_from_scratch.md). Your service should be located in an service folder (i.e., a folder containing the file `service.yaml`).
+This section assumes that you have a newly created service in a workspace folder. It is out of the scope of this guide how to create services. You can review the [guide to create a service with an existing agent](./define_service.md), or the [guide to create a service from scratch](./create_service_from_scratch.md). Your service should be located in an service folder (i.e., a folder containing the file `service.yaml`).
 
 ### Publish a service on a registry
 

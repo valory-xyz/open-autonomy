@@ -90,4 +90,4 @@ Before starting this guide, ensure that your machine satisfies the framework req
         When adding a component, it will automatically add all its dependencies to the agent. For this reason, it might be the case that you don't need additional components after adding the {{fsm_app}} skill.
 
 
-At this point, you will have an agent implementing the desired service functionality. Now, you can continue with **Steps 5, 6 and 7** in the [guide to create a service with an existing agent](./create_service_existing_agent.md) to define and deploy the corresponding agent service.
+At this point, you will have an agent implementing the desired service functionality. Now, you can continue with **Steps 5, 6 and 7** in the [guide to create a service with an existing agent](./define_service.md) to define and deploy the corresponding agent service.
