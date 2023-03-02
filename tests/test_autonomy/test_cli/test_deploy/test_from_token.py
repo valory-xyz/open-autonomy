@@ -152,7 +152,7 @@ class TestFromToken(BaseChainInteractionTest):
         with mock.patch(
             "autonomy.cli.helpers.deployment.fetch_service_ipfs",
             return_value=service_dir,
-        ), run_deployment_patch, build_image_patch, default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch:
+        ), run_deployment_patch as rdp, build_image_patch, default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch:
             result = self.run_cli(
                 (str(self.token), str(self.keys_file), "--kubernetes")
             )
@@ -162,6 +162,9 @@ class TestFromToken(BaseChainInteractionTest):
             assert "Building required images" in result.stdout
             assert "Service build successful" in result.stdout
             assert "Type:                 kubernetes" in result.stdout
+            assert "Running deployment" not in result.output
+
+            rdp.assert_not_called()
 
         assert (self.t / "service" / "abci_build" / "build.yaml").exists()
 
