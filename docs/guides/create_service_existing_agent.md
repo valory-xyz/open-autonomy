@@ -72,11 +72,9 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
             args:
               setup: &id001
                 all_participants:
-                - - '0x0000000000000000000000000000000000000000'
-                safe_contract_address:
                 - '0x0000000000000000000000000000000000000000'
-                consensus_threshold:
-                - null
+                safe_contract_address: '0x0000000000000000000000000000000000000000'
+                consensus_threshold: null
         public_id: valory/hello_world_abci:0.1.0
         type: skill
         0:
