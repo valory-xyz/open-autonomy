@@ -21,19 +21,26 @@
 # pylint: skip-file
 
 import logging
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Type
 
 import numpy as np
 from aea.exceptions import enforce
 from aea.test_tools.test_cases import AEATestCaseMany
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis.strategies import binary, booleans, integers, lists, text, tuples
 
+from packages.valory.connections.abci import CI
 from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.base import (
     BaseChannel,
 )
 from packages.valory.connections.abci.tests.test_fuzz.mock_node.node import MockNode
+
+
+running_on_ci = os.getenv(CI)
+if running_on_ci:
+    settings.load_profile(CI)
 
 
 class BaseFuzzyTests(AEATestCaseMany):

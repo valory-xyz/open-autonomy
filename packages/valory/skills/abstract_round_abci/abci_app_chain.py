@@ -20,7 +20,7 @@
 """This module contains utilities for AbciApps."""
 import logging
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Set, Tuple, Type
+from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple, Type
 
 from aea.exceptions import enforce
 
@@ -281,7 +281,9 @@ def chain(  # pylint: disable=too-many-locals,too-many-statements
         transition_function: AbciAppTransitionFunction = new_transition_function
         final_states: Set[AppState] = new_final_states
         event_to_timeout: EventToTimeout = new_events_to_timeout
-        cross_period_persisted_keys: Set[str] = new_cross_period_persisted_keys
+        cross_period_persisted_keys: FrozenSet[str] = frozenset(
+            new_cross_period_persisted_keys
+        )
         db_pre_conditions: Dict[AppState, Set[str]] = new_db_pre_conditions
         db_post_conditions: Dict[AppState, Set[str]] = new_db_post_conditions
 

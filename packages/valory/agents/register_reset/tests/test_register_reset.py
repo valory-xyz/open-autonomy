@@ -80,7 +80,7 @@ class TestTendermintStartup(UseRegistries, UseACNNode, BaseTestEnd2EndExecution)
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     extra_configs = [
         {
-            "dotted_path": f"{__args_prefix}.observation_interval",
+            "dotted_path": f"{__args_prefix}.reset_pause_duration",
             "value": 15,
         },
     ]
@@ -98,7 +98,7 @@ class TestTendermintReset(UseRegistries, UseACNNode, BaseTestEnd2EndExecution):
     key_pairs = KEY_PAIRS
     wait_to_finish = 200
     _reset_tendermint_every = 1
-    _observation_interval = 30
+    _reset_pause_duration = 30
     package_registry_src_rel = Path(__file__).parent.parent.parent.parent.parent
     __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     # reset every `__reset_tendermint_every` rounds
@@ -108,8 +108,8 @@ class TestTendermintReset(UseRegistries, UseACNNode, BaseTestEnd2EndExecution):
             "value": _reset_tendermint_every,
         },
         {
-            "dotted_path": f"{__args_prefix}.observation_interval",
-            "value": _observation_interval,
+            "dotted_path": f"{__args_prefix}.reset_pause_duration",
+            "value": _reset_pause_duration,
         },
     ]
 
@@ -139,7 +139,7 @@ class TestTendermintResetInterrupt(UseRegistries, UseACNNode, BaseTestEnd2EndExe
             "value": __reset_tendermint_every,
         },
         {
-            "dotted_path": f"{__args_prefix}.observation_interval",
+            "dotted_path": f"{__args_prefix}.reset_pause_duration",
             "value": 15,
         },
     ]
@@ -177,7 +177,7 @@ class TestTendermintResetRejoin(TestTendermintReset):
     wait_before_stop = 300
     _n_resets_before_rejoin = 1
     restart_after = (
-        TestTendermintReset._observation_interval
+        TestTendermintReset._reset_pause_duration
         * TestTendermintReset._reset_tendermint_every
         * _n_resets_before_rejoin
     )

@@ -51,6 +51,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     ROUND_COUNT_DEFAULT,
     RoundSequence,
+    VALUE_NOT_PROVIDED,
     get_name,
 )
 from packages.valory.skills.abstract_round_abci.utils import (
@@ -62,7 +63,7 @@ from packages.valory.skills.abstract_round_abci.utils import (
 )
 
 
-MIN_OBSERVATION_INTERVAL = 10
+MIN_RESET_PAUSE_DURATION = 10
 NUMBER_OF_RETRIES: int = 5
 DEFAULT_BACKOFF_FACTOR: float = 2.0
 DEFAULT_TYPE_NAME: str = "str"
@@ -265,8 +266,8 @@ class BaseParams(
         self.retry_timeout: int = self._ensure("retry_timeout", kwargs, int)
         self.retry_attempts: int = self._ensure("retry_attempts", kwargs, int)
         self.keeper_timeout: float = self._ensure("keeper_timeout", kwargs, float)
-        self.observation_interval: int = self._ensure_gte(
-            "observation_interval", kwargs, int, min_value=MIN_OBSERVATION_INTERVAL
+        self.reset_pause_duration: int = self._ensure_gte(
+            "reset_pause_duration", kwargs, int, min_value=MIN_RESET_PAUSE_DURATION
         )
         self.drand_public_key: str = self._ensure("drand_public_key", kwargs, str)
         self.tendermint_com_url: str = self._ensure("tendermint_com_url", kwargs, str)
@@ -312,11 +313,11 @@ class BaseParams(
             # and they should always contain at least `all_participants` and `safe_contract_address`
             self._ensure_setup(
                 {
-                    get_name(BaseSynchronizedData.safe_contract_address): List[str],
-                    get_name(BaseSynchronizedData.all_participants): List[List[str]],
-                    get_name(BaseSynchronizedData.consensus_threshold): List[
-                        Optional[int]
-                    ],
+                    get_name(BaseSynchronizedData.safe_contract_address): str,
+                    get_name(BaseSynchronizedData.all_participants): List[str],
+                    get_name(BaseSynchronizedData.consensus_threshold): cast(
+                        Type, Optional[int]
+                    ),
                 },
                 skill_id,
             )
@@ -329,11 +330,13 @@ class BaseParams(
         enforce(bool(self.setup_params), "`setup` params contain no values!")
 
         for key, type_ in necessary_params.items():
-            value = self.setup_params.get(key, None)
-            if value is None:
+            # check that the key is present, note that None is acceptable for optional keys
+            value = self.setup_params.get(key, VALUE_NOT_PROVIDED)
+            if value is VALUE_NOT_PROVIDED:
                 fail_msg = f"Value for `{key}` missing from the `setup` params."
                 enforce(False, fail_msg)
 
+            # check that the value is of the correct type
             try:
                 check_type(key, value, type_)
             except TypeError:  # pragma: nocover
@@ -437,7 +440,7 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
         self.round_sequence.setup(
             BaseSynchronizedData(
                 AbciAppDB(
-                    setup_data=setup_params,
+                    setup_data=AbciAppDB.data_to_lists(setup_params),
                     cross_period_persisted_keys=self.abci_app_cls.cross_period_persisted_keys,
                 )
             ),

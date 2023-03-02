@@ -226,7 +226,7 @@ class ResetAndPauseBehaviour(HelloWorldABCIBaseBehaviour):
         """
         if self.pause:
             self.context.logger.info("Period end.")
-            yield from self.sleep(self.params.observation_interval)
+            yield from self.sleep(self.params.reset_pause_duration)
         else:
             self.context.logger.info(
                 f"Period {self.synchronized_data.period_count} was not finished. Resetting!"

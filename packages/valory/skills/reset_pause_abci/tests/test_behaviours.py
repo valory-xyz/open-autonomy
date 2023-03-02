@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -85,6 +85,7 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
         tendermint_reset_status: Optional[bool],
     ) -> None:
         """Test reset behaviour."""
+        dummy_participants = [[i for i in range(4)]]
 
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
@@ -92,6 +93,10 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
             synchronized_data=ResetSynchronizedSata(
                 AbciAppDB(
                     setup_data=dict(
+                        all_participants=dummy_participants,
+                        participants=dummy_participants,
+                        safe_contract_address=[""],
+                        consensus_threshold=[3],
                         most_voted_estimate=[0.1],
                         tx_hashes_history=[["68656c6c6f776f726c64"]],
                     ),
