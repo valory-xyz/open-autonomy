@@ -75,8 +75,8 @@ models:
       on_chain_service_id: ${int:null}
       setup:
         all_participants: ${list:[]}
-        safe_contract_address: ${list:[]}
-        consensus_threshold: ${list:[null]}
+        safe_contract_address: ${str:'0x0000000000000000000000000000000000000000'}
+        consensus_threshold: ${int:null}
       tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
       tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
 ---

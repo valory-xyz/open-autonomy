@@ -75,11 +75,9 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
         args:
           setup:
             all_participants:
-            - - '0x0000000000000000000000000000000000000000'
-            safe_contract_address:
             - '0x0000000000000000000000000000000000000000'
-            consensus_threshold:
-            - null            
+            safe_contract_address: '0x0000000000000000000000000000000000000000'
+            consensus_threshold: null            
           tendermint_url: http://localhost:26657
           tendermint_com_url: http://localhost:8080
           service_registry_address: null
@@ -142,8 +140,8 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
       params:
         args:
           setup:
-            all_participants: ${list:[]}      
-            safe_contract_address: ${list:[]}
+            all_participants: ${list:[]}
+            safe_contract_address: ${str:'0x0000000000000000000000000000000000000000'}
             consensus_threshold: ${int:null}
           tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
           tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
@@ -179,8 +177,8 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
       params:
         args:
           setup:
-            all_participants: ${ALL_PARTICIPANTS:list:['["0x...","0x...","0x...","0x..."]']}      
-            safe_contract_address: ${SAFE_CONTRACT_ADDRESS:list:[0x...]}
+            all_participants: ${ALL_PARTICIPANTS:list:["0x...","0x...","0x...","0x..."]}      
+            safe_contract_address: ${SAFE_CONTRACT_ADDRESS:str:0x...}
             consensus_threshold: ${CONSENSUS_THRESHOLD:int:null}
           tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
           tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
