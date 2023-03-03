@@ -1,6 +1,6 @@
 The {{open_autonomy}} framework works with the concept of **package**: a collection of files that implement a specific component or functionality.
 Publishing a package is simply the process of storing the package into a registry (or in other words, a repository), either locally or remotely.
-By publishing a package on a remote repository, its code is available for other developers to reuse it. Moreover, publishing a package on a public repository also facilitates [registering the package in the on-chain protocol](./register_packages_on_chain.md).
+By publishing a package on a remote repository, its code is available for other developers to reuse it. Moreover, publishing a package on a public repository also facilitates [minting the package in the Autonolas Protocol](./mint_packages_on_chain.md).
 
 
 !!! note
@@ -82,7 +82,7 @@ autonomy --registry-path=../my_registry publish --local
 
 
 ## Push and add components
-This section assumes that you have a newly created component, e.g., an {{fsm_app}} skill, within an agent folder. It is out of the scope of this guide how to create agent components. You can review the [guide to create an {{fsm_app}}](./create_fsm_app.md), or the {{open_aea_doc}}. Your component should be located within an agent folder (i.e., a folder containing the file `aea-config.yaml`) in
+This section assumes that you have a newly created component, e.g., an {{fsm_app}} skill, within an agent folder. It is out of the scope of this guide how to create agent components. You can review the [guide to create an {{fsm_app}}](./code_fsm_app_skill.md), or the {{open_aea_doc}}. Your component should be located within an agent folder (i.e., a folder containing the file `aea-config.yaml`) in
 ```
 <agent_folder>/vendor/<author_name>/<component_type>/<package_name>.
 ```

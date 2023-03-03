@@ -1,5 +1,4 @@
-The typical use case that this guide intends to illustrate is where a service owner wants to use existing agents to run its own service
-with a custom configuration. For example, an oracle service customized to serve data of their interest.
+Given an existing agent, either developed by yourself on the previous step, or fetch from the remote registry, the next step consists in defining the agent service and tuning its configuration options.
 
 <figure markdown>
 ![](../images/development_process_define_service.svg)
@@ -7,49 +6,43 @@ with a custom configuration. For example, an oracle service customized to serve 
 </figure>
 
 ## What you will learn
-In this guide, you will learn how to:
 
-* Create a service configuration using an already available agent on the  [IPFS](https://ipfs.io/).
-* Test the service using a local deployment.
-* Publish the service on the [IPFS](https://ipfs.io/).
-* Register the service in the on-chain protocol. We will be using the [Görli testnet](https://goerli.net/).
-* Deploy the registered service.
-
-If you recall the [overview of the development process](./overview_of_the_development_process.md), this roughly consists in steps 4, 5, and 6. For illustration purposes, we will also be using the agents from the [Hello World agent service](../demos/hello_world_demo.md) and we will create a new (but functionally equivalent) "Hello World 2 agent service".
+In this guide, you will learn how to define the agent service itself, and how to define what agent will the service be using.
 
 Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
 
 ## Step-by-step instructions
 
 To create a service with an existing agent published on a local or remote repository you need to identify the **public ID** and the **package hash** of the agent. It can be some agent that you have developed, or you can reuse an existing agent from a repository.
-You can browse the [list of default packages](../package_list.md) of the {{open_autonomy}} framework available on the default remote IPFS registry.
-For this example, we consider the `hello_world` agent, whose public ID and hash are
+You can browse the [list of packages](../package_list.md) available in the default remote IPFS registry.
+For this example, we consider the `valory/hello_world` agent, used in the [Hello World service](../demos/hello_world_demo.md), whose public ID and hash are
 
 ```
 valory/hello_world:0.1.0:bafybeicealdcbxjdejskntddizntwqmlpyxa2ujaxnw2cgy73x3swldwcq
 ```
 
-You can view the agent contents stored in the IPFS [here](https://gateway.autonolas.tech/ipfs/bafybeicealdcbxjdejskntddizntwqmlpyxa2ujaxnw2cgy73x3swldwcq/hello_world/).
+You can view the agent contents stored in the IPFS registry [here](https://gateway.autonolas.tech/ipfs/bafybeicealdcbxjdejskntddizntwqmlpyxa2ujaxnw2cgy73x3swldwcq/hello_world/).
 
 !!! note
     Future releases of the {{open_autonomy}} framework will provide convenient commands to browse and discover existing registered components. For now, we assume that we already know the IPFS hash of the agent.
 
+1. **Create the  the service.** In the workspace folder, create an empty folder with the service name. Within this folder, create:
 
-
-1. **Define the service.** Create an empty folder with the service name. Inside that folder, create:
     * a `README.md` file, where you can write a description of the service, and
     * a service configuration file `service.yaml`, where you will indicate the [IPFS](https://ipfs.io/) hash of the agent.
 
     ```bash
-    mkdir <service_name>
-    cd <service_name>
+    mkdir your_service
+    cd your_service
     touch README.md
     touch service.yaml
     ```
 
-    ??? example "Example of a service configuration file `service.yaml`"
-        The service configuration file `service.yaml` is where
-        the parameters of the agent service are defined, including the particular agent that composes the service. Below you can find an exampe for the [Hello World agent service](../demos/hello_world_demo.md). You can read the [service configuration file section](./service_configuration_file.md) to understand its structure.
+2. **Define the service configuration file.** The service configuration file `service.yaml` is where the parameters of the agent service are defined, including the particular agent that composes the service.
+You must populate the contents of the `service.yaml`. There are a number of mandatory parameters that you need to provide, as well as the service-level overrides. Learn more about the details of [the service configuration file](./service_configuration_file.md) in the next section.
+
+    ???+ example "Example of a service configuration file `service.yaml`"
+        Below you can find an example of the `service.yaml` for the [Hello World service](../demos/hello_world_demo.md).
         ```yaml
         name: hello_world
         author: valory
@@ -132,13 +125,18 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
               default_gas_price_strategy: eip1559
         ```
 
+3. **Use a local deployment to test the service.** This is the recommended approach in order to test your agent service before you publish it to a remote registry. Follow the instructions in the [local deployment guide](./deploy_service.md#local-deployment) to run the local deployment. Note that this process should be somewhat familiar to you if you have followed the [quick start guide](./quick_start.md).
 
+4. **Publish the service.** Once you have finished coding and testing the service, [pubish it on the local and/or remote registry](./publish_fetch_packages.md#publish-a-service-on-a-registry). Note down the service public ID and the package hash:
 
-2. **Use a local deployment to test the service.** This is the recommended approach in order to test your agent service before you publish it to a remote registry. Follow the instructions in the [local deployment guide](./deploy_service.md#local-deployment) to run the local deployment. Note that this process should be somewhat familiar to you if you have followed the [quick start guide](./quick_start.md).
+    === "Publish to the remote registry"
 
-3. **Publish the service on a remote registry.** This will make the service available for other developers to fetch and use it. This step is also recommended if you want to register the service in the on-chain registry. Read the guide to
-[publish an agent on a registry](./publish_fetch_packages.md#publish-an-agent-on-a-registry) to learn more.
+        ```bash
+        autonomy publish
+        ```
 
-4. **Register the service in the on-chain registry.** By registering the service in the on-chain registry you ensure that it is crypto-economically secured through the on-chain protocol. Follow the instructions in the [on-chain service registration guide](./register_packages_on_chain.md#register-a-service).
+    === "Publish to the remote registry"
 
-5. **Deploy the registered service.** Finally, you can try to run a deployment for the on-chain service that you just have registered. Follow the [on-chain deployment guide](./deploy_service.md#on-chain-deployment) to have your service up and running.
+        ```bash
+        (This section will be updated soon)
+        ```

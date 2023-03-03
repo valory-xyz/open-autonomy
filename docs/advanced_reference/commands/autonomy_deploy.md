@@ -119,9 +119,9 @@ Runs the service deployment stored locally in the directory `./abci_build`.
 
 ## `autonomy deploy from-token`
 
-Run a service deployment registered in the on-chain protocol.
+Run a service deployment minted on-chain protocol.
 
-This command allows to deploy services directly without having the need to explicitly fetch them locally (also known as "one-click deployment"). The command requires the `TOKEN_ID` which can be checked in the {{on_chain_frontend}}. See the [register a service on-chain](../../guides/register_packages_on_chain.md#register-a-service) guide for more information.
+This command allows to deploy services directly without having the need to explicitly fetch them locally (also known as "one-click deployment"). The command requires the `TOKEN_ID` which can be checked in the {{on_chain_frontend}}. See the [mint a service on-chain](../../guides/mint_packages_on_chain.md) guide for more information.
 
 To understand how to use various chain profiles refer to `Chain Selection` section on the `autonomy mint` command documentation.
 

@@ -15,20 +15,16 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
 ## Step-by-step instructions
 
-1. **Create an empty agent.**
+1. **Create an empty agent.** Use the CLI to create an empty agent in the workspace folder.
 
     ```bash
     autonomy create your_agent
     cd your_agent
     ```
 
-2. **Add the {{fsm_app}}.** You can add it from the local registry or from the remote registry (if you have pushed it using `autonomy push`):
+    You will notice that a number of files and folders have already been created. Take a moment to look at the agent configuration file `aea-config.yaml`, which defines all the component dependencies for the agent.
 
-    === "Add from the local registry"
-
-        ```bash
-        autonomy --registry-path=../packages add skill your_name/your_fsm_app:0.1.0
-        ```
+2. **Add the {{fsm_app}}.** You can add it from the local registry or from the remote registry (using the `<hash>` value obtained when you pushed it using `autonomy push`):
 
     === "Add from the remote registry"
 
@@ -36,16 +32,16 @@ Before starting this guide, ensure that your machine satisfies the framework req
         autonomy add skill your_name/your_fsm_app:0.1.0:<hash>
         ```
 
-    Observe that when adding a component, it will automatically add all its dependencies to the agent. Take a look at the agent configuration file `aea-config.yaml` to see what components have been added with the {{fsm_app}}.
-
-3. **(Optional) Add further components.** If you require further components, you can add them in a similar way. You can browse the [list of packages](../package_list.md) available in the default remote IPFS registry.
-    For example, if your service agent requires to connect to an HTTP server, you can add the `http_client` connection as follows:
-
     === "Add from the local registry"
 
         ```bash
-        autonomy --registry-path=../packages add connection valory/http_client:0.23.0
+        autonomy --registry-path=../packages add skill your_name/your_fsm_app:0.1.0
         ```
+
+    Observe that when adding a component, it will automatically add all its dependencies to the agent. Look how the agent configuration file `aea-config.yaml` has been updated.
+
+3. **(Optional) Add further components.** If you require further components, you can add them in a similar way. You can browse the [list of packages](../package_list.md) available in the default remote IPFS registry.
+    For example, if your service agent requires to connect to an HTTP server, you can add the `http_client` connection as follows:
 
     === "Add from the remote registry"
 
@@ -53,11 +49,15 @@ Before starting this guide, ensure that your machine satisfies the framework req
         autonomy add connection valory/http_client:0.23.0:bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi
         ```
 
-    !!! warning "Important"
+    === "Add from the local registry"
 
-        In the [set up guide](./set_up.md) we initialized an empty local registry. You need first to fetch and sync the component from the remote registry, or use the remote registry directly.
+        ```bash
+        autonomy --registry-path=../packages add connection valory/http_client:0.23.0
+        ```
 
-5. **Publish the agent.** Once you have finished coding and testing the agent, [pubish it on a local or remote registry](./publish_fetch_packages.md#publish-an-agent-on-a-registry) for future reuse of the agent. Note down the agent public ID and the package hash.
+    Note that you can only add components from the local registry if they are present there.
+
+5. **Publish the agent.** Once you have finished coding and testing the agent, [pubish it on the local and/or remote registry](./publish_fetch_packages.md#publish-an-agent-on-a-registry). Note down the agent public ID and the package hash:
 
     === "Publish to the remote registry"
 
@@ -65,7 +65,13 @@ Before starting this guide, ensure that your machine satisfies the framework req
         autonomy publish
         ```
 
+    === "Publish to the remote registry"
+
+        ```bash
+        (This section will be updated soon)
+        ```
+
 !!! tip
 
-    If your service requires to develop other kind of custom components, you can browse the {{open_aea_doc}} for further guidance. For example, have a look at how to create and interact with contracts in our [contract development guide](https://open-aea.docs.autonolas.tech/creating-contracts/).
+    If your service agent requires to develop other kind of custom components, you can browse the {{open_aea_doc}} for further guidance. For example, have a look at how to create and interact with contracts in our [contract development guide](https://open-aea.docs.autonolas.tech/creating-contracts/).
 

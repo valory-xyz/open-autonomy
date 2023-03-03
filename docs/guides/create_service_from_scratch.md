@@ -65,7 +65,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
             (SelectKeeperRound, ROUND_TIMEOUT): RegistrationRound
         ```
 
-3. **Code the {{fsm_app}} skill.** This is the core component of every agent belonging to a service. It consists of a number of classes that implement the business logic of the service as an FSM. The framework provides a scaffold tool that will help you to create most of the boilerplate code. You can follow the [guide to create an {{fsm_app}} skill](./create_fsm_app.md) to learn. Alternatively, you can also use the [developer template repository](https://github.com/valory-xyz/dev-template) as the starting point. It includes the recommended linters, continuous integration and several other files so that you start from scratch.
+3. **Code the {{fsm_app}} skill.** This is the core component of every agent belonging to a service. It consists of a number of classes that implement the business logic of the service as an FSM. The framework provides a scaffold tool that will help you to create most of the boilerplate code. You can follow the [guide to create an {{fsm_app}} skill](./code_fsm_app_skill.md) to learn. Alternatively, you can also use the [developer template repository](https://github.com/valory-xyz/dev-template) as the starting point. It includes the recommended linters, continuous integration and several other files so that you start from scratch.
 
     Once you have finished coding and testing the {{fsm_app}} skill, you can [push it on a local or remote registry](./publish_fetch_packages.md#publish-and-fetch-services) for future reuse of the component. Note down the skill public ID and the package hash.
 
@@ -88,6 +88,5 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
     !!! note
         When adding a component, it will automatically add all its dependencies to the agent. For this reason, it might be the case that you don't need additional components after adding the {{fsm_app}} skill.
-
 
 At this point, you will have an agent implementing the desired service functionality. Now, you can continue with **Steps 5, 6 and 7** in the [guide to create a service with an existing agent](./define_service.md) to define and deploy the corresponding agent service.
