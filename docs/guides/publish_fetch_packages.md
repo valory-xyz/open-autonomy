@@ -1,25 +1,25 @@
 The {{open_autonomy}} framework works with the concept of **package**: a collection of files that implement a specific component or functionality.
 Publishing a package is simply the process of storing the package into a registry (or in other words, a repository), either locally or remotely.
-By publishing a package on a remote repository, its code is available for other developers to reuse it. Moreover, publishing a package on a public repository also facilitates [minting the package in the Autonolas Protocol](./mint_packages_on_chain.md).
-
-
-!!! note
-      It is not a strict requirement that a package be publicly available in a remote repository to register it in the on-chain protocol. The developer might want to keep the code private (and share it by different means), and still be able to register the package in the on-chain protocol.
-
 
 <figure markdown>
 ![](../images/development_process_publish_fetch_packages.svg)
 <figcaption>Part of the development process covered in this guide</figcaption>
 </figure>
 
+By publishing a package on a remote repository, its code is available for other developers to reuse it. Moreover, publishing a package on a public repository also facilitates [minting the package in the Autonolas Protocol](./mint_packages_on_chain.md).
+
+!!! note
+      It is not a strict requirement that a package be publicly available in a remote repository to register it in the on-chain protocol. The developer might want to keep the code private (and share it by different means), and still be able to register the package in the on-chain protocol.
 
 ## What will you learn
+
 In this guide, you will learn to:
 
-  * Manage the life cycle of packages with the framework.
-  * Publish and retrieve packages from local and remote registries.
+* Manage the life cycle of packages with the framework.
+* Publish and retrieve packages from local and remote registries.
 
 ## How the local and remote registries work
+
 Currently, the {{open_autonomy}} framework supports two types of registries:
 
   * local, and

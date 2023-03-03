@@ -22,11 +22,11 @@ This is a summary of each step:
 
 5. **Define the service.** This consists in defining the service configuration and declaring what agents constitute the service, together with a number of configuration parameters required.
 
-6. **Register the service (and other components) on-chain.** This is a required step to secure the the service developed in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
+6. **Mint the service (and other components) on-chain.** This is a required step to secure the the service developed in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
 
 7. **Deploy the service.** You can deploy directly your service locally for testing purposes. To deploy a production service secured in the [Autonolas Protocol](https://docs.autonolas.network/protocol/) you first need to bring the service to the _Deployed_ state in the protocol.
 
 In the next guides, we will explore the steps of this development process.
 
-As you can see in the diagram above any developed component can be pushed/published to a remote registry, and registered in the on-chain registry. This mechanism allows that developers reuse components written by other developers, thus reducing the invested time in developing common functionalities.
+As you can see in the diagram above any developed component can be pushed/published to a remote registry, and minted in the on-chain registry. This mechanism allows that developers reuse components written by other developers, thus reducing the invested time in developing common functionalities.
 
