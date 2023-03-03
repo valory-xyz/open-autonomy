@@ -1,38 +1,57 @@
-An **agent service** is an off-chain autonomous service which runs as a multi-agent-system (MAS) and is replicated on a **consensus gadget** (a sort of short-lived blockchain) while being crypto-economically secured on a public blockchain. Agent services enable complex processing, take action on their own and run continuously. Moreover, agent services are crypto-native by construction, that is, they are **decentralized**, **trust-minimized**, **transparent**, and **robust**.
+An **agent service** is an off-chain autonomous service which runs as a multi-agent-system (MAS) and is crypto-economically secured on a public blockchain.
 
-The {{open_autonomy}} framework allows to define such services by means of a special component called [{{fsm_app}}](../key_concepts/fsm_app_introduction.md). These dynamic, decentralized apps run inside the agents defining the agent service, and implement the underlying mechanisms that allow agents to synchronize their internal state.
+Agent services enable complex processing, take action on their own and run continuously. Moreover, agent services are crypto-native by construction, that is, they are **decentralized**, **trust-minimized**, **transparent**, and **robust**.
 
-## Architecture of an agent service
+See [some use cases](./use_cases.md) of agent services that can be built with the {{open_autonomy}} framework.
 
-Single-agent applications can be built with the {{open_aea}} framework. {{open_autonomy}} extends {{open_aea}} to a service architecture, making possible to build applications as distributed systems (agent services) implemented as sets of agents.
+## Architecture
 
-This is a brief summary on the architecture of an agent service:
+The {{open_aea}} framework provides the necessary components for building single agents. {{open_autonomy}} extends this framework to a service architecture, making possible to build applications as distributed systems (that is, agent services) that can be run by multiple, independent operators.
 
-* Each agent service is composed of a number of $N$ **agents**. This number is determined upon definition of the concrete agent service.
+The internal state of an agent service is replicated across all the agents in the service through a **consensus gadget** (a sort of short-lived blockchain).
 
-* In turn, each agent is made up of a number of **components** defined by the {{open_aea}} framework. These components define, for example, what protocols the agent is able to process.
-
-* A component called **skill** implements the **{{fsm_app}}**, which defines the business logic of the agent service. Each agent in the service has a copy of the {{fsm_app}}. The {{fsm_app}} is defined through the {{open_autonomy}} framework.
-
-* **Agent operators** are the entities or individuals that own the infrastructure where the agents run. Each operator executes an **agent instance** and a **consensus gadget node**.
-
-* The **consensus gadget** (i.e., the consensus gadget nodes + the consensus gadget network) is the agent service component that enables the agents to maintain the service state and reach consensus on certain important decisions. From a technical point of view, the consensus gadget implements a blockchain based on [Tendermint](https://tendermint.com/).
+This is what an agent service looks like:
 
 <figure markdown>
-![](../images/agent_service_architecture.svg)
-<figcaption>Overview of the architecture of an agent service</figcaption>
+![Architecture of an agent service](../images/agent_service_architecture.svg)
 </figure>
+
+* **Agent service**: The decentralized off-chain service that implements a certain functionality. It is composed of $N$ agents, defined by the owner of the service.
+
+* **Operator**: An entity or individual that owns the infrastructure where an agent is run. Each operator manages an agent instance*and a consensus gadget node.
+
+* **Agent**: The software unit that aggregates the runtime and functionalities to execute the service. Each agent is made up of a number of components that implement different functionalities, for example, what communication protocols the agent understands.
+
+* **{{fsm_app}}**: The core component inside an agent that defines a decentralized app implementing the business logic of the service. {{fsm_app}}s implements the underlying mechanisms that allow agents to synchronize their internal state.
+
+* **Consensus gadget:** The infrastructure that enables agents to synchronize the service state and reach consensus on certain important decisions. From a technical point of view, the consensus gadget implements a blockchain based on [Tendermint](https://tendermint.com/). By consensus gadget we usually refer to the collection of consensus nodes + consensus network.
+
+* **Agent service multisig [Safe](https://safe.global/):** Multisig smart contract that secures the service by requiring a threshold of agents to sign any transaction before it is executed.
 
 ## How it works
 
-The business logic of the service is encoded in the {{fsm_app}}, and it can define anything, from a price oracle to a complex investment strategy using machine learning algorithms. See [some examples](./use_cases.md) on what can be built with the framework.
+The {{fsm_app}}, which encodes the business logic of the service, is structured as a [finite-state machine](../key_concepts/fsm.md) defining a series of steps that each agent in the service must follow in order to achieve the intended functionality.
 
-The {{fsm_app}} is structured as a series of steps that each agent in the service must follow in order to achieve the service functionality. Using the consensus gadget, the {{open_autonomy}} framework provides most of the machinery so that the shared state is replicated across agents automatically as the service is executed. This ensures that the execution flow of the service, its inputs and outputs are synchronized across all agents, creating a distributed (and decentralized) application with shared state that is fault tolerant. The developer can focus exclusively on defining the steps of the service, and get the replication mechanism "for free".
+!!! example
 
-The service is secured through a **multi-signature safe**. If at some point the service needs to execute an action involving an external service, e.g., settling a transaction on a blockchain, then the following occurs:
+    This is a _toy example_ of how an {{fsm_app}} defines the business logic of an oracle service that collects prices from a source and publishes it on a blockchain:
+
+    <figure markdown>
+    ![Oracle {{fsm_app}} - toy example](../images/toy_oracle_fsm_app.svg)
+    </figure>
+
+The {{fsm_app}} replicates automatically the state and transitions across agents using the consensus gadget. This ensures that the execution flow of the service, its inputs and outputs are synchronized across all agents, creating a distributed (and decentralized) application with shared state that is fault tolerant.
+
+!!! tip
+
+    When developing an agent service, the developer can focus on defining the steps of the service in the {{fsm_app}} as if it were a standalone application, and get the replication mechanism "for free".
+
+    The {{open_autonomy}} framework will provide most of the machinery to ensure that the agents' state is replicated as the service is executed.
+
+If at some point the service needs to execute an action involving an external service, e.g., settling a transaction on a blockchain, then the following occurs:
 
 1. The agents in the service nominate by consensus an agent (known as **keeper**) to perform the action.
-2. A minimum number of agents has to approve and sign the transaction, using the multi-signature safe. This prevents a malicious agent from executing an external action on its own.
-3. Also, the agents in the service verify that indeed, the transaction has been executed successfully. Otherwise, a new agent keeper will be selected.
+2. A threshold of agents has to approve and sign the transaction, using the service multisig [Safe](https://safe.global/). This prevents a malicious agent from executing an external action on its own.
+3. Furthermore, the agents in the service verify that the transaction was executed successfully. Otherwise, a new keeper will be nominated and the transaction will be retried.
 
-The threshold on the minimum number of agents is typically, but not exclusively, set at 2/3 of the total of agents.
+The threshold on the minimum number of agents required to sign is typically, but not exclusively, set at 2/3 of the total of agents.
