@@ -1,16 +1,15 @@
-This demo service is aimed at giving a general, introductory overview on what are the main elements that make an agent service and how they work together. The goal is to provide a global understanding on the development process and the relationship between the main components of the stack to new users of the {{open_autonomy}} framework.
+This demo service is aimed at giving a general, introductory overview on what are the main elements of an [agent service](../get_started/what_is_an_agent_service.md) and how they work together. The goal is to provide a global understanding on the development process and the relationship between the main components of the stack to new users of the {{open_autonomy}} framework.
 
 Although the functionality of this agent service is very simple, it demonstrates a number of features that are common in many agent services. It can also be considered as a baseline service to which more complex functionalities can be added towards building your own service.
 
-
 ## Architecture of the demo
+
 The demo is composed of:
 
-- A set of four [Tendermint](https://tendermint.com/) nodes (`node0`, `node1`, `node2`, `node3`).
-- A set of four AEAs (`abci0`, `abci1`, `abci2`, `abci3`), in one-to-one connection with their corresponding Tendermint
-node.
+* 4 Docker containers implementing the 4 agents of the service (`abci0`, `abci1`, `abci2`, `abci3`), and
+* 4 Docker containers implementing a [Tendermint](https://tendermint.com/) node for each agent (`node0`, `node1`, `node2`, `node3`).
 
-The agents connect to the remote [DRAND](https://drand.love) service during the execution
+The agents connect to the remote [DRAND](https://drand.love) service through the Internet during the execution
 of the demo.
 
 <figure markdown>
@@ -19,22 +18,23 @@ of the demo.
 </figure>
 
 ## Running the demo
-Before running the demo, ensure that your machine satisfies the [framework requirements](../guides/set_up.md#requirements) and that
-you have followed the [setup instructions](../guides/set_up.md#setup). As a result you should have a Pipenv workspace folder.
 
-Running the Hello World service demo is demonstrated in the [quick start](../guides/quick_start.md) guide. Therefore, you just need to follow the instructions therein to run the demo.
-
-
+You can find the instructions on how to run the Hello World service demo in the [quick start](../guides/quick_start.md) guide.
 
 ## Details of the demo
+
 The functionality of the service is extremely simple. Namely, each agent will output (at different times) the following message to its local console:
 ```
 Agent [name] (address [address]) in period [period_num] says: HELLO_WORLD!
 ```
 
-The execution timeline is divided into periods, and within each period, *only one designated agent will print the `HELLO_WORLD!` message*. The other agents will just print a neutral face `:|`. In the context of agent services, you cam think of a *period* as an interval where the service executes an iteration of its intended functionality (e.g., checking some price on a market, execute an investment strategy, or in this demo, printing a message).
+The execution timeline is divided into *periods*, and within each period, only a nominated agent (keeper) will print the `HELLO_WORLD!` message. The other agents will just print a neutral face `:|`.
 
-Recall that agents are coordinated through the *consensus gadget* (i.e., the consensus gadget nodes + the consensus gadget network). For clarity, we will be using the simplified architecture diagram depicted below.
+!!! info
+
+    In the context of agent services, you can think of a *period* as an interval where the service executes an iteration of its intended functionality (e.g., checking some price on a market, execute an investment strategy, or in this demo, printing a message).
+
+Recall that agents are coordinated through the *consensus gadget*. For clarity, we will be using a simplified diagram below, where aggregate all the consensus gadget infrastructure (the consensus gadget nodes plus the consensus gadget network) in a single green box.
 
 <figure markdown>
 ![](../images/hello_world_demo_architecture_simplified.svg){align="center"}
@@ -63,8 +63,8 @@ This is what the service would look like in all its glory:
 Even though printing `HELLO_WORLD!` on a local console is far from being an exciting functionality, this example shows a number of  non-trivial elements that are key components in many agent services:
 
 * The service defines a sequence of individual, well-defined actions, whose execution in the appropriate order achieves the intended functionality.
-* Agents have to interact with each other to execute each of those actions, and reach a consensus on a number of decisions at certain moments (e.g., which is the agent that prints the message in each period).
-* Agents are also allowed to execute actions on their own. In this simple example it just consists of printing a local message.
+* Agents have to interact with each other to execute each of those actions, and reach a consensus on a number of decisions at certain moments (e.g., which is the keeper agent that prints the message in each period).
+* Agents execute actions on their own. In this simple example it just consists of printing a local message.
 * Agents have to use a shared, global store for persistent data (e.g., which was the last agent that printed the message).
 * Finally, the service can progress even if some agent is faulty or malicious (up to a certain threshold of malicious agents).
 
