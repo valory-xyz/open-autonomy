@@ -78,7 +78,7 @@ def generate_table() -> None:
         package_cell = package.ljust(COL_WIDTH, " ")
         hash_cell = f"`{package_hash}`".ljust(COL_WIDTH, " ")
         description = get_package_description(package)
-        description_cell = f"`{description}`".ljust(COL_WIDTH * 2, " ")
+        description_cell = f"{description}".ljust(COL_WIDTH * 2, " ")
         content += f"| {package_cell} | {hash_cell} | {description_cell} |\n"
 
     # Write table
