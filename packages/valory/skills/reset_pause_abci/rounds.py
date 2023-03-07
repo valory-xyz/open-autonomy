@@ -24,7 +24,6 @@ from typing import Dict, Optional, Set, Tuple
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
-    AbciAppDB,
     AbciAppTransitionFunction,
     AppState,
     BaseSynchronizedData,
@@ -53,26 +52,7 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            extra_kwargs = {}
-            cross_period_persisted_keys = (
-                self.synchronized_data.db.cross_period_persisted_keys
-            )
-            cross_period_persisted_keys.update({"consensus_threshold"})
-            for key in cross_period_persisted_keys:
-                extra_kwargs[key] = self.synchronized_data.db.get_strict(key)
-            synchronized_data = self.synchronized_data.create(
-                synchronized_data_class=self.synchronized_data_class,
-                **AbciAppDB.data_to_lists(
-                    dict(
-                        participants=sorted(tuple(self.synchronized_data.participants)),
-                        all_participants=sorted(
-                            tuple(self.synchronized_data.all_participants)
-                        ),
-                        **extra_kwargs,
-                    )
-                ),
-            )
-            return synchronized_data, Event.DONE
+            return self.synchronized_data.create(), Event.DONE
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
         ):

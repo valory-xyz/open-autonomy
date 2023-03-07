@@ -79,12 +79,11 @@ def get_dummy_overrides_skill() -> Dict:
             "params": {
                 "args": {
                     "message": "Hello, World!",
+                    "reset_pause_duration": 10,
                     "setup": {
-                        "safe_contract_address": [
-                            ["0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"]
-                        ],
-                        "all_participants": [["0x"]],
-                        "consensus_threshold": [],
+                        "safe_contract_address": "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                        "all_participants": ["0x"],
+                        "consensus_threshold": None,
                     },
                     "tendermint_url": "tendermint_url",
                     "tendermint_com_url": "tendermint_com_url",
@@ -197,6 +196,7 @@ def get_dummy_skill_config() -> Dict:
                     "on_chain_service_id": None,
                     "request_retry_delay": 1,
                     "request_timeout": 10,
+                    "reset_pause_duration": 10,
                     "reset_tendermint_after": 2,
                     "retry_attempts": 400,
                     "retry_timeout": 3,
@@ -204,13 +204,9 @@ def get_dummy_skill_config() -> Dict:
                     "service_id": "hello_world_abci",
                     "service_registry_address": None,
                     "setup": {
-                        "all_participants": [
-                            "- '0x0000000000000000000000000000000000000000'"
-                        ],
-                        "safe_contract_address": [
-                            "0x0000000000000000000000000000000000000000"
-                        ],
-                        "consensus_threshold": [None],
+                        "all_participants": "- '0x0000000000000000000000000000000000000000'",
+                        "safe_contract_address": "0x0000000000000000000000000000000000000000",
+                        "consensus_threshold": None,
                     },
                     "share_tm_config_on_startup": False,
                     "sleep_time": 1,

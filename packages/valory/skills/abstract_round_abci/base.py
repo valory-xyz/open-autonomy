@@ -475,10 +475,20 @@ class AbciAppDB:
     https://github.com/python/cpython/blob/3.10/Lib/copy.py#L182-L183
     """
 
+    # database keys which values are always set for the next period by default
+    default_cross_period_keys: FrozenSet[str] = frozenset(
+        {
+            "all_participants",
+            "participants",
+            "consensus_threshold",
+            "safe_contract_address",
+        }
+    )
+
     def __init__(
         self,
         setup_data: Dict[str, List[Any]],
-        cross_period_persisted_keys: Optional[Set[str]] = None,
+        cross_period_persisted_keys: Optional[FrozenSet[str]] = None,
     ) -> None:
         """Initialize the AbciApp database.
 
@@ -491,15 +501,26 @@ class AbciAppDB:
         """
         AbciAppDB._check_data(setup_data)
         self._setup_data = deepcopy(setup_data)
-        self._cross_period_persisted_keys: Set[str] = (
-            cross_period_persisted_keys.copy()
-            if cross_period_persisted_keys is not None
-            else set()
-        )
         self._data: Dict[int, Dict[str, List[Any]]] = {
             RESET_COUNT_START: self.setup_data  # the key represents the reset index
         }
         self._round_count = ROUND_COUNT_DEFAULT  # ensures first round is indexed at 0!
+
+        self._cross_period_persisted_keys = self.default_cross_period_keys.union(
+            cross_period_persisted_keys or frozenset()
+        )
+        self._cross_period_check()
+
+    def _cross_period_check(self) -> None:
+        """Check the cross period keys against the setup data."""
+        not_in_cross_period = set(self._setup_data).difference(
+            self.cross_period_persisted_keys
+        )
+        if not_in_cross_period:
+            _logger.warning(
+                f"The setup data ({self._setup_data.keys()}) contain keys that are not in the "
+                f"cross period persisted keys ({self.cross_period_persisted_keys}): {not_in_cross_period}"
+            )
 
     @property
     def setup_data(self) -> Dict[str, Any]:
@@ -542,9 +563,9 @@ class AbciAppDB:
         self._round_count = round_count
 
     @property
-    def cross_period_persisted_keys(self) -> Set[str]:
+    def cross_period_persisted_keys(self) -> FrozenSet[str]:
         """Keys in the database which are persistent across periods."""
-        return self._cross_period_persisted_keys.copy()
+        return self._cross_period_persisted_keys
 
     def get(self, key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]:
         """Given a key, get its last for the current reset index."""
@@ -583,7 +604,29 @@ class AbciAppDB:
             data.setdefault(key, []).append(value)
 
     def create(self, **kwargs: Any) -> None:
-        """Add a new entry to the data."""
+        """Add a new entry to the data.
+
+        Passes automatically the values of the `cross_period_persisted_keys` to the next period.
+
+        :param kwargs: keyword arguments
+        """
+        for key in self.cross_period_persisted_keys.union(kwargs.keys()):
+            value = kwargs.get(key, VALUE_NOT_PROVIDED)
+            if value is VALUE_NOT_PROVIDED:
+                value = self.get_latest().get(key, VALUE_NOT_PROVIDED)
+            if value is VALUE_NOT_PROVIDED:
+                raise ABCIAppInternalError(
+                    f"Cross period persisted key `{key}` was not found in the db but was required for the next period."
+                )
+            if isinstance(value, (set, frozenset)):
+                value = tuple(sorted(value))
+            kwargs[key] = value
+
+        data = self.data_to_lists(kwargs)
+        self._create_from_keys(**data)
+
+    def _create_from_keys(self, **kwargs: Any) -> None:
+        """Add a new entry to the data using the provided key-value pairs."""
         AbciAppDB._check_data(kwargs)
         self._data[self.reset_index + 1] = deepcopy(kwargs)
 
@@ -677,7 +720,7 @@ class AbciAppDB:
         data = self.serialize()
         sha256.update(data.encode("utf-8"))
         hash_ = sha256.digest()
-        _logger.debug(f"root hash: {hash_.hex()}; data: {self.serialize()}")
+        _logger.debug(f"root hash: {hash_.hex()}; data: {data}")
         return hash_
 
     @staticmethod
@@ -708,8 +751,10 @@ class BaseSynchronizedData:
     default_db_keys: Set[str] = {
         "round_count",
         "period_count",
+        "all_participants",
         "nb_participants",
         "max_participants",
+        "consensus_threshold",
         "safe_contract_address",
     }
 
@@ -822,10 +867,9 @@ class BaseSynchronizedData:
     def create(
         self,
         synchronized_data_class: Optional[Type] = None,
-        **kwargs: Any,
     ) -> "BaseSynchronizedData":
-        """Copy and update with new data."""
-        self.db.create(**kwargs)
+        """Copy and update with new data. Set values are stored as sorted tuples to the db for determinism."""
+        self.db.create()
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
         )
@@ -2062,7 +2106,7 @@ class AbciApp(
     transition_function: AbciAppTransitionFunction
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
-    cross_period_persisted_keys: Set[str] = {"safe_contract_address"}
+    cross_period_persisted_keys: FrozenSet[str] = frozenset()
     background_round_cls: Optional[AppState] = None
     termination_transition_function: Optional[AbciAppTransitionFunction] = None
     termination_event: Optional[EventType] = None

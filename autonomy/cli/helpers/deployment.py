@@ -19,7 +19,6 @@
 
 """Deployment helpers."""
 import os
-import shutil
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -50,7 +49,7 @@ from autonomy.deploy.constants import (
     TM_STATE_DIR,
     VENVS_DIR,
 )
-from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
+from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 from autonomy.deploy.image import build_image
 
 
@@ -126,7 +125,6 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     build_dir: Path,
     deployment_type: str,
     dev_mode: bool,
-    force_overwrite: bool,
     number_of_agents: Optional[int] = None,
     password: Optional[str] = None,
     packages_dir: Optional[Path] = None,
@@ -144,10 +142,9 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     image_author: Optional[str] = None,
 ) -> None:
     """Build deployment."""
+
     if build_dir.is_dir():  # pragma: no cover
-        if not force_overwrite:
-            raise click.ClickException(f"Build already exists @ {build_dir}")
-        shutil.rmtree(build_dir)
+        raise click.ClickException(f"Build already exists @ {build_dir}")
 
     if not (Path.cwd() / DEFAULT_SERVICE_CONFIG_FILE).exists():
         raise FileNotFoundError(
@@ -221,8 +218,10 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
     chain_type: ChainType,
     skip_image: bool,
     n: Optional[int],
+    deployment_type: str,
     aev: bool = False,
     password: Optional[str] = None,
+    no_deploy: bool = False,
 ) -> None:
     """Build and run deployment from tokenID."""
 
@@ -247,9 +246,8 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
         build_deployment(
             keys_file=keys_file,
             build_dir=build_dir,
-            deployment_type=DockerComposeGenerator.deployment_type,
+            deployment_type=deployment_type,
             dev_mode=False,
-            force_overwrite=True,
             number_of_agents=n,
             agent_instances=agent_instances,
             multisig_address=multisig_address,
@@ -263,4 +261,8 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
             build_image(agent=service.agent)
 
     click.echo("Service build successful.")
+    if no_deploy or deployment_type == KubernetesGenerator.deployment_type:
+        return
+
+    click.echo("Running deployment")
     run_deployment(build_dir)

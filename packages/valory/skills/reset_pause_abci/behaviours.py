@@ -77,7 +77,7 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseBehaviour):
             if not tendermint_reset:
                 return
         else:
-            yield from self.wait_from_last_timestamp(self.params.observation_interval)
+            yield from self.wait_from_last_timestamp(self.params.reset_pause_duration)
         self.context.logger.info("Period end.")
         self.context.benchmark_tool.save(self.synchronized_data.period_count)
 

@@ -153,7 +153,7 @@ ABCI_SKILL_MODEL_PARAMS_SCHEMA = {
         "retry_timeout",
         "retry_attempts",
         "keeper_timeout",
-        "observation_interval",
+        "reset_pause_duration",
         "drand_public_key",
         "tendermint_com_url",
         "tendermint_max_retries",

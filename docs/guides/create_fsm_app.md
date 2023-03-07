@@ -35,19 +35,23 @@ Before you continue, ensure that you have an initialized local registry and that
         - ROUND_TIMEOUT
         default_start_state: RegistrationRound
         final_states: []
-        label: packages.valory.skills.hello_world_abci.rounds.HelloWorldAbciApp
+        label: HelloWorldAbciApp
         start_states:
         - RegistrationRound
         states:
+        - CollectRandomnessRound
         - PrintMessageRound
         - RegistrationRound
         - ResetAndPauseRound
         - SelectKeeperRound
         transition_func:
+            (CollectRandomnessRound, DONE): SelectKeeperRound
+            (CollectRandomnessRound, NO_MAJORITY): CollectRandomnessRound
+            (CollectRandomnessRound, ROUND_TIMEOUT): CollectRandomnessRound
             (PrintMessageRound, DONE): ResetAndPauseRound
             (PrintMessageRound, ROUND_TIMEOUT): RegistrationRound
-            (RegistrationRound, DONE): SelectKeeperRound
-            (ResetAndPauseRound, DONE): SelectKeeperRound
+            (RegistrationRound, DONE): CollectRandomnessRound
+            (ResetAndPauseRound, DONE): CollectRandomnessRound
             (ResetAndPauseRound, NO_MAJORITY): RegistrationRound
             (ResetAndPauseRound, RESET_TIMEOUT): RegistrationRound
             (SelectKeeperRound, DONE): PrintMessageRound

@@ -30,7 +30,6 @@ pytz = "==2022.2.1"
 py-ecc = "==5.2.0"
 py-eth-sig-utils = "==0.4.0"
 ### tests deps
-mistune = "==2.0.3"
 tomte = {version = "==0.2.2", extras = ["tox", "tests"]}
 
 [requires]

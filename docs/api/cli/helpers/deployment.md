@@ -25,7 +25,6 @@ def build_deployment(keys_file: Path,
                      build_dir: Path,
                      deployment_type: str,
                      dev_mode: bool,
-                     force_overwrite: bool,
                      number_of_agents: Optional[int] = None,
                      password: Optional[str] = None,
                      packages_dir: Optional[Path] = None,
@@ -55,8 +54,10 @@ def build_and_deploy_from_token(token_id: int,
                                 chain_type: ChainType,
                                 skip_image: bool,
                                 n: Optional[int],
+                                deployment_type: str,
                                 aev: bool = False,
-                                password: Optional[str] = None) -> None
+                                password: Optional[str] = None,
+                                no_deploy: bool = False) -> None
 ```
 
 Build and run deployment from tokenID.
