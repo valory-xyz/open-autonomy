@@ -7,9 +7,7 @@ We will be covering the first two steps of the development process in this guide
 
 ## What you will learn
 
-In this guide, you will learn how to write the {{fsm_app}} specification that defines the main steps in the business logic of your service. You will complete the actual actions of each state in the next step of the development process.
-
-Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
+This guide covers steps 1 and 2 of the [development process](./overview_of_the_development_process.md). You will learn how to write the {{fsm_app}} specification that defines the main steps in the business logic of your service. The actual coding of the {{fsm_app}} will be covered in the next step.
 
 ## Draft the service idea
 
@@ -20,7 +18,7 @@ Define the business logic of your service as a [finite-state machine (FSM)](../k
 * **Transitions** define how to move from one state to another based on the events observed (e.g., if the service observes an error event in a certain state, move back to the initial state).
 
 ???+ example "Example of a service FSM"
-    This is a draft of the FSM of the [Hello World service](../demos/hello_world_demo.md). You can learn more about the purpose of each of the individual states, events and transitions in its [dedicated section](../demos/hello_world_demo.md).
+    This is an example of the FSM of the [Hello World service](../demos/hello_world_demo.md), at high level. You can learn more about the purpose of each of the states, events and transitions in its [dedicated section](../demos/hello_world_demo.md).
 
     <figure markdown>
     ![](../images/hello_world_fsm.svg)
@@ -28,10 +26,10 @@ Define the business logic of your service as a [finite-state machine (FSM)](../k
 
 !!! warning "Important"
 
-    You will need to consider what kind of consensus is required to transit from one state to another. For example:
+    An important decision when designing your service is to determine what kind of agreement is required to transit from one state to another. For example:
 
-    * Do agents have to put in common the same value (e.g., a value observed from the same service provider) or a different value (e.g., each agent collects a value from a different service provider)?
-    * Do all agents need to participate in the consensus step, or it is enough a threshold of agents to transit to the next state?.
+    * Do agents have to collect and share a common value (e.g., a value observed from the same service provider) or a different value (e.g., each agent collects a value from a different service provider)?
+    * Do all agents need to participate in the agreement to transit to another state, or it is enough that only a threshold of agents participate?.
 
 ## Define the FSM specification
 

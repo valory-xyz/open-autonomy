@@ -26,7 +26,5 @@ This is a summary of each step:
 
 7. **Deploy the service.** You can deploy directly your service locally for testing purposes. To deploy a production service secured in the [Autonolas Protocol](https://docs.autonolas.network/protocol/) you first need to bring the service to the _Deployed_ state in the protocol.
 
-In the next guides, we will explore the steps of this development process.
-
-As you can see in the diagram above any developed component can be pushed/published to a remote registry, and minted in the on-chain registry. This mechanism allows that developers reuse components written by other developers, thus reducing the invested time in developing common functionalities.
-
+In the next sections, we will explore each of the steps in the development process.
+You must ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder with a local repository on it.
