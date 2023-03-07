@@ -68,7 +68,7 @@ Even though printing `HELLO_WORLD!` on a local console is far from being an exci
 * Agents have to use a shared, global store for persistent data (e.g., which was the last agent that printed the message).
 * Finally, the service can progress even if some agent is faulty or malicious (up to a certain threshold of malicious agents).
 
-In this toy example we assume that the agent that is charge of printing the message locally will do so (i.e., it will behave honestly). Moreover, there is no way for the other agents to verify it. When a service implements some critical operation, like sending a transaction to a blockchain, it is not enough with trusting that the agent will behave honestly, and further security and cryptographic mechanisms will be required.
+In this toy example we are not verifying that the keeper behaves honestly: there is no way for the other agents to verify its console. However, in a real service that implements some critical operation (e.g., like sending a transaction to a blockchain) further verification and security mechanisms have to be put in place.
 
 The main questions that we try to answer in the sections below are:
 
@@ -129,9 +129,6 @@ You can also take a look at the Hello World service FSM specification file, whic
         (SelectKeeperRound, NO_MAJORITY): RegistrationRound
         (SelectKeeperRound, ROUND_TIMEOUT): RegistrationRound
     ```
-
-
-
 
 Ignoring network latency and delays caused by the underlying consensus gadget, it can be considered that at any given time, **all the agents have the same view of the service FSM**, and **all the agents execute the same transitions**. This is one of the key concepts of the {{open_autonomy}} framework.
 
