@@ -178,6 +178,24 @@ Run deployment.
     default=False,
     help="Apply environment variable when loading service config.",
 )
+@click.option(
+    "--docker",
+    "deployment_type",
+    flag_value=DockerComposeGenerator.deployment_type,
+    default=True,
+    help="Use docker as a backend.",
+)
+@click.option(
+    "--kubernetes",
+    "deployment_type",
+    flag_value=KubernetesGenerator.deployment_type,
+    help="Use kubernetes as a backend.",
+)
+@click.option(
+    "--no-deploy",
+    is_flag=True,
+    help="If set to true, the deployment won't run automatically",
+)
 @chain_selection_flag(
     help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
@@ -188,6 +206,8 @@ def run_deployment_from_token(click_context: click.Context,
                               chain_type: ChainType,
                               skip_image: bool,
                               n: Optional[int],
+                              deployment_type: str,
+                              no_deploy: bool,
                               aev: bool = False,
                               password: Optional[str] = None) -> None
 ```
