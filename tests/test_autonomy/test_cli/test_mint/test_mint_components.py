@@ -80,6 +80,7 @@ class TestMintComponents(BaseChainInteractionTest):
                     package_id=package_id
                 )
             ),
+            "--key",
             str(ETHEREUM_KEY_DEPLOYER),
         ]
 
@@ -138,6 +139,7 @@ class TestMintComponents(BaseChainInteractionTest):
                     package_id=DUMMY_SERVICE
                 )
             ),
+            "--key",
             str(ETHEREUM_KEY_DEPLOYER),
             "-a",
             str(agent_id),
@@ -194,6 +196,7 @@ class TestMintComponents(BaseChainInteractionTest):
                             package_id=package_id
                         )
                     ),
+                    "--key",
                     str(ETHEREUM_KEY_DEPLOYER),
                     *parameters,
                 ),
@@ -222,6 +225,7 @@ class TestMintComponents(BaseChainInteractionTest):
                             package_id=package_id
                         )
                     ),
+                    "--key",
                     str(ETHEREUM_KEY_DEPLOYER),
                     *parameters,
                 ),
@@ -249,6 +253,7 @@ class TestMintComponents(BaseChainInteractionTest):
                             package_id=DUMMY_PROTOCOL
                         )
                     ),
+                    "--key",
                     str(ETHEREUM_KEY_DEPLOYER),
                 ),
             )
@@ -275,6 +280,7 @@ class TestMintComponents(BaseChainInteractionTest):
                             package_id=DUMMY_SERVICE
                         )
                     ),
+                    "--key",
                     str(ETHEREUM_KEY_DEPLOYER),
                     *DEFAULT_SERVICE_MINT_PARAMETERS,
                 ),
@@ -303,6 +309,7 @@ class TestMintComponents(BaseChainInteractionTest):
                             package_id=DUMMY_PROTOCOL
                         )
                     ),
+                    "--key",
                     str(ETHEREUM_KEY_DEPLOYER),
                 ),
             )
@@ -333,6 +340,7 @@ class TestMintComponents(BaseChainInteractionTest):
                             DUMMY_SERVICE
                         )
                     ),
+                    "--key",
                     str(ETHEREUM_KEY_DEPLOYER),
                     *DEFAULT_SERVICE_MINT_PARAMETERS,
                 ),
@@ -354,6 +362,7 @@ class TestMintComponents(BaseChainInteractionTest):
             commands=(
                 DUMMY_SERVICE.package_type.value,
                 str(DUMMY_PACKAGE_MANAGER.package_path_from_package_id(DUMMY_SERVICE)),
+                "--key",
                 str(ETHEREUM_KEY_DEPLOYER),
                 *DEFAULT_SERVICE_MINT_PARAMETERS,
             ),
@@ -376,6 +385,7 @@ class TestMintComponents(BaseChainInteractionTest):
                 str(
                     DUMMY_PACKAGE_MANAGER.package_path_from_package_id(DUMMY_CONNECTION)
                 ),
+                "--key",
                 str(ETHEREUM_KEY_DEPLOYER),
                 "-d",
                 "1",

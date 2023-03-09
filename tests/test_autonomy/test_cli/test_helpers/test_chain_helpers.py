@@ -76,7 +76,7 @@ class TestMintComponentMethod:
                 mint_component(
                     package_path=PACKAGE_DIR,
                     package_type=PackageType.PROTOCOL,
-                    keys=ETHEREUM_KEY_DEPLOYER,
+                    key=ETHEREUM_KEY_DEPLOYER,
                     chain_type=ChainType.LOCAL,
                     dependencies=[],
                 )
@@ -104,7 +104,7 @@ class TestMintComponentMethod:
                 mint_component(
                     package_path=PACKAGE_DIR,
                     package_type=PackageType.PROTOCOL,
-                    keys=ETHEREUM_KEY_DEPLOYER,
+                    key=ETHEREUM_KEY_DEPLOYER,
                     chain_type=ChainType.LOCAL,
                     dependencies=[],
                 )
@@ -121,7 +121,7 @@ class TestMintComponentMethod:
             mint_component(
                 package_path=PACKAGE_DIR,
                 package_type=PackageType.PROTOCOL,
-                keys=ETHEREUM_KEY_DEPLOYER,
+                key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.GOERLI,
                 dependencies=[],
             )
@@ -142,7 +142,7 @@ class TestMintComponentMethod:
                 mint_component(
                     package_path=PACKAGE_DIR,
                     package_type=PackageType.PROTOCOL,
-                    keys=ETHEREUM_KEY_DEPLOYER,
+                    key=ETHEREUM_KEY_DEPLOYER,
                     chain_type=ChainType.GOERLI,
                     dependencies=[],
                 )
@@ -175,7 +175,7 @@ class TestMintComponentMethod:
                 mint_component(
                     package_path=PACKAGE_DIR,
                     package_type=PackageType.PROTOCOL,
-                    keys=ETHEREUM_KEY_DEPLOYER,
+                    key=ETHEREUM_KEY_DEPLOYER,
                     chain_type=ChainType.LOCAL,
                     dependencies=[],
                     timeout=1.0,
@@ -211,7 +211,7 @@ def test_mint_service_timeout() -> None:
         ):
             mint_service(
                 package_path=PACKAGE_DIR,
-                keys=ETHEREUM_KEY_DEPLOYER,
+                key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.LOCAL,
                 agent_id=1,
                 number_of_slots=4,
@@ -244,7 +244,7 @@ def test_activate_service_timeout_failure() -> None:
         ):
             activate_service(
                 service_id=0,
-                keys=ETHEREUM_KEY_DEPLOYER,
+                key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.LOCAL,
                 timeout=1.0,
             )
@@ -275,7 +275,7 @@ def test_register_instance_timeout_failure() -> None:
                 service_id=0,
                 instances=["0x"],
                 agent_ids=[1],
-                keys=ETHEREUM_KEY_DEPLOYER,
+                key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.LOCAL,
                 timeout=1.0,
             )
@@ -304,7 +304,7 @@ def test_deploy_service_timeout_failure() -> None:
         ):
             deploy_service(
                 service_id=0,
-                keys=ETHEREUM_KEY_DEPLOYER,
+                key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.LOCAL,
                 timeout=1.0,
             )
