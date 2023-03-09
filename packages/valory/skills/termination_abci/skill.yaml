@@ -25,12 +25,12 @@ connections: []
 contracts:
 - valory/gnosis_safe:0.1.0:bafybeibzfhpib5fw3wady6dhq5bfgo37o437bi4s3hthbvvit7byvbalg4
 - valory/multisend:0.1.0:bafybeigjywkl7hydjsrkogob3xebj2ifhqwmfhhxoeyrndzhhxi5u6amey
-- valory/service_registry:0.1.0:bafybeid4wyte27tanmeiyzkjfvtvf5yyjngdsvsqvve5bzxwtzjoioubgi
+- valory/service_registry:0.1.0:bafybeidppkmow2xvpbjizom3hih5lrp2774zm2ikunybofgxlwhxkajehi
 protocols:
 - valory/contract_api:1.0.0:bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiaf2hzudrqm2eswuq5e7exutot3jfhniisfnba7k26krtueizbmxy
-- valory/transaction_settlement_abci:0.1.0:bafybeies5wtgt66o2habe3qiytcqj2gsqtiyn533dp6tr5cqii7dtpawgu
+- valory/abstract_round_abci:0.1.0:bafybeibs2l6haur2majbo3c4e25ztk47rp7ujearn3amqrpstocapgdlou
+- valory/transaction_settlement_abci:0.1.0:bafybeicjhirpechyce5vwdhdxfy75ssua7vmvj5erhwgb3arf5b7lyz6ni
 behaviours:
   main:
     args: {}

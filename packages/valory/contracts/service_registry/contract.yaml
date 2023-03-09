@@ -16,6 +16,7 @@ contracts: []
 class_name: ServiceRegistryContract
 contract_interface_paths:
   ethereum: build/ServiceRegistry.json
+  ethereum_hwi: build/ServiceRegistry.json
 dependencies:
   open-aea-ledger-ethereum:
     version: ==1.29.0

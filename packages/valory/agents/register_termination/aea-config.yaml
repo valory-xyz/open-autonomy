@@ -21,7 +21,7 @@ contracts:
 - valory/gnosis_safe:0.1.0:bafybeibzfhpib5fw3wady6dhq5bfgo37o437bi4s3hthbvvit7byvbalg4
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeidzdv6zjst5likperhuqdzsb4yix6ey5ir45nwdcquw3asuqmqdlu
 - valory/multisend:0.1.0:bafybeigjywkl7hydjsrkogob3xebj2ifhqwmfhhxoeyrndzhhxi5u6amey
-- valory/service_registry:0.1.0:bafybeid4wyte27tanmeiyzkjfvtvf5yyjngdsvsqvve5bzxwtzjoioubgi
+- valory/service_registry:0.1.0:bafybeidppkmow2xvpbjizom3hih5lrp2774zm2ikunybofgxlwhxkajehi
 protocols:
 - open_aea/signing:1.0.0:bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4
 - valory/abci:0.1.0:bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4
@@ -33,12 +33,12 @@ protocols:
 - valory/tendermint:0.1.0:bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54
 skills:
 - valory/abstract_abci:0.1.0:bafybeib24gifbnji533mzdqaq3jyqil6ybgxd22nckporpevrnhqmy3idq
-- valory/abstract_round_abci:0.1.0:bafybeiaf2hzudrqm2eswuq5e7exutot3jfhniisfnba7k26krtueizbmxy
-- valory/register_termination_abci:0.1.0:bafybeicn6yaro2sovvqnos75utq5t43eqqiv4ng3olcdqxm4egh4odjnoa
-- valory/registration_abci:0.1.0:bafybeiea6jdttmqtzd4m2v33d6yytib25bef6ca7t7ja2n3zdjsltckafy
-- valory/reset_pause_abci:0.1.0:bafybeidhdsuexskog6w23ytu3f5a3mumvexqgv5mb3y3mdwzdm4tfzlhne
-- valory/termination_abci:0.1.0:bafybeicxhecgp5corggdmjhf3rfb653k6jbhfblbte3tccqtgdrp6mn7my
-- valory/transaction_settlement_abci:0.1.0:bafybeies5wtgt66o2habe3qiytcqj2gsqtiyn533dp6tr5cqii7dtpawgu
+- valory/abstract_round_abci:0.1.0:bafybeibs2l6haur2majbo3c4e25ztk47rp7ujearn3amqrpstocapgdlou
+- valory/register_termination_abci:0.1.0:bafybeif76r5ejt3nsfydpav3ihx22w6st2lotyyzlrdlibtezuv5ryvw24
+- valory/registration_abci:0.1.0:bafybeiagvzqorevtlztwysdetl3uuaixn7orykxzqsohkmyzviu63pkq5e
+- valory/reset_pause_abci:0.1.0:bafybeifwdo3v7nf4ct6iuixc4m4u4plst2ia357okje2xa75ozudrkgwcq
+- valory/termination_abci:0.1.0:bafybeigrut3t23cqnromfl2eymxepko225v3ny57zc4kdhgj6ncbaztfme
+- valory/transaction_settlement_abci:0.1.0:bafybeicjhirpechyce5vwdhdxfy75ssua7vmvj5erhwgb3arf5b7lyz6ni
 default_ledger: ethereum
 required_ledgers:
 - ethereum
