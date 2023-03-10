@@ -69,6 +69,11 @@ def get_ledger_and_crypto_objects(
 ) -> Tuple[LedgerApi, Crypto]:
     """Create ledger_api and crypto objects"""
 
+    if key is None and not hwi:
+        raise click.ClickException(
+            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
+        )
+
     chain_config = ChainConfigs.get(chain_type=chain_type)
     if chain_config.rpc is None:
         raise click.ClickException(
@@ -119,11 +124,6 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
     is_agent = package_type == PackageType.AGENT
     if is_agent and len(dependencies) == 0:
         raise click.ClickException("Agent packages needs to have dependencies")
-
-    if key is None and not hwi:
-        raise click.ClickException(
-            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
-        )
 
     ledger_api, crypto = get_ledger_and_crypto_objects(
         chain_type=chain_type,
@@ -221,10 +221,6 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
 ) -> None:
     """Mint service"""
 
-    if key is None and not hwi:
-        raise click.ClickException(
-            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
-        )
     ledger_api, crypto = get_ledger_and_crypto_objects(
         chain_type=chain_type,
         key=key,
@@ -321,11 +317,6 @@ def activate_service(
 ) -> None:
     """Activate on-chain service"""
 
-    if key is None and not hwi:
-        raise click.ClickException(
-            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
-        )
-
     ledger_api, crypto = get_ledger_and_crypto_objects(
         chain_type=chain_type,
         key=key,
@@ -358,11 +349,6 @@ def register_instance(  # pylint: disable=too-many-arguments
     hwi: bool = False,
 ) -> None:
     """Register agents instances on an activated service"""
-
-    if key is None and not hwi:
-        raise click.ClickException(
-            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
-        )
 
     ledger_api, crypto = get_ledger_and_crypto_objects(
         chain_type=chain_type,
@@ -397,11 +383,6 @@ def deploy_service(  # pylint: disable=too-many-arguments
     hwi: bool = False,
 ) -> None:
     """Deploy a service with registration activated"""
-
-    if key is None and not hwi:
-        raise click.ClickException(
-            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
-        )
 
     ledger_api, crypto = get_ledger_and_crypto_objects(
         chain_type=chain_type,
