@@ -28,7 +28,7 @@ fingerprint:
   abci_build/nodes/node3/config/priv_validator_key.json: bafybeifsr7xsgec4mh5wz4mh67exvqhzjz5exkjr4x4g4n7wcnjmvwko34
   abci_build/nodes/node3/data/priv_validator_state.json: bafybeig7rucgmcn3fb5dswfbq54esqv7drpob5px2uyxcjpblpfcnjgaty
 fingerprint_ignore_patterns: []
-agent: valory/hello_world:0.1.0:bafybeia3lsaj3pj73f4l4pcgpv3iwrvsqtxs5adqgbc6krjby5ktxt5w3u
+agent: valory/hello_world:0.1.0:bafybeia5q5x4423kkhiji64jokq6mvy6srgitp7s5h5rzgbvyuo6j5jaxy
 number_of_agents: 4
 ---
 extra:
