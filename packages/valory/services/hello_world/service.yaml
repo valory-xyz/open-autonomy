@@ -6,27 +6,6 @@ aea_version: '>=1.0.0, <2.0.0'
 license: Apache-2.0
 fingerprint:
   README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
-  abci_build/docker-compose.yaml: bafybeihelrzwskxvkeljxtzyazeagfgu4lrrstexbcu66qzhdi635jqvri
-  abci_build/nodes/node0/config/config.toml: bafybeiee4cbm62cysa5buxot33n2lnhvm6e2xmtohntwcimizufz2pafcq
-  abci_build/nodes/node0/config/genesis.json: bafybeie7ufpl6z746ftklwoxnyfpqj77yroavtnmfv63p45tj23ct7sggi
-  abci_build/nodes/node0/config/node_key.json: bafybeibetpllgbjpyawgirjv7z4gnfsfslbiiohmakzrsooaaghnkpgrdm
-  abci_build/nodes/node0/config/priv_validator_key.json: bafybeicgaculjpju5ua7gnngfmmkbaeopdxku77blmqkkij5koghm7enn4
-  abci_build/nodes/node0/data/priv_validator_state.json: bafybeig7rucgmcn3fb5dswfbq54esqv7drpob5px2uyxcjpblpfcnjgaty
-  abci_build/nodes/node1/config/config.toml: bafybeidrrrgc5tck2i3mdjo4dn6gmignmjscqb6smdducu7s2brkg62m6u
-  abci_build/nodes/node1/config/genesis.json: bafybeie7ufpl6z746ftklwoxnyfpqj77yroavtnmfv63p45tj23ct7sggi
-  abci_build/nodes/node1/config/node_key.json: bafybeidg43prhruaq64xok4kocoreiexgul6x6w5tpzag7zx6kxs4zvsne
-  abci_build/nodes/node1/config/priv_validator_key.json: bafybeigi7cz57csgyc3s6clm3jiyizrv33uwai7gretzlct7sbastctnde
-  abci_build/nodes/node1/data/priv_validator_state.json: bafybeig7rucgmcn3fb5dswfbq54esqv7drpob5px2uyxcjpblpfcnjgaty
-  abci_build/nodes/node2/config/config.toml: bafybeibolmmylx43uycid4pl3c3kzxb5jlcbqmw466ip5buwoev5bhnbty
-  abci_build/nodes/node2/config/genesis.json: bafybeie7ufpl6z746ftklwoxnyfpqj77yroavtnmfv63p45tj23ct7sggi
-  abci_build/nodes/node2/config/node_key.json: bafybeidbsq533dbnm5xbr744m25xnqphgiohwmhz7ivoda6bryqvwo6m6q
-  abci_build/nodes/node2/config/priv_validator_key.json: bafybeidhcntowqy7oh6yw2ousslrtgl5hp75jhbx3geyb3sixapys4pfhe
-  abci_build/nodes/node2/data/priv_validator_state.json: bafybeig7rucgmcn3fb5dswfbq54esqv7drpob5px2uyxcjpblpfcnjgaty
-  abci_build/nodes/node3/config/config.toml: bafybeibxr7w4egbtglgandf36mg27op5wbedugzqbaiksufymgeqpt3gxy
-  abci_build/nodes/node3/config/genesis.json: bafybeie7ufpl6z746ftklwoxnyfpqj77yroavtnmfv63p45tj23ct7sggi
-  abci_build/nodes/node3/config/node_key.json: bafybeie62flrrevhkdd77uw7rnqkepvydikc4zx4qcgue2ej7d74hwil6i
-  abci_build/nodes/node3/config/priv_validator_key.json: bafybeifsr7xsgec4mh5wz4mh67exvqhzjz5exkjr4x4g4n7wcnjmvwko34
-  abci_build/nodes/node3/data/priv_validator_state.json: bafybeig7rucgmcn3fb5dswfbq54esqv7drpob5px2uyxcjpblpfcnjgaty
 fingerprint_ignore_patterns: []
 agent: valory/hello_world:0.1.0:bafybeiayklrjr2h6ke2kyg3l27sibaimxfssemrtnq4d4nt5eo2akia52u
 number_of_agents: 4
