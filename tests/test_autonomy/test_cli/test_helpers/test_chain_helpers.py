@@ -332,6 +332,10 @@ def test_get_ledger_and_crypto_failure() -> None:
         click.ClickException,
         match="Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet",
     ):
-        get_ledger_and_crypto_objects(
+        mint_component(
+            package_path=PACKAGE_DIR,
+            package_type=PackageType.PROTOCOL,
+            key=None,
             chain_type=ChainType.LOCAL,
+            dependencies=[],
         )
