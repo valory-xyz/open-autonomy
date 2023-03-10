@@ -68,14 +68,14 @@ jobs:
         sudo apt-get update --fix-missing
         sudo apt-get autoremove
         sudo apt-get autoclean
-        pip install tomte[tox]==0.2.2
+        pip install tomte[tox]==0.2.3
         pip install --user --upgrade setuptools
-    - name: Check copyright
+    - name: Check copyright headers
       run: tox -e check-copyright
-    - name: License Checker
+    - name: License compatibility check
       uses: andersy005/gh-action-py-liccheck@main
       with:
-        strategy-ini-file: ./strategy.ini
+        strategy-ini-file: ./liccheck.ini
         level: standard
         requirements-txt-file: ./requirements.txt
         no-deps: true
@@ -111,7 +111,7 @@ jobs:
         sudo apt-get update --fix-missing
         sudo apt-get autoremove
         sudo apt-get autoclean
-        pip install tomte[tox]==0.2.2
+        pip install tomte[tox]==0.2.3
         pip install --user --upgrade setuptools
         # install Protobuf compiler
         wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
@@ -203,7 +203,7 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install tomte[tox]==0.2.2
+          pip install tomte[tox]==0.2.3
           pip install --user --upgrade setuptools
 
           # install Protobuf compiler
@@ -257,7 +257,7 @@ jobs:
       - if: matrix.os == 'macos-latest'
         name: Install dependencies (macos-latest)
         run: |
-          pip install tomte[tox]==0.2.2
+          pip install tomte[tox]==0.2.3
           brew install gcc
           # brew install protobuf
           # brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/72457f0166d5619a83f508f2345b22d0617b5021/Formula/protobuf.rb
@@ -310,7 +310,7 @@ jobs:
           choco install make -y
           # to check make was installed
           make --version
-          pip install tomte[tox]==0.2.2
+          pip install tomte[tox]==0.2.3
           # wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-win64.zip
           # unzip protoc-3.19.4-win64.zip -d protoc
           # sudo mv protoc/bin/protoc /usr/local/bin/protoc
@@ -385,7 +385,7 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install tomte[tox]==0.2.2
+          pip install tomte[tox]==0.2.3
           pip install --user --upgrade setuptools
 
           # install Protobuf compiler
