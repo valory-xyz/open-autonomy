@@ -53,7 +53,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     GenesisConsensusParams,
     GenesisEvidence,
     GenesisValidator,
-    MIN_OBSERVATION_INTERVAL,
+    MIN_RESET_PAUSE_DURATION,
     NUMBER_OF_RETRIES,
     Requests,
 )
@@ -91,7 +91,7 @@ BASE_DUMMY_PARAMS = dict(
     sleep_time=1,
     retry_timeout=1,
     retry_attempts=1,
-    observation_interval=MIN_OBSERVATION_INTERVAL,
+    reset_pause_duration=MIN_RESET_PAUSE_DURATION,
     drand_public_key="",
     tendermint_com_url="",
     reset_tendermint_after=1,
@@ -380,7 +380,7 @@ class TestSharedState:
         """Setup a shared state instance with dummy params."""
         shared_state.context.params.setup_params = {
             "test": [],
-            "all_participants": [list(range(4))],
+            "all_participants": list(range(4)),
         }
         shared_state.setup()
 
@@ -426,9 +426,9 @@ class TestSharedState:
         shared_state = SharedState(name="", skill_context=MagicMock())
         with mock.patch.object(shared_state.context, "params") as mock_params:
             mock_params.setup_params = {
-                "safe_contract_address": ["0xsafe"],
-                "oracle_contract_address": ["0xoracle"],
-                "all_participants": ["0x0"],
+                "safe_contract_address": "0xsafe",
+                "oracle_contract_address": "0xoracle",
+                "all_participants": "0x0",
             }
             shared_state.setup()
             assert (
@@ -467,7 +467,7 @@ class TestSharedState:
         )
         shared_state.context.params.setup_params = {
             "test": [],
-            "all_participants": [["0x0"]],
+            "all_participants": ["0x0"],
         }
         shared_state.setup()
         shared_state.synchronized_data.update(participants=tuple(range(n_participants)))
@@ -563,11 +563,11 @@ def test_base_params_model_initialization() -> None:
 
     kwargs["skill_context"] = MagicMock(is_abstract_component=False)
     required_setup_params = {
-        "safe_contract_address",
-        "all_participants",
-        "consensus_threshold",
+        "safe_contract_address": "0x0",
+        "all_participants": ["0x0"],
+        "consensus_threshold": 1,
     }
-    kwargs["setup"] = {setup_param: [] for setup_param in required_setup_params}
+    kwargs["setup"] = required_setup_params
     BaseParams(**kwargs)
 
 
@@ -595,9 +595,9 @@ def test_incorrect_setup(setup: Dict[str, Any], error_text: str) -> None:
 
     with pytest.raises(
         AEAEnforceError,
-        match=f"`observation_interval` must be greater than or equal to {MIN_OBSERVATION_INTERVAL}",
+        match=f"`reset_pause_duration` must be greater than or equal to {MIN_RESET_PAUSE_DURATION}",
     ):
-        kwargs["observation_interval"] = MIN_OBSERVATION_INTERVAL - 1
+        kwargs["reset_pause_duration"] = MIN_RESET_PAUSE_DURATION - 1
         BaseParams(**kwargs)
 
 

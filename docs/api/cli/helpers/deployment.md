@@ -54,8 +54,10 @@ def build_and_deploy_from_token(token_id: int,
                                 chain_type: ChainType,
                                 skip_image: bool,
                                 n: Optional[int],
+                                deployment_type: str,
                                 aev: bool = False,
-                                password: Optional[str] = None) -> None
+                                password: Optional[str] = None,
+                                no_deploy: bool = False) -> None
 ```
 
 Build and run deployment from tokenID.

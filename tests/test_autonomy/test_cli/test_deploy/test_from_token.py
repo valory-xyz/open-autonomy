@@ -130,6 +130,44 @@ class TestFromToken(BaseChainInteractionTest):
             assert "Building required images" in result.stdout
             assert "Service build successful" in result.stdout
 
+    def test_from_token_kubernetes(
+        self,
+    ) -> None:
+        """Run test."""
+
+        service_dir = self.t / "service"
+        service_dir.mkdir()
+
+        service_file = service_dir / "service.yaml"
+        service_file.write_text(
+            (
+                ROOT_DIR
+                / "tests"
+                / "data"
+                / "dummy_service_config_files"
+                / "service_0.yaml"
+            ).read_text()
+        )
+
+        with mock.patch(
+            "autonomy.cli.helpers.deployment.fetch_service_ipfs",
+            return_value=service_dir,
+        ), run_deployment_patch as rdp, build_image_patch, default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch:
+            result = self.run_cli(
+                (str(self.token), str(self.keys_file), "--kubernetes")
+            )
+
+            assert result.exit_code == 0, result.stdout
+            assert "Service name: valory/oracle_hardhat" in result.stdout
+            assert "Building required images" in result.stdout
+            assert "Service build successful" in result.stdout
+            assert "Type:                 kubernetes" in result.stdout
+            assert "Running deployment" not in result.output
+
+            rdp.assert_not_called()
+
+        assert (self.t / "service" / "abci_build" / "build.yaml").exists()
+
     def test_fail_on_chain_resolve_connection_error(self) -> None:
         """Run test."""
 

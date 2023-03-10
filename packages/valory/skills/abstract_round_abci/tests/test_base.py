@@ -31,7 +31,18 @@ from copy import copy, deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from time import sleep
-from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type
+from typing import (
+    Any,
+    Dict,
+    FrozenSet,
+    Generator,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    cast,
+)
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -460,10 +471,17 @@ class TestAbciAppDB:
         self,
         data: Dict,
         setup_data: Optional[Dict],
-        cross_period_persisted_keys: Optional[Set],
-        expected_cross_period_persisted_keys: List,
+        cross_period_persisted_keys: Optional[Set[str]],
+        expected_cross_period_persisted_keys: Set[str],
     ) -> None:
         """Test constructor."""
+        # keys are a set, but we cast them to a frozenset, so we can still update them and also make `mypy`
+        # think that the type is correct, to simulate a user incorrectly passing a different type and check if the
+        # attribute can be altered
+        cast_keys = cast(Optional[FrozenSet[str]], cross_period_persisted_keys)
+        # update with the default keys
+        expected_cross_period_persisted_keys.update(AbciAppDB.default_cross_period_keys)
+
         if setup_data is None:
             # the parametrization of `setup_data` set to `None` is in order to check if the exception is raised
             # when we incorrectly set the data in the configuration file with a type that is not allowed
@@ -473,16 +491,14 @@ class TestAbciAppDB:
                     f"AbciAppDB data must be `Dict[str, List[Any]]`, found `{type(data)}` instead"
                 ),
             ):
-                AbciAppDB(data, cross_period_persisted_keys)
+                AbciAppDB(
+                    data,
+                )
             return
 
         # use copies because otherwise the arguments will be modified and the next test runs will be polluted
         data_copy = deepcopy(data)
-        cross_period_persisted_keys_copy = (
-            cross_period_persisted_keys.copy()
-            if cross_period_persisted_keys
-            else cross_period_persisted_keys
-        )
+        cross_period_persisted_keys_copy = cast_keys.copy() if cast_keys else cast_keys
         db = AbciAppDB(data_copy, cross_period_persisted_keys_copy)
         assert db._data == {0: setup_data}
         assert db.setup_data == setup_data
@@ -503,7 +519,8 @@ class TestAbciAppDB:
         data_assertion()
 
         if cross_period_persisted_keys_copy:
-            cross_period_persisted_keys_copy.add(new_value_attempt)
+            # cast back to set
+            cast(Set[str], cross_period_persisted_keys_copy).add(new_value_attempt)
             assert (
                 db.cross_period_persisted_keys == expected_cross_period_persisted_keys
             ), (
@@ -553,13 +570,12 @@ class TestAbciAppDB:
     def test_cross_period_persisted_keys(self) -> None:
         """Test `cross_period_persisted_keys` property"""
         setup_data: Dict[str, List] = {}
-        cross_period_persisted_keys = {"test"}
+        cross_period_persisted_keys = frozenset({"test"})
         db = AbciAppDB(setup_data, cross_period_persisted_keys.copy())
 
-        db.cross_period_persisted_keys.add("new_value_attempt")
-        assert db.cross_period_persisted_keys == cross_period_persisted_keys, (
-            "The database's `cross_period_persisted_keys` have been altered indirectly, "
-            "by updating an item retrieved via the `cross_period_persisted_keys` property!"
+        assert isinstance(db.cross_period_persisted_keys, frozenset), (
+            "The database's `cross_period_persisted_keys` can be altered indirectly. "
+            "The `cross_period_persisted_keys` was expected to be a `frozenset`!"
         )
 
     def test_get(self) -> None:
@@ -668,60 +684,84 @@ class TestAbciAppDB:
         ), "The database has been altered indirectly, by updating the item passed via the `update` method!"
 
     @pytest.mark.parametrize(
-        "setup_data, create_data, correct_data_format",
+        "replacement_value, expected_replacement",
         (
-            (dict(), {"dummy_key": "dummy_value"}, False),
-            (
-                dict(),
-                {"dummy_key": ["dummy_value1", "dummy_value2"]},
-                True,
-            ),
-            (
-                {"test": [["test"]]},
-                {"test": ["dummy_value1", "dummy_value2"]},
-                True,
-            ),
-            (
-                {"test": ["test"]},
-                {"test": ["dummy_value1", "dummy_value2"]},
-                True,
-            ),
+            (132, 132),
+            ("test", "test"),
+            (set("132"), ("1", "2", "3")),
+            ({"132"}, ("132",)),
+            (frozenset("231"), ("1", "2", "3")),
+            (frozenset({"231"}), ("231",)),
+            (("1", "3", "2"), ("1", "3", "2")),
+            (["1", "5", "3"], ["1", "5", "3"]),
+        ),
+    )
+    @pytest.mark.parametrize(
+        "setup_data, cross_period_persisted_keys",
+        (
+            (dict(), frozenset()),
+            ({"test": [["test"]]}, frozenset()),
+            ({"test": [["test"]]}, frozenset({"test"})),
+            ({"test": ["test"]}, frozenset({"test"})),
         ),
     )
     def test_create(
         self,
+        replacement_value: Any,
+        expected_replacement: Any,
         setup_data: Dict,
-        create_data: Dict,
-        correct_data_format: bool,
+        cross_period_persisted_keys: FrozenSet[str],
     ) -> None:
         """Test `create` db."""
         db = AbciAppDB(setup_data)
-
-        if not correct_data_format:
-            with pytest.raises(
-                ValueError,
-                match=re.escape(
-                    f"AbciAppDB data must be `Dict[str, List[Any]]`, found `{type(create_data)}` instead."
-                ),
-            ):
-                db.create(**create_data)
-            return
-
-        db.create(**create_data)
+        db._cross_period_persisted_keys = cross_period_persisted_keys
+        db.create()
         assert db._data == {
             0: setup_data,
-            1: create_data,
+            1: setup_data if cross_period_persisted_keys else {},
         }, "`create` did not produce the expected result!"
 
         mutable_key = "mutable"
         mutable_value = ["test"]
-        create_data = {mutable_key: mutable_value.copy()}
+        existing_key = "test"
+        create_data = {
+            mutable_key: mutable_value.copy(),
+            existing_key: replacement_value,
+        }
         db.create(**create_data)
+
+        assert db._data == {
+            0: setup_data,
+            1: setup_data if cross_period_persisted_keys else {},
+            2: db.data_to_lists(
+                {
+                    mutable_key: mutable_value.copy(),
+                    existing_key: expected_replacement,
+                }
+            ),
+        }, "`create` did not produce the expected result!"
 
         create_data[mutable_key].append("new_value_attempt")
         assert (
-            db.get(mutable_key) == mutable_value[0]
+            db.get(mutable_key) == mutable_value
         ), "The database has been altered indirectly, by updating the item passed via the `create` method!"
+
+    def test_create_key_not_in_db(self) -> None:
+        """Test the `create` method when a given or a cross-period key does not exist in the db."""
+        existing_key = "existing_key"
+        non_existing_key = "non_existing_key"
+
+        db = AbciAppDB({existing_key: ["test_value"]})
+        db._cross_period_persisted_keys = frozenset({non_existing_key})
+        with pytest.raises(
+            ABCIAppInternalError,
+            match=f"Cross period persisted key `{non_existing_key}` "
+            "was not found in the db but was required for the next period.",
+        ):
+            db.create()
+
+        db._cross_period_persisted_keys = frozenset({existing_key})
+        db.create(**{non_existing_key: "test_value"})
 
     @pytest.mark.parametrize(
         "existing_data, cleanup_history_depth, cleanup_history_depth_current, expected",
@@ -833,8 +873,9 @@ class TestAbciAppDB:
     ) -> None:
         """Test cleanup db."""
         db = AbciAppDB({})
+        db._cross_period_persisted_keys = frozenset()
         for _, data in existing_data.items():
-            db.create(**data)
+            db._create_from_keys(**data)
 
         db.cleanup(cleanup_history_depth, cleanup_history_depth_current)
         assert db._data == expected
@@ -926,11 +967,16 @@ class TestBaseSynchronizedData:
 
     def test_create(self) -> None:
         """Test the 'create' method."""
-        participants = ("a",)
-        actual = self.base_synchronized_data.create(participants=[participants])
+        self.base_synchronized_data.db._cross_period_persisted_keys = frozenset(
+            {"participants"}
+        )
+        assert self.base_synchronized_data.db._data == {
+            0: {"participants": [("a", "b")]}
+        }
+        actual = self.base_synchronized_data.create()
         assert actual.db._data == {
             0: {"participants": [("a", "b")]},
-            1: {"participants": [("a",)]},
+            1: {"participants": [("a", "b")]},
         }
 
     def test_repr(self) -> None:
@@ -1626,12 +1672,12 @@ class TestAbciApp:
         class EmptyAbciApp(AbciAppTest):
             """An AbciApp without termination attrs set."""
 
-            cross_period_persisted_keys = {"1", "2"}
+            cross_period_persisted_keys = frozenset({"1", "2"})
 
         class TerminationAbciApp(AbciAppTest):
             """A moch termination AbciApp."""
 
-            cross_period_persisted_keys = {"2", "3"}
+            cross_period_persisted_keys = frozenset({"2", "3"})
 
         EmptyAbciApp.add_termination(
             TerminationAbciApp.background_round_cls,

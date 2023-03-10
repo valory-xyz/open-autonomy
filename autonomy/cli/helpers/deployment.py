@@ -49,7 +49,7 @@ from autonomy.deploy.constants import (
     TM_STATE_DIR,
     VENVS_DIR,
 )
-from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
+from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 from autonomy.deploy.image import build_image
 
 
@@ -218,8 +218,10 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
     chain_type: ChainType,
     skip_image: bool,
     n: Optional[int],
+    deployment_type: str,
     aev: bool = False,
     password: Optional[str] = None,
+    no_deploy: bool = False,
 ) -> None:
     """Build and run deployment from tokenID."""
 
@@ -244,7 +246,7 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
         build_deployment(
             keys_file=keys_file,
             build_dir=build_dir,
-            deployment_type=DockerComposeGenerator.deployment_type,
+            deployment_type=deployment_type,
             dev_mode=False,
             number_of_agents=n,
             agent_instances=agent_instances,
@@ -259,4 +261,8 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
             build_image(agent=service.agent)
 
     click.echo("Service build successful.")
+    if no_deploy or deployment_type == KubernetesGenerator.deployment_type:
+        return
+
+    click.echo("Running deployment")
     run_deployment(build_dir)

@@ -13,8 +13,7 @@ number_of_agents: 4
 extra:
   benchmark_persistence_params:
     setup: &id001
-      safe_contract_address:
-        - '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+      safe_contract_address: '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 public_id: valory/dummy_skill:0.1.0
 type: skill
 0:

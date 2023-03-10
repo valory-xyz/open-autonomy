@@ -104,3 +104,13 @@ def do_scaffolding() -> None
 
 Do the scaffolding.
 
+<a id="autonomy.fsm.scaffold.scaffold_skill.ScaffoldABCISkill.add_skill_to_packages"></a>
+
+#### add`_`skill`_`to`_`packages
+
+```python
+def add_skill_to_packages() -> None
+```
+
+Add skill to packages.json if scaffolded to local packages repository
+

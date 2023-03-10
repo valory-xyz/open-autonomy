@@ -43,6 +43,7 @@ from aea.configurations.constants import (
 
 # the decoration does side-effect on the 'aea scaffold' command
 from aea.configurations.data_types import CRUDCollection, PackageType, PublicId
+from aea.helpers.ipfs.base import IPFSHashOnly
 from aea.package_manager.v1 import PackageManagerV1
 
 from autonomy.analyse.abci.app_spec import DFA, FSMSpecificationLoader
@@ -252,7 +253,7 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             "keeper_timeout": 30.0,
             "max_attempts": 10,
             "max_healthcheck": 120,
-            "observation_interval": 10,
+            "reset_pause_duration": 10,
             "on_chain_service_id": None,
             "request_retry_delay": 1.0,
             "request_timeout": 10.0,
@@ -263,8 +264,9 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
             "service_id": service_id,
             "service_registry_address": None,
             "setup": {
-                "all_participants": [["0x0000000000000000000000000000000000000000"]],
-                "safe_contract_address": ["0x0000000000000000000000000000000000000000"],
+                "all_participants": ["0x0000000000000000000000000000000000000000"],
+                "safe_contract_address": "0x0000000000000000000000000000000000000000",
+                "consensus_threshold": None,
             },
             "share_tm_config_on_startup": False,
             "sleep_time": 1,
@@ -347,6 +349,19 @@ class ScaffoldABCISkill:
         self._update_init_py()
         self._copy_spec_file()
         self._update_config()
+
+    def add_skill_to_packages(self) -> None:
+        """Add skill to packages.json if scaffolded to local packages repository"""
+
+        click.echo("Adding skill package to `packages.json` file...")
+        config = self.ctx.skill_loader.load(
+            (self.skill_dir / DEFAULT_SKILL_CONFIG_FILE).open()
+        )
+        package_manager = PackageManagerV1.from_dir(Path(self.ctx.registry_path))
+        package_manager.dev_packages[config.package_id] = IPFSHashOnly.hash_directory(
+            dir_path=self.skill_dir,
+        )
+        package_manager.dump()
 
     def _update_config(self) -> None:
         """Update the skill configuration."""

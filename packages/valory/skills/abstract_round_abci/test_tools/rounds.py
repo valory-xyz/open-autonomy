@@ -176,6 +176,7 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
                     participants=[tuple(self.participants)],
                     all_participants=[tuple(self.participants)],
                     consensus_threshold=[3],
+                    safe_contract_address=["test_address"],
                 ),
             )
         )
