@@ -46,10 +46,16 @@ Activate a service minted in the on-chain protocol.
 ### Usage
 
 ```bash
-autonomy service activate [OPTIONS] SERVICE_ID KEYS_FILE
+autonomy service activate [OPTIONS] SERVICE_ID
 ```
 
 ### Options
+
+`--key FILE`
+: Use private key from a file for signing the transactions
+
+`--hwi`
+: Use hardware wallet for signing the transactions
 
 `--password PASSWORD`
 : Password for the key file.
@@ -59,7 +65,7 @@ autonomy service activate [OPTIONS] SERVICE_ID KEYS_FILE
 To activate a service with ID 42 in the on-chain protocol:
 
 ```bash
-autonomy service activate 42 my_keys_file
+autonomy service activate 42 --key my_keys_file
 ```
 
 ## `autonomy service register`
@@ -68,10 +74,16 @@ Register an agent instance in a service minted and activated in the on-chain pro
 ### Usage
 
 ```bash
-autonomy service register [OPTIONS] SERVICE_ID KEYS_FILE
+autonomy service register [OPTIONS] SERVICE_ID
 ```
 
 ### Options
+
+`--key FILE`
+: Use private key from a file for signing the transactions
+
+`--hwi`
+: Use hardware wallet for signing the transactions
 
 `-i, --instance AGENT_ADDRESS`
 : Agent instance address.
@@ -87,7 +99,7 @@ autonomy service register [OPTIONS] SERVICE_ID KEYS_FILE
 To register an agent instance of canonical agent ID 56 with address `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266` on the service with ID 42 in the on-chain protocol:
 
 ```bash
-autonomy service register -i 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 -a 56 42 my_keys_file
+autonomy service register -i 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 -a 56 42 --key my_keys_file
 ```
 
 When providing the agent instance address make sure that the address you provide is funded.
@@ -101,9 +113,15 @@ This command can be executed after all desired agents have been registered in th
 ### Usage
 
 ```bash
-autonomy service deploy [OPTIONS] SERVICE_ID KEYS_FILE
+autonomy service deploy [OPTIONS] SERVICE_ID
 ```
 ### Options
+
+`--key FILE`
+: Use private key from a file for signing the transactions
+
+`--hwi`
+: Use hardware wallet for signing the transactions
 
 `-d, --deployment-payload PAYLOAD`
 : Deployment payload value.
@@ -116,5 +134,5 @@ autonomy service deploy [OPTIONS] SERVICE_ID KEYS_FILE
 To deploy a service with ID 42 in the on-chain protocol:
 
 ```bash
-autonomy service deploy 42 my_keys_file
+autonomy service deploy 42 --key my_keys_file
 ```

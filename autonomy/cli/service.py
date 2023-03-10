@@ -32,7 +32,12 @@ from autonomy.cli.helpers.chain import (
     deploy_service,
     register_instance,
 )
-from autonomy.cli.mint import key_path_decorator, password_decorator, timeout_flag
+from autonomy.cli.mint import (
+    hwi_flag,
+    key_path_decorator,
+    password_decorator,
+    timeout_flag,
+)
 from autonomy.cli.utils.click_utils import chain_selection_flag
 
 
@@ -51,18 +56,21 @@ def service(ctx: Context, chain_type: str, timeout: float) -> None:
 @pass_ctx
 @click.argument("service_id", type=int)
 @key_path_decorator
+@hwi_flag
 @password_decorator
 def activate(
     ctx: Context,
     service_id: int,
-    keys: Path,
+    key: Path,
+    hwi: bool,
     password: Optional[str],
 ) -> None:
     """Activate service."""
 
     activate_service(
         service_id=service_id,
-        keys=keys,
+        key=key,
+        hwi=hwi,
         chain_type=ctx.config["chain_type"],
         password=password,
         timeout=ctx.config["timeout"],
@@ -91,13 +99,15 @@ def activate(
     help="Agent ID",
 )
 @key_path_decorator
+@hwi_flag
 @password_decorator
 def register(  # pylint: disable=too-many-arguments
     ctx: Context,
     service_id: int,
     instances: List[str],
     agent_ids: List[int],
-    keys: Path,
+    key: Path,
+    hwi: bool,
     password: Optional[str],
 ) -> None:
     """Register instances."""
@@ -106,7 +116,8 @@ def register(  # pylint: disable=too-many-arguments
         service_id=service_id,
         instances=instances,
         agent_ids=agent_ids,
-        keys=keys,
+        key=key,
+        hwi=hwi,
         chain_type=ctx.config["chain_type"],
         password=password,
         timeout=ctx.config["timeout"],
@@ -123,11 +134,13 @@ def register(  # pylint: disable=too-many-arguments
     help="Deployment payload value",
 )
 @key_path_decorator
+@hwi_flag
 @password_decorator
 def deploy(
     ctx: Context,
     service_id: int,
-    keys: Path,
+    key: Path,
+    hwi: bool,
     password: Optional[str],
     deployment_payload: Optional[str],
 ) -> None:
@@ -135,7 +148,8 @@ def deploy(
 
     deploy_service(
         service_id=service_id,
-        keys=keys,
+        key=key,
+        hwi=hwi,
         chain_type=ctx.config["chain_type"],
         password=password,
         deployment_payload=deployment_payload,
