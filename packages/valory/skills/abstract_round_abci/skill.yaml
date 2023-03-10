@@ -60,7 +60,7 @@ fingerprint:
   utils.py: bafybeicckjeq5ubm25squfzevdwlwnios7enstmelc7tw4qpzcv2h7ysmq
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeidodgjar7w7wpvmlnkklz6uqppknsxmyxlgtkzf6udphnkxvztryy
+- valory/abci:0.1.0:bafybeicz3aa3gh7jtdfz72gmo42fev56oh7okbmvqachsc4qe7okfbikvm
 - valory/http_client:0.23.0:bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi
 - valory/ipfs:0.1.0:bafybeihq4uwboe5pcd3n6i75jghsxp5ta6hb6v75qxco2zof36goia3bc4
 - valory/ledger:0.19.0:bafybeicxcypcg2lxmtktbmuhqcyluzmasfsdeljyk2pvaabzc3h2jmcsui
@@ -76,7 +76,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeih6hfzj2obw5oajnt6ng6355edgvi5ngoaub44vpuszqoplfvyaom
 - valory/tendermint:0.1.0:bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54
 skills:
-- valory/abstract_abci:0.1.0:bafybeie5ar7dkfyq6dmb7xzv5luzdkohjwtlpsdk57vsksf4ehrqizjpxe
+- valory/abstract_abci:0.1.0:bafybeihptm52i65g4tunojltv4nya4m34n6tqxjx4qqf6lv54myje35ovi
 behaviours:
   main:
     args: {}
@@ -149,7 +149,7 @@ dependencies:
   open-aea-test-autonomy:
     version: ==0.9.1
   protobuf:
-    version: ==3.19.4
+    version: '>=3.20,<=3.20.1'
   py-ecc:
     version: ==5.2.0
   pytz:
