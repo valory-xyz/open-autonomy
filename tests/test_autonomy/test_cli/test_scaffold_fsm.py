@@ -20,6 +20,7 @@
 """Test 'scaffold fsm' subcommand."""
 
 import importlib.util
+import json
 import os
 import shutil
 from contextlib import suppress
@@ -32,6 +33,7 @@ from typing import Dict, List, Optional
 import click.testing
 import pytest
 from aea.cli.utils.config import get_default_author_from_cli_config
+from aea.package_manager.base import PACKAGES_FILE
 from aea.test_tools.test_cases import AEATestCaseMany
 
 # trigger population of autonomy commands
@@ -200,6 +202,9 @@ class TestScaffoldFSMLocalRegistry(BaseScaffoldFSMTest):
         )
         assert scaffold_result.exit_code == 0
         assert (self.packages_path / self.author / "skills" / skill_name).exists()
+        assert f"skill/{self.author}/{skill_name}/0.1.0" in json.loads(
+            (self.packages_path / PACKAGES_FILE).read_text()
+        ).get("dev")
         cli_args = [
             "-m",
             "aea.cli",
