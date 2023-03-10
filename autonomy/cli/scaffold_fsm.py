@@ -99,4 +99,8 @@ def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
     scaffold_item(ctx, SKILL, skill_name)
     ctx.cwd = preserve_cwd
 
-    ScaffoldABCISkill(ctx, skill_name, Path(spec)).do_scaffolding()
+    scaffold_fsm = ScaffoldABCISkill(ctx, skill_name, Path(spec))
+    scaffold_fsm.do_scaffolding()
+
+    if ctx.config[TO_LOCAL_REGISTRY_FLAG]:
+        scaffold_fsm.add_skill_to_packages()
