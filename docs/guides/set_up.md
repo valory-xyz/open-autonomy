@@ -40,16 +40,31 @@ Ensure that your machine satisfies the following requirements:
     !!! info
         The InterPlanetary File System ([IPFS](https://ipfs.io)) is a protocol, hypermedia and file sharing peer-to-peer network for storing and sharing data in a global, distributed file system. {{open_autonomy}} can use components stored in the [IPFS](https://ipfs.io), or stored locally.
 
-5. If required, initialize an empty local registry:
 
-    ```bash
-    mkdir packages
-    echo '{"dev": {}, "third_party": {}}' > packages/packages.json
-    ```
+## Working with the local and remote registries
 
-    !!! info
-        If you have an already initialized local registry in a path other than `./packages`, you can indicate so using the flag `--registry-path` before a particular command. For example,
+The framework uses the concept of local and remote registries to store software packages. In the previous section, we initialized the framework to work with a remote registry, which is the recommended option. 
 
-        ``` bash
-        autonomy --registry-path=~/projects/my_packages <command>
-        ```
+However, you will need a local registry when you develop new components, and later push them to the remote registry so that they become publicly available. You can initialize an empty local registry in your workspace folder as follows:
+
+```bash
+mkdir packages
+echo '{"dev": {}, "third_party": {}}' > packages/packages.json
+```
+
+The {{open_autonomy}} framework will fetch components from the remote registry and copy them in the local registry when required.
+
+<figure markdown>
+![](../images/registries_simplified.svg)
+</figure>
+
+
+
+
+!!! info
+    
+	We recommend that your local registry is in the `./packages` folder within your workspace folder. If you have an initialized local registry in a path other than `./packages`, you can indicate so using the flag `--registry-path` before a particular command. For example,
+
+	``` bash
+	autonomy --registry-path=~/projects/my_packages <command>
+	```
