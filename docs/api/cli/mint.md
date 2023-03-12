@@ -32,13 +32,18 @@ Mint component on-chain.
 @mint.command()
 @package_path_decorator
 @key_path_decorator
+@hwi_flag
 @password_decorator
 @dependencies_decorator
 @nft_decorator
 @pass_ctx
-def protocol(ctx: Context, package_path: Path, keys: Path,
-             password: Optional[str], dependencies: Tuple[str],
-             nft: Optional[str]) -> None
+def protocol(ctx: Context,
+             package_path: Path,
+             key: Path,
+             password: Optional[str],
+             dependencies: Tuple[str],
+             nft: Optional[str],
+             hwi: bool = False) -> None
 ```
 
 Mint a protocol component.
@@ -51,13 +56,18 @@ Mint a protocol component.
 @mint.command()
 @package_path_decorator
 @key_path_decorator
+@hwi_flag
 @password_decorator
 @dependencies_decorator
 @nft_decorator
 @pass_ctx
-def contract(ctx: Context, package_path: Path, keys: Path,
-             password: Optional[str], dependencies: Tuple[str],
-             nft: Optional[str]) -> None
+def contract(ctx: Context,
+             package_path: Path,
+             key: Path,
+             password: Optional[str],
+             dependencies: Tuple[str],
+             nft: Optional[str],
+             hwi: bool = False) -> None
 ```
 
 Mint a contract component.
@@ -70,13 +80,18 @@ Mint a contract component.
 @mint.command()
 @package_path_decorator
 @key_path_decorator
+@hwi_flag
 @password_decorator
 @dependencies_decorator
 @nft_decorator
 @pass_ctx
-def connection(ctx: Context, package_path: Path, keys: Path,
-               password: Optional[str], dependencies: Tuple[str],
-               nft: Optional[str]) -> None
+def connection(ctx: Context,
+               package_path: Path,
+               key: Path,
+               password: Optional[str],
+               dependencies: Tuple[str],
+               nft: Optional[str],
+               hwi: bool = False) -> None
 ```
 
 Mint a connection component.
@@ -89,13 +104,18 @@ Mint a connection component.
 @mint.command()
 @package_path_decorator
 @key_path_decorator
+@hwi_flag
 @password_decorator
 @dependencies_decorator
 @nft_decorator
 @pass_ctx
-def skill(ctx: Context, package_path: Path, keys: Path,
-          password: Optional[str], dependencies: Tuple[str],
-          nft: Optional[str]) -> None
+def skill(ctx: Context,
+          package_path: Path,
+          key: Path,
+          password: Optional[str],
+          dependencies: Tuple[str],
+          nft: Optional[str],
+          hwi: bool = False) -> None
 ```
 
 Mint a skill component.
@@ -108,13 +128,18 @@ Mint a skill component.
 @mint.command()
 @package_path_decorator
 @key_path_decorator
+@hwi_flag
 @password_decorator
 @dependencies_decorator
 @nft_decorator
 @pass_ctx
-def agent(ctx: Context, package_path: Path, keys: Path,
-          password: Optional[str], dependencies: Tuple[str],
-          nft: Optional[str]) -> None
+def agent(ctx: Context,
+          package_path: Path,
+          key: Path,
+          password: Optional[str],
+          dependencies: Tuple[str],
+          nft: Optional[str],
+          hwi: bool = False) -> None
 ```
 
 Mint an agent.
@@ -127,6 +152,7 @@ Mint an agent.
 @mint.command()
 @package_path_decorator
 @key_path_decorator
+@hwi_flag
 @password_decorator
 @nft_decorator
 @pass_ctx
@@ -157,9 +183,16 @@ Mint an agent.
     required=True,
     help="Threshold for the minimum numbers required to run the service",
 )
-def service(ctx: Context, package_path: Path, keys: Path, agent_id: int,
-            number_of_slots: int, cost_of_bond: int, threshold: int,
-            password: Optional[str], nft: Optional[str]) -> None
+def service(ctx: Context,
+            package_path: Path,
+            key: Path,
+            agent_id: int,
+            number_of_slots: int,
+            cost_of_bond: int,
+            threshold: int,
+            password: Optional[str],
+            nft: Optional[str],
+            hwi: bool = False) -> None
 ```
 
 Mint a service

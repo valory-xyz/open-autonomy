@@ -36,10 +36,6 @@ package_path_decorator = click.argument(
     "package_path",
     type=PathArgument(exists=True, file_okay=False, dir_okay=True),
 )
-key_path_decorator = click.argument(
-    "keys",
-    type=PathArgument(exists=True, file_okay=True, dir_okay=False),
-)
 password_decorator = click.option(
     "--password",
     type=str,
@@ -61,6 +57,17 @@ timeout_flag = click.option(
     "-t", "--timeout", type=float, help="Timeout for verifying emnitted events"
 )
 
+key_path_decorator = click.option(
+    "--key",
+    type=PathArgument(exists=True, file_okay=True, dir_okay=False),
+    help="Use private key from a file for signing the transactions",
+)
+hwi_flag = click.option(
+    "--hwi",
+    is_flag=True,
+    help="Use hardware wallet for signing the transactions.",
+)
+
 
 @click.group("mint")
 @pass_ctx
@@ -71,7 +78,12 @@ timeout_flag = click.option(
     is_flag=True,
     help="Skip hash check when verifying dependencies on chain",
 )
-def mint(ctx: Context, chain_type: str, skip_hash_check: bool, timeout: float) -> None:
+def mint(  # pylint: disable=too-many-arguments
+    ctx: Context,
+    chain_type: str,
+    skip_hash_check: bool,
+    timeout: float,
+) -> None:
     """Mint component on-chain."""
 
     ctx.config["chain_type"] = ChainType(chain_type)
@@ -82,156 +94,172 @@ def mint(ctx: Context, chain_type: str, skip_hash_check: bool, timeout: float) -
 @mint.command()
 @package_path_decorator
 @key_path_decorator
+@hwi_flag
 @password_decorator
 @dependencies_decorator
 @nft_decorator
 @pass_ctx
-def protocol(
+def protocol(  # pylint: disable=too-many-arguments
     ctx: Context,
     package_path: Path,
-    keys: Path,
+    key: Path,
     password: Optional[str],
     dependencies: Tuple[str],
     nft: Optional[str],
+    hwi: bool = False,
 ) -> None:
     """Mint a protocol component."""
 
     mint_component(
         package_path=package_path,
         package_type=PackageType.PROTOCOL,
-        keys=keys,
+        key=key,
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
         dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
+        hwi=hwi,
     )
 
 
 @mint.command()
 @package_path_decorator
 @key_path_decorator
+@hwi_flag
 @password_decorator
 @dependencies_decorator
 @nft_decorator
 @pass_ctx
-def contract(
+def contract(  # pylint: disable=too-many-arguments
     ctx: Context,
     package_path: Path,
-    keys: Path,
+    key: Path,
     password: Optional[str],
     dependencies: Tuple[str],
     nft: Optional[str],
+    hwi: bool = False,
 ) -> None:
     """Mint a contract component."""
 
     mint_component(
         package_path=package_path,
         package_type=PackageType.CONTRACT,
-        keys=keys,
+        key=key,
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
         dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
+        hwi=hwi,
     )
 
 
 @mint.command()
 @package_path_decorator
 @key_path_decorator
+@hwi_flag
 @password_decorator
 @dependencies_decorator
 @nft_decorator
 @pass_ctx
-def connection(
+def connection(  # pylint: disable=too-many-arguments
     ctx: Context,
     package_path: Path,
-    keys: Path,
+    key: Path,
     password: Optional[str],
     dependencies: Tuple[str],
     nft: Optional[str],
+    hwi: bool = False,
 ) -> None:
     """Mint a connection component."""
 
     mint_component(
         package_path=package_path,
         package_type=PackageType.CONNECTION,
-        keys=keys,
+        key=key,
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
         dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
+        hwi=hwi,
     )
 
 
 @mint.command()
 @package_path_decorator
 @key_path_decorator
+@hwi_flag
 @password_decorator
 @dependencies_decorator
 @nft_decorator
 @pass_ctx
-def skill(
+def skill(  # pylint: disable=too-many-arguments
     ctx: Context,
     package_path: Path,
-    keys: Path,
+    key: Path,
     password: Optional[str],
     dependencies: Tuple[str],
     nft: Optional[str],
+    hwi: bool = False,
 ) -> None:
     """Mint a skill component."""
 
     mint_component(
         package_path=package_path,
         package_type=PackageType.SKILL,
-        keys=keys,
+        key=key,
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
         dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
+        hwi=hwi,
     )
 
 
 @mint.command()
 @package_path_decorator
 @key_path_decorator
+@hwi_flag
 @password_decorator
 @dependencies_decorator
 @nft_decorator
 @pass_ctx
-def agent(
+def agent(  # pylint: disable=too-many-arguments
     ctx: Context,
     package_path: Path,
-    keys: Path,
+    key: Path,
     password: Optional[str],
     dependencies: Tuple[str],
     nft: Optional[str],
+    hwi: bool = False,
 ) -> None:
     """Mint an agent."""
 
     mint_component(
         package_path=package_path,
         package_type=PackageType.AGENT,
-        keys=keys,
+        key=key,
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
         dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
+        hwi=hwi,
     )
 
 
 @mint.command()
 @package_path_decorator
 @key_path_decorator
+@hwi_flag
 @password_decorator
 @nft_decorator
 @pass_ctx
@@ -262,22 +290,23 @@ def agent(
     required=True,
     help="Threshold for the minimum numbers required to run the service",
 )
-def service(  # pylint: disable=too-many-arguments
+def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-arguments
     ctx: Context,
     package_path: Path,
-    keys: Path,
+    key: Path,
     agent_id: int,
     number_of_slots: int,
     cost_of_bond: int,
     threshold: int,
     password: Optional[str],
     nft: Optional[str],
+    hwi: bool = False,
 ) -> None:
     """Mint a service"""
 
     mint_service(
         package_path=package_path,
-        keys=keys,
+        key=key,
         agent_id=agent_id,
         number_of_slots=number_of_slots,
         cost_of_bond=cost_of_bond,
@@ -287,4 +316,5 @@ def service(  # pylint: disable=too-many-arguments
         nft_image_hash=nft,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
+        hwi=hwi,
     )

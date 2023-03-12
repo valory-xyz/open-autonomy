@@ -26,8 +26,10 @@ import click
 from aea.configurations.data_types import PackageType
 from aea.configurations.loader import load_configuration_object
 from aea.crypto.base import Crypto, LedgerApi
-from aea.crypto.registries import make_crypto
+from aea.crypto.registries import crypto_registry, ledger_apis_registry
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
+from aea_ledger_ethereum_hwi.exceptions import HWIError
+from aea_ledger_ethereum_hwi.hwi import EthereumHWIApi
 
 from autonomy.chain.base import UnitType
 from autonomy.chain.config import ChainConfigs, ChainType, ContractConfigs
@@ -61,8 +63,9 @@ from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS, Service
 
 def get_ledger_and_crypto_objects(
     chain_type: ChainType,
-    keys: Optional[Path] = None,
+    key: Optional[Path] = None,
     password: Optional[str] = None,
+    hwi: bool = False,
 ) -> Tuple[LedgerApi, Crypto]:
     """Create ledger_api and crypto objects"""
 
@@ -72,36 +75,44 @@ def get_ledger_and_crypto_objects(
             f"RPC cannot be `None` for chain config; chain_type={chain_type}"
         )
 
-    if keys is None:
-        crypto = make_crypto("ethereum")
+    identifier = EthereumHWIApi.identifier if hwi else EthereumApi.identifier
+
+    if key is None:
+        crypto = crypto_registry.make(identifier)
     else:
         crypto = EthereumCrypto(
-            private_key_path=keys,
+            private_key_path=key,
             password=password,
         )
 
-    ledger_api = EthereumApi(
+    ledger_api = ledger_apis_registry.make(
+        identifier,
         **{
             "address": chain_config.rpc,
             "chain_id": chain_config.chain_id,
             "is_gas_estimation_enabled": True,
-        }
+        },
     )
 
-    ledger_api.api.eth.default_account = crypto.address
+    try:
+        ledger_api.api.eth.default_account = crypto.address
+    except HWIError as e:
+        raise click.ClickException(e.message)
+
     return ledger_api, crypto
 
 
 def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
     package_path: Path,
     package_type: PackageType,
-    keys: Path,
+    key: Optional[Path],
     chain_type: ChainType,
     dependencies: List[int],
     nft_image_hash: Optional[str] = None,
     password: Optional[str] = None,
     skip_hash_check: bool = False,
     timeout: Optional[float] = None,
+    hwi: bool = False,
 ) -> None:
     """Mint component."""
 
@@ -109,10 +120,16 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
     if is_agent and len(dependencies) == 0:
         raise click.ClickException("Agent packages needs to have dependencies")
 
+    if key is None and not hwi:
+        raise click.ClickException(
+            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
+        )
+
     ledger_api, crypto = get_ledger_and_crypto_objects(
         chain_type=chain_type,
-        keys=keys,
+        key=key,
         password=password,
+        hwi=hwi,
     )
 
     try:
@@ -190,7 +207,7 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
 
 def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
     package_path: Path,
-    keys: Path,
+    key: Optional[Path],
     chain_type: ChainType,
     agent_id: int,
     number_of_slots: int,
@@ -200,13 +217,19 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
     password: Optional[str] = None,
     skip_hash_check: bool = False,
     timeout: Optional[float] = None,
+    hwi: bool = False,
 ) -> None:
     """Mint service"""
 
+    if key is None and not hwi:  # pragma: nocover
+        raise click.ClickException(
+            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
+        )
     ledger_api, crypto = get_ledger_and_crypto_objects(
         chain_type=chain_type,
-        keys=keys,
+        key=key,
         password=password,
+        hwi=hwi,
     )
 
     try:
@@ -290,17 +313,24 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
 
 def activate_service(
     service_id: int,
-    keys: Path,
+    key: Path,
     chain_type: ChainType,
     password: Optional[str] = None,
     timeout: Optional[float] = None,
+    hwi: bool = False,
 ) -> None:
     """Activate on-chain service"""
 
+    if key is None and not hwi:  # pragma: nocover
+        raise click.ClickException(
+            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
+        )
+
     ledger_api, crypto = get_ledger_and_crypto_objects(
         chain_type=chain_type,
-        keys=keys,
+        key=key,
         password=password,
+        hwi=hwi,
     )
 
     try:
@@ -321,17 +351,24 @@ def register_instance(  # pylint: disable=too-many-arguments
     service_id: int,
     instances: List[str],
     agent_ids: List[int],
-    keys: Path,
+    key: Path,
     chain_type: ChainType,
     password: Optional[str] = None,
     timeout: Optional[float] = None,
+    hwi: bool = False,
 ) -> None:
     """Register agents instances on an activated service"""
 
+    if key is None and not hwi:  # pragma: nocover
+        raise click.ClickException(
+            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
+        )
+
     ledger_api, crypto = get_ledger_and_crypto_objects(
         chain_type=chain_type,
-        keys=keys,
+        key=key,
         password=password,
+        hwi=hwi,
     )
 
     try:
@@ -350,20 +387,27 @@ def register_instance(  # pylint: disable=too-many-arguments
     click.echo("Agent instance registered succesfully")
 
 
-def deploy_service(
+def deploy_service(  # pylint: disable=too-many-arguments
     service_id: int,
-    keys: Path,
+    key: Path,
     chain_type: ChainType,
     deployment_payload: Optional[str] = None,
     password: Optional[str] = None,
     timeout: Optional[float] = None,
+    hwi: bool = False,
 ) -> None:
     """Deploy a service with registration activated"""
 
+    if key is None and not hwi:  # pragma: nocover
+        raise click.ClickException(
+            "Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet"
+        )
+
     ledger_api, crypto = get_ledger_and_crypto_objects(
         chain_type=chain_type,
-        keys=keys,
+        key=key,
         password=password,
+        hwi=hwi,
     )
 
     try:

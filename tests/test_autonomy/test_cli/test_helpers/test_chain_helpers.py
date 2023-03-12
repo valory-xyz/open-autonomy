@@ -24,6 +24,7 @@ from unittest import mock
 import click
 import pytest
 from aea.configurations.data_types import PackageType
+from aea_ledger_ethereum_hwi.hwi import EthereumHWIApi, EthereumHWICrypto
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 
 from autonomy.chain.base import ServiceState
@@ -32,6 +33,7 @@ from autonomy.chain.mint import registry_contracts
 from autonomy.cli.helpers.chain import (
     activate_service,
     deploy_service,
+    get_ledger_and_crypto_objects,
     mint_component,
     mint_service,
     register_instance,
@@ -76,7 +78,7 @@ class TestMintComponentMethod:
                 mint_component(
                     package_path=PACKAGE_DIR,
                     package_type=PackageType.PROTOCOL,
-                    keys=ETHEREUM_KEY_DEPLOYER,
+                    key=ETHEREUM_KEY_DEPLOYER,
                     chain_type=ChainType.LOCAL,
                     dependencies=[],
                 )
@@ -104,7 +106,7 @@ class TestMintComponentMethod:
                 mint_component(
                     package_path=PACKAGE_DIR,
                     package_type=PackageType.PROTOCOL,
-                    keys=ETHEREUM_KEY_DEPLOYER,
+                    key=ETHEREUM_KEY_DEPLOYER,
                     chain_type=ChainType.LOCAL,
                     dependencies=[],
                 )
@@ -121,7 +123,7 @@ class TestMintComponentMethod:
             mint_component(
                 package_path=PACKAGE_DIR,
                 package_type=PackageType.PROTOCOL,
-                keys=ETHEREUM_KEY_DEPLOYER,
+                key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.GOERLI,
                 dependencies=[],
             )
@@ -142,7 +144,7 @@ class TestMintComponentMethod:
                 mint_component(
                     package_path=PACKAGE_DIR,
                     package_type=PackageType.PROTOCOL,
-                    keys=ETHEREUM_KEY_DEPLOYER,
+                    key=ETHEREUM_KEY_DEPLOYER,
                     chain_type=ChainType.GOERLI,
                     dependencies=[],
                 )
@@ -175,7 +177,7 @@ class TestMintComponentMethod:
                 mint_component(
                     package_path=PACKAGE_DIR,
                     package_type=PackageType.PROTOCOL,
-                    keys=ETHEREUM_KEY_DEPLOYER,
+                    key=ETHEREUM_KEY_DEPLOYER,
                     chain_type=ChainType.LOCAL,
                     dependencies=[],
                     timeout=1.0,
@@ -211,7 +213,7 @@ def test_mint_service_timeout() -> None:
         ):
             mint_service(
                 package_path=PACKAGE_DIR,
-                keys=ETHEREUM_KEY_DEPLOYER,
+                key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.LOCAL,
                 agent_id=1,
                 number_of_slots=4,
@@ -244,7 +246,7 @@ def test_activate_service_timeout_failure() -> None:
         ):
             activate_service(
                 service_id=0,
-                keys=ETHEREUM_KEY_DEPLOYER,
+                key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.LOCAL,
                 timeout=1.0,
             )
@@ -275,7 +277,7 @@ def test_register_instance_timeout_failure() -> None:
                 service_id=0,
                 instances=["0x"],
                 agent_ids=[1],
-                keys=ETHEREUM_KEY_DEPLOYER,
+                key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.LOCAL,
                 timeout=1.0,
             )
@@ -304,7 +306,36 @@ def test_deploy_service_timeout_failure() -> None:
         ):
             deploy_service(
                 service_id=0,
-                keys=ETHEREUM_KEY_DEPLOYER,
+                key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.LOCAL,
                 timeout=1.0,
             )
+
+
+def test_get_ledger_and_crypto_objects() -> None:
+    """Test `get_ledger_and_crypto_objects` for hardware wallet support"""
+
+    with mock.patch.object(EthereumHWICrypto, "entity"):
+        ledger_api, crypto = get_ledger_and_crypto_objects(
+            chain_type=ChainType.LOCAL,
+            hwi=True,
+        )
+
+    assert isinstance(ledger_api, EthereumHWIApi)
+    assert isinstance(crypto, EthereumHWICrypto)
+
+
+def test_get_ledger_and_crypto_failure() -> None:
+    """Test `get_ledger_and_crypto_objects` failures"""
+
+    with pytest.raises(
+        click.ClickException,
+        match="Please provide key path using `--key` or use `--hwi` if you want to use a hardware wallet",
+    ):
+        mint_component(
+            package_path=PACKAGE_DIR,
+            package_type=PackageType.PROTOCOL,
+            key=None,
+            chain_type=ChainType.LOCAL,
+            dependencies=[],
+        )
