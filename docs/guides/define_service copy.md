@@ -138,6 +138,6 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
 3. **Publish the service on a remote registry.** This will make the service available for other developers to fetch and use it. This step is also recommended if you want to register the service in the on-chain registry. Read the guide to
 [publish an agent on a registry](./publish_fetch_packages.md#publish-an-agent-on-a-registry) to learn more.
 
-4. **Mint the service on-chain.** By minting the service on-chain you ensure that it is crypto-economically secured through the on-chain protocol. Follow the instructions in the [on-chain service registration guide](./mint_packages_on_chain.md#register-a-service).
+4. **Mint the service on-chain.** By minting the service on-chain you ensure that it is crypto-economically secured through the on-chain protocol. Follow the instructions in the [on-chain service registration guide](./publish_mint_packages.md#register-a-service).
 
 5. **Deploy the registered service.** Finally, you can try to run a deployment for the on-chain service that you just have registered. Follow the [on-chain deployment guide](./deploy_service.md#on-chain-deployment) to have your service up and running.

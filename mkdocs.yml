@@ -33,8 +33,7 @@ nav:
     - Define the agent: 'guides/define_agent.md'
     - Define the service: 'guides/define_service.md'
     - The service configuration file: 'guides/service_configuration_file.md'
-    - Publish and fetch packages: 'guides/publish_fetch_packages.md'
-    - Mint packages on-chain: 'guides/mint_packages_on_chain.md'
+    - Publish and mint packages: 'guides/publish_mint_packages.md'
     - Deploy a service: 'guides/deploy_service.md'
     - Configure access to external chains: 'guides/configure_access_external_chains.md'
   - Demo agent services:

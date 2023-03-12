@@ -13,18 +13,12 @@ This is a summary of each step:
 
 3. **Code the {{fsm_app}} skill.** The actual business logic is encoded in the {{fsm_app}} that lives inside each agent. Coding the {{fsm_app}} involves scaffolding the "skeleton" of the classes, and complete the actual details of the actions executed in each state.
 
-    !!! tip
-        You can also use the [developer template repository](https://github.com/valory-xyz/dev-template) as the starting point. It includes some recommended linters, continuous integration and several other files so that you don't have to start from scratch.
-
-        We recommend that your developed components have exhaustive tests and pass the library linters before publishing them to a remote registry.
-
 4. **Define the agent.** Define the components of the agent required to execute your service, including the newly created {{fsm_app}}. You can reuse already existing components publicly available on a remote registry.
 
 5. **Define the service.** This consists in defining the service configuration and declaring what agents constitute the service, together with a number of configuration parameters required.
 
-6. **Mint the service (and other components) on-chain.** This is a required step to secure the the service developed in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
+6. **Publish and mint the service (and other components).** This is a required step to secure the the service developed in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
 
 7. **Deploy the service.** You can deploy directly your service locally for testing purposes. To deploy a production service secured in the [Autonolas Protocol](https://docs.autonolas.network/protocol/) you first need to bring the service to the _Deployed_ state in the protocol.
 
-In the next sections, we will explore each of the steps in the development process.
-You must ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder with a local repository on it.
+In the next sections, we will explore in detail each of these steps in the development process.

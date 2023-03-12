@@ -101,7 +101,7 @@ Local deployments of a service are recommended to test your service before you p
 
 ## On-chain deployment
 
-The {{open_autonomy}} framework provides a convenient interface for services that are [registered in the on-chain protocol](./mint_packages_on_chain.md).
+The {{open_autonomy}} framework provides a convenient interface for services that are [registered in the on-chain protocol](./publish_mint_packages.md).
 
   1. **Find the service ID.** Explore the [services section](https://protocol.autonolas.network/agents) of the protocol frontend, and note the ID of the service that you want to deploy. The service must be in [Deployed state](https://docs.autonolas.network/protocol/life_cycle_of_a_service/#deployed).
 

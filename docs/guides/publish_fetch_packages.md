@@ -6,7 +6,7 @@ Publishing a package is simply the process of storing the package into a registr
 <figcaption>Part of the development process covered in this guide</figcaption>
 </figure>
 
-By publishing a package on a remote repository, its code is available for other developers to reuse it. Moreover, publishing a package on a public repository also facilitates [minting the package in the Autonolas Protocol](./mint_packages_on_chain.md).
+By publishing a package on a remote repository, its code is available for other developers to reuse it. Moreover, publishing a package on a public repository also facilitates [minting the package in the Autonolas Protocol](./publish_mint_packages.md).
 
 !!! note
       It is not a strict requirement that a package be publicly available in a remote repository to register it in the on-chain protocol. The developer might want to keep the code private (and share it by different means), and still be able to register the package in the on-chain protocol.
