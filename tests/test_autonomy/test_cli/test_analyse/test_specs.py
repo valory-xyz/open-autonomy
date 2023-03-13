@@ -20,6 +20,7 @@
 """Tests for specs commands."""
 
 
+import copy
 import importlib
 import os
 import re
@@ -295,31 +296,31 @@ class TestDFA:
     """Test the DFA class."""
 
     good_dfa_kwargs = dict(
-        label="dummy_dfa",
-        states={"state_a", "state_b", "state_c"},
-        default_start_state="state_a",
-        start_states={"state_a"},
-        final_states={"state_c"},
+        label="DummyAbciApp",
+        states={"StateARound", "StateBRound", "StateCRound"},
+        default_start_state="StateARound",
+        start_states={"StateARound"},
+        final_states={"StateCRound"},
         alphabet_in={"event_a", "event_b", "event_c"},
         transition_func={
-            ("state_a", "event_b"): "state_b",
-            ("state_b", "event_a"): "state_a",
-            ("state_b", "event_c"): "state_c",
+            ("StateARound", "event_b"): "StateBRound",
+            ("StateBRound", "event_a"): "StateARound",
+            ("StateBRound", "event_c"): "StateCRound",
         },
     )
 
     bad_dfa_kwargs = dict(
-        label="dummy_dfa",
-        states={"state_a", "state_b", "state_c", "unreachable_state"},
+        label="DummyAbciApp",
+        states={"StateARound", "StateBRound", "StateCRound", "unreachable_state"},
         default_start_state="state_other",
-        start_states={"state_a", "extra_state"},
-        final_states={"state_a", "state_c", "extra_state"},
+        start_states={"StateARound", "ExtraRound"},
+        final_states={"StateARound", "StateCRound", "ExtraRound"},
         alphabet_in={"event_a", "event_b", "event_c", "other_extra_event"},
         transition_func={
-            ("state_a", "event_b"): "state_b",
-            ("state_b", "event_a"): "state_a",
-            ("state_b", "event_c"): "state_c",
-            ("extra_state", "extra_event"): "extra_state",
+            ("StateARound", "event_b"): "StateBRound",
+            ("StateBRound", "event_a"): "StateARound",
+            ("StateBRound", "event_c"): "StateCRound",
+            ("ExtraRound", "extra_event"): "ExtraRound",
         },
     )
 
@@ -328,8 +329,8 @@ class TestDFA:
         good_dfa = DFA(**self.good_dfa_kwargs)  # type: ignore
 
         assert not good_dfa.is_transition_func_total()
-        assert good_dfa.get_transitions(["event_a"]) == ["state_a", "state_a"]
-        assert good_dfa.get_transitions(["event_x"]) == ["state_a"]
+        assert good_dfa.get_transitions(["event_a"]) == ["StateARound", "StateARound"]
+        assert good_dfa.get_transitions(["event_x"]) == ["StateARound"]
         assert isinstance(good_dfa.parse_transition_func(), dict)
         assert good_dfa.__eq__(None) == NotImplemented
 
@@ -461,3 +462,30 @@ class TestDFA:
         with mock.patch("inspect.getmro", return_value=[]):
             strings = check_unreferenced_events(MockABCIApp)
             assert len(strings) > 0
+
+    def test_name_verification(self) -> None:
+        """Test `validate_naming_conventions`"""
+
+        dfa_kwargs = copy.deepcopy(self.good_dfa_kwargs)
+        dfa_kwargs["label"] = "abci_app"
+        with pytest.raises(
+            DFASpecificationError,
+            match="ABCI app class name should end in `AbciApp`; ABCI app name found `abci_app`",
+        ):
+            DFA(**dfa_kwargs)  # type: ignore
+
+        with pytest.raises(
+            DFASpecificationError,
+            match="Round class name should end in `Round`; Round app name found `StateBRoun`",
+        ):
+            DFA(
+                label="DummyAbciApp",
+                states={"StateARound", "StateBRoun"},
+                default_start_state="StateARound",
+                start_states={"StateARound"},
+                final_states={"StateBRoun"},
+                alphabet_in={"event_b"},
+                transition_func={
+                    ("StateARound", "event_b"): "StateBRoun",
+                },
+            )
