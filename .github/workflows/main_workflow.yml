@@ -73,13 +73,7 @@ jobs:
     - name: Check copyright headers
       run: tox -e check-copyright
     - name: License compatibility check
-      uses: andersy005/gh-action-py-liccheck@main
-      with:
-        strategy-ini-file: ./liccheck.ini
-        level: standard
-        requirements-txt-file: ./requirements.txt
-        no-deps: true
-        liccheck-version: 0.8.3
+      run: tox -e liccheck
     - name: Check docs
       run: tox -e check-api-docs
     - name: Check doc links and IPFS hashes
