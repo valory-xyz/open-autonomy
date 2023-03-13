@@ -11,7 +11,7 @@ This guide covers steps 1 and 2 of the [development process](./overview_of_the_d
 
 We will use as an example the FSM used in the [Hello World service](../demos/hello_world_demo.md), where a set of 4 agents coordinate and take turns to print a "Hello World" message in their local console.
 
-You must ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
+You must ensure that your machine satisfies the framework requirements and that you have [set up the framework](./set_up.md#set-up-the-framework) and [a local registry](./set_up.md#set-up-the-local-registry). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
 
 ## Draft the service idea
 

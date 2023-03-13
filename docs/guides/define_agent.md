@@ -11,7 +11,7 @@ each operator can define a different data provider.
 
 This guide covers step 3 of the [development process](./overview_of_the_development_process.md). You will learn how to define the service agent, how to add the {{fsm_app}}, and how to add other existing components required by your agent.
 
-You must ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
+You must ensure that your machine satisfies the framework requirements and that you have [set up the framework](./set_up.md#set-up-the-framework) and [a local registry](./set_up.md#set-up-the-local-registry). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
 
 ## Step-by-step instructions
 
@@ -21,81 +21,32 @@ In order to deploy and run a service you need an agent with a working {{fsm_app}
 
     If you have just [scaffolded an {{fsm_app}} in the previous step](./code_fsm_app_skill.md) but you didn't complete coding the business logic, then an agent that uses that {{fsm_app}} will fail to run. For this reason, we recommend that you use the `hello_world_abci` {{fsm_app}} in a first read of this guide.
 
-1. **Ensure that the components required by your agent are in the local registry.**
+1. **Ensure that the components required by your agent are in the local registry.** All the required components by your agent and their dependencies must be downloaded to the local registry. You can read [how to add missing components to the local registry](#).
+If you have [set up the local registry](./set_up.md#set-up-the-local-registry) with the required components to follow these guides, you do not need to take any further action.
 
-      1. Find the public ID and package hash of the components (skills, contracts, protocols or connections) that you require for your agent. You can browse the [list of default packages](../package_list.md) shipped with the framework. You need to consider not only the `hello_world_abci` {{fsm_app}} skill, but also any dependency that it has.
+2. **Create the agent configuration file.** Create a folder for your agent in the local registry (`./packages`). Pay attention to the correct format of the folder:
 
-      2. Add the corresponding entries to the local registry index file (`./packages/packages.json`). You must add the entry to the `third_party` section, because these are finalized components (i.e., not being developed by you). Pay attention to the correct formatting. Taking into account all the dependencies of `hello_world_abci`, the `packages.json` file should end up looking as follows:
+    ```bash
+    mkdir -p ./packages/your_name/agents/your_agent/
+    ```
 
-        ```json
-        {
-          "dev": {
-            # (...)
-          },
-          "third_party": {
-            "connection/valory/abci/0.1.0": "bafybeiedhipcrpx7sg7qwitwox6iqrbbb4vfnvqqyok2vc6wq6inrcszey",
-            "connection/valory/acn/1.1.0": "bafybeignmc5uh3vgpuckljcj2tgg7hdqyytkm6m5b6v6mxtazdcvubibva",
-            "connection/valory/http_client/0.23.0": "bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi",
-            "connection/valory/ipfs/0.1.0": "bafybeia7kzgw4tmkl6k2vjbnss4egvhcf4fmt7cnmpjjjbjogz2bu2j3fu",
-            "connection/valory/ledger/0.19.0": "bafybeicxcypcg2lxmtktbmuhqcyluzmasfsdeljyk2pvaabzc3h2jmcsui",
-            "connection/valory/p2p_libp2p_client/0.1.0": "bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva",
+    Within the agent folder, create the agent configuration file `aea-config.yaml`:
 
-            "contract/valory/service_registry/0.1.0": "bafybeid4wyte27tanmeiyzkjfvtvf5yyjngdsvsqvve5bzxwtzjoioubgi",
+    ```bash
+    touch ./packages/your_name/agents/your_agent/aea-config.yaml
+    ```
 
-            "protocol/open_aea/signing/1.0.0": "bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4",
-            "protocol/valory/abci/0.1.0": "bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4",
-            "protocol/valory/acn/1.1.0": "bafybeignmc5uh3vgpuckljcj2tgg7hdqyytkm6m5b6v6mxtazdcvubibva",
-            "protocol/valory/contract_api/1.0.0": "bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy",
-            "protocol/valory/http/1.0.0": "bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty",
-            "protocol/valory/ipfs/0.1.0": "bafybeihlgai5pbmkb6mjhvgy4gkql5uvpwvxbpdowczgz4ovxat6vajrq4",
-            "protocol/valory/ledger_api/1.0.0": "bafybeih6hfzj2obw5oajnt6ng6355edgvi5ngoaub44vpuszqoplfvyaom",        
-            "protocol/valory/tendermint/0.1.0": "bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54",
+    This file must contain:
 
-            "skill/valory/abstract_abci/0.1.0": "bafybeihkrunmigvlcze7uxhafj2h3kvpf2kifggq7zqj42n2we4mcwuvou",
-            "skill/valory/abstract_round_abci/0.1.0": "bafybeib2jw7hjccou42wis35orckwycb2dgjk7yw46anuqysf2h7su3fi4",
-            "skill/valory/hello_world_abci/0.1.0": "bafybeidhftdlf24itdpzs456btixret4deeis35jdqesh3xo54ukxegdrq"
-          }
-        }        
-        ```
-
-       3. Synchronize the local registry and download any missing packages:
- 
-          ```bash
-          autonomy packages sync
-          ```
-
-          Upon successful completion of this command, all the necessary packages will have been downloaded from the remote registry to the local registry. You can explore the local registry to take a look a the downloaded components.
-
-2. **Create an entry for your agent in the local registry.**
-      1. Create a folder for the agent in the local registry (`./packages`). Pay attention to the correct format of the folder:
-
-        ```bash
-        mkdir ./packages/your_name/agents/your_agent/
-        ```
-
-      2. Add the corresponding entry to the local registry index file (`./packages/packages.json`). You must add the entry to the `dev` section, because it is a component being developed by you. You can use a placeholder for its hash value, as it will be corrected afterwards:
-
-        ```json
-        {
-          "dev": {
-            "agent/your_name/your_agent/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
-          },
-          "third_party": {
-            # (...)
-          }
-        }
-        ```
-
-3. **Create the agent configuration file.** Within the agent folder in the local registry (`./packages/your_name/agents/your_agent/`), create the agent configuration file `aea-config.yaml`. This file must contain:
-    * A reference to the {{fsm_app}} skill.
-    * References to other components required by the agent (or dependencies of the {{fsm_app}} skill), under the relevant sections.
-    * Configuration overrides that specify values for component parameters. These overrides are separated by YAML document separators `---` and will be discussed in a further section.
-
-    In the example below you will notice that there are a lot of parameters to be configured for the required components. For an initial read of this guide, you can ignore these parameters, but it is important that you identify how the overrides reference the particular component being overridden.
+      * A reference to the {{fsm_app}} skill.
+      * References to other components required by the agent (or dependencies of the {{fsm_app}} skill), under the relevant sections.
+      * Configuration overrides that specify values for component parameters. These overrides are separated by YAML document separators `---` and will be discussed in a further section.
 
     ???+ example "Example of an `aea-config.yaml` file"
 
-        This is a complete example of an agent configuration file that uses the `hello_world_abci` {{fsm_app}} and overrides some required component parameters.
+        This is a complete example of an agent configuration file that uses the `hello_world_abci` {{fsm_app}} and overrides some required component parameters. 
+
+        You will notice that there are a lot of parameters to be configured for the required components. For an initial read of this guide, you can ignore these parameters, but it is important that you identify how the references to the particular component parameter being overridden.
 
         ```yaml
         agent_name: your_agent
@@ -129,98 +80,112 @@ In order to deploy and run a service you need an agent with a working {{fsm_app}
         connection_private_key_paths: {}
         private_key_paths: {}
         logging_config:
-        version: 1
-        disable_existing_loggers: false
-        formatters:
+          version: 1
+          disable_existing_loggers: false
+          formatters:
             standard:
-            format: '[%(asctime)s] [%(levelname)s] %(message)s'
-        handlers:
+              format: '[%(asctime)s] [%(levelname)s] %(message)s'
+          handlers:
             logfile:
-            class: logging.FileHandler
-            formatter: standard
-            filename: ${LOG_FILE:str:log.txt}
-            level: INFO
+              class: logging.FileHandler
+              formatter: standard
+              filename: ${LOG_FILE:str:log.txt}
+              level: INFO
             console:
-            class: logging.StreamHandler
-            formatter: standard
-            stream: ext://sys.stdout
-        loggers:
+              class: logging.StreamHandler
+              formatter: standard
+              stream: ext://sys.stdout
+          loggers:
             aea:
-            handlers:
-            - logfile
-            - console
-            propagate: true
+              handlers:
+              - logfile
+              - console
+              propagate: true
         dependencies:
-        open-aea-ledger-ethereum:
+          open-aea-ledger-ethereum:
             version: ==1.29.0
-        open-aea-test-autonomy:
+          open-aea-test-autonomy:
             version: ==0.9.1
         default_connection: null
         ---
         public_id: valory/hello_world_abci:0.1.0
         type: skill
         models:
-        benchmark_tool:
+          benchmark_tool:
             args:
-            log_dir: ${str:/benchmarks}
-        params:
+              log_dir: ${str:/benchmarks}
+          params:
             args:
-            hello_world_message: ${str:HELLO_WORLD!}
-            service_registry_address: ${str:null}
-            share_tm_config_on_startup: ${bool:false}
-            on_chain_service_id: ${int:null}
-            setup:
+              hello_world_message: ${str:HELLO_WORLD!}
+              service_registry_address: ${str:null}
+              share_tm_config_on_startup: ${bool:false}
+              on_chain_service_id: ${int:null}
+              setup:
                 all_participants: ${list:[]}
                 safe_contract_address: ${list:[]}
                 consensus_threshold: ${list:[null]}
-            tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
-            tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
+              tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
+              tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
         ---
         public_id: valory/abci:0.1.0
         type: connection
         config:
-        target_skill_id: valory/hello_world_abci:0.1.0
-        host: ${ABCI_HOST:str:localhost}
-        port: ${ABCI_PORT:int:26658}
-        use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
+          target_skill_id: valory/hello_world_abci:0.1.0
+          host: ${ABCI_HOST:str:localhost}
+          port: ${ABCI_PORT:int:26658}
+          use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
         ---
         public_id: valory/ledger:0.19.0
         type: connection
         config:
-        ledger_apis:
+          ledger_apis:
             ethereum:
-            address: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS:str:http://localhost:8545}
-            chain_id: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_CHAIN_ID:int:31337}
-            poa_chain: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_POA_CHAIN:bool:false}
-            default_gas_price_strategy: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_DEFAULT_GAS_PRICE_STRATEGY:str:eip1559}
+              address: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS:str:http://localhost:8545}
+              chain_id: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_CHAIN_ID:int:31337}
+              poa_chain: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_POA_CHAIN:bool:false}
+              default_gas_price_strategy: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_DEFAULT_GAS_PRICE_STRATEGY:str:eip1559}
         ---
         public_id: valory/p2p_libp2p_client:0.1.0
         type: connection
         config:
-        nodes:
-        - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9005}
+          nodes:
+          - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9005}
             public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
-        - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9006}
+          - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9006}
             public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
         cert_requests:
         - identifier: acn
-        ledger_id: ethereum
-        message_format: '{public_key}'
-        not_after: '2023-01-01'
-        not_before: '2022-01-01'
-        public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
-        save_path: .certs/acn_cosmos_9005.txt
+          ledger_id: ethereum
+          message_format: '{public_key}'
+          not_after: '2023-01-01'
+          not_before: '2022-01-01'
+          public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
+          save_path: .certs/acn_cosmos_9005.txt
         - identifier: acn
-        ledger_id: ethereum
-        message_format: '{public_key}'
-        not_after: '2023-01-01'
-        not_before: '2022-01-01'
-        public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
-        save_path: .certs/acn_cosmos_9006.txt
+          ledger_id: ethereum
+          message_format: '{public_key}'
+          not_after: '2023-01-01'
+          not_before: '2022-01-01'
+          public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
+          save_path: .certs/acn_cosmos_9006.txt
         is_abstract: true
         ```
 
-4. **Update the package hashes.** The command below will correct any hash mismatch in the `aea-config.yaml` file, as well as in the local registry index file (`./packages/packages.json`):
+3. **Create an entry for your agent in the local registry.** Add the corresponding entry to the local registry index file (`./packages/packages.json`). You must add the entry to the `dev` section, because it is a component being developed by you. You can use a placeholder for its hash value, as it will be corrected afterwards:
+
+    ```json
+    {
+      "dev": {
+        "agent/your_name/your_agent/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
+        (...)
+      },
+      "third_party": {
+        (...)
+      }
+    }
+    ```
+
+    Update the package hashes. The command below will correct any hash mismatch in the `aea-config.yaml` file, as well as in the local registry index file (`./packages/packages.json`):
 
     ```bash
     autonomy packages lock

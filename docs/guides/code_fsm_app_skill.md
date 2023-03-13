@@ -12,20 +12,20 @@ In order to simplify and speed up the development, the {{open_autonomy}} framewo
 
 This guide covers step 3 of the [development process](./overview_of_the_development_process.md). You will learn how to use the {{fsm_app}} scaffold tool to transform an FSM specification into template classes for the {{fsm_app}} skill, and identify what methods you need to implement to have a functional skill.
 
-You must ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
+You must ensure that your machine satisfies the framework requirements and that you have [set up the framework](./set_up.md#set-up-the-framework) and [a local registry](./set_up.md#set-up-the-local-registry). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
 
 ## Step-by-step instructions
 
 1. **Generate the {{fsm_app}} template classes.** Place the FSM specification `fsm_specification.yaml` [that you have created in the previous step](./draft_service_idea_and_define_fsm_specification.md#define-the-fsm-specification) in the workspace folder. Use the scaffold tool to generate an {{fsm_app}} with template classes:
 
     ```bash
-    autonomy scaffold -tlr fsm your_fsm_app_name --spec fsm_specification.yaml
+    autonomy scaffold -tlr fsm your_fsm_app --spec fsm_specification.yaml
     ```
 
     This command will download the required packages to the local registry, and generate the {{fsm_app}} skill with a template for the [required classes](../key_concepts/fsm_app_introduction.md). The `-tlr` flag indicates that the {{fsm_app}} skill will be generated in the local registry (`./packages`). The actual path will be
 
     ```
-    workspace_folder/packages/your_name/skills/your_fsm_app_name/
+    ./packages/your_name/skills/your_fsm_app/
     ```
 
     You can explore this path and take a look at the generated classes.

@@ -9,47 +9,30 @@ Given an existing agent, either developed by yourself on the previous step and s
 
 This guide covers step 4 of the [development process](./overview_of_the_development_process.md). You will learn how to define the agent service itself. This consists in indicating what agent will the service be using, and configuring the service parameters through service-level overrides.
 
-You must ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
+You must ensure that your machine satisfies the framework requirements and that you have [set up the framework](./set_up.md#set-up-the-framework) and [a local registry](./set_up.md#set-up-the-local-registry). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
 
 ## Step-by-step instructions
 
-### Define the service
+The process to define a service configuration is similar if you are using an agent being developed by you (for example, [the agent created in the previous guide](./define_agent.md)), or an existingm, third-party agent downloaded from the remote registry. In the example below, we will be using the `hello_world` agent from the remote registry, which can be found in the [list of packages shipped with the framework](../package_list.md), but you can replace it with your own agent.
 
-The process to define a service configuration is similar if you are using your own agent from the local registry (for example, [the agent created in the previous guide](./define_agent.md)), or an existing agent from the remote repository. We will be using the `hello_world` agent below, but you can substitute it by your own agent.
+1. **Ensure that the agent required by your service is in the local registry.** Your service agent, all its required components and their dependencies must be downloaded to the local registry. You can read [how to add missing components to the local registry](#).
+If you have [set up the local registry](./set_up.md#set-up-the-local-registry) with the required components to follow these guides, you do not need to take any further action.
 
-1. **Find the public ID and package hash of the agent that you require for your service.** You can browse the [list of default packages](../package_list.md) shipped with the framework or use an agent developed by you. For the `hello_world` agent that we will be using in this example:
+2. **Create the service configuration file.** Create a folder for your service in the local registry (`./packages`). Pay attention to the correct format of the folder:
+
+    ```bash
+    mkdir -p ./packages/your_name/services/your_service/
     ```
-    valory/hello_world:0.1.0:bafybeic3czcb7fpzru3fl4noxdwgwyzirqk6cqh763h6aio7ugl6qm5gha
+
+    Within the service folder, create the service configuration file `service.yaml`:
+    ```bash
+    touch ./packages/your_name/services/your_service/service.yaml
     ```
 
-    You can view the agent contents stored in the IPFS registry [here](https://gateway.autonolas.tech/ipfs/bafybeicealdcbxjdejskntddizntwqmlpyxa2ujaxnw2cgy73x3swldwcq/hello_world/).
+    This file must contain:
 
-    You do not need to download the agent to the local registry to define the service.
-
-
-2. **Create an entry for your service in the local registry.**
-      1. Create a folder for the service in the local registry (`./packages`). Pay attention to the correct format of the folder:
-
-        ```bash
-        mkdir ./packages/your_name/services/your_service/
-        ```
-
-      2. Add the corresponding entry to the local registry index file (`./packages/packages.json`). You must add the entry to the `dev` section, because it is a component being developed by you. You can use a placeholder for its hash value, as it will be corrected afterwards:
-
-        ```json
-        {
-          "dev": {
-            "service/your_name/your_service/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
-          },
-          "third_party": {
-            # (...)
-          }
-        }
-        ```
-
-3. **Create the service configuration file.** Within the service folder in the local registry (`./packages/your_name/services/your_service/`), create the service configuration file `service.yaml`. This file must contain:
-    * A reference to the agent the service will be using.
-    * Configuration overrides that specify values for component parameters. These overrides are separated by YAML document separators `---` and will be discussed in a further section.
+      * A reference to the agent that the service will be using.
+      * Configuration overrides that specify values for component parameters. These overrides are separated by YAML document separators `---` and will be discussed in a further section.
 
     ???+ example "Example of a `service.yaml` file"
 
@@ -67,7 +50,7 @@ The process to define a service configuration is similar if you are using your o
         agent: valory/hello_world:0.1.0:bafybeic3czcb7fpzru3fl4noxdwgwyzirqk6cqh763h6aio7ugl6qm5gha
         number_of_agents: 4
         ---
-        public_id: valory/hello_world_abci:0.1.0
+        public_id: valory/hello_world_abci:0.1.0:bafybeic3czcb7fpzru3fl4noxdwgwyzirqk6cqh763h6aio7ugl6qm5gha
         type: skill
         models:
           params:
@@ -99,37 +82,36 @@ The process to define a service configuration is similar if you are using your o
               default_gas_price_strategy: eip1559
         ```
 
-4. **Update the package hashes.** The command below will correct any hash mismatch in the `service.yaml` file, as well as in the local registry index file (`./packages/packages.json`):
+3. **Create an entry for your service in the local registry.** Add the corresponding entry to the local registry index file (`./packages/packages.json`). You must add the entry to the `dev` section, because it is a component being developed by you. You can use a placeholder for its hash value, as it will be corrected afterwards:
+
+    ```json
+    {
+      "dev": {
+        "service/your_name/your_service/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
+        (...)
+      },
+      "third_party": {
+        (...)
+      }
+    }
+    ```
+
+    Update the package hashes. The command below will correct any hash mismatch in the `service.yaml` file, as well as in the local registry index file (`./packages/packages.json`):
 
     ```bash
     autonomy packages lock
     ```
 
-5. **Perform a sanity-check verification for the service definition.** Ensure that the service satisfies a number of [requirements to be deployed](../deployment/on-chain_deployment_checklist.md):
+4. **Perform a sanity-check verification for the service definition.** The command below ensures that the service satisfies a number of [requirements to be deployed](../deployment/on-chain_deployment_checklist.md):
 
     ```bash
     autonomy analyse service --public-id your_name/your_service:0.1.0
     ```
 
-    For now, you can ignore any warnings you see. You should see the message "Service is ready to be deployed."
+    For now, you can ignore any warnings you see. You should see the message:
 
-6. **Use a local deployment to test the service.** This is the recommended approach in order to test your agent service before you publish it to a remote registry. Follow the instructions in the [local deployment guide](./deploy_service.md#local-deployment). Note that this process should be somewhat familiar to you if you have followed the [quick start guide](./quick_start.md).
+    ```
+    Service is ready to be deployed.
+    ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+5. **Use a local deployment to test the service.** This is the recommended approach in order to test your agent service before you publish it to a remote registry. Follow the instructions in the [local deployment guide](./deploy_service.md#local-deployment). Note that this process should be somewhat familiar to you if you have followed the [quick start guide](./quick_start.md).

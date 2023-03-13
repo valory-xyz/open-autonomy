@@ -14,26 +14,26 @@ You can mint packages using the [Autonolas Protocol web app](https://protocol.au
 
 This guide covers step 6 of the [development process](./overview_of_the_development_process.md). You will learn how to publish the software packages developed in the local registry (components, agents and services) to the remote registry, and how to mint them on-chain.
 
-You must ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
+You must ensure that your machine satisfies the framework requirements and that you have [set up the framework](./set_up.md#set-up-the-framework) and [a local registry](./set_up.md#set-up-the-local-registry). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
 
 ## Publish packages to the remote registry
 
-If you have developed your components in the local registry, then the index file (`./packages/packages.json`) should contain a reference for these components in the `dev` section, for example:
+If you have developed your components in the local registry, then the index file (`./packages/packages.json`) should contain a reference for them in the `dev` section, for example:
 
 ```json
 {
     "dev": {
-        "skill/your_name/your_skill/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",            
-        "agent/your_name/your_agent/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
         "service/your_name/your_service/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
+        "agent/your_name/your_agent/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
+        "skill/your_name/your_fsm_app/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000"
     },
     "third_party": {
-        # (...)
+        (...)
     }
 }
 ```
 
-The easiest way to have your components published in the remote registry is by executing in the workspace folder:
+The easiest way to have your components published in the remote registry is by executing the following commands:
 
 ```bash
 autonomy packages lock
