@@ -20,7 +20,7 @@
 """Script to create environment for benchmarking n agents."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import yaml
 
@@ -43,6 +43,8 @@ from autonomy.deploy.generators.kubernetes.templates import (
     AGENT_SECRET_TEMPLATE,
     CLUSTER_CONFIGURATION_TEMPLATE,
     HARDHAT_TEMPLATE,
+    PORTS_CONFIG_DEPLOYMENT,
+    PORT_CONFIG_DEPLOYMENT,
 )
 
 
@@ -62,6 +64,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         open_autonomy_dir: Optional[Path] = None,
         use_tm_testnet_setup: bool = False,
         image_author: Optional[str] = None,
+        agent_ports: Optional[List[Tuple[int, int, int]]] = None,
     ) -> None:
         """Initialise the deployment generator."""
         super().__init__(
@@ -73,6 +76,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             open_aea_dir=open_aea_dir,
             open_autonomy_dir=open_autonomy_dir,
             image_author=image_author,
+            agent_ports=agent_ports,
         )
         self.resources: List[str] = []
 
@@ -82,12 +86,23 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_ix: int,
         number_of_agents: int,
         agent_vars: Dict[str, Any],
+        agent_ports: Optional[List[Tuple[int, int]]] = None,
     ) -> str:
         """Build agent deployment."""
 
         host_names = ", ".join(
             [f'"--hostname=abci{i}"' for i in range(number_of_agents)]
         )
+
+        agent_ports_deployment = ""
+        if agent_ports is not None:
+            port_mappings = map(
+                lambda x: PORT_CONFIG_DEPLOYMENT.format(port=x[1]),
+                agent_ports,
+            )
+            agent_ports_deployment = "\n".join(
+                [PORTS_CONFIG_DEPLOYMENT, *port_mappings]
+            )
 
         agent_deployment = AGENT_NODE_TEMPLATE.format(
             runtime_image=runtime_image,
@@ -98,6 +113,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
             tendermint_image_version=TENDERMINT_IMAGE_VERSION,
             log_level=self.service_builder.log_level,
+            agent_ports_deployment=agent_ports_deployment,
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
         resources = []
@@ -181,6 +197,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
                     agent_ix=i,
                     number_of_agents=self.service_builder.service.number_of_agents,
                     agent_vars=agent_vars[i],
+                    agent_ports=self.agent_ports.get(i),
                 )
                 for i in range(self.service_builder.service.number_of_agents)
             ]

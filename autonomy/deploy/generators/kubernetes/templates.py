@@ -160,6 +160,9 @@ spec:
       storage: 1000M
 """
 
+PORTS_CONFIG_DEPLOYMENT = "        ports:"
+
+PORT_CONFIG_DEPLOYMENT = "          - containerPort: {port}"
 
 AGENT_NODE_TEMPLATE: str = """apiVersion: v1
 kind: Service
@@ -265,6 +268,7 @@ spec:
             name: nodes
           - mountPath: /agent_key
             name: agent-key
+{agent_ports_deployment}
       volumes:
         - name: agent-key
           secret:
