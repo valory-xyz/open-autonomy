@@ -31,6 +31,7 @@ from aea.test_tools.click_testing import CliRunner
 from autonomy.analyse.abci.app_spec import FSMSpecificationLoader as FSMSpecLoader
 from autonomy.chain.config import ChainType
 from autonomy.cli.utils.click_utils import (
+    AgentPortParameter,
     PathArgument,
     abci_spec_format_flag,
     chain_selection_flag,
@@ -99,3 +100,15 @@ def test_sys_path_patch() -> None:
     with sys_path_patch(Path(cwd)):
         assert cwd == sys.path[0]
     assert not cwd == sys.path[0]
+
+
+def test_agent_port_parser() -> None:
+    """Test agent port parser."""
+
+    parser = AgentPortParameter()
+    with pytest.raises(
+        click.ClickException,
+        match="Invalid value for agent port `0`; Agent port string should follow `agent_id:host_port:container_port` format",
+    ):
+        parser.convert(value="0", param=None, ctx=None)
+    assert parser.convert(value="0:8080:8081", param=None, ctx=None) == (0, 8080, 8081)

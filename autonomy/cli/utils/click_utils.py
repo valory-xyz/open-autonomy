@@ -121,7 +121,7 @@ class AgentPortParameter(click.types.StringParamType):
 
     _agent_port_re = re.compile(r"(\d+):(\d+):(\d+)")
 
-    def get_metavar(self, param: click.Parameter) -> str:
+    def get_metavar(self, param: click.Parameter) -> str:  # pragma: nocover
         """Return metavar string"""
 
         return "<AGENT_ID:HOST_PORT:CONTAINER_PORT>"
