@@ -85,9 +85,9 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     FinalizationRound,
     ResetRound,
-    SelectKeeperTransactionSubmissionRoundA,
-    SelectKeeperTransactionSubmissionRoundB,
-    SelectKeeperTransactionSubmissionRoundBAfterTimeout,
+    SelectKeeperTransactionSubmissionARound,
+    SelectKeeperTransactionSubmissionBRound,
+    SelectKeeperTransactionSubmissionBAfterTimeoutRound,
     SynchronizeLateMessagesRound,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
@@ -328,7 +328,7 @@ class BaseValidateRoundTest(BaseVotingRoundTest):
 
 
 class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
-    """Test SelectKeeperTransactionSubmissionRoundA"""
+    """Test SelectKeeperTransactionSubmissionARound"""
 
     test_class: Type[CollectSameUntilThresholdRound]
     test_payload: Type[BaseTxPayload]
@@ -379,10 +379,10 @@ class BaseSelectKeeperRoundTest(BaseCollectSameUntilThresholdRoundTest):
         )
 
 
-class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
-    """Test SelectKeeperTransactionSubmissionRoundA"""
+class TestSelectKeeperTransactionSubmissionARound(BaseSelectKeeperRoundTest):
+    """Test SelectKeeperTransactionSubmissionARound"""
 
-    test_class = SelectKeeperTransactionSubmissionRoundA
+    test_class = SelectKeeperTransactionSubmissionARound
     test_payload = SelectKeeperPayload
     _synchronized_data_class = TransactionSettlementSynchronizedSata
     _event_class = TransactionSettlementEvent
@@ -412,12 +412,12 @@ class TestSelectKeeperTransactionSubmissionRoundA(BaseSelectKeeperRoundTest):
         super().test_run(most_voted_payload, keepers, exit_event)
 
 
-class TestSelectKeeperTransactionSubmissionRoundB(
-    TestSelectKeeperTransactionSubmissionRoundA
+class TestSelectKeeperTransactionSubmissionBRound(
+    TestSelectKeeperTransactionSubmissionARound
 ):
-    """Test SelectKeeperTransactionSubmissionRoundB."""
+    """Test SelectKeeperTransactionSubmissionBRound."""
 
-    test_class = SelectKeeperTransactionSubmissionRoundB
+    test_class = SelectKeeperTransactionSubmissionBRound
 
     @pytest.mark.parametrize(
         "most_voted_payload, keepers, exit_event",
@@ -447,12 +447,12 @@ class TestSelectKeeperTransactionSubmissionRoundB(
         super().test_run(most_voted_payload, keepers, exit_event)
 
 
-class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
-    TestSelectKeeperTransactionSubmissionRoundB
+class TestSelectKeeperTransactionSubmissionBAfterTimeoutRound(
+    TestSelectKeeperTransactionSubmissionBRound
 ):
-    """Test SelectKeeperTransactionSubmissionRoundBAfterTimeout."""
+    """Test SelectKeeperTransactionSubmissionBAfterTimeoutRound."""
 
-    test_class = SelectKeeperTransactionSubmissionRoundBAfterTimeout
+    test_class = SelectKeeperTransactionSubmissionBAfterTimeoutRound
 
     @mock.patch.object(
         TransactionSettlementSynchronizedSata,
@@ -498,7 +498,7 @@ class TestSelectKeeperTransactionSubmissionRoundBAfterTimeout(
         threshold_exceeded: bool,
         exit_event: TransactionSettlementEvent,
     ) -> None:
-        """Test `SelectKeeperTransactionSubmissionRoundBAfterTimeout`."""
+        """Test `SelectKeeperTransactionSubmissionBAfterTimeoutRound`."""
         self.synchronized_data.update(participant_to_selection=dict.fromkeys(self.participants), **attrs)  # type: ignore
         threshold_exceeded_mock.return_value = threshold_exceeded
         most_voted_payload = int(1).to_bytes(32, "big").hex() + "new_keeper" + "-" * 32
