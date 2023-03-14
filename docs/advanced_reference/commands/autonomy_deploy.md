@@ -56,6 +56,9 @@ autonomy deploy build [OPTIONS] [KEYS_FILE]
 `-ltm, --local-tm-setup`
 :   Use local tendermint chain setup.
 
+`-eap, --expose-agent-port <AGENT_ID:HOST_PORT:CONTAINER_PORT>`
+:   Expose agent port.
+
 `--image-version TEXT`
 :   Define runtime image version.
 
@@ -141,6 +144,18 @@ autonomy deploy from-token [OPTIONS] TOKEN_ID KEYS_FILE
 
 `--aev`
 :   Apply environment variable when loading service config.
+
+`--docker`
+:   Use docker as a backend.
+  
+`--kubernetes`
+:   Use kubernetes as a backend.
+  
+`--no-deploy`
+:   If set to true, the deployment won't run automatically
+  
+`-eap, --expose-agent-port <AGENT_ID:HOST_PORT:CONTAINER_PORT>`
+:   Expose agent port.
 
 `--use-ethereum`
 : Use `ethereum` chain to resolve the token id.
