@@ -20,9 +20,10 @@
 """Usefule click utils."""
 import contextlib
 import copy
+import re
 import sys
 from pathlib import Path
-from typing import Any, Callable, Generator, Optional, cast
+from typing import Any, Callable, Generator, Optional, Tuple, cast
 
 import click
 from aea.cli.utils.config import get_default_author_from_cli_config
@@ -113,6 +114,31 @@ class PathArgument(click.Path):
         """Convert path string to `pathlib.Path`"""
         path_string = super().convert(value, param, ctx)
         return None if path_string is None else Path(path_string)
+
+
+class AgentPortParameter(click.types.StringParamType):
+    """Agent port parameter for CLI."""
+
+    _agent_port_re = re.compile(r"(\d+):(\d+):(\d+)")
+
+    def get_metavar(self, param: click.Parameter) -> str:
+        """Return metavar string"""
+
+        return "<AGENT_ID:HOST_PORT:CONTAINER_PORT>"
+
+    def convert(
+        self, value: Any, param: Optional[click.Parameter], ctx: Optional[click.Context]
+    ) -> Tuple[int, ...]:
+        """Convert string to `pathlib.Path`"""
+
+        re_match = self._agent_port_re.match(value)
+        if re_match is None:
+            raise click.ClickException(
+                f"Invalid value for agent port `{value}`; "
+                "Agent port string should follow `agent_id:host_port:container_port` format"
+            )
+
+        return tuple(map(int, re_match.groups()))
 
 
 def image_author_option(fn: Callable) -> Callable:

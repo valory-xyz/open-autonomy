@@ -140,6 +140,7 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     use_acn: bool = False,
     use_tm_testnet_setup: bool = False,
     image_author: Optional[str] = None,
+    agent_ports: Optional[List[Tuple[int, int, int]]] = None,
 ) -> None:
     """Build deployment."""
 
@@ -176,6 +177,7 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         use_acn=use_acn,
         use_tm_testnet_setup=use_tm_testnet_setup,
         image_author=image_author,
+        agent_ports=agent_ports,
     )
     click.echo(report)
 
@@ -222,6 +224,7 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
     aev: bool = False,
     password: Optional[str] = None,
     no_deploy: bool = False,
+    agent_ports: Optional[List[Tuple[int, int, int]]] = None,
 ) -> None:
     """Build and run deployment from tokenID."""
 
@@ -254,6 +257,7 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
             consensus_threshold=consensus_threshold,
             apply_environment_variables=aev,
             password=password,
+            agent_ports=agent_ports,
         )
         if not skip_image:
             click.echo("Building required images.")
