@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -41,6 +41,9 @@ from autonomy.configurations.constants import (
 
 
 FSM_SCHEMA_FILE = "fsm_specification_schema.json"
+ROUND_CLASS_POST_FIX = "Round"
+ABCI_APP_CLASS_POST_FIX = "AbciApp"
+
 EVENT_PATTERN = re.compile(r"Event\.(\w+)", re.DOTALL)
 
 
@@ -236,6 +239,27 @@ class DFA:
         self.final_states = final_states
         self.alphabet_in = alphabet_in
         self.transition_func = transition_func
+
+        self.validate_naming_conventions()
+
+    def validate_naming_conventions(self) -> None:
+        """
+        Validate state names to see if they follow the naming conventions below
+
+        - A round name should end with `Round`
+        - ABCI app class name should end with `AbciApp`
+        """
+
+        if not self.label.endswith(ABCI_APP_CLASS_POST_FIX):
+            raise DFASpecificationError(
+                f"ABCI app class name should end in `AbciApp`; ABCI app name found `{self.label}`"
+            )
+
+        for state in self.states:
+            if not state.endswith(ROUND_CLASS_POST_FIX):
+                raise DFASpecificationError(
+                    f"Round class name should end in `Round`; Round app name found `{state}`"
+                )
 
     def is_transition_func_total(self) -> bool:
         """

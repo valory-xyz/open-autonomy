@@ -77,9 +77,9 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     FinalizationRound,
     RandomnessTransactionSubmissionRound,
     ResetRound,
-    SelectKeeperTransactionSubmissionRoundA,
-    SelectKeeperTransactionSubmissionRoundB,
-    SelectKeeperTransactionSubmissionRoundBAfterTimeout,
+    SelectKeeperTransactionSubmissionARound,
+    SelectKeeperTransactionSubmissionBAfterTimeoutRound,
+    SelectKeeperTransactionSubmissionBRound,
     SynchronizeLateMessagesRound,
     SynchronizedData,
     TransactionSubmissionAbciApp,
@@ -333,7 +333,7 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
 ):
     """Select the keeper agent."""
 
-    matching_round = SelectKeeperTransactionSubmissionRoundA
+    matching_round = SelectKeeperTransactionSubmissionARound
     payload_class = SelectKeeperPayload
 
     def async_act(self) -> Generator:
@@ -357,7 +357,7 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
 ):
     """Select the keeper b agent."""
 
-    matching_round = SelectKeeperTransactionSubmissionRoundB
+    matching_round = SelectKeeperTransactionSubmissionBRound
 
     def async_act(self) -> Generator:
         """
@@ -416,7 +416,7 @@ class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disabl
 ):
     """Select the keeper b agent after a timeout."""
 
-    matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
+    matching_round = SelectKeeperTransactionSubmissionBAfterTimeoutRound
 
 
 class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
