@@ -442,6 +442,34 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
             docker_compose["services"]["abci0"]["image"].split("/")[0] == image_author
         )
 
+    def test_expose_agent_ports(self) -> None:
+        """Test expose agent ports"""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "-eap",
+                    "0:8080:8081",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_docker_compose_build(
+            build_dir=build_dir,
+        )
+
+        docker_compose = self.load_and_check_docker_compose_file(
+            path=build_dir / DockerComposeGenerator.output_name
+        )
+
+        assert docker_compose["services"]["abci0"]["ports"] == ["8080:8081"]
+
 
 class TestKubernetesBuild(BaseDeployBuildTest):
     """Test kubernetes builds."""
@@ -682,3 +710,31 @@ class TestKubernetesBuild(BaseDeployBuildTest):
         build_config = self.load_kubernetes_config(build_dir)
         assert f"'image': '{image_author}/oar-" in str(build_config)
         assert f"'image': '{DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-" not in str(build_config)
+
+    def test_kubernetes_expose_agent_ports(self) -> None:
+        """Run tests."""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--kubernetes",
+                    "-eap",
+                    "0:8080:8081",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_kubernetes_build(build_dir=build_dir)
+
+        build_config = self.load_kubernetes_config(build_dir)
+
+        assert "ports" in build_config[1]["spec"]["template"]["spec"]["containers"][1]
+        assert build_config[1]["spec"]["template"]["spec"]["containers"][1][
+            "ports"
+        ] == [{"containerPort": 8081}]
