@@ -26,7 +26,8 @@ def __init__(service_builder: ServiceBuilder,
              open_aea_dir: Optional[Path] = None,
              open_autonomy_dir: Optional[Path] = None,
              use_tm_testnet_setup: bool = False,
-             image_author: Optional[str] = None) -> None
+             image_author: Optional[str] = None,
+             agent_ports: Optional[List[Tuple[int, int, int]]] = None) -> None
 ```
 
 Initialise the deployment generator.
@@ -36,9 +37,12 @@ Initialise the deployment generator.
 #### build`_`agent`_`deployment
 
 ```python
-def build_agent_deployment(runtime_image: str, agent_ix: int,
-                           number_of_agents: int,
-                           agent_vars: Dict[str, Any]) -> str
+def build_agent_deployment(
+        runtime_image: str,
+        agent_ix: int,
+        number_of_agents: int,
+        agent_vars: Dict[str, Any],
+        agent_ports: Optional[List[Tuple[int, int]]] = None) -> str
 ```
 
 Build agent deployment.

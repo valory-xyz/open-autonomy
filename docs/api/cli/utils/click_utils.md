@@ -74,6 +74,37 @@ def convert(value: Any, param: Optional[click.Parameter],
 
 Convert path string to `pathlib.Path`
 
+<a id="autonomy.cli.utils.click_utils.AgentPortParameter"></a>
+
+## AgentPortParameter Objects
+
+```python
+class AgentPortParameter(click.types.StringParamType)
+```
+
+Agent port parameter for CLI.
+
+<a id="autonomy.cli.utils.click_utils.AgentPortParameter.get_metavar"></a>
+
+#### get`_`metavar
+
+```python
+def get_metavar(param: click.Parameter) -> str
+```
+
+Return metavar string
+
+<a id="autonomy.cli.utils.click_utils.AgentPortParameter.convert"></a>
+
+#### convert
+
+```python
+def convert(value: Any, param: Optional[click.Parameter],
+            ctx: Optional[click.Context]) -> Tuple[int, ...]
+```
+
+Convert string to `pathlib.Path`
+
 <a id="autonomy.cli.utils.click_utils.image_author_option"></a>
 
 #### image`_`author`_`option

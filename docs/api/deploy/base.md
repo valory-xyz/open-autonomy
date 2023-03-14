@@ -197,7 +197,8 @@ def __init__(service_builder: ServiceBuilder,
              packages_dir: Optional[Path] = None,
              open_aea_dir: Optional[Path] = None,
              open_autonomy_dir: Optional[Path] = None,
-             image_author: Optional[str] = None)
+             image_author: Optional[str] = None,
+             agent_ports: Optional[List[Tuple[int, int, int]]] = None)
 ```
 
 Initialise with only kwargs.
