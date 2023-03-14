@@ -86,8 +86,8 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     FinalizationRound,
     ResetRound,
     SelectKeeperTransactionSubmissionARound,
-    SelectKeeperTransactionSubmissionBRound,
     SelectKeeperTransactionSubmissionBAfterTimeoutRound,
+    SelectKeeperTransactionSubmissionBRound,
     SynchronizeLateMessagesRound,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
