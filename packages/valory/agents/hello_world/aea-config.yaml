@@ -77,48 +77,48 @@ models:
         all_participants: ${list:[]}
         safe_contract_address: ${str:'0x0000000000000000000000000000000000000000'}
         consensus_threshold: ${int:null}
-      tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
-      tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
+      tendermint_url: ${str:http://localhost:26657}
+      tendermint_com_url: ${str:http://localhost:8080}
 ---
 public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/hello_world_abci:0.1.0
-  host: ${ABCI_HOST:str:localhost}
-  port: ${ABCI_PORT:int:26658}
-  use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
+  host: ${str:localhost}
+  port: ${int:26658}
+  use_tendermint: ${bool:false}
 ---
 public_id: valory/ledger:0.19.0
 type: connection
 config:
   ledger_apis:
     ethereum:
-      address: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS:str:http://localhost:8545}
-      chain_id: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_CHAIN_ID:int:31337}
-      poa_chain: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_POA_CHAIN:bool:false}
-      default_gas_price_strategy: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_DEFAULT_GAS_PRICE_STRATEGY:str:eip1559}
+      address: ${str:http://localhost:8545}
+      chain_id: ${int:31337}
+      poa_chain: ${bool:false}
+      default_gas_price_strategy: ${str:eip1559}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
 config:
   nodes:
-  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9005}
-    public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
-  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9006}
-    public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
+  - uri: ${str:acn.staging.autonolas.tech:9005}
+    public_key: ${str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
+  - uri: ${str:acn.staging.autonolas.tech:9006}
+    public_key: ${str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
 cert_requests:
 - identifier: acn
   ledger_id: ethereum
   message_format: '{public_key}'
   not_after: '2023-01-01'
   not_before: '2022-01-01'
-  public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
+  public_key: ${str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
   save_path: .certs/acn_cosmos_9005.txt
 - identifier: acn
   ledger_id: ethereum
   message_format: '{public_key}'
   not_after: '2023-01-01'
   not_before: '2022-01-01'
-  public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
+  public_key: ${str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
   save_path: .certs/acn_cosmos_9006.txt
 is_abstract: true
