@@ -388,7 +388,6 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
     tendermint_job_config: Optional[str]
     dev_mode: bool
     use_tm_testnet_setup: bool
-    agent_ports: Dict[int, List[Tuple[int, int]]]
 
     packages_dir: Path
     open_aea_dir: Path
@@ -404,7 +403,6 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
         open_aea_dir: Optional[Path] = None,
         open_autonomy_dir: Optional[Path] = None,
         image_author: Optional[str] = None,
-        agent_ports: Optional[List[Tuple[int, int, int]]] = None,
     ):
         """Initialise with only kwargs."""
 
@@ -420,13 +418,6 @@ class BaseDeploymentGenerator(abc.ABC):  # pylint: disable=too-many-instance-att
 
         self.tendermint_job_config: Optional[str] = None
         self.image_author = image_author or DEFAULT_DOCKER_IMAGE_AUTHOR
-
-        self.agent_ports = {}
-        if agent_ports is not None:
-            for agent_id, host_port, container_port in agent_ports:
-                if agent_id not in self.agent_ports:
-                    self.agent_ports[agent_id] = []
-                self.agent_ports[agent_id].append((host_port, container_port))
 
     @abc.abstractmethod
     def generate(

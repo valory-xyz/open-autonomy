@@ -192,7 +192,6 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     package_dir=self.packages_dir,
                     open_aea_dir=self.open_aea_dir,
                     open_autonomy_dir=self.open_autonomy_dir,
-                    agent_ports=self.agent_ports.get(i),
                 )
                 for i in range(self.service_builder.service.number_of_agents)
             ]

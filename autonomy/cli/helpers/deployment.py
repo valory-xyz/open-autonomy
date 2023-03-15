@@ -140,7 +140,6 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     use_acn: bool = False,
     use_tm_testnet_setup: bool = False,
     image_author: Optional[str] = None,
-    agent_ports: Optional[List[Tuple[int, int, int]]] = None,
 ) -> None:
     """Build deployment."""
 
@@ -177,7 +176,6 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         use_acn=use_acn,
         use_tm_testnet_setup=use_tm_testnet_setup,
         image_author=image_author,
-        agent_ports=agent_ports,
     )
     click.echo(report)
 

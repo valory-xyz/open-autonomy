@@ -64,7 +64,6 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         open_autonomy_dir: Optional[Path] = None,
         use_tm_testnet_setup: bool = False,
         image_author: Optional[str] = None,
-        agent_ports: Optional[List[Tuple[int, int, int]]] = None,
     ) -> None:
         """Initialise the deployment generator."""
         super().__init__(
@@ -76,7 +75,6 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             open_aea_dir=open_aea_dir,
             open_autonomy_dir=open_autonomy_dir,
             image_author=image_author,
-            agent_ports=agent_ports,
         )
         self.resources: List[str] = []
 
@@ -197,7 +195,6 @@ class KubernetesGenerator(BaseDeploymentGenerator):
                     agent_ix=i,
                     number_of_agents=self.service_builder.service.number_of_agents,
                     agent_vars=agent_vars[i],
-                    agent_ports=self.agent_ports.get(i),
                 )
                 for i in range(self.service_builder.service.number_of_agents)
             ]

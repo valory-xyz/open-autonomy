@@ -143,14 +143,6 @@ def deploy_group(
     default=False,
     help="Use local tendermint chain setup.",
 )
-@click.option(
-    "-eap",
-    "--expose-agent-port",
-    "agent_ports",
-    multiple=True,
-    type=AgentPortParameter(),
-    help="Expose agent port.",
-)
 @click.option("--image-version", type=str, help="Define runtime image version.")
 @registry_flag()
 @password_option(confirmation_prompt=True)
@@ -175,7 +167,6 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     use_acn: bool = False,
     use_tm_testnet_setup: bool = False,
     image_author: Optional[str] = None,
-    agent_ports: Optional[List[Tuple[int, int, int]]] = None,
 ) -> None:
     """Build deployment setup for n agents."""
 
@@ -224,7 +215,6 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             use_acn=use_acn,
             use_tm_testnet_setup=use_tm_testnet_setup,
             image_author=image_author,
-            agent_ports=agent_ports,
         )
     except (NotValidKeysFile, FileNotFoundError, FileExistsError) as e:
         shutil.rmtree(build_dir)
@@ -289,14 +279,6 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
     is_flag=True,
     help="If set to true, the deployment won't run automatically",
 )
-@click.option(
-    "-eap",
-    "--expose-agent-port",
-    "agent_ports",
-    multiple=True,
-    type=AgentPortParameter(),
-    help="Expose agent port.",
-)
 @chain_selection_flag(help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
@@ -311,7 +293,6 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
     no_deploy: bool,
     aev: bool = False,
     password: Optional[str] = None,
-    agent_ports: Optional[List[Tuple[int, int, int]]] = None,
 ) -> None:
     """Run service deployment."""
 
@@ -332,5 +313,4 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
             aev=aev,
             password=password,
             no_deploy=no_deploy,
-            agent_ports=agent_ports,
         )
