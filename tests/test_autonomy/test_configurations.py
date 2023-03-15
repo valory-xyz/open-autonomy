@@ -124,7 +124,7 @@ class TestServiceConfig:
     ) -> None:
         """Test process metadata."""
 
-        _, component_override = get_dummy_service_config(file_number=2)
+        _, component_override, _ = get_dummy_service_config(file_number=2)
         configuration, component_id, has_multiple_overrides = Service.process_metadata(
             component_override.copy()
         )
