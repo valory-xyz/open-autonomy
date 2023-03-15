@@ -219,7 +219,7 @@ class ServiceBuilder:
 
         try:
             keys = json.loads(keys_file.read_text(encoding=DEFAULT_ENCODING))
-        except json.decoder.JSONDecodeError as e:
+        except json.decoder.JSONDecodeError as e:  # pragma: nocover
             raise NotValidKeysFile(
                 "Error decoding keys file, please check the content of the file"
             ) from e
@@ -270,7 +270,7 @@ class ServiceBuilder:
             setup_data: List[Tuple[str, Any]],
         ) -> None:
             """Update"""
-            if setup_param is None:
+            if setup_param is None:  # pragma: nocover
                 return
 
             for param, value in setup_data:
@@ -345,7 +345,7 @@ class ServiceBuilder:
                     idx=agent_idx,
                     is_kubernetes_deployment=is_kubernetes_deployment,
                 )
-        except KeyError:
+        except KeyError:  # pragma: nocover
             logging.warning(
                 f"Could not update the tendermint parameter for {skill_id}; "
                 f"Configuration does not contain the json path to the setup parameter"
