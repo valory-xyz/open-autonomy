@@ -23,7 +23,9 @@
 from typing import Callable, Optional, Tuple, cast
 
 from aea.exceptions import enforce
-from google.protobuf.timestamp_pb2 import Timestamp as TimestampPb
+from google.protobuf.timestamp_pb2 import (  # pylint: disable=no-name-in-module
+    Timestamp as TimestampPb,
+)
 
 from packages.valory.connections.abci.dialogues import AbciDialogue, AbciDialogues
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore

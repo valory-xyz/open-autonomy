@@ -147,6 +147,19 @@ def __init__(label: str, states: Set[str], default_start_state: str,
 
 Initialize DFA object.
 
+<a id="autonomy.analyse.abci.app_spec.DFA.validate_naming_conventions"></a>
+
+#### validate`_`naming`_`conventions
+
+```python
+def validate_naming_conventions() -> None
+```
+
+Validate state names to see if they follow the naming conventions below
+
+- A round name should end with `Round`
+- ABCI app class name should end with `AbciApp`
+
 <a id="autonomy.analyse.abci.app_spec.DFA.is_transition_func_total"></a>
 
 #### is`_`transition`_`func`_`total

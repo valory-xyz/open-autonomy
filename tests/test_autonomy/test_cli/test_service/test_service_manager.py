@@ -104,6 +104,7 @@ class TestServiceManager(BaseServiceManagerTest):
                 commands=(
                     "activate",
                     service_id,
+                    "--key",
                     str(self.key_file),
                 )
             )
@@ -138,6 +139,7 @@ class TestServiceManager(BaseServiceManagerTest):
                 commands=(
                     "register",
                     service_id,
+                    "--key",
                     str(self.key_file),
                     "-a",
                     "1",
@@ -180,6 +182,7 @@ class TestServiceManager(BaseServiceManagerTest):
                 commands=(
                     "deploy",
                     service_id,
+                    "--key",
                     str(self.key_file),
                 )
             )
@@ -207,6 +210,7 @@ class TestServiceManager(BaseServiceManagerTest):
             commands=(
                 "deploy",
                 str(service_id),
+                "--key",
                 str(self.key_file),
             )
         )
