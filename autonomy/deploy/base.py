@@ -397,15 +397,24 @@ class ServiceBuilder:
     ) -> Dict:
         """Update ABCI connection config"""
 
-        processed_overrides = {}
+        processed_overrides = deepcopy(overrides)
+        if self.service.number_of_agents == 1:
+            processed_overrides["config"]["host"] = (
+                LOCALHOST
+                if self.deplopyment_type == KUBERNETES_DEPLOYMENT
+                else ABCI_HOST_TEMPLATE.format(0)
+            )
+            processed_overrides["config"]["port"] = processed_overrides["config"].get(
+                "port", DEFAULT_ABCI_PORT
+            )
+            return processed_overrides
+
         if not has_multiple_overrides:
+            processed_overrides = {}
             for i in range(self.service.number_of_agents):
                 processed_overrides[i] = deepcopy(overrides)
-        else:
-            processed_overrides = deepcopy(overrides)
 
         for idx, override in processed_overrides.items():
-
             override["config"]["host"] = (
                 LOCALHOST
                 if self.deplopyment_type == KUBERNETES_DEPLOYMENT
@@ -455,7 +464,6 @@ class ServiceBuilder:
                     },
                 }
             )
-
         processed_overrides = self._update_abci_connection_config(
             overrides=abci_connection_overrides,
             has_multiple_overrides=has_multiple_overrides,
