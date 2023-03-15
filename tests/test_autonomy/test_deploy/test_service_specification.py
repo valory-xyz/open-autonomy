@@ -32,12 +32,22 @@ import pytest
 import yaml
 
 from autonomy.deploy.base import (
+    ABCI_HOST_TEMPLATE,
+    DEFAULT_ABCI_PORT,
     ENV_VAR_AEA_AGENT,
     ENV_VAR_AEA_PASSWORD,
     ENV_VAR_ID,
     ENV_VAR_LOG_LEVEL,
+    KUBERNETES_DEPLOYMENT,
+    LOCALHOST,
     NotValidKeysFile,
     ServiceBuilder,
+    TENDERMINT_COM,
+    TENDERMINT_COM_LOCAL,
+    TENDERMINT_COM_URL_PARAM,
+    TENDERMINT_NODE,
+    TENDERMINT_NODE_LOCAL,
+    TENDERMINT_URL_PARAM,
 )
 
 from tests.test_autonomy.base import get_dummy_service_config
@@ -130,11 +140,11 @@ class TestServiceBuilder:
         assert len(agents) == 1, agents
 
         agent = spec.generate_agent(0)
-        assert len(agent.keys()) == 13, agent
+        assert len(agent.keys()) == 10, agent
 
         spec.service.overrides = []
         agent = spec.generate_agent(0)
-        assert len(agent.keys()) == 6, agent
+        assert len(agent.keys()) == 3, agent
 
     def test_generate_common_vars(
         self,
@@ -235,6 +245,7 @@ class TestServiceBuilder:
             consensus_threshold=consensus_threshold,
         )
         skill_config, *_ = spec.service.overrides
+
         assert skill_config["models"]["params"]["args"]["setup"][
             "safe_contract_address"
         ] == [multisig_address]
@@ -244,6 +255,13 @@ class TestServiceBuilder:
         assert skill_config["models"]["params"]["args"]["setup"][
             "consensus_threshold"
         ] == [consensus_threshold]
+
+        assert skill_config["models"]["params"]["args"][
+            TENDERMINT_URL_PARAM
+        ] == TENDERMINT_NODE.format(0)
+        assert skill_config["models"]["params"]["args"][
+            TENDERMINT_COM_URL_PARAM
+        ] == TENDERMINT_COM.format(0)
 
     def test_try_update_runtime_params_multiple(
         self,
@@ -269,6 +287,96 @@ class TestServiceBuilder:
             assert skill_config[agent_idx]["models"]["params"]["args"]["setup"][
                 "all_participants"
             ] == [agent_instances]
+
+            assert skill_config[agent_idx]["models"]["params"]["args"][
+                TENDERMINT_URL_PARAM
+            ] == TENDERMINT_NODE.format(agent_idx)
+            assert skill_config[agent_idx]["models"]["params"]["args"][
+                TENDERMINT_COM_URL_PARAM
+            ] == TENDERMINT_COM.format(agent_idx)
+
+    def test_try_update_tendermint_params_kubernetes(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        self._write_service(get_dummy_service_config(file_number=1))
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+            self.keys_path,
+        )
+
+        spec.deplopyment_type = KUBERNETES_DEPLOYMENT
+        spec.try_update_runtime_params()
+        skill_config, *_ = spec.service.overrides
+
+        assert (
+            skill_config["models"]["params"]["args"][TENDERMINT_URL_PARAM]
+            == TENDERMINT_NODE_LOCAL
+        )
+        assert (
+            skill_config["models"]["params"]["args"][TENDERMINT_COM_URL_PARAM]
+            == TENDERMINT_COM_LOCAL
+        )
+
+    def test_try_update_abci_connection_params_singular(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        self._write_service(get_dummy_service_config(file_number=0))
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        spec.try_update_abci_connection_params()
+        conn_config, *_ = spec.service.overrides
+
+        assert conn_config["config"]["host"] == ABCI_HOST_TEMPLATE.format(0)
+        assert conn_config["config"]["port"] == DEFAULT_ABCI_PORT
+
+    def test_try_update_abci_connection_params_multiple(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        self._write_service(get_dummy_service_config(file_number=2))
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        spec.try_update_abci_connection_params()
+        (conn_config,) = [
+            override
+            for override in spec.service.overrides
+            if override["type"] == "connection"
+        ]
+
+        for idx in range(spec.service.number_of_agents):
+            assert conn_config[idx]["config"]["host"] == ABCI_HOST_TEMPLATE.format(idx)
+            assert conn_config[idx]["config"]["port"] == DEFAULT_ABCI_PORT
+
+    def test_try_update_abci_connection_params_kubernetes(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        self._write_service(get_dummy_service_config(file_number=2))
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+        spec.deplopyment_type = KUBERNETES_DEPLOYMENT
+
+        spec.try_update_abci_connection_params()
+        (conn_config,) = [
+            override
+            for override in spec.service.overrides
+            if override["type"] == "connection"
+        ]
+
+        for idx in range(spec.service.number_of_agents):
+            assert conn_config[idx]["config"]["host"] == LOCALHOST
+            assert conn_config[idx]["config"]["port"] == DEFAULT_ABCI_PORT
 
     def test_verify_agent_instances(
         self,

@@ -66,11 +66,13 @@ ABCI_HOST_TEMPLATE = "abci{}"
 KUBERNETES_DEPLOYMENT = "kubernetes"
 DOCKER_COMPOSE_DEPLOYMENT = "docker-compose"
 
+LOCALHOST = "localhost"
 TENDERMINT_NODE = "http://node{}:26657"
 TENDERMINT_COM = "http://node{}:8080"
+TENDERMINT_NODE_LOCAL = f"http://{LOCALHOST}:26657"
+TENDERMINT_COM_LOCAL = f"http://{LOCALHOST}:8080"
 TENDERMINT_URL_PARAM = "tendermint_url"
 TENDERMINT_COM_URL_PARAM = "tendermint_com_url"
-LOCALHOST = "localhost"
 
 COMPONENT_CONFIGS: Dict = {
     component.package_type.value: component  # type: ignore
@@ -301,6 +303,8 @@ class ServiceBuilder:
     ) -> None:
         """Try update the tendermint parameters"""
 
+        is_kubernetes_deployment = self.deplopyment_type == KUBERNETES_DEPLOYMENT
+
         def _update_tendermint_params(
             param_args: Dict,
             idx: int,
@@ -308,13 +312,24 @@ class ServiceBuilder:
         ) -> None:
             """Update tendermint params"""
             if is_kubernetes_deployment:
-                param_args[TENDERMINT_URL_PARAM] = "http://localhost:26657"
-                param_args[TENDERMINT_COM_URL_PARAM] = "http://localhost:8080"
+                param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE_LOCAL
+                param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM_LOCAL
             else:
                 param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE.format(idx)
                 param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM.format(idx)
 
         try:
+            if self.service.number_of_agents == 1:
+                param_args = self._get_config_from_json_path(
+                    override_dict=override, json_path=PARAM_ARGS_PATH
+                )
+                _update_tendermint_params(
+                    param_args=param_args,
+                    idx=0,
+                    is_kubernetes_deployment=is_kubernetes_deployment,
+                )
+                return
+
             if not has_multiple_overrides:
                 _base_overrride = deepcopy(override)
                 override.clear()
@@ -328,9 +343,7 @@ class ServiceBuilder:
                 _update_tendermint_params(
                     param_args=param_args,
                     idx=agent_idx,
-                    is_kubernetes_deployment=(
-                        self.deplopyment_type == KUBERNETES_DEPLOYMENT
-                    ),
+                    is_kubernetes_deployment=is_kubernetes_deployment,
                 )
         except KeyError:
             logging.warning(
