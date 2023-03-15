@@ -20,16 +20,7 @@
 """Constants for generating deployments environment."""
 
 from string import Template
-from typing import Any, Dict
 
-
-TENDERMINT_CONFIGURATION_OVERRIDES: Dict[str, Dict[str, Any]] = {
-    "kubernetes": {
-        "TENDERMINT_URL": "http://localhost:26657",
-        "TENDERMINT_COM_URL": "http://localhost:8080",
-        "ABCI_HOST": "localhost",
-    }
-}
 
 DEPLOYMENT_REPORT: Template = Template(
     """
