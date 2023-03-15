@@ -16,4 +16,5 @@ contracts: []
 class_name: ComponentRegistryContract
 contract_interface_paths:
   ethereum: build/ComponentRegistry.json
+  ethereum_hwi: build/ComponentRegistry.json
 dependencies: {}

@@ -43,6 +43,7 @@ from aea.configurations.constants import (
 
 # the decoration does side-effect on the 'aea scaffold' command
 from aea.configurations.data_types import CRUDCollection, PackageType, PublicId
+from aea.helpers.ipfs.base import IPFSHashOnly
 from aea.package_manager.v1 import PackageManagerV1
 
 from autonomy.analyse.abci.app_spec import DFA, FSMSpecificationLoader
@@ -348,6 +349,19 @@ class ScaffoldABCISkill:
         self._update_init_py()
         self._copy_spec_file()
         self._update_config()
+
+    def add_skill_to_packages(self) -> None:
+        """Add skill to packages.json if scaffolded to local packages repository"""
+
+        click.echo("Adding skill package to `packages.json` file...")
+        config = self.ctx.skill_loader.load(
+            (self.skill_dir / DEFAULT_SKILL_CONFIG_FILE).open()
+        )
+        package_manager = PackageManagerV1.from_dir(Path(self.ctx.registry_path))
+        package_manager.dev_packages[config.package_id] = IPFSHashOnly.hash_directory(
+            dir_path=self.skill_dir,
+        )
+        package_manager.dump()
 
     def _update_config(self) -> None:
         """Update the skill configuration."""
