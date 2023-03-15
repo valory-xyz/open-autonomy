@@ -28,8 +28,6 @@ from aea.configurations.loader import load_configuration_object
 from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry, ledger_apis_registry
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
-from aea_ledger_ethereum_hwi.exceptions import HWIError
-from aea_ledger_ethereum_hwi.hwi import EthereumHWIApi
 
 from autonomy.chain.base import UnitType
 from autonomy.chain.config import ChainConfigs, ChainType, ContractConfigs
@@ -61,6 +59,15 @@ from autonomy.chain.utils import (
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS, Service
 
 
+try:
+    from aea_ledger_ethereum_hwi.exceptions import HWIError
+    from aea_ledger_ethereum_hwi.hwi import EthereumHWIApi
+
+    HWI_PLUGIN_INSTALLED = True
+except ImportError:
+    HWI_PLUGIN_INSTALLED = False
+
+
 def get_ledger_and_crypto_objects(
     chain_type: ChainType,
     key: Optional[Path] = None,
@@ -73,6 +80,12 @@ def get_ledger_and_crypto_objects(
     if chain_config.rpc is None:
         raise click.ClickException(
             f"RPC cannot be `None` for chain config; chain_type={chain_type}"
+        )
+
+    if hwi and not HWI_PLUGIN_INSTALLED:
+        raise click.ClickException(
+            "Hardware wallet plugin not installed, "
+            "Run `pip3 install open-aea-ledger-ethereum-hwi` to install the plugin"
         )
 
     identifier = EthereumHWIApi.identifier if hwi else EthereumApi.identifier
