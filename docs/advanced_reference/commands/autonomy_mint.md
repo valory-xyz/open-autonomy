@@ -44,12 +44,18 @@ Mint a protocol, contract, connection or skill in the on-chain protocol.
 ### Usage
 
 ```bash
-autonomy mint protocol [OPTIONS] PACKAGE_PATH KEYS_FILE
-autonomy mint contract [OPTIONS] PACKAGE_PATH KEYS_FILE
-autonomy mint connection [OPTIONS] PACKAGE_PATH KEYS_FILE
-autonomy mint skill [OPTIONS] PACKAGE_PATH KEYS_FILE
+autonomy mint protocol [OPTIONS] PACKAGE_PATH
+autonomy mint contract [OPTIONS] PACKAGE_PATH
+autonomy mint connection [OPTIONS] PACKAGE_PATH
+autonomy mint skill [OPTIONS] PACKAGE_PATH
 ```
 ### Options
+
+`--key FILE`
+: Use private key from a file for signing the transactions
+
+`--hwi`
+: Use hardware wallet for signing the transactions
 
 `--password PASSWORD`
 : Password for the key file.
@@ -65,7 +71,7 @@ autonomy mint skill [OPTIONS] PACKAGE_PATH KEYS_FILE
 Mint the `hello_world_abci` {{fsm_app}} skill with dependencies 11 and 42 in a custom chain:
 
 ```bash
-autonomy mint --use-custom-chain skill -d 11 -d 42 --nft <nft_ipfs_hash> ./packages/valory/skills/hello_world_abci my_keys_file
+autonomy mint --use-custom-chain skill -d 11 -d 42 --nft <nft_ipfs_hash> ./packages/valory/skills/hello_world_abci --key my_keys_file
 ```
 
 ## `autonomy mint agent`
@@ -74,10 +80,16 @@ Mint an agent in the on-chain protocol.
 ### Usage
 
 ```bash
-autonomy mint agent [OPTIONS] PACKAGE_PATH KEYS_FILE
+autonomy mint agent [OPTIONS] PACKAGE_PATH
 ```
 
 ### Options
+
+`--key FILE`
+: Use private key from a file for signing the transactions
+
+`--hwi`
+: Use hardware wallet for signing the transactions
 
 `--password PASSWORD`
 : Password for the key file.
@@ -93,7 +105,7 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH KEYS_FILE
 Mint the `hello_world` agent with dependency 43 in the Ethereum main chain:
 
 ```bash
-autonomy mint --use-ethereum agent -d 43 --nft <nft_ipfs_hash> ./packages/valory/agents/hello_world my_keys_file
+autonomy mint --use-ethereum agent -d 43 --nft <nft_ipfs_hash> ./packages/valory/agents/hello_world --key my_keys_file
 ```
 
 ## `autonomy mint service`
@@ -102,11 +114,17 @@ Mint a service in the on-chain protocol.
 ### Usage
 
 ```bash
-autonomy mint service [OPTIONS] PACKAGE_PATH KEYS_FILE
+autonomy mint service [OPTIONS] PACKAGE_PATH
 ```
 
 ### Options
   
+`--key FILE`
+: Use private key from a file for signing the transactions
+
+`--hwi`
+: Use hardware wallet for signing the transactions
+
 `--password PASSWORD`
 : Password for the key file.
 
@@ -130,7 +148,7 @@ autonomy mint service [OPTIONS] PACKAGE_PATH KEYS_FILE
 Mint the `hello_world` service with 4 instances of canonical agent ID 84, cost of bond 10000000 Wei and a threshold of 3 agents, in the Ethereum main chain:
 
 ```bash
-autonomy mint --use-ethereum service -a 84 -n 4 -c 10000000 --threshold 3 --nft <nft_ipfs_hash> ./packages/valory/services/hello_world my_keys_file
+autonomy mint --use-ethereum service -a 84 -n 4 -c 10000000 --threshold 3 --nft <nft_ipfs_hash> ./packages/valory/services/hello_world --key my_keys_file
 ```
 
 !!! note

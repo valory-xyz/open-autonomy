@@ -163,7 +163,7 @@ on-chain in the next block that is mined.
 0. `RandomnessTransactionSubmissionRound` <br/>
    Randomness is retrieved for keeper selection.
 
-1. `SelectKeeperTransactionSubmissionRoundA` <br/>
+1. `SelectKeeperTransactionSubmissionARound` <br/>
    The agents select a keeper that will be in charge of sending the transaction.
 
 2. `CollectSignatureRound` <br/>
@@ -186,7 +186,7 @@ on-chain in the next block that is mined.
    in order to specify the cause of the problem, e.g., a transaction of a keeper
    was settled before another keeper managed to do so, a payload is invalid, etc.
 
-6. `SelectKeeperTransactionSubmissionRoundB` <br/>
+6. `SelectKeeperTransactionSubmissionBRound` <br/>
    The agents select a keeper that will be in charge of sending the transaction,
    in case that the first keeper has failed.
 

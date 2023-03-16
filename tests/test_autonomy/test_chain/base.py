@@ -120,7 +120,7 @@ class BaseChainInteractionTest(BaseCliTest):
 
         cls.ledger_api, cls.crypto = get_ledger_and_crypto_objects(
             chain_type=cls.chain_type,
-            keys=cls.key_file,
+            key=cls.key_file,
         )
 
     @staticmethod
