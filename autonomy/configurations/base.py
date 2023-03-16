@@ -75,6 +75,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         "agent",
         "number_of_agents",
         "description",
+        "deployment_config",
         "_aea_version",
         "_aea_version_specifiers",
         "_directory",
@@ -95,6 +96,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         number_of_agents: int = 4,
         build_entrypoint: Optional[str] = None,
         overrides: Optional[List] = None,
+        deployment: Optional[Dict] = None,
     ) -> None:
         """Initialise object."""
 
@@ -112,6 +114,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         self.agent = PublicId.from_str(str(agent))
         self.description = description
         self.number_of_agents = number_of_agents
+        self.deployment_config = deployment or {}
 
         self._overrides = [] if overrides is None else overrides
 

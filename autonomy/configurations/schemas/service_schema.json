@@ -13,7 +13,8 @@
     "fingerprint",
     "fingerprint_ignore_patterns",
     "agent",
-    "number_of_agents"
+    "number_of_agents",
+    "deployment"
   ],
   "properties": {
     "name": {
@@ -46,6 +47,9 @@
     },
     "number_of_agents": {
       "type": "integer"
+    },
+    "deployment": {
+      "type": "object"
     }
   }
 }
