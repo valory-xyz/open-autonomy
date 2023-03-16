@@ -34,7 +34,7 @@ def parse_args() -> argparse.Namespace:
 if __name__ == "__main__":
     arguments = parse_args()
 
-    pip_freeze_call = subprocess.Popen(  # nosec
+    pip_freeze_call = subprocess.Popen(  # nosec  # pylint: disable=consider-using-with
         ["pip", "freeze"], stdout=subprocess.PIPE
     )
     (stdout, stderr) = pip_freeze_call.communicate()
