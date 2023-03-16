@@ -101,14 +101,6 @@ Deploy an agent service.
     default=False,
     help="Use local tendermint chain setup.",
 )
-@click.option(
-    "-eap",
-    "--expose-agent-port",
-    "agent_ports",
-    multiple=True,
-    type=AgentPortParameter(),
-    help="Expose agent port.",
-)
 @click.option("--image-version",
               type=str,
               help="Define runtime image version.")
@@ -116,26 +108,24 @@ Deploy an agent service.
 @password_option(confirmation_prompt=True)
 @image_author_option
 @click.pass_context
-def build_deployment_command(
-        click_context: click.Context,
-        keys_file: Optional[Path],
-        deployment_type: str,
-        output_dir: Optional[Path],
-        dev_mode: bool,
-        registry: str,
-        number_of_agents: Optional[int] = None,
-        password: Optional[str] = None,
-        open_aea_dir: Optional[Path] = None,
-        packages_dir: Optional[Path] = None,
-        open_autonomy_dir: Optional[Path] = None,
-        log_level: str = INFO,
-        aev: bool = False,
-        image_version: Optional[str] = None,
-        use_hardhat: bool = False,
-        use_acn: bool = False,
-        use_tm_testnet_setup: bool = False,
-        image_author: Optional[str] = None,
-        agent_ports: Optional[List[Tuple[int, int, int]]] = None) -> None
+def build_deployment_command(click_context: click.Context,
+                             keys_file: Optional[Path],
+                             deployment_type: str,
+                             output_dir: Optional[Path],
+                             dev_mode: bool,
+                             registry: str,
+                             number_of_agents: Optional[int] = None,
+                             password: Optional[str] = None,
+                             open_aea_dir: Optional[Path] = None,
+                             packages_dir: Optional[Path] = None,
+                             open_autonomy_dir: Optional[Path] = None,
+                             log_level: str = INFO,
+                             aev: bool = False,
+                             image_version: Optional[str] = None,
+                             use_hardhat: bool = False,
+                             use_acn: bool = False,
+                             use_tm_testnet_setup: bool = False,
+                             image_author: Optional[str] = None) -> None
 ```
 
 Build deployment setup for n agents.
@@ -206,30 +196,20 @@ Run deployment.
     is_flag=True,
     help="If set to true, the deployment won't run automatically",
 )
-@click.option(
-    "-eap",
-    "--expose-agent-port",
-    "agent_ports",
-    multiple=True,
-    type=AgentPortParameter(),
-    help="Expose agent port.",
-)
 @chain_selection_flag(
     help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
-def run_deployment_from_token(
-        click_context: click.Context,
-        token_id: int,
-        keys_file: Path,
-        chain_type: ChainType,
-        skip_image: bool,
-        n: Optional[int],
-        deployment_type: str,
-        no_deploy: bool,
-        aev: bool = False,
-        password: Optional[str] = None,
-        agent_ports: Optional[List[Tuple[int, int, int]]] = None) -> None
+def run_deployment_from_token(click_context: click.Context,
+                              token_id: int,
+                              keys_file: Path,
+                              chain_type: ChainType,
+                              skip_image: bool,
+                              n: Optional[int],
+                              deployment_type: str,
+                              no_deploy: bool,
+                              aev: bool = False,
+                              password: Optional[str] = None) -> None
 ```
 
 Run service deployment.
