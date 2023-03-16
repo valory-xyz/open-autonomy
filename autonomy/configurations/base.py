@@ -152,6 +152,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                 "overrides": self.overrides,
                 "fingerprint": self.fingerprint,
                 "fingerprint_ignore_patterns": self.fingerprint_ignore_patterns,
+                "deployment": self.deployment_config,
             }
         )
 
@@ -176,6 +177,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             fingerprint_ignore_patterns=cast(
                 Sequence[str], obj.get("fingerprint_ignore_patterns", [])
             ),
+            deployment=obj.get("deployment"),
         )
 
         return cls(**params)  # type: ignore
