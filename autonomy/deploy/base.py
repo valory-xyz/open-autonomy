@@ -22,7 +22,7 @@ import abc
 import json
 import logging
 import os
-from copy import copy
+from copy import copy, deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from warnings import warn
@@ -34,8 +34,9 @@ from aea.configurations.base import (
     SkillConfig,
 )
 from aea.configurations.constants import SKILL
-from aea.configurations.data_types import PublicId
+from aea.configurations.data_types import PackageType, PublicId
 
+from autonomy.analyse.service import ABCI
 from autonomy.configurations.base import Service
 from autonomy.configurations.loader import load_service_config
 from autonomy.constants import DEFAULT_DOCKER_IMAGE_AUTHOR
@@ -49,20 +50,30 @@ from autonomy.deploy.constants import (
 
 ENV_VAR_ID = "ID"
 ENV_VAR_AEA_AGENT = "AEA_AGENT"
-ENV_VAR_ABCI_HOST = "ABCI_HOST"
-ENV_VAR_TENDERMINT_URL = "TENDERMINT_URL"
-ENV_VAR_TENDERMINT_COM_URL = "TENDERMINT_COM_URL"
 ENV_VAR_LOG_LEVEL = "LOG_LEVEL"
 ENV_VAR_AEA_PASSWORD = "AEA_PASSWORD"  # nosec
 
-SETUP_PARAM_PATH = ("models", "params", "args", "setup")
+PARAM_ARGS_PATH = ("models", "params", "args")
+SETUP_PARAM_PATH = (*PARAM_ARGS_PATH, "setup")
 SAFE_CONTRACT_ADDRESS = "safe_contract_address"
 ALL_PARTICIPANTS = "all_participants"
 CONSENSUS_THRESHOLD = "consensus_threshold"
 
-ABCI_HOST = "abci{}"
+
+DEFAULT_ABCI_PORT = 26658
+ABCI_HOST_TEMPLATE = "abci{}"
+
+KUBERNETES_DEPLOYMENT = "kubernetes"
+DOCKER_COMPOSE_DEPLOYMENT = "docker-compose"
+
+LOCALHOST = "localhost"
 TENDERMINT_NODE = "http://node{}:26657"
 TENDERMINT_COM = "http://node{}:8080"
+TENDERMINT_NODE_LOCAL = f"http://{LOCALHOST}:26657"
+TENDERMINT_COM_LOCAL = f"http://{LOCALHOST}:8080"
+TENDERMINT_URL_PARAM = "tendermint_url"
+TENDERMINT_COM_URL_PARAM = "tendermint_com_url"
+
 COMPONENT_CONFIGS: Dict = {
     component.package_type.value: component  # type: ignore
     for component in [
@@ -81,6 +92,7 @@ class NotValidKeysFile(Exception):
 class ServiceBuilder:
     """Class to assist with generating deployments."""
 
+    deplopyment_type: str = DOCKER_COMPOSE_DEPLOYMENT
     log_level: str = INFO
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -207,7 +219,7 @@ class ServiceBuilder:
 
         try:
             keys = json.loads(keys_file.read_text(encoding=DEFAULT_ENCODING))
-        except json.decoder.JSONDecodeError as e:
+        except json.decoder.JSONDecodeError as e:  # pragma: nocover
             raise NotValidKeysFile(
                 "Error decoding keys file, please check the content of the file"
             ) from e
@@ -231,48 +243,113 @@ class ServiceBuilder:
         self._keys = keys
 
     @staticmethod
+    def _get_config_from_json_path(
+        override_dict: Dict,
+        json_path: Tuple[str, ...],
+    ) -> Dict:
+        """Returns `setup` param dict"""
+
+        _key_0, *_keys = json_path
+        config = override_dict[_key_0]
+        for key in _keys:
+            config = config[key]
+        return config
+
+    @classmethod
     def _try_update_setup_data(
+        cls,
         data: List[Tuple[str, Any]],
         override: Dict,
         skill_id: PublicId,
         has_multiple_overrides: bool = False,
     ) -> None:
-        """Try update the `safe_contract_address` parameter"""
-
-        def _get_params_dict(override_dict: Dict) -> Optional[Dict]:
-            """Returns `setup` param dict"""
-            try:
-                _key_0, *_keys = SETUP_PARAM_PATH
-                setup_param = override_dict[_key_0]
-                for key in _keys:
-                    setup_param = setup_param[key]
-                return setup_param
-            except KeyError:
-                logging.warning(
-                    f"Could not update the setup parameter for {skill_id}; "
-                    f"Configuration does not contain the json path to the setup parameter"
-                )
-                return None
+        """Try update the setup parameters"""
 
         def _try_update_setup_params(
             setup_param: Optional[Dict],
             setup_data: List[Tuple[str, Any]],
         ) -> None:
             """Update"""
-            if setup_param is None:
+            if setup_param is None:  # pragma: nocover
                 return
 
             for param, value in setup_data:
                 setup_param[param] = value
 
-        if not has_multiple_overrides:
-            setup_param = _get_params_dict(override_dict=override)
-            _try_update_setup_params(setup_param=setup_param, setup_data=data)
-            return
+        try:
+            if not has_multiple_overrides:
+                setup_param = cls._get_config_from_json_path(
+                    override_dict=override, json_path=SETUP_PARAM_PATH
+                )
+                _try_update_setup_params(setup_param=setup_param, setup_data=data)
+                return
 
-        for agent_idx in override:
-            setup_param = _get_params_dict(override_dict=override[agent_idx])
-            _try_update_setup_params(setup_param=setup_param, setup_data=data)
+            for agent_idx in override:
+                setup_param = cls._get_config_from_json_path(
+                    override_dict=override[agent_idx], json_path=SETUP_PARAM_PATH
+                )
+                _try_update_setup_params(setup_param=setup_param, setup_data=data)
+        except KeyError:
+            logging.warning(
+                f"Could not update the setup parameter for {skill_id}; "
+                f"Configuration does not contain the json path to the setup parameter"
+            )
+
+    def _try_update_tendermint_params(
+        self,
+        override: Dict,
+        skill_id: PublicId,
+        has_multiple_overrides: bool = False,
+    ) -> None:
+        """Try update the tendermint parameters"""
+
+        is_kubernetes_deployment = self.deplopyment_type == KUBERNETES_DEPLOYMENT
+
+        def _update_tendermint_params(
+            param_args: Dict,
+            idx: int,
+            is_kubernetes_deployment: bool = False,
+        ) -> None:
+            """Update tendermint params"""
+            if is_kubernetes_deployment:
+                param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE_LOCAL
+                param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM_LOCAL
+            else:
+                param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE.format(idx)
+                param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM.format(idx)
+
+        try:
+            if self.service.number_of_agents == 1:
+                param_args = self._get_config_from_json_path(
+                    override_dict=override, json_path=PARAM_ARGS_PATH
+                )
+                _update_tendermint_params(
+                    param_args=param_args,
+                    idx=0,
+                    is_kubernetes_deployment=is_kubernetes_deployment,
+                )
+                return
+
+            if not has_multiple_overrides:
+                _base_overrride = deepcopy(override)
+                override.clear()
+                for i in range(self.service.number_of_agents):
+                    override[i] = deepcopy(_base_overrride)
+
+            for agent_idx in override:
+                param_args = self._get_config_from_json_path(
+                    override_dict=override[agent_idx], json_path=PARAM_ARGS_PATH
+                )
+                _update_tendermint_params(
+                    param_args=param_args,
+                    idx=agent_idx,
+                    is_kubernetes_deployment=is_kubernetes_deployment,
+                )
+        except KeyError:  # pragma: nocover
+            logging.warning(
+                f"Could not update the tendermint parameter for {skill_id}; "
+                f"Configuration does not contain the json path to the setup parameter"
+            )
 
     def try_update_runtime_params(
         self,
@@ -315,11 +392,110 @@ class ServiceBuilder:
                     skill_id=component_id.public_id,
                     has_multiple_overrides=has_multiple_overrides,
                 )
+                self._try_update_tendermint_params(
+                    override=override,
+                    skill_id=component_id.public_id,
+                    has_multiple_overrides=has_multiple_overrides,
+                )
 
             override["type"] = component_id.package_type.value
             override["public_id"] = str(component_id.public_id)
 
         self.service.overrides = overrides
+
+    def _update_abci_connection_config(
+        self,
+        overrides: Dict,
+        has_multiple_overrides: bool = False,
+    ) -> Dict:
+        """Update ABCI connection config"""
+
+        processed_overrides = deepcopy(overrides)
+        if self.service.number_of_agents == 1:
+            processed_overrides["config"]["host"] = (
+                LOCALHOST
+                if self.deplopyment_type == KUBERNETES_DEPLOYMENT
+                else ABCI_HOST_TEMPLATE.format(0)
+            )
+            processed_overrides["config"]["port"] = processed_overrides["config"].get(
+                "port", DEFAULT_ABCI_PORT
+            )
+            return processed_overrides
+
+        if not has_multiple_overrides:
+            processed_overrides = {}
+            for i in range(self.service.number_of_agents):
+                processed_overrides[i] = deepcopy(overrides)
+
+        for idx, override in processed_overrides.items():
+            override["config"]["host"] = (
+                LOCALHOST
+                if self.deplopyment_type == KUBERNETES_DEPLOYMENT
+                else ABCI_HOST_TEMPLATE.format(idx)
+            )
+            override["config"]["port"] = override["config"].get(
+                "port", DEFAULT_ABCI_PORT
+            )
+            processed_overrides[idx] = override
+
+        return processed_overrides
+
+    def try_update_abci_connection_params(
+        self,
+    ) -> None:
+        """Try and update ledger connection parameters."""
+
+        for override in deepcopy(self.service.overrides):
+            (
+                override,
+                component_id,
+                has_multiple_overrides,
+            ) = self.service.process_metadata(
+                configuration=override,
+            )
+
+            if (
+                component_id.package_type == PackageType.CONNECTION
+                and component_id.name == ABCI
+            ):
+                service_has_connection_overrides = True
+                abci_connection_overrides = override
+                break
+        else:
+            service_has_connection_overrides = False
+            (
+                abci_connection_overrides,
+                component_id,
+                has_multiple_overrides,
+            ) = self.service.process_metadata(
+                configuration={
+                    "public_id": "valory/abci:0.1.0",
+                    "type": PackageType.CONNECTION.value,
+                    "config": {
+                        "host": LOCALHOST,
+                        "port": DEFAULT_ABCI_PORT,
+                    },
+                }
+            )
+        processed_overrides = self._update_abci_connection_config(
+            overrides=abci_connection_overrides,
+            has_multiple_overrides=has_multiple_overrides,
+        )
+
+        processed_overrides["public_id"] = str(component_id.public_id)
+        processed_overrides["type"] = PackageType.CONNECTION.value
+
+        service_overrides = deepcopy(self.service.overrides)
+        if service_has_connection_overrides:
+            service_overrides = [
+                override
+                for override in service_overrides
+                if override["public_id"] != str(component_id.public_id)
+                and override["type"] != PackageType.CONNECTION.value
+            ]
+
+        service_overrides.append(processed_overrides)
+        self.service.overrides = service_overrides
 
     def process_component_overrides(self, agent_n: int) -> Dict:
         """Generates env vars based on model overrides."""
@@ -349,9 +525,6 @@ class ServiceBuilder:
         agent_vars = {
             ENV_VAR_ID: agent_n,
             ENV_VAR_AEA_AGENT: self.service.agent,
-            ENV_VAR_ABCI_HOST: ABCI_HOST.format(agent_n),
-            ENV_VAR_TENDERMINT_URL: TENDERMINT_NODE.format(agent_n),
-            ENV_VAR_TENDERMINT_COM_URL: TENDERMINT_COM.format(agent_n),
             ENV_VAR_LOG_LEVEL: self.log_level,
         }
 

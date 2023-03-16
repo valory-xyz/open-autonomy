@@ -134,6 +134,16 @@ def try_update_runtime_params(
 
 Try and update setup parameters.
 
+<a id="autonomy.deploy.base.ServiceBuilder.try_update_abci_connection_params"></a>
+
+#### try`_`update`_`abci`_`connection`_`params
+
+```python
+def try_update_abci_connection_params() -> None
+```
+
+Try and update ledger connection parameters.
+
 <a id="autonomy.deploy.base.ServiceBuilder.process_component_overrides"></a>
 
 #### process`_`component`_`overrides
