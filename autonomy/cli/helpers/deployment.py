@@ -222,7 +222,6 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
     aev: bool = False,
     password: Optional[str] = None,
     no_deploy: bool = False,
-    agent_ports: Optional[List[Tuple[int, int, int]]] = None,
 ) -> None:
     """Build and run deployment from tokenID."""
 
@@ -255,7 +254,6 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
             consensus_threshold=consensus_threshold,
             apply_environment_variables=aev,
             password=password,
-            agent_ports=agent_ports,
         )
         if not skip_image:
             click.echo("Building required images.")

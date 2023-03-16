@@ -21,7 +21,7 @@
 
 import shutil
 from pathlib import Path
-from typing import List, Optional, Tuple, cast
+from typing import Optional, cast
 
 import click
 from aea.cli.registry.settings import REGISTRY_REMOTE
@@ -38,11 +38,7 @@ from autonomy.cli.helpers.deployment import (
     build_deployment,
     run_deployment,
 )
-from autonomy.cli.utils.click_utils import (
-    AgentPortParameter,
-    chain_selection_flag,
-    image_author_option,
-)
+from autonomy.cli.utils.click_utils import chain_selection_flag, image_author_option
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_KEYS_FILE
 from autonomy.deploy.base import NotValidKeysFile
 from autonomy.deploy.constants import INFO, LOGGING_LEVELS
