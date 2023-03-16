@@ -31,7 +31,7 @@ pytz = "==2022.2.1"
 py-ecc = "==5.2.0"
 py-eth-sig-utils = "==0.4.0"
 ### tests deps
-tomte = {version = "==0.2.3", extras = ["tox", "tests"]}
+tomte = {version = "==0.2.4", extras = ["tox", "tests"]}
 
 [requires]
 python_version = "3.10"

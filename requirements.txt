@@ -18,4 +18,4 @@ protobuf==3.19.4
 pytz==2022.2.1
 py-ecc==5.2.0
 py-eth-sig-utils==0.4.0
-tomte==0.2.3
+tomte==0.2.4
