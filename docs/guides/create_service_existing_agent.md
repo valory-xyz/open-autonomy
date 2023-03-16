@@ -63,6 +63,7 @@ You can view the agent contents stored in the IPFS [here](https://gateway.autono
         fingerprint_ignore_patterns: []
         agent: valory/hello_world:0.1.0:<ipfs_hash>
         number_of_agents: 4
+        deployment: {}
         ---
         extra:
           benchmark_persistence_params:
