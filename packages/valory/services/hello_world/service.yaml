@@ -9,6 +9,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 agent: valory/hello_world:0.1.0:bafybeihuylwbdvru6evry6dv7r7mfuaasjclo3f5vnyes6cobkedybsqwy
 number_of_agents: 4
+deployment: {}
 ---
 extra:
   benchmark_persistence_params:
