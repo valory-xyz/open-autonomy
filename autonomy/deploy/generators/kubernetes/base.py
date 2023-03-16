@@ -20,7 +20,7 @@
 """Script to create environment for benchmarking n agents."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, cast
 
 import yaml
 
@@ -84,7 +84,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_ix: int,
         number_of_agents: int,
         agent_vars: Dict[str, Any],
-        agent_ports: Optional[List[Tuple[int, int]]] = None,
+        agent_ports: Optional[Dict[int, int]] = None,
     ) -> str:
         """Build agent deployment."""
 
@@ -95,8 +95,8 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_ports_deployment = ""
         if agent_ports is not None:
             port_mappings = map(
-                lambda x: PORT_CONFIG_DEPLOYMENT.format(port=x[1]),
-                agent_ports,
+                lambda x: PORT_CONFIG_DEPLOYMENT.format(port=x[0]),
+                agent_ports.items(),
             )
             agent_ports_deployment = "\n".join(
                 [PORTS_CONFIG_DEPLOYMENT, *port_mappings]
@@ -195,6 +195,11 @@ class KubernetesGenerator(BaseDeploymentGenerator):
                     agent_ix=i,
                     number_of_agents=self.service_builder.service.number_of_agents,
                     agent_vars=agent_vars[i],
+                    agent_ports=(
+                        self.service_builder.service.deployment_config.get("agent", {})
+                        .get("ports", {})
+                        .get(i)
+                    ),
                 )
                 for i in range(self.service_builder.service.number_of_agents)
             ]

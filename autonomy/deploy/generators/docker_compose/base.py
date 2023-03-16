@@ -19,7 +19,7 @@
 
 """Docker-compose Deployment Generator."""
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 
 from aea.configurations.constants import DEFAULT_PRIVATE_KEY_FILE
 from docker import from_env
@@ -95,7 +95,7 @@ def build_agent_config(  # pylint: disable=too-many-arguments
     package_dir: Path = DEFAULT_PACKAGES_PATH,
     open_aea_dir: Path = DEFAULT_OPEN_AEA_DIR,
     open_autonomy_dir: Path = DEFAULT_OPEN_AUTONOMY_DIR,
-    agent_ports: Optional[List[Tuple[int, int]]] = None,
+    agent_ports: Optional[Dict[int, int]] = None,
 ) -> str:
     """Build agent config."""
 
@@ -119,7 +119,7 @@ def build_agent_config(  # pylint: disable=too-many-arguments
     if agent_ports is not None:
         port_mappings = map(
             lambda x: PORT_MAPPING_CONFIG.format(host_port=x[0], container_port=x[1]),
-            agent_ports,
+            agent_ports.items(),
         )
         port_config = "\n".join([PORTS, *port_mappings])
         config += port_config
@@ -192,6 +192,11 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     package_dir=self.packages_dir,
                     open_aea_dir=self.open_aea_dir,
                     open_autonomy_dir=self.open_autonomy_dir,
+                    agent_ports=(
+                        self.service_builder.service.deployment_config.get("agent", {})
+                        .get("ports", {})
+                        .get(i)
+                    ),
                 )
                 for i in range(self.service_builder.service.number_of_agents)
             ]

@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 """Script for generating deployment environments."""
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Type
+from typing import Dict, List, Optional, Type
 
 from autonomy.deploy.base import BaseDeploymentGenerator, ServiceBuilder
 from autonomy.deploy.constants import DEPLOYMENT_REPORT, INFO
