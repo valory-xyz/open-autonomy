@@ -36,7 +36,6 @@ from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     KEY_SCHEMA_PRIVATE_KEY,
     KUBERNETES_AGENT_KEY_NAME,
-    TENDERMINT_CONFIGURATION_OVERRIDES,
 )
 from autonomy.deploy.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
@@ -150,14 +149,6 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
         return self
 
-    def _apply_cluster_specific_tendermint_params(  # pylint: disable= no-self-use
-        self, agent_params: List
-    ) -> List:
-        """Override the tendermint params to point at the localhost."""
-        for agent in agent_params:
-            agent.update(TENDERMINT_CONFIGURATION_OVERRIDES[self.deployment_type])
-        return agent_params
-
     def generate(
         self,
         image_version: Optional[str] = None,
@@ -181,7 +172,6 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             ...
 
         agent_vars = self.service_builder.generate_agents()  # type:ignore
-        agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
         runtime_image = OAR_IMAGE.format(
             image_author=self.image_author,
             agent=self.service_builder.service.agent.name,

@@ -34,11 +34,11 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeigkzlgrgb4ijk6m4mjhdbeohpzemmhk63z56f6ex2nr2waj74ksv4
 - valory/abstract_round_abci:0.1.0:bafybeibucndet4yyidhizwfoquczuqavfmg2n5iwo2kz77ieu2lkakrbi4
-- valory/register_termination_abci:0.1.0:bafybeiganv27qurc2vpdccjl3lmvxh5nmgb3xsggswhijllibm5tspdegq
+- valory/register_termination_abci:0.1.0:bafybeihq4gg7rhhihvzjb37ktikusjscgul76wf2qxyevrn32g66yi7454
 - valory/registration_abci:0.1.0:bafybeifd7xnrzlvss53a2yy672nejv45cgfwp2djhddsyn5iygrtp54weq
 - valory/reset_pause_abci:0.1.0:bafybeif7qwagyxsflutvqjqediho523s2fjandxjf6dm5aqhwjfptaqgjq
-- valory/termination_abci:0.1.0:bafybeie6iywcn5zkhuduc2ccnfsnef4np6yalaotts5c5qqfrqkv5kx6ki
-- valory/transaction_settlement_abci:0.1.0:bafybeihfuo3dzhn36vi4bhqnyfvbdpsbchizcqwfpvv74oztic4etbqfom
+- valory/termination_abci:0.1.0:bafybeiepmgvkqfxovtcumrv36yxats3ld3i56fjhihpvcxki27dwvddcfu
+- valory/transaction_settlement_abci:0.1.0:bafybeiglqjvyb2g66wzs3qxiy4cvyzlrcgoogxmpu6syr2xsg4avcfmwfe
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -90,8 +90,8 @@ models:
       log_dir: ${SKILL_REGISTER_RESET_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
   params:
     args:
-      tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
-      tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
+      tendermint_url: ${str:http://localhost:26657}
+      tendermint_com_url: ${str:http://localhost:8080}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection

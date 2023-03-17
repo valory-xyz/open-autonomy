@@ -82,8 +82,8 @@ models:
       log_dir: ${SKILL_REGISTER_RESET_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR:str:/benchmarks}
   params:
     args:
-      tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
-      tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
+      tendermint_url: ${str:http://localhost:26657}
+      tendermint_com_url: ${str:http://localhost:8080}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection

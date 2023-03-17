@@ -35,6 +35,7 @@ def get_all_extras() -> Dict:
     cli_deps = [
         "click==8.0.2",
         "open-aea-cli-ipfs==1.30.0",
+        "open-aea-ledger-ethereum-hwi==1.30.0",
     ]
 
     extras = {
@@ -56,7 +57,6 @@ base_deps = [
     "watchdog >=2.1.6",
     "pytest==7.2.1",
     "open-aea-ledger-ethereum==1.30.0",
-    "open-aea-ledger-ethereum-hwi>=1.30.0,<2.0.0",
     "docker-compose==1.29.2",
     "werkzeug==2.0.3",
     "docker==6.0.0",

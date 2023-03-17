@@ -53,3 +53,8 @@ type: skill
     benchmark_tool:
       args:
         log_dir: /logs
+---
+public_id: valory/abci:0.1.0
+type: connection
+config:
+  host: localhost

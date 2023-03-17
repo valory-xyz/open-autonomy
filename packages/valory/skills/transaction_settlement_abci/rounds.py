@@ -344,7 +344,7 @@ class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound):
     )
 
 
-class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound):
+class SelectKeeperTransactionSubmissionARound(CollectSameUntilThresholdRound):
     """A round in which a keeper is selected for transaction submission"""
 
     payload_class = SelectKeeperPayload
@@ -368,12 +368,12 @@ class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound):
         return super().end_block()
 
 
-class SelectKeeperTransactionSubmissionRoundB(SelectKeeperTransactionSubmissionRoundA):
+class SelectKeeperTransactionSubmissionBRound(SelectKeeperTransactionSubmissionARound):
     """A round in which a new keeper is selected for transaction submission"""
 
 
-class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
-    SelectKeeperTransactionSubmissionRoundB
+class SelectKeeperTransactionSubmissionBAfterTimeoutRound(
+    SelectKeeperTransactionSubmissionBRound
 ):
     """A round in which a new keeper is selected for tx submission after a round timeout of the previous keeper"""
 
@@ -646,7 +646,7 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - done: 1.
             - round timeout: 0.
             - no majority: 0.
-        1. SelectKeeperTransactionSubmissionRoundA
+        1. SelectKeeperTransactionSubmissionARound
             - done: 2.
             - round timeout: 1.
             - no majority: 10.
@@ -675,12 +675,12 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
             - check timeout: 5.
             - no majority: 5.
             - check late arriving message: 8.
-        6. SelectKeeperTransactionSubmissionRoundB
+        6. SelectKeeperTransactionSubmissionBRound
             - done: 3.
             - round timeout: 6.
             - no majority: 10.
             - incorrect serialization: 12.
-        7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
+        7. SelectKeeperTransactionSubmissionBAfterTimeoutRound
             - done: 3.
             - check history: 5.
             - check late arriving message: 8.
@@ -720,13 +720,13 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
     initial_states: Set[AppState] = {RandomnessTransactionSubmissionRound}
     transition_function: AbciAppTransitionFunction = {
         RandomnessTransactionSubmissionRound: {
-            Event.DONE: SelectKeeperTransactionSubmissionRoundA,
+            Event.DONE: SelectKeeperTransactionSubmissionARound,
             Event.ROUND_TIMEOUT: RandomnessTransactionSubmissionRound,
             Event.NO_MAJORITY: RandomnessTransactionSubmissionRound,
         },
-        SelectKeeperTransactionSubmissionRoundA: {
+        SelectKeeperTransactionSubmissionARound: {
             Event.DONE: CollectSignatureRound,
-            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundA,
+            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionARound,
             Event.NO_MAJORITY: ResetRound,
             Event.INCORRECT_SERIALIZATION: FailedRound,
         },
@@ -738,44 +738,44 @@ class TransactionSubmissionAbciApp(AbciApp[Event]):
         FinalizationRound: {
             Event.DONE: ValidateTransactionRound,
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
-            Event.FINALIZE_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterTimeout,
-            Event.FINALIZATION_FAILED: SelectKeeperTransactionSubmissionRoundB,
+            Event.FINALIZE_TIMEOUT: SelectKeeperTransactionSubmissionBAfterTimeoutRound,
+            Event.FINALIZATION_FAILED: SelectKeeperTransactionSubmissionBRound,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
-            Event.INSUFFICIENT_FUNDS: SelectKeeperTransactionSubmissionRoundB,
+            Event.INSUFFICIENT_FUNDS: SelectKeeperTransactionSubmissionBRound,
         },
         ValidateTransactionRound: {
             Event.DONE: FinishedTransactionSubmissionRound,
             Event.NEGATIVE: CheckTransactionHistoryRound,
-            Event.NONE: SelectKeeperTransactionSubmissionRoundB,
-            Event.VALIDATE_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
+            Event.NONE: SelectKeeperTransactionSubmissionBRound,
+            Event.VALIDATE_TIMEOUT: SelectKeeperTransactionSubmissionBRound,
             Event.NO_MAJORITY: ValidateTransactionRound,
         },
         CheckTransactionHistoryRound: {
             Event.DONE: FinishedTransactionSubmissionRound,
-            Event.NEGATIVE: SelectKeeperTransactionSubmissionRoundB,
+            Event.NEGATIVE: SelectKeeperTransactionSubmissionBRound,
             Event.NONE: FailedRound,
             Event.CHECK_TIMEOUT: CheckTransactionHistoryRound,
             Event.NO_MAJORITY: CheckTransactionHistoryRound,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
         },
-        SelectKeeperTransactionSubmissionRoundB: {
+        SelectKeeperTransactionSubmissionBRound: {
             Event.DONE: FinalizationRound,
-            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundB,
+            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionBRound,
             Event.NO_MAJORITY: ResetRound,
             Event.INCORRECT_SERIALIZATION: FailedRound,
         },
-        SelectKeeperTransactionSubmissionRoundBAfterTimeout: {
+        SelectKeeperTransactionSubmissionBAfterTimeoutRound: {
             Event.DONE: FinalizationRound,
             Event.CHECK_HISTORY: CheckTransactionHistoryRound,
             Event.CHECK_LATE_ARRIVING_MESSAGE: SynchronizeLateMessagesRound,
-            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionRoundBAfterTimeout,
+            Event.ROUND_TIMEOUT: SelectKeeperTransactionSubmissionBAfterTimeoutRound,
             Event.NO_MAJORITY: ResetRound,
             Event.INCORRECT_SERIALIZATION: FailedRound,
         },
         SynchronizeLateMessagesRound: {
             Event.DONE: CheckLateTxHashesRound,
             Event.ROUND_TIMEOUT: SynchronizeLateMessagesRound,
-            Event.NONE: SelectKeeperTransactionSubmissionRoundB,
+            Event.NONE: SelectKeeperTransactionSubmissionBRound,
             Event.SUSPICIOUS_ACTIVITY: FailedRound,
         },
         CheckLateTxHashesRound: {
