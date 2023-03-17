@@ -36,9 +36,12 @@ Initialise the deployment generator.
 #### build`_`agent`_`deployment
 
 ```python
-def build_agent_deployment(runtime_image: str, agent_ix: int,
-                           number_of_agents: int,
-                           agent_vars: Dict[str, Any]) -> str
+def build_agent_deployment(
+        runtime_image: str,
+        agent_ix: int,
+        number_of_agents: int,
+        agent_vars: Dict[str, Any],
+        agent_ports: Optional[Dict[int, int]] = None) -> str
 ```
 
 Build agent deployment.

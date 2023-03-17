@@ -42,6 +42,8 @@ from autonomy.deploy.generators.kubernetes.templates import (
     AGENT_SECRET_TEMPLATE,
     CLUSTER_CONFIGURATION_TEMPLATE,
     HARDHAT_TEMPLATE,
+    PORTS_CONFIG_DEPLOYMENT,
+    PORT_CONFIG_DEPLOYMENT,
 )
 
 
@@ -81,12 +83,23 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_ix: int,
         number_of_agents: int,
         agent_vars: Dict[str, Any],
+        agent_ports: Optional[Dict[int, int]] = None,
     ) -> str:
         """Build agent deployment."""
 
         host_names = ", ".join(
             [f'"--hostname=abci{i}"' for i in range(number_of_agents)]
         )
+
+        agent_ports_deployment = ""
+        if agent_ports is not None:
+            port_mappings = map(
+                lambda x: PORT_CONFIG_DEPLOYMENT.format(port=x[0]),
+                agent_ports.items(),
+            )
+            agent_ports_deployment = "\n".join(
+                [PORTS_CONFIG_DEPLOYMENT, *port_mappings]
+            )
 
         agent_deployment = AGENT_NODE_TEMPLATE.format(
             runtime_image=runtime_image,
@@ -97,6 +110,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
             tendermint_image_version=TENDERMINT_IMAGE_VERSION,
             log_level=self.service_builder.log_level,
+            agent_ports_deployment=agent_ports_deployment,
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
         resources = []
@@ -171,6 +185,11 @@ class KubernetesGenerator(BaseDeploymentGenerator):
                     agent_ix=i,
                     number_of_agents=self.service_builder.service.number_of_agents,
                     agent_vars=agent_vars[i],
+                    agent_ports=(
+                        self.service_builder.service.deployment_config.get("agent", {})
+                        .get("ports", {})
+                        .get(i)
+                    ),
                 )
                 for i in range(self.service_builder.service.number_of_agents)
             ]

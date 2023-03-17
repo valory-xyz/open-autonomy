@@ -72,6 +72,7 @@ agent: valory/oracle:0.1.0:bafybeihurloujnbugvvrv5xegyrdnsgl6z6at5xilq7f5ynjdeki
 number_of_agents: 1
 fingerprint: {}
 fingerprint_ignore_patterns: []
+deployment: {}
 """
 
 LIST_SKILL_OVERRIDE: str = """public_id: valory/price_estimation_abci:0.1.0

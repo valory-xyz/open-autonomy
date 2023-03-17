@@ -47,6 +47,8 @@ from autonomy.deploy.generators.docker_compose.templates import (
     ACN_NODE_TEMPLATE,
     DOCKER_COMPOSE_TEMPLATE,
     HARDHAT_NODE_TEMPLATE,
+    PORTS,
+    PORT_MAPPING_CONFIG,
     TENDERMINT_CONFIG_TEMPLATE,
     TENDERMINT_NODE_TEMPLATE,
 )
@@ -93,6 +95,7 @@ def build_agent_config(  # pylint: disable=too-many-arguments
     package_dir: Path = DEFAULT_PACKAGES_PATH,
     open_aea_dir: Path = DEFAULT_OPEN_AEA_DIR,
     open_autonomy_dir: Path = DEFAULT_OPEN_AUTONOMY_DIR,
+    agent_ports: Optional[Dict[int, int]] = None,
 ) -> str:
     """Build agent config."""
 
@@ -112,6 +115,14 @@ def build_agent_config(  # pylint: disable=too-many-arguments
         config += f"      - {package_dir}:/home/ubuntu/packages:rw\n"
         config += f"      - {open_aea_dir}:/open-aea\n"
         config += f"      - {open_autonomy_dir}:/open-autonomy\n"
+
+    if agent_ports is not None:
+        port_mappings = map(
+            lambda x: PORT_MAPPING_CONFIG.format(host_port=x[0], container_port=x[1]),
+            agent_ports.items(),
+        )
+        port_config = "\n".join([PORTS, *port_mappings])
+        config += port_config
 
     return config
 
@@ -181,6 +192,11 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     package_dir=self.packages_dir,
                     open_aea_dir=self.open_aea_dir,
                     open_autonomy_dir=self.open_autonomy_dir,
+                    agent_ports=(
+                        self.service_builder.service.deployment_config.get("agent", {})
+                        .get("ports", {})
+                        .get(i)
+                    ),
                 )
                 for i in range(self.service_builder.service.number_of_agents)
             ]

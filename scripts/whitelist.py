@@ -216,3 +216,4 @@ n_agents  # unused attribute (open-autonomy/autonomy/analyse/logs/collection.py:
 insert_one  # unused method (open-autonomy/autonomy/analyse/logs/db.py:143)
 _parse_logs  # unused function (open-autonomy/autonomy/cli/analyse.py:165)
 _check_service  # unused function (open-autonomy/autonomy/cli/analyse.py:289)
+get_metavar  # unused method (autonomy/cli/utils/click_utils.py:124)
