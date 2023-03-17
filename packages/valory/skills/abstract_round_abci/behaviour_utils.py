@@ -29,7 +29,18 @@ import sys
 from abc import ABC, ABCMeta, abstractmethod
 from enum import Enum
 from functools import partial
-from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 import pytz
 from aea.exceptions import enforce
@@ -1009,7 +1020,12 @@ class BaseBehaviour(
         ] = self.get_callback_request()
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
 
-    def _send_transaction_request(self, signing_msg: SigningMessage) -> None:
+    def _send_transaction_request(
+        self,
+        signing_msg: SigningMessage,
+        use_flashbots: bool = False,
+        target_block_numbers: Optional[List[int]] = None,
+    ) -> None:
         """
         Send transaction request.
 
@@ -1019,14 +1035,21 @@ class BaseBehaviour(
         Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param signing_msg: signing message
+        :param use_flashbots: whether to use flashbots for the transaction or not
+        :param target_block_numbers: the target block numbers in case we are using flashbots
         """
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
+        )
+        rpc_config = dict(
+            use_flashbots=use_flashbots,
+            target_block_numbers=target_block_numbers,
         )
         ledger_api_msg, ledger_api_dialogue = ledger_api_dialogues.create(
             counterparty=LEDGER_API_ADDRESS,
             performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
             signed_transaction=signing_msg.signed_transaction,
+            rpc_config=LedgerApiMessage.Kwargs(rpc_config),
         )
         ledger_api_dialogue = cast(LedgerApiDialogue, ledger_api_dialogue)
         request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
@@ -1446,7 +1469,10 @@ class BaseBehaviour(
         return signature_bytes
 
     def send_raw_transaction(
-        self, transaction: RawTransaction
+        self,
+        transaction: RawTransaction,
+        use_flashbots: bool = True,
+        target_block_numbers: Optional[List[int]] = None,
     ) -> Generator[
         None,
         Union[None, SigningMessage, LedgerApiMessage],
@@ -1466,6 +1492,8 @@ class BaseBehaviour(
             Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param transaction: transaction data
+        :param use_flashbots: whether to use flashbots for the transaction or not
+        :param target_block_numbers: the target block numbers in case we are using flashbots
         :yield: SigningMessage object
         :return: transaction hash
         """
@@ -1493,7 +1521,9 @@ class BaseBehaviour(
         self.context.logger.info(
             f"Received signature response: {signature_response}\n Sending transaction..."
         )
-        self._send_transaction_request(signature_response)
+        self._send_transaction_request(
+            signature_response, use_flashbots, target_block_numbers
+        )
         transaction_digest_msg = yield from self.wait_for_message()
         transaction_digest_msg = cast(LedgerApiMessage, transaction_digest_msg)
         if (
