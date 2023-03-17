@@ -353,7 +353,7 @@ class TestTransactionSettlementBaseBehaviour(TransactionSettlementFSMBehaviourBa
         # call `_get_tx_data`
         tx_data_iterator = cast(
             TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
-        )._get_tx_data(message)
+        )._get_tx_data(message, use_flashbots=False)
 
         if message.performative == ContractApiMessage.Performative.RAW_TRANSACTION:
             next(tx_data_iterator)
@@ -1254,6 +1254,16 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
                         participants=[participants],
                         participant_to_signature=[{}],
                         safe_contract_address=["safe_contract_address"],
+                        most_voted_tx_hash=[
+                            hash_payload_to_hex(
+                                "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                                1,
+                                1,
+                                "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
+                                b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+                                b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                            )
+                        ],
                     ),
                 )
             ),
@@ -1270,7 +1280,8 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
         else:
 
             def _dummy_get_tx_data(
-                _: ContractApiMessage,
+                _current_message: ContractApiMessage,
+                _use_flashbots: bool,
             ) -> Generator[None, None, TxDataType]:
                 yield
                 return {

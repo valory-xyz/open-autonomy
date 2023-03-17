@@ -1471,7 +1471,7 @@ class BaseBehaviour(
     def send_raw_transaction(
         self,
         transaction: RawTransaction,
-        use_flashbots: bool = True,
+        use_flashbots: bool = False,
         target_block_numbers: Optional[List[int]] = None,
     ) -> Generator[
         None,
