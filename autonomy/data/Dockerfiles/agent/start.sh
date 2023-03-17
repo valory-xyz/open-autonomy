@@ -21,9 +21,11 @@ else
     then
         echo "Generating the fresh key with a password!"
         aea generate-key ethereum --password $AEA_PASSWORD
+        aea generate-key ethereum-flashbots --password $AEA_PASSWORD
     else
         echo "Generating the fresh key without a password!"
         aea generate-key ethereum
+        aea generate-key ethereum-flashbots
     fi
 fi
 
@@ -33,6 +35,7 @@ then
     aea generate-key cosmos --connection --password $AEA_PASSWORD
     aea add-key cosmos --connection --password $AEA_PASSWORD || (echo "Failed to generate the cosmos key needed for libp2p connection" && exit 1)
     aea add-key ethereum --password $AEA_PASSWORD
+    aea add-key ethereum-flashbots --password $AEA_PASSWORD
     aea issue-certificates --password $AEA_PASSWORD --aev || (echo "Failed to add cosmos key needed for libp2p connection" && exit 1)
     aea run --aev --password $AEA_PASSWORD
 else
@@ -40,6 +43,7 @@ else
     aea generate-key cosmos --connection
     aea add-key cosmos --connection || (echo "Failed to generate the cosmos key needed for libp2p connection" && exit 1)
     aea add-key ethereum
+    aea add-key ethereum-flashbots
     aea issue-certificates --aev || (echo "Failed to add cosmos key needed for libp2p connection" && exit 1)
     aea run --aev
 fi
