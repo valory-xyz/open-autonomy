@@ -64,12 +64,14 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         agent_instances=agent_instances,
         apply_environment_variables=apply_environment_variables,
     )
+    service_builder.deplopyment_type = type_of_deployment
     service_builder.log_level = log_level
     service_builder.try_update_runtime_params(
         multisig_address=multisig_address,
         agent_instances=agent_instances,
         consensus_threshold=consensus_threshold,
     )
+    service_builder.try_update_abci_connection_params()
 
     DeploymentGenerator = DEPLOYMENT_OPTIONS[type_of_deployment]
     deployment = DeploymentGenerator(

@@ -27,6 +27,7 @@ from typing import Any, Tuple
 from unittest import mock
 
 from autonomy.cli import cli
+from autonomy.deploy.base import TENDERMINT_COM_URL_PARAM, TENDERMINT_URL_PARAM
 from autonomy.replay.agent import AgentRunner
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
@@ -43,13 +44,13 @@ DOCKER_COMPOSE_DATA = {
             "container_name": "abci0",
             "image": "valory/open-autonomy-open-aea:oracle_deployable-0.1.0",
             "environment": [
+                "ID=DUMMY",
                 "LOG_FILE=DUMMY",
                 "AEA_KEY=DUMMY",
                 "VALORY_APPLICATION=DUMMY",
                 "ABCI_HOST=DUMMY",
-                "TENDERMINT_URL=DUMMY",
-                "TENDERMINT_COM_URL=DUMMY",
-                "ID=DUMMY",
+                f"SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_{TENDERMINT_URL_PARAM.upper()}=DUMMY",
+                f"SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_{TENDERMINT_COM_URL_PARAM.upper()}=DUMMY",
                 "SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_URL=DUMMY",
                 "SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_API_ID=DUMMY",
                 "SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_PARAMETERS=DUMMY",

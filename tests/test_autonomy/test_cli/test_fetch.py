@@ -111,7 +111,7 @@ class TestFetchServiceCommand(FetchTest):
 
     def test_publish_and_fetch_service_ipfs(self) -> None:
         """Test fetch service."""
-        expected_hash = "bafybeic7k4hlrozzc6gfoaygnjr22tg6ukua3rdxt5fmkaplysrw3txvii"
+        expected_hash = "bafybeia6v72t5evwfpnynveuuxsfg6hfoyudmwsxitgku6yvucsp4vjhhe"
 
         service_dir = self.t / "dummy_service"
         service_file = service_dir / "service.yaml"

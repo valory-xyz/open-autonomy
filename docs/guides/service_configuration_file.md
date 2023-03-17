@@ -33,6 +33,7 @@ The service configuration file `service.yaml` is typically composed of service-s
     fingerprint_ignore_patterns: []
     agent: valory/hello_world:0.1.0:bafybeihqzkncz7r563lfkots4fphb7abdymdna4ir7in7fsbzjtx6yyndq
     number_of_agents: 4
+    deployment: {}
     ---
     extra:
       benchmark_persistence_params:
@@ -98,7 +99,7 @@ There are a number of mandatory attributes that define the service, which are su
 | `fingerprint_ignore_patterns` | Filename patterns to be ignored.                                                                                                                                                                      |
 | `agent`                       | Canonical agent, in the form `<agent_public_id>:<version>:<hash>`.                                                                                                                                    |
 | `number_of_agents`            | Number of agent instances that the service is composed of.                                                                                                                                            |                                                                                                                                         |
-
+| `deployment`            | External deployment configuration for configuring external hosts and ports.                                                                                                                                            |                                                                                                                                         |
 ## Service-level overrides
 
 The {{open_aea}} framework already has the notion of [component overrides](https://open-aea.docs.autonolas.tech/overrides/): if a component uses another component, the former can override configuration values of the latter.
@@ -372,4 +373,39 @@ models:
       list_with_mappings:
         - key: ${<env_var_name>:<type>:<default_value>}
         - key: ${<env_var_name>:<type>:<default_value>}
+```
+
+## Configure external ports
+
+To expose container ports to host machine ports use following configuration
+
+```yaml
+(...)
+deployment:
+  agent:
+    ports:
+      <agent_id>:
+        <container_port>: <machine_port>
+```
+
+For example if you want to map port `8080` of the agent 0 to `8081` of the host machine port you can use following configuration
+
+```yaml
+(...)
+deployment:
+  agent:
+    ports:
+      0:
+        8080: 8081
+```
+
+You can also configure these using environment variables
+
+```yaml
+(...)
+deployment:
+  agent:
+    ports:
+      0:
+        8080: ${AGENT_0_HTTP_PORT:int:8080}
 ```
