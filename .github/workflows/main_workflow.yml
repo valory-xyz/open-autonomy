@@ -68,10 +68,12 @@ jobs:
         sudo apt-get update --fix-missing
         sudo apt-get autoremove
         sudo apt-get autoclean
-        pip install tomte[tox]==0.2.2
+        pip install tomte[tox]==0.2.4
         pip install --user --upgrade setuptools
-    - name: Check copyright
+    - name: Check copyright headers
       run: tox -e check-copyright
+    - name: License compatibility check
+      run: tox -e liccheck
     - name: Check docs
       run: tox -e check-api-docs
     - name: Check doc links and IPFS hashes
@@ -103,7 +105,7 @@ jobs:
         sudo apt-get update --fix-missing
         sudo apt-get autoremove
         sudo apt-get autoclean
-        pip install tomte[tox]==0.2.2
+        pip install tomte[tox]==0.2.4
         pip install --user --upgrade setuptools
         # install Protobuf compiler
         wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-linux-x86_64.zip
@@ -195,7 +197,7 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install tomte[tox]==0.2.2
+          pip install tomte[tox]==0.2.4
           pip install --user --upgrade setuptools
 
           # install Protobuf compiler
@@ -227,7 +229,7 @@ jobs:
           TM_DEPLOYMENT_PATH="deployments/Dockerfiles/tendermint/"
           TM_IMG_NAME="valory/open-autonomy-tendermint"
           docker build $TM_DEPLOYMENT_PATH -t $TM_IMG_NAME:0.1.0 -t $TM_IMG_NAME:1.0.0 -t $TM_IMG_NAME:latest
-          
+
           # pull pre-built images
           docker pull valory/autonolas-registries:latest
           docker pull valory/contracts-amm:latest
@@ -240,7 +242,7 @@ jobs:
         name: Framework unit tests ubuntu-latest
         run: |
           tox -e py${{ matrix.python-version }}-linux -- -m 'not e2e'
-      
+
       - if: matrix.os == 'ubuntu-latest'
         name: Packages unit tests ubuntu-latest
         run: |
@@ -249,7 +251,7 @@ jobs:
       - if: matrix.os == 'macos-latest'
         name: Install dependencies (macos-latest)
         run: |
-          pip install tomte[tox]==0.2.2
+          pip install tomte[tox]==0.2.4
           brew install gcc
           # brew install protobuf
           # brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/72457f0166d5619a83f508f2345b22d0617b5021/Formula/protobuf.rb
@@ -283,7 +285,7 @@ jobs:
         name: Framework unit tests macos-latest
         run: |
           tox -e py${{ matrix.python-version }}-darwin -- -m 'not e2e'
-      
+
       - if: matrix.os == 'macos-latest'
         name: Packages unit tests macos-latest
         run: |
@@ -302,7 +304,7 @@ jobs:
           choco install make -y
           # to check make was installed
           make --version
-          pip install tomte[tox]==0.2.2
+          pip install tomte[tox]==0.2.4
           # wget https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/protoc-3.19.4-win64.zip
           # unzip protoc-3.19.4-win64.zip -d protoc
           # sudo mv protoc/bin/protoc /usr/local/bin/protoc
@@ -334,7 +336,7 @@ jobs:
         name: Framework unit tests windows-latest
         run: |
           tox -e py${{ matrix.python-version }}-win -- -m 'not e2e'
-      
+
       - if: matrix.os == 'windows-latest'
         name: Packages unit tests windows-latest
         run: |
@@ -377,7 +379,7 @@ jobs:
           sudo apt-get update --fix-missing
           sudo apt-get autoremove
           sudo apt-get autoclean
-          pip install tomte[tox]==0.2.2
+          pip install tomte[tox]==0.2.4
           pip install --user --upgrade setuptools
 
           # install Protobuf compiler
@@ -405,7 +407,7 @@ jobs:
           TM_DEPLOYMENT_PATH="deployments/Dockerfiles/tendermint/"
           TM_IMG_NAME="valory/open-autonomy-tendermint"
           docker build $TM_DEPLOYMENT_PATH -t $TM_IMG_NAME:0.1.0 -t $TM_IMG_NAME:1.0.0 -t $TM_IMG_NAME:latest
-          
+
           # pull pre-built images
           docker pull valory/autonolas-registries:latest
           docker pull valory/contracts-amm:latest

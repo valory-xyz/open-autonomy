@@ -143,8 +143,8 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
             all_participants: ${list:[]}
             safe_contract_address: ${str:'0x0000000000000000000000000000000000000000'}
             consensus_threshold: ${int:null}
-          tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
-          tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
+          tendermint_url: ${str:http://localhost:26657}
+          tendermint_com_url: ${str:http://localhost:8080}
           service_registry_address: ${str:null}
           share_tm_config_on_startup: ${bool:false}
           on_chain_service_id: ${int:null}
@@ -180,8 +180,8 @@ See also the [service level overrides](../guides/service_configuration_file.md#s
             all_participants: ${ALL_PARTICIPANTS:list:["0x...","0x...","0x...","0x..."]}      
             safe_contract_address: ${SAFE_CONTRACT_ADDRESS:str:0x...}
             consensus_threshold: ${CONSENSUS_THRESHOLD:int:null}
-          tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
-          tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
+          tendermint_url: ${str:http://localhost:26657}
+          tendermint_com_url: ${str:http://localhost:8080}
           service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:0x...}
           share_tm_config_on_startup: ${SHARE_TM_CONFIG_ON_STARTUP:bool:false}
           on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}

@@ -9,6 +9,7 @@ fingerprint:
 fingerprint_ignore_patterns: []
 agent: valory/hello_world:0.1.0:bafybeiaotnukv7oq2sknot73a4zssrrnjezh6nd2fwptrznxtnovy2rusm
 number_of_agents: 1
+deployment: {}
 ---
 public_id: valory/dummy_skill:0.1.0
 type: skill

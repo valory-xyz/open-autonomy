@@ -307,17 +307,17 @@ class RandomnessTransactionSubmissionRound(CollectSameUntilThresholdRound)
 
 A round for generating randomness
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundA"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionARound"></a>
 
-## SelectKeeperTransactionSubmissionRoundA Objects
+## SelectKeeperTransactionSubmissionARound Objects
 
 ```python
-class SelectKeeperTransactionSubmissionRoundA(CollectSameUntilThresholdRound)
+class SelectKeeperTransactionSubmissionARound(CollectSameUntilThresholdRound)
 ```
 
 A round in which a keeper is selected for transaction submission
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundA.end_block"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionARound.end_block"></a>
 
 #### end`_`block
 
@@ -327,29 +327,29 @@ def end_block() -> Optional[Tuple[BaseSynchronizedData, Enum]]
 
 Process the end of the block.
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundB"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionBRound"></a>
 
-## SelectKeeperTransactionSubmissionRoundB Objects
+## SelectKeeperTransactionSubmissionBRound Objects
 
 ```python
-class SelectKeeperTransactionSubmissionRoundB(
-        SelectKeeperTransactionSubmissionRoundA)
+class SelectKeeperTransactionSubmissionBRound(
+        SelectKeeperTransactionSubmissionARound)
 ```
 
 A round in which a new keeper is selected for transaction submission
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundBAfterTimeout"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionBAfterTimeoutRound"></a>
 
-## SelectKeeperTransactionSubmissionRoundBAfterTimeout Objects
+## SelectKeeperTransactionSubmissionBAfterTimeoutRound Objects
 
 ```python
-class SelectKeeperTransactionSubmissionRoundBAfterTimeout(
-        SelectKeeperTransactionSubmissionRoundB)
+class SelectKeeperTransactionSubmissionBAfterTimeoutRound(
+        SelectKeeperTransactionSubmissionBRound)
 ```
 
 A round in which a new keeper is selected for tx submission after a round timeout of the previous keeper
 
-<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionRoundBAfterTimeout.end_block"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.rounds.SelectKeeperTransactionSubmissionBAfterTimeoutRound.end_block"></a>
 
 #### end`_`block
 
@@ -498,7 +498,7 @@ Transition states:
         - done: 1.
         - round timeout: 0.
         - no majority: 0.
-    1. SelectKeeperTransactionSubmissionRoundA
+    1. SelectKeeperTransactionSubmissionARound
         - done: 2.
         - round timeout: 1.
         - no majority: 10.
@@ -527,12 +527,12 @@ Transition states:
         - check timeout: 5.
         - no majority: 5.
         - check late arriving message: 8.
-    6. SelectKeeperTransactionSubmissionRoundB
+    6. SelectKeeperTransactionSubmissionBRound
         - done: 3.
         - round timeout: 6.
         - no majority: 10.
         - incorrect serialization: 12.
-    7. SelectKeeperTransactionSubmissionRoundBAfterTimeout
+    7. SelectKeeperTransactionSubmissionBAfterTimeoutRound
         - done: 3.
         - check history: 5.
         - check late arriving message: 8.

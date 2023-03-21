@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,16 +20,7 @@
 """Constants for generating deployments environment."""
 
 from string import Template
-from typing import Any, Dict
 
-
-TENDERMINT_CONFIGURATION_OVERRIDES: Dict[str, Dict[str, Any]] = {
-    "kubernetes": {
-        "TENDERMINT_URL": "http://localhost:26657",
-        "TENDERMINT_COM_URL": "http://localhost:8080",
-        "ABCI_HOST": "localhost",
-    }
-}
 
 DEPLOYMENT_REPORT: Template = Template(
     """
