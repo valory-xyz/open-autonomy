@@ -21,12 +21,11 @@ else
     then
         echo "Generating the fresh key with a password!"
         aea generate-key ethereum --password $AEA_PASSWORD
-        aea generate-key ethereum-flashbots --password $AEA_PASSWORD
     else
         echo "Generating the fresh key without a password!"
         aea generate-key ethereum
-        aea generate-key ethereum-flashbots
     fi
+    cp ethereum_private_key.txt ethereum_flashbots_private_key.txt
 fi
 
 if [ "$AEA_PASSWORD" != "" ];

@@ -103,6 +103,10 @@ class AgentRunner:
             [*self.aea_cli, "add-key", "ethereum"], env=self.agent_env
         )
         subprocess.run(  # nosec # pylint: disable=subprocess-run-check
+            ["cp", "ethereum_private_key.txt", "ethereum_flashbots_private_key.txt"],
+            env=self.agent_env,
+        )
+        subprocess.run(  # nosec # pylint: disable=subprocess-run-check
             [*self.aea_cli, "add-key", "ethereum-flashbots"], env=self.agent_env
         )
         subprocess.run(  # nosec # pylint: disable=subprocess-run-check
