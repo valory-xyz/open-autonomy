@@ -1290,7 +1290,8 @@ class TestBaseBehaviour:
                 target_block_numbers,
             )
             create_mock.assert_called_once()
-            actual_kwargs = create_mock.call_args.kwargs
+            # not using `create_mock.call_args.kwargs` because it is not compatible with Python 3.7
+            actual_kwargs = create_mock.call_args[1]
             assert actual_kwargs == expected_kwargs
 
     def test_send_transaction_receipt_request(self) -> None:
