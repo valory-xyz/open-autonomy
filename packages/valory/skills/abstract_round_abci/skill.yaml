@@ -10,7 +10,7 @@ fingerprint:
   __init__.py: bafybeicjyrltgdmwzvctebhfteyyd5mbrjashiji4glwf5vwcijuyzzm24
   abci_app_chain.py: bafybeic6uzd7oywbnhoqrv5bitan2kw7sgfejgnmjbe5sobvckvk2qisvm
   base.py: bafybeigfursyityrz4brtl475qb767c4qhzmzzya56l5tamje3dz5ybrsy
-  behaviour_utils.py: bafybeif6zl6qwzzyqankkspjqcrdkxgef4gsolxsvajmr23qoj6kqlu3k4
+  behaviour_utils.py: bafybeigxqnacnk56uja3p3ywznmejfahro5ixk77brdr6stwbvhgjdycii
   behaviours.py: bafybeicapzsvzowpjawkxgkhf2m4qb7c3alh5rsysrxp55o7pmjt6bu2g4
   common.py: bafybeidzqdfvwf226d5qeqcyzpkqsjy6kiawoz5ldsfvzzhtym3f73giia
   dialogues.py: bafybeid5sgrfa7ghnnjpssltgtey5gzt5kc2jlaitffaukvhhdbhrzcjti
@@ -41,7 +41,7 @@ fingerprint:
   tests/test_base.py: bafybeiek357ciorty2flxg2l6omccgl55yoi3vonrmp5tssl6nx6y4urja
   tests/test_base_rounds.py: bafybeiatnef47roakdc6g6wvz3wxppb4wdwu2vqoumakkdnz5ehfgzfjea
   tests/test_behaviours.py: bafybeid3yzt6o5ky5rfjvjpytpuad2oazsh3ei3mhvmchxuwplojgtwyiq
-  tests/test_behaviours_utils.py: bafybeiewufn4zagw4mmrmpkpptf6lmacfhujpdekfe5adlgvxhg2c4ds7i
+  tests/test_behaviours_utils.py: bafybeids2ckd2pb4uepsa5l73kfrgdb4p6rzsixsxvijakwkx3g4wosbcm
   tests/test_common.py: bafybeigruyqp6h4qim3nsijeg5mvoot2dei2yzm5zxpank22vjyyiaysue
   tests/test_dialogues.py: bafybeigpfrslqaz2yullyehia5bsl7cmy2qqxtz627ig7rbrypw5xfzeum
   tests/test_handlers.py: bafybeiho7ruvh6gilajz5ns6cljdrxis2tzualmgkksprwdpm7art4ambm
@@ -149,7 +149,7 @@ dependencies:
   open-aea-test-autonomy:
     version: ==0.9.1
   protobuf:
-    version: '>=3.20,<=3.20.1'
+    version: <=3.20.1,>=3.20
   py-ecc:
     version: ==5.2.0
   pytz:
