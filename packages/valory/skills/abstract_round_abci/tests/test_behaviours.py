@@ -532,6 +532,43 @@ class TestAbstractRoundBehaviour:
         AbstractRoundBehaviour,
         "_process_current_round",
     )
+    @mock.patch.object(
+        TmManager,
+        "tm_communication_unhealthy",
+        new_callable=mock.PropertyMock,
+        return_value=False,
+    )
+    @mock.patch.object(
+        TmManager,
+        "is_acting",
+        new_callable=mock.PropertyMock,
+        return_value=False,
+    )
+    @pytest.mark.parametrize("expected_background_acting", (True, False))
+    def test_background_behaviour_acting(
+        self,
+        _: mock._patch,
+        __: mock._patch,
+        ___: mock._patch,
+        expected_background_acting: bool,
+    ) -> None:
+        """Test if the background behaviour is acting only when it should."""
+        self.behaviour.context.params.use_termination = expected_background_acting
+        self.behaviour.setup()
+        if expected_background_acting:
+            with mock.patch.object(
+                self.behaviour.background_behaviour,
+                "act_wrapper",
+            ) as mock_background_act:
+                self.behaviour.act()
+                mock_background_act.assert_called()
+        else:
+            assert self.behaviour.background_behaviour is None
+
+    @mock.patch.object(
+        AbstractRoundBehaviour,
+        "_process_current_round",
+    )
     @pytest.mark.parametrize(
         ("mock_tm_communication_unhealthy", "mock_is_acting", "expected_fix"),
         [
