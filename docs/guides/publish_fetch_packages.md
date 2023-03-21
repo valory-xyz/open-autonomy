@@ -120,7 +120,7 @@ If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech
     ```
 
 ## Publish and fetch agents
-This section assumes that you have a newly created agent in a workspace folder. It is out of the scope of this guide how to create agents. You can review the [guide to create a service from scratch](./create_service_from_scratch.md), or the {{open_aea_doc}}. Your agent should be located in an agent folder (i.e., a folder containing the file `aea-config.yaml`).
+This section assumes that you have a newly created agent in a workspace folder. It is out of the scope of this guide how to create agents. You can review the [guide to define an agent](./define_agent.md), or the {{open_aea_doc}}. Your agent should be located in an agent folder (i.e., a folder containing the file `aea-config.yaml`).
 
 ### Publish an agent on a registry
 
@@ -165,7 +165,7 @@ If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech
 
 
 ## Publish and fetch services
-This section assumes that you have a newly created service in a workspace folder. It is out of the scope of this guide how to create services. You can review the [guide to create a service with an existing agent](./define_service.md), or the [guide to create a service from scratch](./create_service_from_scratch.md). Your service should be located in an service folder (i.e., a folder containing the file `service.yaml`).
+This section assumes that you have a newly created service in a workspace folder. It is out of the scope of this guide how to create services. You can review the [guide to create a service with an existing agent](./define_service.md), or the [guide to define a service](./define_service.md). Your service should be located in an service folder (i.e., a folder containing the file `service.yaml`).
 
 ### Publish a service on a registry
 

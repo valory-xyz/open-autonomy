@@ -173,17 +173,21 @@ If you have [set up the local registry](./set_up.md#set-up-the-local-registry) w
 
 3. **Create an entry for your agent in the local registry.** Add the corresponding entry to the local registry index file (`./packages/packages.json`). You must add the entry to the `dev` section, because it is a component being developed by you. You can use a placeholder for its hash value, as it will be corrected afterwards:
 
-    ```json
+	<!-- Use js instead of json lexer to support mkdocs-material comment features -->
+    ```js
     {
       "dev": {
         "agent/your_name/your_agent/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
-        (...)
+        /* (1)! */
       },
       "third_party": {
-        (...)
+        /* (2)! */
       }
     }
     ```
+    
+    1. Any other `dev` entries you have go here.
+    2. Any other `third_party` entries you have go here.
 
     Update the package hashes. The command below will correct any hash mismatch in the `aea-config.yaml` file, as well as in the local registry index file (`./packages/packages.json`):
 

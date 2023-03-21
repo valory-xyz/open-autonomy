@@ -1,4 +1,4 @@
-Once you have finished developing and testing your service locally, is time to publish the developed software packages on a remote registry (so that they become publicly available) and mint them in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
+Once you have finished developing and testing your service locally, it is time to publish the developed software packages on a remote registry (so that they become publicly available) and mint them in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
 
 <figure markdown>
 ![](../images/development_process_mint_packages_on_chain.svg)
@@ -20,23 +20,33 @@ You must ensure that your machine satisfies the framework requirements and that 
 
 If you have developed your components in the local registry, then the index file (`./packages/packages.json`) should contain a reference for them in the `dev` section, for example:
 
-```json
+<!-- Use js instead of json lexer to support mkdocs-material comment features -->
+```js
 {
     "dev": {
         "service/your_name/your_service/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
         "agent/your_name/your_agent/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
         "skill/your_name/your_fsm_app/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000"
+        /* (1)! */
     },
     "third_party": {
-        (...)
+        /* (2)! */
     }
 }
 ```
 
-The easiest way to have your components published in the remote registry is by executing the following commands:
+1. Any other `dev` entries you have go here.
+2. Any other `third_party` entries you have go here.
+
+The easiest way to have your components published in the remote registry is by locking the packages in the local registry:
 
 ```bash
 autonomy packages lock
+```
+
+and pushing them to the remote registry:
+
+```bash
 autonomy push-all
 ```
 
@@ -52,7 +62,7 @@ To mint packages you need:
     * a crypto wallet (e.g., [Metamask](https://metamask.io/) or a cold wallet), or
     * a multisig contract (like [Safe](https://safe.global/)) which allows to connect via [Wallet Connect](https://walletconnect.com/).
   
-    In either case, the address must have funds for the chain that you wish to mint the package.
+    In either case, the address must have funds for the chain that you wish to mint the package on.
 
 * The **hash of the package** that you want to mint, and which must have been published into a remote registry.
 

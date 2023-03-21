@@ -13,7 +13,7 @@ You must ensure that your machine satisfies the framework requirements and that 
 
 ## Step-by-step instructions
 
-The process to define a service configuration is similar if you are using an agent being developed by you (for example, [the agent created in the previous guide](./define_agent.md)), or an existingm, third-party agent downloaded from the remote registry. In the example below, we will be using the `hello_world` agent from the remote registry, which can be found in the [list of packages shipped with the framework](../package_list.md), but you can replace it with your own agent.
+The process to define a service configuration is similar if you are using an agent being developed by you (for example, [the agent created in the previous guide](./define_agent.md)), or an existing, third-party agent downloaded from the remote registry. In the example below, we will be using the `hello_world` agent from the remote registry, which can be found in the [list of packages shipped with the framework](../package_list.md), but you can replace it with your own agent.
 
 1. **Ensure that the agent required by your service is in the local registry.** Your service agent, all its required components and their dependencies must be downloaded to the local registry. You can read [how to add missing components to the local registry](#).
 If you have [set up the local registry](./set_up.md#set-up-the-local-registry) with the required components to follow these guides, you do not need to take any further action.
@@ -84,17 +84,21 @@ If you have [set up the local registry](./set_up.md#set-up-the-local-registry) w
 
 3. **Create an entry for your service in the local registry.** Add the corresponding entry to the local registry index file (`./packages/packages.json`). You must add the entry to the `dev` section, because it is a component being developed by you. You can use a placeholder for its hash value, as it will be corrected afterwards:
 
-    ```json
+	<!-- Use js instead of json lexer to support mkdocs-material comment features -->
+    ```js
     {
       "dev": {
         "service/your_name/your_service/0.1.0": "bafybei0000000000000000000000000000000000000000000000000000",
-        (...)
+        /* (1)! */
       },
       "third_party": {
-        (...)
+        /* (2)! */
       }
     }
     ```
+    
+    1. Any other `dev` entries you have go here.
+    2. Any other `third_party` entries you have go here.
 
     Update the package hashes. The command below will correct any hash mismatch in the `service.yaml` file, as well as in the local registry index file (`./packages/packages.json`):
 

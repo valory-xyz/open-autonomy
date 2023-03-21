@@ -1,4 +1,4 @@
-Deploying a service with the {{open_autonomy}} framework requires that you have an already available service configuration, which you could be a service created from scratch, fetched from the [IPFS](https://ipfs.io/), or already registered in the on-chain protocol.
+Deploying a service with the {{open_autonomy}} framework requires that you have a service configuration file available, which you could be a service created from scratch, fetched from the remote registry, or already registered in the on-chain protocol.
 
 <figure markdown>
 ![](../images/development_process_deploy_service.svg)

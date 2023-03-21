@@ -10,6 +10,8 @@ theme:
   features:
     - navigation.top
     - navigation.indexes
+    - content.code.copy
+    - content.code.annotate
 
 extra_css:
   - stylesheets/extra.css

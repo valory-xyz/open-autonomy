@@ -15,14 +15,14 @@ You must ensure that your machine satisfies the framework requirements and that 
 
 ## Draft the service idea
 
-Describe the business logic of your service as an FSM. That is, determine, at high-level, what are the states, events and transitions of the service:
+Describe the business logic of your service as an FSM. That is, determine, at a high level, what are the states, events and transitions of the service:
 
 * **States** define points where actions are executed (e.g., an agent sends a transaction on-chain).
 * **Events** represent observed conditions (e.g., all agents have shared a value, or a timeout has occurred).
 * **Transitions** define how to move from one state to another based on the events observed (e.g., if the service observes an error event in a certain state, then move back to the initial state).
 
 ???+ example "Example of a service FSM"
-    This is an example of the FSM of the [Hello World service](../demos/hello_world_demo.md), at high level. You can learn more about the purpose of each of the states, events and transitions in its [dedicated section](../demos/hello_world_demo.md).
+    This is an example of the FSM of the [Hello World service](../demos/hello_world_demo.md), at high level. You can learn more about the purpose of each of the states, events and transitions in the [dedicated section](../demos/hello_world_demo.md).
 
     <figure markdown>
     ![](../images/hello_world_fsm.svg)
@@ -33,7 +33,7 @@ Describe the business logic of your service as an FSM. That is, determine, at hi
     An important decision when designing your service is to determine what kind of agreement is required to transit from one state to another. For example:
 
     * Do agents have to collect and share a common value (e.g., a value observed from the same service provider) or a different value (e.g., each agent collects a value from a different service provider)?
-    * Do all agents need to participate in the agreement to transit to another state, or it is enough that only a threshold of agents participate?
+    * Do all agents need to participate in the agreement to transit to another state, or is it enough that only a threshold of agents participate?
 
 ## Define the FSM specification
 
