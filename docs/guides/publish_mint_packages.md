@@ -35,8 +35,8 @@ If you have developed your components in the local registry, then the index file
 }
 ```
 
-1. Any other `dev` entries you have go here.
-2. Any other `third_party` entries you have go here.
+1. Any other `dev` entries that you have go here. Entries must be comma-separated (`,`).
+2. Any other `third_party` entries that you have go here. Entries must be comma-separated (`,`).
 
 The easiest way to have your components published in the remote registry is by locking the packages in the local registry:
 

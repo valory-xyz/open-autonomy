@@ -16,7 +16,7 @@ You must ensure that your machine satisfies the framework requirements and that 
 This section covers the deployment of services being developed in the local registry. You can use such deployments to test your service before you mint it in the Autonolas Protocol.
 
 1. **Fetch the service.** In the workspace folder, fetch the service from the local registry:
-    <!-- TODO: autonomy packages lock + push all should not be necessary here, but otherwise it cannot build the image. -->
+    <!-- TODO: packages lock + push all should not be necessary here, but otherwise it cannot build the image. -->
     ```bash
     autonomy packages lock
     autonomy push-all

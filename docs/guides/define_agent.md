@@ -186,8 +186,8 @@ If you have [set up the local registry](./set_up.md#set-up-the-local-registry) w
     }
     ```
     
-    1. Any other `dev` entries you have go here.
-    2. Any other `third_party` entries you have go here.
+    1. Any other `dev` entries that you have go here. Entries must be comma-separated (`,`).
+    2. Any other `third_party` entries that you have go here. Entries must be comma-separated (`,`).
 
     Update the package hashes. The command below will correct any hash mismatch in the `aea-config.yaml` file, as well as in the local registry index file (`./packages/packages.json`):
 
