@@ -302,6 +302,7 @@ class BaseParams(
             "share_tm_config_on_startup", kwargs, bool
         )
         self.tendermint_p2p_url: str = self._ensure("tendermint_p2p_url", kwargs, str)
+        self.use_termination: bool = self._ensure("use_termination", kwargs, bool)
         self.setup_params: Dict[str, Any] = self._ensure("setup", kwargs, dict)
 
         # we sanitize for null values as these are just kept for schema definitions

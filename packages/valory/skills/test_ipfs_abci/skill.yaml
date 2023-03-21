@@ -125,6 +125,7 @@ models:
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_p2p_url: localhost:26656
+      use_termination: false
       tendermint_url: http://localhost:26657
       termination_sleep: 900
       tx_timeout: 10.0
