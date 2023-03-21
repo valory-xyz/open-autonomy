@@ -202,16 +202,26 @@ class TestAbstractRoundBehaviour:
     def setup(self) -> None:
         """Set up the tests."""
         self.round_sequence_mock = MagicMock()
-        context_mock = MagicMock()
+        context_mock = MagicMock(params=MagicMock())
         context_mock.state.round_sequence = self.round_sequence_mock
         context_mock.state.round_sequence.syncing_up = False
         self.round_sequence_mock.block_stall_deadline_expired = False
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
         self.behaviour.tm_manager = self.behaviour.instantiate_behaviour_cls(TmManager)  # type: ignore
 
-    def test_setup(self) -> None:
+    @pytest.mark.parametrize("use_termination", (True, False))
+    def test_setup(self, use_termination: bool) -> None:
         """Test 'setup' method."""
+        assert self.behaviour.background_behaviour is None
+        self.behaviour.context.params.use_termination = use_termination
         self.behaviour.setup()
+        background_behaviour = self.behaviour.background_behaviour
+        assert self.behaviour.background_behaviour_cls == ConcreteBackgroundBehaviour
+        assert (
+            isinstance(background_behaviour, self.behaviour.background_behaviour_cls)
+            if use_termination
+            else background_behaviour is None
+        )
 
     def test_teardown(self) -> None:
         """Test 'teardown' method."""
