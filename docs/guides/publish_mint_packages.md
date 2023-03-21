@@ -74,9 +74,9 @@ The [Autonolas Protocol web app](https://protocol.autonolas.network/) provides a
 
 Read the [Autonolas Protocol docs](https://docs.autonolas.network/protocol/), and follow the corresponding instructions to get your software package minted:
 
-* [Mint a component.](https://docs.autonolas.network/protocol/mint_packages_on-chain/#mint-a-component)
-* [Mint an agent.](https://docs.autonolas.network/protocol/mint_packages_on-chain/#mint-an-agent)
-* [Mint a service.](https://docs.autonolas.network/protocol/mint_packages_on-chain/#mint-a-service)
+* [Mint a component.](https://docs.autonolas.network/protocol/mint_packages_nfts/#mint-a-component)
+* [Mint an agent.](https://docs.autonolas.network/protocol/mint_packages_nfts/#mint-an-agent)
+* [Mint a service.](https://docs.autonolas.network/protocol/mint_packages_nfts/#mint-a-service)
 
 ### Mint packages using the CLI
 
