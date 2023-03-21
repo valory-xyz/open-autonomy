@@ -29,8 +29,8 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifqqnpcxrxgsq6mvdhpuc7naj7y5rkppx5eppffsrw4ly5uxdht6q
-- valory/transaction_settlement_abci:0.1.0:bafybeias22azyscd7jemxfj2n2btmzcmzixe3pdq6r3gicqehc7sobsfoq
+- valory/abstract_round_abci:0.1.0:bafybeidlwhilzhl5pooyvnqvzunwscztbynvjs4rqwxax2m5nsd5azz6ti
+- valory/transaction_settlement_abci:0.1.0:bafybeihzsqg2cqkpe55e3hh6udgy2pnbplarmwcdpv7wf3a5rp5vp67xvy
 behaviours:
   main:
     args: {}
@@ -125,10 +125,10 @@ models:
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_p2p_url: localhost:26656
-      use_termination: false
       tendermint_url: http://localhost:26657
       termination_sleep: 900
       tx_timeout: 10.0
+      use_termination: false
       validate_timeout: 1205
     class_name: TerminationParams
   requests:

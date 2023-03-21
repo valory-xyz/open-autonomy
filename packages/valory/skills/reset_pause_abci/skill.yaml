@@ -26,7 +26,7 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifqqnpcxrxgsq6mvdhpuc7naj7y5rkppx5eppffsrw4ly5uxdht6q
+- valory/abstract_round_abci:0.1.0:bafybeidlwhilzhl5pooyvnqvzunwscztbynvjs4rqwxax2m5nsd5azz6ti
 behaviours:
   main:
     args: {}
@@ -115,9 +115,9 @@ models:
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_p2p_url: localhost:26656
-      use_termination: false
       tendermint_url: http://localhost:26657
       tx_timeout: 10.0
+      use_termination: false
     class_name: Params
   requests:
     args: {}
