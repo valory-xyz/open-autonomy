@@ -53,6 +53,7 @@ from packages.valory.protocols.ipfs.dialogues import IpfsDialogue
 from packages.valory.protocols.ledger_api.custom_types import (
     SignedTransaction,
     TransactionDigest,
+    TransactionDigests,
 )
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.protocols.tendermint import TendermintMessage
@@ -62,6 +63,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     BaseTxPayload,
     DegenerateRound,
+    LEDGER_API_ADDRESS,
     OK_CODE,
     Transaction,
 )
@@ -1246,14 +1248,50 @@ class TestBaseBehaviour:
         ):
             self.behaviour._send_transaction_signing_request(MagicMock(), MagicMock())
 
-    def test_send_transaction_request(self) -> None:
+    @pytest.mark.parametrize(
+        "use_flashbots, expected_kwargs",
+        (
+            (
+                True,
+                dict(
+                    counterparty=LEDGER_API_ADDRESS,
+                    performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTIONS,
+                    signed_transactions=["test_tx"],
+                    kwargs=LedgerApiMessage.Kwargs({"target_blocks": 40}),
+                ),
+            ),
+            (
+                False,
+                dict(
+                    counterparty=LEDGER_API_ADDRESS,
+                    performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
+                    signed_transaction="test_tx",
+                ),
+            ),
+        ),
+    )
+    def test_send_transaction_request(
+        self, use_flashbots: bool, expected_kwargs: Any
+    ) -> None:
         """Test '_send_transaction_request'."""
         with mock.patch.object(
             self.behaviour.context.ledger_api_dialogues,
             "create",
             return_value=(MagicMock(), MagicMock()),
-        ):
-            self.behaviour._send_transaction_request(MagicMock())
+        ) as create_mock:
+            target_block_numbers = (
+                expected_kwargs["kwargs"].body["target_blocks"]
+                if use_flashbots
+                else None
+            )
+            self.behaviour._send_transaction_request(
+                MagicMock(signed_transaction="test_tx"),
+                use_flashbots,
+                target_block_numbers,
+            )
+            create_mock.assert_called_once()
+            actual_kwargs = create_mock.call_args.kwargs
+            assert actual_kwargs == expected_kwargs
 
     def test_send_transaction_receipt_request(self) -> None:
         """Test '_send_transaction_receipt_request'."""
@@ -1351,7 +1389,50 @@ class TestBaseBehaviour:
     @mock.patch.object(BaseBehaviour, "_send_transaction_request")
     @mock.patch.object(BaseBehaviour, "_send_transaction_receipt_request")
     @mock.patch.object(behaviour_utils, "Terms")
-    def test_send_raw_transaction(self, *_: Any) -> None:
+    @pytest.mark.parametrize(
+        "ledger_message, expected_hash, expected_response_status",
+        (
+            (
+                LedgerApiMessage(
+                    cast(
+                        LedgerApiMessage.Performative,
+                        LedgerApiMessage.Performative.TRANSACTION_DIGEST,
+                    ),
+                    ("", ""),
+                    transaction_digest=TransactionDigest("ledger_id", body="test"),
+                ),
+                "test",
+                RPCResponseStatus.SUCCESS,
+            ),
+            (
+                LedgerApiMessage(
+                    cast(
+                        LedgerApiMessage.Performative,
+                        LedgerApiMessage.Performative.TRANSACTION_DIGESTS,
+                    ),
+                    ("", ""),
+                    # Only the first hash will be considered
+                    # because we do not support sending multiple messages and receiving multiple tx hashes yet
+                    transaction_digests=TransactionDigests(
+                        "ledger_id",
+                        transaction_digests=["test", "will_not_be_considered"],
+                    ),
+                ),
+                "test",
+                RPCResponseStatus.SUCCESS,
+            ),
+        ),
+    )
+    def test_send_raw_transaction(
+        self,
+        _send_transaction_signing_request: Any,
+        _send_transaction_request: Any,
+        _send_transaction_receipt_request: Any,
+        _terms: Any,
+        ledger_message: LedgerApiMessage,
+        expected_hash: str,
+        expected_response_status: RPCResponseStatus,
+    ) -> None:
         """Test 'send_raw_transaction'."""
         m = MagicMock()
         gen = self.behaviour.send_raw_transaction(m)
@@ -1365,27 +1446,18 @@ class TestBaseBehaviour:
                 ),
                 ("", ""),
                 signed_transaction=SignedTransaction(
-                    "ledger_id", body={"hash": "test"}
+                    "ledger_id", body={"hash": expected_hash}
                 ),
             )
         )
         try:
-            gen.send(
-                LedgerApiMessage(
-                    cast(
-                        LedgerApiMessage.Performative,
-                        LedgerApiMessage.Performative.TRANSACTION_DIGEST,
-                    ),
-                    ("", ""),
-                    transaction_digest=TransactionDigest("ledger_id", body="test"),
-                )
-            )
+            gen.send(ledger_message)
             raise ValueError("Generator was expected to have reached its end!")
         except StopIteration as e:
             tx_hash, status = e.value
 
-        assert tx_hash == "test"
-        assert status == RPCResponseStatus.SUCCESS
+        assert tx_hash == expected_hash
+        assert status == expected_response_status
 
     @mock.patch.object(BaseBehaviour, "_send_transaction_signing_request")
     @mock.patch.object(BaseBehaviour, "_send_transaction_request")
