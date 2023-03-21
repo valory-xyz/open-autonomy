@@ -154,12 +154,12 @@ class TestYamlSnippets(BaseTestDocCode):
             "code_files": [
                 "packages/valory/skills/hello_world_abci/fsm_specification.yaml"
             ]
-        },                            
+        },
     }
 
     skipped_files = [
-        "docs/guides/define_agent.md", # TODO: How to check against hello w.? only changes name of vendor and agent.
-        "docs/guides/define_service.md", # TODO: How to check against hello w.? only changes name of vendor and service
+        "docs/guides/define_agent.md",  # TODO: How to check against hello w.? only changes name of vendor and agent.
+        "docs/guides/define_service.md",  # TODO: How to check against hello w.? only changes name of vendor and service
         "docs/guides/service_configuration_file.md",
         "docs/deployment/on-chain_deployment_checklist.md",  # just placeholder examples
         "docs/guides/configure_access_external_chains.md",  # just placeholder examples
