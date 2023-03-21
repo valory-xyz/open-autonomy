@@ -61,7 +61,7 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.30.0
+    version: ==1.31.0
 default_connection: null
 ---
 public_id: valory/abci:0.1.0
