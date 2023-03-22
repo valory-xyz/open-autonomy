@@ -9,14 +9,24 @@ Below we describe the additional manual steps required to upgrade between differ
 
 Breaking changes
 
-- The services which are currently using termination will need to set `use_termination: True` in their configuration in order to continue using it.
-- Before this update the `autonomy mint/service` command groups used to have key file as an required argument but it's being made optional since the usage of hardware wallet does not require a key file
-- Autonomy deploy build does not support the usage of `--force` flag to remove the existing build directories
-- The service components need to be updated, add the `deployment` parameter. You can keep it empty by default.
-- The agent configurations will need an update with regards to the following overrides
-  - In the ABCI skill override don't use `TENDERMINT_URL` and `TENDERMINT_COM_URL` for tendermint parameters
-  - In the ABCI connection override don't use `ABCI_HOST` and `ABCI_PORT` for ABCI connection parameters
-
+- The `AbciAppDB`'s `create()` is responsible for setting the cross-period keys for the new period and converting the 
+  corresponding data to the correct format. The skills using the `create()` method now do not need to manually set the 
+  data for the next period as this is handled automatically via the cross-period keys.
+- The setup parameters should not be defined as lists anymore.
+- `observation_interval` has been renamed to `reset_pause_duration`.
+- The services which are currently using termination will need to set `use_termination: True` 
+  in their configuration in order to continue using it. Otherwise, `use_termination: False` should be used.
+- Before this update the `autonomy mint/service` command groups used to have key file as a required argument, 
+  but it's been made optional since the usage of hardware wallet does not require a key file.
+- Autonomy deploy build does not support the usage of `--force` flag to remove the existing build directories.
+- The service components need to be updated. The service configurations needs to specify the new `deployment` parameter, 
+  which is used in order to expose agent ports when using the deployment commands. It can be empty (`deployment: {}`) 
+  if you do not intend to override the generated compose file for the deployments to expose agent ports.
+- The agent configurations will need to be updated with regard to the following overrides:
+  - In the ABCI skill override don't use `TENDERMINT_URL` and `TENDERMINT_COM_URL` for Tendermint parameters.
+  - In the ABCI connection override don't use `ABCI_HOST` and `ABCI_PORT` for ABCI connection parameters.
+  - Tendermint and ABCI connection parameters now use the same environment variables' pattern as all other 
+    configurations.
 
 ## `v0.9.0` to `v0.9.1`
 

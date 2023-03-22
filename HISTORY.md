@@ -3,11 +3,10 @@
 # 0.10.0 (2023-03-22)
 
 Autonomy:
-
 - Adds support for using hardware wallets for minting and managing services on-chain
 - Updates the FSM scaffold tool to add the newly scaffolded package to the `packages.json` after scaffolding the skill
 - Adds support for `kubernetes` builds on the `from-token` deployments using `--kubernetes` flag 
-- Adds support for specifying whether the deployment should run directly or not using `--no-deploy` flag on the `from-deploy` command
+- Adds support for specifying whether the deployment should run directly or not, using `--no-deploy` flag on the `from-deploy` command
 - Removes the support for `--force` flag on the autonomy deploy build command
 - Adds support for configuring networks in a deployment setup to expose various agent ports 
 - Adds a naming convention checker for the FSM specifications. From now on
@@ -17,11 +16,19 @@ Autonomy:
 - Adds support for usage of the `flashbots` ledger plugin on the docker images
 
 Packages:
-- Deprecates the usage of the special environment variables from the agent configurations
+- Deprecates the usage of the special environment variables for the agent configurations:
   - In the ABCI skill override don't use `TENDERMINT_URL` and `TENDERMINT_COM_URL` for tendermint parameters
   - In the ABCI connection override don't use `ABCI_HOST` and `ABCI_PORT` for ABCI connection parameters
-- Adds a flag called `use_termination` in the configuration to enable or disable the usage of termination
-- Adds support to use of the `flashbots` ledger plugin for transactions on the ledger connection
+  - Tendermint and ABCI connection parameters now use the same environment variables' pattern as all other 
+    configurations
+- Refactors the `AbciAppDB`'s `create()`. It is responsible for setting the cross-period keys for the new period 
+  and converting the corresponding data to the correct format. The skills using the `create()` method now 
+  do not need to manually set the data for the next period as this is handled automatically via the 
+  cross-period keys (#1827)
+- The setup parameters should not be defined as lists anymore (#1833)
+- `observation_interval` has been renamed to `reset_pause_duration` (#1836)
+- Adds support for the `flashbots` ledger plugin (#1885)
+- Adds a flag called `use_termination` in the configuration to enable or disable the usage of termination (#1891)
 
 Tests:
 - Updates the test to remove the usage of --force flag
@@ -29,10 +36,10 @@ Tests:
 Docs:
 - Adds the description column to the package list in the docs
 - Corrects a code snippet in docs
-- Simplified explanation of `what is an agent service`
+- Simplifies explanation of `what is an agent service`
 
 Chores:
-- Update the workflows to use python `3.10.9` instead of `3.10.10` to avoid timeouts
+- Updates the workflows to use python `3.10.9` instead of `3.10.10` to avoid timeouts
 
 
 
