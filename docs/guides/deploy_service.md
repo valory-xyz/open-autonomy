@@ -20,7 +20,7 @@ This section covers the deployment of services being developed in the local regi
     ```bash
     autonomy packages lock
     autonomy push-all
-    autonomy fetch --service --local your_name/your_service:0.1.0
+    autonomy fetch your_name/your_service:0.1.0 --service --local
     ```
 
     This step is required to have a separate runtime folder (`./your_service`), outside of the local registry.

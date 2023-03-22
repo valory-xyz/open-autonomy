@@ -22,3 +22,10 @@ This is a summary of each step:
 7. **Deploy the service.** You can deploy directly your service locally for testing purposes. To deploy a production service secured in the [Autonolas Protocol](https://docs.autonolas.network/protocol/) you first need to bring the service to the _Deployed_ state in the protocol.
 
 In the next sections, we will explore in detail each of these steps in the development process.
+
+
+!!! tip "Do you already have an existing agent or service?"
+    	
+    If you already have an existing agent (or if you want to create a service with the default `hello_world` agent), you can skip to [Step 5](./define_service.md).
+    	
+    If you already have an existing service (or if you want to test the default `hello_world` service), you can skip to [Step 6](./publish_mint_packages.md) or [Step 7](./deploy_service.md).

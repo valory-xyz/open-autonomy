@@ -37,3 +37,7 @@ You must ensure that your machine satisfies the framework requirements and that 
       * `payloads.py`.
 
     You should also define a number of test classes. You can review how the [demo services](../demos/index.md) are implemented, or read about the [internals of {{fsm_app}}s](../key_concepts/fsm_app_introduction.md) to learn how to populate the template classes.
+    
+    !!! tip
+    	
+    	If you are a new user and want to skip coding the {{fsm_app}}, in the next guides we show you how you can use an existing {{fsm_app}} or an existing agent from the default [packages shipped with the framework](../package_list.md).
