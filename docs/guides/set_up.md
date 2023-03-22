@@ -36,6 +36,8 @@ Ensure that your machine satisfies the following requirements:
     ```bash
     autonomy init --remote --ipfs
     ```
+    
+    If you had previously initialized the framework, you need to use the flag `--reset` to change the configuration.
 
     !!! info
         The InterPlanetary File System ([IPFS](https://ipfs.io)) is a protocol, hypermedia and file sharing peer-to-peer network for storing and sharing data in a global, distributed file system. {{open_autonomy}} can use components stored in the [IPFS](https://ipfs.io), or stored locally.
@@ -43,23 +45,23 @@ Ensure that your machine satisfies the following requirements:
 
 ## Set up the local registry
 
-The framework works with the concept of *local* and *remote* registries to store software packages. Existing (third-party) components are downloaded from the remote to the local registry, and developed components are pushed from the local to the remote registry so that they become publicly available, similarly as in a Git repository.
+The framework works with the concept of *local* and *remote* registries to store software packages (similarly as Git repositories do). Existing (third-party) components are downloaded from the remote registry to the local registry, and developed components are pushed from the local registry to the remote registry, so that they become publicly available. 
 
 <figure markdown>
 ![](../images/registries_simplified.svg)
 </figure>
 
-The framework assumes by default that the local registry is in the `./packages` folder. To create an empty local registry, execute:
+To create an empty local registry, execute within the workspace folder:
 
 ```bash
-mkdir packages
-echo '{"dev": {}, "third_party": {}}' > packages/packages.json
+autonomy packages init
 ```
 
-However, if you plan to follow the guides in the following sections, you need to populate the local registry with a number of default [packages shipped with the framework](../package_list.md). Prepare the local registry as follows:
+This will create an empty local registry in the folder `./packages`.
+
+If you plan to follow the guides in the following sections, you need to populate the local registry with a number of default [packages shipped with the framework](../package_list.md). To do so, now execute:
 
 ```bash
-mkdir packages
 cat > ./packages/packages.json << EOF
 {
     "dev": {
@@ -82,7 +84,7 @@ cat > ./packages/packages.json << EOF
         "protocol/valory/ledger_api/1.0.0": "bafybeih6hfzj2obw5oajnt6ng6355edgvi5ngoaub44vpuszqoplfvyaom",
         "protocol/valory/tendermint/0.1.0": "bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54",
         "skill/valory/abstract_abci/0.1.0": "bafybeihkrunmigvlcze7uxhafj2h3kvpf2kifggq7zqj42n2we4mcwuvou",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeib2jw7hjccou42wis35orckwycb2dgjk7yw46anuqysf2h7su3fi4",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeiacsn3k7q5ytxg52enceluqgp3xbzb4raks5vlkvmeikqje4fkes4",
         "skill/valory/hello_world_abci/0.1.0": "bafybeidhftdlf24itdpzs456btixret4deeis35jdqesh3xo54ukxegdrq"
     }
 }
