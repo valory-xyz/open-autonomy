@@ -20,7 +20,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 1. Fetch the [Hello World service](../demos/hello_world_demo.md) from the remote registry:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeibp3irpd2tz6gbpyoi5ianzfrdeexd4ajoomb7ftipz2v3rqjefle --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeidepc2fzr65xrk3xfoqvb55pzh5oedh32v5myxfhdhsbxyyqcyqyu --service
     cd hello_world
     ```
 
