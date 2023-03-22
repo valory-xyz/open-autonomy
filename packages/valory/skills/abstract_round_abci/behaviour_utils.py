@@ -29,7 +29,18 @@ import sys
 from abc import ABC, ABCMeta, abstractmethod
 from enum import Enum
 from functools import partial
-from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 import pytz
 from aea.exceptions import enforce
@@ -42,6 +53,7 @@ from packages.open_aea.protocols.signing import SigningMessage
 from packages.open_aea.protocols.signing.custom_types import (
     RawMessage,
     RawTransaction,
+    SignedTransaction,
     Terms,
 )
 from packages.valory.connections.http_client.connection import (
@@ -1009,7 +1021,12 @@ class BaseBehaviour(
         ] = self.get_callback_request()
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
 
-    def _send_transaction_request(self, signing_msg: SigningMessage) -> None:
+    def _send_transaction_request(
+        self,
+        signing_msg: SigningMessage,
+        use_flashbots: bool = False,
+        target_block_numbers: Optional[List[int]] = None,
+    ) -> None:
         """
         Send transaction request.
 
@@ -1019,14 +1036,39 @@ class BaseBehaviour(
         Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param signing_msg: signing message
+        :param use_flashbots: whether to use flashbots for the transaction or not
+        :param target_block_numbers: the target block numbers in case we are using flashbots
         """
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
         )
-        ledger_api_msg, ledger_api_dialogue = ledger_api_dialogues.create(
+
+        create_kwargs: Dict[
+            str, Union[str, SignedTransaction, List[SignedTransaction]]
+        ] = dict(
             counterparty=LEDGER_API_ADDRESS,
             performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
-            signed_transaction=signing_msg.signed_transaction,
+        )
+        if use_flashbots:
+            create_kwargs.update(
+                dict(
+                    performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTIONS,
+                    # we do not support sending multiple signed txs and receiving multiple tx hashes yet
+                    signed_transactions=[signing_msg.signed_transaction],
+                    kwargs=LedgerApiMessage.Kwargs(
+                        {"target_blocks": target_block_numbers}
+                    ),
+                )
+            )
+        else:
+            create_kwargs.update(
+                dict(
+                    signed_transaction=signing_msg.signed_transaction,
+                )
+            )
+
+        ledger_api_msg, ledger_api_dialogue = ledger_api_dialogues.create(
+            **create_kwargs
         )
         ledger_api_dialogue = cast(LedgerApiDialogue, ledger_api_dialogue)
         request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
@@ -1446,7 +1488,10 @@ class BaseBehaviour(
         return signature_bytes
 
     def send_raw_transaction(
-        self, transaction: RawTransaction
+        self,
+        transaction: RawTransaction,
+        use_flashbots: bool = False,
+        target_block_numbers: Optional[List[int]] = None,
     ) -> Generator[
         None,
         Union[None, SigningMessage, LedgerApiMessage],
@@ -1466,6 +1511,8 @@ class BaseBehaviour(
             Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param transaction: transaction data
+        :param use_flashbots: whether to use flashbots for the transaction or not
+        :param target_block_numbers: the target block numbers in case we are using flashbots
         :yield: SigningMessage object
         :return: transaction hash
         """
@@ -1493,20 +1540,30 @@ class BaseBehaviour(
         self.context.logger.info(
             f"Received signature response: {signature_response}\n Sending transaction..."
         )
-        self._send_transaction_request(signature_response)
+        self._send_transaction_request(
+            signature_response, use_flashbots, target_block_numbers
+        )
         transaction_digest_msg = yield from self.wait_for_message()
         transaction_digest_msg = cast(LedgerApiMessage, transaction_digest_msg)
-        if (
-            transaction_digest_msg.performative
-            != LedgerApiMessage.Performative.TRANSACTION_DIGEST
+        performative = transaction_digest_msg.performative
+        if performative not in (
+            LedgerApiMessage.Performative.TRANSACTION_DIGEST,
+            LedgerApiMessage.Performative.TRANSACTION_DIGESTS,
         ):
             error = f"Error when requesting transaction digest: {transaction_digest_msg.message}"
             self.context.logger.error(error)
             return tx_hash_backup, self.__parse_rpc_error(error)
-        self.context.logger.info(
-            f"Transaction sent! Received transaction digest: {transaction_digest_msg}"
+
+        tx_hash = (
+            # we do not support sending multiple messages and receiving multiple tx hashes yet
+            transaction_digest_msg.transaction_digests.transaction_digests[0]
+            if performative == LedgerApiMessage.Performative.TRANSACTION_DIGESTS
+            else transaction_digest_msg.transaction_digest.body
         )
-        tx_hash = transaction_digest_msg.transaction_digest.body
+
+        self.context.logger.info(
+            f"Transaction sent! Received transaction digest: {tx_hash}"
+        )
 
         if tx_hash != tx_hash_backup:
             # this should never happen

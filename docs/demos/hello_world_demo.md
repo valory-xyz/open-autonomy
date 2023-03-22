@@ -32,7 +32,7 @@ The functionality of the service is extremely simple. Namely, each agent will ou
 Agent [name] (address [address]) in period [period_num] says: HELLO_WORLD!
 ```
 
-The execution timeline is divided into periods, and within each period, *only one designated agent will print the `HELLO_WORLD!` message*. The other agents will just print a neutral face `:|`. In the context of agent services, you cam think of a *period* as an interval where the service executes an iteration of its intended functionality (e.g., checking some price on a market, execute an investment strategy, or in this demo, printing a message).
+The execution timeline is divided into periods, and within each period, *only one designated agent will print the `HELLO_WORLD!` message*. The other agents will just print a neutral face `:|`. In the context of agent services, you can think of a *period* as an interval where the service executes an iteration of its intended functionality (e.g., checking some price on a market, execute an investment strategy, or in this demo, printing a message).
 
 Recall that agents are coordinated through the *consensus gadget* (i.e., the consensus gadget nodes + the consensus gadget network). For clarity, we will be using the simplified architecture diagram depicted below.
 
