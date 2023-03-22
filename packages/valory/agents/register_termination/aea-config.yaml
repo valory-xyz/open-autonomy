@@ -92,6 +92,7 @@ models:
     args:
       tendermint_url: ${str:http://localhost:26657}
       tendermint_com_url: ${str:http://localhost:8080}
+      use_termination: ${bool:True}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
