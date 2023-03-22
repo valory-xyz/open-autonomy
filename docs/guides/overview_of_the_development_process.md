@@ -17,7 +17,7 @@ This is a summary of each step:
 
 5. **Define the service.** This consists in defining the service configuration and declaring what agents constitute the service, together with a number of configuration parameters required.
 
-6. **Publish and mint the service (and other components).** This is a required step to secure the the service developed in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
+6. **Publish and mint the service (and other components).** Those are required steps to make the service publicly available and secure it in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
 
 7. **Deploy the service.** You can deploy directly your service locally for testing purposes. To deploy a production service secured in the [Autonolas Protocol](https://docs.autonolas.network/protocol/) you first need to bring the service to the _Deployed_ state in the protocol.
 

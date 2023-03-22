@@ -1,7 +1,7 @@
 Once you have finished developing and testing your service locally, it is time to publish the developed software packages on a remote registry (so that they become publicly available) and mint them in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
 
 <figure markdown>
-![](../images/development_process_mint_packages_on_chain.svg)
+![](../images/development_process_publish_mint_packages.svg)
 <figcaption>Part of the development process covered in this guide</figcaption>
 </figure>
 

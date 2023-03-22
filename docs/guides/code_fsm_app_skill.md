@@ -2,7 +2,7 @@
 Recall that the [{{fsm_app}} skill](../key_concepts/fsm_app_introduction.md) is the core part of a service agent, and it encodes the business logic of the service. Developing the {{fsm_app}} is possibly most demanding step in the development process.
 
 <figure markdown>
-![](../images/development_process_create_fsm_app.svg)
+![](../images/development_process_code_fsm_app_skill.svg)
 <figcaption>Part of the development process covered in this guide</figcaption>
 </figure>
 
