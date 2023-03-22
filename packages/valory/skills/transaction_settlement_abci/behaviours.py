@@ -166,7 +166,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         return []
 
     def _get_tx_data(
-        self, message: ContractApiMessage
+        self, message: ContractApiMessage, use_flashbots: bool
     ) -> Generator[None, None, TxDataType]:
         """Get the transaction data from a `ContractApiMessage`."""
         tx_data: TxDataType = {
@@ -198,7 +198,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
 
         # Send transaction
         tx_digest, rpc_status = yield from self.send_raw_transaction(
-            message.raw_transaction
+            message.raw_transaction, use_flashbots
         )
 
         # Handle transaction results
@@ -651,6 +651,14 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
         self._messages_iterator: Iterator[ContractApiMessage] = iter(
             self.params.mutable_params.late_messages
         )
+        self.use_flashbots = False
+
+    def setup(self) -> None:
+        """Setup the `SynchronizeLateMessagesBehaviour`."""
+        tx_params = skill_input_hex_to_payload(
+            self.synchronized_data.most_voted_tx_hash
+        )
+        self.use_flashbots = tx_params["use_flashbots"]
 
     def async_act(self) -> Generator:
         """Do the action."""
@@ -658,7 +666,9 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             current_message = next(self._messages_iterator, None)
             if current_message is not None:
-                tx_data = yield from self._get_tx_data(current_message)
+                tx_data = yield from self._get_tx_data(
+                    current_message, self.use_flashbots
+                )
                 self.context.logger.info(
                     f"Found a late arriving message {current_message}. Result data: {tx_data}"
                 )
@@ -848,7 +858,9 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
             fallback_gas=self.params.mutable_params.fallback_gas,
         )
 
-        tx_data = yield from self._get_tx_data(contract_api_msg)
+        tx_data = yield from self._get_tx_data(
+            contract_api_msg, tx_params["use_flashbots"]
+        )
         return tx_data
 
     def handle_late_messages(self, behaviour_id: str, message: Message) -> None:

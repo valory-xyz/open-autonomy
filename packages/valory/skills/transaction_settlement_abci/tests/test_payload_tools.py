@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -75,18 +75,23 @@ class TestTxHistPayloadEncodingDecoding:
             tx_hist_hex_to_payload(payload)
 
 
-def test_payload_to_hex_and_back() -> None:
+@pytest.mark.parametrize("use_flashbots", (True, False))
+def test_payload_to_hex_and_back(use_flashbots: bool) -> None:
     """Test `payload_to_hex` function."""
     tx_params = dict(
         safe_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
         ether_value=0,
         safe_tx_gas=40000000,
         to_address="0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
-        data=b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+        data=(
+            b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+            b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+        ),
         operation=SafeOperation.CALL.value,
         base_gas=0,
         safe_gas_price=0,
         gas_token=NULL_ADDRESS,
+        use_flashbots=use_flashbots,
         refund_receiver=NULL_ADDRESS,
     )
 
