@@ -1,5 +1,41 @@
 # Release History - `open-autonomy`
 
+# 0.10.0 (2023-03-22)
+
+Autonomy:
+
+- Adds support for using hardware wallets for minting and managing services on-chain
+- Updates the FSM scaffold tool to add the newly scaffolded package to the `packages.json` after scaffolding the skill
+- Adds support for `kubernetes` builds on the `from-token` deployments using `--kubernetes` flag 
+- Adds support for specifying whether the deployment should run directly or not using `--no-deploy` flag on the `from-deploy` command
+- Removes the support for `--force` flag on the autonomy deploy build command
+- Adds support for configuring networks in a deployment setup to expose various agent ports 
+- Adds a naming convention checker for the FSM specifications. From now on
+  - A round name should end with `Round`
+  - ABCI app class name should end with `AbciApp`
+- Deprecates the usage of the special environment variables from the agent deployment setup
+- Adds support for usage of the `flashbots` ledger plugin on the docker images
+
+Packages:
+- Deprecates the usage of the special environment variables from the agent configurations
+  - In the ABCI skill override don't use `TENDERMINT_URL` and `TENDERMINT_COM_URL` for tendermint parameters
+  - In the ABCI connection override don't use `ABCI_HOST` and `ABCI_PORT` for ABCI connection parameters
+- Adds a flag called `use_termination` in the configuration to enable or disable the usage of termination
+- Adds support to use of the `flashbots` ledger plugin for transactions on the ledger connection
+
+Tests:
+- Updates the test to remove the usage of --force flag
+
+Docs:
+- Adds the description column to the package list in the docs
+- Corrects a code snippet in docs
+- Simplified explanation of `what is an agent service`
+
+Chores:
+- Update the workflows to use python `3.10.9` instead of `3.10.10` to avoid timeouts
+
+
+
 # 0.9.1 (2023-02-22)
 
 Autonomy:
