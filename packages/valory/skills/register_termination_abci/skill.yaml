@@ -23,10 +23,10 @@ connections: []
 contracts: []
 protocols: []
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeifqqnpcxrxgsq6mvdhpuc7naj7y5rkppx5eppffsrw4ly5uxdht6q
-- valory/registration_abci:0.1.0:bafybeiahfmkbceec3bos6nfogurpjehunn2ylarvjjdl43lctcln32otkm
-- valory/reset_pause_abci:0.1.0:bafybeifmq3p4cahmvlmnemhmhq3rvxs4a7rahbkibfd2ii7kue2en6s2xm
-- valory/termination_abci:0.1.0:bafybeiaky4fxrx3aymzy7g7f3groozjfqznnuk5jx3mnv5v3dayvinoxie
+- valory/abstract_round_abci:0.1.0:bafybeidlwhilzhl5pooyvnqvzunwscztbynvjs4rqwxax2m5nsd5azz6ti
+- valory/registration_abci:0.1.0:bafybeignssxfkatvywzcla4vxvznum6yyunmy2zl5tno7kauwmknc4hycq
+- valory/reset_pause_abci:0.1.0:bafybeia353cpak2glp2rip5lw5nbiqtx46apqydjbyp6vkdxh4nirhrz3e
+- valory/termination_abci:0.1.0:bafybeidbsmptgn54jbrumrekuwknojgxotundtbg7wc2hkrn6cxt7qwd4i
 behaviours:
   main:
     args: {}
@@ -124,6 +124,7 @@ models:
       tendermint_url: http://localhost:26657
       termination_sleep: 900
       tx_timeout: 10.0
+      use_termination: false
       validate_timeout: 1205
     class_name: Params
   randomness_api:
