@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.10.0.post1 (2023-03-22)
+
+Autonomy:
+- Makes the usage of the `flashbots` plugin optional in the deployments 
+
 # 0.10.0 (2023-03-22)
 
 Autonomy:
