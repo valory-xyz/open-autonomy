@@ -58,10 +58,10 @@ If you have [set up the local registry](./set_up.md#set-up-the-local-registry) w
         fingerprint: {}
         fingerprint_ignore_patterns: []
         connections:
-        - valory/abci:0.1.0:bafybeiedhipcrpx7sg7qwitwox6iqrbbb4vfnvqqyok2vc6wq6inrcszey
+        - valory/abci:0.1.0:bafybeienpqzsym3rg7nnomd6mxgbt4didwd4wfj72oadde27trdmcgsu5y
         - valory/http_client:0.23.0:bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi
-        - valory/ipfs:0.1.0:bafybeia7kzgw4tmkl6k2vjbnss4egvhcf4fmt7cnmpjjjbjogz2bu2j3fu
-        - valory/ledger:0.19.0:bafybeicxcypcg2lxmtktbmuhqcyluzmasfsdeljyk2pvaabzc3h2jmcsui
+        - valory/ipfs:0.1.0:bafybeie46fu7mv64q72dwzoxg77zbiv3pzsigzjk3rehjpm47cf3y77mha
+        - valory/ledger:0.19.0:bafybeighon6i2qfl2xrg7t3lbdzlkyo4v2a7ayvwso7m5w7pf2hvjfs2ma
         - valory/p2p_libp2p_client:0.1.0:bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva
         contracts: []
         protocols:
@@ -70,9 +70,9 @@ If you have [set up the local registry](./set_up.md#set-up-the-local-registry) w
         - valory/http:1.0.0:bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty
         - valory/ipfs:0.1.0:bafybeihlgai5pbmkb6mjhvgy4gkql5uvpwvxbpdowczgz4ovxat6vajrq4
         skills:
-        - valory/abstract_abci:0.1.0:bafybeihkrunmigvlcze7uxhafj2h3kvpf2kifggq7zqj42n2we4mcwuvou
-        - valory/abstract_round_abci:0.1.0:bafybeib2jw7hjccou42wis35orckwycb2dgjk7yw46anuqysf2h7su3fi4
-        - valory/hello_world_abci:0.1.0:bafybeidhftdlf24itdpzs456btixret4deeis35jdqesh3xo54ukxegdrq
+        - valory/abstract_abci:0.1.0:bafybeigg5ofide2gxwgjvljjgpyy6ombby7ph6pg7erj3h6itduwpn6pqu
+        - valory/abstract_round_abci:0.1.0:bafybeicn5utwviq46ubguok5rl5go4hb7oxluj7t6bja2ut4epjw2hevei
+        - valory/hello_world_abci:0.1.0:bafybeigidqcurxh3r3m7vxjfv2d4tvcpzvkhwj7r7owacn6jymzik75k7i
         default_ledger: ethereum
         required_ledgers:
         - ethereum
@@ -103,9 +103,9 @@ If you have [set up the local registry](./set_up.md#set-up-the-local-registry) w
               propagate: true
         dependencies:
           open-aea-ledger-ethereum:
-            version: ==1.29.0
+            version: ==1.31.0
           open-aea-test-autonomy:
-            version: ==0.9.1
+            version: ==0.10.0.post1
         default_connection: null
         ---
         public_id: valory/hello_world_abci:0.1.0
@@ -122,51 +122,51 @@ If you have [set up the local registry](./set_up.md#set-up-the-local-registry) w
               on_chain_service_id: ${int:null}
               setup:
                 all_participants: ${list:[]}
-                safe_contract_address: ${list:[]}
-                consensus_threshold: ${list:[null]}
-              tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
-              tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
+                safe_contract_address: ${str:'0x0000000000000000000000000000000000000000'}
+                consensus_threshold: ${int:null}
+              tendermint_url: ${str:http://localhost:26657}
+              tendermint_com_url: ${str:http://localhost:8080}
         ---
         public_id: valory/abci:0.1.0
         type: connection
         config:
           target_skill_id: valory/hello_world_abci:0.1.0
-          host: ${ABCI_HOST:str:localhost}
-          port: ${ABCI_PORT:int:26658}
-          use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
+          host: ${str:localhost}
+          port: ${int:26658}
+          use_tendermint: ${bool:false}
         ---
         public_id: valory/ledger:0.19.0
         type: connection
         config:
           ledger_apis:
             ethereum:
-              address: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_ADDRESS:str:http://localhost:8545}
-              chain_id: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_CHAIN_ID:int:31337}
-              poa_chain: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_POA_CHAIN:bool:false}
-              default_gas_price_strategy: ${CONNECTION_LEDGER_CONFIG_LEDGER_APIS_ETHEREUM_DEFAULT_GAS_PRICE_STRATEGY:str:eip1559}
+              address: ${str:http://localhost:8545}
+              chain_id: ${int:31337}
+              poa_chain: ${bool:false}
+              default_gas_price_strategy: ${str:eip1559}
         ---
         public_id: valory/p2p_libp2p_client:0.1.0
         type: connection
         config:
           nodes:
-          - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9005}
-            public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
-          - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9006}
-            public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
+          - uri: ${str:acn.staging.autonolas.tech:9005}
+            public_key: ${str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
+          - uri: ${str:acn.staging.autonolas.tech:9006}
+            public_key: ${str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
         cert_requests:
         - identifier: acn
           ledger_id: ethereum
           message_format: '{public_key}'
           not_after: '2023-01-01'
           not_before: '2022-01-01'
-          public_key: ${P2P_PUBLIC_KEY:str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
+          public_key: ${str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
           save_path: .certs/acn_cosmos_9005.txt
         - identifier: acn
           ledger_id: ethereum
           message_format: '{public_key}'
           not_after: '2023-01-01'
           not_before: '2022-01-01'
-          public_key: ${P2P_PUBLIC_KEY:str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
+          public_key: ${str:02e741c62d706e1dcf6986bf37fa74b98681bc32669623ac9ee6ff72488d4f59e8}
           save_path: .certs/acn_cosmos_9006.txt
         is_abstract: true
         ```

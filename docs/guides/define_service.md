@@ -47,10 +47,11 @@ If you have [set up the local registry](./set_up.md#set-up-the-local-registry) w
         license: Apache-2.0
         fingerprint: {}
         fingerprint_ignore_patterns: []
-        agent: valory/hello_world:0.1.0:bafybeic3czcb7fpzru3fl4noxdwgwyzirqk6cqh763h6aio7ugl6qm5gha
+        agent: valory/hello_world:0.1.0:bafybeigeon5j2nit6a35r4dn4c32aqqfpuaphwuvc3muw67ymqwbrrzrvu
         number_of_agents: 4
+        deployment: {}
         ---
-        public_id: valory/hello_world_abci:0.1.0:bafybeic3czcb7fpzru3fl4noxdwgwyzirqk6cqh763h6aio7ugl6qm5gha
+        public_id: valory/hello_world_abci:0.1.0:bafybeigidqcurxh3r3m7vxjfv2d4tvcpzvkhwj7r7owacn6jymzik75k7i
         type: skill
         models:
           params:
@@ -60,13 +61,10 @@ If you have [set up the local registry](./set_up.md#set-up-the-local-registry) w
               on_chain_service_id: null
               setup:
                 all_participants:
-                - - '0x0000000000000000000000000000000000000000'
-                safe_contract_address:
                 - '0x0000000000000000000000000000000000000000'
-                consensus_threshold:
-                - null
-              hello_world_message: ${HELLO_WORLD_STRING_0:str:HELLO_WORLD! (from Agent 0)}
-              aaaa: aaaaa
+                safe_contract_address: '0x0000000000000000000000000000000000000000'
+                consensus_threshold: null
+              hello_world_message: ${HELLO_WORLD_STRING_0:str:HELLO_WORLD!}
           benchmark_tool:
             args:
               log_dir: /benchmarks

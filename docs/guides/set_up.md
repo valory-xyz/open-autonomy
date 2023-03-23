@@ -67,13 +67,13 @@ cat > ./packages/packages.json << EOF
     "dev": {
     },
     "third_party": {
-        "agent/valory/hello_world/0.1.0": "bafybeiep46qo633dbzvo7q55vtotteosjojgahofae4g4f3dzcdkv4f5cm",
-        "connection/valory/abci/0.1.0": "bafybeib4ogh45setwh5ved653knyp7cvnafn54dkfaxmgufmypzbp6bvwy",
+        "agent/valory/hello_world/0.1.0": "bafybeigeon5j2nit6a35r4dn4c32aqqfpuaphwuvc3muw67ymqwbrrzrvu",
+        "connection/valory/abci/0.1.0": "bafybeienpqzsym3rg7nnomd6mxgbt4didwd4wfj72oadde27trdmcgsu5y",
         "connection/valory/http_client/0.23.0": "bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi",
         "connection/valory/ipfs/0.1.0": "bafybeie46fu7mv64q72dwzoxg77zbiv3pzsigzjk3rehjpm47cf3y77mha",
         "connection/valory/ledger/0.19.0": "bafybeighon6i2qfl2xrg7t3lbdzlkyo4v2a7ayvwso7m5w7pf2hvjfs2ma",
         "connection/valory/p2p_libp2p_client/0.1.0": "bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva",
-        "contract/valory/service_registry/0.1.0": "bafybeidiqury24wf7byjso5u4f7n4soa5xgcbo4iksegx3cvpa3bxlqm74",
+        "contract/valory/service_registry/0.1.0": "bafybeigvob5pgz527goh2cgibjejnmbu6xz2e3knjsocjq533m3xe5uzti",
         "protocol/open_aea/signing/1.0.0": "bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4",
         "protocol/valory/abci/0.1.0": "bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4",
         "protocol/valory/acn/1.1.0": "bafybeignmc5uh3vgpuckljcj2tgg7hdqyytkm6m5b6v6mxtazdcvubibva",
@@ -82,9 +82,9 @@ cat > ./packages/packages.json << EOF
         "protocol/valory/ipfs/0.1.0": "bafybeihlgai5pbmkb6mjhvgy4gkql5uvpwvxbpdowczgz4ovxat6vajrq4",
         "protocol/valory/ledger_api/1.0.0": "bafybeidluywxchkacc7cz65nktqjg3y2vzzp43sw5hdhnvvonozogrmfie",
         "protocol/valory/tendermint/0.1.0": "bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54",
-        "skill/valory/abstract_abci/0.1.0": "bafybeiebo5lfk7htzdarpfixqt4zedf7t6a57k6rejw7xqletcxbclmf4y",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeiacsn3k7q5ytxg52enceluqgp3xbzb4raks5vlkvmeikqje4fkes4",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeibhlqvhup32mca6uvb6qy6sc3h4h44ek53eis3w5c2qilblfwn3qi"
+        "skill/valory/abstract_abci/0.1.0": "bafybeigg5ofide2gxwgjvljjgpyy6ombby7ph6pg7erj3h6itduwpn6pqu",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeicn5utwviq46ubguok5rl5go4hb7oxluj7t6bja2ut4epjw2hevei",
+        "skill/valory/hello_world_abci/0.1.0": "bafybeigidqcurxh3r3m7vxjfv2d4tvcpzvkhwj7r7owacn6jymzik75k7i"
     }
 }
 EOF
