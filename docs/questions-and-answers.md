@@ -13,7 +13,7 @@
     It is one of the agents for which the agents have voted to be in charge of executing a certain operation (e.g., settling a transaction on a blockchain).
 
 ??? note "What is the consensus gadget?"
-    The consensus gadget is the infrastructure that allows agents in a service to execute a consensus algorithm to synchronize and replicate their internal state. It consists of the consensus gadget nodes (one node per agent) plus the consensus gadget network (which can be the Internet or a dedicated network).
+    The consensus gadget is the infrastructure, local to a service, that enables the agents in that service to run a consensus algorithm to synchronize and replicate the service state. It consists of the consensus gadget nodes (one node per agent) plus the consensus gadget network (which can be the Internet or a dedicated network).
 
 ??? note "What is a period?"
     In the context of agent services, a period is the sequence of states in the {{fsm_app}} that execute the main functionality of the service. Usually, services are designed to cycle through these states, for example, an oracle service will cycle through states like "collect observations" - "compute value" - "publish value on-chain".
