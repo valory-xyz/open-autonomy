@@ -24,8 +24,8 @@ protocols:
 - valory/ipfs:0.1.0:bafybeihlgai5pbmkb6mjhvgy4gkql5uvpwvxbpdowczgz4ovxat6vajrq4
 skills:
 - valory/abstract_abci:0.1.0:bafybeiebo5lfk7htzdarpfixqt4zedf7t6a57k6rejw7xqletcxbclmf4y
-- valory/abstract_round_abci:0.1.0:bafybeiacsn3k7q5ytxg52enceluqgp3xbzb4raks5vlkvmeikqje4fkes4
-- valory/hello_world_abci:0.1.0:bafybeibhlqvhup32mca6uvb6qy6sc3h4h44ek53eis3w5c2qilblfwn3qi
+- valory/abstract_round_abci:0.1.0:bafybeifgnuyos3mdya54wgvthadsfm3upsvqrl5uciwptpwqrq2mqqndyu
+- valory/hello_world_abci:0.1.0:bafybeifmthqanolr35ma63axd77puu5abzi6pdj7dpvrbt2m67asd2l46m
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -56,6 +56,8 @@ logging_config:
       propagate: true
 dependencies:
   open-aea-ledger-ethereum:
+    version: ==1.31.0
+  open-aea-ledger-ethereum-flashbots:
     version: ==1.31.0
   open-aea-test-autonomy:
     version: ==0.10.0

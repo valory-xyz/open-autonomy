@@ -19,5 +19,7 @@ contracts: []
 dependencies:
   open-aea-ledger-ethereum:
     version: ==1.31.0
+  open-aea-ledger-ethereum-flashbots:
+    version: ==1.31.0
   web3:
     version: ==5.25.0

@@ -17,4 +17,6 @@ class_name: RegistriesManagerContract
 contract_interface_paths:
   ethereum: build/RegistriesManager.json
   ethereum_hwi: build/RegistriesManager.json
-dependencies: {}
+dependencies:
+  open-aea-ledger-ethereum-hwi:
+    version: ==1.31.0

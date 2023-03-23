@@ -17,4 +17,6 @@ class_name: ServiceManagerContract
 contract_interface_paths:
   ethereum: build/ServiceManager.json
   ethereum_hwi: build/ServiceManager.json
-dependencies: {}
+dependencies:
+  open-aea-ledger-ethereum-hwi:
+    version: ==1.31.0

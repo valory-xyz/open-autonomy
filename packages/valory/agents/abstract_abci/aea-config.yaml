@@ -50,6 +50,8 @@ logging_config:
 dependencies:
   open-aea-ledger-ethereum:
     version: ==1.31.0
+  open-aea-ledger-ethereum-flashbots:
+    version: ==1.31.0
   open-aea-test-autonomy:
     version: ==0.10.0
 default_connection: valory/abci:0.1.0
