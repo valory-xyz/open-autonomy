@@ -43,7 +43,6 @@ then
     if grep "open-aea-ledger-ethereum-flashbots" aea-config.yaml -q
     then
         aea add-key ethereum_flashbots --password $AEA_PASSWORD
-        cp ethereum_private_key.txt ethereum_flashbots_private_key.txt
     fi
 
     aea issue-certificates --password $AEA_PASSWORD --aev || (echo "Failed to add cosmos key needed for libp2p connection" && exit 1)
@@ -57,7 +56,6 @@ else
     if grep "open-aea-ledger-ethereum-flashbots" aea-config.yaml -q
     then
         aea add-key ethereum_flashbots
-        cp ethereum_private_key.txt ethereum_flashbots_private_key.txt
     fi
 
     aea issue-certificates --aev || (echo "Failed to add cosmos key needed for libp2p connection" && exit 1)
