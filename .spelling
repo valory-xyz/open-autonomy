@@ -3,6 +3,7 @@
 # global dictionary is at the start, file overrides afterwards
 # one word per line, to define a file override use ' - filename'
 # where filename is relative to this configuration file
+anymore
 AEAs
 Tendermint
 mempool
@@ -406,3 +407,4 @@ create_fsm_app.md
 my_fsm_app_skill
 fuzzer
 selection_key
+0.10.0.post1

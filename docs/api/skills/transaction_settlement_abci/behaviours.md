@@ -244,6 +244,16 @@ def __init__(**kwargs: Any)
 
 Initialize a `SynchronizeLateMessagesBehaviour`
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour.setup"></a>
+
+#### setup
+
+```python
+def setup() -> None
+```
+
+Setup the `SynchronizeLateMessagesBehaviour`.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour.async_act"></a>
 
 #### async`_`act

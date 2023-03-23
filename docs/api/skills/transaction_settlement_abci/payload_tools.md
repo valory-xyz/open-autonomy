@@ -74,7 +74,8 @@ def hash_payload_to_hex(safe_tx_hash: str,
                         base_gas: int = 0,
                         safe_gas_price: int = 0,
                         gas_token: str = NULL_ADDRESS,
-                        refund_receiver: str = NULL_ADDRESS) -> str
+                        refund_receiver: str = NULL_ADDRESS,
+                        use_flashbots: bool = False) -> str
 ```
 
 Serialise to a hex string.

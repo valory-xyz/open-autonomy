@@ -134,6 +134,21 @@ class TransactionSettlementFSMBehaviourBaseCase(FSMBehaviourBaseCase):
 
     path_to_skill = PACKAGE_DIR
 
+    def ffw_signature(self, db_items: Optional[Dict] = None) -> None:
+        """Fast-forward to the `SignatureBehaviour`."""
+        if db_items is None:
+            db_items = {}
+
+        self.fast_forward_to_behaviour(
+            behaviour=self.behaviour,
+            behaviour_id=SignatureBehaviour.auto_behaviour_id(),
+            synchronized_data=TransactionSettlementSynchronizedSata(
+                AbciAppDB(
+                    setup_data=AbciAppDB.data_to_lists(db_items),
+                )
+            ),
+        )
+
 
 class TestTransactionSettlementBaseBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     """Test `TransactionSettlementBaseBehaviour`."""
@@ -308,27 +323,16 @@ class TestTransactionSettlementBaseBehaviour(TransactionSettlementFSMBehaviourBa
     ) -> None:
         """Test `_get_tx_data`."""
         # fast-forward to any behaviour of the tx settlement skill
-        self.fast_forward_to_behaviour(
-            behaviour=self.behaviour,
-            behaviour_id=SignatureBehaviour.auto_behaviour_id(),
-            synchronized_data=TransactionSettlementSynchronizedSata(
-                AbciAppDB(
-                    setup_data=AbciAppDB.data_to_lists(
-                        dict(
-                            most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d90000000"
-                            "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-                            "0000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477c"
-                            "f347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283"
-                            "ac76e4efce2a674fe72d9",
-                            keepers=int(2).to_bytes(32, "big").hex()
-                            + "".join(
-                                deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))
-                            ),
-                        )
-                    ),
-                )
-            ),
+        init_db_items = dict(
+            most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d90000000"
+            "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+            "0000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477c"
+            "f347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283"
+            "ac76e4efce2a674fe72d9",
+            keepers=int(2).to_bytes(32, "big").hex()
+            + "".join(deque(("agent_1" + "-" * 35, "agent_3" + "-" * 35))),
         )
+        self.ffw_signature(init_db_items)
         behaviour = cast(SignatureBehaviour, self.behaviour.current_behaviour)
         assert behaviour.behaviour_id == SignatureBehaviour.auto_behaviour_id()
         # Set `nonce` to the same value as the returned, so that we test the tx replacement logging.
@@ -349,7 +353,7 @@ class TestTransactionSettlementBaseBehaviour(TransactionSettlementFSMBehaviourBa
         # call `_get_tx_data`
         tx_data_iterator = cast(
             TransactionSettlementBaseBehaviour, self.behaviour.current_behaviour
-        )._get_tx_data(message)
+        )._get_tx_data(message, use_flashbots=False)
 
         if message.performative == ContractApiMessage.Performative.RAW_TRANSACTION:
             next(tx_data_iterator)
@@ -404,15 +408,7 @@ class TestTransactionSettlementBaseBehaviour(TransactionSettlementFSMBehaviourBa
     ) -> None:
         """Test the get_gas_price_params method"""
         # fast-forward to any behaviour of the tx settlement skill
-        self.fast_forward_to_behaviour(
-            behaviour=self.behaviour,
-            behaviour_id=SignatureBehaviour.auto_behaviour_id(),
-            synchronized_data=TransactionSettlementSynchronizedSata(
-                AbciAppDB(
-                    setup_data=AbciAppDB.data_to_lists(dict()),
-                )
-            ),
-        )
+        self.ffw_signature()
 
         assert (
             cast(
@@ -424,15 +420,7 @@ class TestTransactionSettlementBaseBehaviour(TransactionSettlementFSMBehaviourBa
     def test_parse_revert_reason_successful(self) -> None:
         """Test `_parse_revert_reason` method."""
         # fast-forward to any behaviour of the tx settlement skill
-        self.fast_forward_to_behaviour(
-            behaviour=self.behaviour,
-            behaviour_id=SignatureBehaviour.auto_behaviour_id(),
-            synchronized_data=TransactionSettlementSynchronizedSata(
-                AbciAppDB(
-                    setup_data=AbciAppDB.data_to_lists(dict()),
-                )
-            ),
-        )
+        self.ffw_signature()
 
         for code, explanation in REVERT_CODES_TO_REASONS.items():
             message = MagicMock(
@@ -479,15 +467,7 @@ class TestTransactionSettlementBaseBehaviour(TransactionSettlementFSMBehaviourBa
     ) -> None:
         """Test `_parse_revert_reason` method."""
         # fast-forward to any behaviour of the tx settlement skill
-        self.fast_forward_to_behaviour(
-            behaviour=self.behaviour,
-            behaviour_id=SignatureBehaviour.auto_behaviour_id(),
-            synchronized_data=TransactionSettlementSynchronizedSata(
-                AbciAppDB(
-                    setup_data=AbciAppDB.data_to_lists(dict()),
-                )
-            ),
-        )
+        self.ffw_signature()
 
         expected = f"get_raw_safe_transaction unsuccessful! Received: {message}"
 
@@ -612,19 +592,15 @@ class TestSignatureBehaviour(TransactionSettlementFSMBehaviourBaseCase):
     ) -> None:
         """Test signature behaviour."""
 
-        self.fast_forward_to_behaviour(
-            behaviour=self.behaviour,
-            behaviour_id=SignatureBehaviour.auto_behaviour_id(),
-            synchronized_data=TransactionSettlementSynchronizedSata(
-                AbciAppDB(
-                    setup_data=dict(
-                        most_voted_tx_hash=[
-                            "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
-                        ]
-                    ),
-                )
-            ),
+        init_db_items = dict(
+            most_voted_tx_hash="b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d90000000"
+            "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+            "0000000000000000000000002625a000x77E9b2EF921253A171Fa0CB9ba80558648Ff7215b0e6add595e00477c"
+            "f347d09797b156719dc5233283ac76e4efce2a674fe72d9b0e6add595e00477cf347d09797b156719dc5233283"
+            "ac76e4efce2a674fe72d9",
         )
+        self.ffw_signature(init_db_items)
+
         assert (
             cast(
                 BaseBehaviour,
@@ -1278,6 +1254,16 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
                         participants=[participants],
                         participant_to_signature=[{}],
                         safe_contract_address=["safe_contract_address"],
+                        most_voted_tx_hash=[
+                            hash_payload_to_hex(
+                                "b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                                1,
+                                1,
+                                "0x77E9b2EF921253A171Fa0CB9ba80558648Ff7215",
+                                b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9"
+                                b"b0e6add595e00477cf347d09797b156719dc5233283ac76e4efce2a674fe72d9",
+                            )
+                        ],
                     ),
                 )
             ),
@@ -1294,7 +1280,8 @@ class TestSynchronizeLateMessagesBehaviour(TransactionSettlementFSMBehaviourBase
         else:
 
             def _dummy_get_tx_data(
-                _: ContractApiMessage,
+                _current_message: ContractApiMessage,
+                _use_flashbots: bool,
             ) -> Generator[None, None, TxDataType]:
                 yield
                 return {
