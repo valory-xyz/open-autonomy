@@ -234,7 +234,10 @@ class AbstractRoundBehaviour(
             self.initial_behaviour_cls
         )
         self.tm_manager = self.instantiate_behaviour_cls(TmManager)  # type: ignore
-        if self.is_background_behaviour_set:
+        if (
+            self.is_background_behaviour_set
+            and self.current_behaviour.params.use_termination
+        ):
             self.background_behaviour_cls = cast(
                 Type[BaseBehaviour], self.background_behaviour_cls
             )

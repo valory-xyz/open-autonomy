@@ -9,3 +9,4 @@ fingerprint:
 fingerprint_ignore_patterns: []
 number_of_agents: 1
 agent: dummy_author/dummy_agent:0.1.0:bafybeihjl5fgwnfecwknnhulebj3e7ktyz6ba6flbjwmpibzj2ih3gweo4
+deployment: {}

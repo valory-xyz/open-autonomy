@@ -43,6 +43,7 @@ from autonomy.deploy.constants import (
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
+from tests.test_autonomy.base import get_dummy_service_config
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
@@ -71,9 +72,23 @@ class BaseDeployBuildTest(BaseCliTest):
         )
         os.chdir(self.t / "hello_world")
 
+    @staticmethod
+    def load_kubernetes_config(
+        path: Path,
+    ) -> List[Dict]:
+        """Load kubernetes config."""
 
-class TestDockerComposeBuilds(BaseDeployBuildTest):
-    """Test docker-compose build."""
+        with open(path / "build.yaml", "r") as fp:
+            return list(yaml.safe_load_all(fp))
+
+    @classmethod
+    def check_kubernetes_build(cls, build_dir: Path) -> None:
+        """Check kubernetes build dir."""
+
+        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
+        assert any(
+            child in build_tree for child in ["persistent_storage", "build.yaml"]
+        )
 
     @staticmethod
     def load_and_check_docker_compose_file(
@@ -115,6 +130,10 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
                 ]
             ]
         )
+
+
+class TestDockerComposeBuilds(BaseDeployBuildTest):
+    """Test docker-compose build."""
 
     def test_docker_compose_build(
         self,
@@ -446,24 +465,6 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
 class TestKubernetesBuild(BaseDeployBuildTest):
     """Test kubernetes builds."""
 
-    @staticmethod
-    def load_kubernetes_config(
-        path: Path,
-    ) -> List[Dict]:
-        """Load kubernetes config."""
-
-        with open(path / "build.yaml", "r") as fp:
-            return list(yaml.safe_load_all(fp))
-
-    @classmethod
-    def check_kubernetes_build(cls, build_dir: Path) -> None:
-        """Check kubernetes build dir."""
-
-        build_tree = list(map(lambda x: x.name, build_dir.iterdir()))
-        assert any(
-            child in build_tree for child in ["persistent_storage", "build.yaml"]
-        )
-
     def test_kubernetes_build(
         self,
     ) -> None:
@@ -682,3 +683,69 @@ class TestKubernetesBuild(BaseDeployBuildTest):
         build_config = self.load_kubernetes_config(build_dir)
         assert f"'image': '{image_author}/oar-" in str(build_config)
         assert f"'image': '{DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-" not in str(build_config)
+
+
+class TestExposePorts(BaseDeployBuildTest):
+    """Test expose ports from service config."""
+
+    def setup(self) -> None:
+        """Setup test."""
+        super().setup()
+
+        service_data = get_dummy_service_config(file_number=1)
+        service_data[0]["deployment"] = {"agent": {"ports": {0: {8080: 8081}}}}
+
+        with open("./service.yaml", "w+") as fp:
+            yaml.dump_all(service_data, fp)
+
+    def test_expose_agent_ports_docker_compose(self) -> None:
+        """Test expose agent ports"""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_docker_compose_build(
+            build_dir=build_dir,
+        )
+
+        docker_compose = self.load_and_check_docker_compose_file(
+            path=build_dir / DockerComposeGenerator.output_name
+        )
+
+        assert docker_compose["services"]["abci0"]["ports"] == ["8080:8081"]
+
+    def test_expose_agent_ports_kubernetes(self) -> None:
+        """Test expose agent ports"""
+
+        build_dir = self.t / DEFAULT_BUILD_FOLDER
+        with mock.patch("os.chown"):
+            result = self.run_cli(
+                (
+                    str(self.keys_file),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--kubernetes",
+                )
+            )
+
+        assert result.exit_code == 0, result.output
+        assert build_dir.exists()
+
+        self.check_kubernetes_build(build_dir=build_dir)
+
+        build_config = self.load_kubernetes_config(build_dir)
+
+        assert "ports" in build_config[1]["spec"]["template"]["spec"]["containers"][1]
+        assert build_config[1]["spec"]["template"]["spec"]["containers"][1][
+            "ports"
+        ] == [{"containerPort": 8080}]

@@ -110,6 +110,7 @@ BASE_DUMMY_PARAMS = dict(
     on_chain_service_id=None,
     share_tm_config_on_startup=False,
     tendermint_p2p_url="",
+    use_termination=False,
 )
 
 

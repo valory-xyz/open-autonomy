@@ -30,7 +30,8 @@ def __init__(name: SimpleIdOrStr,
              description: str = "",
              number_of_agents: int = 4,
              build_entrypoint: Optional[str] = None,
-             overrides: Optional[List] = None) -> None
+             overrides: Optional[List] = None,
+             deployment: Optional[Dict] = None) -> None
 ```
 
 Initialise object.

@@ -106,5 +106,6 @@ irrelevant_config = {
     "share_tm_config_on_startup": False,
     "tendermint_p2p_url": "str",
     "setup": {},
+    "genesis_config": irrelevant_genesis_config,
+    "use_termination": False,
 }
-irrelevant_config["genesis_config"] = irrelevant_genesis_config

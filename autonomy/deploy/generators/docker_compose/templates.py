@@ -118,3 +118,7 @@ ABCI_NODE_TEMPLATE: str = """
       - ./persistent_data/logs:/logs:Z
       - ./agent_keys/agent_{node_id}:/agent_key:Z
 """
+
+PORTS = "    ports:"
+
+PORT_MAPPING_CONFIG = "      - {host_port}:{container_port}"

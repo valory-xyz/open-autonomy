@@ -115,7 +115,7 @@ class TestFetchServiceCommand(FetchTest):
 
     def test_publish_and_fetch_service_ipfs(self) -> None:
         """Test fetch service."""
-        expected_hash = "bafybeicqnau27njxrumfkbowc2ap2bovfskc4p737jyhzsc3utlsep52ie"
+        expected_hash = "bafybeicojucnpgeud7lmomfkppwbnxpnbtfwvqritalkzessfjbcze27re"
 
         service_dir = self.t / "dummy_service"
         service_file = service_dir / DEFAULT_SERVICE_CONFIG_FILE
