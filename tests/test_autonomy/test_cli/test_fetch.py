@@ -25,6 +25,10 @@ from pathlib import Path
 from unittest import mock
 
 from aea.cli.fetch import NotAnAgentPackage
+from aea.configurations.constants import (
+    DEFAULT_README_FILE,
+    DEFAULT_SERVICE_CONFIG_FILE,
+)
 from aea.configurations.loader import ConfigLoader
 from aea.helpers.base import cd
 from aea.helpers.io import open_file
@@ -111,16 +115,18 @@ class TestFetchServiceCommand(FetchTest):
 
     def test_publish_and_fetch_service_ipfs(self) -> None:
         """Test fetch service."""
-        expected_hash = "bafybeia6v72t5evwfpnynveuuxsfg6hfoyudmwsxitgku6yvucsp4vjhhe"
+        expected_hash = "bafybeicojucnpgeud7lmomfkppwbnxpnbtfwvqritalkzessfjbcze27re"
 
         service_dir = self.t / "dummy_service"
-        service_file = service_dir / "service.yaml"
+        service_file = service_dir / DEFAULT_SERVICE_CONFIG_FILE
         service_dir.mkdir()
         with open_file(service_file, "w+") as fp:
             service_conf, *overrides = get_dummy_service_config()
             service_conf["overrides"] = overrides
             service = Service.from_json(service_conf)
             ConfigLoader(Service.schema, Service).dump(service, fp)
+
+        (service_dir / DEFAULT_README_FILE).write_text("Dummy Service")
 
         with mock.patch(
             "autonomy.cli.helpers.registry.get_default_remote_registry",

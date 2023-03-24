@@ -40,7 +40,7 @@ from aea.cli.utils.package_utils import (
     try_get_item_source_path,
     try_get_item_target_path,
 )
-from aea.configurations.constants import SERVICE, SERVICES
+from aea.configurations.constants import DEFAULT_README_FILE, SERVICE, SERVICES
 from aea.configurations.data_types import PublicId
 from aea.helpers.cid import to_v1
 
@@ -168,12 +168,27 @@ def publish_service_ipfs(public_id: PublicId, package_path: Path) -> None:
     if not IS_IPFS_PLUGIN_INSTALLED:  # pragma: nocover
         raise RuntimeError("IPFS plugin not installed.")
 
-    ipfs_tool = IPFSTool(get_ipfs_node_multiaddr())
-    _, package_hash, _ = ipfs_tool.add(str(package_path.resolve()))
-    package_hash = to_v1(package_hash)
-    click.echo(
-        f'Service "{public_id.name}" successfully published on the IPFS registry.\n\tPublicId: {public_id}\n\tPackage hash: {package_hash}'
-    )
+    package_path = package_path.resolve()
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_service_dir = Path(temp_dir, public_id.name)
+        temp_service_dir.mkdir()
+        shutil.copyfile(
+            package_path / DEFAULT_SERVICE_CONFIG_FILE,
+            temp_service_dir / DEFAULT_SERVICE_CONFIG_FILE,
+        )
+        shutil.copyfile(
+            package_path / DEFAULT_README_FILE,
+            temp_service_dir / DEFAULT_README_FILE,
+        )
+
+        ipfs_tool = IPFSTool(get_ipfs_node_multiaddr())
+        _, package_hash, _ = ipfs_tool.add(str(temp_service_dir.resolve()))
+        package_hash = to_v1(package_hash)
+
+        click.echo(
+            f'Service "{public_id.name}" successfully published on the IPFS registry.\n\tPublicId: {public_id}\n\tPackage hash: {package_hash}'
+        )
 
 
 def publish_service_local(ctx: Context, public_id: PublicId) -> None:
