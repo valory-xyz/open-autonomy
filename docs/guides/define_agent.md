@@ -38,6 +38,12 @@ If you have [set up the local registry](./set_up.md#set-up-the-local-registry) w
 
     This file must contain:
 
+      * A number of mandatory parameters.
+
+        !!! warning "Important"
+
+            Ensure that `author` and `agent_name` match the path within the local registry.
+
       * A reference to the {{fsm_app}} skill.
       * References to other components required by the agent (or dependencies of the {{fsm_app}} skill), under the relevant sections.
       * Configuration overrides that specify values for component parameters. These overrides are separated by YAML document separators `---` and will be discussed in a further section.
