@@ -1,24 +1,34 @@
-Deploying a service with the {{open_autonomy}} framework requires that you have an already available service configuration, which you could be a service created from scratch, fetched from the [IPFS](https://ipfs.io/), or already registered in the on-chain protocol.
+Deploying a service with the {{open_autonomy}} framework requires that you have a service configuration file available, which you could be a service created from scratch, fetched from the remote registry, or already registered in the on-chain protocol.
+
+<figure markdown>
+![](../images/development_process_deploy_service.svg)
+<figcaption>Part of the development process covered in this guide</figcaption>
+</figure>
 
 ## What you will learn
 
-In this guide, you will learn how to:
+This guide covers step 6 of the [development process](./overview_of_the_development_process.md). You will learn how to create and run deployments for local services (testing) and minted services.
 
-* Create a local deployment for testing purposes of
-  * a service stored in your machine.
-  * a service available in the on-chain registry.
-* Create a cloud deployment of a service.
-
-Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](./set_up.md). As a result you should have a Pipenv workspace folder.
+You must ensure that your machine satisfies the framework requirements and that you have [set up the framework](./set_up.md#set-up-the-framework) and [a local registry](./set_up.md#set-up-the-local-registry). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
 
 ## Local deployment
 
-Local deployments of a service are recommended to test your service before you publish it to a remote registry. Open a terminal and follow the steps below.
+This section covers the deployment of services being developed in the local registry. You can use such deployments to test your service before you mint it in the Autonolas Protocol.
 
-1. **Build the agents' image.** Navigate to the local folder of the service that you want to deploy, that is, the folder containing the `service.yaml` file, and build the Docker image of the service agents:
+1. **Fetch the service.** In the workspace folder, fetch the service from the local registry:
+    <!-- TODO: packages lock + push all should not be necessary here, but otherwise it cannot build the image. -->
+    ```bash
+    autonomy packages lock
+    autonomy push-all
+    autonomy fetch your_name/your_service:0.1.0 --service --local
+    ```
+
+    This step is required to have a separate runtime folder (`./your_service`), outside of the local registry.
+
+2. **Build the service agents' image.** Navigate to the service folder and build the Docker image of the service agents:
 
     ```bash
-    cd <service_folder>
+    cd your_service
     autonomy build-image
     ```
 
@@ -28,11 +38,9 @@ Local deployments of a service are recommended to test your service before you p
     docker image ls | grep <service_agent_name>
     ```
 
-2. **Prepare the keys file.** Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that make up the service.
+3. **Prepare the keys file.** Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that make up the service.
 
-    ??? example "Example of a `keys.json` file"
-
-        Find below an example of the structure of a `keys.json` file.
+    ???+ example "Example of a `keys.json` file"
 
         <span style="color:red">**WARNING: Use this file for testing purposes only. Never use the keys or addresses provided in this example in a production environment or for personal use.**</span>
 
@@ -57,7 +65,7 @@ Local deployments of a service are recommended to test your service before you p
         ]
         ```
 
-3. **Build the deployment.** Within the service folder, execute the command below to build the service deployment.
+4. **Build the deployment.** Within the service folder, execute the command below to build the service deployment.
 
     ```bash
     autonomy deploy build keys.json -ltm
@@ -85,18 +93,18 @@ Local deployments of a service are recommended to test your service before you p
     └── docker-compose.yaml
     ```
 
-4. **Run the service.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
+5. **Run the service.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
 
     ```bash
     cd abci_build
     autonomy deploy run
     ```
 
-    You can cancel the local execution by pressing `Ctrl-C`.
+	  You can cancel the local execution at any time by pressing ++ctrl+c++.
 
 ## On-chain deployment
 
-The {{open_autonomy}} framework provides a convenient interface for services that are [registered in the on-chain protocol](./register_packages_on_chain.md##register-a-service).
+The {{open_autonomy}} framework provides a convenient interface for [services that are minted](./publish_mint_packages.md).
 
   1. **Find the service ID.** Explore the [services section](https://protocol.autonolas.network/agents) of the protocol frontend, and note the ID of the service that you want to deploy. The service must be in [Deployed state](https://docs.autonolas.network/protocol/life_cycle_of_a_service/#deployed).
 

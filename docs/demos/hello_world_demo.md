@@ -32,7 +32,7 @@ The functionality of the service is extremely simple. Namely, each agent will ou
 Agent [name] (address [address]) in period [period_num] says: HELLO_WORLD!
 ```
 
-The execution timeline is divided into periods, and within each period, *only one designated agent will print the `HELLO_WORLD!` message*. The other agents will just print a neutral face `:|`. In the context of agent services, you cam think of a *period* as an interval where the service executes an iteration of its intended functionality (e.g., checking some price on a market, execute an investment strategy, or in this demo, printing a message).
+The execution timeline is divided into periods, and within each period, *only one designated agent will print the `HELLO_WORLD!` message*. The other agents will just print a neutral face `:|`. In the context of agent services, you can think of a *period* as an interval where the service executes an iteration of its intended functionality (e.g., checking some price on a market, execute an investment strategy, or in this demo, printing a message).
 
 Recall that agents are coordinated through the *consensus gadget* (i.e., the consensus gadget nodes + the consensus gadget network). For clarity, we will be using the simplified architecture diagram depicted below.
 
@@ -241,7 +241,7 @@ As a summary, find below an image which shows the main components of the agent a
 
 ### Coding the Hello World service: a primer
 So far, we have given a conceptual description of the Hello World service. As we have seen, there are a number of components that a developer needs to focus in order to fully define the service.
-Before continuing, we assume that you have some familiarity with the [guide to create a service from scratch](../guides/create_service_from_scratch.md).
+Before continuing, we assume that you have some familiarity with the guide to create a service from scratch.
 
 The objective of what follows is to explore the internal details of the agent and the {{fsm_app}} so that you know how to define the functionalities implementing the business logic. We also suggest that you [fetch the latest Hello World agent](../guides/publish_fetch_packages.md#fetch-an-agent-from-a-registry) and [Hello World service](../guides/publish_fetch_packages.md#fetch-a-service-from-a-registry), and explore the contents under their main folder, and under `<agent_folder>/vendor/valory/skills/hello_world_abci`, which is the skill that implements the Hello World {{fsm_app}}.
 
@@ -287,7 +287,7 @@ Recall that the skill needs to define a number of classes:
 3. The `AbstractRoundBehaviour` class, which puts together the above classes.
 
 
-The easiest way to start building these classes is by [using the {{fsm_app}} scaffold tool](../guides/create_fsm_app.md).
+The easiest way to start building these classes is by [using the {{fsm_app}} scaffold tool](../guides/code_fsm_app_skill.md).
 
 Let's look how each of these objects are implemented. If you have fetched the Hello World agent from the remote registry, the files referenced below are located in `<agent_folder>/vendor/valory/skills/hello_world_abci/`:
 
@@ -506,8 +506,8 @@ To conclude this section, let us briefly describe the purposes of each one, and 
 * `handlers.py`: Defines the `Handlers` (implementing reactive actions) used by the skill. It is mandatory that the skill associated to an agent service implements a handler inherited from the `ABCIRoundHandler`. Other handlers are required according to the actions that the skill is performing (e.g., interacting with an HTTP server). As you can see by exploring the file, little coding is expected unless you need to implement a custom protocol.
 * `dialogues.py`: It defines the dialogues associated to the protocols described in the `skill.yaml` configuration file. Again, not much coding is expected in most cases.
 * `models.py`:
-* `fsm_specification.yaml`: It contains a specification of the FSM in a simplified syntax. It is used for checking the consistency of the implementation, and it can be used to verify the implementation or to [scaffold the {{fsm_app}}](../guides/create_fsm_app.md) providing an initial structure.
+* `fsm_specification.yaml`: It contains a specification of the FSM in a simplified syntax. It is used for checking the consistency of the implementation, and it can be used to verify the implementation or to [scaffold the {{fsm_app}}](../guides/code_fsm_app_skill.md) providing an initial structure.
 
 
 ## Further reading
-This walk-through to the Hello World service, together with the [guide to create a service from scratch](../guides/create_service_from_scratch.md)  should give an overview of the development process, and of the main elements that play a role in an agent service. Obviously, there are more elements in the {{open_autonomy}} framework that facilitate building complex applications by enabling to interact with blockchains and other networks. We refer the reader to the more advanced sections of the documentation (e.g., key concepts) where we explore in detail the components of the stack.
+This walk-through to the Hello World service, together with the guide to create a service from scratch should give an overview of the development process, and of the main elements that play a role in an agent service. Obviously, there are more elements in the {{open_autonomy}} framework that facilitate building complex applications by enabling to interact with blockchains and other networks. We refer the reader to the more advanced sections of the documentation (e.g., key concepts) where we explore in detail the components of the stack.

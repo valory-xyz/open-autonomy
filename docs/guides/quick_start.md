@@ -17,7 +17,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
     On **MacOS** and **Windows**, running Docker containers requires having Docker Desktop running as well. If you're using one of those operating systems, remember to start Docker Desktop
     before you run agent services.
 
-1. Fetch the [Hello World service](../demos/hello_world_demo.md) from the remote registry:
+1. Fetch the [Hello World service](../demos/hello_world_demo.md) from the remote registry. Within the workspace folder (not the remote registry) run:
 
     ```bash
     autonomy fetch valory/hello_world:0.1.0:bafybeiecl3acm57s24cxy5pbmzqhkbiewaj7siksun2gcuh4zc3z5wbs6q --service
