@@ -146,19 +146,11 @@ class TestYamlSnippets(BaseTestDocCode):
             ],
             "skip_blocks": [1, 2, 3, 4, 5],
         },
-        "docs/guides/create_service_from_scratch.md": {
-            "code_files": [
-                "packages/valory/skills/hello_world_abci/fsm_specification.yaml"
-            ]
-        },
         "docs/guides/deploy_service.md": {"skip_blocks": [0]},
         "docs/advanced_reference/developer_tooling/benchmarking.md": {
             "skip_blocks": [0]
         },
-        "docs/guides/create_service_existing_agent.md": {
-            "code_files": ["packages/valory/services/hello_world/service.yaml"]
-        },
-        "docs/guides/create_fsm_app.md": {
+        "docs/guides/draft_service_idea_and_define_fsm_specification.md": {
             "code_files": [
                 "packages/valory/skills/hello_world_abci/fsm_specification.yaml"
             ]
@@ -166,6 +158,8 @@ class TestYamlSnippets(BaseTestDocCode):
     }
 
     skipped_files = [
+        "docs/guides/define_agent.md",  # TODO: How to check against hello w.? only changes name of vendor and agent.
+        "docs/guides/define_service.md",  # TODO: How to check against hello w.? only changes name of vendor and service
         "docs/guides/service_configuration_file.md",
         "docs/deployment/on-chain_deployment_checklist.md",  # just placeholder examples
         "docs/guides/configure_access_external_chains.md",  # just placeholder examples

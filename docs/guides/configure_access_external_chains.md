@@ -1,3 +1,7 @@
+!!! warning
+
+    This section contains advanced material. You can skip this section if it's the first time you are following the guides.
+
 The {{open_autonomy}} framework supports that agent services access different external chains
 by defining certain configuration parameters appropriately.
 

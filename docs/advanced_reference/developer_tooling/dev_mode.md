@@ -6,30 +6,42 @@ The {{open_autonomy}} framework comes with *developer mode* (`dev` mode) tooling
 * **Execution replay** of a previous agent in the service.
 * **Benchmark** the performance of an agent service.
 
-Before starting this guide, ensure that your machine satisfies the framework requirements and that you have followed the [set up guide](../../guides/set_up.md). As a result you should have a Pipenv workspace folder.
-
+You must ensure that your machine satisfies the framework requirements and that you have [set up the framework](./set_up.md#set-up-the-framework) and [a local registry](./set_up.md#set-up-the-local-registry). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
 ## Build and run an agent service in `dev` mode
 
-1. **Fetch the service.** Fetch the Price Oracle service from the remote registry.
+1. **Clone the required repositories.** In order for this feature to work, you need to clone the Open Autonomy and Open AEA Github repositories and **checkout the tag corresponding to your version of the frameworks**. Within your workspace folder, execute:
 
     ```bash
-    autonomy fetch valory/oracle_hardhat:0.1.0:<hash> --service
+    git clone https://github.com/valory-xyz/open-autonomy.git
+	  cd open-autonomy/; git fetch origin --tags --force; git checkout $$(git tag --sort=committerdate | tail -n 1)
     ```
 
-2. **Build the agents' image.** Navigate to the local folder of the service, and build the Docker image of the service agents in `dev` mode.
+    and
 
     ```bash
-    cd oracle_hardhat
+
+    ```
+
+2. **Fetch the service.** Fetch the Price Oracle service from the remote registry.
+
+    ```bash
+    autonomy fetch valory/hello_world:0.1.0:bafybeiecl3acm57s24cxy5pbmzqhkbiewaj7siksun2gcuh4zc3z5wbs6q --service
+    cd hello_world
+    ```
+
+3. **Build the agents' image.** Navigate to the local folder of the service, and build the Docker image of the service agents in `dev` mode.
+
+    ```bash
     autonomy build-image --dev
     ```
 
-    After the command finishes building the image, you can see that it has been created by executing:
+    After the command finishes building the image, you can see that the `hello_world` image with tag `dev` has been created by executing:
 
     ```bash
-    docker image ls | grep oracle_hardhat
+    docker image ls | grep hello_world
     ```
 
-3. **Prepare the keys file.** Within the service folder, prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that make up the service.
+4. **Prepare the keys file.** Within the service folder, prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that make up the service.
 
     ??? example "Example of a `keys.json` file"
 
@@ -56,10 +68,10 @@ Before starting this guide, ensure that your machine satisfies the framework req
         ]
         ```
 
-4. **Build the deployment.** Within the service folder, execute the command below to build the service deployment in `dev` mode, including a pre-configured Hardhat instance.
+5. **Build the deployment.** Within the service folder, execute the command below to build the service deployment in `dev` mode, including a pre-configured Hardhat instance.
 
     ```bash
-    autonomy deploy build keys.json --dev --packages-dir ~/git/open-autonomy/packages --open-autonomy-dir ~/git/open-aea/ --open-aea-dir ~/git/open-autonomy/ --use-hardhat -ltm
+    autonomy deploy build ../keys.json --dev --packages-dir ../packages/ --open-autonomy-dir ~/git/open-autonomy/ --open-aea-dir ~/git/open-aea/ -ltm
     ```
 
     You must modify the paths in the command above appropriately, pointing to:
@@ -70,7 +82,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
     This will create a deployment environment in `dev` mode within the `./abci_build` folder.
 
-5. **Run the service.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
+6. **Run the service.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
 
     ```bash
     cd abci_build

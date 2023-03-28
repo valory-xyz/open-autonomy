@@ -215,7 +215,7 @@ Ensure that your components, agent and service packages are published to the IPF
 * [Publish your agents](../guides/publish_fetch_packages.md#publish-an-agent-on-a-registry) using the `autonomy publish` command.
 * [Publish your services](../guides/publish_fetch_packages.md#publish-a-service-on-a-registry) using the `autonomy publish` command.
 
-Ensure that your components, agents and service packages are [registered in the Autonolas Protocol](../guides/register_packages_on_chain.md).
+Ensure that your components, agents and service packages are [minted on-chain in the Autonolas Protocol](../guides/publish_mint_packages.md).
 
 
 ## Check the deployment readiness of the service using
