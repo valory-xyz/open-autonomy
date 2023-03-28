@@ -263,7 +263,7 @@ Take a look at the structure of the {{fsm_app}} skill of the Hello World service
 └── tests/
 ```
 
-Note that the easiest way to start building a new {{fsm_app}} is by [using the {{fsm_app}} scaffold tool](../guides/create_fsm_app.md), because it already populates many of these files. The most important files you should look at are:
+Note that the easiest way to start building a new {{fsm_app}} is by [using the {{fsm_app}} scaffold tool](../guides/code_fsm_app_skill.md), because it already populates many of these files. The most important files you should look at are:
 
 * **`behaviours.py`**: This file defines the `Behaviours`, which encode the proactive actions occurring at each state of the FSM. Each behaviour is one-to-one associated to a `Round`. It also contains the `HelloWorldRoundBehaviour` class, which can be thought as the "main" class for the skill behaviour.
 
@@ -485,7 +485,7 @@ Whereas these are the main files to take into account, there are other files tha
 * **`handlers.py`**: Defines the `Handlers` (implementing reactive actions) used by the skill. It is mandatory that the skill associated to an agent service implements a handler inherited from the `ABCIRoundHandler`. Other handlers are required according to the actions that the skill is performing (e.g., interacting with an HTTP server). As you can see by exploring the file, little coding is expected unless you need to implement a custom protocol.
 * **`dialogues.py`**: It defines the dialogues associated to the protocols described in the `skill.yaml` configuration file. Again, not much coding is expected in most cases.
 * **`models.py`**: It defines the models of the skill, which usually consist of the `SharedState` and the configuration parameters `Params` classes. The classes defined here are linked with the contents in the section `models` in the file `skill.yaml`.
-* **`fsm_specification.yaml`**: The {{fsm_app}} specification file. It is used for checking the consistency of the implementation, and it can be used to verify the implementation or to [scaffold the {{fsm_app}}](../guides/create_fsm_app.md) providing an initial structure.
+* **`fsm_specification.yaml`**: The {{fsm_app}} specification file. It is used for checking the consistency of the implementation, and it can be used to verify the implementation or to [scaffold the {{fsm_app}}](../guides/code_fsm_app_skill.md) providing an initial structure.
 
 #### Exploring the agent definition code
 
@@ -559,3 +559,4 @@ Even though printing `HELLO_WORLD!` on a local console is far from being an exci
 In this toy example we are not verifying that the keeper behaves honestly: there is no way for the other agents to verify its console. However, in a real service that implements some critical operation (e.g., like sending a transaction to a blockchain) further verification and security mechanisms have to be put in place.
 
 This walk-through, together with the [overview of the development process](../guides/overview_of_the_development_process.md) should give you some confidence to start creating your first service. Obviously, there are more elements in the {{open_autonomy}} framework that facilitate building complex applications by enabling to interact with blockchains and other networks. We refer the reader to the more advanced sections of the documentation (e.g., key concepts) where we explore in detail the components of the stack.
+
