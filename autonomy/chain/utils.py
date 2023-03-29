@@ -22,7 +22,7 @@ from json import JSONDecodeError
 from typing import Dict, List
 
 from aea.configurations.base import PackageConfiguration
-from aea.configurations.data_types import PublicId
+from aea.configurations.data_types import PackageId, PublicId
 from aea.crypto.base import LedgerApi
 from requests import get as r_get
 from requests.exceptions import ConnectionError as RequestConnectionError
@@ -76,6 +76,28 @@ def resolve_component_id(
         ) from e
 
 
+def _parse_public_id_from_metadata(id_string: str) -> PublicId:
+    """Parse public ID from on-chain metadata."""
+    if ":" in id_string:
+        id_string, _ = id_string.split(":")
+
+    try:
+        return PublicId.from_str(id_string).to_any()
+    except ValueError as e:
+        id_parts = id_string.split("/")
+
+        if len(id_parts) == 3:
+            # component_type/author/name
+            _, author, name = id_parts
+            return PublicId(author=author, name=name).to_any()
+
+        if len(id_parts) == 4:
+            # component_type/author/name/version
+            return PackageId.from_uri_path(id_string).public_id.to_any()
+
+        raise DependencyError(f"Invalid package name found `{id_string}`") from e
+
+
 def verify_component_dependencies(
     ledger_api: LedgerApi,
     contract_address: str,
@@ -95,7 +117,7 @@ def verify_component_dependencies(
             ledger_api=ledger_api,
             token_id=dependency_id,
         )
-        component_public_id = PublicId.from_str(component_metadata["name"]).to_any()
+        component_public_id = _parse_public_id_from_metadata(component_metadata["name"])
         if component_public_id not in public_id_to_hash:
             raise DependencyError(
                 f"On chain dependency with id {dependency_id} not found in the local package configuration"
@@ -133,7 +155,7 @@ def verify_service_dependencies(
         token_id=agent_id,
         is_agent=True,
     )
-    component_public_id = PublicId.from_str(component_metadata["name"]).to_any()
+    component_public_id = _parse_public_id_from_metadata(component_metadata["name"])
     if component_public_id != agent.to_any():
         raise DependencyError(
             "On chain ID of the agent does not match with the one in the service configuration"
