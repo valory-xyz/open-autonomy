@@ -75,7 +75,7 @@ class ChainConfigs:  # pylint: disable=too-few-public-methods
         chain_id=DEFAULT_LOCAL_CHAIN_ID,
     )
 
-    custom = ChainConfig(
+    custom_chain = ChainConfig(
         chain_type=ChainType.CUSTOM,
         rpc=os.environ.get("CUSTOM_CHAIN_RPC"),
         chain_id=_get_chain_id_for_custom_chain(),
