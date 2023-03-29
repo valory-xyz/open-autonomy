@@ -122,6 +122,7 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
     chain_type: ChainType,
     dependencies: List[int],
     nft_image_hash: Optional[str] = None,
+    owner: Optional[str] = None,
     password: Optional[str] = None,
     skip_hash_check: bool = False,
     timeout: Optional[float] = None,
@@ -191,6 +192,7 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
             ledger_api=ledger_api,
             crypto=crypto,
             metadata_hash=metadata_hash,
+            owner=owner,
             component_type=UnitType.AGENT if is_agent else UnitType.COMPONENT,
             chain_type=chain_type,
             dependencies=dependencies,
@@ -227,6 +229,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
     cost_of_bond: int,
     threshold: int,
     nft_image_hash: Optional[str] = None,
+    owner: Optional[str] = None,
     password: Optional[str] = None,
     skip_hash_check: bool = False,
     timeout: Optional[float] = None,
@@ -303,6 +306,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
             ],
             threshold=threshold,
             timeout=timeout,
+            owner=owner,
         )
     except ComponentMintFailed as e:
         raise click.ClickException(
@@ -324,7 +328,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
         )
 
 
-def activate_service(
+def activate_service(  # pylint: disable=too-many-arguments
     service_id: int,
     key: Path,
     chain_type: ChainType,

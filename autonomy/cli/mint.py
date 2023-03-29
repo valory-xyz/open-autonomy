@@ -56,6 +56,11 @@ nft_decorator = click.option(
 timeout_flag = click.option(
     "-t", "--timeout", type=float, help="Timeout for verifying emnitted events"
 )
+owner_flag = click.option(
+    "--owner",
+    type=str,
+    help="Owner address for the component",
+)
 
 key_path_decorator = click.option(
     "--key",
@@ -98,6 +103,7 @@ def mint(  # pylint: disable=too-many-arguments
 @password_decorator
 @dependencies_decorator
 @nft_decorator
+@owner_flag
 @pass_ctx
 def protocol(  # pylint: disable=too-many-arguments
     ctx: Context,
@@ -106,6 +112,7 @@ def protocol(  # pylint: disable=too-many-arguments
     password: Optional[str],
     dependencies: Tuple[str],
     nft: Optional[str],
+    owner: Optional[str],
     hwi: bool = False,
 ) -> None:
     """Mint a protocol component."""
@@ -118,6 +125,7 @@ def protocol(  # pylint: disable=too-many-arguments
         dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
+        owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
         hwi=hwi,
@@ -131,6 +139,7 @@ def protocol(  # pylint: disable=too-many-arguments
 @password_decorator
 @dependencies_decorator
 @nft_decorator
+@owner_flag
 @pass_ctx
 def contract(  # pylint: disable=too-many-arguments
     ctx: Context,
@@ -139,6 +148,7 @@ def contract(  # pylint: disable=too-many-arguments
     password: Optional[str],
     dependencies: Tuple[str],
     nft: Optional[str],
+    owner: Optional[str],
     hwi: bool = False,
 ) -> None:
     """Mint a contract component."""
@@ -151,6 +161,7 @@ def contract(  # pylint: disable=too-many-arguments
         dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
+        owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
         hwi=hwi,
@@ -164,6 +175,7 @@ def contract(  # pylint: disable=too-many-arguments
 @password_decorator
 @dependencies_decorator
 @nft_decorator
+@owner_flag
 @pass_ctx
 def connection(  # pylint: disable=too-many-arguments
     ctx: Context,
@@ -172,6 +184,7 @@ def connection(  # pylint: disable=too-many-arguments
     password: Optional[str],
     dependencies: Tuple[str],
     nft: Optional[str],
+    owner: Optional[str],
     hwi: bool = False,
 ) -> None:
     """Mint a connection component."""
@@ -184,6 +197,7 @@ def connection(  # pylint: disable=too-many-arguments
         dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
+        owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
         hwi=hwi,
@@ -197,6 +211,7 @@ def connection(  # pylint: disable=too-many-arguments
 @password_decorator
 @dependencies_decorator
 @nft_decorator
+@owner_flag
 @pass_ctx
 def skill(  # pylint: disable=too-many-arguments
     ctx: Context,
@@ -205,6 +220,7 @@ def skill(  # pylint: disable=too-many-arguments
     password: Optional[str],
     dependencies: Tuple[str],
     nft: Optional[str],
+    owner: Optional[str],
     hwi: bool = False,
 ) -> None:
     """Mint a skill component."""
@@ -217,6 +233,7 @@ def skill(  # pylint: disable=too-many-arguments
         dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
+        owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
         hwi=hwi,
@@ -230,6 +247,7 @@ def skill(  # pylint: disable=too-many-arguments
 @password_decorator
 @dependencies_decorator
 @nft_decorator
+@owner_flag
 @pass_ctx
 def agent(  # pylint: disable=too-many-arguments
     ctx: Context,
@@ -238,6 +256,7 @@ def agent(  # pylint: disable=too-many-arguments
     password: Optional[str],
     dependencies: Tuple[str],
     nft: Optional[str],
+    owner: Optional[str],
     hwi: bool = False,
 ) -> None:
     """Mint an agent."""
@@ -250,6 +269,7 @@ def agent(  # pylint: disable=too-many-arguments
         dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
+        owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
         hwi=hwi,
@@ -262,6 +282,7 @@ def agent(  # pylint: disable=too-many-arguments
 @hwi_flag
 @password_decorator
 @nft_decorator
+@owner_flag
 @pass_ctx
 @click.option(
     "-a",
@@ -300,6 +321,7 @@ def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-a
     threshold: int,
     password: Optional[str],
     nft: Optional[str],
+    owner: Optional[str],
     hwi: bool = False,
 ) -> None:
     """Mint a service"""
@@ -314,6 +336,7 @@ def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-a
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
         password=password,
         nft_image_hash=nft,
+        owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
         hwi=hwi,
