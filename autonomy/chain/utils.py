@@ -129,7 +129,7 @@ def verify_component_dependencies(
 
         if package_hash != get_ipfs_hash_from_uri(uri=component_metadata["code_uri"]):
             raise DependencyError(
-                "Package hash does not match for the on chain package and the local package"
+                f"Package hash does not match for the on chain package and the local package; Dependency={dependency_id}"
             )
 
     if len(public_id_to_hash):
@@ -166,5 +166,5 @@ def verify_service_dependencies(
 
     if agent.hash != get_ipfs_hash_from_uri(uri=component_metadata["code_uri"]):
         raise DependencyError(
-            "Package hash does not match for the on chain package and the local package"
+            f"Package hash does not match for the on chain package and the local package; Dependency={agent}"
         )
