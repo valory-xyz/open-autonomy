@@ -94,7 +94,7 @@ No backwards incompatible changes
 One backwards incompatible change
 ## Service component
 
-- This release introduces a new format for defining multiple overrides for an agent on a service configuration. Please follow this [guide](https://github.com/valory-xyz/open-autonomy/blob/main/docs/configure_service/service_configuration_file.md) to update your service configurations accordingly.
+- This release introduces a new format for defining multiple overrides for an agent on a service configuration. Please follow this [guide](./configure_service/service_configuration_file.md) to update your service configurations accordingly.
 
 ## `v0.3.5` to `v0.4.0`
 
