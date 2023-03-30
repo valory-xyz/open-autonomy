@@ -318,7 +318,7 @@ Analyse if the service is ready to be deployed or not.
 
 This tool can be used to analyse a service definition and see if there are any potential issues with configuration which can cause issues when running the deployment.
 
-Read the [guide on deployment readiness](../..configure_service/on-chain_deployment_checklist.md) for more information.
+Read the [guide on deployment readiness](../../configure_service/on-chain_deployment_checklist.md) for more information.
 
 ### Usage
 ```bash
