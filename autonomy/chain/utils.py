@@ -72,7 +72,7 @@ def resolve_component_id(
         ) from e
     except JSONDecodeError as e:
         raise FailedToRetrieveComponentMetadata(
-            "Error decoding json data; make sure metadata file for the service exist on the IPFS registry"
+            f"Error decoding json data; make sure metadata file for the component exist on the IPFS registry; Dependency ID: {token_id}"
         ) from e
 
 
@@ -82,6 +82,7 @@ def _parse_public_id_from_metadata(id_string: str) -> PublicId:
         id_string, _ = id_string.split(":")
 
     try:
+        # author/package_name
         return PublicId.from_str(id_string).to_any()
     except ValueError as e:
         id_parts = id_string.split("/")
@@ -107,9 +108,13 @@ def verify_component_dependencies(
 ) -> None:
     """Verify package dependencies using on-chain metadata."""
 
-    public_id_to_hash: Dict[PublicId, str] = {}
+    public_id_to_hash: Dict[PublicId, List[str]] = {}
+
     for dependency in package_configuration.package_dependencies:
-        public_id_to_hash[dependency.public_id.to_any()] = dependency.package_hash
+        public_id = dependency.public_id.to_any()
+        if public_id not in public_id_to_hash:
+            public_id_to_hash[public_id] = []
+        public_id_to_hash[dependency.public_id.to_any()].append(dependency.package_hash)
 
     for dependency_id in dependencies:
         component_metadata = resolve_component_id(
@@ -120,17 +125,26 @@ def verify_component_dependencies(
         component_public_id = _parse_public_id_from_metadata(component_metadata["name"])
         if component_public_id not in public_id_to_hash:
             raise DependencyError(
-                f"On chain dependency with id {dependency_id} not found in the local package configuration"
+                f"On chain dependency with id {dependency_id} and public ID {component_public_id} not found in the local package configuration"
             )
 
-        package_hash = public_id_to_hash.pop(component_public_id)
-        if skip_hash_check:
-            continue
+        if skip_hash_check and len(public_id_to_hash[component_public_id]) > 0:
+            public_id_to_hash[component_public_id].pop()
+        else:
+            on_chain_hash = get_ipfs_hash_from_uri(uri=component_metadata["code_uri"])
+            if on_chain_hash not in public_id_to_hash[component_public_id]:
+                raise DependencyError(
+                    f"Package hash does not match for the on chain package and the local package; Dependency={dependency_id}"
+                )
 
-        if package_hash != get_ipfs_hash_from_uri(uri=component_metadata["code_uri"]):
-            raise DependencyError(
-                f"Package hash does not match for the on chain package and the local package; Dependency={dependency_id}"
+            public_id_to_hash[component_public_id] = list(
+                filter(
+                    lambda x: x != on_chain_hash, public_id_to_hash[component_public_id]
+                )
             )
+
+        if len(public_id_to_hash[component_public_id]) == 0:
+            del public_id_to_hash[component_public_id]
 
     if len(public_id_to_hash):
         missing_deps = list(map(str, public_id_to_hash.keys()))

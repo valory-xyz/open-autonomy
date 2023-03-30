@@ -67,7 +67,7 @@ def test_verify_component_dependencies_no_dep_found_locally() -> None:
         "autonomy.chain.utils.resolve_component_id", return_value=get_dummy_metadata()
     ), pytest.raises(
         DependencyError,
-        match="On chain dependency with id 0 not found in the local package configuration",
+        match="On chain dependency with id 0 and public ID valory/package:any not found in the local package configuration",
     ):
         verify_component_dependencies(
             ledger_api=mock.MagicMock(),
@@ -123,6 +123,100 @@ def test_verify_component_dependencies_hash_dont_match() -> None:
                     PackageId.from_uri_path("skill/valory/package/0.1.0").with_hash(
                         DUMMY_HASH
                     )
+                ]
+            ),
+        )
+
+
+def test_verify_component_dependencies_multiple_component_with_same_public_id() -> None:
+    """Test `verify_component_dependencies`"""
+
+    phash_1 = DUMMY_HASH.replace("0", "1")
+    phash_2 = DUMMY_HASH.replace("0", "2")
+
+    with mock.patch(
+        "autonomy.chain.utils.resolve_component_id",
+        side_effect=[
+            get_dummy_metadata(code_uri=phash_1),
+            get_dummy_metadata(code_uri=phash_2),
+        ],
+    ):
+        verify_component_dependencies(
+            ledger_api=mock.MagicMock(),
+            contract_address="0xdummy_contract",
+            dependencies=[0, 1],
+            package_configuration=mock.MagicMock(
+                package_dependencies=[
+                    PackageId.from_uri_path(
+                        "connection/valory/package/0.1.0",
+                    ).with_hash(phash_1),
+                    PackageId.from_uri_path(
+                        "contract/valory/package/0.1.0",
+                    ).with_hash(phash_2),
+                ]
+            ),
+        )
+
+
+def test_verify_component_dependencies_multiple_component_with_same_public_id_skip_hash_check() -> None:
+    """Test `verify_component_dependencies`"""
+
+    phash_1 = DUMMY_HASH.replace("0", "1")
+    phash_2 = DUMMY_HASH.replace("0", "2")
+
+    with mock.patch(
+        "autonomy.chain.utils.resolve_component_id",
+        side_effect=[
+            get_dummy_metadata(code_uri=phash_1),
+            get_dummy_metadata(code_uri=phash_2),
+        ],
+    ):
+        verify_component_dependencies(
+            ledger_api=mock.MagicMock(),
+            contract_address="0xdummy_contract",
+            dependencies=[0, 1],
+            package_configuration=mock.MagicMock(
+                package_dependencies=[
+                    PackageId.from_uri_path(
+                        "connection/valory/package/0.1.0",
+                    ).with_hash(phash_1),
+                    PackageId.from_uri_path(
+                        "contract/valory/package/0.1.0",
+                    ).with_hash(phash_2),
+                ]
+            ),
+            skip_hash_check=True,
+        )
+
+
+def test_verify_component_dependencies_multiple_component_with_same_public_id_fail() -> None:
+    """Test `verify_component_dependencies`"""
+
+    phash_1 = DUMMY_HASH.replace("0", "1")
+    phash_2 = DUMMY_HASH.replace("0", "2")
+
+    with mock.patch(
+        "autonomy.chain.utils.resolve_component_id",
+        side_effect=[
+            get_dummy_metadata(code_uri=phash_1),
+            get_dummy_metadata(code_uri="phash_2"),
+        ],
+    ), pytest.raises(
+        DependencyError,
+        match="Package hash does not match for the on chain package and the local package; Dependency=1",
+    ):
+        verify_component_dependencies(
+            ledger_api=mock.MagicMock(),
+            contract_address="0xdummy_contract",
+            dependencies=[0, 1],
+            package_configuration=mock.MagicMock(
+                package_dependencies=[
+                    PackageId.from_uri_path(
+                        "connection/valory/package/0.1.0",
+                    ).with_hash(phash_1),
+                    PackageId.from_uri_path(
+                        "contract/valory/package/0.1.0",
+                    ).with_hash(phash_2),
                 ]
             ),
         )
