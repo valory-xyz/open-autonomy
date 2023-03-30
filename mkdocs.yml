@@ -34,10 +34,11 @@ nav:
     - Code the FSM App skill: 'guides/code_fsm_app_skill.md'
     - Define the agent: 'guides/define_agent.md'
     - Define the service: 'guides/define_service.md'
-    - The service configuration file: 'guides/service_configuration_file.md'
     - Publish and mint packages: 'guides/publish_mint_packages.md'
     - Deploy a service: 'guides/deploy_service.md'
-    - Configure access to external chains: 'guides/configure_access_external_chains.md'
+  - Configure the service:
+    - The service configuration file: 'configure_service/service_configuration_file.md'
+    - Configure access to external chains: 'configure_service/configure_access_external_chains.md'
   - Demo agent services:
     - 'demos/index.md'  
     - Hello World demo: 'demos/hello_world_demo.md'
@@ -249,7 +250,12 @@ nav:
 
 plugins:
   - macros
-  - search  
+  - search
+  - redirects:
+      redirect_maps:
+          'guides/service_configuration_file.md': 'configure_service/configure_access_external_chains.md'
+          'guides/service_configuration_file.md': 'configure_service/service_configuration_file.md'
+
 
 markdown_extensions:
   - pymdownx.details
