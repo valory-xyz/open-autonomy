@@ -136,12 +136,11 @@ def verify_component_dependencies(
                 raise DependencyError(
                     f"Package hash does not match for the on chain package and the local package; Dependency={dependency_id}"
                 )
-
-            public_id_to_hash[component_public_id] = list(
-                filter(
-                    lambda x: x != on_chain_hash, public_id_to_hash[component_public_id]
-                )
-            )
+            public_id_to_hash[component_public_id] = [
+                _hash
+                for _hash in public_id_to_hash[component_public_id]
+                if _hash != on_chain_hash
+            ]
 
         if len(public_id_to_hash[component_public_id]) == 0:
             del public_id_to_hash[component_public_id]
