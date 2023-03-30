@@ -62,6 +62,7 @@ nav:
     - The service configuration file: 'configure_service/service_configuration_file.md'
     - Configure access to external chains: 'configure_service/configure_access_external_chains.md'
     - On-chain deployment checklist: 'configure_service/on-chain_deployment_checklist.md'
+    - Analize and test: 'configure_service/analize_test.md'
   - Advanced reference:
     - 'advanced_reference/index.md'
     - Commands:
