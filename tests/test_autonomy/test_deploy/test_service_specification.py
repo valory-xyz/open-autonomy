@@ -246,15 +246,18 @@ class TestServiceBuilder:
         )
         skill_config, *_ = spec.service.overrides
 
-        assert skill_config["models"]["params"]["args"]["setup"][
-            "safe_contract_address"
-        ] == [multisig_address]
-        assert skill_config["models"]["params"]["args"]["setup"][
-            "all_participants"
-        ] == [agent_instances]
-        assert skill_config["models"]["params"]["args"]["setup"][
-            "consensus_threshold"
-        ] == [consensus_threshold]
+        assert (
+            skill_config["models"]["params"]["args"]["setup"]["safe_contract_address"]
+            == multisig_address
+        )
+        assert (
+            skill_config["models"]["params"]["args"]["setup"]["all_participants"]
+            == agent_instances
+        )
+        assert (
+            skill_config["models"]["params"]["args"]["setup"]["consensus_threshold"]
+            == consensus_threshold
+        )
 
         assert skill_config["models"]["params"]["args"][
             TENDERMINT_URL_PARAM
@@ -281,12 +284,18 @@ class TestServiceBuilder:
         skill_config, *_ = spec.service.overrides
 
         for agent_idx in range(spec.service.number_of_agents):
-            assert skill_config[agent_idx]["models"]["params"]["args"]["setup"][
-                "safe_contract_address"
-            ] == [multisig_address]
-            assert skill_config[agent_idx]["models"]["params"]["args"]["setup"][
-                "all_participants"
-            ] == [agent_instances]
+            assert (
+                skill_config[agent_idx]["models"]["params"]["args"]["setup"][
+                    "safe_contract_address"
+                ]
+                == multisig_address
+            )
+            assert (
+                skill_config[agent_idx]["models"]["params"]["args"]["setup"][
+                    "all_participants"
+                ]
+                == agent_instances
+            )
 
             assert skill_config[agent_idx]["models"]["params"]["args"][
                 TENDERMINT_URL_PARAM
