@@ -160,9 +160,9 @@ class TestYamlSnippets(BaseTestDocCode):
     skipped_files = [
         "docs/guides/define_agent.md",  # TODO: How to check against hello w.? only changes name of vendor and agent.
         "docs/guides/define_service.md",  # TODO: How to check against hello w.? only changes name of vendor and service
-        "docs/guides/service_configuration_file.md",
-        "docs/deployment/on-chain_deployment_checklist.md",  # just placeholder examples
-        "docs/guides/configure_access_external_chains.md",  # just placeholder examples
+        "docs/configure_service/service_configuration_file.md",
+        "docs/configure_service/on-chain_deployment_checklist.md",  # just placeholder examples
+        "docs/configure_service/configure_access_external_chains.md",  # just placeholder examples
         "docs/advanced_reference/developer_tooling/dev_mode.md",  # just placeholder examples
     ]
 
@@ -208,12 +208,12 @@ class TestPythonSnippets(BaseTestDocCode):
 
     skipped_files = [
         "docs/key_concepts/abci_app_async_behaviour.md",  # just placeholder examples
-        "docs/guides/configure_access_external_chains.md",  # only irrelevant one-liners,
+        "docs/configure_service/configure_access_external_chains.md",  # only irrelevant one-liners,
         "docs/key_concepts/abci_app_abstract_round.md",  # just a placeholder example
         "docs/demos/price_oracle_fsms.md",  # price oracle has been extracted to a separate repo on #1441
         "docs/demos/price_oracle_technical_details.md",  # price oracle has been extracted to a separate repo on #1441
         "docs/advanced_reference/developer_tooling/benchmarking.md",  # just placeholder examples
-        "docs/deployment/on-chain_deployment_checklist.md",  # just placeholder examples
+        "docs/configure_service/on-chain_deployment_checklist.md",  # just placeholder examples
     ]
 
 
