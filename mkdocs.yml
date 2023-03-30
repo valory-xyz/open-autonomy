@@ -36,9 +36,6 @@ nav:
     - Define the service: 'guides/define_service.md'
     - Publish and mint packages: 'guides/publish_mint_packages.md'
     - Deploy a service: 'guides/deploy_service.md'
-  - Configure the service:
-    - The service configuration file: 'configure_service/service_configuration_file.md'
-    - Configure access to external chains: 'configure_service/configure_access_external_chains.md'
   - Demo agent services:
     - 'demos/index.md'  
     - Hello World demo: 'demos/hello_world_demo.md'
@@ -61,6 +58,10 @@ nav:
       - Interactions between components: 'key_concepts/abci_app_interactions.md'
       - Sequence diagram: 'key_concepts/poc-diagram.md'
     - Threat model: 'key_concepts/threat_model.md'
+  - Configure the service:
+    - The service configuration file: 'configure_service/service_configuration_file.md'
+    - Configure access to external chains: 'configure_service/configure_access_external_chains.md'
+    - On-chain deployment checklist: 'configure_service/on-chain_deployment_checklist.md'
   - Advanced reference:
     - 'advanced_reference/index.md'
     - Commands:
@@ -79,7 +80,6 @@ nav:
       - Debugging in the cluster: 'advanced_reference/developer_tooling/debugging_in_the_cluster.md'
     - Deployment:
       - Container Control Flow: 'control_flow.md'
-      - On-chain deployment checklist: 'deployment/on-chain_deployment_checklist.md'
       - Local Deployment: 'application_deployment.md'
       - Cloud Deployment: 'using_stack_deployment.md'
     - Using custom images in a deployment: 'advanced_reference/use_custom_images.md'
@@ -250,12 +250,7 @@ nav:
 
 plugins:
   - macros
-  - search
-  - redirects:
-      redirect_maps:
-          'guides/service_configuration_file.md': 'configure_service/configure_access_external_chains.md'
-          'guides/service_configuration_file.md': 'configure_service/service_configuration_file.md'
-
+  - search  
 
 markdown_extensions:
   - pymdownx.details
