@@ -491,6 +491,6 @@ class TestMintComponents(BaseChainInteractionTest):
 
         assert result.exit_code == 1, result.output
         assert (
-            "On chain dependency with id 1 not found in the local package configuration"
+            "On chain dependency with id 1 and public ID valory/abci:any not found in the local package configuration"
             in result.stderr
         )
