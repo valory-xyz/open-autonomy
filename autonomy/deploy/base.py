@@ -319,7 +319,7 @@ class ServiceBuilder:
                 param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM.format(idx)
 
         try:
-            if self.service.number_of_agents == 1:
+            if self.service.number_of_agents == 1 and not has_multiple_overrides:
                 param_args = self._get_config_from_json_path(
                     override_dict=override, json_path=PARAM_ARGS_PATH
                 )
@@ -362,17 +362,17 @@ class ServiceBuilder:
         param_overrides: List[Tuple[str, Any]] = []
         if multisig_address is not None:
             param_overrides.append(
-                (SAFE_CONTRACT_ADDRESS, [multisig_address]),
+                (SAFE_CONTRACT_ADDRESS, multisig_address),
             )
 
         if agent_instances is not None:
             param_overrides.append(
-                (ALL_PARTICIPANTS, [agent_instances]),
+                (ALL_PARTICIPANTS, agent_instances),
             )
 
         if consensus_threshold is not None:
             param_overrides.append(
-                (CONSENSUS_THRESHOLD, [consensus_threshold]),
+                (CONSENSUS_THRESHOLD, consensus_threshold),
             )
 
         overrides = copy(self.service.overrides)

@@ -76,6 +76,7 @@ class RegistriesManagerContract(Contract):
         component_type: UnitType,
         metadata_hash: str,
         owner: str,
+        sender: str,
         dependencies: Optional[List[int]] = None,
         raise_on_try: bool = False,
     ) -> JSONLike:
@@ -93,7 +94,7 @@ class RegistriesManagerContract(Contract):
                 "dependencies": (dependencies or []),
             },
             tx_args={
-                "sender_address": owner,
+                "sender_address": sender,
             },
             raise_on_try=raise_on_try,
         )

@@ -67,6 +67,7 @@ class ServiceManagerContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         owner: str,
+        sender: str,
         metadata_hash: str,
         agent_ids: List[int],
         agent_params: List[List[int]],
@@ -88,7 +89,7 @@ class ServiceManagerContract(Contract):
                 "threshold": threshold,
             },
             tx_args={
-                "sender_address": owner,
+                "sender_address": sender,
             },
             raise_on_try=raise_on_try,
         )
