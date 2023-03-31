@@ -29,6 +29,7 @@ from aea.configurations.data_types import PackageId, PublicId
 from autonomy.chain.exceptions import DependencyError
 from autonomy.chain.utils import (
     get_ipfs_hash_from_uri,
+    parse_public_id_from_metadata,
     verify_component_dependencies,
     verify_service_dependencies,
 )
@@ -255,4 +256,31 @@ def test_verify_service_dependencies_hash_dont_match() -> None:
             service_configuration=mock.MagicMock(
                 agent=PublicId("valory", "package", package_hash=DUMMY_HASH)
             ),
+        )
+
+
+@pytest.mark.parametrize(
+    "public_id_string",
+    [
+        "author/package_name",
+        "component_type/author/name",
+        "skill/author/name/0.1.0",
+    ],
+)
+def test_parse_public_id_from_metadata(public_id_string: str) -> None:
+    """Test verify `parse_public_id_from_metadata` method"""
+
+    public_id = parse_public_id_from_metadata(
+        id_string=public_id_string,
+    )
+
+    assert isinstance(public_id, PublicId)
+
+
+def test_parse_public_id_from_metadata_fail() -> None:
+    """Test verify `parse_public_id_from_metadata` method"""
+
+    with pytest.raises(DependencyError, match="Invalid package name found `public_id`"):
+        parse_public_id_from_metadata(
+            id_string="public_id",
         )

@@ -76,8 +76,9 @@ def resolve_component_id(
         ) from e
 
 
-def _parse_public_id_from_metadata(id_string: str) -> PublicId:
+def parse_public_id_from_metadata(id_string: str) -> PublicId:
     """Parse public ID from on-chain metadata."""
+
     if ":" in id_string:
         id_string, _ = id_string.split(":")
 
@@ -122,7 +123,7 @@ def verify_component_dependencies(
             ledger_api=ledger_api,
             token_id=dependency_id,
         )
-        component_public_id = _parse_public_id_from_metadata(component_metadata["name"])
+        component_public_id = parse_public_id_from_metadata(component_metadata["name"])
         if component_public_id not in public_id_to_hash:
             raise DependencyError(
                 f"On chain dependency with id {dependency_id} and public ID {component_public_id} not found in the local package configuration"
@@ -168,7 +169,7 @@ def verify_service_dependencies(
         token_id=agent_id,
         is_agent=True,
     )
-    component_public_id = _parse_public_id_from_metadata(component_metadata["name"])
+    component_public_id = parse_public_id_from_metadata(component_metadata["name"])
     if component_public_id != agent.to_any():
         raise DependencyError(
             "On chain ID of the agent does not match with the one in the service configuration"

@@ -113,7 +113,7 @@ def mint_component(  # pylint: disable=too-many-arguments
 
     try:
         owner = ledger_api.api.toChecksumAddress(owner or crypto.address)
-    except ValueError as e:
+    except ValueError as e:  # pragma: nocover
         raise ComponentMintFailed(f"Invalid owner address {owner}") from e
 
     try:
