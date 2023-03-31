@@ -30,6 +30,7 @@ from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.docker.base import skip_docker_tests
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
+from autonomy.chain.base import registry_contracts
 from autonomy.chain.config import ChainType
 from autonomy.chain.constants import (
     AGENT_REGISTRY_ADDRESS_LOCAL,
@@ -133,6 +134,43 @@ class BaseChainInteractionTest(BaseCliTest):
         *_, token_id = matches
         return int(token_id)
 
+    def verify_owner_address(
+        self, token_id: int, owner: str, package_id: PackageId
+    ) -> None:
+        """Verify minted token id"""
+
+        if package_id.package_type == PackageType.SERVICE:
+            on_chain_owner = (
+                registry_contracts.service_registry.get_instance(
+                    ledger_api=self.ledger_api,
+                    contract_address=SERVICE_REGISTRY_ADDRESS_LOCAL,
+                )
+                .functions.ownerOf(token_id)
+                .call()
+            )
+        elif package_id.package_type == PackageType.AGENT:
+            on_chain_owner = (
+                registry_contracts.component_registry.get_instance(
+                    ledger_api=self.ledger_api,
+                    contract_address=AGENT_REGISTRY_ADDRESS_LOCAL,
+                )
+                .functions.ownerOf(token_id)
+                .call()
+            )
+        else:
+            on_chain_owner = (
+                registry_contracts.component_registry.get_instance(
+                    ledger_api=self.ledger_api,
+                    contract_address=COMPONENT_REGISTRY_ADDRESS_LOCAL,
+                )
+                .functions.ownerOf(token_id)
+                .call()
+            )
+
+        assert (
+            owner.lower() == on_chain_owner.lower()
+        ), f"Owner verification failed; Owner address={owner}; On chain owner address={on_chain_owner}"
+
     def verify_minted_token_id(self, token_id: int, package_id: PackageId) -> None:
         """Verify minted token id"""
 
@@ -186,7 +224,7 @@ class BaseChainInteractionTest(BaseCliTest):
                 crypto=self.crypto,
                 metadata_hash=metadata_hash,
                 chain_type=ChainType.LOCAL,
-                **service_mint_parameters
+                **service_mint_parameters,
             )
         else:
             token_id = mint_component(

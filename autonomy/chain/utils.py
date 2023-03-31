@@ -22,7 +22,7 @@ from json import JSONDecodeError
 from typing import Dict, List
 
 from aea.configurations.base import PackageConfiguration
-from aea.configurations.data_types import PublicId
+from aea.configurations.data_types import PackageId, PublicId
 from aea.crypto.base import LedgerApi
 from requests import get as r_get
 from requests.exceptions import ConnectionError as RequestConnectionError
@@ -72,8 +72,32 @@ def resolve_component_id(
         ) from e
     except JSONDecodeError as e:
         raise FailedToRetrieveComponentMetadata(
-            "Error decoding json data; make sure metadata file for the service exist on the IPFS registry"
+            f"Error decoding json data; make sure metadata file for the component exist on the IPFS registry; Dependency ID: {token_id}"
         ) from e
+
+
+def parse_public_id_from_metadata(id_string: str) -> PublicId:
+    """Parse public ID from on-chain metadata."""
+
+    if ":" in id_string:
+        id_string, _ = id_string.split(":")
+
+    try:
+        # author/package_name
+        return PublicId.from_str(id_string).to_any()
+    except ValueError as e:
+        id_parts = id_string.split("/")
+
+        if len(id_parts) == 3:
+            # component_type/author/name
+            _, author, name = id_parts
+            return PublicId(author=author, name=name).to_any()
+
+        if len(id_parts) == 4:
+            # component_type/author/name/version
+            return PackageId.from_uri_path(id_string).public_id.to_any()
+
+        raise DependencyError(f"Invalid package name found `{id_string}`") from e
 
 
 def verify_component_dependencies(
@@ -85,9 +109,13 @@ def verify_component_dependencies(
 ) -> None:
     """Verify package dependencies using on-chain metadata."""
 
-    public_id_to_hash: Dict[PublicId, str] = {}
+    public_id_to_hash: Dict[PublicId, List[str]] = {}
+
     for dependency in package_configuration.package_dependencies:
-        public_id_to_hash[dependency.public_id.to_any()] = dependency.package_hash
+        public_id = dependency.public_id.to_any()
+        if public_id not in public_id_to_hash:
+            public_id_to_hash[public_id] = []
+        public_id_to_hash[dependency.public_id.to_any()].append(dependency.package_hash)
 
     for dependency_id in dependencies:
         component_metadata = resolve_component_id(
@@ -95,20 +123,28 @@ def verify_component_dependencies(
             ledger_api=ledger_api,
             token_id=dependency_id,
         )
-        component_public_id = PublicId.from_str(component_metadata["name"]).to_any()
+        component_public_id = parse_public_id_from_metadata(component_metadata["name"])
         if component_public_id not in public_id_to_hash:
             raise DependencyError(
-                f"On chain dependency with id {dependency_id} not found in the local package configuration"
+                f"On chain dependency with id {dependency_id} and public ID {component_public_id} not found in the local package configuration"
             )
 
-        package_hash = public_id_to_hash.pop(component_public_id)
-        if skip_hash_check:
-            continue
+        if skip_hash_check and len(public_id_to_hash[component_public_id]) > 0:
+            public_id_to_hash[component_public_id].pop()
+        else:
+            on_chain_hash = get_ipfs_hash_from_uri(uri=component_metadata["code_uri"])
+            if on_chain_hash not in public_id_to_hash[component_public_id]:
+                raise DependencyError(
+                    f"Package hash does not match for the on chain package and the local package; Dependency={dependency_id}"
+                )
+            public_id_to_hash[component_public_id] = [
+                _hash
+                for _hash in public_id_to_hash[component_public_id]
+                if _hash != on_chain_hash
+            ]
 
-        if package_hash != get_ipfs_hash_from_uri(uri=component_metadata["code_uri"]):
-            raise DependencyError(
-                "Package hash does not match for the on chain package and the local package"
-            )
+        if len(public_id_to_hash[component_public_id]) == 0:
+            del public_id_to_hash[component_public_id]
 
     if len(public_id_to_hash):
         missing_deps = list(map(str, public_id_to_hash.keys()))
@@ -133,7 +169,7 @@ def verify_service_dependencies(
         token_id=agent_id,
         is_agent=True,
     )
-    component_public_id = PublicId.from_str(component_metadata["name"]).to_any()
+    component_public_id = parse_public_id_from_metadata(component_metadata["name"])
     if component_public_id != agent.to_any():
         raise DependencyError(
             "On chain ID of the agent does not match with the one in the service configuration"
@@ -144,5 +180,5 @@ def verify_service_dependencies(
 
     if agent.hash != get_ipfs_hash_from_uri(uri=component_metadata["code_uri"]):
         raise DependencyError(
-            "Package hash does not match for the on chain package and the local package"
+            f"Package hash does not match for the on chain package and the local package; Dependency={agent}"
         )

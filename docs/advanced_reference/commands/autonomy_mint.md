@@ -66,6 +66,9 @@ autonomy mint skill [OPTIONS] PACKAGE_PATH
 `--nft NFT_HASH`
 : IPFS hash for the NFT image representing the package. Note that if you are using a local chain this option is not required.
 
+`--owner TEXT`
+: Owner address for the component
+
 ### Examples
 
 Mint the `hello_world_abci` {{fsm_app}} skill with dependencies 11 and 42 in a custom chain:
@@ -99,6 +102,9 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH
 
 `--nft NFT_HASH`
 : IPFS hash for the NFT image representing the package. Note that if you are using a local chain this option is not required.
+
+`--owner TEXT`
+: Owner address for the component
 
 ### Examples
 

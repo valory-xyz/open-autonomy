@@ -48,6 +48,7 @@ def mint_component(ledger_api: LedgerApi,
                    metadata_hash: str,
                    component_type: UnitType,
                    chain_type: ChainType,
+                   owner: Optional[str] = None,
                    dependencies: Optional[List[int]] = None,
                    timeout: Optional[float] = None) -> Optional[int]
 ```
@@ -67,6 +68,7 @@ def mint_service(ledger_api: LedgerApi,
                  number_of_slots_per_agent: List[int],
                  cost_of_bond_per_agent: List[int],
                  threshold: int,
+                 owner: Optional[str] = None,
                  timeout: Optional[float] = None) -> Optional[int]
 ```
 

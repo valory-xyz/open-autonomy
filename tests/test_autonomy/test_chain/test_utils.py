@@ -29,6 +29,7 @@ from aea.configurations.data_types import PackageId, PublicId
 from autonomy.chain.exceptions import DependencyError
 from autonomy.chain.utils import (
     get_ipfs_hash_from_uri,
+    parse_public_id_from_metadata,
     verify_component_dependencies,
     verify_service_dependencies,
 )
@@ -67,7 +68,7 @@ def test_verify_component_dependencies_no_dep_found_locally() -> None:
         "autonomy.chain.utils.resolve_component_id", return_value=get_dummy_metadata()
     ), pytest.raises(
         DependencyError,
-        match="On chain dependency with id 0 not found in the local package configuration",
+        match="On chain dependency with id 0 and public ID valory/package:any not found in the local package configuration",
     ):
         verify_component_dependencies(
             ledger_api=mock.MagicMock(),
@@ -128,6 +129,100 @@ def test_verify_component_dependencies_hash_dont_match() -> None:
         )
 
 
+def test_verify_component_dependencies_multiple_component_with_same_public_id() -> None:
+    """Test `verify_component_dependencies`"""
+
+    phash_1 = DUMMY_HASH.replace("0", "1")
+    phash_2 = DUMMY_HASH.replace("0", "2")
+
+    with mock.patch(
+        "autonomy.chain.utils.resolve_component_id",
+        side_effect=[
+            get_dummy_metadata(code_uri=phash_1),
+            get_dummy_metadata(code_uri=phash_2),
+        ],
+    ):
+        verify_component_dependencies(
+            ledger_api=mock.MagicMock(),
+            contract_address="0xdummy_contract",
+            dependencies=[0, 1],
+            package_configuration=mock.MagicMock(
+                package_dependencies=[
+                    PackageId.from_uri_path(
+                        "connection/valory/package/0.1.0",
+                    ).with_hash(phash_1),
+                    PackageId.from_uri_path(
+                        "contract/valory/package/0.1.0",
+                    ).with_hash(phash_2),
+                ]
+            ),
+        )
+
+
+def test_verify_component_dependencies_multiple_component_with_same_public_id_skip_hash_check() -> None:
+    """Test `verify_component_dependencies`"""
+
+    phash_1 = DUMMY_HASH.replace("0", "1")
+    phash_2 = DUMMY_HASH.replace("0", "2")
+
+    with mock.patch(
+        "autonomy.chain.utils.resolve_component_id",
+        side_effect=[
+            get_dummy_metadata(code_uri=phash_1),
+            get_dummy_metadata(code_uri=phash_2),
+        ],
+    ):
+        verify_component_dependencies(
+            ledger_api=mock.MagicMock(),
+            contract_address="0xdummy_contract",
+            dependencies=[0, 1],
+            package_configuration=mock.MagicMock(
+                package_dependencies=[
+                    PackageId.from_uri_path(
+                        "connection/valory/package/0.1.0",
+                    ).with_hash(phash_1),
+                    PackageId.from_uri_path(
+                        "contract/valory/package/0.1.0",
+                    ).with_hash(phash_2),
+                ]
+            ),
+            skip_hash_check=True,
+        )
+
+
+def test_verify_component_dependencies_multiple_component_with_same_public_id_fail() -> None:
+    """Test `verify_component_dependencies`"""
+
+    phash_1 = DUMMY_HASH.replace("0", "1")
+    phash_2 = DUMMY_HASH.replace("0", "2")
+
+    with mock.patch(
+        "autonomy.chain.utils.resolve_component_id",
+        side_effect=[
+            get_dummy_metadata(code_uri=phash_1),
+            get_dummy_metadata(code_uri="phash_2"),
+        ],
+    ), pytest.raises(
+        DependencyError,
+        match="Package hash does not match for the on chain package and the local package; Dependency=1",
+    ):
+        verify_component_dependencies(
+            ledger_api=mock.MagicMock(),
+            contract_address="0xdummy_contract",
+            dependencies=[0, 1],
+            package_configuration=mock.MagicMock(
+                package_dependencies=[
+                    PackageId.from_uri_path(
+                        "connection/valory/package/0.1.0",
+                    ).with_hash(phash_1),
+                    PackageId.from_uri_path(
+                        "contract/valory/package/0.1.0",
+                    ).with_hash(phash_2),
+                ]
+            ),
+        )
+
+
 def test_verify_service_dependencies_dep_not_found() -> None:
     """Test verify `verify_service_dependencies` method"""
 
@@ -161,4 +256,31 @@ def test_verify_service_dependencies_hash_dont_match() -> None:
             service_configuration=mock.MagicMock(
                 agent=PublicId("valory", "package", package_hash=DUMMY_HASH)
             ),
+        )
+
+
+@pytest.mark.parametrize(
+    "public_id_string",
+    [
+        "author/package_name",
+        "component_type/author/name",
+        "skill/author/name/0.1.0",
+    ],
+)
+def test_parse_public_id_from_metadata(public_id_string: str) -> None:
+    """Test verify `parse_public_id_from_metadata` method"""
+
+    public_id = parse_public_id_from_metadata(
+        id_string=public_id_string,
+    )
+
+    assert isinstance(public_id, PublicId)
+
+
+def test_parse_public_id_from_metadata_fail() -> None:
+    """Test verify `parse_public_id_from_metadata` method"""
+
+    with pytest.raises(DependencyError, match="Invalid package name found `public_id`"):
+        parse_public_id_from_metadata(
+            id_string="public_id",
         )

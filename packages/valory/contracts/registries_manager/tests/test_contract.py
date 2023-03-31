@@ -52,6 +52,7 @@ class TestRegistriesManager(BaseRegistriesContractsTest):
             metadata_hash=METADATA_HASH,
             component_type=RegistriesManagerContract.UnitType.COMPONENT,
             owner=self.deployer_crypto.address,
+            sender=self.deployer_crypto.address,
         )
 
         assert all(
