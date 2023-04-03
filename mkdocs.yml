@@ -246,7 +246,8 @@ nav:
 
 
 plugins:
-  - macros
+  - macros:
+      module_name: scripts/doc_macros
   - search  
 
 markdown_extensions:

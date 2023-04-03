@@ -36,30 +36,41 @@ Ensure that your machine satisfies the following requirements:
     ```bash
     autonomy init --remote --ipfs
     ```
-    
+
     If you had previously initialized the framework, you need to use the flag `--reset` to change the configuration.
 
-    !!! info
-        The InterPlanetary File System ([IPFS](https://ipfs.io)) is a protocol, hypermedia and file sharing peer-to-peer network for storing and sharing data in a global, distributed file system. {{open_autonomy}} can use components stored in the [IPFS](https://ipfs.io), or stored locally.
+## Set up the workspace
 
+There are a couple of concepts that you need to know to set up a convenient workspace:
 
-## Set up the local registry
+* The framework works with the concept of **local** and **remote registries** to store software packages. You can publish finalized components to the remote registry, similarly as in Docker Hub. The local registry classifies its components into `dev` components being developed and `third_party` components being fetched from the remote registry to be reused. You can create an empty local registry (`./packages` folder) by executing:
+    ```bash
+    autonomy packages init
+    ```
 
-The framework works with the concept of *local* and *remote* registries to store software packages (similarly as Git repositories do). Existing (third-party) components are downloaded from the remote registry to the local registry, and developed components are pushed from the local registry to the remote registry, so that they become publicly available. 
+* Running agents or services locally require that they fetch components or create auxiliary files and folders. Therefore, we recommend fetching/copying agents and service folders outside the local registry on dedicated **runtime folders**.
+
+This is roughly how your workspace should look:
 
 <figure markdown>
-![](../images/registries_simplified.svg)
+![](../images/workspace.svg)
 </figure>
 
-To create an empty local registry, execute within the workspace folder:
+!!! tip "The Open Autonomy Dev template"
 
-```bash
-autonomy packages init
-```
+    For convenience, we provide a **Dev template** repository that you can fork and clone for your Open Atonomy projects:
 
-This will create an empty local registry in the folder `./packages`.
+    [https://github.com/valory-xyz/dev-template](https://github.com/valory-xyz/dev-template)
 
-If you plan to follow the guides in the following sections, you need to populate the local registry with a number of default [packages shipped with the framework](../package_list.md). To do so, now execute:
+    The **Dev template** comes with:
+
+    * a preconfigured Pipenv environment with required dependencies,
+    * an empty local registry,
+    * a number of preconfigured linting tools via Tox.
+
+## Set up the local registry for the guides
+
+If you plan to follow the guides in the following sections, you need to populate the local registry with a number of default [packages shipped with the framework](../package_list.md). To do so, within the workspace folder, execute:
 
 ```bash
 cat > ./packages/packages.json << EOF
@@ -67,24 +78,24 @@ cat > ./packages/packages.json << EOF
     "dev": {
     },
     "third_party": {
-        "agent/valory/hello_world/0.1.0": "bafybeigeon5j2nit6a35r4dn4c32aqqfpuaphwuvc3muw67ymqwbrrzrvu",
-        "connection/valory/abci/0.1.0": "bafybeienpqzsym3rg7nnomd6mxgbt4didwd4wfj72oadde27trdmcgsu5y",
-        "connection/valory/http_client/0.23.0": "bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi",
-        "connection/valory/ipfs/0.1.0": "bafybeie46fu7mv64q72dwzoxg77zbiv3pzsigzjk3rehjpm47cf3y77mha",
-        "connection/valory/ledger/0.19.0": "bafybeighon6i2qfl2xrg7t3lbdzlkyo4v2a7ayvwso7m5w7pf2hvjfs2ma",
-        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva",
-        "contract/valory/service_registry/0.1.0": "bafybeigvob5pgz527goh2cgibjejnmbu6xz2e3knjsocjq533m3xe5uzti",
-        "protocol/open_aea/signing/1.0.0": "bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4",
-        "protocol/valory/abci/0.1.0": "bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4",
-        "protocol/valory/acn/1.1.0": "bafybeignmc5uh3vgpuckljcj2tgg7hdqyytkm6m5b6v6mxtazdcvubibva",
-        "protocol/valory/contract_api/1.0.0": "bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy",
-        "protocol/valory/http/1.0.0": "bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty",
-        "protocol/valory/ipfs/0.1.0": "bafybeihlgai5pbmkb6mjhvgy4gkql5uvpwvxbpdowczgz4ovxat6vajrq4",
-        "protocol/valory/ledger_api/1.0.0": "bafybeidluywxchkacc7cz65nktqjg3y2vzzp43sw5hdhnvvonozogrmfie",
-        "protocol/valory/tendermint/0.1.0": "bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54",
-        "skill/valory/abstract_abci/0.1.0": "bafybeigg5ofide2gxwgjvljjgpyy6ombby7ph6pg7erj3h6itduwpn6pqu",
-        "skill/valory/abstract_round_abci/0.1.0": "bafybeicn5utwviq46ubguok5rl5go4hb7oxluj7t6bja2ut4epjw2hevei",
-        "skill/valory/hello_world_abci/0.1.0": "bafybeigidqcurxh3r3m7vxjfv2d4tvcpzvkhwj7r7owacn6jymzik75k7i"
+        {{ get_packages_entry("agent/valory/hello_world/0.1.0") }},
+        {{ get_packages_entry("connection/valory/abci/0.1.0") }},
+        {{ get_packages_entry("connection/valory/http_client/0.23.0") }},
+        {{ get_packages_entry("connection/valory/ipfs/0.1.0") }},
+        {{ get_packages_entry("connection/valory/ledger/0.19.0") }},
+        {{ get_packages_entry("connection/valory/p2p_libp2p_client/0.1.0") }},
+        {{ get_packages_entry("contract/valory/service_registry/0.1.0") }},
+        {{ get_packages_entry("protocol/open_aea/signing/1.0.0") }},
+        {{ get_packages_entry("protocol/valory/abci/0.1.0") }},
+        {{ get_packages_entry("protocol/valory/acn/1.1.0") }},
+        {{ get_packages_entry("protocol/valory/contract_api/1.0.0") }},
+        {{ get_packages_entry("protocol/valory/http/1.0.0") }},
+        {{ get_packages_entry("protocol/valory/ipfs/0.1.0") }},
+        {{ get_packages_entry("protocol/valory/ledger_api/1.0.0") }},
+        {{ get_packages_entry("protocol/valory/tendermint/0.1.0") }},
+        {{ get_packages_entry("skill/valory/abstract_abci/0.1.0") }},
+        {{ get_packages_entry("skill/valory/abstract_round_abci/0.1.0") }},
+        {{ get_packages_entry("skill/valory/hello_world_abci/0.1.0") }}
     }
 }
 EOF
