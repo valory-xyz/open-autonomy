@@ -54,7 +54,7 @@ As seen above, the framework works with two registries:
 * The **remote registry**, where developers publish finalized software packages, similarly as Docker Hub images.
 * The **local registry**, which stores packages being developed (`dev`), or fetched from the remote registry (`third_party`) to be used locally.
 
-When running agents or service deployments locally, the framework fetches the required components in the corresponding folder, or it might create auxiliary files and folders. For this reason, we recommend that **runtime folders** for agents and services be located outside the local registry to avoid publishing unintended files on the remote registry.
+Additionally, when running agents or service deployments locally, we recommend that you fetch them outside the local registry. This is because the framework will download any required component (or create auxiliary files and folders) within the **runtime folders** of agents and services. Therefore, we recommend that you keep the copies on the local registry clean to avoid publishing unintended files (e.g., private keys) on the remote registry.
 
 This is roughly how your workspace should look like:
 
@@ -64,13 +64,13 @@ This is roughly how your workspace should look like:
 
 !!! tip
 
-    You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent:
+    You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent from the remote registry:
 
     ```bash
     autonomy fetch valory/hello_world:0.1.0:bafybeie26bvs657tcmaoxdkulzxpkr5uye26o4xp3scyllnuv5yk7izbbq
     ```
 
-    If you want to fetch the copy stored in your local registry, then use the following command:
+    On the other hand, if you want to fetch the copy stored in your local registry, then you can use:
     ```bash
     autonomy --registry-path=./packages fetch valory/hello_world:0.1.0 --local
     ```
