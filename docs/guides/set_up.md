@@ -12,26 +12,26 @@ Ensure that your machine satisfies the following requirements:
 
 ## Set up the framework
 
-1. Create a workspace folder:
+1. **Create a workspace folder:**
 
     ```bash
     mkdir my_workspace
     cd my_workspace
     ```
 
-2. Set up the environment. Remember to use the Python version you have installed. Here we are using 3.10 as reference:
+    We recommend that you use a Pipenv virtual environment in your workspace folder. Remember to use the Python version you have installed. Here we are using 3.10 as reference:
 
     ```bash
     touch Pipfile && pipenv --python 3.10 && pipenv shell
     ```
 
-3. Install the {{open_autonomy}} framework:
+2. **Install the {{open_autonomy}} framework:**
 
     ```bash
     pip install open-autonomy[all]
     ```
 
-4. Initialize the framework to work with the remote [IPFS](https://ipfs.io) registry. This means that when the framework will be fetching a component, it will do so from the [IPFS](https://ipfs.io):
+3. **Initialize the framework** to work with the remote [IPFS](https://ipfs.io) registry by default. This means that when the framework will be fetching a component, it will do so from the remote registry:
 
     ```bash
     autonomy init --remote --ipfs
@@ -39,38 +39,59 @@ Ensure that your machine satisfies the following requirements:
 
     If you had previously initialized the framework, you need to use the flag `--reset` to change the configuration.
 
-## Set up the workspace
+4. **Initialize the local registy:**
 
-There are a couple of concepts that you need to know to set up a convenient workspace:
-
-* The framework works with the concept of **local** and **remote registries** to store software packages. You can publish finalized components to the remote registry, similarly as in Docker Hub. The local registry classifies its components into `dev` components being developed and `third_party` components being fetched from the remote registry to be reused. You can create an empty local registry (`./packages` folder) by executing:
     ```bash
     autonomy packages init
     ```
 
-* Running agents or services locally require that they fetch components or create auxiliary files and folders. Therefore, we recommend fetching/copying agents and service folders outside the local registry on dedicated **runtime folders**.
+    This will create an empty local registry in the `./packages` folder. If you plan to execute the tutorial guides, you need to [populate the local registry](#set-up-the-local-registry-for-the-guides) with a number of default components.
 
-This is roughly how your workspace should look:
+## The registries and runtime folders
+
+As seen above, the framework works with two registries:
+
+* The **remote registry**, where developers publish finalized software packages, similarly as Docker Hub images.
+* The **local registry**, which stores packages being developed (`dev`), or fetched from the remote registry (`third_party`) to be used locally.
+
+When running agents or service deployments locally, the framework fetches the required components in the corresponding folder, or it might create auxiliary files and folders. For this reason, we recommend that **runtime folders** for agents and services be located outside the local registry to avoid publishing unintended files on the remote registry.
+
+This is roughly how your workspace should look like:
 
 <figure markdown>
 ![](../images/workspace.svg)
 </figure>
 
-!!! tip "The Open Autonomy Dev template"
+!!! tip
 
-    For convenience, we provide a **Dev template** repository that you can fork and clone for your Open Atonomy projects:
+    You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent:
 
-    [https://github.com/valory-xyz/dev-template](https://github.com/valory-xyz/dev-template)
+    ```bash
+    autonomy fetch valory/hello_world:0.1.0:bafybeie26bvs657tcmaoxdkulzxpkr5uye26o4xp3scyllnuv5yk7izbbq
+    ```
 
-    The **Dev template** comes with:
+    If you want to fetch the copy stored in your local registry, then use the following command:
+    ```bash
+    autonomy --registry-path=./packages fetch valory/hello_world:0.1.0 --local
+    ```
 
-    * a preconfigured Pipenv environment with required dependencies,
-    * an empty local registry,
-    * a number of preconfigured linting tools via Tox.
+## The Dev template
+
+For convenience, we provide a **Dev template** repository that you can fork and clone for your Open Autonomy projects, and use it as your workspace folder:
+
+<figure markdown>
+[https://github.com/valory-xyz/dev-template](https://github.com/valory-xyz/dev-template)
+</figure>
+
+The **Dev template** comes with:
+
+* a preconfigured Pipenv environment with required dependencies,
+* an empty local registry,
+* a number of preconfigured linters via [Tox](https://tox.wiki/en/latest/).
 
 ## Set up the local registry for the guides
 
-If you plan to follow the guides in the following sections, you need to populate the local registry with a number of default [packages shipped with the framework](../package_list.md). To do so, within the workspace folder, execute:
+If you plan to follow the guides in the next sections, you need to populate the local registry with a number of default [packages shipped with the framework](../package_list.md). To do so, within the workspace folder, execute:
 
 ```bash
 cat > ./packages/packages.json << EOF
@@ -102,12 +123,4 @@ EOF
 autonomy packages sync
 ```
 
-The framework will fetch components from the remote registry and copy them into the local registry.
-
-!!! info
-
-    In the previous section, we used the command `autonomy init` to initialize the framework to fetch/push software packages from the remote registry by default (recommended option). You can override this decision for particular command through the flags `--registry-path` and `--local`, for example:
-
-    ```bash
-    autonomy --registry-path=<path_to_your_local_registry> <command> --local
-    ```
+The framework will fetch components from the remote registry into the local registry.
