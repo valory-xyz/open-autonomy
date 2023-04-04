@@ -247,6 +247,7 @@ nav:
 
 plugins:
   - macros:
+      on_error_fail: true
       module_name: scripts/doc_macros
   - search  
 
