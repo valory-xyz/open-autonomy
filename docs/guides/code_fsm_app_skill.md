@@ -12,7 +12,7 @@ In order to simplify and speed up the development, the {{open_autonomy}} framewo
 
 This guide covers step 3 of the [development process](./overview_of_the_development_process.md). You will learn how to use the {{fsm_app}} scaffold tool to transform an FSM specification into template classes for the {{fsm_app}} skill, and identify what methods you need to implement to have a functional skill.
 
-You must ensure that your machine satisfies the framework requirements and that you have [set up the framework](./set_up.md#set-up-the-framework) and [a local registry](./set_up.md#set-up-the-local-registry). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
+You must ensure that your machine satisfies the framework requirements and that you have [set up the framework](./set_up.md#set-up-the-framework) and [a local registry with some default components](./set_up.md#set-up-the-local-registry-for-the-guides). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
 
 ## Step-by-step instructions
 

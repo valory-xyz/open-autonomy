@@ -11,7 +11,7 @@ each operator can define a different data provider.
 
 This guide covers step 3 of the [development process](./overview_of_the_development_process.md). You will learn how to define the service agent, how to add the {{fsm_app}}, and how to add other existing components required by your agent.
 
-You must ensure that your machine satisfies the framework requirements and that you have [set up the framework](./set_up.md#set-up-the-framework) and [a local registry](./set_up.md#set-up-the-local-registry). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
+You must ensure that your machine satisfies the framework requirements and that you have [set up the framework](./set_up.md#set-up-the-framework) and [a local registry with some default components](./set_up.md#set-up-the-local-registry-for-the-guides). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
 
 ## Step-by-step instructions
 
