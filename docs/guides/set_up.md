@@ -39,7 +39,7 @@ Ensure that your machine satisfies the following requirements:
 
     If you had previously initialized the framework, you need to use the flag `--reset` to change the configuration.
 
-4. **Initialize the local registy:**
+4. **Initialize the local registry:**
 
     ```bash
     autonomy packages init
