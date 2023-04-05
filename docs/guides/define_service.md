@@ -110,7 +110,7 @@ If you have [set up the local registry](./set_up.md#set-up-the-local-registry) w
     autonomy packages lock
     ```
 
-4. **Perform a sanity-check verification for the service definition.** The command below ensures that the service satisfies a number of [requirements to be deployed](../deployment/on-chain_deployment_checklist.md):
+4. **Perform a sanity-check verification for the service definition.** The command below ensures that the service satisfies a number of [requirements to be deployed](../configure_service/on-chain_deployment_checklist.md):
 
     ```bash
     autonomy analyse service --public-id your_name/your_service:0.1.0

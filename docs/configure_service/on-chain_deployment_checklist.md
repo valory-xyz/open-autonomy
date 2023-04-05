@@ -54,8 +54,8 @@ Ensure that your {{fsm_app}} skill, agent and service configuration files (`skil
 :   Must define overrides for `valory/abci` connection, `valory/ledger` connection, `valory/p2p_libp2p_client` connection, and your {{fsm_app}} skill. Environment variables used for agent-level overrides can use the simplified syntax `${<type>:<default_value>}`.
 
 `service.yaml`
-:   Must define overrides for `valory/ledger` connection and your {{fsm_app}} skill (optionally, also for `valory/p2p_libp2p_client` connection). Environment variables used for service-level overrides use the syntax `${<env_var_name>:<type>:<default_value>}`. They will be [exported](../guides/service_configuration_file.md#export-to-environment-variables) as their upper case JSON path in the agent Docker container.
-See also the [service level overrides](../guides/service_configuration_file.md#service-level-overrides) and [multiple overrides](../guides/service_configuration_file.md#multiple-overrides) sections for more information.
+:   Must define overrides for `valory/ledger` connection and your {{fsm_app}} skill (optionally, also for `valory/p2p_libp2p_client` connection). Environment variables used for service-level overrides use the syntax `${<env_var_name>:<type>:<default_value>}`. They will be [exported](../configure_service/service_configuration_file.md#export-to-environment-variables) as their upper case JSON path in the agent Docker container.
+See also the [service level overrides](../configure_service/service_configuration_file.md#service-level-overrides) and [multiple overrides](../configure_service/service_configuration_file.md#multiple-overrides) sections for more information.
 
 === "skill.yaml"
 
