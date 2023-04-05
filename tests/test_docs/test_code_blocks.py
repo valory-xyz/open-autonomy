@@ -195,11 +195,11 @@ class TestPythonSnippets(BaseTestDocCode):
         },
         "docs/demos/hello_world_demo.md": {
             "code_files": [
-                "by_line::packages/valory/skills/hello_world_abci/rounds.py",
-                "by_line::packages/valory/skills/hello_world_abci/rounds.py",
                 "packages/valory/skills/hello_world_abci/behaviours.py",
                 "packages/valory/skills/hello_world_abci/behaviours.py",
                 "packages/valory/skills/hello_world_abci/payloads.py",
+                "packages/valory/skills/hello_world_abci/rounds.py",
+                "by_line::packages/valory/skills/hello_world_abci/rounds.py",
             ],
         },
         "docs/advanced_reference/commands/autonomy_analyse.md": {"skip_blocks": [0]},
