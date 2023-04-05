@@ -9,14 +9,14 @@ Given an existing agent, either developed by yourself on the previous step and s
 
 This guide covers step 4 of the [development process](./overview_of_the_development_process.md). You will learn how to define the agent service itself. This consists in indicating what agent will the service be using, and configuring the service parameters through service-level overrides.
 
-You must ensure that your machine satisfies the framework requirements and that you have [set up the framework](./set_up.md#set-up-the-framework) and [a local registry with some default components](./set_up.md#set-up-the-local-registry-for-the-guides). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
+You must ensure that your machine satisfies the [framework requirements](./set_up.md#requirements), you have [set up the framework](./set_up.md#set-up-the-framework), and you have a local registry [populated with some default components](./set_up.md#populate-the-local-registry-for-the-guides). As a result you should have a Pipenv workspace folder with an initialized local registry (`./packages`) in it.
 
 ## Step-by-step instructions
 
 The process to define a service configuration is similar if you are using an agent being developed by you (for example, [the agent created in the previous guide](./define_agent.md)), or an existing, third-party agent downloaded from the remote registry. In the example below, we will be using the `hello_world` agent from the remote registry, which can be found in the [list of packages shipped with the framework](../package_list.md), but you can replace it with your own agent.
 
 1. **Ensure that the agent required by your service is in the local registry.** Your service agent, all its required components and their dependencies must be downloaded to the local registry. You can read [how to add missing components to the local registry](#).
-If you have [set up the local registry](./set_up.md#set-up-the-local-registry) with the required components to follow these guides, you do not need to take any further action.
+If you have [populated the local registry](./set_up.md#populate-the-local-registry-for-the-guides) with the required components to follow these guides, you do not need to take any further action.
 
 2. **Create the service configuration file.** Create a folder for your service in the local registry (`./packages`). Pay attention to the correct format of the folder:
 

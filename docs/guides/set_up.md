@@ -45,7 +45,7 @@ Ensure that your machine satisfies the following requirements:
     autonomy packages init
     ```
 
-    This will create an empty local registry in the `./packages` folder. If you plan to execute the tutorial guides, you need to [populate the local registry](#set-up-the-local-registry-for-the-guides) with a number of default components.
+    This will create an empty local registry in the `./packages` folder. If you plan to execute the tutorial guides, you need to [populate the local registry](#populate-the-local-registry-for-the-guides) with a number of default components.
 
 ## The registries and runtime folders
 
@@ -89,9 +89,9 @@ The **Dev template** comes with:
 * an empty local registry,
 * a number of preconfigured linters via [Tox](https://tox.wiki/en/latest/).
 
-## Set up the local registry for the guides
+## Populate the local registry for the guides
 
-If you plan to follow the guides in the next sections, you need to populate the local registry with a number of default [packages shipped with the framework](../package_list.md). To do so, within the workspace folder, execute:
+If you plan to follow the guides in the next sections, you need to populate the local registry with a number of [packages shipped with the framework](../package_list.md). To do so, execute the following commands within the workspace folder:
 
 ```bash
 cat > ./packages/packages.json << EOF
