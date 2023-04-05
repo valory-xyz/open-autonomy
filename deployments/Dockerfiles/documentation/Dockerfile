@@ -18,7 +18,7 @@ WORKDIR /build
 COPY docs/ /build/docs
 COPY mkdocs.yml /build
 
-RUN pip3 install bs4==0.0.1 markdown==3.3.4 click==8.0.2 mkdocs==1.3.0 markdown-include==0.6.0 mkdocs-material==7.1.10 mkdocs-macros-plugin==0.7.0 pymdown-extensions==8.2 Pygments==2.11.2
+RUN pip3 install tomte[docs]==0.2.4
 RUN mkdocs build
 
 FROM python:3.10-alpine

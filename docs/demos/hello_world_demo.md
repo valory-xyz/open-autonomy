@@ -22,14 +22,14 @@ You can find the instructions on how to run the Hello World service in the [quic
 If you have [set up the framework](../guides/set_up.md#set-up-the-framework), you can fetch the source code of the Hello World agent:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeigeon5j2nit6a35r4dn4c32aqqfpuaphwuvc3muw67ymqwbrrzrvu
+autonomy fetch valory/hello_world:0.1.0:bafybeie26bvs657tcmaoxdkulzxpkr5uye26o4xp3scyllnuv5yk7izbbq
 mv hello_world hello_world_agent
 ```
 
 and the Hello World service:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeiecl3acm57s24cxy5pbmzqhkbiewaj7siksun2gcuh4zc3z5wbs6q --service
+autonomy fetch valory/hello_world:0.1.0:bafybeicdjvpwloho3okcf7d3kmidxvkqdosnfnq47s2e5j277epi2ndjie --service
 mv hello_world hello_world_service
 ```
 
@@ -544,7 +544,7 @@ The service configuration file `service.yaml` is located in the root folder of t
 └── service.yaml
 ```
 
-You can read the [dedicated section](../guides/service_configuration_file.md) to understand the structure and configuration of the `service.yaml` file.
+You can read the [dedicated section](../configure_service/service_configuration_file.md) to understand the structure and configuration of the `service.yaml` file.
 
 ## Conclusion and further reading
 
