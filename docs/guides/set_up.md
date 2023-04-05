@@ -99,24 +99,24 @@ cat > ./packages/packages.json << EOF
     "dev": {
     },
     "third_party": {
-        {{ get_packages_entry("agent/valory/hello_world/0.1.0") }},
-        {{ get_packages_entry("connection/valory/abci/0.1.0") }},
-        {{ get_packages_entry("connection/valory/http_client/0.23.0") }},
-        {{ get_packages_entry("connection/valory/ipfs/0.1.0") }},
-        {{ get_packages_entry("connection/valory/ledger/0.19.0") }},
-        {{ get_packages_entry("connection/valory/p2p_libp2p_client/0.1.0") }},
-        {{ get_packages_entry("contract/valory/service_registry/0.1.0") }},
-        {{ get_packages_entry("protocol/open_aea/signing/1.0.0") }},
-        {{ get_packages_entry("protocol/valory/abci/0.1.0") }},
-        {{ get_packages_entry("protocol/valory/acn/1.1.0") }},
-        {{ get_packages_entry("protocol/valory/contract_api/1.0.0") }},
-        {{ get_packages_entry("protocol/valory/http/1.0.0") }},
-        {{ get_packages_entry("protocol/valory/ipfs/0.1.0") }},
-        {{ get_packages_entry("protocol/valory/ledger_api/1.0.0") }},
-        {{ get_packages_entry("protocol/valory/tendermint/0.1.0") }},
-        {{ get_packages_entry("skill/valory/abstract_abci/0.1.0") }},
-        {{ get_packages_entry("skill/valory/abstract_round_abci/0.1.0") }},
-        {{ get_packages_entry("skill/valory/hello_world_abci/0.1.0") }}
+        "agent/valory/hello_world/0.1.0": "bafybeie26bvs657tcmaoxdkulzxpkr5uye26o4xp3scyllnuv5yk7izbbq",
+        "connection/valory/abci/0.1.0": "bafybeidyfpwu7hpanfj74zn6nkzmzoz2qharxfsnxzjr7bfldho2xzualu",
+        "connection/valory/http_client/0.23.0": "bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi",
+        "connection/valory/ipfs/0.1.0": "bafybeie46fu7mv64q72dwzoxg77zbiv3pzsigzjk3rehjpm47cf3y77mha",
+        "connection/valory/ledger/0.19.0": "bafybeighon6i2qfl2xrg7t3lbdzlkyo4v2a7ayvwso7m5w7pf2hvjfs2ma",
+        "connection/valory/p2p_libp2p_client/0.1.0": "bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva",
+        "contract/valory/service_registry/0.1.0": "bafybeiem5v2pukaklmhng3cckncdihs4shtwc4trejdrezt53lioejtk4u",
+        "protocol/open_aea/signing/1.0.0": "bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4",
+        "protocol/valory/abci/0.1.0": "bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4",
+        "protocol/valory/acn/1.1.0": "bafybeignmc5uh3vgpuckljcj2tgg7hdqyytkm6m5b6v6mxtazdcvubibva",
+        "protocol/valory/contract_api/1.0.0": "bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy",
+        "protocol/valory/http/1.0.0": "bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty",
+        "protocol/valory/ipfs/0.1.0": "bafybeihlgai5pbmkb6mjhvgy4gkql5uvpwvxbpdowczgz4ovxat6vajrq4",
+        "protocol/valory/ledger_api/1.0.0": "bafybeidluywxchkacc7cz65nktqjg3y2vzzp43sw5hdhnvvonozogrmfie",
+        "protocol/valory/tendermint/0.1.0": "bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54",
+        "skill/valory/abstract_abci/0.1.0": "bafybeiai2t36ht3blisjneahv5almyfieqokl4auj2n43rj4k5chun2i44",
+        "skill/valory/abstract_round_abci/0.1.0": "bafybeib7q4t5jh6gic3i2pzuzlk7q2xmnueyxjpftm4gl56vnnz4vs4f7a",
+        "skill/valory/hello_world_abci/0.1.0": "bafybeigspppd7guihobwrhorhht3i47j4qa56tixnicgwtepfeoou54vju"
     }
 }
 EOF
