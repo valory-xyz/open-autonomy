@@ -29,8 +29,10 @@ This section covers the deployment of services being developed in the local regi
 
     ```bash
     cd your_service
-    autonomy build-image
+    autonomy build-image #(1)!
     ```
+    
+    1. Check out the [`autonomy build-image`](../../advanced_reference/commands/autonomy_build-image) command documentation to learn more about its parameters and options.
 
     After the command finishes building the image, you can see that it has been created by executing:
 
@@ -68,8 +70,12 @@ This section covers the deployment of services being developed in the local regi
 4. **Build the deployment.** Within the service folder, execute the command below to build the service deployment.
 
     ```bash
-    autonomy deploy build keys.json -ltm
+    rm -rf abci_build #(1)!
+    autonomy deploy build keys.json -ltm #(2)!
     ```
+   
+    1. Delete previous deployments, if necessary.
+    2. Check out the [`autonomy deploy build`](../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
     This will create a deployment environment within the `./abci_build` folder with the following structure:
 
@@ -78,13 +84,13 @@ This section covers the deployment of services being developed in the local regi
     ├── agent_keys
     │   ├── agent_0
     │   ├── agent_1
-    │   ├── agent_2
-    │   └── agent_3
+    │   |   ...
+    │   └── agent_N
     ├── nodes
     │   ├── node0
     │   ├── node1
-    │   ├── node2
-    │   └── node3
+    │   |   ...
+    │   └── nodeN
     ├── persistent_data
     │   ├── benchmarks
     │   ├── logs
@@ -97,10 +103,19 @@ This section covers the deployment of services being developed in the local regi
 
     ```bash
     cd abci_build
-    autonomy deploy run
+    autonomy deploy run #(1)!
     ```
+    
+    1. Check out the [`autonomy deploy run`](../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-run) command documentation to learn more about its parameters and options.
 
-	  You can cancel the local execution at any time by pressing ++ctrl+c++.
+    This will spawn:
+    
+    * $N$ agents, each one running an instance of the {{fsm_app}}.
+    * a network of $N$ Tendermint nodes, one per agent.
+
+    The logs of a single agent or Tendermint node can be inspected in a separate terminal using `docker logs <container_id> --follow`.
+
+    You can cancel the local execution at any time by pressing ++ctrl+c++.
 
 ## On-chain deployment
 

@@ -40,6 +40,6 @@ It comes with the Autonolas Protocol registry contracts pre-deployed. The deploy
 
     !!! warning "Important"
 
-        This image is only included if explicitly indicated through the flag `--use-hardhat` when building the service deployment (`autonomy deploy build` command).
+        This image is only included if explicitly indicated through the flag `--use-acn` when building the service deployment (`autonomy deploy build` command).
 
         This image should only be used when working with the `dev` mode.
