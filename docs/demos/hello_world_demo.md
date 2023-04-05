@@ -544,7 +544,7 @@ The service configuration file `service.yaml` is located in the root folder of t
 └── service.yaml
 ```
 
-You can read the [dedicated section](../guides/service_configuration_file.md) to understand the structure and configuration of the `service.yaml` file.
+You can read the [dedicated section](../configure_service/service_configuration_file.md) to understand the structure and configuration of the `service.yaml` file.
 
 ## Conclusion and further reading
 
