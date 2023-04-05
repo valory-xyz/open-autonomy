@@ -10,6 +10,8 @@ theme:
   features:
     - navigation.top
     - navigation.indexes
+    - content.code.copy
+    - content.code.annotate
 
 extra_css:
   - stylesheets/extra.css
@@ -249,12 +251,13 @@ nav:
 
 plugins:
   - macros
-  - search  
+  - search
 
 markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
-  - pymdownx.tabbed
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.highlight
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji
