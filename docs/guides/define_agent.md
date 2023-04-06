@@ -213,7 +213,7 @@ If you have [set up the local registry](./set_up.md#set-up-the-local-registry) w
 
          ```bash
          cd your_agent
-         echo "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a" > your_agent_key.txt
+         echo -n "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a" > your_agent_key.txt
          autonomy add-key ethereum your_agent_key.txt
          ```
 
@@ -229,8 +229,10 @@ If you have [set up the local registry](./set_up.md#set-up-the-local-registry) w
       3. Run your agent:
 
          ```bash
-         autonomy run
+         autonomy -s run #(1)!
          ```
+
+         1. The `-s` flag will skip consistency checks of agent during command execution. This is required because the `aea-config.yaml` file was modified.
 
       4. On a separate terminal, open a Tendermint node:
 
