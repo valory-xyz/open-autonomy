@@ -9,7 +9,7 @@ Deploying a service with the {{open_autonomy}} framework requires that you have 
 
 This guide covers step 6 of the [development process](./overview_of_the_development_process.md). You will learn how to create and run deployments for local services (testing) and minted services.
 
-You must ensure that your machine satisfies the framework requirements and that you have [set up the framework](./set_up.md#set-up-the-framework) and [a local registry](./set_up.md#set-up-the-local-registry). As a result you should have a Pipenv workspace folder with a local registry (`./packages`) in it.
+You must ensure that your machine satisfies the [framework requirements](./set_up.md#requirements), you have [set up the framework](./set_up.md#set-up-the-framework), and you have a local registry [populated with some default components](./set_up.md#populate-the-local-registry-for-the-guides). As a result you should have a Pipenv workspace folder with an initialized local registry (`./packages`) in it.
 
 ## Local deployment
 

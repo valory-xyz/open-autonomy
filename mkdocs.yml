@@ -250,7 +250,8 @@ nav:
 
 
 plugins:
-  - macros
+  - macros:
+      on_error_fail: true
   - search
 
 markdown_extensions:
