@@ -234,6 +234,8 @@ If you have [set up the local registry](./set_up.md#set-up-the-local-registry) w
 
          1. The `-s` flag will skip consistency checks of agent during command execution. This is required because the `aea-config.yaml` file was modified.
 
+         You may need to install additional dependencies using `pip`, if required.
+
       4. On a separate terminal, open a Tendermint node:
 
          ```bash
