@@ -42,7 +42,7 @@ In the workspace folder, create a file `fsm_specification.yaml`, which formally 
 ???+ example "Example of an `fsm_specification.yaml` file"
     Given a draft of the FSM, the structure of the `fsm_specification.yaml` file is quite straightforward. Below we show the FSM specification file of the [Hello World service](../demos/hello_world_demo.md).
 
-    ```yaml
+    ```yaml title="fsm_specification.yaml"
     alphabet_in:
     - DONE
     - NO_MAJORITY

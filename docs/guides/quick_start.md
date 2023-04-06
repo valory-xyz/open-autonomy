@@ -45,7 +45,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
             <span style="color:red">**WARNING: Use this file for testing purposes only. Never use the keys or addresses provided in this example in a production environment or for personal use.**</span>
 
-            ```json
+            ```json title="keys.json"
             [
             {
                 "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",

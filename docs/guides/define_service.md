@@ -44,7 +44,7 @@ If you have [set up the local registry](./set_up.md#set-up-the-local-registry) w
 
         This is a complete example of a service configuration file that uses the `hello_world` agent and overrides some required component parameters.
 
-        ```yaml
+        ```yaml title="service.yaml"
         name: your_service
         author: your_name
         version: 0.1.0
