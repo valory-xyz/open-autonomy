@@ -117,6 +117,7 @@ GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 INITIAL_APP_HASH = ""
 INITIAL_HEIGHT = "0"
 TM_REQ_TIMEOUT = 5  # 5 seconds
+FLASHBOTS_LEDGER_ID = "ethereum_flashbots"
 
 
 class SendException(Exception):
@@ -1050,14 +1051,18 @@ class BaseBehaviour(
             performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
         )
         if use_flashbots:
+            kwargs = {}
+            if target_block_numbers is not None:
+                kwargs["target_block_numbers"] = target_block_numbers
             create_kwargs.update(
                 dict(
                     performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTIONS,
                     # we do not support sending multiple signed txs and receiving multiple tx hashes yet
-                    signed_transactions=[signing_msg.signed_transaction],
-                    kwargs=LedgerApiMessage.Kwargs(
-                        {"target_blocks": target_block_numbers}
+                    signed_transactions=LedgerApiMessage.SignedTransactions(
+                        ledger_id=FLASHBOTS_LEDGER_ID,
+                        signed_transactions=[signing_msg.signed_transaction.body],
                     ),
+                    kwargs=LedgerApiMessage.Kwargs(kwargs),
                 )
             )
         else:
@@ -1717,6 +1722,7 @@ class BaseBehaviour(
             return RPCResponseStatus.INSUFFICIENT_FUNDS
         if "already known" in error:
             return RPCResponseStatus.ALREADY_KNOWN
+        # TODO: add SIMULATION_FAILED case
         return RPCResponseStatus.UNCLASSIFIED_ERROR
 
     def _acn_request_from_pending(

@@ -52,6 +52,7 @@ from packages.valory.protocols.ipfs import IpfsMessage
 from packages.valory.protocols.ipfs.dialogues import IpfsDialogue
 from packages.valory.protocols.ledger_api.custom_types import (
     SignedTransaction,
+    SignedTransactions,
     TransactionDigest,
     TransactionDigests,
 )
@@ -1256,8 +1257,11 @@ class TestBaseBehaviour:
                 dict(
                     counterparty=LEDGER_API_ADDRESS,
                     performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTIONS,
-                    signed_transactions=["test_tx"],
-                    kwargs=LedgerApiMessage.Kwargs({"target_blocks": 40}),
+                    signed_transactions=SignedTransactions(
+                        ledger_id="ethereum_flashbots",
+                        signed_transactions=[{"test_tx": "test_tx"}],
+                    ),
+                    kwargs=LedgerApiMessage.Kwargs({}),
                 ),
             ),
             (
@@ -1265,7 +1269,9 @@ class TestBaseBehaviour:
                 dict(
                     counterparty=LEDGER_API_ADDRESS,
                     performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
-                    signed_transaction="test_tx",
+                    signed_transaction=SignedTransaction(
+                        ledger_id="ethereum", body={"test_tx": "test_tx"}
+                    ),
                 ),
             ),
         ),
@@ -1279,13 +1285,13 @@ class TestBaseBehaviour:
             "create",
             return_value=(MagicMock(), MagicMock()),
         ) as create_mock:
-            target_block_numbers = (
-                expected_kwargs["kwargs"].body["target_blocks"]
-                if use_flashbots
-                else None
-            )
+            target_block_numbers = None
             self.behaviour._send_transaction_request(
-                MagicMock(signed_transaction="test_tx"),
+                MagicMock(
+                    signed_transaction=SignedTransaction(
+                        ledger_id="ethereum", body={"test_tx": "test_tx"}
+                    )
+                ),
                 use_flashbots,
                 target_block_numbers,
             )
