@@ -133,7 +133,7 @@ def test_get_contract_method() -> None:
         with pytest.raises(
             FileNotFoundError,
             match=(
-                "Contract package not found in the open-autonomy installation, "
+                "Contract package valory/component_registry:latest not found in the open-autonomy installation, "
                 "please reinstall the package"
             ),
         ):

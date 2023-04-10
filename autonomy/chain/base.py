@@ -84,7 +84,7 @@ class RegistryContracts:
         contract_dir = CONTRACTS_DIR_FRAMEWORK / public_id.name
         if not contract_dir.exists():
             raise FileNotFoundError(
-                "Contract package not found in the open-autonomy installation, "
+                f"Contract package {public_id} not found in the open-autonomy installation, "
                 "please reinstall the package"
             )
         return Contract.from_dir(directory=contract_dir)

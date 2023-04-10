@@ -119,8 +119,8 @@ class TestMintComponentMethod:
         with pytest.raises(
             click.ClickException,
             match=(
-                "RPC cannot be `None` for chain config\n"
-                "Please set the environment variable for goerli "
+                "RPC URL cannot be `None`, "
+                "Please set the environment variable for goerli chain "
                 "using `GOERLI_CHAIN_RPC` environment variable"
             ),
         ):

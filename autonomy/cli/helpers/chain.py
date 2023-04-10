@@ -79,8 +79,8 @@ def get_ledger_and_crypto_objects(
     chain_config = ChainConfigs.get(chain_type=chain_type)
     if chain_config.rpc is None:
         raise click.ClickException(
-            f"RPC cannot be `None` for chain config\n"
-            f"Please set the environment variable for {chain_type.value} "
+            f"RPC URL cannot be `None`, "
+            f"Please set the environment variable for {chain_type.value} chain "
             f"using `{ChainConfigs.get_rpc_env_var(chain_type)}` environment variable"
         )
 
