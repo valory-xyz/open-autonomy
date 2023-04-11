@@ -67,7 +67,7 @@ This is roughly how your workspace should look like:
     You can override the default registry in use (set up with `autonomy init`) for a particular command through the flags `--registry-path` and `--local`. For example, if the framework was initialized with the remote registry, the following command will fetch a runtime folder for the `hello_world` agent from the remote registry:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeidndxc6557wgnscy4fn66a7a3vzuartes65hv75iqbbwkz5jeidvi
+    autonomy fetch valory/hello_world:0.1.0:bafybeie6rtq4gcvpxbsmdpiaxxap5mgrcd5mbf2itrazscfiq4gbvgpcii
     ```
 
     On the other hand, if you want to fetch the copy stored in your local registry, then you can use:
