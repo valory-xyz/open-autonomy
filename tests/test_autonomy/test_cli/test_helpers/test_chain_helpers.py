@@ -118,7 +118,11 @@ class TestMintComponentMethod:
 
         with pytest.raises(
             click.ClickException,
-            match="RPC cannot be `None` for chain config; chain_type=ChainType.GOERLI",
+            match=(
+                "RPC URL cannot be `None`, "
+                "Please set the environment variable for goerli chain "
+                "using `GOERLI_CHAIN_RPC` environment variable"
+            ),
         ):
             mint_component(
                 package_path=PACKAGE_DIR,

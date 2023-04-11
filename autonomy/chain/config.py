@@ -29,6 +29,9 @@ from autonomy.chain import constants as chain_constants
 
 DEFAULT_LOCAL_RPC = "http://127.0.0.1:8545"
 DEFAULT_LOCAL_CHAIN_ID = 31337
+CUSTOM_CHAIN_RPC = "CUSTOM_CHAIN_RPC"
+GOERLI_CHAIN_RPC = "GOERLI_CHAIN_RPC"
+ETHEREUM_CHAIN_RPC = "ETHEREUM_CHAIN_RPC"
 
 
 def _get_chain_id_for_custom_chain() -> Optional[int]:
@@ -77,27 +80,39 @@ class ChainConfigs:  # pylint: disable=too-few-public-methods
 
     custom_chain = ChainConfig(
         chain_type=ChainType.CUSTOM,
-        rpc=os.environ.get("CUSTOM_CHAIN_RPC"),
+        rpc=os.environ.get(CUSTOM_CHAIN_RPC),
         chain_id=_get_chain_id_for_custom_chain(),
     )
 
     goerli = ChainConfig(
         chain_type=ChainType.GOERLI,
-        rpc=os.environ.get("GOERLI_CHAIN_RPC"),
+        rpc=os.environ.get(GOERLI_CHAIN_RPC),
         chain_id=5,
     )
 
     ethereum = ChainConfig(
         chain_type=ChainType.ETHEREUM,
-        rpc=os.environ.get("ETHEREUM_CHAIN_RPC"),
+        rpc=os.environ.get(ETHEREUM_CHAIN_RPC),
         chain_id=1,
     )
+
+    _rpc_env_vars = {
+        ChainType.CUSTOM: CUSTOM_CHAIN_RPC,
+        ChainType.GOERLI: GOERLI_CHAIN_RPC,
+        ChainType.ETHEREUM: ETHEREUM_CHAIN_RPC,
+    }
 
     @classmethod
     def get(cls, chain_type: ChainType) -> ChainConfig:
         """Return chain config for given chain type."""
 
         return cast(ChainConfig, getattr(cls, chain_type.value))
+
+    @classmethod
+    def get_rpc_env_var(cls, chain_type: ChainType) -> Optional[str]:
+        """Return chain config for given chain type."""
+
+        return cls._rpc_env_vars.get(chain_type)
 
 
 class ContractConfigs:  # pylint: disable=too-few-public-methods

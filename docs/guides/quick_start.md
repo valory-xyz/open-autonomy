@@ -21,7 +21,6 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
     ```bash
     autonomy fetch valory/hello_world:0.1.0:bafybeicdjvpwloho3okcf7d3kmidxvkqdosnfnq47s2e5j277epi2ndjie --service
-    cd hello_world
     ```
 
 2. Build the Docker image of the service agents:

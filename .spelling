@@ -222,6 +222,7 @@ skill.yaml
 service.yaml
 aea-config.yaml
 yaml
+Tox
  - docs/index.md
 README.md
 s_
