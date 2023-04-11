@@ -201,18 +201,18 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
     autonomy packages lock
     ```
 
-4. **(Optional) Run and test the agent locally.** We will show you how to run a service deployment with multiple agents in the next guide. However, you can also run a standalone version (that is, without being part of a service) of the agent you have created. This can be useful to test and debug certain features quickly.
+4. **(Optional) Run and test the agent locally.** We will show you how to run a service deployment with multiple agents in the next guide. However, you can also run a standalone version (that is, without being part of a service) of the agent you have created. This can be useful to test and debug certain features quickly. Below we will be using the `valory/hello_world` agent, but you can replace it by `your_name/your_agent` accordingly.
 
       1. In the workspace folder, fetch the agent from the local registry:
 
          ```bash
-         autonomy fetch your_name/your_agent:0.1.0 --local
+         autonomy fetch valory/hello_world:0.1.0 --local
          ```
 
       2. Provision your agent with an Ethereum private key:
 
          ```bash
-         cd your_agent
+         cd hello_world
          echo -n "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a" > your_agent_key.txt
          autonomy add-key ethereum your_agent_key.txt
          ```
@@ -234,7 +234,13 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
 
          1. The `-s` flag will skip consistency checks of agent during command execution. This is required because the `aea-config.yaml` file was modified.
 
-         You may need to install additional dependencies using `pip`, if required.
+         At this point, you may notice that your agent requires specific Python packages to be installed. For the `valory/hello_world` agent, you can do so by executing:
+
+         ```bash
+         pip install grpcio typing-extensions py-ecc asn1crypto
+         ```
+
+         You can retry running your agent afterwards.
 
       4. On a separate terminal, open a Tendermint node:
 
@@ -246,7 +252,7 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
 
          1. This will prevent errors caused by dirty files from earlier executions of Tendermint. Ensure that you don't want to keep these files.
 
-    You should see how your agent runs and exchanges message with the Tendermint node. Note that, while testing an isolated agent might be useful to quickly test and debug certain functionalities, you need to build and test a whole service deployment to ensure that it works as intended.
+    At this point, you should see how your agent runs and exchanges messages with the Tendermint node. Note that, while running an isolated agent might be useful to quickly test and debug certain functionalities, you need to build and test a whole service deployment to ensure that it works as intended.
 
 
 
