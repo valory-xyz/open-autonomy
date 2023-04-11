@@ -50,7 +50,7 @@ The `valory/abstract_round_abci` skill packages come with a number of testing to
     Fetch the `hello_world` agent, which comes with the `hello_world_abci` {{fsm_app}} skill within:
 
     ```bash
-    autonomy fetch bafybeigspppd7guihobwrhorhht3i47j4qa56tixnicgwtepfeoou54vju
+    autonomy fetch valory/hello_world:0.1.0:bafybeid5xjcvo24prlmejz2vn7aisxkvvddbe4tk6tvniu2fpipd5tdbv4
     mv hello_world hello_world_agent
     ```
 
@@ -77,7 +77,7 @@ The same plugin also provides tools for writing end-to-end tests for agents. The
     Fetch the `hello_world` agent:
 
     ```bash
-    autonomy fetch bafybeigspppd7guihobwrhorhht3i47j4qa56tixnicgwtepfeoou54vju
+    autonomy fetch valory/hello_world:0.1.0:bafybeid5xjcvo24prlmejz2vn7aisxkvvddbe4tk6tvniu2fpipd5tdbv4
     mv hello_world hello_world_agent
     ```
 
