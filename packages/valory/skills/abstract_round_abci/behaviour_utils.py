@@ -503,6 +503,7 @@ class RPCResponseStatus(Enum):
     INSUFFICIENT_FUNDS = 4
     ALREADY_KNOWN = 5
     UNCLASSIFIED_ERROR = 6
+    SIMULATION_FAILED = 7
 
 
 class _MetaBaseBehaviour(ABCMeta):
@@ -1722,7 +1723,8 @@ class BaseBehaviour(
             return RPCResponseStatus.INSUFFICIENT_FUNDS
         if "already known" in error:
             return RPCResponseStatus.ALREADY_KNOWN
-        # TODO: add SIMULATION_FAILED case
+        if "Simulation failed for bundle" in error:
+            return RPCResponseStatus.SIMULATION_FAILED
         return RPCResponseStatus.UNCLASSIFIED_ERROR
 
     def _acn_request_from_pending(
