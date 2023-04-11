@@ -888,7 +888,7 @@ class Header:  # pylint: disable=too-many-instance-attributes
     def timestamp(self) -> datetime.datetime:
         """Get the block timestamp."""
         timestamp: Timestamp = self.time
-        nanoseconds = timestamp.nanos / 10 ** 9
+        nanoseconds = timestamp.nanos / 10**9
         seconds = timestamp.seconds
         return datetime.datetime.fromtimestamp(seconds + nanoseconds)
 
@@ -1418,7 +1418,7 @@ class Timestamp:
         self.seconds = seconds
         self.nanos = nanos
         enforce(
-            0 <= nanos < 10 ** 9,
+            0 <= nanos < 10**9,
             "nanos argument must be from 0 to 999,999,999 inclusive",
             exception_class=ValueError,
         )
