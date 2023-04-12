@@ -26,6 +26,7 @@ from typing import Dict, List, Optional
 import pytest
 from aea.configurations.data_types import PackageId, PackageType, PublicId
 from aea.crypto.base import Crypto, LedgerApi
+from aea.helpers.base import IPFSHash
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from aea_test_autonomy.docker.base import skip_docker_tests
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
@@ -209,10 +210,10 @@ class BaseChainInteractionTest(BaseCliTest):
         package_path = DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
             package_id=package_id
         )
-        metadata_hash = publish_metadata(
+        metadata_hash, _ = publish_metadata(
             public_id=package_id.public_id,
             package_path=package_path,
-            nft_image_hash=DEFAULT_NFT_IMAGE_HASH,
+            nft=IPFSHash(DEFAULT_NFT_IMAGE_HASH),
             description="Dummy package for testing",
         )
         if package_id.package_type == PackageType.SERVICE:

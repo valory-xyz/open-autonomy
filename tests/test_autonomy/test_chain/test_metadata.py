@@ -23,12 +23,15 @@ import tempfile
 from pathlib import Path
 from unittest import mock
 
+import pytest
 from aea.configurations.constants import DEFAULT_README_FILE
 from aea.configurations.data_types import PublicId
+from aea.helpers.base import IPFSHash
 
-from autonomy.chain.metadata import publish_metadata, serialize_metadata
+from autonomy.chain.metadata import NFTHashOrPath, publish_metadata, serialize_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
 
+from tests.conftest import DATA_DIR
 from tests.test_autonomy.test_chain.base import DUMMY_HASH
 
 
@@ -45,7 +48,14 @@ def test_serialize_metadata() -> None:
     assert metadata_string == expected_string
 
 
-def test_publish_metadata() -> None:
+@pytest.mark.parametrize(
+    "nft",
+    (
+        IPFSHash(DEFAULT_NFT_IMAGE_HASH),
+        DATA_DIR / "nft.png",
+    ),
+)
+def test_publish_metadata(nft: NFTHashOrPath) -> None:
     """Test publish metadata tool with dummy config."""
 
     expected_hash = "0x7357e2c1b88be3442f18d62b373033a5e8340305a0f8a7fb88f361429a24003e"
@@ -56,10 +66,10 @@ def test_publish_metadata() -> None:
             package_path = Path(temp_dir)
             (package_path / DEFAULT_README_FILE).write_text("Description")
 
-            metadata_hash = publish_metadata(
+            metadata_hash, _ = publish_metadata(
                 public_id=PublicId(author="author", name="name"),
                 package_path=package_path,
-                nft_image_hash=DEFAULT_NFT_IMAGE_HASH,
+                nft=nft,
                 description="",
             )
 
