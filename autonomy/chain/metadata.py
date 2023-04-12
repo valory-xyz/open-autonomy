@@ -22,9 +22,11 @@
 import json
 from collections import OrderedDict
 from pathlib import Path
+from typing import Tuple, Union
 
 from aea.configurations.data_types import PublicId
-from aea.helpers.cid import CID
+from aea.helpers.base import IPFSHash
+from aea.helpers.cid import CID, to_v1
 from aea.helpers.ipfs.base import IPFSHashOnly
 from aea_cli_ipfs.ipfs_utils import IPFSTool
 
@@ -33,6 +35,8 @@ IPFS_URI_PREFIX = "ipfs://"
 BASE16_HASH_PREFIX = "f01701220"
 CONFIG_HASH_STRING_PREFIX = "0x"
 UNIT_HASH_PREFIX = CONFIG_HASH_STRING_PREFIX + "{metadata_hash}"
+
+NFTHashOrPath = Union[Path, IPFSHash]
 
 
 def serialize_metadata(
@@ -57,12 +61,20 @@ def serialize_metadata(
 def publish_metadata(
     public_id: PublicId,
     package_path: Path,
-    nft_image_hash: str,
+    nft: NFTHashOrPath,
     description: str,
-) -> str:
+) -> Tuple[str, str]:
     """Publish service metadata."""
-
     ipfs_tool = IPFSTool()
+    if isinstance(nft, IPFSHash):
+        nft_image_hash = str(nft)
+    else:
+        _, nft_image_hash, _ = ipfs_tool.add(
+            str(nft.resolve()),
+            wrap_with_directory=False,
+        )
+        nft_image_hash = to_v1(nft_image_hash)
+
     package_hash = IPFSHashOnly.get(file_path=str(package_path))
     metadata_string = serialize_metadata(
         package_hash=package_hash,
@@ -79,5 +91,4 @@ def publish_metadata(
         .decode()
         .replace(BASE16_HASH_PREFIX, "")
     )
-
-    return UNIT_HASH_PREFIX.format(metadata_hash=metadata_hash)
+    return UNIT_HASH_PREFIX.format(metadata_hash=metadata_hash), metadata_string
