@@ -21,7 +21,7 @@ Serialize metadata.
 
 ```python
 def publish_metadata(public_id: PublicId, package_path: Path,
-                     nft_image_hash: str, description: str) -> str
+                     nft: NFTHashOrPath, description: str) -> Tuple[str, str]
 ```
 
 Publish service metadata.
