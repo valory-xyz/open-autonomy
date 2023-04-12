@@ -99,6 +99,7 @@ cat > ./packages/packages.json << EOF
     "dev": {
     },
     "third_party": {
+        "service/valory/hello_world/0.1.0": "bafybeicdjvpwloho3okcf7d3kmidxvkqdosnfnq47s2e5j277epi2ndjie",
         "agent/valory/hello_world/0.1.0": "bafybeie26bvs657tcmaoxdkulzxpkr5uye26o4xp3scyllnuv5yk7izbbq",
         "connection/valory/abci/0.1.0": "bafybeidyfpwu7hpanfj74zn6nkzmzoz2qharxfsnxzjr7bfldho2xzualu",
         "connection/valory/http_client/0.23.0": "bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi",

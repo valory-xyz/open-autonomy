@@ -35,7 +35,12 @@ nav:
     - Define the agent: 'guides/define_agent.md'
     - Define the service: 'guides/define_service.md'
     - Publish and mint packages: 'guides/publish_mint_packages.md'
-    - Deploy the service: 'guides/deploy_service.md'
+    - Deploy the service:
+        - 'guides/deploy_service/index.md'
+        - Local deployment: 'guides/deploy_service/local_deployment.md'
+        - On-chain deployment: 'guides/deploy_service/on-chain_deployment.md'
+        - Cluster deployment: 'guides/deploy_service/cluster_deployment.md'
+        - Cloud deployment: 'guides/deploy_service/cloud_deployment.md'
   - Demo agent services:
     - 'demos/index.md'  
     - Hello World demo: 'demos/hello_world_demo.md'
@@ -81,8 +86,6 @@ nav:
       - Debugging in the cluster: 'advanced_reference/developer_tooling/debugging_in_the_cluster.md'
     - Deployment:
       - Container Control Flow: 'control_flow.md'
-      - Local Deployment: 'application_deployment.md'
-      - Cloud Deployment: 'using_stack_deployment.md'
     - Using custom images in a deployment: 'advanced_reference/use_custom_images.md'
     - API:
       - Library:
@@ -257,6 +260,7 @@ plugins:
 markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.keys
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.highlight

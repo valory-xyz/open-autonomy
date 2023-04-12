@@ -53,12 +53,12 @@ cd infrastructure
 1. We need to first create an authentication file to be used by terraform to create cloud resources. This can be done from the [API Settings](https://cloud.digitalocean.com/account/api/tokens). Save this file within the root directory as ```infrastructure/do_creds```
 2. Now we have our authentication token, we need to setup the domain we registered earlier. This is again done from the [Network & Domains](https://cloud.digitalocean.com/networking/domains) section of Digital Ocean.
 3. Create a new domain by entering your domain
-![Image title](images/networking_page.png){ align=center }
+![Image title](../../images/networking_page.png){ align=center }
 
 4. Once the domain has been setup on Digital Ocean, you will be provided with a list of Nameservers as so;
-![Image title](images/do_name_servers.png){ align=center }
+![Image title](../../images/do_name_servers.png){ align=center }
 You MUST configure your domain provider to point at these name servers like so;
-![Image title](images/name_server_setup.png){ align=center }
+![Image title](../../images/name_server_setup.png){ align=center }
 
 5. Once you have completed these steps, you are now ready to deploy the cluster to the infrastructure.
 ```bash
