@@ -117,3 +117,13 @@ def test_nft_argument(value: str, itype: Type) -> None:
     """Test `NFTArgument` flag"""
 
     assert isinstance(NFTArgument().convert(value, None, None), itype)
+
+
+def test_nft_argument_failure() -> None:
+    """Test `NFTArgument` flag failure"""
+
+    with pytest.raises(
+        click.ClickException,
+        match="Invalid value provided for the NFT image argument, please provide a valid IPFS hash or valid image path",
+    ):
+        NFTArgument().convert(str(DATA_DIR / "not_nft.png"), None, None)
