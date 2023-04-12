@@ -67,12 +67,20 @@ KUBERNETES_DEPLOYMENT = "kubernetes"
 DOCKER_COMPOSE_DEPLOYMENT = "docker-compose"
 
 LOCALHOST = "localhost"
+TENDERMINT_P2P_PORT = 26656
+
 TENDERMINT_NODE = "http://node{}:26657"
 TENDERMINT_COM = "http://node{}:8080"
+
 TENDERMINT_NODE_LOCAL = f"http://{LOCALHOST}:26657"
 TENDERMINT_COM_LOCAL = f"http://{LOCALHOST}:8080"
+
 TENDERMINT_URL_PARAM = "tendermint_url"
 TENDERMINT_COM_URL_PARAM = "tendermint_com_url"
+
+TENDERMINT_P2P_URL = "node{}:{}"
+TENDERMINT_P2P_URL_PARAM = "tendermint_p2p_url"
+TENDERMINT_P2P_URL_ENV_VAR = "TM_P2P_NODE_URL_{}"
 
 COMPONENT_CONFIGS: Dict = {
     component.package_type.value: component  # type: ignore
@@ -317,6 +325,13 @@ class ServiceBuilder:
             else:
                 param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE.format(idx)
                 param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM.format(idx)
+
+            if TENDERMINT_P2P_URL_PARAM not in param_args:
+                tm_p2p_url = os.environ.get(
+                    TENDERMINT_P2P_URL_ENV_VAR.format(idx),
+                    TENDERMINT_P2P_URL.format(idx, TENDERMINT_P2P_PORT),
+                )
+                param_args[TENDERMINT_P2P_URL_PARAM] = tm_p2p_url
 
         try:
             if self.service.number_of_agents == 1 and not has_multiple_overrides:
