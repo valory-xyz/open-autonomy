@@ -20,6 +20,7 @@ Fantom
 ABCI-application
 mixin
 startup
+standalone
 FIPA-like
 AppExceptions
 AppErrors
