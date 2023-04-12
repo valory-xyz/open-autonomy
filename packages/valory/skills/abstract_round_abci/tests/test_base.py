@@ -26,6 +26,7 @@ import logging
 import re
 import shutil
 from abc import ABC
+from collections import deque
 from contextlib import suppress
 from copy import copy, deepcopy
 from dataclasses import dataclass
@@ -33,6 +34,7 @@ from pathlib import Path
 from time import sleep
 from typing import (
     Any,
+    Deque,
     Dict,
     FrozenSet,
     Generator,
@@ -53,6 +55,7 @@ from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given, settings
 from hypothesis.strategies import (
     booleans,
+    data,
     datetimes,
     dictionaries,
     floats,
@@ -74,6 +77,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRoundInternalError,
     AddBlockError,
     AppState,
+    AvailabilityWindow,
     BaseSynchronizedData,
     BaseTxPayload,
     Block,
@@ -82,6 +86,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectionRound,
     EventType,
     LateArrivingTransaction,
+    OffenseType,
     RoundSequence,
     SignatureNotValidError,
     Timeouts,
@@ -91,6 +96,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     _MetaAbstractRound,
     _MetaPayload,
     get_name,
+    light_offences,
+    serious_offences,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.abci_app import (
     AbciAppTest,
@@ -874,8 +881,8 @@ class TestAbciAppDB:
         """Test cleanup db."""
         db = AbciAppDB({})
         db._cross_period_persisted_keys = frozenset()
-        for _, data in existing_data.items():
-            db._create_from_keys(**data)
+        for _, _data in existing_data.items():
+            db._create_from_keys(**_data)
 
         db.cleanup(cleanup_history_depth, cleanup_history_depth_current)
         assert db._data == expected
@@ -1788,6 +1795,109 @@ class TestAbciApp:
         self.abci_app.setup()
         self.abci_app.process_transaction(transaction)
         process_transaction_mock.assert_called_with(transaction)
+
+
+class TestOffenceTypeFns:
+    """Test `OffenceType`-related functions."""
+
+    @staticmethod
+    def test_light_offences() -> None:
+        """Test `light_offences` function."""
+        assert list(light_offences()) == [
+            OffenseType.VALIDATOR_DOWNTIME,
+            OffenseType.INVALID_PAYLOAD,
+            OffenseType.BLACKLISTED,
+            OffenseType.SUSPECTED,
+        ]
+
+    @staticmethod
+    def test_serious_offences() -> None:
+        """Test `serious_offences` function."""
+        assert list(serious_offences()) == [
+            OffenseType.UNKNOWN,
+            OffenseType.DOUBLE_SIGNING,
+            OffenseType.LIGHT_CLIENT_ATTACK,
+        ]
+
+
+class TestAvailabilityWindow:
+    """Test `AvailabilityWindow`."""
+
+    @staticmethod
+    @given(integers(min_value=0, max_value=100), data())
+    def test_add(max_length: int, hypothesis_data: Any) -> None:
+        """Test the `add` method."""
+        availability_window = AvailabilityWindow(max_length)
+
+        expected_positives = expected_negatives = 0
+        for i in range(max_length):
+            value = hypothesis_data.draw(booleans())
+            availability_window.add(value)
+            items_in = i + 1
+            assert len(availability_window._window) == items_in
+            assert availability_window._window[-1] is value
+            expected_positives += 1 if value else 0
+            assert availability_window._num_positive == expected_positives
+            expected_negatives = items_in - expected_positives
+            assert availability_window._num_negative == expected_negatives
+
+        # max length is reached and window starts cycling
+        assert len(availability_window._window) == max_length
+        for _ in range(10):
+            value = hypothesis_data.draw(booleans())
+            expected_popped_value = (
+                None if max_length == 0 else availability_window._window[0]
+            )
+            availability_window.add(value)
+            assert len(availability_window._window) == max_length
+            if expected_popped_value is not None:
+                expected_positives -= bool(expected_popped_value)
+                expected_negatives -= bool(not expected_popped_value)
+            expected_positives += bool(value)
+            expected_negatives += bool(not value)
+            assert availability_window._num_positive == expected_positives
+            assert availability_window._num_negative == expected_negatives
+
+    @staticmethod
+    @pytest.mark.parametrize("max_length", (0,))
+    @pytest.mark.parametrize("num_positive", (0,))
+    @pytest.mark.parametrize("num_negative", (0,))
+    @pytest.mark.parametrize(
+        "window, expected_serialization",
+        (
+            (deque(()), 0),
+            (deque((False, False, False)), 0),
+            (deque((True, False, True)), 5),
+            (deque((True for _ in range(3))), 7),
+            (
+                deque((True for _ in range(1000))),
+                int(
+                    "10715086071862673209484250490600018105614048117055336074437503883703510511249361224931983788156958"
+                    "58127594672917553146825187145285692314043598457757469857480393456777482423098542107460506237114187"
+                    "79541821530464749835819412673987675591655439460770629145711964776865421676604298316526243868372056"
+                    "68069375"
+                ),
+            ),
+        ),
+    )
+    def test_to_dict(
+        max_length: int,
+        num_positive: int,
+        num_negative: int,
+        window: Deque,
+        expected_serialization: int,
+    ) -> None:
+        """Test `to_dict` method."""
+        availability_window = AvailabilityWindow(max_length)
+        availability_window._num_positive = num_positive
+        availability_window._num_negative = num_negative
+        availability_window._window = window
+        assert availability_window.to_dict() == {
+            "max_length": max_length,
+            "array": expected_serialization,
+            "num_positive": num_positive,
+            "num_negative": num_negative,
+        }
 
 
 class TestRoundSequence:
