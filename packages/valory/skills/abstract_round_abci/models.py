@@ -427,6 +427,34 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
         kwargs["skill_context"] = skill_context
         super().__init__(*args, **kwargs)
 
+    def get_validator_address(self, agent_address: str) -> str:
+        """Get the validator address of an agent."""
+        if agent_address not in self.synchronized_data.all_participants:
+            raise ValueError(
+                f"The validator address of non-participating agent `{agent_address}` was requested."
+            )
+
+        try:
+            agent_config = self.initial_tm_configs[agent_address]
+        except KeyError as e:
+            raise ValueError(
+                "SharedState's setup was not performed successfully."
+            ) from e
+
+        if agent_config is None:
+            raise ValueError(
+                f"ACN registration has not been successfully performed for agent `{agent_address}`. "
+                "Have you set the `share_tm_config_on_startup` flag to `true` in the configuration?"
+            )
+
+        validator_address = agent_config.get("address", None)
+        if validator_address is None:
+            raise ValueError(
+                f"The tendermint configuration for agent `{agent_address}` is invalid: `{agent_config}`."
+            )
+
+        return validator_address
+
     def acn_container(self) -> Dict[str, Any]:
         """Create a container for ACN results, i.e., a mapping from others' addresses to `None`."""
         ourself = {self.context.agent_address}
