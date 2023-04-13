@@ -2537,7 +2537,13 @@ class AbciApp(
 
 
 class OffenseType(Enum):
-    """The types of offenses."""
+    """
+    The types of offenses.
+
+    The values of the enum represent the seriousness of the offence.
+    Offense types with values >1000 are considered serious.
+    See also `is_light_offence` and `is_serious_offence` functions.
+    """
 
     VALIDATOR_DOWNTIME = 0
     INVALID_PAYLOAD = 1
