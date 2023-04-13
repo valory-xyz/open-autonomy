@@ -9,7 +9,7 @@ Metadata helpers.
 #### serialize`_`metadata
 
 ```python
-def serialize_metadata(package_hash: str, public_id: PublicId,
+def serialize_metadata(package_hash: str, package_id: PackageId,
                        description: str, nft_image_hash: str) -> str
 ```
 
@@ -20,7 +20,7 @@ Serialize metadata.
 #### publish`_`metadata
 
 ```python
-def publish_metadata(public_id: PublicId, package_path: Path,
+def publish_metadata(package_id: PackageId, package_path: Path,
                      nft: NFTHashOrPath, description: str) -> Tuple[str, str]
 ```
 
