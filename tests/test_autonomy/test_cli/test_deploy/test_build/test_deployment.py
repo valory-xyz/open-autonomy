@@ -46,6 +46,7 @@ from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.base import get_dummy_service_config
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
+
 OS_ENV_PATCH = mock.patch.dict(
     os.environ, values={**os.environ, "ALL_PARTICIPANTS": "[]"}, clear=True
 )
