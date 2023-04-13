@@ -490,14 +490,8 @@ class TestSharedState:
                 "all_participants": "0x0",
             }
             shared_state.setup()
-            assert (
-                shared_state.synchronized_data.db.get_strict("safe_contract_address")
-                == "0xsafe"
-            )
-            assert (
-                shared_state.synchronized_data.db.get_strict("oracle_contract_address")
-                == "0xoracle"
-            )
+            for key, value in mock_params.setup_params.items():
+                assert shared_state.synchronized_data.db.get_strict(key) == value
 
     @pytest.mark.parametrize(
         "address_to_acn_deliverable, n_participants, expected",
