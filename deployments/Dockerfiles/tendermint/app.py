@@ -110,6 +110,13 @@ def update_peers(validators: List[Dict], config_path: Path) -> None:
     config_path.write_text(updated_config, encoding="utf-8")
 
 
+def update_external_address(external_address: str, config_path: Path) -> None:
+    """Update the external address."""
+    config_text = config_path.read_text(encoding="utf-8")
+    updated_config = re.sub('external_address = ".*\n', external_address, config_text)
+    config_path.write_text(updated_config, encoding="utf-8")
+
+
 def update_genesis_config(data: Dict) -> None:
     """Update genesis.json file for the tendermint node."""
 
@@ -177,7 +184,7 @@ class PeriodDumper:
         self.resets += 1
 
 
-def create_app(
+def create_app(  # pylint: disable=too-many-statements
     dump_dir: Optional[Path] = None,
     perform_monitoring: bool = True,
     debug: bool = False,
@@ -237,9 +244,14 @@ def create_app(
             cast(logging.Logger, app.logger).info(  # pylint: disable=no-member
                 "Updating peristent peers."
             )
+            config_path = Path(os.environ["TMHOME"]) / "config" / "config.toml"
             update_peers(
                 validators=data["validators"],
-                config_path=Path(os.environ["TMHOME"]) / "config" / "config.toml",
+                config_path=config_path,
+            )
+            update_external_address(
+                external_address=data["external_address"],
+                config_path=config_path,
             )
 
             return {"status": True, "error": None}
