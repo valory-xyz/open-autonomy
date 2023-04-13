@@ -12,6 +12,7 @@ theme:
     - navigation.indexes
     - content.code.copy
     - content.code.annotate
+    - content.tabs.link    
 
 extra_css:
   - stylesheets/extra.css
@@ -38,8 +39,6 @@ nav:
     - Deploy the service:
         - 'guides/deploy_service/index.md'
         - Local deployment: 'guides/deploy_service/local_deployment.md'
-        - On-chain deployment: 'guides/deploy_service/on-chain_deployment.md'
-        - Cluster deployment: 'guides/deploy_service/cluster_deployment.md'
         - Cloud deployment: 'guides/deploy_service/cloud_deployment.md'
   - Demo agent services:
     - 'demos/index.md'  

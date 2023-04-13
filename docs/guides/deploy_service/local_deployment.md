@@ -1,5 +1,7 @@
 Local service deployments are usually executed for testing services under active development. You can use such deployments to test your service before you mint it in the [Autonolas Protocol](https://docs.autonolas.network/protocol/). Local deployments are based on Docker Compose. We exemplify this process using the `hello_world` service as an example.
 
+## Manual mode
+
 1. **Fetch the service.** In the workspace folder, fetch the service from the corresponding registry:
 
     === "Local registry"
@@ -32,7 +34,7 @@ Local service deployments are usually executed for testing services under active
 
     Recall that you can find the `agent_name` within the service configuration file `service.yaml`.
 
-3. **Prepare the keys file.** Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that make up the service.
+3. **Prepare the keys file.** Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that you wish to deploy in the local machine.
 
     ???+ example "Example of a `keys.json` file"
 
@@ -61,44 +63,84 @@ Local service deployments are usually executed for testing services under active
 
 4. **Build the deployment.** Within the service runtime folder, execute the command below to build the service deployment:
 
-    ```bash
-    rm -rf abci_build #(1)!
-    autonomy deploy build keys.json -ltm #(2)!
-    ```
+    === "Docker Compose"
 
-    1. Delete previous deployments, if necessary.
-    2. `-ltm` stands for "use local Tendermint node". Check out the [`autonomy deploy build`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
+        ```bash
+        rm -rf abci_build #(1)!
+        autonomy deploy build keys.json -ltm #(2)!
+        ```
 
-    This will create a deployment environment within the `./abci_build` folder with the following structure:
+        1. Delete previous deployments, if necessary.
+        2. `-ltm` stands for "use local Tendermint node". Check out the [`autonomy deploy build`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
-    ```bash
-    abci_build/
-    ├── agent_keys
-    │   ├── agent_0
-    │   ├── agent_1
-    │   |   ...
-    │   └── agent_N
-    ├── nodes
-    │   ├── node0
-    │   ├── node1
-    │   |   ...
-    │   └── nodeN
-    ├── persistent_data
-    │   ├── benchmarks
-    │   ├── logs
-    │   ├── tm_state
-    │   └── venvs
-    └── docker-compose.yaml
-    ```
+        This will create a deployment environment within the `./abci_build` folder with the following structure:
+
+        ```bash
+        abci_build/
+        ├── agent_keys
+        │   ├── agent_0
+        │   ├── agent_1
+        │   |   ...
+        │   └── agent_<N-1>
+        ├── nodes
+        │   ├── node0
+        │   ├── node1
+        │   |   ...
+        │   └── node<N-1>
+        ├── persistent_data
+        │   ├── benchmarks
+        │   ├── logs
+        │   ├── tm_state
+        │   └── venvs
+        └── docker-compose.yaml
+        ```
+
+    === "Kubernetes"
+
+        ```bash
+        rm -rf abci_build #(1)!
+        autonomy deploy build keys.json -ltm --kubernetes #(2)!
+        ```
+
+        1. Delete previous deployments, if necessary.
+        2. `-ltm` stands for "use local Tendermint node". Check out the [`autonomy deploy build`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
+
+        This will create a deployment environment within the `./abci_build` folder with the following structure:
+
+        ```
+        abci_build/
+        ├── agent_keys
+        │   ├── agent_0_private_key.yaml
+        │   ├── agent_1_private_key.yaml
+        │   |   ...
+        │   └── agent_<N-1>_private_key.yaml
+        ├── build.yaml
+        └── persistent_data
+            ├── benchmarks
+            ├── logs
+            ├── tm_state
+            └── venvs
+        ```
 
 5. **Run the service.** Navigate to the deployment environment folder (`./abci_build`) and run the deployment locally.
 
-    ```bash
-    cd abci_build
-    autonomy deploy run #(1)!
-    ```
+    === "Docker Compose"
 
-    1. Check out the [`autonomy deploy run`](../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-run) command documentation to learn more about its parameters and options.
+        ```bash
+        cd abci_build
+        autonomy deploy run #(1)!
+        ```
+
+        1. Check out the [`autonomy deploy run`](../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-run) command documentation to learn more about its parameters and options.
+
+    === "Kubernetes"
+
+        ```bash
+        cd abci_build
+        autonomy deploy run #(1)!
+        ```
+
+        1. Check out the [`autonomy deploy run`](../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-run) command documentation to learn more about its parameters and options.
 
     This will spawn in the local machine:
 
@@ -108,3 +150,62 @@ Local service deployments are usually executed for testing services under active
     The logs of a single agent or Tendermint node can be inspected in a separate terminal using `docker logs <container_id> --follow`.
 
     You can cancel the local execution at any time by pressing ++ctrl+c++.
+
+## Automated mode
+
+Recall that the automated mode is only available for agent services minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/). The framework will automate most of the steps depicted in the section above.
+
+!!! warning "Important"
+    The automated mode will override a number of configuration arguments in the {{fsm_app}} skill, within the the agent containers, with values read on-chain. Namely:
+
+    === "skill.yaml"
+
+    ```yaml
+    (...)
+    models:
+      params:
+        args:
+          setup:
+            all_participants: # Overridden with the registered values
+            safe_contract_address: # Overridden with the registered values
+            consensus_threshold: # Overridden with the registered values
+    ```
+
+1. **Find the service ID.** Explore the [services section](https://protocol.autonolas.network/agents) of the protocol frontend, and note the token ID of the service that you want to deploy. The service must be in [Deployed state](https://docs.autonolas.network/protocol/life_cycle_of_a_service/#deployed).
+
+2. **Prepare the keys file.** Prepare a JSON file `keys.json` containing the wallet address and the private key for each of the agents that you wish to deploy in the local machine.
+
+    ???+ example "Example of a `keys.json` file"
+
+        <span style="color:red">**WARNING: Use this file for testing purposes only. Never use the keys or addresses provided in this example in a production environment or for personal use.**</span>
+
+        ```json title="keys.json"
+        [
+          {
+              "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+              "private_key": "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a"
+          },
+          {
+              "address": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+              "private_key": "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba"
+          },
+          {
+              "address": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+              "private_key": "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e"
+          },
+          {
+              "address": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+              "private_key": "0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356"
+          }
+        ]
+        ```
+
+3. **Deploy the service.** Execute the following command:
+
+    ```bash
+    autonomy deploy from-token <ID> keys.json --use-goerli # (1)!
+    ```
+
+    1. `--use-goerli` indicates that the service is registered in the Görli testnet. Check out the [`autonomy deploy from-token`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-from-token) command documentation to learn more about its parameters and options.
+
+    The deployment will be run for as many agents as keys are defined in the `keys.json` file.

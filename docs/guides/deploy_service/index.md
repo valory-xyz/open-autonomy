@@ -7,9 +7,7 @@ The last step in the [development process](../overview_of_the_development_proces
 <figcaption>Part of the development process covered in this guide</figcaption>
 </figure>
 
-!!! warning "Important"
 
-    If your service is stored in a local registry, we recommend that you fetch it outside the registry (to an independent service runtime folder) before you start with the deployment process. This is to avoid publishing unintended files (e.g., temporary files or private keys) on the remote registry.
 
 ## What you will learn
 
@@ -19,15 +17,17 @@ You must ensure that your machine satisfies the [framework requirements](../set_
 
 ## Types of deployment
 
-The framework allows to deploy services in a variety of ways. Namely, there are three aspects of the deployment that you need to decide:
+You need to consider the following three aspects when deploying an agent service:
 
 **Local vs. cloud deployment:**
-  : abcd
+  : Local deployment on machines managed locally, or deployment on a cloud provider (currently supported for Amazon Web Services (AWS) and Digital Ocean).
 
-**Manual vs. automatic deployment:**
+**Manual vs. automated mode:**
+  : Manual mode require that the user executes explicitly all the steps to deploy a service (fetch the service, build agent images, build the deployment, run the service) and configure a number of parameters. Automated mode takes care of executing these tasks with little input from the user. Automated mode is only available for services minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
 
-  : abcd
+**Docker Compose vs. Kubernetes cluster:**
+  : These are the two deployment automation technologies currently supported.
 
-**Docker Compose vs. Kubernettes deployment:**
+!!! example
 
-  : abcd
+    If you are developing an agent service and want to test locally, then you should execute a local, manual deployment based on Docker Compose.

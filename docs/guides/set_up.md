@@ -10,6 +10,12 @@ Ensure that your machine satisfies the following requirements:
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
+Additionally, if you wish to deploy your service in a Kubernetes cluster:
+
+- [Skaffold](https://skaffold.dev/docs/install/)
+- [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
+- [Kubectl](https://kubernetes.io/docs/tasks/tools/)
+
 ## Set up the framework
 
 1. **Create a workspace folder:**
