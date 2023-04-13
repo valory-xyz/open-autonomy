@@ -28,7 +28,7 @@ logging_config:
   version: 1
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.31.0
+    version: ==1.32.0
 default_connection: null
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
