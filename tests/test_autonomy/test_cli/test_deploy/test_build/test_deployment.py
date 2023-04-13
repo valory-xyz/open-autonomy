@@ -46,6 +46,10 @@ from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.base import get_dummy_service_config
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
+OS_ENV_PATCH = mock.patch.dict(
+    os.environ, values={**os.environ, "ALL_PARTICIPANTS": "[]"}, clear=True
+)
+
 
 @skip_docker_tests
 class BaseDeployBuildTest(BaseCliTest):
@@ -141,7 +145,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         """Run tests."""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -169,7 +173,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         """Run tests."""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -189,7 +193,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         """Run tests."""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -225,7 +229,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         """Run tests."""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -269,7 +273,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         """Run tests."""
         keys_file = Path(ETHEREUM_ENCRYPTED_KEYS)
 
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(keys_file),
@@ -320,7 +324,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -355,7 +359,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
     ) -> None:
         """Run tests."""
 
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -396,7 +400,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
         """Run tests."""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -432,7 +436,7 @@ class TestDockerComposeBuilds(BaseDeployBuildTest):
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
         image_author = "some_author"
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -471,7 +475,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
         """Run tests."""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -493,7 +497,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
         """Run tests."""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -522,7 +526,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
         """Run tests."""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -554,7 +558,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
         keys_file = Path(ETHEREUM_ENCRYPTED_KEYS)
         build_dir = self.t / DEFAULT_BUILD_FOLDER
 
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(keys_file),
@@ -598,7 +602,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
 
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -629,7 +633,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
         """Run tests."""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -660,7 +664,7 @@ class TestKubernetesBuild(BaseDeployBuildTest):
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
         image_author = "some_image_author"
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -702,7 +706,7 @@ class TestExposePorts(BaseDeployBuildTest):
         """Test expose agent ports"""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
@@ -728,7 +732,7 @@ class TestExposePorts(BaseDeployBuildTest):
         """Test expose agent ports"""
 
         build_dir = self.t / DEFAULT_BUILD_FOLDER
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.run_cli(
                 (
                     str(self.keys_file),
