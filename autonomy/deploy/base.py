@@ -276,7 +276,7 @@ class ServiceBuilder:
             self.service.number_of_agents = len(keys)
 
         if self._all_participants is not None and len(self._all_participants) > 0:
-            unwanted_keys = set([key["address"] for key in keys]) - set(
+            unwanted_keys = set(key["address"] for key in keys) - set(
                 self._all_participants
             )
             if len(unwanted_keys) > 0:
