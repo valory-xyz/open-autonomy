@@ -524,6 +524,92 @@ class TestServiceBuilder:
                 self.service_path, self.keys_path, agent_instances=[]
             )
 
+    def test_try_get_all_particiapants(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        service_config = get_dummy_service_config(file_number=1)
+        self._write_service(service_config)
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        assert spec.try_get_all_participants() is None
+
+        service_config = get_dummy_service_config(file_number=1)
+        service_config[1]["models"]["params"]["args"]["setup"]["all_participants"] = []
+        self._write_service(service_config)
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        assert spec.try_get_all_participants() == []
+
+    def test_read_keys_with_all_participants_defined(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        service_config = get_dummy_service_config(file_number=1)
+        service_config[1]["models"]["params"]["args"]["setup"]["all_participants"] = [
+            key["address"] for key in get_keys()
+        ]
+        self._write_service(service_config)
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        spec.read_keys(self.keys_path)
+        assert spec.service.number_of_agents == 1
+
+    def test_read_keys_with_all_participants_defined_failure(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        service_config = get_dummy_service_config(file_number=1)
+        service_config[1]["models"]["params"]["args"]["setup"]["all_participants"] = [
+            "0x",
+        ]
+        self._write_service(service_config)
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        with pytest.raises(
+            NotValidKeysFile,
+            match="Key file contains keys which are not a part of the `all_participants` parameter; keys={'0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'}",
+        ):
+            spec.read_keys(self.keys_path)
+
+    def test_read_keys_against_all_participants(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        service_config = get_dummy_service_config(file_number=2)
+        # this will reverse the order of the keys in the `all_participants` list
+        # and since we're using the first key from the original array, the
+        # generated agent should contain overrides with index 1 instead of 0
+        all_participants = [key["address"] for key in reversed(get_keys())]
+        for i in range(4):
+            service_config[1][i]["models"]["params"]["args"]["setup"][
+                "all_participants"
+            ] = all_participants
+        self._write_service(service_config)
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        spec.read_keys(self.keys_path)
+        agents = spec.generate_agents()
+
+        assert (
+            agents[0]["SKILL_DUMMY_SKILL_MODELS_PARAMS_ARGS_MESSAGE"]
+            == '"Hello from agent 1"'
+        )
+
     def teardown(
         self,
     ) -> None:

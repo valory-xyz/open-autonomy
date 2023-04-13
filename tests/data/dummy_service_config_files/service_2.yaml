@@ -21,7 +21,7 @@ type: skill
   models:
     params:
       args:
-        message: ${str:"Hello, World!"}
+        message: ${str:"Hello from agent 0"}
         setup: *id001
     benchmark_tool:
       args:
@@ -30,7 +30,7 @@ type: skill
   models:
     params:
       args:
-        message: ${str:"Hello, World!"}
+        message: ${str:"Hello from agent 1"}
         setup: *id001
     benchmark_tool:
       args:
@@ -39,7 +39,7 @@ type: skill
   models:
     params:
       args:
-        message: ${str:"Hello, World!"}
+        message: ${str:"Hello from agent 2"}
         setup: *id001
     benchmark_tool:
       args:
@@ -48,7 +48,7 @@ type: skill
   models:
     params:
       args:
-        message: ${str:"Hello, World!"}
+        message: ${str:"Hello from agent 3"}
         setup: *id001
     benchmark_tool:
       args:

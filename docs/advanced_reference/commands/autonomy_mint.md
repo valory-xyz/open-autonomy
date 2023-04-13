@@ -63,8 +63,8 @@ autonomy mint skill [OPTIONS] PACKAGE_PATH
 `-d, --dependencies DEPENDENCY_ID`
 : Dependencies for the package.
 
-`--nft NFT_HASH`
-: IPFS hash for the NFT image representing the package. Note that if you are using a local chain this option is not required.
+`--nft IPFS_HASH_OR_IMAGE_PATH`
+: IPFS hash or path to the NFT image for the NFT image representing the package. Note that if you are using a local chain this option is not required.
 
 `--owner TEXT`
 : Owner address for the component
@@ -74,7 +74,7 @@ autonomy mint skill [OPTIONS] PACKAGE_PATH
 Mint the `hello_world_abci` {{fsm_app}} skill with dependencies 11 and 42 in a custom chain:
 
 ```bash
-autonomy mint --use-custom-chain skill -d 11 -d 42 --nft <nft_ipfs_hash> ./packages/valory/skills/hello_world_abci --key my_keys_file
+autonomy mint --use-custom-chain skill -d 11 -d 42 --nft <nft_ipfs_hash_or_image_path> ./packages/valory/skills/hello_world_abci --key my_keys_file
 ```
 
 ## `autonomy mint agent`
@@ -111,7 +111,7 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH
 Mint the `hello_world` agent with dependency 43 in the Ethereum main chain:
 
 ```bash
-autonomy mint --use-ethereum agent -d 43 --nft <nft_ipfs_hash> ./packages/valory/agents/hello_world --key my_keys_file
+autonomy mint --use-ethereum agent -d 43 --nft <nft_ipfs_hash_or_image_path> ./packages/valory/agents/hello_world --key my_keys_file
 ```
 
 ## `autonomy mint service`
@@ -134,8 +134,8 @@ autonomy mint service [OPTIONS] PACKAGE_PATH
 `--password PASSWORD`
 : Password for the key file.
 
-`--nft NFT_HASH`
-: IPFS hash for the NFT image representing the package. Note that if you are using a local chain this option is not required.
+`--nft IPFS_HASH_OR_IMAGE_PATH`
+: IPFS hash or path to the NFT image for the NFT image representing the package. Note that if you are using a local chain this option is not required.
 
 `-a, --agent-id AGENT_ID`
 : Canonical agent ID.
@@ -154,7 +154,7 @@ autonomy mint service [OPTIONS] PACKAGE_PATH
 Mint the `hello_world` service with 4 instances of canonical agent ID 84, cost of bond 10000000 Wei and a threshold of 3 agents, in the Ethereum main chain:
 
 ```bash
-autonomy mint --use-ethereum service -a 84 -n 4 -c 10000000 --threshold 3 --nft <nft_ipfs_hash> ./packages/valory/services/hello_world --key my_keys_file
+autonomy mint --use-ethereum service -a 84 -n 4 -c 10000000 --threshold 3 --nft <nft_ipfs_hash_or_image_path> ./packages/valory/services/hello_world --key my_keys_file
 ```
 
 !!! note
