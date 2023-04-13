@@ -30,16 +30,18 @@ import sys
 import textwrap
 import uuid
 from abc import ABC, ABCMeta, abstractmethod
-from collections import Counter
+from collections import Counter, deque
 from copy import copy, deepcopy
 from dataclasses import asdict, astuple, dataclass, field
 from enum import Enum
 from inspect import isclass
 from typing import (
     Any,
+    Deque,
     Dict,
     FrozenSet,
     Generic,
+    Iterator,
     List,
     Mapping,
     Optional,
@@ -79,6 +81,9 @@ RESET_COUNT_START = 0
 VALUE_NOT_PROVIDED = object()
 # tolerance in seconds for new blocks not having arrived yet
 BLOCKS_STALL_TOLERANCE = 60
+SERIOUS_OFFENCE_ENUM_MIN = 1000
+NUMBER_OF_BLOCKS_TRACKED = 10_000
+NUMER_OF_ROUNDS_TRACKED = 50
 
 EventType = TypeVar("EventType")
 
@@ -2529,6 +2534,130 @@ class AbciApp(
         self.synchronized_data.db.cleanup_current_histories(
             cleanup_history_depth_current
         )
+
+
+class OffenseType(Enum):
+    """The types of offenses."""
+
+    VALIDATOR_DOWNTIME = 0
+    INVALID_PAYLOAD = 1
+    BLACKLISTED = 2
+    SUSPECTED = 3
+    UNKNOWN = SERIOUS_OFFENCE_ENUM_MIN
+    DOUBLE_SIGNING = SERIOUS_OFFENCE_ENUM_MIN + 1
+    LIGHT_CLIENT_ATTACK = SERIOUS_OFFENCE_ENUM_MIN + 2
+
+
+def is_light_offence(offence_type: OffenseType) -> bool:
+    """Check if an offence type is light."""
+    return offence_type.value < SERIOUS_OFFENCE_ENUM_MIN
+
+
+def is_serious_offence(offence_type: OffenseType) -> bool:
+    """Check if an offence type is serious."""
+    return not is_light_offence(offence_type)
+
+
+def light_offences() -> Iterator[OffenseType]:
+    """Get the light offences."""
+    return filter(is_light_offence, OffenseType)
+
+
+def serious_offences() -> Iterator[OffenseType]:
+    """Get the serious offences."""
+    return filter(is_serious_offence, OffenseType)
+
+
+class AvailabilityWindow:
+    """
+    A cyclic array with a maximum length that holds boolean values.
+
+    When an element is added to the array and the maximum length has been reached,
+    the oldest element is removed. Two attributes `num_positive` and `num_negative`
+    reflect the number of positive and negative elements in the AvailabilityWindow,
+    they are updated every time a new element is added.
+    """
+
+    def __init__(self, max_length: int) -> None:
+        """
+        Initializes the `AvailabilityWindow` instance.
+
+        :param max_length: the maximum length of the cyclic array.
+        """
+        self._max_length = max_length
+        self._window: Deque[bool] = deque(maxlen=max_length)
+        self._num_positive = 0
+        self._num_negative = 0
+
+    def _update_counters(self, positive: bool, removal: bool = False) -> None:
+        """Updates the `num_positive` and `num_negative` counters."""
+        update_amount = -1 if removal else 1
+
+        if positive:
+            self._num_positive += update_amount
+        else:
+            self._num_negative += update_amount
+
+    def add(self, value: bool) -> None:
+        """
+        Adds a new boolean value to the cyclic array.
+
+        If the maximum length has been reached, the oldest element is removed.
+
+        :param value: The boolean value to add to the cyclic array.
+        """
+        if len(self._window) == self._max_length and self._max_length > 0:
+            # we have filled the window, we need to pop the oldest element
+            # and update the score accordingly
+            oldest_value = self._window.popleft()
+            self._update_counters(oldest_value, removal=True)
+
+        self._window.append(value)
+        self._update_counters(value)
+
+    def to_dict(self) -> dict:
+        """Returns a dictionary representation of the `AvailabilityWindow` instance."""
+        return {
+            "max_length": self._max_length,
+            # Please note that the value cannot be represented if the max length of the availability window is > 14_285
+            "array": int("".join(str(int(flag)) for flag in self._window), base=2)
+            if len(self._window)
+            else 0,
+            "num_positive": self._num_positive,
+            "num_negative": self._num_negative,
+        }
+
+
+@dataclass
+class OffenceStatus:
+    """A class that holds information about offence status for an agent."""
+
+    validator_downtime: AvailabilityWindow = field(
+        default=AvailabilityWindow(NUMBER_OF_BLOCKS_TRACKED), init=False
+    )
+    invalid_payload: AvailabilityWindow = field(
+        default=AvailabilityWindow(NUMER_OF_ROUNDS_TRACKED), init=False
+    )
+    blacklisted: AvailabilityWindow = field(
+        default=AvailabilityWindow(NUMER_OF_ROUNDS_TRACKED), init=False
+    )
+    suspected: AvailabilityWindow = field(
+        default=AvailabilityWindow(NUMER_OF_ROUNDS_TRACKED), init=False
+    )
+    num_unknown_offenses: int = field(default=0, init=False)
+    num_double_signed: int = field(default=0, init=False)
+    num_light_client_attack: int = field(default=0, init=False)
+
+
+@dataclass(frozen=True, eq=True)
+class PendingOffense:
+    """A dataclass to represent offences that need to be addressed."""
+
+    accused_agent_address: str
+    round_count: int
+    offense_type: OffenseType
+    last_transition_timestamp: float
+    time_to_live: float
 
 
 class RoundSequence:  # pylint: disable=too-many-instance-attributes

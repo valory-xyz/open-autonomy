@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the shared state for the price estimation ABCI application."""
+"""This module contains the core models for all the ABCI apps."""
 
 import inspect
 import json

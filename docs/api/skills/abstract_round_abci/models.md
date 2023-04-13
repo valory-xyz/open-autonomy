@@ -2,7 +2,7 @@
 
 # packages.valory.skills.abstract`_`round`_`abci.models
 
-This module contains the shared state for the price estimation ABCI application.
+This module contains the core models for all the ABCI apps.
 
 <a id="packages.valory.skills.abstract_round_abci.models.FrozenMixin"></a>
 

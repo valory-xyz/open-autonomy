@@ -2381,6 +2381,133 @@ def cleanup_current_histories(cleanup_history_depth_current: int) -> None
 
 Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter.
 
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseType"></a>
+
+## OffenseType Objects
+
+```python
+class OffenseType(Enum)
+```
+
+The types of offenses.
+
+<a id="packages.valory.skills.abstract_round_abci.base.is_light_offence"></a>
+
+#### is`_`light`_`offence
+
+```python
+def is_light_offence(offence_type: OffenseType) -> bool
+```
+
+Check if an offence type is light.
+
+<a id="packages.valory.skills.abstract_round_abci.base.is_serious_offence"></a>
+
+#### is`_`serious`_`offence
+
+```python
+def is_serious_offence(offence_type: OffenseType) -> bool
+```
+
+Check if an offence type is serious.
+
+<a id="packages.valory.skills.abstract_round_abci.base.light_offences"></a>
+
+#### light`_`offences
+
+```python
+def light_offences() -> Iterator[OffenseType]
+```
+
+Get the light offences.
+
+<a id="packages.valory.skills.abstract_round_abci.base.serious_offences"></a>
+
+#### serious`_`offences
+
+```python
+def serious_offences() -> Iterator[OffenseType]
+```
+
+Get the serious offences.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow"></a>
+
+## AvailabilityWindow Objects
+
+```python
+class AvailabilityWindow()
+```
+
+A cyclic array with a maximum length that holds boolean values.
+
+When an element is added to the array and the maximum length has been reached,
+the oldest element is removed. Two attributes `num_positive` and `num_negative`
+reflect the number of positive and negative elements in the AvailabilityWindow,
+they are updated every time a new element is added.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(max_length: int) -> None
+```
+
+Initializes the `AvailabilityWindow` instance.
+
+**Arguments**:
+
+- `max_length`: the maximum length of the cyclic array.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.add"></a>
+
+#### add
+
+```python
+def add(value: bool) -> None
+```
+
+Adds a new boolean value to the cyclic array.
+
+If the maximum length has been reached, the oldest element is removed.
+
+**Arguments**:
+
+- `value`: The boolean value to add to the cyclic array.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.to_dict"></a>
+
+#### to`_`dict
+
+```python
+def to_dict() -> dict
+```
+
+Returns a dictionary representation of the `AvailabilityWindow` instance.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenceStatus"></a>
+
+## OffenceStatus Objects
+
+```python
+@dataclass
+class OffenceStatus()
+```
+
+A class that holds information about offence status for an agent.
+
+<a id="packages.valory.skills.abstract_round_abci.base.PendingOffense"></a>
+
+## PendingOffense Objects
+
+```python
+@dataclass(frozen=True, eq=True)
+class PendingOffense()
+```
+
+A dataclass to represent offences that need to be addressed.
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence"></a>
 
 ## RoundSequence Objects
