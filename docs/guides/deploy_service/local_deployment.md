@@ -133,23 +133,44 @@ Local service deployments are usually executed for testing services under active
 
         1. Check out the [`autonomy deploy run`](../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-run) command documentation to learn more about its parameters and options.
 
+        This will spawn in the local machine:
+
+        * $N$ agents, each one running an instance of the corresponding {{fsm_app}}.
+        * a network of $N$ Tendermint nodes, one per agent.
+
+        The logs of a single agent or Tendermint node can be inspected in a separate terminal using `docker logs <container_id> --follow`.
+
+        You can cancel the local execution at any time by pressing ++ctrl+c++.        
+
     === "Kubernetes"
+
+        !!! info
+            This section will be added soon.
+
+<!--
 
         ```bash
         cd abci_build
+
+        # Create local cluster
+        kind create cluster
+        docker login -u valory
+        kubectl create secret generic regcred \
+                    --from-file=.dockerconfigjson=/home/$(whoami)/.docker/config.json \
+                    --type=kubernetes.io/dockerconfigjson
+        skaffold init
+        skaffold config set local-cluster false
+        kubectl create serviceaccount dashboard-admin-sa
+        kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
+        skaffold run 
+
         autonomy deploy run #(1)!
         ```
 
         1. Check out the [`autonomy deploy run`](../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-run) command documentation to learn more about its parameters and options.
+-->
 
-    This will spawn in the local machine:
 
-    * $N$ agents, each one running an instance of the corresponding {{fsm_app}}.
-    * a network of $N$ Tendermint nodes, one per agent.
-
-    The logs of a single agent or Tendermint node can be inspected in a separate terminal using `docker logs <container_id> --follow`.
-
-    You can cancel the local execution at any time by pressing ++ctrl+c++.
 
 ## Automated mode
 
@@ -202,10 +223,17 @@ Recall that the automated mode is only available for agent services minted in th
 
 3. **Deploy the service.** Execute the following command:
 
-    ```bash
-    autonomy deploy from-token <ID> keys.json --use-goerli # (1)!
-    ```
+    === "Docker Compose"
 
-    1. `--use-goerli` indicates that the service is registered in the Görli testnet. Check out the [`autonomy deploy from-token`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-from-token) command documentation to learn more about its parameters and options.
+        ```bash
+        autonomy deploy from-token <ID> keys.json --use-goerli # (1)!
+        ```
 
-    The deployment will be run for as many agents as keys are defined in the `keys.json` file.
+        1. `--use-goerli` indicates that the service is registered in the Görli testnet. Check out the [`autonomy deploy from-token`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-from-token) command documentation to learn more about its parameters and options.
+
+        The deployment will be run for as many agents as keys are defined in the `keys.json` file.
+
+    === "Kubernetes"
+
+        !!! info
+            This section will be added soon.

@@ -1,15 +1,11 @@
-# Cloud Deployment
-
 !!! info
     This section is under review and will be updated soon.
 
-We have provided a number of ways to run agent services build with the {{open_autonomy}} framework across multiple different cloud providers.
+We have provided a number of ways to run agent services built with the {{open_autonomy}} framework across different cloud providers.
 
-The deployment has been implemented using a minimal distribution of Kubernetes to run as close to the bare metal as allowable.
+The deployment has been implemented using a minimal distribution of Kubernetes to run as close to the bare metal as allowable. This approach leads to a number of key benefits for node operators and infrastructure providers:
 
-This approach leads to a number of key benefits for node operators and infrastructure providers:
-
-1. No reliance upon an individual provider. We currently provide documentation coverage for both Digital Ocean and for Amazon Web Services (AWS).
+1. No reliance upon an individual provider. We currently provide documentation coverage for Digital Ocean and for Amazon Web Services (AWS).
 2. Lower costs compared to using a managed alternative.
 3. Easily portable across different cloud providers.
 
@@ -22,15 +18,7 @@ We have 3 deployment options available for external operators.
 
 Infrastructure deployment is handled by [Terraform](https://www.terraform.io/) to ensure replicability across multiple providers whilst allowing external operators to configure the deployments to match their specific deployment requirements.
 
-
-## Kubernetes Cluster
-### Pre-requisites
-
-We require a domain for our cluster. This allow us to route traffic to our cluster controller node. This is a pre-requisite of both Kubernetes based deployments, however the docker-compose deployment is able to skip this step.
-
-The domain can be acquired from a domain registrar such as [goDaddy](https://www.godaddy.com). Most cloud providers also offer this as a service such as AWS. The key requirement is to be able to update the domain registrars nameserver (NS) records easily.
-
-###Install dependencies.
+## Requirements
 
 - [Skaffold](https://skaffold.dev/docs/install/): Deployment Orchestration
 - [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation): Local Cluster deployment and management.
@@ -38,9 +26,11 @@ The domain can be acquired from a domain registrar such as [goDaddy](https://www
 - [Docker](https://docs.docker.com/get-docker/): Container backend.
 - [Terraform](https://www.terraform.io/downloads.html): Infrastructure management as code.
 
+You also require a domain for the cluster. This allows to route traffic to your cluster controller node. This is a pre-requisite of both Kubernetes-based deployments. However Docker Compose deployments can skip this step.
 
+The domain can be acquired from a domain registrar such as [goDaddy](https://www.godaddy.com). Most cloud providers also offer registrar services, like AWS. It is important that you are able to update the domain nameserver records (NS) easily.
 
-### Step-by-step Deployment Instructions
+## Kubernetes Cluster
 
 1. Acquire the external operator code.
 ```bash
