@@ -7,7 +7,7 @@ message IpfsMessage{
   // Performatives and contents
   message Store_Files_Performative{
     map<string, string> files = 1;
-    float timeout = 2;
+    double timeout = 2;
     bool timeout_is_set = 3;
   }
 
@@ -17,7 +17,7 @@ message IpfsMessage{
 
   message Get_Files_Performative{
     string ipfs_hash = 1;
-    float timeout = 2;
+    double timeout = 2;
     bool timeout_is_set = 3;
   }
 
