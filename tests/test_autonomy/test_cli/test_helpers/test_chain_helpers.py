@@ -50,7 +50,8 @@ DUMMY_METADATA_HASH = (
 
 
 publish_metadata_patch = mock.patch(
-    "autonomy.cli.helpers.chain.publish_metadata", return_value=DUMMY_METADATA_HASH
+    "autonomy.cli.helpers.chain.publish_metadata",
+    return_value=(DUMMY_METADATA_HASH, ""),
 )
 
 _ = registry_contracts.service_registry
@@ -167,7 +168,10 @@ class TestMintComponentMethod:
         ):
             with mock.patch(
                 "autonomy.cli.helpers.chain.verify_component_dependencies"
-            ), mock.patch("autonomy.cli.helpers.chain.publish_metadata"), mock.patch(
+            ), mock.patch(
+                "autonomy.cli.helpers.chain.publish_metadata",
+                return_value=(None, None),
+            ), mock.patch(
                 "autonomy.chain.mint.transact"
             ), mock.patch.object(
                 registry_contracts._registries_manager,
@@ -203,7 +207,8 @@ def test_mint_service_timeout() -> None:
         ), mock.patch(
             "autonomy.cli.helpers.chain.load_configuration_object"
         ), mock.patch(
-            "autonomy.cli.helpers.chain.publish_metadata"
+            "autonomy.cli.helpers.chain.publish_metadata",
+            return_value=(None, None),
         ), mock.patch(
             "autonomy.chain.mint.transact"
         ), mock.patch.object(

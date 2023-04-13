@@ -43,7 +43,7 @@ def protocol(ctx: Context,
              key: Path,
              password: Optional[str],
              dependencies: Tuple[str],
-             nft: Optional[str],
+             nft: Optional[Union[Path, IPFSHash]],
              owner: Optional[str],
              hwi: bool = False) -> None
 ```
@@ -69,7 +69,7 @@ def contract(ctx: Context,
              key: Path,
              password: Optional[str],
              dependencies: Tuple[str],
-             nft: Optional[str],
+             nft: Optional[Union[Path, IPFSHash]],
              owner: Optional[str],
              hwi: bool = False) -> None
 ```
@@ -95,7 +95,7 @@ def connection(ctx: Context,
                key: Path,
                password: Optional[str],
                dependencies: Tuple[str],
-               nft: Optional[str],
+               nft: Optional[Union[Path, IPFSHash]],
                owner: Optional[str],
                hwi: bool = False) -> None
 ```
@@ -121,7 +121,7 @@ def skill(ctx: Context,
           key: Path,
           password: Optional[str],
           dependencies: Tuple[str],
-          nft: Optional[str],
+          nft: Optional[Union[Path, IPFSHash]],
           owner: Optional[str],
           hwi: bool = False) -> None
 ```
@@ -147,7 +147,7 @@ def agent(ctx: Context,
           key: Path,
           password: Optional[str],
           dependencies: Tuple[str],
-          nft: Optional[str],
+          nft: Optional[Union[Path, IPFSHash]],
           owner: Optional[str],
           hwi: bool = False) -> None
 ```
@@ -202,7 +202,7 @@ def service(ctx: Context,
             cost_of_bond: int,
             threshold: int,
             password: Optional[str],
-            nft: Optional[str],
+            nft: Optional[Union[Path, IPFSHash]],
             owner: Optional[str],
             hwi: bool = False) -> None
 ```
