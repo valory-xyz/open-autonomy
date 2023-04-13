@@ -184,7 +184,7 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
         raise click.ClickException(f"Dependency verification failed; {e}") from e
 
     metadata_hash, metadata_string = publish_metadata(
-        public_id=package_configuration.public_id,
+        package_id=package_configuration.package_id,
         package_path=package_path,
         nft=cast(str, nft),
         description=package_configuration.description,
@@ -287,7 +287,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
         raise click.ClickException(f"Dependency verification failed; {e}") from e
 
     metadata_hash, metadata_string = publish_metadata(
-        public_id=package_configuration.public_id,
+        package_id=package_configuration.package_id,
         package_path=package_path,
         nft=cast(str, nft),
         description=package_configuration.description,

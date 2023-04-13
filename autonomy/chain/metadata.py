@@ -24,7 +24,7 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Tuple, Union
 
-from aea.configurations.data_types import PublicId
+from aea.configurations.data_types import PackageId
 from aea.helpers.base import IPFSHash
 from aea.helpers.cid import CID, to_v1
 from aea.helpers.ipfs.base import IPFSHashOnly
@@ -41,25 +41,25 @@ NFTHashOrPath = Union[Path, IPFSHash]
 
 def serialize_metadata(
     package_hash: str,
-    public_id: PublicId,
+    package_id: PackageId,
     description: str,
     nft_image_hash: str,
 ) -> str:
     """Serialize metadata."""
     metadata = OrderedDict(
         {
-            "name": f"{public_id.author}/{public_id.name}",
+            "name": f"{package_id.package_type}/{package_id.author}/{package_id.name}",
             "description": description,
             "code_uri": f"{IPFS_URI_PREFIX}{package_hash}",
             "image": f"ipfs://{nft_image_hash}",
-            "attributes": [{"trait_type": "version", "value": str(public_id.version)}],
+            "attributes": [{"trait_type": "version", "value": str(package_id.version)}],
         }
     )
-    return json.dumps(obj=metadata)
+    return json.dumps(obj=metadata, separators=(",", ":"))
 
 
 def publish_metadata(
-    public_id: PublicId,
+    package_id: PackageId,
     package_path: Path,
     nft: NFTHashOrPath,
     description: str,
@@ -78,7 +78,7 @@ def publish_metadata(
     package_hash = IPFSHashOnly.get(file_path=str(package_path))
     metadata_string = serialize_metadata(
         package_hash=package_hash,
-        public_id=public_id,
+        package_id=package_id,
         description=description,
         nft_image_hash=nft_image_hash,
     )

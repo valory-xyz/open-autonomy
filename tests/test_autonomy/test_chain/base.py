@@ -211,7 +211,7 @@ class BaseChainInteractionTest(BaseCliTest):
             package_id=package_id
         )
         metadata_hash, _ = publish_metadata(
-            public_id=package_id.public_id,
+            package_id=package_id,
             package_path=package_path,
             nft=IPFSHash(DEFAULT_NFT_IMAGE_HASH),
             description="Dummy package for testing",
