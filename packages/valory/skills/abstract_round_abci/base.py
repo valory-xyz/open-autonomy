@@ -2717,6 +2717,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._tm_height: Optional[int] = None
         self._block_stall_deadline: Optional[datetime.datetime] = None
         self._termination_called: bool = False
+        self._offence_status: Dict[str, OffenceStatus] = {}
+        self._pending_offences: Set[PendingOffense] = set()
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
