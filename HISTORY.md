@@ -13,12 +13,10 @@ Packages:
 
 Docs:
 - Adds instructions for running a single agent
-- 
 
 Chores:
 - Fixes the dependency versions on the documentation `Dockerfile`
 - Adds `mkdocs.yaml` configuration that needed to be removed due to incorrect dependencies in the previous release
-
 
 # 0.10.0.post2 (2023-03-30)
 
