@@ -38,6 +38,16 @@ def __init__(service: Service,
 
 Initialize the Base Deployment.
 
+<a id="autonomy.deploy.base.ServiceBuilder.try_get_all_participants"></a>
+
+#### try`_`get`_`all`_`participants
+
+```python
+def try_get_all_participants() -> Optional[List[str]]
+```
+
+Try get all participants from the ABCI overrides
+
 <a id="autonomy.deploy.base.ServiceBuilder.private_keys_password"></a>
 
 #### private`_`keys`_`password
@@ -133,6 +143,16 @@ def try_update_runtime_params(
 ```
 
 Try and update setup parameters.
+
+<a id="autonomy.deploy.base.ServiceBuilder.get_maximum_participants"></a>
+
+#### get`_`maximum`_`participants
+
+```python
+def get_maximum_participants() -> int
+```
+
+Returns the maximum number of participants
 
 <a id="autonomy.deploy.base.ServiceBuilder.try_update_abci_connection_params"></a>
 
