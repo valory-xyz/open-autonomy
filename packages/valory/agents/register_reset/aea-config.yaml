@@ -34,11 +34,11 @@ protocols:
 - valory/http:1.0.0:bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty
 - valory/ipfs:0.1.0:bafybeic72ncgqbzoz2guj4p4yjqulid7mv6yroeh65hxznloamoveeg7hq
 skills:
-- valory/abstract_abci:0.1.0:bafybeiai2t36ht3blisjneahv5almyfieqokl4auj2n43rj4k5chun2i44
-- valory/abstract_round_abci:0.1.0:bafybeiereqmyuak3ucpjaeadui5jn5z5g5le2xnlc52okeo5pnecsat6p4
-- valory/register_reset_abci:0.1.0:bafybeibziscobcyqhjrj5lqtcfkd63a3q5ph47nwwl3nkmu5u7iuzrjwxi
-- valory/registration_abci:0.1.0:bafybeicchcei5sdajvfjvkg74sywy6jucnsv44udnjbzallixqfreiaq7q
-- valory/reset_pause_abci:0.1.0:bafybeihabj5vafbd5xonmjbgf7jhfxwaw3r7ty4pwucww43lkp4knmdgeq
+- valory/abstract_abci:0.1.0:bafybeicujajnqzbndtndrndj53znohemihludifuyc5dazfbz6fltyj5ci
+- valory/abstract_round_abci:0.1.0:bafybeiar4gy4brpuxekiwjq7osh3fm254jgdoxlgkvqcp5lytu4uzrmbsm
+- valory/register_reset_abci:0.1.0:bafybeidcvvcnb5iqnp6leboxxd7h5tkbwkpben2aq5ntympfjpl44vvfym
+- valory/registration_abci:0.1.0:bafybeicoi3eczbytx2hporiblyogj73r6oqbwdx3wenuyn7mjdztfsldbi
+- valory/reset_pause_abci:0.1.0:bafybeibayjshwvymeieird2cm6m5jeduqxq7dpdplef2qx4lse64n5j4xq
 default_ledger: ethereum
 required_ledgers:
 - ethereum
