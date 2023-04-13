@@ -1,5 +1,25 @@
 # Release History - `open-autonomy`
 
+# 0.10.1 (2023-04-13)
+
+Autonomy:
+- Adds support for updating the tendermint P2P URL at the runtime, take a look [here](https://github.com/valory-xyz/open-autonomy/pull/1923#discussion_r1163904995) to understand more
+- Adds support for specifying `NFT` image path when minting the components
+- Updates the minting tools to dump metadata as a `json` file after minting the component
+- Updates the manual build mechanism to index agent using `all_parameters` parameter if available
+
+Packages:
+- Adds better exception handling when sending multiple transactions
+
+Docs:
+- Adds instructions for running a single agent
+- 
+
+Chores:
+- Fixes the dependency versions on the documentation `Dockerfile`
+- Adds `mkdocs.yaml` configuration that needed to be removed due to incorrect dependencies in the previous release
+
+
 # 0.10.0.post2 (2023-03-30)
 
 Autonomy:
