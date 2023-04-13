@@ -48,7 +48,7 @@ def serialize_metadata(
     """Serialize metadata."""
     metadata = OrderedDict(
         {
-            "name": f"{package_id.package_type}/{package_id.author}/{package_id.name}",
+            "name": package_id.to_uri_path,
             "description": description,
             "code_uri": f"{IPFS_URI_PREFIX}{package_hash}",
             "image": f"ipfs://{nft_image_hash}",
