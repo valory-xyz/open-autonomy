@@ -24,13 +24,14 @@
 import builtins
 import json
 import logging
+import re
 from collections import OrderedDict
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from time import sleep
-from typing import Any, Dict, List, Optional, Tuple, Type, cast
+from typing import Any, Dict, List, Optional, Set, Tuple, Type, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -384,6 +385,64 @@ class TestSharedState:
             "all_participants": list(range(4)),
         }
         shared_state.setup()
+
+    @pytest.mark.parametrize(
+        "acn_configured_agents, validator_to_agent, raises",
+        (
+            (
+                {i for i in range(4)},
+                {f"validator_address_{i}": i for i in range(4)},
+                False,
+            ),
+            (
+                {i for i in range(5)},
+                {f"validator_address_{i}": i for i in range(4)},
+                True,
+            ),
+            (
+                {i for i in range(4)},
+                {f"validator_address_{i}": i for i in range(5)},
+                True,
+            ),
+        ),
+    )
+    def test_validator_to_agent(
+        self,
+        acn_configured_agents: Set[str],
+        validator_to_agent: Dict[str, str],
+        raises: bool,
+    ) -> None:
+        """Test the `validator_to_agent` properties."""
+        shared_state = SharedState(name="", skill_context=MagicMock())
+
+        with pytest.raises(
+            ValueError,
+            match=(
+                "ACN registration has not been successfully performed. "
+                "Have you set the `share_tm_config_on_startup` flag to `true` in the configuration?"
+            ),
+        ):
+            assert shared_state.validator_to_agent
+
+        if not raises:
+            shared_state.initial_tm_configs = dict.fromkeys(acn_configured_agents)
+            shared_state.validator_to_agent = validator_to_agent
+            assert shared_state.validator_to_agent == validator_to_agent
+            return
+
+        expected_diff = acn_configured_agents.symmetric_difference(
+            validator_to_agent.values()
+        )
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                f"Trying to set the mapping `{validator_to_agent}`, which contains validators for non-configured "
+                "agents and/or does not contain validators for some configured agents. The agents which have been "
+                f"configured via ACN are `{acn_configured_agents}` and the diff was for {expected_diff}."
+            ),
+        ):
+            shared_state.initial_tm_configs = dict.fromkeys(acn_configured_agents)
+            shared_state.validator_to_agent = validator_to_agent
 
     def test_setup(self, *_: Any) -> None:
         """Test setup method."""
