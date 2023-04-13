@@ -19,6 +19,7 @@
 
 """Test tools for CLI commands that use `autonomy.chain`"""
 
+import os
 import re
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -45,7 +46,7 @@ from autonomy.chain.mint import (
     mint_component,
     mint_service,
 )
-from autonomy.chain.utils import resolve_component_id
+from autonomy.chain.utils import parse_public_id_from_metadata, resolve_component_id
 from autonomy.cli.helpers.chain import get_ledger_and_crypto_objects
 from autonomy.cli.packages import get_package_manager
 
@@ -193,11 +194,19 @@ class BaseChainInteractionTest(BaseCliTest):
             is_service=is_service,
         )
 
-        minted_public_id = PublicId.from_str(metadata["name"])
+        minted_public_id = parse_public_id_from_metadata(metadata["name"])
         assert package_id.public_id.to_any() == minted_public_id.to_any(), (
             minted_public_id,
             package_id.public_id,
         )
+
+    @staticmethod
+    def verify_and_remove_metadata_file(token_id: int) -> None:
+        """Verify and remove the metadata file."""
+
+        metadata_file = Path(f"{token_id}.json").resolve()
+        assert metadata_file.exists()
+        os.remove(metadata_file)
 
     def mint_component(
         self,

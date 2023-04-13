@@ -37,7 +37,7 @@ from tests.test_autonomy.test_chain.base import DUMMY_HASH
 
 def test_serialize_metadata() -> None:
     """Test serialize metadata."""
-    expected_string = """{"name":"skill/author/name","description":"Some package","code_uri":"ipfs://bafybei0000000000000000000000000000000000000000000000000000","image":"ipfs://bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm","attributes":[{"trait_type":"version","value":"latest"}]}"""
+    expected_string = """{"name":"skill/author/name/latest","description":"Some package","code_uri":"ipfs://bafybei0000000000000000000000000000000000000000000000000000","image":"ipfs://bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm","attributes":[{"trait_type":"version","value":"latest"}]}"""
     metadata_string = serialize_metadata(
         package_hash=DUMMY_HASH,
         package_id=PackageId(
@@ -60,7 +60,7 @@ def test_serialize_metadata() -> None:
 def test_publish_metadata(nft: NFTHashOrPath) -> None:
     """Test publish metadata tool with dummy config."""
 
-    expected_hash = "0xb50779ae0c7aab0a6b5b0823760132b5b829685e2e25e566a9e8b11199c56aaf"
+    expected_hash = "0x338a96df1d172c1d6f11a0460d075d80b62eea67134b2d0a52a7df34495d45d1"
     with mock.patch(
         "autonomy.chain.metadata.IPFSHashOnly.get", return_value=DUMMY_HASH
     ):
