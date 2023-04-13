@@ -394,6 +394,64 @@ class TestSharedState:
         self.dummy_state_setup(shared_state)
         assert shared_state.initial_tm_configs == {i: None for i in range(4)}
 
+    @pytest.mark.parametrize(
+        "initial_tm_configs, address_input, exception, expected",
+        (
+            (
+                {},
+                "0x1",
+                "The validator address of non-participating agent `0x1` was requested.",
+                None,
+            ),
+            ({}, "0x0", "SharedState's setup was not performed successfully.", None),
+            (
+                {"0x0": None},
+                "0x0",
+                "ACN registration has not been successfully performed for agent `0x0`. "
+                "Have you set the `share_tm_config_on_startup` flag to `true` in the configuration?",
+                None,
+            ),
+            (
+                {"0x0": {}},
+                "0x0",
+                "The tendermint configuration for agent `0x0` is invalid: `{}`.",
+                None,
+            ),
+            (
+                {"0x0": {"address": None}},
+                "0x0",
+                "The tendermint configuration for agent `0x0` is invalid: `{'address': None}`.",
+                None,
+            ),
+            (
+                {"0x0": {"address": "test_validator_address"}},
+                "0x0",
+                None,
+                "test_validator_address",
+            ),
+        ),
+    )
+    def test_get_validator_address(
+        self,
+        initial_tm_configs: Dict[str, Optional[Dict[str, Any]]],
+        address_input: str,
+        exception: Optional[str],
+        expected: Optional[str],
+    ) -> None:
+        """Test `get_validator_address` method."""
+        shared_state = SharedState(name="", skill_context=MagicMock())
+        with mock.patch.object(shared_state.context, "params") as mock_params:
+            mock_params.setup_params = {
+                "all_participants": ["0x0"],
+            }
+            shared_state.setup()
+            shared_state.initial_tm_configs = initial_tm_configs
+            if exception is None:
+                assert shared_state.get_validator_address(address_input) == expected
+                return
+            with pytest.raises(ValueError, match=exception):
+                shared_state.get_validator_address(address_input)
+
     @pytest.mark.parametrize("self_idx", (range(4)))
     def test_acn_container(self, self_idx: int) -> None:
         """Test the `acn_container` method."""
