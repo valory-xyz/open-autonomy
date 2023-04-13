@@ -27,6 +27,7 @@ import shutil
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, List
+from unittest import mock
 
 import pytest
 import yaml
@@ -47,6 +48,10 @@ from autonomy.deploy.base import (
     TENDERMINT_COM_URL_PARAM,
     TENDERMINT_NODE,
     TENDERMINT_NODE_LOCAL,
+    TENDERMINT_P2P_PORT,
+    TENDERMINT_P2P_URL,
+    TENDERMINT_P2P_URL_ENV_VAR,
+    TENDERMINT_P2P_URL_PARAM,
     TENDERMINT_URL_PARAM,
 )
 
@@ -265,6 +270,9 @@ class TestServiceBuilder:
         assert skill_config["models"]["params"]["args"][
             TENDERMINT_COM_URL_PARAM
         ] == TENDERMINT_COM.format(0)
+        assert skill_config["models"]["params"]["args"][
+            TENDERMINT_P2P_URL_PARAM
+        ] == TENDERMINT_P2P_URL.format(0, TENDERMINT_P2P_PORT)
 
     def test_try_update_runtime_params_multiple(
         self,
@@ -303,6 +311,38 @@ class TestServiceBuilder:
             assert skill_config[agent_idx]["models"]["params"]["args"][
                 TENDERMINT_COM_URL_PARAM
             ] == TENDERMINT_COM.format(agent_idx)
+            assert skill_config[agent_idx]["models"]["params"]["args"][
+                TENDERMINT_P2P_URL_PARAM
+            ] == TENDERMINT_P2P_URL.format(agent_idx, TENDERMINT_P2P_PORT)
+
+    def test_update_tm_p2p_endpoint_from_env(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        url = "localhost:8000"
+        self._write_service(get_dummy_service_config(file_number=1))
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+            self.keys_path,
+        )
+
+        with mock.patch.dict(
+            os.environ, {TENDERMINT_P2P_URL_ENV_VAR.format(0): url}, clear=True
+        ):
+            spec.try_update_runtime_params()
+            skill_config, *_ = spec.service.overrides
+
+            assert skill_config["models"]["params"]["args"][
+                TENDERMINT_URL_PARAM
+            ] == TENDERMINT_NODE.format(0)
+            assert skill_config["models"]["params"]["args"][
+                TENDERMINT_COM_URL_PARAM
+            ] == TENDERMINT_COM.format(0)
+            assert (
+                skill_config["models"]["params"]["args"][TENDERMINT_P2P_URL_PARAM]
+                == url
+            )
 
     def test_try_update_tendermint_params_kubernetes(
         self,

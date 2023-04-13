@@ -46,7 +46,7 @@ This section covers the deployment of services being developed in the local regi
 
         <span style="color:red">**WARNING: Use this file for testing purposes only. Never use the keys or addresses provided in this example in a production environment or for personal use.**</span>
 
-        ```json
+        ```json title="keys.json"
         [
           {
               "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
@@ -73,7 +73,7 @@ This section covers the deployment of services being developed in the local regi
     rm -rf abci_build #(1)!
     autonomy deploy build keys.json -ltm #(2)!
     ```
-   
+
     1. Delete previous deployments, if necessary.
     2. Check out the [`autonomy deploy build`](../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-build) command documentation to learn more about its parameters and options.
 
