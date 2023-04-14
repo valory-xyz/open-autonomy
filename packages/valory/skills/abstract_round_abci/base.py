@@ -2717,8 +2717,57 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._tm_height: Optional[int] = None
         self._block_stall_deadline: Optional[datetime.datetime] = None
         self._termination_called: bool = False
+        # a mapping of the validators' addresses to their agent addresses
+        # we create a mapping to avoid calculating the agent address from the validator address every time we need it
+        # since this is an operation that will be performed every time we want to create an offence
+        self._validator_to_agent: Dict[str, str] = {}
+        # a mapping of the agents' addresses to their offence status
         self._offence_status: Dict[str, OffenceStatus] = {}
         self._pending_offences: Set[PendingOffense] = set()
+        self._slashing_enabled = True
+
+    @property
+    def validator_to_agent(self) -> Dict[str, str]:
+        """Get the mapping of the validators' addresses to their agent addresses."""
+        if self._validator_to_agent:
+            return self._validator_to_agent
+        raise SlashingNotConfiguredError(
+            "The mapping of the validators' addresses to their agent addresses has not been set."
+        )
+
+    @validator_to_agent.setter
+    def validator_to_agent(self, validator_to_agent: Dict[str, str]) -> None:
+        """Set the mapping of the validators' addresses to their agent addresses."""
+        if self._validator_to_agent:
+            raise ValueError(
+                "The mapping of the validators' addresses to their agent addresses can only be set once. "
+                f"Attempted to set with {validator_to_agent} but it has content already: {self._validator_to_agent}."
+            )
+        self._validator_to_agent = validator_to_agent
+
+    @property
+    def offence_status(self) -> Dict[str, OffenceStatus]:
+        """Get the mapping of the agents' addresses to their offence status."""
+        if self._offence_status:
+            return self._offence_status
+        raise SlashingNotConfiguredError(
+            "The mapping of the agents' addresses to their offence status has not been set."
+        )
+
+    @offence_status.setter
+    def offence_status(self, offence_status: Dict[str, OffenceStatus]) -> None:
+        """Set the mapping of the agents' addresses to their offence status."""
+        if self._offence_status:
+            raise ValueError(
+                "The mapping of the agents' addresses to their offence status can only be set once. "
+                f"Attempted to set with {offence_status} but it has content already: {self._offence_status}."
+            )
+        self._offence_status = offence_status
+
+    def get_agent_address(self, validator: Validator) -> str:
+        """Get corresponding agent address from a `Validator` instance."""
+        validator_address = validator.address.decode()
+        return self.validator_to_agent[validator_address]
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
