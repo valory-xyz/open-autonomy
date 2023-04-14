@@ -67,7 +67,7 @@ This section covers the deployment of services being developed in the local regi
         ]
         ```
 
-    Export he environment variable `ALL_PARTICIPANTS`with all the agents' addresses:
+    Export the environment variable `ALL_PARTICIPANTS` with all the agents' addresses:
 
     ```bash
     export ALL_PARTICIPANTS='[
