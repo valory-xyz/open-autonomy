@@ -68,8 +68,10 @@ persistent_peers = "dummy_peer1@localhost:80,dummy_peer2@localhost:81"
 
 # UPNP port forwarding
 upnp = false
-"""
 
+external_address = ""
+"""
+DUMMY_EXTERNAL_ADDRESS = "dummy_external_address:26566"
 
 wait_for_node_to_run = pytest.mark.usefixtures("wait_for_node")
 wait_for_occupied_rpc_port = pytest.mark.usefixtures("wait_for_occupied_rpc_port")
@@ -287,6 +289,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
         dummy_data = dict(
             genesis_config=load_genesis(),
             validators=[],
+            external_address="",
         )
 
         with self.app.test_client() as client:
@@ -317,6 +320,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             dummy_data = dict(
                 genesis_config=genesis_config,
                 validators=[],
+                external_address=DUMMY_EXTERNAL_ADDRESS,
             )
             response = client.post("/params", json=dummy_data)
             assert response.status_code == 200
