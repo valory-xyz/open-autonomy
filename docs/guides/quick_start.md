@@ -65,7 +65,17 @@ Before starting this guide, ensure that your machine satisfies the framework req
             ]
             ```
 
-    2. (Optional) Export environment variables to customize the service configuration.
+    2. Export the environment variable `ALL_PARTICIPANTS` with all the agents' addresses:
+        ```bash
+        export ALL_PARTICIPANTS='[
+            "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955"
+        ]'
+        ```
+
+    3. (Optional) Export environment variables to customize the service configuration.
 
         ??? example "Example of exported environment variables"
 
@@ -76,7 +86,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
             export HELLO_WORLD_STRING_3="Your HELLO WORLD message for Agent 3"
             ```
 
-    3. Build the service deployment:
+    4. Build the service deployment:
 
         ```bash
         autonomy deploy build keys.json -ltm
