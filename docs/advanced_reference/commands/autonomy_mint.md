@@ -4,7 +4,7 @@ This command group consists of a number of functionalities to mint components, a
 
 !!! info
 
-    You can specify how you wish to sing the on-chain transactions produced by these commands: either with **a private key stored in a file**, or with a **hardware wallet**. In this latter case, ensure that you have configured properly the drivers for your hardware wallet.
+    You can specify how you wish to sign the on-chain transactions produced by these commands: either with **a private key stored in a file**, or with a **hardware wallet**. In this latter case, ensure that you have configured properly the drivers for your hardware wallet.
 
 ## Options
 
