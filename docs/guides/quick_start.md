@@ -65,7 +65,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
             ]
             ```
 
-    2. Export he environment variable with all the agents' addresses:
+    2. Export he environment variable `ALL_PARTICIPANTS` with all the agents' addresses:
         ```bash
         export ALL_PARTICIPANTS='[
             "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
