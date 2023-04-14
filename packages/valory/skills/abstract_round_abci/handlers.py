@@ -147,7 +147,9 @@ class ABCIRoundHandler(ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'begin_block' request."""
-        cast(SharedState, self.context.state).round_sequence.begin_block(message.header)
+        cast(SharedState, self.context.state).round_sequence.begin_block(
+            message.header, message.byzantine_validators, message.last_commit_info
+        )
         return super().begin_block(message, dialogue)
 
     def check_tx(  # pylint: disable=no-self-use

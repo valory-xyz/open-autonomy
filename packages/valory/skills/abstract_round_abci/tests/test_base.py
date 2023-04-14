@@ -1988,7 +1988,9 @@ class TestRoundSequence:
     def test_last_round_transition_timestamp(self, committed: bool) -> None:
         """Test 'last_round_transition_timestamp' method."""
         if committed:
-            self.round_sequence.begin_block(MagicMock(height=1))
+            self.round_sequence.begin_block(
+                MagicMock(height=1), MagicMock(), MagicMock()
+            )
             self.round_sequence.end_block()
             self.round_sequence.commit()
             assert (
@@ -2007,7 +2009,9 @@ class TestRoundSequence:
     def test_last_round_transition_height(self, committed: bool) -> None:
         """Test 'last_round_transition_height' method."""
         if committed:
-            self.round_sequence.begin_block(MagicMock(height=1))
+            self.round_sequence.begin_block(
+                MagicMock(height=1), MagicMock(), MagicMock()
+            )
             self.round_sequence.end_block()
             self.round_sequence.commit()
             assert (
@@ -2026,7 +2030,7 @@ class TestRoundSequence:
     def test_block_before_blockchain_is_init(self, caplog: LogCaptureFixture) -> None:
         """Test block received before blockchain initialized."""
 
-        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
         self.round_sequence.end_block()
         blockchain = self.round_sequence.blockchain
         blockchain._is_init = False
@@ -2070,7 +2074,9 @@ class TestRoundSequence:
                 _ = self.round_sequence.last_round_transition_tm_height
         else:
             self.round_sequence.tm_height = tm_height
-            self.round_sequence.begin_block(MagicMock(height=1))
+            self.round_sequence.begin_block(
+                MagicMock(height=1), MagicMock(), MagicMock()
+            )
             self.round_sequence.end_block()
             self.round_sequence.commit()
             assert self.round_sequence.last_round_transition_tm_height == tm_height
@@ -2128,7 +2134,7 @@ class TestRoundSequence:
             ABCIAppInternalError,
             match="internal error: round sequence is finished, cannot accept new blocks",
         ):
-            self.round_sequence.begin_block(MagicMock())
+            self.round_sequence.begin_block(MagicMock(), MagicMock(), MagicMock())
 
     def test_begin_block_negative_wrong_phase(self) -> None:
         """Test 'begin_block' method, negative case (wrong phase)."""
@@ -2137,11 +2143,11 @@ class TestRoundSequence:
             ABCIAppInternalError,
             match="internal error: cannot accept a 'begin_block' request.",
         ):
-            self.round_sequence.begin_block(MagicMock())
+            self.round_sequence.begin_block(MagicMock(), MagicMock(), MagicMock())
 
     def test_begin_block_positive(self) -> None:
         """Test 'begin_block' method, positive case."""
-        self.round_sequence.begin_block(MagicMock())
+        self.round_sequence.begin_block(MagicMock(), MagicMock(), MagicMock())
 
     def test_deliver_tx_negative_wrong_phase(self) -> None:
         """Test 'begin_block' method, negative (wrong phase)."""
@@ -2153,7 +2159,7 @@ class TestRoundSequence:
 
     def test_deliver_tx_positive_not_valid(self) -> None:
         """Test 'begin_block' method, positive (not valid)."""
-        self.round_sequence.begin_block(MagicMock())
+        self.round_sequence.begin_block(MagicMock(), MagicMock(), MagicMock())
         with mock.patch.object(
             self.round_sequence.current_round, "check_transaction", return_value=True
         ):
@@ -2172,7 +2178,7 @@ class TestRoundSequence:
 
     def test_end_block_positive(self) -> None:
         """Test 'end_block' method, positive case."""
-        self.round_sequence.begin_block(MagicMock())
+        self.round_sequence.begin_block(MagicMock(), MagicMock(), MagicMock())
         self.round_sequence.end_block()
 
     def test_commit_negative_wrong_phase(self) -> None:
@@ -2185,7 +2191,7 @@ class TestRoundSequence:
 
     def test_commit_negative_exception(self) -> None:
         """Test 'end_block' method, negative case (raise exception)."""
-        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
         self.round_sequence.end_block()
         with mock.patch.object(
             self.round_sequence._blockchain, "add_block", side_effect=AddBlockError
@@ -2195,7 +2201,7 @@ class TestRoundSequence:
 
     def test_commit_positive_no_change_round(self) -> None:
         """Test 'end_block' method, positive (no change round)."""
-        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
         self.round_sequence.end_block()
         with mock.patch.object(
             self.round_sequence.current_round,
@@ -2206,7 +2212,7 @@ class TestRoundSequence:
 
     def test_commit_positive_with_change_round(self) -> None:
         """Test 'end_block' method, positive (with change round)."""
-        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
         self.round_sequence.end_block()
         round_result, next_round = MagicMock(), MagicMock()
         with mock.patch.object(
@@ -2239,7 +2245,7 @@ class TestRoundSequence:
         end_block_res: Optional[Tuple[BaseSynchronizedData, Any]],
     ) -> None:
         """Test '_update_round' method."""
-        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
         block = self.round_sequence._block_builder.get_block()
         self.round_sequence._blockchain.add_block(block)
 
@@ -2307,7 +2313,7 @@ class TestRoundSequence:
         current_round_result: Optional[Tuple[BaseSynchronizedData, Any]],
     ) -> None:
         """Test '_update_round' method."""
-        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
         block = self.round_sequence._block_builder.get_block()
         self.round_sequence._blockchain.add_block(block)
 
