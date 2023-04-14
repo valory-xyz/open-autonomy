@@ -2391,6 +2391,10 @@ class OffenseType(Enum)
 
 The types of offenses.
 
+The values of the enum represent the seriousness of the offence.
+Offense types with values >1000 are considered serious.
+See also `is_light_offence` and `is_serious_offence` functions.
+
 <a id="packages.valory.skills.abstract_round_abci.base.is_light_offence"></a>
 
 #### is`_`light`_`offence

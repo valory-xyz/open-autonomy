@@ -1859,9 +1859,11 @@ class TestAvailabilityWindow:
             assert availability_window._num_negative == expected_negatives
 
     @staticmethod
-    @pytest.mark.parametrize("max_length", (0,))
-    @pytest.mark.parametrize("num_positive", (0,))
-    @pytest.mark.parametrize("num_negative", (0,))
+    @given(
+        max_length=integers(min_value=0, max_value=30_000),
+        num_positive=integers(min_value=0),
+        num_negative=integers(min_value=0),
+    )
     @pytest.mark.parametrize(
         "window, expected_serialization",
         (

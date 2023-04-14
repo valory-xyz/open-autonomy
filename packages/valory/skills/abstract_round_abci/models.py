@@ -419,6 +419,10 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
         self._round_sequence: Optional[RoundSequence] = None
         # a mapping of the agents' addresses to their initial Tendermint configuration, to be retrieved via ACN
         self.initial_tm_configs: Dict[str, Optional[Dict[str, Any]]] = {}
+        # a mapping of the validators' addresses to their agent addresses
+        # we create a mapping to avoid calculating the agent address from the validator address every time we need it
+        # since this is an operation that will be performed every time we want to create an offence
+        self._validator_to_agent: Dict[str, str] = {}
         # a mapping of the other agents' addresses to ACN deliverables
         self.address_to_acn_deliverable: Dict[str, Any] = {}
         self.tm_recovery_params: TendermintRecoveryParams = TendermintRecoveryParams(
@@ -426,6 +430,58 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
         )
         kwargs["skill_context"] = skill_context
         super().__init__(*args, **kwargs)
+
+    @property
+    def validator_to_agent(self) -> Dict[str, str]:
+        """Get the mapping of the validators' addresses to their agent addresses"""
+        if self._validator_to_agent:
+            return self._validator_to_agent
+        raise ValueError(
+            "ACN registration has not been successfully performed. "
+            "Have you set the `share_tm_config_on_startup` flag to `true` in the configuration?"
+        )
+
+    @validator_to_agent.setter
+    def validator_to_agent(self, validator_to_agent: Dict[str, str]) -> None:
+        """Set the mapping of the validators' addresses to their agent addresses"""
+        configured_agents = set(self.initial_tm_configs.keys())
+        agents_mapped = set(validator_to_agent.values())
+        diff = agents_mapped.symmetric_difference(configured_agents)
+        if diff:
+            raise ValueError(
+                f"Trying to set the mapping `{validator_to_agent}`, which contains validators for non-configured "
+                "agents and/or does not contain validators for some configured agents. "
+                f"The agents which have been configured via ACN are `{configured_agents}` and the diff was for {diff}."
+            )
+        self._validator_to_agent = validator_to_agent
+
+    def get_validator_address(self, agent_address: str) -> str:
+        """Get the validator address of an agent."""
+        if agent_address not in self.synchronized_data.all_participants:
+            raise ValueError(
+                f"The validator address of non-participating agent `{agent_address}` was requested."
+            )
+
+        try:
+            agent_config = self.initial_tm_configs[agent_address]
+        except KeyError as e:
+            raise ValueError(
+                "SharedState's setup was not performed successfully."
+            ) from e
+
+        if agent_config is None:
+            raise ValueError(
+                f"ACN registration has not been successfully performed for agent `{agent_address}`. "
+                "Have you set the `share_tm_config_on_startup` flag to `true` in the configuration?"
+            )
+
+        validator_address = agent_config.get("address", None)
+        if validator_address is None:
+            raise ValueError(
+                f"The tendermint configuration for agent `{agent_address}` is invalid: `{agent_config}`."
+            )
+
+        return validator_address
 
     def acn_container(self) -> Dict[str, Any]:
         """Create a container for ACN results, i.e., a mapping from others' addresses to `None`."""

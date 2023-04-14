@@ -2537,7 +2537,13 @@ class AbciApp(
 
 
 class OffenseType(Enum):
-    """The types of offenses."""
+    """
+    The types of offenses.
+
+    The values of the enum represent the seriousness of the offence.
+    Offense types with values >1000 are considered serious.
+    See also `is_light_offence` and `is_serious_offence` functions.
+    """
 
     VALIDATOR_DOWNTIME = 0
     INVALID_PAYLOAD = 1
@@ -2711,6 +2717,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._tm_height: Optional[int] = None
         self._block_stall_deadline: Optional[datetime.datetime] = None
         self._termination_called: bool = False
+        self._offence_status: Dict[str, OffenceStatus] = {}
+        self._pending_offences: Set[PendingOffense] = set()
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """

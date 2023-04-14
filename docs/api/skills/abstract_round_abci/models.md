@@ -264,6 +264,38 @@ def __init__(*args: Any, skill_context: SkillContext, **kwargs: Any) -> None
 
 Initialize the state.
 
+<a id="packages.valory.skills.abstract_round_abci.models.SharedState.validator_to_agent"></a>
+
+#### validator`_`to`_`agent
+
+```python
+@property
+def validator_to_agent() -> Dict[str, str]
+```
+
+Get the mapping of the validators' addresses to their agent addresses
+
+<a id="packages.valory.skills.abstract_round_abci.models.SharedState.validator_to_agent"></a>
+
+#### validator`_`to`_`agent
+
+```python
+@validator_to_agent.setter
+def validator_to_agent(validator_to_agent: Dict[str, str]) -> None
+```
+
+Set the mapping of the validators' addresses to their agent addresses
+
+<a id="packages.valory.skills.abstract_round_abci.models.SharedState.get_validator_address"></a>
+
+#### get`_`validator`_`address
+
+```python
+def get_validator_address(agent_address: str) -> str
+```
+
+Get the validator address of an agent.
+
 <a id="packages.valory.skills.abstract_round_abci.models.SharedState.acn_container"></a>
 
 #### acn`_`container

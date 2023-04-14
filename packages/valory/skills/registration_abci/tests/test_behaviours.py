@@ -27,6 +27,7 @@ import json
 import logging
 import time
 from contextlib import ExitStack, contextmanager
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Iterable, List, Optional, cast
 from unittest import mock
@@ -315,9 +316,11 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
 
     def mock_get_tendermint_info(self, *addresses: str) -> None:
         """Mock get Tendermint info"""
-        for _ in addresses:
+        for i in addresses:
             request_kwargs: Dict = dict()
-            info = json.dumps(DUMMY_VALIDATOR_CONFIG)
+            config = deepcopy(DUMMY_VALIDATOR_CONFIG)
+            config["address"] = str(config["address"]) + i
+            info = json.dumps(config)
             response_kwargs = dict(info=info)
             self.mock_tendermint_request(request_kwargs, response_kwargs)
         # give room to the behaviour to finish sleeping
@@ -528,6 +531,12 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mock_get_agent_instances(*self.agent_instances)
             self.mock_get_tendermint_info(*self.other_agents)
             assert all(map(self.state.initial_tm_configs.get, self.other_agents))
+            assert tuple(self.state.context.state.validator_to_agent.keys()) == tuple(
+                config["address"] for config in self.state.initial_tm_configs.values()
+            )
+            assert tuple(self.state.context.state.validator_to_agent.values()) == tuple(
+                self.state.initial_tm_configs.keys()
+            )
             log_message = self.state.LogMessages.collection_complete
             assert log_message.value in caplog.text
 
