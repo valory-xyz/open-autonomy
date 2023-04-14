@@ -113,7 +113,10 @@ def update_peers(validators: List[Dict], config_path: Path) -> None:
 def update_external_address(external_address: str, config_path: Path) -> None:
     """Update the external address."""
     config_text = config_path.read_text(encoding="utf-8")
-    updated_config = re.sub('external_address = ".*\n', external_address, config_text)
+    new_external_address = f'external_address = "{external_address}"\n'
+    updated_config = re.sub(
+        'external_address = ".*\n', new_external_address, config_text
+    )
     config_path.write_text(updated_config, encoding="utf-8")
 
 
