@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple, cast
 
 import click
+from aea.configurations.base import PackageConfiguration
 from aea.configurations.data_types import PackageType
 from aea.configurations.loader import load_configuration_object
 from aea.crypto.base import Crypto, LedgerApi
@@ -52,6 +53,7 @@ from autonomy.chain.mint import mint_service as _mint_service
 from autonomy.chain.service import activate_service as _activate_service
 from autonomy.chain.service import deploy_service as _deploy_service
 from autonomy.chain.service import register_instance as _register_instance
+from autonomy.chain.subgraph.client import SubgraphClient
 from autonomy.chain.utils import (
     verify_component_dependencies,
     verify_service_dependencies,
@@ -115,23 +117,75 @@ def get_ledger_and_crypto_objects(
     return ledger_api, crypto
 
 
+def get_on_chain_dependencies(
+    package_configuration: PackageConfiguration,
+    skip_hash_check: bool = False,
+    use_latest_dependencies: bool = False,
+) -> List[int]:
+    """Get package dependencies"""
+    not_found = []
+    found = []
+    subgraph = SubgraphClient()
+
+    for dependency in package_configuration.package_dependencies:
+        if skip_hash_check:
+            record = subgraph.getRecordByPublicId(
+                public_id=f"{dependency.public_id.author}/{dependency.public_id.name}",
+            )
+        else:
+            record = subgraph.getRecordByPackageHash(
+                package_hash=dependency.package_hash,
+            )
+
+        if len(record["units"]) == 0:
+            not_found.append(dependency)
+            continue
+
+        units = record["units"]
+        if len(units) > 1 and use_latest_dependencies:
+            (*_, unit_record) = sorted(units, key=lambda x: int(x["tokenId"]))
+            token_id = int(unit_record["tokenId"])
+        elif len(units) > 1:
+            token_ids = [unit["tokenId"] for unit in units]
+            token_id = int(
+                click.prompt(
+                    text=f"Multiple dependencies found for {dependency}\nPlease choose which dependency to use",
+                    type=click.Choice(choices=token_ids),
+                )
+            )
+        else:
+            (unit_record,) = units
+            token_id = int(unit_record["tokenId"])
+
+        found.append(token_id)
+
+    if len(not_found) > 0:
+        error_message = "\n\t- ".join(
+            [
+                "No on chain registration found for following dependencies",
+                *map(str, not_found),
+            ]
+        )
+        raise click.ClickException(error_message)
+
+    return found
+
+
 def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
     package_path: Path,
     package_type: PackageType,
     key: Optional[Path],
     chain_type: ChainType,
-    dependencies: List[int],
     nft_image_hash: Optional[str] = None,
     password: Optional[str] = None,
     skip_hash_check: bool = False,
+    use_latest_dependencies: bool = False,
     timeout: Optional[float] = None,
     hwi: bool = False,
 ) -> None:
     """Mint component."""
 
     is_agent = package_type == PackageType.AGENT
-    if is_agent and len(dependencies) == 0:
-        raise click.ClickException("Agent packages needs to have dependencies")
 
     if key is None and not hwi:
         raise click.ClickException(
@@ -163,6 +217,12 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
         raise click.ClickException(
             f"Please provide hash for NFT image to mint component on `{chain_type.value}` chain"
         )
+
+    dependencies = get_on_chain_dependencies(
+        package_configuration=package_configuration,
+        skip_hash_check=skip_hash_check,
+        use_latest_dependencies=use_latest_dependencies,
+    )
 
     try:
         verify_component_dependencies(
