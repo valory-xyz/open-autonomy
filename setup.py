@@ -60,6 +60,7 @@ base_deps = [
     "docker-compose==1.29.2",
     "werkzeug==2.0.3",
     "docker==6.0.0",
+    "gql==3.4.0"
 ]
 base_deps.extend(all_extras["cli"])
 

@@ -12,6 +12,7 @@ open-aea-ledger-ethereum = "==1.31.0"
 open-aea-ledger-ethereum-hwi = "==1.31.0"
 open-aea-cli-ipfs = "==1.31.0"
 Werkzeug= "==2.0.3"
+gql = "==3.4.0"
 
 [dev-packages]
 ### package deps
