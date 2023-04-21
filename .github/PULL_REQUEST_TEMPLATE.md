@@ -27,6 +27,8 @@ _Put an `x` in the boxes that apply._
 - [ ] Lint and unit tests pass locally with my changes
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] I have locally run services that could be impacted and they do not present failures derived from my changes
+- [ ] Public-facing documentation has been updated with the changes affected by this PR. Even if the provided contents are not in their final form, all significant information must be included.
+- [ ] Any backwards-incompatible/breaking change has been clearly documented in the upgrading document.
 
 ## Further comments
 

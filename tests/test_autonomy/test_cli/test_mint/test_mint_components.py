@@ -43,6 +43,9 @@ from tests.test_autonomy.test_chain.base import (
 )
 
 
+CUSTOM_OWNER = "0x8626F6940E2EB28930EFB4CEF49B2D1F2C9C1199"
+
+
 class DummyContract:
     """Dummy contract"""
 
@@ -124,6 +127,39 @@ class TestMintComponents(BaseChainInteractionTest):
             token_id=token_id,
             package_id=package_id,
         )
+        self.verify_and_remove_metadata_file(token_id=token_id)
+
+    def test_mint_component_with_owner(
+        self,
+    ) -> None:
+        """Test mint components."""
+
+        commands = [
+            DUMMY_PROTOCOL.package_type.value,
+            str(
+                DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
+                    package_id=DUMMY_PROTOCOL
+                )
+            ),
+            "--key",
+            str(ETHEREUM_KEY_DEPLOYER),
+            "--owner",
+            CUSTOM_OWNER,
+        ]
+
+        result = self.run_cli(commands=tuple(commands))
+        assert result.exit_code == 0, result.output
+        assert "Component minted with:" in result.output
+        assert "Metadata Hash:" in result.output
+        assert "Token ID:" in result.output
+
+        token_id = self.extract_token_id_from_output(output=result.output)
+        self.verify_owner_address(
+            token_id=token_id,
+            owner=CUSTOM_OWNER,
+            package_id=DUMMY_PROTOCOL,
+        )
+        self.verify_and_remove_metadata_file(token_id=token_id)
 
     def test_mint_service(
         self,
@@ -153,10 +189,50 @@ class TestMintComponents(BaseChainInteractionTest):
         assert "Metadata Hash:" in result.output
         assert "Token ID:" in result.output
 
+        token_id = self.extract_token_id_from_output(output=result.output)
         self.verify_minted_token_id(
-            token_id=self.extract_token_id_from_output(output=result.output),
+            token_id=token_id,
             package_id=DUMMY_SERVICE,
         )
+        self.verify_and_remove_metadata_file(token_id=token_id)
+
+    def test_mint_service_with_owner(
+        self,
+    ) -> None:
+        """Test mint components."""
+        with mock.patch("autonomy.cli.helpers.chain.verify_component_dependencies"):
+            agent_id = self.mint_component(package_id=DUMMY_AGENT, dependencies=[1])
+
+        commands = (
+            DUMMY_SERVICE.package_type.value,
+            str(
+                DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
+                    package_id=DUMMY_SERVICE
+                )
+            ),
+            "--key",
+            str(ETHEREUM_KEY_DEPLOYER),
+            "-a",
+            str(agent_id),
+            *DEFAULT_SERVICE_MINT_PARAMETERS[2:],
+            "--owner",
+            CUSTOM_OWNER,
+        )
+
+        result = self.run_cli(commands=commands)
+
+        assert result.exit_code == 0, result
+        assert "Service minted with:" in result.output
+        assert "Metadata Hash:" in result.output
+        assert "Token ID:" in result.output
+
+        token_id = self.extract_token_id_from_output(output=result.output)
+        self.verify_owner_address(
+            token_id=token_id,
+            owner=CUSTOM_OWNER,
+            package_id=DUMMY_SERVICE,
+        )
+        self.verify_and_remove_metadata_file(token_id=token_id)
 
     @pytest.mark.parametrize(
         argnames=("package_id", "parameters"),
@@ -292,6 +368,31 @@ class TestMintComponents(BaseChainInteractionTest):
                 in result.stderr
             )
 
+    def test_bad_owner_string(
+        self,
+    ) -> None:
+        """Test connection error."""
+
+        with mock.patch("autonomy.cli.helpers.chain.verify_service_dependencies"):
+            result = self.run_cli(
+                commands=(
+                    "service",
+                    str(
+                        DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
+                            package_id=DUMMY_SERVICE
+                        )
+                    ),
+                    "--key",
+                    str(ETHEREUM_KEY_DEPLOYER),
+                    *DEFAULT_SERVICE_MINT_PARAMETERS,
+                    "--owner",
+                    "0xowner",
+                ),
+            )
+            self.cli_runner.mix_stderr = True
+            assert result.exit_code == 1, result.output
+            assert "Invalid owner address 0xowner" in result.stderr
+
     def test_fail_token_id_retrieve(
         self,
     ) -> None:
@@ -394,6 +495,6 @@ class TestMintComponents(BaseChainInteractionTest):
 
         assert result.exit_code == 1, result.output
         assert (
-            "On chain dependency with id 1 not found in the local package configuration"
+            "On chain dependency with id 1 and public ID valory/abci:any not found in the local package configuration"
             in result.stderr
         )

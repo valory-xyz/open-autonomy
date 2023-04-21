@@ -102,6 +102,7 @@ def mint_component(  # pylint: disable=too-many-arguments
     metadata_hash: str,
     component_type: UnitType,
     chain_type: ChainType,
+    owner: Optional[str] = None,
     dependencies: Optional[List[int]] = None,
     timeout: Optional[float] = None,
 ) -> Optional[int]:
@@ -111,12 +112,18 @@ def mint_component(  # pylint: disable=too-many-arguments
         dependencies = sorted(set(dependencies))
 
     try:
+        owner = ledger_api.api.toChecksumAddress(owner or crypto.address)
+    except ValueError as e:  # pragma: nocover
+        raise ComponentMintFailed(f"Invalid owner address {owner}") from e
+
+    try:
         tx = registry_contracts.registries_manager.get_create_transaction(
             ledger_api=ledger_api,
             contract_address=ContractConfigs.get(
                 REGISTRIES_MANAGER_CONTRACT.name
             ).contracts[chain_type],
-            owner=crypto.address,
+            owner=owner,
+            sender=crypto.address,
             component_type=component_type,
             metadata_hash=metadata_hash,
             dependencies=dependencies,
@@ -176,6 +183,7 @@ def mint_service(  # pylint: disable=too-many-arguments
     number_of_slots_per_agent: List[int],
     cost_of_bond_per_agent: List[int],
     threshold: int,
+    owner: Optional[str] = None,
     timeout: Optional[float] = None,
 ) -> Optional[int]:
     """Publish component on-chain."""
@@ -224,13 +232,20 @@ def mint_service(  # pylint: disable=too-many-arguments
     agent_params = [
         [n, c] for n, c in zip(number_of_slots_per_agent, cost_of_bond_per_agent)
     ]
+
+    try:
+        owner = ledger_api.api.toChecksumAddress(owner or crypto.address)
+    except ValueError as e:
+        raise ComponentMintFailed(f"Invalid owner address {owner}") from e
+
     try:
         tx = registry_contracts.service_manager.get_create_transaction(
             ledger_api=ledger_api,
             contract_address=ContractConfigs.get(
                 SERVICE_MANAGER_CONTRACT.name
             ).contracts[chain_type],
-            owner=crypto.address,
+            owner=owner,
+            sender=crypto.address,
             metadata_hash=metadata_hash,
             agent_ids=agent_ids,
             agent_params=agent_params,

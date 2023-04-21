@@ -132,7 +132,10 @@ def test_get_contract_method() -> None:
     with mock.patch.object(Path, "exists", return_value=False):
         with pytest.raises(
             FileNotFoundError,
-            match="Contract package not found in the distribution, please reinstall the package",
+            match=(
+                "Contract package valory/component_registry:latest not found in the open-autonomy installation, "
+                "please reinstall the package"
+            ),
         ):
             contract = registry_contracts.get_contract(COMPONENT_REGISTRY_CONTRACT)
 

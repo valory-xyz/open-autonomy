@@ -1,5 +1,36 @@
 # Release History - `open-autonomy`
 
+# 0.10.1 (2023-04-13)
+
+Autonomy:
+- Adds support for updating the tendermint P2P URL at the runtime, take a look [here](https://github.com/valory-xyz/open-autonomy/pull/1923#discussion_r1163904995) to understand more
+- Adds support for specifying `NFT` image path when minting the components
+- Updates the minting tools to dump metadata as a `json` file after minting the component
+- Updates the manual build mechanism to index agent using `all_parameters` parameter if available
+
+Packages:
+- Adds better exception handling when sending multiple transactions
+
+Docs:
+- Adds instructions for running a single agent
+
+Chores:
+- Fixes the dependency versions on the documentation `Dockerfile`
+- Adds `mkdocs.yaml` configuration that needed to be removed due to incorrect dependencies in the previous release
+
+# 0.10.0.post2 (2023-03-30)
+
+Autonomy:
+- Updates the `autonomy publish` command to avoid publishing temporary files
+- Adds support for specifying owner when minting a component using `--owner` flag on `autonomy mint` command
+- Makes error messages on the on chain dependency checks more user friendly
+- Updates the dependency verification check to handle cases where there are multiple dependencies with the same public ID
+- Updates the runtime tendermint override update logic to account for `--n` flag
+- Updates the runtime setup override update logic to set parameters as defined data types instead of a `list` of the said data type
+
+Packages:
+- Adds support for defining owner independent of the transaction sender when minting component on service manager and component registries manager contracts
+
 # 0.10.0.post1 (2023-03-22)
 
 Autonomy:

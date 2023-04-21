@@ -17,11 +17,10 @@ Before starting this guide, ensure that your machine satisfies the framework req
     On **MacOS** and **Windows**, running Docker containers requires having Docker Desktop running as well. If you're using one of those operating systems, remember to start Docker Desktop
     before you run agent services.
 
-1. Fetch the [Hello World service](../demos/hello_world_demo.md) from the remote registry:
+1. Fetch the [Hello World service](../demos/hello_world_demo.md) from the remote registry. Within the workspace folder (not the remote registry) run:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeiecl3acm57s24cxy5pbmzqhkbiewaj7siksun2gcuh4zc3z5wbs6q --service
-    cd hello_world
+    autonomy fetch valory/hello_world:0.1.0:bafybeicps4x5rpkuijd72f4ytasho3eyvevazd4lhy5usumyy2ozhpjcmu --service
     ```
 
 2. Build the Docker image of the service agents:
@@ -45,7 +44,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 
             <span style="color:red">**WARNING: Use this file for testing purposes only. Never use the keys or addresses provided in this example in a production environment or for personal use.**</span>
 
-            ```json
+            ```json title="keys.json"
             [
             {
                 "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
@@ -66,7 +65,17 @@ Before starting this guide, ensure that your machine satisfies the framework req
             ]
             ```
 
-    2. (Optional) Export environment variables to customize the service configuration.
+    2. Export the environment variable `ALL_PARTICIPANTS` with all the agents' addresses:
+        ```bash
+        export ALL_PARTICIPANTS='[
+            "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+            "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955"
+        ]'
+        ```
+
+    3. (Optional) Export environment variables to customize the service configuration.
 
         ??? example "Example of exported environment variables"
 
@@ -77,7 +86,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
             export HELLO_WORLD_STRING_3="Your HELLO WORLD message for Agent 3"
             ```
 
-    3. Build the service deployment:
+    4. Build the service deployment:
 
         ```bash
         autonomy deploy build keys.json -ltm

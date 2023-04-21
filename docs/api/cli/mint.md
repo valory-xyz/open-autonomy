@@ -36,13 +36,15 @@ Mint component on-chain.
 @password_decorator
 @dependencies_decorator
 @nft_decorator
+@owner_flag
 @pass_ctx
 def protocol(ctx: Context,
              package_path: Path,
              key: Path,
              password: Optional[str],
              dependencies: Tuple[str],
-             nft: Optional[str],
+             nft: Optional[Union[Path, IPFSHash]],
+             owner: Optional[str],
              hwi: bool = False) -> None
 ```
 
@@ -60,13 +62,15 @@ Mint a protocol component.
 @password_decorator
 @dependencies_decorator
 @nft_decorator
+@owner_flag
 @pass_ctx
 def contract(ctx: Context,
              package_path: Path,
              key: Path,
              password: Optional[str],
              dependencies: Tuple[str],
-             nft: Optional[str],
+             nft: Optional[Union[Path, IPFSHash]],
+             owner: Optional[str],
              hwi: bool = False) -> None
 ```
 
@@ -84,13 +88,15 @@ Mint a contract component.
 @password_decorator
 @dependencies_decorator
 @nft_decorator
+@owner_flag
 @pass_ctx
 def connection(ctx: Context,
                package_path: Path,
                key: Path,
                password: Optional[str],
                dependencies: Tuple[str],
-               nft: Optional[str],
+               nft: Optional[Union[Path, IPFSHash]],
+               owner: Optional[str],
                hwi: bool = False) -> None
 ```
 
@@ -108,13 +114,15 @@ Mint a connection component.
 @password_decorator
 @dependencies_decorator
 @nft_decorator
+@owner_flag
 @pass_ctx
 def skill(ctx: Context,
           package_path: Path,
           key: Path,
           password: Optional[str],
           dependencies: Tuple[str],
-          nft: Optional[str],
+          nft: Optional[Union[Path, IPFSHash]],
+          owner: Optional[str],
           hwi: bool = False) -> None
 ```
 
@@ -132,13 +140,15 @@ Mint a skill component.
 @password_decorator
 @dependencies_decorator
 @nft_decorator
+@owner_flag
 @pass_ctx
 def agent(ctx: Context,
           package_path: Path,
           key: Path,
           password: Optional[str],
           dependencies: Tuple[str],
-          nft: Optional[str],
+          nft: Optional[Union[Path, IPFSHash]],
+          owner: Optional[str],
           hwi: bool = False) -> None
 ```
 
@@ -155,6 +165,7 @@ Mint an agent.
 @hwi_flag
 @password_decorator
 @nft_decorator
+@owner_flag
 @pass_ctx
 @click.option(
     "-a",
@@ -191,7 +202,8 @@ def service(ctx: Context,
             cost_of_bond: int,
             threshold: int,
             password: Optional[str],
-            nft: Optional[str],
+            nft: Optional[Union[Path, IPFSHash]],
+            owner: Optional[str],
             hwi: bool = False) -> None
 ```
 

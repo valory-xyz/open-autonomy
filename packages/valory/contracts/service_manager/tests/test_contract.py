@@ -61,6 +61,7 @@ class TestServiceManager(BaseRegistriesContractsTest):
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
             owner=self.deployer_crypto.address,
+            sender=self.deployer_crypto.address,
             metadata_hash=METADATA_HASH,
             agent_ids=[AGENT_ID],
             agent_params=[[NUMBER_OF_SLOTS, COST_OF_BOND]],

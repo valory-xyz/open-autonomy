@@ -57,6 +57,17 @@ def get(cls, chain_type: ChainType) -> ChainConfig
 
 Return chain config for given chain type.
 
+<a id="autonomy.chain.config.ChainConfigs.get_rpc_env_var"></a>
+
+#### get`_`rpc`_`env`_`var
+
+```python
+@classmethod
+def get_rpc_env_var(cls, chain_type: ChainType) -> Optional[str]
+```
+
+Return chain config for given chain type.
+
 <a id="autonomy.chain.config.ContractConfigs"></a>
 
 ## ContractConfigs Objects

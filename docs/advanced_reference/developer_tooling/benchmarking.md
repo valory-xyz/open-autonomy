@@ -11,7 +11,7 @@ The benchmark tool is encapsulated in the class
 packages.valory.skills.abstract_round_abci.models.BenchmarkTool
 ```
 
-To set up the tool, you need to follow a couple of steps detailed below. Note that these steps are automatically done if you use the [{{fsm_app}} scaffold tool](../../guides/create_fsm_app.md).
+To set up the tool, you need to follow a couple of steps detailed below. Note that these steps are automatically done if you use the [{{fsm_app}} scaffold tool](../../guides/code_fsm_app_skill.md).
 
 1. Import the class `BenchmarkTool` in the `models.py` of your skill, and extend it, if required.
 

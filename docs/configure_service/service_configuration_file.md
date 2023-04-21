@@ -1,17 +1,5 @@
-The service configuration file `service.yaml` is a YAML file where the main attributes of the agent service are set up, including the particular agent that composes the service. An important feature of service configuration files is that they can override attributes defined in agent or component configurations.
+The service configuration file `service.yaml` is a YAML file where the main attributes of the agent service are set up, including the particular agent that defines the service. An important feature of service configuration files is that they can override attributes defined in agent or component configurations.
 
-
-<figure markdown>
-![](../images/development_process_define_service.svg)
-<figcaption>Part of the development process covered in this guide</figcaption>
-</figure>
-
-## What you will learn
-In this guide, you will learn:
-
-* What is the structure of the service configuration file.
-* How the configuration override mechanism works.
-* How configuration attributes are imported and exported as environment variables.
 
 ## The structure of the service configuration file
 
@@ -102,7 +90,7 @@ There are a number of mandatory attributes that define the service, which are su
 | `deployment`            | External deployment configuration for configuring external hosts and ports.                                                                                                                                            |                                                                                                                                         |
 ## Service-level overrides
 
-The {{open_aea}} framework already has the notion of [component overrides](https://open-aea.docs.autonolas.tech/overrides/): if a component uses another component, the former can override configuration values of the latter.
+The {{open_aea}} framework already has the notion of [component overrides](https://open-aea.docs.autonolas.tech/overrides/): if a component uses another component, the former can override configuration values of the sub-component.
 
 Similarly, the {{open_autonomy}} framework has the notion of service-level overrides. You can define them in the service configuration file `service.yaml`, which will be used to generate the deployment environment for the agents.
 

@@ -27,6 +27,7 @@ import shutil
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, List
+from unittest import mock
 
 import pytest
 import yaml
@@ -47,6 +48,10 @@ from autonomy.deploy.base import (
     TENDERMINT_COM_URL_PARAM,
     TENDERMINT_NODE,
     TENDERMINT_NODE_LOCAL,
+    TENDERMINT_P2P_PORT,
+    TENDERMINT_P2P_URL,
+    TENDERMINT_P2P_URL_ENV_VAR,
+    TENDERMINT_P2P_URL_PARAM,
     TENDERMINT_URL_PARAM,
 )
 
@@ -246,15 +251,18 @@ class TestServiceBuilder:
         )
         skill_config, *_ = spec.service.overrides
 
-        assert skill_config["models"]["params"]["args"]["setup"][
-            "safe_contract_address"
-        ] == [multisig_address]
-        assert skill_config["models"]["params"]["args"]["setup"][
-            "all_participants"
-        ] == [agent_instances]
-        assert skill_config["models"]["params"]["args"]["setup"][
-            "consensus_threshold"
-        ] == [consensus_threshold]
+        assert (
+            skill_config["models"]["params"]["args"]["setup"]["safe_contract_address"]
+            == multisig_address
+        )
+        assert (
+            skill_config["models"]["params"]["args"]["setup"]["all_participants"]
+            == agent_instances
+        )
+        assert (
+            skill_config["models"]["params"]["args"]["setup"]["consensus_threshold"]
+            == consensus_threshold
+        )
 
         assert skill_config["models"]["params"]["args"][
             TENDERMINT_URL_PARAM
@@ -262,6 +270,9 @@ class TestServiceBuilder:
         assert skill_config["models"]["params"]["args"][
             TENDERMINT_COM_URL_PARAM
         ] == TENDERMINT_COM.format(0)
+        assert skill_config["models"]["params"]["args"][
+            TENDERMINT_P2P_URL_PARAM
+        ] == TENDERMINT_P2P_URL.format(0, TENDERMINT_P2P_PORT)
 
     def test_try_update_runtime_params_multiple(
         self,
@@ -281,12 +292,18 @@ class TestServiceBuilder:
         skill_config, *_ = spec.service.overrides
 
         for agent_idx in range(spec.service.number_of_agents):
-            assert skill_config[agent_idx]["models"]["params"]["args"]["setup"][
-                "safe_contract_address"
-            ] == [multisig_address]
-            assert skill_config[agent_idx]["models"]["params"]["args"]["setup"][
-                "all_participants"
-            ] == [agent_instances]
+            assert (
+                skill_config[agent_idx]["models"]["params"]["args"]["setup"][
+                    "safe_contract_address"
+                ]
+                == multisig_address
+            )
+            assert (
+                skill_config[agent_idx]["models"]["params"]["args"]["setup"][
+                    "all_participants"
+                ]
+                == agent_instances
+            )
 
             assert skill_config[agent_idx]["models"]["params"]["args"][
                 TENDERMINT_URL_PARAM
@@ -294,6 +311,38 @@ class TestServiceBuilder:
             assert skill_config[agent_idx]["models"]["params"]["args"][
                 TENDERMINT_COM_URL_PARAM
             ] == TENDERMINT_COM.format(agent_idx)
+            assert skill_config[agent_idx]["models"]["params"]["args"][
+                TENDERMINT_P2P_URL_PARAM
+            ] == TENDERMINT_P2P_URL.format(agent_idx, TENDERMINT_P2P_PORT)
+
+    def test_update_tm_p2p_endpoint_from_env(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        url = "localhost:8000"
+        self._write_service(get_dummy_service_config(file_number=1))
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+            self.keys_path,
+        )
+
+        with mock.patch.dict(
+            os.environ, {TENDERMINT_P2P_URL_ENV_VAR.format(0): url}, clear=True
+        ):
+            spec.try_update_runtime_params()
+            skill_config, *_ = spec.service.overrides
+
+            assert skill_config["models"]["params"]["args"][
+                TENDERMINT_URL_PARAM
+            ] == TENDERMINT_NODE.format(0)
+            assert skill_config["models"]["params"]["args"][
+                TENDERMINT_COM_URL_PARAM
+            ] == TENDERMINT_COM.format(0)
+            assert (
+                skill_config["models"]["params"]["args"][TENDERMINT_P2P_URL_PARAM]
+                == url
+            )
 
     def test_try_update_tendermint_params_kubernetes(
         self,
@@ -474,6 +523,92 @@ class TestServiceBuilder:
             ServiceBuilder.from_dir(
                 self.service_path, self.keys_path, agent_instances=[]
             )
+
+    def test_try_get_all_particiapants(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        service_config = get_dummy_service_config(file_number=1)
+        self._write_service(service_config)
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        assert spec.try_get_all_participants() is None
+
+        service_config = get_dummy_service_config(file_number=1)
+        service_config[1]["models"]["params"]["args"]["setup"]["all_participants"] = []
+        self._write_service(service_config)
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        assert spec.try_get_all_participants() == []
+
+    def test_read_keys_with_all_participants_defined(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        service_config = get_dummy_service_config(file_number=1)
+        service_config[1]["models"]["params"]["args"]["setup"]["all_participants"] = [
+            key["address"] for key in get_keys()
+        ]
+        self._write_service(service_config)
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        spec.read_keys(self.keys_path)
+        assert spec.service.number_of_agents == 1
+
+    def test_read_keys_with_all_participants_defined_failure(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        service_config = get_dummy_service_config(file_number=1)
+        service_config[1]["models"]["params"]["args"]["setup"]["all_participants"] = [
+            "0x",
+        ]
+        self._write_service(service_config)
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        with pytest.raises(
+            NotValidKeysFile,
+            match="Key file contains keys which are not a part of the `all_participants` parameter; keys={'0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'}",
+        ):
+            spec.read_keys(self.keys_path)
+
+    def test_read_keys_against_all_participants(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        service_config = get_dummy_service_config(file_number=2)
+        # this will reverse the order of the keys in the `all_participants` list
+        # and since we're using the first key from the original array, the
+        # generated agent should contain overrides with index 1 instead of 0
+        all_participants = [key["address"] for key in reversed(get_keys())]
+        for i in range(4):
+            service_config[1][i]["models"]["params"]["args"]["setup"][
+                "all_participants"
+            ] = all_participants
+        self._write_service(service_config)
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        spec.read_keys(self.keys_path)
+        agents = spec.generate_agents()
+
+        assert (
+            agents[0]["SKILL_DUMMY_SKILL_MODELS_PARAMS_ARGS_MESSAGE"]
+            == '"Hello from agent 1"'
+        )
 
     def teardown(
         self,

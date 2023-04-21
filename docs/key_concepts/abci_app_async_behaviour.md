@@ -214,7 +214,7 @@ As explained above, one of the common tasks for a behaviour is
 to interact with other services and/or agents via message-based
 communication. In this section, we focus on a sequence of
 request-response interactions through agent interaction protocols.
-We consider the `fetchai/generic_buyer` skill as an example ([link to code](https://github.com/valory-xyz/open-aea/tree/v1.31.0/packages/fetchai/skills/generic_buyer)).
+We consider the `fetchai/generic_buyer` skill as an example ([link to code](https://github.com/valory-xyz/open-aea/tree/v1.32.0/packages/fetchai/skills/generic_buyer)).
 
 ### The idiomatic approach
 
