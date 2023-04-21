@@ -20,26 +20,19 @@
 """On-chain interaction helpers."""
 
 from pathlib import Path
-from typing import List, Optional, Tuple, cast
+from typing import List, Optional, Set, Tuple, cast
 
 import click
-from aea.configurations.base import PackageConfiguration
-from aea.configurations.data_types import PackageType
+from aea.configurations.data_types import PackageId, PackageType
 from aea.configurations.loader import load_configuration_object
 from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry, ledger_apis_registry
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 
 from autonomy.chain.base import UnitType
-from autonomy.chain.config import ChainConfigs, ChainType, ContractConfigs
-from autonomy.chain.constants import (
-    AGENT_REGISTRY_CONTRACT,
-    COMPONENT_REGISTRY_CONTRACT,
-)
+from autonomy.chain.config import ChainConfigs, ChainType
 from autonomy.chain.exceptions import (
     ComponentMintFailed,
-    DependencyError,
-    FailedToRetrieveComponentMetadata,
     FailedToRetrieveTokenId,
     InstanceRegistrationFailed,
     InvalidMintParameter,
@@ -54,10 +47,6 @@ from autonomy.chain.service import activate_service as _activate_service
 from autonomy.chain.service import deploy_service as _deploy_service
 from autonomy.chain.service import register_instance as _register_instance
 from autonomy.chain.subgraph.client import SubgraphClient
-from autonomy.chain.utils import (
-    verify_component_dependencies,
-    verify_service_dependencies,
-)
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS, Service
 
 
@@ -118,7 +107,7 @@ def get_ledger_and_crypto_objects(
 
 
 def get_on_chain_dependencies(
-    package_configuration: PackageConfiguration,
+    dependencies: Set[PackageId],
     skip_hash_check: bool = False,
     use_latest_dependencies: bool = False,
 ) -> List[int]:
@@ -127,7 +116,7 @@ def get_on_chain_dependencies(
     found = []
     subgraph = SubgraphClient()
 
-    for dependency in package_configuration.package_dependencies:
+    for dependency in dependencies:
         if skip_hash_check:
             record = subgraph.getRecordByPublicId(
                 public_id=f"{dependency.public_id.author}/{dependency.public_id.name}",
@@ -224,21 +213,6 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
         use_latest_dependencies=use_latest_dependencies,
     )
 
-    try:
-        verify_component_dependencies(
-            ledger_api=ledger_api,
-            contract_address=ContractConfigs.get(
-                COMPONENT_REGISTRY_CONTRACT.name
-            ).contracts[chain_type],
-            dependencies=dependencies,
-            package_configuration=package_configuration,
-            skip_hash_check=skip_hash_check,
-        )
-    except FailedToRetrieveComponentMetadata as e:
-        raise click.ClickException(f"Dependency verification failed; {e}") from e
-    except DependencyError as e:
-        raise click.ClickException(f"Dependency verification failed; {e}") from e
-
     metadata_hash = publish_metadata(
         public_id=package_configuration.public_id,
         package_path=package_path,
@@ -289,6 +263,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
     nft_image_hash: Optional[str] = None,
     password: Optional[str] = None,
     skip_hash_check: bool = False,
+    use_latest_dependencies: bool = False,
     timeout: Optional[float] = None,
     hwi: bool = False,
 ) -> None:
@@ -306,10 +281,13 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
     )
 
     try:
-        package_configuration = load_configuration_object(
-            package_type=PackageType.SERVICE,
-            directory=package_path,
-            package_type_config_class=PACKAGE_TYPE_TO_CONFIG_CLASS,
+        package_configuration = cast(
+            Service,
+            load_configuration_object(
+                package_type=PackageType.SERVICE,
+                directory=package_path,
+                package_type_config_class=PACKAGE_TYPE_TO_CONFIG_CLASS,
+            ),
         )
     except FileNotFoundError as e:  # pragma: nocover
         raise click.ClickException(
@@ -324,20 +302,20 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
             f"Please provide hash for NFT image to mint component on `{chain_type.value}` chain"
         )
 
-    try:
-        verify_service_dependencies(
-            ledger_api=ledger_api,
-            contract_address=ContractConfigs.get(
-                AGENT_REGISTRY_CONTRACT.name
-            ).contracts[chain_type],
-            agent_id=agent_id,
-            service_configuration=cast(Service, package_configuration),
-            skip_hash_check=skip_hash_check,
+    agent_ids = get_on_chain_dependencies(
+        dependencies={
+            PackageId(PackageType.AGENT, package_configuration.agent),
+        },
+        skip_hash_check=skip_hash_check,
+        use_latest_dependencies=use_latest_dependencies,
+    )
+
+    if agent_id not in agent_ids:
+        raise click.ClickException(
+            "Agent ID not found in the list of on-chain agent IDs related to agent defined in the service"
+            f"\n\tService ID: {package_configuration.public_id}"
+            f"\n\Agent ID: {package_configuration.agent}"
         )
-    except FailedToRetrieveComponentMetadata as e:
-        raise click.ClickException(f"Dependency verification failed; {e}") from e
-    except DependencyError as e:
-        raise click.ClickException(f"Dependency verification failed; {e}") from e
 
     metadata_hash = publish_metadata(
         public_id=package_configuration.public_id,
