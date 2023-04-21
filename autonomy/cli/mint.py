@@ -20,7 +20,7 @@
 """Mint command group definitions."""
 
 from pathlib import Path
-from typing import Optional, Tuple, cast
+from typing import Optional, cast
 
 import click
 from aea.cli.utils.context import Context

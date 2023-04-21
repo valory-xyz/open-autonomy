@@ -63,7 +63,7 @@ class SubgraphClient:
         )
         query = gql(query_str)
         return self.client.execute(query)
-    
+
     def getRecordByPublicId(self, public_id: str) -> None:
         """Get component by package hash"""
         query_str = FIND_BY_PUBLIC_ID.format(

@@ -314,7 +314,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
         raise click.ClickException(
             "Agent ID not found in the list of on-chain agent IDs related to agent defined in the service"
             f"\n\tService ID: {package_configuration.public_id}"
-            f"\n\Agent ID: {package_configuration.agent}"
+            f"\n\tAgent ID: {package_configuration.agent}"
         )
 
     metadata_hash = publish_metadata(
