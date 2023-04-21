@@ -74,20 +74,30 @@ hwi_flag = click.option(
 @chain_selection_flag()
 @timeout_flag
 @click.option(
+    "-s",
     "--skip-hash-check",
     is_flag=True,
     help="Skip hash check when verifying dependencies on chain",
+)
+@click.option(
+    "-l",
+    "--latest-dependencies",
+    "use_latest_dependencies",
+    is_flag=True,
+    help="Use latest on-chain dependencies if there are multiple dependencies with same package ID",
 )
 def mint(  # pylint: disable=too-many-arguments
     ctx: Context,
     chain_type: str,
     skip_hash_check: bool,
+    use_latest_dependencies: bool,
     timeout: float,
 ) -> None:
     """Mint component on-chain."""
 
     ctx.config["chain_type"] = ChainType(chain_type)
     ctx.config["skip_hash_check"] = skip_hash_check
+    ctx.config["use_latest_dependencies"] = use_latest_dependencies
     ctx.config["timeout"] = timeout
 
 
@@ -96,7 +106,6 @@ def mint(  # pylint: disable=too-many-arguments
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @pass_ctx
 def protocol(  # pylint: disable=too-many-arguments
@@ -104,7 +113,6 @@ def protocol(  # pylint: disable=too-many-arguments
     package_path: Path,
     key: Path,
     password: Optional[str],
-    dependencies: Tuple[str],
     nft: Optional[str],
     hwi: bool = False,
 ) -> None:
@@ -115,7 +123,6 @@ def protocol(  # pylint: disable=too-many-arguments
         package_type=PackageType.PROTOCOL,
         key=key,
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
-        dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
@@ -129,7 +136,6 @@ def protocol(  # pylint: disable=too-many-arguments
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @pass_ctx
 def contract(  # pylint: disable=too-many-arguments
@@ -137,7 +143,6 @@ def contract(  # pylint: disable=too-many-arguments
     package_path: Path,
     key: Path,
     password: Optional[str],
-    dependencies: Tuple[str],
     nft: Optional[str],
     hwi: bool = False,
 ) -> None:
@@ -148,7 +153,6 @@ def contract(  # pylint: disable=too-many-arguments
         package_type=PackageType.CONTRACT,
         key=key,
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
-        dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
@@ -162,7 +166,6 @@ def contract(  # pylint: disable=too-many-arguments
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @pass_ctx
 def connection(  # pylint: disable=too-many-arguments
@@ -170,7 +173,6 @@ def connection(  # pylint: disable=too-many-arguments
     package_path: Path,
     key: Path,
     password: Optional[str],
-    dependencies: Tuple[str],
     nft: Optional[str],
     hwi: bool = False,
 ) -> None:
@@ -181,7 +183,6 @@ def connection(  # pylint: disable=too-many-arguments
         package_type=PackageType.CONNECTION,
         key=key,
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
-        dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
@@ -195,7 +196,6 @@ def connection(  # pylint: disable=too-many-arguments
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @pass_ctx
 def skill(  # pylint: disable=too-many-arguments
@@ -203,7 +203,6 @@ def skill(  # pylint: disable=too-many-arguments
     package_path: Path,
     key: Path,
     password: Optional[str],
-    dependencies: Tuple[str],
     nft: Optional[str],
     hwi: bool = False,
 ) -> None:
@@ -214,7 +213,6 @@ def skill(  # pylint: disable=too-many-arguments
         package_type=PackageType.SKILL,
         key=key,
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
-        dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
@@ -228,7 +226,6 @@ def skill(  # pylint: disable=too-many-arguments
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @pass_ctx
 def agent(  # pylint: disable=too-many-arguments
@@ -236,7 +233,6 @@ def agent(  # pylint: disable=too-many-arguments
     package_path: Path,
     key: Path,
     password: Optional[str],
-    dependencies: Tuple[str],
     nft: Optional[str],
     hwi: bool = False,
 ) -> None:
@@ -247,7 +243,6 @@ def agent(  # pylint: disable=too-many-arguments
         package_type=PackageType.AGENT,
         key=key,
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
-        dependencies=list(map(int, dependencies)),
         password=password,
         nft_image_hash=nft,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
