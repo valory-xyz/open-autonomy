@@ -3,14 +3,14 @@
 # 0.10.2 (2023-04-24)
 
 Autonomy:
-- Adds support for updating `external_address` to match `tendermint_p2p_url` when updating the tendermint parameters on registration
+- Adds support for updating `external_address` to match `tendermint_p2p_url` when updating the Tendermint parameters on registration  #1930 
 
 Packages:
-- Updates the `registration_abci` skill to include `external_address` in the genesis configuration
+- Updates the `registration_abci` skill to include `external_address` in the genesis configuration  #1930 
 
 Docs:
-- Adds code checks for `JSON` code blocks in the documentation
-- Updates the documentation on the usage of the hardware wallet for on-chain interactions
+- Adds code checks for `JSON` code blocks in the documentation  #1933 
+- Updates the documentation on the usage of the hardware wallet for on-chain interactions  #1931 
 
 # 0.10.1 (2023-04-13)
 
