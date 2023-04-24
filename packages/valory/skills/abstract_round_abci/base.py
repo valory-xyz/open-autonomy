@@ -2782,8 +2782,19 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
 
     def get_agent_address(self, validator: Validator) -> str:
         """Get corresponding agent address from a `Validator` instance."""
-        validator_address = validator.address.decode()
-        return self.validator_to_agent[validator_address]
+        try:
+            validator_address = validator.address.decode()
+        except UnicodeDecodeError as exc:
+            raise ValueError(
+                f"Could not decode validator address {validator.address!r}: {exc}"
+            ) from exc
+
+        try:
+            return self.validator_to_agent[validator_address]
+        except KeyError as exc:
+            raise ValueError(
+                f"Requested agent address for an unknown validator address {validator_address}."
+            ) from exc
 
     def setup(self, *args: Any, **kwargs: Any) -> None:
         """
