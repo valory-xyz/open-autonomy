@@ -23,6 +23,7 @@
 
 import argparse
 import itertools
+import json
 import re
 import sys
 from pathlib import Path
@@ -32,7 +33,7 @@ import yaml
 from aea.cli.packages import get_package_manager
 from aea.configurations.data_types import PackageId
 from aea.helpers.base import IPFS_HASH_REGEX, SIMPLE_ID_REGEX
-import json
+
 
 CLI_REGEX = r"(?P<cli>aea|autonomy)"
 # CMD_REGEX should be r"(?P<cmd>(\S+\s(\s--\S+)*)+)",
@@ -243,16 +244,16 @@ def update_set_up(fix: bool = False) -> None:
     """Update `set_up.md` file."""
     md_file = Path("docs", "guides", "set_up.md")
     packages: Dict[str, Dict[str, str]] = json.loads(
-        Path("packages", "packages.json").read_text()
+        Path("packages", "packages.json").read_text(encoding="utf-8")
     )
     package_hash_str_re = re.compile(
         r"(\"([a-z_0-9]+/[a-z_0-9]+/[a-z_0-9]+/[0-9.]+)\": \"(bafybei[0-9a-z]+)\")"
     )
-    md_file_content = md_file.read_text()
+    md_file_content = md_file.read_text(encoding="utf-8")
     for match in package_hash_str_re.findall(md_file_content):
         line, package_name, package_hash = match
-        package_hash_update = packages.get("dev").get(
-            package_name, packages.get("third_party").get(package_name)
+        package_hash_update = packages.get("dev", {}).get(
+            package_name, packages.get("third_party", {}).get(package_name)
         )
         if package_hash == package_hash_update:
             continue
@@ -268,7 +269,7 @@ def update_set_up(fix: bool = False) -> None:
         line_update = line.replace(package_hash, package_hash_update)
         md_file_content = md_file_content.replace(line, line_update)
 
-    md_file.write_text(md_file_content)
+    md_file.write_text(md_file_content, encoding="utf-8")
 
 
 def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
