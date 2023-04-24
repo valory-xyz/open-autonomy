@@ -11,6 +11,8 @@ Packages:
 Docs:
 - Adds code checks for `JSON` code blocks in the documentation  #1933 
 - Updates the documentation on the usage of the hardware wallet for on-chain interactions  #1931 
+- Extends the tutorials for minting components
+
 
 # 0.10.1 (2023-04-13)
 
