@@ -32,7 +32,7 @@ import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from collections import Counter, deque
 from copy import copy, deepcopy
-from dataclasses import asdict, astuple, dataclass, field
+from dataclasses import asdict, astuple, dataclass, field, is_dataclass
 from enum import Enum
 from inspect import isclass
 from typing import (
@@ -2697,6 +2697,17 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         WAITING_FOR_BEGIN_BLOCK = "waiting_for_begin_block"
         WAITING_FOR_DELIVER_TX = "waiting_for_deliver_tx"
         WAITING_FOR_COMMIT = "waiting_for_commit"
+
+    class OffenseStatusEncoder(json.JSONEncoder):
+        """A custom JSON encoder for the offence status dictionary."""
+
+        def default(self, o: Any) -> Any:
+            """The default JSON encoder."""
+            if is_dataclass(o):
+                return asdict(o)
+            if isinstance(o, AvailabilityWindow):
+                return o.to_dict()
+            return super().default(o)
 
     def __init__(self, abci_app_cls: Type[AbciApp]):
         """Initialize the round."""
