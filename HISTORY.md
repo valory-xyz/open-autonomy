@@ -1,5 +1,17 @@
 # Release History - `open-autonomy`
 
+# 0.10.2 (2023-04-24)
+
+Autonomy:
+- Adds support for updating `external_address` to match `tendermint_p2p_url` when updating the tendermint parameters on registration
+
+Packages:
+- Updates the `registration_abci` skill to include `external_address` in the genesis configuration
+
+Docs:
+- Adds code checks for `JSON` code blocks in the documentation
+- Updates the documentation on the usage of the hardware wallet for on-chain interactions
+
 # 0.10.1 (2023-04-13)
 
 Autonomy:
