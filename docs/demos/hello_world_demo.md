@@ -22,14 +22,14 @@ You can find the instructions on how to run the Hello World service in the [quic
 If you have [set up the framework](../guides/set_up.md#set-up-the-framework), you can fetch the source code of the Hello World agent:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeictqwn5cqmistwfoq2h3igmytqyfi5jfbei24bofrnhs7deixoily
+autonomy fetch valory/hello_world:0.1.0:bafybeidghah5yexnsdxwplnbyq3u3bgl2mmjur2eef4bxenf6ddb3zs2ca
 mv hello_world hello_world_agent
 ```
 
 and the Hello World service:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeicps4x5rpkuijd72f4ytasho3eyvevazd4lhy5usumyy2ozhpjcmu --service
+autonomy fetch valory/hello_world:0.1.0:bafybeigtaxh5zfg32cypqkjvftreivh22sqlrbgw5x3lxjmrf3dyqcioyy --service
 mv hello_world hello_world_service
 ```
 
@@ -508,7 +508,7 @@ This is an excerpt of the `aea-config.yaml` file:
 ```yaml
 # ...
 connections:
-- valory/abci:0.1.0:bafybeihkjtzuv3oaq5olerjwnhf5qg5gsmgdsvg27aaeqeg46ch7mjvggi
+- valory/abci:0.1.0:bafybeih2l6ssf5ebkvgbag3hx2pd22shytszqavveib2e2s6rv4va5khv4
 - valory/http_client:0.23.0:bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi
 - valory/ipfs:0.1.0:bafybeihubpyw2t3bwncz3l7jt4gf5xvfydwmob463vvgf3ikkhlwxakm3m
 - valory/ledger:0.19.0:bafybeicgfupeudtmvehbwziqfxiz6ztsxr5rxzvalzvsdsspzz73o5fzfi
@@ -520,9 +520,9 @@ protocols:
 - valory/http:1.0.0:bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty
 - valory/ipfs:0.1.0:bafybeic72ncgqbzoz2guj4p4yjqulid7mv6yroeh65hxznloamoveeg7hq
 skills:
-- valory/abstract_abci:0.1.0:bafybeicujajnqzbndtndrndj53znohemihludifuyc5dazfbz6fltyj5ci
-- valory/abstract_round_abci:0.1.0:bafybeiar4gy4brpuxekiwjq7osh3fm254jgdoxlgkvqcp5lytu4uzrmbsm
-- valory/hello_world_abci:0.1.0:bafybeiemhmuzuk45bxu4d3zf2nzaoadw63tah3e3t44ski3d6ola27n25u
+- valory/abstract_abci:0.1.0:bafybeifuclb6cikagtg2zn7dkjnnv3f7re2tfgzk6c4h3scgyzaaqeg55m
+- valory/abstract_round_abci:0.1.0:bafybeigiolzp3i6b3wwuau3yv2h5udqape3i7of73mlm2d6ud22irlkbme
+- valory/hello_world_abci:0.1.0:bafybeiccrdfvkbrwawroglielcn2pf6vhhz7hoba2ya46ryd5zpmk4al5u
 # ...
 ```
 
