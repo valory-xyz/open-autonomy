@@ -54,19 +54,35 @@ from aea.exceptions import AEAEnforceError
 from aea_ledger_ethereum import EthereumCrypto
 from hypothesis import given, settings
 from hypothesis.strategies import (
+    DrawFn,
+    binary,
     booleans,
+    builds,
+    composite,
     data,
     datetimes,
     dictionaries,
     floats,
     integers,
+    just,
+    lists,
     none,
     one_of,
+    sampled_from,
     text,
 )
 
 import packages.valory.skills.abstract_round_abci.base as abci_base
 from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
+from packages.valory.protocols.abci.custom_types import (
+    Evidence,
+    EvidenceType,
+    Evidences,
+    LastCommitInfo,
+    Timestamp,
+    Validator,
+    VoteInfo,
+)
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppException,
     ABCIAppInternalError,
@@ -86,9 +102,11 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectionRound,
     EventType,
     LateArrivingTransaction,
+    OffenceStatus,
     OffenseType,
     RoundSequence,
     SignatureNotValidError,
+    SlashingNotConfiguredError,
     Timeouts,
     Transaction,
     TransactionTypeNotRecognizedError,
@@ -1905,6 +1923,74 @@ class TestAvailabilityWindow:
         }
 
 
+@composite
+def offence_tracking(draw: DrawFn) -> Tuple[Evidences, LastCommitInfo]:
+    """A strategy for building offences reported by Tendermint."""
+    n_validators = draw(integers(min_value=1, max_value=10))
+
+    validators = [
+        draw(
+            builds(
+                Validator,
+                address=just(bytes(i)),
+                power=integers(min_value=0),
+            )
+        )
+        for i in range(n_validators)
+    ]
+
+    evidences = builds(
+        Evidences,
+        byzantine_validators=lists(
+            builds(
+                Evidence,
+                evidence_type=sampled_from(EvidenceType),
+                validator=sampled_from(validators),
+                height=integers(min_value=0),
+                time=builds(
+                    Timestamp,
+                    seconds=integers(min_value=0),
+                    nanos=integers(min_value=0, max_value=999_999_999),
+                ),
+                total_voting_power=integers(min_value=0),
+            ),
+            min_size=n_validators,
+            max_size=n_validators,
+            unique_by=lambda v: v.validator.address,
+        ),
+    )
+
+    last_commit_info = builds(
+        LastCommitInfo,
+        round_=integers(min_value=0),
+        votes=lists(
+            builds(
+                VoteInfo,
+                validator=sampled_from(validators),
+                signed_last_block=booleans(),
+            ),
+            min_size=n_validators,
+            max_size=n_validators,
+            unique_by=lambda v: v.validator.address,
+        ),
+    )
+
+    ev_example, commit_example = draw(evidences), draw(last_commit_info)
+
+    # this assertion proves that all the validators are unique
+    unique_commit_addresses = set(
+        v.validator.address.decode() for v in commit_example.votes
+    )
+    assert len(unique_commit_addresses) == n_validators
+
+    # this assertion proves that the same validators are used for evidences and votes
+    assert unique_commit_addresses == set(
+        e.validator.address.decode() for e in ev_example.byzantine_validators
+    )
+
+    return ev_example, commit_example
+
+
 class TestRoundSequence:
     """Test the RoundSequence class."""
 
@@ -1913,6 +1999,87 @@ class TestRoundSequence:
         self.round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
         self.round_sequence.setup(MagicMock(), MagicMock())
         self.round_sequence.tm_height = 1
+
+    @pytest.mark.parametrize(
+        "property_name, set_twice_exc, config_exc",
+        (
+            (
+                "validator_to_agent",
+                "The mapping of the validators' addresses to their agent addresses can only be set once. "
+                "Attempted to set with {new_content_attempt} but it has content already: {value}.",
+                "The mapping of the validators' addresses to their agent addresses has not been set.",
+            ),
+            (
+                "offence_status",
+                "The mapping of the agents' addresses to their offence status can only be set once. "
+                "Attempted to set with {new_content_attempt} but it has content already: {value}.",
+                "The mapping of the agents' addresses to their offence status has not been set.",
+            ),
+        ),
+    )
+    @given(data())
+    def test_slashing_properties(
+        self, property_name: str, set_twice_exc: str, config_exc: str, _data: Any
+    ) -> None:
+        """Test `validator_to_agent` getter and setter."""
+        if property_name == "validator_to_agent":
+            data_generator = dictionaries(text(), text())
+        else:
+            data_generator = dictionaries(text(), just(OffenceStatus()))
+
+        value = _data.draw(data_generator)
+        round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
+
+        if value:
+            setattr(round_sequence, property_name, value)
+            assert getattr(round_sequence, property_name) == value
+            new_content_attempt = _data.draw(data_generator)
+            with pytest.raises(
+                ValueError,
+                match=re.escape(
+                    set_twice_exc.format(
+                        new_content_attempt=new_content_attempt, value=value
+                    )
+                ),
+            ):
+                setattr(round_sequence, property_name, new_content_attempt)
+            return
+
+        with pytest.raises(SlashingNotConfiguredError, match=config_exc):
+            getattr(round_sequence, property_name)
+
+    @given(
+        validator=builds(Validator, address=binary(), power=integers()),
+        agent_address=text(),
+    )
+    def test_get_agent_address(self, validator: Validator, agent_address: str) -> None:
+        """Test `get_agent_address` method."""
+        round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
+
+        try:
+            validator_address = validator.address.decode()
+        except UnicodeDecodeError as exc:
+            with pytest.raises(
+                ValueError,
+                match=re.escape(
+                    f"Could not decode validator address {validator.address!r}: {exc}"
+                ),
+            ):
+                round_sequence.get_agent_address(validator)
+            return
+
+        round_sequence.validator_to_agent = {validator_address: agent_address}
+        assert round_sequence.get_agent_address(validator) == agent_address
+
+        unknown = deepcopy(validator)
+        unknown.address += b"unknown"
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                f"Requested agent address for an unknown validator address {unknown.address.decode()}."
+            ),
+        ):
+            round_sequence.get_agent_address(unknown)
 
     @pytest.mark.parametrize("offset", tuple(range(5)))
     @pytest.mark.parametrize("n_blocks", (0, 1, 10))
@@ -2129,6 +2296,101 @@ class TestRoundSequence:
         assert self.round_sequence._blockchain.height == begin_height
         self.round_sequence.init_chain(initial_height)
         assert self.round_sequence._blockchain.height == initial_height - 1
+
+    @given(offence_tracking())
+    def test_track_offences(self, offences: Tuple[Evidences, LastCommitInfo]) -> None:
+        """Test `_track_offences` method."""
+        evidences, last_commit_info = offences
+        dummy_addr_template = "agent_{i}"
+        round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
+        synchronized_data_mock = MagicMock()
+        round_sequence.setup(synchronized_data_mock, MagicMock())
+
+        expected_offence_status = {
+            dummy_addr_template.format(i=i): OffenceStatus()
+            for i in range(len(last_commit_info.votes))
+        }
+        for i, vote_info in enumerate(last_commit_info.votes):
+            agent_address = dummy_addr_template.format(i=i)
+            # initialize dummy round sequence's offence status and validator to agent address mapping
+            round_sequence._offence_status[agent_address] = OffenceStatus()
+            validator_address = vote_info.validator.address.decode()
+            round_sequence._validator_to_agent[validator_address] = agent_address
+            # set expected result
+            expected_was_down = not vote_info.signed_last_block
+            expected_offence_status[agent_address].validator_downtime.add(
+                expected_was_down
+            )
+
+        for byzantine_validator in evidences.byzantine_validators:
+            agent_address = round_sequence._validator_to_agent[
+                byzantine_validator.validator.address.decode()
+            ]
+            evidence_type = byzantine_validator.evidence_type
+            expected_offence_status[agent_address].num_unknown_offenses += bool(
+                evidence_type == EvidenceType.UNKNOWN
+            )
+            expected_offence_status[agent_address].num_double_signed += bool(
+                evidence_type == EvidenceType.DUPLICATE_VOTE
+            )
+            expected_offence_status[agent_address].num_light_client_attack += bool(
+                evidence_type == EvidenceType.LIGHT_CLIENT_ATTACK
+            )
+
+        encoded_status = json.dumps(
+            expected_offence_status, cls=RoundSequence.OffenseStatusEncoder
+        )
+        expected_db_updates = {
+            get_name(BaseSynchronizedData.offence_status): encoded_status
+        }
+        with mock.patch.object(
+            synchronized_data_mock.db,
+            "update",
+        ) as db_update_mock:
+            round_sequence._track_offences(evidences, last_commit_info)
+            db_update_mock.assert_called_once_with(**expected_db_updates)
+
+    @given(builds(SlashingNotConfiguredError, text()))
+    def test_handle_slashing_not_configured(
+        self, exc: SlashingNotConfiguredError
+    ) -> None:
+        """Test `_handle_slashing_not_configured` method."""
+        logging.disable(logging.CRITICAL)
+        round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
+        round_sequence.setup(MagicMock(), MagicMock())
+
+        assert round_sequence._slashing_enabled
+        assert round_sequence.latest_synchronized_data.nb_participants == 0
+        round_sequence._handle_slashing_not_configured(exc)
+        assert round_sequence._slashing_enabled
+
+        with mock.patch.object(
+            round_sequence.latest_synchronized_data.db,
+            "get",
+            return_value=[i for i in range(4)],
+        ):
+            assert round_sequence.latest_synchronized_data.nb_participants == 4
+            round_sequence._handle_slashing_not_configured(exc)
+            assert not round_sequence._slashing_enabled
+
+    @pytest.mark.parametrize("_track_offences_raises", (True, False))
+    def test_try_track_offences(self, _track_offences_raises: bool) -> None:
+        """Test `_try_track_offences` method."""
+        evidences, last_commit_info = MagicMock(), MagicMock()
+        with mock.patch.object(
+            self.round_sequence,
+            "_track_offences",
+            side_effect=SlashingNotConfiguredError if _track_offences_raises else None,
+        ) as _track_offences_mock, mock.patch.object(
+            self.round_sequence, "_handle_slashing_not_configured"
+        ) as _handle_slashing_not_configured_mock:
+            self.round_sequence._try_track_offences(evidences, last_commit_info)
+            if _track_offences_raises:
+                _handle_slashing_not_configured_mock.assert_called_once()
+            else:
+                _track_offences_mock.assert_called_once_with(
+                    evidences, last_commit_info
+                )
 
     def test_begin_block_negative_is_finished(self) -> None:
         """Test 'begin_block' method, negative case (round sequence is finished)."""
