@@ -61,7 +61,13 @@ from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
 from packages.valory.connections.ledger.connection import (
     PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
-from packages.valory.protocols.abci.custom_types import Header
+from packages.valory.protocols.abci.custom_types import (
+    EvidenceType,
+    Evidences,
+    Header,
+    LastCommitInfo,
+    Validator,
+)
 from packages.valory.skills.abstract_round_abci.utils import (
     consensus_threshold,
     is_json_serializable,
@@ -2671,6 +2677,10 @@ class PendingOffense:
     time_to_live: float
 
 
+class SlashingNotConfiguredError(Exception):
+    """Custom exception raised when slashing configuration is requested but is not available."""
+
+
 class RoundSequence:  # pylint: disable=too-many-instance-attributes
     """
     This class represents a sequence of rounds
@@ -2988,7 +2998,63 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         # reduce `initial_height` by 1 to get block count offset as per Tendermint protocol
         self._blockchain = Blockchain(initial_height - 1)
 
-    def begin_block(self, header: Header) -> None:
+    def _track_offences(
+        self, evidences: Evidences, last_commit_info: LastCommitInfo
+    ) -> None:
+        """Track offences if there are any."""
+        for vote_info in last_commit_info.votes:
+            agent_address = self.get_agent_address(vote_info.validator)
+            was_down = not vote_info.signed_last_block
+            self.offence_status[agent_address].validator_downtime.add(was_down)
+
+        for byzantine_validator in evidences.byzantine_validators:
+            agent_address = self.get_agent_address(byzantine_validator.validator)
+            evidence_type = byzantine_validator.evidence_type
+            self.offence_status[agent_address].num_unknown_offenses += bool(
+                evidence_type == EvidenceType.UNKNOWN
+            )
+            self.offence_status[agent_address].num_double_signed += bool(
+                evidence_type == EvidenceType.DUPLICATE_VOTE
+            )
+            self.offence_status[agent_address].num_light_client_attack += bool(
+                evidence_type == EvidenceType.LIGHT_CLIENT_ATTACK
+            )
+
+        # this information comes from Tendermint, so it is safe to add it to the synchronized database of the agents
+        encoded_status = json.dumps(self.offence_status, cls=self.OffenseStatusEncoder)
+        db_updates = {get_name(BaseSynchronizedData.offence_status): encoded_status}
+        self.abci_app.synchronized_data.update(BaseSynchronizedData, **db_updates)
+
+    def _handle_slashing_not_configured(self, exc: SlashingNotConfiguredError) -> None:
+        """Handle a `SlashingNotConfiguredError`."""
+        # In the current slashing implementation, we do not track offences before setting the slashing
+        # configuration, i.e., before successfully sharing the tm configuration via ACN on registration.
+        # That is because we cannot slash an agent if we do not map their validator address to their agent address.
+        # Checking the number of participants will allow us to identify whether the registration round has finished,
+        # and therefore expect that the slashing configuration has been set if ACN registration is enabled.
+        if self.abci_app.synchronized_data.nb_participants:
+            _logger.error(
+                f"{exc} This error may occur when the ACN registration has not been successfully performed. "
+                "Have you set the `share_tm_config_on_startup` flag to `true` in the configuration?"
+            )
+            self._slashing_enabled = False
+            _logger.warning("Slashing has been disabled!")
+
+    def _try_track_offences(
+        self, evidences: Evidences, last_commit_info: LastCommitInfo
+    ) -> None:
+        """Try to track the offences. If an error occurs, log it, disable slashing, and warn about the latter."""
+        try:
+            self._track_offences(evidences, last_commit_info)
+        except SlashingNotConfiguredError as exc:
+            self._handle_slashing_not_configured(exc)
+
+    def begin_block(
+        self,
+        header: Header,
+        evidences: Evidences,
+        last_commit_info: LastCommitInfo,
+    ) -> None:
         """Begin block."""
         if self.is_finished:
             raise ABCIAppInternalError(
@@ -3017,6 +3083,9 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             "Created a new local deadline for the next `begin_block` request from the Tendermint node: "
             f"{self._block_stall_deadline}"
         )
+
+        if self._slashing_enabled:
+            self._try_track_offences(evidences, last_commit_info)
 
     def deliver_tx(self, transaction: Transaction) -> None:
         """
