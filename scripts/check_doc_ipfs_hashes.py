@@ -53,7 +53,10 @@ PACKAGE_TABLE_REGEX = rf"\|\s*{PACKAGE_TYPE_REGEX}\/{VENDOR_REGEX}\/{PACKAGE_REG
 PACKAGE_MAPPING_REGEX = rf"(?P<package_mapping>(?:\"{PACKAGE_TYPE_REGEX}\/{VENDOR_REGEX}\/{PACKAGE_REGEX}\/{VERSION_REGEX}\":)\s*\"(?P<hash>{IPFS_HASH_REGEX})\")"
 
 ROOT_DIR = Path(__file__).parent.parent
-HASH_SKIPS = ["Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev"]
+HASH_SKIPS = [
+    "Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev",
+    "bafybei0000000000000000000000000000000000000000000000000000",
+]
 
 
 def read_file(filepath: str) -> str:
@@ -305,7 +308,9 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
                 )
 
         # Fix package mappings in docs
-        for match in [m.groupdict() for m in re.finditer(PACKAGE_MAPPING_REGEX, content)]:
+        for match in [
+            m.groupdict() for m in re.finditer(PACKAGE_MAPPING_REGEX, content)
+        ]:
             matches += 1
             package_mapping = match["package_mapping"]
             package_hash = match["hash"]
@@ -323,7 +328,9 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
             hash_mismatches = True
 
             if fix:
-                new_package_mapping = package_mapping.replace(package_hash, expected_hash)
+                new_package_mapping = package_mapping.replace(
+                    package_hash, expected_hash
+                )
                 content = content.replace(package_mapping, new_package_mapping)
 
                 with open(str(md_file), "w", encoding="utf-8") as qs_file:
