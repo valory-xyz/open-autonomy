@@ -50,6 +50,7 @@ PACKAGE_TYPE_REGEX = (
 AEA_COMMAND_REGEX = rf"(?P<full_cmd>{CLI_REGEX} {CMD_REGEX} (?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}){FLAGS_REGEX})"
 FULL_PACKAGE_REGEX = rf"(?P<full_package>(?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}))"
 PACKAGE_TABLE_REGEX = rf"\|\s*{PACKAGE_TYPE_REGEX}\/{VENDOR_REGEX}\/{PACKAGE_REGEX}\/{VERSION_REGEX}\s*\|\s*`(?P<hash>{IPFS_HASH_REGEX})`\s*\|"
+PACKAGE_MAPPING_REGEX = rf"(?P<package_mapping>(?:\"{PACKAGE_TYPE_REGEX}\/{VENDOR_REGEX}\/{PACKAGE_REGEX}\/{VERSION_REGEX}\":)\s*\"(?P<hash>{IPFS_HASH_REGEX})\")"
 
 ROOT_DIR = Path(__file__).parent.parent
 HASH_SKIPS = ["Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev"]
@@ -240,38 +241,6 @@ class PackageHashManager:
         return self.package_tree[vendor][package_type][package_name].hash
 
 
-def update_set_up(fix: bool = False) -> None:
-    """Update `set_up.md` file."""
-    md_file = Path("docs", "guides", "set_up.md")
-    packages: Dict[str, Dict[str, str]] = json.loads(
-        Path("packages", "packages.json").read_text(encoding="utf-8")
-    )
-    package_hash_str_re = re.compile(
-        r"(\"([a-z_0-9]+/[a-z_0-9]+/[a-z_0-9]+/[0-9.]+)\": \"(bafybei[0-9a-z]+)\")"
-    )
-    md_file_content = md_file.read_text(encoding="utf-8")
-    for match in package_hash_str_re.findall(md_file_content):
-        line, package_name, package_hash = match
-        package_hash_update = packages.get("dev", {}).get(
-            package_name, packages.get("third_party", {}).get(package_name)
-        )
-        if package_hash == package_hash_update:
-            continue
-        if not fix:
-            print(
-                f"Package hash does not match in `docs/guides/set_up.md` file"
-                f"\n\tPackage name: {package_name}"
-                f"\n\tHash in file: {package_hash}"
-                f"\n\tHash in `packages.json`: {package_hash_update}"
-            )
-            sys.exit(1)
-
-        line_update = line.replace(package_hash, package_hash_update)
-        md_file_content = md_file_content.replace(line, line_update)
-
-    md_file.write_text(md_file_content, encoding="utf-8")
-
-
 def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     paths: Optional[List[Path]] = None, fix: bool = False
 ) -> None:
@@ -286,9 +255,11 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
     package_manager = PackageHashManager()
     matches = 0
 
-    # Fix full commands in docs
+    # Fix hashes in docs
     for md_file in all_md_files:
         content = read_file(str(md_file))
+
+        # Fix full commands in docs
         for match in [m.groupdict() for m in re.finditer(AEA_COMMAND_REGEX, content)]:
             matches += 1
             doc_full_cmd = match["full_cmd"]
@@ -331,6 +302,40 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
                     f"\tCommand string: {doc_full_cmd}\n"
                     f"\tExpected: {expected_hash}\n"
                     f"\tFound: {doc_hash}\n"
+                )
+
+        # Fix package mappings in docs
+        for match in [m.groupdict() for m in re.finditer(PACKAGE_MAPPING_REGEX, content)]:
+            matches += 1
+            package_mapping = match["package_mapping"]
+            package_hash = match["hash"]
+
+            if package_hash in HASH_SKIPS:
+                continue
+
+            expected_hash = package_manager.get_hash_by_attributes(
+                match["package_type"], match["vendor"], match["package"]
+            )
+
+            if package_hash == expected_hash:
+                continue
+
+            hash_mismatches = True
+
+            if fix:
+                new_package_mapping = package_mapping.replace(package_hash, expected_hash)
+                content = content.replace(package_mapping, new_package_mapping)
+
+                with open(str(md_file), "w", encoding="utf-8") as qs_file:
+                    qs_file.write(content)
+                print(f"Fixed an IPFS hash in doc file {md_file}")
+                old_to_new_hashes[package_hash] = expected_hash
+            else:
+                print(
+                    f"IPFS hash mismatch in doc file {md_file}.\n"
+                    f"\tMapping string: {package_mapping}\n"
+                    f"\tExpected: {expected_hash}\n"
+                    f"\tFound: {package_hash}\n"
                 )
 
     # Fix packages in python files
@@ -418,8 +423,6 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
             "No commands were found in the docs. The command regex is probably outdated."
         )
         sys.exit(1)
-
-    update_set_up(fix=fix)
 
     print("Checking doc IPFS hashes finished successfully.")
 
