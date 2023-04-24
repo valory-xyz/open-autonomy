@@ -938,6 +938,11 @@ class BaseSynchronizedData:
         """Get the safe contract address."""
         return cast(str, self.db.get_strict("safe_contract_address"))
 
+    @property
+    def offence_status(self) -> str:
+        """Get the offence status, serialized."""
+        return str(self.db.get_strict("offence_status"))
+
 
 class _MetaAbstractRound(ABCMeta):
     """A metaclass that validates AbstractRound's attributes."""

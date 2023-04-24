@@ -1089,6 +1089,7 @@ class TestBaseSynchronizedData:
             "sender": DummyPayload(sender="sender", dummy_attribute=0)
         }
         safe_contract_address = "0x0"
+        offence_status = "test_offence_status"
 
         base_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(
@@ -1109,6 +1110,7 @@ class TestBaseSynchronizedData:
                             participant_to_votes
                         ),
                         safe_contract_address=safe_contract_address,
+                        offence_status=offence_status,
                     )
                 )
             )
@@ -1134,6 +1136,7 @@ class TestBaseSynchronizedData:
         )
         assert base_synchronized_data.participant_to_votes == participant_to_votes
         assert base_synchronized_data.safe_contract_address == safe_contract_address
+        assert base_synchronized_data.offence_status == offence_status
 
 
 class DummyConcreteRound(AbstractRound):
