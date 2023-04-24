@@ -1118,6 +1118,17 @@ def safe_contract_address() -> str
 
 Get the safe contract address.
 
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.offence_status"></a>
+
+#### offence`_`status
+
+```python
+@property
+def offence_status() -> str
+```
+
+Get the offence status, serialized.
+
 <a id="packages.valory.skills.abstract_round_abci.base._MetaAbstractRound"></a>
 
 ## `_`MetaAbstractRound Objects
@@ -2512,6 +2523,16 @@ class PendingOffense()
 
 A dataclass to represent offences that need to be addressed.
 
+<a id="packages.valory.skills.abstract_round_abci.base.SlashingNotConfiguredError"></a>
+
+## SlashingNotConfiguredError Objects
+
+```python
+class SlashingNotConfiguredError(Exception)
+```
+
+Custom exception raised when slashing configuration is requested but is not available.
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence"></a>
 
 ## RoundSequence Objects
@@ -2528,6 +2549,26 @@ from the ABCI handlers and forwards them to the current
 active round instance, which implements the ABCI app logic.
 It also schedules the next round (if any) whenever a round terminates.
 
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.OffenseStatusEncoder"></a>
+
+## OffenseStatusEncoder Objects
+
+```python
+class OffenseStatusEncoder(json.JSONEncoder)
+```
+
+A custom JSON encoder for the offence status dictionary.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.OffenseStatusEncoder.default"></a>
+
+#### default
+
+```python
+def default(o: Any) -> Any
+```
+
+The default JSON encoder.
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.__init__"></a>
 
 #### `__`init`__`
@@ -2537,6 +2578,60 @@ def __init__(abci_app_cls: Type[AbciApp])
 ```
 
 Initialize the round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.validator_to_agent"></a>
+
+#### validator`_`to`_`agent
+
+```python
+@property
+def validator_to_agent() -> Dict[str, str]
+```
+
+Get the mapping of the validators' addresses to their agent addresses.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.validator_to_agent"></a>
+
+#### validator`_`to`_`agent
+
+```python
+@validator_to_agent.setter
+def validator_to_agent(validator_to_agent: Dict[str, str]) -> None
+```
+
+Set the mapping of the validators' addresses to their agent addresses.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.offence_status"></a>
+
+#### offence`_`status
+
+```python
+@property
+def offence_status() -> Dict[str, OffenceStatus]
+```
+
+Get the mapping of the agents' addresses to their offence status.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.offence_status"></a>
+
+#### offence`_`status
+
+```python
+@offence_status.setter
+def offence_status(offence_status: Dict[str, OffenceStatus]) -> None
+```
+
+Set the mapping of the agents' addresses to their offence status.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.get_agent_address"></a>
+
+#### get`_`agent`_`address
+
+```python
+def get_agent_address(validator: Validator) -> str
+```
+
+Get corresponding agent address from a `Validator` instance.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.setup"></a>
 
@@ -2840,7 +2935,8 @@ Init chain.
 #### begin`_`block
 
 ```python
-def begin_block(header: Header) -> None
+def begin_block(header: Header, evidences: Evidences,
+                last_commit_info: LastCommitInfo) -> None
 ```
 
 Begin block.

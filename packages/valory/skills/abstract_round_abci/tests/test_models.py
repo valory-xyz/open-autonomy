@@ -42,7 +42,8 @@ from typing_extensions import Literal, TypedDict
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
-    ROUND_COUNT_DEFAULT, OffenceStatus,
+    OffenceStatus,
+    ROUND_COUNT_DEFAULT,
 )
 from packages.valory.skills.abstract_round_abci.models import (
     ApiSpecs,
@@ -421,7 +422,7 @@ class TestSharedState:
             shared_state.setup_slashing(validator_to_agent)
             assert shared_state.round_sequence.validator_to_agent == validator_to_agent
             assert shared_state.round_sequence.offence_status == dict.fromkeys(
-               acn_configured_agents, OffenceStatus()
+                acn_configured_agents, OffenceStatus()
             )
             return
 

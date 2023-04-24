@@ -49,11 +49,11 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
     BaseSynchronizedData,
+    OffenceStatus,
     ROUND_COUNT_DEFAULT,
     RoundSequence,
     VALUE_NOT_PROVIDED,
     get_name,
-    OffenceStatus,
 )
 from packages.valory.skills.abstract_round_abci.utils import (
     check,

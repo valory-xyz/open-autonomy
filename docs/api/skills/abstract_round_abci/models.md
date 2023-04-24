@@ -264,27 +264,15 @@ def __init__(*args: Any, skill_context: SkillContext, **kwargs: Any) -> None
 
 Initialize the state.
 
-<a id="packages.valory.skills.abstract_round_abci.models.SharedState.validator_to_agent"></a>
+<a id="packages.valory.skills.abstract_round_abci.models.SharedState.setup_slashing"></a>
 
-#### validator`_`to`_`agent
-
-```python
-@property
-def validator_to_agent() -> Dict[str, str]
-```
-
-Get the mapping of the validators' addresses to their agent addresses
-
-<a id="packages.valory.skills.abstract_round_abci.models.SharedState.validator_to_agent"></a>
-
-#### validator`_`to`_`agent
+#### setup`_`slashing
 
 ```python
-@validator_to_agent.setter
-def validator_to_agent(validator_to_agent: Dict[str, str]) -> None
+def setup_slashing(validator_to_agent: Dict[str, str]) -> None
 ```
 
-Set the mapping of the validators' addresses to their agent addresses
+Initialize the structures required for slashing.
 
 <a id="packages.valory.skills.abstract_round_abci.models.SharedState.get_validator_address"></a>
 
