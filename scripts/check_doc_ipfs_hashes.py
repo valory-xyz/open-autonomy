@@ -53,8 +53,8 @@ PACKAGE_MAPPING_REGEX = rf"(?P<package_mapping>(?:\"{PACKAGE_TYPE_REGEX}\/{VENDO
 
 ROOT_DIR = Path(__file__).parent.parent
 HASH_SKIPS = [
-    "Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev",
-    "bafybei0000000000000000000000000000000000000000000000000000",
+    "Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev",  # Testing image used in tutorials/examples.
+    "bafybei0000000000000000000000000000000000000000000000000000",  # Placeholder hash used in tutorials/examples.
 ]
 
 
