@@ -30,10 +30,12 @@ from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
 from autonomy.chain.base import ServiceState
 from autonomy.chain.config import ChainConfigs, ChainType
 from autonomy.chain.mint import registry_contracts
+from autonomy.chain.subgraph.client import SubgraphClient
 from autonomy.cli.helpers.chain import (
     activate_service,
     deploy_service,
     get_ledger_and_crypto_objects,
+    get_on_chain_dependencies,
     mint_component,
     mint_service,
     register_instance,
@@ -163,7 +165,7 @@ class TestMintComponentMethod:
             ),
         ):
             with mock.patch(
-                "autonomy.cli.helpers.chain.verify_component_dependencies"
+                "autonomy.cli.helpers.chain.get_on_chain_dependencies", return_value=[]
             ), mock.patch(
                 "autonomy.cli.helpers.chain.publish_metadata",
                 return_value=(None, None),
@@ -198,7 +200,8 @@ def test_mint_service_timeout() -> None:
         ),
     ):
         with mock.patch(
-            "autonomy.cli.helpers.chain.verify_service_dependencies"
+            "autonomy.cli.helpers.chain.get_on_chain_dependencies",
+            return_value=[1],
         ), mock.patch(
             "autonomy.cli.helpers.chain.load_configuration_object"
         ), mock.patch(
@@ -342,3 +345,10 @@ def test_get_ledger_and_crypto_failure() -> None:
             key=None,
             chain_type=ChainType.LOCAL,
         )
+
+
+def test_get_on_chain_dependencies() -> None:
+    """Test `get_on_chain_dependencies` method"""
+
+    with mock.patch.object(SubgraphClient, ""):
+        dependencies = get_on_chain_dependencies()

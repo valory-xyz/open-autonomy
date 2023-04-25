@@ -19,7 +19,7 @@
 
 """Test `mint` command group."""
 
-from typing import Any, Tuple
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -29,6 +29,7 @@ from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F4
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from autonomy.chain.mint import registry_contracts
+from autonomy.chain.subgraph.client import SubgraphClient
 
 from tests.test_autonomy.test_chain.base import (
     BaseChainInteractionTest,
@@ -87,35 +88,15 @@ class TestMintComponents(BaseChainInteractionTest):
             str(ETHEREUM_KEY_DEPLOYER),
         ]
 
-        if package_id.package_type == PackageType.CONNECTION:
-            # Dummy protocol is a dependency for the dummy connection
-            commands += ["-d", str(self.mint_component(package_id=DUMMY_PROTOCOL))]
-
-        if package_id.package_type == PackageType.SKILL:
-            # Dummy protocol, dummy contract and dummy connection are dependencies for the dummy skill
-            commands += [
-                "-d",
-                str(self.mint_component(package_id=DUMMY_PROTOCOL)),
-                "-d",
-                str(self.mint_component(package_id=DUMMY_CONTRACT)),
-                "-d",
-                str(self.mint_component(package_id=DUMMY_CONNECTION)),
-            ]
-
+        dependencies = []
         if package_id.package_type == PackageType.AGENT:
-            # Dummy protocol, dummy contract, dummy connection and dummy skill are dependencies for the dummy skill
-            commands += [
-                "-d",
-                str(self.mint_component(package_id=DUMMY_PROTOCOL)),
-                "-d",
-                str(self.mint_component(package_id=DUMMY_CONTRACT)),
-                "-d",
-                str(self.mint_component(package_id=DUMMY_CONNECTION)),
-                "-d",
-                str(self.mint_component(package_id=DUMMY_SKILL)),
-            ]
+            dependencies.append(self.mint_component(package_id=DUMMY_PROTOCOL))
 
-        result = self.run_cli(commands=tuple(commands))
+        with mock.patch(
+            "autonomy.cli.helpers.chain.get_on_chain_dependencies",
+            return_value=dependencies,
+        ):
+            result = self.run_cli(commands=tuple(commands))
 
         assert result.exit_code == 0, result.output
         assert "Component minted with:" in result.output
@@ -165,9 +146,8 @@ class TestMintComponents(BaseChainInteractionTest):
         self,
     ) -> None:
         """Test mint components."""
-        with mock.patch("autonomy.cli.helpers.chain.verify_component_dependencies"):
-            agent_id = self.mint_component(package_id=DUMMY_AGENT, dependencies=[1])
 
+        agent_id = 1
         commands = (
             DUMMY_SERVICE.package_type.value,
             str(
@@ -182,7 +162,13 @@ class TestMintComponents(BaseChainInteractionTest):
             *DEFAULT_SERVICE_MINT_PARAMETERS[2:],
         )
 
-        result = self.run_cli(commands=commands)
+        with mock.patch(
+            "autonomy.cli.helpers.chain.get_on_chain_dependencies",
+            return_value=[
+                agent_id,
+            ],
+        ):
+            result = self.run_cli(commands=commands)
 
         assert result.exit_code == 0, result
         assert "Service minted with:" in result.output
@@ -200,9 +186,8 @@ class TestMintComponents(BaseChainInteractionTest):
         self,
     ) -> None:
         """Test mint components."""
-        with mock.patch("autonomy.cli.helpers.chain.verify_component_dependencies"):
-            agent_id = self.mint_component(package_id=DUMMY_AGENT, dependencies=[1])
 
+        agent_id = 1
         commands = (
             DUMMY_SERVICE.package_type.value,
             str(
@@ -218,8 +203,13 @@ class TestMintComponents(BaseChainInteractionTest):
             "--owner",
             CUSTOM_OWNER,
         )
-
-        result = self.run_cli(commands=commands)
+        with mock.patch(
+            "autonomy.cli.helpers.chain.get_on_chain_dependencies",
+            return_value=[
+                agent_id,
+            ],
+        ):
+            result = self.run_cli(commands=commands)
 
         assert result.exit_code == 0, result
         assert "Service minted with:" in result.output
@@ -233,85 +223,6 @@ class TestMintComponents(BaseChainInteractionTest):
             package_id=DUMMY_SERVICE,
         )
         self.verify_and_remove_metadata_file(token_id=token_id)
-
-    @pytest.mark.parametrize(
-        argnames=("package_id", "parameters"),
-        argvalues=(
-            (DUMMY_CONNECTION, ("-d", "2")),
-            (DUMMY_AGENT, ("-d", "1")),
-            (DUMMY_SERVICE, ("-a", "1", "-n", "4", "-c", "1000", "--threshold", "3")),
-        ),
-    )
-    def test_metadata_retrive_failure(
-        self, package_id: PackageId, parameters: Tuple[str, ...]
-    ) -> None:
-        """Test connection error."""
-
-        _ = registry_contracts.component_registry
-        _ = registry_contracts.agent_registry
-        _ = registry_contracts.service_registry
-
-        with mock.patch.object(
-            registry_contracts._component_registry,
-            "get_token_uri",
-            side_effect=RequestsConnectionError,
-        ), mock.patch.object(
-            registry_contracts._agent_registry,
-            "get_token_uri",
-            side_effect=RequestsConnectionError,
-        ), mock.patch.object(
-            registry_contracts._service_registry,
-            "get_token_uri",
-            side_effect=RequestsConnectionError,
-        ):
-            result = self.run_cli(
-                commands=(
-                    package_id.package_type.value,
-                    str(
-                        DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
-                            package_id=package_id
-                        )
-                    ),
-                    "--key",
-                    str(ETHEREUM_KEY_DEPLOYER),
-                    *parameters,
-                ),
-            )
-            self.cli_runner.mix_stderr = True
-            assert result.exit_code == 1, result.output
-            assert (
-                "Dependency verification failed; Error connecting to the RPC"
-                in result.stderr
-            )
-
-        with mock.patch.object(
-            registry_contracts._component_registry, "get_token_uri"
-        ), mock.patch.object(
-            registry_contracts._agent_registry, "get_token_uri"
-        ), mock.patch.object(
-            registry_contracts._service_registry, "get_token_uri"
-        ), mock.patch(
-            "autonomy.chain.utils.r_get", side_effect=RequestsConnectionError
-        ):
-            result = self.run_cli(
-                commands=(
-                    package_id.package_type.value,
-                    str(
-                        DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
-                            package_id=package_id
-                        )
-                    ),
-                    "--key",
-                    str(ETHEREUM_KEY_DEPLOYER),
-                    *parameters,
-                ),
-            )
-            self.cli_runner.mix_stderr = True
-            assert result.exit_code == 1, result.output
-            assert (
-                "Dependency verification failed; Error connecting to the IPFS gateway"
-                in result.stdout
-            )
 
     def test_connection_error(
         self,
@@ -347,7 +258,9 @@ class TestMintComponents(BaseChainInteractionTest):
 
         with mock.patch(
             "autonomy.chain.mint.transact", side_effect=RequestsConnectionError
-        ), mock.patch("autonomy.cli.helpers.chain.verify_service_dependencies"):
+        ), mock.patch(
+            "autonomy.cli.helpers.chain.get_on_chain_dependencies", return_value=[1]
+        ):
             result = self.run_cli(
                 commands=(
                     "service",
@@ -373,7 +286,9 @@ class TestMintComponents(BaseChainInteractionTest):
     ) -> None:
         """Test connection error."""
 
-        with mock.patch("autonomy.cli.helpers.chain.verify_service_dependencies"):
+        with mock.patch(
+            "autonomy.cli.helpers.chain.get_on_chain_dependencies", return_value=[1]
+        ):
             result = self.run_cli(
                 commands=(
                     "service",
@@ -401,7 +316,6 @@ class TestMintComponents(BaseChainInteractionTest):
         with mock.patch.object(
             registry_contracts, "_component_registry", DummyContract()
         ), mock.patch("autonomy.chain.mint.transact"):
-
             result = self.run_cli(
                 commands=(
                     DUMMY_PROTOCOL.package_type.value,
@@ -430,9 +344,9 @@ class TestMintComponents(BaseChainInteractionTest):
         with mock.patch.object(
             registry_contracts, "_service_registry", DummyContract()
         ), mock.patch("autonomy.chain.mint.transact"), mock.patch(
-            "autonomy.cli.helpers.chain.verify_service_dependencies"
+            "autonomy.cli.helpers.chain.get_on_chain_dependencies",
+            return_value=[1],
         ):
-
             result = self.run_cli(
                 commands=(
                     DUMMY_SERVICE.package_type.value,
@@ -459,19 +373,27 @@ class TestMintComponents(BaseChainInteractionTest):
     ) -> None:
         """Test token id retrieval failure."""
 
-        result = self.run_cli(
-            commands=(
-                DUMMY_SERVICE.package_type.value,
-                str(DUMMY_PACKAGE_MANAGER.package_path_from_package_id(DUMMY_SERVICE)),
-                "--key",
-                str(ETHEREUM_KEY_DEPLOYER),
-                *DEFAULT_SERVICE_MINT_PARAMETERS,
-            ),
-        )
+        with mock.patch(
+            "autonomy.cli.helpers.chain.get_on_chain_dependencies",
+            return_value=[2],
+        ):
+            result = self.run_cli(
+                commands=(
+                    DUMMY_SERVICE.package_type.value,
+                    str(
+                        DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
+                            DUMMY_SERVICE
+                        )
+                    ),
+                    "--key",
+                    str(ETHEREUM_KEY_DEPLOYER),
+                    *DEFAULT_SERVICE_MINT_PARAMETERS,
+                ),
+            )
 
         assert result.exit_code == 1, result.output
         assert (
-            "On chain ID of the agent does not match with the one in the service configuration"
+            "Agent ID not found in the list of on-chain agent IDs related to agent defined in the service"
             in result.stderr
         )
 
@@ -480,21 +402,25 @@ class TestMintComponents(BaseChainInteractionTest):
     ) -> None:
         """Test token id retrieval failure."""
 
-        result = self.run_cli(
-            commands=(
-                DUMMY_CONNECTION.package_type.value,
-                str(
-                    DUMMY_PACKAGE_MANAGER.package_path_from_package_id(DUMMY_CONNECTION)
+        with mock.patch.object(
+            SubgraphClient,
+            "getRecordByPackageHash",
+            return_value={"units": []},
+        ):
+            result = self.run_cli(
+                commands=(
+                    DUMMY_CONNECTION.package_type.value,
+                    str(
+                        DUMMY_PACKAGE_MANAGER.package_path_from_package_id(
+                            DUMMY_CONNECTION
+                        )
+                    ),
+                    "--key",
+                    str(ETHEREUM_KEY_DEPLOYER),
                 ),
-                "--key",
-                str(ETHEREUM_KEY_DEPLOYER),
-                "-d",
-                "1",
-            ),
-        )
+            )
 
         assert result.exit_code == 1, result.output
         assert (
-            "On chain dependency with id 1 and public ID valory/abci:any not found in the local package configuration"
-            in result.stderr
+            "No on chain registration found for following dependencies" in result.stderr
         )
