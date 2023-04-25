@@ -20,7 +20,6 @@
 """Test service management."""
 
 from typing import Optional
-from unittest import mock
 
 from aea.crypto.registries import make_crypto
 from aea_test_autonomy.configurations import ETHEREUM_KEY_PATH_5
