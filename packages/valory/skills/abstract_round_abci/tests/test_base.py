@@ -2356,6 +2356,7 @@ class TestRoundSequence:
     ) -> None:
         """Test `_handle_slashing_not_configured` method."""
         logging.disable(logging.CRITICAL)
+
         round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
         round_sequence.setup(MagicMock(), MagicMock())
 
@@ -2372,6 +2373,8 @@ class TestRoundSequence:
             assert round_sequence.latest_synchronized_data.nb_participants == 4
             round_sequence._handle_slashing_not_configured(exc)
             assert not round_sequence._slashing_enabled
+
+        logging.disable(logging.NOTSET)
 
     @pytest.mark.parametrize("_track_offences_raises", (True, False))
     def test_try_track_offences(self, _track_offences_raises: bool) -> None:
