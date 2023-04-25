@@ -1,5 +1,10 @@
 # Release History - `open-autonomy`
 
+# 0.10.3 (TBD)
+
+Docs:
+- Adds auto-correcting functionality for several package hash instances  #1939
+
 # 0.10.2 (2023-04-24)
 
 Autonomy:
