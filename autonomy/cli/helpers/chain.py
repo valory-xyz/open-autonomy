@@ -20,7 +20,7 @@
 """On-chain interaction helpers."""
 
 from pathlib import Path
-from typing import List, Optional, Set, Tuple, cast
+from typing import Any, Dict, List, Optional, Set, Tuple, cast
 
 import click
 from aea.configurations.data_types import PackageId, PackageType
@@ -118,7 +118,7 @@ def get_on_chain_dependencies(
     not_found = []
     found = []
     subgraph = SubgraphClient()
-
+    record: Dict[str, Any]
     for dependency in dependencies:
         if skip_hash_check:
             record = subgraph.getRecordByPublicId(
@@ -212,7 +212,7 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
         )
 
     dependencies = get_on_chain_dependencies(
-        package_configuration=package_configuration,
+        dependencies=package_configuration.package_dependencies,
         skip_hash_check=skip_hash_check,
         use_latest_dependencies=use_latest_dependencies,
     )

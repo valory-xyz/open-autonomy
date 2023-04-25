@@ -19,6 +19,8 @@
 
 """Subgraph client."""
 
+from typing import Any, Dict
+
 from gql import Client, gql
 from gql.transport.aiohttp import AIOHTTPTransport
 
@@ -29,7 +31,7 @@ SUBGRAPH_LOCAL = "http://localhost:8000"
 SUBGRAPH_NAME = "autonolas"
 
 
-class ComponentTypes:
+class ComponentTypes:  # pylint: disable=too-few-public-methods
     """Component types."""
 
     COMPONENT = "COMPONENT"
@@ -56,7 +58,7 @@ class SubgraphClient:
             fetch_schema_from_transport=True,
         )
 
-    def getRecordByPackageHash(self, package_hash: str) -> None:
+    def getRecordByPackageHash(self, package_hash: str) -> Dict[str, Any]:
         """Get component by package hash"""
         query_str = FIND_BY_PACKAGE_HASH.format(
             package_hash=package_hash,
@@ -64,7 +66,7 @@ class SubgraphClient:
         query = gql(query_str)
         return self.client.execute(query)
 
-    def getRecordByPublicId(self, public_id: str) -> None:
+    def getRecordByPublicId(self, public_id: str) -> Dict[str, Any]:
         """Get component by package hash"""
         query_str = FIND_BY_PUBLIC_ID.format(
             public_id=public_id,

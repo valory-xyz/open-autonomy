@@ -81,7 +81,6 @@ class TestMintComponentMethod:
                     package_type=PackageType.PROTOCOL,
                     key=ETHEREUM_KEY_DEPLOYER,
                     chain_type=ChainType.LOCAL,
-                    dependencies=[],
                 )
 
     def test_mint_component_token_id_retrieve_fail(
@@ -109,7 +108,6 @@ class TestMintComponentMethod:
                     package_type=PackageType.PROTOCOL,
                     key=ETHEREUM_KEY_DEPLOYER,
                     chain_type=ChainType.LOCAL,
-                    dependencies=[],
                 )
 
     def test_rpc_cannot_be_none(
@@ -130,7 +128,6 @@ class TestMintComponentMethod:
                 package_type=PackageType.PROTOCOL,
                 key=ETHEREUM_KEY_DEPLOYER,
                 chain_type=ChainType.GOERLI,
-                dependencies=[],
             )
 
     def test_missing_nft_hash(
@@ -151,7 +148,6 @@ class TestMintComponentMethod:
                     package_type=PackageType.PROTOCOL,
                     key=ETHEREUM_KEY_DEPLOYER,
                     chain_type=ChainType.GOERLI,
-                    dependencies=[],
                 )
 
     def test_mint_component_timeout(
@@ -187,7 +183,6 @@ class TestMintComponentMethod:
                     package_type=PackageType.PROTOCOL,
                     key=ETHEREUM_KEY_DEPLOYER,
                     chain_type=ChainType.LOCAL,
-                    dependencies=[],
                     timeout=1.0,
                 )
 
@@ -346,5 +341,4 @@ def test_get_ledger_and_crypto_failure() -> None:
             package_type=PackageType.PROTOCOL,
             key=None,
             chain_type=ChainType.LOCAL,
-            dependencies=[],
         )
