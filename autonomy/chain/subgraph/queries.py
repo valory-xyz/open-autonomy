@@ -33,19 +33,7 @@ query getUnit {{
 
 FIND_BY_PUBLIC_ID = """
 query getUnit {{
-  units(where:{{publicId: "{public_id}"}}){{
-    id
-    tokenId
-    packageHash
-    publicId
-    componentType
-  }}
-}}
-"""
-
-FIND_BY_TOKEN_ID = """
-query getUnit {{
-  units(where:{{tokenId:"{token_id}"}}){{
+  units(where:{{publicId: "{public_id}",componentType:{component_type}}}){{
     id
     tokenId
     packageHash

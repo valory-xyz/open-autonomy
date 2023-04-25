@@ -121,8 +121,8 @@ def get_on_chain_dependencies(
     record: Dict[str, Any]
     for dependency in dependencies:
         if skip_hash_check:
-            record = subgraph.getRecordByPublicId(
-                public_id=f"{dependency.public_id.author}/{dependency.public_id.name}",
+            record = subgraph.getRecordByPackageId(
+                package_id=dependency,
             )
         else:
             record = subgraph.getRecordByPackageHash(
