@@ -19,18 +19,19 @@
 
 """Test chain helpers."""
 
+from typing import Dict
 from unittest import mock
 
 import click
 import pytest
-from aea.configurations.data_types import PackageType
+from aea.configurations.data_types import PackageId, PackageType, PublicId
 from aea_ledger_ethereum_hwi.hwi import EthereumHWIApi, EthereumHWICrypto
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
+from gql import Client as GQLClient
 
 from autonomy.chain.base import ServiceState
 from autonomy.chain.config import ChainConfigs, ChainType
 from autonomy.chain.mint import registry_contracts
-from autonomy.chain.subgraph.client import SubgraphClient
 from autonomy.cli.helpers.chain import (
     activate_service,
     deploy_service,
@@ -347,8 +348,84 @@ def test_get_ledger_and_crypto_failure() -> None:
         )
 
 
-def test_get_on_chain_dependencies() -> None:
-    """Test `get_on_chain_dependencies` method"""
+class TestGetOnChainDependencies:
+    """Test `get_on_chain_dependencies` method."""
 
-    with mock.patch.object(SubgraphClient, ""):
-        dependencies = get_on_chain_dependencies()
+    dependencies = {
+        PackageId(
+            PackageType.PROTOCOL,
+            PublicId(
+                author="author",
+                name="package",
+                package_hash="bafybei0000000000000000000000000000000000000000000000000000",
+            ),
+        )
+    }
+
+    @staticmethod
+    def mock_client(return_value: Dict) -> mock._patch:
+        """Mock GQL Client."""
+        return mock.patch.object(
+            GQLClient,
+            "execute",
+            return_value=return_value,
+        )
+
+    def test_get_on_chain_dependencies(self) -> None:
+        """Test `get_on_chain_dependencies` method"""
+
+        with self.mock_client(
+            return_value={
+                "units": [{"tokenId": 0}],
+            }
+        ):
+            dependencies = get_on_chain_dependencies(
+                dependencies=self.dependencies,
+            )
+
+            assert dependencies == [0]
+
+    def test_get_on_chain_dependencies_multiple_deps(self) -> None:
+        """Test `get_on_chain_dependencies` method"""
+
+        with self.mock_client(
+            return_value={
+                "units": [{"tokenId": 0}, {"tokenId": 1}],
+            },
+        ), mock.patch("click.prompt", return_value=1):
+            dependencies = get_on_chain_dependencies(
+                dependencies=self.dependencies,
+            )
+
+            assert dependencies == [1]
+
+    def test_get_on_chain_dependencies_multiple_deps_use_latest(self) -> None:
+        """Test `get_on_chain_dependencies` method"""
+
+        with self.mock_client(
+            return_value={
+                "units": [{"tokenId": 0}, {"tokenId": 1}],
+            },
+        ):
+            dependencies = get_on_chain_dependencies(
+                dependencies=self.dependencies,
+                use_latest_dependencies=True,
+            )
+
+            assert dependencies == [1]
+
+    def test_get_on_chain_dependencies_failure(self) -> None:
+        """Test `get_on_chain_dependencies` method"""
+
+        with pytest.raises(
+            click.ClickException,
+            match="No on chain registration found for following dependencies",
+        ), self.mock_client(
+            return_value={
+                "units": [],
+            },
+        ):
+            get_on_chain_dependencies(
+                dependencies=self.dependencies,
+                use_latest_dependencies=True,
+            )
