@@ -18,6 +18,19 @@ def get_ledger_and_crypto_objects(
 
 Create ledger_api and crypto objects
 
+<a id="autonomy.cli.helpers.chain.get_on_chain_dependencies"></a>
+
+#### get`_`on`_`chain`_`dependencies
+
+```python
+def get_on_chain_dependencies(
+        dependencies: Set[PackageId],
+        skip_hash_check: bool = False,
+        use_latest_dependencies: bool = False) -> List[int]
+```
+
+Get package dependencies
+
 <a id="autonomy.cli.helpers.chain.mint_component"></a>
 
 #### mint`_`component
@@ -27,11 +40,11 @@ def mint_component(package_path: Path,
                    package_type: PackageType,
                    key: Optional[Path],
                    chain_type: ChainType,
-                   dependencies: List[int],
                    nft: Optional[NFTHashOrPath] = None,
                    owner: Optional[str] = None,
                    password: Optional[str] = None,
                    skip_hash_check: bool = False,
+                   use_latest_dependencies: bool = False,
                    timeout: Optional[float] = None,
                    hwi: bool = False) -> None
 ```
@@ -54,6 +67,7 @@ def mint_service(package_path: Path,
                  owner: Optional[str] = None,
                  password: Optional[str] = None,
                  skip_hash_check: bool = False,
+                 use_latest_dependencies: bool = False,
                  timeout: Optional[float] = None,
                  hwi: bool = False) -> None
 ```

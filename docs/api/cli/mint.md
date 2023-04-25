@@ -14,12 +14,21 @@ Mint command group definitions.
 @chain_selection_flag()
 @timeout_flag
 @click.option(
+    "-s",
     "--skip-hash-check",
     is_flag=True,
     help="Skip hash check when verifying dependencies on chain",
 )
+@click.option(
+    "-l",
+    "--latest-dependencies",
+    "use_latest_dependencies",
+    is_flag=True,
+    help=
+    "Use latest on-chain dependencies if there are multiple dependencies with same package ID",
+)
 def mint(ctx: Context, chain_type: str, skip_hash_check: bool,
-         timeout: float) -> None
+         use_latest_dependencies: bool, timeout: float) -> None
 ```
 
 Mint component on-chain.
@@ -34,7 +43,6 @@ Mint component on-chain.
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
 @pass_ctx
@@ -42,7 +50,6 @@ def protocol(ctx: Context,
              package_path: Path,
              key: Path,
              password: Optional[str],
-             dependencies: Tuple[str],
              nft: Optional[Union[Path, IPFSHash]],
              owner: Optional[str],
              hwi: bool = False) -> None
@@ -60,7 +67,6 @@ Mint a protocol component.
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
 @pass_ctx
@@ -68,7 +74,6 @@ def contract(ctx: Context,
              package_path: Path,
              key: Path,
              password: Optional[str],
-             dependencies: Tuple[str],
              nft: Optional[Union[Path, IPFSHash]],
              owner: Optional[str],
              hwi: bool = False) -> None
@@ -86,7 +91,6 @@ Mint a contract component.
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
 @pass_ctx
@@ -94,7 +98,6 @@ def connection(ctx: Context,
                package_path: Path,
                key: Path,
                password: Optional[str],
-               dependencies: Tuple[str],
                nft: Optional[Union[Path, IPFSHash]],
                owner: Optional[str],
                hwi: bool = False) -> None
@@ -112,7 +115,6 @@ Mint a connection component.
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
 @pass_ctx
@@ -120,7 +122,6 @@ def skill(ctx: Context,
           package_path: Path,
           key: Path,
           password: Optional[str],
-          dependencies: Tuple[str],
           nft: Optional[Union[Path, IPFSHash]],
           owner: Optional[str],
           hwi: bool = False) -> None
@@ -138,7 +139,6 @@ Mint a skill component.
 @key_path_decorator
 @hwi_flag
 @password_decorator
-@dependencies_decorator
 @nft_decorator
 @owner_flag
 @pass_ctx
@@ -146,7 +146,6 @@ def agent(ctx: Context,
           package_path: Path,
           key: Path,
           password: Optional[str],
-          dependencies: Tuple[str],
           nft: Optional[Union[Path, IPFSHash]],
           owner: Optional[str],
           hwi: bool = False) -> None
