@@ -86,16 +86,16 @@ You can also mint packages using the [`autonomy mint` command](../advanced_refer
     1. Mint components:
 
         ```bash
-        autonomy mint --use-ethereum protocol --key minting_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d <dependency_1> ... -d <dependency_n> <component_path>
-        autonomy mint --use-ethereum connection --key minting_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d <dependency_1> ... -d <dependency_n> <component_path>
-        autonomy mint --use-ethereum contract --key minting_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d <dependency_1> ... -d <dependency_n> <component_path>
-        autonomy mint --use-ethereum skill --key minting_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d <dependency_1> ... -d <dependency_n> <component_path>        
+        autonomy mint --use-ethereum protocol --key minting_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> <component_path>
+        autonomy mint --use-ethereum connection --key minting_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> <component_path>
+        autonomy mint --use-ethereum contract --key minting_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> <component_path>
+        autonomy mint --use-ethereum skill --key minting_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> <component_path>        
         ```
 
     2. Mint the agent:
 
         ```bash
-        autonomy mint --use-ethereum agent --key minting_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d <dependency_1> ... -d <dependency_n> <agent_path>   
+        autonomy mint --use-ethereum agent --key minting_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> <agent_path>   
         ```
 
     3. Mint the service:
@@ -172,17 +172,17 @@ Below we show the steps to register the `hello_world` service and all its requir
     autonomy mint --use-local protocol --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 ./packages/valory/protocols/tendermint/
 
     # Mint components with dependencies
-    autonomy mint --use-local connection --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 -d {{ num_minted_components + 3 }} ./packages/valory/connections/abci/
-    autonomy mint --use-local connection --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 -d {{ num_minted_components + 6 }} ./packages/valory/connections/http_client/
-    autonomy mint --use-local connection --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 -d {{ num_minted_components + 7 }} ./packages/valory/connections/ipfs/
-    autonomy mint --use-local connection --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 -d {{ num_minted_components + 5 }} -d {{ num_minted_components + 8 }} ./packages/valory/connections/ledger/
-    autonomy mint --use-local connection --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 -d {{ num_minted_components + 4 }} ./packages/valory/connections/p2p_libp2p_client/
-    autonomy mint --use-local skill --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 -d {{ num_minted_components + 3 }} -d {{ num_minted_components + 10 }} ./packages/valory/skills/abstract_abci/
-    autonomy mint --use-local skill --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 -d {{ num_minted_components + 1 }} -d {{ num_minted_components + 2 }} -d {{ num_minted_components + 3 }} -d {{ num_minted_components + 5 }} -d {{ num_minted_components + 6 }} -d {{ num_minted_components + 7 }} -d {{ num_minted_components + 8 }} -d {{ num_minted_components + 9 }} -d {{ num_minted_components + 10 }} -d {{ num_minted_components + 11 }} -d {{ num_minted_components + 12 }} -d {{ num_minted_components + 13 }} -d {{ num_minted_components + 14 }} -d {{ num_minted_components + 15 }} ./packages/valory/skills/abstract_round_abci/
-    autonomy mint --use-local skill --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 -d {{ num_minted_components + 16 }} ./packages/valory/skills/hello_world_abci/    
+    autonomy mint --use-local connection --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 ./packages/valory/connections/abci/
+    autonomy mint --use-local connection --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 ./packages/valory/connections/http_client/
+    autonomy mint --use-local connection --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 ./packages/valory/connections/ipfs/
+    autonomy mint --use-local connection --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 ./packages/valory/connections/ledger/
+    autonomy mint --use-local connection --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 ./packages/valory/connections/p2p_libp2p_client/
+    autonomy mint --use-local skill --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 ./packages/valory/skills/abstract_abci/
+    autonomy mint --use-local skill --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 ./packages/valory/skills/abstract_round_abci/
+    autonomy mint --use-local skill --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 ./packages/valory/skills/hello_world_abci/    
 
     # Mint the agent 
-    autonomy mint --use-local agent --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 -d {{ num_minted_components + 2 }} -d {{ num_minted_components + 3 }} -d {{ num_minted_components + 6 }} -d {{ num_minted_components + 7 }} -d {{ num_minted_components + 10 }} -d {{ num_minted_components + 11 }} -d {{ num_minted_components + 12 }} -d {{ num_minted_components + 13 }} -d {{ num_minted_components + 14 }} -d {{ num_minted_components + 15 }} -d {{ num_minted_components + 16 }} -d {{ num_minted_components + 17 }} ./packages/valory/agents/hello_world/
+    autonomy mint --use-local agent --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8             ./packages/valory/agents/hello_world/
 
     # Mint the service
     autonomy mint --use-local service --key minting_key.txt --nft Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev --owner 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --agent-id {{ num_minted_agents + 1 }} --number-of-slots 4 --cost-of-bond 10000000000000000 --threshold 3 ./packages/valory/services/hello_world/
