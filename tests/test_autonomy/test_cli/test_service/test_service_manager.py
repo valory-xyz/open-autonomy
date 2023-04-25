@@ -54,16 +54,15 @@ class BaseServiceManagerTest(BaseChainInteractionTest):
         self,
     ) -> int:
         """Mint service component"""
-        with mock.patch("autonomy.cli.helpers.chain.verify_service_dependencies"):
-            service_id = self.mint_component(
-                package_id=DUMMY_SERVICE,
-                service_mint_parameters=dict(
-                    agent_ids=[AGENT_ID],
-                    number_of_slots_per_agent=[NUMBER_OF_SLOTS_PER_AGENT],
-                    cost_of_bond_per_agent=[COST_OF_BOND_FOR_AGENT],
-                    threshold=THRESHOLD,
-                ),
-            )
+        service_id = self.mint_component(
+            package_id=DUMMY_SERVICE,
+            service_mint_parameters=dict(
+                agent_ids=[AGENT_ID],
+                number_of_slots_per_agent=[NUMBER_OF_SLOTS_PER_AGENT],
+                cost_of_bond_per_agent=[COST_OF_BOND_FOR_AGENT],
+                threshold=THRESHOLD,
+            ),
+        )
 
         assert isinstance(service_id, int)
         return service_id
