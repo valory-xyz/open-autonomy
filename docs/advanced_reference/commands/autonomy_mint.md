@@ -22,7 +22,7 @@ This command group consists of a number of functionalities to mint components, a
 : Use the custom-chain chain profile to interact with the Autonolas Protocol registry contracts. This option requires that you define the following environment variables (see the [Autonolas Protocol](https://docs.autonolas.network/protocol/) documentation for more information):
 
     - `CUSTOM_CHAIN_RPC` : RPC endpoint for the custom chain.
-    - `CUSTOM_CHAIN_ID` : Chain ID.
+    - `CUSTOM_CHAIN_ID` : chain ID.
     - `CUSTOM_COMPONENT_REGISTRY_ADDRESS` : custom Component Registry
  contract address.
     - `CUSTOM_AGENT_REGISTRY_ADDRESS` : custom Agent Registry contract address.
@@ -68,23 +68,23 @@ autonomy mint skill [OPTIONS] PACKAGE_PATH
 : Dependencies for the package.
 
 `--nft IPFS_HASH_OR_IMAGE_PATH`
-: IPFS hash or path to the NFT image for the NFT image representing the package. Note that if you are using a local chain this option is not required.
+: IPFS hash or path to the image for the NFT representing the package. Note that if you are using a local chain this option is not required.
 
-`--owner TEXT`
+`--owner OWNER_ADDRESS`
 : Owner address of the package.
 
 ### Examples
 
-Mint the `hello_world_abci` {{fsm_app}} skill with dependencies 11 and 42 in a custom chain:
+Mint the `abstract_abci` skill with dependency IDs 35 and 42 in a local chain:
 
 ```bash
-autonomy mint --use-custom-chain skill -d 11 -d 42 --nft <nft_ipfs_hash_or_image_path> ./packages/valory/skills/hello_world_abci --key my_key.txt
+autonomy mint --use-local skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 35 -d 42 ./packages/valory/skills/abstract_abci
 ```
 
 Same as above, but using a hardware wallet:
 
 ```bash
-autonomy mint --use-custom-chain skill -d 11 -d 42 --nft <nft_ipfs_hash_or_image_path> ./packages/valory/skills/hello_world_abci --hwi
+autonomy mint --use-local skill --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 35 -d 42 ./packages/valory/skills/abstract_abci
 ```
 
 ## `autonomy mint agent`
@@ -110,24 +110,24 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH
 `-d, --dependencies DEPENDENCY_ID`
 : Dependencies for the package. In order to be minted, agent packages require at least one dependency.
 
-`--nft NFT_HASH`
-: IPFS hash for the NFT image representing the package. Note that if you are using a local chain this option is not required.
+`--nft NFT_HASH_OR_IMAGE_PATH`
+: IPFS hash or path to the image for the NFT representing the package. Note that if you are using a local chain this option is not required.
 
-`--owner TEXT`
+`--owner OWNER_ADDRESS`
 : Owner address of the package.
 
 ### Examples
 
-Mint the `hello_world` agent with dependency 43 in the Ethereum main chain:
+Mint the `hello_world` agent with dependency IDs 34, 35, 38, 39, 42, 43, 44, 45, 46, 47, 48 and 49 in the Ethereum main chain:
 
 ```bash
-autonomy mint --use-ethereum agent -d 43 --nft <nft_ipfs_hash_or_image_path> ./packages/valory/agents/hello_world --key my_key.txt
+autonomy mint --use-ethereum agent --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 34 -d 35 -d 38 -d 39 -d 42 -d 43 -d 44 -d 45 -d 46 -d 47 -d 48 -d 49 ./packages/valory/agents/hello_world
 ```
 
 Same as above, but using a hardware wallet:
 
 ```bash
-autonomy mint --use-ethereum agent -d 43 --nft <nft_ipfs_hash_or_image_path> ./packages/valory/agents/hello_world --hwi
+autonomy mint --use-ethereum agent --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> -d 34 -d 35 -d 38 -d 39 -d 42 -d 43 -d 44 -d 45 -d 46 -d 47 -d 48 -d 49 ./packages/valory/agents/hello_world
 ```
 
 ## `autonomy mint service`
@@ -153,7 +153,7 @@ autonomy mint service [OPTIONS] PACKAGE_PATH
 `--nft IPFS_HASH_OR_IMAGE_PATH`
 : IPFS hash or path to the NFT image for the NFT image representing the package. Note that if you are using a local chain this option is not required.
 
-`--owner TEXT`
+`--owner OWNER_ADDRESS`
 : Owner address of the package.
 
 `-a, --agent-id AGENT_ID`
@@ -162,7 +162,7 @@ autonomy mint service [OPTIONS] PACKAGE_PATH
 `-n, --number-of-slots NUM_SLOTS`
 : Number of agent instances for the canonical agent.
 
-`-c, --cost-of-bond COST_BOND`
+`-c, --cost-of-bond COST_BOND_WEI`
 : Cost of bond for the agent (Wei).
 
 `--threshold`
@@ -170,18 +170,18 @@ autonomy mint service [OPTIONS] PACKAGE_PATH
 
 ### Examples
 
-Mint the `hello_world` service with 4 instances of canonical agent ID 84, cost of bond 10000000 Wei and a threshold of 3 agents, in the Ethereum main chain:
+Mint the `hello_world` service with 4 instances of canonical agent ID 3, cost of bond 10000000000000000 Wei per agent and a threshold of 3 agents, in the Ethereum main chain:
 
 ```bash
-autonomy mint --use-ethereum service -a 84 -n 4 -c 10000000 --threshold 3 --nft <nft_ipfs_hash_or_image_path> ./packages/valory/services/hello_world --key my_key.txt
+autonomy mint --use-ethereum service --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> --agent-id 3 --number-of-slots 4 --cost-of-bond 10000000000000000 --threshold 3 ./packages/valory/services/hello_world
 ```
 
 Same as above, but using a hardware wallet:
 
 ```bash
-autonomy mint --use-ethereum service -a 84 -n 4 -c 10000000 --threshold 3 --nft <nft_ipfs_hash_or_image_path> ./packages/valory/services/hello_world --hwi
+autonomy mint --use-ethereum service --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> --agent-id 3 --number-of-slots 4 --cost-of-bond 10000000000000000 --threshold 3 ./packages/valory/services/hello_world
 ```
 
 !!! note
 
-    You can specify more than one type of canonical agent in a service by appropriately defining the triplets `-a`, `-n` and `-c` for each canonical agent ID.
+    You can specify more than one type of canonical agent in a service by appropriately defining the triplets `--agent-id`, `--number-of-slots` and `--cost-of-bond` for each canonical agent ID.
