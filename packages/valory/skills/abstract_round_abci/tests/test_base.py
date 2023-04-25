@@ -2055,20 +2055,9 @@ class TestRoundSequence:
     def test_get_agent_address(self, validator: Validator, agent_address: str) -> None:
         """Test `get_agent_address` method."""
         round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
-
-        try:
-            validator_address = validator.address.decode()
-        except UnicodeDecodeError as exc:
-            with pytest.raises(
-                ValueError,
-                match=re.escape(
-                    f"Could not decode validator address {validator.address!r}: {exc}"
-                ),
-            ):
-                round_sequence.get_agent_address(validator)
-            return
-
-        round_sequence.validator_to_agent = {validator_address: agent_address}
+        round_sequence.validator_to_agent = {
+            validator.address.hex().upper(): agent_address
+        }
         assert round_sequence.get_agent_address(validator) == agent_address
 
         unknown = deepcopy(validator)
@@ -2076,7 +2065,8 @@ class TestRoundSequence:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                f"Requested agent address for an unknown validator address {unknown.address.decode()}."
+                f"Requested agent address for an unknown validator address {unknown.address.hex().upper()}. "
+                f"Available validators are: {round_sequence.validator_to_agent.keys()}"
             ),
         ):
             round_sequence.get_agent_address(unknown)
@@ -2314,7 +2304,7 @@ class TestRoundSequence:
             agent_address = dummy_addr_template.format(i=i)
             # initialize dummy round sequence's offence status and validator to agent address mapping
             round_sequence._offence_status[agent_address] = OffenceStatus()
-            validator_address = vote_info.validator.address.decode()
+            validator_address = vote_info.validator.address.hex()
             round_sequence._validator_to_agent[validator_address] = agent_address
             # set expected result
             expected_was_down = not vote_info.signed_last_block
@@ -2324,7 +2314,7 @@ class TestRoundSequence:
 
         for byzantine_validator in evidences.byzantine_validators:
             agent_address = round_sequence._validator_to_agent[
-                byzantine_validator.validator.address.decode()
+                byzantine_validator.validator.address.hex()
             ]
             evidence_type = byzantine_validator.evidence_type
             expected_offence_status[agent_address].num_unknown_offenses += bool(
