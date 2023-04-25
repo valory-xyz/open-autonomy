@@ -44,6 +44,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData,
     OffenceStatus,
     ROUND_COUNT_DEFAULT,
+    RoundSequence,
 )
 from packages.valory.skills.abstract_round_abci.models import (
     ApiSpecs,
@@ -421,9 +422,17 @@ class TestSharedState:
             shared_state.initial_tm_configs = dict.fromkeys(acn_configured_agents)
             shared_state.setup_slashing(validator_to_agent)
             assert shared_state.round_sequence.validator_to_agent == validator_to_agent
-            assert shared_state.round_sequence.offence_status == dict.fromkeys(
-                acn_configured_agents, OffenceStatus()
+
+            encoded_status = json.dumps(
+                shared_state.round_sequence.offence_status,
+                cls=RoundSequence.OffenseStatusEncoder,
             )
+            expected_status = dict.fromkeys(acn_configured_agents, OffenceStatus())
+            encoded_expected_status = json.dumps(
+                expected_status, cls=RoundSequence.OffenseStatusEncoder
+            )
+
+            assert encoded_status == encoded_expected_status
             return
 
         expected_diff = acn_configured_agents.symmetric_difference(
