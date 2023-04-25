@@ -4,15 +4,15 @@
 
 Subgraph client.
 
-<a id="autonomy.chain.subgraph.client.ComponentTypes"></a>
+<a id="autonomy.chain.subgraph.client.ComponentType"></a>
 
-## ComponentTypes Objects
+## ComponentType Objects
 
 ```python
-class ComponentTypes()
+class ComponentType(Enum)
 ```
 
-Component types.
+Component type.
 
 <a id="autonomy.chain.subgraph.client.SubgraphClient"></a>
 
@@ -29,7 +29,7 @@ Subgraph helper class.
 #### `__`init`__`
 
 ```python
-def __init__(name: str = SUBGRAPH_NAME, url: str = SUBGRAPH_LOCAL) -> None
+def __init__(name: str = SUBGRAPH_NAME, url: str = SUBGRAPH_URL) -> None
 ```
 
 Initialize object
@@ -44,12 +44,12 @@ def getRecordByPackageHash(package_hash: str) -> Dict[str, Any]
 
 Get component by package hash
 
-<a id="autonomy.chain.subgraph.client.SubgraphClient.getRecordByPublicId"></a>
+<a id="autonomy.chain.subgraph.client.SubgraphClient.getRecordByPackageId"></a>
 
-#### getRecordByPublicId
+#### getRecordByPackageId
 
 ```python
-def getRecordByPublicId(public_id: str) -> Dict[str, Any]
+def getRecordByPackageId(package_id: PackageId) -> Dict[str, Any]
 ```
 
 Get component by package hash
