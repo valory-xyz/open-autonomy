@@ -3017,7 +3017,9 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             )
 
         # this information comes from Tendermint, so it is safe to add it to the synchronized database of the agents
-        encoded_status = json.dumps(self.offence_status, cls=self.OffenseStatusEncoder)
+        encoded_status = json.dumps(
+            self.offence_status, cls=self.OffenseStatusEncoder, sort_keys=True
+        )
         db_updates = {get_name(BaseSynchronizedData.offence_status): encoded_status}
         self.abci_app.synchronized_data.update(BaseSynchronizedData, **db_updates)
 

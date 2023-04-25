@@ -2328,7 +2328,9 @@ class TestRoundSequence:
             )
 
         encoded_status = json.dumps(
-            expected_offence_status, cls=RoundSequence.OffenseStatusEncoder
+            expected_offence_status,
+            cls=RoundSequence.OffenseStatusEncoder,
+            sort_keys=True,
         )
         expected_db_updates = {
             get_name(BaseSynchronizedData.offence_status): encoded_status
