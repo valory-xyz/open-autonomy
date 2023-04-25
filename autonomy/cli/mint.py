@@ -46,13 +46,6 @@ password_decorator = click.option(
     type=str,
     help="Password for key pair",
 )
-dependencies_decorator = click.option(
-    "-d",
-    "--dependencies",
-    type=str,
-    multiple=True,
-    help="Dependencies for the package",
-)
 nft_decorator = click.option(
     "--nft",
     type=NFTArgument(),
