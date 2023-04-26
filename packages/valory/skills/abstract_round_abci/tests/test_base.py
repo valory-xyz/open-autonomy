@@ -44,6 +44,7 @@ from typing import (
     Tuple,
     Type,
     cast,
+    Callable,
 )
 from unittest import mock
 from unittest.mock import MagicMock
@@ -1841,6 +1842,22 @@ class TestOffenceTypeFns:
         ]
 
 
+@composite
+def availability_window_data(draw: DrawFn) -> Dict[str, int]:
+    """A strategy for building valid availability window data."""
+    max_length = draw(integers(min_value=1, max_value=12_000))
+    array = draw(integers(min_value=0, max_value=(2**max_length) - 1))
+    num_positive = draw(integers(min_value=0, max_value=1_000_000))
+    num_negative = draw(integers(min_value=0, max_value=1_000_000))
+
+    return {
+        "max_length": max_length,
+        "array": array,
+        "num_positive": num_positive,
+        "num_negative": num_negative,
+    }
+
+
 class TestAvailabilityWindow:
     """Test `AvailabilityWindow`."""
 
@@ -1921,6 +1938,98 @@ class TestAvailabilityWindow:
             "num_positive": num_positive,
             "num_negative": num_negative,
         }
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "data_, key, validator, expected_error",
+        (
+            ({"a": 1, "b": 2, "c": 3}, "a", lambda x: x > 0, None),
+            (
+                {"a": 1, "b": 2, "c": 3},
+                "d",
+                lambda x: x > 0,
+                r"Missing required key: d\.",
+            ),
+            (
+                {"a": "1", "b": 2, "c": 3},
+                "a",
+                lambda x: x > 0,
+                r"a must be of type int\.",
+            ),
+            (
+                {"a": -1, "b": 2, "c": 3},
+                "a",
+                lambda x: x > 0,
+                r"a has invalid value -1\.",
+            ),
+        ),
+    )
+    def test_validate_key(
+        data_: dict, key: str, validator: Callable, expected_error: Optional[str]
+    ) -> None:
+        """Test the `_validate_key` method."""
+        if expected_error:
+            with pytest.raises(ValueError, match=expected_error):
+                AvailabilityWindow._validate_key(data_, key, validator)
+        else:
+            AvailabilityWindow._validate_key(data_, key, validator)
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "data_, error_regex",
+        (
+            ("not a dict", r"Expected dict, got"),
+            (
+                {"max_length": -1, "array": 42, "num_positive": 10, "num_negative": 0},
+                r"max_length",
+            ),
+            (
+                {"max_length": 2, "array": 4, "num_positive": 10, "num_negative": 0},
+                r"array",
+            ),
+            (
+                {"max_length": 8, "array": 42, "num_positive": -1, "num_negative": 0},
+                r"num_positive",
+            ),
+            (
+                {"max_length": 8, "array": 42, "num_positive": 10, "num_negative": -1},
+                r"num_negative",
+            ),
+        ),
+    )
+    def test_validate_negative(data_: dict, error_regex: str) -> None:
+        """Negative tests for the `_validate` method."""
+        with pytest.raises((TypeError, ValueError), match=error_regex):
+            AvailabilityWindow._validate(data_)
+
+    @staticmethod
+    @given(availability_window_data())
+    def test_validate_positive(data_: Dict[str, int]) -> None:
+        """Positive tests for the `_validate` method."""
+        AvailabilityWindow._validate(data_)
+
+    @staticmethod
+    @given(availability_window_data())
+    def test_from_dict(data_: Dict[str, int]) -> None:
+        availability_window = AvailabilityWindow.from_dict(data_)
+
+        # convert the serialized array to a binary string
+        binary_number = bin(data_["array"])[2:]
+        # convert each character in the binary string to a flag
+        flags = [bool(int(digit)) for digit in binary_number]
+        expected_window = deque(flags, maxlen=data_["max_length"])
+
+        assert availability_window._max_length == data_["max_length"]
+        assert availability_window._window == expected_window
+        assert availability_window._num_positive == data_["num_positive"]
+        assert availability_window._num_negative == data_["num_negative"]
+
+    @staticmethod
+    @given(availability_window_data())
+    def test_to_dict_and_back(data_: Dict[str, int]) -> None:
+        """Test that the `from_dict` produces an object that generates the input data again when calling `to_dict`."""
+        availability_window = AvailabilityWindow.from_dict(data_)
+        assert availability_window.to_dict() == data_
 
 
 @composite

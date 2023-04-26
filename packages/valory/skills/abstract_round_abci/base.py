@@ -52,6 +52,7 @@ from typing import (
     TypeVar,
     Union,
     cast,
+    Callable,
 )
 
 from aea.crypto.ledger_apis import LedgerApis
@@ -2632,7 +2633,7 @@ class AvailabilityWindow:
         self._window.append(value)
         self._update_counters(value)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict[str, int]:
         """Returns a dictionary representation of the `AvailabilityWindow` instance."""
         return {
             "max_length": self._max_length,
@@ -2643,6 +2644,60 @@ class AvailabilityWindow:
             "num_positive": self._num_positive,
             "num_negative": self._num_negative,
         }
+
+    @staticmethod
+    def _validate_key(
+        data: Dict[str, int], key: str, validator: Callable[[int], bool]
+    ) -> None:
+        """Validate the given key in the data."""
+        value = data.get(key, None)
+        if value is None:
+            raise ValueError(f"Missing required key: {key}.")
+
+        if not isinstance(value, int):
+            raise ValueError(f"{key} must be of type int.")
+
+        if not validator(value):
+            raise ValueError(f"{key} has invalid value {value}.")
+
+    @staticmethod
+    def _validate(data: Dict[str, int]) -> None:
+        """Check if the input can be properly mapped to the class attributes."""
+        if not isinstance(data, dict):
+            raise TypeError(f"Expected dict, got {type(data)}")
+
+        attribute_to_validator = {
+            "max_length": lambda x: x > 0,
+            "array": lambda x: 0 <= x < 2 ** data["max_length"],
+            "num_positive": lambda x: x >= 0,
+            "num_negative": lambda x: x >= 0,
+        }
+
+        errors = []
+        for attribute, validator in attribute_to_validator.items():
+            try:
+                AvailabilityWindow._validate_key(data, attribute, validator)
+            except ValueError as e:
+                errors.append(str(e))
+
+        if errors:
+            raise ValueError("Invalid input:\n" + "\n".join(errors))
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, int]) -> "AvailabilityWindow":
+        """Initializes an `AvailabilityWindow` instance from a dictionary."""
+        cls._validate(data)
+
+        # convert the serialized array to a binary string
+        binary_number = bin(data["array"])[2:]
+        # convert each character in the binary string to a flag
+        flags = (bool(int(digit)) for digit in binary_number)
+
+        instance = cls(max_length=data["max_length"])
+        instance._window.extend(flags)
+        instance._num_positive = data["num_positive"]
+        instance._num_negative = data["num_negative"]
+        return instance
 
 
 @dataclass
