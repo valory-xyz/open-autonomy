@@ -104,6 +104,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     EventType,
     LateArrivingTransaction,
     OffenceStatus,
+    OffenseStatusDecoder,
     OffenseStatusEncoder,
     OffenseType,
     RoundSequence,
@@ -2127,15 +2128,17 @@ def offence_status(draw: DrawFn) -> OffenceStatus:
     return draw(status)
 
 
-class TestOffenseStatusEncoder:
-    """Test the `OffenseStatusEncoder`."""
+class TestOffenseStatusEncoderDecoder:
+    """Test the `OffenseStatusEncoder` and the `OffenseStatusDecoder`."""
 
     @staticmethod
-    @given(dictionaries(keys=text(), values=offence_status()))
-    def test_encode_offense_status(offense_status: Dict[str, OffenceStatus]) -> None:
-        """Test encoding an offense status mapping by using the custom `OffenseStatusEncoder`."""
-        # encode the instance with the custom JSON encoder
-        assert json.dumps(offense_status, cls=OffenseStatusEncoder)
+    @given(dictionaries(keys=text(), values=offence_status(), min_size=1))
+    def test_encode_decode_offense_status(offense_status: str) -> None:
+        """Test encoding an offense status mapping and then decoding it by using the custom encoder/decoder."""
+        encoded = json.dumps(offense_status, cls=OffenseStatusEncoder)
+        decoded = json.loads(encoded, cls=OffenseStatusDecoder)
+
+        assert decoded == offense_status
 
     def test_encode_unknown(self) -> None:
         """Test the encoder with an unknown input."""

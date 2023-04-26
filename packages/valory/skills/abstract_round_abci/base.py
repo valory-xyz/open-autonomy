@@ -2739,6 +2739,31 @@ class OffenseStatusEncoder(json.JSONEncoder):
         return super().default(o)
 
 
+class OffenseStatusDecoder(json.JSONDecoder):
+    """A custom JSON decoder for the offence status dictionary."""
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the custom JSON decoder."""
+        super().__init__(object_hook=self.object_hook, *args, **kwargs)
+
+    @staticmethod
+    def object_hook(
+        data: Dict[str, Any]
+    ) -> Union[AvailabilityWindow, OffenceStatus, Dict[str, OffenceStatus]]:
+        """Perform the custom decoding."""
+        # if this is an `AvailabilityWindow`
+        window_attributes = sorted(AvailabilityWindow(0).to_dict().keys())
+        if window_attributes == sorted(data.keys()):
+            return AvailabilityWindow.from_dict(data)
+
+        # if this is an `OffenceStatus`
+        status_attributes = OffenceStatus.__annotations__.keys()
+        if sorted(status_attributes) == sorted(data.keys()):
+            return OffenceStatus(**data)
+
+        return data
+
+
 @dataclass(frozen=True, eq=True)
 class PendingOffense:
     """A dataclass to represent offences that need to be addressed."""
