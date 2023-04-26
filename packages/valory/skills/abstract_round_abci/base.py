@@ -3291,6 +3291,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_root_hash = b""
         self._last_round_transition_tm_height = None
         self._tm_height = None
+        self._pending_offences = set()
+        self._slashing_enabled = True
 
     def reset_state(
         self,
@@ -3299,18 +3301,25 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         serialized_db_state: Optional[str] = None,
     ) -> None:
         """
-        This method resets the state of RoundSequence to the begging of the period.
+        This method resets the state of RoundSequence to the beginning of the period.
 
-        Note: This is intended to be used only for agent <-> tendermint communication recovery only!
+        Note: This is intended to be used for agent <-> tendermint communication recovery only!
 
-        :param restart_from_round: from which round to restart the abci. This round should be the first round in the last period.
+        :param restart_from_round: from which round to restart the abci.
+         This round should be the first round in the last period.
         :param round_count: the round count at the beginning of the period -1.
-        :param serialized_db_state: the state of the database at the beginning of the period. If provided, the database will be reset to this state.
+        :param serialized_db_state: the state of the database at the beginning of the period.
+         If provided, the database will be reset to this state.
         """
         self._reset_to_default_params()
         self.abci_app.synchronized_data.db.round_count = round_count
         if serialized_db_state is not None:
             self.abci_app.synchronized_data.db.sync(serialized_db_state)
+            # deserialize the offence status and load it to memory
+            self._offence_status = json.loads(
+                self.latest_synchronized_data.offence_status,
+                cls=OffenseStatusDecoder,
+            )
             # When the agents prepare the recovery state, their db reflects the state of their last round.
             # Furthermore, that hash is then in turn used as the init hash when the tm network is reset.
             self._last_round_transition_root_hash = self.root_hash

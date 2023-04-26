@@ -2812,12 +2812,12 @@ class TestRoundSequence:
                 result=background_round_result[0],
             )
 
-    @mock.patch.object(AbciAppDB, "sync")
+    @mock.patch.object(json, "loads")
     @pytest.mark.parametrize("restart_from_round", (ConcreteRoundA, MagicMock()))
     @pytest.mark.parametrize("serialized_db_state", (None, "serialized state"))
     def test_reset_state(
         self,
-        _: mock._patch,
+        mock_loads: mock._patch,
         restart_from_round: AbstractRound,
         serialized_db_state: str,
     ) -> None:
@@ -2834,6 +2834,23 @@ class TestRoundSequence:
                     round_id, round_count, serialized_db_state
                 )
                 mock_reset.assert_called()
+                mock_sync = self.round_sequence.abci_app.synchronized_data.db.sync
+
+                if serialized_db_state is None:
+                    mock_sync.assert_not_called()
+                    mock_loads.assert_not_called()
+
+                else:
+                    mock_sync.assert_called_with(serialized_db_state)
+                    mock_loads.assert_called_with(
+                        self.round_sequence.latest_synchronized_data.offence_status,
+                        cls=OffenseStatusDecoder,
+                    )
+                    assert (
+                        self.round_sequence._last_round_transition_root_hash
+                        == self.round_sequence.root_hash
+                    )
+
             else:
                 round_ids = {cls.auto_round_id() for cls in transition_fn}
                 with pytest.raises(
@@ -2859,6 +2876,8 @@ class TestRoundSequence:
         self.round_sequence._last_round_transition_root_hash = MagicMock()
         self.round_sequence._last_round_transition_tm_height = MagicMock()
         self.round_sequence._tm_height = MagicMock()
+        self._pending_offences = MagicMock()
+        self._slashing_enabled = MagicMock()
 
         # we reset them
         self.round_sequence._reset_to_default_params()
@@ -2869,6 +2888,8 @@ class TestRoundSequence:
         assert self.round_sequence._last_round_transition_root_hash == b""
         assert self.round_sequence._last_round_transition_tm_height is None
         assert self.round_sequence._tm_height is None
+        assert self.round_sequence._pending_offences == set()
+        assert self.round_sequence._slashing_enabled
 
 
 def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:
