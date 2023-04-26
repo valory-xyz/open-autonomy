@@ -2475,6 +2475,16 @@ Initializes the `AvailabilityWindow` instance.
 
 - `max_length`: the maximum length of the cyclic array.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.__eq__"></a>
+
+#### `__`eq`__`
+
+```python
+def __eq__(other: Any) -> bool
+```
+
+Compare `AvailabilityWindow` objects.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.add"></a>
 
 #### add
@@ -2496,10 +2506,21 @@ If the maximum length has been reached, the oldest element is removed.
 #### to`_`dict
 
 ```python
-def to_dict() -> dict
+def to_dict() -> Dict[str, int]
 ```
 
 Returns a dictionary representation of the `AvailabilityWindow` instance.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.from_dict"></a>
+
+#### from`_`dict
+
+```python
+@classmethod
+def from_dict(cls, data: Dict[str, int]) -> "AvailabilityWindow"
+```
+
+Initializes an `AvailabilityWindow` instance from a dictionary.
 
 <a id="packages.valory.skills.abstract_round_abci.base.OffenceStatus"></a>
 
@@ -2511,6 +2532,59 @@ class OffenceStatus()
 ```
 
 A class that holds information about offence status for an agent.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusEncoder"></a>
+
+## OffenseStatusEncoder Objects
+
+```python
+class OffenseStatusEncoder(json.JSONEncoder)
+```
+
+A custom JSON encoder for the offence status dictionary.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusEncoder.default"></a>
+
+#### default
+
+```python
+def default(o: Any) -> Any
+```
+
+The default JSON encoder.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusDecoder"></a>
+
+## OffenseStatusDecoder Objects
+
+```python
+class OffenseStatusDecoder(json.JSONDecoder)
+```
+
+A custom JSON decoder for the offence status dictionary.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusDecoder.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(*args: Any, **kwargs: Any) -> None
+```
+
+Initialize the custom JSON decoder.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusDecoder.hook"></a>
+
+#### hook
+
+```python
+@staticmethod
+def hook(
+    data: Dict[str, Any]
+) -> Union[AvailabilityWindow, OffenceStatus, Dict[str, OffenceStatus]]
+```
+
+Perform the custom decoding.
 
 <a id="packages.valory.skills.abstract_round_abci.base.PendingOffense"></a>
 
@@ -2548,26 +2622,6 @@ of the consensus period. It receives 'deliver_tx' requests
 from the ABCI handlers and forwards them to the current
 active round instance, which implements the ABCI app logic.
 It also schedules the next round (if any) whenever a round terminates.
-
-<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.OffenseStatusEncoder"></a>
-
-## OffenseStatusEncoder Objects
-
-```python
-class OffenseStatusEncoder(json.JSONEncoder)
-```
-
-A custom JSON encoder for the offence status dictionary.
-
-<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.OffenseStatusEncoder.default"></a>
-
-#### default
-
-```python
-def default(o: Any) -> Any
-```
-
-The default JSON encoder.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.__init__"></a>
 
@@ -3006,13 +3060,15 @@ def reset_state(restart_from_round: str,
                 serialized_db_state: Optional[str] = None) -> None
 ```
 
-This method resets the state of RoundSequence to the begging of the period.
+This method resets the state of RoundSequence to the beginning of the period.
 
-Note: This is intended to be used only for agent <-> tendermint communication recovery only!
+Note: This is intended to be used for agent <-> tendermint communication recovery only!
 
 **Arguments**:
 
-- `restart_from_round`: from which round to restart the abci. This round should be the first round in the last period.
+- `restart_from_round`: from which round to restart the abci.
+This round should be the first round in the last period.
 - `round_count`: the round count at the beginning of the period -1.
-- `serialized_db_state`: the state of the database at the beginning of the period. If provided, the database will be reset to this state.
+- `serialized_db_state`: the state of the database at the beginning of the period.
+If provided, the database will be reset to this state.
 
