@@ -2721,6 +2721,18 @@ class OffenceStatus:
     num_light_client_attack: int = 0
 
 
+class OffenseStatusEncoder(json.JSONEncoder):
+    """A custom JSON encoder for the offence status dictionary."""
+
+    def default(self, o: Any) -> Any:
+        """The default JSON encoder."""
+        if is_dataclass(o):
+            return asdict(o)
+        if isinstance(o, AvailabilityWindow):
+            return o.to_dict()
+        return super().default(o)
+
+
 @dataclass(frozen=True, eq=True)
 class PendingOffense:
     """A dataclass to represent offences that need to be addressed."""
@@ -2767,17 +2779,6 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         WAITING_FOR_BEGIN_BLOCK = "waiting_for_begin_block"
         WAITING_FOR_DELIVER_TX = "waiting_for_deliver_tx"
         WAITING_FOR_COMMIT = "waiting_for_commit"
-
-    class OffenseStatusEncoder(json.JSONEncoder):
-        """A custom JSON encoder for the offence status dictionary."""
-
-        def default(self, o: Any) -> Any:
-            """The default JSON encoder."""
-            if is_dataclass(o):
-                return asdict(o)
-            if isinstance(o, AvailabilityWindow):
-                return o.to_dict()
-            return super().default(o)
 
     def __init__(self, abci_app_cls: Type[AbciApp]):
         """Initialize the round."""
@@ -3073,7 +3074,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
 
         # this information comes from Tendermint, so it is safe to add it to the synchronized database of the agents
         encoded_status = json.dumps(
-            self.offence_status, cls=self.OffenseStatusEncoder, sort_keys=True
+            self.offence_status, cls=OffenseStatusEncoder, sort_keys=True
         )
         db_updates = {get_name(BaseSynchronizedData.offence_status): encoded_status}
         self.abci_app.synchronized_data.update(BaseSynchronizedData, **db_updates)

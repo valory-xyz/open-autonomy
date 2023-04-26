@@ -104,6 +104,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     EventType,
     LateArrivingTransaction,
     OffenceStatus,
+    OffenseStatusEncoder,
     OffenseType,
     RoundSequence,
     SignatureNotValidError,
@@ -2100,6 +2101,56 @@ def offence_tracking(draw: DrawFn) -> Tuple[Evidences, LastCommitInfo]:
     return ev_example, commit_example
 
 
+@composite
+def offence_status(draw: DrawFn) -> OffenceStatus:
+    """Build an offence status instance."""
+    validator_downtime = just(
+        AvailabilityWindow.from_dict(draw(availability_window_data()))
+    )
+    invalid_payload = just(
+        AvailabilityWindow.from_dict(draw(availability_window_data()))
+    )
+    blacklisted = just(AvailabilityWindow.from_dict(draw(availability_window_data())))
+    suspected = just(AvailabilityWindow.from_dict(draw(availability_window_data())))
+
+    status = builds(
+        OffenceStatus,
+        validator_downtime=validator_downtime,
+        invalid_payload=invalid_payload,
+        blacklisted=blacklisted,
+        suspected=suspected,
+        num_unknown_offenses=integers(min_value=0),
+        num_double_signed=integers(min_value=0),
+        num_light_client_attack=integers(min_value=0),
+    )
+
+    return draw(status)
+
+
+class TestOffenseStatusEncoder:
+    """Test the `OffenseStatusEncoder`."""
+
+    @staticmethod
+    @given(dictionaries(keys=text(), values=offence_status()))
+    def test_encode_offense_status(offense_status: Dict[str, OffenceStatus]) -> None:
+        """Test encoding an offense status mapping by using the custom `OffenseStatusEncoder`."""
+        # encode the instance with the custom JSON encoder
+        assert json.dumps(offense_status, cls=OffenseStatusEncoder)
+
+    def test_encode_unknown(self) -> None:
+        """Test the encoder with an unknown input."""
+
+        class Unknown:
+            """A dummy class that the encoder is not aware of."""
+
+            unknown = "?"
+
+        with pytest.raises(
+            TypeError, match="Object of type Unknown is not JSON serializable"
+        ):
+            json.dumps(Unknown(), cls=OffenseStatusEncoder)
+
+
 class TestRoundSequence:
     """Test the RoundSequence class."""
 
@@ -2438,7 +2489,7 @@ class TestRoundSequence:
 
         encoded_status = json.dumps(
             expected_offence_status,
-            cls=RoundSequence.OffenseStatusEncoder,
+            cls=OffenseStatusEncoder,
             sort_keys=True,
         )
         expected_db_updates = {

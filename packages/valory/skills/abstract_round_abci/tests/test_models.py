@@ -43,8 +43,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
     OffenceStatus,
+    OffenseStatusEncoder,
     ROUND_COUNT_DEFAULT,
-    RoundSequence,
 )
 from packages.valory.skills.abstract_round_abci.models import (
     ApiSpecs,
@@ -425,11 +425,11 @@ class TestSharedState:
 
             encoded_status = json.dumps(
                 shared_state.round_sequence.offence_status,
-                cls=RoundSequence.OffenseStatusEncoder,
+                cls=OffenseStatusEncoder,
             )
             expected_status = dict.fromkeys(acn_configured_agents, OffenceStatus())
             encoded_expected_status = json.dumps(
-                expected_status, cls=RoundSequence.OffenseStatusEncoder
+                expected_status, cls=OffenseStatusEncoder
             )
 
             assert encoded_status == encoded_expected_status
