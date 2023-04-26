@@ -2779,6 +2779,9 @@ class SlashingNotConfiguredError(Exception):
     """Custom exception raised when slashing configuration is requested but is not available."""
 
 
+DEFAULT_PENDING_OFFENCE_TTL = 2 * 60 * 60  # 1 hour
+
+
 class RoundSequence:  # pylint: disable=too-many-instance-attributes
     """
     This class represents a sequence of rounds
@@ -2866,6 +2869,19 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         raise SlashingNotConfiguredError(
             "The mapping of the agents' addresses to their offence status has not been set."
         )
+
+    def add_pending_offence(self, pending_offence: PendingOffense) -> None:
+        """
+        Add a pending offence to the set of pending offences.
+
+        Pending offences are offences that have been detected, but not yet agreed upon by the consensus.
+        A pending offence is removed from the set of pending offences and added to the OffenceStatus of a validator
+        when the majority of the agents agree on it.
+
+        :param pending_offence: the pending offence to add
+        :return: None
+        """
+        self._pending_offences.add(pending_offence)
 
     @offence_status.setter
     def offence_status(self, offence_status: Dict[str, OffenceStatus]) -> None:

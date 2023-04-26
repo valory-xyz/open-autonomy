@@ -53,6 +53,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ERROR_CODE,
     OK_CODE,
     SignatureNotValidError,
+    TransactionNotValidError,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
     AbciDialogue,
@@ -209,6 +210,29 @@ class TestABCIRoundHandler:
         response = self.handler.deliver_tx(
             cast(AbciMessage, message), cast(AbciDialogue, dialogue)
         )
+        assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
+        assert response.code == ERROR_CODE
+
+    @mock.patch.object(handlers, "Transaction")
+    def test_deliver_bad_tx(self, *_: Any) -> None:
+        """Test the 'deliver_tx' handler method, when the transaction is not ok."""
+        message, dialogue = self.dialogues.create(
+            counterparty="",
+            performative=AbciMessage.Performative.REQUEST_DELIVER_TX,
+            tx=b"",
+        )
+        with mock.patch.object(
+            self.context.state.round_sequence,
+            "check_is_finished",
+            side_effect=TransactionNotValidError,
+        ), mock.patch.object(
+            self.context.state.round_sequence, "add_pending_offence"
+        ) as mock_add_pending_offence:
+            response = self.handler.deliver_tx(
+                cast(AbciMessage, message), cast(AbciDialogue, dialogue)
+            )
+            mock_add_pending_offence.assert_called()
+
         assert response.performative == AbciMessage.Performative.RESPONSE_DELIVER_TX
         assert response.code == ERROR_CODE
 
