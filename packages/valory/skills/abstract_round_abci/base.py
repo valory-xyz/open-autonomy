@@ -2705,20 +2705,20 @@ class OffenceStatus:
     """A class that holds information about offence status for an agent."""
 
     validator_downtime: AvailabilityWindow = field(
-        default_factory=lambda: AvailabilityWindow(NUMBER_OF_BLOCKS_TRACKED), init=False
+        default_factory=lambda: AvailabilityWindow(NUMBER_OF_BLOCKS_TRACKED)
     )
     invalid_payload: AvailabilityWindow = field(
-        default_factory=lambda: AvailabilityWindow(NUMER_OF_ROUNDS_TRACKED), init=False
+        default_factory=lambda: AvailabilityWindow(NUMER_OF_ROUNDS_TRACKED)
     )
     blacklisted: AvailabilityWindow = field(
-        default_factory=lambda: AvailabilityWindow(NUMER_OF_ROUNDS_TRACKED), init=False
+        default_factory=lambda: AvailabilityWindow(NUMER_OF_ROUNDS_TRACKED)
     )
     suspected: AvailabilityWindow = field(
-        default_factory=lambda: AvailabilityWindow(NUMER_OF_ROUNDS_TRACKED), init=False
+        default_factory=lambda: AvailabilityWindow(NUMER_OF_ROUNDS_TRACKED)
     )
-    num_unknown_offenses: int = field(default=0, init=False)
-    num_double_signed: int = field(default=0, init=False)
-    num_light_client_attack: int = field(default=0, init=False)
+    num_unknown_offenses: int = 0
+    num_double_signed: int = 0
+    num_light_client_attack: int = 0
 
 
 @dataclass(frozen=True, eq=True)
