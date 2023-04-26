@@ -37,6 +37,7 @@ from enum import Enum
 from inspect import isclass
 from typing import (
     Any,
+    Callable,
     Deque,
     Dict,
     FrozenSet,
@@ -52,7 +53,6 @@ from typing import (
     TypeVar,
     Union,
     cast,
-    Callable,
 )
 
 from aea.crypto.ledger_apis import LedgerApis
@@ -2742,12 +2742,12 @@ class OffenseStatusEncoder(json.JSONEncoder):
 class OffenseStatusDecoder(json.JSONDecoder):
     """A custom JSON decoder for the offence status dictionary."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the custom JSON decoder."""
-        super().__init__(object_hook=self.object_hook, *args, **kwargs)
+        super().__init__(object_hook=self.hook, *args, **kwargs)
 
     @staticmethod
-    def object_hook(
+    def hook(
         data: Dict[str, Any]
     ) -> Union[AvailabilityWindow, OffenceStatus, Dict[str, OffenceStatus]]:
         """Perform the custom decoding."""

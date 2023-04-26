@@ -34,6 +34,7 @@ from pathlib import Path
 from time import sleep
 from typing import (
     Any,
+    Callable,
     Deque,
     Dict,
     FrozenSet,
@@ -44,7 +45,6 @@ from typing import (
     Tuple,
     Type,
     cast,
-    Callable,
 )
 from unittest import mock
 from unittest.mock import MagicMock
@@ -2013,6 +2013,7 @@ class TestAvailabilityWindow:
     @staticmethod
     @given(availability_window_data())
     def test_from_dict(data_: Dict[str, int]) -> None:
+        """Test `from_dict` method."""
         availability_window = AvailabilityWindow.from_dict(data_)
 
         # convert the serialized array to a binary string
@@ -2817,7 +2818,7 @@ class TestRoundSequence:
     @pytest.mark.parametrize("serialized_db_state", (None, "serialized state"))
     def test_reset_state(
         self,
-        mock_loads: mock._patch,
+        mock_loads: MagicMock,
         restart_from_round: AbstractRound,
         serialized_db_state: str,
     ) -> None:
@@ -2834,7 +2835,9 @@ class TestRoundSequence:
                     round_id, round_count, serialized_db_state
                 )
                 mock_reset.assert_called()
-                mock_sync = self.round_sequence.abci_app.synchronized_data.db.sync
+                mock_sync = cast(
+                    MagicMock, self.round_sequence.abci_app.synchronized_data.db.sync
+                )
 
                 if serialized_db_state is None:
                     mock_sync.assert_not_called()
