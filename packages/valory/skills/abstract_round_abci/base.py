@@ -2607,6 +2607,12 @@ class AvailabilityWindow:
         self._num_positive = 0
         self._num_negative = 0
 
+    def __eq__(self, other: Any) -> bool:
+        """Compare `AvailabilityWindow` objects."""
+        if isinstance(other, AvailabilityWindow):
+            return self.to_dict() == other.to_dict()
+        return False
+
     def _update_counters(self, positive: bool, removal: bool = False) -> None:
         """Updates the `num_positive` and `num_negative` counters."""
         update_amount = -1 if removal else 1
