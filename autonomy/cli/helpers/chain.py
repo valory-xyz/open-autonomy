@@ -27,6 +27,7 @@ from aea.configurations.data_types import PackageType
 from aea.configurations.loader import load_configuration_object
 from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry, ledger_apis_registry
+from aea.helpers.base import IPFSHash
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 
 from autonomy.chain.base import UnitType
@@ -45,7 +46,7 @@ from autonomy.chain.exceptions import (
     ServiceDeployFailed,
     ServiceRegistrationFailed,
 )
-from autonomy.chain.metadata import publish_metadata
+from autonomy.chain.metadata import NFTHashOrPath, publish_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
 from autonomy.chain.mint import mint_component as _mint_component
 from autonomy.chain.mint import mint_service as _mint_service
@@ -123,7 +124,7 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
     key: Optional[Path],
     chain_type: ChainType,
     dependencies: List[int],
-    nft_image_hash: Optional[str] = None,
+    nft: Optional[NFTHashOrPath] = None,
     owner: Optional[str] = None,
     password: Optional[str] = None,
     skip_hash_check: bool = False,
@@ -159,10 +160,10 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
             f"Cannot find configuration file for {package_type}"
         ) from e
 
-    if chain_type == ChainType.LOCAL and nft_image_hash is None:
-        nft_image_hash = DEFAULT_NFT_IMAGE_HASH
+    if chain_type == ChainType.LOCAL and nft is None:
+        nft = IPFSHash(DEFAULT_NFT_IMAGE_HASH)
 
-    if chain_type != ChainType.LOCAL and nft_image_hash is None:
+    if chain_type != ChainType.LOCAL and nft is None:
         raise click.ClickException(
             f"Please provide hash for NFT image to mint component on `{chain_type.value}` chain"
         )
@@ -182,10 +183,10 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
     except DependencyError as e:
         raise click.ClickException(f"Dependency verification failed; {e}") from e
 
-    metadata_hash = publish_metadata(
-        public_id=package_configuration.public_id,
+    metadata_hash, metadata_string = publish_metadata(
+        package_id=package_configuration.package_id,
         package_path=package_path,
-        nft_image_hash=cast(str, nft_image_hash),
+        nft=cast(str, nft),
         description=package_configuration.description,
     )
 
@@ -216,6 +217,7 @@ def mint_component(  # pylint: disable=too-many-arguments, too-many-locals
     click.echo(f"\tMetadata Hash: {metadata_hash}")
     if token_id is not None:
         click.echo(f"\tToken ID: {token_id}")
+        (Path.cwd() / f"{token_id}.json").write_text(metadata_string)
     else:
         raise click.ClickException(
             "Could not verify metadata hash to retrieve the token ID"
@@ -230,7 +232,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
     number_of_slots: int,
     cost_of_bond: int,
     threshold: int,
-    nft_image_hash: Optional[str] = None,
+    nft: Optional[NFTHashOrPath] = None,
     owner: Optional[str] = None,
     password: Optional[str] = None,
     skip_hash_check: bool = False,
@@ -261,10 +263,10 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
             f"Cannot find configuration file for {PackageType.SERVICE}"
         ) from e
 
-    if chain_type == ChainType.LOCAL and nft_image_hash is None:
-        nft_image_hash = DEFAULT_NFT_IMAGE_HASH
+    if chain_type == ChainType.LOCAL and nft is None:
+        nft = IPFSHash(DEFAULT_NFT_IMAGE_HASH)
 
-    if chain_type != ChainType.LOCAL and nft_image_hash is None:
+    if chain_type != ChainType.LOCAL and nft is None:
         raise click.ClickException(
             f"Please provide hash for NFT image to mint component on `{chain_type.value}` chain"
         )
@@ -284,10 +286,10 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
     except DependencyError as e:
         raise click.ClickException(f"Dependency verification failed; {e}") from e
 
-    metadata_hash = publish_metadata(
-        public_id=package_configuration.public_id,
+    metadata_hash, metadata_string = publish_metadata(
+        package_id=package_configuration.package_id,
         package_path=package_path,
-        nft_image_hash=cast(str, nft_image_hash),
+        nft=cast(str, nft),
         description=package_configuration.description,
     )
 
@@ -324,6 +326,7 @@ def mint_service(  # pylint: disable=too-many-arguments, too-many-locals
     click.echo(f"\tMetadata Hash: {metadata_hash}")
     if token_id is not None:
         click.echo(f"\tToken ID: {token_id}")
+        (Path.cwd() / f"{token_id}.json").write_text(metadata_string)
     else:
         raise click.ClickException(
             "Could not verify metadata hash to retrieve the token ID"

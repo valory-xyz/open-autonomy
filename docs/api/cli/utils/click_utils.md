@@ -74,6 +74,37 @@ def convert(value: Any, param: Optional[click.Parameter],
 
 Convert path string to `pathlib.Path`
 
+<a id="autonomy.cli.utils.click_utils.NFTArgument"></a>
+
+## NFTArgument Objects
+
+```python
+class NFTArgument(click.ParamType)
+```
+
+NFT parameter for minting tools.
+
+<a id="autonomy.cli.utils.click_utils.NFTArgument.get_metavar"></a>
+
+#### get`_`metavar
+
+```python
+def get_metavar(param: click.Parameter) -> str
+```
+
+Get metavar
+
+<a id="autonomy.cli.utils.click_utils.NFTArgument.convert"></a>
+
+#### convert
+
+```python
+def convert(value: Any, param: Optional[click.Parameter],
+            ctx: Optional[click.Context]) -> Optional[Union[Path, IPFSHash]]
+```
+
+Convert path string to `pathlib.Path`
+
 <a id="autonomy.cli.utils.click_utils.image_author_option"></a>
 
 #### image`_`author`_`option

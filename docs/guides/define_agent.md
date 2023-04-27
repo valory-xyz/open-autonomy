@@ -109,9 +109,9 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
               propagate: true
         dependencies:
           open-aea-ledger-ethereum:
-            version: ==1.31.0
+            version: ==1.32.0
           open-aea-test-autonomy:
-            version: ==0.10.0.post2
+            version: ==0.10.2
         default_connection: null
         ---
         public_id: valory/hello_world_abci:0.1.0
@@ -177,6 +177,12 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
         is_abstract: true
         ```
 
+    You should also create a `README.md` file with the description of your agent in plain text or Markdown format:
+
+    ```bash
+    echo "Your agent description." > ./packages/your_name/agents/your_agent/README.md
+    ```
+
 3. **Create an entry for your agent in the local registry.** Add the corresponding entry to the local registry index file (`./packages/packages.json`). You must add the entry to the `dev` section, because it is a component being developed by you. You can use a placeholder for its hash value, as it will be corrected afterwards:
 
     <!-- Use js instead of json lexer to support mkdocs-material comment features -->
@@ -237,7 +243,7 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
          At this point, you may notice that your agent requires specific Python packages to be installed. For the `valory/hello_world` agent, you can do so by executing:
 
          ```bash
-         pip install grpcio typing-extensions py-ecc asn1crypto
+         pip install hypothesis grpcio typing-extensions py-ecc asn1crypto
          ```
 
          You can retry running your agent afterwards.
