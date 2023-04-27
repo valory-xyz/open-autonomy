@@ -22,8 +22,9 @@
 
 import copy
 import logging
+import os
 import re
-from typing import Dict, List, Optional, OrderedDict, Set, cast
+from typing import Any, Dict, List, Optional, OrderedDict, Set, Union, cast
 
 from aea.configurations.base import AgentConfig, SkillConfig
 from aea.configurations.data_types import (
@@ -34,6 +35,7 @@ from aea.configurations.data_types import (
 )
 from aea.crypto.base import LedgerApi
 from aea.helpers.cid import to_v0
+from aea.helpers.env_vars import ENV_VARIABLE_RE, apply_env_variables
 from aea.helpers.logging import setup_logger
 from jsonschema.exceptions import ValidationError
 from jsonschema.validators import Draft4Validator
@@ -146,7 +148,6 @@ ABCI_SKILL_MODEL_PARAMS_SCHEMA = {
     "required": [
         "genesis_config",
         "service_id",
-        "tendermint_url",
         "max_healthcheck",
         "round_timeout_seconds",
         "sleep_time",
@@ -155,7 +156,9 @@ ABCI_SKILL_MODEL_PARAMS_SCHEMA = {
         "keeper_timeout",
         "reset_pause_duration",
         "drand_public_key",
+        "tendermint_url",
         "tendermint_com_url",
+        "tendermint_p2p_url",
         "tendermint_max_retries",
         "tendermint_check_sleep_delay",
         "reset_tendermint_after",
@@ -168,7 +171,7 @@ ABCI_SKILL_MODEL_PARAMS_SCHEMA = {
         "service_registry_address",
         "on_chain_service_id",
         "share_tm_config_on_startup",
-        "tendermint_p2p_url",
+        "use_termination",
         "setup",
     ],
 }
@@ -176,11 +179,54 @@ ABCI_SKILL_MODEL_PARAMS_SCHEMA = {
 ABCI = "abci"
 LEDGER = "ledger"
 
-UNKNOWN_LEDGER_RE = re.compile(r".*\(\'(.*)\' was unexpected\)")
-ABCI_CONNECTION_VALIDATOR = Draft4Validator(schema=ABCI_CONNECTION_SCHEMA)
-LEDGER_CONNECTION_VALIDATOR = Draft4Validator(schema=LEDGER_CONNECTION_SCHEMA)
-ABCI_SKILL_VALIDATOR = Draft4Validator(schema=ABCI_SKILL_SCHEMA)
-ABCI_SKILL_MODEL_PARAMS_VALIDATOR = Draft4Validator(
+REQUIRED_PROPERTY_RE = re.compile(r"'(.*)' is a required property")
+PROPERTY_NOT_ALLOWED_RE = re.compile(
+    r"Additional properties are not allowed \((('(.*)'(,)? )+)(was|were) unexpected\)"
+)
+
+
+class CustomSchemaValidator(Draft4Validator):
+    """Custom schema validator to report all missing fields at once."""
+
+    def validate(self, *args: Any, **kwargs: Any) -> None:
+        """Validate and raise all errors at once."""
+        missing = []
+        extra = []
+        for error in self.iter_errors(*args, **kwargs):
+            message = cast(ValidationError, error).message
+            missing_property_check = REQUIRED_PROPERTY_RE.match(message)
+            if missing_property_check is not None:
+                (missing_property,) = cast(re.Match, missing_property_check).groups()
+                missing.append(missing_property)
+                continue
+
+            property_not_allowed_check = PROPERTY_NOT_ALLOWED_RE.match(message)
+            if property_not_allowed_check is not None:
+                extra += re.findall(
+                    "[a-zA-Z0-9]+", property_not_allowed_check.groups()[0]
+                )
+                continue
+
+            if "does not have enough properties" in message:
+                raise error
+
+        if len(extra) > 0:
+            raise ValidationError(
+                message="Additional properties found "
+                + ", ".join(map(lambda x: f"'{x}'", extra))
+            )
+
+        if len(missing) > 0:
+            raise ValidationError(
+                message="Following properties are require but missing "
+                + ", ".join(map(lambda x: f"'{x}'", missing))
+            )
+
+
+ABCI_CONNECTION_VALIDATOR = CustomSchemaValidator(schema=ABCI_CONNECTION_SCHEMA)
+LEDGER_CONNECTION_VALIDATOR = CustomSchemaValidator(schema=LEDGER_CONNECTION_SCHEMA)
+ABCI_SKILL_VALIDATOR = CustomSchemaValidator(schema=ABCI_SKILL_SCHEMA)
+ABCI_SKILL_MODEL_PARAMS_VALIDATOR = CustomSchemaValidator(
     schema=ABCI_SKILL_MODEL_PARAMS_SCHEMA
 )
 
@@ -195,14 +241,24 @@ class ServiceAnalyser:
     def __init__(
         self,
         service_config: Service,
+        abci_skill_id: PublicId,
         is_on_chain_check: bool = False,
         logger: Optional[logging.Logger] = None,
+        skip_warnings: bool = False,
     ) -> None:
         """Initialise object."""
 
         self.service_config = service_config
+        self.abci_skill_id = abci_skill_id
         self.is_on_chain_check = is_on_chain_check
-        self.logger = logger or setup_logger(name="ServiceAnalyser")
+        self.logger = logger or setup_logger(name="autonomy.analyse")
+        self.skip_warning = skip_warnings
+
+    def _warn(self, msg: str) -> None:
+        """Raise warning."""
+        if self.skip_warning:
+            return
+        self.logger.warning(msg=msg)
 
     def check_on_chain_state(
         self,
@@ -226,7 +282,7 @@ class ServiceAnalyser:
 
         service_state = ServiceState(_service_state)
         if service_state != ServiceState.DEPLOYED:
-            self.logger.warning(
+            self._warn(
                 f"Service needs to be in deployed state on-chain; Current state={service_state}"
             )
 
@@ -273,7 +329,6 @@ class ServiceAnalyser:
 
         # service has them and agent does not - warning
         check_from_set, check_with_set = set(check_from), set(check_with)
-
         missing = check_with_set - check_from_set
         if len(missing) > 0:
             message = (
@@ -281,7 +336,7 @@ class ServiceAnalyser:
                 f"\tPath: {path_str}\n"
                 f"\tMissing parameters: {missing}\n"
             )
-            self.logger.warning(message)
+            self._warn(message)
 
         missing = check_from_set - check_with_set
         if len(missing) > 0:
@@ -290,7 +345,7 @@ class ServiceAnalyser:
                 f"\tPath: {path_str}\n"
                 f"\tMissing parameters: {missing}\n"
             )
-            self.logger.warning(message)
+            self._warn(message)
 
         for key in check_with_set.intersection(check_from_set):
             if not isinstance(check_from[key], (dict, Dict, OrderedDict)):
@@ -304,8 +359,10 @@ class ServiceAnalyser:
                 path=[*path, key],
             )
 
-    def cross_verify_overrides(
-        self, agent_config: AgentConfig, skill_config: SkillConfig
+    def cross_verify_overrides(  # pylint: disable=too-many-locals
+        self,
+        agent_config: AgentConfig,
+        skill_config: SkillConfig,
     ) -> None:
         """Cross verify overrides between service config and agent config"""
 
@@ -319,16 +376,38 @@ class ServiceAnalyser:
             for component_override in self.service_config.overrides
         }
 
+        missing_from_service = agent_overrides - service_overrides
+        if len(missing_from_service) > 0:
+            self._warn(
+                "\n\t- ".join(
+                    map(
+                        str,
+                        [
+                            "Overrides with following component IDs are defined in the agent configuration but not in the service configuration",
+                            *missing_from_service,
+                        ],
+                    )
+                )
+            )
+
         missing_from_agent = service_overrides - agent_overrides
         if len(missing_from_agent) > 0:
             raise ServiceValidationFailed(
-                "Service config has an overrides which are not defined in the agent config; "
-                f"packages with missing overrides={missing_from_agent}"
+                "\n\t- ".join(
+                    map(
+                        str,
+                        [
+                            "Overrides with following component IDs are defined in the service configuration but not in the agent configuration",
+                            *missing_from_agent,
+                        ],
+                    )
+                )
             )
 
-        skill_override_from_agent = agent_config.component_configurations[
-            skill_config.package_id
-        ]
+        skill_override_from_agent = apply_env_variables(
+            agent_config.component_configurations[skill_config.package_id],
+            env_variables=os.environ.copy(),
+        )
         skill_config_to_check = {
             "models": {
                 "params": {"args": skill_config.json["models"]["params"]["args"]},
@@ -366,6 +445,7 @@ class ServiceAnalyser:
                         check_from_name=str(self.service_config.package_id),
                         check_with_name=str(agent_config.package_id),
                     )
+                break
 
         self.logger.info("Cross verifying overrides between skill and agent")
         self._check_overrides_recursively(
@@ -375,6 +455,117 @@ class ServiceAnalyser:
             check_with_name=str(skill_config.package_id),
         )
 
+    @classmethod
+    def validate_override_env_vars(
+        cls,
+        overrides: Union[OrderedDict, dict],
+        validate_env_var_name: bool = False,
+        json_path: Optional[List[str]] = None,
+    ) -> List[str]:
+        """Validate environment variables."""
+        errors = []
+        json_path = json_path or []
+        for key, value in overrides.items():
+            if key in (
+                "target_skill_id",
+                "identifier",
+                "ledger_id",
+                "message_format",
+                "not_after",
+                "not_before",
+                "save_path",
+                "is_abstract",
+            ):
+                continue
+            _json_path = [*json_path, str(key)]
+            if isinstance(value, (dict, OrderedDict)):
+                errors += cls.validate_override_env_vars(
+                    value,
+                    validate_env_var_name=validate_env_var_name,
+                    json_path=_json_path,
+                )
+            elif isinstance(value, list):
+                for i, obj in enumerate(value):
+                    if not isinstance(obj, (dict, OrderedDict)):
+                        continue
+                    errors += cls.validate_override_env_vars(
+                        obj,
+                        validate_env_var_name=validate_env_var_name,
+                        json_path=[*_json_path, str(i)],
+                    )
+            else:
+                json_path_str = ".".join(_json_path)
+                try:
+                    re_result = ENV_VARIABLE_RE.match(value)
+                    if re_result is None:
+                        errors.append(
+                            f"`{json_path_str}` needs to be defined as a environment variable"
+                        )
+                        continue
+                    if validate_env_var_name:
+                        _, env_var_name, *_ = re_result.groups()
+                        if env_var_name is None:
+                            errors.append(
+                                f"`{json_path_str}` needs environment variable defined in following format "
+                                "${ENV_VAR_NAME:DATA_TYPE:DEFAULT_VALUE}"
+                            )
+                    apply_env_variables(
+                        data={key: value}, env_variables=os.environ.copy()
+                    )
+                except TypeError:
+                    errors.append(
+                        f"`{json_path_str}` needs to be defined as a environment variable"
+                    )
+                except (ValueError, KeyError) as e:
+                    errors.append(
+                        f"`{json_path_str}` validation failed with following error; {e}"
+                    )
+
+        return errors
+
+    def validate_agent_override_env_vars(self, agent_config: AgentConfig) -> None:
+        """Check if all of the overrides are defined as a env vars in the agent config"""
+
+        self.logger.info(
+            f"Validating agent {agent_config.public_id} overrides for environment variable definitions"
+        )
+        for package_id, override in agent_config.component_configurations.items():
+            errors = self.validate_override_env_vars(overrides=override)
+            if len(errors) > 0:
+                raise ServiceValidationFailed(
+                    "\n\t- ".join(
+                        [
+                            f"{package_id} envrionment variable validation failed with following error",
+                            *errors,
+                        ]
+                    ),
+                )
+
+    def validate_service_override_env_vars(self) -> None:
+        """Check if all of the overrides are defined as a env vars in the agent config"""
+        self.logger.info(
+            f"Validating service {self.service_config.public_id} overrides for environment variable definitions"
+        )
+        errors = []
+        for _component_config in self.service_config.overrides:
+            (
+                component_config,
+                component_id,
+                _,
+            ) = Service.process_metadata(configuration=_component_config.copy())
+            errors = self.validate_override_env_vars(
+                overrides=component_config, validate_env_var_name=True
+            )
+            if len(errors) > 0:
+                raise ServiceValidationFailed(
+                    "\n\t- ".join(
+                        [
+                            f"{component_id} envrionment variable validation failed with following error",
+                            *errors,
+                        ]
+                    ),
+                )
+
     @staticmethod
     def _validate_override(
         validator: Draft4Validator,
@@ -383,49 +574,70 @@ class ServiceAnalyser:
         error_message: str,
     ) -> None:
         """Run validator on the given override."""
-        try:
-            if has_multiple_overrides:
-                _ = list(map(validator.validate, overrides.values()))
-            else:
-                validator.validate(overrides)
-        except ValidationError as e:
-            raise ServiceValidationFailed(error_message.format(error=e.message)) from e
 
-    @classmethod
+        def _validate_override(
+            validator: Draft4Validator,
+            overrides: Dict,
+            error_message: str,
+        ) -> None:
+            try:
+                validator.validate(overrides)
+            except ValidationError as e:
+                raise ServiceValidationFailed(
+                    error_message.format(error=e.message)
+                ) from e
+
+        if has_multiple_overrides:
+            for idx, override in overrides.items():
+                _validate_override(
+                    validator=validator,
+                    overrides=override,
+                    error_message=f"{error_message}; Override index {idx}",
+                )
+        else:
+            _validate_override(
+                validator=validator,
+                overrides=overrides,
+                error_message=error_message,
+            )
+
     def validate_override(
-        cls,
+        self,
         component_id: ComponentId,
         override: Dict,
         has_multiple_overrides: bool,
     ) -> None:
         """Validate override"""
 
-        if (
-            component_id.component_type == ComponentType.SKILL
-            and ABCI in component_id.name
-        ):
-            cls._validate_override(
+        if component_id.public_id == self.abci_skill_id:
+            self._validate_override(
                 validator=ABCI_SKILL_VALIDATOR,
                 overrides=override,
                 has_multiple_overrides=has_multiple_overrides,
-                error_message="ABCI skill validation failed; {error}",
+                error_message=(
+                    "ABCI Skill `"
+                    + str(component_id.public_id)
+                    + "` override validation failed; {error}"
+                ),
             )
+
         if (
             component_id.component_type == ComponentType.CONNECTION
             and component_id.name == ABCI
         ):
-            cls._validate_override(
+            self._validate_override(
                 validator=ABCI_CONNECTION_VALIDATOR,
                 overrides=override,
                 has_multiple_overrides=has_multiple_overrides,
                 error_message="ABCI connection validation failed; {error}",
             )
+
         if (
             component_id.component_type == ComponentType.CONNECTION
             and component_id.name == LEDGER
         ):
             try:
-                cls._validate_override(
+                self._validate_override(
                     validator=LEDGER_CONNECTION_VALIDATOR,
                     overrides=override,
                     has_multiple_overrides=has_multiple_overrides,
@@ -433,54 +645,89 @@ class ServiceAnalyser:
                 )
             except ServiceValidationFailed as e:
                 (msg, *_) = e.args
-                unknown_ledger_match = UNKNOWN_LEDGER_RE.match(msg)
-                if unknown_ledger_match is None:
+                if "does not have enough properties" in msg:
+                    raise ServiceValidationFailed(
+                        f"{component_id} override needs at least one ledger API definition"
+                    ) from e
+
+                if "Additional properties found" not in msg:
                     raise
 
-                (unknown_ledger,) = cast(re.Match, unknown_ledger_match).groups()
-                logging.warning(
-                    f"Unknown ledger configuration found with name `{unknown_ledger}`"
+                unknown_ledgers = re.findall("'([a-zA-Z0-9]+)'", msg)
+                self._warn(
+                    "\n\t- ".join(
+                        [
+                            f"Following unknown ledgers found in the {component_id} override",
+                            *unknown_ledgers,
+                        ]
+                    )
                 )
 
     def validate_skill_config(self, skill_config: SkillConfig) -> None:
         """Check required overrides."""
 
-        self.logger.info("Validating skill overrides")
+        self.logger.info(f"Validating ABCI skill {skill_config.public_id}")
         model_params = skill_config.models.read("params")
         self._validate_override(
             validator=ABCI_SKILL_MODEL_PARAMS_VALIDATOR,
             overrides=model_params.args,
             has_multiple_overrides=False,
-            error_message="ABCI skill model parameter validation failed; {error}",
+            error_message="ABCI skill validation failed; {error}",
         )
+        self.logger.info("No issues found in the ABCI skill configuration")
 
     def validate_agent_overrides(self, agent_config: AgentConfig) -> None:
         """Check required overrides."""
 
-        self.logger.info("Validating agent overrides")
+        self.logger.info(f"Validating agent {agent_config.public_id} overrides")
+        errors = []
         for (
             component_id,
             component_config,
         ) in agent_config.component_configurations.items():
-            self.validate_override(
-                component_id=component_id,
-                override=component_config,
-                has_multiple_overrides=False,
+            try:
+                self.validate_override(
+                    component_id=component_id,
+                    override=component_config,
+                    has_multiple_overrides=False,
+                )
+            except ServiceValidationFailed as e:
+                errors.append(str(e))
+
+        if len(errors) > 0:
+            error_string = "\n\t- ".join(errors)
+            raise ServiceValidationFailed(
+                "Agent overrides validation failed with following errors"
+                f"\n\t- {error_string}"
             )
+
+        self.logger.info("No issues found in the agent overrides")
 
     def validate_service_overrides(self) -> None:
         """Check required overrides."""
 
         self.logger.info("Validating service overrides")
+        errors = []
         for _component_config in self.service_config.overrides:
             (
                 component_config,
                 component_id,
                 has_multiple_overrides,
             ) = Service.process_metadata(configuration=_component_config.copy())
-            self.logger.info(f"Validating {component_id} from the service overrides")
-            self.validate_override(
-                component_id=component_id,
-                override=component_config,
-                has_multiple_overrides=has_multiple_overrides,
+            try:
+                self.validate_override(
+                    component_id=component_id,
+                    override=component_config,
+                    has_multiple_overrides=has_multiple_overrides,
+                )
+            except ServiceValidationFailed as e:
+                errors.append(str(e))
+
+        if len(errors) > 0:
+            error_string = "\n\t- ".join(errors)
+            raise ServiceValidationFailed(
+                "Service overrides validation failed with following errors"
+                f"\n\t- {error_string}"
             )
+
+        self.logger.info("No issues found in the service overrides")
