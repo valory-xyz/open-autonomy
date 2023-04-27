@@ -146,7 +146,7 @@ class TestYamlSnippets(BaseTestDocCode):
             ],
             "skip_blocks": [1, 2, 3, 4, 5],
         },
-        "docs/guides/deploy_service.md": {"skip_blocks": [0]},
+        "docs/guides/deploy_service/local_deployment.md": {"skip_blocks": [0]},
         "docs/advanced_reference/developer_tooling/benchmarking.md": {
             "skip_blocks": [0]
         },
@@ -235,8 +235,11 @@ class TestJsonSnippets(BaseTestDocCode):
         "docs/guides/set_up.md": {
             "code_files": ["by_line::packages/packages.json"],
         },
-        "docs/guides/deploy_service.md": {
-            "code_files": ["by_line::deployments/keys/hardhat_keys.json"],
+        "docs/guides/deploy_service/local_deployment.md": {
+            "code_files": [
+                "by_line::deployments/keys/hardhat_keys.json",
+                "by_line::deployments/keys/hardhat_keys.json",
+            ],
         },
         "docs/guides/quick_start.md": {
             "code_files": ["by_line::deployments/keys/hardhat_keys.json"],

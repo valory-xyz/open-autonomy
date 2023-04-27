@@ -14,7 +14,7 @@ Local service deployments are usually executed for testing services under active
 
     === "Remote registry"
         ```bash
-        autonomy fetch valory/hello_world:0.1.0:bafybeicdjvpwloho3okcf7d3kmidxvkqdosnfnq47s2e5j277epi2ndjie --service
+        autonomy fetch valory/hello_world:0.1.0:bafybeigtaxh5zfg32cypqkjvftreivh22sqlrbgw5x3lxjmrf3dyqcioyy --service
         ```
 
 2. **Build the agents' image.** Navigate to the service runtime folder that you have just created and build the Docker image of the agents of the service:
