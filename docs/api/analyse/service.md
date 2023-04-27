@@ -4,6 +4,26 @@
 
 Tools for analysing the service for deployment readiness
 
+<a id="autonomy.analyse.service.CustomSchemaValidator"></a>
+
+## CustomSchemaValidator Objects
+
+```python
+class CustomSchemaValidator(Draft4Validator)
+```
+
+Custom schema validator to report all missing fields at once.
+
+<a id="autonomy.analyse.service.CustomSchemaValidator.validate"></a>
+
+#### validate
+
+```python
+def validate(*args: Any, **kwargs: Any) -> None
+```
+
+Validate and raise all errors at once.
+
 <a id="autonomy.analyse.service.ServiceValidationFailed"></a>
 
 ## ServiceValidationFailed Objects
@@ -30,8 +50,10 @@ Tools to analyse a service
 
 ```python
 def __init__(service_config: Service,
+             abci_skill_id: PublicId,
              is_on_chain_check: bool = False,
-             logger: Optional[logging.Logger] = None) -> None
+             logger: Optional[logging.Logger] = None,
+             skip_warnings: bool = False) -> None
 ```
 
 Initialise object.
@@ -69,13 +91,47 @@ def cross_verify_overrides(agent_config: AgentConfig,
 
 Cross verify overrides between service config and agent config
 
+<a id="autonomy.analyse.service.ServiceAnalyser.validate_override_env_vars"></a>
+
+#### validate`_`override`_`env`_`vars
+
+```python
+@classmethod
+def validate_override_env_vars(
+        cls,
+        overrides: Union[OrderedDict, dict],
+        validate_env_var_name: bool = False,
+        json_path: Optional[List[str]] = None) -> List[str]
+```
+
+Validate environment variables.
+
+<a id="autonomy.analyse.service.ServiceAnalyser.validate_agent_override_env_vars"></a>
+
+#### validate`_`agent`_`override`_`env`_`vars
+
+```python
+def validate_agent_override_env_vars(agent_config: AgentConfig) -> None
+```
+
+Check if all of the overrides are defined as a env vars in the agent config
+
+<a id="autonomy.analyse.service.ServiceAnalyser.validate_service_override_env_vars"></a>
+
+#### validate`_`service`_`override`_`env`_`vars
+
+```python
+def validate_service_override_env_vars() -> None
+```
+
+Check if all of the overrides are defined as a env vars in the agent config
+
 <a id="autonomy.analyse.service.ServiceAnalyser.validate_override"></a>
 
 #### validate`_`override
 
 ```python
-@classmethod
-def validate_override(cls, component_id: ComponentId, override: Dict,
+def validate_override(component_id: ComponentId, override: Dict,
                       has_multiple_overrides: bool) -> None
 ```
 
