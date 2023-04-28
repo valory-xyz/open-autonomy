@@ -87,7 +87,8 @@ There are a number of mandatory attributes that define the service, which are su
 | `fingerprint_ignore_patterns` | Filename patterns to be ignored.                                                                                                                                                                      |
 | `agent`                       | Canonical agent, in the form `<agent_public_id>:<version>:<hash>`.                                                                                                                                    |
 | `number_of_agents`            | Number of agent instances that the service is composed of.                                                                                                                                            |                                                                                                                                         |
-| `deployment`            | External deployment configuration for configuring external hosts and ports.                                                                                                                                            |                                                                                                                                         |
+| `deployment`            | External deployment configuration for [publishing agent container ports](#publish-agent-container-ports).                                                                                                                                            |                                                                                                                                         |
+
 ## Service-level overrides
 
 The {{open_aea}} framework already has the notion of [component overrides](https://open-aea.docs.autonolas.tech/overrides/): if a component uses another component, the former can override configuration values of the sub-component.
@@ -363,9 +364,9 @@ models:
         - key: ${<env_var_name>:<type>:<default_value>}
 ```
 
-## Configure external ports
+## Publish agent container ports
 
-To expose container ports to host machine ports use following configuration
+We use a syntax similar to Docker for [port publishing](https://docs.docker.com/config/containers/container-networking/#published-ports). To expose agent container ports to host machine ports use the following configuration:
 
 ```yaml
 (...)
@@ -373,10 +374,10 @@ deployment:
   agent:
     ports:
       <agent_id>:
-        <container_port>: <machine_port>
+        <host_machine_port>: <agent_container_port>
 ```
 
-For example if you want to map port `8080` of the agent 0 to `8081` of the host machine port you can use following configuration
+Port publishing also works with [multiple overrides](#multiple-overrides). For example if you want to map port `8080` of agent 0 to port `8081` of the host machine, use:
 
 ```yaml
 (...)
@@ -384,10 +385,10 @@ deployment:
   agent:
     ports:
       0:
-        8080: 8081
+        8081: 8080
 ```
 
-You can also configure these using environment variables
+You can also configure these mappings using environment variables:
 
 ```yaml
 (...)
@@ -395,5 +396,5 @@ deployment:
   agent:
     ports:
       0:
-        8080: ${AGENT_0_HTTP_PORT:int:8080}
+        8081: ${AGENT_0_HTTP_PORT:int:8080}
 ```
