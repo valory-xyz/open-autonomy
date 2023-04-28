@@ -57,6 +57,7 @@ from typing import (
 
 from aea.crypto.ledger_apis import LedgerApis
 from aea.exceptions import enforce
+from aea.skills.base import SkillContext
 
 from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
 from packages.valory.connections.ledger.connection import (
@@ -732,7 +733,7 @@ class AbciAppDB:
         data = self.serialize()
         sha256.update(data.encode("utf-8"))
         hash_ = sha256.digest()
-        _logger.debug(f"root hash: {hash_.hex()}; data: {data}")
+        _logger.info(f"root hash: {hash_.hex()}; data: {data}")
         return hash_
 
     @staticmethod
@@ -948,7 +949,7 @@ class BaseSynchronizedData:
     @property
     def offence_status(self) -> str:
         """Get the offence status, serialized."""
-        return str(self.db.get_strict("offence_status"))
+        return str(self.db.get("offence_status", ""))
 
 
 class _MetaAbstractRound(ABCMeta):
@@ -1014,13 +1015,14 @@ class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
     def __init__(
         self,
         synchronized_data: BaseSynchronizedData,
+        context: SkillContext,
         previous_round_payload_class: Optional[Type[BaseTxPayload]] = None,
     ) -> None:
         """Initialize the round."""
         self._synchronized_data = synchronized_data
         self.block_confirmations = 0
         self._previous_round_payload_class = previous_round_payload_class
-
+        self.context = context
     @classmethod
     def auto_round_id(cls) -> str:
         """
@@ -1454,6 +1456,7 @@ class CollectSameUntilAllRound(_CollectUntilAllRound, ABC):
         self,
     ) -> Any:
         """Get the common payload among the agents."""
+        _logger.info("self.common_payload_values[0]", self.common_payload_values[0])
         return self.common_payload_values[0]
 
     @property
@@ -2136,6 +2139,7 @@ class AbciApp(
         self,
         synchronized_data: BaseSynchronizedData,
         logger: logging.Logger,
+        context: SkillContext,
     ):
         """Initialize the AbciApp."""
 
@@ -2144,7 +2148,7 @@ class AbciApp(
 
         self._initial_synchronized_data = synchronized_data
         self.logger = logger
-
+        self.context = context
         self._current_round_cls: Optional[AppState] = None
         self._current_round: Optional[AbstractRound] = None
         self._background_round: Optional[AbstractRound] = None
@@ -2253,6 +2257,7 @@ class AbciApp(
             self.background_round_cls = cast(AppState, self.background_round_cls)
             self._background_round = self.background_round_cls(
                 self._initial_synchronized_data,
+                self.context,
             )
 
     def _log_start(self) -> None:
@@ -2313,6 +2318,7 @@ class AbciApp(
         self._current_round_cls = round_cls
         self._current_round = round_cls(
             self.synchronized_data,
+            self.context,
             (
                 self._last_round.payload_class
                 if self._last_round is not None
@@ -2630,6 +2636,9 @@ class AvailabilityWindow:
 
         :param value: The boolean value to add to the cyclic array.
         """
+        _logger.info(f"Adding {value} to availability window")
+        _logger.info(f"Current window: {self._window}")
+        _logger.info(f"len(self._window) = {len(self._window)}")
         if len(self._window) == self._max_length and self._max_length > 0:
             # we have filled the window, we need to pop the oldest element
             # and update the score accordingly
@@ -2811,11 +2820,11 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         WAITING_FOR_DELIVER_TX = "waiting_for_deliver_tx"
         WAITING_FOR_COMMIT = "waiting_for_commit"
 
-    def __init__(self, abci_app_cls: Type[AbciApp]):
+    def __init__(self, context: SkillContext, abci_app_cls: Type[AbciApp]):
         """Initialize the round."""
         self._blockchain = Blockchain()
         self._syncing_up = True
-
+        self._context = context
         self._block_construction_phase = (
             RoundSequence._BlockConstructionState.WAITING_FOR_BEGIN_BLOCK
         )
@@ -2837,6 +2846,10 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         # a mapping of the agents' addresses to their offence status
         self._offence_status: Dict[str, OffenceStatus] = {}
         self._pending_offences: Set[PendingOffense] = set()
+        self._slashing_enabled = False
+
+    def enable_slashing(self) -> None:
+        """Enable slashing."""
         self._slashing_enabled = True
 
     @property
@@ -2870,12 +2883,18 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
     @offence_status.setter
     def offence_status(self, offence_status: Dict[str, OffenceStatus]) -> None:
         """Set the mapping of the agents' addresses to their offence status."""
-        if self._offence_status:
-            raise ValueError(
-                "The mapping of the agents' addresses to their offence status can only be set once. "
-                f"Attempted to set with {offence_status} but it has content already: {self._offence_status}."
-            )
+        _logger.info(f"Setting offence status to: {offence_status}")
         self._offence_status = offence_status
+
+    def serialize_offence_status(self) -> None:
+        """Serialize the offence status."""
+        encoded_status = json.dumps(
+            self.offence_status, cls=OffenseStatusEncoder, sort_keys=True
+        )
+        db_updates = {get_name(BaseSynchronizedData.offence_status): encoded_status}
+        self.abci_app.synchronized_data.update(BaseSynchronizedData, **db_updates)
+        _logger.info(f"Updated db with: {db_updates}")
+        _logger.info(f"App hash now is: {self.root_hash.hex()}")
 
     def get_agent_address(self, validator: Validator) -> str:
         """Get corresponding agent address from a `Validator` instance."""
@@ -2896,7 +2915,12 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         :param args: the arguments to pass to the round constructor.
         :param kwargs: the keyword-arguments to pass to the round constructor.
         """
-        self._abci_app = self._abci_app_cls(*args, **kwargs)
+        self._abci_app = self._abci_app_cls(
+            *args,
+            **{
+                **kwargs,
+                "context": self._context,
+            })
         self._abci_app.setup()
 
     def start_sync(
@@ -3085,9 +3109,16 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self, evidences: Evidences, last_commit_info: LastCommitInfo
     ) -> None:
         """Track offences if there are any."""
+        _logger.info(f"Tracking offences for round {self.current_round_id}")
         for vote_info in last_commit_info.votes:
             agent_address = self.get_agent_address(vote_info.validator)
             was_down = not vote_info.signed_last_block
+            _logger.info(f"agent_address: {agent_address}, was_down: {was_down}, round_id: {self.current_round_height}")
+            encoded_status = json.dumps(
+                self.offence_status, cls=OffenseStatusEncoder, sort_keys=True
+            )
+            _logger.info(f"encoded_status: {encoded_status}")
+            _logger.info(f"last_timestamp: {self.last_timestamp}")
             self.offence_status[agent_address].validator_downtime.add(was_down)
 
         for byzantine_validator in evidences.byzantine_validators:
@@ -3102,13 +3133,6 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             self.offence_status[agent_address].num_light_client_attack += bool(
                 evidence_type == EvidenceType.LIGHT_CLIENT_ATTACK
             )
-
-        # this information comes from Tendermint, so it is safe to add it to the synchronized database of the agents
-        encoded_status = json.dumps(
-            self.offence_status, cls=OffenseStatusEncoder, sort_keys=True
-        )
-        db_updates = {get_name(BaseSynchronizedData.offence_status): encoded_status}
-        self.abci_app.synchronized_data.update(BaseSynchronizedData, **db_updates)
 
     def _handle_slashing_not_configured(self, exc: SlashingNotConfiguredError) -> None:
         """Handle a `SlashingNotConfiguredError`."""
@@ -3130,7 +3154,11 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
     ) -> None:
         """Try to track the offences. If an error occurs, log it, disable slashing, and warn about the latter."""
         try:
-            self._track_offences(evidences, last_commit_info)
+            if self._slashing_enabled:
+                # only track offences if the first round has finished
+                # we avoid tracking offences in the first round
+                # because we do not have the slashing configuration synced yet
+                self._track_offences(evidences, last_commit_info)
         except SlashingNotConfiguredError as exc:
             self._handle_slashing_not_configured(exc)
 
@@ -3168,9 +3196,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             "Created a new local deadline for the next `begin_block` request from the Tendermint node: "
             f"{self._block_stall_deadline}"
         )
-
-        if self._slashing_enabled:
-            self._try_track_offences(evidences, last_commit_info)
+        self._try_track_offences(evidences, last_commit_info)
 
     def deliver_tx(self, transaction: Transaction) -> None:
         """
@@ -3274,6 +3300,9 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             # the termination round, nor the current round returned, so no update needs to be made
             return
 
+        if self._slashing_enabled and self._offence_status:
+            self.serialize_offence_status()
+
         self._last_round_transition_timestamp = self._blockchain.last_block.timestamp
         self._last_round_transition_height = self.height
         self._last_round_transition_root_hash = self.root_hash
@@ -3292,7 +3321,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._last_round_transition_tm_height = None
         self._tm_height = None
         self._pending_offences = set()
-        self._slashing_enabled = True
+        self._slashing_enabled = False
 
     def reset_state(
         self,
@@ -3316,11 +3345,14 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         if serialized_db_state is not None:
             self.abci_app.synchronized_data.db.sync(serialized_db_state)
             # deserialize the offence status and load it to memory
-            self._offence_status = json.loads(
-                self.latest_synchronized_data.offence_status,
-                cls=OffenseStatusDecoder,
-            )
-            # When the agents prepare the recovery state, their db reflects the state of their last round.
+            offence_status = self.latest_synchronized_data.offence_status
+            _logger.info(f"The offence status when serialized is {offence_status}")
+            if offence_status:
+                _logger.info(f"Offence status updated.")
+                self._offence_status = json.loads(
+                    offence_status,
+                    cls=OffenseStatusDecoder,
+                )
             # Furthermore, that hash is then in turn used as the init hash when the tm network is reset.
             self._last_round_transition_root_hash = self.root_hash
 

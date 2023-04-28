@@ -199,6 +199,7 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
             participant: RegistrationPayload(
                 sender=participant,
                 initialisation=self.synchronized_data.db.serialize(),
+                slashing_config="{}",
             )
             for participant in self.participants
         }

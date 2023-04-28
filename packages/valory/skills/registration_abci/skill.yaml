@@ -8,20 +8,20 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeieztbubb6yn5umyt5ulknvb2xxppz5ecxaosxqsaejnrcrrwfu2ji
   __init__.py: bafybeigqj2uodavhrygpqn6iah3ljp53z54c5fxyh5ykgkxuhh5lof6pda
-  behaviours.py: bafybeiebjnwgsx6fq2ap2axvoyma3vub26msbwemlvbuxfau3oa6ltgltu
+  behaviours.py: bafybeieiatelxvou76hgknvsxqeqcsci6keo63uyafjryxgczq24pndhsa
   dialogues.py: bafybeicm4bqedlyytfo4icqqbyolo36j2hk7pqh32d3zc5yqg75bt4demm
   fsm_specification.yaml: bafybeicx5eutgr4lin7mhwr73xhanuzwdmps7pfoy5f2k7gfxmuec4qbyu
   handlers.py: bafybeifby6yecei2d7jvxbqrc3tpyemb7xdb4ood2kny5dqja26qnxrf24
   models.py: bafybeifkfjsfkjy2x32cbuoewxujfgpcl3wk3fji6kq27ofr2zcfe7l5oe
   payloads.py: bafybeiacrixfazch2a5ydj7jfk2pnvlxwkygqlwzkfmdeldrj4fqgwyyzm
-  rounds.py: bafybeicaewfjtvn4tg3te2glocojmd2gzqkjznv2ruyeev22yrw6ed3wu4
+  rounds.py: bafybeidizk7dvv6r5y2vwkk5u7qptkd7hdqgdwmko7fmkfd36zejoydkmy
   tests/__init__.py: bafybeiab2s4vkmbz5bc4wggcclapdbp65bosv4en5zaazk5dwmldojpqja
   tests/test_behaviours.py: bafybeic7hhmsscjda7nkjb3dhpu5rgn6bsu5unnvckxv7vtmhg6ctpp3si
   tests/test_dialogues.py: bafybeibeqnpzuzgcfb6yz76htslwsbbpenihswbp7j3qdyq42yswjq25l4
   tests/test_handlers.py: bafybeifpnwaktxckbvclklo6flkm5zqs7apmb33ffs4jrmunoykjbl5lni
   tests/test_models.py: bafybeiewxl7nio5av2aukql2u7hlhodzdvjjneleba32abr42xeirrycb4
   tests/test_payloads.py: bafybeifik6ek75ughyd4y6t2lchlmjadkzbrz4hsb332k6ul4pwhlo2oga
-  tests/test_rounds.py: bafybeiefwk4quzkdn7m43rlahdhoe53xtzm4itlznjh26vdt5567oblgdm
+  tests/test_rounds.py: bafybeiey7lscwarxhf5nuvj6fwf4o2xlxweazdefac4gmxu4fudfs57dke
 fingerprint_ignore_patterns: []
 connections:
 - valory/p2p_libp2p_client:0.1.0:bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva
@@ -32,7 +32,7 @@ protocols:
 - valory/http:1.0.0:bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty
 - valory/tendermint:0.1.0:bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeiccnive5nfo46anrsgzdlmclv2gvn5b6oeqv73aubwfnxp4diunma
+- valory/abstract_round_abci:0.1.0:bafybeib36hkwz5wcfqzowcbkpftsscoilslp5cslfylxq6yt7kkedro2hy
 behaviours:
   main:
     args: {}
