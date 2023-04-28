@@ -4,6 +4,7 @@
 
 Docs:
 - Adds auto-correcting functionality for several package hash instances  #1939
+- Fixes port mapping documentation  #1944
 
 # 0.10.2 (2023-04-24)
 
