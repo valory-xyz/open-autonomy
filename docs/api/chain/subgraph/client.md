@@ -4,15 +4,25 @@
 
 Subgraph client.
 
-<a id="autonomy.chain.subgraph.client.ComponentType"></a>
+<a id="autonomy.chain.subgraph.client.Unit"></a>
 
-## ComponentType Objects
+## Unit Objects
 
 ```python
-class ComponentType(Enum)
+class Unit(TypedDict)
 ```
 
-Component type.
+Unit response type.
+
+<a id="autonomy.chain.subgraph.client.UnitContainer"></a>
+
+## UnitContainer Objects
+
+```python
+class UnitContainer(TypedDict)
+```
+
+Unit response container.
 
 <a id="autonomy.chain.subgraph.client.SubgraphClient"></a>
 
@@ -39,7 +49,7 @@ Initialize object
 #### getRecordByPackageHash
 
 ```python
-def getRecordByPackageHash(package_hash: str) -> Dict[str, Any]
+def getRecordByPackageHash(package_hash: str) -> UnitContainer
 ```
 
 Get component by package hash
@@ -49,7 +59,7 @@ Get component by package hash
 #### getRecordByPackageId
 
 ```python
-def getRecordByPackageId(package_id: PackageId) -> Dict[str, Any]
+def getRecordByPackageId(package_id: PackageId) -> UnitContainer
 ```
 
 Get component by package hash
