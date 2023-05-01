@@ -38,8 +38,14 @@ This command group consists of a number of functionalities to mint components, a
 
     The options `--use-ethereum`, `--use-goerli`, `--use-custom-chain` and `--use-local` are mutually exclusive.
 
-`--skip-hash-check`
-: Skip hash check when verifying dependencies on chain.
+`-t, --timeout FLOAT`
+: Timeout for verifying emitted events
+
+`-s, --skip-hash-check`
+: Skip hash check when verifying dependencies on chain
+
+`-l, --latest-dependencies`
+: Use latest on-chain dependencies if there are multiple dependencies with same package ID
 
 ## `autonomy mint protocol` / `contract` / `connection` / `skill`
 
@@ -64,9 +70,6 @@ autonomy mint skill [OPTIONS] PACKAGE_PATH
 `--password PASSWORD`
 : Password for the key file.
 
-`-d, --dependencies DEPENDENCY_ID`
-: Dependencies for the package.
-
 `--nft IPFS_HASH_OR_IMAGE_PATH`
 : IPFS hash or path to the image for the NFT representing the package. Note that if you are using a local chain this option is not required.
 
@@ -75,16 +78,42 @@ autonomy mint skill [OPTIONS] PACKAGE_PATH
 
 ### Examples
 
-Mint the `abstract_abci` skill with dependency IDs 35 and 42 in a local chain:
+Mint the `abstract_abci` skill on a local chain:
 
 ```bash
-autonomy mint --use-local skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
+autonomy mint skill --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
 ```
 
 Same as above, but using a hardware wallet:
 
 ```bash
-autonomy mint --use-local skill --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
+autonomy mint skill --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
+```
+
+When minting the components the autonomy framework uses a `subgraph` for resolving dependencies to their respective on-chain token IDs. If a dependency is not minted you'll get the following error
+
+```
+Error: No on chain registration found for following dependencies
+        - (PACKAGE_TYPE, AUTHOR/NAME:VERSION:PACKAGE_HASH)
+```
+
+The dependency checker uses hashes for resolving token IDs but if you want to use the public IDs to resolve you can use `--skip-hash-check` or `-s` flag on the `autonomy mint` command
+
+```bash
+autonomy mint --skip-hash-check skill --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
+```
+
+When using public ID for resolving token IDs you might get prompted to select between token IDS since a package can be minted multiple times with different versions. The prompt will look like this
+
+```
+Multiple dependencies found for <public_id> of type <package_type>
+Please choose which dependency to use (token_id_0, token_id_1, ...): 
+```
+
+You can avoid the prompts and just use the latest dependencies by using `-l, --latest-dependencies` flag
+
+```bash
+autonomy mint --skip-hash-check --latest-dependencies skill --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
 ```
 
 ## `autonomy mint agent`
@@ -107,9 +136,6 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH
 `--password PASSWORD`
 : Password for the key file.
 
-`-d, --dependencies DEPENDENCY_ID`
-: Dependencies for the package. In order to be minted, agent packages require at least one dependency.
-
 `--nft NFT_HASH_OR_IMAGE_PATH`
 : IPFS hash or path to the image for the NFT representing the package. Note that if you are using a local chain this option is not required.
 
@@ -118,7 +144,7 @@ autonomy mint agent [OPTIONS] PACKAGE_PATH
 
 ### Examples
 
-Mint the `hello_world` agent with dependency IDs 34, 35, 38, 39, 42, 43, 44, 45, 46, 47, 48 and 49 in the Ethereum main chain:
+Mint the `hello_world` agent on the Ethereum mainnet:
 
 ```bash
 autonomy mint --use-ethereum agent --key my_key.txt --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/agents/hello_world

@@ -52,7 +52,7 @@ nft_decorator = click.option(
     help="IPFS hash or path for the NFT image",
 )
 timeout_flag = click.option(
-    "-t", "--timeout", type=float, help="Timeout for verifying emnitted events"
+    "-t", "--timeout", type=float, help="Timeout for verifying emitted events"
 )
 owner_flag = click.option(
     "--owner",
