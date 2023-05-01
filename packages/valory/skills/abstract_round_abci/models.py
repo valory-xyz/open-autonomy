@@ -481,7 +481,7 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
 
     def setup(self) -> None:
         """Set up the model."""
-        self._round_sequence = RoundSequence(self.abci_app_cls)
+        self._round_sequence = RoundSequence(self.context, self.abci_app_cls)
         setup_params = cast(BaseParams, self.context.params).setup_params
         self.round_sequence.setup(
             BaseSynchronizedData(

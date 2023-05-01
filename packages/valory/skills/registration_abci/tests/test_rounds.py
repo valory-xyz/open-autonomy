@@ -18,11 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """Test the rounds.py module of the skill."""
-
-# pylint: skip-file
-
+import json
 from typing import Any, Dict, Optional, cast
 from unittest import mock
+from unittest.mock import MagicMock
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
@@ -36,9 +35,13 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import Event as RegistrationEvent
 from packages.valory.skills.registration_abci.rounds import (
+    NO_SLASHING_PAYLOAD,
     RegistrationRound,
     RegistrationStartupRound,
 )
+
+
+# pylint: skip-file
 
 
 class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
@@ -62,9 +65,15 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
 
         test_round = RegistrationStartupRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
 
-        most_voted_payload = self.synchronized_data.db.serialize()
+        most_voted_payload = json.dumps(
+            dict(
+                db=self.synchronized_data.db.serialize(),
+                slashing_config=NO_SLASHING_PAYLOAD,
+            )
+        )
         round_payloads = {
             participant: RegistrationPayload(
                 sender=participant,
@@ -107,6 +116,7 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
         )
         test_round = RegistrationStartupRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
 
         with mock.patch.object(
@@ -193,6 +203,7 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
         )
         test_round = RegistrationRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
 
         round_payloads = {
@@ -237,6 +248,7 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
         )
         test_round = RegistrationRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
         self._run_with_round(
             test_round,
@@ -317,6 +329,7 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
 
         test_round = RegistrationRound(
             synchronized_data=self.synchronized_data,
+            context=MagicMock(),
         )
 
         with mock.patch.object(test_round, "is_majority_possible", return_value=False):

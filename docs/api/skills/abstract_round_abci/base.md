@@ -1177,6 +1177,7 @@ Optionally, round_id can be defined, although it is recommended to use the autog
 ```python
 def __init__(
     synchronized_data: BaseSynchronizedData,
+    context: SkillContext,
     previous_round_payload_class: Optional[Type[BaseTxPayload]] = None
 ) -> None
 ```
@@ -2093,7 +2094,8 @@ Concrete classes of this class implement the ABCI App.
 #### `__`init`__`
 
 ```python
-def __init__(synchronized_data: BaseSynchronizedData, logger: logging.Logger)
+def __init__(synchronized_data: BaseSynchronizedData, logger: logging.Logger,
+             context: SkillContext)
 ```
 
 Initialize the AbciApp.
@@ -2628,10 +2630,20 @@ It also schedules the next round (if any) whenever a round terminates.
 #### `__`init`__`
 
 ```python
-def __init__(abci_app_cls: Type[AbciApp])
+def __init__(context: SkillContext, abci_app_cls: Type[AbciApp])
 ```
 
 Initialize the round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.enable_slashing"></a>
+
+#### enable`_`slashing
+
+```python
+def enable_slashing() -> None
+```
+
+Enable slashing.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.validator_to_agent"></a>
 
@@ -2698,6 +2710,16 @@ def offence_status(offence_status: Dict[str, OffenceStatus]) -> None
 ```
 
 Set the mapping of the agents' addresses to their offence status.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.serialize_offence_status"></a>
+
+#### serialize`_`offence`_`status
+
+```python
+def serialize_offence_status() -> None
+```
+
+Serialize the offence status.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.get_agent_address"></a>
 
