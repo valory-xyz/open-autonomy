@@ -79,6 +79,7 @@ models:
         consensus_threshold: ${int:null}
       tendermint_url: ${str:http://localhost:26657}
       tendermint_com_url: ${str:http://localhost:8080}
+      tendermint_p2p_url: ${str:localhost:26656}
 ---
 public_id: valory/abci:0.1.0
 type: connection
