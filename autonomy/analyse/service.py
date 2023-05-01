@@ -37,7 +37,7 @@ from aea.crypto.base import LedgerApi
 from aea.helpers.cid import to_v0
 from aea.helpers.env_vars import ENV_VARIABLE_RE, apply_env_variables
 from aea.helpers.logging import setup_logger
-from jsonschema.exceptions import ValidationError
+from jsonschema.exceptions import ValidationError as SchemaValidationError
 from jsonschema.validators import Draft4Validator
 from requests.exceptions import ConnectionError as RequestConnectionError
 
@@ -185,6 +185,48 @@ PROPERTY_NOT_ALLOWED_RE = re.compile(
 )
 
 
+class CustomSchemaValidationError(SchemaValidationError):
+    """Custom schema validation error to report all errors at once."""
+
+    def __init__(
+        self,
+        extra_properties: Optional[List[str]] = None,
+        missing_properties: Optional[List[str]] = None,
+        not_having_enough_properties: Optional[List[str]] = None,
+        **kwargs: Any,
+    ) -> None:
+        """Initialize object."""
+        self.extra_properties = extra_properties or []
+        self.missing_properties = missing_properties or []
+        self.not_having_enough_properties = not_having_enough_properties or []
+        self.should_raise = False
+        error_strings = []
+        if len(self.extra_properties) > 0:
+            self.should_raise = True
+            self.extra_properties_error = "Additional properties found " + ", ".join(
+                map(lambda x: f"'{x}'", self.extra_properties)
+            )
+            error_strings.append(self.extra_properties_error)
+
+        if len(self.missing_properties) > 0:
+            self.should_raise = True
+            self.missing_properties_error = (
+                "Following properties are require but missing "
+                + ", ".join(map(lambda x: f"'{x}'", self.missing_properties))
+            )
+            error_strings.append(self.missing_properties_error)
+
+        if len(self.not_having_enough_properties) > 0:
+            self.should_raise = True
+            self.not_having_enough_properties_error = ";".join(
+                self.not_having_enough_properties
+            )
+            error_strings.append(self.not_having_enough_properties_error)
+
+        message = ";".join(error_strings)
+        super().__init__(message, **kwargs)
+
+
 class CustomSchemaValidator(Draft4Validator):
     """Custom schema validator to report all missing fields at once."""
 
@@ -192,8 +234,9 @@ class CustomSchemaValidator(Draft4Validator):
         """Validate and raise all errors at once."""
         missing = []
         extra = []
+        not_enough_properties = []
         for error in self.iter_errors(*args, **kwargs):
-            message = cast(ValidationError, error).message
+            message = cast(SchemaValidationError, error).message
             missing_property_check = REQUIRED_PROPERTY_RE.match(message)
             if missing_property_check is not None:
                 (missing_property,) = cast(re.Match, missing_property_check).groups()
@@ -208,19 +251,15 @@ class CustomSchemaValidator(Draft4Validator):
                 continue
 
             if "does not have enough properties" in message:
-                raise error
+                not_enough_properties.append(message)
 
-        if len(extra) > 0:
-            raise ValidationError(
-                message="Additional properties found "
-                + ", ".join(map(lambda x: f"'{x}'", extra))
-            )
-
-        if len(missing) > 0:
-            raise ValidationError(
-                message="Following properties are require but missing "
-                + ", ".join(map(lambda x: f"'{x}'", missing))
-            )
+        error = CustomSchemaValidationError(
+            extra_properties=extra,
+            missing_properties=missing,
+            not_having_enough_properties=not_enough_properties,
+        )
+        if error.should_raise:
+            raise error
 
 
 ABCI_CONNECTION_VALIDATOR = CustomSchemaValidator(schema=ABCI_CONNECTION_SCHEMA)
@@ -572,6 +611,7 @@ class ServiceAnalyser:
         overrides: Dict,
         has_multiple_overrides: bool,
         error_message: str,
+        raise_custom_exception: bool = True,
     ) -> None:
         """Run validator on the given override."""
 
@@ -582,17 +622,19 @@ class ServiceAnalyser:
         ) -> None:
             try:
                 validator.validate(overrides)
-            except ValidationError as e:
-                raise ServiceValidationFailed(
-                    error_message.format(error=e.message)
-                ) from e
+            except CustomSchemaValidationError as e:
+                if raise_custom_exception:
+                    raise ServiceValidationFailed(
+                        error_message.format(error=e.message)
+                    ) from e
+                raise
 
         if has_multiple_overrides:
             for idx, override in overrides.items():
                 _validate_override(
                     validator=validator,
                     overrides=override,
-                    error_message=f"{error_message}; Override index {idx}",
+                    error_message=f"{error_message} at override index {idx}",
                 )
         else:
             _validate_override(
@@ -641,27 +683,29 @@ class ServiceAnalyser:
                     validator=LEDGER_CONNECTION_VALIDATOR,
                     overrides=override,
                     has_multiple_overrides=has_multiple_overrides,
-                    error_message="Ledger connection validation failed; {error}",
+                    error_message="{error}",
+                    raise_custom_exception=False,
                 )
-            except ServiceValidationFailed as e:
-                (msg, *_) = e.args
-                if "does not have enough properties" in msg:
+            except CustomSchemaValidationError as e:
+                if len(e.not_having_enough_properties) > 0:
                     raise ServiceValidationFailed(
                         f"{component_id} override needs at least one ledger API definition"
                     ) from e
 
-                if "Additional properties found" not in msg:
-                    raise
+                if len(e.missing_properties) > 0:
+                    raise ServiceValidationFailed(
+                        f"Ledger connection validation failed; {e.missing_properties_error}"
+                    ) from e
 
-                unknown_ledgers = re.findall("'([a-zA-Z0-9]+)'", msg)
-                self._warn(
-                    "\n\t- ".join(
-                        [
-                            f"Following unknown ledgers found in the {component_id} override",
-                            *unknown_ledgers,
-                        ]
+                if len(e.extra_properties) > 0:
+                    self._warn(
+                        "\n\t- ".join(
+                            [
+                                f"Following unknown ledgers found in the {component_id} override",
+                                *e.extra_properties,
+                            ]
+                        )
                     )
-                )
 
     def validate_skill_config(self, skill_config: SkillConfig) -> None:
         """Check required overrides."""

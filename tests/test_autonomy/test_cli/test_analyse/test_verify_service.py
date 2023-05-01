@@ -503,8 +503,8 @@ class TestCheckRequiredServiceOverrides(BaseAnalyseServiceTest):
 
         assert result.exit_code == 1, result.stdout
         assert (
-            "ervice overrides validation failed with following errors"
-            "\n\t- (connection, valory/ledger:0.1.0) override needs at least one ledger API definition\n"
+            "Service overrides validation failed with following errors"
+            "\n\t- (connection, valory/ledger:0.1.0) override needs at least one ledger API definition"
             in result.stderr
         )
 
