@@ -21,7 +21,7 @@ fingerprint:
   tests/test_handlers.py: bafybeifpnwaktxckbvclklo6flkm5zqs7apmb33ffs4jrmunoykjbl5lni
   tests/test_models.py: bafybeiewxl7nio5av2aukql2u7hlhodzdvjjneleba32abr42xeirrycb4
   tests/test_payloads.py: bafybeifik6ek75ughyd4y6t2lchlmjadkzbrz4hsb332k6ul4pwhlo2oga
-  tests/test_rounds.py: bafybeiaahnzjs6dgxz3qrkqukru4jq7n45tpjpmqiwd6r553yqmmpqbluq
+  tests/test_rounds.py: bafybeig5fbdf2vfq3pghn6vpygvs2f4w4nvxiwtp5fhvgrcwecnzcfrm4i
 fingerprint_ignore_patterns: []
 connections:
 - valory/p2p_libp2p_client:0.1.0:bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva
