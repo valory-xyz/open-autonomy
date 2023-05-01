@@ -20,12 +20,15 @@
 """Test utils."""
 
 from typing import Dict
+from unittest import mock
 
 import pytest
 from aea.configurations.data_types import PublicId
+from aea.contracts.base import Contract
+from requests.exceptions import ConnectionError as RequestConnectionError
 
-from autonomy.chain.exceptions import DependencyError
-from autonomy.chain.utils import parse_public_id_from_metadata
+from autonomy.chain.exceptions import DependencyError, FailedToRetrieveComponentMetadata
+from autonomy.chain.utils import parse_public_id_from_metadata, resolve_component_id
 
 
 def get_dummy_metadata(
@@ -49,7 +52,7 @@ def get_dummy_metadata(
 @pytest.mark.parametrize(
     "public_id_string",
     [
-        "author/package_name",
+        "author/package_name:0.1.0",
         "component_type/author/name",
         "skill/author/name/0.1.0",
     ],
@@ -71,3 +74,27 @@ def test_parse_public_id_from_metadata_fail() -> None:
         parse_public_id_from_metadata(
             id_string="public_id",
         )
+
+
+def test_resolve_component_id_failures() -> None:
+    """Test `resolve_component_id` exceptions"""
+
+    with pytest.raises(
+        FailedToRetrieveComponentMetadata, match="Error connecting to the RPC"
+    ):
+        with mock.patch.object(
+            Contract, "get_instance", side_effect=RequestConnectionError
+        ):
+            resolve_component_id(
+                ledger_api=mock.MagicMock(), contract_address="0xaddress", token_id=1
+            )
+
+    with pytest.raises(
+        FailedToRetrieveComponentMetadata, match="Error connecting to the IPFS gateway"
+    ):
+        with mock.patch.object(Contract, "get_instance"), mock.patch(
+            "autonomy.chain.utils.r_get", side_effect=RequestConnectionError
+        ):
+            resolve_component_id(
+                ledger_api=mock.MagicMock(), contract_address="0xaddress", token_id=1
+            )

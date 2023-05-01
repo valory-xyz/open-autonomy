@@ -414,6 +414,22 @@ class TestGetOnChainDependencies:
 
             assert dependencies == [1]
 
+    def test_skip_hash(self) -> None:
+        """Test `get_on_chain_dependencies` method"""
+
+        with self.mock_client(
+            return_value={
+                "units": [{"tokenId": 0}, {"tokenId": 1}],
+            },
+        ):
+            dependencies = get_on_chain_dependencies(
+                dependencies=self.dependencies,
+                use_latest_dependencies=True,
+                skip_hash_check=True,
+            )
+
+            assert dependencies == [1]
+
     def test_get_on_chain_dependencies_failure(self) -> None:
         """Test `get_on_chain_dependencies` method"""
 
