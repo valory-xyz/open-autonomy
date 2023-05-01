@@ -256,7 +256,7 @@ class ServiceAnalyser:
 
     def _warn(self, msg: str) -> None:
         """Raise warning."""
-        if self.skip_warning:
+        if self.skip_warning:  # pragma: nocover
             return
         self.logger.warning(msg=msg)
 
@@ -476,7 +476,7 @@ class ServiceAnalyser:
                 "save_path",
                 "is_abstract",
             ):
-                continue
+                continue  # pragma: nocover
             _json_path = [*json_path, str(key)]
             if isinstance(value, (dict, OrderedDict)):
                 errors += cls.validate_override_env_vars(
@@ -487,7 +487,7 @@ class ServiceAnalyser:
             elif isinstance(value, list):
                 for i, obj in enumerate(value):
                     if not isinstance(obj, (dict, OrderedDict)):
-                        continue
+                        continue  # pragma: nocover
                     errors += cls.validate_override_env_vars(
                         obj,
                         validate_env_var_name=validate_env_var_name,

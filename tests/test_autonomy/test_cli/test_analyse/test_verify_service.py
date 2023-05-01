@@ -34,6 +34,7 @@ from aea.configurations.data_types import (
 )
 from aea.helpers.cid import to_v0
 from aea_cli_ipfs.ipfs_utils import IPFSDaemon, IPFSTool
+from requests.exceptions import ConnectionError as RequestConnectionError
 
 from autonomy.analyse.service import ServiceAnalyser
 from autonomy.configurations.base import Service
@@ -391,8 +392,34 @@ class BaseAnalyseServiceTest(BaseCliTest):
         )
 
 
-class TestCheckRequiredOverrides(BaseAnalyseServiceTest):
-    """Test override verification."""
+class TestCheckRequiredAgentOverrides(BaseAnalyseServiceTest):
+    """Test agent override verification."""
+
+    def test_missing_override(self) -> None:
+        """Test missing override run."""
+
+        skill_config_service = get_dummy_overrides_skill(env_vars_with_name=True)
+        skill_config_agent = get_dummy_overrides_skill()
+
+        del skill_config_agent["models"]["params"]["args"]["setup"]
+
+        with self.patch_loader(
+            service_data=[get_dummy_service_config(), skill_config_service],
+            agent_data=[get_dummy_agent_config(), skill_config_agent],
+            skill_data=get_dummy_skill_config(),
+        ), self.patch_ipfs_tool([]):
+            result = self.run_cli(commands=self.public_id_option)
+
+        assert result.exit_code == 1, result.stdout
+        assert (
+            "Error: Agent overrides validation failed with following errors"
+            "\n\t- ABCI Skill `valory/abci_skill:0.1.0` override validation failed; Following properties are require but missing 'setup'\n"
+            in result.stderr
+        ), result.stdout
+
+
+class TestCheckRequiredServiceOverrides(BaseAnalyseServiceTest):
+    """Test service override verification."""
 
     def test_abci_skill_params_not_defined(self) -> None:
         """Test successful run."""
@@ -557,6 +584,99 @@ class TestCheckRequiredOverrides(BaseAnalyseServiceTest):
         )
 
 
+class TestEnvVarValidation(BaseAnalyseServiceTest):
+    """Test service override verification."""
+
+    def test_list_var_validation(self) -> None:
+        """Test agent var validation."""
+
+        skill_config = get_dummy_overrides_skill()
+        skill_config["models"]["params"]["args"]["messages"] = [
+            {"text": "${str:hello}"}
+        ]
+
+        with self.patch_loader(
+            service_data=[
+                get_dummy_service_config(),
+                get_dummy_overrides_skill(env_vars_with_name=True),
+            ],
+            agent_data=[get_dummy_agent_config(), skill_config],
+            skill_data=get_dummy_skill_config(),
+        ), self.patch_ipfs_tool([]):
+            result = self.run_cli(commands=self.public_id_option)
+
+        assert result.exit_code == 0, result.stdout
+
+    def test_agent_var_validation(self) -> None:
+        """Test agent var validation."""
+
+        skill_config = get_dummy_overrides_skill()
+        skill_config["models"]["params"]["args"]["message"] = "Hello, World!"
+
+        with self.patch_loader(
+            service_data=[
+                get_dummy_service_config(),
+                get_dummy_overrides_skill(env_vars_with_name=True),
+            ],
+            agent_data=[get_dummy_agent_config(), skill_config],
+            skill_data=get_dummy_skill_config(),
+        ), self.patch_ipfs_tool([]):
+            result = self.run_cli(commands=self.public_id_option)
+
+        assert result.exit_code == 1, result.stdout
+        assert (
+            "(skill, valory/abci_skill:0.1.0) envrionment variable validation failed with following error"
+            "\n\t- `models.params.args.message` needs to be defined as a environment variable"
+            in result.stderr
+        ), result.stdout
+
+    def test_var_type_validation(self) -> None:
+        """Test var type validation."""
+
+        skill_config = get_dummy_overrides_skill()
+        skill_config["models"]["params"]["args"]["tendermint_url"] = None
+
+        with self.patch_loader(
+            service_data=[
+                get_dummy_service_config(),
+                get_dummy_overrides_skill(env_vars_with_name=True),
+            ],
+            agent_data=[get_dummy_agent_config(), skill_config],
+            skill_data=get_dummy_skill_config(),
+        ), self.patch_ipfs_tool([]):
+            result = self.run_cli(commands=self.public_id_option)
+
+        assert result.exit_code == 1, result.stdout
+        assert (
+            "(skill, valory/abci_skill:0.1.0) envrionment variable validation failed with following error"
+            "\n\t- `models.params.args.tendermint_url` needs to be defined as a environment variable"
+            in result.stderr
+        ), result.stdout
+
+    def test_loading(self) -> None:
+        """Test var type validation."""
+
+        skill_config = get_dummy_overrides_skill()
+        skill_config["models"]["params"]["args"]["tendermint_url"] = "${int:hello}"
+
+        with self.patch_loader(
+            service_data=[
+                get_dummy_service_config(),
+                get_dummy_overrides_skill(env_vars_with_name=True),
+            ],
+            agent_data=[get_dummy_agent_config(), skill_config],
+            skill_data=get_dummy_skill_config(),
+        ), self.patch_ipfs_tool([]):
+            result = self.run_cli(commands=self.public_id_option)
+
+        assert result.exit_code == 1, result.stdout
+        assert (
+            "(skill, valory/abci_skill:0.1.0) envrionment variable validation failed with following error"
+            "\n\t- `models.params.args.tendermint_url` validation failed with following error; Cannot convert string `hello` to type `int`"
+            in result.stderr
+        ), result.stdout
+
+
 class TestCheckAgentDependenciesPublished(BaseAnalyseServiceTest):
     """Test `check_agent_package_published` method."""
 
@@ -586,10 +706,10 @@ class TestCheckAgentDependenciesPublished(BaseAnalyseServiceTest):
         assert "agent: valory/dummy_agent:0.1.0" in result.stderr
 
 
-class TestVerifyOverrides(BaseAnalyseServiceTest):
+class TestVerifyCrossOverrides(BaseAnalyseServiceTest):
     """Test verify overrides method."""
 
-    def test_missing_override(self) -> None:
+    def test_overrides_missing_from_agent(self) -> None:
         """Test missing override section from agent config."""
 
         with self.patch_loader(
@@ -607,6 +727,26 @@ class TestVerifyOverrides(BaseAnalyseServiceTest):
         assert (
             "Overrides with following component IDs are defined in the service configuration but not in the agent configuration"
             "\n\t- (connection, valory/ledger:0.1.0)\n" in result.stderr
+        )
+
+    def test_overrides_missing_from_service(self, caplog: Any) -> None:
+        """Test missing override section from service config."""
+
+        with self.patch_loader(
+            service_data=[get_dummy_service_config()],
+            agent_data=[get_dummy_agent_config(), get_dummy_overrides_skill()],
+            skill_data=get_dummy_skill_config(),
+        ), self.patch_ipfs_tool(
+            []
+        ), self.patch_validate_service_overrides(), caplog.at_level(
+            logging.WARNING
+        ):
+            result = self.run_cli(commands=self.public_id_option)
+
+        assert result.exit_code == 0, result.stdout
+        assert (
+            "Overrides with following component IDs are defined in the agent configuration but not in the service configuration"
+            "\n\t- (skill, valory/abci_skill:0.1.0)" in caplog.text
         )
 
 
@@ -638,6 +778,30 @@ class TestCheckOnChainState(BaseAnalyseServiceTest):
             in caplog.text
         )
 
+    def test_on_chain_status_check_rpc_failure(self) -> None:
+        """Test `check_on_chain_state` RPC connection failure"""
+
+        with self.patch_loader(
+            service_data=[get_dummy_service_config(), get_dummy_overrides_skill()],
+            agent_data=[get_dummy_agent_config(), get_dummy_overrides_skill()],
+            skill_data=get_dummy_skill_config(),
+            is_remote=True,
+        ), mock.patch(
+            "autonomy.analyse.service.get_service_info",
+            side_effect=RequestConnectionError,
+        ), self.patch_ipfs_tool(
+            []
+        ), self.patch_ipfs_daemon_is_started(
+            return_value=True,
+        ), self.patch_get_on_chain_service_id():
+            result = self.run_cli(commands=self.token_id_option)
+
+        assert result.exit_code == 1, result.stdout
+        assert (
+            "On chain service validation failed, could not connect to the RPC"
+            in result.stderr
+        )
+
 
 class TestCheckSuccessful(BaseAnalyseServiceTest):
     """Test a successful check"""
@@ -647,6 +811,11 @@ class TestCheckSuccessful(BaseAnalyseServiceTest):
 
         skill_config = get_dummy_overrides_skill(env_vars_with_name=True)
         models = skill_config.pop("models")
+        skill_config_original = get_dummy_skill_config()
+        skill_config_original["models"]["benchmark_tool"] = {
+            "args": {"log_dir": "/logs"}
+        }
+
         for i in range(4):
             skill_config[i] = {"models": deepcopy(models)}
 
@@ -663,7 +832,7 @@ class TestCheckSuccessful(BaseAnalyseServiceTest):
                 get_dummy_overrides_abci_connection(),
                 get_dummy_overrides_ledger_connection(),
             ],
-            skill_data=get_dummy_skill_config(),
+            skill_data=skill_config_original,
             is_remote=True,
         ), self.patch_ipfs_tool(
             pins=list(
