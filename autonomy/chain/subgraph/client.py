@@ -20,10 +20,9 @@
 """Subgraph client."""
 
 import os
-from enum import Enum
-from typing import Any, Dict
+from typing import List, TypedDict, cast
 
-from aea.configurations.data_types import PackageId, PackageType
+from aea.configurations.data_types import PackageId
 from gql import Client, gql
 from gql.transport.aiohttp import AIOHTTPTransport
 
@@ -34,12 +33,18 @@ SUBGRAPH_URL = os.environ.get("OPEN_AUTONOMY_SUBGRAPH_URL", "http://localhost:80
 SUBGRAPH_NAME = os.environ.get("OPEN_AUTONOMY_SUBGRAPH_NAME", "autonolas")
 
 
-class ComponentType(Enum):
-    """Component type."""
+class Unit(TypedDict):
+    """Unit response type."""
 
-    COMPONENT = "COMPONENT"
-    AGENT = "AGENT"
-    SERVICE = "SERVICE"
+    tokenId: int
+    packageHash: str
+    publicId: str
+
+
+class UnitContainer(TypedDict):
+    """Unit response container."""
+
+    units: List[Unit]
 
 
 class SubgraphClient:
@@ -63,25 +68,18 @@ class SubgraphClient:
             fetch_schema_from_transport=True,
         )
 
-    def getRecordByPackageHash(self, package_hash: str) -> Dict[str, Any]:
+    def getRecordByPackageHash(self, package_hash: str) -> UnitContainer:
         """Get component by package hash"""
         query_str = FIND_BY_PACKAGE_HASH.format(package_hash=package_hash)
         query = gql(query_str)
-        return self.client.execute(query)
+        return cast(UnitContainer, self.client.execute(query))
 
-    def getRecordByPackageId(self, package_id: PackageId) -> Dict[str, Any]:
+    def getRecordByPackageId(self, package_id: PackageId) -> UnitContainer:
         """Get component by package hash"""
         public_id = f"{package_id.author}/{package_id.name}"
-        if package_id.package_type == PackageType.SERVICE:
-            component_type = ComponentType.SERVICE
-        elif package_id.package_type == PackageType.AGENT:
-            component_type = ComponentType.AGENT
-        else:
-            component_type = ComponentType.COMPONENT
-
         query_str = FIND_BY_PUBLIC_ID.format(
             public_id=public_id,
-            component_type=component_type.value,
+            package_type=package_id.package_type.value.upper(),
         )
         query = gql(query_str)
-        return self.client.execute(query)
+        return cast(UnitContainer, self.client.execute(query))

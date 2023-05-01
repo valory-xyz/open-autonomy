@@ -20,7 +20,7 @@
 """On-chain interaction helpers."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, cast
+from typing import List, Optional, Set, Tuple, cast
 
 import click
 from aea.configurations.data_types import PackageId, PackageType
@@ -47,7 +47,7 @@ from autonomy.chain.mint import mint_service as _mint_service
 from autonomy.chain.service import activate_service as _activate_service
 from autonomy.chain.service import deploy_service as _deploy_service
 from autonomy.chain.service import register_instance as _register_instance
-from autonomy.chain.subgraph.client import SubgraphClient
+from autonomy.chain.subgraph.client import SubgraphClient, UnitContainer
 from autonomy.configurations.base import PACKAGE_TYPE_TO_CONFIG_CLASS, Service
 
 
@@ -118,7 +118,7 @@ def get_on_chain_dependencies(
     not_found = []
     found = []
     subgraph = SubgraphClient()
-    record: Dict[str, Any]
+    record: UnitContainer
     for dependency in dependencies:
         if skip_hash_check:
             record = subgraph.getRecordByPackageId(
@@ -141,7 +141,10 @@ def get_on_chain_dependencies(
             token_ids = [unit["tokenId"] for unit in units]
             token_id = int(
                 click.prompt(
-                    text=f"Multiple dependencies found for {dependency}\nPlease choose which dependency to use",
+                    text=(
+                        f"Multiple dependencies found for {dependency.public_id.without_hash()} of type {dependency.package_type}"
+                        "\nPlease choose which dependency to use"
+                    ),
                     type=click.Choice(choices=token_ids),
                 )
             )

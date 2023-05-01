@@ -22,23 +22,19 @@
 FIND_BY_PACKAGE_HASH = """
 query getUnit {{
   units(where:{{packageHash:"{package_hash}"}}){{
-    id
     tokenId
     packageHash
     publicId
-    componentType
   }}
 }}
 """
 
 FIND_BY_PUBLIC_ID = """
 query getUnit {{
-  units(where:{{publicId: "{public_id}",componentType:{component_type}}}){{
-    id
+  units(where:{{publicId: "{public_id}",packageType:{package_type}}}){{
     tokenId
     packageHash
     publicId
-    componentType
   }}
 }}
 """

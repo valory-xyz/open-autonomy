@@ -61,7 +61,7 @@ def resolve_component_id(
         raise FailedToRetrieveComponentMetadata(
             "Error connecting to the IPFS gateway"
         ) from e
-    except JSONDecodeError as e:
+    except JSONDecodeError as e:  # pragma: nocover
         raise FailedToRetrieveComponentMetadata(
             f"Error decoding json data; make sure metadata file for the component exist on the IPFS registry; Dependency ID: {token_id}"
         ) from e
