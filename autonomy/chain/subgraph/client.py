@@ -20,7 +20,7 @@
 """Subgraph client."""
 
 import os
-from typing import List, TypedDict, cast
+from typing import Dict, List, Union, cast
 
 from aea.configurations.data_types import PackageId
 from gql import Client, gql
@@ -32,19 +32,8 @@ from autonomy.chain.subgraph.queries import FIND_BY_PACKAGE_HASH, FIND_BY_PUBLIC
 SUBGRAPH_URL = os.environ.get("OPEN_AUTONOMY_SUBGRAPH_URL", "http://localhost:8000")
 SUBGRAPH_NAME = os.environ.get("OPEN_AUTONOMY_SUBGRAPH_NAME", "autonolas")
 
-
-class Unit(TypedDict):
-    """Unit response type."""
-
-    tokenId: int
-    packageHash: str
-    publicId: str
-
-
-class UnitContainer(TypedDict):
-    """Unit response container."""
-
-    units: List[Unit]
+Unit = Dict[str, Union[int, str]]
+UnitContainer = Dict[str, List[Unit]]
 
 
 class SubgraphClient:

@@ -4,26 +4,6 @@
 
 Subgraph client.
 
-<a id="autonomy.chain.subgraph.client.Unit"></a>
-
-## Unit Objects
-
-```python
-class Unit(TypedDict)
-```
-
-Unit response type.
-
-<a id="autonomy.chain.subgraph.client.UnitContainer"></a>
-
-## UnitContainer Objects
-
-```python
-class UnitContainer(TypedDict)
-```
-
-Unit response container.
-
 <a id="autonomy.chain.subgraph.client.SubgraphClient"></a>
 
 ## SubgraphClient Objects
