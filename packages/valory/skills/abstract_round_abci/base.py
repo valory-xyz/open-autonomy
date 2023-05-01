@@ -2880,6 +2880,12 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             "The mapping of the agents' addresses to their offence status has not been set."
         )
 
+    @offence_status.setter
+    def offence_status(self, offence_status: Dict[str, OffenceStatus]) -> None:
+        """Set the mapping of the agents' addresses to their offence status."""
+        _logger.info(f"Setting offence status to: {offence_status}")
+        self._offence_status = offence_status
+
     def add_pending_offence(self, pending_offence: PendingOffense) -> None:
         """
         Add a pending offence to the set of pending offences.
@@ -2892,12 +2898,6 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         :return: None
         """
         self._pending_offences.add(pending_offence)
-
-    @offence_status.setter
-    def offence_status(self, offence_status: Dict[str, OffenceStatus]) -> None:
-        """Set the mapping of the agents' addresses to their offence status."""
-        _logger.info(f"Setting offence status to: {offence_status}")
-        self._offence_status = offence_status
 
     def serialize_offence_status(self) -> None:
         """Serialize the offence status."""

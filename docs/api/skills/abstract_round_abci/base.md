@@ -2678,6 +2678,17 @@ def offence_status() -> Dict[str, OffenceStatus]
 
 Get the mapping of the agents' addresses to their offence status.
 
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.offence_status"></a>
+
+#### offence`_`status
+
+```python
+@offence_status.setter
+def offence_status(offence_status: Dict[str, OffenceStatus]) -> None
+```
+
+Set the mapping of the agents' addresses to their offence status.
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.add_pending_offence"></a>
 
 #### add`_`pending`_`offence
@@ -2699,17 +2710,6 @@ when the majority of the agents agree on it.
 **Returns**:
 
 None
-
-<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.offence_status"></a>
-
-#### offence`_`status
-
-```python
-@offence_status.setter
-def offence_status(offence_status: Dict[str, OffenceStatus]) -> None
-```
-
-Set the mapping of the agents' addresses to their offence status.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.serialize_offence_status"></a>
 
