@@ -206,10 +206,14 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
             context=MagicMock(),
         )
 
+        payload_data = json.dumps({
+            "db": self.synchronized_data.db.serialize(),
+            "slashing_config": NO_SLASHING_PAYLOAD,
+        })
         round_payloads = {
             participant: RegistrationPayload(
                 sender=participant,
-                initialisation=self.synchronized_data.db.serialize(),
+                initialisation=payload_data,
             )
             for participant in self.participants
         }
@@ -218,7 +222,7 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
             test_round=test_round,
             expected_event=RegistrationEvent.DONE,
             confirmations=11,
-            most_voted_payload=self.synchronized_data.db.serialize(),
+            most_voted_payload=payload_data,
             round_payloads=round_payloads,
         )
 

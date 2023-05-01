@@ -108,8 +108,8 @@ class RegistrationRound(CollectSameUntilThresholdRound):
             and self.block_confirmations
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
-            self.synchronized_data.db.sync(self.most_voted_payload)
-
+            init_data = json.loads(self.most_voted_payload)
+            self.synchronized_data.db.sync(init_data["db"])
             synchronized_data = self.synchronized_data.update(
                 participants=tuple(sorted(self.collection)),
                 synchronized_data_class=self.synchronized_data_class,
