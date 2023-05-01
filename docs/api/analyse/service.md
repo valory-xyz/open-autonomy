@@ -4,6 +4,29 @@
 
 Tools for analysing the service for deployment readiness
 
+<a id="autonomy.analyse.service.CustomSchemaValidationError"></a>
+
+## CustomSchemaValidationError Objects
+
+```python
+class CustomSchemaValidationError(SchemaValidationError)
+```
+
+Custom schema validation error to report all errors at once.
+
+<a id="autonomy.analyse.service.CustomSchemaValidationError.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(extra_properties: Optional[List[str]] = None,
+             missing_properties: Optional[List[str]] = None,
+             not_having_enough_properties: Optional[List[str]] = None,
+             **kwargs: Any) -> None
+```
+
+Initialize object.
+
 <a id="autonomy.analyse.service.CustomSchemaValidator"></a>
 
 ## CustomSchemaValidator Objects
