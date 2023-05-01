@@ -1193,7 +1193,7 @@ class TestAbstractRound:
                 )
             )
         )
-        self.round = ConcreteRoundA(self.base_synchronized_data)
+        self.round = ConcreteRoundA(self.base_synchronized_data, MagicMock())
 
     def test_auto_round_id(self) -> None:
         """Test that the 'auto_round_id()' method works as expected."""
@@ -1204,7 +1204,7 @@ class TestAbstractRound:
         """Test that the 'round_id' must be set in concrete classes."""
 
         # no exception as round id is auto-assigned
-        my_concrete_round = DummyConcreteRound(MagicMock())
+        my_concrete_round = DummyConcreteRound(MagicMock(), MagicMock())
         assert my_concrete_round.round_id == "dummy_concrete_round"
 
     def test_must_set_payload_class_type(self) -> None:
@@ -1229,7 +1229,7 @@ class TestAbstractRound:
             payload_class = BaseTxPayload
 
         with pytest.raises(LateArrivingTransaction):
-            MyConcreteRound(MagicMock(), BaseTxPayload).check_payload_type(
+            MyConcreteRound(MagicMock(), MagicMock(), BaseTxPayload).check_payload_type(
                 MagicMock(payload=BaseTxPayload("dummy"))
             )
 
@@ -1240,7 +1240,7 @@ class TestAbstractRound:
             TransactionTypeNotRecognizedError,
             match="current round does not allow transactions",
         ):
-            DummyConcreteRound(MagicMock()).check_payload_type(MagicMock())
+            DummyConcreteRound(MagicMock(), MagicMock()).check_payload_type(MagicMock())
 
     def test_synchronized_data_getter(self) -> None:
         """Test 'synchronized_data' property getter."""
@@ -1299,13 +1299,15 @@ class TestAbstractRound:
             ABCIAppInternalError,
             match="nb_participants not consistent with votes_by_participants",
         ):
-            DummyConcreteRound(self.base_synchronized_data).check_majority_possible(
-                {}, 0
-            )
+            DummyConcreteRound(
+                self.base_synchronized_data, MagicMock()
+            ).check_majority_possible({}, 0)
 
     def test_check_majority_possible_passes_when_vote_set_is_empty(self) -> None:
         """Check that 'check_majority_possible' passes when the set of votes is empty."""
-        DummyConcreteRound(self.base_synchronized_data).check_majority_possible({}, 1)
+        DummyConcreteRound(
+            self.base_synchronized_data, MagicMock()
+        ).check_majority_possible({}, 1)
 
     def test_check_majority_possible_passes_when_vote_set_nonempty_and_check_passes(
         self,
@@ -1317,9 +1319,9 @@ class TestAbstractRound:
         - the threshold is 2
         - the other voter can vote for the same item of the first voter
         """
-        DummyConcreteRound(self.base_synchronized_data).check_majority_possible(
-            {"alice": DummyPayload("alice", True)}, 2
-        )
+        DummyConcreteRound(
+            self.base_synchronized_data, MagicMock()
+        ).check_majority_possible({"alice": DummyPayload("alice", True)}, 2)
 
     def test_check_majority_possible_passes_when_payload_attributes_majority_match(
         self,
@@ -1331,7 +1333,9 @@ class TestAbstractRound:
         - the threshold is 3 (participants are 4)
         - 3 voters have the same attribute value in their payload
         """
-        DummyConcreteRound(self.base_synchronized_data).check_majority_possible(
+        DummyConcreteRound(
+            self.base_synchronized_data, MagicMock()
+        ).check_majority_possible(
             {
                 "voter_1": DummyPayload("voter_1", 0),
                 "voter_2": DummyPayload("voter_2", 0),
@@ -1354,7 +1358,9 @@ class TestAbstractRound:
             ABCIAppException,
             match="cannot reach quorum=2, number of remaining votes=0, number of most voted item's votes=1",
         ):
-            DummyConcreteRound(self.base_synchronized_data).check_majority_possible(
+            DummyConcreteRound(
+                self.base_synchronized_data, MagicMock()
+            ).check_majority_possible(
                 {
                     "alice": DummyPayload("alice", False),
                     "bob": DummyPayload("bob", True),
@@ -1364,13 +1370,15 @@ class TestAbstractRound:
 
     def test_is_majority_possible_positive_case(self) -> None:
         """Test 'is_majority_possible', positive case."""
-        assert DummyConcreteRound(self.base_synchronized_data).is_majority_possible(
-            {"alice": DummyPayload("alice", False)}, 2
-        )
+        assert DummyConcreteRound(
+            self.base_synchronized_data, MagicMock()
+        ).is_majority_possible({"alice": DummyPayload("alice", False)}, 2)
 
     def test_is_majority_possible_negative_case(self) -> None:
         """Test 'is_majority_possible', negative case."""
-        assert not DummyConcreteRound(self.base_synchronized_data).is_majority_possible(
+        assert not DummyConcreteRound(
+            self.base_synchronized_data, MagicMock()
+        ).is_majority_possible(
             {
                 "alice": DummyPayload("alice", False),
                 "bob": DummyPayload("bob", True),
@@ -1384,7 +1392,8 @@ class TestAbstractRound:
         """Test 'check_majority_possible_with_new_vote' raises when new voter already voted."""
         with pytest.raises(ABCIAppInternalError, match="voter has already voted"):
             DummyConcreteRound(
-                self.base_synchronized_data
+                self.base_synchronized_data,
+                MagicMock(),
             ).check_majority_possible_with_new_voter(
                 {"alice": DummyPayload("alice", False)},
                 "alice",
@@ -1401,7 +1410,8 @@ class TestAbstractRound:
             match="nb_participants not consistent with votes_by_participants",
         ):
             DummyConcreteRound(
-                self.base_synchronized_data
+                self.base_synchronized_data,
+                MagicMock(),
             ).check_majority_possible_with_new_voter(
                 {"alice": DummyPayload("alice", True)},
                 "bob",
@@ -1420,7 +1430,8 @@ class TestAbstractRound:
         - the new voter votes for the same item already voted by voter 1.
         """
         DummyConcreteRound(
-            self.base_synchronized_data
+            self.base_synchronized_data,
+            MagicMock(),
         ).check_majority_possible_with_new_voter(
             {"alice": DummyPayload("alice", True)}, "bob", DummyPayload("bob", True), 2
         )
@@ -1548,7 +1559,7 @@ class TestAbciApp:
 
     def setup(self) -> None:
         """Set up the test."""
-        self.abci_app = AbciAppTest(MagicMock(), MagicMock())
+        self.abci_app = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
 
     @pytest.mark.parametrize("flag", (True, False))
     def test_is_abstract(self, flag: bool) -> None:
@@ -1744,7 +1755,7 @@ class TestAbciApp:
         dummy_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(setup_data=dict(participants=[max_participants]))
         )
-        dummy_round = ConcreteRoundA(dummy_synchronized_data)
+        dummy_round = ConcreteRoundA(dummy_synchronized_data, MagicMock())
 
         # Add dummy data
         self.abci_app._previous_rounds = [dummy_round] * start_history_depth
@@ -2160,7 +2171,9 @@ class TestRoundSequence:
 
     def setup(self) -> None:
         """Set up the test."""
-        self.round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
+        self.round_sequence = RoundSequence(
+            context=MagicMock(), abci_app_cls=AbciAppTest
+        )
         self.round_sequence.setup(MagicMock(), MagicMock())
         self.round_sequence.tm_height = 1
 
@@ -2172,12 +2185,6 @@ class TestRoundSequence:
                 "The mapping of the validators' addresses to their agent addresses can only be set once. "
                 "Attempted to set with {new_content_attempt} but it has content already: {value}.",
                 "The mapping of the validators' addresses to their agent addresses has not been set.",
-            ),
-            (
-                "offence_status",
-                "The mapping of the agents' addresses to their offence status can only be set once. "
-                "Attempted to set with {new_content_attempt} but it has content already: {value}.",
-                "The mapping of the agents' addresses to their offence status has not been set.",
             ),
         ),
     )
@@ -2192,7 +2199,7 @@ class TestRoundSequence:
             data_generator = dictionaries(text(), just(OffenceStatus()))
 
         value = _data.draw(data_generator)
-        round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
+        round_sequence = RoundSequence(context=MagicMock(), abci_app_cls=AbciAppTest)
 
         if value:
             setattr(round_sequence, property_name, value)
@@ -2218,7 +2225,7 @@ class TestRoundSequence:
     )
     def test_get_agent_address(self, validator: Validator, agent_address: str) -> None:
         """Test `get_agent_address` method."""
-        round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
+        round_sequence = RoundSequence(context=MagicMock(), abci_app_cls=AbciAppTest)
         round_sequence.validator_to_agent = {
             validator.address.hex().upper(): agent_address
         }
@@ -2456,9 +2463,10 @@ class TestRoundSequence:
         """Test `_track_offences` method."""
         evidences, last_commit_info = offences
         dummy_addr_template = "agent_{i}"
-        round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
+        round_sequence = RoundSequence(context=MagicMock(), abci_app_cls=AbciAppTest)
         synchronized_data_mock = MagicMock()
         round_sequence.setup(synchronized_data_mock, MagicMock())
+        round_sequence.enable_slashing()
 
         expected_offence_status = {
             dummy_addr_template.format(i=i): OffenceStatus()
@@ -2491,20 +2499,8 @@ class TestRoundSequence:
                 evidence_type == EvidenceType.LIGHT_CLIENT_ATTACK
             )
 
-        encoded_status = json.dumps(
-            expected_offence_status,
-            cls=OffenseStatusEncoder,
-            sort_keys=True,
-        )
-        expected_db_updates = {
-            get_name(BaseSynchronizedData.offence_status): encoded_status
-        }
-        with mock.patch.object(
-            synchronized_data_mock.db,
-            "update",
-        ) as db_update_mock:
-            round_sequence._track_offences(evidences, last_commit_info)
-            db_update_mock.assert_called_once_with(**expected_db_updates)
+        round_sequence._try_track_offences(evidences, last_commit_info)
+        assert round_sequence._offence_status == expected_offence_status
 
     @given(builds(SlashingNotConfiguredError, text()))
     def test_handle_slashing_not_configured(
@@ -2513,13 +2509,13 @@ class TestRoundSequence:
         """Test `_handle_slashing_not_configured` method."""
         logging.disable(logging.CRITICAL)
 
-        round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
+        round_sequence = RoundSequence(context=MagicMock(), abci_app_cls=AbciAppTest)
         round_sequence.setup(MagicMock(), MagicMock())
 
-        assert round_sequence._slashing_enabled
+        assert not round_sequence._slashing_enabled
         assert round_sequence.latest_synchronized_data.nb_participants == 0
         round_sequence._handle_slashing_not_configured(exc)
-        assert round_sequence._slashing_enabled
+        assert not round_sequence._slashing_enabled
 
         with mock.patch.object(
             round_sequence.latest_synchronized_data.db,
@@ -2536,6 +2532,7 @@ class TestRoundSequence:
     def test_try_track_offences(self, _track_offences_raises: bool) -> None:
         """Test `_try_track_offences` method."""
         evidences, last_commit_info = MagicMock(), MagicMock()
+        self.round_sequence.enable_slashing()
         with mock.patch.object(
             self.round_sequence,
             "_track_offences",
@@ -2892,7 +2889,7 @@ class TestRoundSequence:
         assert self.round_sequence._last_round_transition_tm_height is None
         assert self.round_sequence._tm_height is None
         assert self.round_sequence._pending_offences == set()
-        assert self.round_sequence._slashing_enabled
+        assert not self.round_sequence._slashing_enabled
 
 
 def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:
@@ -2957,7 +2954,7 @@ def test_synchronized_data_type_on_abci_app_init(caplog: LogCaptureFixture) -> N
 
     with mock.patch.object(AbciAppTest, "initial_round_cls") as m:
         m.synchronized_data_class = SynchronizedData
-        abci_app = AbciAppTest(synchronized_data, logging.getLogger())
+        abci_app = AbciAppTest(synchronized_data, logging.getLogger(), MagicMock())
         abci_app.setup()
         assert isinstance(abci_app.synchronized_data, SynchronizedData)
         assert abci_app.synchronized_data.dummy_attr == sentinel

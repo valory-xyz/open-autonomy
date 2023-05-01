@@ -27,5 +27,6 @@ def test_end_block() -> None:
     """Test IpfsRound.end_block()"""
     dummy_round = IpfsRound(
         synchronized_data=MagicMock(max_participants=4),
+        context=MagicMock(),
     )
     dummy_round.end_block()

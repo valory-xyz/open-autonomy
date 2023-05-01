@@ -733,7 +733,7 @@ class AbciAppDB:
         data = self.serialize()
         sha256.update(data.encode("utf-8"))
         hash_ = sha256.digest()
-        _logger.info(f"root hash: {hash_.hex()}; data: {data}")
+        _logger.debug(f"root hash: {hash_.hex()}; data: {data}")
         return hash_
 
     @staticmethod
@@ -1023,6 +1023,7 @@ class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
         self.block_confirmations = 0
         self._previous_round_payload_class = previous_round_payload_class
         self.context = context
+
     @classmethod
     def auto_round_id(cls) -> str:
         """
@@ -1456,7 +1457,6 @@ class CollectSameUntilAllRound(_CollectUntilAllRound, ABC):
         self,
     ) -> Any:
         """Get the common payload among the agents."""
-        _logger.info("self.common_payload_values[0]", self.common_payload_values[0])
         return self.common_payload_values[0]
 
     @property
@@ -2636,9 +2636,6 @@ class AvailabilityWindow:
 
         :param value: The boolean value to add to the cyclic array.
         """
-        _logger.info(f"Adding {value} to availability window")
-        _logger.info(f"Current window: {self._window}")
-        _logger.info(f"len(self._window) = {len(self._window)}")
         if len(self._window) == self._max_length and self._max_length > 0:
             # we have filled the window, we need to pop the oldest element
             # and update the score accordingly
@@ -2920,7 +2917,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             **{
                 **kwargs,
                 "context": self._context,
-            })
+            },
+        )
         self._abci_app.setup()
 
     def start_sync(
@@ -3109,16 +3107,9 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self, evidences: Evidences, last_commit_info: LastCommitInfo
     ) -> None:
         """Track offences if there are any."""
-        _logger.info(f"Tracking offences for round {self.current_round_id}")
         for vote_info in last_commit_info.votes:
             agent_address = self.get_agent_address(vote_info.validator)
             was_down = not vote_info.signed_last_block
-            _logger.info(f"agent_address: {agent_address}, was_down: {was_down}, round_id: {self.current_round_height}")
-            encoded_status = json.dumps(
-                self.offence_status, cls=OffenseStatusEncoder, sort_keys=True
-            )
-            _logger.info(f"encoded_status: {encoded_status}")
-            _logger.info(f"last_timestamp: {self.last_timestamp}")
             self.offence_status[agent_address].validator_downtime.add(was_down)
 
         for byzantine_validator in evidences.byzantine_validators:
@@ -3346,9 +3337,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             self.abci_app.synchronized_data.db.sync(serialized_db_state)
             # deserialize the offence status and load it to memory
             offence_status = self.latest_synchronized_data.offence_status
-            _logger.info(f"The offence status when serialized is {offence_status}")
             if offence_status:
-                _logger.info(f"Offence status updated.")
                 self._offence_status = json.loads(
                     offence_status,
                     cls=OffenseStatusDecoder,

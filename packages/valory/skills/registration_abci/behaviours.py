@@ -33,7 +33,10 @@ from packages.valory.contracts.service_registry.contract import ServiceRegistryC
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.tendermint import TendermintMessage
-from packages.valory.skills.abstract_round_abci.base import ABCIAppInternalError, OffenseStatusEncoder
+from packages.valory.skills.abstract_round_abci.base import (
+    ABCIAppInternalError,
+    OffenseStatusEncoder,
+)
 from packages.valory.skills.abstract_round_abci.behaviour_utils import TimeoutException
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -45,8 +48,9 @@ from packages.valory.skills.registration_abci.models import SharedState
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
+    NO_SLASHING_PAYLOAD,
     RegistrationRound,
-    RegistrationStartupRound, NO_SLASHING_PAYLOAD,
+    RegistrationStartupRound,
 )
 
 
@@ -88,15 +92,20 @@ class RegistrationBaseBehaviour(BaseBehaviour, ABC):
             # if we don't share the config, we don't setup slashing
             return NO_SLASHING_PAYLOAD
         slashing_config = self.context.state.round_sequence.offence_status
-        slashing_config_str = json.dumps(slashing_config, sort_keys=True, cls=OffenseStatusEncoder)
+        slashing_config_str = json.dumps(
+            slashing_config, sort_keys=True, cls=OffenseStatusEncoder
+        )
         return slashing_config_str
 
     def _get_initialization(self) -> str:
         """Get serialized initialization."""
         serialized_db = self.synchronized_data.db.serialize()
         slashing_config = self._get_serialized_slashing_config()
-        initialization = json.dumps({"db": serialized_db, "slashing_config": slashing_config})
+        initialization = json.dumps(
+            {"db": serialized_db, "slashing_config": slashing_config}
+        )
         return initialization
+
 
 class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     """Agent registration to the FSM App."""

@@ -21,7 +21,7 @@
 import json
 import logging
 from enum import Enum
-from typing import Dict, Optional, Set, Tuple, cast
+from typing import Dict, Optional, Set, Tuple
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -31,7 +31,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilAllRound,
     CollectSameUntilThresholdRound,
     DegenerateRound,
-    get_name, OffenseStatusDecoder,
+    OffenseStatusDecoder,
+    get_name,
 )
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 
@@ -39,6 +40,7 @@ from packages.valory.skills.registration_abci.payloads import RegistrationPayloa
 _logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
 
 NO_SLASHING_PAYLOAD = "{}"
+
 
 class Event(Enum):
     """Event enumeration for the price estimation demo."""
