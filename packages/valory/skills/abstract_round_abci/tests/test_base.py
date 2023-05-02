@@ -53,7 +53,7 @@ import pytest
 from _pytest.logging import LogCaptureFixture
 from aea.exceptions import AEAEnforceError
 from aea_ledger_ethereum import EthereumCrypto
-from hypothesis import given, settings
+from hypothesis import HealthCheck, given, settings
 from hypothesis.strategies import (
     DrawFn,
     binary,
@@ -2047,6 +2047,7 @@ class TestAvailabilityWindow:
 
 
 @composite
+@settings(suppress_health_check=[HealthCheck.too_slow])
 def offence_tracking(draw: DrawFn) -> Tuple[Evidences, LastCommitInfo]:
     """A strategy for building offences reported by Tendermint."""
     n_validators = draw(integers(min_value=1, max_value=10))
