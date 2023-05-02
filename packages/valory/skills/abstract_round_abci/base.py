@@ -2880,7 +2880,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
     @offence_status.setter
     def offence_status(self, offence_status: Dict[str, OffenceStatus]) -> None:
         """Set the mapping of the agents' addresses to their offence status."""
-        _logger.info(f"Setting offence status to: {offence_status}")
+        self.abci_app.logger.debug(f"Setting offence status to: {offence_status}")
         self._offence_status = offence_status
 
     def serialize_offence_status(self) -> None:
@@ -2890,8 +2890,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         )
         db_updates = {get_name(BaseSynchronizedData.offence_status): encoded_status}
         self.abci_app.synchronized_data.update(BaseSynchronizedData, **db_updates)
-        _logger.info(f"Updated db with: {db_updates}")
-        _logger.info(f"App hash now is: {self.root_hash.hex()}")
+        self.abci_app.logger.debug(f"Updated db with: {db_updates}")
+        self.abci_app.logger.debug(f"App hash now is: {self.root_hash.hex()}")
 
     def get_agent_address(self, validator: Validator) -> str:
         """Get corresponding agent address from a `Validator` instance."""
