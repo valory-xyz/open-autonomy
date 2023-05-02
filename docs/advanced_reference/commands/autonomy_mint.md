@@ -90,7 +90,7 @@ Same as above, but using a hardware wallet:
 autonomy mint skill --hwi --nft <nft_ipfs_hash_or_image_path> --owner <owner_address> ./packages/valory/skills/abstract_abci
 ```
 
-When minting the components the autonomy framework uses a `subgraph` for resolving dependencies to their respective on-chain token IDs. If a dependency is not minted you'll get the following error
+When minting the components the open-autonomy framework uses a `subgraph` for resolving dependencies to their respective on-chain token IDs. If a dependency is not minted you'll get the following error
 
 ```
 Error: No on chain registration found for following dependencies
