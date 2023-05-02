@@ -157,7 +157,9 @@ Print table.
 ```python
 def check_service_readiness(token_id: Optional[int],
                             public_id: Optional[PublicId],
-                            chain_type: ChainType, packages_dir: Path) -> None
+                            chain_type: ChainType,
+                            packages_dir: Path,
+                            skip_warnings: bool = False) -> None
 ```
 
 Check deployment readiness of a service.

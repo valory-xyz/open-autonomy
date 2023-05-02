@@ -425,6 +425,11 @@ def benchmark(path: Path, block_type: str, period: int, output: Path) -> None:
     type=PublicIdParameter(),
     help="Public ID of the service",
 )
+@click.option(
+    "--skip-warnings",
+    is_flag=True,
+    help="Skip warnings",
+)
 @chain_selection_flag()
 @pass_ctx
 def _check_service(
@@ -432,6 +437,7 @@ def _check_service(
     token_id: Optional[int],
     public_id: Optional[PublicId],
     chain_type: str,
+    skip_warnings: bool,
 ) -> None:
     """Check deployment readiness of a service"""
 
@@ -450,4 +456,5 @@ def _check_service(
         public_id=public_id,
         chain_type=ChainType(chain_type),
         packages_dir=Path(ctx.registry_path),
+        skip_warnings=skip_warnings,
     )

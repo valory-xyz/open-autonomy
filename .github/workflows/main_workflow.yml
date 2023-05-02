@@ -148,6 +148,7 @@ jobs:
         tox -e check-abciapp-specs
         tox -e check-handlers
         tox -e check-dialogues
+        tox -e analyse-services
 
   scan:
     name: gitleaks
