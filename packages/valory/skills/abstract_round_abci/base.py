@@ -2912,13 +2912,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         :param args: the arguments to pass to the round constructor.
         :param kwargs: the keyword-arguments to pass to the round constructor.
         """
-        self._abci_app = self._abci_app_cls(
-            *args,
-            **{
-                **kwargs,
-                "context": self._context,
-            },
-        )
+        kwargs["context"] = self._context
+        self._abci_app = self._abci_app_cls(*args, **kwargs)
         self._abci_app.setup()
 
     def start_sync(
