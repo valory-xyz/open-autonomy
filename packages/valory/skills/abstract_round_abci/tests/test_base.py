@@ -1875,6 +1875,16 @@ class TestAvailabilityWindow:
     """Test `AvailabilityWindow`."""
 
     @staticmethod
+    @given(integers(min_value=0, max_value=100))
+    def test_not_equal(max_length: int) -> None:
+        """Test the `add` method."""
+        availability_window_1 = AvailabilityWindow(max_length)
+        availability_window_2 = AvailabilityWindow(max_length)
+        assert availability_window_1 == availability_window_2
+        availability_window_2.add(False)
+        assert availability_window_1 != availability_window_2
+
+    @staticmethod
     @given(integers(min_value=0, max_value=100), data())
     def test_add(max_length: int, hypothesis_data: Any) -> None:
         """Test the `add` method."""
@@ -2219,6 +2229,28 @@ class TestRoundSequence:
 
         with pytest.raises(SlashingNotConfiguredError, match=config_exc):
             getattr(round_sequence, property_name)
+
+    @mock.patch("json.dumps")
+    def test_serialize_offence_status(self, mock_dumps: mock.MagicMock) -> None:
+        """Test the `serialize_offence_status` method."""
+        # Set up mock objects and return values
+        self.round_sequence.offence_status = {"not_encoded": OffenceStatus()}
+        mock_encoded_status = "encoded_status"
+        mock_dumps.return_value = mock_encoded_status
+
+        # Call the method to be tested
+        self.round_sequence.serialize_offence_status()
+
+        # Check that `json.dumps()` was called with the correct arguments
+        mock_dumps.assert_called_once_with(
+            self.round_sequence.offence_status, cls=OffenseStatusEncoder, sort_keys=True
+        )
+
+        # Check that `update()` was called with the correct arguments
+        mock_update = cast(
+            mock.Mock, self.round_sequence.abci_app.synchronized_data.db.update
+        )
+        mock_update.assert_called_once_with(offence_status=mock_encoded_status)
 
     @given(
         validator=builds(Validator, address=binary(), power=integers()),
@@ -2659,17 +2691,67 @@ class TestRoundSequence:
             )
         assert self.round_sequence._blockchain.height == 0
 
+    def last_round_values_updated(self, any_: bool = True) -> bool:
+        """Check if the values for the last round-related attributes have been updated."""
+        seq = self.round_sequence
+
+        current_last_pairs = (
+            (
+                seq._blockchain.last_block.timestamp,
+                seq._last_round_transition_timestamp,
+            ),
+            (seq._blockchain.height, seq._last_round_transition_height),
+            (seq.root_hash, seq._last_round_transition_root_hash),
+            (seq.tm_height, seq._last_round_transition_tm_height),
+        )
+
+        if any_:
+            return any(current == last for current, last in current_last_pairs)
+
+        return all(current == last for current, last in current_last_pairs)
+
     @mock.patch.object(AbciApp, "process_event")
+    @mock.patch.object(RoundSequence, "serialize_offence_status")
     @pytest.mark.parametrize("end_block_res", (None, (MagicMock(), MagicMock())))
+    @pytest.mark.parametrize(
+        "slashing_enabled, offence_status_",
+        (
+            (
+                False,
+                False,
+            ),
+            (
+                False,
+                True,
+            ),
+            (
+                True,
+                False,
+            ),
+            (
+                False,
+                False,
+            ),
+            (
+                True,
+                True,
+            ),
+        ),
+    )
     def test_update_round(
         self,
+        serialize_offence_status_mock: mock.Mock,
         process_event_mock: mock.Mock,
         end_block_res: Optional[Tuple[BaseSynchronizedData, Any]],
+        slashing_enabled: bool,
+        offence_status_: dict,
     ) -> None:
         """Test '_update_round' method."""
         self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
         block = self.round_sequence._block_builder.get_block()
         self.round_sequence._blockchain.add_block(block)
+        self.round_sequence._slashing_enabled = slashing_enabled
+        self.round_sequence._offence_status = offence_status_
 
         with mock.patch.object(
             self.round_sequence.current_round, "end_block", return_value=end_block_res
@@ -2679,44 +2761,19 @@ class TestRoundSequence:
             self.round_sequence._update_round()
 
         if end_block_res is None:
-            assert (
-                self.round_sequence._last_round_transition_timestamp
-                != self.round_sequence._blockchain.last_block.timestamp
-            )
-            assert (
-                self.round_sequence._last_round_transition_height
-                != self.round_sequence._blockchain.height
-            )
-            assert (
-                self.round_sequence._last_round_transition_root_hash
-                != self.round_sequence.root_hash
-            )
-            assert (
-                self.round_sequence._last_round_transition_tm_height
-                != self.round_sequence.tm_height
-            )
+            assert not self.last_round_values_updated()
             process_event_mock.assert_not_called()
+            return
 
+        assert self.last_round_values_updated(any_=False)
+        process_event_mock.assert_called_with(
+            end_block_res[-1], result=end_block_res[0]
+        )
+
+        if slashing_enabled and offence_status_:
+            serialize_offence_status_mock.assert_called_once()
         else:
-            assert (
-                self.round_sequence._last_round_transition_timestamp
-                == self.round_sequence._blockchain.last_block.timestamp
-            )
-            assert (
-                self.round_sequence._last_round_transition_height
-                == self.round_sequence._blockchain.height
-            )
-            assert (
-                self.round_sequence._last_round_transition_root_hash
-                == self.round_sequence.root_hash
-            )
-            assert (
-                self.round_sequence._last_round_transition_tm_height
-                == self.round_sequence.tm_height
-            )
-            process_event_mock.assert_called_with(
-                end_block_res[-1], result=end_block_res[0]
-            )
+            serialize_offence_status_mock.assert_not_called()
 
     @mock.patch.object(AbciApp, "process_event")
     @pytest.mark.parametrize(

@@ -23,6 +23,8 @@ from typing import Any, Dict, Optional, cast
 from unittest import mock
 from unittest.mock import MagicMock
 
+import pytest
+
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as SynchronizedData,
@@ -50,8 +52,12 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
     _synchronized_data_class = SynchronizedData
     _event_class = RegistrationEvent
 
+    @pytest.mark.parametrize(
+        "slashing_config", (NO_SLASHING_PAYLOAD, {"valid": "config"})
+    )
     def test_run_default(
         self,
+        slashing_config: str,
     ) -> None:
         """Run test."""
 
@@ -71,7 +77,7 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
         most_voted_payload = json.dumps(
             dict(
                 db=self.synchronized_data.db.serialize(),
-                slashing_config=NO_SLASHING_PAYLOAD,
+                slashing_config=json.dumps(slashing_config),
             )
         )
         round_payloads = {
@@ -101,6 +107,8 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
                 == "stub_oracle_contract_address",
             )
         )
+
+        assert test_round.context.state.round_sequence.offence_status == slashing_config
 
     def test_run_default_not_finished(
         self,
