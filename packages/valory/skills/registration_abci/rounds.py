@@ -19,7 +19,6 @@
 
 """This module contains the data classes for common apps ABCI application."""
 import json
-import logging
 from enum import Enum
 from typing import Dict, Optional, Set, Tuple
 
@@ -36,8 +35,6 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 
-
-_logger = logging.getLogger("aea.packages.valory.skills.abstract_round_abci.base")
 
 NO_SLASHING_PAYLOAD = "{}"
 
