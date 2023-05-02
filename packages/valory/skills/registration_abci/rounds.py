@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for common apps ABCI application."""
+
 import json
 from enum import Enum
 from typing import Dict, Optional, Set, Tuple

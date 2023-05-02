@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the rounds.py module of the skill."""
+
 import json
 from typing import Any, Dict, Optional, cast
 from unittest import mock
