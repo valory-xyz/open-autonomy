@@ -2175,7 +2175,7 @@ class TestRoundSequence:
         self.round_sequence = RoundSequence(
             context=MagicMock(), abci_app_cls=AbciAppTest
         )
-        self.round_sequence.setup(MagicMock(), MagicMock())
+        self.round_sequence.setup(MagicMock(), logging.getLogger())
         self.round_sequence.tm_height = 1
 
     @pytest.mark.parametrize(
