@@ -20,7 +20,7 @@ Before starting this guide, ensure that your machine satisfies the framework req
 1. Fetch the [Hello World service](../demos/hello_world_demo.md) from the remote registry. Within the workspace folder (not the remote registry) run:
 
     ```bash
-    autonomy fetch valory/hello_world:0.1.0:bafybeidfpy73d64iv4ezhcqy6jjydjrz4jn2fyirj7wem2zonxynvrmpk4 --service
+    autonomy fetch valory/hello_world:0.1.0:bafybeicfi3pxkpuo5qgwwqsmxxsm3mmnuhhgaj5ay7wap2jrnuauvf7icy --service
     ```
 
 2. Build the Docker image of the service agents:
