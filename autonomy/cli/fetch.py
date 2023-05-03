@@ -68,7 +68,7 @@ def fetch(
         if package_type == AGENT:
             do_fetch(ctx, public_id, alias)
         else:
-            fetch_service(ctx, public_id)
+            fetch_service(ctx, public_id, alias)
     except NotAnAgentPackage as e:
         raise click.ClickException(
             "Downloaded packages is not an agent package, "
