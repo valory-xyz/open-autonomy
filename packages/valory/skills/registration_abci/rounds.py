@@ -18,6 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for common apps ABCI application."""
+
+import json
 from enum import Enum
 from typing import Dict, Optional, Set, Tuple
 
@@ -29,9 +31,13 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilAllRound,
     CollectSameUntilThresholdRound,
     DegenerateRound,
+    OffenseStatusDecoder,
     get_name,
 )
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
+
+
+NO_SLASHING_PAYLOAD = "{}"
 
 
 class Event(Enum):
@@ -60,14 +66,18 @@ class RegistrationStartupRound(CollectSameUntilAllRound):
         """Process the end of the block."""
         if not self.collection_threshold_reached:
             return None
-
-        self.synchronized_data.db.sync(self.common_payload)
-
+        init_data = json.loads(self.common_payload)
+        self.synchronized_data.db.sync(init_data["db"])
+        if init_data["slashing_config"] != NO_SLASHING_PAYLOAD:
+            self.context.state.round_sequence.offence_status = json.loads(
+                init_data["slashing_config"],
+                cls=OffenseStatusDecoder,
+            )
         synchronized_data = self.synchronized_data.update(
             participants=tuple(sorted(self.collection)),
             synchronized_data_class=self.synchronized_data_class,
         )
-
+        self.context.state.round_sequence.enable_slashing()
         return synchronized_data, Event.DONE
 
 
@@ -96,8 +106,8 @@ class RegistrationRound(CollectSameUntilThresholdRound):
             and self.block_confirmations
             > self.required_block_confirmations  # we also wait here as it gives more (available) agents time to join
         ):
-            self.synchronized_data.db.sync(self.most_voted_payload)
-
+            init_data = json.loads(self.most_voted_payload)
+            self.synchronized_data.db.sync(init_data["db"])
             synchronized_data = self.synchronized_data.update(
                 participants=tuple(sorted(self.collection)),
                 synchronized_data_class=self.synchronized_data_class,
