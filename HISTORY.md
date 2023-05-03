@@ -1,6 +1,6 @@
 # Release History - `open-autonomy`
 
-# 0.10.3 (TBD)
+# 0.10.3 (2023-05-03)
 
 Autonomy:
 - Updates the FSM scaffold tool to add downloaded packages to `third_party` packages #1943
