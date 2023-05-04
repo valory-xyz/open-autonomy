@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# TBD (TBD)
+
+Packages:
+- Adds slashing functionality #1927
+
+
 # 0.10.3 (2023-05-03)
 
 Autonomy:
