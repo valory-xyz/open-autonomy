@@ -34,6 +34,7 @@ from pathlib import Path
 from time import sleep
 from typing import (
     Any,
+    Callable,
     Deque,
     Dict,
     FrozenSet,
@@ -52,21 +53,37 @@ import pytest
 from _pytest.logging import LogCaptureFixture
 from aea.exceptions import AEAEnforceError
 from aea_ledger_ethereum import EthereumCrypto
-from hypothesis import given, settings
+from hypothesis import HealthCheck, given, settings
 from hypothesis.strategies import (
+    DrawFn,
+    binary,
     booleans,
+    builds,
+    composite,
     data,
     datetimes,
     dictionaries,
     floats,
     integers,
+    just,
+    lists,
     none,
     one_of,
+    sampled_from,
     text,
 )
 
 import packages.valory.skills.abstract_round_abci.base as abci_base
 from packages.valory.connections.abci.connection import MAX_READ_IN_BYTES
+from packages.valory.protocols.abci.custom_types import (
+    Evidence,
+    EvidenceType,
+    Evidences,
+    LastCommitInfo,
+    Timestamp,
+    Validator,
+    VoteInfo,
+)
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppException,
     ABCIAppInternalError,
@@ -86,9 +103,13 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectionRound,
     EventType,
     LateArrivingTransaction,
+    OffenceStatus,
+    OffenseStatusDecoder,
+    OffenseStatusEncoder,
     OffenseType,
     RoundSequence,
     SignatureNotValidError,
+    SlashingNotConfiguredError,
     Timeouts,
     Transaction,
     TransactionTypeNotRecognizedError,
@@ -1089,6 +1110,7 @@ class TestBaseSynchronizedData:
             "sender": DummyPayload(sender="sender", dummy_attribute=0)
         }
         safe_contract_address = "0x0"
+        offence_status = "test_offence_status"
 
         base_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(
@@ -1109,6 +1131,7 @@ class TestBaseSynchronizedData:
                             participant_to_votes
                         ),
                         safe_contract_address=safe_contract_address,
+                        offence_status=offence_status,
                     )
                 )
             )
@@ -1134,6 +1157,7 @@ class TestBaseSynchronizedData:
         )
         assert base_synchronized_data.participant_to_votes == participant_to_votes
         assert base_synchronized_data.safe_contract_address == safe_contract_address
+        assert base_synchronized_data.offence_status == offence_status
 
 
 class DummyConcreteRound(AbstractRound):
@@ -1169,7 +1193,7 @@ class TestAbstractRound:
                 )
             )
         )
-        self.round = ConcreteRoundA(self.base_synchronized_data)
+        self.round = ConcreteRoundA(self.base_synchronized_data, MagicMock())
 
     def test_auto_round_id(self) -> None:
         """Test that the 'auto_round_id()' method works as expected."""
@@ -1180,7 +1204,7 @@ class TestAbstractRound:
         """Test that the 'round_id' must be set in concrete classes."""
 
         # no exception as round id is auto-assigned
-        my_concrete_round = DummyConcreteRound(MagicMock())
+        my_concrete_round = DummyConcreteRound(MagicMock(), MagicMock())
         assert my_concrete_round.round_id == "dummy_concrete_round"
 
     def test_must_set_payload_class_type(self) -> None:
@@ -1205,7 +1229,7 @@ class TestAbstractRound:
             payload_class = BaseTxPayload
 
         with pytest.raises(LateArrivingTransaction):
-            MyConcreteRound(MagicMock(), BaseTxPayload).check_payload_type(
+            MyConcreteRound(MagicMock(), MagicMock(), BaseTxPayload).check_payload_type(
                 MagicMock(payload=BaseTxPayload("dummy"))
             )
 
@@ -1216,7 +1240,7 @@ class TestAbstractRound:
             TransactionTypeNotRecognizedError,
             match="current round does not allow transactions",
         ):
-            DummyConcreteRound(MagicMock()).check_payload_type(MagicMock())
+            DummyConcreteRound(MagicMock(), MagicMock()).check_payload_type(MagicMock())
 
     def test_synchronized_data_getter(self) -> None:
         """Test 'synchronized_data' property getter."""
@@ -1275,13 +1299,15 @@ class TestAbstractRound:
             ABCIAppInternalError,
             match="nb_participants not consistent with votes_by_participants",
         ):
-            DummyConcreteRound(self.base_synchronized_data).check_majority_possible(
-                {}, 0
-            )
+            DummyConcreteRound(
+                self.base_synchronized_data, MagicMock()
+            ).check_majority_possible({}, 0)
 
     def test_check_majority_possible_passes_when_vote_set_is_empty(self) -> None:
         """Check that 'check_majority_possible' passes when the set of votes is empty."""
-        DummyConcreteRound(self.base_synchronized_data).check_majority_possible({}, 1)
+        DummyConcreteRound(
+            self.base_synchronized_data, MagicMock()
+        ).check_majority_possible({}, 1)
 
     def test_check_majority_possible_passes_when_vote_set_nonempty_and_check_passes(
         self,
@@ -1293,9 +1319,9 @@ class TestAbstractRound:
         - the threshold is 2
         - the other voter can vote for the same item of the first voter
         """
-        DummyConcreteRound(self.base_synchronized_data).check_majority_possible(
-            {"alice": DummyPayload("alice", True)}, 2
-        )
+        DummyConcreteRound(
+            self.base_synchronized_data, MagicMock()
+        ).check_majority_possible({"alice": DummyPayload("alice", True)}, 2)
 
     def test_check_majority_possible_passes_when_payload_attributes_majority_match(
         self,
@@ -1307,7 +1333,9 @@ class TestAbstractRound:
         - the threshold is 3 (participants are 4)
         - 3 voters have the same attribute value in their payload
         """
-        DummyConcreteRound(self.base_synchronized_data).check_majority_possible(
+        DummyConcreteRound(
+            self.base_synchronized_data, MagicMock()
+        ).check_majority_possible(
             {
                 "voter_1": DummyPayload("voter_1", 0),
                 "voter_2": DummyPayload("voter_2", 0),
@@ -1330,7 +1358,9 @@ class TestAbstractRound:
             ABCIAppException,
             match="cannot reach quorum=2, number of remaining votes=0, number of most voted item's votes=1",
         ):
-            DummyConcreteRound(self.base_synchronized_data).check_majority_possible(
+            DummyConcreteRound(
+                self.base_synchronized_data, MagicMock()
+            ).check_majority_possible(
                 {
                     "alice": DummyPayload("alice", False),
                     "bob": DummyPayload("bob", True),
@@ -1340,13 +1370,15 @@ class TestAbstractRound:
 
     def test_is_majority_possible_positive_case(self) -> None:
         """Test 'is_majority_possible', positive case."""
-        assert DummyConcreteRound(self.base_synchronized_data).is_majority_possible(
-            {"alice": DummyPayload("alice", False)}, 2
-        )
+        assert DummyConcreteRound(
+            self.base_synchronized_data, MagicMock()
+        ).is_majority_possible({"alice": DummyPayload("alice", False)}, 2)
 
     def test_is_majority_possible_negative_case(self) -> None:
         """Test 'is_majority_possible', negative case."""
-        assert not DummyConcreteRound(self.base_synchronized_data).is_majority_possible(
+        assert not DummyConcreteRound(
+            self.base_synchronized_data, MagicMock()
+        ).is_majority_possible(
             {
                 "alice": DummyPayload("alice", False),
                 "bob": DummyPayload("bob", True),
@@ -1360,7 +1392,8 @@ class TestAbstractRound:
         """Test 'check_majority_possible_with_new_vote' raises when new voter already voted."""
         with pytest.raises(ABCIAppInternalError, match="voter has already voted"):
             DummyConcreteRound(
-                self.base_synchronized_data
+                self.base_synchronized_data,
+                MagicMock(),
             ).check_majority_possible_with_new_voter(
                 {"alice": DummyPayload("alice", False)},
                 "alice",
@@ -1377,7 +1410,8 @@ class TestAbstractRound:
             match="nb_participants not consistent with votes_by_participants",
         ):
             DummyConcreteRound(
-                self.base_synchronized_data
+                self.base_synchronized_data,
+                MagicMock(),
             ).check_majority_possible_with_new_voter(
                 {"alice": DummyPayload("alice", True)},
                 "bob",
@@ -1396,7 +1430,8 @@ class TestAbstractRound:
         - the new voter votes for the same item already voted by voter 1.
         """
         DummyConcreteRound(
-            self.base_synchronized_data
+            self.base_synchronized_data,
+            MagicMock(),
         ).check_majority_possible_with_new_voter(
             {"alice": DummyPayload("alice", True)}, "bob", DummyPayload("bob", True), 2
         )
@@ -1524,7 +1559,7 @@ class TestAbciApp:
 
     def setup(self) -> None:
         """Set up the test."""
-        self.abci_app = AbciAppTest(MagicMock(), MagicMock())
+        self.abci_app = AbciAppTest(MagicMock(), MagicMock(), MagicMock())
 
     @pytest.mark.parametrize("flag", (True, False))
     def test_is_abstract(self, flag: bool) -> None:
@@ -1720,7 +1755,7 @@ class TestAbciApp:
         dummy_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(setup_data=dict(participants=[max_participants]))
         )
-        dummy_round = ConcreteRoundA(dummy_synchronized_data)
+        dummy_round = ConcreteRoundA(dummy_synchronized_data, MagicMock())
 
         # Add dummy data
         self.abci_app._previous_rounds = [dummy_round] * start_history_depth
@@ -1820,8 +1855,34 @@ class TestOffenceTypeFns:
         ]
 
 
+@composite
+def availability_window_data(draw: DrawFn) -> Dict[str, int]:
+    """A strategy for building valid availability window data."""
+    max_length = draw(integers(min_value=1, max_value=12_000))
+    array = draw(integers(min_value=0, max_value=(2**max_length) - 1))
+    num_positive = draw(integers(min_value=0, max_value=1_000_000))
+    num_negative = draw(integers(min_value=0, max_value=1_000_000))
+
+    return {
+        "max_length": max_length,
+        "array": array,
+        "num_positive": num_positive,
+        "num_negative": num_negative,
+    }
+
+
 class TestAvailabilityWindow:
     """Test `AvailabilityWindow`."""
+
+    @staticmethod
+    @given(integers(min_value=0, max_value=100))
+    def test_not_equal(max_length: int) -> None:
+        """Test the `add` method."""
+        availability_window_1 = AvailabilityWindow(max_length)
+        availability_window_2 = AvailabilityWindow(max_length)
+        assert availability_window_1 == availability_window_2
+        availability_window_2.add(False)
+        assert availability_window_1 != availability_window_2
 
     @staticmethod
     @given(integers(min_value=0, max_value=100), data())
@@ -1901,15 +1962,318 @@ class TestAvailabilityWindow:
             "num_negative": num_negative,
         }
 
+    @staticmethod
+    @pytest.mark.parametrize(
+        "data_, key, validator, expected_error",
+        (
+            ({"a": 1, "b": 2, "c": 3}, "a", lambda x: x > 0, None),
+            (
+                {"a": 1, "b": 2, "c": 3},
+                "d",
+                lambda x: x > 0,
+                r"Missing required key: d\.",
+            ),
+            (
+                {"a": "1", "b": 2, "c": 3},
+                "a",
+                lambda x: x > 0,
+                r"a must be of type int\.",
+            ),
+            (
+                {"a": -1, "b": 2, "c": 3},
+                "a",
+                lambda x: x > 0,
+                r"a has invalid value -1\.",
+            ),
+        ),
+    )
+    def test_validate_key(
+        data_: dict, key: str, validator: Callable, expected_error: Optional[str]
+    ) -> None:
+        """Test the `_validate_key` method."""
+        if expected_error:
+            with pytest.raises(ValueError, match=expected_error):
+                AvailabilityWindow._validate_key(data_, key, validator)
+        else:
+            AvailabilityWindow._validate_key(data_, key, validator)
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "data_, error_regex",
+        (
+            ("not a dict", r"Expected dict, got"),
+            (
+                {"max_length": -1, "array": 42, "num_positive": 10, "num_negative": 0},
+                r"max_length",
+            ),
+            (
+                {"max_length": 2, "array": 4, "num_positive": 10, "num_negative": 0},
+                r"array",
+            ),
+            (
+                {"max_length": 8, "array": 42, "num_positive": -1, "num_negative": 0},
+                r"num_positive",
+            ),
+            (
+                {"max_length": 8, "array": 42, "num_positive": 10, "num_negative": -1},
+                r"num_negative",
+            ),
+        ),
+    )
+    def test_validate_negative(data_: dict, error_regex: str) -> None:
+        """Negative tests for the `_validate` method."""
+        with pytest.raises((TypeError, ValueError), match=error_regex):
+            AvailabilityWindow._validate(data_)
+
+    @staticmethod
+    @given(availability_window_data())
+    def test_validate_positive(data_: Dict[str, int]) -> None:
+        """Positive tests for the `_validate` method."""
+        AvailabilityWindow._validate(data_)
+
+    @staticmethod
+    @given(availability_window_data())
+    def test_from_dict(data_: Dict[str, int]) -> None:
+        """Test `from_dict` method."""
+        availability_window = AvailabilityWindow.from_dict(data_)
+
+        # convert the serialized array to a binary string
+        binary_number = bin(data_["array"])[2:]
+        # convert each character in the binary string to a flag
+        flags = [bool(int(digit)) for digit in binary_number]
+        expected_window = deque(flags, maxlen=data_["max_length"])
+
+        assert availability_window._max_length == data_["max_length"]
+        assert availability_window._window == expected_window
+        assert availability_window._num_positive == data_["num_positive"]
+        assert availability_window._num_negative == data_["num_negative"]
+
+    @staticmethod
+    @given(availability_window_data())
+    def test_to_dict_and_back(data_: Dict[str, int]) -> None:
+        """Test that the `from_dict` produces an object that generates the input data again when calling `to_dict`."""
+        availability_window = AvailabilityWindow.from_dict(data_)
+        assert availability_window.to_dict() == data_
+
+
+@composite
+@settings(suppress_health_check=[HealthCheck.too_slow])
+def offence_tracking(draw: DrawFn) -> Tuple[Evidences, LastCommitInfo]:
+    """A strategy for building offences reported by Tendermint."""
+    n_validators = draw(integers(min_value=1, max_value=10))
+
+    validators = [
+        draw(
+            builds(
+                Validator,
+                address=just(bytes(i)),
+                power=integers(min_value=0),
+            )
+        )
+        for i in range(n_validators)
+    ]
+
+    evidences = builds(
+        Evidences,
+        byzantine_validators=lists(
+            builds(
+                Evidence,
+                evidence_type=sampled_from(EvidenceType),
+                validator=sampled_from(validators),
+                height=integers(min_value=0),
+                time=builds(
+                    Timestamp,
+                    seconds=integers(min_value=0),
+                    nanos=integers(min_value=0, max_value=999_999_999),
+                ),
+                total_voting_power=integers(min_value=0),
+            ),
+            min_size=n_validators,
+            max_size=n_validators,
+            unique_by=lambda v: v.validator.address,
+        ),
+    )
+
+    last_commit_info = builds(
+        LastCommitInfo,
+        round_=integers(min_value=0),
+        votes=lists(
+            builds(
+                VoteInfo,
+                validator=sampled_from(validators),
+                signed_last_block=booleans(),
+            ),
+            min_size=n_validators,
+            max_size=n_validators,
+            unique_by=lambda v: v.validator.address,
+        ),
+    )
+
+    ev_example, commit_example = draw(evidences), draw(last_commit_info)
+
+    # this assertion proves that all the validators are unique
+    unique_commit_addresses = set(
+        v.validator.address.decode() for v in commit_example.votes
+    )
+    assert len(unique_commit_addresses) == n_validators
+
+    # this assertion proves that the same validators are used for evidences and votes
+    assert unique_commit_addresses == set(
+        e.validator.address.decode() for e in ev_example.byzantine_validators
+    )
+
+    return ev_example, commit_example
+
+
+@composite
+def offence_status(draw: DrawFn) -> OffenceStatus:
+    """Build an offence status instance."""
+    validator_downtime = just(
+        AvailabilityWindow.from_dict(draw(availability_window_data()))
+    )
+    invalid_payload = just(
+        AvailabilityWindow.from_dict(draw(availability_window_data()))
+    )
+    blacklisted = just(AvailabilityWindow.from_dict(draw(availability_window_data())))
+    suspected = just(AvailabilityWindow.from_dict(draw(availability_window_data())))
+
+    status = builds(
+        OffenceStatus,
+        validator_downtime=validator_downtime,
+        invalid_payload=invalid_payload,
+        blacklisted=blacklisted,
+        suspected=suspected,
+        num_unknown_offenses=integers(min_value=0),
+        num_double_signed=integers(min_value=0),
+        num_light_client_attack=integers(min_value=0),
+    )
+
+    return draw(status)
+
+
+class TestOffenseStatusEncoderDecoder:
+    """Test the `OffenseStatusEncoder` and the `OffenseStatusDecoder`."""
+
+    @staticmethod
+    @given(dictionaries(keys=text(), values=offence_status(), min_size=1))
+    def test_encode_decode_offense_status(offense_status: str) -> None:
+        """Test encoding an offense status mapping and then decoding it by using the custom encoder/decoder."""
+        encoded = json.dumps(offense_status, cls=OffenseStatusEncoder)
+        decoded = json.loads(encoded, cls=OffenseStatusDecoder)
+
+        assert decoded == offense_status
+
+    def test_encode_unknown(self) -> None:
+        """Test the encoder with an unknown input."""
+
+        class Unknown:
+            """A dummy class that the encoder is not aware of."""
+
+            unknown = "?"
+
+        with pytest.raises(
+            TypeError, match="Object of type Unknown is not JSON serializable"
+        ):
+            json.dumps(Unknown(), cls=OffenseStatusEncoder)
+
 
 class TestRoundSequence:
     """Test the RoundSequence class."""
 
     def setup(self) -> None:
         """Set up the test."""
-        self.round_sequence = RoundSequence(abci_app_cls=AbciAppTest)
-        self.round_sequence.setup(MagicMock(), MagicMock())
+        self.round_sequence = RoundSequence(
+            context=MagicMock(), abci_app_cls=AbciAppTest
+        )
+        self.round_sequence.setup(MagicMock(), logging.getLogger())
         self.round_sequence.tm_height = 1
+
+    @pytest.mark.parametrize(
+        "property_name, set_twice_exc, config_exc",
+        (
+            (
+                "validator_to_agent",
+                "The mapping of the validators' addresses to their agent addresses can only be set once. "
+                "Attempted to set with {new_content_attempt} but it has content already: {value}.",
+                "The mapping of the validators' addresses to their agent addresses has not been set.",
+            ),
+        ),
+    )
+    @given(data())
+    def test_slashing_properties(
+        self, property_name: str, set_twice_exc: str, config_exc: str, _data: Any
+    ) -> None:
+        """Test `validator_to_agent` getter and setter."""
+        if property_name == "validator_to_agent":
+            data_generator = dictionaries(text(), text())
+        else:
+            data_generator = dictionaries(text(), just(OffenceStatus()))
+
+        value = _data.draw(data_generator)
+        round_sequence = RoundSequence(context=MagicMock(), abci_app_cls=AbciAppTest)
+
+        if value:
+            setattr(round_sequence, property_name, value)
+            assert getattr(round_sequence, property_name) == value
+            new_content_attempt = _data.draw(data_generator)
+            with pytest.raises(
+                ValueError,
+                match=re.escape(
+                    set_twice_exc.format(
+                        new_content_attempt=new_content_attempt, value=value
+                    )
+                ),
+            ):
+                setattr(round_sequence, property_name, new_content_attempt)
+            return
+
+        with pytest.raises(SlashingNotConfiguredError, match=config_exc):
+            getattr(round_sequence, property_name)
+
+    @mock.patch("json.dumps")
+    def test_serialize_offence_status(self, mock_dumps: mock.MagicMock) -> None:
+        """Test the `serialize_offence_status` method."""
+        # Set up mock objects and return values
+        self.round_sequence.offence_status = {"not_encoded": OffenceStatus()}
+        mock_encoded_status = "encoded_status"
+        mock_dumps.return_value = mock_encoded_status
+
+        # Call the method to be tested
+        self.round_sequence.serialize_offence_status()
+
+        # Check that `json.dumps()` was called with the correct arguments
+        mock_dumps.assert_called_once_with(
+            self.round_sequence.offence_status, cls=OffenseStatusEncoder, sort_keys=True
+        )
+
+        # Check that `update()` was called with the correct arguments
+        mock_update = cast(
+            mock.Mock, self.round_sequence.abci_app.synchronized_data.db.update
+        )
+        mock_update.assert_called_once_with(offence_status=mock_encoded_status)
+
+    @given(
+        validator=builds(Validator, address=binary(), power=integers()),
+        agent_address=text(),
+    )
+    def test_get_agent_address(self, validator: Validator, agent_address: str) -> None:
+        """Test `get_agent_address` method."""
+        round_sequence = RoundSequence(context=MagicMock(), abci_app_cls=AbciAppTest)
+        round_sequence.validator_to_agent = {
+            validator.address.hex().upper(): agent_address
+        }
+        assert round_sequence.get_agent_address(validator) == agent_address
+
+        unknown = deepcopy(validator)
+        unknown.address += b"unknown"
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                f"Requested agent address for an unknown validator address {unknown.address.hex().upper()}. "
+                f"Available validators are: {round_sequence.validator_to_agent.keys()}"
+            ),
+        ):
+            round_sequence.get_agent_address(unknown)
 
     @pytest.mark.parametrize("offset", tuple(range(5)))
     @pytest.mark.parametrize("n_blocks", (0, 1, 10))
@@ -1988,7 +2352,9 @@ class TestRoundSequence:
     def test_last_round_transition_timestamp(self, committed: bool) -> None:
         """Test 'last_round_transition_timestamp' method."""
         if committed:
-            self.round_sequence.begin_block(MagicMock(height=1))
+            self.round_sequence.begin_block(
+                MagicMock(height=1), MagicMock(), MagicMock()
+            )
             self.round_sequence.end_block()
             self.round_sequence.commit()
             assert (
@@ -2007,7 +2373,9 @@ class TestRoundSequence:
     def test_last_round_transition_height(self, committed: bool) -> None:
         """Test 'last_round_transition_height' method."""
         if committed:
-            self.round_sequence.begin_block(MagicMock(height=1))
+            self.round_sequence.begin_block(
+                MagicMock(height=1), MagicMock(), MagicMock()
+            )
             self.round_sequence.end_block()
             self.round_sequence.commit()
             assert (
@@ -2026,7 +2394,7 @@ class TestRoundSequence:
     def test_block_before_blockchain_is_init(self, caplog: LogCaptureFixture) -> None:
         """Test block received before blockchain initialized."""
 
-        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
         self.round_sequence.end_block()
         blockchain = self.round_sequence.blockchain
         blockchain._is_init = False
@@ -2070,7 +2438,9 @@ class TestRoundSequence:
                 _ = self.round_sequence.last_round_transition_tm_height
         else:
             self.round_sequence.tm_height = tm_height
-            self.round_sequence.begin_block(MagicMock(height=1))
+            self.round_sequence.begin_block(
+                MagicMock(height=1), MagicMock(), MagicMock()
+            )
             self.round_sequence.end_block()
             self.round_sequence.commit()
             assert self.round_sequence.last_round_transition_tm_height == tm_height
@@ -2121,6 +2491,96 @@ class TestRoundSequence:
         self.round_sequence.init_chain(initial_height)
         assert self.round_sequence._blockchain.height == initial_height - 1
 
+    @given(offence_tracking())
+    def test_track_offences(self, offences: Tuple[Evidences, LastCommitInfo]) -> None:
+        """Test `_track_offences` method."""
+        evidences, last_commit_info = offences
+        dummy_addr_template = "agent_{i}"
+        round_sequence = RoundSequence(context=MagicMock(), abci_app_cls=AbciAppTest)
+        synchronized_data_mock = MagicMock()
+        round_sequence.setup(synchronized_data_mock, MagicMock())
+        round_sequence.enable_slashing()
+
+        expected_offence_status = {
+            dummy_addr_template.format(i=i): OffenceStatus()
+            for i in range(len(last_commit_info.votes))
+        }
+        for i, vote_info in enumerate(last_commit_info.votes):
+            agent_address = dummy_addr_template.format(i=i)
+            # initialize dummy round sequence's offence status and validator to agent address mapping
+            round_sequence._offence_status[agent_address] = OffenceStatus()
+            validator_address = vote_info.validator.address.hex()
+            round_sequence._validator_to_agent[validator_address] = agent_address
+            # set expected result
+            expected_was_down = not vote_info.signed_last_block
+            expected_offence_status[agent_address].validator_downtime.add(
+                expected_was_down
+            )
+
+        for byzantine_validator in evidences.byzantine_validators:
+            agent_address = round_sequence._validator_to_agent[
+                byzantine_validator.validator.address.hex()
+            ]
+            evidence_type = byzantine_validator.evidence_type
+            expected_offence_status[agent_address].num_unknown_offenses += bool(
+                evidence_type == EvidenceType.UNKNOWN
+            )
+            expected_offence_status[agent_address].num_double_signed += bool(
+                evidence_type == EvidenceType.DUPLICATE_VOTE
+            )
+            expected_offence_status[agent_address].num_light_client_attack += bool(
+                evidence_type == EvidenceType.LIGHT_CLIENT_ATTACK
+            )
+
+        round_sequence._try_track_offences(evidences, last_commit_info)
+        assert round_sequence._offence_status == expected_offence_status
+
+    @given(builds(SlashingNotConfiguredError, text()))
+    def test_handle_slashing_not_configured(
+        self, exc: SlashingNotConfiguredError
+    ) -> None:
+        """Test `_handle_slashing_not_configured` method."""
+        logging.disable(logging.CRITICAL)
+
+        round_sequence = RoundSequence(context=MagicMock(), abci_app_cls=AbciAppTest)
+        round_sequence.setup(MagicMock(), MagicMock())
+
+        assert not round_sequence._slashing_enabled
+        assert round_sequence.latest_synchronized_data.nb_participants == 0
+        round_sequence._handle_slashing_not_configured(exc)
+        assert not round_sequence._slashing_enabled
+
+        with mock.patch.object(
+            round_sequence.latest_synchronized_data.db,
+            "get",
+            return_value=[i for i in range(4)],
+        ):
+            assert round_sequence.latest_synchronized_data.nb_participants == 4
+            round_sequence._handle_slashing_not_configured(exc)
+            assert not round_sequence._slashing_enabled
+
+        logging.disable(logging.NOTSET)
+
+    @pytest.mark.parametrize("_track_offences_raises", (True, False))
+    def test_try_track_offences(self, _track_offences_raises: bool) -> None:
+        """Test `_try_track_offences` method."""
+        evidences, last_commit_info = MagicMock(), MagicMock()
+        self.round_sequence.enable_slashing()
+        with mock.patch.object(
+            self.round_sequence,
+            "_track_offences",
+            side_effect=SlashingNotConfiguredError if _track_offences_raises else None,
+        ) as _track_offences_mock, mock.patch.object(
+            self.round_sequence, "_handle_slashing_not_configured"
+        ) as _handle_slashing_not_configured_mock:
+            self.round_sequence._try_track_offences(evidences, last_commit_info)
+            if _track_offences_raises:
+                _handle_slashing_not_configured_mock.assert_called_once()
+            else:
+                _track_offences_mock.assert_called_once_with(
+                    evidences, last_commit_info
+                )
+
     def test_begin_block_negative_is_finished(self) -> None:
         """Test 'begin_block' method, negative case (round sequence is finished)."""
         self.round_sequence.abci_app._current_round = None
@@ -2128,7 +2588,7 @@ class TestRoundSequence:
             ABCIAppInternalError,
             match="internal error: round sequence is finished, cannot accept new blocks",
         ):
-            self.round_sequence.begin_block(MagicMock())
+            self.round_sequence.begin_block(MagicMock(), MagicMock(), MagicMock())
 
     def test_begin_block_negative_wrong_phase(self) -> None:
         """Test 'begin_block' method, negative case (wrong phase)."""
@@ -2137,11 +2597,11 @@ class TestRoundSequence:
             ABCIAppInternalError,
             match="internal error: cannot accept a 'begin_block' request.",
         ):
-            self.round_sequence.begin_block(MagicMock())
+            self.round_sequence.begin_block(MagicMock(), MagicMock(), MagicMock())
 
     def test_begin_block_positive(self) -> None:
         """Test 'begin_block' method, positive case."""
-        self.round_sequence.begin_block(MagicMock())
+        self.round_sequence.begin_block(MagicMock(), MagicMock(), MagicMock())
 
     def test_deliver_tx_negative_wrong_phase(self) -> None:
         """Test 'begin_block' method, negative (wrong phase)."""
@@ -2153,7 +2613,7 @@ class TestRoundSequence:
 
     def test_deliver_tx_positive_not_valid(self) -> None:
         """Test 'begin_block' method, positive (not valid)."""
-        self.round_sequence.begin_block(MagicMock())
+        self.round_sequence.begin_block(MagicMock(), MagicMock(), MagicMock())
         with mock.patch.object(
             self.round_sequence.current_round, "check_transaction", return_value=True
         ):
@@ -2172,7 +2632,7 @@ class TestRoundSequence:
 
     def test_end_block_positive(self) -> None:
         """Test 'end_block' method, positive case."""
-        self.round_sequence.begin_block(MagicMock())
+        self.round_sequence.begin_block(MagicMock(), MagicMock(), MagicMock())
         self.round_sequence.end_block()
 
     def test_commit_negative_wrong_phase(self) -> None:
@@ -2185,7 +2645,7 @@ class TestRoundSequence:
 
     def test_commit_negative_exception(self) -> None:
         """Test 'end_block' method, negative case (raise exception)."""
-        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
         self.round_sequence.end_block()
         with mock.patch.object(
             self.round_sequence._blockchain, "add_block", side_effect=AddBlockError
@@ -2195,7 +2655,7 @@ class TestRoundSequence:
 
     def test_commit_positive_no_change_round(self) -> None:
         """Test 'end_block' method, positive (no change round)."""
-        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
         self.round_sequence.end_block()
         with mock.patch.object(
             self.round_sequence.current_round,
@@ -2206,7 +2666,7 @@ class TestRoundSequence:
 
     def test_commit_positive_with_change_round(self) -> None:
         """Test 'end_block' method, positive (with change round)."""
-        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
         self.round_sequence.end_block()
         round_result, next_round = MagicMock(), MagicMock()
         with mock.patch.object(
@@ -2231,17 +2691,67 @@ class TestRoundSequence:
             )
         assert self.round_sequence._blockchain.height == 0
 
+    def last_round_values_updated(self, any_: bool = True) -> bool:
+        """Check if the values for the last round-related attributes have been updated."""
+        seq = self.round_sequence
+
+        current_last_pairs = (
+            (
+                seq._blockchain.last_block.timestamp,
+                seq._last_round_transition_timestamp,
+            ),
+            (seq._blockchain.height, seq._last_round_transition_height),
+            (seq.root_hash, seq._last_round_transition_root_hash),
+            (seq.tm_height, seq._last_round_transition_tm_height),
+        )
+
+        if any_:
+            return any(current == last for current, last in current_last_pairs)
+
+        return all(current == last for current, last in current_last_pairs)
+
     @mock.patch.object(AbciApp, "process_event")
+    @mock.patch.object(RoundSequence, "serialize_offence_status")
     @pytest.mark.parametrize("end_block_res", (None, (MagicMock(), MagicMock())))
+    @pytest.mark.parametrize(
+        "slashing_enabled, offence_status_",
+        (
+            (
+                False,
+                False,
+            ),
+            (
+                False,
+                True,
+            ),
+            (
+                True,
+                False,
+            ),
+            (
+                False,
+                False,
+            ),
+            (
+                True,
+                True,
+            ),
+        ),
+    )
     def test_update_round(
         self,
+        serialize_offence_status_mock: mock.Mock,
         process_event_mock: mock.Mock,
         end_block_res: Optional[Tuple[BaseSynchronizedData, Any]],
+        slashing_enabled: bool,
+        offence_status_: dict,
     ) -> None:
         """Test '_update_round' method."""
-        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
         block = self.round_sequence._block_builder.get_block()
         self.round_sequence._blockchain.add_block(block)
+        self.round_sequence._slashing_enabled = slashing_enabled
+        self.round_sequence._offence_status = offence_status_
 
         with mock.patch.object(
             self.round_sequence.current_round, "end_block", return_value=end_block_res
@@ -2251,44 +2761,19 @@ class TestRoundSequence:
             self.round_sequence._update_round()
 
         if end_block_res is None:
-            assert (
-                self.round_sequence._last_round_transition_timestamp
-                != self.round_sequence._blockchain.last_block.timestamp
-            )
-            assert (
-                self.round_sequence._last_round_transition_height
-                != self.round_sequence._blockchain.height
-            )
-            assert (
-                self.round_sequence._last_round_transition_root_hash
-                != self.round_sequence.root_hash
-            )
-            assert (
-                self.round_sequence._last_round_transition_tm_height
-                != self.round_sequence.tm_height
-            )
+            assert not self.last_round_values_updated()
             process_event_mock.assert_not_called()
+            return
 
+        assert self.last_round_values_updated(any_=False)
+        process_event_mock.assert_called_with(
+            end_block_res[-1], result=end_block_res[0]
+        )
+
+        if slashing_enabled and offence_status_:
+            serialize_offence_status_mock.assert_called_once()
         else:
-            assert (
-                self.round_sequence._last_round_transition_timestamp
-                == self.round_sequence._blockchain.last_block.timestamp
-            )
-            assert (
-                self.round_sequence._last_round_transition_height
-                == self.round_sequence._blockchain.height
-            )
-            assert (
-                self.round_sequence._last_round_transition_root_hash
-                == self.round_sequence.root_hash
-            )
-            assert (
-                self.round_sequence._last_round_transition_tm_height
-                == self.round_sequence.tm_height
-            )
-            process_event_mock.assert_called_with(
-                end_block_res[-1], result=end_block_res[0]
-            )
+            serialize_offence_status_mock.assert_not_called()
 
     @mock.patch.object(AbciApp, "process_event")
     @pytest.mark.parametrize(
@@ -2307,7 +2792,7 @@ class TestRoundSequence:
         current_round_result: Optional[Tuple[BaseSynchronizedData, Any]],
     ) -> None:
         """Test '_update_round' method."""
-        self.round_sequence.begin_block(MagicMock(height=1))
+        self.round_sequence.begin_block(MagicMock(height=1), MagicMock(), MagicMock())
         block = self.round_sequence._block_builder.get_block()
         self.round_sequence._blockchain.add_block(block)
 
@@ -2383,12 +2868,12 @@ class TestRoundSequence:
                 result=background_round_result[0],
             )
 
-    @mock.patch.object(AbciAppDB, "sync")
+    @mock.patch.object(json, "loads")
     @pytest.mark.parametrize("restart_from_round", (ConcreteRoundA, MagicMock()))
     @pytest.mark.parametrize("serialized_db_state", (None, "serialized state"))
     def test_reset_state(
         self,
-        _: mock._patch,
+        mock_loads: MagicMock,
         restart_from_round: AbstractRound,
         serialized_db_state: str,
     ) -> None:
@@ -2405,6 +2890,25 @@ class TestRoundSequence:
                     round_id, round_count, serialized_db_state
                 )
                 mock_reset.assert_called()
+                mock_sync = cast(
+                    MagicMock, self.round_sequence.abci_app.synchronized_data.db.sync
+                )
+
+                if serialized_db_state is None:
+                    mock_sync.assert_not_called()
+                    mock_loads.assert_not_called()
+
+                else:
+                    mock_sync.assert_called_with(serialized_db_state)
+                    mock_loads.assert_called_with(
+                        self.round_sequence.latest_synchronized_data.offence_status,
+                        cls=OffenseStatusDecoder,
+                    )
+                    assert (
+                        self.round_sequence._last_round_transition_root_hash
+                        == self.round_sequence.root_hash
+                    )
+
             else:
                 round_ids = {cls.auto_round_id() for cls in transition_fn}
                 with pytest.raises(
@@ -2430,6 +2934,8 @@ class TestRoundSequence:
         self.round_sequence._last_round_transition_root_hash = MagicMock()
         self.round_sequence._last_round_transition_tm_height = MagicMock()
         self.round_sequence._tm_height = MagicMock()
+        self._pending_offences = MagicMock()
+        self._slashing_enabled = MagicMock()
 
         # we reset them
         self.round_sequence._reset_to_default_params()
@@ -2440,6 +2946,8 @@ class TestRoundSequence:
         assert self.round_sequence._last_round_transition_root_hash == b""
         assert self.round_sequence._last_round_transition_tm_height is None
         assert self.round_sequence._tm_height is None
+        assert self.round_sequence._pending_offences == set()
+        assert not self.round_sequence._slashing_enabled
 
 
 def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:
@@ -2504,7 +3012,7 @@ def test_synchronized_data_type_on_abci_app_init(caplog: LogCaptureFixture) -> N
 
     with mock.patch.object(AbciAppTest, "initial_round_cls") as m:
         m.synchronized_data_class = SynchronizedData
-        abci_app = AbciAppTest(synchronized_data, logging.getLogger())
+        abci_app = AbciAppTest(synchronized_data, logging.getLogger(), MagicMock())
         abci_app.setup()
         assert isinstance(abci_app.synchronized_data, SynchronizedData)
         assert abci_app.synchronized_data.dummy_attr == sentinel

@@ -1118,6 +1118,17 @@ def safe_contract_address() -> str
 
 Get the safe contract address.
 
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.offence_status"></a>
+
+#### offence`_`status
+
+```python
+@property
+def offence_status() -> str
+```
+
+Get the offence status, serialized.
+
 <a id="packages.valory.skills.abstract_round_abci.base._MetaAbstractRound"></a>
 
 ## `_`MetaAbstractRound Objects
@@ -1166,6 +1177,7 @@ Optionally, round_id can be defined, although it is recommended to use the autog
 ```python
 def __init__(
     synchronized_data: BaseSynchronizedData,
+    context: SkillContext,
     previous_round_payload_class: Optional[Type[BaseTxPayload]] = None
 ) -> None
 ```
@@ -2082,7 +2094,8 @@ Concrete classes of this class implement the ABCI App.
 #### `__`init`__`
 
 ```python
-def __init__(synchronized_data: BaseSynchronizedData, logger: logging.Logger)
+def __init__(synchronized_data: BaseSynchronizedData, logger: logging.Logger,
+             context: SkillContext)
 ```
 
 Initialize the AbciApp.
@@ -2464,6 +2477,16 @@ Initializes the `AvailabilityWindow` instance.
 
 - `max_length`: the maximum length of the cyclic array.
 
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.__eq__"></a>
+
+#### `__`eq`__`
+
+```python
+def __eq__(other: Any) -> bool
+```
+
+Compare `AvailabilityWindow` objects.
+
 <a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.add"></a>
 
 #### add
@@ -2485,10 +2508,21 @@ If the maximum length has been reached, the oldest element is removed.
 #### to`_`dict
 
 ```python
-def to_dict() -> dict
+def to_dict() -> Dict[str, int]
 ```
 
 Returns a dictionary representation of the `AvailabilityWindow` instance.
+
+<a id="packages.valory.skills.abstract_round_abci.base.AvailabilityWindow.from_dict"></a>
+
+#### from`_`dict
+
+```python
+@classmethod
+def from_dict(cls, data: Dict[str, int]) -> "AvailabilityWindow"
+```
+
+Initializes an `AvailabilityWindow` instance from a dictionary.
 
 <a id="packages.valory.skills.abstract_round_abci.base.OffenceStatus"></a>
 
@@ -2501,6 +2535,59 @@ class OffenceStatus()
 
 A class that holds information about offence status for an agent.
 
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusEncoder"></a>
+
+## OffenseStatusEncoder Objects
+
+```python
+class OffenseStatusEncoder(json.JSONEncoder)
+```
+
+A custom JSON encoder for the offence status dictionary.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusEncoder.default"></a>
+
+#### default
+
+```python
+def default(o: Any) -> Any
+```
+
+The default JSON encoder.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusDecoder"></a>
+
+## OffenseStatusDecoder Objects
+
+```python
+class OffenseStatusDecoder(json.JSONDecoder)
+```
+
+A custom JSON decoder for the offence status dictionary.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusDecoder.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(*args: Any, **kwargs: Any) -> None
+```
+
+Initialize the custom JSON decoder.
+
+<a id="packages.valory.skills.abstract_round_abci.base.OffenseStatusDecoder.hook"></a>
+
+#### hook
+
+```python
+@staticmethod
+def hook(
+    data: Dict[str, Any]
+) -> Union[AvailabilityWindow, OffenceStatus, Dict[str, OffenceStatus]]
+```
+
+Perform the custom decoding.
+
 <a id="packages.valory.skills.abstract_round_abci.base.PendingOffense"></a>
 
 ## PendingOffense Objects
@@ -2511,6 +2598,16 @@ class PendingOffense()
 ```
 
 A dataclass to represent offences that need to be addressed.
+
+<a id="packages.valory.skills.abstract_round_abci.base.SlashingNotConfiguredError"></a>
+
+## SlashingNotConfiguredError Objects
+
+```python
+class SlashingNotConfiguredError(Exception)
+```
+
+Custom exception raised when slashing configuration is requested but is not available.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence"></a>
 
@@ -2533,10 +2630,84 @@ It also schedules the next round (if any) whenever a round terminates.
 #### `__`init`__`
 
 ```python
-def __init__(abci_app_cls: Type[AbciApp])
+def __init__(context: SkillContext, abci_app_cls: Type[AbciApp])
 ```
 
 Initialize the round.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.enable_slashing"></a>
+
+#### enable`_`slashing
+
+```python
+def enable_slashing() -> None
+```
+
+Enable slashing.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.validator_to_agent"></a>
+
+#### validator`_`to`_`agent
+
+```python
+@property
+def validator_to_agent() -> Dict[str, str]
+```
+
+Get the mapping of the validators' addresses to their agent addresses.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.validator_to_agent"></a>
+
+#### validator`_`to`_`agent
+
+```python
+@validator_to_agent.setter
+def validator_to_agent(validator_to_agent: Dict[str, str]) -> None
+```
+
+Set the mapping of the validators' addresses to their agent addresses.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.offence_status"></a>
+
+#### offence`_`status
+
+```python
+@property
+def offence_status() -> Dict[str, OffenceStatus]
+```
+
+Get the mapping of the agents' addresses to their offence status.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.offence_status"></a>
+
+#### offence`_`status
+
+```python
+@offence_status.setter
+def offence_status(offence_status: Dict[str, OffenceStatus]) -> None
+```
+
+Set the mapping of the agents' addresses to their offence status.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.serialize_offence_status"></a>
+
+#### serialize`_`offence`_`status
+
+```python
+def serialize_offence_status() -> None
+```
+
+Serialize the offence status.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.get_agent_address"></a>
+
+#### get`_`agent`_`address
+
+```python
+def get_agent_address(validator: Validator) -> str
+```
+
+Get corresponding agent address from a `Validator` instance.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.setup"></a>
 
@@ -2840,7 +3011,8 @@ Init chain.
 #### begin`_`block
 
 ```python
-def begin_block(header: Header) -> None
+def begin_block(header: Header, evidences: Evidences,
+                last_commit_info: LastCommitInfo) -> None
 ```
 
 Begin block.
@@ -2910,13 +3082,15 @@ def reset_state(restart_from_round: str,
                 serialized_db_state: Optional[str] = None) -> None
 ```
 
-This method resets the state of RoundSequence to the begging of the period.
+This method resets the state of RoundSequence to the beginning of the period.
 
-Note: This is intended to be used only for agent <-> tendermint communication recovery only!
+Note: This is intended to be used for agent <-> tendermint communication recovery only!
 
 **Arguments**:
 
-- `restart_from_round`: from which round to restart the abci. This round should be the first round in the last period.
+- `restart_from_round`: from which round to restart the abci.
+This round should be the first round in the last period.
 - `round_count`: the round count at the beginning of the period -1.
-- `serialized_db_state`: the state of the database at the beginning of the period. If provided, the database will be reset to this state.
+- `serialized_db_state`: the state of the database at the beginning of the period.
+If provided, the database will be reset to this state.
 

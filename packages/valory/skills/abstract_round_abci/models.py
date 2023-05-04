@@ -49,6 +49,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
     BaseSynchronizedData,
+    OffenceStatus,
     ROUND_COUNT_DEFAULT,
     RoundSequence,
     VALUE_NOT_PROVIDED,
@@ -419,10 +420,6 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
         self._round_sequence: Optional[RoundSequence] = None
         # a mapping of the agents' addresses to their initial Tendermint configuration, to be retrieved via ACN
         self.initial_tm_configs: Dict[str, Optional[Dict[str, Any]]] = {}
-        # a mapping of the validators' addresses to their agent addresses
-        # we create a mapping to avoid calculating the agent address from the validator address every time we need it
-        # since this is an operation that will be performed every time we want to create an offence
-        self._validator_to_agent: Dict[str, str] = {}
         # a mapping of the other agents' addresses to ACN deliverables
         self.address_to_acn_deliverable: Dict[str, Any] = {}
         self.tm_recovery_params: TendermintRecoveryParams = TendermintRecoveryParams(
@@ -431,29 +428,21 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
         kwargs["skill_context"] = skill_context
         super().__init__(*args, **kwargs)
 
-    @property
-    def validator_to_agent(self) -> Dict[str, str]:
-        """Get the mapping of the validators' addresses to their agent addresses"""
-        if self._validator_to_agent:
-            return self._validator_to_agent
-        raise ValueError(
-            "ACN registration has not been successfully performed. "
-            "Have you set the `share_tm_config_on_startup` flag to `true` in the configuration?"
-        )
-
-    @validator_to_agent.setter
-    def validator_to_agent(self, validator_to_agent: Dict[str, str]) -> None:
-        """Set the mapping of the validators' addresses to their agent addresses"""
+    def setup_slashing(self, validator_to_agent: Dict[str, str]) -> None:
+        """Initialize the structures required for slashing."""
         configured_agents = set(self.initial_tm_configs.keys())
         agents_mapped = set(validator_to_agent.values())
         diff = agents_mapped.symmetric_difference(configured_agents)
         if diff:
             raise ValueError(
-                f"Trying to set the mapping `{validator_to_agent}`, which contains validators for non-configured "
+                f"Trying to use the mapping `{validator_to_agent}`, which contains validators for non-configured "
                 "agents and/or does not contain validators for some configured agents. "
                 f"The agents which have been configured via ACN are `{configured_agents}` and the diff was for {diff}."
             )
-        self._validator_to_agent = validator_to_agent
+        self.round_sequence.validator_to_agent = validator_to_agent
+        self.round_sequence.offence_status = dict.fromkeys(
+            agents_mapped, OffenceStatus()
+        )
 
     def get_validator_address(self, agent_address: str) -> str:
         """Get the validator address of an agent."""
@@ -492,7 +481,7 @@ class SharedState(Model, ABC, metaclass=_MetaSharedState):  # type: ignore
 
     def setup(self) -> None:
         """Set up the model."""
-        self._round_sequence = RoundSequence(self.abci_app_cls)
+        self._round_sequence = RoundSequence(self.context, self.abci_app_cls)
         setup_params = cast(BaseParams, self.context.params).setup_params
         self.round_sequence.setup(
             BaseSynchronizedData(

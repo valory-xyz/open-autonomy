@@ -42,6 +42,8 @@ from typing_extensions import Literal, TypedDict
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
+    OffenceStatus,
+    OffenseStatusEncoder,
     ROUND_COUNT_DEFAULT,
 )
 from packages.valory.skills.abstract_round_abci.models import (
@@ -406,7 +408,7 @@ class TestSharedState:
             ),
         ),
     )
-    def test_validator_to_agent(
+    def test_setup_slashing(
         self,
         acn_configured_agents: Set[str],
         validator_to_agent: Dict[str, str],
@@ -414,20 +416,23 @@ class TestSharedState:
     ) -> None:
         """Test the `validator_to_agent` properties."""
         shared_state = SharedState(name="", skill_context=MagicMock())
-
-        with pytest.raises(
-            ValueError,
-            match=(
-                "ACN registration has not been successfully performed. "
-                "Have you set the `share_tm_config_on_startup` flag to `true` in the configuration?"
-            ),
-        ):
-            assert shared_state.validator_to_agent
+        self.dummy_state_setup(shared_state)
 
         if not raises:
             shared_state.initial_tm_configs = dict.fromkeys(acn_configured_agents)
-            shared_state.validator_to_agent = validator_to_agent
-            assert shared_state.validator_to_agent == validator_to_agent
+            shared_state.setup_slashing(validator_to_agent)
+            assert shared_state.round_sequence.validator_to_agent == validator_to_agent
+
+            encoded_status = json.dumps(
+                shared_state.round_sequence.offence_status,
+                cls=OffenseStatusEncoder,
+            )
+            expected_status = dict.fromkeys(acn_configured_agents, OffenceStatus())
+            encoded_expected_status = json.dumps(
+                expected_status, cls=OffenseStatusEncoder
+            )
+
+            assert encoded_status == encoded_expected_status
             return
 
         expected_diff = acn_configured_agents.symmetric_difference(
@@ -436,13 +441,13 @@ class TestSharedState:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                f"Trying to set the mapping `{validator_to_agent}`, which contains validators for non-configured "
+                f"Trying to use the mapping `{validator_to_agent}`, which contains validators for non-configured "
                 "agents and/or does not contain validators for some configured agents. The agents which have been "
                 f"configured via ACN are `{acn_configured_agents}` and the diff was for {expected_diff}."
             ),
         ):
             shared_state.initial_tm_configs = dict.fromkeys(acn_configured_agents)
-            shared_state.validator_to_agent = validator_to_agent
+            shared_state.setup_slashing(validator_to_agent)
 
     def test_setup(self, *_: Any) -> None:
         """Test setup method."""

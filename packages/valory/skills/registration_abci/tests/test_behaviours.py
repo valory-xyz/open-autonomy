@@ -120,9 +120,12 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
     @pytest.mark.parametrize(
         "setup_data, expected_initialisation",
         (
-            ({}, '{"0": {}}'),
-            ({"test": []}, '{"0": {}}'),
-            ({"test": [], "valid": [1, 2]}, '{"0": {"valid": [1, 2]}}'),
+            ({}, '{"db": "{\\"0\\": {}}", "slashing_config": "{}"}'),
+            ({"test": []}, '{"db": "{\\"0\\": {}}", "slashing_config": "{}"}'),
+            (
+                {"test": [], "valid": [1, 2]},
+                '{"db": "{\\"0\\": {\\"valid\\": [1, 2]}}", "slashing_config": "{}"}',
+            ),
         ),
     )
     def test_registration(
@@ -530,12 +533,18 @@ class TestRegistrationStartupBehaviour(RegistrationAbciBaseCase):
             self.mock_is_correct_contract()
             self.mock_get_agent_instances(*self.agent_instances)
             self.mock_get_tendermint_info(*self.other_agents)
-            assert all(map(self.state.initial_tm_configs.get, self.other_agents))
-            assert tuple(self.state.context.state.validator_to_agent.keys()) == tuple(
-                config["address"] for config in self.state.initial_tm_configs.values()
+
+            initial_tm_configs = self.state.initial_tm_configs
+            validator_to_agent = (
+                self.state.context.state.round_sequence.validator_to_agent
             )
-            assert tuple(self.state.context.state.validator_to_agent.values()) == tuple(
-                self.state.initial_tm_configs.keys()
+
+            assert all(map(initial_tm_configs.get, self.other_agents))
+            assert tuple(validator_to_agent.keys()) == tuple(
+                config["address"] for config in initial_tm_configs.values()
+            )
+            assert tuple(validator_to_agent.values()) == tuple(
+                initial_tm_configs.keys()
             )
             log_message = self.state.LogMessages.collection_complete
             assert log_message.value in caplog.text

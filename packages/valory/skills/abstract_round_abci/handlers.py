@@ -73,9 +73,7 @@ class ABCIRoundHandler(ABCIHandler):
 
     SUPPORTED_PROTOCOL = AbciMessage.protocol_id
 
-    def info(  # pylint: disable=no-self-use,useless-super-delegation
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def info(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """
         Handle the 'info' request.
 
@@ -143,16 +141,14 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
-    def begin_block(  # pylint: disable=no-self-use
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def begin_block(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """Handle the 'begin_block' request."""
-        cast(SharedState, self.context.state).round_sequence.begin_block(message.header)
+        cast(SharedState, self.context.state).round_sequence.begin_block(
+            message.header, message.byzantine_validators, message.last_commit_info
+        )
         return super().begin_block(message, dialogue)
 
-    def check_tx(  # pylint: disable=no-self-use
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def check_tx(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """Handle the 'check_tx' request."""
         transaction_bytes = message.tx
         # check we can decode the transaction
@@ -190,9 +186,7 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
-    def deliver_tx(  # pylint: disable=no-self-use
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def deliver_tx(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """Handle the 'deliver_tx' request."""
         transaction_bytes = message.tx
         shared_state = cast(SharedState, self.context.state)
@@ -231,17 +225,13 @@ class ABCIRoundHandler(ABCIHandler):
         )
         return cast(AbciMessage, reply)
 
-    def end_block(  # pylint: disable=no-self-use
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def end_block(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """Handle the 'end_block' request."""
         self.context.state.round_sequence.tm_height = message.height
         cast(SharedState, self.context.state).round_sequence.end_block()
         return super().end_block(message, dialogue)
 
-    def commit(  # pylint: disable=no-self-use
-        self, message: AbciMessage, dialogue: AbciDialogue
-    ) -> AbciMessage:
+    def commit(self, message: AbciMessage, dialogue: AbciDialogue) -> AbciMessage:
         """
         Handle the 'commit' request.
 

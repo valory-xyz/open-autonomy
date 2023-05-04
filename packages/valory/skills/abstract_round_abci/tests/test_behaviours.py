@@ -651,7 +651,7 @@ def test_self_loops_in_abci_app_reinstantiate_behaviour(_: mock._patch) -> None:
         behaviours = {BehaviourA}
         initial_behaviour_cls = BehaviourA
 
-    round_sequence = RoundSequence(AbciAppTest)
+    round_sequence = RoundSequence(MagicMock(), AbciAppTest)
     round_sequence.end_sync()
     round_sequence.setup(MagicMock(), MagicMock())
     context_mock = MagicMock()
@@ -697,7 +697,7 @@ def test_reset_should_be_performed_when_tm_unhealthy() -> None:
         behaviours = {LongRunningBehaviour}  # type: ignore
         initial_behaviour_cls = LongRunningBehaviour
 
-    round_sequence = RoundSequence(AbciAppTest)
+    round_sequence = RoundSequence(MagicMock(), AbciAppTest)
     round_sequence.end_sync()
     round_sequence.setup(MagicMock(), MagicMock())
     context_mock = MagicMock()
