@@ -991,6 +991,16 @@ class TestBaseSynchronizedData:
             db=AbciAppDB(setup_data=dict(participants=[self.participants]))
         )
 
+    @given(text())
+    def test_slashing_config(self, slashing_config: str) -> None:
+        """Test the `slashing_config` property."""
+        self.base_synchronized_data.slashing_config = slashing_config
+        assert (
+            self.base_synchronized_data.slashing_config
+            == self.base_synchronized_data.db.slashing_config
+            == slashing_config
+        )
+
     def test_participants_getter_positive(self) -> None:
         """Test 'participants' property getter."""
         assert frozenset(self.participants) == self.base_synchronized_data.participants
@@ -1138,7 +1148,6 @@ class TestBaseSynchronizedData:
             "sender": DummyPayload(sender="sender", dummy_attribute=0)
         }
         safe_contract_address = "0x0"
-        offence_status = "test_offence_status"
 
         base_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(
@@ -1159,7 +1168,6 @@ class TestBaseSynchronizedData:
                             participant_to_votes
                         ),
                         safe_contract_address=safe_contract_address,
-                        offence_status=offence_status,
                     )
                 )
             )
@@ -1185,7 +1193,6 @@ class TestBaseSynchronizedData:
         )
         assert base_synchronized_data.participant_to_votes == participant_to_votes
         assert base_synchronized_data.safe_contract_address == safe_contract_address
-        assert base_synchronized_data.offence_status == offence_status
 
 
 class DummyConcreteRound(AbstractRound):

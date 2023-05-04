@@ -885,6 +885,16 @@ class BaseSynchronizedData:
         participants = cast(List, self.db.get("participants", []))
         return len(participants)
 
+    @property
+    def slashing_config(self) -> str:
+        """Get the slashing configuration."""
+        return self.db.slashing_config
+
+    @slashing_config.setter
+    def slashing_config(self, config: str) -> None:
+        """Set the slashing configuration."""
+        self.db.slashing_config = config
+
     def update(
         self,
         synchronized_data_class: Optional[Type] = None,
@@ -966,11 +976,6 @@ class BaseSynchronizedData:
     def safe_contract_address(self) -> str:
         """Get the safe contract address."""
         return cast(str, self.db.get_strict("safe_contract_address"))
-
-    @property
-    def offence_status(self) -> str:
-        """Get the offence status, serialized."""
-        return str(self.db.get("offence_status", ""))
 
 
 class _MetaAbstractRound(ABCMeta):
