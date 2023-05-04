@@ -986,6 +986,28 @@ def nb_participants() -> int
 
 Get the number of participants.
 
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.slashing_config"></a>
+
+#### slashing`_`config
+
+```python
+@property
+def slashing_config() -> str
+```
+
+Get the slashing configuration.
+
+<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.slashing_config"></a>
+
+#### slashing`_`config
+
+```python
+@slashing_config.setter
+def slashing_config(config: str) -> None
+```
+
+Set the slashing configuration.
+
 <a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.update"></a>
 
 #### update
@@ -1117,17 +1139,6 @@ def safe_contract_address() -> str
 ```
 
 Get the safe contract address.
-
-<a id="packages.valory.skills.abstract_round_abci.base.BaseSynchronizedData.offence_status"></a>
-
-#### offence`_`status
-
-```python
-@property
-def offence_status() -> str
-```
-
-Get the offence status, serialized.
 
 <a id="packages.valory.skills.abstract_round_abci.base._MetaAbstractRound"></a>
 
@@ -2689,15 +2700,35 @@ def offence_status(offence_status: Dict[str, OffenceStatus]) -> None
 
 Set the mapping of the agents' addresses to their offence status.
 
-<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.serialize_offence_status"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.sync_db_and_slashing"></a>
 
-#### serialize`_`offence`_`status
+#### sync`_`db`_`and`_`slashing
 
 ```python
-def serialize_offence_status() -> None
+def sync_db_and_slashing(serialized_db_state: str) -> None
+```
+
+Sync the database and the slashing configuration.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.serialized_offence_status"></a>
+
+#### serialized`_`offence`_`status
+
+```python
+def serialized_offence_status() -> str
 ```
 
 Serialize the offence status.
+
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.store_offence_status"></a>
+
+#### store`_`offence`_`status
+
+```python
+def store_offence_status() -> None
+```
+
+Store the serialized offence status.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.get_agent_address"></a>
 

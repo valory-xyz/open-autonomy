@@ -22,14 +22,14 @@ You can find the instructions on how to run the Hello World service in the [quic
 If you have [set up the framework](../guides/set_up.md#set-up-the-framework), you can fetch the source code of the Hello World agent:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeigarjyglsyhruqceleybif5zweqzdh7rxewsya4vrmn22m4nr66xy
+autonomy fetch valory/hello_world:0.1.0:bafybeigsb7ilqkpkb5ywaut3aim6u5kdzuhxurjothesaq5xpopjsvgyjm
 mv hello_world hello_world_agent
 ```
 
 and the Hello World service:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeifrgmhuvokkwga2g6zmq7bcxmier3weltmyxrrxim3rf34dccbzea --service
+autonomy fetch valory/hello_world:0.1.0:bafybeihgobdmtrahstrdc3oe5alhwhxvfbvxah2i2fvrjlvdqoari4ptla --service
 mv hello_world hello_world_service
 ```
 
@@ -521,8 +521,8 @@ protocols:
 - valory/ipfs:0.1.0:bafybeic72ncgqbzoz2guj4p4yjqulid7mv6yroeh65hxznloamoveeg7hq
 skills:
 - valory/abstract_abci:0.1.0:bafybeihgerjeq4u4apuue7zzhpb3wmntuju34dbdijbbvl4wclww2gy7di
-- valory/abstract_round_abci:0.1.0:bafybeihna5mwgygakby5c4lxctiymglmrecy5o3srkzbzv3aghlk2ygx5m
-- valory/hello_world_abci:0.1.0:bafybeietsdsxfuqp3uyaumao4slaewuzrm4yxvkbpomi52cayylr7digle
+- valory/abstract_round_abci:0.1.0:bafybeigbbgpedlfddcwojzebnwd4bglk3qvumbsbi5i6hsxlcz5rfzkyd4
+- valory/hello_world_abci:0.1.0:bafybeihke2hl34pmo6y2mtfzfu5p5t7oggidjbt5ys2frdj5wtxp67zd7m
 # ...
 ```
 
