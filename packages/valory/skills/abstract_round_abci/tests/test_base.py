@@ -2265,27 +2265,49 @@ class TestRoundSequence:
         with pytest.raises(SlashingNotConfiguredError, match=config_exc):
             getattr(round_sequence, property_name)
 
+    @mock.patch("json.loads", return_value="json_serializable")
+    @pytest.mark.parametrize("slashing_config", (None, "", "test"))
+    def test_sync_db_and_slashing(
+        self, mock_loads: mock.MagicMock, slashing_config: str
+    ) -> None:
+        """Test the `sync_db_and_slashing` method."""
+        self.round_sequence.latest_synchronized_data.slashing_config = slashing_config
+        serialized_db_state = "dummy_db_state"
+        self.round_sequence.sync_db_and_slashing(serialized_db_state)
+
+        # Check that `sync()` was called with the correct arguments
+        mock_sync = cast(
+            mock.Mock, self.round_sequence.abci_app.synchronized_data.db.sync
+        )
+        mock_sync.assert_called_once_with(serialized_db_state)
+
+        if slashing_config:
+            mock_loads.assert_called_once_with(
+                slashing_config, cls=OffenseStatusDecoder
+            )
+        else:
+            mock_loads.assert_not_called()
+
     @mock.patch("json.dumps")
-    def test_serialize_offence_status(self, mock_dumps: mock.MagicMock) -> None:
-        """Test the `serialize_offence_status` method."""
+    def test_store_offence_status(self, mock_dumps: mock.MagicMock) -> None:
+        """Test the `store_offence_status` method."""
         # Set up mock objects and return values
-        self.round_sequence.offence_status = {"not_encoded": OffenceStatus()}
+        self.round_sequence._offence_status = {"not_encoded": OffenceStatus()}
         mock_encoded_status = "encoded_status"
         mock_dumps.return_value = mock_encoded_status
 
         # Call the method to be tested
-        self.round_sequence.serialize_offence_status()
+        self.round_sequence.store_offence_status()
 
         # Check that `json.dumps()` was called with the correct arguments
         mock_dumps.assert_called_once_with(
             self.round_sequence.offence_status, cls=OffenseStatusEncoder, sort_keys=True
         )
 
-        # Check that `update()` was called with the correct arguments
-        mock_update = cast(
-            mock.Mock, self.round_sequence.abci_app.synchronized_data.db.update
+        assert (
+            self.round_sequence.abci_app.synchronized_data.db.slashing_config
+            == mock_encoded_status
         )
-        mock_update.assert_called_once_with(offence_status=mock_encoded_status)
 
     @given(
         validator=builds(Validator, address=binary(), power=integers()),
@@ -2746,7 +2768,7 @@ class TestRoundSequence:
         return all(current == last for current, last in current_last_pairs)
 
     @mock.patch.object(AbciApp, "process_event")
-    @mock.patch.object(RoundSequence, "serialize_offence_status")
+    @mock.patch.object(RoundSequence, "store_offence_status")
     @pytest.mark.parametrize("end_block_res", (None, (MagicMock(), MagicMock())))
     @pytest.mark.parametrize(
         "slashing_enabled, offence_status_",
@@ -2760,10 +2782,6 @@ class TestRoundSequence:
                 True,
             ),
             (
-                True,
-                False,
-            ),
-            (
                 False,
                 False,
             ),
@@ -2775,7 +2793,7 @@ class TestRoundSequence:
     )
     def test_update_round(
         self,
-        serialize_offence_status_mock: mock.Mock,
+        store_offence_status_mock: mock.Mock,
         process_event_mock: mock.Mock,
         end_block_res: Optional[Tuple[BaseSynchronizedData, Any]],
         slashing_enabled: bool,
@@ -2805,10 +2823,10 @@ class TestRoundSequence:
             end_block_res[-1], result=end_block_res[0]
         )
 
-        if slashing_enabled and offence_status_:
-            serialize_offence_status_mock.assert_called_once()
+        if slashing_enabled:
+            store_offence_status_mock.assert_called_once()
         else:
-            serialize_offence_status_mock.assert_not_called()
+            store_offence_status_mock.assert_not_called()
 
     @mock.patch.object(AbciApp, "process_event")
     @pytest.mark.parametrize(
@@ -2903,21 +2921,22 @@ class TestRoundSequence:
                 result=background_round_result[0],
             )
 
-    @mock.patch.object(json, "loads")
     @pytest.mark.parametrize("restart_from_round", (ConcreteRoundA, MagicMock()))
     @pytest.mark.parametrize("serialized_db_state", (None, "serialized state"))
+    @given(integers())
     def test_reset_state(
         self,
-        mock_loads: MagicMock,
         restart_from_round: AbstractRound,
         serialized_db_state: str,
+        round_count: int,
     ) -> None:
         """Tests reset_state"""
-        round_count = 1
         with mock.patch.object(
             self.round_sequence,
             "_reset_to_default_params",
-        ) as mock_reset:
+        ) as mock_reset, mock.patch.object(
+            self.round_sequence, "sync_db_and_slashing"
+        ) as mock_sync_db_and_slashing:
             transition_fn = self.round_sequence.abci_app.transition_function
             round_id = restart_from_round.auto_round_id()
             if restart_from_round in transition_fn:
@@ -2925,19 +2944,13 @@ class TestRoundSequence:
                     round_id, round_count, serialized_db_state
                 )
                 mock_reset.assert_called()
-                mock_sync = cast(
-                    MagicMock, self.round_sequence.abci_app.synchronized_data.db.sync
-                )
 
                 if serialized_db_state is None:
-                    mock_sync.assert_not_called()
-                    mock_loads.assert_not_called()
+                    mock_sync_db_and_slashing.assert_not_called()
 
                 else:
-                    mock_sync.assert_called_with(serialized_db_state)
-                    mock_loads.assert_called_with(
-                        self.round_sequence.latest_synchronized_data.offence_status,
-                        cls=OffenseStatusDecoder,
+                    mock_sync_db_and_slashing.assert_called_once_with(
+                        serialized_db_state
                     )
                     assert (
                         self.round_sequence._last_round_transition_root_hash

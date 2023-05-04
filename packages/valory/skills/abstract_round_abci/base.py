@@ -2909,14 +2909,26 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self.abci_app.logger.debug(f"Setting offence status to: {offence_status}")
         self._offence_status = offence_status
 
-    def serialize_offence_status(self) -> None:
+    def sync_db_and_slashing(self, serialized_db_state: str) -> None:
+        """Sync the database and the slashing configuration."""
+        self.abci_app.synchronized_data.db.sync(serialized_db_state)
+        offence_status = self.latest_synchronized_data.slashing_config
+        if offence_status:
+            # deserialize the offence status and load it to memory
+            self.offence_status = json.loads(
+                offence_status,
+                cls=OffenseStatusDecoder,
+            )
+
+    def serialized_offence_status(self) -> str:
         """Serialize the offence status."""
-        encoded_status = json.dumps(
-            self.offence_status, cls=OffenseStatusEncoder, sort_keys=True
-        )
-        db_updates = {get_name(BaseSynchronizedData.offence_status): encoded_status}
-        self.abci_app.synchronized_data.update(BaseSynchronizedData, **db_updates)
-        self.abci_app.logger.debug(f"Updated db with: {db_updates}")
+        return json.dumps(self.offence_status, cls=OffenseStatusEncoder, sort_keys=True)
+
+    def store_offence_status(self) -> None:
+        """Store the serialized offence status."""
+        encoded_status = self.serialized_offence_status()
+        self.latest_synchronized_data.slashing_config = encoded_status
+        self.abci_app.logger.debug(f"Updated db with: {encoded_status}")
         self.abci_app.logger.debug(f"App hash now is: {self.root_hash.hex()}")
 
     def get_agent_address(self, validator: Validator) -> str:
@@ -3312,8 +3324,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             # the termination round, nor the current round returned, so no update needs to be made
             return
 
-        if self._slashing_enabled and self._offence_status:
-            self.serialize_offence_status()
+        if self._slashing_enabled:
+            self.store_offence_status()
 
         self._last_round_transition_timestamp = self._blockchain.last_block.timestamp
         self._last_round_transition_height = self.height
@@ -3355,14 +3367,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._reset_to_default_params()
         self.abci_app.synchronized_data.db.round_count = round_count
         if serialized_db_state is not None:
-            self.abci_app.synchronized_data.db.sync(serialized_db_state)
-            # deserialize the offence status and load it to memory
-            offence_status = self.latest_synchronized_data.offence_status
-            if offence_status:
-                self._offence_status = json.loads(
-                    offence_status,
-                    cls=OffenseStatusDecoder,
-                )
+            self.sync_db_and_slashing(serialized_db_state)
             # Furthermore, that hash is then in turn used as the init hash when the tm network is reset.
             self._last_round_transition_root_hash = self.root_hash
 
