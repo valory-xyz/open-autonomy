@@ -2908,6 +2908,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         """Set the mapping of the agents' addresses to their offence status."""
         self.abci_app.logger.debug(f"Setting offence status to: {offence_status}")
         self._offence_status = offence_status
+        self.store_offence_status()
 
     def sync_db_and_slashing(self, serialized_db_state: str) -> None:
         """Sync the database and the slashing configuration."""
