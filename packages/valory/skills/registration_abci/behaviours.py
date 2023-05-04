@@ -180,11 +180,13 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             is not ContractApiMessage.Performative.STATE
         ):
             log_message = self.LogMessages.failed_verification
-            self.context.logger.info(f"{log_message}")
-            return False
-        log_message = self.LogMessages.response_verification
+            verified = False
+        else:
+            log_message = self.LogMessages.response_verification
+            verified = cast(bool, contract_api_response.state.body["verified"])
+
         self.context.logger.info(f"{log_message}: {contract_api_response}")
-        return cast(bool, contract_api_response.state.body["verified"])
+        return verified
 
     def get_agent_instances(
         self, service_registry_address: str, on_chain_service_id: int
