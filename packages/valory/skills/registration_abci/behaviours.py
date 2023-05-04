@@ -368,6 +368,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         genesis_data = dict(
             validators=validators,
             genesis_config=self.params.genesis_config.to_json(),
+            external_address=self.params.tendermint_p2p_url,
         )
         return genesis_data
 

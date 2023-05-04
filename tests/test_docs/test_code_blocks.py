@@ -30,7 +30,6 @@ from tests.test_docs.helper import (  # type: ignore
     contains_code_blocks,
     extract_make_commands,
     remove_doc_ellipsis,
-    remove_ips_hashes,
     remove_line_comments,
 )
 
@@ -85,6 +84,7 @@ class BaseTestDocCode:
                 ),
             )
         )
+
         if self.skipped_files:
             os_path_skipped_files = {
                 self._to_os_path(file) for file in self.skipped_files
@@ -106,14 +106,14 @@ class BaseTestDocCode:
                 end="",
             )
 
-            # In doc files: remove tokens like "# ...\n" from the code
-            # In code files: replace ipfs hashes with a placeholder
+            # Preprocessing functions:
+            # - For doc files: `doc_process_fn` -> remove tokens like "# ...\n" from the code
+            # - For code files: code_process_fn` not required.
             check_code_blocks_exist(
                 md_file=md_file,
                 code_info=code_info,
                 code_type=self.code_type,
                 doc_process_fn=lambda s: remove_doc_ellipsis(remove_line_comments(s)),
-                code_process_fn=lambda s: remove_ips_hashes(s),
             )
 
             print("OK")
@@ -215,6 +215,41 @@ class TestPythonSnippets(BaseTestDocCode):
         "docs/advanced_reference/developer_tooling/benchmarking.md",  # just placeholder examples
         "docs/configure_service/on-chain_deployment_checklist.md",  # just placeholder examples
     ]
+
+
+class TestJsonSnippets(BaseTestDocCode):
+    """Test that all the yaml snippets in the documentation exist in the repository"""
+
+    code_type = CodeType.JSON
+
+    # This variable holds a mapping between every doc file and the code files
+    # that contains the referenced code. Since a doc file can contain several code
+    # snippets, a list with the target files ordered is provided.
+    #
+    # Use skip_blocks to specify a list of blocks that need to be skipped or add a file to skipped_files
+    # to skip it completely.
+    # Add by_line:: at the beginning of a code file path so the check is performed line by line
+    # instead of checking the code block as a whole.
+
+    md_to_code = {
+        "docs/guides/set_up.md": {
+            "code_files": ["by_line::packages/packages.json"],
+        },
+        "docs/guides/deploy_service.md": {
+            "code_files": ["by_line::deployments/keys/hardhat_keys.json"],
+        },
+        "docs/guides/quick_start.md": {
+            "code_files": ["by_line::deployments/keys/hardhat_keys.json"],
+        },
+        "docs/advanced_reference/developer_tooling/dev_mode.md": {
+            "code_files": ["by_line::deployments/keys/hardhat_keys.json"]
+        },
+        "docs/counter_example.md": {
+            "code_files": ["by_line::deployments/keys/hardhat_keys.json"]
+        },
+    }
+
+    skipped_files = []
 
 
 class TestDocBashSnippets:

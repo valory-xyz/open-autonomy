@@ -127,6 +127,7 @@ class TestMintComponents(BaseChainInteractionTest):
             token_id=token_id,
             package_id=package_id,
         )
+        self.verify_and_remove_metadata_file(token_id=token_id)
 
     def test_mint_component_with_owner(
         self,
@@ -158,6 +159,7 @@ class TestMintComponents(BaseChainInteractionTest):
             owner=CUSTOM_OWNER,
             package_id=DUMMY_PROTOCOL,
         )
+        self.verify_and_remove_metadata_file(token_id=token_id)
 
     def test_mint_service(
         self,
@@ -187,10 +189,12 @@ class TestMintComponents(BaseChainInteractionTest):
         assert "Metadata Hash:" in result.output
         assert "Token ID:" in result.output
 
+        token_id = self.extract_token_id_from_output(output=result.output)
         self.verify_minted_token_id(
-            token_id=self.extract_token_id_from_output(output=result.output),
+            token_id=token_id,
             package_id=DUMMY_SERVICE,
         )
+        self.verify_and_remove_metadata_file(token_id=token_id)
 
     def test_mint_service_with_owner(
         self,
@@ -223,12 +227,12 @@ class TestMintComponents(BaseChainInteractionTest):
         assert "Token ID:" in result.output
 
         token_id = self.extract_token_id_from_output(output=result.output)
-
         self.verify_owner_address(
             token_id=token_id,
             owner=CUSTOM_OWNER,
             package_id=DUMMY_SERVICE,
         )
+        self.verify_and_remove_metadata_file(token_id=token_id)
 
     @pytest.mark.parametrize(
         argnames=("package_id", "parameters"),

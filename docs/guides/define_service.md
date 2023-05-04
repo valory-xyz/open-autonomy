@@ -44,7 +44,7 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
 
         This is a complete example of a service configuration file that uses the `hello_world` agent and overrides some required component parameters.
 
-        ```yaml
+        ```yaml title="service.yaml"
         name: your_service
         author: your_name
         version: 0.1.0
@@ -53,11 +53,11 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
         license: Apache-2.0
         fingerprint: {}
         fingerprint_ignore_patterns: []
-        agent: valory/hello_world:0.1.0:bafybeigeon5j2nit6a35r4dn4c32aqqfpuaphwuvc3muw67ymqwbrrzrvu
+        agent: valory/hello_world:0.1.0:bafybeictqwn5cqmistwfoq2h3igmytqyfi5jfbei24bofrnhs7deixoily
         number_of_agents: 4
         deployment: {}
         ---
-        public_id: valory/hello_world_abci:0.1.0:bafybeigidqcurxh3r3m7vxjfv2d4tvcpzvkhwj7r7owacn6jymzik75k7i
+        public_id: valory/hello_world_abci:0.1.0
         type: skill
         models:
           params:
@@ -66,8 +66,7 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
               share_tm_config_on_startup: false
               on_chain_service_id: null
               setup:
-                all_participants:
-                - '0x0000000000000000000000000000000000000000'
+                all_participants: ${ALL_PARTICIPANTS:list:["0x0000000000000000000000000000000000000000"]}
                 safe_contract_address: '0x0000000000000000000000000000000000000000'
                 consensus_threshold: null
               hello_world_message: ${HELLO_WORLD_STRING_0:str:HELLO_WORLD!}
@@ -85,6 +84,12 @@ If you have [populated the local registry](./set_up.md#populate-the-local-regist
               poa_chain: false
               default_gas_price_strategy: eip1559
         ```
+
+    You should also create a `README.md` file with the description of your service in plain text or Markdown format:
+
+    ```bash
+    echo "Your service description." > ./packages/your_name/services/your_service/README.md
+    ```
 
 3. **Create an entry for your service in the local registry.** Add the corresponding entry to the local registry index file (`./packages/packages.json`). You must add the entry to the `dev` section, because it is a component being developed by you. You can use a placeholder for its hash value, as it will be corrected afterwards:
 

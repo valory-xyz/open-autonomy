@@ -7,30 +7,29 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiapubcoersqnsnh3acia5hd7otzt7kjxekr6gkbrlumv6tkajl6jm
 fingerprint_ignore_patterns: []
-agent: valory/hello_world:0.1.0:bafybeia24z63v3jregztjtfemx2wrkg4h2ojqenkbju5zpljxthjn6ygfq
+agent: valory/hello_world:0.1.0:bafybeigarjyglsyhruqceleybif5zweqzdh7rxewsya4vrmn22m4nr66xy
 number_of_agents: 4
 deployment: {}
 ---
 extra:
   benchmark_persistence_params:
     args: &id002
-      log_dir: /benchmarks
+      log_dir: ${LOG_DIR:str:/benchmarks}
   params_args:
     args:
       setup: &id001
-        all_participants:
-        - '0x0000000000000000000000000000000000000000'
-        safe_contract_address: '0x0000000000000000000000000000000000000000'
-        consensus_threshold: null
+        all_participants: ${ALL_PARTICIPANTS:list:["0x0000000000000000000000000000000000000000"]}
+        safe_contract_address: ${SAFE_CONTRACT_ADDRESS:str:0x0000000000000000000000000000000000000000}
+        consensus_threshold: ${CONSENSUS_THRESHOLD:int:null}
 public_id: valory/hello_world_abci:0.1.0
 type: skill
 0:
   models:
     params:
       args:
-        service_registry_address: null
-        share_tm_config_on_startup: false
-        on_chain_service_id: null
+        service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:null}
+        share_tm_config_on_startup: ${SHARE_TM_CONFIG_ON_STARTUP:bool:false}
+        on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:null}
         setup: *id001
         hello_world_message: ${HELLO_WORLD_STRING_0:str:HELLO_WORLD! (from Agent 0)}
     benchmark_tool:
@@ -39,9 +38,9 @@ type: skill
   models:
     params:
       args:
-        service_registry_address: null
-        share_tm_config_on_startup: false
-        on_chain_service_id: null
+        service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:null}
+        share_tm_config_on_startup: ${SHARE_TM_CONFIG_ON_STARTUP:bool:false}
+        on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:null}
         setup: *id001
         hello_world_message: ${HELLO_WORLD_STRING_1:str:HELLO_WORLD! (from Agent 1)}
     benchmark_tool:
@@ -50,9 +49,9 @@ type: skill
   models:
     params:
       args:
-        service_registry_address: null
-        share_tm_config_on_startup: false
-        on_chain_service_id: null
+        service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:null}
+        share_tm_config_on_startup: ${SHARE_TM_CONFIG_ON_STARTUP:bool:false}
+        on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:null}
         setup: *id001
         hello_world_message: ${HELLO_WORLD_STRING_2:str:HELLO_WORLD! (from Agent 2)}
     benchmark_tool:
@@ -61,9 +60,9 @@ type: skill
   models:
     params:
       args:
-        service_registry_address: null
-        share_tm_config_on_startup: false
-        on_chain_service_id: null
+        service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:null}
+        share_tm_config_on_startup: ${SHARE_TM_CONFIG_ON_STARTUP:bool:false}
+        on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:null}
         setup: *id001
         hello_world_message: ${HELLO_WORLD_STRING_3:str:HELLO_WORLD! (from Agent 3)}
     benchmark_tool:
@@ -74,7 +73,7 @@ type: connection
 config:
   ledger_apis:
     ethereum:
-      address: ${SERVICE_HELLO_WORLD_RPC:str:http://host.docker.internal:8545}
-      chain_id: 31337
-      poa_chain: false
-      default_gas_price_strategy: eip1559
+      address: ${LEDGER_RPC:str:http://localhost:8545}
+      chain_id: ${CHAIN_ID:int:31337}
+      poa_chain: ${IS_POA_CHAIN:bool:false}
+      default_gas_price_strategy: ${DEFAULT_GAS_PRICE_STRATEGY:str:eip1559}

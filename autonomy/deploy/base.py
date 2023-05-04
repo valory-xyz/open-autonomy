@@ -35,6 +35,7 @@ from aea.configurations.base import (
 )
 from aea.configurations.constants import SKILL
 from aea.configurations.data_types import PackageType, PublicId
+from aea.helpers.env_vars import apply_env_variables
 
 from autonomy.analyse.service import ABCI
 from autonomy.configurations.base import Service
@@ -67,12 +68,20 @@ KUBERNETES_DEPLOYMENT = "kubernetes"
 DOCKER_COMPOSE_DEPLOYMENT = "docker-compose"
 
 LOCALHOST = "localhost"
+TENDERMINT_P2P_PORT = 26656
+
 TENDERMINT_NODE = "http://node{}:26657"
 TENDERMINT_COM = "http://node{}:8080"
+
 TENDERMINT_NODE_LOCAL = f"http://{LOCALHOST}:26657"
 TENDERMINT_COM_LOCAL = f"http://{LOCALHOST}:8080"
+
 TENDERMINT_URL_PARAM = "tendermint_url"
 TENDERMINT_COM_URL_PARAM = "tendermint_com_url"
+
+TENDERMINT_P2P_URL = "node{}:{}"
+TENDERMINT_P2P_URL_PARAM = "tendermint_p2p_url"
+TENDERMINT_P2P_URL_ENV_VAR = "TM_P2P_NODE_URL_{}"
 
 COMPONENT_CONFIGS: Dict = {
     component.package_type.value: component  # type: ignore
@@ -117,6 +126,37 @@ class ServiceBuilder:
         self._keys = keys or []
         self._agent_instances = agent_instances
         self._private_keys_password = private_keys_password
+        self._all_participants = self.try_get_all_participants()
+
+    def try_get_all_participants(self) -> Optional[List[str]]:
+        """Try get all participants from the ABCI overrides"""
+        try:
+            for override in deepcopy(self.service.overrides):
+                (
+                    override,
+                    component_id,
+                    has_multiple_overrides,
+                ) = self.service.process_metadata(
+                    configuration=override,
+                )
+                if (
+                    component_id.component_type.value == SKILL
+                    and has_multiple_overrides
+                ):
+                    override, *_ = override.values()
+
+                override = apply_env_variables(
+                    data=override,
+                    env_variables=os.environ.copy(),
+                )
+                setup_param = self._get_config_from_json_path(
+                    override_dict=override, json_path=SETUP_PARAM_PATH
+                )
+                return setup_param.get(ALL_PARTICIPANTS)
+        except KeyError:
+            return None
+
+        return None
 
     @property
     def private_keys_password(
@@ -235,6 +275,16 @@ class ServiceBuilder:
             )
             self.service.number_of_agents = len(keys)
 
+        if self._all_participants is not None and len(self._all_participants) > 0:
+            unwanted_keys = set(key["address"] for key in keys) - set(
+                self._all_participants
+            )
+            if len(unwanted_keys) > 0:
+                raise NotValidKeysFile(
+                    f"Key file contains keys which are not a part of the `all_participants` parameter; keys={unwanted_keys}"
+                )
+            self.service.number_of_agents = len(keys)
+
         if self.service.number_of_agents > len(keys):
             raise NotValidKeysFile(
                 "Number of agents cannot be greater than available keys."
@@ -318,6 +368,13 @@ class ServiceBuilder:
                 param_args[TENDERMINT_URL_PARAM] = TENDERMINT_NODE.format(idx)
                 param_args[TENDERMINT_COM_URL_PARAM] = TENDERMINT_COM.format(idx)
 
+            if TENDERMINT_P2P_URL_PARAM not in param_args:
+                tm_p2p_url = os.environ.get(
+                    TENDERMINT_P2P_URL_ENV_VAR.format(idx),
+                    TENDERMINT_P2P_URL.format(idx, TENDERMINT_P2P_PORT),
+                )
+                param_args[TENDERMINT_P2P_URL_PARAM] = tm_p2p_url
+
         try:
             if self.service.number_of_agents == 1 and not has_multiple_overrides:
                 param_args = self._get_config_from_json_path(
@@ -333,7 +390,7 @@ class ServiceBuilder:
             if not has_multiple_overrides:
                 _base_overrride = deepcopy(override)
                 override.clear()
-                for i in range(self.service.number_of_agents):
+                for i in range(self.get_maximum_participants()):
                     override[i] = deepcopy(_base_overrride)
 
             for agent_idx in override:
@@ -403,6 +460,17 @@ class ServiceBuilder:
 
         self.service.overrides = overrides
 
+    def get_maximum_participants(self) -> int:
+        """Returns the maximum number of participants"""
+
+        if self._all_participants is not None and len(self._all_participants) > 0:
+            return len(self._all_participants)
+
+        if self.agent_instances is not None:
+            return len(self.agent_instances)
+
+        return max(len(self.keys), self.service.number_of_agents)
+
     def _update_abci_connection_config(
         self,
         overrides: Dict,
@@ -424,7 +492,7 @@ class ServiceBuilder:
 
         if not has_multiple_overrides:
             processed_overrides = {}
-            for i in range(self.service.number_of_agents):
+            for i in range(self.get_maximum_participants()):
                 processed_overrides[i] = deepcopy(overrides)
 
         for idx, override in processed_overrides.items():
@@ -509,6 +577,15 @@ class ServiceBuilder:
 
     def generate_agents(self) -> List:
         """Generate multiple agent."""
+        if self._all_participants is not None and len(self._all_participants) > 0:
+            idx_mappings = {
+                address: i for i, address in enumerate(self._all_participants)
+            }
+            agent_override_idx = [
+                (i, idx_mappings[kp["address"]]) for i, kp in enumerate(self.keys)
+            ]
+            return [self.generate_agent(i, idx) for i, idx in agent_override_idx]
+
         if self.agent_instances is None:
             return [
                 self.generate_agent(i) for i in range(self.service.number_of_agents)

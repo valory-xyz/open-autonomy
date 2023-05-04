@@ -20,16 +20,21 @@
 """Mint command group definitions."""
 
 from pathlib import Path
-from typing import Optional, Tuple, cast
+from typing import Optional, Tuple, Union, cast
 
 import click
 from aea.cli.utils.context import Context
 from aea.cli.utils.decorators import pass_ctx
 from aea.configurations.data_types import PackageType
+from aea.helpers.base import IPFSHash
 
 from autonomy.chain.config import ChainType
 from autonomy.cli.helpers.chain import mint_component, mint_service
-from autonomy.cli.utils.click_utils import PathArgument, chain_selection_flag
+from autonomy.cli.utils.click_utils import (
+    NFTArgument,
+    PathArgument,
+    chain_selection_flag,
+)
 
 
 package_path_decorator = click.argument(
@@ -50,8 +55,8 @@ dependencies_decorator = click.option(
 )
 nft_decorator = click.option(
     "--nft",
-    type=str,
-    help="IPFS hash for the NFT image",
+    type=NFTArgument(),
+    help="IPFS hash or path for the NFT image",
 )
 timeout_flag = click.option(
     "-t", "--timeout", type=float, help="Timeout for verifying emnitted events"
@@ -111,7 +116,7 @@ def protocol(  # pylint: disable=too-many-arguments
     key: Path,
     password: Optional[str],
     dependencies: Tuple[str],
-    nft: Optional[str],
+    nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
     hwi: bool = False,
 ) -> None:
@@ -124,7 +129,7 @@ def protocol(  # pylint: disable=too-many-arguments
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
         dependencies=list(map(int, dependencies)),
         password=password,
-        nft_image_hash=nft,
+        nft=nft,
         owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
@@ -147,7 +152,7 @@ def contract(  # pylint: disable=too-many-arguments
     key: Path,
     password: Optional[str],
     dependencies: Tuple[str],
-    nft: Optional[str],
+    nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
     hwi: bool = False,
 ) -> None:
@@ -160,7 +165,7 @@ def contract(  # pylint: disable=too-many-arguments
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
         dependencies=list(map(int, dependencies)),
         password=password,
-        nft_image_hash=nft,
+        nft=nft,
         owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
@@ -183,7 +188,7 @@ def connection(  # pylint: disable=too-many-arguments
     key: Path,
     password: Optional[str],
     dependencies: Tuple[str],
-    nft: Optional[str],
+    nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
     hwi: bool = False,
 ) -> None:
@@ -196,7 +201,7 @@ def connection(  # pylint: disable=too-many-arguments
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
         dependencies=list(map(int, dependencies)),
         password=password,
-        nft_image_hash=nft,
+        nft=nft,
         owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
@@ -219,7 +224,7 @@ def skill(  # pylint: disable=too-many-arguments
     key: Path,
     password: Optional[str],
     dependencies: Tuple[str],
-    nft: Optional[str],
+    nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
     hwi: bool = False,
 ) -> None:
@@ -232,7 +237,7 @@ def skill(  # pylint: disable=too-many-arguments
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
         dependencies=list(map(int, dependencies)),
         password=password,
-        nft_image_hash=nft,
+        nft=nft,
         owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
@@ -255,7 +260,7 @@ def agent(  # pylint: disable=too-many-arguments
     key: Path,
     password: Optional[str],
     dependencies: Tuple[str],
-    nft: Optional[str],
+    nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
     hwi: bool = False,
 ) -> None:
@@ -268,7 +273,7 @@ def agent(  # pylint: disable=too-many-arguments
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
         dependencies=list(map(int, dependencies)),
         password=password,
-        nft_image_hash=nft,
+        nft=nft,
         owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],
@@ -320,7 +325,7 @@ def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-a
     cost_of_bond: int,
     threshold: int,
     password: Optional[str],
-    nft: Optional[str],
+    nft: Optional[Union[Path, IPFSHash]],
     owner: Optional[str],
     hwi: bool = False,
 ) -> None:
@@ -335,7 +340,7 @@ def service(  # pylint: disable=too-many-arguments  # pylint: disable=too-many-a
         threshold=threshold,
         chain_type=cast(ChainType, ctx.config.get("chain_type")),
         password=password,
-        nft_image_hash=nft,
+        nft=nft,
         owner=owner,
         skip_hash_check=ctx.config.get("skip_hash_check", False),
         timeout=ctx.config["timeout"],

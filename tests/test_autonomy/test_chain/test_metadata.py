@@ -23,21 +23,26 @@ import tempfile
 from pathlib import Path
 from unittest import mock
 
+import pytest
 from aea.configurations.constants import DEFAULT_README_FILE
-from aea.configurations.data_types import PublicId
+from aea.configurations.data_types import PackageId, PublicId
+from aea.helpers.base import IPFSHash
 
-from autonomy.chain.metadata import publish_metadata, serialize_metadata
+from autonomy.chain.metadata import NFTHashOrPath, publish_metadata, serialize_metadata
 from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
 
+from tests.conftest import DATA_DIR
 from tests.test_autonomy.test_chain.base import DUMMY_HASH
 
 
 def test_serialize_metadata() -> None:
     """Test serialize metadata."""
-    expected_string = """{"name": "author/name", "description": "Some package", "code_uri": "ipfs://bafybei0000000000000000000000000000000000000000000000000000", "image": "ipfs://bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm", "attributes": [{"trait_type": "version", "value": "latest"}]}"""
+    expected_string = """{"name":"skill/author/name/latest","description":"Some package","code_uri":"ipfs://bafybei0000000000000000000000000000000000000000000000000000","image":"ipfs://bafybeiggnad44tftcrenycru2qtyqnripfzitv5yume4szbkl33vfd4abm","attributes":[{"trait_type":"version","value":"latest"}]}"""
     metadata_string = serialize_metadata(
         package_hash=DUMMY_HASH,
-        public_id=PublicId(author="author", name="name"),
+        package_id=PackageId(
+            package_type="skill", public_id=PublicId(author="author", name="name")
+        ),
         description="Some package",
         nft_image_hash=DEFAULT_NFT_IMAGE_HASH,
     )
@@ -45,10 +50,17 @@ def test_serialize_metadata() -> None:
     assert metadata_string == expected_string
 
 
-def test_publish_metadata() -> None:
+@pytest.mark.parametrize(
+    "nft",
+    (
+        IPFSHash(DEFAULT_NFT_IMAGE_HASH),
+        DATA_DIR / "nft.png",
+    ),
+)
+def test_publish_metadata(nft: NFTHashOrPath) -> None:
     """Test publish metadata tool with dummy config."""
 
-    expected_hash = "0x7357e2c1b88be3442f18d62b373033a5e8340305a0f8a7fb88f361429a24003e"
+    expected_hash = "0x338a96df1d172c1d6f11a0460d075d80b62eea67134b2d0a52a7df34495d45d1"
     with mock.patch(
         "autonomy.chain.metadata.IPFSHashOnly.get", return_value=DUMMY_HASH
     ):
@@ -56,10 +68,13 @@ def test_publish_metadata() -> None:
             package_path = Path(temp_dir)
             (package_path / DEFAULT_README_FILE).write_text("Description")
 
-            metadata_hash = publish_metadata(
-                public_id=PublicId(author="author", name="name"),
+            metadata_hash, _ = publish_metadata(
+                package_id=PackageId(
+                    package_type="skill",
+                    public_id=PublicId(author="author", name="name"),
+                ),
                 package_path=package_path,
-                nft_image_hash=DEFAULT_NFT_IMAGE_HASH,
+                nft=nft,
                 description="",
             )
 

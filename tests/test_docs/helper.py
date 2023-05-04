@@ -44,6 +44,7 @@ class CodeType(Enum):
     YAML = "yaml"
     BASH = "bash"
     NOCODE = "nocode"
+    JSON = "json"
 
 
 def dedent_code(code: str, n_spaces: int) -> str:
@@ -56,11 +57,11 @@ def extract_code_blocks(filepath: str, filter_: Optional[str] = None) -> List[st
     """Extract code blocks from .md files."""
     content = Path(filepath).read_text(encoding="utf-8")
     code_blocks = re.findall(
-        rf"([ \t]*)```{filter_}\n(.+?)[ \t]*```", content, flags=re.DOTALL
+        rf"([ \t]*)```{filter_}(\s*|\s+.*?)\n(.+?)[ \t]*```", content, flags=re.DOTALL
     )
 
     dedented_code_blocks = [
-        dedent_code(code, len(indent)) for indent, code in code_blocks
+        dedent_code(code, len(indent)) for indent, _, code in code_blocks
     ]
     return dedented_code_blocks
 
