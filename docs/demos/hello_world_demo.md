@@ -521,8 +521,8 @@ protocols:
 - valory/ipfs:0.1.0:bafybeic72ncgqbzoz2guj4p4yjqulid7mv6yroeh65hxznloamoveeg7hq
 skills:
 - valory/abstract_abci:0.1.0:bafybeihgerjeq4u4apuue7zzhpb3wmntuju34dbdijbbvl4wclww2gy7di
-- valory/abstract_round_abci:0.1.0:bafybeicensk7a2vpqj52iyhf6yhc6z2iwulb2txbym546qvwgsxm3skvcm
-- valory/hello_world_abci:0.1.0:bafybeihrmk5sjbauqal4ozk6r5cchkhonxquuwtyavz4wg4fgljut5cqsa
+- valory/abstract_round_abci:0.1.0:bafybeihna5mwgygakby5c4lxctiymglmrecy5o3srkzbzv3aghlk2ygx5m
+- valory/hello_world_abci:0.1.0:bafybeietsdsxfuqp3uyaumao4slaewuzrm4yxvkbpomi52cayylr7digle
 # ...
 ```
 
