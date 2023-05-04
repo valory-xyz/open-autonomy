@@ -910,31 +910,56 @@ class TestAbciAppDB:
 
     def test_serialize(self) -> None:
         """Test `serialize` method."""
-        assert self.db.serialize() == '{"0": {"participants": [["a", "b"]]}}'
+        assert (
+            self.db.serialize()
+            == '{"db_data": {"0": {"participants": [["a", "b"]]}}, "slashing_config": ""}'
+        )
 
-    @pytest.mark.parametrize("data", ({0: {"test": [0]}},))
-    def test_sync(self, data: Dict[int, Dict[str, List[Any]]]) -> None:
+    @pytest.mark.parametrize(
+        "_data",
+        ({"db_data": {0: {"test": [0]}}, "slashing_config": "serialized_config"},),
+    )
+    def test_sync(self, _data: Dict[str, Dict[int, Dict[str, List[Any]]]]) -> None:
         """Test `sync` method."""
         try:
-            serialized_data = json.dumps(data)
+            serialized_data = json.dumps(_data)
         except TypeError as exc:
             raise AssertionError(
                 "Incorrectly parametrized test. Data must be json serializable."
             ) from exc
 
         self.db.sync(serialized_data)
-        assert self.db._data == data
+        assert self.db._data == _data["db_data"]
+        assert self.db.slashing_config == _data["slashing_config"]
 
     @pytest.mark.parametrize(
         "serialized_data, match",
         (
             (b"", "Could not decode data using "),
             (
-                json.dumps({"invalid_index": {}}),
+                json.dumps({"both_mandatory_keys_missing": {}}),
+                "internal error: Mandatory keys `db_data`, `slashing_config` are missing from the deserialized data: "
+                "{'both_mandatory_keys_missing': {}}\nThe following serialized data were given: "
+                '{"both_mandatory_keys_missing": {}}',
+            ),
+            (
+                json.dumps({"db_data": {}}),
+                "internal error: Mandatory keys `db_data`, `slashing_config` are missing from the deserialized data: "
+                "{'db_data': {}}\nThe following serialized data were given: {\"db_data\": {}}",
+            ),
+            (
+                json.dumps({"slashing_config": {}}),
+                "internal error: Mandatory keys `db_data`, `slashing_config` are missing from the deserialized data: "
+                "{'slashing_config': {}}\nThe following serialized data were given: {\"slashing_config\": {}}",
+            ),
+            (
+                json.dumps(
+                    {"db_data": {"invalid_index": {}}, "slashing_config": "anything"}
+                ),
                 "An invalid index was found while trying to sync the db using data: ",
             ),
             (
-                json.dumps("invalid"),
+                json.dumps({"db_data": "invalid", "slashing_config": "anything"}),
                 "Could not decode db data with an invalid format: ",
             ),
         ),
@@ -949,7 +974,10 @@ class TestAbciAppDB:
 
     def test_hash(self) -> None:
         """Test `hash` method."""
-        expected_hash = b"\x89j\xd8\xf7\x9b\x98>\x97b|\xbeI~y\x8b\x9a\xba\x92\xd4I\x05 \xe8\xc9\xcaQ\x80\xbf{:\xef\xc2"
+        expected_hash = (
+            b"\xd0^\xb0\x85\xf1\xf5\xd2\xe8\xe8\x85\xda\x1a\x99k"
+            b"\x1c\xde\xfa1\x8a\x87\xcc\xd7q?\xdf\xbbofz\xfb\x7fI"
+        )
         assert self.db.hash() == expected_hash
 
 

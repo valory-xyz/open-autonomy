@@ -488,6 +488,9 @@ class AbciAppDB:
     https://github.com/python/cpython/blob/3.10/Lib/copy.py#L182-L183
     """
 
+    DB_DATA_KEY = "db_data"
+    SLASHING_CONFIG_KEY = "slashing_config"
+
     # database keys which values are always set for the next period by default
     default_cross_period_keys: FrozenSet[str] = frozenset(
         {
@@ -523,6 +526,7 @@ class AbciAppDB:
             cross_period_persisted_keys or frozenset()
         )
         self._cross_period_check()
+        self.slashing_config: str = ""
 
     def _cross_period_check(self) -> None:
         """Check the cross period keys against the setup data."""
@@ -694,7 +698,11 @@ class AbciAppDB:
 
     def serialize(self) -> str:
         """Serialize the data of the database to a string."""
-        return json.dumps(self._data, sort_keys=True)
+        db = {
+            self.DB_DATA_KEY: self._data,
+            self.SLASHING_CONFIG_KEY: self.slashing_config,
+        }
+        return json.dumps(db, sort_keys=True)
 
     @staticmethod
     def _as_abci_data(data: Dict) -> Dict[int, Any]:
@@ -709,22 +717,35 @@ class AbciAppDB:
         """
         try:
             loaded_data = json.loads(serialized_data)
-            loaded_data = self._as_abci_data(loaded_data)
         except json.JSONDecodeError as exc:
             raise ABCIAppInternalError(
                 f"Could not decode data using {serialized_data}: {exc}"
             ) from exc
+
+        input_report = f"\nThe following serialized data were given: {serialized_data}"
+        try:
+            db_data = loaded_data[self.DB_DATA_KEY]
+            slashing_config = loaded_data[self.SLASHING_CONFIG_KEY]
+        except KeyError as exc:
+            raise ABCIAppInternalError(
+                "Mandatory keys `db_data`, `slashing_config` are missing from the deserialized data: "
+                f"{loaded_data}{input_report}"
+            ) from exc
+
+        try:
+            db_data = self._as_abci_data(db_data)
         except AttributeError as exc:
             raise ABCIAppInternalError(
-                f"Could not decode db data with an invalid format: {serialized_data}"
+                f"Could not decode db data with an invalid format: {db_data}{input_report}"
             ) from exc
         except ValueError as exc:
             raise ABCIAppInternalError(
-                f"An invalid index was found while trying to sync the db using data: {serialized_data}"
+                f"An invalid index was found while trying to sync the db using data: {db_data}{input_report}"
             ) from exc
 
-        self._check_data(dict(tuple(loaded_data.values())[0]))
-        self._data = loaded_data
+        self._check_data(dict(tuple(db_data.values())[0]))
+        self._data = db_data
+        self.slashing_config = slashing_config
 
     def hash(self) -> bytes:
         """Create a hash of the data."""
