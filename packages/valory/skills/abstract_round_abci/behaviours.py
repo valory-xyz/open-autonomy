@@ -108,7 +108,7 @@ class _MetaRoundBehaviour(ABCMeta):
         round_to_behaviour: Dict[Type[AbstractRound], List[BehaviourType]] = {
             round_cls: []
             for round_cls in behaviour_cls.abci_app_cls.get_all_round_classes(
-                behaviour_cls.is_background_behaviour_set
+                behaviour_cls.is_termination_set
             )
         }
 
@@ -156,7 +156,7 @@ class AbstractRoundBehaviour(
     abci_app_cls: Type[AbciApp[EventType]]
     behaviours: AbstractSet[BehaviourType]
     initial_behaviour_cls: BehaviourType
-    background_behaviour_cls: Optional[BehaviourType] = None
+    termination_behaviour_cls: Optional[BehaviourType] = None
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the behaviour."""
@@ -169,7 +169,7 @@ class AbstractRoundBehaviour(
         ] = self._get_round_to_behaviour_mapping(self.behaviours)
 
         self.current_behaviour: Optional[BaseBehaviour] = None
-        self.background_behaviour: Optional[BaseBehaviour] = None
+        self.termination_behaviour: Optional[BaseBehaviour] = None
         self.tm_manager: Optional[TmManager] = None
         # keep track of last round height so to detect changes
         self._last_round_height = 0
@@ -224,9 +224,9 @@ class AbstractRoundBehaviour(
         )
 
     @property
-    def is_background_behaviour_set(self) -> bool:
-        """Returns whether the background behaviour is set."""
-        return self.background_behaviour_cls is not None
+    def is_termination_set(self) -> bool:
+        """Returns whether the termination behaviour is set."""
+        return self.termination_behaviour_cls is not None
 
     def setup(self) -> None:
         """Set up the behaviours."""
@@ -234,15 +234,12 @@ class AbstractRoundBehaviour(
             self.initial_behaviour_cls
         )
         self.tm_manager = self.instantiate_behaviour_cls(TmManager)  # type: ignore
-        if (
-            self.is_background_behaviour_set
-            and self.current_behaviour.params.use_termination
-        ):
-            self.background_behaviour_cls = cast(
-                Type[BaseBehaviour], self.background_behaviour_cls
+        if self.is_termination_set and self.current_behaviour.params.use_termination:
+            self.termination_behaviour_cls = cast(
+                Type[BaseBehaviour], self.termination_behaviour_cls
             )
-            self.background_behaviour = self.instantiate_behaviour_cls(
-                self.background_behaviour_cls
+            self.termination_behaviour = self.instantiate_behaviour_cls(
+                self.termination_behaviour_cls
             )
 
     def teardown(self) -> None:
@@ -268,8 +265,8 @@ class AbstractRoundBehaviour(
             self.current_behaviour.clean_up()
             self.current_behaviour = None
 
-        if self.background_behaviour is not None:
-            self.background_behaviour.act_wrapper()
+        if self.termination_behaviour is not None:
+            self.termination_behaviour.act_wrapper()
 
     def _process_current_round(self) -> None:
         """Process current ABCIApp round."""

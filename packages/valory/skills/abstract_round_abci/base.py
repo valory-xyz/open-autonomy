@@ -2153,7 +2153,7 @@ class AbciApp(
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
     cross_period_persisted_keys: FrozenSet[str] = frozenset()
-    background_round_cls: Optional[AppState] = None
+    termination_round_cls: Optional[AppState] = None
     termination_transition_function: Optional[AbciAppTransitionFunction] = None
     termination_event: Optional[EventType] = None
     default_db_preconditions: Set[str] = BaseSynchronizedData.default_db_keys
@@ -2177,7 +2177,7 @@ class AbciApp(
         self.context = context
         self._current_round_cls: Optional[AppState] = None
         self._current_round: Optional[AbstractRound] = None
-        self._background_round: Optional[AbstractRound] = None
+        self._termination_round: Optional[AbstractRound] = None
         self._last_round: Optional[AbstractRound] = None
         self._previous_rounds: List[AbstractRound] = []
         self._current_round_height: int = 0
@@ -2186,7 +2186,7 @@ class AbciApp(
         self._current_timeout_entries: List[int] = []
         self._timeouts = Timeouts[EventType]()
         self._is_termination_set = (
-            self.background_round_cls is not None
+            self.termination_round_cls is not None
             and self.termination_transition_function is not None
             and self.termination_event is not None
         )
@@ -2199,12 +2199,12 @@ class AbciApp(
     @classmethod
     def add_termination(
         cls,
-        background_round_cls: AppState,
+        termination_round_cls: AppState,
         termination_event: EventType,
         termination_abci_app: Type["AbciApp"],
     ) -> Type["AbciApp"]:
         """Sets the termination related class variables."""
-        cls.background_round_cls = background_round_cls
+        cls.termination_round_cls = termination_round_cls
         cls.termination_transition_function = termination_abci_app.transition_function
         cls.termination_event = termination_event
         new_cross_period_persisted_keys = copy(cls.cross_period_persisted_keys)
@@ -2280,8 +2280,8 @@ class AbciApp(
         """Set up the behaviour."""
         self.schedule_round(self.initial_round_cls)
         if self.is_termination_set:
-            self.background_round_cls = cast(AppState, self.background_round_cls)
-            self._background_round = self.background_round_cls(
+            self.termination_round_cls = cast(AppState, self.termination_round_cls)
+            self._termination_round = self.termination_round_cls(
                 self._initial_synchronized_data,
                 self.context,
             )
@@ -2365,11 +2365,11 @@ class AbciApp(
         return self._current_round
 
     @property
-    def background_round(self) -> AbstractRound:
+    def termination_round(self) -> AbstractRound:
         """Get the background round."""
-        if self._background_round is None:
-            raise ValueError("background_round not set!")
-        return self._background_round
+        if self._termination_round is None:
+            raise ValueError("Termination round not set!")
+        return self._termination_round
 
     @property
     def is_termination_set(self) -> bool:
@@ -2426,9 +2426,9 @@ class AbciApp(
         payload_type = type(transaction.payload)
         if (
             self.is_termination_set
-            and payload_type is cast(AppState, self.background_round_cls).payload_class
+            and payload_type is cast(AppState, self.termination_round_cls).payload_class
         ):
-            self.background_round.check_transaction(transaction)
+            self.termination_round.check_transaction(transaction)
             return
         self.current_round.check_transaction(transaction)
 
@@ -2446,9 +2446,9 @@ class AbciApp(
         payload_type = type(transaction.payload)
         if (
             self.is_termination_set
-            and payload_type is cast(AppState, self.background_round_cls).payload_class
+            and payload_type is cast(AppState, self.termination_round_cls).payload_class
         ):
-            self.background_round.process_transaction(transaction)
+            self.termination_round.process_transaction(transaction)
             return
         self.current_round.process_transaction(transaction)
 
@@ -2469,9 +2469,9 @@ class AbciApp(
             self.termination_transition_function = cast(
                 AbciAppTransitionFunction, self.termination_transition_function
             )
-            self.background_round_cls = cast(AppState, self.background_round_cls)
+            self.termination_round_cls = cast(AppState, self.termination_round_cls)
             next_round_cls = self.termination_transition_function[
-                self.background_round_cls
+                self.termination_round_cls
             ].get(event, None)
 
             # we switch the current transition function, with the termination
@@ -3035,9 +3035,9 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         return self.abci_app.current_round
 
     @property
-    def background_round(self) -> AbstractRound:
-        """Get the background round."""
-        return self.abci_app.background_round
+    def termination_round(self) -> AbstractRound:
+        """Get the termination round."""
+        return self.abci_app.termination_round
 
     @property
     def current_round_id(self) -> Optional[str]:
@@ -3325,15 +3325,15 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         Check whether the round has finished. If so, get the
         new round and set it as the current round.
         """
-        background_result: Optional[Tuple[BaseSynchronizedData, Any]] = None
+        termination_result: Optional[Tuple[BaseSynchronizedData, Any]] = None
         if self.abci_app.is_termination_set:
-            background_result = self.abci_app.background_round.end_block()
-        if background_result is not None and not self._termination_called:
+            termination_result = self.abci_app.termination_round.end_block()
+        if termination_result is not None and not self._termination_called:
             # when the background round returns, it takes priority over normal rounds
             # because the BackgroundRound never ends, we should only take into account
             # its response only once
             self._termination_called = True
-            result: Optional[Tuple[BaseSynchronizedData, Any]] = background_result
+            result: Optional[Tuple[BaseSynchronizedData, Any]] = termination_result
         else:
             result = self.abci_app.current_round.end_block()
 

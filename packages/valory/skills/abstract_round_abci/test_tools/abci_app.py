@@ -132,7 +132,7 @@ class AbciAppTest(AbciApp[ConcreteEvents]):
             ConcreteEvents.TIMEOUT: ConcreteRoundC,
         },
     }
-    background_round_cls = ConcreteBackgroundRound
+    termination_round_cls = ConcreteBackgroundRound
     termination_transition_function: Dict[
         Type[AbstractRound], Dict[ConcreteEvents, Type[AbstractRound]]
     ] = {

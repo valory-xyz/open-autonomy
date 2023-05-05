@@ -193,7 +193,7 @@ class ConcreteRoundBehaviour(AbstractRoundBehaviour):
     abci_app_cls = ConcreteAbciApp
     behaviours = {BehaviourA, BehaviourB}  # type: ignore
     initial_behaviour_cls = BehaviourA
-    background_behaviour_cls = ConcreteBackgroundBehaviour
+    termination_behaviour_cls = ConcreteBackgroundBehaviour
 
 
 class TestAbstractRoundBehaviour:
@@ -212,15 +212,15 @@ class TestAbstractRoundBehaviour:
     @pytest.mark.parametrize("use_termination", (True, False))
     def test_setup(self, use_termination: bool) -> None:
         """Test 'setup' method."""
-        assert self.behaviour.background_behaviour is None
+        assert self.behaviour.termination_behaviour is None
         self.behaviour.context.params.use_termination = use_termination
         self.behaviour.setup()
-        background_behaviour = self.behaviour.background_behaviour
-        assert self.behaviour.background_behaviour_cls == ConcreteBackgroundBehaviour
+        termination_behaviour = self.behaviour.termination_behaviour
+        assert self.behaviour.termination_behaviour_cls == ConcreteBackgroundBehaviour
         assert (
-            isinstance(background_behaviour, self.behaviour.background_behaviour_cls)
+            isinstance(termination_behaviour, self.behaviour.termination_behaviour_cls)
             if use_termination
-            else background_behaviour is None
+            else termination_behaviour is None
         )
 
     def test_teardown(self) -> None:
@@ -501,7 +501,7 @@ class TestAbstractRoundBehaviour:
 
         # instantiate behaviour
         self.behaviour.current_behaviour = self.behaviour.instantiate_behaviour_cls(BehaviourA)  # type: ignore
-        self.behaviour.background_behaviour = self.behaviour.instantiate_behaviour_cls(ConcreteBackgroundBehaviour)  # type: ignore
+        self.behaviour.termination_behaviour = self.behaviour.instantiate_behaviour_cls(ConcreteBackgroundBehaviour)  # type: ignore
 
         with mock.patch.object(
             self.behaviour.current_behaviour, "clean_up"
@@ -544,26 +544,26 @@ class TestAbstractRoundBehaviour:
         new_callable=mock.PropertyMock,
         return_value=False,
     )
-    @pytest.mark.parametrize("expected_background_acting", (True, False))
-    def test_background_behaviour_acting(
+    @pytest.mark.parametrize("expected_termination_acting", (True, False))
+    def test_termination_behaviour_acting(
         self,
         _: mock._patch,
         __: mock._patch,
         ___: mock._patch,
-        expected_background_acting: bool,
+        expected_termination_acting: bool,
     ) -> None:
         """Test if the background behaviour is acting only when it should."""
-        self.behaviour.context.params.use_termination = expected_background_acting
+        self.behaviour.context.params.use_termination = expected_termination_acting
         self.behaviour.setup()
-        if expected_background_acting:
+        if expected_termination_acting:
             with mock.patch.object(
-                self.behaviour.background_behaviour,
+                self.behaviour.termination_behaviour,
                 "act_wrapper",
             ) as mock_background_act:
                 self.behaviour.act()
                 mock_background_act.assert_called()
         else:
-            assert self.behaviour.background_behaviour is None
+            assert self.behaviour.termination_behaviour is None
 
     @mock.patch.object(
         AbstractRoundBehaviour,

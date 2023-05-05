@@ -45,7 +45,7 @@ RegisterTerminateAbciApp = chain(
     ),
     abci_app_transition_mapping,
 ).add_termination(
-    background_round_cls=BackgroundRound,
+    termination_round_cls=BackgroundRound,
     termination_event=Event.TERMINATE,
     termination_abci_app=TerminationAbciApp,
 )

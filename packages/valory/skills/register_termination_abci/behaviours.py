@@ -51,4 +51,4 @@ class RegisterTerminationAbciAppConsensusBehaviour(AbstractRoundBehaviour):
         *ResetPauseABCIConsensusBehaviour.behaviours,
         *TerminationAbciBehaviours.behaviours,
     }
-    background_behaviour_cls = BackgroundBehaviour
+    termination_behaviour_cls = BackgroundBehaviour
