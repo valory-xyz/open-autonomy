@@ -22,11 +22,11 @@ import contextlib
 import copy
 import sys
 from pathlib import Path
-from typing import Any, Callable, Generator, Optional, cast
+from typing import Any, Callable, Generator, Optional, Union, cast
 
 import click
 from aea.cli.utils.config import get_default_author_from_cli_config
-from aea.helpers.base import SimpleId
+from aea.helpers.base import IPFSHash, SimpleId
 
 from autonomy.analyse.abci.app_spec import FSMSpecificationLoader
 from autonomy.chain.config import ChainType
@@ -113,6 +113,33 @@ class PathArgument(click.Path):
         """Convert path string to `pathlib.Path`"""
         path_string = super().convert(value, param, ctx)
         return None if path_string is None else Path(path_string)
+
+
+class NFTArgument(click.ParamType):
+    """NFT parameter for minting tools."""
+
+    METAVAR = "IPFS_HASH_OR_IMAGE_PATH"
+
+    def get_metavar(self, param: click.Parameter) -> str:  # pragma: nocover
+        """Get metavar"""
+        return self.METAVAR
+
+    def convert(
+        self, value: Any, param: Optional[click.Parameter], ctx: Optional[click.Context]
+    ) -> Optional[Union[Path, IPFSHash]]:
+        """Convert path string to `pathlib.Path`"""
+        if value is None:  # pragma: nocover
+            return None
+        try:
+            return IPFSHash(value)
+        except ValueError as e:
+            image_path = Path(value)
+            if not (image_path.exists() and image_path.is_file()):
+                raise click.ClickException(
+                    "Invalid value provided for the NFT image argument, "
+                    "please provide a valid IPFS hash or valid image path"
+                ) from e
+            return image_path
 
 
 def image_author_option(fn: Callable) -> Callable:

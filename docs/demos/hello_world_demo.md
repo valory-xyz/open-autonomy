@@ -22,14 +22,14 @@ You can find the instructions on how to run the Hello World service in the [quic
 If you have [set up the framework](../guides/set_up.md#set-up-the-framework), you can fetch the source code of the Hello World agent:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeidzhbb73vuw4ao7fd6xl2f7rllvzxwztj55hds4x34c22r7nyfn2a
+autonomy fetch valory/hello_world:0.1.0:bafybeihn7w2yg5yn562htsvtl2jk3md4sd5sqy2e62dcl4psuxeca2x6cu
 mv hello_world hello_world_agent
 ```
 
 and the Hello World service:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeif75u5s3wecquh525cig3sexazijgwylqszy6njnqfbkbrybcmuyu --service
+autonomy fetch valory/hello_world:0.1.0:bafybeig4gamksy3xwsispvjt57a42fcj3fasq5sypzeoljgmmvu2g55xki --service
 mv hello_world hello_world_service
 ```
 
@@ -508,21 +508,21 @@ This is an excerpt of the `aea-config.yaml` file:
 ```yaml
 # ...
 connections:
-- valory/abci:0.1.0:<ipfs_hash>
-- valory/http_client:0.23.0:<ipfs_hash>
-- valory/ipfs:0.1.0:<ipfs_hash>
-- valory/ledger:0.19.0:<ipfs_hash>
-- valory/p2p_libp2p_client:0.1.0:<ipfs_hash>
+- valory/abci:0.1.0:bafybeieogrpktpxfq74leeeeylfx33sob2hovhpl5coxlswae6xblzbezy
+- valory/http_client:0.23.0:bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi
+- valory/ipfs:0.1.0:bafybeifkzgdzuoxqovcjswsnzsehjh7bjwbska26ufmcrk7hbufk4c4dae
+- valory/ledger:0.19.0:bafybeicgfupeudtmvehbwziqfxiz6ztsxr5rxzvalzvsdsspzz73o5fzfi
+- valory/p2p_libp2p_client:0.1.0:bafybeidwcobzb7ut3efegoedad7jfckvt2n6prcmd4g7xnkm6hp6aafrva
 contracts: []
 protocols:
-- open_aea/signing:1.0.0:<ipfs_hash>
-- valory/abci:0.1.0:<ipfs_hash>
-- valory/http:1.0.0:<ipfs_hash>
-- valory/ipfs:0.1.0:<ipfs_hash>
+- open_aea/signing:1.0.0:bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4
+- valory/abci:0.1.0:bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4
+- valory/http:1.0.0:bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty
+- valory/ipfs:0.1.0:bafybeic72ncgqbzoz2guj4p4yjqulid7mv6yroeh65hxznloamoveeg7hq
 skills:
-- valory/abstract_abci:0.1.0:<ipfs_hash>
-- valory/abstract_round_abci:0.1.0:<ipfs_hash>
-- valory/hello_world_abci:0.1.0:<ipfs_hash>
+- valory/abstract_abci:0.1.0:bafybeihgerjeq4u4apuue7zzhpb3wmntuju34dbdijbbvl4wclww2gy7di
+- valory/abstract_round_abci:0.1.0:bafybeigbbgpedlfddcwojzebnwd4bglk3qvumbsbi5i6hsxlcz5rfzkyd4
+- valory/hello_world_abci:0.1.0:bafybeihke2hl34pmo6y2mtfzfu5p5t7oggidjbt5ys2frdj5wtxp67zd7m
 # ...
 ```
 

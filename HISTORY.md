@@ -1,5 +1,61 @@
 # Release History - `open-autonomy`
 
+# TBD (TBD)
+
+Packages:
+- Adds slashing functionality #1927
+
+
+# 0.10.3 (2023-05-03)
+
+Autonomy:
+- Updates the FSM scaffold tool to add downloaded packages to `third_party` packages #1943
+- Improves the service specification analyser #1942
+  - Implements custom schema validator to report all validation issues at once
+  - Adds support for skip warnings
+  - Raises warning when components are defined in the agent config and not in the service config
+  - Adds support for validating environment overrides
+  - Improves error messages
+
+Docs:
+- Adds auto-correcting functionality for several package hash instances  #1939
+- Fixes port mapping documentation  #1944
+
+Chores:
+- Adds service analysis to workflow #1942
+
+# 0.10.2 (2023-04-24)
+
+Autonomy:
+- Adds support for updating `external_address` to match `tendermint_p2p_url` when updating the Tendermint parameters on registration  #1930 
+
+Packages:
+- Updates the `registration_abci` skill to include `external_address` in the genesis configuration  #1930 
+
+Docs:
+- Adds code checks for `JSON` code blocks in the documentation  #1933 
+- Updates the documentation on the usage of the hardware wallet for on-chain interactions  #1931 
+- Extends the tutorials for minting components
+
+
+# 0.10.1 (2023-04-13)
+
+Autonomy:
+- Adds support for updating the tendermint P2P URL at the runtime, take a look [here](https://github.com/valory-xyz/open-autonomy/pull/1923#discussion_r1163904995) to understand more
+- Adds support for specifying `NFT` image path when minting the components
+- Updates the minting tools to dump metadata as a `json` file after minting the component
+- Updates the manual build mechanism to index agent using `all_parameters` parameter if available
+
+Packages:
+- Adds better exception handling when sending multiple transactions
+
+Docs:
+- Adds instructions for running a single agent
+
+Chores:
+- Fixes the dependency versions on the documentation `Dockerfile`
+- Adds `mkdocs.yaml` configuration that needed to be removed due to incorrect dependencies in the previous release
+
 # 0.10.0.post2 (2023-03-30)
 
 Autonomy:

@@ -488,6 +488,9 @@ class AbciAppDB:
     https://github.com/python/cpython/blob/3.10/Lib/copy.py#L182-L183
     """
 
+    DB_DATA_KEY = "db_data"
+    SLASHING_CONFIG_KEY = "slashing_config"
+
     # database keys which values are always set for the next period by default
     default_cross_period_keys: FrozenSet[str] = frozenset(
         {
@@ -523,6 +526,7 @@ class AbciAppDB:
             cross_period_persisted_keys or frozenset()
         )
         self._cross_period_check()
+        self.slashing_config: str = ""
 
     def _cross_period_check(self) -> None:
         """Check the cross period keys against the setup data."""
@@ -694,7 +698,11 @@ class AbciAppDB:
 
     def serialize(self) -> str:
         """Serialize the data of the database to a string."""
-        return json.dumps(self._data, sort_keys=True)
+        db = {
+            self.DB_DATA_KEY: self._data,
+            self.SLASHING_CONFIG_KEY: self.slashing_config,
+        }
+        return json.dumps(db, sort_keys=True)
 
     @staticmethod
     def _as_abci_data(data: Dict) -> Dict[int, Any]:
@@ -709,22 +717,35 @@ class AbciAppDB:
         """
         try:
             loaded_data = json.loads(serialized_data)
-            loaded_data = self._as_abci_data(loaded_data)
         except json.JSONDecodeError as exc:
             raise ABCIAppInternalError(
                 f"Could not decode data using {serialized_data}: {exc}"
             ) from exc
+
+        input_report = f"\nThe following serialized data were given: {serialized_data}"
+        try:
+            db_data = loaded_data[self.DB_DATA_KEY]
+            slashing_config = loaded_data[self.SLASHING_CONFIG_KEY]
+        except KeyError as exc:
+            raise ABCIAppInternalError(
+                "Mandatory keys `db_data`, `slashing_config` are missing from the deserialized data: "
+                f"{loaded_data}{input_report}"
+            ) from exc
+
+        try:
+            db_data = self._as_abci_data(db_data)
         except AttributeError as exc:
             raise ABCIAppInternalError(
-                f"Could not decode db data with an invalid format: {serialized_data}"
+                f"Could not decode db data with an invalid format: {db_data}{input_report}"
             ) from exc
         except ValueError as exc:
             raise ABCIAppInternalError(
-                f"An invalid index was found while trying to sync the db using data: {serialized_data}"
+                f"An invalid index was found while trying to sync the db using data: {db_data}{input_report}"
             ) from exc
 
-        self._check_data(dict(tuple(loaded_data.values())[0]))
-        self._data = loaded_data
+        self._check_data(dict(tuple(db_data.values())[0]))
+        self._data = db_data
+        self.slashing_config = slashing_config
 
     def hash(self) -> bytes:
         """Create a hash of the data."""
@@ -864,6 +885,16 @@ class BaseSynchronizedData:
         participants = cast(List, self.db.get("participants", []))
         return len(participants)
 
+    @property
+    def slashing_config(self) -> str:
+        """Get the slashing configuration."""
+        return self.db.slashing_config
+
+    @slashing_config.setter
+    def slashing_config(self, config: str) -> None:
+        """Set the slashing configuration."""
+        self.db.slashing_config = config
+
     def update(
         self,
         synchronized_data_class: Optional[Type] = None,
@@ -945,11 +976,6 @@ class BaseSynchronizedData:
     def safe_contract_address(self) -> str:
         """Get the safe contract address."""
         return cast(str, self.db.get_strict("safe_contract_address"))
-
-    @property
-    def offence_status(self) -> str:
-        """Get the offence status, serialized."""
-        return str(self.db.get("offence_status", ""))
 
 
 class _MetaAbstractRound(ABCMeta):
@@ -2883,8 +2909,9 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
     @offence_status.setter
     def offence_status(self, offence_status: Dict[str, OffenceStatus]) -> None:
         """Set the mapping of the agents' addresses to their offence status."""
-        _logger.info(f"Setting offence status to: {offence_status}")
+        self.abci_app.logger.debug(f"Setting offence status to: {offence_status}")
         self._offence_status = offence_status
+        self.store_offence_status()
 
     def add_pending_offence(self, pending_offence: PendingOffense) -> None:
         """
@@ -2899,15 +2926,27 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         """
         self._pending_offences.add(pending_offence)
 
-    def serialize_offence_status(self) -> None:
+    def sync_db_and_slashing(self, serialized_db_state: str) -> None:
+        """Sync the database and the slashing configuration."""
+        self.abci_app.synchronized_data.db.sync(serialized_db_state)
+        offence_status = self.latest_synchronized_data.slashing_config
+        if offence_status:
+            # deserialize the offence status and load it to memory
+            self.offence_status = json.loads(
+                offence_status,
+                cls=OffenseStatusDecoder,
+            )
+
+    def serialized_offence_status(self) -> str:
         """Serialize the offence status."""
-        encoded_status = json.dumps(
-            self.offence_status, cls=OffenseStatusEncoder, sort_keys=True
-        )
-        db_updates = {get_name(BaseSynchronizedData.offence_status): encoded_status}
-        self.abci_app.synchronized_data.update(BaseSynchronizedData, **db_updates)
-        _logger.info(f"Updated db with: {db_updates}")
-        _logger.info(f"App hash now is: {self.root_hash.hex()}")
+        return json.dumps(self.offence_status, cls=OffenseStatusEncoder, sort_keys=True)
+
+    def store_offence_status(self) -> None:
+        """Store the serialized offence status."""
+        encoded_status = self.serialized_offence_status()
+        self.latest_synchronized_data.slashing_config = encoded_status
+        self.abci_app.logger.debug(f"Updated db with: {encoded_status}")
+        self.abci_app.logger.debug(f"App hash now is: {self.root_hash.hex()}")
 
     def get_agent_address(self, validator: Validator) -> str:
         """Get corresponding agent address from a `Validator` instance."""
@@ -2928,13 +2967,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         :param args: the arguments to pass to the round constructor.
         :param kwargs: the keyword-arguments to pass to the round constructor.
         """
-        self._abci_app = self._abci_app_cls(
-            *args,
-            **{
-                **kwargs,
-                "context": self._context,
-            },
-        )
+        kwargs["context"] = self._context
+        self._abci_app = self._abci_app_cls(*args, **kwargs)
         self._abci_app.setup()
 
     def start_sync(
@@ -3307,8 +3341,8 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             # the termination round, nor the current round returned, so no update needs to be made
             return
 
-        if self._slashing_enabled and self._offence_status:
-            self.serialize_offence_status()
+        if self._slashing_enabled:
+            self.store_offence_status()
 
         self._last_round_transition_timestamp = self._blockchain.last_block.timestamp
         self._last_round_transition_height = self.height
@@ -3350,14 +3384,7 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         self._reset_to_default_params()
         self.abci_app.synchronized_data.db.round_count = round_count
         if serialized_db_state is not None:
-            self.abci_app.synchronized_data.db.sync(serialized_db_state)
-            # deserialize the offence status and load it to memory
-            offence_status = self.latest_synchronized_data.offence_status
-            if offence_status:
-                self._offence_status = json.loads(
-                    offence_status,
-                    cls=OffenseStatusDecoder,
-                )
+            self.sync_db_and_slashing(serialized_db_state)
             # Furthermore, that hash is then in turn used as the init hash when the tm network is reset.
             self._last_round_transition_root_hash = self.root_hash
 

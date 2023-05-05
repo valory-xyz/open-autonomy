@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abci' skill."""
+
 import datetime
 import json
 from abc import ABC
@@ -33,10 +34,7 @@ from packages.valory.contracts.service_registry.contract import ServiceRegistryC
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.tendermint import TendermintMessage
-from packages.valory.skills.abstract_round_abci.base import (
-    ABCIAppInternalError,
-    OffenseStatusEncoder,
-)
+from packages.valory.skills.abstract_round_abci.base import ABCIAppInternalError
 from packages.valory.skills.abstract_round_abci.behaviour_utils import TimeoutException
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -48,7 +46,6 @@ from packages.valory.skills.registration_abci.models import SharedState
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
-    NO_SLASHING_PAYLOAD,
     RegistrationRound,
     RegistrationStartupRound,
 )
@@ -73,10 +70,9 @@ class RegistrationBaseBehaviour(BaseBehaviour, ABC):
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            initialisation = self._get_initialization()
+            serialized_db = self.synchronized_data.db.serialize()
             payload = RegistrationPayload(
-                self.context.agent_address,
-                initialisation=initialisation,
+                self.context.agent_address, initialisation=serialized_db
             )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
@@ -84,27 +80,6 @@ class RegistrationBaseBehaviour(BaseBehaviour, ABC):
             yield from self.wait_until_round_end()
 
         self.set_done()
-
-    def _get_serialized_slashing_config(self) -> str:
-        """Get serialized slashing config."""
-        exchange_config = self.params.share_tm_config_on_startup
-        if not exchange_config:
-            # if we don't share the config, we don't setup slashing
-            return NO_SLASHING_PAYLOAD
-        slashing_config = self.context.state.round_sequence.offence_status
-        slashing_config_str = json.dumps(
-            slashing_config, sort_keys=True, cls=OffenseStatusEncoder
-        )
-        return slashing_config_str
-
-    def _get_initialization(self) -> str:
-        """Get serialized initialization."""
-        serialized_db = self.synchronized_data.db.serialize()
-        slashing_config = self._get_serialized_slashing_config()
-        initialization = json.dumps(
-            {"db": serialized_db, "slashing_config": slashing_config}
-        )
-        return initialization
 
 
 class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
@@ -206,11 +181,13 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             is not ContractApiMessage.Performative.STATE
         ):
             log_message = self.LogMessages.failed_verification
-            self.context.logger.info(f"{log_message}")
-            return False
-        log_message = self.LogMessages.response_verification
+            verified = False
+        else:
+            log_message = self.LogMessages.response_verification
+            verified = cast(bool, contract_api_response.state.body["verified"])
+
         self.context.logger.info(f"{log_message}: {contract_api_response}")
-        return cast(bool, contract_api_response.state.body["verified"])
+        return verified
 
     def get_agent_instances(
         self, service_registry_address: str, on_chain_service_id: int
@@ -367,6 +344,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         genesis_data = dict(
             validators=validators,
             genesis_config=self.params.genesis_config.to_json(),
+            external_address=self.params.tendermint_p2p_url,
         )
         return genesis_data
 

@@ -18,16 +18,22 @@
 # ------------------------------------------------------------------------------
 
 """Test the rounds.py module of the skill."""
+
 import json
 from typing import Any, Dict, Optional, cast
 from unittest import mock
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, PropertyMock
+
+import pytest
 
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB
 from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as SynchronizedData,
 )
-from packages.valory.skills.abstract_round_abci.base import CollectSameUntilAllRound
+from packages.valory.skills.abstract_round_abci.base import (
+    CollectSameUntilAllRound,
+    SlashingNotConfiguredError,
+)
 from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
     BaseCollectSameUntilAllRoundTest,
     BaseCollectSameUntilThresholdRoundTest,
@@ -35,7 +41,6 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import Event as RegistrationEvent
 from packages.valory.skills.registration_abci.rounds import (
-    NO_SLASHING_PAYLOAD,
     RegistrationRound,
     RegistrationStartupRound,
 )
@@ -50,8 +55,10 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
     _synchronized_data_class = SynchronizedData
     _event_class = RegistrationEvent
 
+    @pytest.mark.parametrize("slashing_config", ("", json.dumps({"valid": "config"})))
     def test_run_default(
         self,
+        slashing_config: str,
     ) -> None:
         """Run test."""
 
@@ -68,12 +75,15 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
             context=MagicMock(),
         )
 
-        most_voted_payload = json.dumps(
-            dict(
-                db=self.synchronized_data.db.serialize(),
-                slashing_config=NO_SLASHING_PAYLOAD,
+        self.synchronized_data.slashing_config = slashing_config
+
+        if not slashing_config:
+            seq = test_round.context.state.round_sequence
+            type(seq).offence_status = PropertyMock(
+                side_effect=SlashingNotConfiguredError
             )
-        )
+
+        most_voted_payload = self.synchronized_data.db.serialize()
         round_payloads = {
             participant: RegistrationPayload(
                 sender=participant,
@@ -101,6 +111,15 @@ class TestRegistrationStartupRound(BaseCollectSameUntilAllRoundTest):
                 == "stub_oracle_contract_address",
             )
         )
+
+        test_round.context.state.round_sequence.sync_db_and_slashing.assert_called_once_with(
+            most_voted_payload
+        )
+
+        if slashing_config:
+            test_round.context.state.round_sequence.enable_slashing.assert_called_once()
+        else:
+            test_round.context.state.round_sequence.enable_slashing.assert_not_called()
 
     def test_run_default_not_finished(
         self,
@@ -206,12 +225,8 @@ class TestRegistrationRound(BaseCollectSameUntilThresholdRoundTest):
             context=MagicMock(),
         )
 
-        payload_data = json.dumps(
-            {
-                "db": self.synchronized_data.db.serialize(),
-                "slashing_config": NO_SLASHING_PAYLOAD,
-            }
-        )
+        payload_data = self.synchronized_data.db.serialize()
+
         round_payloads = {
             participant: RegistrationPayload(
                 sender=participant,

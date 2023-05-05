@@ -20,6 +20,7 @@
 """Scaffold skill from an FSM"""
 
 
+import itertools
 import os
 import re
 import shutil
@@ -180,14 +181,19 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         package_manager = PackageManagerV1.from_dir(Path(ctx.registry_path))
         packages = [
             package_id.public_id
-            for package_id in package_manager.dev_packages.keys()
-            if package_id.author == ABSTRACT_ROUND_SKILL_PUBLIC_ID.author
-            and package_id.name == ABSTRACT_ROUND_SKILL_PUBLIC_ID.name
-            and package_id.package_type == PackageType.SKILL
+            for package_id in itertools.chain(
+                package_manager.third_party_packages.keys(),
+                package_manager.dev_packages.keys(),
+            )
+            if (
+                package_id.public_id.without_hash().to_any()
+                == ABSTRACT_ROUND_SKILL_PUBLIC_ID.without_hash().to_any()
+                and package_id.package_type == PackageType.SKILL
+            )
         ]
         if not packages:
             return None
-        abstract_round_abci = packages[0]
+        abstract_round_abci, *_ = packages
         return abstract_round_abci
 
     def _update_dependencies(self, config: SkillConfig) -> None:

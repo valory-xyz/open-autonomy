@@ -380,6 +380,7 @@ def check_service_readiness(  # pylint: disable=too-many-locals
     public_id: Optional[PublicId],
     chain_type: ChainType,
     packages_dir: Path,
+    skip_warnings: bool = False,
 ) -> None:
     """Check deployment readiness of a service."""
 
@@ -440,7 +441,9 @@ def check_service_readiness(  # pylint: disable=too-many-locals
     try:
         service_analyser = ServiceAnalyser(
             service_config=service_config,
+            abci_skill_id=skill_config.public_id,
             is_on_chain_check=is_on_chain_check,
+            skip_warnings=skip_warnings,
         )
 
         service_analyser.check_on_chain_state(
@@ -448,11 +451,14 @@ def check_service_readiness(  # pylint: disable=too-many-locals
             chain_type=chain_type,
             token_id=cast(int, token_id),
         )
-        service_analyser.validate_service_overrides()
-        service_analyser.validate_agent_overrides(agent_config=agent_config)
         service_analyser.validate_skill_config(skill_config=skill_config)
+        service_analyser.validate_agent_overrides(agent_config=agent_config)
+        service_analyser.validate_agent_override_env_vars(agent_config=agent_config)
+        service_analyser.validate_service_overrides()
+        service_analyser.validate_service_override_env_vars()
         service_analyser.cross_verify_overrides(
-            agent_config=agent_config, skill_config=skill_config
+            agent_config=agent_config,
+            skill_config=skill_config,
         )
         service_analyser.check_agent_dependencies_published(
             ipfs_pins=ipfs_pins, agent_config=agent_config

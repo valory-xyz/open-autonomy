@@ -34,6 +34,10 @@ from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
+OS_ENV_PATCH = mock.patch.dict(
+    os.environ, values={**os.environ, "ALL_PARTICIPANTS": "[]"}, clear=True
+)
+
 DOCKER_COMPOSE_DATA = {
     "version": "2.4",
     "services": {
@@ -98,7 +102,7 @@ class TestAgentRunner(BaseCliTest):
     def test_run(self) -> None:
         """Test run."""
 
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.cli_runner.invoke(
                 cli,
                 (

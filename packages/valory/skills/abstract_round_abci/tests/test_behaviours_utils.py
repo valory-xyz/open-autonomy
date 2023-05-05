@@ -27,7 +27,18 @@ from abc import ABC
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, Generator, Optional, Tuple, Type, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -52,6 +63,7 @@ from packages.valory.protocols.ipfs import IpfsMessage
 from packages.valory.protocols.ipfs.dialogues import IpfsDialogue
 from packages.valory.protocols.ledger_api.custom_types import (
     SignedTransaction,
+    SignedTransactions,
     TransactionDigest,
     TransactionDigests,
 )
@@ -1249,29 +1261,52 @@ class TestBaseBehaviour:
             self.behaviour._send_transaction_signing_request(MagicMock(), MagicMock())
 
     @pytest.mark.parametrize(
-        "use_flashbots, expected_kwargs",
+        "use_flashbots, target_block_numbers, expected_kwargs",
         (
             (
                 True,
+                None,
                 dict(
                     counterparty=LEDGER_API_ADDRESS,
                     performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTIONS,
-                    signed_transactions=["test_tx"],
-                    kwargs=LedgerApiMessage.Kwargs({"target_blocks": 40}),
+                    signed_transactions=SignedTransactions(
+                        ledger_id="ethereum_flashbots",
+                        signed_transactions=[{"test_tx": "test_tx"}],
+                    ),
+                    kwargs=LedgerApiMessage.Kwargs({}),
+                ),
+            ),
+            (
+                True,
+                [1, 2, 3],
+                dict(
+                    counterparty=LEDGER_API_ADDRESS,
+                    performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTIONS,
+                    signed_transactions=SignedTransactions(
+                        ledger_id="ethereum_flashbots",
+                        signed_transactions=[{"test_tx": "test_tx"}],
+                    ),
+                    kwargs=LedgerApiMessage.Kwargs({"target_block_numbers": [1, 2, 3]}),
                 ),
             ),
             (
                 False,
+                None,
                 dict(
                     counterparty=LEDGER_API_ADDRESS,
                     performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
-                    signed_transaction="test_tx",
+                    signed_transaction=SignedTransaction(
+                        ledger_id="ethereum", body={"test_tx": "test_tx"}
+                    ),
                 ),
             ),
         ),
     )
     def test_send_transaction_request(
-        self, use_flashbots: bool, expected_kwargs: Any
+        self,
+        use_flashbots: bool,
+        target_block_numbers: Optional[List[int]],
+        expected_kwargs: Any,
     ) -> None:
         """Test '_send_transaction_request'."""
         with mock.patch.object(
@@ -1279,13 +1314,12 @@ class TestBaseBehaviour:
             "create",
             return_value=(MagicMock(), MagicMock()),
         ) as create_mock:
-            target_block_numbers = (
-                expected_kwargs["kwargs"].body["target_blocks"]
-                if use_flashbots
-                else None
-            )
             self.behaviour._send_transaction_request(
-                MagicMock(signed_transaction="test_tx"),
+                MagicMock(
+                    signed_transaction=SignedTransaction(
+                        ledger_id="ethereum", body={"test_tx": "test_tx"}
+                    )
+                ),
                 use_flashbots,
                 target_block_numbers,
             )
@@ -1484,6 +1518,7 @@ class TestBaseBehaviour:
     @pytest.mark.parametrize(
         "message, expected_rpc_status",
         (
+            ("Simulation failed for bundle", RPCResponseStatus.SIMULATION_FAILED),
             ("replacement transaction underpriced", RPCResponseStatus.UNDERPRICED),
             ("nonce too low", RPCResponseStatus.INCORRECT_NONCE),
             ("insufficient funds", RPCResponseStatus.INSUFFICIENT_FUNDS),
