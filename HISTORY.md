@@ -1,9 +1,22 @@
 # Release History - `open-autonomy`
 
-# 0.10.3 (TBD)
+# 0.10.3 (2023-05-03)
+
+Autonomy:
+- Updates the FSM scaffold tool to add downloaded packages to `third_party` packages #1943
+- Improves the service specification analyser #1942
+  - Implements custom schema validator to report all validation issues at once
+  - Adds support for skip warnings
+  - Raises warning when components are defined in the agent config and not in the service config
+  - Adds support for validating environment overrides
+  - Improves error messages
 
 Docs:
 - Adds auto-correcting functionality for several package hash instances  #1939
+- Fixes port mapping documentation  #1944
+
+Chores:
+- Adds service analysis to workflow #1942
 
 # 0.10.2 (2023-04-24)
 

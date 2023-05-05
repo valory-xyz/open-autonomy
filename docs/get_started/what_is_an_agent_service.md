@@ -16,17 +16,17 @@ This is what an agent service looks like:
 ![Architecture of an agent service](../images/agent_service_architecture.svg)
 </figure>
 
-* **Agent service**: The decentralized off-chain service that implements a certain functionality. It is composed of $N$ agents, defined by the owner of the service.
+* **Agent service**: The decentralized off-chain service that implements a certain functionality. It is composed of $N$ agents, where $N$ is a parameter that is defined by the owner of the service.
 
-* **Operator**: An entity or individual that owns the infrastructure where an agent is run. Each operator manages an agent instance*and a consensus gadget node.
+* **Operator**: An entity or individual that owns the infrastructure where an agent is run. Each operator manages an agent instance and a consensus gadget node.
 
 * **Agent**: The software unit that aggregates the runtime and functionalities to execute the service. Each agent is made up of a number of components that implement different functionalities, for example, what communication protocols the agent understands.
 
-* **{{fsm_app}}**: The core component inside an agent that defines a decentralized app implementing the business logic of the service. {{fsm_app}}s implements the underlying mechanisms that allow agents to synchronize their internal state.
+* **{{fsm_app}}**: The core component inside an agent that defines the business logic of the service. {{fsm_app}} implements the underlying mechanisms for agents to synchronize their internal state and run the business logic in a decentralized fashion.
 
-* **Consensus gadget:** The infrastructure that enables agents to synchronize the service state and reach consensus on certain important decisions. From a technical point of view, the consensus gadget implements a blockchain based on [Tendermint](https://tendermint.com/). By consensus gadget we usually refer to the collection of consensus nodes + consensus network.
+* **Consensus gadget:** The infrastructure that enables agents to synchronize the service state and reach consensus on certain important decisions. From a technical point of view, the consensus gadget implements a blockchain based on [Tendermint](https://tendermint.com/) that is pruned periodically. By consensus gadget we usually refer to the collection of consensus nodes + consensus network.
 
-* **Agent service multisig [Safe](https://safe.global/):** Multisig smart contract that secures the service by requiring a threshold of agents to sign any transaction before it is executed.
+* **Agent service multisig [Safe](https://safe.global/):** Smart contract based Multisig  that secures the service by requiring a threshold of agents to sign any transaction before it is executed.
 
 ## How it works
 
