@@ -2092,7 +2092,6 @@ class TestAvailabilityWindow:
 
 
 @composite
-@settings(suppress_health_check=[HealthCheck.too_slow])
 def offence_tracking(draw: DrawFn) -> Tuple[Evidences, LastCommitInfo]:
     """A strategy for building offences reported by Tendermint."""
     n_validators = draw(integers(min_value=1, max_value=10))
@@ -2549,6 +2548,7 @@ class TestRoundSequence:
         assert self.round_sequence._blockchain.height == initial_height - 1
 
     @given(offence_tracking())
+    @settings(suppress_health_check=[HealthCheck.too_slow])
     def test_track_offences(self, offences: Tuple[Evidences, LastCommitInfo]) -> None:
         """Test `_track_offences` method."""
         evidences, last_commit_info = offences
