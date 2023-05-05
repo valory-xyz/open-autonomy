@@ -61,7 +61,7 @@ Local service deployments are usually executed for testing services under active
         ]
         ```
 
-    Export the environment variable `ALL_PARTICIPANTS` with all the agents' addresses:
+    You also need to export the environment variable `ALL_PARTICIPANTS` with the addresses of all the agents in the service. That is, the addresses of the agents you are deploying (in the `keys.json` file) must be a subset of  the addresses in `ALL_PARTICIPANTS`:
 
     ```bash
     export ALL_PARTICIPANTS='[

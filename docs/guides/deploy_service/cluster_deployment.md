@@ -1,16 +1,3 @@
-In addition to deployments based on Docker Compose, the framework also supports cluster deployments using Kubernetes.
-
-## Building & tagging local images
-
-```bash
-export SERVICE_ID=author_name/service_name
-export VERSION=0.1.0
-autonomy build-image ${SERVICE_ID}
-```
-
-Conceptually, the image to be used within a deployment should contain all required dependencies and packages.
-
-Configuration of containers and agents is done via environment variables.
 
 ## Quick cluster deploy
 

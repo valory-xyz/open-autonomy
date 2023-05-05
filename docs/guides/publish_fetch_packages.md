@@ -1,4 +1,6 @@
-The {{open_autonomy}} framework works with the concept of **package**: a collection of files that implement a specific component or functionality.
+The {{open_autonomy}} framework works with the concept of **package**: a collection of files that implement a component, agent or service. As presented in the [set up section](../guides/set_up.md#the-registries-and-runtime-folders), 
+
+
 Publishing a package is simply the process of storing the package into a registry (or in other words, a repository), either locally or remotely.
 
 <figure markdown>
