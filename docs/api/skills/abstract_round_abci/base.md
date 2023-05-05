@@ -2700,6 +2700,28 @@ def offence_status(offence_status: Dict[str, OffenceStatus]) -> None
 
 Set the mapping of the agents' addresses to their offence status.
 
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.add_pending_offence"></a>
+
+#### add`_`pending`_`offence
+
+```python
+def add_pending_offence(pending_offence: PendingOffense) -> None
+```
+
+Add a pending offence to the set of pending offences.
+
+Pending offences are offences that have been detected, but not yet agreed upon by the consensus.
+A pending offence is removed from the set of pending offences and added to the OffenceStatus of a validator
+when the majority of the agents agree on it.
+
+**Arguments**:
+
+- `pending_offence`: the pending offence to add
+
+**Returns**:
+
+None
+
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.sync_db_and_slashing"></a>
 
 #### sync`_`db`_`and`_`slashing
