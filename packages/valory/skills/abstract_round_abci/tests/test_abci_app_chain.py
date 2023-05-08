@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 # pylint: skip-file
 
 import logging
-from typing import Tuple, Type
+from typing import Dict, Set, Tuple, Type
 from unittest.mock import MagicMock
 
 import pytest
@@ -37,6 +37,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppDB,
     AbstractRound,
+    AppState,
     BaseSynchronizedData,
     BaseTxPayload,
     DegenerateRound,
@@ -45,7 +46,15 @@ from packages.valory.skills.abstract_round_abci.base import (
 
 def make_round_class(name: str, bases: Tuple = (AbstractRound,)) -> Type[AbstractRound]:
     """Make a round class."""
-    new_round_cls = type(name, bases, {})
+    new_round_cls = type(
+        name,
+        bases,
+        {
+            "synchronized_data_class": MagicMock(),
+            "payload_class": MagicMock(),
+            "payload_attribute": MagicMock(),
+        },
+    )
     setattr(new_round_cls, "round_id", name)  # noqa: B010
     assert issubclass(new_round_cls, AbstractRound)  # nosec
     return new_round_cls
@@ -70,6 +79,10 @@ class TestAbciAppChaining:
         self.round_3b = make_round_class("round_3b")
         self.round_3c = make_round_class("round_3c", (DegenerateRound,))
 
+        self.key_1 = "1"
+        self.key_2 = "2"
+        self.key_3 = "3"
+
         self.event_1a = "event_1a"
         self.event_1b = "event_1b"
         self.event_1c = "event_1c"
@@ -89,6 +102,9 @@ class TestAbciAppChaining:
         self.timeout2 = 15.0
         self.timeout3 = 20.0
 
+        self.cross_period_persisted_keys_1 = frozenset({"1", "2"})
+        self.cross_period_persisted_keys_2 = frozenset({"2", "3"})
+
         class AbciApp1(AbciApp):
             initial_round_cls = self.round_1a
             transition_function = {
@@ -104,6 +120,9 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_1c}
             event_to_timeout = {self.event_timeout1: self.timeout1}
+            db_pre_conditions: Dict[AppState, Set[str]] = {self.round_1a: set()}
+            db_post_conditions: Dict[AppState, Set[str]] = {self.round_1c: {self.key_1}}
+            cross_period_persisted_keys = self.cross_period_persisted_keys_1
 
         self.app1_class = AbciApp1
 
@@ -122,6 +141,9 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_2c}
             event_to_timeout = {self.event_timeout2: self.timeout2}
+            db_pre_conditions: Dict[AppState, Set[str]] = {self.round_2a: {self.key_1}}
+            db_post_conditions: Dict[AppState, Set[str]] = {self.round_2c: {self.key_2}}
+            cross_period_persisted_keys = self.cross_period_persisted_keys_2
 
         self.app2_class = AbciApp2
 
@@ -141,6 +163,10 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_3c}
             event_to_timeout = {self.event_timeout3: self.timeout3}
+            db_pre_conditions: Dict[AppState, Set[str]] = {
+                self.round_3a: {self.key_1, self.key_2}
+            }
+            db_post_conditions: Dict[AppState, Set[str]] = {self.round_3c: {self.key_3}}
 
         self.app3_class = AbciApp3
 
@@ -160,6 +186,7 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_3c}
             event_to_timeout = {self.event_timeout3: self.timeout3}
+            db_post_conditions: Dict[AppState, Set[str]] = {self.round_3c: set()}
 
         self.app3_class_dupe = AbciApp3Dupe
 
@@ -178,6 +205,8 @@ class TestAbciAppChaining:
             }
             final_states = {self.round_2c}
             event_to_timeout = {self.event_timeout1: self.timeout2}
+            db_pre_conditions: Dict[AppState, Set[str]] = {self.round_2a: {self.key_1}}
+            db_post_conditions: Dict[AppState, Set[str]] = {self.round_2c: {self.key_2}}
 
         self.app2_class_faulty1 = AbciApp2Faulty1
 
@@ -189,7 +218,9 @@ class TestAbciAppChaining:
             self.round_2c: self.round_1a,
         }
 
-        ComposedAbciApp = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)  # type: ignore
+        ComposedAbciApp = chain(
+            (self.app1_class, self.app2_class), abci_app_transition_mapping
+        )
 
         assert ComposedAbciApp.initial_round_cls == self.round_1a
         assert ComposedAbciApp.transition_function == {
@@ -215,6 +246,12 @@ class TestAbciAppChaining:
             self.event_timeout1: self.timeout1,
             self.event_timeout2: self.timeout2,
         }
+        assert (
+            ComposedAbciApp.cross_period_persisted_keys
+            == self.cross_period_persisted_keys_1.union(
+                self.cross_period_persisted_keys_2
+            )
+        )
 
     def test_chain_three(self) -> None:
         """Test the AbciApp chain function."""
@@ -224,7 +261,10 @@ class TestAbciAppChaining:
             self.round_2c: self.round_3a,
         }
 
-        ComposedAbciApp = chain((self.app1_class, self.app2_class, self.app3_class), abci_app_transition_mapping)  # type: ignore
+        ComposedAbciApp = chain(
+            (self.app1_class, self.app2_class, self.app3_class),
+            abci_app_transition_mapping,
+        )
 
         assert ComposedAbciApp.initial_round_cls == self.round_1a
         assert ComposedAbciApp.transition_function == {
@@ -273,7 +313,9 @@ class TestAbciAppChaining:
         with pytest.raises(
             ValueError, match="but it is already defined in a prior app with timeout"
         ):
-            _ = chain((self.app1_class, self.app2_class_faulty1), abci_app_transition_mapping)  # type: ignore
+            _ = chain(
+                (self.app1_class, self.app2_class_faulty1), abci_app_transition_mapping
+            )
 
     def test_chain_two_negative_mapping_initial_states(self) -> None:
         """Test the AbciApp chain function."""
@@ -284,7 +326,7 @@ class TestAbciAppChaining:
         }
 
         with pytest.raises(ValueError, match="Found non-initial state"):
-            _ = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)  # type: ignore
+            _ = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)
 
     def test_chain_two_negative_mapping_final_states(self) -> None:
         """Test the AbciApp chain function."""
@@ -295,7 +337,7 @@ class TestAbciAppChaining:
         }
 
         with pytest.raises(ValueError, match="Found non-final state"):
-            _ = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)  # type: ignore
+            _ = chain((self.app1_class, self.app2_class), abci_app_transition_mapping)
 
     def test_chain_two_dupe(self) -> None:
         """Test the AbciApp chain function."""
@@ -308,7 +350,7 @@ class TestAbciAppChaining:
             AEAEnforceError,
             match=r"round ids in common between abci apps are not allowed.*",
         ):
-            chain((self.app1_class, self.app3_class_dupe), abci_app_transition_mapping)  # type: ignore
+            chain((self.app1_class, self.app3_class_dupe), abci_app_transition_mapping)
 
     def test_chain_with_abstract_abci_app_fails(self) -> None:
         """Test chaining with an abstract AbciApp fails."""
@@ -322,7 +364,10 @@ class TestAbciAppChaining:
                 self.round_1c: self.round_2a,
                 self.round_2c: self.round_3a,
             }
-            chain((self.app1_class, self.app2_class, self.app3_class), abci_app_transition_mapping)  # type: ignore
+            chain(
+                (self.app1_class, self.app2_class, self.app3_class),
+                abci_app_transition_mapping,
+            )
 
     def test_synchronized_data_type(self, caplog: LogCaptureFixture) -> None:
         """Test synchronized data type"""
@@ -354,7 +399,7 @@ class TestAbciAppChaining:
                 def end_block(self) -> None:
                     pass
 
-                allowed_tx_type = ""
+                payload_class = None
 
             return ConcreteRound
 
@@ -366,31 +411,98 @@ class TestAbciAppChaining:
             (self.app1_class, sync_data_cls_app1),
             (self.app2_class, sync_data_cls_app2),
         ):
-            with caplog.at_level(logging.WARNING):
-                synchronized_data = sync_data_cls(db=AbciAppDB(setup_data={}))
-                abci_app = abci_app_cls(synchronized_data, MagicMock(), logging)  # type: ignore
-                expected = (
-                    f"No `synchronized_data_class` set on {abci_app.initial_round_cls}"
-                )
-                assert expected in caplog.text
+            synchronized_data = sync_data_cls(db=AbciAppDB(setup_data={}))
+            abci_app = abci_app_cls(synchronized_data, logging.getLogger())
             for r in abci_app_cls.get_all_rounds():
-                r.synchronized_data_class = sync_data_cls  # type: ignore
+                r.synchronized_data_class = sync_data_cls
 
         abci_app_cls = chain(
             (self.app1_class, self.app2_class), abci_app_transition_mapping
         )
         synchronized_data = sync_data_cls_app2(db=AbciAppDB(setup_data={}))
-        abci_app = abci_app_cls(synchronized_data, MagicMock(), logging)  # type: ignore
+        abci_app = abci_app_cls(synchronized_data, logging.getLogger())
 
         assert abci_app.initial_round_cls == self.round_1a
         assert isinstance(abci_app.synchronized_data, sync_data_cls_app1)
-        assert abci_app.synchronized_data.dummy_attr == sentinel_app1  # type: ignore
+        assert abci_app.synchronized_data.dummy_attr == sentinel_app1
 
         app2_classes = self.app2_class.get_all_rounds()
-        for r in sorted(abci_app.get_all_rounds(), key=str):
+        for round_ in sorted(abci_app.get_all_rounds(), key=str):
             abci_app._round_results.append(abci_app.synchronized_data)
-            abci_app._schedule_round(make_concrete(r))
-            expected_cls = (sync_data_cls_app1, sync_data_cls_app2)[r in app2_classes]
+            abci_app.schedule_round(make_concrete(round_))
+            expected_cls = (sync_data_cls_app1, sync_data_cls_app2)[
+                round_ in app2_classes
+            ]
             assert isinstance(abci_app.synchronized_data, expected_cls)
-            expected_sentinel = (sentinel_app1, sentinel_app2)[r in app2_classes]
-            assert abci_app.synchronized_data.dummy_attr == expected_sentinel  # type: ignore
+            expected_sentinel = (sentinel_app1, sentinel_app2)[round_ in app2_classes]
+            assert abci_app.synchronized_data.dummy_attr == expected_sentinel
+
+    def test_precondition_for_next_app_missing_raises(
+        self, caplog: LogCaptureFixture
+    ) -> None:
+        """Test that when precondition for next AbciApp is missing an error is raised"""
+
+        class AbciApp1(AbciApp):
+            initial_round_cls = self.round_1a
+            transition_function = {
+                self.round_1a: {
+                    self.event_timeout1: self.round_1a,
+                    self.event_1b: self.round_1b,
+                },
+                self.round_1b: {
+                    self.event_1a: self.round_1a,
+                    self.event_1c: self.round_1c,
+                },
+                self.round_1c: {},
+            }
+            final_states = {self.round_1c}
+            event_to_timeout = {self.event_timeout1: self.timeout1}
+            db_pre_conditions: Dict[AppState, Set[str]] = {self.round_1a: set()}
+            db_post_conditions: Dict[AppState, Set[str]] = {self.round_1c: set()}
+            cross_period_persisted_keys = self.cross_period_persisted_keys_1
+
+        abci_app_transition_mapping: AbciAppTransitionMapping = {
+            self.round_1c: self.round_2a,
+            self.round_2c: self.round_1a,
+        }
+
+        expected = "Pre conditions '.*' of app '.*' not a post condition of app '.*' or any preceding app in path .*."
+        with pytest.raises(ValueError, match=expected):
+            chain(
+                (
+                    AbciApp1,
+                    self.app2_class,
+                ),
+                abci_app_transition_mapping,
+            )
+
+    def test_precondition_app_missing_raises(self, caplog: LogCaptureFixture) -> None:
+        """Test that missing precondition specification for next AbciApp is missing an error is raised"""
+
+        class AbciApp2(AbciApp):
+            initial_round_cls = self.round_2a
+            transition_function = {
+                self.round_2a: {
+                    self.event_timeout2: self.round_2a,
+                    self.event_2b: self.round_2b,
+                },
+                self.round_2b: {
+                    self.event_2a: self.round_2a,
+                    self.event_2c: self.round_2c,
+                },
+                self.round_2c: {},
+            }
+            final_states = {self.round_2c}
+            event_to_timeout = {self.event_timeout2: self.timeout2}
+            db_pre_conditions: Dict[AppState, Set[str]] = {}
+            db_post_conditions: Dict[AppState, Set[str]] = {self.round_2c: {self.key_2}}
+            cross_period_persisted_keys = self.cross_period_persisted_keys_2
+
+        abci_app_transition_mapping: AbciAppTransitionMapping = {
+            self.round_1c: self.round_2a,
+            self.round_2c: self.round_1a,
+        }
+
+        expected = "No pre-conditions have been set for .*! You need to explicitly specify them as empty if there are no pre-conditions for this FSM."
+        with pytest.raises(ValueError, match=expected):
+            chain((self.app1_class, AbciApp2), abci_app_transition_mapping)

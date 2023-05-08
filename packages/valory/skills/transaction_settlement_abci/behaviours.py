@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abci' skill."""
+
 import binascii
 import pprint
 import re
@@ -76,9 +77,9 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     FinalizationRound,
     RandomnessTransactionSubmissionRound,
     ResetRound,
-    SelectKeeperTransactionSubmissionRoundA,
-    SelectKeeperTransactionSubmissionRoundB,
-    SelectKeeperTransactionSubmissionRoundBAfterTimeout,
+    SelectKeeperTransactionSubmissionARound,
+    SelectKeeperTransactionSubmissionBAfterTimeoutRound,
+    SelectKeeperTransactionSubmissionBRound,
     SynchronizeLateMessagesRound,
     SynchronizedData,
     TransactionSubmissionAbciApp,
@@ -165,7 +166,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         return []
 
     def _get_tx_data(
-        self, message: ContractApiMessage
+        self, message: ContractApiMessage, use_flashbots: bool
     ) -> Generator[None, None, TxDataType]:
         """Get the transaction data from a `ContractApiMessage`."""
         tx_data: TxDataType = {
@@ -197,7 +198,7 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
 
         # Send transaction
         tx_digest, rpc_status = yield from self.send_raw_transaction(
-            message.raw_transaction
+            message.raw_transaction, use_flashbots
         )
 
         # Handle transaction results
@@ -252,19 +253,19 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
         }
 
         # Set hash, nonce and tip.
-        self.params.tx_hash = cast(str, tx_data["tx_digest"])
-        if nonce == self.params.nonce:
+        self.params.mutable_params.tx_hash = cast(str, tx_data["tx_digest"])
+        if nonce == self.params.mutable_params.nonce:
             self.context.logger.info(
                 "Attempting to replace transaction "
-                f"with old gas price parameters {self.params.gas_price}, using new gas price parameters {gas_price}"
+                f"with old gas price parameters {self.params.mutable_params.gas_price}, using new gas price parameters {gas_price}"
             )
         else:
             self.context.logger.info(
                 f"Sent transaction for mining with gas parameters {gas_price}"
             )
-            self.params.nonce = nonce
-        self.params.gas_price = gas_price
-        self.params.fallback_gas = fallback_gas
+            self.params.mutable_params.nonce = nonce
+        self.params.mutable_params.gas_price = gas_price
+        self.params.mutable_params.fallback_gas = fallback_gas
 
         return tx_data
 
@@ -323,7 +324,6 @@ class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC):
 class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
     """Retrieve randomness."""
 
-    behaviour_id = "randomness_transaction_submission"
     matching_round = RandomnessTransactionSubmissionRound
     payload_class = RandomnessPayload
 
@@ -333,8 +333,7 @@ class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-a
 ):
     """Select the keeper agent."""
 
-    behaviour_id = "select_keeper_transaction_submission_a"
-    matching_round = SelectKeeperTransactionSubmissionRoundA
+    matching_round = SelectKeeperTransactionSubmissionARound
     payload_class = SelectKeeperPayload
 
     def async_act(self) -> Generator:
@@ -358,8 +357,7 @@ class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-a
 ):
     """Select the keeper b agent."""
 
-    behaviour_id = "select_keeper_transaction_submission_b"
-    matching_round = SelectKeeperTransactionSubmissionRoundB
+    matching_round = SelectKeeperTransactionSubmissionBRound
 
     def async_act(self) -> Generator:
         """
@@ -418,14 +416,12 @@ class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disabl
 ):
     """Select the keeper b agent after a timeout."""
 
-    behaviour_id = "select_keeper_transaction_submission_b_after_timeout"
-    matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
+    matching_round = SelectKeeperTransactionSubmissionBAfterTimeoutRound
 
 
 class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
     """Validate a transaction."""
 
-    behaviour_id = "validate_transaction"
     matching_round = ValidateTransactionRound
 
     def async_act(self) -> Generator:
@@ -490,14 +486,16 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseBehaviour):
         return verified
 
 
-CHECK_TX_HISTORY = "check_transaction_history"
-
-
 class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
     """Check the transaction history."""
 
-    behaviour_id = CHECK_TX_HISTORY
     matching_round = CheckTransactionHistoryRound
+    check_expected_to_be_verified = "The next tx check"
+
+    @property
+    def history(self) -> List[str]:
+        """Get the history of hashes."""
+        return self.synchronized_data.tx_hashes_history
 
     def async_act(self) -> Generator:
         """Do the action."""
@@ -533,13 +531,7 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
         self,
     ) -> Generator[None, None, Tuple[VerificationStatus, Optional[str]]]:
         """Check the transaction history."""
-        history = (
-            self.synchronized_data.tx_hashes_history
-            if self.behaviour_id == CHECK_TX_HISTORY
-            else self.synchronized_data.late_arriving_tx_hashes
-        )
-
-        if not history:
+        if not self.history:
             self.context.logger.error(
                 "An unexpected error occurred! The synchronized data do not contain any transaction hashes, "
                 f"but entered the `{self.behaviour_id}` behaviour."
@@ -547,9 +539,9 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
             return VerificationStatus.ERROR, None
 
         self.context.logger.info(
-            f"Starting check for the transaction history: {history}."
+            f"Starting check for the transaction history: {self.history}."
         )
-        for tx_hash in history[::-1]:
+        for tx_hash in self.history[::-1]:
             self.context.logger.info(f"Checking hash {tx_hash}...")
             contract_api_msg = yield from self._verify_tx(tx_hash)
 
@@ -587,14 +579,9 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour):
 
             if revert_reason is not None:
                 if self._safe_nonce_reused(revert_reason):
-                    check_expected_to_be_verified = (
-                        "The next tx check"
-                        if self.behaviour_id == CHECK_TX_HISTORY
-                        else "One of the next tx checks"
-                    )
                     self.context.logger.info(
                         f"The safe's nonce has been reused for {tx_hash}. "
-                        f"{check_expected_to_be_verified} is expected to be verified!"
+                        f"{self.check_expected_to_be_verified} is expected to be verified!"
                     )
                     # this loop might take a long time
                     # we do not want to starve the rest of the behaviour
@@ -637,14 +624,22 @@ class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
 ):
     """Check the late-arriving transaction hashes."""
 
-    behaviour_id = "check_late_tx_hashes"
     matching_round = CheckLateTxHashesRound
+    check_expected_to_be_verified = "One of the next tx checks"
+
+    @property
+    def history(self) -> List[str]:
+        """Get the history of hashes."""
+        return [
+            hash_
+            for hashes in self.synchronized_data.late_arriving_tx_hashes.values()
+            for hash_ in hashes
+        ]
 
 
 class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
     """Synchronize late-arriving messages behaviour."""
 
-    behaviour_id = "sync_late_messages"
     matching_round = SynchronizeLateMessagesRound
 
     def __init__(self, **kwargs: Any):
@@ -652,10 +647,18 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
         super().__init__(**kwargs)
         # if we timed out during finalization, but we managed to receive a tx hash,
         # then we sync it here by initializing the `_tx_hashes` with the unsynced hash.
-        self._tx_hashes: str = self.params.tx_hash
+        self._tx_hashes: str = self.params.mutable_params.tx_hash
         self._messages_iterator: Iterator[ContractApiMessage] = iter(
-            self.params.late_messages
+            self.params.mutable_params.late_messages
         )
+        self.use_flashbots = False
+
+    def setup(self) -> None:
+        """Setup the `SynchronizeLateMessagesBehaviour`."""
+        tx_params = skill_input_hex_to_payload(
+            self.synchronized_data.most_voted_tx_hash
+        )
+        self.use_flashbots = tx_params["use_flashbots"]
 
     def async_act(self) -> Generator:
         """Do the action."""
@@ -663,7 +666,9 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             current_message = next(self._messages_iterator, None)
             if current_message is not None:
-                tx_data = yield from self._get_tx_data(current_message)
+                tx_data = yield from self._get_tx_data(
+                    current_message, self.use_flashbots
+                )
                 self.context.logger.info(
                     f"Found a late arriving message {current_message}. Result data: {tx_data}"
                 )
@@ -678,8 +683,8 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             # reset the local parameters if we were able to send them.
-            self.params.tx_hash = ""
-            self.params.late_messages = []
+            self.params.mutable_params.tx_hash = ""
+            self.params.mutable_params.late_messages = []
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -688,7 +693,6 @@ class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseBehaviour):
 class SignatureBehaviour(TransactionSettlementBaseBehaviour):
     """Signature behaviour."""
 
-    behaviour_id = "sign"
     matching_round = CollectSignatureRound
 
     def async_act(self) -> Generator:
@@ -704,7 +708,7 @@ class SignatureBehaviour(TransactionSettlementBaseBehaviour):
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
             self.context.logger.info(
-                f"Consensus reached on tx hash: {self.synchronized_data.most_voted_tx_hash}"
+                f"Agreement reached on tx data: {self.synchronized_data.most_voted_tx_hash}"
             )
             signature_hex = yield from self._get_safe_tx_signature()
             payload = SignaturePayload(self.context.agent_address, signature_hex)
@@ -735,7 +739,6 @@ class SignatureBehaviour(TransactionSettlementBaseBehaviour):
 class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
     """Finalize behaviour."""
 
-    behaviour_id = "finalize"
     matching_round = FinalizationRound
 
     def _i_am_not_sending(self) -> bool:
@@ -787,7 +790,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
                 self.context.logger.error(
                     "Trying to finalize a transaction which has been verified already!"
                 )
-            else:
+            else:  # pragma: no cover
                 self.context.logger.info(
                     f"Finalization tx digest: {cast(str, tx_data['tx_digest'])}"
                 )
@@ -796,6 +799,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
                 )
 
             tx_hashes_history = self.synchronized_data.tx_hashes_history
+
             if tx_data["tx_digest"] != "":
                 tx_hashes_history.append(cast(str, tx_data["tx_digest"]))
 
@@ -820,7 +824,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             yield from self.send_a2a_transaction(payload)
             # reset the local tx hash parameter if we were able to send it
-            self.params.tx_hash = ""
+            self.params.mutable_params.tx_hash = ""
             yield from self.wait_until_round_end()
 
         self.set_done()
@@ -848,13 +852,15 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
                 key: payload.signature
                 for key, payload in self.synchronized_data.participant_to_signature.items()
             },
-            nonce=self.params.nonce,
-            old_price=self.params.gas_price,
+            nonce=self.params.mutable_params.nonce,
+            old_price=self.params.mutable_params.gas_price,
             operation=tx_params["operation"],
-            fallback_gas=self.params.fallback_gas,
+            fallback_gas=self.params.mutable_params.fallback_gas,
         )
 
-        tx_data = yield from self._get_tx_data(contract_api_msg)
+        tx_data = yield from self._get_tx_data(
+            contract_api_msg, tx_params["use_flashbots"]
+        )
         return tx_data
 
     def handle_late_messages(self, behaviour_id: str, message: Message) -> None:
@@ -868,7 +874,7 @@ class FinalizeBehaviour(TransactionSettlementBaseBehaviour):
             and behaviour_id == self.behaviour_id
         ):
             self.context.logger.info(f"Late message arrived: {message}")
-            self.params.late_messages.append(message)
+            self.params.mutable_params.late_messages.append(message)
         else:
             super().handle_late_messages(behaviour_id, message)
 
@@ -877,7 +883,6 @@ class ResetBehaviour(TransactionSettlementBaseBehaviour):
     """Reset behaviour."""
 
     matching_round = ResetRound
-    behaviour_id = "reset"
 
     def async_act(self) -> Generator:
         """Do the action."""
@@ -896,7 +901,7 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the basic transaction settlement."""
 
     initial_behaviour_cls = RandomnessTransactionSubmissionBehaviour
-    abci_app_cls = TransactionSubmissionAbciApp  # type: ignore
+    abci_app_cls = TransactionSubmissionAbciApp
     behaviours: Set[Type[BaseBehaviour]] = {
         RandomnessTransactionSubmissionBehaviour,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore

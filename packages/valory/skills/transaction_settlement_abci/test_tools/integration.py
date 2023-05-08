@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,8 +23,9 @@
 import binascii
 import os
 import tempfile
+from abc import ABC
 from math import ceil
-from typing import Any, Dict, cast
+from typing import Any, Dict, Union, cast
 
 from aea.crypto.base import Crypto
 from aea.crypto.registries import make_crypto, make_ledger_api
@@ -72,7 +73,7 @@ DUMMY_MAX_PRIORITY_FEE_PER_GAS = 3000000000
 DUMMY_REPRICING_MULTIPLIER = 1.1
 
 
-class _SafeConfiguredHelperIntegration(IntegrationBaseCase):
+class _SafeConfiguredHelperIntegration(IntegrationBaseCase, ABC):  # pragma: no cover
     """Base test class for integration tests with Gnosis, but no contract, deployed."""
 
     safe_owners: Dict[str, Crypto]
@@ -97,7 +98,9 @@ class _SafeConfiguredHelperIntegration(IntegrationBaseCase):
         assert cls.keeper_address in cls.safe_owners  # nosec
 
 
-class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
+class _GnosisHelperIntegration(
+    _SafeConfiguredHelperIntegration, ABC
+):  # pragma: no cover
     """Class that assists Gnosis instantiation."""
 
     safe_contract_address: str = "0x68FCdF52066CcE5612827E872c45767E5a1f6551"
@@ -118,7 +121,7 @@ class _GnosisHelperIntegration(_SafeConfiguredHelperIntegration):
         )
 
 
-class _TxHelperIntegration(_GnosisHelperIntegration):
+class _TxHelperIntegration(_GnosisHelperIntegration, ABC):  # pragma: no cover
     """Class that assists tx settlement related operations."""
 
     tx_settlement_synchronized_data: TxSettlementSynchronizedSata
@@ -139,7 +142,24 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             participant_to_signature[address] = SignaturePayload(
                 sender=address,
                 signature=signature_hex,
-            )
+            ).json
+
+        # FIXME: The following loop is a patch. The
+        #  [_get_python_modules](https://github.com/valory-xyz/open-aea/blob/d0e60881b1371442c3572df86c53fc92dc9228fa/aea/skills/base.py#L907-L925)
+        #  is getting the python modules from the skill directory.
+        #  As we can see from the code, the path will end up being relative, which means that the
+        #  [_metaclass_registry_key](https://github.com/valory-xyz/open-autonomy/blob/5d151f1fff4934f70be8c5f6be77705cc2e6ef4c/packages/valory/skills/abstract_round_abci/base.py#L167)
+        #  inserted in the `_MetaPayload`'s registry will also be relative. However, this is causing issues when calling
+        #  `BaseTxPayload.from_json(payload_json)` later from the property below
+        #  (`self.tx_settlement_synchronized_data.participant_to_signature`) because the `payload_json` will have been
+        #  serialized using an imported payload (the `SignaturePayload` above), and therefore a key error will be
+        #  raised since the imported payload's path is not relative and the registry has a relative path as a key.
+        for payload in participant_to_signature.values():
+            registry_key = "_metaclass_registry_key"
+            payload_value = payload[registry_key]
+            payload_cls_name = payload_value.split(".")[-1]
+            patched_registry_key = f"payloads.{payload_cls_name}"
+            payload[registry_key] = patched_registry_key
 
         self.tx_settlement_synchronized_data.update(
             participant_to_signature=participant_to_signature,
@@ -160,13 +180,13 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
 
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=FinalizeBehaviour.behaviour_id,
+            behaviour_id=FinalizeBehaviour.auto_behaviour_id(),
             synchronized_data=self.tx_settlement_synchronized_data,
         )
         behaviour = cast(FinalizeBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.behaviour_id == FinalizeBehaviour.behaviour_id  # nosec
-        stored_nonce = behaviour.params.nonce
-        stored_gas_price = behaviour.params.gas_price
+        assert behaviour.behaviour_id == FinalizeBehaviour.auto_behaviour_id()
+        stored_nonce = behaviour.params.mutable_params.nonce
+        stored_gas_price = behaviour.params.mutable_params.gas_price
 
         handlers: HandlersType = [
             self.contract_handler,
@@ -219,12 +239,12 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
         }
 
         behaviour = cast(FinalizeBehaviour, self.behaviour.current_behaviour)
-        assert behaviour.params.gas_price == gas_price_used  # nosec
-        assert behaviour.params.nonce == nonce_used  # nosec
+        assert behaviour.params.mutable_params.gas_price == gas_price_used  # nosec
+        assert behaviour.params.mutable_params.nonce == nonce_used  # nosec
         if simulate_timeout:
-            assert behaviour.params.tx_hash == tx_digest  # nosec
+            assert behaviour.params.mutable_params.tx_hash == tx_digest  # nosec
         else:
-            assert behaviour.params.tx_hash == ""  # nosec
+            assert behaviour.params.mutable_params.tx_hash == ""  # nosec
 
         # if we are repricing
         if nonce_used == stored_nonce:
@@ -243,12 +263,13 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
                 "maxFeePerGas": DUMMY_MAX_FEE_PER_GAS,
             }, "The used parameters do not match the ones returned from the gas pricing method!"
 
+        update_params: Dict[str, Union[int, str, Dict[str, int]]]
         if not simulate_timeout:
             hashes = self.tx_settlement_synchronized_data.tx_hashes_history
             hashes.append(tx_digest)
             update_params = dict(
                 tx_hashes_history="".join(hashes),
-                final_verification_status=tx_data["status"],
+                final_verification_status=VerificationStatus(tx_data["status"]).value,
             )
         else:
             # store the tx hash that we have missed and update missed messages.
@@ -256,14 +277,15 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
                 self.behaviour.current_behaviour, FinalizeBehaviour
             )
             self.mock_a2a_transaction()
-            self.behaviour.current_behaviour.params.tx_hash = tx_digest
-            update_params = dict(
-                missed_messages=self.tx_settlement_synchronized_data.missed_messages
-                + 1,
-            )
+            self.behaviour.current_behaviour.params.mutable_params.tx_hash = tx_digest
+            missed_messages = self.tx_settlement_synchronized_data.missed_messages
+            missed_messages[
+                self.tx_settlement_synchronized_data.most_voted_keeper_address
+            ] += 1
+            update_params = dict(missed_messages=missed_messages)
 
         self.tx_settlement_synchronized_data.update(
-            synchronized_data_class=None, **update_params  # type: ignore
+            synchronized_data_class=None, **update_params
         )
 
     def validate_tx(
@@ -272,9 +294,11 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
         """Validate the sent transaction."""
 
         if simulate_timeout:
-            self.tx_settlement_synchronized_data.update(
-                missed_messages=self.tx_settlement_synchronized_data.missed_messages + 1
-            )
+            missed_messages = self.tx_settlement_synchronized_data.missed_messages
+            missed_messages[
+                tuple(self.tx_settlement_synchronized_data.all_participants)[0]
+            ] += 1
+            self.tx_settlement_synchronized_data.update(missed_messages=missed_messages)
         else:
             handlers: HandlersType = [
                 self.ledger_handler,
@@ -295,7 +319,7 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             _, verif_msg = self.process_n_messages(
                 2,
                 self.tx_settlement_synchronized_data,
-                ValidateTransactionBehaviour.behaviour_id,
+                ValidateTransactionBehaviour.auto_behaviour_id(),
                 handlers,
                 expected_content,
                 expected_types,
@@ -309,6 +333,6 @@ class _TxHelperIntegration(_GnosisHelperIntegration):
             ], f"Message not verified: {verif_msg.state.body}"
 
             self.tx_settlement_synchronized_data.update(
-                final_verification_status=VerificationStatus.VERIFIED,
+                final_verification_status=VerificationStatus.VERIFIED.value,
                 final_tx_hash=self.tx_settlement_synchronized_data.to_be_validated_tx_hash,
             )

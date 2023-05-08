@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,14 +21,13 @@
 
 # pylint: skip-file
 
-from packages.valory.skills.test_abci.payloads import DummyPayload, TransactionType
+from packages.valory.skills.test_abci.payloads import DummyPayload
 
 
 def test_dummy_payload() -> None:
     """Test `DummyPayload`."""
 
-    payload = DummyPayload(sender="sender")
+    payload = DummyPayload(sender="sender", content=1)
 
     assert payload.sender == "sender"
-    assert payload.transaction_type == TransactionType.DUMMY
-    assert str(TransactionType.DUMMY) == "dummy"
+    assert payload.content == 1

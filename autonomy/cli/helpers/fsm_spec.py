@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -115,12 +115,12 @@ def check_one(
         app_class = _get_app_class_from_spec_file(spec_file, spec_format)
 
     if app_class is None:
-        raise ValueError(
+        raise ValueError(  # pragma: no cover
             "Please provide name for the app class or make sure FSM specification file is properly defined."
         )
 
     module = import_and_validate_app_class(package_path, app_class)
-    if not hasattr(module, app_class):
+    if not hasattr(module, app_class):  # pragma: no cover
         raise Exception(f'Class "{app_class}" is not in "{module}".')
 
     abci_app_class = getattr(module, app_class)
@@ -158,12 +158,15 @@ def check_all(
         click.echo(f"Checking {package_path}")
         try:
             check_one(package_path=package_path, spec_format=spec_format)
-        except DFASpecificationError:
-            spec_check_failed.append(str(package_path))
+        except DFASpecificationError as e:
+            spec_check_failed.append((str(package_path), str(e)))
 
     if len(spec_check_failed) > 0:
+        error_strings = map(
+            lambda x: f"Package: {x[0]}\nError: {x[1]}\n", spec_check_failed
+        )
         error_message = (
-            "Specifications check for following packages failed.\n"
-            + "\n".join(spec_check_failed)
+            "Specifications check for following packages failed.\n\n"
+            + "\n".join(error_strings)
         )
         raise DFASpecificationError(error_message)

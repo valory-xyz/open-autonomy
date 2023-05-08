@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -45,11 +45,14 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     open_autonomy_dir: Optional[Path] = None,
     agent_instances: Optional[List[str]] = None,
     multisig_address: Optional[str] = None,
+    consensus_threshold: Optional[int] = None,
     log_level: str = INFO,
     apply_environment_variables: bool = False,
     image_version: Optional[str] = None,
     use_hardhat: bool = False,
     use_acn: bool = False,
+    use_tm_testnet_setup: bool = False,
+    image_author: Optional[str] = None,
 ) -> str:
     """Generate the deployment for the service."""
 
@@ -61,12 +64,14 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         agent_instances=agent_instances,
         apply_environment_variables=apply_environment_variables,
     )
+    service_builder.deplopyment_type = type_of_deployment
     service_builder.log_level = log_level
-
-    if multisig_address is not None:
-        service_builder.try_update_multisig_address(
-            address=multisig_address,
-        )
+    service_builder.try_update_runtime_params(
+        multisig_address=multisig_address,
+        agent_instances=agent_instances,
+        consensus_threshold=consensus_threshold,
+    )
+    service_builder.try_update_abci_connection_params()
 
     DeploymentGenerator = DEPLOYMENT_OPTIONS[type_of_deployment]
     deployment = DeploymentGenerator(
@@ -76,6 +81,8 @@ def generate_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         packages_dir=packages_dir,
         open_aea_dir=open_aea_dir,
         open_autonomy_dir=open_autonomy_dir,
+        use_tm_testnet_setup=use_tm_testnet_setup,
+        image_author=image_author,
     )
 
     (

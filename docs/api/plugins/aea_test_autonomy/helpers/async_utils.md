@@ -9,7 +9,10 @@ Helpers for Pytest tests with asynchronous programming.
 #### wait`_`for`_`condition
 
 ```python
-def wait_for_condition(condition_checker: Callable, timeout: int = 2, error_msg: str = "Timeout", period: float = 0.001) -> None
+def wait_for_condition(condition_checker: Callable,
+                       timeout: int = 2,
+                       error_msg: str = "Timeout",
+                       period: float = 0.001) -> None
 ```
 
 Wait for condition occures in selected timeout.
@@ -31,7 +34,8 @@ Provides better cancel behaviour: on cancel it will wait till cancelled complete
 #### `__`init`__`
 
 ```python
-def __init__(coro: Awaitable, loop: AbstractEventLoop) -> None
+def __init__(coro: Union[Coroutine[Any, Any, Any], Generator[Any, None, Any]],
+             loop: AbstractEventLoop) -> None
 ```
 
 Init the task.
@@ -128,7 +132,9 @@ Run code inside thread.
 #### call
 
 ```python
-def call(coro: Awaitable) -> Any
+def call(
+        coro: Union[Coroutine[Any, Any, Any], Generator[Any, None,
+                                                        Any]]) -> Any
 ```
 
 Run a coroutine inside the event loop.
@@ -176,7 +182,8 @@ Set up the class.
 #### execute
 
 ```python
-def execute(coro: Awaitable, timeout: float = DEFAULT_ASYNC_TIMEOUT) -> Any
+def execute(coro: Union[Coroutine[Any, Any, Any], Generator[Any, None, Any]],
+            timeout: float = DEFAULT_ASYNC_TIMEOUT) -> Any
 ```
 
 Execute a coroutine and wait its completion.

@@ -31,12 +31,11 @@ class AbciApp(
     transition_function: AbciAppTransitionFunction
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
-    cross_period_persisted_keys: List[str] = []
+    cross_period_persisted_keys: FrozenSet[str] = frozenset()
 
     def __init__(
         self,
         synchronized_data: BaseSynchronizedData,
-        consensus_params: ConsensusParams,
         logger: logging.Logger,
     ):
         """Initialize the AbciApp."""
@@ -103,6 +102,16 @@ class MyAbciApp(AbciApp):
     event_to_timeout: EventToTimeout = {
         Event.ROUND_TIMEOUT: 30.0,
     }
+    db_pre_conditions: Dict[AppState, List[str]] = {
+        RoundA: {
+            get_name(BaseSynchronizedData.required_value),
+        },
+    }
+    db_post_conditions: Dict[AppState, List[str]] = {
+        FinalRound: {
+            get_name(BaseSynchronizedData.generated_value),
+        },
+    }
     # ...
 ```
 
@@ -124,5 +133,14 @@ The set of `initial_states` is optionally provided by the developer. If none is 
 provided a set containing the `initial_round_cls` is inferred automatically.
 When the {{fsm_app}} processes an `Event` it schedules the round associated to the next state by looking at the corresponding transition from the `transition_function` and sets the associated timeouts, if
 any.
+The `db_pre_conditions` and `db_post_conditions` are conditions that need to be met when entering and when leaving 
+the `AbciApp`. These are taken into consideration when chaining FSMs, in order to make sure that
+the required data exist in the synchronized data. Therefore, an application can fail early, before running any rounds,
+and inform the user about an incorrect chaining attempt. 
+The pre- and post- conditions on the synchronized data need to be defined for each initial and final state 
+in an `AbciApp`. If there are no conditions required for an app, they can be mapped to an empty list. 
+Otherwise, the list should contain the names of all the required properties in the synchronized data.
+The suggested way to do this is to use the `get_name` function, defined in the `abstract_round_abci`, 
+so that strings are avoided as they can get out of sync.
 
 In addition to the `AbciApp`class, the {{fsm_app}} also requires that the `AbstractRoundBehaviour` class be implemented in order to run the state transition logic contained in it.

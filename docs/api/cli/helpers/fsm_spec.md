@@ -9,7 +9,8 @@ FSM spec helpers.
 #### import`_`and`_`validate`_`app`_`class
 
 ```python
-def import_and_validate_app_class(module_path: Path, app_class: str) -> ModuleType
+def import_and_validate_app_class(module_path: Path,
+                                  app_class: str) -> ModuleType
 ```
 
 Import and validate rounds.py module.
@@ -19,7 +20,10 @@ Import and validate rounds.py module.
 #### update`_`one
 
 ```python
-def update_one(package_path: Path, app_class: Optional[str] = None, spec_format: str = FSMSpecificationLoader.OutputFormats.YAML) -> None
+def update_one(
+        package_path: Path,
+        app_class: Optional[str] = None,
+        spec_format: str = FSMSpecificationLoader.OutputFormats.YAML) -> None
 ```
 
 Update FSM specification for one package.
@@ -29,7 +33,10 @@ Update FSM specification for one package.
 #### check`_`one
 
 ```python
-def check_one(package_path: Path, app_class: Optional[str] = None, spec_format: str = FSMSpecificationLoader.OutputFormats.YAML) -> None
+def check_one(
+        package_path: Path,
+        app_class: Optional[str] = None,
+        spec_format: str = FSMSpecificationLoader.OutputFormats.YAML) -> None
 ```
 
 Check for one.
@@ -39,7 +46,9 @@ Check for one.
 #### check`_`all
 
 ```python
-def check_all(packages_dir: Path, spec_format: str = FSMSpecificationLoader.OutputFormats.YAML) -> None
+def check_all(
+        packages_dir: Path,
+        spec_format: str = FSMSpecificationLoader.OutputFormats.YAML) -> None
 ```
 
 Check all the available definitions.

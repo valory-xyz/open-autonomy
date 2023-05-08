@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -23,13 +23,14 @@
 
 import re
 from enum import Enum
-from typing import Optional, Tuple, cast
+from typing import FrozenSet, List, Optional, Tuple, Union, cast
 
 import pytest
 
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     BaseSynchronizedData,
+    BaseTxPayload,
     TransactionNotValidError,
 )
 from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
@@ -53,34 +54,64 @@ from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
 class TestCollectionRound(_BaseRoundTestClass):
     """Test class for CollectionRound."""
 
+    def setup(
+        self,
+    ) -> None:
+        """Setup test."""
+        super().setup()
+
+        self.test_round = DummyCollectionRound(synchronized_data=self.synchronized_data)
+
+    def test_serialized_collection(self) -> None:
+        """Test `serialized_collection` property."""
+        assert self.test_round.serialized_collection == {}
+
+        for payload in self.tx_payloads:
+            self.test_round.process_payload(payload)
+
+        mcs_key = "packages.valory.skills.abstract_round_abci.test_tools.rounds.DummyTxPayload"
+        expected = {
+            f"agent_{i}": {
+                "_metaclass_registry_key": mcs_key,
+                "id_": self.tx_payloads[i].id_,
+                "round_count": self.tx_payloads[i].round_count,
+                "sender": self.tx_payloads[i].sender,
+                "value": self.tx_payloads[i].value,
+                "vote": self.tx_payloads[i].vote,
+            }
+            for i in range(4)
+        }
+
+        assert self.test_round.serialized_collection == expected
+
     def test_run(
         self,
     ) -> None:
         """Run tests."""
 
-        test_round = DummyCollectionRound(
-            synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
-        )
+        round_id = DummyCollectionRound.auto_round_id()
 
         # collection round may set a flag to allow payments from inactive agents (rejoin)
-        assert test_round._allow_rejoin_payloads is False  # default
-        assert test_round.accepting_payloads_from == self.synchronized_data.participants
-        test_round._allow_rejoin_payloads = True
+        assert self.test_round._allow_rejoin_payloads is False  # default
         assert (
-            test_round.accepting_payloads_from
+            self.test_round.accepting_payloads_from
+            == self.synchronized_data.participants
+        )
+        self.test_round._allow_rejoin_payloads = True
+        assert (
+            self.test_round.accepting_payloads_from
             == self.synchronized_data.all_participants
         )
 
         first_payload, *_ = self.tx_payloads
-        test_round.process_payload(first_payload)
-        assert test_round.collection[first_payload.sender] == first_payload
+        self.test_round.process_payload(first_payload)
+        assert self.test_round.collection[first_payload.sender] == first_payload
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: round_id",
+            match=f"internal error: sender agent_0 has already sent value for round: {round_id}",
         ):
-            test_round.process_payload(first_payload)
+            self.test_round.process_payload(first_payload)
 
         with pytest.raises(
             ABCIAppInternalError,
@@ -88,23 +119,13 @@ class TestCollectionRound(_BaseRoundTestClass):
                 "internal error: sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
-            test_round.process_payload(DummyTxPayload("sender", "value"))
-
-        with pytest.raises(
-            ABCIAppInternalError,
-            match=re.escape(
-                "internal error: Expecting serialized data of chunk size 2, got: 0xZZZ in round_id"
-            ),
-        ):
-            test_round._hash_length = 2
-            test_round.process_payload(DummyTxPayload("agent_1", "0xZZZ"))
-            test_round._hash_length = None
+            self.test_round.process_payload(DummyTxPayload("sender", "value"))
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: round_id",
+            match=f"sender agent_0 has already sent value for round: {round_id}",
         ):
-            test_round.check_payload(first_payload)
+            self.test_round.check_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
@@ -112,17 +133,9 @@ class TestCollectionRound(_BaseRoundTestClass):
                 "sender not in list of participants: ['agent_0', 'agent_1', 'agent_2', 'agent_3']"
             ),
         ):
-            test_round.check_payload(DummyTxPayload("sender", "value"))
+            self.test_round.check_payload(DummyTxPayload("sender", "value"))
 
-        with pytest.raises(
-            TransactionNotValidError,
-            match=re.escape(
-                "Expecting serialized data of chunk size 2, got: 0xZZZ in round_id"
-            ),
-        ):
-            test_round.check_payload(DummyTxPayload("agent_1", "0xZZZ"))
-
-        self._test_payload_with_wrong_round_count(test_round)
+        self._test_payload_with_wrong_round_count(self.test_round)
 
 
 class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
@@ -135,8 +148,8 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
 
         test_round = DummyCollectDifferentUntilAllRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
+        round_id = DummyCollectDifferentUntilAllRound.auto_round_id()
 
         first_payload, *payloads = self.tx_payloads
         test_round.process_payload(first_payload)
@@ -144,26 +157,26 @@ class TestCollectDifferentUntilAllRound(_BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: round_id",
+            match=f"internal error: sender agent_0 has already sent value for round: {round_id}",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: round_id",
+            match=f"sender agent_0 has already sent value for round: {round_id}",
         ):
             test_round.check_payload(first_payload)
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: `CollectDifferentUntilAllRound` encountered a value 'agent_0' that already exists.",
+            match="internal error: `CollectDifferentUntilAllRound` encountered a value '.*' that already exists.",
         ):
-            first_payload.sender = "other"
+            object.__setattr__(first_payload, "sender", "other")
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="`CollectDifferentUntilAllRound` encountered a value 'agent_0' that already exists.",
+            match="`CollectDifferentUntilAllRound` encountered a value '.*' that already exists.",
         ):
             test_round.check_payload(first_payload)
 
@@ -185,8 +198,8 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
 
         test_round = DummyCollectSameUntilAllRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
+        round_id = DummyCollectSameUntilAllRound.auto_round_id()
 
         first_payload, *payloads = [
             DummyTxPayload(
@@ -206,20 +219,20 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: sender agent_0 has already sent value for round: round_id",
+            match=f"internal error: sender agent_0 has already sent value for round: {round_id}",
         ):
             test_round.process_payload(first_payload)
 
         with pytest.raises(
             TransactionNotValidError,
-            match="sender agent_0 has already sent value for round: round_id",
+            match=f"sender agent_0 has already sent value for round: {round_id}",
         ):
             test_round.check_payload(first_payload)
 
         with pytest.raises(
             ABCIAppInternalError,
-            match="internal error: `CollectSameUntilAllRound` encountered a value 'other' "
-            "which is not the same as the already existing one: 'test",
+            match="internal error: `CollectSameUntilAllRound` encountered a value '.*' "
+            "which is not the same as the already existing one: '.*'",
         ):
             bad_payload = DummyTxPayload(
                 sender="other",
@@ -229,8 +242,8 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
 
         with pytest.raises(
             TransactionNotValidError,
-            match="`CollectSameUntilAllRound` encountered a value 'other' "
-            "which is not the same as the already existing one: 'test",
+            match="`CollectSameUntilAllRound` encountered a value '.*' "
+            "which is not the same as the already existing one: '.*'",
         ):
             test_round.check_payload(bad_payload)
 
@@ -246,17 +259,21 @@ class TestCollectSameUntilAllRound(_BaseRoundTestClass):
 class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
     """Test CollectSameUntilThresholdRound."""
 
+    @pytest.mark.parametrize(
+        "selection_key",
+        ("dummy_selection_key", tuple(f"dummy_selection_key_{i}" for i in range(2))),
+    )
     def test_run(
         self,
+        selection_key: Union[str, Tuple[str, ...]],
     ) -> None:
         """Run tests."""
 
         test_round = DummyCollectSameUntilThresholdRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
         test_round.collection_key = "dummy_collection_key"
-        test_round.selection_key = "dummy_selection_key"
+        test_round.selection_key = selection_key
         assert test_round.end_block() is None
 
         first_payload, *payloads = get_dummy_tx_payloads(
@@ -282,9 +299,10 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
 
         test_round.none_event = DummyEvent.NONE
         test_round.collection.clear()
-        payloads = get_dummy_tx_payloads(self.participants, value=None)
-        for payload in payloads:  # must overwrite the value...
-            payload._value = None
+        payloads = get_dummy_tx_payloads(
+            self.participants, value=None, is_value_none=True, is_vote_none=True
+        )
+        for payload in payloads:
             test_round.process_payload(payload)
         assert test_round.most_voted_payload is None
         return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
@@ -305,7 +323,6 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
 
         test_round = DummyCollectSameUntilThresholdRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = get_dummy_tx_payloads(
@@ -329,8 +346,12 @@ class TestCollectSameUntilThresholdRound(_BaseRoundTestClass):
 class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest):
     """Test OnlyKeeperSendsRound."""
 
+    @pytest.mark.parametrize(
+        "payload_key", ("dummy_key", tuple(f"dummy_key_{i}" for i in range(2)))
+    )
     def test_run(
         self,
+        payload_key: Union[str, Tuple[str, ...]],
     ) -> None:
         """Run tests."""
 
@@ -338,13 +359,12 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
             synchronized_data=self.synchronized_data.update(
                 most_voted_keeper_address="agent_0"
             ),
-            consensus_params=self.consensus_params,
         )
 
-        assert not test_round.has_keeper_sent_payload
+        assert test_round.keeper_payload is None
         first_payload, *_ = self.tx_payloads
         test_round.process_payload(first_payload)
-        assert test_round.has_keeper_sent_payload
+        assert test_round.keeper_payload is not None
 
         with pytest.raises(
             ABCIAppInternalError,
@@ -386,7 +406,7 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
         self._test_payload_with_wrong_round_count(test_round)
 
         test_round.done_event = DummyEvent.DONE
-        test_round.payload_key = "dummy_key"
+        test_round.payload_key = payload_key
         assert test_round.end_block()
 
     def test_keeper_payload_is_none(
@@ -401,7 +421,6 @@ class TestOnlyKeeperSendsRound(_BaseRoundTestClass, BaseOnlyKeeperSendsRoundTest
                     synchronized_data=self.synchronized_data.update(
                         most_voted_keeper_address=keeper,
                     ),
-                    consensus_params=self.consensus_params,
                 ),
                 keeper_payloads=DummyTxPayload(keeper, None),
                 synchronized_data_update_fn=lambda _synchronized_data, _test_round: _synchronized_data,
@@ -418,7 +437,6 @@ class TestVotingRound(_BaseRoundTestClass):
         """Setup test voting round"""
         return DummyVotingRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
 
     def test_vote_count(self) -> None:
@@ -475,6 +493,27 @@ class TestVotingRound(_BaseRoundTestClass):
         return_value = cast(Tuple[BaseSynchronizedData, Enum], test_round.end_block())
         assert return_value[-1] == test_round.no_majority_event
 
+    def test_invalid_vote_payload_count(self) -> None:
+        """Testing agent vote count with invalid payload."""
+        test_round = self.setup_test_voting_round()
+        a, b, c, d = self.participants
+
+        class InvalidPayload(BaseTxPayload):
+            """InvalidPayload"""
+
+        def get_dummy_tx_payloads_(
+            participants: FrozenSet[str],
+        ) -> List[BaseTxPayload]:
+            """Returns a list of DummyTxPayload objects."""
+            return [InvalidPayload(sender=agent) for agent in sorted(participants)]
+
+        for agents in [(a, d), (c,), (b,)]:
+            for payload in get_dummy_tx_payloads_(frozenset(agents)):
+                test_round.process_payload(payload)
+
+        with pytest.raises(ValueError):
+            test_round.vote_count
+
 
 class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
     """Test CollectDifferentUntilThresholdRound."""
@@ -490,16 +529,13 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
 
         test_round = DummyCollectDifferentUntilThresholdRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
         test_round.block_confirmations = 0
         test_round.required_block_confirmations = required_confirmations
-        test_round.selection_key = "selection_key"
         test_round.collection_key = "collection_key"
         test_round.done_event = 0
-        test_round.no_majority_event = 1
         assert (
-            test_round.consensus_threshold <= required_confirmations
+            test_round.synchronized_data.consensus_threshold <= required_confirmations
         ), "Incorrect test parametrization: required confirmations cannot be set with a smalled value than the consensus threshold"
 
         first_payload, *payloads = get_dummy_tx_payloads(self.participants, vote=False)
@@ -509,11 +545,21 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
             res = test_round.end_block()
-            if test_round.block_confirmations <= required_confirmations:
-                assert res is None
-            else:
-                assert res is not None
-                assert res[1] == test_round.done_event
+            assert test_round.block_confirmations <= required_confirmations
+            assert res is None
+        assert test_round.collection_threshold_reached
+        payloads_since_consensus = 2
+        confirmations_remaining = required_confirmations - payloads_since_consensus
+        for _ in range(confirmations_remaining):
+            res = test_round.end_block()
+            assert test_round.block_confirmations <= required_confirmations
+            assert res is None
+
+        res = test_round.end_block()
+        assert test_round.block_confirmations > required_confirmations
+        assert res is not None
+        assert res[1] == test_round.done_event
+
         assert test_round.collection_threshold_reached
         self._test_payload_with_wrong_round_count(test_round)
 
@@ -522,10 +568,8 @@ class TestCollectDifferentUntilThresholdRound(_BaseRoundTestClass):
 
         test_round = DummyCollectDifferentUntilThresholdRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
         test_round.collection_key = "dummy_collection_key"
-        test_round.selection_key = "dummy_selection_key"
         test_round.done_event = DummyEvent.DONE
 
         assert test_round.end_block() is None
@@ -543,15 +587,20 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         """Test `_get_non_empty_values`."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
         payloads = get_dummy_tx_payloads(self.participants)
-        payloads[3]._value = None
+        none_payload_idx = 3
+        object.__setattr__(payloads[none_payload_idx], "value", None)
         for payload in payloads:
             test_round.process_payload(payload)
 
         non_empty_values = test_round._get_non_empty_values()
-        assert non_empty_values == [f"agent_{i}" for i in range(3)]
+        assert non_empty_values == {
+            tuple(sorted(self.participants))[i]: (f"agent_{i}", False)
+            if i != none_payload_idx
+            else (False,)
+            for i in range(4)
+        }
 
         self._test_payload_with_wrong_round_count(test_round)
 
@@ -559,9 +608,7 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
         """Test `process_payload`."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
-
         first_payload, *payloads = get_dummy_tx_payloads(self.participants)
         test_round.process_payload(first_payload)
 
@@ -571,54 +618,32 @@ class TestCollectNonEmptyUntilThresholdRound(_BaseRoundTestClass):
 
         assert test_round.collection_threshold_reached
 
-    @pytest.mark.parametrize("is_majority_possible", (True, False))
-    @pytest.mark.parametrize("reach_block_confirmations", (True, False))
-    def test_end_block_no_threshold_reached(
-        self, is_majority_possible: bool, reach_block_confirmations: bool
-    ) -> None:
-        """Test `end_block` when no collection threshold is reached."""
-        test_round = DummyCollectNonEmptyUntilThresholdRound(
-            synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
-        )
-        test_round.block_confirmations = (
-            test_round.required_block_confirmations + 1
-            if reach_block_confirmations
-            else 0
-        )
-
-        test_round.is_majority_possible = lambda *_: is_majority_possible  # type: ignore
-        test_round.no_majority_event = DummyEvent.NO_MAJORITY
-
-        res = test_round.end_block()
-
-        if (
-            test_round.block_confirmations > test_round.required_block_confirmations
-            and not is_majority_possible
-        ):
-            assert res is not None
-            assert res[0].db == self.synchronized_data.db
-            assert res[1] == test_round.no_majority_event
-        else:
-            assert res is None
-
+    @pytest.mark.parametrize(
+        "selection_key",
+        ("dummy_selection_key", tuple(f"dummy_selection_key_{i}" for i in range(2))),
+    )
     @pytest.mark.parametrize(
         "is_value_none, expected_event",
         ((True, DummyEvent.NONE), (False, DummyEvent.DONE)),
     )
-    def test_end_block(self, is_value_none: bool, expected_event: str) -> None:
+    def test_end_block(
+        self,
+        selection_key: Union[str, Tuple[str, ...]],
+        is_value_none: bool,
+        expected_event: str,
+    ) -> None:
         """Test `end_block` when collection threshold is reached."""
         test_round = DummyCollectNonEmptyUntilThresholdRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
-
-        payloads = get_dummy_tx_payloads(self.participants, is_value_none=is_value_none)
+        test_round.selection_key = selection_key
+        payloads = get_dummy_tx_payloads(
+            self.participants, is_value_none=is_value_none, is_vote_none=True
+        )
         for payload in payloads:
             test_round.process_payload(payload)
 
         test_round.collection = {f"test_{i}": payloads[i] for i in range(len(payloads))}
-        test_round.selection_key = "test"
         test_round.collection_key = "test"
         test_round.done_event = DummyEvent.DONE
         test_round.none_event = DummyEvent.NONE

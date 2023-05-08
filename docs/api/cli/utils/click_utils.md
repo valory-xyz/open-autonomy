@@ -9,7 +9,8 @@ Usefule click utils.
 #### image`_`profile`_`flag
 
 ```python
-def image_profile_flag(default: str = ImageProfiles.PRODUCTION, mark_default: bool = True) -> Callable
+def image_profile_flag(default: str = ImageProfiles.PRODUCTION,
+                       mark_default: bool = True) -> Callable
 ```
 
 Choice of one flag between: '--local/--remote'.
@@ -19,7 +20,9 @@ Choice of one flag between: '--local/--remote'.
 #### abci`_`spec`_`format`_`flag
 
 ```python
-def abci_spec_format_flag(default: str = FSMSpecificationLoader.OutputFormats.YAML, mark_default: bool = True) -> Callable
+def abci_spec_format_flag(
+        default: str = FSMSpecificationLoader.OutputFormats.YAML,
+        mark_default: bool = True) -> Callable
 ```
 
 Flags for abci spec outputs formats.
@@ -29,7 +32,12 @@ Flags for abci spec outputs formats.
 #### chain`_`selection`_`flag
 
 ```python
-def chain_selection_flag(default: str = "staging", mark_default: bool = True) -> Callable
+def chain_selection_flag(
+    default: ChainType = ChainType.LOCAL,
+    mark_default: bool = True,
+    help_string_format:
+    str = "To use {} chain profile to interact with the contracts"
+) -> Callable
 ```
 
 Flags for abci spec outputs formats.
@@ -60,8 +68,50 @@ Path parameter for CLI.
 #### convert
 
 ```python
-def convert(value: Any, param: Optional[click.Parameter], ctx: Optional[click.Context]) -> Optional[Path]
+def convert(value: Any, param: Optional[click.Parameter],
+            ctx: Optional[click.Context]) -> Optional[Path]
 ```
 
 Convert path string to `pathlib.Path`
+
+<a id="autonomy.cli.utils.click_utils.NFTArgument"></a>
+
+## NFTArgument Objects
+
+```python
+class NFTArgument(click.ParamType)
+```
+
+NFT parameter for minting tools.
+
+<a id="autonomy.cli.utils.click_utils.NFTArgument.get_metavar"></a>
+
+#### get`_`metavar
+
+```python
+def get_metavar(param: click.Parameter) -> str
+```
+
+Get metavar
+
+<a id="autonomy.cli.utils.click_utils.NFTArgument.convert"></a>
+
+#### convert
+
+```python
+def convert(value: Any, param: Optional[click.Parameter],
+            ctx: Optional[click.Context]) -> Optional[Union[Path, IPFSHash]]
+```
+
+Convert path string to `pathlib.Path`
+
+<a id="autonomy.cli.utils.click_utils.image_author_option"></a>
+
+#### image`_`author`_`option
+
+```python
+def image_author_option(fn: Callable) -> Callable
+```
+
+Wrap function with clik option for image-author
 

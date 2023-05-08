@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -36,24 +36,49 @@ from aea.cli.utils.decorators import pass_ctx
 from aea.configurations.constants import SKILL
 
 # the decoration does side-effect on the 'aea scaffold' command
-from aea.configurations.data_types import PublicId
+from aea.configurations.data_types import PackageId, PackageType, PublicId
+from aea.package_manager.v1 import PackageManagerV1
 
 from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
-from autonomy.fsm.scaffold.scaffold_skill import ScaffoldABCISkill
+from autonomy.fsm.scaffold.scaffold_skill import (
+    ScaffoldABCISkill,
+    SkillConfigUpdater,
+    TO_LOCAL_REGISTRY_FLAG,
+)
 
 
 def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
     """Add 'abstract_round_abci' skill if not present."""
-    abstract_round_abci_public_id = PublicId.from_str(
-        ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
+    MSG = (
+        "Skill valory/abstract_round_abci not found in agent dependencies, adding it..."
     )
-    if abstract_round_abci_public_id.to_latest() not in {
-        public_id.to_latest() for public_id in ctx.agent_config.skills
-    }:
-        click.echo(
-            "Skill valory/abstract_round_abci not found in agent dependencies, adding it..."
+
+    if ctx.config.get(TO_LOCAL_REGISTRY_FLAG):
+        skill_id = SkillConfigUpdater.get_actual_abstract_round_abci_package_public_id(
+            ctx
         )
-        add_item(ctx, SKILL, abstract_round_abci_public_id)
+
+        if not skill_id:
+            # add package to local registry
+            click.echo(MSG)
+            package_manager = PackageManagerV1.from_dir(Path(ctx.registry_path))
+            package_id = PackageId(
+                package_type=PackageType.SKILL,
+                public_id=PublicId.from_str(ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH),
+            )
+            package_manager.add_package(package_id, with_dependencies=True)
+            package_manager.dump()
+    else:
+        # add package to agent
+        abstract_round_abci_public_id = PublicId.from_str(
+            ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
+        )
+        if abstract_round_abci_public_id.to_latest() not in {
+            public_id.to_latest() for public_id in ctx.agent_config.skills
+        }:
+            click.echo(MSG)
+
+            add_item(ctx, SKILL, abstract_round_abci_public_id)
 
 
 @scaffold.command()  # noqa
@@ -64,9 +89,18 @@ def _add_abstract_round_abci_if_not_present(ctx: Context) -> None:
 def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None:
     """Add an ABCI skill scaffolding from an FSM specification."""
     ctx.registry_type = registry
+
     # check abstract_round_abci is in dependencies; if not, add it
     _add_abstract_round_abci_if_not_present(ctx)
 
     # scaffold AEA skill - as usual
+    # TODO: open-aea/aea/cli/scaffold.py:279 bad trick with update of ctx.cwd
+    preserve_cwd = ctx.cwd
     scaffold_item(ctx, SKILL, skill_name)
-    ScaffoldABCISkill(ctx, skill_name, Path(spec)).do_scaffolding()
+    ctx.cwd = preserve_cwd
+
+    scaffold_fsm = ScaffoldABCISkill(ctx, skill_name, Path(spec))
+    scaffold_fsm.do_scaffolding()
+
+    if ctx.config[TO_LOCAL_REGISTRY_FLAG]:
+        scaffold_fsm.add_skill_to_packages()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -56,7 +56,6 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseBehaviour):
     """Reset and pause behaviour."""
 
     matching_round = ResetAndPauseRound
-    behaviour_id = "reset_and_pause"
 
     def async_act(self) -> Generator:
         """
@@ -78,7 +77,7 @@ class ResetAndPauseBehaviour(ResetAndPauseBaseBehaviour):
             if not tendermint_reset:
                 return
         else:
-            yield from self.wait_from_last_timestamp(self.params.observation_interval)
+            yield from self.wait_from_last_timestamp(self.params.reset_pause_duration)
         self.context.logger.info("Period end.")
         self.context.benchmark_tool.save(self.synchronized_data.period_count)
 
@@ -94,7 +93,7 @@ class ResetPauseABCIConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the reset_pause_abci app."""
 
     initial_behaviour_cls = ResetAndPauseBehaviour
-    abci_app_cls = ResetPauseAbciApp  # type: ignore
-    behaviours: Set[Type[ResetAndPauseBehaviour]] = {  # type: ignore
+    abci_app_cls = ResetPauseAbciApp
+    behaviours: Set[Type[BaseBehaviour]] = {
         ResetAndPauseBehaviour,  # type: ignore
     }

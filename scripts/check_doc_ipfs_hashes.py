@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,13 +18,15 @@
 #
 # ------------------------------------------------------------------------------
 
+
 """This module contains the tools for autoupdating ipfs hashes in the documentation."""
 
 import argparse
+import itertools
 import re
 import sys
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import yaml
 from aea.cli.packages import get_package_manager
@@ -47,11 +49,13 @@ PACKAGE_TYPE_REGEX = (
 AEA_COMMAND_REGEX = rf"(?P<full_cmd>{CLI_REGEX} {CMD_REGEX} (?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}){FLAGS_REGEX})"
 FULL_PACKAGE_REGEX = rf"(?P<full_package>(?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VERSION_REGEX}?:?)?(?P<hash>{IPFS_HASH_REGEX}))"
 PACKAGE_TABLE_REGEX = rf"\|\s*{PACKAGE_TYPE_REGEX}\/{VENDOR_REGEX}\/{PACKAGE_REGEX}\/{VERSION_REGEX}\s*\|\s*`(?P<hash>{IPFS_HASH_REGEX})`\s*\|"
+PACKAGE_MAPPING_REGEX = rf"(?P<package_mapping>(?:\"{PACKAGE_TYPE_REGEX}\/{VENDOR_REGEX}\/{PACKAGE_REGEX}\/{VERSION_REGEX}\":)\s*\"(?P<hash>{IPFS_HASH_REGEX})\")"
 
 ROOT_DIR = Path(__file__).parent.parent
-# We need to skip the hash for `valory/oracle_hardhat:0.1.0:bafybeie553shfmnds6v7defynjv5kmjkqf2aygj345jbbcssevtnkbodbe`
-# because the demo is not in this repo, but the docs are
-HASH_SKIPS = ("bafybeie553shfmnds6v7defynjv5kmjkqf2aygj345jbbcssevtnkbodbe",)
+HASH_SKIPS = [
+    "Qmbh9SQLbNRawh9Km3PMEDSxo77k1wib8fYZUdZkhPBiev",  # Testing image used in tutorials/examples.
+    "bafybei0000000000000000000000000000000000000000000000000000",  # Placeholder hash used in tutorials/examples.
+]
 
 
 def read_file(filepath: str) -> str:
@@ -240,20 +244,24 @@ class PackageHashManager:
 
 
 def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
-    fix: bool = False,
+    paths: Optional[List[Path]] = None, fix: bool = False
 ) -> None:
     """Fix ipfs hashes in the docs"""
 
-    all_md_files = Path("docs").rglob("*.md")
+    paths = paths or [Path("docs")]
+
+    all_md_files = itertools.chain.from_iterable([path.rglob("*.md") for path in paths])
     errors = False
     hash_mismatches = False
     old_to_new_hashes = {}
     package_manager = PackageHashManager()
     matches = 0
 
-    # Fix full commands in docs
+    # Fix hashes in docs
     for md_file in all_md_files:
         content = read_file(str(md_file))
+
+        # Fix full commands in docs
         for match in [m.groupdict() for m in re.finditer(AEA_COMMAND_REGEX, content)]:
             matches += 1
             doc_full_cmd = match["full_cmd"]
@@ -292,7 +300,48 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
                 old_to_new_hashes[doc_hash] = expected_hash
             else:
                 print(
-                    f"IPFS hash mismatch in doc file {md_file}. Expected {expected_hash}, got {doc_hash}:\n    {doc_full_cmd}"
+                    f"IPFS hash mismatch in doc file {md_file}.\n"
+                    f"\tCommand string: {doc_full_cmd}\n"
+                    f"\tExpected: {expected_hash}\n"
+                    f"\tFound: {doc_hash}\n"
+                )
+
+        # Fix package mappings in docs
+        for match in [
+            m.groupdict() for m in re.finditer(PACKAGE_MAPPING_REGEX, content)
+        ]:
+            matches += 1
+            package_mapping = match["package_mapping"]
+            package_hash = match["hash"]
+
+            if package_hash in HASH_SKIPS:
+                continue
+
+            expected_hash = package_manager.get_hash_by_attributes(
+                match["package_type"], match["vendor"], match["package"]
+            )
+
+            if package_hash == expected_hash:
+                continue
+
+            hash_mismatches = True
+
+            if fix:
+                new_package_mapping = package_mapping.replace(
+                    package_hash, expected_hash
+                )
+                content = content.replace(package_mapping, new_package_mapping)
+
+                with open(str(md_file), "w", encoding="utf-8") as qs_file:
+                    qs_file.write(content)
+                print(f"Fixed an IPFS hash in doc file {md_file}")
+                old_to_new_hashes[package_hash] = expected_hash
+            else:
+                print(
+                    f"IPFS hash mismatch in doc file {md_file}.\n"
+                    f"\tMapping string: {package_mapping}\n"
+                    f"\tExpected: {expected_hash}\n"
+                    f"\tFound: {package_hash}\n"
                 )
 
     # Fix packages in python files
@@ -330,7 +379,10 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
                 old_to_new_hashes[py_hash] = expected_hash
             else:
                 print(
-                    f"IPFS hash mismatch on file {py_file}. Expected {expected_hash}, got {py_hash}:\n    {full_package}"
+                    f"IPFS hash mismatch on file {py_file}.\n"
+                    f"\tPackage: {full_package}\n"
+                    f"\tExpected: {expected_hash}\n,"
+                    f"\tFound: {py_hash}:\n"
                 )
 
     # Fix hashes in package list
@@ -348,8 +400,9 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
 
         print(
             f"IPFS hash mismatch in doc file {package_list_file}.\n"
-            f"Expected {expected_hash}, got {package_hash}\n"
-            f'in package {match["package_type"]}/{match["vendor"]}/{match["package"]}.\n'
+            f'\tPackage: {match["package_type"]}/{match["vendor"]}/{match["package"]}\n'
+            f"\tExpected: {expected_hash},\n"
+            f"\tFound: {package_hash}\n"
         )
         hash_mismatches = True
 
@@ -377,11 +430,13 @@ def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
         )
         sys.exit(1)
 
-    print("OK")
+    print("Checking doc IPFS hashes finished successfully.")
 
 
 if __name__ == "__main__":
+    print("Start checking doc IPFS hashes.")
     parser = argparse.ArgumentParser()
     parser.add_argument("--fix", action="store_true")
+    parser.add_argument("-p", "--paths", type=Path, nargs="*", default=[Path("docs")])
     args = parser.parse_args()
-    check_ipfs_hashes(fix=args.fix)
+    check_ipfs_hashes(paths=args.paths, fix=args.fix)

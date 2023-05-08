@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -145,7 +145,7 @@ AEA_CUSTOM = get_aea_classes(custom_types)
 def get_protocol_readme_spec() -> Tuple[Any, Any, Any]:
     """Test specification used to generate protocol matches ABCI spec"""
 
-    protocol_readme = Path(valory_abci_protocol.__path__[0]) / "README.md"  # type: ignore
+    protocol_readme = Path(valory_abci_protocol.__file__).parent / "README.md"
     raw_chunks = open(protocol_readme).read().split("```")
     assert len(raw_chunks) == 3, "Expecting a single YAML code block"
 

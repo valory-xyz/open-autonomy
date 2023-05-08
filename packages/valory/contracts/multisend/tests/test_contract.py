@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ from typing import Dict
 from unittest import mock
 
 import pytest
+from aea.contracts.base import Contract
+from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import crypto_registry
 from aea.test_tools.test_contract import BaseContractTestCase
 from aea_ledger_ethereum import EthereumCrypto
@@ -68,7 +70,13 @@ class TestMultisendContract(BaseContractTestCase):
         return contract_address
 
     @classmethod
-    def _deploy_contract(cls, contract, ledger_api, deployer_crypto, gas) -> Dict:  # type: ignore
+    def _deploy_contract(
+        cls,
+        contract: Contract,
+        ledger_api: LedgerApi,
+        deployer_crypto: Crypto,
+        gas: int,
+    ) -> Dict:
         """Deploy contract."""
         return {}
 

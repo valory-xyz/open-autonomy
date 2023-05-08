@@ -9,7 +9,7 @@ This module contains the behaviours for the 'abci' skill.
 ## TransactionSettlementBaseBehaviour Objects
 
 ```python
-class TransactionSettlementBaseBehaviour(BaseBehaviour,  ABC)
+class TransactionSettlementBaseBehaviour(BaseBehaviour, ABC)
 ```
 
 Base behaviour for the common apps' skill.
@@ -73,7 +73,7 @@ Retrieve randomness.
 
 ```python
 class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-ancestors
-    SelectKeeperBehaviour,  TransactionSettlementBaseBehaviour)
+        SelectKeeperBehaviour, TransactionSettlementBaseBehaviour)
 ```
 
 Select the keeper agent.
@@ -94,7 +94,7 @@ Do the action.
 
 ```python
 class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-ancestors
-    SelectKeeperTransactionSubmissionBehaviourA)
+        SelectKeeperTransactionSubmissionBehaviourA)
 ```
 
 Select the keeper b agent.
@@ -128,7 +128,7 @@ Steps:
 
 ```python
 class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
-    SelectKeeperTransactionSubmissionBehaviourB)
+        SelectKeeperTransactionSubmissionBehaviourB)
 ```
 
 Select the keeper b agent after a timeout.
@@ -181,6 +181,17 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseBehaviour)
 
 Check the transaction history.
 
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.CheckTransactionHistoryBehaviour.history"></a>
+
+#### history
+
+```python
+@property
+def history() -> List[str]
+```
+
+Get the history of hashes.
+
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.CheckTransactionHistoryBehaviour.async_act"></a>
 
 #### async`_`act
@@ -197,10 +208,21 @@ Do the action.
 
 ```python
 class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
-    CheckTransactionHistoryBehaviour)
+        CheckTransactionHistoryBehaviour)
 ```
 
 Check the late-arriving transaction hashes.
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.CheckLateTxHashesBehaviour.history"></a>
+
+#### history
+
+```python
+@property
+def history() -> List[str]
+```
+
+Get the history of hashes.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour"></a>
 
@@ -221,6 +243,16 @@ def __init__(**kwargs: Any)
 ```
 
 Initialize a `SynchronizeLateMessagesBehaviour`
+
+<a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour.setup"></a>
+
+#### setup
+
+```python
+def setup() -> None
+```
+
+Setup the `SynchronizeLateMessagesBehaviour`.
 
 <a id="packages.valory.skills.transaction_settlement_abci.behaviours.SynchronizeLateMessagesBehaviour.async_act"></a>
 

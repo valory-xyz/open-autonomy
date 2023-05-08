@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package aea.valory.ipfs.v0_1_0;
+
+message IpfsMessage{
+
+  // Performatives and contents
+  message Store_Files_Performative{
+    map<string, string> files = 1;
+    double timeout = 2;
+    bool timeout_is_set = 3;
+  }
+
+  message Ipfs_Hash_Performative{
+    string ipfs_hash = 1;
+  }
+
+  message Get_Files_Performative{
+    string ipfs_hash = 1;
+    double timeout = 2;
+    bool timeout_is_set = 3;
+  }
+
+  message Files_Performative{
+    map<string, string> files = 1;
+  }
+
+  message Error_Performative{
+    string reason = 1;
+  }
+
+
+  oneof performative{
+    Error_Performative error = 5;
+    Files_Performative files = 6;
+    Get_Files_Performative get_files = 7;
+    Ipfs_Hash_Performative ipfs_hash = 8;
+    Store_Files_Performative store_files = 9;
+  }
+}

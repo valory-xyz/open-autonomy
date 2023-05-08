@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -36,13 +36,14 @@ from autonomy.deploy.constants import (
     DEFAULT_ENCODING,
     KEY_SCHEMA_PRIVATE_KEY,
     KUBERNETES_AGENT_KEY_NAME,
-    TENDERMINT_CONFIGURATION_OVERRIDES,
 )
 from autonomy.deploy.generators.kubernetes.templates import (
     AGENT_NODE_TEMPLATE,
     AGENT_SECRET_TEMPLATE,
     CLUSTER_CONFIGURATION_TEMPLATE,
     HARDHAT_TEMPLATE,
+    PORTS_CONFIG_DEPLOYMENT,
+    PORT_CONFIG_DEPLOYMENT,
 )
 
 
@@ -60,15 +61,19 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         packages_dir: Optional[Path] = None,
         open_aea_dir: Optional[Path] = None,
         open_autonomy_dir: Optional[Path] = None,
+        use_tm_testnet_setup: bool = False,
+        image_author: Optional[str] = None,
     ) -> None:
         """Initialise the deployment generator."""
         super().__init__(
-            service_builder,
-            build_dir,
-            dev_mode,
-            packages_dir,
-            open_aea_dir,
-            open_autonomy_dir,
+            service_builder=service_builder,
+            build_dir=build_dir,
+            use_tm_testnet_setup=use_tm_testnet_setup,
+            dev_mode=dev_mode,
+            packages_dir=packages_dir,
+            open_aea_dir=open_aea_dir,
+            open_autonomy_dir=open_autonomy_dir,
+            image_author=image_author,
         )
         self.resources: List[str] = []
 
@@ -78,12 +83,23 @@ class KubernetesGenerator(BaseDeploymentGenerator):
         agent_ix: int,
         number_of_agents: int,
         agent_vars: Dict[str, Any],
+        agent_ports: Optional[Dict[int, int]] = None,
     ) -> str:
         """Build agent deployment."""
 
         host_names = ", ".join(
             [f'"--hostname=abci{i}"' for i in range(number_of_agents)]
         )
+
+        agent_ports_deployment = ""
+        if agent_ports is not None:
+            port_mappings = map(
+                lambda x: PORT_CONFIG_DEPLOYMENT.format(port=x[0]),
+                agent_ports.items(),
+            )
+            agent_ports_deployment = "\n".join(
+                [PORTS_CONFIG_DEPLOYMENT, *port_mappings]
+            )
 
         agent_deployment = AGENT_NODE_TEMPLATE.format(
             runtime_image=runtime_image,
@@ -94,6 +110,7 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             tendermint_image_name=TENDERMINT_IMAGE_NAME,
             tendermint_image_version=TENDERMINT_IMAGE_VERSION,
             log_level=self.service_builder.log_level,
+            agent_ports_deployment=agent_ports_deployment,
         )
         agent_deployment_yaml = yaml.load_all(agent_deployment, Loader=yaml.FullLoader)  # type: ignore
         resources = []
@@ -132,14 +149,6 @@ class KubernetesGenerator(BaseDeploymentGenerator):
 
         return self
 
-    def _apply_cluster_specific_tendermint_params(  # pylint: disable= no-self-use
-        self, agent_params: List
-    ) -> List:
-        """Override the tendermint params to point at the localhost."""
-        for agent in agent_params:
-            agent.update(TENDERMINT_CONFIGURATION_OVERRIDES[self.deployment_type])
-        return agent_params
-
     def generate(
         self,
         image_version: Optional[str] = None,
@@ -163,8 +172,8 @@ class KubernetesGenerator(BaseDeploymentGenerator):
             ...
 
         agent_vars = self.service_builder.generate_agents()  # type:ignore
-        agent_vars = self._apply_cluster_specific_tendermint_params(agent_vars)
         runtime_image = OAR_IMAGE.format(
+            image_author=self.image_author,
             agent=self.service_builder.service.agent.name,
             version=image_version,
         )
@@ -176,6 +185,11 @@ class KubernetesGenerator(BaseDeploymentGenerator):
                     agent_ix=i,
                     number_of_agents=self.service_builder.service.number_of_agents,
                     agent_vars=agent_vars[i],
+                    agent_ports=(
+                        self.service_builder.service.deployment_config.get("agent", {})
+                        .get("ports", {})
+                        .get(i)
+                    ),
                 )
                 for i in range(self.service_builder.service.number_of_agents)
             ]

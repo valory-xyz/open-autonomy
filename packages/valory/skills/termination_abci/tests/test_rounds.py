@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import pytest
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AbciAppDB,
-    ConsensusParams,
     TransactionNotValidError,
 )
 from packages.valory.skills.termination_abci.payloads import BackgroundPayload
@@ -51,7 +50,6 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
     """Base test class for Rounds."""
 
     synchronized_data: SynchronizedData
-    consensus_params: ConsensusParams
     participants: FrozenSet[str]
 
     def setup(
@@ -63,12 +61,12 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
         self.synchronized_data = SynchronizedData(
             AbciAppDB(
                 setup_data=dict(
-                    participants=[self.participants],
-                    all_participants=[self.participants],
+                    participants=[tuple(self.participants)],
+                    all_participants=[tuple(self.participants)],
+                    consensus_threshold=[3],
                 ),
             )
         )
-        self.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
 
 class TestBackgroundRound(BaseRoundTestClass):
@@ -81,7 +79,6 @@ class TestBackgroundRound(BaseRoundTestClass):
 
         test_round = BackgroundRound(
             synchronized_data=deepcopy(self.synchronized_data),
-            consensus_params=self.consensus_params,
         )
         payload_data = "0xdata"
         first_payload, *payloads = [
@@ -106,12 +103,10 @@ class TestBackgroundRound(BaseRoundTestClass):
         actual_state, event = res
 
         assert (
-            cast(
-                SynchronizedData, actual_state
-            ).termination_majority_reached  # pylint: disable=no-member
-            == cast(
+            cast(SynchronizedData, actual_state).termination_majority_reached
+            == cast(  # pylint: disable=no-member
                 SynchronizedData, expected_state
-            ).termination_majority_reached  # pylint: disable=no-member
+            ).termination_majority_reached
         )
 
         assert event == Event.TERMINATE
@@ -120,14 +115,13 @@ class TestBackgroundRound(BaseRoundTestClass):
         """Tests the background round when bad payloads are sent."""
         test_round = BackgroundRound(
             synchronized_data=deepcopy(self.synchronized_data),
-            consensus_params=self.consensus_params,
         )
         payload_data = "0xdata"
         bad_participant = "non_existent"
         bad_participant_payload = BackgroundPayload(
             sender=bad_participant, background_data=payload_data
         )
-        first_payload, *payloads = [
+        first_payload, *_ = [
             BackgroundPayload(sender=participant, background_data=payload_data)
             for participant in self.participants
         ]
@@ -160,24 +154,6 @@ class TestBackgroundRound(BaseRoundTestClass):
         ):
             test_round.process_payload(first_payload)
 
-        with pytest.raises(
-            ABCIAppInternalError,
-            match="Expecting serialized data of chunk size 7, got: 0xdata",
-        ):
-
-            test_round._hash_length = 7  # pylint: disable=protected-access
-            test_round.process_payload(payloads[1])
-            test_round._hash_length = None  # pylint: disable=protected-access
-
-        with pytest.raises(
-            TransactionNotValidError,
-            match="Expecting serialized data of chunk size 7, got: 0xdata",
-        ):
-            # 7 is a nice prime number
-            test_round._hash_length = 7  # pylint: disable=protected-access
-            test_round.check_payload(payloads[1])
-            test_round._hash_length = None  # pylint: disable=protected-access
-
 
 class TestTerminationRound(BaseRoundTestClass):
     """Tests for TerminationRound."""
@@ -189,7 +165,6 @@ class TestTerminationRound(BaseRoundTestClass):
 
         test_round = TerminationRound(
             synchronized_data=deepcopy(self.synchronized_data),
-            consensus_params=self.consensus_params,
         )
         res = test_round.end_block()  # pylint: disable=assignment-from-none
         assert res is None

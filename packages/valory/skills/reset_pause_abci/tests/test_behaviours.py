@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -77,9 +77,7 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
     """Test ResetBehaviour."""
 
     behaviour_class = ResetAndPauseBehaviour
-    next_behaviour_class = make_degenerate_behaviour(
-        FinishedResetAndPauseRound.round_id
-    )
+    next_behaviour_class = make_degenerate_behaviour(FinishedResetAndPauseRound)
 
     @pytest.mark.parametrize("tendermint_reset_status", (None, True, False))
     def test_reset_behaviour(
@@ -87,13 +85,18 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
         tendermint_reset_status: Optional[bool],
     ) -> None:
         """Test reset behaviour."""
+        dummy_participants = [[i for i in range(4)]]
 
         self.fast_forward_to_behaviour(
             behaviour=self.behaviour,
-            behaviour_id=self.behaviour_class.behaviour_id,
+            behaviour_id=self.behaviour_class.auto_behaviour_id(),
             synchronized_data=ResetSynchronizedSata(
                 AbciAppDB(
                     setup_data=dict(
+                        all_participants=dummy_participants,
+                        participants=dummy_participants,
+                        safe_contract_address=[""],
+                        consensus_threshold=[3],
                         most_voted_estimate=[0.1],
                         tx_hashes_history=[["68656c6c6f776f726c64"]],
                     ),
@@ -104,7 +107,7 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
         assert self.behaviour.current_behaviour is not None
         assert (
             self.behaviour.current_behaviour.behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with mock.patch.object(
@@ -147,5 +150,5 @@ class TestResetAndPauseBehaviour(ResetPauseAbciFSMBehaviourBaseCase):
         self.end_round(ResetEvent.DONE)
         assert (
             self.behaviour.current_behaviour.behaviour_id
-            == self.next_behaviour_class.behaviour_id
+            == self.next_behaviour_class.auto_behaviour_id()
         )

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import pytest
 from aea.protocols.dialogue.base import Dialogues
 from aea.skills.base import Model
 
+from packages.valory.connections.ipfs.connection import PUBLIC_ID as IPFS_CONNECTION_ID
+from packages.valory.protocols.ipfs import IpfsMessage
 from packages.valory.skills.abstract_round_abci.dialogues import (
     AbciDialogue,
     AbciDialogues,
@@ -36,10 +38,13 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     ContractApiDialogues,
     HttpDialogue,
     HttpDialogues,
+    IpfsDialogues,
     LedgerApiDialogue,
     LedgerApiDialogues,
     SigningDialogue,
     SigningDialogues,
+    TendermintDialogue,
+    TendermintDialogues,
 )
 
 
@@ -51,6 +56,7 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
         (SigningDialogues, SigningDialogue.Role.SKILL),
         (LedgerApiDialogues, LedgerApiDialogue.Role.AGENT),
         (ContractApiDialogues, ContractApiDialogue.Role.AGENT),
+        (TendermintDialogues, TendermintDialogue.Role.AGENT),
     ],
 )
 def test_dialogues_creation(
@@ -83,3 +89,12 @@ def test_contract_api_dialogue() -> None:
     expected_terms = MagicMock()
     dialogue.terms = expected_terms
     assert expected_terms == dialogue.terms
+
+
+def test_ipfs_dialogue() -> None:
+    """Test 'IpfsDialogues' creation."""
+    dialogues = IpfsDialogues(name="", skill_context=MagicMock())
+    dialogues.create(
+        counterparty=str(IPFS_CONNECTION_ID),
+        performative=IpfsMessage.Performative.GET_FILES,
+    )

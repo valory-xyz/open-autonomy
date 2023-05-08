@@ -34,7 +34,8 @@ def get_all_extras() -> Dict:
 
     cli_deps = [
         "click==8.0.2",
-        "open-aea-cli-ipfs==1.25.0.post1",
+        "open-aea-cli-ipfs==1.33.0",
+        "open-aea-ledger-ethereum-hwi==1.33.0",
     ]
 
     extras = {
@@ -51,11 +52,11 @@ all_extras = get_all_extras()
 
 base_deps = [
     "Flask>=2.0.2,<3.0.0",
-    "open-aea[all]==1.25.0.post1",
+    "open-aea[all]==1.33.0",
     "pandas<1.4,>=1.3.4",
     "watchdog >=2.1.6",
-    "pytest==7.0.0",
-    "open-aea-ledger-ethereum==1.25.0",
+    "pytest==7.2.1",
+    "open-aea-ledger-ethereum==1.33.0",
     "docker-compose==1.29.2",
     "werkzeug==2.0.3",
     "docker==6.0.0",
@@ -96,8 +97,20 @@ if __name__ == "__main__":
                 "data/Dockerfiles/dev/*",
                 "data/Dockerfiles/hardhat/*",
                 "data/Dockerfiles/tendermint/*",
+                "data/contracts/*",
+                "data/contracts/registries_manager/*",
+                "data/contracts/registries_manager/build/*",
+                "data/contracts/component_registry/*",
+                "data/contracts/component_registry/build/*",
+                "data/contracts/service_registry/*",
+                "data/contracts/service_registry/build/*",
+                "data/contracts/service_registry/tests/*",
+                "data/contracts/agent_registry/*",
+                "data/contracts/agent_registry/build/*",
+                "data/contracts/service_manager/*",
+                "data/contracts/service_manager/build/*",
                 "test_tools/data/*",
-            ]
+            ],
         },
         packages=find_packages(include=["autonomy*"]),
         classifiers=[

@@ -9,7 +9,7 @@ Test generators.
 ## RoundTestsFileGenerator Objects
 
 ```python
-class RoundTestsFileGenerator(AbstractFileGenerator,  TEST_ROUNDS)
+class RoundTestsFileGenerator(AbstractFileGenerator, TEST_ROUNDS)
 ```
 
 RoundTestsFileGenerator
@@ -29,7 +29,7 @@ Scaffold the 'test_rounds.py' file.
 ## BehaviourTestsFileGenerator Objects
 
 ```python
-class BehaviourTestsFileGenerator(AbstractFileGenerator,  TEST_BEHAVIOURS)
+class BehaviourTestsFileGenerator(AbstractFileGenerator, TEST_BEHAVIOURS)
 ```
 
 File generator for 'test_behaviours.py' modules.
@@ -49,7 +49,7 @@ Scaffold the 'test_behaviours.py' file.
 ## PayloadTestsFileGenerator Objects
 
 ```python
-class PayloadTestsFileGenerator(AbstractFileGenerator,  TEST_PAYLOADS)
+class PayloadTestsFileGenerator(AbstractFileGenerator, TEST_PAYLOADS)
 ```
 
 File generator for 'test_payloads.py' modules.
@@ -69,7 +69,7 @@ Scaffold the 'test_payloads.py' file.
 ## ModelTestFileGenerator Objects
 
 ```python
-class ModelTestFileGenerator(SimpleFileGenerator,  TEST_MODELS)
+class ModelTestFileGenerator(SimpleFileGenerator, TEST_MODELS)
 ```
 
 File generator for 'test_models.py'.
@@ -79,7 +79,7 @@ File generator for 'test_models.py'.
 ## HandlersTestFileGenerator Objects
 
 ```python
-class HandlersTestFileGenerator(SimpleFileGenerator,  TEST_HANDLERS)
+class HandlersTestFileGenerator(SimpleFileGenerator, TEST_HANDLERS)
 ```
 
 File generator for 'test_dialogues.py'.
@@ -89,7 +89,7 @@ File generator for 'test_dialogues.py'.
 ## DialoguesTestFileGenerator Objects
 
 ```python
-class DialoguesTestFileGenerator(SimpleFileGenerator,  TEST_DIALOGUES)
+class DialoguesTestFileGenerator(SimpleFileGenerator, TEST_DIALOGUES)
 ```
 
 File generator for 'test_dialogues.py'.

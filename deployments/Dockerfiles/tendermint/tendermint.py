@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,13 +30,16 @@ from threading import Event, Thread
 from typing import Any, Dict, List, Optional
 
 
+_TCP = "tcp://"
 ENCODING = "utf-8"
-DEFAULT_P2P_LISTEN_ADDRESS = "tcp://0.0.0.0:26656"
-DEFAULT_RPC_LISTEN_ADDRESS = "tcp://0.0.0.0:26657"
+DEFAULT_P2P_LISTEN_ADDRESS = f"{_TCP}0.0.0.0:26656"
+DEFAULT_RPC_LISTEN_ADDRESS = f"{_TCP}0.0.0.0:26657"
 DEFAULT_TENDERMINT_LOG_FILE = "tendermint.log"
 
 
-class StoppableThread(Thread):
+class StoppableThread(
+    Thread,
+):
     """Thread class with a stop() method."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -75,8 +78,9 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         :param p2p_seeds: P2P seeds.
         :param consensus_create_empty_blocks: if true, Tendermint node creates empty blocks.
         :param home: Tendermint's home directory.
-        :param use_grpc: Wheter to use a gRPC server, or TSP
+        :param use_grpc: Whether to use a gRPC server, or TCP
         """
+
         self.proxy_app = proxy_app
         self.rpc_laddr = rpc_laddr
         self.p2p_laddr = p2p_laddr
@@ -109,6 +113,7 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
             f"--p2p.laddr={self.p2p_laddr}",
             f"--p2p.seeds={p2p_seeds}",
             f"--consensus.create_empty_blocks={str(self.consensus_create_empty_blocks).lower()}",
+            f"--abci={'grpc' if self.use_grpc else 'socket'}",
         ]
         if debug:
             cmd.append("--log_level=debug")
@@ -160,8 +165,6 @@ class TendermintNode:
             "tendermint",
             "init",
         ]
-        if self.params.use_grpc:
-            cmd += ["--abci=grpc"]
         if self.params.home is not None:  # pragma: nocover
             cmd += ["--home", self.params.home]
         return cmd
@@ -179,11 +182,19 @@ class TendermintNode:
 
     def _start_tm_process(self, monitoring: bool = False, debug: bool = False) -> None:
         """Start a Tendermint node process."""
+
         if self._process is not None:  # pragma: nocover
             return
+
         cmd = self.params.build_node_command(debug)
         kwargs = self.params.get_node_command_kwargs(monitoring)
-        self._process = subprocess.Popen(cmd, **kwargs)  # type: ignore # nosec # pylint: disable=consider-using-with,W1509
+
+        logging.info(f"Starting Tendermint: {cmd}")
+        self._process = (
+            subprocess.Popen(  # nosec # pylint: disable=consider-using-with,W1509
+                cmd, **kwargs
+            )
+        )
 
         self.write_line("Tendermint process started\n")
 
@@ -240,10 +251,12 @@ class TendermintNode:
         self,
     ) -> None:
         """Check server status."""
+        if self._monitoring is None:
+            raise ValueError("Monitoring is not running")
         self.write_line("Monitoring thread started\n")
         while True:
             try:
-                if self._monitoring.stopped():  # type: ignore
+                if self._monitoring.stopped():
                     break  # break from the loop immediately.
                 if self._process is not None and self._process.stdout is not None:
                     line = self._process.stdout.readline()
@@ -251,12 +264,17 @@ class TendermintNode:
                     for trigger in [
                         # this occurs when we lose connection from the tm side
                         "RPC HTTP server stopped",
-                        # this occurs when we lose connection from the AEA side.
-                        "Stopping abci.socketClient for error: read message: EOF module=abci-client connection=",
+                        # whenever the node is stopped because of a closed connection
+                        # from on any of the tendermint modules (abci, p2p, rpc, etc)
+                        # we restart the node
+                        "Stopping abci.socketClient for error: read message: EOF",
                     ]:
                         if line.find(trigger) >= 0:
                             self._stop_tm_process()
-                            self._start_tm_process()
+                            # we can only reach this step if monitoring was activated
+                            # so we make sure that after reset the monitoring continues
+                            monitoring = True
+                            self._start_tm_process(monitoring)
                             self.write_line(
                                 f"Restarted the HTTP RPC server, as a connection was dropped with message:\n\t\t {line}\n"
                             )
@@ -264,11 +282,16 @@ class TendermintNode:
                 self.write_line(f"Error!: {str(e)}")
         self.write_line("Monitoring thread terminated\n")
 
-    def reset_genesis_file(self, genesis_time: str, initial_height: str) -> None:
+    def reset_genesis_file(
+        self, genesis_time: str, initial_height: str, period_count: str
+    ) -> None:
         """Reset genesis file."""
 
         genesis_file = Path(str(self.params.home), "config", "genesis.json")
         genesis_config = json.loads(genesis_file.read_text(encoding=ENCODING))
         genesis_config["genesis_time"] = genesis_time
         genesis_config["initial_height"] = initial_height
+        # chain id should be max 50 chars.
+        # this means that the app would theoretically break when a 40-digit period is reached
+        genesis_config["chain_id"] = f"autonolas-{period_count}"
         genesis_file.write_text(json.dumps(genesis_config, indent=2), encoding=ENCODING)

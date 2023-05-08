@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,24 +20,35 @@
 
 # pylint: skip-file
 
-from typing import Dict, List, Tuple, Type
+import logging
+import os
+from pathlib import Path
+from typing import Any, Dict, List, Tuple, Type
 
 import numpy as np
 from aea.exceptions import enforce
 from aea.test_tools.test_cases import AEATestCaseMany
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis.strategies import binary, booleans, integers, lists, text, tuples
 
+from packages.valory.connections.abci import CI
 from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.base import (
     BaseChannel,
 )
 from packages.valory.connections.abci.tests.test_fuzz.mock_node.node import MockNode
 
 
+running_on_ci = os.getenv(CI)
+if running_on_ci:
+    settings.load_profile(CI)
+
+
 class BaseFuzzyTests(AEATestCaseMany):
     """
     Base class for the Fuzzy Tests
     """
+
+    package_registry_src_rel = Path(__file__).parents[5]
 
     UINT_64_MAX_VALUE = np.iinfo(np.uint64).max
     UINT_64_MIN_VALUE = 0
@@ -50,7 +61,7 @@ class BaseFuzzyTests(AEATestCaseMany):
     INT_32_MIN_VALUE = np.iinfo(np.int32).min
 
     CHANNEL_TYPE: Type[BaseChannel] = BaseChannel
-    CHANNEL_ARGS: Dict[str, any] = dict()  # type: ignore
+    CHANNEL_ARGS: Dict[str, Any] = dict()
     IS_LOCAL = True
     USE_GRPC = False
 
@@ -61,11 +72,13 @@ class BaseFuzzyTests(AEATestCaseMany):
     agent_process = None
     cli_log_options = ["-v", "INFO"]
 
-    AGENT_TIMEOUT = 10
+    AGENT_TIMEOUT_SECONDS = 10
 
     @classmethod
-    def setUpClass(cls) -> None:
+    def setup_class(cls) -> None:
         """Sets up the environment for the tests."""
+
+        super().setup_class()
         cls.fetch_agent(cls.agent_package, cls.agent_name, is_local=cls.IS_LOCAL)
         cls.set_agent_context(cls.agent_name)
         cls.generate_private_key("ethereum", "ethereum_private_key.txt")
@@ -84,8 +97,8 @@ class BaseFuzzyTests(AEATestCaseMany):
         cls.agent_process = cls.run_agent()
 
         enforce(
-            cls.is_running(cls.agent_process, cls.AGENT_TIMEOUT),
-            f"The agent was not started in the defined timeout ({cls.AGENT_TIMEOUT}s)",
+            cls.is_running(cls.agent_process, cls.AGENT_TIMEOUT_SECONDS),
+            f"The agent was not started in the defined timeout ({cls.AGENT_TIMEOUT_SECONDS}s)",
         )
 
         enforce(cls.CHANNEL_TYPE is not None, "A channel type must be provided")
@@ -93,11 +106,14 @@ class BaseFuzzyTests(AEATestCaseMany):
         cls.channel = cls.CHANNEL_TYPE(**cls.CHANNEL_ARGS)
         cls.mock_node = MockNode(cls.channel)
         cls.mock_node.connect()
+        logging.disable(logging.INFO)
 
     @classmethod
-    def tearDownClass(cls) -> None:
+    def teardown_class(cls) -> None:
         """Tear down the testing environment."""
+        logging.disable(logging.NOTSET)
         cls.mock_node.disconnect()
+        super().teardown_class()
 
     # flake8: noqa:D102
     @given(message=text())
@@ -141,13 +157,13 @@ class BaseFuzzyTests(AEATestCaseMany):
 
     @given(
         time_seconds=integers(0, INT_64_MAX_VALUE),
-        time_nanos=integers(0, 10 ** 9),
+        time_nanos=integers(0, 10**9),
         chain_id=text(),
         block_max_bytes=integers(1, INT_64_MAX_VALUE),
         block_max_gas=integers(-1, INT_32_MAX_VALUE),
         evidence_max_age_num_blocks=integers(INT_64_MIN_VALUE, INT_64_MAX_VALUE),
         evidence_max_age_seconds=integers(0, INT_64_MAX_VALUE),
-        evidence_max_age_nanos=integers(0, 10 ** 9),
+        evidence_max_age_nanos=integers(0, 10**9),
         evidence_max_bytes=integers(1, INT_64_MAX_VALUE),
         pub_key_types=lists(booleans()),
         app_version=integers(0, INT_32_MAX_VALUE),
@@ -210,7 +226,7 @@ class BaseFuzzyTests(AEATestCaseMany):
         chain_id=text(),
         height=integers(-INT_64_MAX_VALUE, INT_64_MAX_VALUE),
         time_seconds=integers(1, INT_64_MAX_VALUE),
-        time_nanos=integers(0, 10 ** 9),
+        time_nanos=integers(0, 10**9),
         last_block_id_hash=binary(),
         last_commit_hash=binary(),
         data_hash=binary(),
@@ -233,7 +249,7 @@ class BaseFuzzyTests(AEATestCaseMany):
         evidence_validator_power=lists(integers(INT_64_MIN_VALUE, INT_64_MAX_VALUE)),
         evidence_height=lists(integers(INT_64_MIN_VALUE, INT_64_MAX_VALUE)),
         evidence_time_seconds=lists(integers(1, INT_64_MAX_VALUE)),
-        evidence_time_nanos=lists(integers(0, 10 ** 9)),
+        evidence_time_nanos=lists(integers(0, 10**9)),
         evidence_total_voting_power=lists(integers(0, INT_64_MAX_VALUE)),
     )
     def test_begin_block(

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -47,6 +47,8 @@ from autonomy.deploy.generators.docker_compose.templates import (
     ACN_NODE_TEMPLATE,
     DOCKER_COMPOSE_TEMPLATE,
     HARDHAT_NODE_TEMPLATE,
+    PORTS,
+    PORT_MAPPING_CONFIG,
     TENDERMINT_CONFIG_TEMPLATE,
     TENDERMINT_NODE_TEMPLATE,
 )
@@ -55,6 +57,10 @@ from autonomy.deploy.generators.docker_compose.templates import (
 # We will add one ACN and hardhat nodes at the top with IP being 192.167.11.2
 # and 192.167.11.3 so we will start from 192.167.11.4 for abci and tendermint nodes
 N_RESERVED_IP_ADDRESSES = 4
+
+DEFAULT_PACKAGES_PATH = Path.cwd().absolute() / "packages"
+DEFAULT_OPEN_AEA_DIR: Path = Path.home().absolute() / "open-aea"
+DEFAULT_OPEN_AUTONOMY_DIR: Path = Path.home().absolute() / "open-autonomy"
 
 
 def build_tendermint_node_config(
@@ -86,9 +92,10 @@ def build_agent_config(  # pylint: disable=too-many-arguments
     agent_vars: Dict,
     runtime_image: str,
     dev_mode: bool = False,
-    package_dir: Path = Path.cwd().absolute() / "packages",
-    open_aea_dir: Path = Path.home().absolute() / "open-aea",
-    open_autonomy_dir: Path = Path.home().absolute() / "open-autonomy",
+    package_dir: Path = DEFAULT_PACKAGES_PATH,
+    open_aea_dir: Path = DEFAULT_OPEN_AEA_DIR,
+    open_autonomy_dir: Path = DEFAULT_OPEN_AUTONOMY_DIR,
+    agent_ports: Optional[Dict[int, int]] = None,
 ) -> str:
     """Build agent config."""
 
@@ -109,6 +116,14 @@ def build_agent_config(  # pylint: disable=too-many-arguments
         config += f"      - {open_aea_dir}:/open-aea\n"
         config += f"      - {open_autonomy_dir}:/open-autonomy\n"
 
+    if agent_ports is not None:
+        port_mappings = map(
+            lambda x: PORT_MAPPING_CONFIG.format(host_port=x[0], container_port=x[1]),
+            agent_ports.items(),
+        )
+        port_config = "\n".join([PORTS, *port_mappings])
+        config += port_config
+
     return config
 
 
@@ -120,6 +135,9 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
 
     def generate_config_tendermint(self) -> "DockerComposeGenerator":
         """Generate the command to configure tendermint testnet."""
+
+        if not self.use_tm_testnet_setup:
+            return self
 
         hosts = (
             " \\\n".join(
@@ -157,6 +175,7 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
             image_version = "dev"
 
         runtime_image = OAR_IMAGE.format(
+            image_author=self.image_author,
             agent=self.service_builder.service.agent.name,
             version=image_version,
         )
@@ -173,6 +192,11 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     package_dir=self.packages_dir,
                     open_aea_dir=self.open_aea_dir,
                     open_autonomy_dir=self.open_autonomy_dir,
+                    agent_ports=(
+                        self.service_builder.service.deployment_config.get("agent", {})
+                        .get("ports", {})
+                        .get(i)
+                    ),
                 )
                 for i in range(self.service_builder.service.number_of_agents)
             ]

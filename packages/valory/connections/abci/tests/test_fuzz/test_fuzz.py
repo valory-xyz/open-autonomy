@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+
 """Fuzzy tests for valory/abci connection"""
-from unittest import TestCase
+import os
 
-import pytest
+from hypothesis import settings
 
+from packages.valory.connections.abci import CI
 from packages.valory.connections.abci.tests.test_fuzz.base import BaseFuzzyTests
 from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.grpc_channel import (
     GrpcChannel,
@@ -30,19 +32,22 @@ from packages.valory.connections.abci.tests.test_fuzz.mock_node.channels.tcp_cha
 )
 
 
-@pytest.mark.skip(reason="broken & takes too long time to complete on CI")
-class GrpcFuzzyTests(BaseFuzzyTests, TestCase):
+running_on_ci = os.getenv(CI)
+if running_on_ci:
+    settings.load_profile(CI)
+
+
+class TestFuzzyGrpc(BaseFuzzyTests):
     """Test the connection when gRPC is used"""
 
     CHANNEL_TYPE = GrpcChannel
     USE_GRPC = True
-    AGENT_TIMEOUT = 30  # 3 seconds
+    AGENT_TIMEOUT_SECONDS = 30
 
 
-@pytest.mark.skip(reason="broken & takes too long time to complete on CI")
-class TcpFuzzyTests(BaseFuzzyTests, TestCase):
+class TestFuzzyTcp(BaseFuzzyTests):
     """Test the connection when TCP is used"""
 
     CHANNEL_TYPE = TcpChannel
     USE_GRPC = False
-    AGENT_TIMEOUT = 30  # 3 seconds
+    AGENT_TIMEOUT_SECONDS = 30

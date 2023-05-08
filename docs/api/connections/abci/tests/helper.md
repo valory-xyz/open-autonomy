@@ -80,7 +80,8 @@ Test specification used to generate protocol matches ABCI spec
 #### create`_`aea`_`abci`_`type`_`tree
 
 ```python
-def create_aea_abci_type_tree(speech_acts: Dict[str, Dict[str, str]]) -> Dict[str, Node]
+def create_aea_abci_type_tree(
+        speech_acts: Dict[str, Dict[str, str]]) -> Dict[str, Node]
 ```
 
 Create AEA-native ABCI type tree from the defined speech acts
@@ -220,7 +221,8 @@ Tendermint type tree
 #### init`_`tendermint`_`messages
 
 ```python
-def init_tendermint_messages(tender_type_tree: Node) -> List[Union[Request, Response]]
+def init_tendermint_messages(
+        tender_type_tree: Node) -> List[Union[Request, Response]]
 ```
 
 Initialize tendermint ABCI messages

@@ -14,15 +14,16 @@ class SharedState(BaseSharedState)
 
 Keep the current shared state of the skill.
 
-<a id="packages.valory.skills.transaction_settlement_abci.models.SharedState.__init__"></a>
+<a id="packages.valory.skills.transaction_settlement_abci.models.MutableParams"></a>
 
-#### `__`init`__`
+## MutableParams Objects
 
 ```python
-def __init__(*args: Any, **kwargs: Any) -> None
+@dataclass
+class MutableParams(TypeCheckMixin)
 ```
 
-Initialize the state.
+Collection for the mutable parameters.
 
 <a id="packages.valory.skills.transaction_settlement_abci.models.TransactionParams"></a>
 
@@ -56,14 +57,4 @@ old tip.
 
 - `args`: positional arguments
 - `kwargs`: keyword arguments
-
-<a id="packages.valory.skills.transaction_settlement_abci.models.RandomnessApi"></a>
-
-## RandomnessApi Objects
-
-```python
-class RandomnessApi(ApiSpecs)
-```
-
-A model that wraps ApiSpecs for randomness api specifications.
 

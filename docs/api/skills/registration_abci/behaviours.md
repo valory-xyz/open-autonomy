@@ -9,7 +9,7 @@ This module contains the behaviours for the 'abci' skill.
 ## RegistrationBaseBehaviour Objects
 
 ```python
-class RegistrationBaseBehaviour(BaseBehaviour)
+class RegistrationBaseBehaviour(BaseBehaviour, ABC)
 ```
 
 Agent registration to the FSM App.
@@ -40,6 +40,28 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour)
 
 Agent registration to the FSM App.
 
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.initial_tm_configs"></a>
+
+#### initial`_`tm`_`configs
+
+```python
+@property
+def initial_tm_configs() -> Dict[str, Dict[str, Any]]
+```
+
+A mapping of the other agents' addresses to their initial Tendermint configuration.
+
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.initial_tm_configs"></a>
+
+#### initial`_`tm`_`configs
+
+```python
+@initial_tm_configs.setter
+def initial_tm_configs(configs: Dict[str, Dict[str, Any]]) -> None
+```
+
+A mapping of the other agents' addresses to their initial Tendermint configuration.
+
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.LogMessages"></a>
 
 ## LogMessages Objects
@@ -60,17 +82,6 @@ def __str__() -> str
 
 For ease of use in formatted string literals
 
-<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.registered_addresses"></a>
-
-#### registered`_`addresses
-
-```python
-@property
-def registered_addresses() -> Dict[str, Dict[str, Any]]
-```
-
-Agent addresses registered on-chain for the service
-
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.tendermint_parameter_url"></a>
 
 #### tendermint`_`parameter`_`url
@@ -87,7 +98,8 @@ Tendermint URL for obtaining and updating parameters
 #### is`_`correct`_`contract
 
 ```python
-def is_correct_contract() -> Generator[None, None, bool]
+def is_correct_contract(
+        service_registry_address: str) -> Generator[None, None, bool]
 ```
 
 Contract deployment verification.
@@ -97,7 +109,9 @@ Contract deployment verification.
 #### get`_`agent`_`instances
 
 ```python
-def get_agent_instances() -> Generator[None, None, Dict[str, Any]]
+def get_agent_instances(
+        service_registry_address: str,
+        on_chain_service_id: int) -> Generator[None, None, Dict[str, Any]]
 ```
 
 Get service info available on-chain
@@ -137,7 +151,8 @@ Request Tendermint info from other agents
 #### format`_`genesis`_`data
 
 ```python
-def format_genesis_data(collected_agent_info: Dict[str, Any]) -> Dict[str, Any]
+def format_genesis_data(
+        collected_agent_info: Dict[str, Any]) -> Dict[str, Any]
 ```
 
 Format collected agent info for genesis update
@@ -151,6 +166,16 @@ def request_update() -> Generator[None, None, bool]
 ```
 
 Make HTTP POST request to update agent's local Tendermint node
+
+<a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.wait_for_block"></a>
+
+#### wait`_`for`_`block
+
+```python
+def wait_for_block(timeout: float) -> Generator[None, None, bool]
+```
+
+Wait for a block to be received in the specified timeout.
 
 <a id="packages.valory.skills.registration_abci.behaviours.RegistrationStartupBehaviour.async_act"></a>
 

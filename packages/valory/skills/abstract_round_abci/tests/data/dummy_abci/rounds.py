@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@
 
 """This package contains the rounds of DummyAbciApp."""
 
+from abc import ABC
 from enum import Enum
-from typing import List, Optional, Set, Tuple, cast
+from typing import FrozenSet, Optional, Set, Tuple, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -38,7 +39,6 @@ from packages.valory.skills.abstract_round_abci.tests.data.dummy_abci.payloads i
     DummyKeeperSelectionPayload,
     DummyRandomnessPayload,
     DummyStartingPayload,
-    TransactionType,
 )
 
 
@@ -58,33 +58,32 @@ class SynchronizedData(BaseSynchronizedData):
     """
 
 
-class DummyMixinRound(AbstractRound):
+class DummyMixinRound(AbstractRound, ABC):
     """DummyMixinRound"""
 
-    synchronized_data_class = BaseSynchronizedData
     done_event = Event.DONE
     no_majority_event = Event.NO_MAJORITY
 
     @property
     def synchronized_data(self) -> SynchronizedData:
         """Return the synchronized data."""
-        return cast(SynchronizedData, self._synchronized_data)  # type: ignore
+        return cast(SynchronizedData, self._synchronized_data)
 
 
 class DummyStartingRound(CollectSameUntilAllRound, DummyMixinRound):
     """DummyStartingRound"""
 
     round_id: str = "dummy_starting"
-    allowed_tx_type: Optional[TransactionType] = DummyStartingPayload.transaction_type
+    payload_class = DummyStartingPayload
     payload_attribute: str = "dummy_starting"
+    synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
 
         if self.collection_threshold_reached:
             synchronized_data = self.synchronized_data.update(
-                participants=self.collection,
-                all_participants=self.collection,
+                participants=tuple(sorted(self.collection)),
                 synchronized_data_class=SynchronizedData,
             )
             return synchronized_data, Event.DONE
@@ -95,37 +94,37 @@ class DummyRandomnessRound(CollectSameUntilThresholdRound, DummyMixinRound):
     """DummyRandomnessRound"""
 
     round_id: str = "dummy_randomness"
-    allowed_tx_type: Optional[TransactionType] = DummyRandomnessPayload.transaction_type
+    payload_class = DummyRandomnessPayload
     payload_attribute: str = "dummy_randomness"
     collection_key = "participant_to_randomness"
     selection_key = "most_voted_randomness"
+    synchronized_data_class = SynchronizedData
 
 
 class DummyKeeperSelectionRound(CollectSameUntilThresholdRound, DummyMixinRound):
     """DummyKeeperSelectionRound"""
 
     round_id: str = "dummy_keeper_selection"
-    allowed_tx_type: Optional[
-        TransactionType
-    ] = DummyKeeperSelectionPayload.transaction_type
+    payload_class = DummyKeeperSelectionPayload
     payload_attribute: str = "dummy_keeper_selection"
     collection_key = "participant_to_keeper"
     selection_key = "most_voted_keeper"
+    synchronized_data_class = SynchronizedData
 
 
 class DummyFinalRound(OnlyKeeperSendsRound, DummyMixinRound):
     """DummyFinalRound"""
 
     round_id: str = "dummy_final"
-    allowed_tx_type: Optional[TransactionType] = DummyFinalPayload.transaction_type
+    payload_class = DummyFinalPayload
     payload_attribute: str = "dummy_final"
+    synchronized_data_class = SynchronizedData
 
 
 class DummyAbciApp(AbciApp[Event]):
     """DummyAbciApp"""
 
     initial_round_cls: AppState = DummyStartingRound
-    initial_states: Set[AppState] = {DummyStartingRound}
     transition_function: AbciAppTransitionFunction = {
         DummyStartingRound: {
             Event.DONE: DummyRandomnessRound,
@@ -150,4 +149,4 @@ class DummyAbciApp(AbciApp[Event]):
     }
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
-    cross_period_persisted_keys: List[str] = []
+    cross_period_persisted_keys: FrozenSet[str] = frozenset()

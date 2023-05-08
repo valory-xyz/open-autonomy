@@ -3,6 +3,7 @@
 # global dictionary is at the start, file overrides afterwards
 # one word per line, to define a file override use ' - filename'
 # where filename is relative to this configuration file
+anymore
 AEAs
 Tendermint
 mempool
@@ -19,11 +20,14 @@ Fantom
 ABCI-application
 mixin
 startup
+standalone
 FIPA-like
 AppExceptions
 AppErrors
 ABCIApp
 FSMBehaviour
+DAO-owned
+DAO-Owned
 ABCIApps
 Ethereum
 ABCIHandler
@@ -101,6 +105,7 @@ ROUND_TIMEOUT
 NO_MAJORITY
 FinalRound
 MyAbciApp
+OracleKit
 FSM-based
 center
 trustless
@@ -127,6 +132,9 @@ SimpleABCIBaseState
 RegistrationBehaviour
 BaseState
 IPFSBehaviour
+IpfsConnection
+IPFS
+ipfs
 AsyncBehaviour
 CleanUpBehaviour
 BaseSimpleAbciPayload
@@ -209,6 +217,12 @@ GörliWei
 scaffolded
 quickstart
 HELLO_WORLD
+Whitepaper
+skill.yaml
+service.yaml
+aea-config.yaml
+yaml
+Tox
  - docs/index.md
 README.md
 s_
@@ -282,7 +296,7 @@ TxHashRound
 FinishedPriceAggregationRound
 PriceAggregationAbciApp
 RandomnessTransactionSubmissionRound
-SelectKeeperTransactionSubmissionRoundA
+SelectKeeperTransactionSubmissionARound
 ResetRound
 CheckLateTxHashesRound
 FinishedTransactionSubmissionRound
@@ -294,9 +308,9 @@ CollectSignatureRound
 FinalizationRound
 CHECK_HISTORY
 ValidateTransactionRound
-SelectKeeperTransactionSubmissionRoundB
+SelectKeeperTransactionSubmissionBRound
 FINALIZATION_FAILED
-SelectKeeperTransactionSubmissionRoundBAfterTimeout
+SelectKeeperTransactionSubmissionBRoundAfterTimeout
 RESET_TIMEOUT
 MISSED_AND_LATE_MESSAGES_MISMATCH
 TransactionSubmissionAbciApp
@@ -374,6 +388,11 @@ PrintMessageRound
 HelloWorldABCIAbstractRound
 PrintMessageBehaviour
 i
+payload_class
+PrintMessagePayload
+rightarrow
+create_fsm_app.md
+code_fsm_app_skill.md
  - docs/agent_services_context.md
  - docs/questions-and-answers.md
 m5.large
@@ -387,5 +406,9 @@ atheris
 information_source
  - docs/guides/create_service_from_scratch.md
 create_fsm_app.md
-
-
+ - docs/advanced_reference/commands/autonomy_scaffold.md
+my_fsm_app_skill
+fuzzer
+selection_key
+0.10.0.post1
+0.10.0.post2

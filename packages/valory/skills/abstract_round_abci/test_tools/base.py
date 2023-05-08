@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 """Tests for valory/abstract_round_abci skill's behaviours."""
 import json
+from abc import ABC
 from copy import copy
 from enum import Enum
 from pathlib import Path
@@ -63,7 +64,7 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 # pylint: disable=protected-access,too-few-public-methods,consider-using-with
 
 
-class FSMBehaviourBaseCase(BaseSkillTestCase):
+class FSMBehaviourBaseCase(BaseSkillTestCase, ABC):
     """Base case for testing FSMBehaviour classes."""
 
     path_to_skill: Path
@@ -75,45 +76,64 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
     tendermint_handler: TendermintHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
     benchmark_dir: TemporaryDirectory
+    default_ledger: str = "ethereum"
 
     @classmethod
     def setup_class(cls, **kwargs: Any) -> None:
         """Setup the test class."""
+        if not hasattr(cls, "path_to_skill"):
+            raise ValueError(f"No `path_to_skill` set on {cls}")  # pragma: nocover
+            # works once https://github.com/valory-xyz/open-aea/issues/492 is fixed
         # we need to store the current value of the meta-class attribute
         # _MetaPayload.transaction_type_to_payload_cls, and restore it
         # in the teardown function. We do a shallow copy so we avoid
         # to modify the old mapping during the execution of the tests.
-        cls.old_tx_type_to_payload_cls = copy(
-            _MetaPayload.transaction_type_to_payload_cls
-        )
-        _MetaPayload.transaction_type_to_payload_cls = {}
-        super().setup_class()  # pylint: disable=no-value-for-parameter
-        assert cls._skill.skill_context._agent_context is not None  # nosec
+        cls.old_tx_type_to_payload_cls = copy(_MetaPayload.registry)
+        _MetaPayload.registry = {}
+        super().setup_class(**kwargs)  # pylint: disable=no-value-for-parameter
+        assert (
+            cls._skill.skill_context._agent_context is not None
+        ), "Agent context not set"  # nosec
         cls._skill.skill_context._agent_context.identity._default_address_key = (
-            "ethereum"
+            cls.default_ledger
         )
-        cls._skill.skill_context._agent_context._default_ledger_id = "ethereum"
-        cls.behaviour = cast(
-            AbstractRoundBehaviour,
-            cls._skill.skill_context.behaviours.main,
-        )
-        cls.http_handler = cast(HttpHandler, cls._skill.skill_context.handlers.http)
-        cls.signing_handler = cast(
-            SigningHandler, cls._skill.skill_context.handlers.signing
-        )
-        cls.contract_handler = cast(
-            ContractApiHandler, cls._skill.skill_context.handlers.contract_api
-        )
-        cls.ledger_handler = cast(
-            LedgerApiHandler, cls._skill.skill_context.handlers.ledger_api
-        )
-        cls.tendermint_handler = cast(
-            TendermintHandler, cls._skill.skill_context.handlers.tendermint
-        )
+        cls._skill.skill_context._agent_context._default_ledger_id = cls.default_ledger
+        behaviour = cls._skill.skill_context.behaviours.main
+        assert isinstance(
+            behaviour, AbstractRoundBehaviour
+        ), f"{behaviour} is not of type {AbstractRoundBehaviour}"
+        cls.behaviour = behaviour
+        for attr, handler, handler_type in [
+            ("http_handler", cls._skill.skill_context.handlers.http, HttpHandler),
+            (
+                "signing_handler",
+                cls._skill.skill_context.handlers.signing,
+                SigningHandler,
+            ),
+            (
+                "contract_handler",
+                cls._skill.skill_context.handlers.contract_api,
+                ContractApiHandler,
+            ),
+            (
+                "ledger_handler",
+                cls._skill.skill_context.handlers.ledger_api,
+                LedgerApiHandler,
+            ),
+            (
+                "tendermint_handler",
+                cls._skill.skill_context.handlers.tendermint,
+                TendermintHandler,
+            ),
+        ]:
+            assert isinstance(
+                handler, handler_type
+            ), f"{handler} is not of type {handler_type}"
+            setattr(cls, attr, handler)
 
         if kwargs.get("param_overrides") is not None:
             for param_name, param_value in kwargs["param_overrides"].items():
-                setattr(cls.behaviour.context.params, param_name, param_value)
+                cls.behaviour.context.params.__dict__[param_name] = param_value
 
     def setup(self, **kwargs: Any) -> None:
         """
@@ -123,16 +143,18 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
 
         :param kwargs: the keyword arguments passed to _prepare_skill
         """
-        super().setup()
+        super().setup(**kwargs)
         self.behaviour.setup()
         self._skill.skill_context.state.setup()
         self._skill.skill_context.state.round_sequence.end_sync()
 
         self.benchmark_dir = TemporaryDirectory()
-        self._skill.skill_context.benchmark_tool.log_dir = Path(self.benchmark_dir.name)
+        self._skill.skill_context.benchmark_tool.__dict__["log_dir"] = Path(
+            self.benchmark_dir.name
+        )
         assert (  # nosec
             cast(BaseBehaviour, self.behaviour.current_behaviour).behaviour_id
-            == self.behaviour.initial_behaviour_cls.behaviour_id
+            == self.behaviour.initial_behaviour_cls.auto_behaviour_id()
         )
 
     def fast_forward_to_behaviour(
@@ -142,10 +164,12 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         synchronized_data: BaseSynchronizedData,
     ) -> None:
         """Fast forward the FSM to a behaviour."""
-        next_behaviour = {s.behaviour_id: s for s in behaviour.behaviours}[behaviour_id]
+        next_behaviour = {s.auto_behaviour_id(): s for s in behaviour.behaviours}[
+            behaviour_id
+        ]
         next_behaviour = cast(Type[BaseBehaviour], next_behaviour)
         behaviour.current_behaviour = next_behaviour(
-            name=next_behaviour.behaviour_id, skill_context=behaviour.context
+            name=next_behaviour.auto_behaviour_id(), skill_context=behaviour.context
         )
         self.skill.skill_context.state.round_sequence.abci_app._round_results.append(
             synchronized_data
@@ -154,10 +178,15 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         self.skill.skill_context.behaviours.main._last_round_height = (
             self.skill.skill_context.state.round_sequence.abci_app.current_round_height
         )
+        self.skill.skill_context.state.round_sequence.abci_app._current_round_cls = (
+            next_behaviour.matching_round
+        )
+        # consensus parameters will not be available if the current skill is abstract
+        consensus_params = getattr(
+            self.skill.skill_context.params, "consensus_params", None
+        )
         self.skill.skill_context.state.round_sequence.abci_app._current_round = (
-            next_behaviour.matching_round(
-                synchronized_data, self.skill.skill_context.params.consensus_params
-            )
+            next_behaviour.matching_round(synchronized_data, consensus_params)
         )
 
     def mock_ledger_api_request(
@@ -367,7 +396,7 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         abci_app._last_round = old_round
         abci_app._current_round = abci_app.transition_function[
             current_behaviour.matching_round
-        ][done_event](abci_app.synchronized_data, abci_app.consensus_params)
+        ][done_event](abci_app.synchronized_data)
         abci_app._previous_rounds.append(old_round)
         abci_app._current_round_height += 1
         self.behaviour._process_current_round()
@@ -381,18 +410,19 @@ class FSMBehaviourBaseCase(BaseSkillTestCase):
         ) as mock_round_sequence:
             mock_round_sequence.last_round_id = cast(
                 AbstractRound, current_behaviour.matching_round
-            ).round_id
+            ).auto_round_id()
             current_behaviour.act_wrapper()
             assert current_behaviour.is_done()  # nosec
 
     @classmethod
     def teardown_class(cls) -> None:
         """Teardown the test class."""
-        _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
+        if getattr(cls, "old_tx_type_to_payload_cls", False):
+            _MetaPayload.registry = cls.old_tx_type_to_payload_cls
 
-    def teardown(self) -> None:
+    def teardown(self, **kwargs: Any) -> None:
         """Teardown."""
-        super().teardown()
+        super().teardown(**kwargs)
         self.benchmark_dir.cleanup()
 
 
@@ -405,6 +435,7 @@ class DummyContext:
         round_timeout_seconds: float = 1.0
 
     _skill: MagicMock = MagicMock()
+    skill_id = "dummy_skill_id"
 
     @property
     def is_abstract_component(self) -> bool:

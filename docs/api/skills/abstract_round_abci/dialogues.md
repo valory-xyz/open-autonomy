@@ -9,7 +9,7 @@ This module contains the classes required for dialogue management.
 ## AbciDialogues Objects
 
 ```python
-class AbciDialogues(Model,  BaseAbciDialogues)
+class AbciDialogues(Model, BaseAbciDialogues)
 ```
 
 The dialogues class keeps track of all dialogues.
@@ -33,7 +33,7 @@ Initialize dialogues.
 ## HttpDialogues Objects
 
 ```python
-class HttpDialogues(Model,  BaseHttpDialogues)
+class HttpDialogues(Model, BaseHttpDialogues)
 ```
 
 This class keeps track of all http dialogues.
@@ -57,7 +57,7 @@ Initialize dialogues.
 ## SigningDialogues Objects
 
 ```python
-class SigningDialogues(Model,  BaseSigningDialogues)
+class SigningDialogues(Model, BaseSigningDialogues)
 ```
 
 This class keeps track of all signing dialogues.
@@ -82,7 +82,7 @@ Initialize dialogues.
 
 ```python
 class LedgerApiDialogue(  # pylint: disable=too-few-public-methods
-    BaseLedgerApiDialogue)
+        BaseLedgerApiDialogue)
 ```
 
 The dialogue class maintains state of a dialogue and manages it.
@@ -92,7 +92,10 @@ The dialogue class maintains state of a dialogue and manages it.
 #### `__`init`__`
 
 ```python
-def __init__(dialogue_label: BaseDialogueLabel, self_address: Address, role: BaseDialogue.Role, message_class: Type[LedgerApiMessage] = LedgerApiMessage) -> None
+def __init__(dialogue_label: BaseDialogueLabel,
+             self_address: Address,
+             role: BaseDialogue.Role,
+             message_class: Type[LedgerApiMessage] = LedgerApiMessage) -> None
 ```
 
 Initialize a dialogue.
@@ -131,7 +134,7 @@ Set the terms.
 ## LedgerApiDialogues Objects
 
 ```python
-class LedgerApiDialogues(Model,  BaseLedgerApiDialogues)
+class LedgerApiDialogues(Model, BaseLedgerApiDialogues)
 ```
 
 The dialogues class keeps track of all dialogues.
@@ -156,7 +159,7 @@ Initialize dialogues.
 
 ```python
 class ContractApiDialogue(  # pylint: disable=too-few-public-methods
-    BaseContractApiDialogue)
+        BaseContractApiDialogue)
 ```
 
 The dialogue class maintains state of a dialogue and manages it.
@@ -166,7 +169,11 @@ The dialogue class maintains state of a dialogue and manages it.
 #### `__`init`__`
 
 ```python
-def __init__(dialogue_label: BaseDialogueLabel, self_address: Address, role: BaseDialogue.Role, message_class: Type[ContractApiMessage] = ContractApiMessage) -> None
+def __init__(
+        dialogue_label: BaseDialogueLabel,
+        self_address: Address,
+        role: BaseDialogue.Role,
+        message_class: Type[ContractApiMessage] = ContractApiMessage) -> None
 ```
 
 Initialize a dialogue.
@@ -205,7 +212,7 @@ Set the terms.
 ## ContractApiDialogues Objects
 
 ```python
-class ContractApiDialogues(Model,  BaseContractApiDialogues)
+class ContractApiDialogues(Model, BaseContractApiDialogues)
 ```
 
 The dialogues class keeps track of all dialogues.
@@ -225,12 +232,36 @@ Initialize dialogues.
 ## TendermintDialogues Objects
 
 ```python
-class TendermintDialogues(Model,  BaseTendermintDialogues)
+class TendermintDialogues(Model, BaseTendermintDialogues)
 ```
 
 The dialogues class keeps track of all dialogues.
 
 <a id="packages.valory.skills.abstract_round_abci.dialogues.TendermintDialogues.__init__"></a>
+
+#### `__`init`__`
+
+```python
+def __init__(**kwargs: Any) -> None
+```
+
+Initialize dialogues.
+
+**Arguments**:
+
+- `kwargs`: keyword arguments
+
+<a id="packages.valory.skills.abstract_round_abci.dialogues.IpfsDialogues"></a>
+
+## IpfsDialogues Objects
+
+```python
+class IpfsDialogues(Model, BaseIpfsDialogues)
+```
+
+A class to keep track of IPFS dialogues.
+
+<a id="packages.valory.skills.abstract_round_abci.dialogues.IpfsDialogues.__init__"></a>
 
 #### `__`init`__`
 

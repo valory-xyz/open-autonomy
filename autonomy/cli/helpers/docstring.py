@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 import importlib
 from pathlib import Path
 from types import ModuleType
-from typing import Optional
+from typing import Optional, cast
 
 import click
 from aea.configurations.constants import PACKAGES
@@ -66,7 +66,9 @@ def analyse_docstrings(
             App = getattr(module, obj)
             docstring = docstring_abci_app(App)
 
-            original_content = Path(module.__file__).read_text(encoding="utf-8")
+            original_content = Path(cast(str, module.__file__)).read_text(
+                encoding="utf-8"
+            )
             has_docstring, expected_content = compare_docstring_content(
                 file_content=original_content, docstring=docstring, abci_app_name=obj
             )
@@ -85,4 +87,5 @@ def analyse_docstrings(
 
             return update_needed
 
+    click.echo(f"WARNING: No AbciApp definition found in: {module.__file__}")
     return True

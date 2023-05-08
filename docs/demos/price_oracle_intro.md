@@ -33,35 +33,24 @@ node.
 
 
 ## Running the demo
-The steps below will guide you to download the price oracle agent service configuration from the Service Registry, build and run a deployment locally.
 
-1. Open a terminal and run a local [HardHat](https://hardhat.org/) node that will emulate a blockchain node. For convenience, we provide a Docker image in [Docker Hub](https://hub.docker.com/) that can be run by executing:
-    ```bash
-    docker run -p 8545:8545 -it valory/open-autonomy-hardhat:0.1.0
-    ```
-
-Execute the next steps in a separate terminal.
-
-1. Ensure that your machine satisfies the [framework requirements](../guides/set_up.md#requirements) and that
+Before running the demo, ensure that your machine satisfies the [framework requirements](../guides/set_up.md#requirements) and that
 you have followed the [setup instructions](../guides/set_up.md#setup). As a result you should have a Pipenv workspace folder.
 
-2. Use the CLI to fetch the `valory/oracle_hardhat` service.
-    ```bash
-    autonomy fetch valory/oracle_hardhat:0.1.0:bafybeie553shfmnds6v7defynjv5kmjkqf2aygj345jbbcssevtnkbodbe --remote --service
-    cd oracle_hardhat
-    ```
-
-3. Follow the steps in the [local deployment guide](../guides/deploy_service.md#local-deployment) to deploy and run the service locally.
-
-4. The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
-    ```bash
-    docker logs <container_id> --follow
-    ```
-    where `<container_id>` refers to the Docker container ID for either an agent
-    (`abci0`, `abci1`, `abci2` and `abci3`) or a [Tendermint](https://tendermint.com/) node (`node0`, `node1`, `node2` and `node3`).
+To run the Price Oracle service follow the instructions in the [OracleKit section](https://docs.autonolas.network/product/oraclekit/#demo), which contains the necessary steps to download the service from the Service Registry, build and run a deployment locally with a local [HardHat](https://hardhat.org/) node.
 
 
 ## Interacting with the demo
+
+The logs of a single agent or [Tendermint](https://tendermint.com/) node can be inspected in another terminal with, e.g.,
+
+```bash
+docker logs <container_id> --follow
+```
+
+where `<container_id>` refers to the Docker container ID for either an agent
+(`abci0`, `abci1`, `abci2` and `abci3`) or a [Tendermint](https://tendermint.com/) node (`node0`, `node1`, `node2` and `node3`).
+
 By examining the logs of an agent container, you will see a message similar to the one depicted below, after the framework successfully builds and starts it:
 
 ```

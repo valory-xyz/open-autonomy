@@ -27,18 +27,3 @@
 11. Open PRs and merge into develop. Then open develop to main PR and merge it.
 
 12. Tag version on main.
-
-13. Pull main, make a clean environment (`pipenv --rm` and `pipenv --python 3.10` and `pipenv shell`) and create distributions: `make dist`.
-
-14. Publish to PyPI with twine (`pip install twine`): `twine upload dist/*`. Optionally, publish to Test-PyPI with twine:
-`twine upload --repository-url https://test.pypi.org/legacy/ dist/*`.
-
-15. Repeat 11. for each plugin (use `python setup.py sdist bdist_wheel` instead of `make dist`).
-
-16. Make clean environment and install release from PyPI: `pip install open-autonomy --no-cache`.
-
-17. Release packages into registry: `autonomy init --reset --author valory --ipfs --remote` and `autonomy push-all`. If necessary, run it several times until all packages are updated.
-
-18. Build and tag images for the documentation. `VERSION=TAG-TO-BE-RELEASED make release-images`. Inform DevOps of new release so that these images can be rolled out.
-
-If something goes wrong and only needs a small fix do `LAST_VERSION.post1` as version, apply fixes, push again to PyPI.

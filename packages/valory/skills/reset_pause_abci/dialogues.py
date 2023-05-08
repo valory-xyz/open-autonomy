@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,16 +26,40 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     AbciDialogues as BaseAbciDialogues,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
+    ContractApiDialogue as BaseContractApiDialogue,
+)
+from packages.valory.skills.abstract_round_abci.dialogues import (
+    ContractApiDialogues as BaseContractApiDialogues,
+)
+from packages.valory.skills.abstract_round_abci.dialogues import (
     HttpDialogue as BaseHttpDialogue,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
     HttpDialogues as BaseHttpDialogues,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
+    IpfsDialogue as BaseIpfsDialogue,
+)
+from packages.valory.skills.abstract_round_abci.dialogues import (
+    IpfsDialogues as BaseIpfsDialogues,
+)
+from packages.valory.skills.abstract_round_abci.dialogues import (
+    LedgerApiDialogue as BaseLedgerApiDialogue,
+)
+from packages.valory.skills.abstract_round_abci.dialogues import (
+    LedgerApiDialogues as BaseLedgerApiDialogues,
+)
+from packages.valory.skills.abstract_round_abci.dialogues import (
     SigningDialogue as BaseSigningDialogue,
 )
 from packages.valory.skills.abstract_round_abci.dialogues import (
     SigningDialogues as BaseSigningDialogues,
+)
+from packages.valory.skills.abstract_round_abci.dialogues import (
+    TendermintDialogue as BaseTendermintDialogue,
+)
+from packages.valory.skills.abstract_round_abci.dialogues import (
+    TendermintDialogues as BaseTendermintDialogues,
 )
 
 
@@ -49,3 +73,19 @@ HttpDialogues = BaseHttpDialogues
 
 SigningDialogue = BaseSigningDialogue
 SigningDialogues = BaseSigningDialogues
+
+
+LedgerApiDialogue = BaseLedgerApiDialogue
+LedgerApiDialogues = BaseLedgerApiDialogues
+
+
+ContractApiDialogue = BaseContractApiDialogue
+ContractApiDialogues = BaseContractApiDialogues
+
+
+TendermintDialogue = BaseTendermintDialogue
+TendermintDialogues = BaseTendermintDialogues
+
+
+IpfsDialogue = BaseIpfsDialogue
+IpfsDialogues = BaseIpfsDialogues

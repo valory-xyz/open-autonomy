@@ -15,7 +15,9 @@ This module patches the 'aea scaffold' command so to add a new subcommand for sc
 @scaffold.command()  # noqa
 @registry_flag()
 @click.argument("skill_name", type=str, required=True)
-@click.option("--spec", type=click.Path(exists=True, dir_okay=False), required=True)
+@click.option("--spec",
+              type=click.Path(exists=True, dir_okay=False),
+              required=True)
 @pass_ctx
 def fsm(ctx: Context, registry: str, skill_name: str, spec: str) -> None
 ```

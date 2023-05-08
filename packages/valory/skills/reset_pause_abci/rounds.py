@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,13 +20,11 @@
 """This module contains the data classes for the reset_pause_abci application."""
 
 from enum import Enum
-from typing import Dict, Optional, Set, Tuple, Type
+from typing import Dict, Optional, Set, Tuple
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
-    AbciAppDB,
     AbciAppTransitionFunction,
-    AbstractRound,
     AppState,
     BaseSynchronizedData,
     CollectSameUntilThresholdRound,
@@ -47,29 +45,14 @@ class Event(Enum):
 class ResetAndPauseRound(CollectSameUntilThresholdRound):
     """A round that represents that consensus is reached (the final round)"""
 
-    round_id = "reset_and_pause"
-    allowed_tx_type = ResetPausePayload.transaction_type
-    payload_attribute = "period_count"
+    payload_class = ResetPausePayload
     _allow_rejoin_payloads = True
     synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            extra_kwargs = {}
-            for key in self.synchronized_data.db.cross_period_persisted_keys:
-                extra_kwargs[key] = self.synchronized_data.db.get_strict(key)
-            synchronized_data = self.synchronized_data.create(
-                synchronized_data_class=self.synchronized_data_class,
-                **AbciAppDB.data_to_lists(
-                    dict(
-                        participants=self.synchronized_data.participants,
-                        all_participants=self.synchronized_data.all_participants,
-                        **extra_kwargs,
-                    )
-                ),
-            )
-            return synchronized_data, Event.DONE
+            return self.synchronized_data.create(), Event.DONE
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
         ):
@@ -80,13 +63,9 @@ class ResetAndPauseRound(CollectSameUntilThresholdRound):
 class FinishedResetAndPauseRound(DegenerateRound):
     """A round that represents reset and pause has finished"""
 
-    round_id = "finished_reset_pause"
-
 
 class FinishedResetAndPauseErrorRound(DegenerateRound):
     """A round that represents reset and pause has finished with errors"""
-
-    round_id = "finished_reset_pause_error"
 
 
 class ResetPauseAbciApp(AbciApp[Event]):
@@ -111,7 +90,7 @@ class ResetPauseAbciApp(AbciApp[Event]):
         reset and pause timeout: 30.0
     """
 
-    initial_round_cls: Type[AbstractRound] = ResetAndPauseRound
+    initial_round_cls: AppState = ResetAndPauseRound
     transition_function: AbciAppTransitionFunction = {
         ResetAndPauseRound: {
             Event.DONE: FinishedResetAndPauseRound,
@@ -128,4 +107,9 @@ class ResetPauseAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_AND_PAUSE_TIMEOUT: 30.0,
+    }
+    db_pre_conditions: Dict[AppState, Set[str]] = {ResetAndPauseRound: set()}
+    db_post_conditions: Dict[AppState, Set[str]] = {
+        FinishedResetAndPauseRound: set(),
+        FinishedResetAndPauseErrorRound: set(),
     }

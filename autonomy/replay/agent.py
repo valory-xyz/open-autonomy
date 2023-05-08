@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -31,6 +31,12 @@ from typing import Dict, List, Optional
 
 from aea_ledger_ethereum.test_tools.constants import ETHEREUM_PRIVATE_KEY_FILE
 
+from autonomy.deploy.base import TENDERMINT_COM_URL_PARAM, TENDERMINT_URL_PARAM
+
+
+CONNECTION_ABCI_CONFIG_HOST = "CONNECTION_ABCI_CONFIG_HOST"
+CONNECTION_ABCI_CONFIG_PORT = "CONNECTION_ABCI_CONFIG_PORT"
+
 
 class AgentRunner:
     """Agent runner."""
@@ -55,13 +61,15 @@ class AgentRunner:
         agent_env_data = self.agent_data["environment"]
         for env_var in agent_env_data:
             key, value = env_var.split("=")
-            self.agent_env[key] = value
+            if key.endswith(TENDERMINT_URL_PARAM.upper()) or key.endswith(
+                TENDERMINT_COM_URL_PARAM.upper()
+            ):
+                self.agent_env[key] = f"http://localhost:8080/{self.agent_id}"
+            else:
+                self.agent_env[key] = value
 
-        # TODO: Create appropriate constants
-        self.agent_env["ABCI_HOST"] = "localhost"
-        self.agent_env["ABCI_PORT"] = f"2665{self.agent_id}"
-        self.agent_env["TENDERMINT_URL"] = f"http://localhost:8080/{self.agent_id}"
-        self.agent_env["TENDERMINT_COM_URL"] = f"http://localhost:8080/{self.agent_id}"
+        self.agent_env[CONNECTION_ABCI_CONFIG_HOST] = "localhost"
+        self.agent_env[CONNECTION_ABCI_CONFIG_PORT] = f"2665{self.agent_id}"
 
     def start(
         self,
@@ -95,6 +103,13 @@ class AgentRunner:
             [*self.aea_cli, "add-key", "ethereum"], env=self.agent_env
         )
         subprocess.run(  # nosec # pylint: disable=subprocess-run-check
+            ["cp", "ethereum_private_key.txt", "ethereum_flashbots_private_key.txt"],
+            env=self.agent_env,
+        )
+        subprocess.run(  # nosec # pylint: disable=subprocess-run-check
+            [*self.aea_cli, "add-key", "ethereum-flashbots"], env=self.agent_env
+        )
+        subprocess.run(  # nosec # pylint: disable=subprocess-run-check
             [*self.aea_cli, "install"], env=self.agent_env
         )
         self.process = subprocess.Popen(  # nosec # pylint: disable=subprocess-run-check,consider-using-with
@@ -111,7 +126,7 @@ class AgentRunner:
             shutil.rmtree(str(self.agent_dir))
 
         if self.process is None:
-            return
+            return  # pragma: no cover
 
         self.process.poll()
         if self.process.returncode is None:  # stop only pending processes

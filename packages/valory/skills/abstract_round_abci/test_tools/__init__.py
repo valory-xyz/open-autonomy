@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests package for abstract_round_abci derived skills."""
+"""Tests package for abstract_round_abci derived skills."""  # pragma: nocover

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ SAFE_DEPLOYED_BYTECODE = "0x608060405273ffffffffffffffffffffffffffffffffffffffff
 
 def _get_nonce() -> int:
     """Generate a nonce for the Safe deployment."""
-    return secrets.SystemRandom().randint(0, 2 ** 256 - 1)
+    return secrets.SystemRandom().randint(0, 2**256 - 1)
 
 
 def checksum_address(agent_address: str) -> ChecksumAddress:
@@ -212,11 +212,7 @@ class GnosisSafeContract(Contract):
                 payment_token,
                 payment,
                 payment_receiver,
-            ).buildTransaction(  # type: ignore
-                {"gas": MIN_GAS, "gasPrice": MIN_GASPRICE}  # type: ignore
-            )[
-                "data"
-            ]
+            ).buildTransaction({"gas": MIN_GAS, "gasPrice": MIN_GASPRICE})["data"]
         )
 
         nonce = (

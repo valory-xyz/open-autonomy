@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ class ROUNDS:
     \"\"\"This package contains the rounds of {AbciApp}.\"\"\"
 
     from enum import Enum
-    from typing import List, Optional, Set, Tuple
+    from typing import Dict, List, Optional, Set, Tuple
 
     from packages.valory.skills.abstract_round_abci.base import (
         AbciApp,
@@ -42,7 +42,6 @@ class ROUNDS:
         BaseSynchronizedData,
         DegenerateRound,
         EventToTimeout,
-        TransactionType
     )
 
     from packages.{author}.skills.{skill_name}.payloads import (
@@ -69,10 +68,11 @@ class ROUNDS:
     class {RoundCls}({ABCRoundCls}):
         \"\"\"{RoundCls}\"\"\"
 
+        payload_class = {PayloadCls}
+        payload_attribute = ""  # TODO: update
+        synchronized_data_class = SynchronizedData
+
         {todo_abstract_round_cls}
-        round_id: str = "{round_id}"
-        allowed_tx_type: Optional[TransactionType] = {PayloadCls}.transaction_type
-        payload_attribute: str = "{round_id}"
 
         def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
             \"\"\"Process the end of the block.\"\"\"
@@ -92,8 +92,6 @@ class ROUNDS:
     class {RoundCls}({ABCRoundCls}):
         \"\"\"{RoundCls}\"\"\"
 
-        round_id: str = "{round_id}"
-
     """
 
     ABCI_APP_CLS = """\
@@ -105,7 +103,13 @@ class ROUNDS:
         transition_function: AbciAppTransitionFunction = {transition_function}
         final_states: Set[AppState] = {final_states}
         event_to_timeout: EventToTimeout = {{}}
-        cross_period_persisted_keys: List[str] = []
+        cross_period_persisted_keys: Set[str] = []
+        db_pre_conditions: Dict[AppState, Set[str]] = {{
+            {db_pre_conditions}
+        }}
+        db_post_conditions: Dict[AppState, Set[str]] = {{
+            {db_post_conditions}
+        }}
     """
 
 
@@ -118,6 +122,7 @@ class BEHAVIOURS:
     HEADER = """\
     \"\"\"This package contains round behaviours of {AbciApp}.\"\"\"
 
+    from abc import ABC
     from typing import Generator, Set, Type, cast
 
     from packages.valory.skills.abstract_round_abci.base import AbstractRound
@@ -139,8 +144,8 @@ class BEHAVIOURS:
     """
 
     BASE_BEHAVIOUR_CLS = """\
-    class {BaseBehaviourCls}(BaseBehaviour):
-        \"\"\"Base behaviour for the common apps' skill.\"\"\"
+    class {BaseBehaviourCls}(BaseBehaviour, ABC):
+        \"\"\"Base behaviour for the {skill_name} skill.\"\"\"
 
         @property
         def synchronized_data(self) -> SynchronizedData:
@@ -158,12 +163,9 @@ class BEHAVIOURS:
     class {BehaviourCls}({BaseBehaviourCls}):
         \"\"\"{BehaviourCls}\"\"\"
 
-        # TODO: set the following class attributes
-        state_id: str
-        behaviour_id: str = "{behaviour_id}"
         matching_round: Type[AbstractRound] = {matching_round}
 
-        # TODO: implement logic required to set payload content (e.g. synchronized_data)
+        # TODO: implement logic required to set payload content for synchronization
         def async_act(self) -> Generator:
             \"\"\"Do the act, supporting asynchronous execution.\"\"\"
 
@@ -198,51 +200,18 @@ class PAYLOADS:
     HEADER = """\
     \"\"\"This module contains the transaction payloads of the {AbciApp}.\"\"\"
 
-    from abc import ABC
-    from enum import Enum
-    from typing import Any, Dict, Hashable, Optional
+    from dataclasses import dataclass
 
     from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
     """
 
-    TRANSACTION_TYPE_SECTION = """\
-    class TransactionType(Enum):
-        \"\"\"Enumeration of transaction types.\"\"\"
-
-        # TODO: define transaction types: e.g. TX_HASH: "tx_hash"
-        {tx_types}
-
-        def __str__(self) -> str:
-            \"\"\"Get the string value of the transaction type.\"\"\"
-            return self.value
-
-    """
-
-    BASE_PAYLOAD_CLS = """\
-    class Base{FSMName}Payload(BaseTxPayload, ABC):
-        \"\"\"Base payload for {AbciApp}.\"\"\"
-
-        def __init__(self, sender: str, content: Hashable, **kwargs: Any) -> None:
-            \"\"\"Initialize a transaction payload.\"\"\"
-
-            super().__init__(sender, **kwargs)
-            setattr(self, f"_{{self.transaction_type}}", content)
-            p = property(lambda s: getattr(self, f"_{{self.transaction_type}}"))
-            setattr(self.__class__, f"{{self.transaction_type}}", p)
-
-        @property
-        def data(self) -> Dict[str, Hashable]:
-            \"\"\"Get the data.\"\"\"
-            return dict(content=getattr(self, str(self.transaction_type)))
-
-    """
-
     PAYLOAD_CLS = """\
-    class {PayloadCls}(Base{FSMName}Payload):
+    @dataclass(frozen=True)
+    class {PayloadCls}(BaseTxPayload):
         \"\"\"Represent a transaction payload for the {RoundCls}.\"\"\"
 
-        transaction_type = TransactionType.{tx_type}
+        # TODO: define your attributes
 
     """
 
@@ -255,8 +224,6 @@ class MODELS:
 
     HEADER = """\
     \"\"\"This module contains the shared state for the abci skill of {AbciApp}.\"\"\"
-
-    from typing import Any
 
     from packages.valory.skills.abstract_round_abci.models import BaseParams
     from packages.valory.skills.abstract_round_abci.models import (
@@ -272,9 +239,7 @@ class MODELS:
     class SharedState(BaseSharedState):
         \"\"\"Keep the current shared state of the skill.\"\"\"
 
-        def __init__(self, *args: Any, **kwargs: Any) -> None:
-            \"\"\"Initialize the state.\"\"\"
-            super().__init__(*args, abci_app_cls={AbciApp}, **kwargs)
+        abci_app_cls = {AbciApp}
 
 
     Params = BaseParams
@@ -302,6 +267,9 @@ class HANDLERS:
         HttpHandler as BaseHttpHandler,
     )
     from packages.valory.skills.abstract_round_abci.handlers import (
+        IpfsHandler as BaseIpfsHandler,
+    )
+    from packages.valory.skills.abstract_round_abci.handlers import (
         LedgerApiHandler as BaseLedgerApiHandler,
     )
     from packages.valory.skills.abstract_round_abci.handlers import (
@@ -312,12 +280,13 @@ class HANDLERS:
     )
 
 
-    ABCIRoundHandler = BaseABCIRoundHandler
+    ABCIHandler = BaseABCIRoundHandler
     HttpHandler = BaseHttpHandler
     SigningHandler = BaseSigningHandler
     LedgerApiHandler = BaseLedgerApiHandler
     ContractApiHandler = BaseContractApiHandler
     TendermintHandler = BaseTendermintHandler
+    IpfsHandler = BaseIpfsHandler
     """
 
 
@@ -347,6 +316,12 @@ class DIALOGUES:
     )
     from packages.valory.skills.abstract_round_abci.dialogues import (
         HttpDialogues as BaseHttpDialogues,
+    )
+    from packages.valory.skills.abstract_round_abci.dialogues import (
+        IpfsDialogue as BaseIpfsDialogue,
+    )
+    from packages.valory.skills.abstract_round_abci.dialogues import (
+        IpfsDialogues as BaseIpfsDialogues,
     )
     from packages.valory.skills.abstract_round_abci.dialogues import (
         LedgerApiDialogue as BaseLedgerApiDialogue,
@@ -390,4 +365,8 @@ class DIALOGUES:
 
     TendermintDialogue = BaseTendermintDialogue
     TendermintDialogues = BaseTendermintDialogues
+
+
+    IpfsDialogue = BaseIpfsDialogue
+    IpfsDialogues = BaseIpfsDialogues
     """

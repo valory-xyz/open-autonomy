@@ -1,25 +1,25 @@
 The {{open_autonomy}} framework works with the concept of **package**: a collection of files that implement a specific component or functionality.
 Publishing a package is simply the process of storing the package into a registry (or in other words, a repository), either locally or remotely.
-By publishing a package on a remote repository, its code is available for other developers to reuse it. Moreover, publishing a package on a public repository also facilitates [registering the package in the on-chain protocol](./register_packages_on_chain.md).
-
-
-!!! note
-      It is not a strict requirement that a package be publicly available in a remote repository to register it in the on-chain protocol. The developer might want to keep the code private (and share it by different means), and still be able to register the package in the on-chain protocol.
-
 
 <figure markdown>
 ![](../images/development_process_publish_fetch_packages.svg)
 <figcaption>Part of the development process covered in this guide</figcaption>
 </figure>
 
+By publishing a package on a remote repository, its code is available for other developers to reuse it. Moreover, publishing a package on a public repository also facilitates [minting the package in the Autonolas Protocol](./publish_mint_packages.md).
+
+!!! note
+      It is not a strict requirement that a package be publicly available in a remote repository to register it in the on-chain protocol. The developer might want to keep the code private (and share it by different means), and still be able to register the package in the on-chain protocol.
 
 ## What will you learn
+
 In this guide, you will learn to:
 
-  * Manage the life cycle of packages with the framework.
-  * Publish and retrieve packages from local and remote registries.
+* Manage the life cycle of packages with the framework.
+* Publish and retrieve packages from local and remote registries.
 
 ## How the local and remote registries work
+
 Currently, the {{open_autonomy}} framework supports two types of registries:
 
   * local, and
@@ -75,14 +75,14 @@ The `push`, `add`, `publish` and `fetch` commands use, by default, the registry 
 
 Additionally, the framework configuration can be overridden per command by using the flags `--local` or `--remote` in any of the commands  `push`, `add`, `publish` or `fetch`.
 
-The framework assumes that the location of the local registry is the subfolder `./packages`, or alternatively, the parent folder `..\packages`. Alternatively, you can specify the local registry folder with the top-level flag `--registry-path`, for example:
+The framework assumes that the location of the local registry is the subfolder `./packages`, or alternatively, the parent folder `../packages`. Alternatively, you can specify the local registry folder with the top-level flag `--registry-path`, for example:
 ```bash
 autonomy --registry-path=../my_registry publish --local
 ```
 
 
 ## Push and add components
-This section assumes that you have a newly created component, e.g., an {{fsm_app}} skill, within an agent folder. It is out of the scope of this guide how to create agent components. You can review the [guide to create an {{fsm_app}}](./create_fsm_app.md), or the {{open_aea_doc}}. Your component should be located within an agent folder (i.e., a folder containing the file `aea-config.yaml`) in
+This section assumes that you have a newly created component, e.g., an {{fsm_app}} skill, within an agent folder. It is out of the scope of this guide how to create agent components. You can review the [guide to create an {{fsm_app}}](./code_fsm_app_skill.md), or the {{open_aea_doc}}. Your component should be located within an agent folder (i.e., a folder containing the file `aea-config.yaml`) in
 ```
 <agent_folder>/vendor/<author_name>/<component_type>/<package_name>.
 ```
@@ -120,7 +120,7 @@ If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech
     ```
 
 ## Publish and fetch agents
-This section assumes that you have a newly created agent in a workspace folder. It is out of the scope of this guide how to create agents. You can review the [guide to create a service from scratch](./create_service_from_scratch.md), or the {{open_aea_doc}}. Your agent should be located in an agent folder (i.e., a folder containing the file `aea-config.yaml`).
+This section assumes that you have a newly created agent in a workspace folder. It is out of the scope of this guide how to create agents. You can review the [guide to define an agent](./define_agent.md), or the {{open_aea_doc}}. Your agent should be located in an agent folder (i.e., a folder containing the file `aea-config.yaml`).
 
 ### Publish an agent on a registry
 
@@ -165,7 +165,7 @@ If you are using the default remote IPFS registry (`/dns/registry.autonolas.tech
 
 
 ## Publish and fetch services
-This section assumes that you have a newly created service in a workspace folder. It is out of the scope of this guide how to create services. You can review the [guide to create a service with an existing agent](./create_service_existing_agent.md), or the [guide to create a service from scratch](./create_service_from_scratch.md). Your service should be located in an service folder (i.e., a folder containing the file `service.yaml`).
+This section assumes that you have a newly created service in a workspace folder. It is out of the scope of this guide how to create services. You can review the [guide to create a service with an existing agent](./define_service.md), or the [guide to define a service](./define_service.md). Your service should be located in an service folder (i.e., a folder containing the file `service.yaml`).
 
 ### Publish a service on a registry
 

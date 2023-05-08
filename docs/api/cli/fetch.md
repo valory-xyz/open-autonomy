@@ -32,7 +32,8 @@ Implementation of the 'autonomy fetch' subcommand.
 )
 @click.argument("public-id", type=PublicIdParameter(), required=True)
 @click.pass_context
-def fetch(click_context: click.Context, public_id: PublicId, alias: str, package_type: str, registry: str) -> None
+def fetch(click_context: click.Context, public_id: PublicId, alias: str,
+          package_type: str, registry: str) -> None
 ```
 
 Fetch an agent from the registry.

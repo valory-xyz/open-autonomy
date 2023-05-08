@@ -25,7 +25,7 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
 
 2. Use the CLI to download the `valory/counter` service.
     ```bash
-    autonomy fetch valory/counter:0.1.0:bafybeieavlwjrtbj43miapopwqtq7ztxv2opg7y6o23qz3zbchishnrory --remote --service
+    autonomy fetch valory/counter:0.1.0:bafybeibtnmbyyendbnfomnji7gwjclnt34ks577bgre5onqqysnmbtok64 --remote --service
     cd counter
     ```
 
@@ -64,12 +64,12 @@ you have followed the [setup instructions](guides/quick_start.md#setup). As a re
 
 5. Build a deployment setup for the demo service:
     ```bash
-    autonomy deploy build keys.json
+    autonomy deploy build keys.json -ltm
     ```
 
     This will build the deployment setup required to run the service locally.
     !!!note
-        It is also possible to generate a deployment using a local service configuration. See the [CLI section](./autonomy.md) for the complete details.
+        It is also possible to generate a deployment using a local service configuration. See the Commands section for the complete details.
 
 6. The build configuration will be located in `./abci_build`. Run the deployment using
     ```bash
@@ -284,7 +284,7 @@ First, open a terminal to the root of this repository,
 and fetch the `counter_client` agent:
 
 ```bash
-autonomy fetch valory/counter_client:0.1.0:bafybeiddivmcgauqdsbiedeenckltzyaukmyi3e4ccxp4cssqlqyadffwe --remote
+autonomy fetch valory/counter_client:0.1.0:bafybeiesdrai2lvgnwf5og4xh5n2f23giboxoivkuqj33x56xz6hgczav4 --remote
 ```
 
 This will copy the agent project in the `counter_client` directory.

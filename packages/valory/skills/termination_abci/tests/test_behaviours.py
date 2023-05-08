@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,13 +18,15 @@
 # ------------------------------------------------------------------------------
 
 """This package contains round behaviours of Background Behaviours."""
+
+import logging
+import platform
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Type
 from unittest import mock
 
 import pytest
-from _pytest.logging import LogCaptureFixture
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.multisend.contract import MultiSendContract
@@ -72,7 +74,8 @@ class BehaviourTestCase:
     initial_data: Dict[str, Any]
     ok_reqs: List[Callable]
     err_reqs: List[Callable]
-    expected_logs: List[str]
+    expected_log: str
+    expected_log_level: int
 
 
 class BaseTerminationTest(FSMBehaviourBaseCase):
@@ -91,15 +94,16 @@ class BaseTerminationTest(FSMBehaviourBaseCase):
     def fast_forward(self, data: Optional[Dict[str, Any]] = None) -> None:
         """Fast-forward on initialization"""
 
-        data = data if data is not None else {}
+        data = data or {}
         self.fast_forward_to_behaviour(
-            self.behaviour,  # type: ignore
-            self.behaviour_class.behaviour_id,
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(AbciAppDB(setup_data=AbciAppDB.data_to_lists(data))),
         )
         assert (
-            self.behaviour.current_behaviour.behaviour_id  # type: ignore
-            == self.behaviour_class.behaviour_id
+            self.behaviour.current_behaviour is not None
+            and self.behaviour.current_behaviour.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
     def complete(self) -> None:
@@ -108,8 +112,9 @@ class BaseTerminationTest(FSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self.end_round(done_event=self.done_event)
         assert (
-            self.behaviour.current_behaviour.behaviour_id  # type: ignore
-            == self.next_behaviour_class.behaviour_id
+            self.behaviour.current_behaviour is not None
+            and self.behaviour.current_behaviour.behaviour_id
+            == self.next_behaviour_class.auto_behaviour_id()
         )
 
 
@@ -139,7 +144,10 @@ class TestBackgroundBehaviour(BaseTerminationTest):
     _MOCK_TX_RESPONSE = b"0xIrrelevantForTests".hex()
     _MOCK_TX_HASH = "0x" + "0" * 64
     _INITIAL_DATA: Dict[str, Any] = dict(
-        safe_contract_address=SAFE_ADDRESS, participants=_SAFE_OWNERS
+        all_participants=_SAFE_OWNERS,
+        safe_contract_address=SAFE_ADDRESS,
+        participants=_SAFE_OWNERS,
+        consensus_threshold=3,
     )
 
     _STATE_ERR_LOG = (
@@ -170,6 +178,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
     _SAFE_HASH_ERR_LOG = f"Couldn't get safe hash. " f"{_STATE_ERR_LOG}"
     _MULTISEND_ERR_LOG = "Couldn't compile the multisend tx. "
     _SUCCESS_LOG = "Successfully prepared termination multisend tx."
+    _IS_STOPPED_LOG = "dropping message as behaviour has stopped:"
+    _IS_NOT_WAITING_MESSAGE = "could not send message"
 
     def _mock_get_service_owner_request(
         self,
@@ -380,6 +390,24 @@ class TestBackgroundBehaviour(BaseTerminationTest):
             ),
         )
 
+    def _mock_is_stopped(  # pylint: disable=unused-argument, disable=protected-access
+        self,
+        error: bool = False,
+    ) -> None:
+        """Mock a MultiSendContract.get_tx_data() request."""
+        assert self.behaviour.current_behaviour is not None
+        self.behaviour.current_behaviour._AsyncBehaviour__stopped = True
+
+    def _mock_state_is_not_waiting_message(  # pylint: disable=unused-argument, disable=protected-access
+        self,
+        error: bool = False,
+    ) -> None:
+        """Mock a MultiSendContract.get_tx_data() request."""
+        assert self.behaviour.current_behaviour is not None
+        self.behaviour.current_behaviour._AsyncBehaviour__state = (
+            AsyncBehaviour.AsyncState.RUNNING
+        )
+
     @pytest.mark.parametrize(
         "test_case",
         [
@@ -388,14 +416,16 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                 initial_data=_INITIAL_DATA,
                 ok_reqs=[],
                 err_reqs=[_mock_get_service_owner_request],
-                expected_logs=[_SERVICE_OWNER_ERR_LOG],
+                expected_log=_SERVICE_OWNER_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent fails to get zero transfer event",
                 initial_data=_INITIAL_DATA,
                 ok_reqs=[_mock_get_service_owner_request],
                 err_reqs=[_mock_get_zero_transfer_events_request],
-                expected_logs=[_ZERO_TRANSFER_EVENTS_ERR_LOG],
+                expected_log=_ZERO_TRANSFER_EVENTS_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent fails to get owner removal event",
@@ -405,7 +435,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     _mock_get_zero_transfer_events_request,
                 ],
                 err_reqs=[_mock_get_removed_owner_events_request],
-                expected_logs=[_SERVICE_OWNER_REMOVED_EVENTS_ERR_LOG],
+                expected_log=_SERVICE_OWNER_REMOVED_EVENTS_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent fails to get the safe owners",
@@ -416,7 +447,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     _mock_get_removed_owner_events_request,
                 ],
                 err_reqs=[_mock_get_owners_request],
-                expected_logs=[_SAFE_OWNERS_ERR_LOG],
+                expected_log=_SAFE_OWNERS_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent fails to get a remove safe owner tx",
@@ -428,7 +460,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     _mock_get_owners_request,
                 ],
                 err_reqs=[_mock_get_remove_owner_data_request],
-                expected_logs=[_REMOVE_OWNER_ERR_LOG],
+                expected_log=_REMOVE_OWNER_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent fails to get a swap safe owner tx",
@@ -441,7 +474,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     *[_mock_get_remove_owner_data_request] * (_NUM_SAFE_OWNERS - 1),
                 ],
                 err_reqs=[_mock_get_swap_owner_data_request],
-                expected_logs=[_SWAP_OWNER_ERR_LOG],
+                expected_log=_SWAP_OWNER_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent fails to prepare multisend tx",
@@ -455,7 +489,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     _mock_get_swap_owner_data_request,
                 ],
                 err_reqs=[_mock_get_tx_data_request],
-                expected_logs=[_MULTISEND_ERR_LOG],
+                expected_log=_MULTISEND_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent fails to get a hash for the multisend tx",
@@ -470,7 +505,8 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     _mock_get_tx_data_request,
                 ],
                 err_reqs=[_mock_get_raw_safe_transaction_hash_request],
-                expected_logs=[_SAFE_HASH_ERR_LOG],
+                expected_log=_SAFE_HASH_ERR_LOG,
+                expected_log_level=logging.ERROR,
             ),
             BehaviourTestCase(
                 name="agent completes the whole flow",
@@ -486,26 +522,73 @@ class TestBackgroundBehaviour(BaseTerminationTest):
                     _mock_get_raw_safe_transaction_hash_request,
                 ],
                 err_reqs=[],
-                expected_logs=[_SUCCESS_LOG],
+                expected_log=_SUCCESS_LOG,
+                expected_log_level=logging.INFO,
+            ),
+            BehaviourTestCase(
+                name="agent drops message because app already stopped",
+                initial_data=_INITIAL_DATA,
+                ok_reqs=[],
+                err_reqs=[
+                    _mock_is_stopped,
+                    _mock_get_service_owner_request,
+                ],
+                expected_log=_IS_STOPPED_LOG,
+                expected_log_level=logging.INFO,
+            ),
+            BehaviourTestCase(
+                name="agent could not send message because state != WAITING_MESSAGE",
+                initial_data=_INITIAL_DATA,
+                ok_reqs=[],
+                err_reqs=[
+                    _mock_state_is_not_waiting_message,
+                    _mock_get_service_owner_request,
+                ],
+                expected_log=_IS_NOT_WAITING_MESSAGE,
+                expected_log_level=logging.WARNING,
             ),
         ],
     )
-    def test_run(self, test_case: BehaviourTestCase, caplog: LogCaptureFixture) -> None:
+    def test_run(self, test_case: BehaviourTestCase) -> None:
         """Test multiple paths of termination."""
         self.fast_forward(data=test_case.initial_data)
-        self.behaviour.act_wrapper()
+        # repeating this check for the `current_behaviour` here to avoid `mypy` reporting:
+        # `error: Item "None" of "Optional[BaseBehaviour]" has no attribute "context"` when accessing the context below
+        assert self.behaviour.current_behaviour is not None
 
-        # apply the OK mocks first
-        for ok_req in test_case.ok_reqs:
-            ok_req(self)
+        with mock.patch.object(
+            self.behaviour.current_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.behaviour.act_wrapper()
 
-        # apply the failing mocks
-        for err_req in test_case.err_reqs:
-            err_req(self, error=True)
+            # apply the OK mocks first
+            for ok_req in test_case.ok_reqs:
+                ok_req(self)
 
-        # check that the expected logs appear
-        for expected_log in test_case.expected_logs:
-            assert expected_log in caplog.text
+            # apply the failing mocks
+            for err_req in test_case.err_reqs:
+                err_req(self, error=True)
+
+            log_found = False
+            for log_args in mock_logger.call_args_list:
+                if platform.python_version().startswith("3.7"):
+                    actual_log_level, actual_log = log_args[0][:2]
+                else:
+                    actual_log_level, actual_log = log_args.args[:2]
+
+                if actual_log.startswith(test_case.expected_log):
+                    assert actual_log_level == test_case.expected_log_level, (
+                        f"{test_case.expected_log} was expected to log on {test_case.expected_log_level} log level, "
+                        f"but logged on {log_args[0]} instead."
+                    )
+                    log_found = True
+                    break
+
+            if not log_found:
+                raise AssertionError(
+                    f'Expected log message "{test_case.expected_log}" was not found in captured logs: '
+                    f"{mock_logger.call_args_list}."
+                )
 
         if len(test_case.err_reqs) == 0:
             # no mocked requests fail,
@@ -514,7 +597,14 @@ class TestBackgroundBehaviour(BaseTerminationTest):
 
     def test_termination_majority_already_reached(self) -> None:
         """Tests the background behaviour when the termination is already reached."""
-        self.fast_forward(data=dict(termination_majority_reached=True))
+        self.fast_forward(
+            data=dict(
+                termination_majority_reached=True,
+                all_participants=["a"],
+                participants=["a"],
+                consensus_threshold=1,
+            )
+        )
         with mock.patch.object(
             self.behaviour_class, "check_for_signal"
         ) as check_for_signal:

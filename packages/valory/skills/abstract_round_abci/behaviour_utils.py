@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,16 +18,17 @@
 # ------------------------------------------------------------------------------
 
 """This module contains helper classes for behaviours."""
+
+
 import datetime
 import inspect
 import json
-import math
 import pprint
 import re
 import sys
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from enum import Enum
-from functools import partial, wraps
+from functools import partial
 from typing import (
     Any,
     Callable,
@@ -35,15 +36,15 @@ from typing import (
     Generator,
     List,
     Optional,
-    OrderedDict,
     Tuple,
     Type,
     Union,
     cast,
 )
 
-import pytz  # type: ignore  # pylint: disable=import-error
+import pytz
 from aea.exceptions import enforce
+from aea.mail.base import EnvelopeContext
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
 from aea.skills.behaviours import SimpleBehaviour
@@ -52,17 +53,25 @@ from packages.open_aea.protocols.signing import SigningMessage
 from packages.open_aea.protocols.signing.custom_types import (
     RawMessage,
     RawTransaction,
+    SignedTransaction,
     Terms,
 )
 from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
+)
+from packages.valory.connections.ipfs.connection import PUBLIC_ID as IPFS_CONNECTION_ID
+from packages.valory.connections.p2p_libp2p_client.connection import (
+    PUBLIC_ID as P2P_LIBP2P_CLIENT_PUBLIC_ID,
 )
 from packages.valory.contracts.service_registry.contract import (  # noqa: F401  # pylint: disable=unused-import
     ServiceRegistryContract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.ipfs import IpfsMessage
+from packages.valory.protocols.ipfs.dialogues import IpfsDialogue, IpfsDialogues
 from packages.valory.protocols.ledger_api import LedgerApiMessage
+from packages.valory.protocols.tendermint import TendermintMessage
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BaseSynchronizedData,
@@ -79,6 +88,7 @@ from packages.valory.skills.abstract_round_abci.dialogues import (
     LedgerApiDialogue,
     LedgerApiDialogues,
     SigningDialogues,
+    TendermintDialogues,
 )
 from packages.valory.skills.abstract_round_abci.io_.ipfs import (
     IPFSInteract,
@@ -95,21 +105,19 @@ from packages.valory.skills.abstract_round_abci.models import (
     BaseParams,
     Requests,
     SharedState,
+    TendermintRecoveryParams,
 )
 
 
 # TODO: port registration code from registration_abci to here
 
 
-MIN_HEIGHT_OFFSET = 10
-HEIGHT_OFFSET_MULTIPLIER = 1
 NON_200_RETURN_CODE_DURING_RESET_THRESHOLD = 3
 GENESIS_TIME_FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
-ROOT_HASH = "726F6F743A3"
-RESET_HASH = "72657365743A3"
-APP_HASH_RE = rf"{ROOT_HASH}\d+{RESET_HASH}(\d+)"
 INITIAL_APP_HASH = ""
+INITIAL_HEIGHT = "0"
 TM_REQ_TIMEOUT = 5  # 5 seconds
+FLASHBOTS_LEDGER_ID = "ethereum_flashbots"
 
 
 class SendException(Exception):
@@ -118,6 +126,14 @@ class SendException(Exception):
 
 class TimeoutException(Exception):
     """Exception raised when a timeout during AsyncBehaviour occurs."""
+
+
+class BaseBehaviourInternalError(Exception):
+    """Internal error due to a bad implementation of the BaseBehaviour."""
+
+    def __init__(self, message: str, *args: Any) -> None:
+        """Initialize the error object."""
+        super().__init__("internal error: " + message, *args)
 
 
 class AsyncBehaviour(ABC):
@@ -160,6 +176,21 @@ class AsyncBehaviour(ABC):
     def state(self) -> AsyncState:
         """Get the 'async state'."""
         return self.__state
+
+    @property
+    def is_notified(self) -> bool:
+        """Returns whether the behaviour has been notified about the arrival of a message."""
+        return self.__notified
+
+    @property
+    def received_message(self) -> Any:
+        """Returns the message the behaviour has received. "__message" should be None if not availble or already consumed."""
+        return self.__message
+
+    def _on_sent_message(self) -> None:
+        """To be called after the message received is consumed. Removes the already sent notification and message."""
+        self.__notified = False
+        self.__message = None
 
     @property
     def is_stopped(self) -> bool:
@@ -269,7 +300,7 @@ class AsyncBehaviour(ABC):
         finally:
             self.__state = self.AsyncState.RUNNING
 
-    def setup(self) -> None:
+    def setup(self) -> None:  # noqa: B027  # flake8 suggest make it abstract
         """Setup behaviour."""
 
     def act(self) -> None:
@@ -345,85 +376,92 @@ class AsyncBehaviour(ABC):
         self.__state = self.AsyncState.READY
 
 
-def _check_ipfs_enabled(fn: Callable) -> Callable:
-    """Decorator that raises error if IPFS is not enabled."""
-
-    @wraps(fn)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        """The wrap that checks and raises the error."""
-        ipfs_enabled = args[0].ipfs_enabled
-
-        if not ipfs_enabled:  # pragma: no cover
-            raise ValueError(
-                "Trying to perform an IPFS operation, but IPFS has not been enabled! "
-                "Please set `ipfs_domain_name` configuration."
-            )
-
-        return fn(*args, **kwargs)
-
-    return wrapper
-
-
 class IPFSBehaviour(SimpleBehaviour, ABC):
     """Behaviour for interactions with IPFS."""
 
     def __init__(self, **kwargs: Any):
         """Initialize an `IPFSBehaviour`."""
         super().__init__(**kwargs)
-        self.ipfs_enabled = False
-        # If params are not found `AttributeError` will be raised. This is fine, because something will have gone wrong.
-        # If `ipfs_domain_name` is not specified for the skill, then we get a `None` default.
-        # Therefore, `IPFSBehaviour` will be disabled.
-        domain = getattr(self.params, "ipfs_domain_name", None)  # type: ignore  # pylint: disable=E1101
         loader_cls = kwargs.pop("loader_cls", Loader)
         storer_cls = kwargs.pop("storer_cls", Storer)
-        if domain is not None:  # pragma: nocover
-            self.ipfs_enabled = True
-            self._ipfs_interact = IPFSInteract(domain, loader_cls, storer_cls)
+        self._ipfs_interact = IPFSInteract(loader_cls, storer_cls)
 
-    @_check_ipfs_enabled
-    def send_to_ipfs(
+    def _build_ipfs_message(
         self,
-        filepath: str,
+        performative: IpfsMessage.Performative,
+        timeout: Optional[float] = None,
+        **kwargs: Any,
+    ) -> Tuple[IpfsMessage, IpfsDialogue]:
+        """Builds an IPFS message."""
+        ipfs_dialogues = cast(IpfsDialogues, self.context.ipfs_dialogues)
+        message, dialogue = ipfs_dialogues.create(
+            counterparty=str(IPFS_CONNECTION_ID),
+            performative=performative,
+            timeout=timeout,
+            **kwargs,
+        )
+        return message, dialogue
+
+    def _build_ipfs_store_file_req(  # pylint: disable=too-many-arguments
+        self,
+        filename: str,
         obj: SupportedObjectType,
         multiple: bool = False,
         filetype: Optional[SupportedFiletype] = None,
         custom_storer: Optional[CustomStorerType] = None,
+        timeout: Optional[float] = None,
         **kwargs: Any,
-    ) -> Optional[str]:
-        """Send a file to IPFS."""
-        try:
-            hash_ = self._ipfs_interact.store_and_send(
-                filepath, obj, multiple, filetype, custom_storer, **kwargs
-            )
-            self.context.logger.info(f"IPFS hash is: {hash_}")
-            return hash_
-        except IPFSInteractionError as e:  # pragma: no cover
-            self.context.logger.error(
-                f"An error occurred while trying to send a file to IPFS: {str(e)}"
-            )
-            return None
+    ) -> Tuple[IpfsMessage, IpfsDialogue]:
+        """
+        Builds a STORE_FILES ipfs message.
 
-    @_check_ipfs_enabled
-    def get_from_ipfs(  # pylint: disable=too-many-arguments
+        :param filename: the file name to store obj in. If "multiple" is True, filename will be the name of the dir.
+        :param obj: the object(s) to serialize and store in IPFS as "filename".
+        :param multiple: whether obj should be stored as multiple files, i.e. directory.
+        :param custom_storer: a custom serializer for "obj".
+        :param timeout: timeout for the request.
+        :returns: the ipfs message, and its corresponding dialogue.
+        """
+        serialized_objects = self._ipfs_interact.store(
+            filename, obj, multiple, filetype, custom_storer, **kwargs
+        )
+        message, dialogue = self._build_ipfs_message(
+            performative=IpfsMessage.Performative.STORE_FILES,  # type: ignore
+            files=serialized_objects,
+            timeout=timeout,
+        )
+        return message, dialogue
+
+    def _build_ipfs_get_file_req(
         self,
-        hash_: str,
-        target_dir: str,
-        multiple: bool = False,
-        filename: Optional[str] = None,
+        ipfs_hash: str,
+        timeout: Optional[float] = None,
+    ) -> Tuple[IpfsMessage, IpfsDialogue]:
+        """
+        Builds a GET_FILES IPFS request.
+
+        :param ipfs_hash: the ipfs hash of the file/dir to download.
+        :param timeout: timeout for the request.
+        :returns: the ipfs message, and its corresponding dialogue.
+        """
+        message, dialogue = self._build_ipfs_message(
+            performative=IpfsMessage.Performative.GET_FILES,  # type: ignore
+            ipfs_hash=ipfs_hash,
+            timeout=timeout,
+        )
+        return message, dialogue
+
+    def _deserialize_ipfs_objects(  # pylint: disable=too-many-arguments
+        self,
+        serialized_objects: Dict[str, str],
         filetype: Optional[SupportedFiletype] = None,
         custom_loader: CustomLoaderType = None,
     ) -> Optional[SupportedObjectType]:
-        """Get a file from IPFS."""
-        try:
-            return self._ipfs_interact.get_and_read(
-                hash_, target_dir, multiple, filename, filetype, custom_loader
-            )
-        except IPFSInteractionError as e:
-            self.context.logger.error(
-                f"An error occurred while trying to fetch a file from IPFS: {str(e)}"
-            )
-            return None
+        """Deserialize objects received from IPFS."""
+        deserialized_object = self._ipfs_interact.load(
+            serialized_objects, filetype, custom_loader
+        )
+        return deserialized_object
 
 
 class CleanUpBehaviour(SimpleBehaviour, ABC):
@@ -465,15 +503,65 @@ class RPCResponseStatus(Enum):
     INSUFFICIENT_FUNDS = 4
     ALREADY_KNOWN = 5
     UNCLASSIFIED_ERROR = 6
+    SIMULATION_FAILED = 7
 
 
-class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
-    """Base class for FSM behaviours."""
+class _MetaBaseBehaviour(ABCMeta):
+    """A metaclass that validates BaseBehaviour's attributes."""
 
+    def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type:  # type: ignore
+        """Initialize the class."""
+        new_cls = super().__new__(mcs, name, bases, namespace, **kwargs)
+
+        if ABC in bases:
+            # abstract class, return
+            return new_cls
+        if not issubclass(new_cls, BaseBehaviour):
+            # the check only applies to AbciApp subclasses
+            return new_cls
+
+        mcs._check_consistency(cast(Type[BaseBehaviour], new_cls))
+        return new_cls
+
+    @classmethod
+    def _check_consistency(mcs, base_behaviour_cls: Type["BaseBehaviour"]) -> None:
+        """Check consistency of class attributes."""
+        mcs._check_required_class_attributes(base_behaviour_cls)
+
+    @classmethod
+    def _check_required_class_attributes(
+        mcs, base_behaviour_cls: Type["BaseBehaviour"]
+    ) -> None:
+        """Check that required class attributes are set."""
+        if not hasattr(base_behaviour_cls, "matching_round"):
+            raise BaseBehaviourInternalError(
+                f"'matching_round' not set on {base_behaviour_cls}"
+            )
+
+
+class BaseBehaviour(
+    AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC, metaclass=_MetaBaseBehaviour
+):
+    """
+    This class represents the base class for FSM behaviours
+
+    A behaviour is a state of the FSM App execution. It usually involves
+    interactions between participants in the FSM App,
+    although this is not enforced at this level of abstraction.
+
+    Concrete classes must set:
+    - matching_round: the round class matching the behaviour;
+
+    Optionally, behaviour_id can be defined, although it is recommended to use the autogenerated id.
+    """
+
+    __pattern = re.compile(r"(?<!^)(?=[A-Z])")
     is_programmatically_defined = True
-    behaviour_id = ""
-    matching_round: Type[AbstractRound]
     is_degenerate: bool = False
+
+    matching_round: Type[AbstractRound]
+
+    behaviour_id: str
 
     def __init__(self, **kwargs: Any):  # pylint: disable=super-init-not-called
         """Initialize a base behaviour."""
@@ -486,7 +574,26 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self._timeout: float = 0
         self._is_healthy: bool = False
         self._non_200_return_code_count: int = 0
-        enforce(self.behaviour_id != "", "State id not set.")
+
+    @classmethod
+    def auto_behaviour_id(cls) -> str:
+        """
+        Get behaviour id automatically.
+
+        This method returns the auto generated id from the class name if the
+        class variable behaviour_id is not set on the child class.
+        Otherwise, it returns the class variable behaviour_id.
+        """
+        return (
+            cls.behaviour_id
+            if isinstance(cls.behaviour_id, str)
+            else cls.__pattern.sub("_", cls.__name__).lower()
+        )
+
+    @property  # type: ignore
+    def behaviour_id(self) -> str:
+        """Get behaviour id."""
+        return self.auto_behaviour_id()
 
     @property
     def params(self) -> BaseParams:
@@ -554,7 +661,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param timeout: the timeout for the wait
         :yield: None
         """
-        round_id = self.matching_round.round_id
+        round_id = self.matching_round.auto_round_id()
         round_height = cast(
             SharedState, self.context.state
         ).round_sequence.current_round_height
@@ -606,10 +713,11 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param: resetting: flag indicating if we are resetting Tendermint nodes in this round.
         :yield: the responses
         """
-        stop_condition = self.is_round_ended(self.matching_round.round_id)
-        payload.round_count = cast(
+        stop_condition = self.is_round_ended(self.matching_round.auto_round_id())
+        round_count = cast(
             SharedState, self.context.state
         ).synchronized_data.round_count
+        object.__setattr__(payload, "round_count", round_count)
         yield from self._send_transaction(
             payload,
             resetting,
@@ -635,40 +743,6 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         if self._is_done:
             self._log_end()
 
-    def _sync_state(self, app_hash: str) -> None:
-        """
-        Sync the app's state using the given `app_hash`.
-
-        This method is intended for use after syncing local with remote.
-        The fact that we sync up with the blockchain does not mean that we also have the correct application state.
-        The application state is defined by the abci app's developer and also determines the generation of the app hash.
-        When we sync with the blockchain, it means that we no longer lag behind the other agents.
-        However, the application's state should also be updated, which is what this method takes care for.
-        We have chosen a simple application state for the time being,
-        which is a combination of the round count and the times we have reset so far.
-        The round count will be automatically updated by the framework while replaying the missed rounds,
-        however, the reset index needs to be manually updated.
-
-        Tendermint's block sync and state sync are not to be confused with our application's state;
-        they are different methods to sync faster with the blockchain.
-
-        :param app_hash: the app hash from which the state will be updated.
-        """
-        if app_hash == INITIAL_APP_HASH:
-            reset_index = 0
-        else:
-            match = re.match(APP_HASH_RE, app_hash)
-            if match is None:
-                raise ValueError(
-                    "Expected an app hash of the form: `726F6F743A3{ROUND_COUNT}72657365743A3{RESET_INDEX}`,"
-                    "which is derived from `root:{ROUND_COUNT}reset:{RESET_INDEX}`. "
-                    "For example, `root:90reset:4` would be `726F6F743A39072657365743A34`. "
-                    f"However, the app hash received is: `{app_hash}`."
-                )
-            reset_index = int(match.group(1))
-
-        self.context.state.round_sequence.abci_app.reset_index = reset_index
-
     def _check_sync(
         self,
     ) -> Generator[None, None, None]:
@@ -690,10 +764,6 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                     self.context.logger.info(
                         f"local height == remote == {local_height}; Sync complete..."
                     )
-                    remote_app_hash = str(
-                        json_body["result"]["sync_info"]["latest_app_hash"]
-                    )
-                    self._sync_state(remote_app_hash)
                     self.context.state.round_sequence.end_sync()
                     return
                 yield from self.sleep(self.context.params.tendermint_check_sleep_delay)
@@ -953,7 +1023,12 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         ] = self.get_callback_request()
         self.context.decision_maker_message_queue.put_nowait(signing_msg)
 
-    def _send_transaction_request(self, signing_msg: SigningMessage) -> None:
+    def _send_transaction_request(
+        self,
+        signing_msg: SigningMessage,
+        use_flashbots: bool = False,
+        target_block_numbers: Optional[List[int]] = None,
+    ) -> None:
         """
         Send transaction request.
 
@@ -963,14 +1038,43 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param signing_msg: signing message
+        :param use_flashbots: whether to use flashbots for the transaction or not
+        :param target_block_numbers: the target block numbers in case we are using flashbots
         """
         ledger_api_dialogues = cast(
             LedgerApiDialogues, self.context.ledger_api_dialogues
         )
-        ledger_api_msg, ledger_api_dialogue = ledger_api_dialogues.create(
+
+        create_kwargs: Dict[
+            str, Union[str, SignedTransaction, List[SignedTransaction]]
+        ] = dict(
             counterparty=LEDGER_API_ADDRESS,
             performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTION,
-            signed_transaction=signing_msg.signed_transaction,
+        )
+        if use_flashbots:
+            kwargs = {}
+            if target_block_numbers is not None:
+                kwargs["target_block_numbers"] = target_block_numbers
+            create_kwargs.update(
+                dict(
+                    performative=LedgerApiMessage.Performative.SEND_SIGNED_TRANSACTIONS,
+                    # we do not support sending multiple signed txs and receiving multiple tx hashes yet
+                    signed_transactions=LedgerApiMessage.SignedTransactions(
+                        ledger_id=FLASHBOTS_LEDGER_ID,
+                        signed_transactions=[signing_msg.signed_transaction.body],
+                    ),
+                    kwargs=LedgerApiMessage.Kwargs(kwargs),
+                )
+            )
+        else:
+            create_kwargs.update(
+                dict(
+                    signed_transaction=signing_msg.signed_transaction,
+                )
+            )
+
+        ledger_api_msg, ledger_api_dialogue = ledger_api_dialogues.create(
+            **create_kwargs
         )
         ledger_api_dialogue = cast(LedgerApiDialogue, ledger_api_dialogue)
         request_nonce = self._get_request_nonce_from_dialogue(ledger_api_dialogue)
@@ -1166,8 +1270,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         method: str,
         url: str,
         content: Optional[bytes] = None,
-        headers: Optional[List[OrderedDict[str, str]]] = None,
-        parameters: Optional[List[Tuple[str, str]]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        parameters: Optional[Dict[str, str]] = None,
     ) -> Generator[None, None, HttpMessage]:
         """
         Send an http request message from the skill context.
@@ -1233,8 +1337,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         method: str,
         url: str,
         content: Optional[bytes] = None,
-        headers: Optional[List[OrderedDict[str, str]]] = None,
-        parameters: Optional[List[Tuple[str, str]]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        parameters: Optional[Dict[str, str]] = None,
     ) -> Tuple[HttpMessage, HttpDialogue]:
         """
         Send an http request message from the skill context.
@@ -1251,15 +1355,14 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         """
         if parameters:
             url = url + "?"
-            for key, val in parameters:
+            for key, val in parameters.items():
                 url += f"{key}={val}&"
             url = url[:-1]
 
         header_string = ""
         if headers:
-            for header in headers:
-                for key, val in header.items():
-                    header_string += f"{key}: {val}\r\n"
+            for key, val in headers.items():
+                header_string += f"{key}: {val}\r\n"
 
         # context
         http_dialogues = cast(HttpDialogues, self.context.http_dialogues)
@@ -1391,7 +1494,10 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         return signature_bytes
 
     def send_raw_transaction(
-        self, transaction: RawTransaction
+        self,
+        transaction: RawTransaction,
+        use_flashbots: bool = False,
+        target_block_numbers: Optional[List[int]] = None,
     ) -> Generator[
         None,
         Union[None, SigningMessage, LedgerApiMessage],
@@ -1411,6 +1517,8 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             Ledger connection -> (LedgerApiMessage | TRANSACTION_DIGEST) -> AbstractRoundAbci skill
 
         :param transaction: transaction data
+        :param use_flashbots: whether to use flashbots for the transaction or not
+        :param target_block_numbers: the target block numbers in case we are using flashbots
         :yield: SigningMessage object
         :return: transaction hash
         """
@@ -1438,20 +1546,30 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self.context.logger.info(
             f"Received signature response: {signature_response}\n Sending transaction..."
         )
-        self._send_transaction_request(signature_response)
+        self._send_transaction_request(
+            signature_response, use_flashbots, target_block_numbers
+        )
         transaction_digest_msg = yield from self.wait_for_message()
         transaction_digest_msg = cast(LedgerApiMessage, transaction_digest_msg)
-        if (
-            transaction_digest_msg.performative
-            != LedgerApiMessage.Performative.TRANSACTION_DIGEST
+        performative = transaction_digest_msg.performative
+        if performative not in (
+            LedgerApiMessage.Performative.TRANSACTION_DIGEST,
+            LedgerApiMessage.Performative.TRANSACTION_DIGESTS,
         ):
             error = f"Error when requesting transaction digest: {transaction_digest_msg.message}"
             self.context.logger.error(error)
             return tx_hash_backup, self.__parse_rpc_error(error)
-        self.context.logger.info(
-            f"Transaction sent! Received transaction digest: {transaction_digest_msg}"
+
+        tx_hash = (
+            # we do not support sending multiple messages and receiving multiple tx hashes yet
+            transaction_digest_msg.transaction_digests.transaction_digests[0]
+            if performative == LedgerApiMessage.Performative.TRANSACTION_DIGESTS
+            else transaction_digest_msg.transaction_digest.body
         )
-        tx_hash = transaction_digest_msg.transaction_digest.body
+
+        self.context.logger.info(
+            f"Transaction sent! Received transaction digest: {tx_hash}"
+        )
 
         if tx_hash != tx_hash_backup:
             # this should never happen
@@ -1605,29 +1723,115 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             return RPCResponseStatus.INSUFFICIENT_FUNDS
         if "already known" in error:
             return RPCResponseStatus.ALREADY_KNOWN
+        if "Simulation failed for bundle" in error:
+            return RPCResponseStatus.SIMULATION_FAILED
         return RPCResponseStatus.UNCLASSIFIED_ERROR
+
+    def _acn_request_from_pending(
+        self, performative: TendermintMessage.Performative
+    ) -> Generator:
+        """Perform an ACN request to each one of the agents which have not sent a response yet."""
+        not_responded_yet = {
+            address
+            for address, deliverable in cast(
+                SharedState, self.context.state
+            ).address_to_acn_deliverable.items()
+            if deliverable is None
+        }
+
+        if len(not_responded_yet) == 0:
+            return
+
+        self.context.logger.debug(f"Need ACN response from {not_responded_yet}.")
+        for address in not_responded_yet:
+            self.context.logger.debug(f"Sending ACN request to {address}.")
+            dialogues = cast(TendermintDialogues, self.context.tendermint_dialogues)
+            message, _ = dialogues.create(
+                counterparty=address, performative=performative
+            )
+            message = cast(TendermintMessage, message)
+            context = EnvelopeContext(connection_id=P2P_LIBP2P_CLIENT_PUBLIC_ID)
+            self.context.outbox.put_message(message=message, context=context)
+
+        # we wait for the `address_to_acn_deliverable` to be populated with the responses (done by the tm handler)
+        yield from self.sleep(self.params.sleep_time)
+
+    def _perform_acn_request(
+        self, performative: TendermintMessage.Performative
+    ) -> Generator[None, None, Any]:
+        """Perform an ACN request.
+
+        Waits `sleep_time` to receive a common response from the majority of the agents.
+        Retries `max_attempts` times only for the agents which have not responded yet.
+
+        :param performative: the ACN request performative.
+        :return: the result that the majority of the agents sent. If majority cannot be reached, returns `None`.
+        """
+        shared_state = cast(SharedState, self.context.state)
+        # reset the ACN deliverables at the beginning of a new request
+        shared_state.address_to_acn_deliverable = shared_state.acn_container()
+
+        result = None
+        for i in range(self.params.max_attempts):
+            self.context.logger.debug(
+                f"ACN attempt {i + 1}/{self.params.max_attempts}."
+            )
+            yield from self._acn_request_from_pending(performative)
+
+            result = cast(SharedState, self.context.state).get_acn_result()
+            if result is not None:
+                break
+
+        return result
+
+    def request_recovery_params(self) -> Generator[None, None, bool]:
+        """Request the Tendermint recovery parameters from the other agents via the ACN."""
+
+        self.context.logger.info(
+            "Requesting the Tendermint recovery parameters from the other agents via the ACN."
+        )
+
+        performative = TendermintMessage.Performative.GET_RECOVERY_PARAMS
+        acn_result = yield from self._perform_acn_request(performative)  # type: ignore
+
+        if acn_result is None:
+            self.context.logger.warning(
+                "No majority has been reached for the Tendermint recovery parameters request via the ACN."
+            )
+            return False
+
+        cast(SharedState, self.context.state).tm_recovery_params = acn_result
+        self.context.logger.info(
+            f"Updated the Tendermint recovery parameters from the other agents via the ACN: {acn_result}"
+        )
+        return True
 
     @property
     def hard_reset_sleep(self) -> float:
         """
         Amount of time to sleep before and after performing a hard reset.
 
-        We sleep for half the observation interval as there are no immediate transactions on either side of the reset.
+        We sleep for half the reset pause duration as there are no immediate transactions on either side of the reset.
 
         :returns: the amount of time to sleep in seconds
         """
-        return self.params.observation_interval / 2
+        return self.params.reset_pause_duration / 2
 
-    def _start_reset(self) -> Generator:
-        """Start tendermint reset.
+    def _start_reset(self, on_startup: bool = False) -> Generator:
+        """
+        Start tendermint reset.
 
         This is a local method that does not depend on the global clock,
         so the usage of datetime.now() is acceptable here.
 
+        :param on_startup: Whether we are resetting on the start of the agent.
         :yield: None
         """
         if self._check_started is None and not self._is_healthy:
-            yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
+            if not on_startup:
+                # if we are on startup we don't need to wait for the reset pause duration
+                # as the reset is being performed to update the tm config.
+                yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
             self._check_started = datetime.datetime.now()
             self._timeout = self.params.max_healthcheck
             self._is_healthy = False
@@ -1659,7 +1863,7 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             0, self._timeout
         )
 
-    def _get_reset_params(self, default: bool) -> Optional[List[Tuple[str, str]]]:
+    def _get_reset_params(self, default: bool) -> Optional[Dict[str, str]]:
         """Get the parameters for a hard reset request to Tendermint."""
         if default:
             return None
@@ -1670,31 +1874,26 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         genesis_time = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
             GENESIS_TIME_FMT
         )
-        # Initial height needs to account for the asynchrony among agents.
-        # For that reason, we are using an offset in the initial block's height.
-        # The bigger the observation interval, the larger the lag among the agents might be.
-        # Also, if the observation interval is too tiny, we do not want the offset to be too small.
-        # Therefore, we choose between a minimum value and the interval multiplied by a constant.
-        # The larger the `HEIGHT_OFFSET_MULTIPLIER` constant's value, the larger the margin of error.
-        initial_height = str(
-            self.context.state.round_sequence.last_round_transition_tm_height
-            + max(
-                MIN_HEIGHT_OFFSET,
-                math.ceil(self.params.observation_interval * HEIGHT_OFFSET_MULTIPLIER),
-            )
-        )
+        return {
+            "genesis_time": genesis_time,
+            "initial_height": INITIAL_HEIGHT,
+            "period_count": str(self.synchronized_data.period_count),
+        }
 
-        return [
-            ("genesis_time", genesis_time),
-            ("initial_height", initial_height),
-        ]
-
-    def reset_tendermint_with_wait(  # pylint: disable= too-many-locals
+    def reset_tendermint_with_wait(  # pylint: disable=too-many-locals, too-many-statements
         self,
         on_startup: bool = False,
+        is_recovery: bool = False,
     ) -> Generator[None, None, bool]:
-        """Resets the tendermint node."""
-        yield from self._start_reset()
+        """
+        Performs a hard reset (unsafe-reset-all) on the tendermint node.
+
+        :param on_startup: whether we are resetting on the start of the agent.
+        :param is_recovery: whether the reset is being performed to recover the agent <-> tm communication.
+        :yields: None
+        :returns: whether the reset was successful.
+        """
+        yield from self._start_reset(on_startup=on_startup)
         if self._is_timeout_expired():
             # if the Tendermint node cannot update the app then the app cannot work
             raise RuntimeError("Error resetting tendermint node.")
@@ -1724,20 +1923,30 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
                         self.context.state.round_sequence.reset_blockchain(
                             is_replay=is_replay, is_init=True
                         )
+                    for handler_name in self.context.handlers.__dict__.keys():
+                        dialogues = getattr(self.context, f"{handler_name}_dialogues")
+                        dialogues.cleanup()
+                    if not is_recovery:
+                        # in case of successful reset we store the reset params in the shared state,
+                        # so that in the future if the communication with tendermint breaks, and we need to
+                        # perform a hard reset to restore it, we can use these as the right ones
+                        shared_state = cast(SharedState, self.context.state)
+                        round_count = shared_state.synchronized_data.db.round_count - 1
+                        # in case we need to reset in order to recover agent <-> tm communication
+                        # we store this round as the one to start from
+                        restart_from_round = self.matching_round
+                        shared_state.tm_recovery_params = TendermintRecoveryParams(
+                            reset_params=reset_params,
+                            round_count=round_count,
+                            reset_from_round=restart_from_round.auto_round_id(),
+                            serialized_db_state=shared_state.synchronized_data.db.serialize(),
+                        )
                     self.context.state.round_sequence.abci_app.cleanup(
                         self.params.cleanup_history_depth,
                         self.params.cleanup_history_depth_current,
                     )
-                    for handler_name in self.context.handlers.__dict__.keys():
-                        dialogues = getattr(self.context, f"{handler_name}_dialogues")
-                        dialogues.cleanup()
-                    # in case of successful reset we store the reset params in the shared state,
-                    # so that in the future if the communication with tendermint breaks, and we need to
-                    # perform a hard reset to restore it, we can use these as the right ones
-                    cast(
-                        SharedState, self.context.state
-                    ).last_reset_params = reset_params
                     self._end_reset()
+
                 else:
                     msg = response.get("message")
                     self.context.state.round_sequence.blockchain = backup_blockchain
@@ -1775,18 +1984,126 @@ class BaseBehaviour(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         self.context.logger.info(
             "local height == remote height; continuing execution..."
         )
-        yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
+        if not on_startup:
+            # if we are on startup we don't need to wait for the reset pause duration
+            # as the reset is being performed to update the tm config.
+            yield from self.wait_from_last_timestamp(self.hard_reset_sleep)
         return True
 
+    def send_to_ipfs(  # pylint: disable=too-many-arguments
+        self,
+        filename: str,
+        obj: SupportedObjectType,
+        multiple: bool = False,
+        filetype: Optional[SupportedFiletype] = None,
+        custom_storer: Optional[CustomStorerType] = None,
+        timeout: Optional[float] = None,
+        **kwargs: Any,
+    ) -> Generator[None, None, Optional[str]]:
+        """
+        Store an object on IPFS.
 
-class TmManager(BaseBehaviour, ABC):
+        :param filename: the file name to store obj in. If "multiple" is True, filename will be the name of the dir.
+        :param obj: the object(s) to serialize and store in IPFS as "filename".
+        :param multiple: whether obj should be stored as multiple files, i.e. directory.
+        :param filetype: the file type of the object being downloaded.
+        :param custom_storer: a custom serializer for "obj".
+        :param timeout: timeout for the request.
+        :returns: the downloaded object, corresponding to ipfs_hash.
+        """
+        try:
+            message, dialogue = self._build_ipfs_store_file_req(
+                filename,
+                obj,
+                multiple,
+                filetype,
+                custom_storer,
+                timeout,
+                **kwargs,
+            )
+            ipfs_message = yield from self._do_ipfs_request(dialogue, message, timeout)
+            if ipfs_message.performative != IpfsMessage.Performative.IPFS_HASH:
+                self.context.logger.error(
+                    f"Expected performative {IpfsMessage.Performative.IPFS_HASH} but got {ipfs_message.performative}."
+                )
+                return None
+            ipfs_hash = ipfs_message.ipfs_hash
+            self.context.logger.info(f"Successfully stored with IPFS hash: {ipfs_hash}")
+            return ipfs_hash
+        except IPFSInteractionError as e:  # pragma: no cover
+            self.context.logger.error(
+                f"An error occurred while trying to send a file to IPFS: {str(e)}"
+            )
+            return None
+
+    def get_from_ipfs(  # pylint: disable=too-many-arguments
+        self,
+        ipfs_hash: str,
+        filetype: Optional[SupportedFiletype] = None,
+        custom_loader: CustomLoaderType = None,
+        timeout: Optional[float] = None,
+    ) -> Generator[None, None, Optional[SupportedObjectType]]:
+        """
+        Gets an object from IPFS.
+
+        :param ipfs_hash: the ipfs hash of the file/dir to download.
+        :param filetype: the file type of the object being downloaded.
+        :param custom_loader: a custom deserializer for the object received from IPFS.
+        :param timeout: timeout for the request.
+        :returns: the downloaded object, corresponding to ipfs_hash.
+        """
+        try:
+            message, dialogue = self._build_ipfs_get_file_req(ipfs_hash, timeout)
+            ipfs_message = yield from self._do_ipfs_request(dialogue, message, timeout)
+            if ipfs_message.performative != IpfsMessage.Performative.FILES:
+                self.context.logger.error(
+                    f"Expected performative {IpfsMessage.Performative.FILES} but got {ipfs_message.performative}."
+                )
+                return None
+            serialized_objects = ipfs_message.files
+            deserialized_objects = self._deserialize_ipfs_objects(
+                serialized_objects, filetype, custom_loader
+            )
+            self.context.logger.info(
+                f"Retrieved {len(ipfs_message.files)} objects from ipfs."
+            )
+            return deserialized_objects
+        except IPFSInteractionError as e:
+            self.context.logger.error(
+                f"An error occurred while trying to fetch a file from IPFS: {str(e)}"
+            )
+            return None
+
+    def _do_ipfs_request(
+        self,
+        dialogue: IpfsDialogue,
+        message: IpfsMessage,
+        timeout: Optional[float] = None,
+    ) -> Generator[None, None, IpfsMessage]:
+        """Performs an IPFS request, and asynchronosuly waits for response."""
+        self.context.outbox.put_message(message=message)
+        request_nonce = self._get_request_nonce_from_dialogue(dialogue)
+        cast(Requests, self.context.requests).request_id_to_callback[
+            request_nonce
+        ] = self.get_callback_request()
+        # notify caller by propagating potential timeout exception.
+        response = yield from self.wait_for_message(timeout=timeout)
+        ipfs_message = cast(IpfsMessage, response)
+        return ipfs_message
+
+
+class TmManager(BaseBehaviour):
     """Util class to be used for managing the tendermint node."""
 
-    behaviour_id = "tm_manager"
     _active_generator: Optional[Generator] = None
-    _hard_reset_sleep = 10.0  # 10s
+    _hard_reset_sleep = 20.0  # 20s
+    _max_reset_retry = 5
 
-    def async_act(self) -> Generator:  # type: ignore
+    # TODO: TmManager is not a BaseBehaviour. It should be
+    # redesigned!
+    matching_round = Type[AbstractRound]
+
+    def async_act(self) -> Generator:
         """The behaviour act."""
         self.context.logger.error(
             f"{type(self).__name__}'s async_act was called. "
@@ -1806,11 +2123,30 @@ class TmManager(BaseBehaviour, ABC):
         """
         Amount of time to sleep before and after performing a hard reset.
 
-        We don't need to wait for half the observation interval, like in normal cases where we perform a hard reset.
+        We don't need to wait for half the reset pause duration, like in normal cases where we perform a hard reset.
 
         :returns: the amount of time to sleep in seconds
         """
         return self._hard_reset_sleep
+
+    def _kill_if_no_majority_peers(self) -> Generator[None, None, None]:
+        """This method checks whether there are enough peers in the network to reach majority. If not, the agent is shut down."""
+        # We assign a timeout to the num_active_peers request because we are trying to check whether the unhealthy
+        # tm communication, i.e. tm not sending blocks to the abci (agent), is caused by not having enough peers
+        # in the network. If that's the case, the node that is being queried has to be healthy, and respond in a
+        # timely fashion. If the tm node doesn't respond in the specified timeout, we assume the problem is not
+        # the lack of peers in the service.
+        num_active_peers = yield from self.num_active_peers(timeout=TM_REQ_TIMEOUT)
+        if (
+            num_active_peers is not None
+            and num_active_peers < self.synchronized_data.consensus_threshold
+        ):
+            self.context.logger.error(
+                f"There should be at least {self.synchronized_data.consensus_threshold} peers in the service,"
+                f" only {num_active_peers} are currently active. Shutting down the agent."
+            )
+            not_ok_code = 1
+            sys.exit(not_ok_code)
 
     def _handle_unhealthy_tm(self) -> Generator:
         """This method handles the case when the tendermint node is unhealthy."""
@@ -1818,31 +2154,52 @@ class TmManager(BaseBehaviour, ABC):
             "The local deadline for the next `begin_block` request from the Tendermint node has expired! "
             "Trying to reset local Tendermint node as there could be something wrong with the communication."
         )
-        # We assign a timeout to the num_active_peers request because we are trying to check whether the unhealthy
-        # tm communication, i.e. tm not sending blocks to the abci (agent), is caused by not having enough peers
-        # in the network. If that's the case, the node that is being queried has to be healthy, and respond in a
-        # timely fashion. If the tm node doesn't respond in the specified timeout, we assume the problem is not
-        # the lack of peers in the service, and we try to resolve it by hard resetting the tm node.
-        num_active_peers = yield from self.num_active_peers(timeout=TM_REQ_TIMEOUT)
-        if (
-            num_active_peers is not None
-            and num_active_peers < self.params.consensus_params.consensus_threshold
-        ):
-            self.context.logger.error(
-                f"There should be at least {self.params.consensus_params.consensus_threshold} peers in the service,"
-                f" only {num_active_peers} are currently active. Shutting down the agent."
-            )
-            not_ok_code = 1
-            sys.exit(not_ok_code)
 
-        reset_successfully = yield from self.reset_tendermint_with_wait()
-        if not reset_successfully:
-            self.context.logger.error("Failed to reset tendermint.")
+        # we first check whether the reason why we haven't received blocks for more than we allow is because
+        # there are not enough peers in the network to reach majority.
+        yield from self._kill_if_no_majority_peers()
+
+        # since we have reached this point that means that the cause of blocks not being received
+        # cannot be attributed to a lack of peers in the network
+        # therefore, we request the recovery parameters via the ACN, and if we succeed, we use them to recover
+        acn_communication_success = yield from self.request_recovery_params()
+        if not acn_communication_success:
+            self.context.logger.error(
+                "Failed to get the recovery parameters via the ACN. Cannot reset Tendermint."
+            )
             return
 
-        self.context.logger.info("Tendermint reset was successfully performed. ")
+        shared_state = cast(SharedState, self.context.state)
+        recovery_params = shared_state.tm_recovery_params
+        shared_state.round_sequence.reset_state(
+            restart_from_round=recovery_params.reset_from_round,
+            round_count=recovery_params.round_count,
+            serialized_db_state=recovery_params.serialized_db_state,
+        )
 
-    def _get_reset_params(self, default: bool) -> Optional[List[Tuple[str, str]]]:
+        for _ in range(self._max_reset_retry):
+            reset_successfully = yield from self.reset_tendermint_with_wait(
+                on_startup=True,
+                is_recovery=True,
+            )
+            if reset_successfully:
+                self.context.logger.info(
+                    "Tendermint reset was successfully performed. "
+                )
+                # we sleep to give some time for tendermint to start sending us blocks
+                # otherwise we might end-up assuming that tendermint is still not working.
+                # Note that the wait_from_last_timestamp() in reset_tendermint_with_wait()
+                # doesn't guarantee us this, since the block stall deadline is greater than the
+                # hard_reset_sleep, 60s vs 20s. In other words, we haven't received a block for at
+                # least 60s, so wait_from_last_timestamp() will return immediately.
+                # By setting "on_startup" to True in the reset_tendermint_with_wait() call above,
+                # wait_from_last_timestamp() will not be called at all.
+                yield from self.sleep(self.hard_reset_sleep)
+                return
+
+        self.context.logger.info("Failed to reset tendermint.")
+
+    def _get_reset_params(self, default: bool) -> Optional[Dict[str, str]]:
         """
         Get the parameters for a hard reset request when trying to recover agent <-> tendermint communication.
 
@@ -1852,23 +2209,70 @@ class TmManager(BaseBehaviour, ABC):
         # we get the params from the latest successful reset, if they are not available,
         # i.e. no successful reset has been performed, we return None.
         # Returning None means default params will be used.
-        reset_params = cast(SharedState, self.context.state).last_reset_params
+        reset_params = cast(
+            SharedState, self.context.state
+        ).tm_recovery_params.reset_params
         return reset_params
 
+    def get_callback_request(self) -> Callable[[Message, "BaseBehaviour"], None]:
+        """Wrapper for callback_request(), overridden to remove checks not applicable to TmManager."""
+
+        def callback_request(
+            message: Message, _current_behaviour: BaseBehaviour
+        ) -> None:
+            """
+            This method gets called when a response for a prior request is received.
+
+            Overridden to remove the check that checks whether the behaviour that made the request is still active.
+            The received message gets passed to the behaviour that invoked it, in this case it's always the TmManager.
+
+            :param message: the response.
+            :param _current_behaviour: not used, left in to satisfy the interface.
+            :return: none
+            """
+            if self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
+                self.try_send(message)
+            else:
+                self.context.logger.warning(
+                    "could not send message to TmManager: %s", message
+                )
+
+        return callback_request
+
     def try_fix(self) -> None:
-        """This method tries to fix an unhealthy node."""
+        """This method tries to fix an unhealthy tendermint node."""
         if self._active_generator is None:
             # There is no active generator set, we need to create one.
             # A generator being active means that a reset operation is
             # being performed.
             self._active_generator = self._handle_unhealthy_tm()
         try:
+            # if the behaviour is waiting for a message
+            # we check whether one has arrived, and if it has
+            # we send it to the generator.
+            if self.state == self.AsyncState.WAITING_MESSAGE:
+                if self.is_notified:
+                    self._active_generator.send(self.received_message)
+                    self._on_sent_message()
+                # note that if the behaviour is waiting for
+                # a message, we deliberately don't send a tick
+                # this was done to have consistency between
+                # the act here, and acts on normal AsyncBehaviours
+                return
             # this will run the active generator until
             # the first yield statement is encountered
             self._active_generator.send(None)
+
         except StopIteration:
             # the generator is finished
+            self.context.logger.info("Applying tendermint fix finished.")
             self._active_generator = None
+            # the following is required because the message
+            # 'tick' might be the last one the generator needs
+            # to complete. In that scenario, we need to call
+            # the callback here
+            if self.is_notified:
+                self._on_sent_message()
 
 
 class DegenerateBehaviour(BaseBehaviour, ABC):
@@ -1876,8 +2280,9 @@ class DegenerateBehaviour(BaseBehaviour, ABC):
 
     matching_round: Type[AbstractRound]
     is_degenerate: bool = True
+    sleep_time_before_exit = 5.0
 
-    def async_act(self) -> Generator:  # type: ignore
+    def async_act(self) -> Generator:
         """Exit the agent with error when a degenerate round is reached."""
         self.context.logger.error(
             "The execution reached a degenerate behaviour. "
@@ -1885,18 +2290,24 @@ class DegenerateBehaviour(BaseBehaviour, ABC):
             "the execution of the ABCI application. Please check the "
             "functioning of the ABCI app."
         )
+        self.context.logger.error(
+            f"Sleeping {self.sleep_time_before_exit} seconds before exiting."
+        )
+        yield from self.sleep(self.sleep_time_before_exit)
         error_code = 1
         sys.exit(error_code)
 
 
-def make_degenerate_behaviour(round_id: str) -> Type[DegenerateBehaviour]:
+def make_degenerate_behaviour(
+    round_cls: Type[AbstractRound],
+) -> Type[DegenerateBehaviour]:
     """Make a degenerate behaviour class."""
 
     class NewDegenerateBehaviour(DegenerateBehaviour):
         """A newly defined degenerate behaviour class."""
 
-        behaviour_id = f"degenerate_{round_id}"
+        matching_round = round_cls
 
     new_behaviour_cls = NewDegenerateBehaviour
-    new_behaviour_cls.__name__ = f"DegenerateBehaviour_{round_id}"  # type: ignore # pylint: disable=attribute-defined-outside-init
-    return new_behaviour_cls  # type: ignore
+    new_behaviour_cls.__name__ = f"DegenerateBehaviour_{round_cls.auto_round_id()}"  # pylint: disable=attribute-defined-outside-init
+    return new_behaviour_cls

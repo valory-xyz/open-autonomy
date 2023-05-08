@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ from unittest import mock
 
 import pytest
 
+from autonomy.deploy.base import TENDERMINT_COM_URL_PARAM, TENDERMINT_URL_PARAM
 from autonomy.deploy.constants import TM_STATE_DIR
 from autonomy.replay.agent import AgentRunner
 from autonomy.replay.tendermint import (
@@ -51,9 +52,8 @@ AGENT_DATA = {
         "ID=0",
         "VALORY_APPLICATION=valory/hello_world:0.1.0:bafybeideb6b5k4i6z7bm3p53eydxgknmwdefo2oshcnlxthjc6oxeox7ua",
         "ABCI_HOST=abci0",
-        "MAX_PARTICIPANTS=4",
-        "TENDERMINT_URL=http://node0:26657",
-        "TENDERMINT_COM_URL=http://node0:8080",
+        f"SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_{TENDERMINT_URL_PARAM.upper()}=http://node0:26657",
+        f"SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_{TENDERMINT_COM_URL_PARAM.upper()}=http://node0:8080",
         "LEDGER_ADDRESS=http://143.110.184.220:8545",
         "LEDGER_CHAIN_ID=31337",
         "AEA_KEY=0x874741e86698d72ce5a579386ab6f3e006426e4959662736aa3132b83911130a",

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@
 import os
 import shutil
 import tempfile
-from distutils.dir_util import copy_tree
+from distutils.dir_util import copy_tree  # pylint: disable=deprecated-module
 from pathlib import Path
 from shutil import copytree
 from typing import cast
 
 import click
-from aea.cli.registry.settings import REGISTRY_REMOTE, REMOTE_IPFS
+from aea.cli.registry.settings import REGISTRY_LOCAL, REGISTRY_REMOTE, REMOTE_IPFS
 from aea.cli.utils.click_utils import reraise_as_click_exception
 from aea.cli.utils.config import (
     get_default_remote_registry,
@@ -40,7 +40,7 @@ from aea.cli.utils.package_utils import (
     try_get_item_source_path,
     try_get_item_target_path,
 )
-from aea.configurations.constants import SERVICE, SERVICES
+from aea.configurations.constants import DEFAULT_README_FILE, SERVICE, SERVICES
 from aea.configurations.data_types import PublicId
 from aea.helpers.cid import to_v1
 
@@ -62,19 +62,36 @@ def fetch_service(ctx: Context, public_id: PublicId) -> Path:
     """Fetch service."""
 
     if ctx.registry_type == REGISTRY_REMOTE:
-        if get_default_remote_registry() == REMOTE_IPFS:
-            return fetch_service_ipfs(public_id)
+        return fetch_service_remote(public_id)
+    if ctx.registry_type == REGISTRY_LOCAL:
+        return fetch_service_local(ctx, public_id)
+    return fetch_service_mixed(ctx, public_id)
 
-        raise Exception("HTTP registry not supported.")
 
-    return fetch_service_local(ctx, public_id)
+def fetch_service_mixed(ctx: Context, public_id: PublicId) -> Path:
+    """Fetch service in mixed mode."""
+    try:
+        return fetch_service_local(ctx, public_id)
+    except Exception as e:  # pylint: disable=broad-except
+        click.echo(
+            f"Fetch from local registry failed (reason={str(e)}), trying remote registry..."
+        )
+        return fetch_service_remote(public_id)
+
+
+def fetch_service_remote(public_id: PublicId) -> Path:
+    """Fetch service in remote mode."""
+    if get_default_remote_registry() == REMOTE_IPFS:
+        return fetch_service_ipfs(public_id)
+
+    raise Exception("HTTP registry not supported.")  # pragma: nocover
 
 
 def fetch_service_ipfs(public_id: PublicId) -> Path:
     """Fetch service from IPFS node."""
 
     if not IS_IPFS_PLUGIN_INSTALLED:
-        raise RuntimeError("IPFS plugin not installed.")
+        raise RuntimeError("IPFS plugin not installed.")  # pragma: no cover
 
     with tempfile.TemporaryDirectory() as temp_dir:
         ipfs_tool = IPFSTool(get_ipfs_node_multiaddr())
@@ -133,7 +150,7 @@ def publish_service_package(click_context: click.Context, registry: str) -> None
         if get_default_remote_registry() == REMOTE_IPFS:
             publish_service_ipfs(service_config.public_id, Path(click_context.obj.cwd))
         else:
-            raise Exception("HTTP registry not supported.")
+            raise Exception("HTTP registry not supported.")  # pragma: no cover
 
     else:
         publish_service_local(
@@ -151,12 +168,27 @@ def publish_service_ipfs(public_id: PublicId, package_path: Path) -> None:
     if not IS_IPFS_PLUGIN_INSTALLED:  # pragma: nocover
         raise RuntimeError("IPFS plugin not installed.")
 
-    ipfs_tool = IPFSTool(get_ipfs_node_multiaddr())
-    _, package_hash, _ = ipfs_tool.add(str(package_path.resolve()))
-    package_hash = to_v1(package_hash)
-    click.echo(
-        f'Service "{public_id.name}" successfully published on the IPFS registry.\n\tPublicId: {public_id}\n\tPackage hash: {package_hash}'
-    )
+    package_path = package_path.resolve()
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_service_dir = Path(temp_dir, public_id.name)
+        temp_service_dir.mkdir()
+        shutil.copyfile(
+            package_path / DEFAULT_SERVICE_CONFIG_FILE,
+            temp_service_dir / DEFAULT_SERVICE_CONFIG_FILE,
+        )
+        shutil.copyfile(
+            package_path / DEFAULT_README_FILE,
+            temp_service_dir / DEFAULT_README_FILE,
+        )
+
+        ipfs_tool = IPFSTool(get_ipfs_node_multiaddr())
+        _, package_hash, _ = ipfs_tool.add(str(temp_service_dir.resolve()))
+        package_hash = to_v1(package_hash)
+
+        click.echo(
+            f'Service "{public_id.name}" successfully published on the IPFS registry.\n\tPublicId: {public_id}\n\tPackage hash: {package_hash}'
+        )
 
 
 def publish_service_local(ctx: Context, public_id: PublicId) -> None:

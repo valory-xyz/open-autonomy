@@ -31,7 +31,7 @@ This data is replicated by the tendermint application.
 ## DummyMixinRound Objects
 
 ```python
-class DummyMixinRound(AbstractRound)
+class DummyMixinRound(AbstractRound, ABC)
 ```
 
 DummyMixinRound
@@ -52,7 +52,7 @@ Return the synchronized data.
 ## DummyStartingRound Objects
 
 ```python
-class DummyStartingRound(CollectSameUntilAllRound,  DummyMixinRound)
+class DummyStartingRound(CollectSameUntilAllRound, DummyMixinRound)
 ```
 
 DummyStartingRound
@@ -72,7 +72,7 @@ Process the end of the block.
 ## DummyRandomnessRound Objects
 
 ```python
-class DummyRandomnessRound(CollectSameUntilThresholdRound,  DummyMixinRound)
+class DummyRandomnessRound(CollectSameUntilThresholdRound, DummyMixinRound)
 ```
 
 DummyRandomnessRound
@@ -82,7 +82,8 @@ DummyRandomnessRound
 ## DummyKeeperSelectionRound Objects
 
 ```python
-class DummyKeeperSelectionRound(CollectSameUntilThresholdRound,  DummyMixinRound)
+class DummyKeeperSelectionRound(CollectSameUntilThresholdRound,
+                                DummyMixinRound)
 ```
 
 DummyKeeperSelectionRound
@@ -92,7 +93,7 @@ DummyKeeperSelectionRound
 ## DummyFinalRound Objects
 
 ```python
-class DummyFinalRound(OnlyKeeperSendsRound,  DummyMixinRound)
+class DummyFinalRound(OnlyKeeperSendsRound, DummyMixinRound)
 ```
 
 DummyFinalRound

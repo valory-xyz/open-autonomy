@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -26,17 +26,13 @@ from unittest import mock
 
 import pytest
 from aea.cli.registry.settings import REMOTE_IPFS
-from aea_test_autonomy.docker.registries import SERVICE_REGISTRY
 from aea_test_autonomy.fixture_helpers import registries_scope_class  # noqa: F401
 
-from autonomy.cli.helpers.deployment import (
-    BadFunctionCallOutput,
-    RequestsConnectionError,
-)
-from autonomy.deploy.chain import ServiceRegistry
+from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
+from autonomy.cli.helpers.deployment import BadFunctionCallOutput
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
-from tests.test_autonomy.test_cli.base import BaseCliTest
+from tests.test_autonomy.test_chain.base import BaseChainInteractionTest
 
 
 MOCK_IPFS_RESPONSE = {
@@ -65,7 +61,6 @@ REGISTERED_KEYS = [
     },
 ]
 
-
 run_deployment_patch = mock.patch("autonomy.cli.helpers.deployment.run_deployment")
 build_image_patch = mock.patch("autonomy.cli.helpers.deployment.build_image")
 default_remote_registry_patch = mock.patch(
@@ -77,15 +72,14 @@ default_ipfs_node_patch = mock.patch(
     new=lambda: "/dns/registry.autonolas.tech/tcp/443/https",
 )
 ipfs_resolve_patch = mock.patch(
-    "autonomy.deploy.chain.ServiceRegistry._resolve_from_ipfs",
+    "autonomy.cli.helpers.deployment.resolve_component_id",
     return_value=MOCK_IPFS_RESPONSE,
 )
 
 
-@pytest.mark.usefixtures("registries_scope_class")
 @pytest.mark.integration
 @skip_docker_tests
-class TestFromToken(BaseCliTest):
+class TestFromToken(BaseChainInteractionTest):
     """Test `from-token` command."""
 
     cli_options = ("deploy", "from-token")
@@ -128,10 +122,6 @@ class TestFromToken(BaseCliTest):
                 (
                     str(self.token),
                     str(self.keys_file),
-                    "--rpc",
-                    "http://localhost:8545/",
-                    "--sca",
-                    SERVICE_REGISTRY,
                 )
             )
 
@@ -140,45 +130,76 @@ class TestFromToken(BaseCliTest):
             assert "Building required images" in result.stdout
             assert "Service build successful" in result.stdout
 
+    def test_from_token_kubernetes(
+        self,
+    ) -> None:
+        """Run test."""
+
+        service_dir = self.t / "service"
+        service_dir.mkdir()
+
+        service_file = service_dir / "service.yaml"
+        service_file.write_text(
+            (
+                ROOT_DIR
+                / "tests"
+                / "data"
+                / "dummy_service_config_files"
+                / "service_0.yaml"
+            ).read_text()
+        )
+
+        with mock.patch(
+            "autonomy.cli.helpers.deployment.fetch_service_ipfs",
+            return_value=service_dir,
+        ), run_deployment_patch as rdp, build_image_patch, default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch:
+            result = self.run_cli(
+                (str(self.token), str(self.keys_file), "--kubernetes")
+            )
+
+            assert result.exit_code == 0, result.stdout
+            assert "Service name: valory/oracle_hardhat" in result.stdout
+            assert "Building required images" in result.stdout
+            assert "Service build successful" in result.stdout
+            assert "Type:                 kubernetes" in result.stdout
+            assert "Running deployment" not in result.output
+
+            rdp.assert_not_called()
+
+        assert (self.t / "service" / "abci_build" / "build.yaml").exists()
+
     def test_fail_on_chain_resolve_connection_error(self) -> None:
         """Run test."""
 
-        with run_deployment_patch, build_image_patch, default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch, mock.patch.object(
-            ServiceRegistry, "resolve_token_id", side_effect=RequestsConnectionError
+        with run_deployment_patch, build_image_patch, default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch, mock.patch(
+            "autonomy.cli.helpers.deployment.resolve_component_id",
+            side_effect=FailedToRetrieveComponentMetadata(
+                "Error connecting RPC endpoint"
+            ),
         ):
             result = self.run_cli(
                 (
                     str(self.token),
                     str(self.keys_file),
-                    "--rpc",
-                    "http://localhost:8545/",
-                    "--sca",
-                    SERVICE_REGISTRY,
                 )
             )
 
             assert result.exit_code == 1, result.stdout
-            assert (
-                "Error connecting RPC endpoint; RPC=http://localhost:8545/"
-                in result.stdout
-            )
+            assert "Error connecting RPC endpoint" in result.stderr, result.output
 
     def test_fail_on_chain_resolve_bad_contract_call(self) -> None:
         """Run test."""
 
-        with run_deployment_patch, build_image_patch, default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch, mock.patch.object(
-            ServiceRegistry, "resolve_token_id", side_effect=BadFunctionCallOutput
+        with run_deployment_patch, build_image_patch, default_remote_registry_patch, default_ipfs_node_patch, ipfs_resolve_patch, mock.patch(
+            "autonomy.cli.helpers.deployment.resolve_component_id",
+            side_effect=BadFunctionCallOutput,
         ):
             result = self.run_cli(
                 (
                     str(self.token),
                     str(self.keys_file),
-                    "--rpc",
-                    "http://localhost:8545/",
-                    "--sca",
-                    SERVICE_REGISTRY,
                 )
             )
 
             assert result.exit_code == 1, result.stdout
-            assert "Cannot find the service registry deployment;" in result.stdout
+            assert "Cannot find the service registry deployment;" in result.stderr

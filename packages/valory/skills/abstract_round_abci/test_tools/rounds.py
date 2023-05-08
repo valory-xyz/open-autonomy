@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@
 
 import re
 from copy import deepcopy
+from dataclasses import dataclass
 from enum import Enum
 from typing import (
     Any,
     Callable,
-    Dict,
     FrozenSet,
     Generator,
     List,
@@ -33,7 +33,6 @@ from typing import (
     Optional,
     Tuple,
     Type,
-    cast,
 )
 from unittest import mock
 
@@ -51,9 +50,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilAllRound,
     CollectSameUntilThresholdRound,
     CollectionRound,
-    ConsensusParams,
     OnlyKeeperSendsRound,
-    ROUND_COUNT_DEFAULT,
     TransactionNotValidError,
     VotingRound,
 )
@@ -79,40 +76,12 @@ class DummyEvent(Enum):
     FAIL = "fail"
 
 
+@dataclass(frozen=True)
 class DummyTxPayload(BaseTxPayload):
     """Dummy Transaction Payload."""
 
-    transaction_type = "DummyPayload"
-    _value: Optional[str]
-    _vote: Optional[bool]
-
-    def __init__(
-        self,
-        sender: str,
-        value: Any,
-        vote: Optional[bool] = False,
-        round_count: int = ROUND_COUNT_DEFAULT,
-    ) -> None:
-        """Initialize a dummy transaction payload."""
-
-        super().__init__(sender, None, round_count)
-        self._value = value
-        self._vote = vote
-
-    @property
-    def value(self) -> Any:
-        """Get the tx value."""
-        return self._value
-
-    @property
-    def vote(self) -> Optional[bool]:
-        """Get the vote value."""
-        return self._vote
-
-    @property
-    def data(self) -> Dict[str, Any]:
-        """Data"""
-        return dict(value=self.value)
+    value: Optional[str] = None
+    vote: Optional[bool] = None
 
 
 class DummySynchronizedData(BaseSynchronizedData):
@@ -124,13 +93,14 @@ def get_dummy_tx_payloads(
     value: Any = None,
     vote: Optional[bool] = False,
     is_value_none: bool = False,
+    is_vote_none: bool = False,
 ) -> List[DummyTxPayload]:
     """Returns a list of DummyTxPayload objects."""
     return [
         DummyTxPayload(
             sender=agent,
             value=(value or agent) if not is_value_none else value,
-            vote=vote,
+            vote=vote if not is_vote_none else None,
         )
         for agent in sorted(participants)
     ]
@@ -139,9 +109,9 @@ def get_dummy_tx_payloads(
 class DummyRound(AbstractRound):
     """Dummy round."""
 
-    round_id = "round_id"
-    allowed_tx_type = DummyTxPayload.transaction_type
+    payload_class = DummyTxPayload
     payload_attribute = "value"
+    synchronized_data_class = BaseSynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """end_block method."""
@@ -190,7 +160,6 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
 
     synchronized_data: BaseSynchronizedData
     participants: FrozenSet[str]
-    consensus_params: ConsensusParams
 
     _synchronized_data_class: Type[BaseSynchronizedData]
     _event_class: Any
@@ -204,12 +173,13 @@ class BaseRoundTestClass:  # pylint: disable=too-few-public-methods
         self.synchronized_data = self._synchronized_data_class(
             db=AbciAppDB(
                 setup_data=dict(
-                    participants=[self.participants],
-                    all_participants=[self.participants],
+                    participants=[tuple(self.participants)],
+                    all_participants=[tuple(self.participants)],
+                    consensus_threshold=[3],
+                    safe_contract_address=["test_address"],
                 ),
             )
-        )  # type: ignore
-        self.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
+        )
 
     def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
         """Test the NO_MAJORITY event."""
@@ -272,9 +242,8 @@ class BaseCollectDifferentUntilAllRoundTest(  # pylint: disable=too-few-public-m
         yield test_round
         assert test_round.collection_threshold_reached
 
-        actual_next_synchronized_data = cast(
-            self._synchronized_data_class,  # type: ignore
-            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
+        actual_next_synchronized_data = synchronized_data_update_fn(
+            deepcopy(self.synchronized_data), test_round
         )
 
         res = test_round.end_block()
@@ -284,7 +253,6 @@ class BaseCollectDifferentUntilAllRoundTest(  # pylint: disable=too-few-public-m
         else:
             assert res is not None
             synchronized_data, event = res
-            synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
             for behaviour_attr_getter in synchronized_data_attr_checks:
                 assert behaviour_attr_getter(
                     synchronized_data
@@ -332,16 +300,14 @@ class BaseCollectSameUntilAllRoundTest(
             assert test_round.collection_threshold_reached
         assert test_round.common_payload == most_voted_payload
 
-        actual_next_synchronized_data = cast(
-            self._synchronized_data_class,  # type: ignore
-            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
+        actual_next_synchronized_data = synchronized_data_update_fn(
+            deepcopy(self.synchronized_data), test_round
         )
         res = test_round.end_block()
         yield res
         assert res is not None
 
         synchronized_data, event = res
-        synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
 
         for behaviour_attr_getter in synchronized_data_attr_checks:
             assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
@@ -385,16 +351,14 @@ class BaseCollectSameUntilThresholdRoundTest(  # pylint: disable=too-few-public-
         assert test_round.threshold_reached
         assert test_round.most_voted_payload == most_voted_payload
 
-        actual_next_synchronized_data = cast(
-            self._synchronized_data_class,  # type: ignore
-            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
+        actual_next_synchronized_data = synchronized_data_update_fn(
+            deepcopy(self.synchronized_data), test_round
         )
         res = test_round.end_block()
         yield res
         assert res is not None
 
         synchronized_data, event = res
-        synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
 
         for behaviour_attr_getter in synchronized_data_attr_checks:
             assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
@@ -420,23 +384,22 @@ class BaseOnlyKeeperSendsRoundTest(  # pylint: disable=too-few-public-methods
         """Test for rounds derived from OnlyKeeperSendsRound."""
 
         assert test_round.end_block() is None
-        assert not test_round.has_keeper_sent_payload
+        assert test_round.keeper_payload is None
 
         test_round.process_payload(keeper_payloads)
         yield test_round
-        assert test_round.has_keeper_sent_payload
+        assert test_round.keeper_payload is not None
 
         yield test_round
-        actual_next_synchronized_data = cast(
-            self._synchronized_data_class,  # type: ignore
-            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
+        actual_next_synchronized_data = synchronized_data_update_fn(
+            deepcopy(self.synchronized_data), test_round
         )
         res = test_round.end_block()
         yield res
         assert res is not None
 
         synchronized_data, event = res
-        synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
+
         for behaviour_attr_getter in synchronized_data_attr_checks:
             assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
                 actual_next_synchronized_data
@@ -472,16 +435,15 @@ class BaseVotingRoundTest(BaseRoundTestClass):  # pylint: disable=too-few-public
         yield test_round
         assert threshold_check(test_round)
 
-        actual_next_synchronized_data = cast(
-            self._synchronized_data_class,  # type: ignore
-            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
+        actual_next_synchronized_data = synchronized_data_update_fn(
+            deepcopy(self.synchronized_data), test_round
         )
         res = test_round.end_block()
         yield res
         assert res is not None
 
         synchronized_data, event = res
-        synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
+
         for behaviour_attr_getter in synchronized_data_attr_checks:
             assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
                 actual_next_synchronized_data
@@ -574,16 +536,15 @@ class BaseCollectDifferentUntilThresholdRoundTest(  # pylint: disable=too-few-pu
         yield test_round
         assert test_round.collection_threshold_reached
 
-        actual_next_synchronized_data = cast(
-            self._synchronized_data_class,  # type: ignore
-            synchronized_data_update_fn(deepcopy(self.synchronized_data), test_round),  # type: ignore
+        actual_next_synchronized_data = synchronized_data_update_fn(
+            deepcopy(self.synchronized_data), test_round
         )
+
         res = test_round.end_block()
         yield res
         assert res is not None
 
         synchronized_data, event = res
-        synchronized_data = cast(self._synchronized_data_class, synchronized_data)  # type: ignore
 
         for behaviour_attr_getter in synchronized_data_attr_checks:
             assert behaviour_attr_getter(synchronized_data) == behaviour_attr_getter(
@@ -604,7 +565,6 @@ class _BaseRoundTestClass(BaseRoundTestClass):  # pylint: disable=too-few-public
 
     synchronized_data: BaseSynchronizedData
     participants: FrozenSet[str]
-    consensus_params: ConsensusParams
     tx_payloads: List[DummyTxPayload]
 
     _synchronized_data_class = DummySynchronizedData
@@ -619,10 +579,13 @@ class _BaseRoundTestClass(BaseRoundTestClass):  # pylint: disable=too-few-public
 
     @staticmethod
     def _test_payload_with_wrong_round_count(
-        test_round: AbstractRound, value: Optional[Any] = None
+        test_round: AbstractRound,
+        value: Optional[str] = None,
+        vote: Optional[bool] = None,
     ) -> None:
         """Test errors raised by payloads with wrong round count."""
-        payload_with_wrong_round_count = DummyTxPayload("sender", value, False, 0)
+        payload_with_wrong_round_count = DummyTxPayload("sender", value, vote)
+        object.__setattr__(payload_with_wrong_round_count, "round_count", 0)
         with pytest.raises(
             TransactionNotValidError,
             match=re.escape("Expected round count -1 and got 0."),

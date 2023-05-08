@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 
 # pylint: skip-file
 
+import hashlib
 import logging  # noqa: F401
 from typing import Dict, FrozenSet
 
@@ -36,7 +37,7 @@ from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
 
 
 MAX_PARTICIPANTS: int = 4
-DUMMY_RANDOMNESS = 0.1  # for coverage purposes
+DUMMY_RANDOMNESS = hashlib.sha256("hash".encode() + str(0).encode()).hexdigest()
 
 
 def get_participant_to_period_count(
@@ -61,12 +62,12 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
         """Runs tests."""
 
         synchronized_data = self.synchronized_data.update(
-            keeper_randomness=DUMMY_RANDOMNESS,
+            most_voted_randomness=DUMMY_RANDOMNESS, consensus_threshold=3
         )
-        synchronized_data._db._cross_period_persisted_keys = ["keeper_randomness"]
-        test_round = ResetAndPauseRound(
-            synchronized_data=synchronized_data, consensus_params=self.consensus_params
+        synchronized_data._db._cross_period_persisted_keys = frozenset(
+            {"most_voted_randomness"}
         )
+        test_round = ResetAndPauseRound(synchronized_data=synchronized_data)
         next_period_count = 1
         self._complete_run(
             self._test_round(
@@ -74,11 +75,7 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
                 round_payloads=get_participant_to_period_count(
                     self.participants, next_period_count
                 ),
-                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.create(
-                    participants=[self.participants],
-                    all_participants=[self.participants],
-                    keeper_randomness=[DUMMY_RANDOMNESS],
-                ),
+                synchronized_data_update_fn=lambda _synchronized_data, _: _synchronized_data.create(),
                 synchronized_data_attr_checks=[],  # [lambda _synchronized_data: _synchronized_data.participants],
                 most_voted_payload=next_period_count,
                 exit_event=self._event_class.DONE,
@@ -96,9 +93,7 @@ class TestResetAndPauseRound(BaseCollectSameUntilThresholdRoundTest):
             participants=participants, all_participants=all_participants
         )
 
-        test_round = ResetAndPauseRound(
-            synchronized_data=synchronized_data, consensus_params=self.consensus_params
-        )
+        test_round = ResetAndPauseRound(synchronized_data=synchronized_data)
 
         assert test_round.accepting_payloads_from != participants
-        assert test_round.accepting_payloads_from == all_participants
+        assert test_round.accepting_payloads_from == frozenset(all_participants)

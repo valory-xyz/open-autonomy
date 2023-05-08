@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ from unittest import mock
 import pytest
 from _pytest.capture import CaptureFixture  # type: ignore
 
+from autonomy.cli.helpers import docstring
 from autonomy.cli.helpers.docstring import analyse_docstrings, import_rounds_module
 
 import packages
@@ -39,8 +40,10 @@ from packages.valory.skills.test_abci import rounds as test_abci_rounds
 def test_import_rounds_module(module: ModuleType, with_package_dir: bool) -> None:
     """Test import_rounds_module"""
 
-    packages_dir = Path(packages.__file__).parent if with_package_dir else None
-    module_path = Path(module.__file__)
+    packages_dir = (
+        Path(cast(str, packages.__file__)).parent if with_package_dir else None
+    )
+    module_path = Path(cast(str, module.__file__))
     module = import_rounds_module(module_path, packages_dir)
     assert module is test_abci_rounds
 
@@ -48,8 +51,8 @@ def test_import_rounds_module(module: ModuleType, with_package_dir: bool) -> Non
 def test_import_rounds_module_failure() -> None:
     """Test import_rounds_module"""
 
-    packages_module = Path(packages.__file__)
-    module_path = Path(test_abci.__file__)
+    packages_module = Path(cast(str, packages.__file__))
+    module_path = Path(cast(str, test_abci.__file__))
 
     with pytest.raises(ModuleNotFoundError, match="No module named 'packages.rounds'"):
         import_rounds_module(packages_module)
@@ -62,15 +65,27 @@ def test_import_rounds_module_failure() -> None:
 def test_analyse_docstrings_without_update(module: ModuleType) -> None:
     """Test analyse_docstrings"""
 
-    module_path = Path(module.__file__)
+    module_path = Path(cast(str, module.__file__))
     updated_needed = analyse_docstrings(module_path)
     assert not updated_needed
+
+
+def test_analyse_docstrings_no_abci_app_definition(capsys: CaptureFixture) -> None:
+    """Test analyse_docstrings no ABCIApp definition found"""
+
+    with mock.patch.object(docstring, "import_rounds_module", return_value=docstring):
+        module_path = Path(cast(str, test_abci.__file__))
+        updated_needed = analyse_docstrings(module_path)
+        stdout = capsys.readouterr().out
+        expected = f"WARNING: No AbciApp definition found in: {docstring.__file__}"
+        assert updated_needed
+        assert expected in stdout
 
 
 def test_analyse_docstrings_with_update(capsys: CaptureFixture) -> None:
     """Test analyse_docstrings with update"""
 
-    module_path = Path(test_abci_rounds.__file__)
+    module_path = Path(cast(str, test_abci_rounds.__file__))
     doc = cast(str, test_abci_rounds.TestAbciApp.__doc__)
     content_with_mutated_abci_doc = module_path.read_text().replace(doc, doc + " ")
 

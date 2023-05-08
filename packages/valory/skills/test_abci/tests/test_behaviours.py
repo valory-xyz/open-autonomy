@@ -81,7 +81,7 @@ class TestDummyBehaviour(AbciFSMBehaviourBaseCase):
 
         self.fast_forward_to_behaviour(
             self.behaviour,
-            DummyBehaviour.behaviour_id,
+            DummyBehaviour.auto_behaviour_id(),
             self.synchronized_data,
         )
         assert (
@@ -89,7 +89,7 @@ class TestDummyBehaviour(AbciFSMBehaviourBaseCase):
                 BaseBehaviour,
                 cast(BaseBehaviour, self.behaviour.current_behaviour),
             ).behaviour_id
-            == DummyBehaviour.behaviour_id
+            == DummyBehaviour.auto_behaviour_id()
         )
         self.behaviour.act_wrapper()
         assert self.behaviour.current_behaviour is None

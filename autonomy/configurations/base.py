@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -74,6 +74,8 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         "build_entrypoint",
         "agent",
         "number_of_agents",
+        "description",
+        "deployment_config",
         "_aea_version",
         "_aea_version_specifiers",
         "_directory",
@@ -94,6 +96,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         number_of_agents: int = 4,
         build_entrypoint: Optional[str] = None,
         overrides: Optional[List] = None,
+        deployment: Optional[Dict] = None,
     ) -> None:
         """Initialise object."""
 
@@ -111,6 +114,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
         self.agent = PublicId.from_str(str(agent))
         self.description = description
         self.number_of_agents = number_of_agents
+        self.deployment_config = deployment or {}
 
         self._overrides = [] if overrides is None else overrides
 
@@ -148,6 +152,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
                 "overrides": self.overrides,
                 "fingerprint": self.fingerprint,
                 "fingerprint_ignore_patterns": self.fingerprint_ignore_patterns,
+                "deployment": self.deployment_config,
             }
         )
 
@@ -172,6 +177,7 @@ class Service(PackageConfiguration):  # pylint: disable=too-many-instance-attrib
             fingerprint_ignore_patterns=cast(
                 Sequence[str], obj.get("fingerprint_ignore_patterns", [])
             ),
+            deployment=obj.get("deployment"),
         )
 
         return cls(**params)  # type: ignore

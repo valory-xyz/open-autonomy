@@ -40,6 +40,7 @@ from aea_test_autonomy.fixture_helpers import (
     GanacheBaseTest,
     HardHatAMMBaseTest,
     HardHatGnosisBaseTest,
+    RegistriesBaseTest,
 )
 from aea_test_autonomy.helpers.contracts import get_register_contract
 
@@ -53,6 +54,7 @@ class BaseContractTest(ABC):
     identifier: str = EthereumCrypto.identifier
     deployer_crypto: Crypto
     contract_address: Optional[str] = None
+    deploy_contract: bool = True
 
     @classmethod
     def _setup_class(cls, **kwargs: Any) -> None:
@@ -83,8 +85,10 @@ class BaseContractTest(ABC):
             cls.deployer_crypto = crypto_registry.make(
                 cls.identifier, private_key_path=output_file
             )
-        cls.deploy(**cls.deployment_kwargs())
-        assert cls.contract_address is not None, "Contract not deployed."  # nosec
+
+        if cls.deploy_contract:
+            cls.deploy(**cls.deployment_kwargs())
+            assert cls.contract_address is not None, "Contract not deployed."  # nosec
 
     @classmethod
     def deploy(cls, **kwargs: Any) -> None:
@@ -129,6 +133,12 @@ class BaseHardhatGnosisContractTest(BaseContractTest, HardHatGnosisBaseTest):
 
 class BaseHardhatAMMContractTest(BaseContractTest, HardHatAMMBaseTest):
     """Base test case for testing AMM contracts on Hardhat."""
+
+
+class BaseRegistriesContractsTest(BaseContractTest, RegistriesBaseTest):
+    """Base test case for the registries contract."""
+
+    deploy_contract: bool = False
 
 
 class BaseContractWithDependencyTest(BaseContractTest):
@@ -203,16 +213,16 @@ class BaseContractWithDependencyTest(BaseContractTest):
 class BaseGanacheContractWithDependencyTest(
     BaseContractWithDependencyTest, GanacheBaseTest
 ):
-    """Base test case for testing contracts on Ganache."""
+    """Base test case for testing contracts with dependencies on Ganache."""
 
 
 class BaseHardhatGnosisContractWithDependencyTest(
     BaseContractWithDependencyTest, HardHatGnosisBaseTest
 ):
-    """Base test case for testing contracts on Hardhat with Gnosis."""
+    """Base test case for testing contracts with dependencies on Hardhat with Gnosis."""
 
 
 class BaseHardhatAMMContractWithDependencyTest(
     BaseContractWithDependencyTest, HardHatAMMBaseTest
 ):
-    """Base test case for testing AMM contracts on Hardhat."""
+    """Base test case for testing AMM contracts with dependencies on Hardhat."""

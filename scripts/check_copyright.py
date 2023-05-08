@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ from typing import Dict, Iterator, Optional, Tuple, cast
 
 CURRENT_YEAR = datetime.now().year
 GIT_PATH = shutil.which("git")
-START_YEARS = (2021, 2022)
+START_YEARS = (2021, 2022, 2023)
 SHEBANG = "#!/usr/bin/env python3"
 HEADER_REGEX = re.compile(
     r"""(#!/usr/bin/env python3
@@ -161,7 +161,7 @@ def _validate_years(
         check_info["error_code"] = ErrorTypes.START_YEAR_NOT_ALLOWED
         return check_info
 
-    # Specified year is 2021 but the file has been last modified in another later year (missing -202x)
+    # Specified year is 2021/2022 but the file has been last modified in another later year (missing -202x)
     if end_year is not None and check_end_year:
 
         if start_year > end_year:
@@ -326,9 +326,10 @@ def main() -> None:
 
     def _file_filter(file: Path) -> bool:
         """Filter for files."""
-        file_str = str(file)
+        file_str = str(file.as_posix())
 
         # protocols are generated using generate_all_protocols.py
+        # packages in `tests/data/packages` are generated using `dummy_author` as author
         return (
             not file_str.endswith("_pb2.py")
             and not file_str.endswith("_pb2_grpc.py")
@@ -340,6 +341,7 @@ def main() -> None:
                     and "build" not in file.parts
                 )
             )
+            and "dummy_packages" not in file_str
         )
 
     python_files_filtered = filter(_file_filter, python_files)

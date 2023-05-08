@@ -1,5 +1,278 @@
 # Release History - `open-autonomy`
 
+# 0.10.3 (2023-05-03)
+
+Autonomy:
+- Updates the FSM scaffold tool to add downloaded packages to `third_party` packages #1943
+- Improves the service specification analyser #1942
+  - Implements custom schema validator to report all validation issues at once
+  - Adds support for skip warnings
+  - Raises warning when components are defined in the agent config and not in the service config
+  - Adds support for validating environment overrides
+  - Improves error messages
+
+Docs:
+- Adds auto-correcting functionality for several package hash instances  #1939
+- Fixes port mapping documentation  #1944
+
+Chores:
+- Adds service analysis to workflow #1942
+
+# 0.10.2 (2023-04-24)
+
+Autonomy:
+- Adds support for updating `external_address` to match `tendermint_p2p_url` when updating the Tendermint parameters on registration  #1930 
+
+Packages:
+- Updates the `registration_abci` skill to include `external_address` in the genesis configuration  #1930 
+
+Docs:
+- Adds code checks for `JSON` code blocks in the documentation  #1933 
+- Updates the documentation on the usage of the hardware wallet for on-chain interactions  #1931 
+- Extends the tutorials for minting components
+
+
+# 0.10.1 (2023-04-13)
+
+Autonomy:
+- Adds support for updating the tendermint P2P URL at the runtime, take a look [here](https://github.com/valory-xyz/open-autonomy/pull/1923#discussion_r1163904995) to understand more
+- Adds support for specifying `NFT` image path when minting the components
+- Updates the minting tools to dump metadata as a `json` file after minting the component
+- Updates the manual build mechanism to index agent using `all_parameters` parameter if available
+
+Packages:
+- Adds better exception handling when sending multiple transactions
+
+Docs:
+- Adds instructions for running a single agent
+
+Chores:
+- Fixes the dependency versions on the documentation `Dockerfile`
+- Adds `mkdocs.yaml` configuration that needed to be removed due to incorrect dependencies in the previous release
+
+# 0.10.0.post2 (2023-03-30)
+
+Autonomy:
+- Updates the `autonomy publish` command to avoid publishing temporary files
+- Adds support for specifying owner when minting a component using `--owner` flag on `autonomy mint` command
+- Makes error messages on the on chain dependency checks more user friendly
+- Updates the dependency verification check to handle cases where there are multiple dependencies with the same public ID
+- Updates the runtime tendermint override update logic to account for `--n` flag
+- Updates the runtime setup override update logic to set parameters as defined data types instead of a `list` of the said data type
+
+Packages:
+- Adds support for defining owner independent of the transaction sender when minting component on service manager and component registries manager contracts
+
+# 0.10.0.post1 (2023-03-22)
+
+Autonomy:
+- Makes the usage of the `flashbots` plugin optional in the deployments 
+
+# 0.10.0 (2023-03-22)
+
+Autonomy:
+- Adds support for using hardware wallets for minting and managing services on-chain
+- Updates the FSM scaffold tool to add the newly scaffolded package to the `packages.json` after scaffolding the skill
+- Adds support for `kubernetes` builds on the `from-token` deployments using `--kubernetes` flag 
+- Adds support for specifying whether the deployment should run directly or not, using `--no-deploy` flag on the `from-deploy` command
+- Removes the support for `--force` flag on the autonomy deploy build command
+- Adds support for configuring networks in a deployment setup to expose various agent ports 
+- Adds a naming convention checker for the FSM specifications. From now on
+  - A round name should end with `Round`
+  - ABCI app class name should end with `AbciApp`
+- Deprecates the usage of the special environment variables from the agent deployment setup
+- Adds support for usage of the `flashbots` ledger plugin on the docker images
+
+Packages:
+- Deprecates the usage of the special environment variables for the agent configurations:
+  - In the ABCI skill override don't use `TENDERMINT_URL` and `TENDERMINT_COM_URL` for tendermint parameters
+  - In the ABCI connection override don't use `ABCI_HOST` and `ABCI_PORT` for ABCI connection parameters
+  - Tendermint and ABCI connection parameters now use the same environment variables' pattern as all other 
+    configurations
+- Refactors the `AbciAppDB`'s `create()`. It is responsible for setting the cross-period keys for the new period 
+  and converting the corresponding data to the correct format. The skills using the `create()` method now 
+  do not need to manually set the data for the next period as this is handled automatically via the 
+  cross-period keys (#1827)
+- The setup parameters should not be defined as lists anymore (#1833)
+- `observation_interval` has been renamed to `reset_pause_duration` (#1836)
+- Adds support for the `flashbots` ledger plugin (#1885)
+- Adds a flag called `use_termination` in the configuration to enable or disable the usage of termination (#1891)
+
+Tests:
+- Updates the test to remove the usage of --force flag
+
+Docs:
+- Adds the description column to the package list in the docs
+- Corrects a code snippet in docs
+- Simplifies explanation of `what is an agent service`
+
+Chores:
+- Updates the workflows to use python `3.10.9` instead of `3.10.10` to avoid timeouts
+
+
+
+# 0.9.1 (2023-02-22)
+
+Autonomy:
+- Updates the `docker-compose` template to enable the usage of `host.docker.internal` as host machine gateway
+
+Tests:
+- Adds test coverage for newly introduced commands on `autonomy analyse` group
+
+Docs:
+- Updates the documentation on the usage of custom images in agent deployments.
+
+Chore:
+- Updates the `tomte` version in the `Pipfile`
+
+# 0.9.0 (2023-02-16)
+
+Autonomy:
+- Updates the on-chain interaction functionalities to wait for the relevant event to make sure the interaction was successful
+- Makes the usage of local tendermint chain optional in the deployment setup
+- Introduces `autonomy analyse dialogues` command for analysing the dialogue definitions in a skill package
+- Introduces `autonomy analyse service` command for checking the deployment readiness of a service
+- Introduces `autonomy analyse logs` command for analysing the agent runtime logs
+- Adds support for defining custom author name for docker images on the `autonomy build-image` command
+- Removes the usage of `MAX_PARTICIPANTS` environment variable from deployment setup
+- Adds support for updating the consensus threshold at the runtime using the on-chain metadata
+
+Packages:
+- Makes the synchronized database `serializable` and `hashable`
+- Backports the `makerDAO multicall2` contract from [`agent-academy-1`](https://github.com/valory-xyz/agent-academy-1) repository
+- Simplifies the way the initial height is set on resets. Now, the initial height will always be `0`
+- Removes the need for declaring the `payload_attribute` on the round class implementation
+- Updates the base rounds to simplify the usage when payloads have multiple attributes
+- Adds support for synchronizing the database on registration so that agents can rejoin at any point
+- Removes `reset_index` from `AbciApp` implementation
+- Adds restrictions on which agents can submit in late message round
+- Fixes overlapping blocks by setting unique chain Ids among the tendermint resets
+- Updates the rejoin mechanism to
+  - Restart tendermint whenever there's a connection drop, from the abci or otherwise
+  - Makes sure monitoring is performed even when tendermint is reset by the tendermint server
+  - Clean up `timeouts` and `last_timestamp` before trying to restore state received from peers
+  - Don't wait for the reset pause duration in cases when reset is performed for recovery
+  - Enables `ACN` communication for rejoining agents, by accepting `requests/responses` from `all_participants`
+- Removes `consensus` parameter from the skills' configurations and replaces the `max_participants` with the length of the `all_participants` list
+- Updates the `BaseParams` implementation to enforce minimum values for `reset_pause_duration`
+- Updates the `AbciAppDB` implementation to make sure `cross_period_keys` and the database conditions are defined as sets
+
+
+Tests:
+- Adds test coverage for registry contracts
+- Adds test for building and running the base autonomy image, the agent runtime image and the tendermint server image
+- Re-enables the fuzzer tests for the `valory/abci` connection on windows platform
+
+Docs:
+- Removes the usage of `max_participants` parameter
+- Rearranges the on-chain registration section to match with the Autonolas protocol documentation
+- Adds a link to the `whitepaper`
+- Adds documentation on the deployment readiness checks for a service
+- Adds a guide on initializing an empty local packages repository 
+
+Chores:
+- Increases `CI` timeout for the tests from `70` minutes to `90` minutes
+- Bumps `tomte` to `v0.2.2`
+
+# 0.8.0 (2023-01-20)
+
+Autonomy:
+- Adds support for minting components using the `autonomy mint` command group
+- Adds support for managing on chain services using the `autonomy service` group
+- Updates the `autonomy deploy from-token` command to use APIs from `autonomy.chain` module
+- Fixes the bug on the `autonomy analyse handlers` command by loading all of the dependencies before running a check
+
+Packages:
+- Introduces type checking utility as part of the `abstract_round_abci` skill
+- Adds support for sharing the recovery parameters on the tendermint protocol and handler
+- Introduces `valory/ipfs` protocol and connection for handling `IPFS` uploads and downloads
+- Updates `TendermintRecoveryParams` implementation to make it compatible for sharing the parameters using the `ACN`
+- Updates the recovery mechanism in order to first retrieve the `Tendermint` recovery parameters via the `ACN` before attempting to reset
+- Enables the usage of `libp2p` connection on `TestTendermintResetInterrup` and `DEBUG` as default logging level
+- Updates the implementation of the base transaction payload class to use data classes and makes them immutable
+- Updates various skill packages to use the new payload class design
+- `Transaction` is implemented using data class now
+
+Plugins:
+- Updates the `TendermintRecoveryParams` to clean up the images at the end of the test
+- Adds a fixture for the local `IPFS` node address
+
+Tests:
+- Adds test coverage for `packages/valory/skills/abstract_round_abci/abci_app_chain.py`
+
+Docs:
+- Updates documentation on the developer tooling to better explain the usage of benchmarking tools
+- Adds documentation on the usage of the custom docker images for the deployment setup
+- Adds documentation for `autonomy mint` and `autonomy service` command groups
+
+Chores:
+- Updates `tendermint` docker image to use local `wait-for-it.sh` script instead of downloading from source
+
+# 0.7.0 (2023-01-04)
+
+Autonomy:
+- Adds support for updating the participants list at the runtime using the on chain metadata of a service
+- Enables the usage of `gRPC` channel when communicating with the `abci` connection
+- Updates the tendermint image name constant to make sure it's up to date with the latest framework version
+
+Packages:
+- Adds validation for the setup data and raises early if necessary data are not provided instead of waiting for the first round to happen
+- Removes the fast forward round because it is not meaningful since the setup data cannot be empty
+- Moves `all_participants` to the setup data
+- Enables the usage of `gRPC` channel when communicating with the tendermint node
+- Adds meta classes for the `AbstractRound` and the `BaseBehaviour` classes to enforce additional checks
+- Fixes typing issues on the synchronized database class
+- Removes the inappropriate usage of the `# type: ignore` marker and addresses the typing issues properly
+
+Tests:
+- Test coverage for `BaseTestEnd2End` in the test plugin
+- Test coverage for the `abci` connection
+- Test coverage for tendermint protocol dialogues
+- Updates hello world `e2e` test to test the usage of `gRPC` channel on tendermint node
+- Fixes the inconsistencies regarding the usage of `setup` and `setup_class` methods in the test classes
+- Introduces base class for testing test tools
+- Adds tests for transaction settlement integration test tools
+
+Docs:
+- Updates the guide for running a service on different networks
+- Reorganizes the developer tooling section
+
+Chores:
+- Updates the coverage collection in the CI to aggregate the coverage for both framework and the packages
+
+
+# 0.6.0 (2022-12-16)
+
+Autonomy:
+- Removes the need for the agent project when scaffolding an `FSM` app using specification. Now when scaffolding the FSM app using the `-tlr` flag, the skill will be directly scaffolded to the local packages directory
+- Updates the FMM scaffolding templates to support defining pre and post conditions for the synchronized data
+- Updates the tendermint communication server
+  - `GET /params` endpoint to return `peer_id` for the local tendermint node
+  - `POST /params` endpoint to update `persistent_peers` when updating the chain config
+
+Packages:
+- Fixes the `fast_forward_to_behaviour` in the `abci` skill test tools by setting the `_current_round_cls` which is necessary for retrieving the correct class for the synchronized data
+- Adds support for auto generated behaviour IDs
+- Adds support for auto-generated round IDs
+- Introduces the `get_name` method as part of the `abstract_round_abci`skill to retrieve the name of a property dynamically
+- Updates the various packages to to newly introduced auto generate functionalities
+- Removes sleep on `reset_tendermint_with_wait` on startup
+- Updates the `a2a` transaction logic to wait for block production to begin before sending an `a2a` transaction via tendermint
+- Updates the `RegistrationStartupBehaviour` and `TendermintHandler` to make sure we update the persistent peers when establishing a new chain
+- Adds support for specifying the external host name for the tendermint P2P connection
+- Introduces pre and post conditions on the synchronized data for each initial and final state of an FSM app (including default pre conditions). These are verified during chaining of the apps
+- Updates all FSM apps to specify their pre- and post-conditions
+- Added message handling support to `TmManager`.
+- Reset the app hash to the app hash in the begging of the period when hard resetting for recovery
+
+Tests
+- Adds tests for `termination_abci`
+- Adds tests for docstring analyser when no `AbciApp` definition is found in the provided module
+- Adds test coverage for `autonomy develop` command group
+- Introduces pre and post conditions checks on the `SynchronizedData` for each initial and final state
+- Adds tests for `abci` connection
+- Adds an e2e test to showcase hard reset being used as a recovery mechanism
+
 
 # 0.5.0.post2 (2022-12-09)
 

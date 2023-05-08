@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -44,11 +44,13 @@ from deployments.Dockerfiles.tendermint import app  # type: ignore
 from deployments.Dockerfiles.tendermint.app import TendermintNode  # type: ignore
 from deployments.Dockerfiles.tendermint.app import (  # type: ignore
     CONFIG_OVERRIDE,
+    DOCKER_INTERNAL_HOST,
     PeriodDumper,
     create_app,
     get_defaults,
     load_genesis,
     override_config_toml,
+    update_peers,
 )
 from deployments.Dockerfiles.tendermint.tendermint import (  # type: ignore
     TendermintParams,
@@ -57,6 +59,19 @@ from deployments.Dockerfiles.tendermint.tendermint import (  # type: ignore
 
 ENCODING = "utf-8"
 VERSION = "0.34.19"
+DUMMY_CONFIG_TOML = """
+# Comma separated list of seed nodes to connect to
+seeds = ""
+
+# Comma separated list of nodes to keep persistent connections to
+persistent_peers = "dummy_peer1@localhost:80,dummy_peer2@localhost:81"
+
+# UPNP port forwarding
+upnp = false
+
+external_address = ""
+"""
+DUMMY_EXTERNAL_ADDRESS = "dummy_external_address:26566"
 
 wait_for_node_to_run = pytest.mark.usefixtures("wait_for_node")
 wait_for_occupied_rpc_port = pytest.mark.usefixtures("wait_for_occupied_rpc_port")
@@ -130,6 +145,7 @@ class BaseTendermintServerTest(BaseTendermintTest):
         super().setup_class()
         os.environ["PROXY_APP"] = "kvstore"
         os.environ["CREATE_EMPTY_BLOCKS"] = "true"
+        os.environ["USE_GRPC"] = "false"
         os.environ["LOG_FILE"] = str(cls.path / "tendermint.log")
         cls.dump_dir = Path(tempfile.mkdtemp())
         cls.app, cls.tendermint_node = create_app(
@@ -259,6 +275,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             params = data.get("params")
             assert params
             assert params.pop("address")
+            assert params.pop("peer_id")
             pub_key = params.pop("pub_key")
             assert pub_key.pop("type")
             assert pub_key.pop("value")
@@ -272,6 +289,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
         dummy_data = dict(
             genesis_config=load_genesis(),
             validators=[],
+            external_address="",
         )
 
         with self.app.test_client() as client:
@@ -292,7 +310,9 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             # 1. check params are in validator set
             response = client.get("/params")
             assert response.status_code == 200
-            params = cast(JSONLike, response.get_json()).get("params")
+            response_data = cast(Dict, response.get_json())
+            params = cast(Dict, response_data["params"])
+            params.pop("peer_id", None)
             params["name"], params["power"] = "", "10"
             assert params in genesis_config["validators"]
 
@@ -300,6 +320,7 @@ class TestTendermintServerApp(BaseTendermintServerTest):
             dummy_data = dict(
                 genesis_config=genesis_config,
                 validators=[],
+                external_address=DUMMY_EXTERNAL_ADDRESS,
             )
             response = client.post("/params", json=dummy_data)
             assert response.status_code == 200
@@ -459,7 +480,8 @@ class TestTendermintBufferFailing(BaseTendermintServerTest):
     def teardown_class(cls) -> None:
         """Teardown the test."""
         # After the test, the node has hanged. We need to kill it and not stop it.
-        cls.tendermint_node._process.kill()
+        if cls.tendermint_node._process:
+            cls.tendermint_node._process.kill()
         cls.app_context.pop()
         shutil.rmtree(cls.tm_home, ignore_errors=True, onerror=readonly_handler)
 
@@ -484,3 +506,66 @@ class TestTendermintBufferWorking(BaseTendermintServerTest):
                 raise AssertionError(e)
 
             time.sleep(1)
+
+
+def test_update_peers() -> None:
+    """Test update peers."""
+
+    validators = [
+        {
+            "hostname": f"host_{i}",
+            "p2p_port": i * 10,
+            "peer_id": f"peer_{i}",
+        }
+        for i in range(2)
+    ]
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        config_file = Path(temp_dir, "config.toml")
+        config_file.write_text(DUMMY_CONFIG_TOML)
+
+        update_peers(validators=validators, config_path=config_file)
+
+        updated_content = config_file.read_text()
+
+        # make sure we don't update anything else
+        assert """seeds = """ "" in updated_content
+        assert "upnp = false" in updated_content
+
+        for val in validators:
+            assert (
+                str(val["peer_id"])
+                + "@"
+                + str(val["hostname"])
+                + ":"
+                + str(val["p2p_port"])
+                in updated_content
+            )
+
+
+def test_update_peers_internal_host() -> None:
+    """Test update peers."""
+
+    validators = [{"hostname": "localhost", "p2p_port": 80, "peer_id": "peer"}]
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        config_file = Path(temp_dir, "config.toml")
+        config_file.write_text(DUMMY_CONFIG_TOML)
+
+        update_peers(validators=validators, config_path=config_file)
+
+        updated_content = config_file.read_text()
+
+        # make sure we don't update anything else
+        assert """seeds = """ "" in updated_content
+        assert "upnp = false" in updated_content
+
+        for val in validators:
+            assert (
+                str(val["peer_id"])
+                + "@"
+                + DOCKER_INTERNAL_HOST
+                + ":"
+                + str(val["p2p_port"])
+                in updated_content
+            )

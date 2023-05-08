@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,22 +22,27 @@
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional, Tuple, Type
 
 import click
 import pytest
+from aea.helpers.base import IPFSHash
 from aea.test_tools.click_testing import CliRunner
 
 from autonomy.analyse.abci.app_spec import FSMSpecificationLoader as FSMSpecLoader
+from autonomy.chain.config import ChainType
+from autonomy.chain.mint import DEFAULT_NFT_IMAGE_HASH
 from autonomy.cli.utils.click_utils import (
+    NFTArgument,
     PathArgument,
     abci_spec_format_flag,
     chain_selection_flag,
     image_profile_flag,
     sys_path_patch,
 )
-from autonomy.deploy.chain import CHAIN_CONFIG
 from autonomy.deploy.image import ImageProfiles
+
+from tests.conftest import DATA_DIR
 
 
 @dataclass
@@ -53,7 +58,11 @@ class ClickFlagTestCase:
     "test_case",
     [
         ClickFlagTestCase(image_profile_flag, ImageProfiles.ALL),
-        ClickFlagTestCase(chain_selection_flag, tuple(CHAIN_CONFIG), opt_prefix="use-"),
+        ClickFlagTestCase(
+            chain_selection_flag,
+            tuple(map(lambda x: x.value, ChainType)),
+            opt_prefix="use-",
+        ),
         ClickFlagTestCase(abci_spec_format_flag, FSMSpecLoader.OutputFormats.ALL),
     ],
 )
@@ -69,7 +78,7 @@ def test_flag_decorators(test_case: ClickFlagTestCase) -> None:
     for parameter, item in zip(dummy.params, reversed(test_case.items)):
         assert isinstance(parameter, click.Option)
         assert item in parameter.flag_value
-        assert parameter.opts == [f"--{test_case.opt_prefix}{item}"]
+        assert parameter.opts == [f"--{test_case.opt_prefix}" + item.replace("_", "-")]
         assert parameter.help
 
 
@@ -95,3 +104,26 @@ def test_sys_path_patch() -> None:
     with sys_path_patch(Path(cwd)):
         assert cwd == sys.path[0]
     assert not cwd == sys.path[0]
+
+
+@pytest.mark.parametrize(
+    ("value", "itype"),
+    (
+        (DEFAULT_NFT_IMAGE_HASH, IPFSHash),
+        (str(DATA_DIR / "nft.png"), Path),
+    ),
+)
+def test_nft_argument(value: str, itype: Type) -> None:
+    """Test `NFTArgument` flag"""
+
+    assert isinstance(NFTArgument().convert(value, None, None), itype)
+
+
+def test_nft_argument_failure() -> None:
+    """Test `NFTArgument` flag failure"""
+
+    with pytest.raises(
+        click.ClickException,
+        match="Invalid value provided for the NFT image argument, please provide a valid IPFS hash or valid image path",
+    ):
+        NFTArgument().convert(str(DATA_DIR / "not_nft.png"), None, None)

@@ -43,7 +43,11 @@ Get the ABCI port
 
 ```python
 @pytest.fixture(scope="class")
-def tendermint(tendermint_port: int, abci_host: str, abci_port: int, timeout: float = 2.0, max_attempts: int = 10) -> Generator
+def tendermint(tendermint_port: int,
+               abci_host: str,
+               abci_port: int,
+               timeout: float = 2.0,
+               max_attempts: int = 10) -> Generator
 ```
 
 Launch the Ganache image.
@@ -109,7 +113,14 @@ Get a parametrized number of nodes.
 
 ```python
 @pytest.fixture
-def flask_tendermint(tendermint_port: int, nb_nodes: int, abci_host: str, abci_port: int, timeout: float = 2.0, max_attempts: int = 10) -> Generator[FlaskTendermintDockerImage, None, None]
+def flask_tendermint(
+    tendermint_port: int,
+    nb_nodes: int,
+    abci_host: str,
+    abci_port: int,
+    timeout: float = 2.0,
+    max_attempts: int = 10
+) -> Generator[FlaskTendermintDockerImage, None, None]
 ```
 
 Launch the Flask server with Tendermint container.
@@ -235,7 +246,11 @@ Get the Ganache configuration for testing purposes.
 
 ```python
 @pytest.fixture(scope="function")
-def ganache_scope_function(ganache_configuration: Dict, ganache_addr: str, ganache_port: int, timeout: float = 2.0, max_attempts: int = 10) -> Generator
+def ganache_scope_function(ganache_configuration: Dict,
+                           ganache_addr: str,
+                           ganache_port: int,
+                           timeout: float = 2.0,
+                           max_attempts: int = 10) -> Generator
 ```
 
 Launch the Ganache image. This fixture is scoped to a function which means it will destroyed at the end of the test.
@@ -246,7 +261,11 @@ Launch the Ganache image. This fixture is scoped to a function which means it wi
 
 ```python
 @pytest.fixture(scope="class")
-def ganache_scope_class(ganache_configuration: Dict, ganache_addr: str, ganache_port: int, timeout: float = 2.0, max_attempts: int = 10) -> Generator
+def ganache_scope_class(ganache_configuration: Dict,
+                        ganache_addr: str,
+                        ganache_port: int,
+                        timeout: float = 2.0,
+                        max_attempts: int = 10) -> Generator
 ```
 
 Launch the Ganache image. This fixture is scoped to a class which means it will destroyed after running every test in a class.
@@ -257,7 +276,8 @@ Launch the Ganache image. This fixture is scoped to a class which means it will 
 
 ```python
 @pytest.fixture(scope="class")
-def ammnet_scope_class(timeout: float = 2.0, max_attempts: int = 26) -> Generator
+def ammnet_scope_class(timeout: float = 2.0,
+                       max_attempts: int = 26) -> Generator
 ```
 
 Launch the Ganache image. This fixture is scoped to a class which means it will destroyed after running every test in a class.
@@ -333,7 +353,9 @@ ACN node configuration.
 
 ```python
 @pytest.fixture(scope="function")
-def acn_node(acn_config: Dict, timeout: float = 2.0, max_attempts: int = 10) -> Generator
+def acn_node(acn_config: Dict,
+             timeout: float = 2.0,
+             max_attempts: int = 10) -> Generator
 ```
 
 Launch the Ganache image.
@@ -463,7 +485,8 @@ Get the url under which the image is reachable.
 
 ```python
 @pytest.fixture(scope="class")
-def registries_scope_class(timeout: float = 2.0, max_attempts: int = 20) -> Generator
+def registries_scope_class(timeout: float = 2.0,
+                           max_attempts: int = 20) -> Generator
 ```
 
 Launch the Registry contracts image. This fixture is scoped to a class which means it will destroyed after running every test in a class.
@@ -485,7 +508,10 @@ Inherit from this class to use a local Ethereum network with deployed registry c
 
 ```python
 @pytest.fixture(scope="function")
-def gnosis_safe_hardhat_scope_function(hardhat_addr: str, hardhat_port: int, timeout: float = 3.0, max_attempts: int = 40) -> Generator
+def gnosis_safe_hardhat_scope_function(hardhat_addr: str,
+                                       hardhat_port: int,
+                                       timeout: float = 3.0,
+                                       max_attempts: int = 40) -> Generator
 ```
 
 Launch the HardHat node with Gnosis Safe contracts deployed. This fixture is scoped to a function which means it will destroyed at the end of the test.
@@ -496,7 +522,10 @@ Launch the HardHat node with Gnosis Safe contracts deployed. This fixture is sco
 
 ```python
 @pytest.fixture(scope="class")
-def gnosis_safe_hardhat_scope_class(hardhat_addr: str, hardhat_port: int, timeout: float = 3.0, max_attempts: int = 40) -> Generator
+def gnosis_safe_hardhat_scope_class(hardhat_addr: str,
+                                    hardhat_port: int,
+                                    timeout: float = 3.0,
+                                    max_attempts: int = 40) -> Generator
 ```
 
 Launch the HardHat node with Gnosis Safe contracts deployed.This fixture is scoped to a class which means it will destroyed after running every test in a class.
@@ -531,4 +560,46 @@ class HardHatAMMBaseTest(HardHatBaseTest)
 ```
 
 Base pytest class for HardHat with Gnosis and Uniswap deployed.
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.RegistriesBaseTest"></a>
+
+## RegistriesBaseTest Objects
+
+```python
+class RegistriesBaseTest(HardHatBaseTest)
+```
+
+Base pytest class for component registries.
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.ipfs_daemon"></a>
+
+#### ipfs`_`daemon
+
+```python
+@pytest.fixture(scope="class")
+def ipfs_daemon() -> Iterator[bool]
+```
+
+Starts an IPFS daemon for the tests.
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.ipfs_domain"></a>
+
+#### ipfs`_`domain
+
+```python
+@pytest.fixture(scope="session")
+def ipfs_domain() -> str
+```
+
+Get the ipfs domain
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.fixture_helpers.UseLocalIpfs"></a>
+
+## UseLocalIpfs Objects
+
+```python
+class UseLocalIpfs()
+```
+
+Use local IPFS daemon.
 

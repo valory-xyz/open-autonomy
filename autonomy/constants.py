@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,12 +27,13 @@ DEFAULT_KEYS_FILE = "keys.json"
 DEFAULT_IMAGE_VERSION = "latest"
 SERVICE_REGISTRY_CONTRACT_CONTAINER_NAME = "autonolas-registries"
 DOCKER_COMPOSE_YAML = "docker-compose.yaml"
+VALORY = "valory"
 
 AUTONOMY_IMAGE_VERSION = os.environ.get(
     "AUTONOMY_IMAGE_VERSION", DEFAULT_AUTONOMY_VERSION
 )
 TENDERMINT_IMAGE_VERSION = os.environ.get(
-    "TENDERMINT_IMAGE_VERSION", DEFAULT_IMAGE_VERSION
+    "TENDERMINT_IMAGE_VERSION", DEFAULT_AUTONOMY_VERSION
 )
 HARDHAT_IMAGE_VERSION = os.environ.get("HARDHAT_IMAGE_VERSION", DEFAULT_IMAGE_VERSION)
 SERVICE_REGISTRY_IMAGE_VERSION = os.environ.get(
@@ -55,6 +56,6 @@ DEFAULT_SERVICE_REGISTRY_CONTRACTS_IMAGE = (
     f"{SERVICE_REGISTRY_IMAGE_NAME}:{SERVICE_REGISTRY_IMAGE_VERSION}"
 )
 ACN_IMAGE_NAME = os.environ.get("ACN_IMAGE_NAME", "valory/open-acn-node")
-
-OAR_IMAGE = "valory/oar-{agent}:{version}"
-ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeifh4qtjurq5637ykxexzexca5l4n6t4ujw26tpnern2swajanvhny"
+DEFAULT_DOCKER_IMAGE_AUTHOR = "valory"
+OAR_IMAGE = "{image_author}/oar-{agent}:{version}"
+ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH = "valory/abstract_round_abci:0.1.0:bafybeicensk7a2vpqj52iyhf6yhc6z2iwulb2txbym546qvwgsxm3skvcm"

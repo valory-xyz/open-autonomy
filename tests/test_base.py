@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ def get_test_files(package_type: PackageType) -> List[Path]:
 
 def test_version() -> None:
     """Test the version."""
-    assert autonomy.__version__ == "0.5.0.post2"
+    assert autonomy.__version__ == "0.10.3"
 
 
 @pytest.mark.parametrize(

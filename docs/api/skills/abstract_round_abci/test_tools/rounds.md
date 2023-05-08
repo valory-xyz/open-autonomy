@@ -29,53 +29,11 @@ Dummy Event
 ## DummyTxPayload Objects
 
 ```python
+@dataclass(frozen=True)
 class DummyTxPayload(BaseTxPayload)
 ```
 
 Dummy Transaction Payload.
-
-<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummyTxPayload.__init__"></a>
-
-#### `__`init`__`
-
-```python
-def __init__(sender: str, value: Any, vote: Optional[bool] = False, round_count: int = ROUND_COUNT_DEFAULT) -> None
-```
-
-Initialize a dummy transaction payload.
-
-<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummyTxPayload.value"></a>
-
-#### value
-
-```python
-@property
-def value() -> Any
-```
-
-Get the tx value.
-
-<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummyTxPayload.vote"></a>
-
-#### vote
-
-```python
-@property
-def vote() -> Optional[bool]
-```
-
-Get the vote value.
-
-<a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummyTxPayload.data"></a>
-
-#### data
-
-```python
-@property
-def data() -> Dict[str, Any]
-```
-
-Data
 
 <a id="packages.valory.skills.abstract_round_abci.test_tools.rounds.DummySynchronizedData"></a>
 
@@ -92,7 +50,11 @@ Dummy synchronized data for tests.
 #### get`_`dummy`_`tx`_`payloads
 
 ```python
-def get_dummy_tx_payloads(participants: FrozenSet[str], value: Any = None, vote: Optional[bool] = False, is_value_none: bool = False) -> List[DummyTxPayload]
+def get_dummy_tx_payloads(participants: FrozenSet[str],
+                          value: Any = None,
+                          vote: Optional[bool] = False,
+                          is_value_none: bool = False,
+                          is_vote_none: bool = False) -> List[DummyTxPayload]
 ```
 
 Returns a list of DummyTxPayload objects.
@@ -122,7 +84,7 @@ end_block method.
 ## DummyCollectionRound Objects
 
 ```python
-class DummyCollectionRound(CollectionRound,  DummyRound)
+class DummyCollectionRound(CollectionRound, DummyRound)
 ```
 
 Dummy Class for CollectionRound
@@ -132,7 +94,8 @@ Dummy Class for CollectionRound
 ## DummyCollectDifferentUntilAllRound Objects
 
 ```python
-class DummyCollectDifferentUntilAllRound(CollectDifferentUntilAllRound,  DummyRound)
+class DummyCollectDifferentUntilAllRound(CollectDifferentUntilAllRound,
+                                         DummyRound)
 ```
 
 Dummy Class for CollectDifferentUntilAllRound
@@ -142,7 +105,7 @@ Dummy Class for CollectDifferentUntilAllRound
 ## DummyCollectSameUntilAllRound Objects
 
 ```python
-class DummyCollectSameUntilAllRound(CollectSameUntilAllRound,  DummyRound)
+class DummyCollectSameUntilAllRound(CollectSameUntilAllRound, DummyRound)
 ```
 
 Dummy Class for CollectSameUntilThresholdRound
@@ -153,7 +116,7 @@ Dummy Class for CollectSameUntilThresholdRound
 
 ```python
 class DummyCollectDifferentUntilThresholdRound(
-    CollectDifferentUntilThresholdRound,  DummyRound)
+        CollectDifferentUntilThresholdRound, DummyRound)
 ```
 
 Dummy Class for CollectDifferentUntilThresholdRound
@@ -163,7 +126,8 @@ Dummy Class for CollectDifferentUntilThresholdRound
 ## DummyCollectSameUntilThresholdRound Objects
 
 ```python
-class DummyCollectSameUntilThresholdRound(CollectSameUntilThresholdRound,  DummyRound)
+class DummyCollectSameUntilThresholdRound(CollectSameUntilThresholdRound,
+                                          DummyRound)
 ```
 
 Dummy Class for CollectSameUntilThresholdRound
@@ -173,7 +137,7 @@ Dummy Class for CollectSameUntilThresholdRound
 ## DummyOnlyKeeperSendsRound Objects
 
 ```python
-class DummyOnlyKeeperSendsRound(OnlyKeeperSendsRound,  DummyRound)
+class DummyOnlyKeeperSendsRound(OnlyKeeperSendsRound, DummyRound)
 ```
 
 Dummy Class for OnlyKeeperSendsRound
@@ -183,7 +147,7 @@ Dummy Class for OnlyKeeperSendsRound
 ## DummyVotingRound Objects
 
 ```python
-class DummyVotingRound(VotingRound,  DummyRound)
+class DummyVotingRound(VotingRound, DummyRound)
 ```
 
 Dummy Class for VotingRound
@@ -194,7 +158,7 @@ Dummy Class for VotingRound
 
 ```python
 class DummyCollectNonEmptyUntilThresholdRound(
-    CollectNonEmptyUntilThresholdRound,  DummyRound)
+        CollectNonEmptyUntilThresholdRound, DummyRound)
 ```
 
 Dummy Class for `CollectNonEmptyUntilThresholdRound`
@@ -225,7 +189,7 @@ Setup test class.
 
 ```python
 class BaseCollectDifferentUntilAllRoundTest(  # pylint: disable=too-few-public-methods
-    BaseRoundTestClass)
+        BaseRoundTestClass)
 ```
 
 Tests for rounds derived from CollectDifferentUntilAllRound.
@@ -235,8 +199,7 @@ Tests for rounds derived from CollectDifferentUntilAllRound.
 ## BaseCollectSameUntilAllRoundTest Objects
 
 ```python
-class BaseCollectSameUntilAllRoundTest(
-    BaseRoundTestClass)
+class BaseCollectSameUntilAllRoundTest(BaseRoundTestClass)
 ```
 
 Tests for rounds derived from CollectSameUntilAllRound.
@@ -247,7 +210,7 @@ Tests for rounds derived from CollectSameUntilAllRound.
 
 ```python
 class BaseCollectSameUntilThresholdRoundTest(  # pylint: disable=too-few-public-methods
-    BaseRoundTestClass)
+        BaseRoundTestClass)
 ```
 
 Tests for rounds derived from CollectSameUntilThresholdRound.
@@ -258,7 +221,7 @@ Tests for rounds derived from CollectSameUntilThresholdRound.
 
 ```python
 class BaseOnlyKeeperSendsRoundTest(  # pylint: disable=too-few-public-methods
-    BaseRoundTestClass)
+        BaseRoundTestClass)
 ```
 
 Tests for rounds derived from OnlyKeeperSendsRound.
@@ -279,7 +242,7 @@ Tests for rounds derived from VotingRound.
 
 ```python
 class BaseCollectDifferentUntilThresholdRoundTest(  # pylint: disable=too-few-public-methods
-    BaseRoundTestClass)
+        BaseRoundTestClass)
 ```
 
 Tests for rounds derived from CollectDifferentUntilThresholdRound.
@@ -290,7 +253,7 @@ Tests for rounds derived from CollectDifferentUntilThresholdRound.
 
 ```python
 class BaseCollectNonEmptyUntilThresholdRound(  # pylint: disable=too-few-public-methods
-    BaseCollectDifferentUntilThresholdRoundTest)
+        BaseCollectDifferentUntilThresholdRoundTest)
 ```
 
 Tests for rounds derived from `CollectNonEmptyUntilThresholdRound`.

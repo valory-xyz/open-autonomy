@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -70,7 +70,9 @@ class RoundFileGenerator(AbstractFileGenerator, ROUNDS):
             COPYRIGHT_HEADER,
             ROUNDS.HEADER.format(**self.template_kwargs),
             self._get_rounds_section(),
-            self.ABCI_APP_CLS.format(**self.template_kwargs),
+            self.ABCI_APP_CLS.format(
+                **self.template_kwargs,
+            ),
         ]
 
         return "\n".join(file_content)
@@ -80,7 +82,7 @@ class RoundFileGenerator(AbstractFileGenerator, ROUNDS):
 
         rounds: List[str] = []
 
-        todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound, CollectSameUntilAllRound, CollectSameUntilThresholdRound, CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound"
+        todo_abstract_round_cls = "# TODO: replace AbstractRound with one of CollectDifferentUntilAllRound,\n        # CollectSameUntilAllRound, CollectSameUntilThresholdRound,\n        # CollectDifferentUntilThresholdRound, OnlyKeeperSendsRound, VotingRound,\n        # from packages/valory/skills/abstract_round_abci/base.py\n        # or implement the methods"
         for round_name, payload_name in zip(self.rounds, self.payloads):
             base_name = round_name.replace(ROUND, "")
             round_id = _camel_case_to_snake_case(base_name)
@@ -150,15 +152,13 @@ class PayloadsFileGenerator(AbstractFileGenerator, PAYLOADS):
     def _get_base_payload_section(self) -> str:
         """Get the base payload section."""
 
-        payloads: List[str] = [self.BASE_PAYLOAD_CLS.format(**self.template_kwargs)]
+        payloads: List[str] = []
 
         for payload_name, round_name in zip(self.payloads, self.rounds):
-            tx_type = _camel_case_to_snake_case(round_name.replace(ROUND, ""))
             payload_class_str = self.PAYLOAD_CLS.format(
                 FSMName=self.fsm_name,
                 PayloadCls=payload_name,
                 RoundCls=round_name,
-                tx_type=tx_type.upper(),
             )
             payloads.append(payload_class_str)
 
@@ -170,7 +170,6 @@ class PayloadsFileGenerator(AbstractFileGenerator, PAYLOADS):
         file_content = [
             COPYRIGHT_HEADER,
             self.HEADER.format(**self.template_kwargs),
-            self.TRANSACTION_TYPE_SECTION.format(**self.template_kwargs),
             self._get_base_payload_section(),
         ]
 

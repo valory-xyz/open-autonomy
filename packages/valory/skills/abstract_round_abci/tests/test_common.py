@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ from packages.valory.skills.abstract_round_abci.common import (
     random_selection,
 )
 from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.tests.conftest import irrelevant_config
 from packages.valory.skills.abstract_round_abci.utils import VerifyDrand
 
 
@@ -76,34 +77,12 @@ def test_random_selection() -> None:
         random_selection(elements=[], randomness=0.5)
 
 
-# We do not care about these keys but need to set them in the behaviours' tests,
-# because `packages.valory.skills.abstract_round_abci.models._ensure` is used.
-irrelevant_keys = (
-    "genesis_config",
-    "tendermint_url",
-    "max_healthcheck",
-    "round_timeout_seconds",
-    "sleep_time",
-    "retry_timeout",
-    "retry_attempts",
-    "keeper_timeout",
-    "observation_interval",
-    "drand_public_key",
-    "tendermint_com_url",
-    "tendermint_max_retries",
-    "reset_tendermint_after",
-    "cleanup_history_depth",
-    "voting_power",
-    "tendermint_check_sleep_delay",
-)
-irrelevant_config = {key: MagicMock() for key in irrelevant_keys}
-
-
 class DummyRandomnessBehaviour(RandomnessBehaviour):
     """Dummy randomness behaviour."""
 
     behaviour_id = "dummy_randomness"
     payload_class = MagicMock()
+    matching_round = MagicMock()
 
 
 class DummySelectKeeperBehaviour(SelectKeeperBehaviour):
@@ -111,6 +90,7 @@ class DummySelectKeeperBehaviour(SelectKeeperBehaviour):
 
     behaviour_id = "dummy_select_keeper"
     payload_class = MagicMock()
+    matching_round = MagicMock()
 
 
 DummyBehaviourType = Union[DummyRandomnessBehaviour, DummySelectKeeperBehaviour]

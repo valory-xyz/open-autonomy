@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -48,17 +48,21 @@ class TestServiceConfig:
     service_file: Path
 
     @classmethod
-    def setup(
+    def setup_class(
         cls,
     ) -> None:
-        """Setup test."""
-
+        """Setup test class."""
         cls.cwd = Path.cwd()
-        cls.t = Path(tempfile.TemporaryDirectory().name)
-        cls.t.mkdir()
-        cls.service_file = cls.t / "service.yaml"
 
-        os.chdir(cls.t)
+    def setup(
+        self,
+    ) -> None:
+        """Setup test."""
+        self.t = Path(tempfile.TemporaryDirectory().name)
+        self.t.mkdir()
+        self.service_file = self.t / "service.yaml"
+
+        os.chdir(self.t)
 
     def _write_service(self, data: List[Dict]) -> None:
         """Write service config to a file."""
@@ -101,7 +105,10 @@ class TestServiceConfig:
         """Test check_overrides_valid method."""
 
         dummy_service = get_dummy_service_config(file_number=2)
-        dummy_service.append(dummy_service[-1])
+        (skill_config,) = [
+            override for override in dummy_service if override.get("type") == "skill"
+        ]
+        dummy_service.append(skill_config)
         self._write_service(dummy_service)
 
         with pytest.raises(
@@ -117,7 +124,7 @@ class TestServiceConfig:
     ) -> None:
         """Test process metadata."""
 
-        _, component_override = get_dummy_service_config(file_number=2)
+        _, component_override, _ = get_dummy_service_config(file_number=2)
         configuration, component_id, has_multiple_overrides = Service.process_metadata(
             component_override.copy()
         )
@@ -159,14 +166,12 @@ class TestServiceConfig:
         service = load_service_config(self.t, substitute_env_vars=True)
         assert service.number_of_agents == 1
 
-    @classmethod
     def teardown(
-        cls,
+        self,
     ) -> None:
-        """Teardown class."""
-
-        os.chdir(cls.cwd)
-        shutil.rmtree(cls.t)
+        """Teardown test."""
+        os.chdir(self.cwd)
+        shutil.rmtree(self.t)
 
 
 @pytest.mark.parametrize(

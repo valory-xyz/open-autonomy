@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """Test build image."""
-
 import json
 import os
 from pathlib import Path
@@ -27,11 +26,13 @@ from string import ascii_letters
 from typing import Tuple
 
 import docker
+from aea.cli.utils.config import get_default_author_from_cli_config
 from aea.configurations.data_types import PackageId, PackageType, PublicId
 from aea.configurations.loader import ConfigLoader
 from aea.helpers.io import open_file
 
 from autonomy.configurations.base import Service
+from autonomy.constants import DEFAULT_DOCKER_IMAGE_AUTHOR
 
 from tests.conftest import get_file_from_tag, skip_docker_tests
 from tests.test_autonomy.base import get_dummy_service_config
@@ -83,7 +84,7 @@ class TestBuildImage(BaseCliTest):
         assert (
             len(
                 self.docker_api.images(
-                    name=f"valory/oar-{self.package_id.name}:{self.package_id.package_hash}"
+                    name=f"{get_default_author_from_cli_config() or DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-{self.package_id.name}:{self.package_id.package_hash}"
                 )
             )
             == 1
@@ -98,7 +99,11 @@ class TestBuildImage(BaseCliTest):
 
         assert result.exit_code == 0, result.output
         assert (
-            len(self.docker_api.images(name=f"valory/oar-{self.package_id.name}:dev"))
+            len(
+                self.docker_api.images(
+                    name=f"{get_default_author_from_cli_config() or DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-{self.package_id.name}:dev"
+                )
+            )
             == 1
         )
 
@@ -107,17 +112,65 @@ class TestBuildImage(BaseCliTest):
     ) -> None:
         """Test prod build."""
 
-        test_version = "".join(choices(ascii_letters, k=6))
+        test_version = "".join(choices(ascii_letters, k=6))  # nosec
         result = self.run_cli(("--version", test_version))
 
         assert result.exit_code == 0, result.output
         assert (
             len(
                 self.docker_api.images(
-                    name=f"valory/oar-{self.package_id.name}:{test_version}"
+                    name=f"{get_default_author_from_cli_config() or DEFAULT_DOCKER_IMAGE_AUTHOR}/oar-{self.package_id.name}:{test_version}"
                 )
             )
             == 1
+        )
+
+    @skip_docker_tests
+    def test_image_author_flag(self) -> None:
+        """Test image_author flag."""
+        test_version = "".join(choices(ascii_letters, k=6))  # nosec
+        default_author = (
+            get_default_author_from_cli_config() or DEFAULT_DOCKER_IMAGE_AUTHOR
+        )
+        result = self.run_cli(
+            (
+                "--version",
+                test_version,
+            )
+        )
+        assert result.exit_code == 0, result.output
+        assert self.docker_api.images(
+            name=f"{default_author}/oar-{self.package_id.name}:{test_version}"
+        )
+
+        test_version = "".join(choices(ascii_letters, k=6))  # nosec
+        image_author = "test_author"
+        result = self.run_cli(
+            (
+                "--version",
+                test_version,
+                "--image-author",
+                image_author,
+            )
+        )
+        assert result.exit_code == 0, result.output
+        assert self.docker_api.images(
+            name=f"{image_author}/oar-{self.package_id.name}:{test_version}"
+        )
+
+        test_version = "".join(choices(ascii_letters, k=6))  # nosec
+        image_author = "0bad*author"
+        result = self.run_cli(
+            (
+                "--version",
+                test_version,
+                "--image-author",
+                image_author,
+            )
+        )
+        assert result.exit_code == 1, result.output
+        assert f"Value {image_author} does not match the regular expression " in str(
+            result
         )
 
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,22 +27,32 @@ import shutil
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, List
+from unittest import mock
 
 import pytest
 import yaml
 
 from autonomy.deploy.base import (
-    ABCI_HOST,
-    ENV_VAR_ABCI_HOST,
+    ABCI_HOST_TEMPLATE,
+    DEFAULT_ABCI_PORT,
     ENV_VAR_AEA_AGENT,
     ENV_VAR_AEA_PASSWORD,
     ENV_VAR_ID,
     ENV_VAR_LOG_LEVEL,
-    ENV_VAR_MAX_PARTICIPANTS,
-    ENV_VAR_TENDERMINT_COM_URL,
-    ENV_VAR_TENDERMINT_URL,
+    KUBERNETES_DEPLOYMENT,
+    LOCALHOST,
     NotValidKeysFile,
     ServiceBuilder,
+    TENDERMINT_COM,
+    TENDERMINT_COM_LOCAL,
+    TENDERMINT_COM_URL_PARAM,
+    TENDERMINT_NODE,
+    TENDERMINT_NODE_LOCAL,
+    TENDERMINT_P2P_PORT,
+    TENDERMINT_P2P_URL,
+    TENDERMINT_P2P_URL_ENV_VAR,
+    TENDERMINT_P2P_URL_PARAM,
+    TENDERMINT_URL_PARAM,
 )
 
 from tests.test_autonomy.base import get_dummy_service_config
@@ -51,10 +61,6 @@ from tests.test_autonomy.base import get_dummy_service_config
 COMMON_VARS = (
     ENV_VAR_ID,
     ENV_VAR_AEA_AGENT,
-    ENV_VAR_ABCI_HOST,
-    ENV_VAR_MAX_PARTICIPANTS,
-    ENV_VAR_TENDERMINT_URL,
-    ENV_VAR_TENDERMINT_COM_URL,
     ENV_VAR_LOG_LEVEL,
     ENV_VAR_AEA_PASSWORD,
 )
@@ -85,20 +91,24 @@ class TestServiceBuilder:
     service_path: Path
 
     @classmethod
-    def setup(
+    def setup_class(
         cls,
     ) -> None:
-        """Setup test."""
+        """Setup test class."""
         cls.cwd = Path.cwd()
 
-        cls.t = Path(tempfile.TemporaryDirectory().name)
-        cls.t.mkdir()
+    def setup(
+        self,
+    ) -> None:
+        """Setup test."""
+        self.t = Path(tempfile.TemporaryDirectory().name)
+        self.t.mkdir()
 
-        cls.service_path = cls.t / "dummy_service"
-        cls.service_path.mkdir()
+        self.service_path = self.t / "dummy_service"
+        self.service_path.mkdir()
 
-        cls.keys_path = cls.t / "keys.json"
-        cls.keys_path.write_text(json.dumps(get_keys()[0:1]))
+        self.keys_path = self.t / "keys.json"
+        self.keys_path.write_text(json.dumps(get_keys()[0:1]))
 
     def _write_service(self, data: List[Dict]) -> None:
         """Write service config to a file."""
@@ -135,11 +145,11 @@ class TestServiceBuilder:
         assert len(agents) == 1, agents
 
         agent = spec.generate_agent(0)
-        assert len(agent.keys()) == 14, agent
+        assert len(agent.keys()) == 10, agent
 
         spec.service.overrides = []
         agent = spec.generate_agent(0)
-        assert len(agent.keys()) == 7, agent
+        assert len(agent.keys()) == 3, agent
 
     def test_generate_common_vars(
         self,
@@ -155,7 +165,6 @@ class TestServiceBuilder:
         common_vars_without_password = spec.generate_common_vars(agent_n=0)
         assert all(var in common_vars_without_password for var in COMMON_VARS[:-1])
         assert common_vars_without_password[ENV_VAR_AEA_AGENT] == spec.service.agent
-        assert common_vars_without_password[ENV_VAR_ABCI_HOST] == ABCI_HOST.format(0)
 
         spec = ServiceBuilder.from_dir(  # nosec
             self.service_path,
@@ -202,8 +211,8 @@ class TestServiceBuilder:
                 in caplog.text
             )
 
-    def test_try_update_multisig_address_failure(self, caplog: Any) -> None:
-        """Test `try_update_multisig_address` method."""
+    def test_try_update_runtime_params_failure(self, caplog: Any) -> None:
+        """Test `try_update_runtime_params` method."""
         multisig_address = "0xMULTISIGADDRESS"
         self._write_service(get_dummy_service_config(file_number=4))
         spec = ServiceBuilder.from_dir(
@@ -211,22 +220,18 @@ class TestServiceBuilder:
         )
 
         with caplog.at_level(logging.WARNING):
-            spec.try_update_multisig_address(address=multisig_address)
+            spec.try_update_runtime_params(multisig_address=multisig_address)
 
-            assert (
-                "Could not update the `safe_contract_address` parameter for"
-                in caplog.text
-            )
-            assert (
-                "Configuration does not contain the json path to `safe_contract_address` parameter"
-                in caplog.text
-            )
+            assert "Could not update the setup parameter for" in caplog.text
 
-    def test_try_update_multisig_address_singular(
+    def test_try_update_runtime_params_singular(
         self,
     ) -> None:
-        """Test `try_update_multisig_address` method."""
+        """Test `try_update_runtime_params` method."""
         multisig_address = "0xMULTISIGADDRESS"
+        agent_instances = [f"0xagent{i}" for i in range(4)]
+        consensus_threshold = 3
+
         self._write_service(get_dummy_service_config(file_number=1))
         spec = ServiceBuilder.from_dir(
             self.service_path,
@@ -234,33 +239,193 @@ class TestServiceBuilder:
         )
 
         skill_config, *_ = spec.service.overrides
-        assert skill_config["models"]["params"]["args"]["setup"][
-            "safe_contract_address"
-        ] == [DUMMY_CONTRACT_ADDRESS]
+        assert (
+            skill_config["models"]["params"]["args"]["setup"]["safe_contract_address"]
+            == DUMMY_CONTRACT_ADDRESS
+        )
 
-        spec.try_update_multisig_address(address=multisig_address)
+        spec.try_update_runtime_params(
+            multisig_address=multisig_address,
+            agent_instances=agent_instances,
+            consensus_threshold=consensus_threshold,
+        )
         skill_config, *_ = spec.service.overrides
-        assert skill_config["models"]["params"]["args"]["setup"][
-            "safe_contract_address"
-        ] == [multisig_address]
 
-    def test_try_update_multisig_address_multiple(
+        assert (
+            skill_config["models"]["params"]["args"]["setup"]["safe_contract_address"]
+            == multisig_address
+        )
+        assert (
+            skill_config["models"]["params"]["args"]["setup"]["all_participants"]
+            == agent_instances
+        )
+        assert (
+            skill_config["models"]["params"]["args"]["setup"]["consensus_threshold"]
+            == consensus_threshold
+        )
+
+        assert skill_config["models"]["params"]["args"][
+            TENDERMINT_URL_PARAM
+        ] == TENDERMINT_NODE.format(0)
+        assert skill_config["models"]["params"]["args"][
+            TENDERMINT_COM_URL_PARAM
+        ] == TENDERMINT_COM.format(0)
+        assert skill_config["models"]["params"]["args"][
+            TENDERMINT_P2P_URL_PARAM
+        ] == TENDERMINT_P2P_URL.format(0, TENDERMINT_P2P_PORT)
+
+    def test_try_update_runtime_params_multiple(
         self,
     ) -> None:
-        """Test `try_update_multisig_address` method."""
+        """Test `try_update_runtime_params` method."""
         multisig_address = "0xMULTISIGADDRESS"
+        agent_instances = [f"0xagent{i}" for i in range(4)]
+
         self._write_service(get_dummy_service_config(file_number=2))
         spec = ServiceBuilder.from_dir(
             self.service_path,
         )
 
-        spec.try_update_multisig_address(address=multisig_address)
+        spec.try_update_runtime_params(
+            multisig_address=multisig_address, agent_instances=agent_instances
+        )
         skill_config, *_ = spec.service.overrides
 
         for agent_idx in range(spec.service.number_of_agents):
-            assert skill_config[agent_idx]["models"]["params"]["args"]["setup"][
-                "safe_contract_address"
-            ] == [multisig_address]
+            assert (
+                skill_config[agent_idx]["models"]["params"]["args"]["setup"][
+                    "safe_contract_address"
+                ]
+                == multisig_address
+            )
+            assert (
+                skill_config[agent_idx]["models"]["params"]["args"]["setup"][
+                    "all_participants"
+                ]
+                == agent_instances
+            )
+
+            assert skill_config[agent_idx]["models"]["params"]["args"][
+                TENDERMINT_URL_PARAM
+            ] == TENDERMINT_NODE.format(agent_idx)
+            assert skill_config[agent_idx]["models"]["params"]["args"][
+                TENDERMINT_COM_URL_PARAM
+            ] == TENDERMINT_COM.format(agent_idx)
+            assert skill_config[agent_idx]["models"]["params"]["args"][
+                TENDERMINT_P2P_URL_PARAM
+            ] == TENDERMINT_P2P_URL.format(agent_idx, TENDERMINT_P2P_PORT)
+
+    def test_update_tm_p2p_endpoint_from_env(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        url = "localhost:8000"
+        self._write_service(get_dummy_service_config(file_number=1))
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+            self.keys_path,
+        )
+
+        with mock.patch.dict(
+            os.environ, {TENDERMINT_P2P_URL_ENV_VAR.format(0): url}, clear=True
+        ):
+            spec.try_update_runtime_params()
+            skill_config, *_ = spec.service.overrides
+
+            assert skill_config["models"]["params"]["args"][
+                TENDERMINT_URL_PARAM
+            ] == TENDERMINT_NODE.format(0)
+            assert skill_config["models"]["params"]["args"][
+                TENDERMINT_COM_URL_PARAM
+            ] == TENDERMINT_COM.format(0)
+            assert (
+                skill_config["models"]["params"]["args"][TENDERMINT_P2P_URL_PARAM]
+                == url
+            )
+
+    def test_try_update_tendermint_params_kubernetes(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        self._write_service(get_dummy_service_config(file_number=1))
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+            self.keys_path,
+        )
+
+        spec.deplopyment_type = KUBERNETES_DEPLOYMENT
+        spec.try_update_runtime_params()
+        skill_config, *_ = spec.service.overrides
+
+        assert (
+            skill_config["models"]["params"]["args"][TENDERMINT_URL_PARAM]
+            == TENDERMINT_NODE_LOCAL
+        )
+        assert (
+            skill_config["models"]["params"]["args"][TENDERMINT_COM_URL_PARAM]
+            == TENDERMINT_COM_LOCAL
+        )
+
+    def test_try_update_abci_connection_params_singular(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        self._write_service(get_dummy_service_config(file_number=0))
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        spec.try_update_abci_connection_params()
+        conn_config, *_ = spec.service.overrides
+
+        assert conn_config["config"]["host"] == ABCI_HOST_TEMPLATE.format(0)
+        assert conn_config["config"]["port"] == DEFAULT_ABCI_PORT
+
+    def test_try_update_abci_connection_params_multiple(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        self._write_service(get_dummy_service_config(file_number=2))
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        spec.try_update_abci_connection_params()
+        (conn_config,) = [
+            override
+            for override in spec.service.overrides
+            if override["type"] == "connection"
+        ]
+
+        for idx in range(spec.service.number_of_agents):
+            assert conn_config[idx]["config"]["host"] == ABCI_HOST_TEMPLATE.format(idx)
+            assert conn_config[idx]["config"]["port"] == DEFAULT_ABCI_PORT
+
+    def test_try_update_abci_connection_params_kubernetes(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        self._write_service(get_dummy_service_config(file_number=2))
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+        spec.deplopyment_type = KUBERNETES_DEPLOYMENT
+
+        spec.try_update_abci_connection_params()
+        (conn_config,) = [
+            override
+            for override in spec.service.overrides
+            if override["type"] == "connection"
+        ]
+
+        for idx in range(spec.service.number_of_agents):
+            assert conn_config[idx]["config"]["host"] == LOCALHOST
+            assert conn_config[idx]["config"]["port"] == DEFAULT_ABCI_PORT
 
     def test_verify_agent_instances(
         self,
@@ -359,11 +524,95 @@ class TestServiceBuilder:
                 self.service_path, self.keys_path, agent_instances=[]
             )
 
-    @classmethod
+    def test_try_get_all_particiapants(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        service_config = get_dummy_service_config(file_number=1)
+        self._write_service(service_config)
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        assert spec.try_get_all_participants() is None
+
+        service_config = get_dummy_service_config(file_number=1)
+        service_config[1]["models"]["params"]["args"]["setup"]["all_participants"] = []
+        self._write_service(service_config)
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        assert spec.try_get_all_participants() == []
+
+    def test_read_keys_with_all_participants_defined(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        service_config = get_dummy_service_config(file_number=1)
+        service_config[1]["models"]["params"]["args"]["setup"]["all_participants"] = [
+            key["address"] for key in get_keys()
+        ]
+        self._write_service(service_config)
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        spec.read_keys(self.keys_path)
+        assert spec.service.number_of_agents == 1
+
+    def test_read_keys_with_all_participants_defined_failure(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        service_config = get_dummy_service_config(file_number=1)
+        service_config[1]["models"]["params"]["args"]["setup"]["all_participants"] = [
+            "0x",
+        ]
+        self._write_service(service_config)
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        with pytest.raises(
+            NotValidKeysFile,
+            match="Key file contains keys which are not a part of the `all_participants` parameter; keys={'0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'}",
+        ):
+            spec.read_keys(self.keys_path)
+
+    def test_read_keys_against_all_participants(
+        self,
+    ) -> None:
+        """Test `try_update_runtime_params` method."""
+
+        service_config = get_dummy_service_config(file_number=2)
+        # this will reverse the order of the keys in the `all_participants` list
+        # and since we're using the first key from the original array, the
+        # generated agent should contain overrides with index 1 instead of 0
+        all_participants = [key["address"] for key in reversed(get_keys())]
+        for i in range(4):
+            service_config[1][i]["models"]["params"]["args"]["setup"][
+                "all_participants"
+            ] = all_participants
+        self._write_service(service_config)
+        spec = ServiceBuilder.from_dir(
+            self.service_path,
+        )
+
+        spec.read_keys(self.keys_path)
+        agents = spec.generate_agents()
+
+        assert (
+            agents[0]["SKILL_DUMMY_SKILL_MODELS_PARAMS_ARGS_MESSAGE"]
+            == '"Hello from agent 1"'
+        )
+
     def teardown(
-        cls,
+        self,
     ) -> None:
         """Teardown test."""
-
-        os.chdir(cls.cwd)
-        shutil.rmtree(cls.t)
+        os.chdir(self.cwd)
+        shutil.rmtree(self.t)

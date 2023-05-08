@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import signal
 import subprocess  # nosec
 import sys
 import time
-from glob import glob
 from pathlib import Path
 from typing import Optional
 
@@ -35,7 +34,6 @@ from watchdog.observers import Observer
 
 
 ID = os.environ.get("ID")
-MAX_PARTICIPANTS = int(os.environ.get("MAX_PARTICIPANTS", "0"))
 ROOT = "/home/ubuntu"
 AGENT_DIR = ROOT + "/agent"
 PACKAGES_PATH = "/home/ubuntu/packages"
@@ -62,18 +60,6 @@ def call_vote() -> None:
     write("Calling vote.")
     with open(f"/logs/{ID}.vote", "w+") as fp:
         fp.write(str(ID))
-
-
-def wait_for_votes() -> None:
-    """Wait for all the agents to finish voting. (see `call_vote` method.)"""
-    write("Waiting for votes.")
-    votes = 0
-    while True:
-        votes = len(glob("/logs/*.vote"))
-        write(f"Total votes: {votes}, Required votes: {MAX_PARTICIPANTS}")
-        if votes == MAX_PARTICIPANTS:
-            break
-        time.sleep(1)
 
 
 class AEARunner:

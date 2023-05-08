@@ -1,0 +1,543 @@
+{
+    "_format": "hh-sol-artifact-1",
+    "contractName": "RegistriesManager",
+    "sourceName": "contracts/RegistriesManager.sol",
+    "abi": [
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "_componentRegistry",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "_agentRegistry",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "constructor"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "operator",
+                    "type": "address"
+                }
+            ],
+            "name": "AgentInstanceRegistered",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "serviceId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "AgentInstancesSlotsFilled",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "agentId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "AgentNotFound",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "agentId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "serviceId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "AgentNotInService",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "componentId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "ComponentNotFound",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "HashExists",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "sent",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "expected",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "serviceId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "IncorrectAgentBondingValue",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "sent",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "expected",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "serviceId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "IncorrectRegistrationDepositValue",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "manager",
+                    "type": "address"
+                }
+            ],
+            "name": "ManagerOnly",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "provided",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "expected",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "serviceId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "OnlyOwnServiceMultisig",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "operator",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "serviceId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "OperatorHasNoInstances",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "provided",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "max",
+                    "type": "uint256"
+                }
+            ],
+            "name": "Overflow",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "sender",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                }
+            ],
+            "name": "OwnerOnly",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "Paused",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "ReentrancyGuard",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "serviceId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "ServiceMustBeInactive",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "token",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "from",
+                    "type": "address"
+                },
+                {
+                    "internalType": "address",
+                    "name": "to",
+                    "type": "address"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "value",
+                    "type": "uint256"
+                }
+            ],
+            "name": "TransferFailed",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "multisig",
+                    "type": "address"
+                }
+            ],
+            "name": "UnauthorizedMultisig",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "agentId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "WrongAgentId",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "numValues1",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "numValues2",
+                    "type": "uint256"
+                }
+            ],
+            "name": "WrongArrayLength",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "serviceId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "WrongOperator",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "state",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "serviceId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "WrongServiceState",
+            "type": "error"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "currentThreshold",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "minThreshold",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "maxThreshold",
+                    "type": "uint256"
+                }
+            ],
+            "name": "WrongThreshold",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "ZeroAddress",
+            "type": "error"
+        },
+        {
+            "inputs": [],
+            "name": "ZeroValue",
+            "type": "error"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                }
+            ],
+            "name": "OwnerUpdated",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                }
+            ],
+            "name": "Pause",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                }
+            ],
+            "name": "Unpause",
+            "type": "event"
+        },
+        {
+            "inputs": [],
+            "name": "agentRegistry",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "address",
+                    "name": "newOwner",
+                    "type": "address"
+                }
+            ],
+            "name": "changeOwner",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "componentRegistry",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "enum IRegistry.UnitType",
+                    "name": "unitType",
+                    "type": "uint8"
+                },
+                {
+                    "internalType": "address",
+                    "name": "unitOwner",
+                    "type": "address"
+                },
+                {
+                    "internalType": "bytes32",
+                    "name": "unitHash",
+                    "type": "bytes32"
+                },
+                {
+                    "internalType": "uint32[]",
+                    "name": "dependencies",
+                    "type": "uint32[]"
+                }
+            ],
+            "name": "create",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "unitId",
+                    "type": "uint256"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "owner",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "pause",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "paused",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "unpause",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "enum IRegistry.UnitType",
+                    "name": "unitType",
+                    "type": "uint8"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "unitId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "bytes32",
+                    "name": "unitHash",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "updateHash",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "success",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }
+    ],
+    "bytecode": "0x60c060405234801561001057600080fd5b506040516109a03803806109a083398101604081905261002f91610074565b6001600160a01b039182166080521660a052600080546001600160a01b031916331790556100a7565b80516001600160a01b038116811461006f57600080fd5b919050565b6000806040838503121561008757600080fd5b61009083610058565b915061009e60208401610058565b90509250929050565b60805160a0516108b96100e76000396000818160d30152818161029901526103fc015260008181610181015281816101ff015261035d01526108b96000f3fe608060405234801561001057600080fd5b50600436106100a35760003560e01c80635c975abb116100765780638da5cb5b1161005b5780638da5cb5b14610156578063a6f9dae114610169578063ff0039cb1461017c57600080fd5b80635c975abb1461013a5780638456cb591461014e57600080fd5b806304246ba6146100a85780630d1cfcae146100ce57806338b398bb1461010d5780633f4ba83a14610130575b600080fd5b6100bb6100b6366004610690565b6101a3565b6040519081526020015b60405180910390f35b6100f57f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020016100c5565b61012061011b366004610780565b610320565b60405190151581526020016100c5565b61013861047b565b005b60005461012090600160a01b900460ff1681565b6101386104f7565b6000546100f5906001600160a01b031681565b6101386101773660046107b3565b610574565b6100f57f000000000000000000000000000000000000000000000000000000000000000081565b60008054600160a01b900460ff16156101cf576040516313d0ff5960e31b815260040160405180910390fd5b60008560018111156101e3576101e36107ce565b036102825760405163fbfd24bf60e01b81526001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000169063fbfd24bf90610238908790879087906004016107e4565b6020604051808303816000875af1158015610257573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061027b9190610848565b9050610318565b60405163fbfd24bf60e01b81526001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000169063fbfd24bf906102d2908790879087906004016107e4565b6020604051808303816000875af11580156102f1573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103159190610848565b90505b949350505050565b600080846001811115610335576103356107ce565b036103d95760405163120b170f60e21b815233600482015260248101849052604481018390527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03169063482c5c3c906064016020604051808303816000875af11580156103ae573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103d29190610861565b9050610474565b60405163120b170f60e21b815233600482015260248101849052604481018390527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03169063482c5c3c906064016020604051808303816000875af115801561044d573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906104719190610861565b90505b9392505050565b6000546001600160a01b031633146104c05760005460405163521eb56d60e11b81523360048201526001600160a01b0390911660248201526044015b60405180910390fd5b6000805460ff60a01b1916815560405133917faeb196d352664784d1900b0e7414a8face7d29f4dae8c4b0cf68ed477423bbf491a2565b6000546001600160a01b031633146105375760005460405163521eb56d60e11b81523360048201526001600160a01b0390911660248201526044016104b7565b6000805460ff60a01b1916600160a01b17815560405133917f5ee71a369c8672edded508e624ffc9257fa1ae6886ef32905c18e60196bca39991a2565b6000546001600160a01b031633146105b45760005460405163521eb56d60e11b81523360048201526001600160a01b0390911660248201526044016104b7565b6001600160a01b0381166105db5760405163d92e233d60e01b815260040160405180910390fd5b600080547fffffffffffffffffffffffff0000000000000000000000000000000000000000166001600160a01b038316908117825560405190917f4ffd725fc4a22075e9ec71c59edf9c38cdeb588a91b24fc5b61388c5be41282b91a250565b80356002811061064a57600080fd5b919050565b80356001600160a01b038116811461064a57600080fd5b634e487b7160e01b600052604160045260246000fd5b803563ffffffff8116811461064a57600080fd5b600080600080608085870312156106a657600080fd5b6106af8561063b565b935060206106be81870161064f565b935060408601359250606086013567ffffffffffffffff808211156106e257600080fd5b818801915088601f8301126106f657600080fd5b81358181111561070857610708610666565b8060051b604051601f19603f8301168101818110858211171561072d5761072d610666565b60405291825284820192508381018501918b83111561074b57600080fd5b938501935b82851015610770576107618561067c565b84529385019392850192610750565b989b979a50959850505050505050565b60008060006060848603121561079557600080fd5b61079e8461063b565b95602085013595506040909401359392505050565b6000602082840312156107c557600080fd5b6104748261064f565b634e487b7160e01b600052602160045260246000fd5b6000606082016001600160a01b03861683526020858185015260606040850152818551808452608086019150828701935060005b8181101561083a57845163ffffffff1683529383019391830191600101610818565b509098975050505050505050565b60006020828403121561085a57600080fd5b5051919050565b60006020828403121561087357600080fd5b8151801515811461047457600080fdfea26469706673582212208b83dd85d727f3934263cd9ecd678c0eea5c2a0ac1706d97133be2142373130d64736f6c634300080f0033",
+    "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100a35760003560e01c80635c975abb116100765780638da5cb5b1161005b5780638da5cb5b14610156578063a6f9dae114610169578063ff0039cb1461017c57600080fd5b80635c975abb1461013a5780638456cb591461014e57600080fd5b806304246ba6146100a85780630d1cfcae146100ce57806338b398bb1461010d5780633f4ba83a14610130575b600080fd5b6100bb6100b6366004610690565b6101a3565b6040519081526020015b60405180910390f35b6100f57f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020016100c5565b61012061011b366004610780565b610320565b60405190151581526020016100c5565b61013861047b565b005b60005461012090600160a01b900460ff1681565b6101386104f7565b6000546100f5906001600160a01b031681565b6101386101773660046107b3565b610574565b6100f57f000000000000000000000000000000000000000000000000000000000000000081565b60008054600160a01b900460ff16156101cf576040516313d0ff5960e31b815260040160405180910390fd5b60008560018111156101e3576101e36107ce565b036102825760405163fbfd24bf60e01b81526001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000169063fbfd24bf90610238908790879087906004016107e4565b6020604051808303816000875af1158015610257573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061027b9190610848565b9050610318565b60405163fbfd24bf60e01b81526001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000169063fbfd24bf906102d2908790879087906004016107e4565b6020604051808303816000875af11580156102f1573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103159190610848565b90505b949350505050565b600080846001811115610335576103356107ce565b036103d95760405163120b170f60e21b815233600482015260248101849052604481018390527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03169063482c5c3c906064016020604051808303816000875af11580156103ae573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103d29190610861565b9050610474565b60405163120b170f60e21b815233600482015260248101849052604481018390527f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03169063482c5c3c906064016020604051808303816000875af115801561044d573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906104719190610861565b90505b9392505050565b6000546001600160a01b031633146104c05760005460405163521eb56d60e11b81523360048201526001600160a01b0390911660248201526044015b60405180910390fd5b6000805460ff60a01b1916815560405133917faeb196d352664784d1900b0e7414a8face7d29f4dae8c4b0cf68ed477423bbf491a2565b6000546001600160a01b031633146105375760005460405163521eb56d60e11b81523360048201526001600160a01b0390911660248201526044016104b7565b6000805460ff60a01b1916600160a01b17815560405133917f5ee71a369c8672edded508e624ffc9257fa1ae6886ef32905c18e60196bca39991a2565b6000546001600160a01b031633146105b45760005460405163521eb56d60e11b81523360048201526001600160a01b0390911660248201526044016104b7565b6001600160a01b0381166105db5760405163d92e233d60e01b815260040160405180910390fd5b600080547fffffffffffffffffffffffff0000000000000000000000000000000000000000166001600160a01b038316908117825560405190917f4ffd725fc4a22075e9ec71c59edf9c38cdeb588a91b24fc5b61388c5be41282b91a250565b80356002811061064a57600080fd5b919050565b80356001600160a01b038116811461064a57600080fd5b634e487b7160e01b600052604160045260246000fd5b803563ffffffff8116811461064a57600080fd5b600080600080608085870312156106a657600080fd5b6106af8561063b565b935060206106be81870161064f565b935060408601359250606086013567ffffffffffffffff808211156106e257600080fd5b818801915088601f8301126106f657600080fd5b81358181111561070857610708610666565b8060051b604051601f19603f8301168101818110858211171561072d5761072d610666565b60405291825284820192508381018501918b83111561074b57600080fd5b938501935b82851015610770576107618561067c565b84529385019392850192610750565b989b979a50959850505050505050565b60008060006060848603121561079557600080fd5b61079e8461063b565b95602085013595506040909401359392505050565b6000602082840312156107c557600080fd5b6104748261064f565b634e487b7160e01b600052602160045260246000fd5b6000606082016001600160a01b03861683526020858185015260606040850152818551808452608086019150828701935060005b8181101561083a57845163ffffffff1683529383019391830191600101610818565b509098975050505050505050565b60006020828403121561085a57600080fd5b5051919050565b60006020828403121561087357600080fd5b8151801515811461047457600080fdfea26469706673582212208b83dd85d727f3934263cd9ecd678c0eea5c2a0ac1706d97133be2142373130d64736f6c634300080f0033",
+    "linkReferences": {},
+    "deployedLinkReferences": {}
+}

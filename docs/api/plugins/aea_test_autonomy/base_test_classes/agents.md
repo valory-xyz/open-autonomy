@@ -27,7 +27,7 @@ n_periods: is the number of periods this event should appear for the check to be
 @pytest.mark.e2e
 
 @pytest.mark.integration
-class BaseTestEnd2End(AEATestCaseMany,  UseFlaskTendermintNode)
+class BaseTestEnd2End(AEATestCaseMany, UseFlaskTendermintNode, UseLocalIpfs)
 ```
 
 Base class for end-to-end tests of agents with a skill extending the abstract_abci_round skill.
@@ -38,13 +38,28 @@ of 'n' nodes, one for each agent.
 
 Test subclasses must set `agent_package`, `wait_to_finish` and `check_strings`.
 
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2End.setup_class"></a>
+
+#### setup`_`class
+
+```python
+@classmethod
+def setup_class(cls) -> None
+```
+
+Setup class
+
 <a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2End.set_config"></a>
 
 #### set`_`config
 
 ```python
 @classmethod
-def set_config(cls, dotted_path: str, value: Any, type_: Optional[str] = None, aev: bool = True) -> Result
+def set_config(cls,
+               dotted_path: str,
+               value: Any,
+               type_: Optional[str] = None,
+               aev: bool = True) -> Result
 ```
 
 Set config value.
@@ -75,7 +90,12 @@ Prepare and launch the agents.
 
 ```python
 @classmethod
-def missing_from_output(cls, happy_path: Tuple[RoundChecks, ...] = (), strict_check_strings: Tuple[str, ...] = (), period: int = 1, is_terminating: bool = True, **kwargs: Any, ,) -> Tuple[List[str], List[str]]
+def missing_from_output(cls,
+                        happy_path: Tuple[RoundChecks, ...] = (),
+                        strict_check_strings: Tuple[str, ...] = (),
+                        period: int = 1,
+                        is_terminating: bool = True,
+                        **kwargs: Any) -> Tuple[List[str], List[str]]
 ```
 
 Check if strings are present in process output.
@@ -150,4 +170,15 @@ def test_run(nb_nodes: int) -> None
 ```
 
 Run the test.
+
+<a id="plugins.aea-test-autonomy.aea_test_autonomy.base_test_classes.agents.BaseTestEnd2EndExecution.teardown_class"></a>
+
+#### teardown`_`class
+
+```python
+@classmethod
+def teardown_class(cls) -> None
+```
+
+Teardown the test.
 

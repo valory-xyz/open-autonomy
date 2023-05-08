@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 """Develop CLI module."""
 
+
 import click
 from docker import from_env
 
@@ -31,8 +32,6 @@ from autonomy.constants import (
 @click.group(name="develop")
 def develop_group() -> None:
     """Develop an agent service."""
-
-    click.echo("Develop module.")  # pragma: nocover
 
 
 @develop_group.command(name="service-registry-network")
@@ -55,12 +54,8 @@ def run_service_locally(image: str) -> None:
     try:
         for line in client.api.logs(container.id, follow=True, stream=True):
             click.echo(line.decode())
-    except KeyboardInterrupt:
-        click.echo("Stopping container.")
-    except Exception:  # pyline: disable=broad-except
+    except KeyboardInterrupt:  # pragma: no cover
+        pass
+    finally:  # pragma: no cover
         click.echo("Stopping container.")
         container.stop()
-        raise
-
-    click.echo("Stopping container.")
-    container.stop()

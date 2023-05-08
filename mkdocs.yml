@@ -10,6 +10,8 @@ theme:
   features:
     - navigation.top
     - navigation.indexes
+    - content.code.copy
+    - content.code.annotate
 
 extra_css:
   - stylesheets/extra.css
@@ -19,7 +21,6 @@ strict: true
 nav:
   - Home: 'index.md'
   - Get started:
-    - What is the Open Autonomy framework: 'get_started/what_is_the_open_autonomy_framework.md'
     - What is an agent service: 'get_started/what_is_an_agent_service.md'
     - Why do we need agent services: 'get_started/why_do_we_need_agent_services.md'
     - Agent services compared to...: 'get_started/agent_services_compared_to.md'
@@ -29,14 +30,12 @@ nav:
     - Set up: 'guides/set_up.md'
     - Quick start: 'guides/quick_start.md'
     - Overview of the development process: 'guides/overview_of_the_development_process.md'
-    - Create a service with an existing agent: 'guides/create_service_existing_agent.md'
-    - Create a service from scratch: 'guides/create_service_from_scratch.md'
-    - Create an FSM App skill: 'guides/create_fsm_app.md'
-    - Publish and fetch packages: 'guides/publish_fetch_packages.md'
-    - Register packages on-chain: 'guides/register_packages_on_chain.md'
-    - Deploy a service: 'guides/deploy_service.md'
-    - Running a service in different networks: 'guides/running_service_different_networks.md'
-    - The service configuration file: 'guides/service_configuration_file.md'
+    - Draft the service idea and define the FSM specification: 'guides/draft_service_idea_and_define_fsm_specification.md'
+    - Code the FSM App skill: 'guides/code_fsm_app_skill.md'
+    - Define the agent: 'guides/define_agent.md'
+    - Define the service: 'guides/define_service.md'
+    - Publish and mint packages: 'guides/publish_mint_packages.md'
+    - Deploy the service: 'guides/deploy_service.md'
   - Demo agent services:
     - 'demos/index.md'  
     - Hello World demo: 'demos/hello_world_demo.md'
@@ -59,16 +58,32 @@ nav:
       - Interactions between components: 'key_concepts/abci_app_interactions.md'
       - Sequence diagram: 'key_concepts/poc-diagram.md'
     - Threat model: 'key_concepts/threat_model.md'
+  - Configure the service:
+    - The service configuration file: 'configure_service/service_configuration_file.md'
+    - Configure access to external chains: 'configure_service/configure_access_external_chains.md'
+    - On-chain deployment checklist: 'configure_service/on-chain_deployment_checklist.md'
+    - Analise and test: 'configure_service/analise_test.md'
   - Advanced reference:
     - 'advanced_reference/index.md'
-    - CLI: 'autonomy.md'
-    - Developer Tooling:
-      - Dev Mode: 'dev_mode.md'
-      - Benchmarking: 'benchmarks.md'
+    - Commands:
+      - autonomy deploy: 'advanced_reference/commands/autonomy_deploy.md'
+      - autonomy build-image: 'advanced_reference/commands/autonomy_build-image.md'
+      - autonomy replay: 'advanced_reference/commands/autonomy_replay.md'
+      - autonomy analyse: 'advanced_reference/commands/autonomy_analyse.md'
+      - autonomy fetch: 'advanced_reference/commands/autonomy_fetch.md'
+      - autonomy scaffold: 'advanced_reference/commands/autonomy_scaffold.md'           
+      - autonomy mint: 'advanced_reference/commands/autonomy_mint.md'           
+      - autonomy service: 'advanced_reference/commands/autonomy_service.md'           
+    - Developer tooling:
+      - Dev mode: 'advanced_reference/developer_tooling/dev_mode.md'
+      - Execution replay: 'advanced_reference/developer_tooling/execution_replay.md'
+      - Benchmarking: 'advanced_reference/developer_tooling/benchmarking.md'
+      - Debugging in the cluster: 'advanced_reference/developer_tooling/debugging_in_the_cluster.md'
     - Deployment:
       - Container Control Flow: 'control_flow.md'
       - Local Deployment: 'application_deployment.md'
       - Cloud Deployment: 'using_stack_deployment.md'
+    - Using custom images in a deployment: 'advanced_reference/use_custom_images.md'
     - API:
       - Library:
         - Constants: 'api/constants.md'
@@ -77,7 +92,10 @@ nav:
             - App Spec: 'api/analyse/abci/app_spec.md'
             - Docstrings: 'api/analyse/abci/docstrings.md'
             - Handlers: 'api/analyse/handlers.md'
-            - Logs: 'api/analyse/abci/logs.md'
+            - Logs:
+              - Base: 'api/analyse/logs/base.md'
+              - Collection: 'api/analyse/logs/collection.md'
+              - Db: 'api/analyse/logs/db.md'
           - Benchmark:
             - Aggregate: 'api/analyse/benchmark/aggregate.md'
             - HTML: 'api/analyse/benchmark/html.md'
@@ -108,7 +126,6 @@ nav:
         - Deploy:
           - Base: 'api/deploy/base.md'
           - Build: 'api/deploy/build.md'
-          - Chain: 'api/deploy/chain.md'
           - Constants: 'api/deploy/constants.md'
           - Image: 'api/deploy/image.md'
           - Generators:
@@ -204,7 +221,6 @@ nav:
             - Load: 'api/skills/abstract_round_abci/io_/load.md'
             - Paths: 'api/skills/abstract_round_abci/io_/paths.md'
             - Store: 'api/skills/abstract_round_abci/io_/store.md'
-          - Serializer: 'api/skills/abstract_round_abci/serializer.md'
           - Utils: 'api/skills/abstract_round_abci/utils.md'
         - Registration ABCI:
           - Behaviours: 'api/skills/registration_abci/behaviours.md'
@@ -213,13 +229,6 @@ nav:
           - Dialogues: 'api/skills/registration_abci/dialogues.md'
           - Handlers: 'api/skills/registration_abci/handlers.md'
           - Models: 'api/skills/registration_abci/models.md'
-        - Safe Deployment ABCI:
-          - Behaviours: 'api/skills/safe_deployment_abci/behaviours.md'
-          - Payloads: 'api/skills/safe_deployment_abci/payloads.md'
-          - Rounds: 'api/skills/safe_deployment_abci/rounds.md'
-          - Dialogues: 'api/skills/safe_deployment_abci/dialogues.md'
-          - Handlers: 'api/skills/safe_deployment_abci/handlers.md'
-          - Models: 'api/skills/safe_deployment_abci/models.md'
         - Transaction Settlement ABCI:
           - Behaviours: 'api/skills/transaction_settlement_abci/behaviours.md'
           - Payloads: 'api/skills/transaction_settlement_abci/payloads.md'
@@ -241,12 +250,15 @@ nav:
 
 
 plugins:
-  - macros
-  - search  
+  - macros:
+      on_error_fail: true
+  - search
 
 markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.highlight
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji
@@ -254,6 +266,7 @@ markdown_extensions:
   - admonition
   - pymdownx.arithmatex
   - attr_list
+  - def_list  
   - md_in_html
 
 extra:
@@ -264,7 +277,9 @@ extra:
     open_autonomy: '[Open Autonomy](https://github.com/valory-xyz/open-autonomy)'
     open_autonomy_api: '[Open Autonomy API](https://docs.autonolas.network/)'
     on_chain_frontend: '[on-chain protocol frontend](https://protocol.autonolas.network/)'
-
+    open_aea_repository: '[Open AEA repository](https://github.com/valory-xyz/open-aea)'
+    open_autonomy_repository: '[Open Autonomy repository](https://github.com/valory-xyz/open-aea)'
+    price_oracle_service: 'Price Oracle service'
 
 
 #extra_css:

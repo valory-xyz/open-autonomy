@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -42,15 +42,19 @@ from aea_test_autonomy.fixture_helpers import (  # noqa: F401
     acn_node,
     flask_tendermint,
     hardhat_port,
+    ipfs_daemon,
+    ipfs_domain,
     key_pairs,
     nb_nodes,
     registries_scope_class,
     tendermint_port,
+    use_ipfs_daemon,
 )
 
 from packages.valory.skills.registration_abci.behaviours import (
     RegistrationStartupBehaviour,
 )
+from packages.valory.skills.registration_abci.rounds import RegistrationStartupRound
 
 
 log_messages = RegistrationStartupBehaviour.LogMessages
@@ -78,7 +82,7 @@ STRICT_CHECK_STRINGS = (
 )
 
 
-HAPPY_PATH = (RoundChecks("registration_startup"),)
+HAPPY_PATH = (RoundChecks(RegistrationStartupRound.auto_round_id()),)
 
 
 class RegistrationStartUpTestConfig(UseRegistries, UseACNNode, BaseTestEnd2End):
@@ -96,15 +100,30 @@ class RegistrationStartUpTestConfig(UseRegistries, UseACNNode, BaseTestEnd2End):
             "dotted_path": f"{__args_prefix}.share_tm_config_on_startup",
             "value": True,
         },
+        # setting the skill to non-abstract and setting a safe contract address is necessary to run an agent
+        # We have set a null safe address in the `skill.yaml` because the safe address will not be utilized by the agent
+        # We cannot set an override here, because of a limitation on the `open-aea`'s override mechanism that leads to:
+        # Attribute `models.params.args.setup.safe_contract_address` is not allowed to be updated!
+        # This exception is raised because the dict keys need to pre-exist in the config file in order to be overriden
         {
             "dotted_path": f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.is_abstract",
             "value": False,
         },
         {
-            "dotted_path": f"{__args_prefix}.observation_interval",
+            "dotted_path": f"{__args_prefix}.reset_pause_duration",
             "value": 15,
         },
     ]
+
+    def __set_configs(self, i: int, nb_agents: int) -> None:
+        """Set the current agent's config overrides."""
+        super().__set_configs(i=i, nb_agents=nb_agents)
+
+        self.set_config(
+            dotted_path=f"{self.__args_prefix}.tendermint_p2p_url",
+            value=f"localhost:{self._tendermint_image.get_p2p_port(i=i)}",
+            type_="str",
+        )
 
 
 @pytest.mark.e2e

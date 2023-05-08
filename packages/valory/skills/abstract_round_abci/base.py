@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,19 +18,23 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the base classes for the models classes of the skill."""
+
 import datetime
+import hashlib
 import heapq
 import itertools
+import json
 import logging
+import re
 import sys
 import textwrap
 import uuid
 from abc import ABC, ABCMeta, abstractmethod
 from collections import Counter
 from copy import copy, deepcopy
-from dataclasses import dataclass, field
+from dataclasses import asdict, astuple, dataclass, field
 from enum import Enum
-from math import ceil
+from inspect import isclass
 from typing import (
     Any,
     Dict,
@@ -44,6 +48,7 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
+    Union,
     cast,
 )
 
@@ -55,8 +60,9 @@ from packages.valory.connections.ledger.connection import (
     PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.protocols.abci.custom_types import Header
-from packages.valory.skills.abstract_round_abci.serializer import (
-    DictProtobufStructSerializer,
+from packages.valory.skills.abstract_round_abci.utils import (
+    consensus_threshold,
+    is_json_serializable,
 )
 
 
@@ -68,24 +74,22 @@ LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
 ROUND_COUNT_DEFAULT = -1
 MIN_HISTORY_DEPTH = 1
 ADDRESS_LENGTH = 42
-MAX_INT_256 = 2 ** 256 - 1
+MAX_INT_256 = 2**256 - 1
 RESET_COUNT_START = 0
 VALUE_NOT_PROVIDED = object()
 # tolerance in seconds for new blocks not having arrived yet
 BLOCKS_STALL_TOLERANCE = 60
 
 EventType = TypeVar("EventType")
-TransactionType = TypeVar("TransactionType")
 
 
-def consensus_threshold(n: int) -> int:  # pylint: disable=invalid-name
-    """
-    Get consensus threshold.
-
-    :param n: the number of participants
-    :return: the consensus threshold
-    """
-    return ceil((2 * n + 1) / 3)
+def get_name(prop: Any) -> str:
+    """Get the name of a property."""
+    if not (isinstance(prop, property) and hasattr(prop, "fget")):
+        raise ValueError(f"{prop} is not a property")
+    if prop.fget is None:
+        raise ValueError(f"fget of {prop} is None")  # pragma: nocover
+    return prop.fget.__name__
 
 
 class ABCIAppException(Exception):
@@ -120,6 +124,14 @@ class LateArrivingTransaction(ABCIAppException):
     """Error raised when the transaction belongs to previous round."""
 
 
+class AbstractRoundInternalError(ABCIAppException):
+    """Internal error due to a bad implementation of the AbstractRound."""
+
+    def __init__(self, message: str, *args: Any) -> None:
+        """Initialize the error object."""
+        super().__init__("internal error: " + message, *args)
+
+
 class _MetaPayload(ABCMeta):
     """
     Payload metaclass.
@@ -128,166 +140,98 @@ class _MetaPayload(ABCMeta):
     between the type of payload and the payload class to build it.
     This is necessary to recover the right payload class to instantiate
     at decoding time.
-
-    Each class that has this class as metaclass must have a class
-    attribute 'transaction_type', which for simplicity is required
-    to be convertible to string, for serialization purposes.
     """
 
-    transaction_type_to_payload_cls: Dict[str, Type["BaseTxPayload"]] = {}
+    registry: Dict[str, Type["BaseTxPayload"]] = {}
 
     def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type:  # type: ignore
         """Create a new class object."""
         new_cls = super().__new__(mcs, name, bases, namespace, **kwargs)
 
-        if ABC in bases:
-            # abstract class, return
+        if new_cls.__module__ == mcs.__module__ and new_cls.__name__ == "BaseTxPayload":
             return new_cls
         if not issubclass(new_cls, BaseTxPayload):
             raise ValueError(  # pragma: no cover
                 f"class {name} must inherit from {BaseTxPayload.__name__}"
             )
         new_cls = cast(Type[BaseTxPayload], new_cls)
-
-        transaction_type = str(mcs._get_field(new_cls, "transaction_type"))
-        mcs._validate_transaction_type(transaction_type, new_cls)
         # remember association from transaction type to payload class
-        mcs.transaction_type_to_payload_cls[transaction_type] = new_cls
+        _metaclass_registry_key = f"{new_cls.__module__}.{new_cls.__name__}"  # type: ignore
+        mcs.registry[_metaclass_registry_key] = new_cls
 
         return new_cls
 
-    @classmethod
-    def _validate_transaction_type(
-        mcs, transaction_type: str, new_payload_cls: Type["BaseTxPayload"]
-    ) -> None:
-        """Check that a transaction type is not already associated to a concrete payload class."""
-        if transaction_type in mcs.transaction_type_to_payload_cls:
-            previous_payload_cls = mcs.transaction_type_to_payload_cls[transaction_type]
-            if new_payload_cls.__name__ != previous_payload_cls.__name__:
-                raise ValueError(
-                    f"transaction type with name {transaction_type} already "
-                    f"used by class {previous_payload_cls}, and cannot be "
-                    f"used by class {new_payload_cls} "
-                )
 
-    @classmethod
-    def _get_field(mcs, cls: Type, field_name: str) -> Any:
-        """Get a field from a class if present, otherwise raise error."""
-        if not hasattr(cls, field_name) or getattr(cls, field_name) is None:
-            raise ValueError(f"class {cls} must set '{field_name}' class field")
-        return getattr(cls, field_name)
-
-
-class BaseTxPayload(ABC, metaclass=_MetaPayload):
+@dataclass(frozen=True)
+class BaseTxPayload(metaclass=_MetaPayload):
     """This class represents a base class for transaction payload classes."""
 
-    transaction_type: Any
-
-    def __init__(
-        self,
-        sender: str,
-        id_: Optional[str] = None,
-        round_count: int = ROUND_COUNT_DEFAULT,
-    ) -> None:
-        """
-        Initialize a transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param id_: the id of the transaction
-        :param round_count: the count of the round in which the payload was sent
-        """
-        self.id_ = uuid.uuid4().hex if id_ is None else id_
-        self._round_count = round_count
-        self.sender = sender
+    sender: str
+    round_count: int = field(default=ROUND_COUNT_DEFAULT, init=False)
+    id_: str = field(default_factory=lambda: uuid.uuid4().hex, init=False)
 
     @property
-    def round_count(self) -> int:
-        """Get the round count."""
-        return self._round_count
+    def data(self) -> Dict[str, Any]:
+        """Data"""
+        excluded = ["sender", "round_count", "id_"]
+        return {k: v for k, v in asdict(self).items() if k not in excluded}
 
-    @round_count.setter
-    def round_count(self, round_count: int) -> None:
-        """Set the round count."""
-        self._round_count = round_count
+    @property
+    def values(self) -> Tuple[Any, ...]:
+        """Data"""
+        excluded = 3  # refers to ["sender", "round_count", "id_"]
+        return astuple(self)[excluded:]
 
-    def encode(self) -> bytes:
-        """Encode the payload."""
-        return DictProtobufStructSerializer.encode(self.json)
-
-    @classmethod
-    def decode(cls, obj: bytes) -> "BaseTxPayload":
-        """Decode the payload."""
-        return cls.from_json(DictProtobufStructSerializer.decode(obj))
+    @property
+    def json(self) -> Dict[str, Any]:
+        """Json"""
+        data, cls = asdict(self), self.__class__
+        data["_metaclass_registry_key"] = f"{cls.__module__}.{cls.__name__}"
+        return data
 
     @classmethod
     def from_json(cls, obj: Dict) -> "BaseTxPayload":
         """Decode the payload."""
         data = copy(obj)
-        transaction_type = str(data.pop("transaction_type"))
-        payload_cls = _MetaPayload.transaction_type_to_payload_cls[transaction_type]
-        return payload_cls(**data)
-
-    @property
-    def json(self) -> Dict:
-        """Get the JSON representation of the payload."""
-        return dict(
-            transaction_type=str(self.transaction_type),
-            id_=self.id_,
-            sender=self.sender,
-            round_count=self.round_count,
-            **self.data,
-        )
-
-    @property
-    def data(self) -> Dict:
-        """
-        Get the dictionary data.
-
-        The returned dictionary is required to be used
-        as keyword constructor initializer, i.e. these two
-        should have the same effect:
-
-            sender = "..."
-            some_kwargs = {...}
-            p1 = SomePayloadClass(sender, **some_kwargs)
-            p2 = SomePayloadClass(sender, **p1.data)
-
-        :return: a dictionary which contains the payload data
-        """
-        return {}
+        round_count, id_ = data.pop("round_count"), data.pop("id_")
+        payload_cls = _MetaPayload.registry[data.pop("_metaclass_registry_key")]
+        payload = payload_cls(**data)  # type: ignore
+        object.__setattr__(payload, "round_count", round_count)
+        object.__setattr__(payload, "id_", id_)
+        return payload
 
     def with_new_id(self) -> "BaseTxPayload":
         """Create a new payload with the same content but new id."""
-        return type(self)(self.sender, id_=uuid.uuid4().hex, round_count=self.round_count, **self.data)  # type: ignore
+        new = type(self)(sender=self.sender, **self.data)  # type: ignore
+        object.__setattr__(new, "round_count", self.round_count)
+        return new
 
-    def __eq__(self, other: Any) -> bool:
-        """Check equality."""
-        if not isinstance(other, BaseTxPayload):
-            return NotImplemented
-        return (
-            self.id_ == other.id_
-            and self.round_count == other.round_count
-            and self.sender == other.sender
-            and self.data == other.data
-        )
+    def encode(self) -> bytes:
+        """Encode"""
+        encoded_data = json.dumps(self.json, sort_keys=True).encode()
+        if sys.getsizeof(encoded_data) > MAX_READ_IN_BYTES:
+            msg = f"{type(self)} must be smaller than {MAX_READ_IN_BYTES} bytes"
+            raise ValueError(msg)
+        return encoded_data
 
-    def __hash__(self) -> int:
-        """Hash the payload."""
-        return hash(tuple(sorted(self.data.items())))
+    @classmethod
+    def decode(cls, obj: bytes) -> "BaseTxPayload":
+        """Decode"""
+        return cls.from_json(json.loads(obj.decode()))
 
 
+@dataclass(frozen=True)
 class Transaction(ABC):
     """Class to represent a transaction for the ephemeral chain of a period."""
 
-    def __init__(self, payload: BaseTxPayload, signature: str) -> None:
-        """Initialize a transaction object."""
-        self.payload = payload
-        self.signature = signature
+    payload: BaseTxPayload
+    signature: str
 
     def encode(self) -> bytes:
         """Encode the transaction."""
+
         data = dict(payload=self.payload.json, signature=self.signature)
-        encoded_data = DictProtobufStructSerializer.encode(data)
+        encoded_data = json.dumps(data, sort_keys=True).encode()
         if sys.getsizeof(encoded_data) > MAX_READ_IN_BYTES:
             raise ValueError(
                 f"Transaction must be smaller than {MAX_READ_IN_BYTES} bytes"
@@ -297,10 +241,10 @@ class Transaction(ABC):
     @classmethod
     def decode(cls, obj: bytes) -> "Transaction":
         """Decode the transaction."""
-        data = DictProtobufStructSerializer.decode(obj)
+
+        data = json.loads(obj.decode())
         signature = data["signature"]
-        payload_dict = data["payload"]
-        payload = BaseTxPayload.from_json(payload_dict)
+        payload = BaseTxPayload.from_json(data["payload"])
         return Transaction(payload, signature)
 
     def verify(self, ledger_id: str) -> None:
@@ -310,18 +254,12 @@ class Transaction(ABC):
         :param ledger_id: the ledger id of the address
         :raises: SignatureNotValidError: if the signature is not valid.
         """
-        payload_bytes = DictProtobufStructSerializer.encode(self.payload.json)
+        payload_bytes = self.payload.encode()
         addresses = LedgerApis.recover_message(
             identifier=ledger_id, message=payload_bytes, signature=self.signature
         )
         if self.payload.sender not in addresses:
-            raise SignatureNotValidError("signature not valid.")
-
-    def __eq__(self, other: Any) -> bool:
-        """Check equality."""
-        if not isinstance(other, Transaction):
-            return NotImplemented
-        return self.payload == other.payload and self.signature == other.signature
+            raise SignatureNotValidError(f"Signature not valid on transaction: {self}")
 
 
 class Block:  # pylint: disable=too-few-public-methods
@@ -460,40 +398,6 @@ class BlockBuilder:
         )
 
 
-class ConsensusParams:
-    """Represent the consensus parameters."""
-
-    def __init__(self, max_participants: int):
-        """Initialize the consensus parameters."""
-        self._max_participants = max_participants
-
-    @property
-    def max_participants(self) -> int:
-        """Get the maximum number of participants."""
-        return self._max_participants
-
-    @property
-    def consensus_threshold(self) -> int:
-        """Get the consensus threshold."""
-        return consensus_threshold(self.max_participants)
-
-    @classmethod
-    def from_json(cls, obj: Dict) -> "ConsensusParams":
-        """Get from JSON."""
-        max_participants = obj["max_participants"]
-        enforce(
-            isinstance(max_participants, int) and max_participants >= 0,
-            "max_participants must be an integer greater than 0.",
-        )
-        return cls(max_participants)
-
-    def __eq__(self, other: Any) -> bool:
-        """Check equality."""
-        if not isinstance(other, ConsensusParams):
-            return NotImplemented
-        return self.max_participants == other.max_participants
-
-
 class AbciAppDB:
     """Class to represent all data replicated across agents.
 
@@ -571,10 +475,20 @@ class AbciAppDB:
     https://github.com/python/cpython/blob/3.10/Lib/copy.py#L182-L183
     """
 
+    # database keys which values are always set for the next period by default
+    default_cross_period_keys: FrozenSet[str] = frozenset(
+        {
+            "all_participants",
+            "participants",
+            "consensus_threshold",
+            "safe_contract_address",
+        }
+    )
+
     def __init__(
         self,
         setup_data: Dict[str, List[Any]],
-        cross_period_persisted_keys: Optional[List[str]] = None,
+        cross_period_persisted_keys: Optional[FrozenSet[str]] = None,
     ) -> None:
         """Initialize the AbciApp database.
 
@@ -587,15 +501,26 @@ class AbciAppDB:
         """
         AbciAppDB._check_data(setup_data)
         self._setup_data = deepcopy(setup_data)
-        self._cross_period_persisted_keys = (
-            cross_period_persisted_keys.copy()
-            if cross_period_persisted_keys is not None
-            else []
-        )
         self._data: Dict[int, Dict[str, List[Any]]] = {
             RESET_COUNT_START: self.setup_data  # the key represents the reset index
         }
         self._round_count = ROUND_COUNT_DEFAULT  # ensures first round is indexed at 0!
+
+        self._cross_period_persisted_keys = self.default_cross_period_keys.union(
+            cross_period_persisted_keys or frozenset()
+        )
+        self._cross_period_check()
+
+    def _cross_period_check(self) -> None:
+        """Check the cross period keys against the setup data."""
+        not_in_cross_period = set(self._setup_data).difference(
+            self.cross_period_persisted_keys
+        )
+        if not_in_cross_period:
+            _logger.warning(
+                f"The setup data ({self._setup_data.keys()}) contain keys that are not in the "
+                f"cross period persisted keys ({self.cross_period_persisted_keys}): {not_in_cross_period}"
+            )
 
     @property
     def setup_data(self) -> Dict[str, Any]:
@@ -609,13 +534,17 @@ class AbciAppDB:
 
     @staticmethod
     def _check_data(data: Any) -> None:
-        """Check that all fields in setup data were passed as a list"""
-        if not isinstance(data, dict) or not all(
-            [isinstance(v, list) for v in data.values()]
+        """Check that all fields in setup data were passed as a list, and that the data can be accepted into the db."""
+        if (
+            not isinstance(data, dict)
+            or not all((isinstance(k, str) for k in data.keys()))
+            or not all((isinstance(v, list) for v in data.values()))
         ):
             raise ValueError(
                 f"AbciAppDB data must be `Dict[str, List[Any]]`, found `{type(data)}` instead."
             )
+
+        AbciAppDB.validate(data)
 
     @property
     def reset_index(self) -> int:
@@ -628,10 +557,15 @@ class AbciAppDB:
         """Get the round count."""
         return self._round_count
 
+    @round_count.setter
+    def round_count(self, round_count: int) -> None:
+        """Set the round count."""
+        self._round_count = round_count
+
     @property
-    def cross_period_persisted_keys(self) -> List[str]:
+    def cross_period_persisted_keys(self) -> FrozenSet[str]:
         """Keys in the database which are persistent across periods."""
-        return self._cross_period_persisted_keys.copy()
+        return self._cross_period_persisted_keys
 
     def get(self, key: str, default: Any = VALUE_NOT_PROVIDED) -> Optional[Any]:
         """Given a key, get its last for the current reset index."""
@@ -647,15 +581,52 @@ class AbciAppDB:
         """Get a value from the data dictionary and raise if it is None."""
         return self.get(key)
 
+    @staticmethod
+    def validate(data: Any) -> None:
+        """Validate if the given data are json serializable and therefore can be accepted into the database.
+
+        :param data: the data to check.
+        :raises ABCIAppInternalError: If the data are not serializable.
+        """
+        if not is_json_serializable(data):
+            raise ABCIAppInternalError(
+                f"`AbciAppDB` data must be json-serializable. Please convert non-serializable data in `{data}`. "
+                "You may use `AbciAppDB.validate(your_data)` to validate your data for the `AbciAppDB`."
+            )
+
     def update(self, **kwargs: Any) -> None:
         """Update the current data."""
+        self.validate(kwargs)
+
         # Append new data to the key history
         data = self._data[self.reset_index]
         for key, value in deepcopy(kwargs).items():
             data.setdefault(key, []).append(value)
 
     def create(self, **kwargs: Any) -> None:
-        """Add a new entry to the data."""
+        """Add a new entry to the data.
+
+        Passes automatically the values of the `cross_period_persisted_keys` to the next period.
+
+        :param kwargs: keyword arguments
+        """
+        for key in self.cross_period_persisted_keys.union(kwargs.keys()):
+            value = kwargs.get(key, VALUE_NOT_PROVIDED)
+            if value is VALUE_NOT_PROVIDED:
+                value = self.get_latest().get(key, VALUE_NOT_PROVIDED)
+            if value is VALUE_NOT_PROVIDED:
+                raise ABCIAppInternalError(
+                    f"Cross period persisted key `{key}` was not found in the db but was required for the next period."
+                )
+            if isinstance(value, (set, frozenset)):
+                value = tuple(sorted(value))
+            kwargs[key] = value
+
+        data = self.data_to_lists(kwargs)
+        self._create_from_keys(**data)
+
+    def _create_from_keys(self, **kwargs: Any) -> None:
+        """Add a new entry to the data using the provided key-value pairs."""
         AbciAppDB._check_data(kwargs)
         self._data[self.reset_index + 1] = deepcopy(kwargs)
 
@@ -708,10 +679,58 @@ class AbciAppDB:
             for key, history in self._data[self.reset_index].items()
         }
 
+    def serialize(self) -> str:
+        """Serialize the data of the database to a string."""
+        return json.dumps(self._data, sort_keys=True)
+
+    @staticmethod
+    def _as_abci_data(data: Dict) -> Dict[int, Any]:
+        """Hook to load serialized data as `AbciAppDB` data."""
+        return {int(index): content for index, content in data.items()}
+
+    def sync(self, serialized_data: str) -> None:
+        """Synchronize the data using a serialized object.
+
+        :param serialized_data: the serialized data to use in order to sync the db.
+        :raises ABCIAppInternalError: if the given data cannot be deserialized.
+        """
+        try:
+            loaded_data = json.loads(serialized_data)
+            loaded_data = self._as_abci_data(loaded_data)
+        except json.JSONDecodeError as exc:
+            raise ABCIAppInternalError(
+                f"Could not decode data using {serialized_data}: {exc}"
+            ) from exc
+        except AttributeError as exc:
+            raise ABCIAppInternalError(
+                f"Could not decode db data with an invalid format: {serialized_data}"
+            ) from exc
+        except ValueError as exc:
+            raise ABCIAppInternalError(
+                f"An invalid index was found while trying to sync the db using data: {serialized_data}"
+            ) from exc
+
+        self._check_data(dict(tuple(loaded_data.values())[0]))
+        self._data = loaded_data
+
+    def hash(self) -> bytes:
+        """Create a hash of the data."""
+        # Compute the sha256 hash of the serialized data
+        sha256 = hashlib.sha256()
+        data = self.serialize()
+        sha256.update(data.encode("utf-8"))
+        hash_ = sha256.digest()
+        _logger.debug(f"root hash: {hash_.hex()}; data: {data}")
+        return hash_
+
     @staticmethod
     def data_to_lists(data: Dict[str, Any]) -> Dict[str, List[Any]]:
         """Convert Dict[str, Any] to Dict[str, List[Any]]."""
         return {k: [v] for k, v in data.items()}
+
+
+SerializedCollection = Dict[str, Dict[str, Any]]
+DeserializedCollection = Mapping[str, BaseTxPayload]
 
 
 class BaseSynchronizedData:
@@ -720,6 +739,24 @@ class BaseSynchronizedData:
 
     This is the relevant data constructed and replicated by the agents.
     """
+
+    # Keys always set by default
+    # `round_count` and `period_count` need to be guaranteed to be synchronized too:
+    #
+    # * `round_count` is only incremented when scheduling a new round,
+    #    which is by definition always a synchronized action.
+    # * `period_count` comes from the `reset_index` which is the last key of the `self._data`.
+    #    The `self._data` keys are only updated on create, and cleanup operations,
+    #    which are also meant to be synchronized since they are used at the rounds.
+    default_db_keys: Set[str] = {
+        "round_count",
+        "period_count",
+        "all_participants",
+        "nb_participants",
+        "max_participants",
+        "consensus_threshold",
+        "safe_contract_address",
+    }
 
     def __init__(
         self,
@@ -754,7 +791,7 @@ class BaseSynchronizedData:
     @property
     def participants(self) -> FrozenSet[str]:
         """Get the currently active participants."""
-        participants = self.db.get_strict("participants")
+        participants = frozenset(self.db.get_strict("participants"))
         if len(participants) == 0:
             raise ValueError("List participants cannot be empty.")
         return cast(FrozenSet[str], participants)
@@ -762,10 +799,37 @@ class BaseSynchronizedData:
     @property
     def all_participants(self) -> FrozenSet[str]:
         """Get all registered participants."""
-        all_participants = self.db.get_strict("all_participants")
+        all_participants = frozenset(self.db.get_strict("all_participants"))
         if len(all_participants) == 0:
             raise ValueError("List participants cannot be empty.")
         return cast(FrozenSet[str], all_participants)
+
+    @property
+    def max_participants(self) -> int:
+        """Get the number of all the participants."""
+        return len(self.all_participants)
+
+    @property
+    def consensus_threshold(self) -> int:
+        """Get the consensus threshold."""
+        threshold = self.db.get_strict("consensus_threshold")
+        min_threshold = consensus_threshold(self.max_participants)
+
+        if threshold is None:
+            return min_threshold
+
+        threshold = int(threshold)
+        max_threshold = len(self.all_participants)
+
+        if min_threshold <= threshold <= max_threshold:
+            return threshold
+
+        expected_range = (
+            f"can only be {min_threshold}"
+            if min_threshold == max_threshold
+            else f"not in [{min_threshold}, {max_threshold}]"
+        )
+        raise ValueError(f"Consensus threshold {threshold} {expected_range}.")
 
     @property
     def sorted_participants(self) -> Sequence[str]:
@@ -784,7 +848,8 @@ class BaseSynchronizedData:
     @property
     def nb_participants(self) -> int:
         """Get the number of participants."""
-        return len(self.participants)
+        participants = cast(List, self.db.get("participants", []))
+        return len(participants)
 
     def update(
         self,
@@ -802,10 +867,9 @@ class BaseSynchronizedData:
     def create(
         self,
         synchronized_data_class: Optional[Type] = None,
-        **kwargs: Any,
     ) -> "BaseSynchronizedData":
-        """Copy and update with new data."""
-        self.db.create(**kwargs)
+        """Copy and update with new data. Set values are stored as sorted tuples to the db for determinism."""
+        self.db.create()
         class_ = (
             type(self) if synchronized_data_class is None else synchronized_data_class
         )
@@ -844,22 +908,70 @@ class BaseSynchronizedData:
         return set(textwrap.wrap(raw, ADDRESS_LENGTH))
 
     @property
-    def participant_to_selection(self) -> Mapping:
+    def participant_to_selection(self) -> DeserializedCollection:
         """Check whether keeper is set."""
-        return cast(Dict, self.db.get_strict("participant_to_selection"))
+        serialized = self.db.get_strict("participant_to_selection")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(DeserializedCollection, deserialized)
 
     @property
-    def participant_to_randomness(self) -> Mapping:
+    def participant_to_randomness(self) -> DeserializedCollection:
         """Check whether keeper is set."""
-        return cast(Dict, self.db.get_strict("participant_to_randomness"))
+        serialized = self.db.get_strict("participant_to_randomness")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(DeserializedCollection, deserialized)
 
     @property
-    def participant_to_votes(self) -> Mapping:
+    def participant_to_votes(self) -> DeserializedCollection:
         """Check whether keeper is set."""
-        return cast(Dict, self.db.get_strict("participant_to_votes"))
+        serialized = self.db.get_strict("participant_to_votes")
+        deserialized = CollectionRound.deserialize_collection(serialized)
+        return cast(DeserializedCollection, deserialized)
+
+    @property
+    def safe_contract_address(self) -> str:
+        """Get the safe contract address."""
+        return cast(str, self.db.get_strict("safe_contract_address"))
 
 
-class AbstractRound(Generic[EventType, TransactionType], ABC):
+class _MetaAbstractRound(ABCMeta):
+    """A metaclass that validates AbstractRound's attributes."""
+
+    def __new__(mcs, name: str, bases: Tuple, namespace: Dict, **kwargs: Any) -> Type:  # type: ignore
+        """Initialize the class."""
+        new_cls = super().__new__(mcs, name, bases, namespace, **kwargs)
+
+        if ABC in bases:
+            # abstract class, return
+            return new_cls
+        if not issubclass(new_cls, AbstractRound):
+            # the check only applies to AbstractRound subclasses
+            return new_cls
+
+        mcs._check_consistency(cast(Type[AbstractRound], new_cls))
+        return new_cls
+
+    @classmethod
+    def _check_consistency(mcs, abstract_round_cls: Type["AbstractRound"]) -> None:
+        """Check consistency of class attributes."""
+        mcs._check_required_class_attributes(abstract_round_cls)
+
+    @classmethod
+    def _check_required_class_attributes(
+        mcs, abstract_round_cls: Type["AbstractRound"]
+    ) -> None:
+        """Check that required class attributes are set."""
+        if not hasattr(abstract_round_cls, "synchronized_data_class"):
+            raise AbstractRoundInternalError(
+                f"'synchronized_data_class' not set on {abstract_round_cls}"
+            )
+        if not hasattr(abstract_round_cls, "payload_class"):
+            raise AbstractRoundInternalError(
+                f"'payload_class' not set on {abstract_round_cls}"
+            )
+
+
+class AbstractRound(Generic[EventType], ABC, metaclass=_MetaAbstractRound):
     """
     This class represents an abstract round.
 
@@ -868,43 +980,49 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     although this is not enforced at this level of abstraction.
 
     Concrete classes must set:
-    - round_id: the identifier for the concrete round class;
-    - allowed_tx_type: the transaction type that is allowed for this round.
+    - synchronized_data_class: the data class associated with this round;
+    - payload_class: the payload type that is allowed for this round;
+
+    Optionally, round_id can be defined, although it is recommended to use the autogenerated id.
     """
 
-    round_id: str
-    allowed_tx_type: Optional[TransactionType]
-    payload_attribute: str
+    __pattern = re.compile(r"(?<!^)(?=[A-Z])")
+    _previous_round_payload_class: Optional[Type[BaseTxPayload]]
 
-    _previous_round_tx_type: Optional[TransactionType]
+    payload_class: Optional[Type[BaseTxPayload]]
     synchronized_data_class: Type[BaseSynchronizedData]
+
+    round_id: str
 
     def __init__(
         self,
         synchronized_data: BaseSynchronizedData,
-        consensus_params: ConsensusParams,
-        previous_round_tx_type: Optional[TransactionType] = None,
+        previous_round_payload_class: Optional[Type[BaseTxPayload]] = None,
     ) -> None:
         """Initialize the round."""
-        self._consensus_params = consensus_params
         self._synchronized_data = synchronized_data
         self.block_confirmations = 0
-        self._previous_round_tx_type = previous_round_tx_type
+        self._previous_round_payload_class = previous_round_payload_class
 
-        self._check_class_attributes()
+    @classmethod
+    def auto_round_id(cls) -> str:
+        """
+        Get round id automatically.
 
-    def _check_class_attributes(self) -> None:
-        """Check that required class attributes are set."""
-        try:
-            self.round_id
-        except AttributeError as exc:
-            raise ABCIAppInternalError("'round_id' field not set") from exc
-        try:
-            self.allowed_tx_type
-        except AttributeError as exc:
-            raise ABCIAppInternalError("'allowed_tx_type' field not set") from exc
-        if not hasattr(self, "synchronized_data_class"):
-            logging.warning(f"No `synchronized_data_class` set on {self}")
+        This method returns the auto generated id from the class name if the
+        class variable behaviour_id is not set on the child class.
+        Otherwise, it returns the class variable behaviour_id.
+        """
+        return (
+            cls.round_id
+            if isinstance(cls.round_id, str)
+            else cls.__pattern.sub("_", cls.__name__).lower()
+        )
+
+    @property  # type: ignore
+    def round_id(self) -> str:
+        """Get round id."""
+        return self.auto_round_id()
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
@@ -917,7 +1035,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
         :param transaction: the transaction
         """
-        self.check_allowed_tx_type(transaction)
+        self.check_payload_type(transaction)
         self.check_payload(transaction.payload)
 
     def process_transaction(self, transaction: Transaction) -> None:
@@ -929,7 +1047,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
 
         :param transaction: the transaction.
         """
-        self.check_allowed_tx_type(transaction)
+        self.check_payload_type(transaction)
         self.process_payload(transaction.payload)
 
     @abstractmethod
@@ -952,7 +1070,7 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         only after each block, and not after each transaction.
         """
 
-    def check_allowed_tx_type(self, transaction: Transaction) -> None:
+    def check_payload_type(self, transaction: Transaction) -> None:
         """
         Check the transaction is of the allowed transaction type.
 
@@ -960,27 +1078,25 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         :raises: TransactionTypeNotRecognizedError if the transaction can be
                  applied to the current state.
         """
-        if self.allowed_tx_type is None:
+        if self.payload_class is None:
             raise TransactionTypeNotRecognizedError(
                 "current round does not allow transactions"
             )
-        tx_type = transaction.payload.transaction_type
 
-        if self._previous_round_tx_type is not None and str(tx_type) == str(
-            self._previous_round_tx_type
-        ):
+        payload_class = type(transaction.payload)
+
+        if payload_class is self._previous_round_payload_class:
             raise LateArrivingTransaction(
-                f"request '{tx_type}' is from previous round; skipping"
+                f"request '{transaction.payload}' is from previous round; skipping"
             )
 
-        if str(tx_type) != str(self.allowed_tx_type):
+        if payload_class is not self.payload_class:
             raise TransactionTypeNotRecognizedError(
-                f"request '{tx_type}' not recognized; only {self.allowed_tx_type} is supported"
+                f"request '{payload_class}' not recognized; only {self.payload_class} is supported"
             )
 
-    @classmethod
     def check_majority_possible_with_new_voter(
-        cls,
+        self,
         votes_by_participant: Dict[str, BaseTxPayload],
         new_voter: str,
         new_vote: BaseTxPayload,
@@ -1017,13 +1133,12 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         # add the new vote
         votes_by_participant[new_voter] = new_vote
 
-        cls.check_majority_possible(
+        self.check_majority_possible(
             votes_by_participant, nb_participants, exception_cls=exception_cls
         )
 
-    @classmethod
     def check_majority_possible(
-        cls,
+        self,
         votes_by_participant: Dict[str, BaseTxPayload],
         nb_participants: int,
         exception_cls: Type[ABCIAppException] = ABCIAppException,
@@ -1068,16 +1183,17 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         nb_votes_received = sum(vote_count.values())
         nb_remaining_votes = nb_participants - nb_votes_received
 
-        threshold = consensus_threshold(nb_participants)
-
-        if nb_remaining_votes + largest_nb_votes < threshold:
+        if (
+            nb_remaining_votes + largest_nb_votes
+            < self.synchronized_data.consensus_threshold
+        ):
             raise exception_cls(
-                f"cannot reach quorum={threshold}, number of remaining votes={nb_remaining_votes}, number of most voted item's votes={largest_nb_votes}"
+                f"cannot reach quorum={self.synchronized_data.consensus_threshold}, "
+                f"number of remaining votes={nb_remaining_votes}, number of most voted item's votes={largest_nb_votes}"
             )
 
-    @classmethod
     def is_majority_possible(
-        cls, votes_by_participant: Dict[str, BaseTxPayload], nb_participants: int
+        self, votes_by_participant: Dict[str, BaseTxPayload], nb_participants: int
     ) -> bool:
         """
         Return true if a Byzantine majority is achievable, false otherwise.
@@ -1087,15 +1203,10 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         :return: True if the majority is still possible, false otherwise.
         """
         try:
-            cls.check_majority_possible(votes_by_participant, nb_participants)
+            self.check_majority_possible(votes_by_participant, nb_participants)
         except ABCIAppException:
             return False
         return True
-
-    @property
-    def consensus_threshold(self) -> int:
-        """Consensus threshold"""
-        return self._consensus_params.consensus_threshold
 
     @abstractmethod
     def check_payload(self, payload: BaseTxPayload) -> None:
@@ -1106,16 +1217,15 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         """Process payload."""
 
 
-class DegenerateRound(AbstractRound):
+class DegenerateRound(AbstractRound, ABC):
     """
     This class represents the finished round during operation.
 
     It is a sink round.
     """
 
-    round_id = "finished"
-    allowed_tx_type = None
-    payload_attribute = ""
+    payload_class = None
+    synchronized_data_class = BaseSynchronizedData
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check payload."""
@@ -1136,24 +1246,46 @@ class DegenerateRound(AbstractRound):
         )
 
 
-class CollectionRound(AbstractRound):
+class CollectionRound(AbstractRound, ABC):
     """
     CollectionRound.
 
     This class represents abstract logic for collection based rounds where
     the round object needs to collect data from different agents. The data
     might for example be from a voting round or estimation round.
+
+    `_allow_rejoin_payloads` is used to allow agents not currently active to
+    deliver a payload.
     """
 
-    # allow_rejoin is used to allow agents not currently active to deliver a payload
     _allow_rejoin_payloads: bool = False
-    # if the payload is serialized to bytes, we verify that the length specified matches
-    _hash_length: Optional[int] = None
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the collection round."""
         super().__init__(*args, **kwargs)
         self.collection: Dict[str, BaseTxPayload] = {}
+
+    @staticmethod
+    def serialize_collection(
+        collection: DeserializedCollection,
+    ) -> SerializedCollection:
+        """Deserialize a serialized collection."""
+        return {address: payload.json for address, payload in collection.items()}
+
+    @staticmethod
+    def deserialize_collection(
+        serialized: SerializedCollection,
+    ) -> DeserializedCollection:
+        """Deserialize a serialized collection."""
+        return {
+            address: BaseTxPayload.from_json(payload_json)
+            for address, payload_json in serialized.items()
+        }
+
+    @property
+    def serialized_collection(self) -> SerializedCollection:
+        """A collection with the addresses mapped to serialized payloads."""
+        return self.serialize_collection(self.collection)
 
     @property
     def accepting_payloads_from(self) -> FrozenSet[str]:
@@ -1168,9 +1300,9 @@ class CollectionRound(AbstractRound):
         return list(self.collection.values())
 
     @property
-    def payloads_count(self) -> Counter:
-        """Get count of payload attributes"""
-        return Counter(map(lambda p: getattr(p, self.payload_attribute), self.payloads))
+    def payload_values_count(self) -> Counter:
+        """Get count of payload values."""
+        return Counter(map(lambda p: p.values, self.payloads))
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
@@ -1189,12 +1321,6 @@ class CollectionRound(AbstractRound):
             raise ABCIAppInternalError(
                 f"sender {sender} has already sent value for round: {self.round_id}"
             )
-
-        if self._hash_length:
-            content = payload.data.get(self.payload_attribute)
-            if not content or len(content) % self._hash_length:
-                msg = f"Expecting serialized data of chunk size {self._hash_length}"
-                raise ABCIAppInternalError(f"{msg}, got: {content} in {self.round_id}")
 
         self.collection[sender] = payload
 
@@ -1219,22 +1345,14 @@ class CollectionRound(AbstractRound):
                 f"sender {payload.sender} has already sent value for round: {self.round_id}"
             )
 
-        if self._hash_length:
-            content = payload.data.get(self.payload_attribute)
-            if not content or len(content) % self._hash_length:
-                msg = f"Expecting serialized data of chunk size {self._hash_length}"
-                raise TransactionNotValidError(
-                    f"{msg}, got: {content} in {self.round_id}"
-                )
-
 
 class _CollectUntilAllRound(CollectionRound, ABC):
     """
     _CollectUntilAllRound
 
-    This class represents logic for when rounds need to collect payloads from all agents.
+    This class represents abstract logic for when rounds need to collect payloads from all agents.
 
-    This round should only be used for registration of new agents.
+    This round should only be used when non-BFT behaviour is acceptable.
     """
 
     def check_payload(self, payload: BaseTxPayload) -> None:
@@ -1263,7 +1381,7 @@ class _CollectUntilAllRound(CollectionRound, ABC):
         self,
     ) -> bool:
         """Check that the collection threshold has been reached."""
-        return len(self.collection) >= self._consensus_params.max_participants
+        return len(self.collection) >= self.synchronized_data.max_participants
 
 
 class CollectDifferentUntilAllRound(_CollectUntilAllRound, ABC):
@@ -1278,19 +1396,13 @@ class CollectDifferentUntilAllRound(_CollectUntilAllRound, ABC):
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check Payload"""
-        collected_value = getattr(payload, self.payload_attribute)
-        attribute_values = (
-            getattr(collection_value, self.payload_attribute)
-            for collection_value in self.collection.values()
-        )
+        new = payload.values
+        existing = [payload_.values for payload_ in self.collection.values()]
 
-        if (
-            payload.sender not in self.collection
-            and collected_value in attribute_values
-        ):
+        if payload.sender not in self.collection and new in existing:
             raise TransactionNotValidError(
-                f"`CollectDifferentUntilAllRound` encountered a value '{collected_value}' that already exists. "
-                f"All values: {attribute_values}"
+                f"`CollectDifferentUntilAllRound` encountered a value '{new}' that already exists. "
+                f"All values: {existing}"
             )
 
         super().check_payload(payload)
@@ -1305,20 +1417,17 @@ class CollectSameUntilAllRound(_CollectUntilAllRound, ABC):
 
     def check_payload(self, payload: BaseTxPayload) -> None:
         """Check Payload"""
-        collected_value = getattr(payload, self.payload_attribute)
-        attribute_values = tuple(
-            getattr(collection_value, self.payload_attribute)
-            for collection_value in self.collection.values()
-        )
+        new = payload.values
+        existing_ = [payload_.values for payload_ in self.collection.values()]
 
         if (
             payload.sender not in self.collection
             and len(self.collection)
-            and collected_value not in attribute_values
+            and new not in existing_
         ):
             raise TransactionNotValidError(
-                f"`CollectSameUntilAllRound` encountered a value '{collected_value}' "
-                f"which is not the same as the already existing one: '{attribute_values[0]}'"
+                f"`CollectSameUntilAllRound` encountered a value '{new}' "
+                f"which is not the same as the already existing one: '{existing_[0]}'"
             )
 
         super().check_payload(payload)
@@ -1328,60 +1437,102 @@ class CollectSameUntilAllRound(_CollectUntilAllRound, ABC):
         self,
     ) -> Any:
         """Get the common payload among the agents."""
-        most_common_payload, max_votes = self.payloads_count.most_common(1)[0]
-        if max_votes < self._consensus_params.max_participants:
+        return self.common_payload_values[0]
+
+    @property
+    def common_payload_values(
+        self,
+    ) -> Tuple[Any, ...]:
+        """Get the common payload among the agents."""
+        most_common_payload_values, max_votes = self.payload_values_count.most_common(
+            1
+        )[0]
+        if max_votes < self.synchronized_data.max_participants:
             raise ABCIAppInternalError(
                 f"{max_votes} votes are not enough for `CollectSameUntilAllRound`. Expected: "
-                f"`n_votes = max_participants = {self._consensus_params.max_participants}`"
+                f"`n_votes = max_participants = {self.synchronized_data.max_participants}`"
             )
-        return most_common_payload
+        return most_common_payload_values
 
 
-class CollectSameUntilThresholdRound(CollectionRound):
+class CollectSameUntilThresholdRound(CollectionRound, ABC):
     """
     CollectSameUntilThresholdRound
 
     This class represents logic for rounds where a round needs to collect
     same payload from k of n agents.
+
+    `done_event` is emitted when a) the collection threshold (k of n) is reached,
+    and b) the most voted payload has non-empty attributes. In this case all
+    payloads are saved under `collection_key` and the most voted payload attributes
+    are saved under `selection_key`.
+
+    `none_event` is emitted when a) the collection threshold (k of n) is reached,
+    and b) the most voted payload has only empty attributes.
+
+    `no_majority_event` is emitted when it is impossible to reach a k of n majority.
     """
 
     done_event: Any
     no_majority_event: Any
     none_event: Any
     collection_key: str
-    selection_key: str
-    synchronized_data_class = BaseSynchronizedData
+    selection_key: Union[str, Tuple[str, ...]]
 
     @property
     def threshold_reached(
         self,
     ) -> bool:
         """Check if the threshold has been reached."""
-        counts = self.payloads_count.values()
-        return any(count >= self.consensus_threshold for count in counts)
+        counts = self.payload_values_count.values()
+        return any(
+            count >= self.synchronized_data.consensus_threshold for count in counts
+        )
 
     @property
     def most_voted_payload(
         self,
     ) -> Any:
-        """Get the most voted payload."""
-        most_voted_payload, max_votes = self.payloads_count.most_common()[0]
-        if max_votes < self.consensus_threshold:
+        """
+        Get the most voted payload value.
+
+        Kept for backward compatibility.
+        """
+        return self.most_voted_payload_values[0]
+
+    @property
+    def most_voted_payload_values(
+        self,
+    ) -> Tuple[Any, ...]:
+        """Get the most voted payload values."""
+        most_voted_payload_values, max_votes = self.payload_values_count.most_common()[
+            0
+        ]
+        if max_votes < self.synchronized_data.consensus_threshold:
             raise ABCIAppInternalError("not enough votes")
-        return most_voted_payload
+        return most_voted_payload_values
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
-        if self.threshold_reached and self.most_voted_payload is not None:
+        if self.threshold_reached and any(
+            [val is not None for val in self.most_voted_payload_values]
+        ):
+            if isinstance(self.selection_key, tuple):
+                data = dict(zip(self.selection_key, self.most_voted_payload_values))
+                data[self.collection_key] = self.serialized_collection
+            else:
+                data = {
+                    self.collection_key: self.serialized_collection,
+                    self.selection_key: self.most_voted_payload,
+                }
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                **{
-                    self.collection_key: self.collection,
-                    self.selection_key: self.most_voted_payload,
-                },
+                **data,
             )
             return synchronized_data, self.done_event
-        if self.threshold_reached and self.most_voted_payload is None:
+        if self.threshold_reached and not any(
+            [val is not None for val in self.most_voted_payload_values]
+        ):
             return self.synchronized_data, self.none_event
         if not self.is_majority_possible(
             self.collection, self.synchronized_data.nb_participants
@@ -1390,27 +1541,27 @@ class CollectSameUntilThresholdRound(CollectionRound):
         return None
 
 
-class OnlyKeeperSendsRound(AbstractRound):
+class OnlyKeeperSendsRound(AbstractRound, ABC):
     """
     OnlyKeeperSendsRound
 
     This class represents logic for rounds where only one agent sends a
-    payload
+    payload.
+
+    `done_event` is emitted when a) the keeper payload has been received and b)
+    the keeper payload has non-empty attributes. In this case all attributes are saved
+    under `payload_key`.
+
+    `fail_event` is emitted when a) the keeper payload has been received and b)
+    the keeper payload has only empty attributes
     """
 
-    keeper_payload: Optional[Any]
+    keeper_payload: Optional[BaseTxPayload] = None
     done_event: Any
     fail_event: Any
-    payload_key: str
-    synchronized_data_class = BaseSynchronizedData
+    payload_key: Union[str, Tuple[str, ...]]
 
-    def __init__(self, *args: Any, **kwargs: Any):
-        """Initialize the 'collect-observation' round."""
-        super().__init__(*args, **kwargs)
-        self.keeper_sent_payload = False
-        self.keeper_payload: Optional[Any] = None
-
-    def process_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
+    def process_payload(self, payload: BaseTxPayload) -> None:
         """Handle a deploy safe payload."""
         if payload.round_count != self.synchronized_data.round_count:
             raise ABCIAppInternalError(
@@ -1424,16 +1575,15 @@ class OnlyKeeperSendsRound(AbstractRound):
                 f"{sender} not in list of participants: {sorted(self.synchronized_data.participants)}"
             )
 
-        if sender != self.synchronized_data.most_voted_keeper_address:  # type: ignore
+        if sender != self.synchronized_data.most_voted_keeper_address:
             raise ABCIAppInternalError(f"{sender} not elected as keeper.")
 
-        if self.keeper_sent_payload:
+        if self.keeper_payload is not None:
             raise ABCIAppInternalError("keeper already set the payload.")
 
-        self.keeper_payload = getattr(payload, self.payload_attribute)
-        self.keeper_sent_payload = True
+        self.keeper_payload = payload
 
-    def check_payload(self, payload: BaseTxPayload) -> None:  # type: ignore
+    def check_payload(self, payload: BaseTxPayload) -> None:
         """Check a deploy safe payload can be applied to the current state."""
         if payload.round_count != self.synchronized_data.round_count:
             raise TransactionNotValidError(
@@ -1447,41 +1597,57 @@ class OnlyKeeperSendsRound(AbstractRound):
                 f"{sender} not in list of participants: {sorted(self.synchronized_data.participants)}"
             )
 
-        sender_is_elected_sender = sender == self.synchronized_data.most_voted_keeper_address  # type: ignore
+        sender_is_elected_sender = (
+            sender == self.synchronized_data.most_voted_keeper_address
+        )
         if not sender_is_elected_sender:
             raise TransactionNotValidError(f"{sender} not elected as keeper.")
 
-        if self.keeper_sent_payload:
+        if self.keeper_payload is not None:
             raise TransactionNotValidError("keeper payload value already set.")
-
-    @property
-    def has_keeper_sent_payload(
-        self,
-    ) -> bool:
-        """Check if keeper has sent the payload."""
-
-        return self.keeper_sent_payload
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
-        # if reached participant threshold, set the result
-        if self.has_keeper_sent_payload and self.keeper_payload is not None:
+        if self.keeper_payload is not None and any(
+            [val is not None for val in self.keeper_payload.values]
+        ):
+            if isinstance(self.payload_key, tuple):
+                data = dict(zip(self.payload_key, self.keeper_payload.values))
+            else:
+                data = {
+                    self.payload_key: self.keeper_payload.values[0],
+                }
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                **{self.payload_key: self.keeper_payload},
+                **data,
             )
             return synchronized_data, self.done_event
-        if self.has_keeper_sent_payload and self.keeper_payload is None:
+        if self.keeper_payload is not None and not any(
+            [val is not None for val in self.keeper_payload.values]
+        ):
             return self.synchronized_data, self.fail_event
         return None
 
 
-class VotingRound(CollectionRound):
+class VotingRound(CollectionRound, ABC):
     """
     VotingRound
 
     This class represents logic for rounds where a round needs votes from
-    agents, pass if k same votes of n agents
+    agents. Votes are in the form of `True` (positive), `False` (negative)
+    and `None` (abstain). The round ends when k of n agents make the same vote.
+
+    `done_event` is emitted when a) the collection threshold (k of n) is reached
+    with k positive votes. In this case all payloads are saved under `collection_key`.
+
+    `negative_event` is emitted when a) the collection threshold (k of n) is reached
+    with k negative votes.
+
+    `none_event` is emitted when a) the collection threshold (k of n) is reached
+    with k abstain votes.
+
+    `no_majority_event` is emitted when it is impossible to reach a k of n majority for
+    either of the options.
     """
 
     done_event: Any
@@ -1489,35 +1655,39 @@ class VotingRound(CollectionRound):
     none_event: Any
     no_majority_event: Any
     collection_key: str
-    synchronized_data_class = BaseSynchronizedData
 
     @property
     def vote_count(self) -> Counter:
         """Get agent payload vote count"""
-        return Counter(payload.vote for payload in self.collection.values())  # type: ignore
+
+        def parse_payload(payload: Any) -> Optional[bool]:
+            if not hasattr(payload, "vote"):
+                raise ValueError(f"payload {payload} has no attribute `vote`")
+            return payload.vote
+
+        return Counter(parse_payload(payload) for payload in self.collection.values())
 
     @property
     def positive_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
-        return self.vote_count[True] >= self.consensus_threshold
+        return self.vote_count[True] >= self.synchronized_data.consensus_threshold
 
     @property
     def negative_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
-        return self.vote_count[False] >= self.consensus_threshold
+        return self.vote_count[False] >= self.synchronized_data.consensus_threshold
 
     @property
     def none_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
-        return self.vote_count[None] >= self.consensus_threshold
+        return self.vote_count[None] >= self.synchronized_data.consensus_threshold
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
-        # if reached participant threshold, set the result
         if self.positive_vote_threshold_reached:
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                **{self.collection_key: self.collection},
+                **{self.collection_key: self.serialized_collection},
             )
             return synchronized_data, self.done_event
         if self.negative_vote_threshold_reached:
@@ -1531,77 +1701,92 @@ class VotingRound(CollectionRound):
         return None
 
 
-class CollectDifferentUntilThresholdRound(CollectionRound):
+class CollectDifferentUntilThresholdRound(CollectionRound, ABC):
     """
     CollectDifferentUntilThresholdRound
 
     This class represents logic for rounds where a round needs to collect
-    different payloads from k of n agents
+    different payloads from k of n agents.
+
+    `done_event` is emitted when a) the required block confirmations
+    have been met, and b) the collection threshold (k of n) is reached. In
+    this case all payloads are saved under `collection_key`.
+
+    Extended `required_block_confirmations` to allow for arrival of more
+    payloads.
     """
 
     done_event: Any
-    no_majority_event: Any
-    selection_key: str
     collection_key: str
     required_block_confirmations: int = 0
-    synchronized_data_class = BaseSynchronizedData
 
     @property
     def collection_threshold_reached(
         self,
     ) -> bool:
         """Check if the threshold has been reached."""
-        return len(self.collection) >= self.consensus_threshold
+        return len(self.collection) >= self.synchronized_data.consensus_threshold
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
             self.block_confirmations += 1
-        if (  # contracts are set from previous rounds
+        if (
             self.collection_threshold_reached
             and self.block_confirmations > self.required_block_confirmations
-            # we also wait here as it gives more (available) agents time to join
         ):
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 **{
-                    self.selection_key: frozenset(list(self.collection.keys())),
-                    self.collection_key: self.collection,
+                    self.collection_key: self.serialized_collection,
                 },
             )
             return synchronized_data, self.done_event
-        if (
-            not self.is_majority_possible(
-                self.collection, self.synchronized_data.nb_participants
-            )
-            and self.block_confirmations > self.required_block_confirmations
-        ):
-            return self.synchronized_data, self.no_majority_event
+
         return None
 
 
-class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
+class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound, ABC):
     """
-    Collect all the data among agents.
+    CollectNonEmptyUntilThresholdRound
 
-    This class represents logic for rounds where we need to collect
-    payloads from each agent which will contain optional, different data and only keep the non-empty.
+    This class represents logic for rounds where a round needs to collect
+    optionally different payloads from k of n agents, where we only keep the non-empty attributes.
 
-    This round may be used for cases that we want to collect all the agent's data, such as late-arriving messages.
+    `done_event` is emitted when a) the required block confirmations
+    have been met, b) the collection threshold (k of n) is reached, and
+    c) some non-empty attribute values have been collected. In this case
+    all payloads are saved under `collection_key`. Under `selection_key`
+    the non-empty attribute values are stored.
+
+    `none_event` is emitted when a) the required block confirmations
+    have been met, b) the collection threshold (k of n) is reached, and
+    c) no non-empty attribute values have been collected.
+
+    Attention: A `none_event` might be triggered even though some of the
+    remaining n-k agents might send non-empty attributes! Extended
+    `required_block_confirmations` can alleviate this somewhat.
     """
 
     none_event: Any
+    selection_key: Union[str, Tuple[str, ...]]
 
-    def _get_non_empty_values(self) -> List:
-        """Get the non-empty values from the payload, for the given attribute."""
-        non_empty_values = []
+    def _get_non_empty_values(self) -> Dict[str, Tuple[Any, ...]]:
+        """Get the non-empty values from the payload, for all attributes."""
+        non_empty_values: Dict[str, List[List[Any]]] = {}
 
-        for payload in self.collection.values():
-            attribute_value = getattr(payload, self.payload_attribute, None)
-            if attribute_value is not None:
-                non_empty_values.append(attribute_value)
-
-        return non_empty_values
+        for sender, payload in self.collection.items():
+            if sender not in non_empty_values:
+                non_empty_values[sender] = [
+                    value for value in payload.values if value is not None
+                ]
+                if len(non_empty_values[sender]) == 0:
+                    del non_empty_values[sender]
+                continue
+        non_empty_values_ = {
+            sender: tuple(li) for sender, li in non_empty_values.items()
+        }
+        return non_empty_values_
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """Process the end of the block."""
@@ -1613,26 +1798,27 @@ class CollectNonEmptyUntilThresholdRound(CollectDifferentUntilThresholdRound):
         ):
             non_empty_values = self._get_non_empty_values()
 
+            if isinstance(self.selection_key, tuple):
+                data: Dict[str, Any] = {
+                    sender: dict(zip(self.selection_key, values))
+                    for sender, values in non_empty_values.items()
+                }
+            else:
+                data = {
+                    self.selection_key: {
+                        sender: values[0] for sender, values in non_empty_values.items()
+                    },
+                }
+            data[self.collection_key] = self.serialized_collection
+
             synchronized_data = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                **{
-                    self.selection_key: frozenset(list(self.collection.keys())),
-                    self.collection_key: non_empty_values,
-                },
+                **data,
             )
 
-            if len(non_empty_values) == 0:
-                return synchronized_data, self.none_event
+            if all([len(tu) == 0 for tu in non_empty_values]):
+                return self.synchronized_data, self.none_event
             return synchronized_data, self.done_event
-
-        # TODO: https://github.com/valory-xyz/open-autonomy/pull/1466#issuecomment-1288067700
-        if (
-            not self.is_majority_possible(
-                self.collection, self.synchronized_data.nb_participants
-            )
-            and self.block_confirmations > self.required_block_confirmations
-        ):
-            return self.synchronized_data, self.no_majority_event
         return None
 
 
@@ -1735,6 +1921,7 @@ class _MetaAbciApp(ABCMeta):
         mcs._check_required_class_attributes(abci_app_cls)
         mcs._check_initial_states_and_final_states(abci_app_cls)
         mcs._check_consistency_outgoing_transitions_from_non_final_states(abci_app_cls)
+        mcs._check_db_constraints_consistency(abci_app_cls)
 
     @classmethod
     def _check_required_class_attributes(mcs, abci_app_cls: Type["AbciApp"]) -> None:
@@ -1816,6 +2003,58 @@ class _MetaAbciApp(ABCMeta):
         )
 
     @classmethod
+    def _check_db_constraints_consistency(mcs, abci_app_cls: Type["AbciApp"]) -> None:
+        """Check that the pre and post conditions on the db are consistent with the initial and final states."""
+        expected = abci_app_cls.initial_states
+        actual = abci_app_cls.db_pre_conditions.keys()
+        is_pre_conditions_set = len(actual) != 0
+        invalid_initial_states = (
+            set.difference(expected, actual) if is_pre_conditions_set else set()
+        )
+        enforce(
+            len(invalid_initial_states) == 0,
+            f"db pre conditions contain invalid initial states: {invalid_initial_states}",
+        )
+        expected = abci_app_cls.final_states
+        actual = abci_app_cls.db_post_conditions.keys()
+        is_post_conditions_set = len(actual) != 0
+        invalid_final_states = (
+            set.difference(expected, actual) if is_post_conditions_set else set()
+        )
+        enforce(
+            len(invalid_final_states) == 0,
+            f"db post conditions contain invalid final states: {invalid_final_states}",
+        )
+        all_pre_conditions = {
+            value
+            for values in abci_app_cls.db_pre_conditions.values()
+            for value in values
+        }
+        all_post_conditions = {
+            value
+            for values in abci_app_cls.db_post_conditions.values()
+            for value in values
+        }
+        enforce(
+            len(all_pre_conditions.intersection(all_post_conditions)) == 0,
+            "db pre and post conditions intersect",
+        )
+        intersection = abci_app_cls.default_db_preconditions.intersection(
+            all_pre_conditions
+        )
+        enforce(
+            len(intersection) == 0,
+            f"db pre conditions contain value that is a default pre condition: {intersection}",
+        )
+        intersection = abci_app_cls.default_db_preconditions.intersection(
+            all_post_conditions
+        )
+        enforce(
+            len(intersection) == 0,
+            f"db post conditions contain value that is a default post condition: {intersection}",
+        )
+
+    @classmethod
     def _check_consistency_outgoing_transitions_from_non_final_states(
         mcs, abci_app_cls: Type["AbciApp"]
     ) -> None:
@@ -1867,30 +2106,26 @@ class AbciApp(
     transition_function: AbciAppTransitionFunction
     final_states: Set[AppState] = set()
     event_to_timeout: EventToTimeout = {}
-    cross_period_persisted_keys: List[str] = []
+    cross_period_persisted_keys: FrozenSet[str] = frozenset()
     background_round_cls: Optional[AppState] = None
     termination_transition_function: Optional[AbciAppTransitionFunction] = None
     termination_event: Optional[EventType] = None
+    default_db_preconditions: Set[str] = BaseSynchronizedData.default_db_keys
+    db_pre_conditions: Dict[AppState, Set[str]] = {}
+    db_post_conditions: Dict[AppState, Set[str]] = {}
     _is_abstract: bool = True
 
     def __init__(
         self,
         synchronized_data: BaseSynchronizedData,
-        consensus_params: ConsensusParams,
         logger: logging.Logger,
     ):
         """Initialize the AbciApp."""
 
-        if not hasattr(self.initial_round_cls, "synchronized_data_class"):
-            logger.warning(
-                f"No `synchronized_data_class` set on {self.initial_round_cls}"
-            )
-        else:
-            synchronized_data_class = self.initial_round_cls.synchronized_data_class  # type: ignore
-            synchronized_data = synchronized_data_class(db=synchronized_data.db)
+        synchronized_data_class = self.initial_round_cls.synchronized_data_class
+        synchronized_data = synchronized_data_class(db=synchronized_data.db)
 
         self._initial_synchronized_data = synchronized_data
-        self.consensus_params = consensus_params
         self.logger = logger
 
         self._current_round_cls: Optional[AppState] = None
@@ -1903,7 +2138,6 @@ class AbciApp(
         self._last_timestamp: Optional[datetime.datetime] = None
         self._current_timeout_entries: List[int] = []
         self._timeouts = Timeouts[EventType]()
-        self._reset_index = 0
         self._is_termination_set = (
             self.background_round_cls is not None
             and self.termination_transition_function is not None
@@ -1926,26 +2160,26 @@ class AbciApp(
         cls.background_round_cls = background_round_cls
         cls.termination_transition_function = termination_abci_app.transition_function
         cls.termination_event = termination_event
+        new_cross_period_persisted_keys = copy(cls.cross_period_persisted_keys)
+        cls.cross_period_persisted_keys = new_cross_period_persisted_keys.union(
+            termination_abci_app.cross_period_persisted_keys
+        )
         return cls
 
     @property
     def synchronized_data(self) -> BaseSynchronizedData:
         """Return the current synchronized data."""
         latest_result = self.latest_result or self._initial_synchronized_data
-        if hasattr(self._current_round_cls, "synchronized_data_class"):
-            synchronized_data_class = self._current_round_cls.synchronized_data_class  # type: ignore
-            return synchronized_data_class(db=latest_result.db)
-        return latest_result
-
-    @property
-    def reset_index(self) -> int:
-        """Return the reset index."""
-        return self._reset_index
-
-    @reset_index.setter
-    def reset_index(self, reset_index: int) -> None:
-        """Set the reset index."""
-        self._reset_index = reset_index
+        if self._current_round_cls is None:
+            return latest_result
+        synchronized_data_class = self._current_round_cls.synchronized_data_class
+        result = (
+            synchronized_data_class(db=latest_result.db)
+            if isclass(synchronized_data_class)
+            and issubclass(synchronized_data_class, BaseSynchronizedData)
+            else latest_result
+        )
+        return result
 
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:
@@ -1997,12 +2231,11 @@ class AbciApp(
 
     def setup(self) -> None:
         """Set up the behaviour."""
-        self._schedule_round(self.initial_round_cls)
+        self.schedule_round(self.initial_round_cls)
         if self.is_termination_set:
             self.background_round_cls = cast(AppState, self.background_round_cls)
             self._background_round = self.background_round_cls(
                 self._initial_synchronized_data,
-                self.consensus_params,
             )
 
     def _log_start(self) -> None:
@@ -2022,7 +2255,7 @@ class AbciApp(
         self._previous_rounds.append(self.current_round)
         self._current_round_height += 1
 
-    def _schedule_round(self, round_cls: AppState) -> None:
+    def schedule_round(self, round_cls: AppState) -> None:
         """
         Schedule a round class.
 
@@ -2063,12 +2296,11 @@ class AbciApp(
         self._current_round_cls = round_cls
         self._current_round = round_cls(
             self.synchronized_data,
-            self.consensus_params,
             (
-                self._last_round.allowed_tx_type
+                self._last_round.payload_class
                 if self._last_round is not None
-                and self._last_round.allowed_tx_type
-                != self._current_round_cls.allowed_tx_type
+                and self._last_round.payload_class
+                != self._current_round_cls.payload_class
                 # when transitioning to a round with the same payload type we set None as otherwise it will allow no tx to be sumitted
                 else None
             ),
@@ -2120,12 +2352,16 @@ class AbciApp(
         """Get the latest result of the round."""
         return None if len(self._round_results) == 0 else self._round_results[-1]
 
-    @property
-    def background_round_tx_type(self) -> Optional[str]:
-        """Returns the allowed transaction type for background round."""
-        if self.is_termination_set:
-            return cast(AppState, self.background_round_cls).allowed_tx_type
-        return None
+    def cleanup_timeouts(self) -> None:
+        """
+        Remove all timeouts.
+
+        Note that this is method is meant to be used only when performing recovery.
+        Calling it in normal execution will result in unexpected behaviour.
+        """
+        self._timeouts = Timeouts[EventType]()
+        self._current_timeout_entries = []
+        self._last_timestamp = None
 
     def check_transaction(self, transaction: Transaction) -> None:
         """
@@ -2137,9 +2373,11 @@ class AbciApp(
 
         :param transaction: the transaction.
         """
+
+        payload_type = type(transaction.payload)
         if (
             self.is_termination_set
-            and transaction.payload.transaction_type == self.background_round_tx_type
+            and payload_type is cast(AppState, self.background_round_cls).payload_class
         ):
             self.background_round.check_transaction(transaction)
             return
@@ -2155,9 +2393,11 @@ class AbciApp(
 
         :param transaction: the transaction.
         """
+
+        payload_type = type(transaction.payload)
         if (
             self.is_termination_set
-            and transaction.payload.transaction_type == self.background_round_tx_type
+            and payload_type is cast(AppState, self.background_round_cls).payload_class
         ):
             self.background_round.process_transaction(transaction)
             return
@@ -2192,7 +2432,7 @@ class AbciApp(
             # through the necessary rounds
             self.transition_function = self.termination_transition_function
             self.logger.info(
-                f"The termination event was produced, transitioning to `{cast(AppState, next_round_cls).round_id}`."
+                f"The termination event was produced, transitioning to `{cast(AppState, next_round_cls).auto_round_id()}`."
             )
         else:
             next_round_cls = self.transition_function[self._current_round_cls].get(
@@ -2207,7 +2447,7 @@ class AbciApp(
 
         self._log_end(event)
         if next_round_cls is not None:
-            self._schedule_round(next_round_cls)
+            self.schedule_round(next_round_cls)
         else:
             self.logger.warning("AbciApp has reached a dead end.")
             self._current_round_cls = None
@@ -2283,7 +2523,6 @@ class AbciApp(
         self.synchronized_data.db.cleanup(
             cleanup_history_depth, cleanup_history_depth_current
         )
-        self._reset_index += 1
 
     def cleanup_current_histories(self, cleanup_history_depth_current: int) -> None:
         """Reset the parameter histories for the current entry (period), keeping only the latest values for each parameter."""
@@ -2502,17 +2741,13 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
         """
         Get the Merkle root hash of the application state.
 
-        Create an app hash that always increases in order to avoid conflicts between resets.
-        Eventually, we do not necessarily need to have a value that increases, but we have to generate a hash that
-        is always different among the resets, since our abci's state is different even thought we have reset the chain!
-        For example, if we are in height 11, reset and then reach height 11 again, if we end up using the same hash
-        at height 11 between the resets, then this is problematic.
+        This is going to be the database's hash.
+        In this way, the app hash will be reflecting our application's state,
+        and will guarantee that all the agents on the chain apply the changes of the arriving blocks in the same way.
 
         :return: the root hash to be included as the Header.AppHash in the next block.
         """
-        return f"root:{self.abci_app.synchronized_data.db.round_count}reset:{self.abci_app.reset_index}".encode(
-            "utf-8"
-        )
+        return self.abci_app.synchronized_data.db.hash()
 
     @property
     def tm_height(self) -> int:
@@ -2681,3 +2916,48 @@ class RoundSequence:  # pylint: disable=too-many-instance-attributes
             f"updating round, current_round {self.current_round.round_id}, event: {event}, round result {round_result}"
         )
         self.abci_app.process_event(event, result=round_result)
+
+    def _reset_to_default_params(self) -> None:
+        """Resets the instance params to their default value."""
+        self._last_round_transition_timestamp = None
+        self._last_round_transition_height = 0
+        self._last_round_transition_root_hash = b""
+        self._last_round_transition_tm_height = None
+        self._tm_height = None
+
+    def reset_state(
+        self,
+        restart_from_round: str,
+        round_count: int,
+        serialized_db_state: Optional[str] = None,
+    ) -> None:
+        """
+        This method resets the state of RoundSequence to the begging of the period.
+
+        Note: This is intended to be used only for agent <-> tendermint communication recovery only!
+
+        :param restart_from_round: from which round to restart the abci. This round should be the first round in the last period.
+        :param round_count: the round count at the beginning of the period -1.
+        :param serialized_db_state: the state of the database at the beginning of the period. If provided, the database will be reset to this state.
+        """
+        self._reset_to_default_params()
+        self.abci_app.synchronized_data.db.round_count = round_count
+        if serialized_db_state is not None:
+            self.abci_app.synchronized_data.db.sync(serialized_db_state)
+            # When the agents prepare the recovery state, their db reflects the state of their last round.
+            # Furthermore, that hash is then in turn used as the init hash when the tm network is reset.
+            self._last_round_transition_root_hash = self.root_hash
+
+        self.abci_app.cleanup_timeouts()
+        round_id_to_cls = {
+            cls.auto_round_id(): cls for cls in self.abci_app.transition_function
+        }
+        restart_from_round_cls = round_id_to_cls.get(restart_from_round, None)
+        if restart_from_round_cls is None:
+            raise ABCIAppInternalError(
+                "Cannot reset state. The Tendermint recovery parameters are incorrect. "
+                "Did you update the `restart_from_round` with an incorrect round id? "
+                f"Found {restart_from_round}, but the app's transition function has the following round ids: "
+                f"{set(round_id_to_cls.keys())}."
+            )
+        self.abci_app.schedule_round(restart_from_round_cls)

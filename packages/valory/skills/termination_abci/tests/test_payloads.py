@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,10 +20,7 @@
 """Test the payloads.py module of the skill."""
 
 
-from packages.valory.skills.termination_abci.payloads import (
-    BackgroundPayload,
-    TransactionType,
-)
+from packages.valory.skills.termination_abci.payloads import BackgroundPayload
 
 
 def test_background_payload() -> None:
@@ -33,4 +30,3 @@ def test_background_payload() -> None:
 
     assert payload.background_data == data
     assert payload.data == {"background_data": data}
-    assert payload.transaction_type == TransactionType.BACKGROUND

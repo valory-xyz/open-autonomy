@@ -24,18 +24,20 @@ from setuptools import setup  # type: ignore
 
 
 base_deps = [
-    "open-aea[all]>=1.25.0.post1,<2.0.0",
-    "pytest==7.0.0",
-    "open-aea-ledger-ethereum==1.25.0",
+    "open-aea[all]>=1.33.0,<2.0.0",
+    "pytest==7.2.1",
+    "open-aea-ledger-ethereum==1.33.0",
     "docker==6.0.0",
 ]
 
 setup(
     name="open-aea-test-autonomy",
-    version="0.5.0.post2",
+    version="0.10.3",
     author="Valory AG",
     license="Apache-2.0",
     description="Plugin containing test tools for open-autonomy packages.",
+    long_description="Plugin containing test tools for open-autonomy packages.",
+    long_description_content_type="text/markdown",
     packages=find_packages(
         where=".", include=["aea_test_autonomy", "aea_test_autonomy.*"]
     ),

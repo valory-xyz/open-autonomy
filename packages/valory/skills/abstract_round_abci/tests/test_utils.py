@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,20 +20,30 @@
 """Test the utils.py module of the skill."""
 
 from collections import defaultdict
-from typing import Any, List, Type
+from string import printable
+from typing import Any, Dict, List, Tuple, Type
 from unittest import mock
 
 import pytest
-from hypothesis import assume, given
+from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
+from packages.valory.skills.abstract_round_abci.tests.conftest import profile_name
 from packages.valory.skills.abstract_round_abci.utils import (
+    DEFAULT_TENDERMINT_P2P_PORT,
     MAX_UINT64,
     VerifyDrand,
+    consensus_threshold,
+    filter_negative,
     get_data_from_nested_dict,
     get_value_with_type,
-    to_int,
+    is_json_serializable,
+    is_primitive_or_none,
+    parse_tendermint_p2p_url,
 )
+
+
+settings.load_profile(profile_name)
 
 
 # pylint: skip-file
@@ -135,23 +145,6 @@ def test_verify_randomness_hash_fuzz(input_bytes: bytes) -> None:
     VerifyDrand._verify_randomness_hash(input_bytes, input_bytes)
 
 
-def test_to_int_positive() -> None:
-    """Test `to_int` function."""
-    assert to_int(0.542, 5) == 54200
-    assert to_int(0.542, 2) == 54
-    assert to_int(542, 2) == 54200
-
-
-@given(
-    st.floats(width=64, allow_nan=False, allow_infinity=False),
-    st.integers(min_value=0, max_value=20),
-)
-@pytest.mark.skip(reason="https://github.com/valory-xyz/open-autonomy/issues/1614")
-def test_fuzz_to_int(estimate: float, decimals: int) -> None:
-    """Test fuzz to_int."""
-    to_int(estimate, decimals)
-
-
 @given(
     st.lists(st.text(), min_size=1, max_size=50),
     st.binary(),
@@ -201,3 +194,78 @@ def test_get_value_with_type(type_name: str, type_: Type, value: Any) -> None:
     actual = get_value_with_type(value, type_name)
     assert type(actual) == type_
     assert actual == value
+
+
+@pytest.mark.parametrize(
+    ("url", "expected_output"),
+    (
+        ("localhost", ("localhost", DEFAULT_TENDERMINT_P2P_PORT)),
+        ("localhost:80", ("localhost", 80)),
+        ("some.random.host:80", ("some.random.host", 80)),
+        ("1.1.1.1", ("1.1.1.1", DEFAULT_TENDERMINT_P2P_PORT)),
+        ("1.1.1.1:80", ("1.1.1.1", 80)),
+    ),
+)
+def test_parse_tendermint_p2p_url(url: str, expected_output: Tuple[str, int]) -> None:
+    """Test `parse_tendermint_p2p_url` method."""
+
+    assert parse_tendermint_p2p_url(url=url) == expected_output
+
+
+@given(
+    st.one_of(st.none(), st.integers(), st.floats(), st.text(), st.booleans()),
+    st.one_of(
+        st.nothing(),
+        st.frozensets(st.integers()),
+        st.sets(st.integers()),
+        st.lists(st.integers()),
+        st.dictionaries(st.integers(), st.integers()),
+        st.dates(),
+        st.complex_numbers(),
+        st.just(object()),
+    ),
+)
+def test_is_primitive_or_none(valid_obj: Any, invalid_obj: Any) -> None:
+    """Test `is_primitive_or_none`."""
+    assert is_primitive_or_none(valid_obj)
+    assert not is_primitive_or_none(invalid_obj)
+
+
+@given(
+    st.recursive(
+        st.none() | st.booleans() | st.floats() | st.text(printable),
+        lambda children: st.lists(children)
+        | st.dictionaries(st.text(printable), children),
+    ),
+    st.one_of(
+        st.nothing(),
+        st.frozensets(st.integers()),
+        st.sets(st.integers()),
+        st.dates(),
+        st.complex_numbers(),
+        st.just(object()),
+    ),
+)
+def test_is_json_serializable(valid_obj: Any, invalid_obj: Any) -> None:
+    """Test `is_json_serializable`."""
+    assert is_json_serializable(valid_obj)
+    assert not is_json_serializable(invalid_obj)
+
+
+@given(
+    positive=st.dictionaries(st.text(), st.integers(min_value=0)),
+    negative=st.dictionaries(st.text(), st.integers(max_value=-1)),
+)
+def test_filter_negative(positive: Dict[str, int], negative: Dict[str, int]) -> None:
+    """Test `filter_negative`."""
+    assert len(tuple(filter_negative(positive))) == 0
+    assert set(filter_negative(negative)) == set(negative.keys())
+
+
+@pytest.mark.parametrize(
+    "nb, threshold",
+    ((1, 1), (2, 2), (3, 3), (4, 3), (5, 4), (6, 5), (100, 67), (300, 201)),
+)
+def test_consensus_threshold(nb: int, threshold: int) -> None:
+    """Test `consensus_threshold`."""
+    assert consensus_threshold(nb) == threshold

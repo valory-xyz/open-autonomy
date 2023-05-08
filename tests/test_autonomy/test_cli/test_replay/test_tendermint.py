@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -38,6 +38,9 @@ from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
 
+OS_ENV_PATCH = mock.patch.dict(
+    os.environ, values={**os.environ, "ALL_PARTICIPANTS": "[]"}, clear=True
+)
 ADDRBOOK_DATA = {
     "key": "53f91939db980b06e7cfb145",
     "addrs": [
@@ -94,18 +97,18 @@ class TestTendermintRunner(BaseCliTest):
         """Test run."""
 
         os.chdir(self.t / "hello_world")
-        result = self.cli_runner.invoke(
-            cli,
-            (
-                "deploy",
-                "build",
-                str(self.keys_path),
-                "--force",
-                "--o",
-                str(self.t / DEFAULT_BUILD_FOLDER),
-                "--local",
-            ),
-        )
+        with OS_ENV_PATCH:
+            result = self.cli_runner.invoke(
+                cli,
+                (
+                    "deploy",
+                    "build",
+                    str(self.keys_path),
+                    "--o",
+                    str(self.t / DEFAULT_BUILD_FOLDER),
+                    "--local",
+                ),
+            )
 
         assert result.exit_code == 0, result.output
         os.chdir(self.t)

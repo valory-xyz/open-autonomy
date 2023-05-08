@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,11 +27,16 @@ from typing import Any, Tuple
 from unittest import mock
 
 from autonomy.cli import cli
+from autonomy.deploy.base import TENDERMINT_COM_URL_PARAM, TENDERMINT_URL_PARAM
 from autonomy.replay.agent import AgentRunner
 
 from tests.conftest import ROOT_DIR, skip_docker_tests
 from tests.test_autonomy.test_cli.base import BaseCliTest
 
+
+OS_ENV_PATCH = mock.patch.dict(
+    os.environ, values={**os.environ, "ALL_PARTICIPANTS": "[]"}, clear=True
+)
 
 DOCKER_COMPOSE_DATA = {
     "version": "2.4",
@@ -43,14 +48,13 @@ DOCKER_COMPOSE_DATA = {
             "container_name": "abci0",
             "image": "valory/open-autonomy-open-aea:oracle_deployable-0.1.0",
             "environment": [
+                "ID=DUMMY",
                 "LOG_FILE=DUMMY",
                 "AEA_KEY=DUMMY",
                 "VALORY_APPLICATION=DUMMY",
                 "ABCI_HOST=DUMMY",
-                "MAX_PARTICIPANTS=DUMMY",
-                "TENDERMINT_URL=DUMMY",
-                "TENDERMINT_COM_URL=DUMMY",
-                "ID=DUMMY",
+                f"SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_{TENDERMINT_URL_PARAM.upper()}=DUMMY",
+                f"SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_{TENDERMINT_COM_URL_PARAM.upper()}=DUMMY",
                 "SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_URL=DUMMY",
                 "SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_API_ID=DUMMY",
                 "SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_PARAMETERS=DUMMY",
@@ -58,7 +62,7 @@ DOCKER_COMPOSE_DATA = {
                 "SKILL_ORACLE_ABCI_MODELS_PRICE_API_ARGS_HEADERS=DUMMY",
                 "SKILL_ORACLE_ABCI_MODELS_RANDOMNESS_API_ARGS_URL=DUMMY",
                 "SKILL_ORACLE_ABCI_MODELS_RANDOMNESS_API_ARGS_API_ID=DUMMY",
-                "SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_OBSERVATION_INTERVAL=DUMMY",
+                "SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_RESET_PAUSE_DURATION=DUMMY",
                 "SKILL_ORACLE_ABCI_MODELS_PARAMS_ARGS_BROADCAST_TO_SERVER=DUMMY",
                 "SKILL_ORACLE_ABCI_MODELS_SERVER_API_ARGS_URL=DUMMY",
                 "SKILL_ORACLE_ABCI_MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR=DUMMY",
@@ -98,14 +102,13 @@ class TestAgentRunner(BaseCliTest):
     def test_run(self) -> None:
         """Test run."""
 
-        with mock.patch("os.chown"):
+        with mock.patch("os.chown"), OS_ENV_PATCH:
             result = self.cli_runner.invoke(
                 cli,
                 (
                     "deploy",
                     "build",
                     str(self.keys_path),
-                    "--force",
                     "--local",
                     "--o",
                     str(self.t / "abci_build"),

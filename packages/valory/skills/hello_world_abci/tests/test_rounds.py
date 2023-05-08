@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,14 +22,15 @@
 # pylint: skip-file
 
 import logging  # noqa: F401
-from typing import Dict, FrozenSet, cast
-from unittest import mock
+from typing import cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciAppDB,
-    AbstractRound,
-    ConsensusParams,
+    CollectionRound,
     MAX_INT_256,
+)
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
+    BaseRoundTestClass as ExternalBaseRoundTestClass,
 )
 from packages.valory.skills.hello_world_abci.payloads import (
     CollectRandomnessPayload,
@@ -53,75 +54,11 @@ MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
 
 
-def get_participants() -> FrozenSet[str]:
-    """Participants"""
-    return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
-
-
-def get_participant_to_randomness(
-    participants: FrozenSet[str], round_id: int
-) -> Dict[str, CollectRandomnessPayload]:
-    """participant_to_randomness"""
-    return {
-        participant: CollectRandomnessPayload(
-            sender=participant,
-            round_id=round_id,
-            randomness=RANDOMNESS,
-        )
-        for participant in participants
-    }
-
-
-def get_participant_to_selection(
-    participants: FrozenSet[str],
-) -> Dict[str, SelectKeeperPayload]:
-    """participant_to_selection"""
-    return {
-        participant: SelectKeeperPayload(sender=participant, keeper="keeper")
-        for participant in participants
-    }
-
-
-def get_participant_to_period_count(
-    participants: FrozenSet[str], period_count: int
-) -> Dict[str, ResetPayload]:
-    """participant_to_selection"""
-    return {
-        participant: ResetPayload(sender=participant, period_count=period_count)
-        for participant in participants
-    }
-
-
-class BaseRoundTestClass:
+class BaseRoundTestClass(ExternalBaseRoundTestClass):
     """Base test class for Rounds."""
 
-    synchronized_data: SynchronizedData
-    consensus_params: ConsensusParams
-    participants: FrozenSet[str]
-
-    @classmethod
-    def setup(
-        cls,
-    ) -> None:
-        """Setup the test class."""
-
-        cls.participants = get_participants()
-        cls.synchronized_data = SynchronizedData(
-            AbciAppDB(
-                setup_data=dict(
-                    participants=[cls.participants], all_participants=[cls.participants]
-                ),
-            )
-        )
-        cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
-
-    def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
-        """Test the NO_MAJORITY event."""
-        with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
-            result = round_obj.end_block()
-            assert result is not None
-            synchronized_data, event = result
-            assert event == Event.NO_MAJORITY
+    _synchronized_data_class = SynchronizedData
+    _event_class = Event
 
 
 class TestRegistrationRound(BaseRoundTestClass):
@@ -134,7 +71,6 @@ class TestRegistrationRound(BaseRoundTestClass):
 
         test_round = RegistrationRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -149,7 +85,7 @@ class TestRegistrationRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_behaviour = SynchronizedData(
-            AbciAppDB(setup_data=dict(participants=[test_round.collection]))
+            AbciAppDB(setup_data=dict(participants=[tuple(test_round.collection)]))
         )
 
         res = test_round.end_block()
@@ -172,7 +108,6 @@ class TestCollectRandomnessRound(BaseRoundTestClass):
 
         test_round = CollectRandomnessRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
         first_payload, *payloads = [
             CollectRandomnessPayload(
@@ -191,7 +126,7 @@ class TestCollectRandomnessRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_behaviour = self.synchronized_data.update(
-            participant_to_randomness=test_round.collection,
+            participant_to_randomness=test_round.serialized_collection,
             most_voted_randomness=test_round.most_voted_payload,
         )
 
@@ -220,7 +155,6 @@ class TestSelectKeeperRound(BaseRoundTestClass):
 
         test_round = SelectKeeperRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -238,7 +172,7 @@ class TestSelectKeeperRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_behaviour = self.synchronized_data.update(
-            participant_to_selection=test_round.collection,
+            participant_to_selection=test_round.serialized_collection,
             most_voted_keeper_address=test_round.most_voted_payload,
         )
 
@@ -267,7 +201,6 @@ class TestPrintMessageRound(BaseRoundTestClass):
 
         test_round = PrintMessageRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -282,16 +215,31 @@ class TestPrintMessageRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
+        printed_messages = [
+            cast(PrintMessagePayload, payload).message
+            for payload in test_round.collection.values()
+        ]
+
         actual_next_behaviour = SynchronizedData(
-            AbciAppDB(setup_data=dict(participants=[test_round.collection]))
+            AbciAppDB(
+                setup_data=dict(
+                    participants=[tuple(sorted(test_round.collection))],
+                    printed_messages=[sorted(printed_messages)],
+                )
+            )
         )
 
         res = test_round.end_block()
         assert res is not None
         synchronized_data, event = res
+
         assert (
             cast(SynchronizedData, synchronized_data).participants
             == cast(SynchronizedData, actual_next_behaviour).participants
+        )
+        assert (
+            cast(SynchronizedData, synchronized_data).printed_messages
+            == cast(SynchronizedData, actual_next_behaviour).printed_messages
         )
         assert event == Event.DONE
 
@@ -305,7 +253,6 @@ class TestResetAndPauseRound(BaseRoundTestClass):
         """Run tests."""
         test_round = ResetAndPauseRound(
             synchronized_data=self.synchronized_data,
-            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -322,10 +269,7 @@ class TestResetAndPauseRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_behaviour = self.synchronized_data.create(
-            participants=[self.synchronized_data.participants],
-            all_participants=[self.synchronized_data.all_participants],
-        )
+        actual_next_behaviour = self.synchronized_data.create()
 
         res = test_round.end_block()
         assert res is not None
@@ -342,19 +286,24 @@ class TestResetAndPauseRound(BaseRoundTestClass):
 def test_synchronized_data() -> None:  # pylint:too-many-locals
     """Test SynchronizedData."""
 
-    participants = get_participants()
-    setup_params = {}  # type: ignore
+    participants = tuple(f"agent_{i}" for i in range(MAX_PARTICIPANTS))
     participant_to_randomness = {
         participant: CollectRandomnessPayload(
             sender=participant, randomness=RANDOMNESS, round_id=0
         )
         for participant in participants
     }
+    participant_to_randomness_serialized = CollectionRound.serialize_collection(
+        participant_to_randomness
+    )
     most_voted_randomness = "0xabcd"
     participant_to_selection = {
         participant: SelectKeeperPayload(sender=participant, keeper="keeper")
         for participant in participants
     }
+    participant_to_selection_serialized = CollectionRound.serialize_collection(
+        participant_to_selection
+    )
     most_voted_keeper_address = "keeper"
 
     synchronized_data = SynchronizedData(
@@ -362,17 +311,17 @@ def test_synchronized_data() -> None:  # pylint:too-many-locals
             setup_data=AbciAppDB.data_to_lists(
                 dict(
                     participants=participants,
-                    setup_params=setup_params,
-                    participant_to_randomness=participant_to_randomness,
+                    setup_params={},
+                    participant_to_randomness=participant_to_randomness_serialized,
                     most_voted_randomness=most_voted_randomness,
-                    participant_to_selection=participant_to_selection,
+                    participant_to_selection=participant_to_selection_serialized,
                     most_voted_keeper_address=most_voted_keeper_address,
                 )
             ),
         )
     )
 
-    assert synchronized_data.participants == participants
+    assert synchronized_data.participants == frozenset(participants)
     assert synchronized_data.period_count == 0
     assert synchronized_data.participant_to_randomness == participant_to_randomness
     assert synchronized_data.most_voted_randomness == most_voted_randomness

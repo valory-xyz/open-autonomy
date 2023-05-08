@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ from textwrap import dedent, indent
 from typing import Dict, List
 
 from aea.cli.utils.context import Context
-from aea.protocols.generator.common import _camel_case_to_snake_case
 
 from autonomy.analyse.abci.app_spec import DFA
 from autonomy.fsm.scaffold.constants import (
@@ -101,11 +100,6 @@ class AbstractFileGenerator(ABC):
         return sorted(self.dfa.states - self.dfa.final_states)
 
     @property
-    def base_names(self) -> List[str]:
-        """Base names"""
-        return [s.replace(ROUND, "") for s in self.rounds]
-
-    @property
     def behaviours(self) -> List[str]:
         """Behaviours"""
         return [s.replace(ROUND, BEHAVIOUR) for s in self.rounds]
@@ -124,9 +118,6 @@ class AbstractFileGenerator(ABC):
             for event_name in self.dfa.alphabet_in
         ]
 
-        tx_type_list = list(map(_camel_case_to_snake_case, self.base_names))
-        tx_type_list = [f'{tx_type.upper()} = "{tx_type}"' for tx_type in tx_type_list]
-
         tf = json.dumps(self.dfa.parse_transition_func(), indent=4)
         behaviours = json.dumps(self.behaviours, indent=4)
 
@@ -139,7 +130,6 @@ class AbstractFileGenerator(ABC):
             all_rounds=_indent_wrapper(",\n".join(self.all_rounds)),
             behaviours=_indent_wrapper(",\n".join(self.behaviours)),
             payloads=_indent_wrapper(",\n".join(self.payloads)),
-            tx_types=_indent_wrapper("\n".join(tx_type_list)),
             events=_indent_wrapper("\n".join(events_list)),
             initial_round_cls=self.dfa.default_start_state,
             initial_states=_remove_quotes(str(self.dfa.start_states)),
@@ -153,4 +143,10 @@ class AbstractFileGenerator(ABC):
             ),
             InitialBehaviourCls=self.dfa.default_start_state.replace(ROUND, BEHAVIOUR),
             round_behaviours=_indent_wrapper(_remove_quotes(str(behaviours))),
+            db_pre_conditions=_indent_wrapper(
+                "\n".join([f"\t{round}: []," for round in self.dfa.start_states])
+            ),
+            db_post_conditions=_indent_wrapper(
+                "\n".join([f"\t{round}: []," for round in self.dfa.final_states])
+            ),
         )

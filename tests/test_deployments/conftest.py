@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import logging
 import socket
 import time
 import urllib
-from typing import Generator
+from typing import Generator, cast
 
 import pytest
 import requests
@@ -51,7 +51,7 @@ def loopback() -> str:
 @pytest.fixture(scope="session")
 def rpc_port() -> int:
     """The Tendermint RPC port."""
-    return __RPC_PORT
+    return cast(int, __RPC_PORT)
 
 
 @pytest.fixture(scope="session")

@@ -29,10 +29,24 @@ Class to assist with generating deployments.
 #### `__`init`__`
 
 ```python
-def __init__(service: Service, keys: Optional[List[Dict[str, str]]] = None, private_keys_password: Optional[str] = None, agent_instances: Optional[List[str]] = None, apply_environment_variables: bool = False) -> None
+def __init__(service: Service,
+             keys: Optional[List[Dict[str, str]]] = None,
+             private_keys_password: Optional[str] = None,
+             agent_instances: Optional[List[str]] = None,
+             apply_environment_variables: bool = False) -> None
 ```
 
 Initialize the Base Deployment.
+
+<a id="autonomy.deploy.base.ServiceBuilder.try_get_all_participants"></a>
+
+#### try`_`get`_`all`_`participants
+
+```python
+def try_get_all_participants() -> Optional[List[str]]
+```
+
+Try get all participants from the ABCI overrides
 
 <a id="autonomy.deploy.base.ServiceBuilder.private_keys_password"></a>
 
@@ -84,7 +98,13 @@ Keys.
 
 ```python
 @classmethod
-def from_dir(cls, path: Path, keys_file: Optional[Path] = None, number_of_agents: Optional[int] = None, private_keys_password: Optional[str] = None, agent_instances: Optional[List[str]] = None, apply_environment_variables: bool = False) -> "ServiceBuilder"
+def from_dir(cls,
+             path: Path,
+             keys_file: Optional[Path] = None,
+             number_of_agents: Optional[int] = None,
+             private_keys_password: Optional[str] = None,
+             agent_instances: Optional[List[str]] = None,
+             apply_environment_variables: bool = False) -> "ServiceBuilder"
 ```
 
 Service builder from path.
@@ -95,7 +115,8 @@ Service builder from path.
 
 ```python
 @staticmethod
-def verify_agent_instances(keys: List[Dict[str, str]], agent_instances: List[str]) -> None
+def verify_agent_instances(keys: List[Dict[str, str]],
+                           agent_instances: List[str]) -> None
 ```
 
 Cross verify agent instances with the keys.
@@ -110,15 +131,38 @@ def read_keys(keys_file: Path) -> None
 
 Read in keys from a file on disk.
 
-<a id="autonomy.deploy.base.ServiceBuilder.try_update_multisig_address"></a>
+<a id="autonomy.deploy.base.ServiceBuilder.try_update_runtime_params"></a>
 
-#### try`_`update`_`multisig`_`address
+#### try`_`update`_`runtime`_`params
 
 ```python
-def try_update_multisig_address(address: str) -> None
+def try_update_runtime_params(
+        multisig_address: Optional[str] = None,
+        agent_instances: Optional[List[str]] = None,
+        consensus_threshold: Optional[int] = None) -> None
 ```
 
-Try and update multisig address if `safe_contract_address` parameter is defined.
+Try and update setup parameters.
+
+<a id="autonomy.deploy.base.ServiceBuilder.get_maximum_participants"></a>
+
+#### get`_`maximum`_`participants
+
+```python
+def get_maximum_participants() -> int
+```
+
+Returns the maximum number of participants
+
+<a id="autonomy.deploy.base.ServiceBuilder.try_update_abci_connection_params"></a>
+
+#### try`_`update`_`abci`_`connection`_`params
+
+```python
+def try_update_abci_connection_params() -> None
+```
+
+Try and update ledger connection parameters.
 
 <a id="autonomy.deploy.base.ServiceBuilder.process_component_overrides"></a>
 
@@ -155,7 +199,8 @@ Retrieve vars common for agent.
 #### generate`_`agent
 
 ```python
-def generate_agent(agent_n: int, override_idx: Optional[int] = None) -> Dict[Any, Any]
+def generate_agent(agent_n: int,
+                   override_idx: Optional[int] = None) -> Dict[Any, Any]
 ```
 
 Generate next agent.
@@ -175,7 +220,14 @@ Base Deployment Class.
 #### `__`init`__`
 
 ```python
-def __init__(service_builder: ServiceBuilder, build_dir: Path, dev_mode: bool = False, packages_dir: Optional[Path] = None, open_aea_dir: Optional[Path] = None, open_autonomy_dir: Optional[Path] = None)
+def __init__(service_builder: ServiceBuilder,
+             build_dir: Path,
+             use_tm_testnet_setup: bool = False,
+             dev_mode: bool = False,
+             packages_dir: Optional[Path] = None,
+             open_aea_dir: Optional[Path] = None,
+             open_autonomy_dir: Optional[Path] = None,
+             image_author: Optional[str] = None)
 ```
 
 Initialise with only kwargs.
@@ -186,7 +238,9 @@ Initialise with only kwargs.
 
 ```python
 @abc.abstractmethod
-def generate(image_version: Optional[str] = None, use_hardhat: bool = False, use_acn: bool = False) -> "BaseDeploymentGenerator"
+def generate(image_version: Optional[str] = None,
+             use_hardhat: bool = False,
+             use_acn: bool = False) -> "BaseDeploymentGenerator"
 ```
 
 Generate the deployment configuration.

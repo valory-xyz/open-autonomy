@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,11 +20,12 @@
 """Scaffold skill from an FSM"""
 
 
+import itertools
 import os
 import re
 import shutil
 from pathlib import Path
-from typing import Dict, List, Type
+from typing import Dict, List, Optional, Type
 
 import click
 from aea.cli.fingerprint import fingerprint_item
@@ -42,10 +43,13 @@ from aea.configurations.constants import (
 )
 
 # the decoration does side-effect on the 'aea scaffold' command
-from aea.configurations.data_types import CRUDCollection
+from aea.configurations.data_types import CRUDCollection, PackageType, PublicId
+from aea.helpers.ipfs.base import IPFSHashOnly
+from aea.package_manager.v1 import PackageManagerV1
 
 from autonomy.analyse.abci.app_spec import DFA, FSMSpecificationLoader
 from autonomy.configurations.constants import INIT_PY, PYCACHE
+from autonomy.constants import ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH
 from autonomy.fsm.scaffold.base import AbstractFileGenerator
 from autonomy.fsm.scaffold.constants import ABCI_APP, ROUND_BEHAVIOUR
 from autonomy.fsm.scaffold.generators.components import (
@@ -65,6 +69,11 @@ from autonomy.fsm.scaffold.generators.tests import (
     RoundTestsFileGenerator,
 )
 from autonomy.fsm.scaffold.templates import COPYRIGHT_HEADER
+
+
+TO_LOCAL_REGISTRY_FLAG = "to_local_registry"
+
+ABSTRACT_ROUND_SKILL_PUBLIC_ID = PublicId.from_str(ABSTRACT_ROUND_ABCI_SKILL_WITH_HASH)
 
 
 class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
@@ -92,7 +101,12 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         self._update_models(config)
         self._update_dependencies(config)
         self.ctx.skill_loader.dump(config, self.skill_config_path.open("w"))
+        # TODO: update fingerprint_item to use path instead of context
+        preserve_cwd = self.ctx.cwd
+        if self.ctx.config.get(TO_LOCAL_REGISTRY_FLAG):
+            self.ctx.cwd = Path(self.ctx.registry_path) / self.ctx.agent_config.author
         fingerprint_item(self.ctx, SKILL, config.public_id)
+        self.ctx.cwd = preserve_cwd
 
     def _update_behaviours(self, config: SkillConfig) -> None:
         """Update the behaviours section of the skill configuration."""
@@ -107,7 +121,7 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
     ) -> None:
         """Update the handlers section of the skill configuration."""
         config.handlers = CRUDCollection[SkillComponentConfiguration]()
-        config.handlers.create("abci", SkillComponentConfiguration("ABCIRoundHandler"))
+        config.handlers.create("abci", SkillComponentConfiguration("ABCIHandler"))
         config.handlers.create(
             "contract_api", SkillComponentConfiguration("ContractApiHandler")
         )
@@ -119,6 +133,7 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         config.handlers.create(
             "tendermint", SkillComponentConfiguration("TendermintHandler")
         )
+        config.handlers.create("ipfs", SkillComponentConfiguration("IpfsHandler"))
 
     def _update_models(  # pylint: disable=no-self-use
         self, config: SkillConfig
@@ -154,21 +169,58 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         config.models.create(
             "tendermint_dialogues", SkillComponentConfiguration("TendermintDialogues")
         )
+        config.models.create(
+            "ipfs_dialogues", SkillComponentConfiguration("IpfsDialogues")
+        )
+
+    @classmethod
+    def get_actual_abstract_round_abci_package_public_id(
+        cls, ctx: Context
+    ) -> Optional[PublicId]:
+        """Get abstract round abci pacakge id from the registry."""
+        package_manager = PackageManagerV1.from_dir(Path(ctx.registry_path))
+        packages = [
+            package_id.public_id
+            for package_id in itertools.chain(
+                package_manager.third_party_packages.keys(),
+                package_manager.dev_packages.keys(),
+            )
+            if (
+                package_id.public_id.without_hash().to_any()
+                == ABSTRACT_ROUND_SKILL_PUBLIC_ID.without_hash().to_any()
+                and package_id.package_type == PackageType.SKILL
+            )
+        ]
+        if not packages:
+            return None
+        abstract_round_abci, *_ = packages
+        return abstract_round_abci
 
     def _update_dependencies(self, config: SkillConfig) -> None:
         """Update skill dependencies."""
         # retrieve the actual valory/abstract_round_abci package
-        agent_config = self._load_agent_config()
-        abstract_round_abci = [
-            public_id
-            for public_id in agent_config.skills
-            if public_id.author == "valory" and public_id.name == "abstract_round_abci"
-        ][0]
+
+        if self.ctx.config.get(TO_LOCAL_REGISTRY_FLAG):
+            abstract_round_abci = self.get_actual_abstract_round_abci_package_public_id(
+                self.ctx
+            )
+            if not abstract_round_abci:
+                raise ValueError("valory/abstract_round_abci package not found")
+        else:
+            agent_config = self._load_agent_config()
+            abstract_round_abci = [
+                public_id
+                for public_id in agent_config.skills
+                if public_id.author == ABSTRACT_ROUND_SKILL_PUBLIC_ID.author
+                and public_id.name == ABSTRACT_ROUND_SKILL_PUBLIC_ID.name
+            ][0]
+
         config.skills.add(abstract_round_abci)
 
     def _load_agent_config(self) -> AgentConfig:
         """Load the current agent configuration."""
-        with (Path(self.ctx.cwd) / DEFAULT_AEA_CONFIG_FILE).open() as f:
+        agent_config_path = Path(self.ctx.cwd) / DEFAULT_AEA_CONFIG_FILE
+        with agent_config_path.open() as f:
             return self.ctx.agent_loader.load(f)
 
     @property
@@ -180,28 +232,8 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
         return {
             "cleanup_history_depth": 1,
             "cleanup_history_depth_current": None,
-            "consensus": {"max_participants": 1},
             "drand_public_key": "868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31",
             "finalize_timeout": 60.0,
-            "history_check_timeout": 1205,
-            "keeper_allowed_retries": 3,
-            "keeper_timeout": 30.0,
-            "max_healthcheck": 120,
-            "observation_interval": 10,
-            "on_chain_service_id": None,
-            "reset_tendermint_after": 2,
-            "retry_attempts": 400,
-            "retry_timeout": 3,
-            "round_timeout_seconds": 30.0,
-            "service_id": service_id,
-            "service_registry_address": None,
-            "setup": {},
-            "sleep_time": 1,
-            "tendermint_check_sleep_delay": 3,
-            "tendermint_com_url": "http://localhost:8080",
-            "tendermint_max_retries": 5,
-            "tendermint_url": "http://localhost:26657",
-            "validate_timeout": 1205,
             "genesis_config": {
                 "genesis_time": "2022-05-20T16:00:21.735122717Z",
                 "chain_id": "chain-c4daS1",
@@ -221,6 +253,36 @@ class SkillConfigUpdater:  # pylint: disable=too-few-public-methods
                 },
                 "voting_power": "10",
             },
+            "history_check_timeout": 1205,
+            "ipfs_domain_name": None,
+            "keeper_allowed_retries": 3,
+            "keeper_timeout": 30.0,
+            "max_attempts": 10,
+            "max_healthcheck": 120,
+            "reset_pause_duration": 10,
+            "on_chain_service_id": None,
+            "request_retry_delay": 1.0,
+            "request_timeout": 10.0,
+            "reset_tendermint_after": 2,
+            "retry_attempts": 400,
+            "retry_timeout": 3,
+            "round_timeout_seconds": 30.0,
+            "service_id": service_id,
+            "service_registry_address": None,
+            "setup": {
+                "all_participants": ["0x0000000000000000000000000000000000000000"],
+                "safe_contract_address": "0x0000000000000000000000000000000000000000",
+                "consensus_threshold": None,
+            },
+            "share_tm_config_on_startup": False,
+            "sleep_time": 1,
+            "tendermint_check_sleep_delay": 3,
+            "tendermint_com_url": "http://localhost:8080",
+            "tendermint_max_retries": 5,
+            "tendermint_p2p_url": "localhost:26656",
+            "tendermint_url": "http://localhost:26657",
+            "tx_timeout": 10.0,
+            "validate_timeout": 1205,
         }
 
 
@@ -260,7 +322,14 @@ class ScaffoldABCISkill:
     @property
     def skill_dir(self) -> Path:
         """Get the directory to the skill."""
-        return Path(SKILLS, self.skill_name)
+        if self.ctx.config.get(TO_LOCAL_REGISTRY_FLAG):
+            return Path(
+                self.ctx.registry_path,
+                self.ctx.agent_config.author,
+                SKILLS,
+                self.skill_name,
+            )
+        return Path(self.ctx.cwd, SKILLS, self.skill_name)
 
     @property
     def skill_test_dir(self) -> Path:
@@ -269,9 +338,8 @@ class ScaffoldABCISkill:
 
     def do_scaffolding(self) -> None:
         """Do the scaffolding."""
-
-        self.skill_dir.mkdir(exist_ok=True)
-        self.skill_test_dir.mkdir(exist_ok=True)
+        self.skill_dir.mkdir(parents=True, exist_ok=True)
+        self.skill_test_dir.mkdir(parents=True, exist_ok=True)
 
         file_dirs = self.skill_dir, self.skill_test_dir
         file_gens = self.file_generators, self.test_file_generators
@@ -287,6 +355,19 @@ class ScaffoldABCISkill:
         self._update_init_py()
         self._copy_spec_file()
         self._update_config()
+
+    def add_skill_to_packages(self) -> None:
+        """Add skill to packages.json if scaffolded to local packages repository"""
+
+        click.echo("Adding skill package to `packages.json` file...")
+        config = self.ctx.skill_loader.load(
+            (self.skill_dir / DEFAULT_SKILL_CONFIG_FILE).open()
+        )
+        package_manager = PackageManagerV1.from_dir(Path(self.ctx.registry_path))
+        package_manager.dev_packages[config.package_id] = IPFSHashOnly.hash_directory(
+            dir_path=self.skill_dir,
+        )
+        package_manager.dump()
 
     def _update_config(self) -> None:
         """Update the skill configuration."""

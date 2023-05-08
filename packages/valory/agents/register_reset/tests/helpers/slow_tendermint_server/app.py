@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ from typing import Any, Callable, Dict, Optional, Tuple
 from flask import Flask, Response, jsonify, request
 from werkzeug.exceptions import InternalServerError, NotFound
 
-from packages.valory.agents.register_reset.tests.helpers.slow_tendermint_server.tendermint import (  # type: ignore
+from packages.valory.agents.register_reset.tests.helpers.slow_tendermint_server.tendermint import (
     TendermintNode,
     TendermintParams,
 )
@@ -168,6 +168,7 @@ def create_app(
                 request.args.get("genesis_time", defaults["genesis_time"]),
                 # default should be 1: https://github.com/tendermint/tendermint/pull/5191/files
                 request.args.get("initial_height", "1"),
+                request.args.get("period_count", "0"),
             )
             tendermint_node.start(start_monitoring=perform_monitoring)
             # we assume we have a 5 seconds delay between the time the tendermint node starts
@@ -181,13 +182,13 @@ def create_app(
         except Exception as e:  # pylint: disable=W0703
             return jsonify({"message": f"Reset failed: {e}", "status": False}), 200
 
-    @app.errorhandler(404)  # type: ignore
+    @app.errorhandler(404)
     def handle_notfound(e: NotFound) -> Response:
         """Handle server error."""
         app.logger.info(e)  # pylint: disable=E
         return Response("Not Found", status=404, mimetype="application/json")
 
-    @app.errorhandler(500)  # type: ignore
+    @app.errorhandler(500)
     def handle_server_error(e: InternalServerError) -> Response:
         """Handle server error."""
         app.logger.info(e)  # pylint: disable=E

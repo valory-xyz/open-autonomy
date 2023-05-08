@@ -2,15 +2,16 @@ FROM alpine:3.7
 MAINTAINER Valory AG
 
 ENV TENDERMINT_VERSION=0.34.19
+ENV USE_GRPC=false
 
 RUN apk update && \
     apk upgrade && \
     apk --no-cache add curl jq file net-tools \
     python3 bash py3-pip
 
-RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh &&\
-    chmod u+x wait-for-it.sh &&\
-    mv wait-for-it.sh /usr/local/bin
+COPY wait-for-it.sh .
+RUN  chmod u+x wait-for-it.sh
+RUN  mv wait-for-it.sh /usr/local/bin
 
 # Download Tendermint
 RUN curl -L https://github.com/tendermint/tendermint/releases/download/v${TENDERMINT_VERSION}/tendermint_${TENDERMINT_VERSION}_linux_amd64.tar.gz > tendermint.tar.gz &&\

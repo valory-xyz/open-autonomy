@@ -14,35 +14,35 @@ class AbstractLoader(ABC)
 
 An abstract `Loader` class.
 
-<a id="packages.valory.skills.abstract_round_abci.io_.load.AbstractLoader.load_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load.AbstractLoader.load_single_object"></a>
 
-#### load`_`single`_`file
+#### load`_`single`_`object
 
 ```python
 @abstractmethod
-def load_single_file(path: str) -> SupportedSingleObjectType
+def load_single_object(
+        serialized_object: str) -> NativelySupportedSingleObjectType
 ```
 
-Load a single file.
+Load a single object.
 
 <a id="packages.valory.skills.abstract_round_abci.io_.load.AbstractLoader.load"></a>
 
 #### load
 
 ```python
-def load(path: str, multiple: bool) -> SupportedObjectType
+def load(serialized_objects: Dict[str, str]) -> SupportedObjectType
 ```
 
-Load one or more files.
+Load one or more serialized objects.
 
 **Arguments**:
 
-- `path`: the path to the file to load. If multiple, then the path should be a folder with the files.
-- `multiple`: whether multiple files are expected to be loaded. The path should be a folder with the files.
+- `serialized_objects`: A mapping of filenames to serialized object they contained.
 
 **Returns**:
 
-the loaded file.
+the loaded file(s).
 
 <a id="packages.valory.skills.abstract_round_abci.io_.load.JSONLoader"></a>
 
@@ -54,19 +54,20 @@ class JSONLoader(AbstractLoader)
 
 A JSON file loader.
 
-<a id="packages.valory.skills.abstract_round_abci.io_.load.JSONLoader.load_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load.JSONLoader.load_single_object"></a>
 
-#### load`_`single`_`file
+#### load`_`single`_`object
 
 ```python
-def load_single_file(path: str) -> NativelySupportedSingleObjectType
+def load_single_object(
+        serialized_object: str) -> NativelySupportedSingleObjectType
 ```
 
 Read a json file.
 
 **Arguments**:
 
-- `path`: the path to retrieve the json file from.
+- `serialized_object`: the file serialized into a JSON string.
 
 **Returns**:
 
@@ -80,7 +81,7 @@ the deserialized json file's content.
 class Loader(AbstractLoader)
 ```
 
-Class which loads files.
+Class which loads objects.
 
 <a id="packages.valory.skills.abstract_round_abci.io_.load.Loader.__init__"></a>
 
@@ -92,12 +93,12 @@ def __init__(filetype: Optional[Any], custom_loader: CustomLoaderType)
 
 Initialize a `Loader`.
 
-<a id="packages.valory.skills.abstract_round_abci.io_.load.Loader.load_single_file"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.load.Loader.load_single_object"></a>
 
-#### load`_`single`_`file
+#### load`_`single`_`object
 
 ```python
-def load_single_file(path: str) -> SupportedSingleObjectType
+def load_single_object(serialized_object: str) -> SupportedSingleObjectType
 ```
 
 Load a single file.

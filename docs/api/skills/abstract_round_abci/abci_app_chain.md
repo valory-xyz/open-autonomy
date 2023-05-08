@@ -19,8 +19,16 @@ Checks that all elements in the set list are unique and not repeated among diffe
 #### chain
 
 ```python
-def chain(abci_apps: Tuple[Type[AbciApp], ...], abci_app_transition_mapping: AbciAppTransitionMapping) -> Type[AbciApp]
+def chain(
+        abci_apps: Tuple[Type[AbciApp], ...],
+        abci_app_transition_mapping: AbciAppTransitionMapping
+) -> Type[AbciApp]
 ```
 
 Concatenate multiple AbciApp types.
+
+The consistency checks assume that the first element in
+abci_apps is the entry-point abci_app (i.e. the associated round of
+the  initial_behaviour_cls of the AbstractRoundBehaviour in which
+the chained AbciApp is used is one of the initial_states of the first element.)
 

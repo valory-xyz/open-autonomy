@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 
 """Deployment helpers."""
 import os
-import shutil
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -29,15 +28,18 @@ from aea.helpers.base import cd
 from compose.cli import main as docker_compose
 from compose.config.errors import ConfigurationError
 from docker.errors import NotFound
-from requests.exceptions import ConnectionError as RequestsConnectionError
 from web3.exceptions import BadFunctionCallOutput
 
+from autonomy.chain.config import ChainType, ContractConfigs
+from autonomy.chain.exceptions import FailedToRetrieveComponentMetadata
+from autonomy.chain.service import get_agent_instances, get_service_info
+from autonomy.chain.utils import resolve_component_id
+from autonomy.cli.helpers.chain import get_ledger_and_crypto_objects
 from autonomy.cli.helpers.registry import fetch_service_ipfs
 from autonomy.configurations.constants import DEFAULT_SERVICE_CONFIG_FILE
 from autonomy.configurations.loader import load_service_config
 from autonomy.constants import DEFAULT_BUILD_FOLDER
 from autonomy.deploy.build import generate_deployment
-from autonomy.deploy.chain import ServiceRegistry
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
     BENCHMARKS_DIR,
@@ -47,7 +49,7 @@ from autonomy.deploy.constants import (
     TM_STATE_DIR,
     VENVS_DIR,
 )
-from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
+from autonomy.deploy.generators.kubernetes.base import KubernetesGenerator
 from autonomy.deploy.image import build_image
 
 
@@ -67,7 +69,7 @@ def _build_dirs(build_dir: Path) -> None:
         # TOFIX: remove this safely
         try:
             os.chown(path, 1000, 1000)
-        except PermissionError:
+        except PermissionError:  # pragma: no cover
             click.echo(
                 f"Updating permissions failed for {path}, please do it manually."
             )
@@ -81,7 +83,7 @@ def run_deployment(
     click.echo(f"Running build @ {build_dir}")
     try:
         project = docker_compose.project_from_options(build_dir, {})
-    except ConfigurationError as e:
+    except ConfigurationError as e:  # pragma: no cover
         if "Invalid interpolation format" in e.msg:
             raise click.ClickException(
                 "Provided docker compose file contains environment placeholders, "
@@ -114,7 +116,7 @@ def run_deployment(
                 "SERVICE": None,
             }
         )
-    except NotFound as e:
+    except NotFound as e:  # pragma: no cover
         raise click.ClickException(e.explanation)
 
 
@@ -123,7 +125,6 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     build_dir: Path,
     deployment_type: str,
     dev_mode: bool,
-    force_overwrite: bool,
     number_of_agents: Optional[int] = None,
     password: Optional[str] = None,
     packages_dir: Optional[Path] = None,
@@ -131,20 +132,24 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
     open_autonomy_dir: Optional[Path] = None,
     agent_instances: Optional[List[str]] = None,
     multisig_address: Optional[str] = None,
+    consensus_threshold: Optional[int] = None,
     log_level: str = INFO,
     apply_environment_variables: bool = False,
     image_version: Optional[str] = None,
     use_hardhat: bool = False,
     use_acn: bool = False,
+    use_tm_testnet_setup: bool = False,
+    image_author: Optional[str] = None,
 ) -> None:
     """Build deployment."""
-    if build_dir.is_dir():
-        if not force_overwrite:
-            raise click.ClickException(f"Build already exists @ {build_dir}")
-        shutil.rmtree(build_dir)
+
+    if build_dir.is_dir():  # pragma: no cover
+        raise click.ClickException(f"Build already exists @ {build_dir}")
 
     if not (Path.cwd() / DEFAULT_SERVICE_CONFIG_FILE).exists():
-        raise FileNotFoundError(f"No service configuration found at {Path.cwd()}")
+        raise FileNotFoundError(
+            f"No service configuration found at {Path.cwd()}"
+        )  # pragma: no cover
 
     click.echo(f"Building deployment @ {build_dir}")
     build_dir.mkdir()
@@ -163,65 +168,72 @@ def build_deployment(  # pylint: disable=too-many-arguments, too-many-locals
         open_autonomy_dir=open_autonomy_dir,
         agent_instances=agent_instances,
         multisig_address=multisig_address,
+        consensus_threshold=consensus_threshold,
         log_level=log_level,
         apply_environment_variables=apply_environment_variables,
         image_version=image_version,
         use_hardhat=use_hardhat,
         use_acn=use_acn,
+        use_tm_testnet_setup=use_tm_testnet_setup,
+        image_author=image_author,
     )
     click.echo(report)
 
 
 def _resolve_on_chain_token_id(
     token_id: int,
-    chain_type: str,
-    rpc_url: Optional[str],
-    service_contract_address: Optional[str],
-) -> Tuple[Dict[str, str], List[str], str]:
+    chain_type: ChainType,
+) -> Tuple[Dict[str, str], List[str], str, int]:
     """Resolve service metadata from tokenID"""
 
-    service_registry = ServiceRegistry(chain_type, rpc_url, service_contract_address)
-    click.echo(
-        "Fetching service metadata using:\n"
-        + f"\tRPC: {service_registry.rpc_url}\n"
-        + f"\tContract: {service_registry.service_contract_address}"
-    )
+    ledger_api, _ = get_ledger_and_crypto_objects(chain_type=chain_type)
+    contract_address = ContractConfigs.service_registry.contracts[chain_type]
+
+    click.echo(f"Fetching service metadata using chain type {chain_type.value}")
 
     try:
-        metadata = service_registry.resolve_token_id(token_id)
-        _, agent_instances = service_registry.get_agent_instances(token_id)
-        _, multisig_address, *_ = service_registry.get_service_info(token_id)
-    except RequestsConnectionError as e:
-        raise click.ClickException(
-            f"Error connecting RPC endpoint; RPC={service_registry.rpc_url}"
-        ) from e
+        metadata = resolve_component_id(
+            ledger_api=ledger_api, contract_address=contract_address, token_id=token_id
+        )
+        info = get_agent_instances(
+            ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
+        )
+        agent_instances = info["agentInstances"]
+        (_, multisig_address, _, consensus_threshold, *_,) = get_service_info(
+            ledger_api=ledger_api, chain_type=chain_type, token_id=token_id
+        )
+    except FailedToRetrieveComponentMetadata as e:
+        raise click.ClickException(str(e)) from e
     except BadFunctionCallOutput as e:
         raise click.ClickException(
-            f"Cannot find the service registry deployment; Service contract address {service_registry.service_contract_address}"
+            f"Cannot find the service registry deployment; Service contract address {contract_address}"
         ) from e
 
-    return metadata, agent_instances, multisig_address
+    return metadata, agent_instances, multisig_address, consensus_threshold
 
 
 def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many-locals
     token_id: int,
     keys_file: Path,
-    chain_type: str,
-    rpc_url: Optional[str],
-    service_contract_address: Optional[str],
+    chain_type: ChainType,
     skip_image: bool,
     n: Optional[int],
+    deployment_type: str,
     aev: bool = False,
     password: Optional[str] = None,
+    no_deploy: bool = False,
 ) -> None:
     """Build and run deployment from tokenID."""
 
     click.echo(f"Building service deployment using token ID: {token_id}")
-    service_metadata, agent_instances, multisig_address = _resolve_on_chain_token_id(
+    (
+        service_metadata,
+        agent_instances,
+        multisig_address,
+        consensus_threshold,
+    ) = _resolve_on_chain_token_id(
         token_id=token_id,
         chain_type=chain_type,
-        rpc_url=rpc_url,
-        service_contract_address=service_contract_address,
     )
 
     click.echo("Service name: " + service_metadata["name"])
@@ -234,12 +246,12 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
         build_deployment(
             keys_file=keys_file,
             build_dir=build_dir,
-            deployment_type=DockerComposeGenerator.deployment_type,
+            deployment_type=deployment_type,
             dev_mode=False,
-            force_overwrite=True,
             number_of_agents=n,
             agent_instances=agent_instances,
             multisig_address=multisig_address,
+            consensus_threshold=consensus_threshold,
             apply_environment_variables=aev,
             password=password,
         )
@@ -249,4 +261,8 @@ def build_and_deploy_from_token(  # pylint: disable=too-many-arguments, too-many
             build_image(agent=service.agent)
 
     click.echo("Service build successful.")
+    if no_deploy or deployment_type == KubernetesGenerator.deployment_type:
+        return
+
+    click.echo("Running deployment")
     run_deployment(build_dir)

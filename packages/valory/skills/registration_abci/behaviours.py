@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abci' skill."""
-
+import datetime
 import json
+from abc import ABC
 from enum import Enum
 from typing import Any, Dict, Generator, Optional, Set, Type, cast
 
@@ -32,11 +33,15 @@ from packages.valory.contracts.service_registry.contract import ServiceRegistryC
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.tendermint import TendermintMessage
+from packages.valory.skills.abstract_round_abci.base import ABCIAppInternalError
+from packages.valory.skills.abstract_round_abci.behaviour_utils import TimeoutException
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseBehaviour,
 )
+from packages.valory.skills.abstract_round_abci.utils import parse_tendermint_p2p_url
 from packages.valory.skills.registration_abci.dialogues import TendermintDialogues
+from packages.valory.skills.registration_abci.models import SharedState
 from packages.valory.skills.registration_abci.payloads import RegistrationPayload
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
@@ -45,10 +50,11 @@ from packages.valory.skills.registration_abci.rounds import (
 )
 
 
-NODE = "node{i}"
+NODE = "node_{address}"
+WAIT_FOR_BLOCK_TIMEOUT = 60.0  # 1 minute
 
 
-class RegistrationBaseBehaviour(BaseBehaviour):
+class RegistrationBaseBehaviour(BaseBehaviour, ABC):
     """Agent registration to the FSM App."""
 
     def async_act(self) -> Generator:
@@ -63,13 +69,9 @@ class RegistrationBaseBehaviour(BaseBehaviour):
         """
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            initialisation = (
-                json.dumps(self.synchronized_data.db.setup_data, sort_keys=True)
-                if self.synchronized_data.db.setup_data != {}
-                else None
-            )
+            serialized_db = self.synchronized_data.db.serialize()
             payload = RegistrationPayload(
-                self.context.agent_address, initialisation=initialisation
+                self.context.agent_address, initialisation=serialized_db
             )
 
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
@@ -83,12 +85,20 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     """Agent registration to the FSM App."""
 
     ENCODING: str = "utf-8"
-    state_id = "registration_startup"
-    behaviour_id = "registration_startup"
     matching_round = RegistrationStartupRound
     local_tendermint_params: Dict[str, Any] = {}
     updated_genesis_data: Dict[str, Any] = {}
     collection_complete: bool = False
+
+    @property
+    def initial_tm_configs(self) -> Dict[str, Dict[str, Any]]:
+        """A mapping of the other agents' addresses to their initial Tendermint configuration."""
+        return self.context.state.initial_tm_configs
+
+    @initial_tm_configs.setter
+    def initial_tm_configs(self, configs: Dict[str, Dict[str, Any]]) -> None:
+        """A mapping of the other agents' addresses to their initial Tendermint configuration."""
+        self.context.state.initial_tm_configs = configs
 
     class LogMessages(Enum):
         """Log messages used in RegistrationStartupBehaviour"""
@@ -115,6 +125,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         failed_update = "Failed update Tendermint node configuration"
         # exceptions
         no_contract_address = "Service registry contract address not provided"
+        no_on_chain_service_id = "On-chain service id not provided"
         contract_incorrect = "Service registry contract not correctly deployed"
         no_agents_registered = "No agents registered on-chain"
         self_not_registered = "This agent is not registered on-chain"
@@ -122,14 +133,6 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         def __str__(self) -> str:
             """For ease of use in formatted string literals"""
             return self.value
-
-    @property
-    def registered_addresses(self) -> Dict[str, Dict[str, Any]]:
-        """Agent addresses registered on-chain for the service"""
-        return cast(
-            Dict[str, Dict[str, Any]],
-            self.synchronized_data.db.get("registered_addresses", {}),
-        )
 
     @property
     def tendermint_parameter_url(self) -> str:
@@ -157,7 +160,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
 
         return response
 
-    def is_correct_contract(self) -> Generator[None, None, bool]:
+    def is_correct_contract(
+        self, service_registry_address: str
+    ) -> Generator[None, None, bool]:
         """Contract deployment verification."""
 
         log_message = self.LogMessages.request_verification
@@ -166,7 +171,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         performative = ContractApiMessage.Performative.GET_STATE
         contract_api_response = yield from self.get_contract_api_response(
             performative=performative,  # type: ignore
-            contract_address=self.params.service_registry_address,
+            contract_address=service_registry_address,
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="verify_contract",
         )
@@ -181,22 +186,23 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.context.logger.info(f"{log_message}: {contract_api_response}")
         return cast(bool, contract_api_response.state.body["verified"])
 
-    def get_agent_instances(self) -> Generator[None, None, Dict[str, Any]]:
+    def get_agent_instances(
+        self, service_registry_address: str, on_chain_service_id: int
+    ) -> Generator[None, None, Dict[str, Any]]:
         """Get service info available on-chain"""
 
         log_message = self.LogMessages.request_service_info
         self.context.logger.info(f"{log_message}")
 
         performative = ContractApiMessage.Performative.GET_STATE
-        service_id = int(self.params.on_chain_service_id)
         kwargs = dict(
-            performative=performative,  # type: ignore
-            contract_address=self.params.service_registry_address,
+            performative=performative,
+            contract_address=service_registry_address,
             contract_id=str(ServiceRegistryContract.contract_id),
             contract_callable="get_agent_instances",
-            service_id=service_id,
+            service_id=on_chain_service_id,
         )
-        contract_api_response = yield from self.get_contract_api_response(**kwargs)
+        contract_api_response = yield from self.get_contract_api_response(**kwargs)  # type: ignore
         if contract_api_response.performative != ContractApiMessage.Performative.STATE:
             log_message = self.LogMessages.failed_service_info
             self.context.logger.info(
@@ -209,19 +215,30 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.context.logger.info(f"{log_message}: {contract_api_response}")
         return cast(dict, contract_api_response.state.body)
 
-    def get_addresses(self) -> Generator:
+    def get_addresses(self) -> Generator:  # pylint: disable=too-many-return-statements
         """Get addresses of agents registered for the service"""
 
-        if self.context.params.service_registry_address is None:
+        service_registry_address = self.params.service_registry_address
+        if service_registry_address is None:
             log_message = self.LogMessages.no_contract_address.value
             self.context.logger.info(log_message)
             return False
 
-        correctly_deployed = yield from self.is_correct_contract()
+        correctly_deployed = yield from self.is_correct_contract(
+            service_registry_address
+        )
         if not correctly_deployed:
             return False
 
-        service_info = yield from self.get_agent_instances()
+        on_chain_service_id = self.params.on_chain_service_id
+        if on_chain_service_id is None:
+            log_message = self.LogMessages.no_on_chain_service_id.value
+            self.context.logger.info(log_message)
+            return False
+
+        service_info = yield from self.get_agent_instances(
+            service_registry_address, on_chain_service_id
+        )
         if not service_info:
             return False
 
@@ -238,14 +255,17 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             return False
 
         # put service info in the shared state for p2p message handler
-        info: Dict[str, Dict[str, str]] = dict.fromkeys(registered_addresses)
+        info: Dict[str, Dict[str, str]] = {i: {} for i in registered_addresses}
+        tm_host, tm_port = parse_tendermint_p2p_url(url=self.params.tendermint_p2p_url)
         validator_config = dict(
-            tendermint_url=self.context.params.tendermint_url,
+            hostname=tm_host,
+            p2p_port=tm_port,
             address=self.local_tendermint_params["address"],
             pub_key=self.local_tendermint_params["pub_key"],
+            peer_id=self.local_tendermint_params["peer_id"],
         )
         info[self.context.agent_address] = validator_config
-        self.synchronized_data.db.update(registered_addresses=info)
+        self.initial_tm_configs = info
         log_message = self.LogMessages.response_service_info.value
         self.context.logger.info(f"{log_message}: {info}")
         return True
@@ -270,13 +290,15 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
     def request_tendermint_info(self) -> Generator[None, None, bool]:
         """Request Tendermint info from other agents"""
 
-        still_missing = {k for k, v in self.registered_addresses.items() if not v}
+        still_missing = {k for k, v in self.initial_tm_configs.items() if not v} - {
+            self.context.agent_address
+        }
         log_message = self.LogMessages.request_others
         self.context.logger.info(f"{log_message}: {still_missing}")
 
         for address in still_missing:
             dialogues = cast(TendermintDialogues, self.context.tendermint_dialogues)
-            performative = TendermintMessage.Performative.REQUEST
+            performative = TendermintMessage.Performative.GET_GENESIS_INFO
             message, _ = dialogues.create(
                 counterparty=address, performative=performative
             )
@@ -286,9 +308,9 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         # we wait for the messages that were put in the outbox.
         yield from self.sleep(self.params.sleep_time)
 
-        if all(self.registered_addresses.values()):
+        if all(self.initial_tm_configs.values()):
             log_message = self.LogMessages.collection_complete
-            self.context.logger.info(f"{log_message}: {self.registered_addresses}")
+            self.context.logger.info(f"{log_message}: {self.initial_tm_configs}")
             self.collection_complete = True
         return self.collection_complete
 
@@ -299,18 +321,22 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Format collected agent info for genesis update"""
 
         validators = []
-        for i, validator_config in enumerate(collected_agent_info.values()):
+        for address, validator_config in collected_agent_info.items():
             validator = dict(
+                hostname=validator_config["hostname"],
+                p2p_port=validator_config["p2p_port"],
                 address=validator_config["address"],
                 pub_key=validator_config["pub_key"],
-                power=self.params.voting_power,
-                name=NODE.format(i=i),
+                peer_id=validator_config["peer_id"],
+                power=self.params.genesis_config.voting_power,
+                name=NODE.format(address=address[2:]),  # skip 0x part
             )
             validators.append(validator)
 
         genesis_data = dict(
             validators=validators,
-            genesis_config=self.params.genesis_config,
+            genesis_config=self.params.genesis_config.to_json(),
+            external_address=self.params.tendermint_p2p_url,
         )
         return genesis_data
 
@@ -318,7 +344,7 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         """Make HTTP POST request to update agent's local Tendermint node"""
 
         url = self.tendermint_parameter_url
-        genesis_data = self.format_genesis_data(self.registered_addresses)
+        genesis_data = self.format_genesis_data(self.initial_tm_configs)
         log_message = self.LogMessages.request_update
         self.context.logger.info(f"{log_message}: {genesis_data}")
 
@@ -335,7 +361,36 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
         self.updated_genesis_data.update(genesis_data)
         return True
 
-    def async_act(self) -> Generator:
+    def wait_for_block(self, timeout: float) -> Generator[None, None, bool]:
+        """Wait for a block to be received in the specified timeout."""
+        # every agent will finish with the reset at a different time
+        # hence the following will be different for all agents
+        start_time = datetime.datetime.now()
+
+        def received_block() -> bool:
+            """Check whether we have received a block after "start_time"."""
+            try:
+                shared_state = cast(SharedState, self.context.state)
+                last_timestamp = shared_state.round_sequence.last_timestamp
+                if last_timestamp > start_time:
+                    return True
+                return False
+            except ABCIAppInternalError:
+                # this can happen if we haven't received a block yet
+                return False
+
+        try:
+            yield from self.wait_for_condition(
+                condition=received_block, timeout=timeout
+            )
+            # if the `wait_for_condition` finish without an exception,
+            # it means that the condition has been satisfied on time
+            return True
+        except TimeoutException:
+            # the agent wasn't able to receive blocks in the given amount of time (timeout)
+            return False
+
+    def async_act(self) -> Generator:  # pylint: disable=too-many-return-statements
         """
         Do the action.
 
@@ -368,8 +423,10 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
                 yield from self.sleep(self.params.sleep_time)
                 return
 
-        # make service registry contract call
-        if not self.registered_addresses:
+        # if the agent doesn't have it's tm config info set, then make service registry contract call
+        # to get the rest of the agents, so we can get their tm config info later
+        info = self.initial_tm_configs.get(self.context.agent_address, None)
+        if info is None:
             successful = yield from self.get_addresses()
             if not successful:
                 yield from self.sleep(self.params.sleep_time)
@@ -395,13 +452,21 @@ class RegistrationStartupBehaviour(RegistrationBaseBehaviour):
             yield from self.sleep(self.params.sleep_time)
             return
 
+        # the reset has gone through, and at this point tendermint should start
+        # sending blocks to the agent. However, that might take a while, since
+        # we rely on 2/3 of the voting power to be active in order for block production
+        # to begin. In other words, we wait for >=2/3 of the agents to become active.
+        successful = yield from self.wait_for_block(timeout=WAIT_FOR_BLOCK_TIMEOUT)
+        if not successful:
+            yield from self.sleep(self.params.sleep_time)
+            return
+
         yield from super().async_act()
 
 
 class RegistrationBehaviour(RegistrationBaseBehaviour):
     """Agent registration to the FSM App."""
 
-    behaviour_id = "registration"
     matching_round = RegistrationRound
 
 
@@ -409,8 +474,8 @@ class AgentRegistrationRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the registration."""
 
     initial_behaviour_cls = RegistrationStartupBehaviour
-    abci_app_cls = AgentRegistrationAbciApp  # type: ignore
-    behaviours: Set[Type[BaseBehaviour]] = {  # type: ignore
+    abci_app_cls = AgentRegistrationAbciApp
+    behaviours: Set[Type[BaseBehaviour]] = {
         RegistrationBehaviour,  # type: ignore
         RegistrationStartupBehaviour,  # type: ignore
     }

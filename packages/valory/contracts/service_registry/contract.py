@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 
 import hashlib
 import logging
-from typing import Any, Dict, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -39,12 +39,15 @@ DEPLOYED_BYTECODE_MD5_HASH_BY_CHAIN_ID = {
     5: "d4a860f21f17762c99d93359244b39a878dd5bac9ea6056c0ff29c7558d6653aa0d5962aa819fc9f05f237d068845125cfc37a7fd7761b11c29a709ad5c48157",
     31337: "d8084598f884509694ab1f244cbb8e7697d8db00c241710b89b2ec3037d2edd3b82d01f1f0ca6bd9b265b1184d9c563a6000c30958c2a7ae5a9c35e5ff2ba7de",
 }
+UNIT_HASH_PREFIX = "0x{metadata_hash}"
 
 PUBLIC_ID = PublicId.from_str("valory/service_registry:0.1.0")
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
+
+ServiceInfo = Tuple[int, str, bytes, int, int, int, int, List[int]]
 
 
 class ServiceRegistryContract(Contract):
@@ -57,21 +60,21 @@ class ServiceRegistryContract(Contract):
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get the Safe transaction."""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def get_raw_message(
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[bytes]:
         """Get raw message."""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def get_state(
         cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get state."""
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def verify_contract(
@@ -115,7 +118,7 @@ class ServiceRegistryContract(Contract):
         exists = ledger_api.contract_method_call(
             contract_instance=contract_instance,
             method_name="exists",
-            serviceId=service_id,
+            unitId=service_id,
         )
 
         return cast(bool, exists)
@@ -155,3 +158,134 @@ class ServiceRegistryContract(Contract):
         return dict(
             service_owner=checksum_service_owner,
         )
+
+    @classmethod
+    def get_service_information(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        token_id: int,
+    ) -> ServiceInfo:
+        """Retrieve service information"""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        return contract_interface.functions.getService(token_id).call()
+
+    @classmethod
+    def get_token_uri(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        token_id: int,
+    ) -> str:
+        """Resolve token URI"""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+        return contract_interface.functions.tokenURI(token_id).call()
+
+    @classmethod
+    def filter_token_id_from_emitted_events(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+    ) -> Optional[int]:
+        """Returns `CreateUnit` event filter."""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+
+        events = contract_interface.events.CreateService.createFilter(
+            fromBlock="latest"
+        ).get_all_entries()
+
+        for event in events:
+            event_args = event["args"]
+            if "serviceId" in event_args:
+                return cast(int, event_args["serviceId"])
+
+        return None
+
+    @classmethod
+    def verify_service_has_been_activated(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        service_id: int,
+    ) -> bool:
+        """Checks for a successful service registration event in the latest block"""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+
+        events = contract_interface.events.ActivateRegistration.createFilter(
+            fromBlock="latest"
+        ).get_all_entries()
+        for event in events:
+            if event["args"]["serviceId"] == service_id:
+                return True
+
+        return False
+
+    @classmethod
+    def verify_agent_instance_registration(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        service_id: int,
+        instance_check: Set[str],
+    ) -> Set[str]:
+        """Checks for the registered instances and filters out the instances that are registered from the given array"""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+
+        events = contract_interface.events.RegisterInstance.createFilter(
+            fromBlock="latest"
+        ).get_all_entries()
+
+        successful = set()
+        for event in events:
+            event_args = event["args"]
+            if event_args["serviceId"] != service_id:
+                continue
+
+            agent_instance = event_args["agentInstance"]
+            if agent_instance in instance_check:
+                successful.add(agent_instance)
+
+        return successful
+
+    @classmethod
+    def verify_service_has_been_deployed(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        service_id: int,
+    ) -> bool:
+        """Checks for a successful service registration event in the latest block"""
+
+        contract_interface = cls.get_instance(
+            ledger_api=ledger_api,
+            contract_address=contract_address,
+        )
+
+        events = contract_interface.events.DeployService.createFilter(
+            fromBlock="latest"
+        ).get_all_entries()
+        for event in events:
+            if event["args"]["serviceId"] == service_id:
+                return True
+
+        return False

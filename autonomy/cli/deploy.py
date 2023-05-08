@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -32,12 +32,13 @@ from aea.cli.utils.click_utils import (
 )
 from aea.cli.utils.context import Context
 
+from autonomy.chain.config import ChainType
 from autonomy.cli.helpers.deployment import (
     build_and_deploy_from_token,
     build_deployment,
     run_deployment,
 )
-from autonomy.cli.utils.click_utils import chain_selection_flag
+from autonomy.cli.utils.click_utils import chain_selection_flag, image_author_option
 from autonomy.constants import DEFAULT_BUILD_FOLDER, DEFAULT_KEYS_FILE
 from autonomy.deploy.base import NotValidKeysFile
 from autonomy.deploy.constants import INFO, LOGGING_LEVELS
@@ -94,13 +95,6 @@ def deploy_group(
     help="Create development environment.",
 )
 @click.option(
-    "--force",
-    "force_overwrite",
-    is_flag=True,
-    default=False,
-    help="Remove existing build and overwrite with new one.",
-)
-@click.option(
     "--log-level",
     type=click.Choice(choices=LOGGING_LEVELS, case_sensitive=True),
     help="Logging level for runtime.",
@@ -137,9 +131,18 @@ def deploy_group(
     default=False,
     help="Include an ACN node in the deployment setup.",
 )
+@click.option(
+    "-ltm",
+    "--local-tm-setup",
+    "use_tm_testnet_setup",
+    is_flag=True,
+    default=False,
+    help="Use local tendermint chain setup.",
+)
 @click.option("--image-version", type=str, help="Define runtime image version.")
 @registry_flag()
 @password_option(confirmation_prompt=True)
+@image_author_option
 @click.pass_context
 def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-locals
     click_context: click.Context,
@@ -147,7 +150,6 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     deployment_type: str,
     output_dir: Optional[Path],
     dev_mode: bool,
-    force_overwrite: bool,
     registry: str,
     number_of_agents: Optional[int] = None,
     password: Optional[str] = None,
@@ -159,6 +161,8 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
     image_version: Optional[str] = None,
     use_hardhat: bool = False,
     use_acn: bool = False,
+    use_tm_testnet_setup: bool = False,
+    image_author: Optional[str] = None,
 ) -> None:
     """Build deployment setup for n agents."""
 
@@ -195,7 +199,6 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             build_dir=build_dir,
             deployment_type=deployment_type,
             dev_mode=dev_mode,
-            force_overwrite=force_overwrite,
             number_of_agents=number_of_agents,
             password=password,
             packages_dir=packages_dir,
@@ -206,6 +209,8 @@ def build_deployment_command(  # pylint: disable=too-many-arguments, too-many-lo
             image_version=image_version,
             use_hardhat=use_hardhat,
             use_acn=use_acn,
+            use_tm_testnet_setup=use_tm_testnet_setup,
+            image_author=image_author,
         )
     except (NotValidKeysFile, FileNotFoundError, FileExistsError) as e:
         shutil.rmtree(build_dir)
@@ -244,13 +249,6 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
 @deploy_group.command(name="from-token")
 @click.argument("token_id", type=int)
 @click.argument("keys_file", type=click.Path())
-@click.option("--rpc", "rpc_url", type=str, help="Custom RPC URL")
-@click.option(
-    "--sca",
-    "service_contract_address",
-    type=str,
-    help="Service contract address for custom RPC URL.",
-)
 @click.option("--n", type=int, help="Number of agents to include in the build.")
 @click.option("--skip-image", is_flag=True, default=False, help="Skip building images.")
 @click.option(
@@ -259,18 +257,36 @@ def run(build_dir: Path, no_recreate: bool, remove_orphans: bool) -> None:
     default=False,
     help="Apply environment variable when loading service config.",
 )
-@chain_selection_flag()
+@click.option(
+    "--docker",
+    "deployment_type",
+    flag_value=DockerComposeGenerator.deployment_type,
+    default=True,
+    help="Use docker as a backend.",
+)
+@click.option(
+    "--kubernetes",
+    "deployment_type",
+    flag_value=KubernetesGenerator.deployment_type,
+    help="Use kubernetes as a backend.",
+)
+@click.option(
+    "--no-deploy",
+    is_flag=True,
+    help="If set to true, the deployment won't run automatically",
+)
+@chain_selection_flag(help_string_format="Use {} chain to resolve the token id.")
 @click.pass_context
 @password_option(confirmation_prompt=True)
 def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-locals
     click_context: click.Context,
     token_id: int,
     keys_file: Path,
-    chain_type: str,
-    rpc_url: Optional[str],
-    service_contract_address: Optional[str],
+    chain_type: ChainType,
     skip_image: bool,
     n: Optional[int],
+    deployment_type: str,
+    no_deploy: bool,
     aev: bool = False,
     password: Optional[str] = None,
 ) -> None:
@@ -286,11 +302,11 @@ def run_deployment_from_token(  # pylint: disable=too-many-arguments, too-many-l
         build_and_deploy_from_token(
             token_id=token_id,
             keys_file=keys_file,
-            chain_type=chain_type,
-            rpc_url=rpc_url,
-            service_contract_address=service_contract_address,
+            chain_type=ChainType(chain_type),
             skip_image=skip_image,
             n=n,
+            deployment_type=deployment_type,
             aev=aev,
             password=password,
+            no_deploy=no_deploy,
         )

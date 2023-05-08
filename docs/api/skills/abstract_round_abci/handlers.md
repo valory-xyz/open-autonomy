@@ -148,7 +148,7 @@ the response.
 ## AbstractResponseHandler Objects
 
 ```python
-class AbstractResponseHandler(Handler,  ABC)
+class AbstractResponseHandler(Handler, ABC)
 ```
 
 Abstract response Handler.
@@ -194,18 +194,18 @@ Handle the response message.
 
 Steps:
 1. Try to recover the 'dialogues' instance, for the protocol
-of this handler, from the skill context. The attribute name used to
-read the attribute is computed by '_get_dialogues_attribute_name()'
-method. If no dialogues instance is found, log a message and return.
+   of this handler, from the skill context. The attribute name used to
+   read the attribute is computed by '_get_dialogues_attribute_name()'
+   method. If no dialogues instance is found, log a message and return.
 2. Try to recover the dialogue; if no dialogue is present, log a message
-and return.
+   and return.
 3. Check whether the performative is in the set of allowed performative;
-if not, log a message and return.
+   if not, log a message and return.
 4. Try to recover the callback of the request associated to the response
-from the 'Requests' model; if no callback is present, log a message
-and return.
+   from the 'Requests' model; if no callback is present, log a message
+   and return.
 5. If the above check have passed, then call the callback with the
-received message.
+   received message.
 
 **Arguments**:
 
@@ -309,41 +309,27 @@ def teardown() -> None
 
 Tear down the handler.
 
-<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.synchronized_data"></a>
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.initial_tm_configs"></a>
 
-#### synchronized`_`data
-
-```python
-@property
-def synchronized_data() -> BaseSynchronizedData
-```
-
-Not yet synchronized here.
-
-The Tendermint network needs to be (re-)established after
-Tendermint configuration exchange with the other agents
-registered on-chain for this service.
-
-This handler is used during RegistrationStartupBehaviour.
-At this point there is no historical data yet over which
-consensus has been achieved. We access it here to store
-the information of other agents' Tendermint configurations
-under `registered_addresses`.
-
-**Returns**:
-
-the synchronized data.
-
-<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.registered_addresses"></a>
-
-#### registered`_`addresses
+#### initial`_`tm`_`configs
 
 ```python
 @property
-def registered_addresses() -> Dict[str, Dict[str, Any]]
+def initial_tm_configs() -> Dict[str, Dict[str, Any]]
 ```
 
-Registered addresses retrieved on-chain from service registry contract
+A mapping of the other agents' addresses to their initial Tendermint configuration.
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.initial_tm_configs"></a>
+
+#### initial`_`tm`_`configs
+
+```python
+@initial_tm_configs.setter
+def initial_tm_configs(configs: Dict[str, Dict[str, Any]]) -> None
+```
+
+A mapping of the other agents' addresses to their initial Tendermint configuration.
 
 <a id="packages.valory.skills.abstract_round_abci.handlers.TendermintHandler.dialogues"></a>
 
@@ -365,4 +351,14 @@ def handle(message: Message) -> None
 ```
 
 Handle incoming Tendermint config-sharing messages
+
+<a id="packages.valory.skills.abstract_round_abci.handlers.IpfsHandler"></a>
+
+## IpfsHandler Objects
+
+```python
+class IpfsHandler(AbstractResponseHandler)
+```
+
+A class for handling IPFS messages.
 

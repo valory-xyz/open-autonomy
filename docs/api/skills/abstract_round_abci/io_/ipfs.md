@@ -29,32 +29,35 @@ Class for interacting with IPFS.
 #### `__`init`__`
 
 ```python
-def __init__(domain: str, loader_cls: Type = Loader, storer_cls: Type = Storer)
+def __init__(loader_cls: Type = Loader, storer_cls: Type = Storer)
 ```
 
-Initialize an `IPFSInteract`.
+Initialize an `IPFSInteract` object.
 
-**Arguments**:
+<a id="packages.valory.skills.abstract_round_abci.io_.ipfs.IPFSInteract.store"></a>
 
-- `domain`: the IPFS domain name.
-
-<a id="packages.valory.skills.abstract_round_abci.io_.ipfs.IPFSInteract.store_and_send"></a>
-
-#### store`_`and`_`send
+#### store
 
 ```python
-def store_and_send(filepath: str, obj: SupportedObjectType, multiple: bool, filetype: Optional[SupportedFiletype] = None, custom_storer: Optional[CustomStorerType] = None, **kwargs: Any, ,) -> str
+def store(filepath: str,
+          obj: SupportedObjectType,
+          multiple: bool,
+          filetype: Optional[SupportedFiletype] = None,
+          custom_storer: Optional[CustomStorerType] = None,
+          **kwargs: Any) -> Dict[str, str]
 ```
 
 Temporarily store a file locally, in order to send it to IPFS and retrieve a hash, and then delete it.
 
-<a id="packages.valory.skills.abstract_round_abci.io_.ipfs.IPFSInteract.get_and_read"></a>
+<a id="packages.valory.skills.abstract_round_abci.io_.ipfs.IPFSInteract.load"></a>
 
-#### get`_`and`_`read
+#### load
 
 ```python
-def get_and_read(hash_: str, target_dir: str, multiple: bool = False, filename: Optional[str] = None, filetype: Optional[SupportedFiletype] = None, custom_loader: CustomLoaderType = None) -> SupportedObjectType
+def load(serialized_objects: Dict[str, str],
+         filetype: Optional[SupportedFiletype] = None,
+         custom_loader: CustomLoaderType = None) -> SupportedObjectType
 ```
 
-Get, store and read a file from IPFS.
+Deserialize objects received via IPFS.
 
