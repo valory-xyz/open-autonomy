@@ -46,9 +46,12 @@ from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
     ABCIAppInternalError,
     AddBlockError,
+    DEFAULT_PENDING_OFFENCE_TTL,
     ERROR_CODE,
     LateArrivingTransaction,
     OK_CODE,
+    OffenseType,
+    PendingOffense,
     SignatureNotValidError,
     Transaction,
     TransactionNotValidError,
@@ -190,9 +193,11 @@ class ABCIRoundHandler(ABCIHandler):
         """Handle the 'deliver_tx' request."""
         transaction_bytes = message.tx
         shared_state = cast(SharedState, self.context.state)
+        payload_sender: Optional[str] = None
         try:
             transaction = Transaction.decode(transaction_bytes)
             transaction.verify(self.context.default_ledger_id)
+            payload_sender = transaction.payload.sender
             shared_state.round_sequence.check_is_finished()
             shared_state.round_sequence.deliver_tx(transaction)
         except (
@@ -201,6 +206,20 @@ class ABCIRoundHandler(ABCIHandler):
             TransactionTypeNotRecognizedError,
         ) as exception:
             self._log_exception(exception)
+            # the transaction is invalid, it's potentially an offence
+            # so we add it to the list of pending offences
+            if payload_sender is not None:
+                # only add the offence if we know and can verify the sender
+                # otherwise someone could pretend to be someone else,
+                # which may lead to wrong punishments
+                pending_offense = PendingOffense(
+                    payload_sender,
+                    shared_state.round_sequence.current_round_height,
+                    OffenseType.INVALID_PAYLOAD,
+                    shared_state.round_sequence.last_round_transition_timestamp.timestamp(),
+                    DEFAULT_PENDING_OFFENCE_TTL,
+                )
+                shared_state.round_sequence.add_pending_offence(pending_offense)
             return self._deliver_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )

@@ -910,31 +910,56 @@ class TestAbciAppDB:
 
     def test_serialize(self) -> None:
         """Test `serialize` method."""
-        assert self.db.serialize() == '{"0": {"participants": [["a", "b"]]}}'
+        assert (
+            self.db.serialize()
+            == '{"db_data": {"0": {"participants": [["a", "b"]]}}, "slashing_config": ""}'
+        )
 
-    @pytest.mark.parametrize("data", ({0: {"test": [0]}},))
-    def test_sync(self, data: Dict[int, Dict[str, List[Any]]]) -> None:
+    @pytest.mark.parametrize(
+        "_data",
+        ({"db_data": {0: {"test": [0]}}, "slashing_config": "serialized_config"},),
+    )
+    def test_sync(self, _data: Dict[str, Dict[int, Dict[str, List[Any]]]]) -> None:
         """Test `sync` method."""
         try:
-            serialized_data = json.dumps(data)
+            serialized_data = json.dumps(_data)
         except TypeError as exc:
             raise AssertionError(
                 "Incorrectly parametrized test. Data must be json serializable."
             ) from exc
 
         self.db.sync(serialized_data)
-        assert self.db._data == data
+        assert self.db._data == _data["db_data"]
+        assert self.db.slashing_config == _data["slashing_config"]
 
     @pytest.mark.parametrize(
         "serialized_data, match",
         (
             (b"", "Could not decode data using "),
             (
-                json.dumps({"invalid_index": {}}),
+                json.dumps({"both_mandatory_keys_missing": {}}),
+                "internal error: Mandatory keys `db_data`, `slashing_config` are missing from the deserialized data: "
+                "{'both_mandatory_keys_missing': {}}\nThe following serialized data were given: "
+                '{"both_mandatory_keys_missing": {}}',
+            ),
+            (
+                json.dumps({"db_data": {}}),
+                "internal error: Mandatory keys `db_data`, `slashing_config` are missing from the deserialized data: "
+                "{'db_data': {}}\nThe following serialized data were given: {\"db_data\": {}}",
+            ),
+            (
+                json.dumps({"slashing_config": {}}),
+                "internal error: Mandatory keys `db_data`, `slashing_config` are missing from the deserialized data: "
+                "{'slashing_config': {}}\nThe following serialized data were given: {\"slashing_config\": {}}",
+            ),
+            (
+                json.dumps(
+                    {"db_data": {"invalid_index": {}}, "slashing_config": "anything"}
+                ),
                 "An invalid index was found while trying to sync the db using data: ",
             ),
             (
-                json.dumps("invalid"),
+                json.dumps({"db_data": "invalid", "slashing_config": "anything"}),
                 "Could not decode db data with an invalid format: ",
             ),
         ),
@@ -949,7 +974,10 @@ class TestAbciAppDB:
 
     def test_hash(self) -> None:
         """Test `hash` method."""
-        expected_hash = b"\x89j\xd8\xf7\x9b\x98>\x97b|\xbeI~y\x8b\x9a\xba\x92\xd4I\x05 \xe8\xc9\xcaQ\x80\xbf{:\xef\xc2"
+        expected_hash = (
+            b"\xd0^\xb0\x85\xf1\xf5\xd2\xe8\xe8\x85\xda\x1a\x99k"
+            b"\x1c\xde\xfa1\x8a\x87\xcc\xd7q?\xdf\xbbofz\xfb\x7fI"
+        )
         assert self.db.hash() == expected_hash
 
 
@@ -961,6 +989,16 @@ class TestBaseSynchronizedData:
         self.participants = ("a", "b")
         self.base_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(setup_data=dict(participants=[self.participants]))
+        )
+
+    @given(text())
+    def test_slashing_config(self, slashing_config: str) -> None:
+        """Test the `slashing_config` property."""
+        self.base_synchronized_data.slashing_config = slashing_config
+        assert (
+            self.base_synchronized_data.slashing_config
+            == self.base_synchronized_data.db.slashing_config
+            == slashing_config
         )
 
     def test_participants_getter_positive(self) -> None:
@@ -1110,7 +1148,6 @@ class TestBaseSynchronizedData:
             "sender": DummyPayload(sender="sender", dummy_attribute=0)
         }
         safe_contract_address = "0x0"
-        offence_status = "test_offence_status"
 
         base_synchronized_data = BaseSynchronizedData(
             db=AbciAppDB(
@@ -1131,7 +1168,6 @@ class TestBaseSynchronizedData:
                             participant_to_votes
                         ),
                         safe_contract_address=safe_contract_address,
-                        offence_status=offence_status,
                     )
                 )
             )
@@ -1157,7 +1193,6 @@ class TestBaseSynchronizedData:
         )
         assert base_synchronized_data.participant_to_votes == participant_to_votes
         assert base_synchronized_data.safe_contract_address == safe_contract_address
-        assert base_synchronized_data.offence_status == offence_status
 
 
 class DummyConcreteRound(AbstractRound):
@@ -2230,27 +2265,49 @@ class TestRoundSequence:
         with pytest.raises(SlashingNotConfiguredError, match=config_exc):
             getattr(round_sequence, property_name)
 
+    @mock.patch("json.loads", return_value="json_serializable")
+    @pytest.mark.parametrize("slashing_config", (None, "", "test"))
+    def test_sync_db_and_slashing(
+        self, mock_loads: mock.MagicMock, slashing_config: str
+    ) -> None:
+        """Test the `sync_db_and_slashing` method."""
+        self.round_sequence.latest_synchronized_data.slashing_config = slashing_config
+        serialized_db_state = "dummy_db_state"
+        self.round_sequence.sync_db_and_slashing(serialized_db_state)
+
+        # Check that `sync()` was called with the correct arguments
+        mock_sync = cast(
+            mock.Mock, self.round_sequence.abci_app.synchronized_data.db.sync
+        )
+        mock_sync.assert_called_once_with(serialized_db_state)
+
+        if slashing_config:
+            mock_loads.assert_called_once_with(
+                slashing_config, cls=OffenseStatusDecoder
+            )
+        else:
+            mock_loads.assert_not_called()
+
     @mock.patch("json.dumps")
-    def test_serialize_offence_status(self, mock_dumps: mock.MagicMock) -> None:
-        """Test the `serialize_offence_status` method."""
+    def test_store_offence_status(self, mock_dumps: mock.MagicMock) -> None:
+        """Test the `store_offence_status` method."""
         # Set up mock objects and return values
-        self.round_sequence.offence_status = {"not_encoded": OffenceStatus()}
+        self.round_sequence._offence_status = {"not_encoded": OffenceStatus()}
         mock_encoded_status = "encoded_status"
         mock_dumps.return_value = mock_encoded_status
 
         # Call the method to be tested
-        self.round_sequence.serialize_offence_status()
+        self.round_sequence.store_offence_status()
 
         # Check that `json.dumps()` was called with the correct arguments
         mock_dumps.assert_called_once_with(
             self.round_sequence.offence_status, cls=OffenseStatusEncoder, sort_keys=True
         )
 
-        # Check that `update()` was called with the correct arguments
-        mock_update = cast(
-            mock.Mock, self.round_sequence.abci_app.synchronized_data.db.update
+        assert (
+            self.round_sequence.abci_app.synchronized_data.db.slashing_config
+            == mock_encoded_status
         )
-        mock_update.assert_called_once_with(offence_status=mock_encoded_status)
 
     @given(
         validator=builds(Validator, address=binary(), power=integers()),
@@ -2711,7 +2768,7 @@ class TestRoundSequence:
         return all(current == last for current, last in current_last_pairs)
 
     @mock.patch.object(AbciApp, "process_event")
-    @mock.patch.object(RoundSequence, "serialize_offence_status")
+    @mock.patch.object(RoundSequence, "store_offence_status")
     @pytest.mark.parametrize("end_block_res", (None, (MagicMock(), MagicMock())))
     @pytest.mark.parametrize(
         "slashing_enabled, offence_status_",
@@ -2725,10 +2782,6 @@ class TestRoundSequence:
                 True,
             ),
             (
-                True,
-                False,
-            ),
-            (
                 False,
                 False,
             ),
@@ -2740,7 +2793,7 @@ class TestRoundSequence:
     )
     def test_update_round(
         self,
-        serialize_offence_status_mock: mock.Mock,
+        store_offence_status_mock: mock.Mock,
         process_event_mock: mock.Mock,
         end_block_res: Optional[Tuple[BaseSynchronizedData, Any]],
         slashing_enabled: bool,
@@ -2770,10 +2823,10 @@ class TestRoundSequence:
             end_block_res[-1], result=end_block_res[0]
         )
 
-        if slashing_enabled and offence_status_:
-            serialize_offence_status_mock.assert_called_once()
+        if slashing_enabled:
+            store_offence_status_mock.assert_called_once()
         else:
-            serialize_offence_status_mock.assert_not_called()
+            store_offence_status_mock.assert_not_called()
 
     @mock.patch.object(AbciApp, "process_event")
     @pytest.mark.parametrize(
@@ -2868,21 +2921,22 @@ class TestRoundSequence:
                 result=background_round_result[0],
             )
 
-    @mock.patch.object(json, "loads")
     @pytest.mark.parametrize("restart_from_round", (ConcreteRoundA, MagicMock()))
     @pytest.mark.parametrize("serialized_db_state", (None, "serialized state"))
+    @given(integers())
     def test_reset_state(
         self,
-        mock_loads: MagicMock,
         restart_from_round: AbstractRound,
         serialized_db_state: str,
+        round_count: int,
     ) -> None:
         """Tests reset_state"""
-        round_count = 1
         with mock.patch.object(
             self.round_sequence,
             "_reset_to_default_params",
-        ) as mock_reset:
+        ) as mock_reset, mock.patch.object(
+            self.round_sequence, "sync_db_and_slashing"
+        ) as mock_sync_db_and_slashing:
             transition_fn = self.round_sequence.abci_app.transition_function
             round_id = restart_from_round.auto_round_id()
             if restart_from_round in transition_fn:
@@ -2890,19 +2944,13 @@ class TestRoundSequence:
                     round_id, round_count, serialized_db_state
                 )
                 mock_reset.assert_called()
-                mock_sync = cast(
-                    MagicMock, self.round_sequence.abci_app.synchronized_data.db.sync
-                )
 
                 if serialized_db_state is None:
-                    mock_sync.assert_not_called()
-                    mock_loads.assert_not_called()
+                    mock_sync_db_and_slashing.assert_not_called()
 
                 else:
-                    mock_sync.assert_called_with(serialized_db_state)
-                    mock_loads.assert_called_with(
-                        self.round_sequence.latest_synchronized_data.offence_status,
-                        cls=OffenseStatusDecoder,
+                    mock_sync_db_and_slashing.assert_called_once_with(
+                        serialized_db_state
                     )
                     assert (
                         self.round_sequence._last_round_transition_root_hash
@@ -2948,6 +2996,13 @@ class TestRoundSequence:
         assert self.round_sequence._tm_height is None
         assert self.round_sequence._pending_offences == set()
         assert not self.round_sequence._slashing_enabled
+
+    def test_add_pending_offence(self) -> None:
+        """Tests add_pending_offence."""
+        assert self.round_sequence._pending_offences == set()
+        mock_offence = MagicMock()
+        self.round_sequence.add_pending_offence(mock_offence)
+        assert self.round_sequence._pending_offences == {mock_offence}
 
 
 def test_meta_abci_app_when_instance_not_subclass_of_abstract_round() -> None:

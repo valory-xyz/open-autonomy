@@ -120,11 +120,11 @@ class BaseRegistrationTestBehaviour(RegistrationAbciBaseCase):
     @pytest.mark.parametrize(
         "setup_data, expected_initialisation",
         (
-            ({}, '{"db": "{\\"0\\": {}}", "slashing_config": "{}"}'),
-            ({"test": []}, '{"db": "{\\"0\\": {}}", "slashing_config": "{}"}'),
+            ({}, '{"db_data": {"0": {}}, "slashing_config": ""}'),
+            ({"test": []}, '{"db_data": {"0": {}}, "slashing_config": ""}'),
             (
                 {"test": [], "valid": [1, 2]},
-                '{"db": "{\\"0\\": {\\"valid\\": [1, 2]}}", "slashing_config": "{}"}',
+                '{"db_data": {"0": {"valid": [1, 2]}}, "slashing_config": ""}',
             ),
         ),
     )
