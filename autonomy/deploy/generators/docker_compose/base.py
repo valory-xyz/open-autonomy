@@ -67,6 +67,7 @@ def build_tendermint_node_config(
     node_id: int,
     dev_mode: bool = False,
     log_level: str = INFO,
+    tendermint_ports: Optional[Dict[int, int]] = None,
 ) -> str:
     """Build tendermint node config for docker compose."""
 
@@ -82,6 +83,15 @@ def build_tendermint_node_config(
     if dev_mode:
         config += "      - ./persistent_data/tm_state:/tm_state:Z"
         config = config.replace("DEV_MODE=0", "DEV_MODE=1")
+
+    if tendermint_ports is not None:
+        port_mappings = map(
+            lambda x: PORT_MAPPING_CONFIG.format(host_port=x[0], container_port=x[1]),
+            tendermint_ports.items(),
+        )
+        port_config = "\n".join([PORTS, *port_mappings])
+        config += port_config
+        config += "\n"
 
     return config
 
@@ -123,6 +133,7 @@ def build_agent_config(  # pylint: disable=too-many-arguments
         )
         port_config = "\n".join([PORTS, *port_mappings])
         config += port_config
+        config += "\n"
 
     return config
 
@@ -207,6 +218,13 @@ class DockerComposeGenerator(BaseDeploymentGenerator):
                     node_id=i,
                     dev_mode=self.dev_mode,
                     log_level=self.service_builder.log_level,
+                    tendermint_ports=(
+                        self.service_builder.service.deployment_config.get(
+                            "tendermint", {}
+                        )
+                        .get("ports", {})
+                        .get(i)
+                    ),
                 )
                 for i in range(self.service_builder.service.number_of_agents)
             ]
