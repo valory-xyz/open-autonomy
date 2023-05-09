@@ -1757,27 +1757,27 @@ class TestAbciApp:
             cross_period_persisted_keys = frozenset({"2", "3"})
 
         EmptyAbciApp.add_termination(
-            TerminationAbciApp.background_round_cls,
+            TerminationAbciApp.termination_round_cls,
             TerminationAbciApp.termination_event,
             TerminationAbciApp,
         )
 
-        assert EmptyAbciApp.background_round_cls is not None
+        assert EmptyAbciApp.termination_round_cls is not None
         assert EmptyAbciApp.termination_transition_function is not None
         assert EmptyAbciApp.termination_event is not None
         assert EmptyAbciApp.cross_period_persisted_keys == {"1", "2", "3"}
 
-    def test_background_round(self) -> None:
-        """Test the background_round property."""
+    def test_termination_round(self) -> None:
+        """Test the termination_round property."""
         self.abci_app.setup()
-        assert self.abci_app.background_round is not None
+        assert self.abci_app.termination_round is not None
 
-    def test_background_round_negative(self) -> None:
-        """Test the background_round property when _background_round is not set."""
+    def test_termination_round_negative(self) -> None:
+        """Test the termination_round property when _termination_round is not set."""
         # notice that we don't call `self.abci_app.setup()` here
         # which is why this test works
-        with pytest.raises(ValueError, match="background_round not set!"):
-            self.abci_app.background_round
+        with pytest.raises(ValueError, match="Termination round not set!"):
+            _ = self.abci_app.termination_round
 
     def test_cleanup(self) -> None:
         """Test the cleanup method."""
@@ -1841,12 +1841,12 @@ class TestAbciApp:
         "transaction",
         [mock.MagicMock(payload=DUMMY_CONCRETE_BACKGROUND_PAYLOAD)],
     )
-    def test_check_transaction_for_background_round(
+    def test_check_transaction_for_termination_round(
         self,
         check_transaction_mock: mock.Mock,
         transaction: Transaction,
     ) -> None:
-        """Tests process_transaction when it's a transaction meant for the background app."""
+        """Tests process_transaction when it's a transaction meant for the termination app."""
         self.abci_app.setup()
         self.abci_app.check_transaction(transaction)
         check_transaction_mock.assert_called_with(transaction)
@@ -1856,12 +1856,12 @@ class TestAbciApp:
         "transaction",
         [mock.MagicMock(payload=DUMMY_CONCRETE_BACKGROUND_PAYLOAD)],
     )
-    def test_process_transaction_for_background_round(
+    def test_process_transaction_for_termination_round(
         self,
         process_transaction_mock: mock.Mock,
         transaction: Transaction,
     ) -> None:
-        """Tests process_transaction when it's a transaction meant for the background app."""
+        """Tests process_transaction when it's a transaction meant for the termination app."""
         self.abci_app.setup()
         self.abci_app.process_transaction(transaction)
         process_transaction_mock.assert_called_with(transaction)
@@ -2092,7 +2092,6 @@ class TestAvailabilityWindow:
 
 
 @composite
-@settings(suppress_health_check=[HealthCheck.too_slow])
 def offence_tracking(draw: DrawFn) -> Tuple[Evidences, LastCommitInfo]:
     """A strategy for building offences reported by Tendermint."""
     n_validators = draw(integers(min_value=1, max_value=10))
@@ -2549,6 +2548,7 @@ class TestRoundSequence:
         assert self.round_sequence._blockchain.height == initial_height - 1
 
     @given(offence_tracking())
+    @settings(suppress_health_check=[HealthCheck.too_slow])
     def test_track_offences(self, offences: Tuple[Evidences, LastCommitInfo]) -> None:
         """Test `_track_offences` method."""
         evidences, last_commit_info = offences
@@ -2830,7 +2830,7 @@ class TestRoundSequence:
 
     @mock.patch.object(AbciApp, "process_event")
     @pytest.mark.parametrize(
-        "background_round_result, current_round_result",
+        "termination_round_result, current_round_result",
         [
             (None, None),
             (None, (MagicMock(), MagicMock())),
@@ -2838,10 +2838,10 @@ class TestRoundSequence:
             ((MagicMock(), MagicMock()), (MagicMock(), MagicMock())),
         ],
     )
-    def test_update_round_when_background_returns(
+    def test_update_round_when_termination_returns(
         self,
         process_event_mock: mock.Mock,
-        background_round_result: Optional[Tuple[BaseSynchronizedData, Any]],
+        termination_round_result: Optional[Tuple[BaseSynchronizedData, Any]],
         current_round_result: Optional[Tuple[BaseSynchronizedData, Any]],
     ) -> None:
         """Test '_update_round' method."""
@@ -2854,13 +2854,13 @@ class TestRoundSequence:
             "end_block",
             return_value=current_round_result,
         ), mock.patch.object(
-            self.round_sequence.background_round,
+            self.round_sequence.termination_round,
             "end_block",
-            return_value=background_round_result,
+            return_value=termination_round_result,
         ):
             self.round_sequence._update_round()
 
-        if background_round_result is None and current_round_result is None:
+        if termination_round_result is None and current_round_result is None:
             assert (
                 self.round_sequence._last_round_transition_timestamp
                 != self.round_sequence._blockchain.last_block.timestamp
@@ -2878,7 +2878,7 @@ class TestRoundSequence:
                 != self.round_sequence.tm_height
             )
             process_event_mock.assert_not_called()
-        elif background_round_result is None and current_round_result is not None:
+        elif termination_round_result is None and current_round_result is not None:
             assert (
                 self.round_sequence._last_round_transition_timestamp
                 == self.round_sequence._blockchain.last_block.timestamp
@@ -2899,7 +2899,7 @@ class TestRoundSequence:
                 current_round_result[-1],
                 result=current_round_result[0],
             )
-        elif background_round_result is not None:
+        elif termination_round_result is not None:
             assert (
                 self.round_sequence._last_round_transition_timestamp
                 == self.round_sequence._blockchain.last_block.timestamp
@@ -2917,8 +2917,8 @@ class TestRoundSequence:
                 == self.round_sequence.tm_height
             )
             process_event_mock.assert_called_with(
-                background_round_result[-1],
-                result=background_round_result[0],
+                termination_round_result[-1],
+                result=termination_round_result[0],
             )
 
     @pytest.mark.parametrize("restart_from_round", (ConcreteRoundA, MagicMock()))

@@ -5,6 +5,20 @@ Below we describe the additional manual steps required to upgrade between differ
 
 # Open Autonomy
 
+## `TBD` to `TBD`
+
+- Renamed the `background_behaviour_cls` in `AbstractRoundBehaviour` to `termination_behaviour_cls`. 
+ *Should be taken into consideration for all the apps that are utilizing the termination.*
+- Renamed the `background_behaviour` in `AbstractRoundBehaviour` to `termination_behaviour`.
+- Renamed the `is_background_behaviour_set` property in `AbstractRoundBehaviour` to `is_termination_set`.
+- Renamed the `background_round_cls` argument of the `add_termination` method in `AbciApp` to `termination_round_cls`. 
+ *Should be taken into consideration for all the apps that are utilizing the termination.*
+- Renamed the `background_round_cls` attribute of the `AbciApp` to `termination_round_cls`.
+- Renamed the `_background_round` attribute of the `AbciApp` to `_termination_round`.
+- Renamed the `background_round` property of the `AbciApp` to `termination_round`.
+
+1 && 4 should be taken into consideration for all the apps that are utilizing the termination.
+
 ## `v0.10.2` to `v0.10.3`
 
 No backwards incompatible changes

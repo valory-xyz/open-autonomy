@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ RegisterTerminateAbciApp = chain(
     ),
     abci_app_transition_mapping,
 ).add_termination(
-    background_round_cls=BackgroundRound,
+    termination_round_cls=BackgroundRound,
     termination_event=Event.TERMINATE,
     termination_abci_app=TerminationAbciApp,
 )

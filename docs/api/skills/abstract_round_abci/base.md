@@ -2128,7 +2128,7 @@ Return if the abci app is abstract.
 
 ```python
 @classmethod
-def add_termination(cls, background_round_cls: AppState,
+def add_termination(cls, termination_round_cls: AppState,
                     termination_event: EventType,
                     termination_abci_app: Type["AbciApp"]) -> Type["AbciApp"]
 ```
@@ -2233,13 +2233,13 @@ def current_round() -> AbstractRound
 
 Get the current round.
 
-<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.background_round"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.AbciApp.termination_round"></a>
 
-#### background`_`round
+#### termination`_`round
 
 ```python
 @property
-def background_round() -> AbstractRound
+def termination_round() -> AbstractRound
 ```
 
 Get the background round.
@@ -2887,16 +2887,16 @@ def current_round() -> AbstractRound
 
 Get current round.
 
-<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.background_round"></a>
+<a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.termination_round"></a>
 
-#### background`_`round
+#### termination`_`round
 
 ```python
 @property
-def background_round() -> AbstractRound
+def termination_round() -> AbstractRound
 ```
 
-Get the background round.
+Get the termination round.
 
 <a id="packages.valory.skills.abstract_round_abci.base.RoundSequence.current_round_id"></a>
 
