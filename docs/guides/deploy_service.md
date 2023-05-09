@@ -35,7 +35,7 @@ We illustrate the full local deployment workflow using the `hello_world` service
 
     === "Remote registry"
         ```bash
-        autonomy fetch valory/hello_world:0.1.0:bafybeigtaxh5zfg32cypqkjvftreivh22sqlrbgw5x3lxjmrf3dyqcioyy --service
+        autonomy fetch valory/hello_world:0.1.0:bafybeicfi3pxkpuo5qgwwqsmxxsm3mmnuhhgaj5ay7wap2jrnuauvf7icy --service
         ```
 
 2. **Build the agents' image.** Navigate to the service runtime folder that you have just created and build the Docker image of the agents of the service:
@@ -236,23 +236,20 @@ We illustrate the full local deployment workflow using the `hello_world` service
 
 ## Local deployment of minted services
 
-The framework provides a convenient method to deploy agent services minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/). This has the benefit that some parameters, including the `ALL_PARTICIPANTS` environment variable, are set automatically.
+The framework provides a convenient method to deploy agent services minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/). This has the benefit that some configuration parameters of the {{fsm_app}} skill will be overridden automatically with values obtained on-chain. Namely:
 
-!!! warning "Important"
-    This deployment mode will override a number of configuration arguments in the {{fsm_app}} skill, within the the agent containers, with values obtained on-chain. Namely:
+```yaml title="skill.yaml"
+(...)
+models:
+    params:
+    args:
+        setup:
+        all_participants:      # Overridden with the registered values in the Autonolas protocol
+        safe_contract_address: # Overridden with the registered values in the Autonolas protocol
+        consensus_threshold:   # Overridden with the registered values in the Autonolas protocol
+```
 
-    === "skill.yaml"
-
-    ```yaml
-    (...)
-    models:
-      params:
-        args:
-          setup:
-            all_participants:      # Overridden with the registered values in the Autonolas protocol
-            safe_contract_address: # Overridden with the registered values in the Autonolas protocol
-            consensus_threshold:   # Overridden with the registered values in the Autonolas protocol
-    ```
+This means, in particular, that there is no need to define the `ALL_PARTICIPANTS` environment variable.
 
 1. **Find the service ID.** Explore the [services section](https://protocol.autonolas.network/agents) of the protocol frontend, and note the token ID of the service that you want to deploy. The service must be in [Deployed state](https://docs.autonolas.network/protocol/life_cycle_of_a_service/#deployed).
 
@@ -301,9 +298,9 @@ The framework provides a convenient method to deploy agent services minted in th
         autonomy deploy from-token <ID> keys.json --use-goerli --kubernetes # (1)!
         ```
 
-        1. `--use-goerli` indicates that the service is registered in the Görli testnet. Check out the [`autonomy deploy from-token`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-from-token) command documentation to learn more about its parameters and options.
+        2. `--use-goerli` indicates that the service is registered in the Görli testnet. Check out the [`autonomy deploy from-token`](../../../advanced_reference/commands/autonomy_deploy/#autonomy-deploy-from-token) command documentation to learn more about its parameters and options.
 
-        The Kubernetes deployment will be built for the agents whose keys are defined in the `keys.json` file. You need to deploy the service in the local cluster manually. Follow the instructions in Step 5 of the [local deployment - full workflow](#local-deployment---full-workflow) section.
+        The Kubernetes deployment will be built for the agents whose keys are defined in the `keys.json` file. You need to deploy the service in the local cluster manually. Follow the instructions in Step 5 of the [local deployment - full workflow](#local-deployment-full-workflow) section.
 
 ## Cloud deployment
 

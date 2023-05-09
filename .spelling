@@ -19,6 +19,7 @@ ABCI-compatible
 Fantom
 ABCI-application
 mixin
+minikube
 startup
 standalone
 FIPA-like

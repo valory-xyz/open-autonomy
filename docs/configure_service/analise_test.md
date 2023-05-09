@@ -87,5 +87,5 @@ The same plugin also provides tools for writing end-to-end tests for agents. The
     ./hello_world_agent/tests/
     ```
 
-The framework also provides CLI tools for building and running [local testing deployments](../guides/deploy_service.md#local-deployment).
+The framework also provides CLI tools for building and running [local testing deployments](../guides/deploy_service.md#local-deployment-full-workflow).
 You can include additional images in your testing deployment, for example, a Hardhat node with custom contracts, or an ACN node. This is achieved through the flags `--use-hardhat` and `--use-acn`, respectively. Read the [`autonomy deploy build` command documentation](../advanced_reference/commands/autonomy_deploy.md#autonomy-deploy-build) and the guide for [using custom images in a deployment](../advanced_reference/use_custom_images.md#images-used-in-testing-only) for more information.

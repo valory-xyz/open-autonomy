@@ -12,9 +12,11 @@ Ensure that your machine satisfies the following requirements:
 
 Additionally, if you wish to deploy your service in a Kubernetes cluster:
 
-- [Skaffold](https://skaffold.dev/docs/install/)
-- [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
-- [Kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [Kubernetes CLI](https://kubernetes.io/docs/tasks/tools/)
+- [minikube](https://minikube.sigs.k8s.io/docs/)
+
+!!! tip
+	Although we will use these tools for demonstration purposes only, you might as well consider other local Kubernetes cluster options like [kind](https://kind.sigs.k8s.io/docs/user/quick-start/), or even additional tools like [Skaffold](https://skaffold.dev/) or [Helm](https://helm.sh/) to help you with your cluster deployments.
 
 ## Set up the framework
 
