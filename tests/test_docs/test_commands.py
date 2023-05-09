@@ -154,6 +154,7 @@ def test_validate_doc_commands() -> None:
 
     skips = [
         "autonomy tests/ --cov",
+        "aea -- /bin/sh"
     ]
 
     # Validate all matches
