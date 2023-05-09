@@ -73,9 +73,9 @@ class _MetaRoundBehaviour(ABCMeta):
     ) -> None:
         """Check that all the required class attributes are set."""
         try:
-            behaviour_cls.abci_app_cls  # pylint: disable=pointless-statement
-            behaviour_cls.behaviours  # pylint: disable=pointless-statement
-            behaviour_cls.initial_behaviour_cls  # pylint: disable=pointless-statement
+            _ = behaviour_cls.abci_app_cls
+            _ = behaviour_cls.behaviours
+            _ = behaviour_cls.initial_behaviour_cls
         except AttributeError as e:
             raise ABCIAppInternalError(*e.args) from None
 
