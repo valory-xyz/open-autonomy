@@ -68,7 +68,7 @@ class AgentRunner:
             else:
                 self.agent_env[key] = value
 
-        self.agent_env[CONNECTION_ABCI_CONFIG_HOST] = "localhost"
+        self.agent_env[CONNECTION_ABCI_CONFIG_HOST] = "127.0.0.1"
         self.agent_env[CONNECTION_ABCI_CONFIG_PORT] = f"2665{self.agent_id}"
 
     def start(
