@@ -18,9 +18,21 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the behaviours for the 'abstract_round_abci' skill."""
+
 from abc import ABC, ABCMeta
 from collections import defaultdict
-from typing import AbstractSet, Any, Dict, Generic, List, Optional, Tuple, Type, cast
+from typing import (
+    AbstractSet,
+    Any,
+    Dict,
+    Generic,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    cast,
+)
 
 from aea.skills.base import Behaviour
 
@@ -148,7 +160,7 @@ class _MetaRoundBehaviour(ABCMeta):
             )
 
 
-class AbstractRoundBehaviour(
+class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
     Behaviour, ABC, Generic[EventType], metaclass=_MetaRoundBehaviour
 ):
     """This behaviour implements an abstract round behaviour."""
@@ -157,6 +169,8 @@ class AbstractRoundBehaviour(
     behaviours: AbstractSet[BehaviourType]
     initial_behaviour_cls: BehaviourType
     termination_behaviour_cls: Optional[BehaviourType] = None
+    pending_offences_behaviour_cls: Optional[BehaviourType] = None
+    slashing_behaviour_cls: Optional[BehaviourType] = None
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize the behaviour."""
@@ -170,6 +184,8 @@ class AbstractRoundBehaviour(
 
         self.current_behaviour: Optional[BaseBehaviour] = None
         self.termination_behaviour: Optional[BaseBehaviour] = None
+        self.pending_offences_behaviour: Optional[BaseBehaviour] = None
+        self.slashing_behaviour: Optional[BaseBehaviour] = None
         self.tm_manager: Optional[TmManager] = None
         # keep track of last round height so to detect changes
         self._last_round_height = 0
@@ -228,22 +244,68 @@ class AbstractRoundBehaviour(
         """Returns whether the termination behaviour is set."""
         return self.termination_behaviour_cls is not None
 
-    def setup(self) -> None:
-        """Set up the behaviours."""
-        self.current_behaviour = self.instantiate_behaviour_cls(
-            self.initial_behaviour_cls
-        )
-        self.tm_manager = self.instantiate_behaviour_cls(TmManager)  # type: ignore
-        if self.is_termination_set and self.current_behaviour.params.use_termination:
+    @property
+    def is_pending_offences_set(self) -> bool:
+        """Returns whether the pending offences behaviour is set."""
+        return self.pending_offences_behaviour_cls is not None
+
+    @property
+    def is_slashing_set(self) -> bool:
+        """Returns whether the slashing behaviour is set."""
+        return self.slashing_behaviour_cls is not None
+
+    def _setup_background(self, use_termination: bool) -> None:
+        """Set up the background behaviours."""
+        if self.is_termination_set and use_termination:
             self.termination_behaviour_cls = cast(
                 Type[BaseBehaviour], self.termination_behaviour_cls
             )
             self.termination_behaviour = self.instantiate_behaviour_cls(
                 self.termination_behaviour_cls
             )
+        if self.is_pending_offences_set:
+            self.pending_offences_behaviour_cls = cast(
+                Type[BaseBehaviour], self.pending_offences_behaviour_cls
+            )
+            self.pending_offences_behaviour = self.instantiate_behaviour_cls(
+                self.pending_offences_behaviour_cls
+            )
+        if self.is_slashing_set:
+            self.slashing_behaviour_cls = cast(
+                Type[BaseBehaviour], self.slashing_behaviour_cls
+            )
+            self.slashing_behaviour = self.instantiate_behaviour_cls(
+                self.slashing_behaviour_cls
+            )
+
+    def setup(self) -> None:
+        """Set up the behaviours."""
+        self.current_behaviour = self.instantiate_behaviour_cls(
+            self.initial_behaviour_cls
+        )
+        self.tm_manager = self.instantiate_behaviour_cls(TmManager)  # type: ignore
+        self._setup_background(self.current_behaviour.params.use_termination)
+
+    @property
+    def set_behaviours(self) -> Iterator[BaseBehaviour]:
+        """Get the behaviours which have been set up."""
+        return (
+            behaviour
+            for behaviour in (
+                self.termination_behaviour,
+                self.pending_offences_behaviour,
+                self.slashing_behaviour,
+            )
+            if behaviour is not None
+        )
 
     def teardown(self) -> None:
         """Tear down the behaviour"""
+
+    def _background_act(self) -> None:
+        """Call the act wrapper for the background behaviours."""
+        for behaviour in self.set_behaviours:
+            behaviour.act_wrapper()
 
     def act(self) -> None:
         """Implement the behaviour."""
@@ -265,8 +327,7 @@ class AbstractRoundBehaviour(
             self.current_behaviour.clean_up()
             self.current_behaviour = None
 
-        if self.termination_behaviour is not None:
-            self.termination_behaviour.act_wrapper()
+        self._background_act()
 
     def _process_current_round(self) -> None:
         """Process current ABCIApp round."""

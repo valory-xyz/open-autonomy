@@ -23,7 +23,7 @@
 
 from abc import ABC
 from pathlib import Path
-from typing import Any, Dict, Generator, Optional, Tuple
+from typing import Any, Dict, Generator, Optional, Tuple, Type
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -194,6 +194,8 @@ class ConcreteRoundBehaviour(AbstractRoundBehaviour):
     behaviours = {BehaviourA, BehaviourB}  # type: ignore
     initial_behaviour_cls = BehaviourA
     termination_behaviour_cls = ConcreteBackgroundBehaviour
+    pending_offences_behaviour_cls = ConcreteBackgroundBehaviour
+    slashing_behaviour_cls = ConcreteBackgroundBehaviour
 
 
 class TestAbstractRoundBehaviour:
@@ -207,21 +209,77 @@ class TestAbstractRoundBehaviour:
         context_mock.state.round_sequence.syncing_up = False
         self.round_sequence_mock.block_stall_deadline_expired = False
         self.behaviour = ConcreteRoundBehaviour(name="", skill_context=context_mock)
-        self.behaviour.tm_manager = self.behaviour.instantiate_behaviour_cls(TmManager)  # type: ignore
 
     @pytest.mark.parametrize("use_termination", (True, False))
-    def test_setup(self, use_termination: bool) -> None:
+    @pytest.mark.parametrize(
+        "expected",
+        (
+            {
+                "current_behaviour": BehaviourA,
+                "tm_manager": TmManager,
+                "termination_behaviour": ConcreteBackgroundBehaviour,
+                "pending_offences_behaviour": ConcreteBackgroundBehaviour,
+                "slashing_behaviour": ConcreteBackgroundBehaviour,
+            },
+        ),
+    )
+    def test_setup(self, use_termination: bool, expected: Dict[str, Type]) -> None:
         """Test 'setup' method."""
-        assert self.behaviour.termination_behaviour is None
         self.behaviour.context.params.use_termination = use_termination
+
+        for attr in expected.keys():
+            assert getattr(self.behaviour, attr) is None
+
         self.behaviour.setup()
-        termination_behaviour = self.behaviour.termination_behaviour
-        assert self.behaviour.termination_behaviour_cls == ConcreteBackgroundBehaviour
-        assert (
-            isinstance(termination_behaviour, self.behaviour.termination_behaviour_cls)
-            if use_termination
-            else termination_behaviour is None
-        )
+
+        for attr, expected_cls in expected.items():
+            instance = getattr(self.behaviour, attr)
+            assert (
+                isinstance(instance, expected_cls)
+                if attr != "termination_behaviour" or use_termination
+                else instance is None
+            )
+
+    none_or_behaviour_mock = (
+        None,
+        MagicMock(spec=BaseBehaviour),
+    )
+
+    @pytest.mark.parametrize(
+        "termination_behaviour",
+        none_or_behaviour_mock,
+    )
+    @pytest.mark.parametrize(
+        "pending_offences_behaviour",
+        none_or_behaviour_mock,
+    )
+    @pytest.mark.parametrize(
+        "slashing_behaviour",
+        none_or_behaviour_mock,
+    )
+    def test_set_behaviours(
+        self,
+        termination_behaviour: Optional[BaseBehaviour],
+        pending_offences_behaviour: Optional[BaseBehaviour],
+        slashing_behaviour: Optional[BaseBehaviour],
+    ) -> None:
+        """Test the `set_behaviours` property."""
+        self.behaviour.termination_behaviour = termination_behaviour
+        self.behaviour.pending_offences_behaviour = pending_offences_behaviour
+        self.behaviour.slashing_behaviour = slashing_behaviour
+
+        expected = [
+            behaviour
+            for behaviour in (
+                termination_behaviour,
+                pending_offences_behaviour,
+                slashing_behaviour,
+            )
+            if behaviour is not None
+        ]
+        actual = list(self.behaviour.set_behaviours)
+
+        assert actual == expected
 
     def test_teardown(self) -> None:
         """Test 'teardown' method."""
@@ -233,6 +291,7 @@ class TestAbstractRoundBehaviour:
 
     def test_act_current_behaviour_name_is_none(self) -> None:
         """Test 'act' with current behaviour None."""
+        self.behaviour.tm_manager = self.behaviour.instantiate_behaviour_cls(TmManager)  # type: ignore
         self.behaviour.current_behaviour = None
         with mock.patch.object(self.behaviour, "_process_current_round"):
             self.behaviour.act()
@@ -496,12 +555,14 @@ class TestAbstractRoundBehaviour:
 
     def test_act_with_round_change_after_current_behaviour_is_none(self) -> None:
         """Test the 'act' method of the behaviour, with round change, after cur behaviour is none."""
+        self.behaviour.tm_manager = self.behaviour.instantiate_behaviour_cls(TmManager)  # type: ignore
         self.round_sequence_mock.current_round = RoundA(MagicMock(), MagicMock())
         self.round_sequence_mock.current_round_height = 0
 
         # instantiate behaviour
-        self.behaviour.current_behaviour = self.behaviour.instantiate_behaviour_cls(BehaviourA)  # type: ignore
-        self.behaviour.termination_behaviour = self.behaviour.instantiate_behaviour_cls(ConcreteBackgroundBehaviour)  # type: ignore
+        self.behaviour.current_behaviour = self.behaviour.instantiate_behaviour_cls(
+            BehaviourA
+        )
 
         with mock.patch.object(
             self.behaviour.current_behaviour, "clean_up"
@@ -552,7 +613,7 @@ class TestAbstractRoundBehaviour:
         ___: mock._patch,
         expected_termination_acting: bool,
     ) -> None:
-        """Test if the background behaviour is acting only when it should."""
+        """Test if the termination background behaviour is acting only when it should."""
         self.behaviour.context.params.use_termination = expected_termination_acting
         self.behaviour.setup()
         if expected_termination_acting:
@@ -586,6 +647,7 @@ class TestAbstractRoundBehaviour:
         expected_fix: bool,
     ) -> None:
         """Test that `try_fix` is called when necessary."""
+        self.behaviour.tm_manager = self.behaviour.instantiate_behaviour_cls(TmManager)  # type: ignore
         with mock.patch.object(
             TmManager,
             "tm_communication_unhealthy",
