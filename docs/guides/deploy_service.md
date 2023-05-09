@@ -21,7 +21,7 @@ You must ensure that your machine satisfies the [framework requirements](./set_u
 
 ## Local deployment - full workflow
 
-We illustrate the full local deployment workflow using the `hello_world` service as an example.
+We illustrate the full local deployment workflow using the `hello_world` service as an example, both for Docker Compose and a simple Kubernetes cluster.
 
 1. **Fetch the service.** In the workspace folder, fetch the service from the corresponding registry:
 
@@ -170,10 +170,6 @@ We illustrate the full local deployment workflow using the `hello_world` service
         * $N$ agents containers, each one running an instance of the corresponding {{fsm_app}}.
         * a network of $N$ Tendermint nodes, one per agent.
 
-        To inspect the logs of a single agent or Tendermint node you can execute `docker logs <container_id> --follow` in a separate terminal.
-
-        You can cancel the local execution at any time by pressing ++ctrl+c++.        
-
     === "Kubernetes"
 
         We show how to run the service deployment using a local [minikube](https://minikube.sigs.k8s.io/docs/start/) cluster. You might want to consider other local cluster options such as [kind](https://kind.sigs.k8s.io/).
@@ -188,18 +184,21 @@ We illustrate the full local deployment workflow using the `hello_world` service
             If this is not the case, you need to provision the cluster with the agent image so that it is available for the cluster pods.
             This step might take a while, depending on the size of the image.
             ```bash
-            minikube image load valory/oar-hello_world:bafybeigtaxh5zfg32cypqkjvftreivh22sqlrbgw5x3lxjmrf3dyqcioyy
+            minikube image load <repository>:<tag> # (1)!
             ```
-            In this case, you also might need to change all the instances of `imagePullPolicy: Always` to `imagePullPolicy: IfNotPresent` in the deployment file build.yaml`.
+
+            1. You can get the `<repository>` and `<tag>` by inspecting the output of `docker image ls`.
+
+            In this case, you also might need to change all the instances of `imagePullPolicy: Always` to `imagePullPolicy: IfNotPresent` in the deployment file `build.yaml`.
 
 
-        3. Define the StorageClass. Replace with your NFS provisioner and adjust per your requirements. We use a `minikube-hostpath` as an example.
+        3. Define the StorageClass. Replace with your NFS provisioner and adjust per your requirements. We use `minikube-hostpath` as an example.
             ```bash 
             cat <<EOF > storageclass.yaml
             apiVersion: storage.k8s.io/v1
             kind: StorageClass
             metadata:
-            name: nfs-ephemeral
+              name: nfs-ephemeral
             provisioner: k8s.io/minikube-hostpath 
             reclaimPolicy: Retain
             EOF
@@ -214,7 +213,17 @@ We illustrate the full local deployment workflow using the `hello_world` service
 
         * one agent container, running an instance of the corresponding {{fsm_app}}.
         * one Tendermint node associated to the agent.
-             
+
+6. **Examine the deployment.**
+
+    === "Docker Compose"
+
+        To inspect the logs of a single agent or Tendermint node you can execute `docker logs <container_id> --follow` in a separate terminal.
+
+        You can cancel the local execution at any time by pressing ++ctrl+c++.   
+
+    === "Kubernetes"
+
         You can access the cluster dashboard by executing `minikube dashboard` in a separate terminal. To examine the logs of a single agent or Tendermint node you can execute:
 
         1. Get the Kubernetes pod names.
@@ -304,4 +313,4 @@ This means, in particular, that there is no need to define the `ALL_PARTICIPANTS
 
 ## Cloud deployment
 
-The sections above for local deployments provide a fundamental understanding of how to deploy agent services in general. We also offer tooling for cloud deployments. The [Open Operator](https://github.com/valory-xyz/open-operator) repository provides the necessary resources and guidelines for seamless cloud deployments of agent services based on the Open Autonomy framework.
+The sections above for local deployments provide a fundamental understanding of how to deploy agent services in general. The [Open Operator](https://github.com/valory-xyz/open-operator) repository provides the necessary resources and guidelines for seamless cloud deployments of agent services based on the Open Autonomy framework.
