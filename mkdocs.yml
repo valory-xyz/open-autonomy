@@ -36,11 +36,7 @@ nav:
     - Define the agent: 'guides/define_agent.md'
     - Define the service: 'guides/define_service.md'
     - Publish and mint packages: 'guides/publish_mint_packages.md'
-    - Deploy the service:
-        - 'guides/deploy_service/index.md'
-        - Local deployment: 'guides/deploy_service/local_deployment.md'
-        - Cluster deployment: 'guides/deploy_service/cluster_deployment.md'
-        - Cloud deployment: 'guides/deploy_service/cloud_deployment.md'
+    - Deploy the service: 'guides/deploy_service.md'
   - Demo agent services:
     - 'demos/index.md'  
     - Hello World demo: 'demos/hello_world_demo.md'

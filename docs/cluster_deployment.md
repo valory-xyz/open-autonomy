@@ -10,7 +10,7 @@ make localcluster-start
 
 ## Requirements
 
-Besides the [framework requirements](../set_up.md#requirements), you will also need:
+Besides the [framework requirements](./guides/set_up.md#requirements), you will also need:
 
 * [Skaffold](https://skaffold.dev/docs/install/): Deployment orchestration.
 * [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation): Local cluster deployment and management.
