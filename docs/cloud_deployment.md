@@ -1,11 +1,17 @@
+# Cloud Deployment	
+
+
 !!! info
     This section is under review and will be updated soon.
 
-We have provided a number of ways to run agent services built with the {{open_autonomy}} framework across different cloud providers.
+We have provided a number of ways to run agent services build with the {{open_autonomy}} framework across multiple different cloud providers.	The deployment has been implemented using a minimal distribution of Kubernetes to run as close to the bare metal as allowable. This approach leads to a number of key benefits for node operators and infrastructure providers:
 
-The deployment has been implemented using a minimal distribution of Kubernetes to run as close to the bare metal as allowable. This approach leads to a number of key benefits for node operators and infrastructure providers:
+The deployment has been implemented using a minimal distribution of Kubernetes to run as close to the bare metal as allowable.	
 
-1. No reliance upon an individual provider. We currently provide documentation coverage for Digital Ocean and for Amazon Web Services (AWS).
+This approach leads to a number of key benefits for node operators and infrastructure providers:	
+
+
+1. No reliance upon an individual provider. We currently provide documentation coverage for both Digital Ocean and for Amazon Web Services (AWS).
 2. Lower costs compared to using a managed alternative.
 3. Easily portable across different cloud providers.
 
