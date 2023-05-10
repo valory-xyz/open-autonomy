@@ -1,6 +1,6 @@
 Tools to manage services minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
 
-This command group consists of a number of functionalities to manage the life cycle of services that have been minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/).
+This command group consists of a number of functionalities to manage the life cycle of services that have been minted in the [Autonolas Protocol](https://docs.autonolas.network/protocol/). To understand about the life cycle of a service read [here](https://docs.autonolas.network/protocol/life_cycle_of_a_service/#terminated-bonded).
 
 !!! info
 
@@ -38,8 +38,56 @@ This command group consists of a number of functionalities to manage the life cy
 
     The options `--use-ethereum`, `--use-goerli`, `--use-custom-chain` and `--use-local` are mutually exclusive.
 
-`--skip-hash-check`
-: Skip hash check when verifying dependencies on chain.
+`-t, --timeout FLOAT`
+: Timeout for verifying emitted events
+
+## `autonomy service info`
+
+Print service information.
+
+### Usage
+
+```bash
+autonomy service info [OPTIONS] SERVICE_ID
+```
+
+### Examples
+
+```bash
+$ autonomy service info 3
+
++---------------------------+----------------------------------------------+
+|         Property          |                    Value                     |
++===========================+==============================================+
+| Service State             | DEPLOYED                                     |
++---------------------------+----------------------------------------------+
+| Security Deposit          | 1000                                         |
++---------------------------+----------------------------------------------+
+| Multisig Address          | 0x0000000000000000000000000000000000000000   |
++---------------------------+----------------------------------------------+
+| Cannonical Agents         | 1                                            |
++---------------------------+----------------------------------------------+
+| Max Agents                | 4                                            |
++---------------------------+----------------------------------------------+
+| Threshold                 | 3                                            |
++---------------------------+----------------------------------------------+
+| Number Of Agent Instances | 4                                            |
++---------------------------+----------------------------------------------+
+| Registered Instances      | - 0x0000000000000000000000000000000000000000 |
+|                           | - 0x0000000000000000000000000000000000000000 |
+|                           | - 0x0000000000000000000000000000000000000000 |
+|                           | - 0x0000000000000000000000000000000000000000 |
++---------------------------+----------------------------------------------+
+```
+
+## `autonomy service register`
+
+Register an agent instance in a service minted and activated in the Autonolas Protocol.
+### Usage
+
+```bash
+autonomy service register [OPTIONS] SERVICE_ID
+```
 
 ## `autonomy service activate`
 
@@ -79,6 +127,16 @@ autonomy service activate 42 --hwi
 ## `autonomy service register`
 
 Register an agent instance in a service minted and activated in the Autonolas Protocol.
+### Usage
+
+```bash
+autonomy service register [OPTIONS] SERVICE_ID
+```
+
+## `autonomy service register`
+
+Register instances on an activated service.
+
 ### Usage
 
 ```bash
@@ -155,4 +213,76 @@ Same as above, but using a hardware wallet:
 
 ```bash
 autonomy service deploy 42 --hwi
+```
+
+## `autonomy service terminate`
+
+Terminate a service.
+
+This command can be executed after the service is activated.
+
+### Usage
+
+```bash
+autonomy service terminate [OPTIONS] SERVICE_ID
+```
+### Options
+
+`--key FILE`
+: Use a private key from a file to sign the transactions.
+
+`--hwi`
+: Use a hardware wallet to sign the transactions.
+
+`--password PASSWORD`
+: Password for the key file.
+
+### Examples
+
+To termimate a service with ID 42 in the Autonolas Protocol:
+
+```bash
+autonomy service terminate 42 --key my_key.txt
+```
+
+Same as above, but using a hardware wallet:
+
+```bash
+autonomy service terminate 42 --hwi
+```
+
+## `autonomy service unbond`
+
+Unbond a service.
+
+This command can be executed after the service is terminated.
+
+### Usage
+
+```bash
+autonomy service unbond [OPTIONS] SERVICE_ID
+```
+### Options
+
+`--key FILE`
+: Use a private key from a file to sign the transactions.
+
+`--hwi`
+: Use a hardware wallet to sign the transactions.
+
+`--password PASSWORD`
+: Password for the key file.
+
+### Examples
+
+To unbond a service with ID 42 in the Autonolas Protocol:
+
+```bash
+autonomy service unbond 42 --key my_key.txt
+```
+
+Same as above, but using a hardware wallet:
+
+```bash
+autonomy service unbond 42 --hwi
 ```
