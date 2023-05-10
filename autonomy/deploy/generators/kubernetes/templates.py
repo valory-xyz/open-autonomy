@@ -309,7 +309,7 @@ stringData:
   private_key: '{private_key}'
 kind: Secret
 metadata:
-  annotations: {}
+  annotations: {{}}
   name: agent-validator-{validator_ix}-key
 type: Opaque
 """
