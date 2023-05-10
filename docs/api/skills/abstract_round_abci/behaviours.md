@@ -30,10 +30,11 @@ Initialize the class.
 ## AbstractRoundBehaviour Objects
 
 ```python
-class AbstractRoundBehaviour(Behaviour,
-                             ABC,
-                             Generic[EventType],
-                             metaclass=_MetaRoundBehaviour)
+class AbstractRoundBehaviour(  # pylint: disable=too-many-instance-attributes
+        Behaviour,
+        ABC,
+        Generic[EventType],
+        metaclass=_MetaRoundBehaviour)
 ```
 
 This behaviour implements an abstract round behaviour.
@@ -69,6 +70,28 @@ def is_termination_set() -> bool
 
 Returns whether the termination behaviour is set.
 
+<a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.is_pending_offences_set"></a>
+
+#### is`_`pending`_`offences`_`set
+
+```python
+@property
+def is_pending_offences_set() -> bool
+```
+
+Returns whether the pending offences behaviour is set.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.is_slashing_set"></a>
+
+#### is`_`slashing`_`set
+
+```python
+@property
+def is_slashing_set() -> bool
+```
+
+Returns whether the slashing behaviour is set.
+
 <a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.setup"></a>
 
 #### setup
@@ -78,6 +101,17 @@ def setup() -> None
 ```
 
 Set up the behaviours.
+
+<a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.set_behaviours"></a>
+
+#### set`_`behaviours
+
+```python
+@property
+def set_behaviours() -> Iterator[BaseBehaviour]
+```
+
+Get the behaviours which have been set up.
 
 <a id="packages.valory.skills.abstract_round_abci.behaviours.AbstractRoundBehaviour.teardown"></a>
 
