@@ -26,6 +26,7 @@ import pytest
 from aea.configurations.data_types import PackageType
 from aea_ledger_ethereum_hwi.hwi import EthereumHWIApi, EthereumHWICrypto
 from aea_test_autonomy.configurations import ETHEREUM_KEY_DEPLOYER
+from web3.exceptions import ContractLogicError
 
 from autonomy.chain.base import ServiceState
 from autonomy.chain.config import ChainConfigs, ChainType
@@ -354,7 +355,11 @@ def test_terminate_service_contract_failure() -> None:
 
     with pytest.raises(
         click.ClickException,
-        match="Service termination failed; execution reverted:",
+        match="Service termination failed",
+    ), mock.patch.object(
+        registry_contracts._service_manager,
+        "get_terminate_service_transaction",
+        side_effect=ContractLogicError,
     ):
         with mock.patch(
             "autonomy.chain.service.get_service_info",
@@ -400,7 +405,11 @@ def test_unbond_service_contract_failure() -> None:
 
     with pytest.raises(
         click.ClickException,
-        match="Service unbond failed; execution reverted:",
+        match="Service unbond failed",
+    ), mock.patch.object(
+        registry_contracts._service_manager,
+        "get_unbond_service_transaction",
+        side_effect=ContractLogicError,
     ):
         with mock.patch(
             "autonomy.chain.service.get_service_info",
