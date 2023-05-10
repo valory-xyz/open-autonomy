@@ -110,3 +110,55 @@ class TestServiceManager(BaseRegistriesContractsTest):
                 for key in tx.keys()
             ]
         )
+
+    def test_get_terminate_service_transaction(self) -> None:
+        """Test `get_terminate_service_transaction` method"""
+
+        tx = self.contract.get_terminate_service_transaction(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            owner=self.deployer_crypto.address,
+            service_id=1,
+        )
+        assert all(
+            [
+                key
+                in [
+                    "chainId",
+                    "nonce",
+                    "value",
+                    "gas",
+                    "maxFeePerGas",
+                    "maxPriorityFeePerGas",
+                    "to",
+                    "data",
+                ]
+                for key in tx.keys()
+            ]
+        )
+
+    def test_get_unbond_service_transaction(self) -> None:
+        """Test `get_unbond_service_transaction` method"""
+
+        tx = self.contract.get_unbond_service_transaction(
+            ledger_api=self.ledger_api,
+            contract_address=self.contract_address,
+            owner=self.deployer_crypto.address,
+            service_id=1,
+        )
+        assert all(
+            [
+                key
+                in [
+                    "chainId",
+                    "nonce",
+                    "value",
+                    "gas",
+                    "maxFeePerGas",
+                    "maxPriorityFeePerGas",
+                    "to",
+                    "data",
+                ]
+                for key in tx.keys()
+            ]
+        )
