@@ -94,3 +94,23 @@ class ServiceDeployFailed(ChainInteractionError)
 
 Raise when service activation fails.
 
+<a id="autonomy.chain.exceptions.TerminateServiceFailed"></a>
+
+## TerminateServiceFailed Objects
+
+```python
+class TerminateServiceFailed(ChainInteractionError)
+```
+
+Raise when service termination fails.
+
+<a id="autonomy.chain.exceptions.UnbondServiceFailed"></a>
+
+## UnbondServiceFailed Objects
+
+```python
+class UnbondServiceFailed(ChainInteractionError)
+```
+
+Raise when service unbond call fails.
+

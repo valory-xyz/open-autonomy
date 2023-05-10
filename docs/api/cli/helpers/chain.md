@@ -108,3 +108,41 @@ def deploy_service(service_id: int,
 
 Deploy a service with registration activated
 
+<a id="autonomy.cli.helpers.chain.terminate_service"></a>
+
+#### terminate`_`service
+
+```python
+def terminate_service(service_id: int,
+                      key: Path,
+                      chain_type: ChainType,
+                      password: Optional[str] = None,
+                      hwi: bool = False) -> None
+```
+
+Terminate a service
+
+<a id="autonomy.cli.helpers.chain.unbond_service"></a>
+
+#### unbond`_`service
+
+```python
+def unbond_service(service_id: int,
+                   key: Path,
+                   chain_type: ChainType,
+                   password: Optional[str] = None,
+                   hwi: bool = False) -> None
+```
+
+Terminate a service
+
+<a id="autonomy.cli.helpers.chain.print_service_info"></a>
+
+#### print`_`service`_`info
+
+```python
+def print_service_info(service_id: int, chain_type: ChainType) -> None
+```
+
+Terminate a service
+
