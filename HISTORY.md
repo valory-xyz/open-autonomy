@@ -1,5 +1,11 @@
 # Release History - `open-autonomy`
 
+# 0.10.3 (TBD)
+
+Packages:
+- Removes the kill logic in case the active Tendermint peers are less than the majority of the participants #1958
+
+
 # 0.10.3 (2023-05-03)
 
 Autonomy:
