@@ -1,15 +1,14 @@
-# Cloud Deployment	
-
+# Cloud Deployment
 
 !!! info
     This section is under review and will be updated soon.
 
-We have provided a number of ways to run agent services build with the {{open_autonomy}} framework across multiple different cloud providers.	The deployment has been implemented using a minimal distribution of Kubernetes to run as close to the bare metal as allowable. This approach leads to a number of key benefits for node operators and infrastructure providers:
 
-The deployment has been implemented using a minimal distribution of Kubernetes to run as close to the bare metal as allowable.	
+We have provided a number of ways to run agent services build with the {{open_autonomy}} framework across multiple different cloud providers.
 
-This approach leads to a number of key benefits for node operators and infrastructure providers:	
+The deployment has been implemented using a minimal distribution of Kubernetes to run as close to the bare metal as allowable.
 
+This approach leads to a number of key benefits for node operators and infrastructure providers:
 
 1. No reliance upon an individual provider. We currently provide documentation coverage for both Digital Ocean and for Amazon Web Services (AWS).
 2. Lower costs compared to using a managed alternative.
@@ -24,7 +23,15 @@ We have 3 deployment options available for external operators.
 
 Infrastructure deployment is handled by [Terraform](https://www.terraform.io/) to ensure replicability across multiple providers whilst allowing external operators to configure the deployments to match their specific deployment requirements.
 
-## Requirements
+
+## Kubernetes Cluster
+### Pre-requisites
+
+We require a domain for our cluster. This allow us to route traffic to our cluster controller node. This is a pre-requisite of both Kubernetes based deployments, however the docker-compose deployment is able to skip this step.
+
+The domain can be acquired from a domain registrar such as [goDaddy](https://www.godaddy.com). Most cloud providers also offer this as a service such as AWS. The key requirement is to be able to update the domain registrars nameserver (NS) records easily.
+
+###Install dependencies.
 
 - [Skaffold](https://skaffold.dev/docs/install/): Deployment Orchestration
 - [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation): Local Cluster deployment and management.
@@ -32,11 +39,9 @@ Infrastructure deployment is handled by [Terraform](https://www.terraform.io/) t
 - [Docker](https://docs.docker.com/get-docker/): Container backend.
 - [Terraform](https://www.terraform.io/downloads.html): Infrastructure management as code.
 
-You also require a domain for the cluster. This allows to route traffic to your cluster controller node. This is a pre-requisite of both Kubernetes-based deployments. However Docker Compose deployments can skip this step.
 
-The domain can be acquired from a domain registrar such as [goDaddy](https://www.godaddy.com). Most cloud providers also offer registrar services, like AWS. It is important that you are able to update the domain nameserver records (NS) easily.
 
-## Kubernetes Cluster
+### Step-by-step Deployment Instructions
 
 1. Acquire the external operator code.
 ```bash
@@ -48,12 +53,12 @@ cd infrastructure
 1. We need to first create an authentication file to be used by terraform to create cloud resources. This can be done from the [API Settings](https://cloud.digitalocean.com/account/api/tokens). Save this file within the root directory as ```infrastructure/do_creds```
 2. Now we have our authentication token, we need to setup the domain we registered earlier. This is again done from the [Network & Domains](https://cloud.digitalocean.com/networking/domains) section of Digital Ocean.
 3. Create a new domain by entering your domain
-![Image title](./images/networking_page.png){ align=center }
+![Image title](images/networking_page.png){ align=center }
 
 4. Once the domain has been setup on Digital Ocean, you will be provided with a list of Nameservers as so;
-![Image title](./images/do_name_servers.png){ align=center }
+![Image title](images/do_name_servers.png){ align=center }
 You MUST configure your domain provider to point at these name servers like so;
-![Image title](./images/name_server_setup.png){ align=center }
+![Image title](images/name_server_setup.png){ align=center }
 
 5. Once you have completed these steps, you are now ready to deploy the cluster to the infrastructure.
 ```bash
