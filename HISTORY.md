@@ -6,6 +6,9 @@ Packages:
 - Removes the kill logic in case the active Tendermint peers are less than the majority of the participants #1958
 
 
+Docs:
+- Improves cluster deployment section, now based on minikube #1924
+
 # 0.10.3 (2023-05-03)
 
 Autonomy:
