@@ -22,14 +22,14 @@ You can find the instructions on how to run the Hello World service in the [quic
 If you have [set up the framework](../guides/set_up.md#set-up-the-framework), you can fetch the source code of the Hello World agent:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeidnp35j5plp7fnev3rsf2g4gpwbfz7lkx6iwjdfkvnanvqkinp4pq
+autonomy fetch valory/hello_world:0.1.0:bafybeih7w43g4awi6gjykchtn676aad5gjmixu4aovnuyvfsbxarcqcj4u
 mv hello_world hello_world_agent
 ```
 
 and the Hello World service:
 
 ```bash
-autonomy fetch valory/hello_world:0.1.0:bafybeidwivvc2acwpdqlccuhojonjvko4lcfxwt4siuooeze27kq7njldm --service
+autonomy fetch valory/hello_world:0.1.0:bafybeif4du72b6ixhkdqcfkfpq4ctijycii2scahhrn3s75hqoxjuk7bzu --service
 mv hello_world hello_world_service
 ```
 
@@ -508,7 +508,7 @@ This is an excerpt of the `aea-config.yaml` file:
 ```yaml
 # ...
 connections:
-- valory/abci:0.1.0:bafybeieogrpktpxfq74leeeeylfx33sob2hovhpl5coxlswae6xblzbezy
+- valory/abci:0.1.0:bafybeihkimb5kmtrhapmvix2od3u3qocqz4zfcjvaphj4t4sardtjgsfqy
 - valory/http_client:0.23.0:bafybeidykl4elwbcjkqn32wt5h4h7tlpeqovrcq3c5bcplt6nhpznhgczi
 - valory/ipfs:0.1.0:bafybeifkzgdzuoxqovcjswsnzsehjh7bjwbska26ufmcrk7hbufk4c4dae
 - valory/ledger:0.19.0:bafybeicgfupeudtmvehbwziqfxiz6ztsxr5rxzvalzvsdsspzz73o5fzfi
@@ -520,9 +520,9 @@ protocols:
 - valory/http:1.0.0:bafybeifyoio7nlh5zzyn5yz7krkou56l22to3cwg7gw5v5o3vxwklibhty
 - valory/ipfs:0.1.0:bafybeic72ncgqbzoz2guj4p4yjqulid7mv6yroeh65hxznloamoveeg7hq
 skills:
-- valory/abstract_abci:0.1.0:bafybeihgerjeq4u4apuue7zzhpb3wmntuju34dbdijbbvl4wclww2gy7di
-- valory/abstract_round_abci:0.1.0:bafybeieicljvksob57dp27tqsnr3h4afldkndleswveqy5mzdhvhdtx2p4
-- valory/hello_world_abci:0.1.0:bafybeiflbhsy5avbx52oymlmattmevjuc4vqs44tspdckx2vsi2xmyek7e
+- valory/abstract_abci:0.1.0:bafybeigqr6dzr23r6oxbnpxqyae7g5ndjy75oatjk6liyrvmpb2jxehirq
+- valory/abstract_round_abci:0.1.0:bafybeich3i7gwcyuqg6t3zrvsapoxrkvadpjcs4klaf7ngsmzqdshhpadm
+- valory/hello_world_abci:0.1.0:bafybeidt6bgo7mzc7mb7flwwd6wacr24paxtvtvgodbzxaaewtcmkbt6ly
 # ...
 ```
 

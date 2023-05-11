@@ -21,7 +21,7 @@ contracts:
 - valory/gnosis_safe:0.1.0:bafybeig2dobzlupi4twn3lv2avfajslgjukkmkdd4qzf37cbfv7ojupv54
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeifydgooxpzav7b7blpxj4p5arytmjqphdcyl46egs3htnj2fszora
 - valory/multisend:0.1.0:bafybeigjywkl7hydjsrkogob3xebj2ifhqwmfhhxoeyrndzhhxi5u6amey
-- valory/service_registry:0.1.0:bafybeicuslp3xrijpky67ox5wt4etajnjgekn2c4bmvmfhgszqfwh3v27m
+- valory/service_registry:0.1.0:bafybeics2gdksww76emw5b7hyph75t7l72dpnls6qua5yfzwpeeezolnhq
 protocols:
 - open_aea/signing:1.0.0:bafybeibqlfmikg5hk4phzak6gqzhpkt6akckx7xppbp53mvwt6r73h7tk4
 - valory/abci:0.1.0:bafybeig3dj5jhsowlvg3t73kgobf6xn4nka7rkttakdb2gwsg5bp7rt7q4
@@ -33,12 +33,12 @@ protocols:
 - valory/tendermint:0.1.0:bafybeicusvezoqlmyt6iqomcbwaz3xkhk2qf3d56q5zprmj3xdxfy64k54
 skills:
 - valory/abstract_abci:0.1.0:bafybeigqr6dzr23r6oxbnpxqyae7g5ndjy75oatjk6liyrvmpb2jxehirq
-- valory/abstract_round_abci:0.1.0:bafybeibw4d4ikt5vmabrmtzahx37gwclcqxnvheqlnzawhylpppyfjmhuq
-- valory/register_termination_abci:0.1.0:bafybeibfwcjnblgwlyq5cdqinj7rp2nan7lpawbygoajeg3dqupy4pnpom
-- valory/registration_abci:0.1.0:bafybeihwa56k7sravlmwkbte32dnnxv3q7nixjzwpb3d6swhfbohid7yd4
-- valory/reset_pause_abci:0.1.0:bafybeigdpv4mu7nznfqwmo7en3bvxmhnpdjkggdlf6kpoihg6d3642qvta
-- valory/termination_abci:0.1.0:bafybeigl6ybcqpfoid3dzzfxozbma6zmvcgusnrb5wbqjfpybwhyh4o6wy
-- valory/transaction_settlement_abci:0.1.0:bafybeiatvslpevi62qsotp5k3b3hwcawkz3y2ubgtky4fk6jdzjbo5ulpe
+- valory/abstract_round_abci:0.1.0:bafybeich3i7gwcyuqg6t3zrvsapoxrkvadpjcs4klaf7ngsmzqdshhpadm
+- valory/register_termination_abci:0.1.0:bafybeieiffkxmu5g2jmbvdpidcyspjjrdymtmrrqpkybkh4ffxjoqlfo3y
+- valory/registration_abci:0.1.0:bafybeicnrovt3uixevtq6iq74qmeowr3mol3vbbbri7aik3ph5ykyrof7m
+- valory/reset_pause_abci:0.1.0:bafybeiguazfpzemsyodwnw5hcvye5ayvdkqoyiv4scwoxty2xcik6ydg64
+- valory/termination_abci:0.1.0:bafybeifqnkcg5okyniuv4yf6hml7acsn63hlwobrdnkiu4j5mmsyxkg5ca
+- valory/transaction_settlement_abci:0.1.0:bafybeiez6nwt2ry7aym3b2rt772arlkrds5ldcwhj4i5ixkwqpsvfmwcay
 default_ledger: ethereum
 required_ledgers:
 - ethereum
