@@ -1,9 +1,10 @@
 # Release History - `open-autonomy`
 
-# 0.10.3 (TBD)
+# 0.10.4 (TBD)
 
 Packages:
 - Removes the kill logic in case the active Tendermint peers are less than the majority of the participants #1958
+- Adds support for verifying the service registry on Polygon and Gnosis #1959
 
 
 # 0.10.3 (2023-05-03)
