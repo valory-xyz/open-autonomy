@@ -10,7 +10,8 @@ fingerprint:
   build/ServiceRegistry.json: bafybeia4qi2vstrutejzrxfpbb6eift7va5cjs7bparaal2fafiiczuiyy
   contract.py: bafybeiablbsxmznwvhyglvun2sinek2cgv4pq7ppbzbz3dunycadvovgui
   tests/__init__.py: bafybeicl2oklx774jomlt6wwwegfdzrxh6iazjxwcyc7h4gepjljkpl4ji
-  tests/test_contract.py: bafybeicx6kbyez4myel3sombygi74x45esscwnioxowowshn3wfmykd7vy
+  tests/test_contract.py: bafybeib5rszbzspzjfmckqbhwca4l45mchuozsw6ezc7po7uaqdv6zo24a
+  tests/test_gnosis.py: bafybeiet2le56lqtdhtj24wo5jt2cxrl3wivtzd5ab5ypjnzuzixxqwvei
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: ServiceRegistryContract
