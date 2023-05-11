@@ -8,6 +8,9 @@ Packages:
 - Improves error logging during registration #1961
 
 
+Docs:
+- Improves cluster deployment section, now based on minikube #1924
+
 # 0.10.3 (2023-05-03)
 
 Autonomy:

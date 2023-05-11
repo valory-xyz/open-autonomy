@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 Valory AG
+#   Copyright 2022-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -152,9 +152,7 @@ def test_validate_doc_commands() -> None:
     # Ends just before one of the following characters/strings: &, ', (, [, \n, ;, `, |, #, </code>, =, "
     COMMAND_REGEX = r"""(^|\s|`|>)(?P<full_cmd>(?P<cli>aea|autonomy) ((?!(&|'|\(|\[|\n|;|`|\||#|<\/code>|=|")).)*)"""
 
-    skips = [
-        "autonomy tests/ --cov",
-    ]
+    skips = ["autonomy tests/ --cov", "aea -- /bin/sh"]
 
     # Validate all matches
     for file_ in target_files:
